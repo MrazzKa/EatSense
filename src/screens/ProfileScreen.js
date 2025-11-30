@@ -874,35 +874,39 @@ const ProfileScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
               {(planOptions || []).map((plan) => {
                 const isSelected = pendingPlan === plan.id;
+                const isCurrentPlan = subscription.planId === plan.id;
+                const planDetails = getPlanDetails(plan.id);
                 return (
                   <TouchableOpacity
                     key={plan.id}
                     style={[
                       styles.modalPlanCard,
                       isSelected && styles.modalPlanCardSelected,
+                      isCurrentPlan && styles.modalPlanCardCurrent,
                     ]}
                     activeOpacity={0.9}
-                    onPress={() => !planSaving && setPendingPlan(plan.id)}
+                    onPress={() => !planSaving && !isCurrentPlan && setPendingPlan(plan.id)}
+                    disabled={isCurrentPlan}
                   >
                     <View style={styles.modalPlanHeader}>
                       <View>
-                        <Text style={styles.modalPlanName}>{plan.name}</Text>
-                        <Text style={styles.modalPlanPrice}>{plan.price}</Text>
+                        <Text style={styles.modalPlanName}>{planDetails.name}</Text>
+                        <Text style={styles.modalPlanPrice}>{planDetails.priceText}</Text>
                       </View>
-                      {plan.badge && (
+                      {planDetails.badge && (
                         <View style={styles.modalPlanBadge}>
                           <Text style={styles.modalPlanBadgeText}>
-                            {plan.badge}
+                            {planDetails.badge}
                           </Text>
                         </View>
                       )}
                     </View>
                     <Text style={styles.modalPlanDescription}>
-                      {plan.description}
+                      {planDetails.description}
                     </Text>
                     <View style={styles.modalPlanFeatures}>
-                      {(plan.features || []).map((feature) => (
-                        <View key={feature} style={styles.planFeatureRow}>
+                      {(planDetails.features || []).map((feature, index) => (
+                        <View key={`${plan.id}-feature-${index}`} style={styles.planFeatureRow}>
                           <Ionicons
                             name="checkmark-circle"
                             size={18}
@@ -921,6 +925,11 @@ const ProfileScreen = () => {
                         </View>
                       ))}
                     </View>
+                    {isCurrentPlan && (
+                      <Text style={styles.currentPlanLabel}>
+                        {safeT('profile.currentPlan', 'Current plan')}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -1160,6 +1169,10 @@ const createStyles = (tokens) =>
       borderColor: tokens.colors.primary,
       backgroundColor: tokens.colors.primaryTint || tokens.colors.surfaceMuted,
     },
+    modalPlanCardCurrent: {
+      borderColor: tokens.colors.borderMuted,
+      opacity: 0.8,
+    },
     modalPlanHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -1191,6 +1204,13 @@ const createStyles = (tokens) =>
     },
     modalPlanFeatures: {
       gap: tokens.spacing.xs,
+    },
+    currentPlanLabel: {
+      fontSize: tokens.typography.caption.fontSize,
+      fontWeight: '600',
+      color: tokens.colors.primary,
+      marginTop: tokens.spacing.xs,
+      textAlign: 'center',
     },
     modalApplyButton: {
       marginTop: tokens.spacing.sm,

@@ -243,7 +243,8 @@
       "included": "Included",
       "mostPopular": "Most popular",
       "save33": "Save 33%"
-    }
+    },
+    "currentPlan": "Current plan"
   },
   "gallery": {
     "title": "Select Photo",
