@@ -29,7 +29,7 @@ type HealthWeights = {
 export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
   // Versioned cache key to avoid conflicts with legacy cached shapes
-  private readonly ANALYSIS_CACHE_VERSION = 'v3';
+  private readonly ANALYSIS_CACHE_VERSION = 'v5';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -121,7 +121,7 @@ export class AnalyzeService {
         if (!matches || matches.length === 0) {
           debug.components.push({ type: 'no_match', vision: component });
           // Q4: Fallback при отсутствии FDC
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, locale);
           continue;
         }
 
@@ -132,7 +132,7 @@ export class AnalyzeService {
         if (bestMatch.score < 0.7) {
           debug.components.push({ type: 'low_score', vision: component, bestMatch, score: bestMatch.score });
           // Q4: Fallback при отсутствии FDC
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, locale);
           continue;
         }
 
@@ -144,7 +144,7 @@ export class AnalyzeService {
         if (!hasOverlap) {
           debug.components.push({ type: 'no_overlap', vision: component, bestMatch });
           // Q4: Fallback при отсутствии FDC
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, locale);
           continue;
         }
 
@@ -223,7 +223,7 @@ export class AnalyzeService {
         this.logger.error(`Error analyzing component ${component.name}:`, error.message);
         debug.components.push({ type: 'no_match', vision: component, error: error.message });
         // Q4: Fallback при отсутствии FDC
-        await this.addVisionFallback(component, items, debug);
+        await this.addVisionFallback(component, items, debug, locale);
       }
     }
 
@@ -396,6 +396,9 @@ export class AnalyzeService {
    */
   async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk'): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
+    // Normalize locale
+    const normalizedLocale: 'en' | 'ru' | 'kk' =
+      (locale as any) || 'en';
     
     // Simple parsing: split by commas, newlines, etc.
     const components: VisionComponent[] = text
@@ -425,7 +428,7 @@ export class AnalyzeService {
 
         if (!matches || matches.length === 0) {
           debug.components.push({ type: 'no_match', vision: component });
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, normalizedLocale);
           continue;
         }
 
@@ -433,7 +436,7 @@ export class AnalyzeService {
         
         if (bestMatch.score < 0.7) {
           debug.components.push({ type: 'low_score', vision: component, bestMatch, score: bestMatch.score });
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, normalizedLocale);
           continue;
         }
 
@@ -444,7 +447,7 @@ export class AnalyzeService {
         
         if (!hasOverlap) {
           debug.components.push({ type: 'no_overlap', vision: component, bestMatch });
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, normalizedLocale);
           continue;
         }
 
@@ -463,7 +466,7 @@ export class AnalyzeService {
 
         if (!food) {
           debug.components.push({ type: 'no_match', vision: component, reason: 'food_not_found' });
-          await this.addVisionFallback(component, items, debug);
+          await this.addVisionFallback(component, items, debug, normalizedLocale);
           continue;
         }
 
@@ -485,7 +488,7 @@ export class AnalyzeService {
           fdcId: bestMatch.fdcId,
           fdcScore: bestMatch.score,
           dataType: food.dataType,
-          locale,
+          locale: normalizedLocale,
         };
 
         items.push(item);
@@ -493,7 +496,7 @@ export class AnalyzeService {
       } catch (error: any) {
         this.logger.error(`Error analyzing text component ${component.name}:`, error.message);
         debug.components.push({ type: 'no_match', vision: component, error: error.message });
-        await this.addVisionFallback(component, items, debug);
+        await this.addVisionFallback(component, items, debug, normalizedLocale);
       }
     }
 
@@ -567,14 +570,14 @@ export class AnalyzeService {
 
     // Build English base dish name from original names
     const originalDishName = this.buildDishNameEn(items);
-    const dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
+    const dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, normalizedLocale);
 
     return {
       items,
       total,
       healthScore,
       debug: isDebugMode ? debug : undefined,
-      locale: locale || 'en',
+      locale: normalizedLocale,
       dishNameLocalized: dishNameLocalized || originalDishName,
       originalDishName,
       isSuspicious,
@@ -600,22 +603,23 @@ export class AnalyzeService {
     // Calculate energy density (kcal per 100g)
     const energyDensity = base.calories || 0;
 
-    const calculatedCalories = Math.round((base.calories || 0) * scale);
-
-    // Task 3: Enhanced zero-calories diagnostics
-    if (calculatedCalories === 0) {
+    // Task 2.1: Log if base calories are 0 before scaling
+    const baseCalories = base.calories || 0;
+    if (baseCalories === 0 && portionG > 0) {
       this.logger.warn('[AnalyzeService] Zero calories from FDC', {
         fdcId: normalized.fdcId,
         description: normalized.description,
         rawNutrients: base,
         portionG,
-        scale,
-        baseCalories: base.calories,
+        baseCalories,
         hasProtein: (base.protein || 0) > 0,
         hasFat: (base.fat || 0) > 0,
         hasCarbs: (base.carbs || 0) > 0,
+        dataType: normalized.dataType,
       });
     }
+
+    const calculatedCalories = Math.round(baseCalories * scale);
 
     return {
       calories: calculatedCalories,
@@ -636,6 +640,7 @@ export class AnalyzeService {
     component: VisionComponent,
     items: AnalyzedItem[],
     debug: AnalysisDebug,
+    locale: 'en' | 'ru' | 'kk' = 'en',
   ): Promise<void> {
     // Если Vision уверен (confidence >= 0.7) и имя не слишком общее
     if (!component.confidence || component.confidence < 0.7) {
@@ -662,7 +667,7 @@ export class AnalyzeService {
     };
 
         const originalNameEn = normalizeFoodName(component.name);
-        const localizedName = await this.foodLocalization.localizeName(originalNameEn, undefined);
+        const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
         const fallbackItem: AnalyzedItem = {
           name: localizedName || originalNameEn,
@@ -671,6 +676,7 @@ export class AnalyzeService {
           portion_g: fallbackPortion,
           nutrients: fallbackNutrients,
           source: 'vision_fallback',
+          locale,
           hasNutrition: true, // Fallback always has estimated nutrition
         };
 

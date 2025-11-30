@@ -1,5 +1,7 @@
-import { IsOptional, IsString, IsNumber, IsEnum, IsBoolean, IsObject } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsEnum, IsBoolean, IsObject, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { HealthProfileDto } from './health-profile.dto';
 
 export class UpdateProfileDto {
   @ApiProperty({ example: 'John', required: false })
@@ -61,4 +63,10 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsBoolean()
   isOnboardingCompleted?: boolean;
+
+  @ApiProperty({ required: false, type: HealthProfileDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => HealthProfileDto)
+  healthProfile?: HealthProfileDto;
 }

@@ -2,7 +2,7 @@
 // Wrapped in ErrorBoundary to prevent crashes
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { clientLog } from '../utils/clientLog';
@@ -27,7 +27,7 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => s
         <Ionicons name="chatbubbles" size={64} color={colors.primary || '#007AFF'} />
       </View>
       
-      <Text style={[styles.mainTitle, { color: colors.text }]}>
+      <Text style={[styles.mainTitle, { color: colors.textPrimary || colors.text }]}>
         {t('aiAssistant.unavailable') || 'AI Assistant temporarily unavailable'}
       </Text>
       
@@ -99,27 +99,22 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
       animationType="fade"
       presentationStyle="fullScreen"
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={insets.top}
-    >
-        <View style={[styles.container, { backgroundColor: colors.surface || '#FFFFFF' }]}>
+      <View style={[styles.container, { backgroundColor: colors.surface || '#FFFFFF' }]}>
           <View style={[styles.header, { 
             borderBottomColor: colors.border || '#E5E5EA',
             paddingTop: insets.top,
             paddingHorizontal: 16,
           }]}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {t('dashboard.aiAssistant') || 'AI Assistant'}
-          </Text>
+        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
+          {t('dashboard.aiAssistant') || 'AI Assistant'}
+        </Text>
             <TouchableOpacity 
               onPress={typeof handleClose === 'function' ? handleClose : () => {}}
               style={styles.closeButton}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               activeOpacity={0.7}
             >
-            <Ionicons name="close" size={24} color={colors.text || '#000'} />
+            <Ionicons name="close" size={24} color={colors.textPrimary || colors.text || '#000'} />
           </TouchableOpacity>
         </View>
         
@@ -139,8 +134,7 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
             </Suspense>
           )}
         </ErrorBoundary>
-        </View>
-      </KeyboardAvoidingView>
+      </View>
     </SwipeClosableModal>
   );
 };
@@ -167,7 +161,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
     flex: 1,
   },
   closeButton: {
@@ -197,13 +190,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 12,
-    color: '#000000',
   },
   description: {
     fontSize: 16,
     textAlign: 'center',
     opacity: 0.7,
-    color: '#000000',
     lineHeight: 24,
   },
   loadingContainer: {

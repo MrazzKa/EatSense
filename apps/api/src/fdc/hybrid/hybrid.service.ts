@@ -220,25 +220,28 @@ export class HybridService {
 
     // Always save nutrients if they exist (BUG 1: Branded products need nutrients too)
     if (foodData.foodNutrients && foodData.foodNutrients.length > 0) {
-      await this.prisma.foodNutrient.deleteMany({ where: { foodId: food.id } });
-      const savedNutrients = await this.prisma.foodNutrient.createMany({
-        data: foodData.foodNutrients
-          .filter((fn: any) => fn.nutrient && fn.amount !== null && fn.amount > 0)
-          .map((fn: any) => ({
-            foodId: food.id,
-            nutrientId: fn.nutrient.id,
-            amount: fn.amount || 0,
-          })),
-      });
-      
-      // Task 1: Log warning if no nutrients were saved despite having foodNutrients array
-      if (savedNutrients.count === 0 && foodData.foodNutrients.length > 0) {
+      const mapped = this.mapFoodNutrients(foodData);
+
+      if (!mapped.length) {
         this.logger.warn('[HybridService] Food saved but no nutrients persisted', {
           fdcId: food.fdcId,
-          description: food.description,
-          dataType: food.dataType,
-          foodNutrientsCount: foodData.foodNutrients.length,
-          reason: 'All nutrients filtered out (null/zero amounts or missing nutrient.id)',
+          description: foodData.description,
+          dataType: foodData.dataType,
+          foodNutrientsCount: Array.isArray(foodData.foodNutrients)
+            ? foodData.foodNutrients.length
+            : 0,
+          reason: 'mapFoodNutrients returned empty array',
+        });
+      } else {
+        await this.prisma.foodNutrient.deleteMany({ where: { foodId: food.id } });
+
+        await this.prisma.foodNutrient.createMany({
+          data: mapped.map((n) => ({
+            foodId: food.id,
+            nutrientId: n.nutrientId,
+            amount: n.amount, // allowed to be 0, это норма
+          })),
+          skipDuplicates: true,
         });
       }
     } else if (foodData.dataType === 'Branded' && !foodData.labelNutrients) {
@@ -317,8 +320,17 @@ export class HybridService {
   }
 
   private normalizeFood(food: any): any {
-    const nutrients = this.extractNutrients(food);
-    
+    // Extract DB nutrients if available (from Prisma relation)
+    const dbNutrients =
+      food.nutrients && Array.isArray(food.nutrients)
+        ? food.nutrients.map((n: any) => ({
+            nutrientId: n.nutrientId || n.nutrient?.id,
+            amount: n.amount || 0,
+          }))
+        : undefined;
+
+    const nutrients = this.extractNutrients(food, dbNutrients);
+
     return {
       fdcId: food.fdcId,
       description: food.description,
@@ -326,79 +338,269 @@ export class HybridService {
       source: food.source,
       portions: food.portions || [],
       nutrients: {
-        calories: nutrients.calories,
-        protein: nutrients.protein,
-        fat: nutrients.fat,
-        carbs: nutrients.carbs,
-        fiber: nutrients.fiber,
-        sugars: nutrients.sugars,
-        sodium: nutrients.sodium,
-        satFat: nutrients.satFat || 0, // BUG 2: Add satFat
+        calories: nutrients.calories || 0,
+        protein: nutrients.protein || 0,
+        fat: nutrients.fat || 0,
+        carbs: nutrients.carbs || 0,
+        fiber: nutrients.fiber || 0,
+        sugars: nutrients.sugars || 0,
+        sodium: nutrients.sodium || 0,
+        satFat: nutrients.satFat || 0,
       },
     };
   }
 
-  // BUG 3: Extract label value from nested structure or direct value
+  /**
+   * Map foodNutrients from API response to database format
+   * Supports multiple formats: fn.nutrient.id, fn.nutrientId, fn.nutrient.number
+   * Does NOT filter out entries with amount === 0 (some nutrients legitimately have 0)
+   */
+  private mapFoodNutrients(food: any): { nutrientId: number; amount: number }[] {
+    if (!food) return [];
+
+    // FDC often gives `foodNutrients` array
+    const raw = food.foodNutrients || food.foodNutrient || [];
+
+    const toNumber = (v: any): number => {
+      if (v === null || v === undefined) return 0;
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+      }
+      if (typeof v === 'object' && v.value !== undefined) {
+        // labelNutrients style { value: 203 }
+        return toNumber(v.value);
+      }
+      return 0;
+    };
+
+    const resolveNutrientId = (fn: any): number | null => {
+      if (!fn) return null;
+
+      // Possible shapes:
+      // - fn.nutrient.id
+      // - fn.nutrientId
+      // - fn.nutrient.number (string like '1008' → calories)
+      if (fn.nutrient?.id) return Number(fn.nutrient.id);
+      if (fn.nutrientId) return Number(fn.nutrientId);
+      if (fn.nutrient?.number) {
+        const n = Number(fn.nutrient.number);
+        if (Number.isFinite(n)) return n;
+      }
+      return null;
+    };
+
+    const mapped = (raw as any[])
+      .map((fn) => {
+        const nutrientId = resolveNutrientId(fn);
+        const amount = toNumber(fn.amount ?? fn.value);
+
+        return { nutrientId, amount };
+      })
+      // Keep only entries where we know nutrientId; allow 0 amount
+      .filter((n) => n.nutrientId !== null && Number.isFinite(n.nutrientId));
+
+    return mapped as { nutrientId: number; amount: number }[];
+  }
+
+  // Extract label value from nested structure or direct value
   private extractLabelValue(labelField: any): number {
     if (labelField === null || labelField === undefined) return 0;
     if (typeof labelField === 'number') return labelField;
+    if (typeof labelField === 'string') {
+      const n = Number(labelField);
+      return Number.isFinite(n) ? n : 0;
+    }
     if (typeof labelField === 'object' && labelField.value !== undefined) {
-      return labelField.value;
+      return this.extractLabelValue(labelField.value);
     }
     return 0;
   }
 
-  private extractNutrients(food: any): any {
-    // Priority: LabelNutrients > FoodNutrient (1008 Energy) > FoodNutrient (Atwater 2047/2048)
-    if (food.label) {
-      // BUG 3: Handle nested structure { "calories": { "value": 203 } }
-      const fatValue = this.extractLabelValue(food.label.fat);
+  private extractNutrientsFromLabel(food: any) {
+    const label = food.labelNutrients || food.label || null;
+    if (!label) return null;
+
+    return {
+      calories: this.extractLabelValue(label.calories),
+      protein: this.extractLabelValue(label.protein),
+      fat: this.extractLabelValue(label.fat),
+      carbs: this.extractLabelValue(label.carbohydrates),
+      fiber: this.extractLabelValue(label.fiber),
+      sugars: this.extractLabelValue(label.sugars),
+      sodium: this.extractLabelValue(label.sodium),
+      satFat:
+        this.extractLabelValue(label.saturatedFat) ||
+        this.extractLabelValue(label['saturated_fat']),
+    };
+  }
+
+  private extractNutrients(
+    food: any,
+    dbNutrients?: { nutrientId: number; amount: number }[],
+  ): {
+    calories: number;
+    protein: number;
+    fat: number;
+    carbs: number;
+    fiber: number;
+    sugars: number;
+    sodium: number;
+    satFat: number;
+  } {
+    // 1) Try labelNutrients first (Branded, etc.)
+    const fromLabel = this.extractNutrientsFromLabel(food);
+    if (
+      fromLabel &&
+      (fromLabel.calories || fromLabel.protein || fromLabel.fat || fromLabel.carbs)
+    ) {
       return {
-        calories: this.extractLabelValue(food.label.calories),
-        protein: this.extractLabelValue(food.label.protein),
-        fat: fatValue,
-        carbs: this.extractLabelValue(food.label.carbohydrates),
-        fiber: this.extractLabelValue(food.label.fiber),
-        sugars: this.extractLabelValue(food.label.sugars),
-        sodium: this.extractLabelValue(food.label.sodium),
-        // Task 2: Add satFat from label or estimate from fat (only if fat > 0)
-        satFat: this.extractLabelValue(food.label.saturatedFat) || (fatValue > 0 ? fatValue * 0.35 : 0),
+        calories: fromLabel.calories || 0,
+        protein: fromLabel.protein || 0,
+        fat: fromLabel.fat || 0,
+        carbs: fromLabel.carbs || 0,
+        fiber: fromLabel.fiber || 0,
+        sugars: fromLabel.sugars || 0,
+        sodium: fromLabel.sodium || 0,
+        satFat: fromLabel.satFat || 0,
       };
     }
 
-    // Extract from FoodNutrient
-    const nutrients = food.nutrients || [];
-    
-    // Energy (kcal): primary 1008, then Atwater 2047/2048
-    const energy =
-      nutrients.find((n: any) => n.nutrientId === 1008) ||
-      nutrients.find((n: any) => n.nutrientId === 2047 || n.nutrientId === 2048);
-    
-    // Macros: 1003 (protein), 1004 (fat), 1005 (carbs)
-    const protein = nutrients.find((n: any) => n.nutrientId === 1003);
-    const fat = nutrients.find((n: any) => n.nutrientId === 1004);
-    const carbs = nutrients.find((n: any) => n.nutrientId === 1005);
-    // Fiber: 1079 (Fiber, total dietary)
-    const fiber = nutrients.find((n: any) => n.nutrientId === 1079);
-    // Sugars: 2000 (Sugars, total)
-    const sugars = nutrients.find((n: any) => n.nutrientId === 2000);
-    // Sodium: 1093 (Sodium, Na)
-    const sodium = nutrients.find((n: any) => n.nutrientId === 1093);
-    // BUG 2: Saturated Fat: 1258 (Fatty acids, total saturated)
-    const satFat = nutrients.find((n: any) => n.nutrientId === 1258);
+    // 2) Fallback – use DB nutrients (foodNutrient rows) if available
+    const source = dbNutrients ?? this.mapFoodNutrients(food);
+    const byId = new Map<number, number>();
+    for (const n of source) {
+      if (!Number.isFinite(n.nutrientId)) continue;
+      const prev = byId.get(n.nutrientId) ?? 0;
+      byId.set(n.nutrientId, prev + (n.amount ?? 0));
+    }
 
-    const fatAmount = fat?.amount || 0;
+    const get = (id: number): number => byId.get(id) ?? 0;
+
+    const calories = get(1008); // Energy (kcal)
+    const protein = get(1003);
+    const fat = get(1004);
+    const carbs = get(1005);
+    const fiber = get(1079);
+    const sugars = get(2000);
+    const sodium = get(1093);
+    const satFat = get(1258); // Fatty acids, total saturated
+
     return {
-      calories: energy?.amount || 0,
-      protein: protein?.amount || 0,
-      fat: fatAmount,
-      carbs: carbs?.amount || 0,
-      fiber: fiber?.amount || 0,
-      sugars: sugars?.amount || 0,
-      sodium: sodium?.amount || 0,
-      // Task 2: Add satFat from nutrients or estimate from fat (only if fat > 0)
-      satFat: satFat?.amount || (fatAmount > 0 ? fatAmount * 0.35 : 0),
+      calories,
+      protein,
+      fat,
+      carbs,
+      fiber,
+      sugars,
+      sodium,
+      satFat,
     };
+  }
+
+  /**
+   * Rehydrate foods that have no nutrients saved in the database
+   * Fetches them from USDA API and saves their nutrients
+   */
+  async rehydrateFoodsWithoutNutrients(
+    limit = 100,
+  ): Promise<{ total: number; fixed: number; stillEmpty: number }> {
+    // Find foods from USDA that have no nutrients
+    // Using Prisma relation filter to find foods without any FoodNutrient records
+    const foods = await this.prisma.food.findMany({
+      where: {
+        source: {
+          in: [FoodSource.USDA_API, FoodSource.USDA_LOCAL],
+        },
+        nutrients: {
+          none: {},
+        },
+      },
+      take: limit,
+      select: {
+        id: true,
+        fdcId: true,
+        description: true,
+        dataType: true,
+      },
+    });
+
+    let fixed = 0;
+    let stillEmpty = 0;
+
+    this.logger.log(`[HybridService] Rehydrate: found ${foods.length} foods without nutrients`);
+
+    for (const food of foods) {
+      try {
+        const fdcId = food.fdcId;
+        if (!fdcId) {
+          this.logger.warn('[HybridService] Rehydrate: food without fdcId', { foodId: food.id });
+          continue;
+        }
+
+        // Fetch full data from USDA API
+        const apiFood = await this.fdcApi.getFood(fdcId);
+
+        if (!apiFood) {
+          this.logger.warn('[HybridService] Rehydrate: API returned no data', {
+            foodId: food.id,
+            fdcId,
+          });
+          stillEmpty++;
+          continue;
+        }
+
+        // Map nutrients using existing method
+        const mapped = this.mapFoodNutrients(apiFood);
+
+        if (!mapped.length) {
+          this.logger.warn('[HybridService] Rehydrate: still no nutrients', {
+            fdcId: food.fdcId,
+            foodId: food.id,
+            description: food.description,
+            dataType: food.dataType,
+            foodNutrientsCount: (apiFood.foodNutrients || []).length,
+          });
+          stillEmpty++;
+          continue;
+        }
+
+        // Clean existing nutrients and create new ones
+        await this.prisma.foodNutrient.deleteMany({ where: { foodId: food.id } });
+        await this.prisma.foodNutrient.createMany({
+          data: mapped.map((n) => ({
+            foodId: food.id,
+            nutrientId: n.nutrientId,
+            amount: n.amount,
+          })),
+          skipDuplicates: true,
+        });
+
+        fixed++;
+        this.logger.debug('[HybridService] Rehydrate: saved nutrients', {
+          foodId: food.id,
+          fdcId,
+          nutrientsCount: mapped.length,
+        });
+      } catch (error: any) {
+        this.logger.error('[HybridService] Rehydrate: failed to rehydrate food', {
+          foodId: food.id,
+          fdcId: food.fdcId,
+          error: error.message,
+          stack: error.stack,
+        });
+        stillEmpty++;
+      }
+    }
+
+    this.logger.log('[HybridService] Rehydrate summary', {
+      total: foods.length,
+      fixed,
+      stillEmpty,
+    });
+
+    return { total: foods.length, fixed, stillEmpty };
   }
 }
 

@@ -10,6 +10,9 @@ import { LanguageSelector } from '../components/LanguageSelector';
 import { clientLog } from '../utils/clientLog';
 import AppCard from '../components/common/AppCard';
 import PrimaryButton from '../components/common/PrimaryButton';
+import { ProfileNumberRow } from '../components/ProfileNumberRow';
+import { ProfileSegmentedControl } from '../components/ProfileSegmentedControl';
+import { ProfileToggleRow } from '../components/ProfileToggleRow';
 
 const ProfileScreen = () => {
   const { t, language, changeLanguage, availableLanguages } = useI18n();
@@ -56,6 +59,37 @@ const ProfileScreen = () => {
   });
   const [goal, setGoal] = useState('maintain_weight');
   const [dietPreferences, setDietPreferences] = useState([]);
+  const [healthProfile, setHealthProfile] = useState({
+    metabolic: {
+      bodyFatPercent: undefined,
+      waistCm: undefined,
+      hipCm: undefined,
+      whr: undefined,
+      fatDistributionType: 'visceral',
+    },
+    eatingBehavior: {
+      mealsPerDay: 3,
+      snackingTendency: 'medium',
+      eveningAppetite: true,
+    },
+    sleep: {
+      sleepHours: 7.5,
+      chronotype: 'late',
+    },
+    glp1Module: {
+      isGlp1User: false,
+      drugType: 'semaglutide',
+      therapyGoal: 'preserve_muscle',
+    },
+    healthFocus: {
+      sugarControl: false,
+      cholesterol: false,
+      inflammation: false,
+      iron: false,
+      microbiome: false,
+      hormonalBalance: false,
+    },
+  });
   const [planModalVisible, setPlanModalVisible] = useState(false);
   const [planSaving, setPlanSaving] = useState(false);
   const [pendingPlan, setPendingPlan] = useState('free');
@@ -120,6 +154,7 @@ const ProfileScreen = () => {
           userProfile.preferences ||
           result.preferences ||
           null;
+        const healthProfile = userProfile.healthProfile || null;
         const subscriptionPref =
           preferences?.subscription || {};
         setProfile({
@@ -144,6 +179,40 @@ const ProfileScreen = () => {
         const dietsPref = Array.isArray(preferences?.diets) ? preferences.diets : [];
         setGoal(goalPref);
         setDietPreferences(dietsPref);
+        
+        // Load healthProfile
+        const initialHealth = healthProfile || {};
+        setHealthProfile({
+          metabolic: {
+            bodyFatPercent: initialHealth?.metabolic?.bodyFatPercent,
+            waistCm: initialHealth?.metabolic?.waistCm,
+            hipCm: initialHealth?.metabolic?.hipCm,
+            whr: initialHealth?.metabolic?.whr,
+            fatDistributionType: initialHealth?.metabolic?.fatDistributionType || 'visceral',
+          },
+          eatingBehavior: {
+            mealsPerDay: initialHealth?.eatingBehavior?.mealsPerDay ?? 3,
+            snackingTendency: initialHealth?.eatingBehavior?.snackingTendency || 'medium',
+            eveningAppetite: initialHealth?.eatingBehavior?.eveningAppetite ?? true,
+          },
+          sleep: {
+            sleepHours: initialHealth?.sleep?.sleepHours ?? 7.5,
+            chronotype: initialHealth?.sleep?.chronotype || 'late',
+          },
+          glp1Module: {
+            isGlp1User: initialHealth?.glp1Module?.isGlp1User ?? false,
+            drugType: initialHealth?.glp1Module?.drugType || 'semaglutide',
+            therapyGoal: initialHealth?.glp1Module?.therapyGoal || 'preserve_muscle',
+          },
+          healthFocus: {
+            sugarControl: initialHealth?.healthFocus?.sugarControl ?? false,
+            cholesterol: initialHealth?.healthFocus?.cholesterol ?? false,
+            inflammation: initialHealth?.healthFocus?.inflammation ?? false,
+            iron: initialHealth?.healthFocus?.iron ?? false,
+            microbiome: initialHealth?.healthFocus?.microbiome ?? false,
+            hormonalBalance: initialHealth?.healthFocus?.hormonalBalance ?? false,
+          },
+        });
       }
     } catch (error) {
       console.warn('Unable to load profile, using demo data.', error);
@@ -206,6 +275,7 @@ const ProfileScreen = () => {
             billingCycle: subscription.billingCycle,
           },
         },
+        healthProfile: healthProfile,
       };
       await ApiService.updateUserProfile(updatedProfile);
       setProfile(updatedProfile);
@@ -478,6 +548,21 @@ const ProfileScreen = () => {
       }
       return [...prev, dietId];
     });
+  };
+
+  const handleOpenPolicy = () => {
+    // TODO: navigate to Policy screen or open WebView/external URL
+    Alert.alert('Policy', 'Policy screen coming soon');
+  };
+
+  const handleOpenPolitics = () => {
+    // TODO: navigate/open explanation of app politics, etc.
+    Alert.alert('Politics', 'Politics screen coming soon');
+  };
+
+  const handleOpenTerms = () => {
+    // TODO: navigate to Terms of Service screen or open WebView
+    Alert.alert('Terms of Service', 'Terms of Service screen coming soon');
   };
 
   const metrics = [
@@ -850,6 +935,325 @@ const ProfileScreen = () => {
             <Text style={styles.dangerButtonText}>{t('profile.deleteAccount')}</Text>
           </TouchableOpacity>
         </AppCard>
+
+        {/* Health Profile Sections */}
+        <AppCard style={styles.healthSection}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+            {t('profile.health.metabolic') || 'Метаболические параметры'}
+          </Text>
+          
+          <ProfileNumberRow
+            label={t('profile.health.bodyFatPercent') || 'Процент жира'}
+            suffix="%"
+            value={healthProfile.metabolic.bodyFatPercent}
+            min={5}
+            max={60}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                metabolic: { ...prev.metabolic, bodyFatPercent: val },
+              }))
+            }
+          />
+
+          <ProfileNumberRow
+            label={t('profile.health.waistCm') || 'Окружность талии'}
+            suffix="см"
+            value={healthProfile.metabolic.waistCm}
+            min={50}
+            max={150}
+            onChange={(val) =>
+              setHealthProfile((prev) => {
+                const hip = prev.metabolic.hipCm;
+                const whr = hip && hip > 0 ? Number((val / hip).toFixed(2)) : prev.metabolic.whr;
+                return {
+                  ...prev,
+                  metabolic: { ...prev.metabolic, waistCm: val, whr },
+                };
+              })
+            }
+          />
+
+          <ProfileNumberRow
+            label={t('profile.health.hipCm') || 'Окружность бёдер'}
+            suffix="см"
+            value={healthProfile.metabolic.hipCm}
+            min={70}
+            max={160}
+            onChange={(val) =>
+              setHealthProfile((prev) => {
+                const waist = prev.metabolic.waistCm;
+                const whr = waist && waist > 0 && val > 0 ? Number((waist / val).toFixed(2)) : prev.metabolic.whr;
+                return {
+                  ...prev,
+                  metabolic: { ...prev.metabolic, hipCm: val, whr },
+                };
+              })
+            }
+          />
+
+          <View style={styles.row}>
+            <Text style={[styles.label, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+              {t('profile.health.whr') || 'WHR'}
+            </Text>
+            <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+              {healthProfile.metabolic.whr != null
+                ? `${healthProfile.metabolic.whr.toFixed(2)} (${t('profile.health.auto') || 'авто'})`
+                : `— (${t('profile.health.auto') || 'авто'})`}
+            </Text>
+          </View>
+
+          <ProfileSegmentedControl
+            label={t('profile.health.fatDistributionType') || 'Тип распределения жира'}
+            value={healthProfile.metabolic.fatDistributionType || 'visceral'}
+            options={[
+              { value: 'visceral', label: t('profile.health.fatDistribution.visceral') || 'Висцеральный' },
+              { value: 'gynoid', label: t('profile.health.fatDistribution.gynoid') || 'Гиноидный' },
+              { value: 'mixed', label: t('profile.health.fatDistribution.mixed') || 'Смешанный' },
+            ]}
+            onChange={(value) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                metabolic: { ...prev.metabolic, fatDistributionType: value },
+              }))
+            }
+          />
+        </AppCard>
+
+        <AppCard style={styles.healthSection}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+            {t('profile.health.eatingBehavior') || 'Пищевое поведение'}
+          </Text>
+
+          <ProfileNumberRow
+            label={t('profile.health.mealsPerDay') || 'Количество приёмов пищи'}
+            value={healthProfile.eatingBehavior.mealsPerDay}
+            min={1}
+            max={8}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                eatingBehavior: { ...prev.eatingBehavior, mealsPerDay: val },
+              }))
+            }
+          />
+
+          <ProfileSegmentedControl
+            label={t('profile.health.snackingTendency') || 'Склонность к перекусам'}
+            value={healthProfile.eatingBehavior.snackingTendency || 'medium'}
+            options={[
+              { value: 'low', label: t('profile.health.snacking.low') || 'Низкая' },
+              { value: 'medium', label: t('profile.health.snacking.medium') || 'Средняя' },
+              { value: 'high', label: t('profile.health.snacking.high') || 'Высокая' },
+            ]}
+            onChange={(value) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                eatingBehavior: { ...prev.eatingBehavior, snackingTendency: value },
+              }))
+            }
+          />
+
+          <ProfileSegmentedControl
+            label={t('profile.health.eveningAppetite') || 'Аппетит вечером'}
+            value={healthProfile.eatingBehavior.eveningAppetite ? 'yes' : 'no'}
+            options={[
+              { value: 'yes', label: t('common.yes') || 'Да' },
+              { value: 'no', label: t('common.no') || 'Нет' },
+            ]}
+            onChange={(value) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                eatingBehavior: { ...prev.eatingBehavior, eveningAppetite: value === 'yes' },
+              }))
+            }
+          />
+        </AppCard>
+
+        <AppCard style={styles.healthSection}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+            {t('profile.health.sleep') || 'Сон и циркадные ритмы'}
+          </Text>
+
+          <ProfileNumberRow
+            label={t('profile.health.sleepHours') || 'Сон (часы)'}
+            value={healthProfile.sleep.sleepHours}
+            min={3}
+            max={12}
+            step={0.5}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                sleep: { ...prev.sleep, sleepHours: val },
+              }))
+            }
+          />
+
+          <ProfileSegmentedControl
+            label={t('profile.health.chronotype') || 'Хронотип'}
+            value={healthProfile.sleep.chronotype || 'late'}
+            options={[
+              { value: 'early', label: t('profile.health.chronotype.early') || 'Ранний' },
+              { value: 'mid', label: t('profile.health.chronotype.mid') || 'Средний' },
+              { value: 'late', label: t('profile.health.chronotype.late') || 'Поздний' },
+            ]}
+            onChange={(value) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                sleep: { ...prev.sleep, chronotype: value },
+              }))
+            }
+          />
+        </AppCard>
+
+        <AppCard style={styles.healthSection}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+            {t('profile.health.glp1Module') || 'GLP-1 модуль'}
+          </Text>
+
+          <ProfileSegmentedControl
+            label={t('profile.health.isGlp1User') || 'GLP-1 пользователь'}
+            value={healthProfile.glp1Module.isGlp1User ? 'yes' : 'no'}
+            options={[
+              { value: 'yes', label: t('common.yes') || 'Да' },
+              { value: 'no', label: t('common.no') || 'Нет' },
+            ]}
+            onChange={(value) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                glp1Module: { ...prev.glp1Module, isGlp1User: value === 'yes' },
+              }))
+            }
+          />
+
+          {healthProfile.glp1Module.isGlp1User && (
+            <>
+              <ProfileSegmentedControl
+                label={t('profile.health.drugType') || 'Тип препарата'}
+                value={healthProfile.glp1Module.drugType || 'semaglutide'}
+                options={[
+                  { value: 'semaglutide', label: 'Semaglutide' },
+                  { value: 'tirzepatide', label: 'Tirzepatide' },
+                  { value: 'liraglutide', label: 'Liraglutide' },
+                ]}
+                onChange={(value) =>
+                  setHealthProfile((prev) => ({
+                    ...prev,
+                    glp1Module: { ...prev.glp1Module, drugType: value },
+                  }))
+                }
+              />
+
+              <ProfileSegmentedControl
+                label={t('profile.health.therapyGoal') || 'Цель терапии'}
+                value={healthProfile.glp1Module.therapyGoal || 'preserve_muscle'}
+                options={[
+                  { value: 'preserve_muscle', label: t('profile.health.therapyGoal.preserve_muscle') || 'Сохранить мышцы' },
+                  { value: 'appetite_control', label: t('profile.health.therapyGoal.appetite_control') || 'Контроль аппетита' },
+                  { value: 'weight_maintenance', label: t('profile.health.therapyGoal.weight_maintenance') || 'Поддерживать вес' },
+                  { value: 'slow_weight_loss', label: t('profile.health.therapyGoal.slow_weight_loss') || 'Плавное снижение веса' },
+                ]}
+                onChange={(value) =>
+                  setHealthProfile((prev) => ({
+                    ...prev,
+                    glp1Module: { ...prev.glp1Module, therapyGoal: value },
+                  }))
+                }
+              />
+            </>
+          )}
+        </AppCard>
+
+        <AppCard style={styles.healthSection}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+            {t('profile.health.healthFocus') || 'Health Focus Areas'}
+          </Text>
+
+          <ProfileToggleRow
+            label={t('profile.health.focus.sugarControl') || 'Контроль сахара'}
+            value={healthProfile.healthFocus.sugarControl}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                healthFocus: { ...prev.healthFocus, sugarControl: val },
+              }))
+            }
+          />
+
+          <ProfileToggleRow
+            label={t('profile.health.focus.cholesterol') || 'Холестерин'}
+            value={healthProfile.healthFocus.cholesterol}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                healthFocus: { ...prev.healthFocus, cholesterol: val },
+              }))
+            }
+          />
+
+          <ProfileToggleRow
+            label={t('profile.health.focus.inflammation') || 'Воспаление'}
+            value={healthProfile.healthFocus.inflammation}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                healthFocus: { ...prev.healthFocus, inflammation: val },
+              }))
+            }
+          />
+
+          <ProfileToggleRow
+            label={t('profile.health.focus.iron') || 'Железо'}
+            value={healthProfile.healthFocus.iron}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                healthFocus: { ...prev.healthFocus, iron: val },
+              }))
+            }
+          />
+
+          <ProfileToggleRow
+            label={t('profile.health.focus.microbiome') || 'Микробиом'}
+            value={healthProfile.healthFocus.microbiome}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                healthFocus: { ...prev.healthFocus, microbiome: val },
+              }))
+            }
+          />
+
+          <ProfileToggleRow
+            label={t('profile.health.focus.hormonalBalance') || 'Гормональный баланс'}
+            value={healthProfile.healthFocus.hormonalBalance}
+            onChange={(val) =>
+              setHealthProfile((prev) => ({
+                ...prev,
+                healthFocus: { ...prev.healthFocus, hormonalBalance: val },
+              }))
+            }
+          />
+        </AppCard>
+
+        {/* Footer links */}
+        <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border }]}>
+          <TouchableOpacity onPress={handleOpenPolicy} style={styles.footerLink}>
+            <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+              {t('profile.policy') || 'Policy'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenPolitics} style={styles.footerLink}>
+            <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+              {t('profile.politics') || 'Politics'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenTerms} style={styles.footerLink}>
+            <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+              {t('profile.termsOfService') || 'Terms of Service'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <Modal
@@ -1406,6 +1810,40 @@ const createStyles = (tokens) =>
       fontSize: tokens.typography.bodyStrong.fontSize,
       fontWeight: tokens.typography.bodyStrong.fontWeight,
       color: tokens.colors.error,
+    },
+    healthSection: {
+      gap: tokens.spacing.md,
+      marginTop: tokens.spacing.lg,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+    },
+    label: {
+      fontSize: 14,
+      color: tokens.colors.textSecondary,
+      flex: 1,
+    },
+    value: {
+      fontSize: 14,
+      color: tokens.colors.textPrimary,
+      fontWeight: '500',
+    },
+    footerLinksContainer: {
+      marginTop: tokens.spacing.xl,
+      paddingTop: tokens.spacing.lg,
+      paddingHorizontal: tokens.spacing.xl,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: tokens.spacing.sm,
+    },
+    footerLink: {
+      paddingVertical: tokens.spacing.sm,
+    },
+    footerLinkText: {
+      fontSize: 14,
+      color: tokens.colors.textSecondary,
     },
   });
 

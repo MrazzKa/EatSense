@@ -25,143 +25,8 @@ import { CommonActions } from '@react-navigation/native';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
+import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 
-// Shared modal styles for Specialists and Suggested Food modals
-const sharedModalStyles = StyleSheet.create({
-  modalContent: {
-    flex: 1,
-    paddingTop: 16,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    flex: 1,
-  },
-  modalCloseButton: {
-    padding: 4,
-  },
-  modalScrollView: {
-    flex: 1,
-  },
-  modalScrollContent: {
-    flexGrow: 1,
-    paddingVertical: 16,
-    paddingBottom: 20,
-  },
-  modalDescription: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  modalFooter: {
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderTopWidth: 1,
-  },
-  modalButton: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
-
-// Task 9-10: Specialists and Suggested Food modals
-const SpecialistsModal = ({ visible, onClose, colors, tokens, t }) => (
-  <SwipeClosableModal
-    visible={visible}
-    onClose={onClose}
-    swipeDirection="down"
-    enableSwipe={true}
-    enableBackdropClose={true}
-    animationType="fade"
-    presentationStyle="pageSheet"
-  >
-    <SafeAreaView style={[sharedModalStyles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
-      <View style={sharedModalStyles.modalHeader}>
-        <Text style={[sharedModalStyles.modalTitle, { color: colors.text }]}>
-          {t('dashboard.specialists.title') || 'Talk to a real nutrition expert (coming soon)'}
-        </Text>
-        <TouchableOpacity onPress={onClose} style={sharedModalStyles.modalCloseButton}>
-          <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
-        </TouchableOpacity>
-      </View>
-      <ScrollView 
-        style={sharedModalStyles.modalScrollView}
-        contentContainerStyle={sharedModalStyles.modalScrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={[sharedModalStyles.modalDescription, { color: colors.textSecondary }]}>
-          {t('dashboard.specialists.description') || 'In the future, you\'ll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.'}
-        </Text>
-      </ScrollView>
-      <View style={[sharedModalStyles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
-        <TouchableOpacity
-          style={[sharedModalStyles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
-          onPress={onClose}
-        >
-          <Text style={[sharedModalStyles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
-            {t('dashboard.specialists.gotIt') || 'Got it'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  </SwipeClosableModal>
-);
-
-const SuggestedFoodModal = ({ visible, onClose, colors, tokens, t }) => (
-  <SwipeClosableModal
-    visible={visible}
-    onClose={onClose}
-    swipeDirection="down"
-    enableSwipe={true}
-    enableBackdropClose={true}
-    animationType="fade"
-    presentationStyle="pageSheet"
-  >
-    <SafeAreaView style={[sharedModalStyles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
-      <View style={sharedModalStyles.modalHeader}>
-        <Text style={[sharedModalStyles.modalTitle, { color: colors.text }]}>
-          {t('dashboard.suggestedFood.title') || 'Get simple ideas of what to eat today (coming soon)'}
-        </Text>
-        <TouchableOpacity onPress={onClose} style={sharedModalStyles.modalCloseButton}>
-          <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
-        </TouchableOpacity>
-      </View>
-      <ScrollView 
-        style={sharedModalStyles.modalScrollView}
-        contentContainerStyle={sharedModalStyles.modalScrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={[sharedModalStyles.modalDescription, { color: colors.textSecondary }]}>
-          {t('dashboard.suggestedFood.description') || 'Soon, you\'ll receive personalized food suggestions based on your goals, preferences, and nutritional needs.'}
-        </Text>
-      </ScrollView>
-      <View style={[sharedModalStyles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
-        <TouchableOpacity
-          style={[sharedModalStyles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
-          onPress={onClose}
-        >
-          <Text style={[sharedModalStyles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
-            {t('dashboard.suggestedFood.gotIt') || 'Got it'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  </SwipeClosableModal>
-);
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -456,8 +321,6 @@ export default function DashboardScreen() {
   const [showModal, setShowModal] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
-  const [showSpecialistsModal, setShowSpecialistsModal] = useState(false);
-  const [showSuggestedFoodModal, setShowSuggestedFoodModal] = useState(false);
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const handleCameraPress = async () => {
@@ -500,6 +363,16 @@ export default function DashboardScreen() {
 
   const handleAiAssistantPress = () => {
     setShowAiAssistant(true);
+  };
+
+  const handleOpenManualAnalysis = () => {
+    // Navigate to manual text analysis
+    if (navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate('AnalysisResults', {
+        description: '',
+        source: 'text',
+      });
+    }
   };
 
 
@@ -582,7 +455,87 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Compact Monthly Highlights - only top 3 foods */}
+        {/* PART A: Section 2 - Recent meals (short list) */}
+        <View style={styles.recentContainer}>
+          <View style={styles.recentHeader}>
+            <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
+            {recentItems && recentItems.length > 3 && (
+              <TouchableOpacity
+                onPress={() => {
+                  if (navigation && typeof navigation.navigate === 'function') {
+                    navigation.navigate('Recently');
+                  }
+                }}
+              >
+                <Text style={[styles.seeAllText, { color: colors.primary }]}>
+                  {t('dashboard.seeAll') || 'See all'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {recentItems && recentItems.length > 0 ? (
+            (recentItems || []).slice(0, 3).map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.articleRow}
+                onPress={() => {
+                  if (navigation && typeof navigation.navigate === 'function') {
+                    navigation.navigate('AnalysisResults', { analysisResult: item, readOnly: true });
+                  }
+                }}
+              >
+                {item.imageUri ? (
+                  <Image source={{ uri: item.imageUri }} style={styles.recentItemImage} />
+                ) : (
+                  <View style={styles.recentItemImagePlaceholder}>
+                    <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+                  </View>
+                )}
+                <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
+                  <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
+                  <Text numberOfLines={1} style={styles.articleRowExcerpt}>
+                    {t('dashboard.recentMacroSummary', {
+                      calories: item.totalCalories ?? item.calories ?? 0,
+                      protein: item.totalProtein ?? item.protein ?? 0,
+                      carbs: item.totalCarbs ?? item.carbs ?? 0,
+                      fat: item.totalFat ?? item.fat ?? 0,
+                    })}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.recentEmpty}>
+              <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
+              <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
+              <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* PART A: Section 3 - AI Assistant teaser */}
+        <View style={styles.aiAssistantContainer}>
+          <TouchableOpacity style={styles.aiAssistantButton} onPress={typeof handleAiAssistantPress === 'function' ? handleAiAssistantPress : () => {}}>
+            <View style={styles.aiAssistantIcon}>
+              <Ionicons name="chatbubble" size={24} color={colors.onPrimary || colors.inverseText} />
+            </View>
+            <View style={styles.aiAssistantContent}>
+              <Text style={styles.aiAssistantTitle}>{t('dashboard.aiAssistant')}</Text>
+              <Text style={styles.aiAssistantSubtitle}>
+                {t('dashboard.aiAssistantSubtitle')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* PART A: Section 4 - Insert analysis / Upload analysis */}
+        <View style={styles.section}>
+          <ManualAnalysisCard onPressAddManual={handleOpenManualAnalysis} />
+        </View>
+
+        {/* PART A: Section 5 - Nutrition section */}
         {monthlyStats && monthlyStats.topFoods && monthlyStats.topFoods.length > 0 && (
           <View style={styles.monthlySection}>
             <View style={styles.monthlyHeader}>
@@ -623,135 +576,6 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
         )}
-
-        {/* AI Assistant Card - always show first */}
-        <View style={styles.aiAssistantContainer}>
-          <TouchableOpacity style={styles.aiAssistantButton} onPress={typeof handleAiAssistantPress === 'function' ? handleAiAssistantPress : () => {}}>
-            <View style={styles.aiAssistantIcon}>
-              <Ionicons name="chatbubble" size={24} color={colors.onPrimary || colors.inverseText} />
-            </View>
-            <View style={styles.aiAssistantContent}>
-              <Text style={styles.aiAssistantTitle}>{t('dashboard.aiAssistant')}</Text>
-              <Text style={styles.aiAssistantSubtitle}>
-                {t('dashboard.aiAssistantSubtitle')}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Task 9-10: Specialists and Suggested Food Cards */}
-        <View style={styles.newFeaturesContainer}>
-          <TouchableOpacity
-            style={[styles.featureCard, { backgroundColor: colors.card || colors.surface, borderColor: colors.borderMuted }]}
-            onPress={() => setShowSpecialistsModal(true)}
-          >
-            <View style={[styles.featureIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
-              <Ionicons name="people" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.featureContent}>
-              <Text style={[styles.featureTitle, { color: colors.text }]}>
-                {t('dashboard.specialists.title') || 'Specialists'}
-              </Text>
-              <Text style={[styles.featureSubtitle, { color: colors.textSecondary }]}>
-                {t('dashboard.specialists.shortDescription') || 'Talk to a real nutrition expert (coming soon)'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.featureCard, { backgroundColor: colors.card || colors.surface, borderColor: colors.borderMuted }]}
-            onPress={() => setShowSuggestedFoodModal(true)}
-          >
-            <View style={[styles.featureIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
-              <Ionicons name="restaurant" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.featureContent}>
-              <Text style={[styles.featureTitle, { color: colors.text }]}>
-                {t('dashboard.suggestedFood.title') || 'Suggested Food'}
-              </Text>
-              <Text style={[styles.featureSubtitle, { color: colors.textSecondary }]}>
-                {t('dashboard.suggestedFood.shortDescription') || 'Get simple ideas of what to eat today (coming soon)'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Modals */}
-        <SpecialistsModal
-          visible={showSpecialistsModal}
-          onClose={() => setShowSpecialistsModal(false)}
-          colors={colors}
-          tokens={tokens}
-          t={t}
-        />
-        <SuggestedFoodModal
-          visible={showSuggestedFoodModal}
-          onClose={() => setShowSuggestedFoodModal(false)}
-          colors={colors}
-          tokens={tokens}
-          t={t}
-        />
-
-        {/* Highlight Meal Section - Health Score */}
-        {highlightMeal?.healthScore && (
-          <View style={styles.highlightSection}>
-            <Text style={styles.highlightTitle}>
-              {t('dashboard.healthScoreTitle', { meal: highlightMeal.name })}
-            </Text>
-            <HealthScoreCard healthScore={highlightMeal.healthScore} />
-            <Text style={styles.highlightSubtitle}>
-              {t('dashboard.healthScoreSubtitle')}
-            </Text>
-          </View>
-        )}
-
-
-        {/* Recent Items */}
-        <View style={styles.recentContainer}>
-          <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
-          {recentItems && recentItems.length > 0 ? (
-            (recentItems || []).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.articleRow}
-                onPress={() => {
-                  if (navigation && typeof navigation.navigate === 'function') {
-                    navigation.navigate('AnalysisResults', { analysisResult: item, readOnly: true });
-                  }
-                }}
-              >
-                {item.imageUri ? (
-                  <Image source={{ uri: item.imageUri }} style={styles.recentItemImage} />
-                ) : (
-                  <View style={styles.recentItemImagePlaceholder}>
-                    <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
-                  </View>
-                )}
-                <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
-                  <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
-                  <Text numberOfLines={1} style={styles.articleRowExcerpt}>
-                    {t('dashboard.recentMacroSummary', {
-                      calories: item.totalCalories ?? item.calories ?? 0,
-                      protein: item.totalProtein ?? item.protein ?? 0,
-                      carbs: item.totalCarbs ?? item.carbs ?? 0,
-                      fat: item.totalFat ?? item.fat ?? 0,
-                    })}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.recentEmpty}>
-              <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
-              <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
-              <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
-            </View>
-          )}
-        </View>
       </ScrollView>
 
       {/* Floating Plus Button - Right Side (fixed, non-draggable) */}
@@ -1100,15 +924,30 @@ const createStyles = (tokens) =>
       fontSize: 14,
       color: tokens.colors.textSecondary,
     },
+    section: {
+      marginBottom: tokens.spacing.lg,
+      paddingHorizontal: tokens.spacing.xl,
+    },
     recentContainer: {
       paddingHorizontal: tokens.spacing.xl,
       paddingBottom: tokens.spacing.gutter,
       gap: tokens.spacing.md,
+      marginBottom: tokens.spacing.lg,
+    },
+    recentHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.md,
     },
     recentTitle: {
       fontSize: 20,
       fontWeight: '600',
       color: tokens.colors.textPrimary,
+    },
+    seeAllText: {
+      fontSize: 14,
+      fontWeight: '500',
     },
     recentEmpty: {
       alignItems: 'center',

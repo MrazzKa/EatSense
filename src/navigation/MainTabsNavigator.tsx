@@ -10,6 +10,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import ArticlesScreen from '../screens/ArticlesScreen';
 import RecentlyScreen from '../screens/RecentlyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ExpertsScreen from '../screens/ExpertsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -73,6 +74,16 @@ export function MainTabsNavigator() {
           tabBarLabel: t('tabs.recently') || 'Recently',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Experts"
+        component={ExpertsScreen}
+        options={{
+          tabBarLabel: t('tabs.experts') || 'Experts',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size || 24} color={color} />
           ),
         }}
       />

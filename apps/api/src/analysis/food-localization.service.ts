@@ -99,13 +99,14 @@ export class FoodLocalizationService {
   }
 
   private postProcess(name: string): string {
-    const trimmed = (name || '').trim();
-    if (!trimmed) return '';
-    const maxLen = 50;
-    if (trimmed.length <= maxLen) return trimmed;
-    const slice = trimmed.slice(0, maxLen);
-    const lastSpace = slice.lastIndexOf(' ');
-    return (lastSpace > 10 ? slice.slice(0, lastSpace) : slice).trim() + '…';
+    if (!name) return '';
+    const normalized = name.replace(/\s+/g, ' ').trim();
+    const limit = 50;
+    if (normalized.length <= limit) return normalized;
+
+    const cut = normalized.slice(0, limit);
+    const lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim() + '…';
   }
 }
 

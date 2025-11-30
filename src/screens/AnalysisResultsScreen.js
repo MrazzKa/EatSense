@@ -24,22 +24,6 @@ import AppCard from '../components/common/AppCard';
 import { clientLog } from '../utils/clientLog';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 
-const formatMacroValue = (value) => {
-  const num = Number(value);
-  if (!Number.isFinite(num)) return '0';
-  const rounded = Math.round(num * 10) / 10;
-  if (Math.abs(rounded - Math.round(rounded)) < 0.01) {
-    return Math.round(rounded).toString();
-  }
-  return rounded.toFixed(1);
-};
-
-const formatCaloriesValue = (value) => {
-  const num = Number(value);
-  if (!Number.isFinite(num)) return '0';
-  return Math.round(num).toString();
-};
-
 const formatTimestamp = (value) => {
   if (!value) return '';
   try {
@@ -602,10 +586,10 @@ export default function AnalysisResultsScreen() {
     );
   }
 
-  const totalCaloriesLabel = formatCaloriesValue(analysisResult.totalCalories);
-  const totalProteinLabel = formatMacroValue(analysisResult.totalProtein);
-  const totalCarbsLabel = formatMacroValue(analysisResult.totalCarbs);
-  const totalFatLabel = formatMacroValue(analysisResult.totalFat);
+  const totalCaloriesLabel = formatCalories(analysisResult.totalCalories);
+  const totalProteinLabel = formatMacro(analysisResult.totalProtein);
+  const totalCarbsLabel = formatMacro(analysisResult.totalCarbs);
+  const totalFatLabel = formatMacro(analysisResult.totalFat);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -759,21 +743,14 @@ export default function AnalysisResultsScreen() {
             </View>
           </View>
 
-          {/* Action Buttons */}
-          <View>
-            <View style={[styles.actionButtons, styles.actionButtonsSingle]}>
-              <TouchableOpacity 
-                style={styles.shareButton} 
-                onPress={() => {
-                  if (typeof handleShare === 'function') {
-                    handleShare();
-                  }
-                }}
-              >
-                <Ionicons name="share-outline" size={20} color={colors.primary} />
-                <Text style={styles.shareButtonText}>{t('analysis.share')}                </Text>
-              </TouchableOpacity>
-            </View>
+          {/* Share Button */}
+          <View style={styles.shareContainer}>
+            <TouchableOpacity 
+              style={[styles.shareButton, { backgroundColor: colors.primary }]} 
+              onPress={handleShare}
+            >
+              <Text style={styles.shareButtonText}>{t('analysis.share')}</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Auto-save info only - no save button since analysis is auto-saved */}
@@ -1079,33 +1056,22 @@ const createStyles = (tokens) =>
       color: tokens.colors.textSecondary,
       fontSize: tokens.typography.caption.fontSize,
     },
-    actionButtons: {
-      flexDirection: 'row',
-      paddingHorizontal: tokens.spacing.xl,
-      marginBottom: tokens.spacing.xxl,
-      gap: tokens.spacing.md,
-    },
-    actionButtonsSingle: {
-      flexDirection: 'row',
-      justifyContent: 'center',
+    shareContainer: {
+      marginTop: 24,
+      marginBottom: 32,
       alignItems: 'center',
-      marginTop: tokens.spacing.md,
     },
     shareButton: {
-      backgroundColor: tokens.colors.primaryTint,
-      borderRadius: tokens.radii.md,
-      paddingVertical: tokens.spacing.md,
-      paddingHorizontal: tokens.spacing.xl,
-      flexDirection: 'row',
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 999,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: tokens.spacing.sm,
-      minWidth: 150,
     },
     shareButtonText: {
-      color: tokens.colors.primary,
-      fontSize: tokens.typography.bodyStrong.fontSize,
-      fontWeight: tokens.typography.bodyStrong.fontWeight,
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
     },
     correctButton: {
       flex: 1,
