@@ -18,7 +18,35 @@ function resolveCorsOrigins(): string | string[] {
   return '*';
 }
 
+// A6: ENV-чекер для анализа
+function checkAnalysisEnv() {
+  const logger = console;
+  const warnings: string[] = [];
+
+  if (!process.env.OPENAI_API_KEY) {
+    warnings.push('OPENAI_API_KEY is not set - food analysis will fail');
+  }
+
+  const openaiModel = process.env.OPENAI_MODEL || process.env.VISION_MODEL;
+  if (!openaiModel) {
+    warnings.push('OPENAI_MODEL or VISION_MODEL is not set - using default model');
+  }
+
+  if (!process.env.FDC_API_KEY) {
+    warnings.push('FDC_API_KEY is not set - USDA food matching will fail');
+  }
+
+  if (warnings.length > 0) {
+    logger.warn('[ENV Check] Analysis configuration issues:', warnings);
+  } else {
+    logger.log('[ENV Check] All analysis environment variables are set');
+  }
+}
+
 async function bootstrap() {
+  // Check environment variables for analysis
+  checkAnalysisEnv();
+
   const app = await NestFactory.create(AppModule);
 
   // Global exception filter for consistent error responses

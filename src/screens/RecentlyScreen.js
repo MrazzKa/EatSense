@@ -15,6 +15,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -81,7 +82,7 @@ const normalizeMeal = (meal) => {
     protein: totalProtein,
     carbs: totalCarbs,
     fat: totalFat,
-    imageUri: meal.imageUri || meal.coverUrl || null,
+    imageUri: meal.imageUrl || meal.imageUri || meal.coverUrl || null,
     healthScore,
     healthGrade,
     analysisResult: {
@@ -98,7 +99,7 @@ const normalizeMeal = (meal) => {
             savedAt: meal.createdAt,
           }
         : null,
-      imageUri: meal.imageUri || meal.coverUrl || null,
+      imageUri: meal.imageUrl || meal.imageUri || meal.coverUrl || null,
     },
   };
 };
@@ -159,18 +160,23 @@ export default function RecentlyScreen() {
           onPress={() => {
             if (navigation && typeof navigation.navigate === 'function') {
               navigation.navigate('AnalysisResults', {
-                imageUri: item.imageUri,
+                imageUri: item.imageUrl || item.imageUri,
                 analysisResult: item.analysisResult,
                 readOnly: true,
               });
             }
           }}
         >
-          {item.imageUri ? (
-            <Image source={{ uri: item.imageUri }} style={styles.itemImage} />
+          {/* Task 11: Use imageUrl or imageUri, show placeholder if none */}
+          {(item.imageUrl || item.imageUri) ? (
+            <Image 
+              source={{ uri: item.imageUrl || item.imageUri }} 
+              style={styles.itemImage}
+              resizeMode="cover"
+            />
           ) : (
             <View style={styles.itemPlaceholder}>
-              <Ionicons name="fast-food" size={24} color={colors.textSecondary} />
+              <Ionicons name="fast-food" size={24} color={colors.textTertiary || colors.textSecondary} />
             </View>
           )}
 
@@ -184,25 +190,25 @@ export default function RecentlyScreen() {
 
             <View style={styles.itemNutrition}>
               <View style={styles.nutritionBlock}>
-                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{item.calories}</Text>
+                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{formatCalories(item.calories)}</Text>
                 <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
                   {t('recently.nutrition.calories')}
                 </Text>
               </View>
               <View style={styles.nutritionBlock}>
-                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{item.protein}g</Text>
+                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{formatMacro(item.protein)}</Text>
                 <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
                   {t('recently.nutrition.protein')}
                 </Text>
               </View>
               <View style={styles.nutritionBlock}>
-                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{item.carbs}g</Text>
+                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{formatMacro(item.carbs)}</Text>
                 <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
                   {t('recently.nutrition.carbs')}
                 </Text>
               </View>
               <View style={styles.nutritionBlock}>
-                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{item.fat}g</Text>
+                <Text style={[styles.nutritionValue, { color: colors.primary }]}>{formatMacro(item.fat)}</Text>
                 <Text style={[styles.nutritionLabel, { color: colors.textSecondary }]}>
                   {t('recently.nutrition.fat')}
                 </Text>
