@@ -286,7 +286,7 @@ export class AnalyzeService {
       item.nutrients.fat === 0
     );
     
-    const needsReview = hasItemsButNoData || anyItemHasWeightAndZeroMacros;
+    let needsReview = hasItemsButNoData || anyItemHasWeightAndZeroMacros;
 
     // Log sanity issues in debug mode
     if (process.env.ANALYSIS_DEBUG === 'true' && sanity.length > 0) {
@@ -578,6 +578,7 @@ export class AnalyzeService {
       dishNameLocalized: dishNameLocalized || originalDishName,
       originalDishName,
       isSuspicious,
+      needsReview,
     };
   }
 
