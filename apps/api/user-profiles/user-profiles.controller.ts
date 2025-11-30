@@ -23,9 +23,8 @@ export class UserProfilesController {
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   async getProfile(@Request() req) {
     const userId = req.user.id;
-    const profile = await this.userProfilesService.getProfile(userId);
-    // Always return a valid JSON response
-    return profile ? profile : { profile: null };
+    // getProfile now always returns a profile (creates default if missing)
+    return await this.userProfilesService.getProfile(userId);
   }
 
   @Put()

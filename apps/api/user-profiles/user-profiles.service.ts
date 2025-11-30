@@ -1,139 +1,179 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class UserProfilesService {
+  private readonly logger = new Logger(UserProfilesService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async createProfile(userId: string, profileData: any) {
-    // Check if profile already exists
-    const existingProfile = await this.prisma.userProfile.findUnique({
-      where: { userId },
-    });
-
-    if (existingProfile) {
-      throw new BadRequestException('Profile already exists');
+    try {
+      // Use upsert to handle both create and update cases
+      return await this.upsertForUser(userId, profileData);
+    } catch (error) {
+      this.logger.error(
+        `[UserProfilesService] createProfile() failed for userId=${userId}`,
+        (error as Error).stack,
+      );
+      throw error;
     }
+  }
 
-    // Remove fields that don't exist in the schema - be very explicit
-    const {
-      selectedPlan,
-      planBillingCycle,
-      planId,
-      billingCycle,
-      preferences,
-      ...validProfileData
-    } = profileData;
+  async upsertForUser(userId: string, profileData: any) {
+    try {
+      // Get existing profile for daily calories calculation
+      const existingProfile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+      });
 
-    // Ensure selectedPlan and planBillingCycle are completely removed
-    delete (validProfileData as any).selectedPlan;
-    delete (validProfileData as any).planBillingCycle;
-    delete (validProfileData as any).planId;
-    delete (validProfileData as any).billingCycle;
+      // Remove fields that don't exist in the schema - be very explicit
+      const {
+        selectedPlan,
+        planBillingCycle,
+        planId,
+        billingCycle,
+        preferences,
+        healthProfile,
+        ...validProfileData
+      } = profileData;
 
-    const mergedPreferences = this.mergePreferences(
-      preferences,
-      selectedPlan || planId,
-      planBillingCycle || billingCycle,
-    );
+      // Ensure selectedPlan and planBillingCycle are completely removed
+      delete (validProfileData as any).selectedPlan;
+      delete (validProfileData as any).planBillingCycle;
+      delete (validProfileData as any).planId;
+      delete (validProfileData as any).billingCycle;
 
-    if (mergedPreferences) {
-      validProfileData.preferences = mergedPreferences;
+      const mergedPreferences = this.mergePreferences(
+        preferences ?? existingProfile?.preferences,
+        selectedPlan || planId,
+        planBillingCycle || billingCycle,
+      );
+
+      // Recalculate daily calories if relevant fields changed
+      const updatedData = existingProfile ? { ...existingProfile, ...validProfileData } : validProfileData;
+      if (validProfileData.height || validProfileData.weight || validProfileData.age || validProfileData.gender || validProfileData.activityLevel) {
+        validProfileData.dailyCalories = this.calculateDailyCalories(updatedData);
+      }
+
+      // Build final data object
+      const finalData: any = {
+        ...validProfileData,
+      };
+
+      // Handle preferences
+      if (mergedPreferences !== null && mergedPreferences !== undefined) {
+        finalData.preferences = mergedPreferences;
+      }
+
+      // Handle healthProfile (JSON field)
+      if (healthProfile !== undefined) {
+        finalData.healthProfile = healthProfile;
+      }
+
+      // Remove fields that should not be saved
+      delete finalData.id;
+      delete finalData.userId;
+      delete finalData.createdAt;
+      delete finalData.updatedAt;
+
+      // Use upsert to handle both create and update
+      return this.prisma.userProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          ...finalData,
+          isOnboardingCompleted: finalData.isOnboardingCompleted ?? false,
+        },
+        update: finalData,
+      });
+    } catch (error) {
+      this.logger.error(
+        `[UserProfilesService] upsertForUser() failed for userId=${userId}`,
+        (error as Error).stack,
+      );
+      throw error;
     }
-
-    // Calculate daily calories if not provided
-    if (!validProfileData.dailyCalories && validProfileData.height && validProfileData.weight && validProfileData.age && validProfileData.gender && validProfileData.activityLevel) {
-      validProfileData.dailyCalories = this.calculateDailyCalories(validProfileData);
-    }
-
-    // Final safety check - remove any remaining invalid fields
-    const finalData: any = {
-      userId,
-      ...validProfileData,
-    };
-    delete finalData.selectedPlan;
-    delete finalData.planBillingCycle;
-    delete finalData.planId;
-    delete finalData.billingCycle;
-
-    return this.prisma.userProfile.create({
-      data: finalData,
-    });
   }
 
   async getProfile(userId: string) {
-    const profile = await this.prisma.userProfile.findUnique({
-      where: { userId },
-    });
+    try {
+      let profile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+      });
 
-    // Return null if profile doesn't exist (frontend will handle onboarding)
-    return profile;
+      // If profile doesn't exist, create a default one
+      if (!profile) {
+        this.logger.log(`[UserProfilesService] Profile not found for userId=${userId}, creating default profile`);
+        profile = await this.prisma.userProfile.create({
+          data: {
+            userId,
+            isOnboardingCompleted: false,
+            // All other fields are optional, so we can leave them null/undefined
+          },
+        });
+        this.logger.log(`[UserProfilesService] Created default profile for userId=${userId}, id=${profile.id}`);
+      }
+
+      return profile;
+    } catch (error) {
+      this.logger.error(
+        `[UserProfilesService] getProfile() failed for userId=${userId}`,
+        (error as Error).stack,
+      );
+      throw error;
+    }
+  }
+
+  async getOrCreateForUser(userId: string) {
+    // Alias for getProfile to maintain consistency
+    return this.getProfile(userId);
   }
 
   async updateProfile(userId: string, profileData: any) {
-    const existingProfile = await this.prisma.userProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!existingProfile) {
-      throw new NotFoundException('Profile not found');
+    try {
+      // Use upsert to handle both create and update cases
+      return await this.upsertForUser(userId, profileData);
+    } catch (error) {
+      this.logger.error(
+        `[UserProfilesService] updateProfile() failed for userId=${userId}`,
+        (error as Error).stack,
+      );
+      throw error;
     }
-
-    // Recalculate daily calories if relevant fields changed
-    if (profileData.height || profileData.weight || profileData.age || profileData.gender || profileData.activityLevel) {
-      const updatedData = { ...existingProfile, ...profileData };
-      profileData.dailyCalories = this.calculateDailyCalories(updatedData);
-    }
-
-    // Remove fields that should not be updated directly or don't exist in schema
-    const {
-      id,
-      userId: _userId,
-      createdAt,
-      updatedAt,
-      email,
-      selectedPlan,
-      planBillingCycle,
-      planId,
-      billingCycle,
-      preferences,
-      ...updateData
-    } = profileData;
-
-    // Ensure selectedPlan and planBillingCycle are completely removed
-    delete (updateData as any).selectedPlan;
-    delete (updateData as any).planBillingCycle;
-    delete (updateData as any).planId;
-    delete (updateData as any).billingCycle;
-
-    const mergedPreferences = this.mergePreferences(
-      preferences ?? existingProfile.preferences,
-      selectedPlan || planId,
-      planBillingCycle || billingCycle,
-    );
-
-    if (mergedPreferences) {
-      updateData.preferences = mergedPreferences;
-    }
-
-    // Final safety check - remove any remaining invalid fields
-    const finalData: any = { ...updateData };
-    delete finalData.selectedPlan;
-    delete finalData.planBillingCycle;
-    delete finalData.planId;
-    delete finalData.billingCycle;
-
-    return this.prisma.userProfile.update({
-      where: { userId },
-      data: finalData,
-    });
   }
 
   async completeOnboarding(userId: string) {
-    return this.prisma.userProfile.update({
-      where: { userId },
-      data: { isOnboardingCompleted: true },
-    });
+    try {
+      // Ensure profile exists before updating
+      let profile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!profile) {
+        this.logger.log(`[UserProfilesService] Profile not found for userId=${userId} in completeOnboarding, creating default profile first`);
+        profile = await this.prisma.userProfile.create({
+          data: {
+            userId,
+            isOnboardingCompleted: true, // Mark as completed immediately
+          },
+        });
+        this.logger.log(`[UserProfilesService] Created and completed onboarding for userId=${userId}, id=${profile.id}`);
+        return profile;
+      }
+
+      // Update existing profile
+      return this.prisma.userProfile.update({
+        where: { userId },
+        data: { isOnboardingCompleted: true },
+      });
+    } catch (error) {
+      this.logger.error(
+        `[UserProfilesService] completeOnboarding() failed for userId=${userId}`,
+        (error as Error).stack,
+      );
+      throw error;
+    }
   }
 
   private calculateDailyCalories(profile: any): number {
