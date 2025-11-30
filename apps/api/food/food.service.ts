@@ -51,6 +51,24 @@ export class FoodService {
         throw new BadRequestException('File buffer is empty');
       }
 
+      // PART 3.1: Get user language from profile if locale not provided
+      let effectiveLocale: 'en' | 'ru' | 'kk' = locale || 'en';
+      if (!locale) {
+        try {
+          const userProfile = await this.prisma.userProfile.findUnique({
+            where: { userId },
+            select: { preferences: true },
+          });
+          const userLanguage = (userProfile?.preferences as any)?.language;
+          if (userLanguage && ['en', 'ru', 'kk'].includes(userLanguage)) {
+            effectiveLocale = userLanguage as 'en' | 'ru' | 'kk';
+          }
+        } catch (error) {
+          // If profile fetch fails, use default 'en'
+          this.logger.warn(`[FoodService] Failed to get user language from profile for userId ${userId}, using default 'en'`);
+        }
+      }
+
       // Create analysis record
       const analysis = await this.prisma.analysis.create({
         data: {
@@ -61,7 +79,7 @@ export class FoodService {
             filename: file.originalname,
             mimetype: file.mimetype,
             size: file.size,
-            locale: locale ?? null,
+            locale: effectiveLocale,
           },
         },
       });
@@ -75,7 +93,7 @@ export class FoodService {
         analysisId: analysis.id,
         imageBufferBase64: imageBufferBase64,
         userId,
-        locale: locale ?? null,
+        locale: effectiveLocale,
       });
 
       // Increment daily limit counter after successful analysis creation
@@ -130,6 +148,24 @@ export class FoodService {
       throw new BadRequestException('Description cannot be empty');
     }
 
+    // PART 3.1: Get user language from profile if locale not provided
+    let effectiveLocale: 'en' | 'ru' | 'kk' = locale || 'en';
+    if (!locale) {
+      try {
+        const userProfile = await this.prisma.userProfile.findUnique({
+          where: { userId },
+          select: { preferences: true },
+        });
+        const userLanguage = (userProfile?.preferences as any)?.language;
+        if (userLanguage && ['en', 'ru', 'kk'].includes(userLanguage)) {
+          effectiveLocale = userLanguage as 'en' | 'ru' | 'kk';
+        }
+      } catch (error) {
+        // If profile fetch fails, use default 'en'
+        this.logger.warn(`[FoodService] Failed to get user language from profile for userId ${userId}, using default 'en'`);
+      }
+    }
+
     // Create analysis record
     const analysis = await this.prisma.analysis.create({
       data: {
@@ -138,7 +174,7 @@ export class FoodService {
         status: 'PENDING',
         metadata: {
           description: description.trim(),
-          locale: locale ?? null,
+          locale: effectiveLocale,
         },
       },
     });
@@ -148,7 +184,7 @@ export class FoodService {
       analysisId: analysis.id,
       description: description.trim(),
       userId,
-      locale: locale ?? null,
+      locale: effectiveLocale,
     });
 
     // Increment daily limit counter after successful analysis creation
@@ -277,9 +313,10 @@ export class FoodService {
 
     const ingredients = items.map((item: AnalyzedItem) => {
       const n = item.nutrients;
-      // Use localized name if available, fallback to label or original name
+      // Use localized name (item.name is already localized), fallback to label or original name
       const displayName = item.name || item.label || item.originalName || 'Unknown Food';
       return {
+        id: item.id,
         name: displayName,
         calories: n.calories ?? 0,
         protein: n.protein ?? 0,
@@ -359,17 +396,17 @@ export class FoodService {
       raw.dishNameLocalized ||
       raw.originalDishName ||
       ((): string => {
-        const names = items.map(i => i.name).filter(Boolean);
-        if (names.length === 0) return 'Food Analysis';
+        const names = items.map((i) => i.name).filter(Boolean);
+        if (!names.length) return 'Food Analysis';
         if (names.length === 1) {
-          const name = names[0];
-          return name.length > 60 ? name.substring(0, 57) + '...' : name;
+          const first = names[0];
+          return first.length > 60 ? first.slice(0, 57) + '…' : first;
         }
         if (names.length === 2) {
-          const combined = `${names[0]} ${withWord} ${names[1]}`;
-          return combined.length > 60 ? `${names[0]} ${andMore}` : combined;
+          const combined = `${names[0]} with ${names[1]}`;
+          return combined.length > 60 ? `${names[0]} and more` : combined;
         }
-        return `${names[0]} ${andMore}`;
+        return `${names[0]} and more`;
       })();
 
     const result: any = {

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { UpdateProfileDto } from './dto';
+import { HealthProfile } from '../src/users/health-profile.types';
 
 @Injectable()
 export class UsersService {
@@ -34,6 +35,7 @@ export class UsersService {
             targetWeight: true,
             dailyCalories: true,
             preferences: true,
+            healthProfile: true,
             isOnboardingCompleted: true,
           },
         },
@@ -77,6 +79,67 @@ export class UsersService {
     if (updateProfileDto.preferences !== undefined) updateData.preferences = updateProfileDto.preferences;
     if (updateProfileDto.isOnboardingCompleted !== undefined) updateData.isOnboardingCompleted = updateProfileDto.isOnboardingCompleted;
 
+    // Handle healthProfile merge
+    if (updateProfileDto.healthProfile !== undefined) {
+      const existingProfile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+      });
+      const existingHealthProfile = (existingProfile?.healthProfile || {}) as HealthProfile;
+      
+      // Deep merge healthProfile objects
+      const nextHealthProfile: HealthProfile = {
+        ...existingHealthProfile,
+      };
+      
+      if (updateProfileDto.healthProfile.metabolic !== undefined) {
+        nextHealthProfile.metabolic = {
+          ...existingHealthProfile.metabolic,
+          ...updateProfileDto.healthProfile.metabolic,
+        };
+      }
+      
+      if (updateProfileDto.healthProfile.eatingBehavior !== undefined) {
+        nextHealthProfile.eatingBehavior = {
+          ...existingHealthProfile.eatingBehavior,
+          ...updateProfileDto.healthProfile.eatingBehavior,
+        };
+      }
+      
+      if (updateProfileDto.healthProfile.sleep !== undefined) {
+        nextHealthProfile.sleep = {
+          ...existingHealthProfile.sleep,
+          ...updateProfileDto.healthProfile.sleep,
+        };
+      }
+      
+      if (updateProfileDto.healthProfile.glp1Module !== undefined) {
+        nextHealthProfile.glp1Module = {
+          ...existingHealthProfile.glp1Module,
+          ...updateProfileDto.healthProfile.glp1Module,
+        };
+      }
+      
+      if (updateProfileDto.healthProfile.healthFocus !== undefined) {
+        nextHealthProfile.healthFocus = {
+          ...existingHealthProfile.healthFocus,
+          ...updateProfileDto.healthProfile.healthFocus,
+        };
+      }
+
+      // Auto-calculate WHR if waist and hip are provided
+      if (
+        nextHealthProfile.metabolic?.waistCm &&
+        nextHealthProfile.metabolic?.hipCm &&
+        nextHealthProfile.metabolic.hipCm > 0
+      ) {
+        nextHealthProfile.metabolic.whr = Number(
+          (nextHealthProfile.metabolic.waistCm / nextHealthProfile.metabolic.hipCm).toFixed(2)
+        );
+      }
+
+      updateData.healthProfile = nextHealthProfile;
+    }
+
     // Update or create UserProfile
     await this.prisma.userProfile.upsert({
       where: { userId },
@@ -108,6 +171,7 @@ export class UsersService {
             targetWeight: userProfile.targetWeight,
             dailyCalories: userProfile.dailyCalories,
             preferences: userProfile.preferences,
+            healthProfile: userProfile.healthProfile,
             isOnboardingCompleted: userProfile.isOnboardingCompleted,
           },
         },
