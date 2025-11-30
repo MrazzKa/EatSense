@@ -116,7 +116,7 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
             <TouchableOpacity 
               onPress={typeof handleClose === 'function' ? handleClose : () => {}}
               style={styles.closeButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               activeOpacity={0.7}
             >
             <Ionicons name="close" size={24} color={colors.text || '#000'} />
@@ -171,9 +171,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   closeButton: {
-    padding: 8,
-    minWidth: 44,
-    minHeight: 44,
+    padding: 12,
+    minWidth: 48,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },

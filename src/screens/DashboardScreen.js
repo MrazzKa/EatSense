@@ -24,6 +24,59 @@ import { clientLog } from '../utils/clientLog';
 import { CommonActions } from '@react-navigation/native';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
+import { formatMacro, formatCalories } from '../utils/nutritionFormat';
+
+// Shared modal styles for Specialists and Suggested Food modals
+const sharedModalStyles = StyleSheet.create({
+  modalContent: {
+    flex: 1,
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    flex: 1,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    paddingVertical: 16,
+    paddingBottom: 20,
+  },
+  modalDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  modalFooter: {
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+  },
+  modalButton: {
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 // Task 9-10: Specialists and Suggested Food modals
 const SpecialistsModal = ({ visible, onClose, colors, tokens, t }) => (
@@ -36,30 +89,30 @@ const SpecialistsModal = ({ visible, onClose, colors, tokens, t }) => (
     animationType="fade"
     presentationStyle="pageSheet"
   >
-    <SafeAreaView style={[styles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
-      <View style={styles.modalHeader}>
-        <Text style={[styles.modalTitle, { color: colors.text }]}>
+    <SafeAreaView style={[sharedModalStyles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
+      <View style={sharedModalStyles.modalHeader}>
+        <Text style={[sharedModalStyles.modalTitle, { color: colors.text }]}>
           {t('dashboard.specialists.title') || 'Talk to a real nutrition expert (coming soon)'}
         </Text>
-        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+        <TouchableOpacity onPress={onClose} style={sharedModalStyles.modalCloseButton}>
           <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
         </TouchableOpacity>
       </View>
       <ScrollView 
-        style={styles.modalScrollView}
-        contentContainerStyle={styles.modalScrollContent}
+        style={sharedModalStyles.modalScrollView}
+        contentContainerStyle={sharedModalStyles.modalScrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+        <Text style={[sharedModalStyles.modalDescription, { color: colors.textSecondary }]}>
           {t('dashboard.specialists.description') || 'In the future, you\'ll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.'}
         </Text>
       </ScrollView>
-      <View style={[styles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
+      <View style={[sharedModalStyles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
         <TouchableOpacity
-          style={[styles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
+          style={[sharedModalStyles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
           onPress={onClose}
         >
-          <Text style={[styles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
+          <Text style={[sharedModalStyles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
             {t('dashboard.specialists.gotIt') || 'Got it'}
           </Text>
         </TouchableOpacity>
@@ -78,30 +131,30 @@ const SuggestedFoodModal = ({ visible, onClose, colors, tokens, t }) => (
     animationType="fade"
     presentationStyle="pageSheet"
   >
-    <SafeAreaView style={[styles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
-      <View style={styles.modalHeader}>
-        <Text style={[styles.modalTitle, { color: colors.text }]}>
+    <SafeAreaView style={[sharedModalStyles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
+      <View style={sharedModalStyles.modalHeader}>
+        <Text style={[sharedModalStyles.modalTitle, { color: colors.text }]}>
           {t('dashboard.suggestedFood.title') || 'Get simple ideas of what to eat today (coming soon)'}
         </Text>
-        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+        <TouchableOpacity onPress={onClose} style={sharedModalStyles.modalCloseButton}>
           <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
         </TouchableOpacity>
       </View>
       <ScrollView 
-        style={styles.modalScrollView}
-        contentContainerStyle={styles.modalScrollContent}
+        style={sharedModalStyles.modalScrollView}
+        contentContainerStyle={sharedModalStyles.modalScrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+        <Text style={[sharedModalStyles.modalDescription, { color: colors.textSecondary }]}>
           {t('dashboard.suggestedFood.description') || 'Soon, you\'ll receive personalized food suggestions based on your goals, preferences, and nutritional needs.'}
         </Text>
       </ScrollView>
-      <View style={[styles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
+      <View style={[sharedModalStyles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
         <TouchableOpacity
-          style={[styles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
+          style={[sharedModalStyles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
           onPress={onClose}
         >
-          <Text style={[styles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
+          <Text style={[sharedModalStyles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
             {t('dashboard.suggestedFood.gotIt') || 'Got it'}
           </Text>
         </TouchableOpacity>
@@ -109,8 +162,6 @@ const SuggestedFoodModal = ({ visible, onClose, colors, tokens, t }) => (
     </SafeAreaView>
   </SwipeClosableModal>
 );
-
-import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -573,35 +624,6 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* Photo Analysis Counter */}
-        <View style={styles.analysisCounterContainer}>
-          <View style={styles.analysisCounterCard}>
-            <View style={styles.analysisCounterRow}>
-              <Ionicons name="camera" size={20} color={colors.primary} />
-              <View style={styles.analysisCounterContent}>
-                <Text style={styles.analysisCounterLabel}>
-                  {t('dashboard.analysisCounter.today') || 'Today'}
-                </Text>
-                <Text style={styles.analysisCounterValue}>
-                  {userStats.todayPhotosAnalyzed} / {userStats.dailyLimit}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.analysisCounterDivider} />
-            <View style={styles.analysisCounterRow}>
-              <Ionicons name="stats-chart" size={20} color={colors.textSecondary} />
-              <View style={styles.analysisCounterContent}>
-                <Text style={styles.analysisCounterLabel}>
-                  {t('dashboard.analysisCounter.total') || 'Total'}
-                </Text>
-                <Text style={styles.analysisCounterValue}>
-                  {userStats.totalPhotosAnalyzed}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
         {/* AI Assistant Card - always show first */}
         <View style={styles.aiAssistantContainer}>
           <TouchableOpacity style={styles.aiAssistantButton} onPress={typeof handleAiAssistantPress === 'function' ? handleAiAssistantPress : () => {}}>
@@ -759,48 +781,52 @@ export default function DashboardScreen() {
         swipeDirection="down"
         enableSwipe={true}
         enableBackdropClose={true}
-        animationType="fade"
+        animationType="slide"
+        presentationStyle="pageSheet"
       >
-        <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('dashboard.addFood.title')}</Text>
-                <TouchableOpacity onPress={() => setShowModal(false)}>
-                  <Ionicons name="close" size={24} color={colors.textSecondary} />
-                </TouchableOpacity>
+        <SafeAreaView style={styles.addFoodModalContent} edges={['bottom']}>
+          <View style={styles.addFoodModalHeader}>
+            <Text style={styles.addFoodModalTitle}>{t('dashboard.addFood.title')}</Text>
+            <TouchableOpacity 
+              onPress={() => setShowModal(false)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={24} color={colors.text || colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.addFoodModalSubtitle}>
+            {t('dashboard.addFood.subtitle')}
+          </Text>
+          
+          <View style={styles.addFoodModalButtons}>
+            <TouchableOpacity
+              style={styles.addFoodModalButton}
+              onPress={typeof handleCameraPress === 'function' ? handleCameraPress : () => {}}
+            >
+              <View style={styles.addFoodModalButtonIcon}>
+                <Ionicons name="camera" size={32} color={colors.primary} />
               </View>
-              
-              <Text style={styles.modalSubtitle}>
-                {t('dashboard.addFood.subtitle')}
+              <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.camera.title')}</Text>
+              <Text style={styles.addFoodModalButtonSubtitle}>
+                {t('dashboard.addFood.camera.description')}
               </Text>
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={typeof handleCameraPress === 'function' ? handleCameraPress : () => {}}
-                >
-                  <View style={styles.modalButtonIcon}>
-                    <Ionicons name="camera" size={32} color={colors.primary} />
-                  </View>
-                  <Text style={styles.modalButtonTitle}>{t('dashboard.addFood.camera.title')}</Text>
-                  <Text style={styles.modalButtonSubtitle}>
-                    {t('dashboard.addFood.camera.description')}
-                  </Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={typeof handleGalleryPress === 'function' ? handleGalleryPress : () => {}}
-                >
-                  <View style={styles.modalButtonIcon}>
-                    <Ionicons name="images" size={32} color={colors.primary} />
-                  </View>
-                  <Text style={styles.modalButtonTitle}>{t('dashboard.addFood.gallery.title')}</Text>
-                  <Text style={styles.modalButtonSubtitle}>
-                    {t('dashboard.addFood.gallery.description')}
-                  </Text>
-                </TouchableOpacity>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.addFoodModalButton}
+              onPress={typeof handleGalleryPress === 'function' ? handleGalleryPress : () => {}}
+            >
+              <View style={styles.addFoodModalButtonIcon}>
+                <Ionicons name="images" size={32} color={colors.primary} />
               </View>
-        </View>
+              <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.gallery.title')}</Text>
+              <Text style={styles.addFoodModalButtonSubtitle}>
+                {t('dashboard.addFood.gallery.description')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </SwipeClosableModal>
 
       {/* AI Assistant Modal */}
@@ -1425,5 +1451,57 @@ const createStyles = (tokens) =>
     modalButtonText: {
       fontSize: 16,
       fontWeight: '600',
+    },
+    // Add Food Modal styles
+    addFoodModalContent: {
+      paddingHorizontal: tokens.spacing.xl,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xl,
+      minHeight: 300,
+    },
+    addFoodModalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.md,
+    },
+    addFoodModalTitle: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: tokens.colors.textPrimary,
+      flex: 1,
+    },
+    addFoodModalSubtitle: {
+      fontSize: 16,
+      color: tokens.colors.textSecondary,
+      marginBottom: tokens.spacing.xl,
+    },
+    addFoodModalButtons: {
+      gap: tokens.spacing.lg,
+    },
+    addFoodModalButton: {
+      backgroundColor: tokens.colors.surfaceMuted,
+      borderRadius: tokens.radii.lg,
+      padding: tokens.spacing.xl,
+      alignItems: 'center',
+      gap: tokens.spacing.sm,
+    },
+    addFoodModalButtonIcon: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: tokens.colors.primaryTint,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    addFoodModalButtonTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: tokens.colors.textPrimary,
+    },
+    addFoodModalButtonSubtitle: {
+      fontSize: 14,
+      color: tokens.colors.textSecondary,
+      textAlign: 'center',
     },
   });

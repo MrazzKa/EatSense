@@ -724,6 +724,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
             <View style={[styles.inputContainer, { 
               backgroundColor: colors.surface || colors.card, 
               borderTopColor: colors.border || '#E5E5EA',
+              paddingBottom: insets.bottom || 12,
             }]}>
               <TextInput
                 ref={inputRef}
