@@ -55,8 +55,11 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
       animationType="fade"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background || '#F8F9FA', flex: 1 }]} edges={['top', 'bottom']}>
-        <View style={[styles.header, { backgroundColor: colors.surface || 'white', borderBottomColor: colors.border || '#E5E7EB' }]}>
+      <SafeAreaView 
+        style={[styles.container, { backgroundColor: colors.background || colors.surface || '#F8F9FA', flex: 1 }]} 
+        edges={['top', 'bottom']}
+      >
+        <View style={[styles.header, { backgroundColor: colors.surface || colors.card, borderBottomColor: colors.border || '#E5E7EB' }]}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
           </TouchableOpacity>
@@ -74,7 +77,12 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
             </Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent} 
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
             {/* Today's Stats */}
             {stats && (
               <View style={styles.section}>
@@ -82,7 +90,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                   {t('statistics.today') || 'Today'}
                 </Text>
                 
-                <View style={[styles.statsCard, { backgroundColor: colors.surface || 'white' }]}>
+                <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
                   <View style={styles.statsRow}>
                     <View style={styles.statItem}>
                       <Text style={[styles.statLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
@@ -137,7 +145,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                 </Text>
                 
                 {monthlyStats.topFoods && monthlyStats.topFoods.length > 0 && (
-                  <View style={[styles.statsCard, { backgroundColor: colors.surface || 'white' }]}>
+                  <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
                     <Text style={[styles.cardTitle, { color: colors.text || '#2C3E50' }]}>
                       {t('dashboard.monthlyStats.topFoods') || 'Top Foods'}
                     </Text>
@@ -155,7 +163,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                 )}
 
                 {monthlyStats.mealDistribution && monthlyStats.mealDistribution.length > 0 && (
-                  <View style={[styles.statsCard, { backgroundColor: colors.surface || 'white' }]}>
+                  <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
                     <Text style={[styles.cardTitle, { color: colors.text || '#2C3E50' }]}>
                       {t('dashboard.monthlyStats.mealDistribution') || 'Meal Distribution'}
                     </Text>
@@ -203,6 +211,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   header: {
     paddingTop: 16,
@@ -237,9 +246,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
+    flexGrow: 1,
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 40,
   },
   section: {
     marginBottom: 24,

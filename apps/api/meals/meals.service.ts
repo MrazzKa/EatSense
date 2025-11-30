@@ -53,7 +53,11 @@ export class MealsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return meals;
+    // B2: Map imageUri to imageUrl for frontend consistency
+    return meals.map(meal => ({
+      ...meal,
+      imageUrl: meal.imageUri || null, // Use imageUri as imageUrl for frontend
+    }));
   }
 
   async createMeal(userId: string, createMealDto: CreateMealDto) {
@@ -115,6 +119,12 @@ export class MealsService {
       },
     });
 
+    // B2: Map imageUri to imageUrl for frontend consistency
+    const mealWithImageUrl = {
+      ...meal,
+      imageUrl: meal.imageUri || null,
+    };
+
     try {
       const mealLogType = this.mapMealTypeForLogging(normalizedType);
       const logEntries = meal.items.map((item) => {
@@ -149,7 +159,11 @@ export class MealsService {
       this.logger.warn(`mealLog=failed userId=${userId} mealId=${meal.id} reason=${error.message}`);
     }
 
-    return meal;
+    // B2: Map imageUri to imageUrl for frontend consistency
+    return {
+      ...mealWithImageUrl,
+      imageUrl: meal.imageUri || null,
+    };
   }
 
   async updateMeal(userId: string, mealId: string, updateMealDto: Partial<CreateMealDto>) {
@@ -190,11 +204,17 @@ export class MealsService {
       };
     }
 
-    return this.prisma.meal.update({
+    const updatedMeal = await this.prisma.meal.update({
       where: { id: mealId },
       data: updateData,
       include: { items: true },
     });
+
+    // Task 5: Map imageUri to imageUrl for frontend consistency
+    return {
+      ...updatedMeal,
+      imageUrl: updatedMeal.imageUri || null,
+    };
   }
 
   async deleteMeal(userId: string, mealId: string) {

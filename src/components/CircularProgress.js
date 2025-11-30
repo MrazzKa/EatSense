@@ -6,11 +6,12 @@ import { useTheme } from '../contexts/ThemeContext';
 export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, value, label, goal, children }) {
   const { colors, tokens } = useTheme();
   
-  // Clamp progress between 0 and 1
+  // Clamp progress between 0 and 1, and cap display percentage at 500%
   const clampedProgress = Math.min(1, Math.max(0, progress));
+  const displayProgress = Math.min(5, clampedProgress); // Cap at 500% for display
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - clampedProgress);
+  const strokeDashoffset = circumference * (1 - displayProgress);
   
   // Color based on progress
   const getProgressColor = () => {
@@ -49,7 +50,11 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
         {children || (
           <>
             <Text style={[styles.value, { color: colors.primary }]}>
-              {value !== undefined ? value.toLocaleString() : `${Math.round(clampedProgress * 100)}%`}
+              {value !== undefined ? value.toLocaleString() : (
+                clampedProgress >= 5 
+                  ? '500+%' 
+                  : `${Math.round(clampedProgress * 100)}%`
+              )}
             </Text>
             {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
             {goal && <Text style={[styles.goal, { color: colors.textTertiary }]}>{goal}</Text>}

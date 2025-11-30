@@ -25,12 +25,92 @@ import { CommonActions } from '@react-navigation/native';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
 
-// Helper to format grams with proper decimal places
-const formatGrams = (value) => {
-  if (value == null || Number.isNaN(value)) return '0 g';
-  const rounded = Number(value.toFixed(1));
-  return `${rounded} g`;
-};
+// Task 9-10: Specialists and Suggested Food modals
+const SpecialistsModal = ({ visible, onClose, colors, tokens, t }) => (
+  <SwipeClosableModal
+    visible={visible}
+    onClose={onClose}
+    swipeDirection="down"
+    enableSwipe={true}
+    enableBackdropClose={true}
+    animationType="fade"
+    presentationStyle="pageSheet"
+  >
+    <SafeAreaView style={[styles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
+      <View style={styles.modalHeader}>
+        <Text style={[styles.modalTitle, { color: colors.text }]}>
+          {t('dashboard.specialists.title') || 'Talk to a real nutrition expert (coming soon)'}
+        </Text>
+        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+          <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
+        </TouchableOpacity>
+      </View>
+      <ScrollView 
+        style={styles.modalScrollView}
+        contentContainerStyle={styles.modalScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+          {t('dashboard.specialists.description') || 'In the future, you\'ll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.'}
+        </Text>
+      </ScrollView>
+      <View style={[styles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
+        <TouchableOpacity
+          style={[styles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
+          onPress={onClose}
+        >
+          <Text style={[styles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
+            {t('dashboard.specialists.gotIt') || 'Got it'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  </SwipeClosableModal>
+);
+
+const SuggestedFoodModal = ({ visible, onClose, colors, tokens, t }) => (
+  <SwipeClosableModal
+    visible={visible}
+    onClose={onClose}
+    swipeDirection="down"
+    enableSwipe={true}
+    enableBackdropClose={true}
+    animationType="fade"
+    presentationStyle="pageSheet"
+  >
+    <SafeAreaView style={[styles.modalContent, { backgroundColor: colors.surface || colors.background }]} edges={['top', 'bottom']}>
+      <View style={styles.modalHeader}>
+        <Text style={[styles.modalTitle, { color: colors.text }]}>
+          {t('dashboard.suggestedFood.title') || 'Get simple ideas of what to eat today (coming soon)'}
+        </Text>
+        <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
+          <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
+        </TouchableOpacity>
+      </View>
+      <ScrollView 
+        style={styles.modalScrollView}
+        contentContainerStyle={styles.modalScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+          {t('dashboard.suggestedFood.description') || 'Soon, you\'ll receive personalized food suggestions based on your goals, preferences, and nutritional needs.'}
+        </Text>
+      </ScrollView>
+      <View style={[styles.modalFooter, { borderTopColor: colors.border || '#E5E7EB' }]}>
+        <TouchableOpacity
+          style={[styles.modalButton, { backgroundColor: colors.primary || '#007AFF' }]}
+          onPress={onClose}
+        >
+          <Text style={[styles.modalButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
+            {t('dashboard.suggestedFood.gotIt') || 'Got it'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  </SwipeClosableModal>
+);
+
+import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -325,6 +405,8 @@ export default function DashboardScreen() {
   const [showModal, setShowModal] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [showStatistics, setShowStatistics] = useState(false);
+  const [showSpecialistsModal, setShowSpecialistsModal] = useState(false);
+  const [showSuggestedFoodModal, setShowSuggestedFoodModal] = useState(false);
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const handleCameraPress = async () => {
@@ -436,15 +518,15 @@ export default function DashboardScreen() {
         {/* Quick Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatGrams(stats.totalProtein)}</Text>
+            <Text style={styles.statNumber}>{formatMacro(stats.totalProtein)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatGrams(stats.totalCarbs)}</Text>
+            <Text style={styles.statNumber}>{formatMacro(stats.totalCarbs)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatGrams(stats.totalFat)}</Text>
+            <Text style={styles.statNumber}>{formatMacro(stats.totalFat)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
           </View>
         </View>
@@ -535,6 +617,61 @@ export default function DashboardScreen() {
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
         </View>
+
+        {/* Task 9-10: Specialists and Suggested Food Cards */}
+        <View style={styles.newFeaturesContainer}>
+          <TouchableOpacity
+            style={[styles.featureCard, { backgroundColor: colors.card || colors.surface, borderColor: colors.borderMuted }]}
+            onPress={() => setShowSpecialistsModal(true)}
+          >
+            <View style={[styles.featureIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
+              <Ionicons name="people" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.featureContent}>
+              <Text style={[styles.featureTitle, { color: colors.text }]}>
+                {t('dashboard.specialists.title') || 'Specialists'}
+              </Text>
+              <Text style={[styles.featureSubtitle, { color: colors.textSecondary }]}>
+                {t('dashboard.specialists.shortDescription') || 'Talk to a real nutrition expert (coming soon)'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.featureCard, { backgroundColor: colors.card || colors.surface, borderColor: colors.borderMuted }]}
+            onPress={() => setShowSuggestedFoodModal(true)}
+          >
+            <View style={[styles.featureIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
+              <Ionicons name="restaurant" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.featureContent}>
+              <Text style={[styles.featureTitle, { color: colors.text }]}>
+                {t('dashboard.suggestedFood.title') || 'Suggested Food'}
+              </Text>
+              <Text style={[styles.featureSubtitle, { color: colors.textSecondary }]}>
+                {t('dashboard.suggestedFood.shortDescription') || 'Get simple ideas of what to eat today (coming soon)'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Modals */}
+        <SpecialistsModal
+          visible={showSpecialistsModal}
+          onClose={() => setShowSpecialistsModal(false)}
+          colors={colors}
+          tokens={tokens}
+          t={t}
+        />
+        <SuggestedFoodModal
+          visible={showSuggestedFoodModal}
+          onClose={() => setShowSuggestedFoodModal(false)}
+          colors={colors}
+          tokens={tokens}
+          t={t}
+        />
 
         {/* Highlight Meal Section - Health Score */}
         {highlightMeal?.healthScore && (
@@ -1202,5 +1339,91 @@ const createStyles = (tokens) =>
       height: 1,
       backgroundColor: tokens.colors.borderMuted,
       marginVertical: tokens.spacing.sm,
+    },
+    // Task 9-10: New feature cards styles
+    newFeaturesContainer: {
+      paddingHorizontal: tokens.spacing.xl,
+      marginBottom: tokens.spacing.lg,
+      gap: tokens.spacing.md,
+    },
+    featureCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: tokens.spacing.lg,
+      borderRadius: tokens.radii.lg,
+      borderWidth: 1,
+      ...(tokens.states.cardShadow || tokens.elevations.sm),
+    },
+    featureIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: tokens.spacing.md,
+    },
+    featureContent: {
+      flex: 1,
+      gap: tokens.spacing.xxs || 2,
+    },
+    featureTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: tokens.colors.textPrimary,
+    },
+    featureSubtitle: {
+      fontSize: 13,
+      color: tokens.colors.textSecondary,
+    },
+    // Modal styles for Specialists and Suggested Food
+    modalContent: {
+      flex: 1,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.lg,
+      paddingHorizontal: tokens.spacing.xl,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: tokens.spacing.lg,
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: tokens.colors.textPrimary,
+      flex: 1,
+    },
+    modalCloseButton: {
+      padding: tokens.spacing.xs,
+    },
+    modalScrollView: {
+      flex: 1,
+    },
+    modalScrollContent: {
+      flexGrow: 1,
+      paddingVertical: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xl,
+    },
+    modalDescription: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: tokens.colors.textSecondary,
+    },
+    modalFooter: {
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.md,
+      borderTopWidth: 1,
+    },
+    modalButton: {
+      borderRadius: tokens.radii.lg,
+      paddingVertical: tokens.spacing.md,
+      paddingHorizontal: tokens.spacing.xl,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modalButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
     },
   });

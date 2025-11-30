@@ -1,4 +1,5 @@
 import { Process, Processor } from '@nestjs/bull';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { PrismaService } from '../prisma.service';
 import { FoodAnalyzerService } from './food-analyzer/food-analyzer.service';
@@ -9,6 +10,8 @@ import * as sharp from 'sharp';
 
 @Processor('food-analysis')
 export class FoodProcessor {
+  private readonly logger = new Logger(FoodProcessor.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly foodAnalyzer: FoodAnalyzerService,
@@ -47,7 +50,7 @@ export class FoodProcessor {
         imageBuffer = Buffer.from(imageBufferBase64, 'base64');
         console.log(`[FoodProcessor] Decoded buffer size: ${imageBuffer.length} bytes`);
       } catch (decodeError: any) {
-        console.error(`[FoodProcessor] Failed to decode base64:`, decodeError);
+        this.logger.error(`[FoodProcessor] Failed to decode base64:`, decodeError);
         throw new Error(`Failed to decode base64 image buffer: ${decodeError.message}`);
       }
 
@@ -67,7 +70,7 @@ export class FoodProcessor {
           throw new Error('Image processing resulted in empty buffer');
         }
       } catch (sharpError: any) {
-        console.error('Image processing error:', sharpError);
+        this.logger.error('Image processing error:', sharpError);
         // If sharp fails, try using original buffer if it's valid
         if (imageBuffer && imageBuffer.length > 0) {
           processedBuffer = imageBuffer;
@@ -89,7 +92,7 @@ export class FoodProcessor {
         imageUrl = mediaResult.url;
         console.log(`[FoodProcessor] Image saved to media, URL: ${imageUrl}`);
       } catch (mediaError: any) {
-        console.error(`[FoodProcessor] Failed to save image to media:`, mediaError.message);
+        this.logger.warn(`[FoodProcessor] Failed to save image to media:`, mediaError.message);
         // Continue without imageUrl - analysis can still proceed
       }
 
@@ -152,16 +155,31 @@ export class FoodProcessor {
                 return hasValidName && (hasNutrition || hasReasonablePortion);
               });
             
-            // Log for debugging
+            // Task 14: Log WARN when auto-save filtering removes all items
             if (validItems.length === 0 && items.length > 0) {
-              console.log(`[FoodProcessor] No valid items after filtering. Original items:`, items.map(item => ({
-                name: item.name,
-                calories: item.nutrients?.calories,
-                portion_g: item.portion_g,
-              })));
-            }
-            
-            if (validItems.length > 0) {
+              this.logger.warn('[FoodProcessor] Auto-save skipped: all items filtered out during validation', {
+                analysisId,
+                userId,
+                originalItemCount: items.length,
+                originalItems: items.map(item => ({
+                  name: item.name,
+                  calories: item.nutrients?.calories,
+                  protein: item.nutrients?.protein,
+                  fat: item.nutrients?.fat,
+                  carbs: item.nutrients?.carbs,
+                  portion_g: item.portion_g,
+                  source: item.source,
+                })),
+                reason: 'Items did not pass validation (missing name, no nutrition data, or portion < 10g)',
+                needsReview: true,
+              });
+              
+              result.autoSave = {
+                skipped: true,
+                reason: 'no_valid_items',
+                needsReview: true,
+              };
+            } else if (validItems.length > 0) {
               const meal = await this.mealsService.createMeal(userId, {
                 name: dishName,
                 type: 'MEAL',
@@ -169,13 +187,13 @@ export class FoodProcessor {
                 healthScore: analysisResult.healthScore,
                 imageUri: imageUrl || null, // Include imageUrl when auto-saving meal
               });
-              console.log(`Automatically saved analysis ${analysisId} to meals (mealId: ${meal.id})`);
+              this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id})`);
               result.autoSave = {
                 mealId: meal.id,
                 savedAt: new Date().toISOString(),
               };
             } else {
-              console.log(`Skipping auto-save: no valid items to save for analysis ${analysisId}`);
+              this.logger.debug(`[FoodProcessor] Skipping auto-save: no items to save for analysis ${analysisId}`);
             }
           } else {
             console.log(`Skipping auto-save: user ${userId} not found`);
@@ -184,8 +202,8 @@ export class FoodProcessor {
           console.log(`Skipping auto-save: invalid userId (${userId}) or no items`);
         }
       } catch (mealError: any) {
-        console.error(`Failed to auto-save analysis ${analysisId} to meals:`, mealError.message);
-        console.error(`Error stack:`, mealError.stack);
+        this.logger.error(`[FoodProcessor] Failed to auto-save analysis ${analysisId} to meals:`, mealError.message);
+        this.logger.error(`[FoodProcessor] Error stack:`, mealError.stack);
         // Don't fail the analysis if meal save fails
       }
 
@@ -240,14 +258,14 @@ export class FoodProcessor {
             });
           }
         } catch (statsError: any) {
-          console.error(`Failed to update user stats for ${userId}:`, statsError.message);
+          this.logger.warn(`[FoodProcessor] Failed to update user stats for ${userId}:`, statsError.message);
           // Don't fail the analysis if stats update fails
         }
       }
 
       console.log(`[FoodProcessor] Image analysis completed for analysis ${analysisId}`);
     } catch (error: any) {
-      console.error(`[FoodProcessor] Image analysis failed for analysis ${analysisId}:`, {
+      this.logger.error(`[FoodProcessor] Image analysis failed for analysis ${analysisId}:`, {
         message: error.message,
         stack: error.stack,
         name: error.name,
@@ -265,7 +283,7 @@ export class FoodProcessor {
           },
         });
       } catch (updateError: any) {
-        console.error(`[FoodProcessor] Failed to update analysis status:`, updateError.message);
+        this.logger.error(`[FoodProcessor] Failed to update analysis status:`, updateError.message);
       }
     }
   }
@@ -351,7 +369,7 @@ export class FoodProcessor {
           }
         }
       } catch (mealError: any) {
-        console.error(`Failed to auto-save text analysis ${analysisId} to meals:`, mealError.message);
+        this.logger.error(`[FoodProcessor] Failed to auto-save text analysis ${analysisId} to meals:`, mealError.message);
       }
 
       // Save results
@@ -370,7 +388,7 @@ export class FoodProcessor {
 
       console.log(`Text analysis completed for analysis ${analysisId}`);
     } catch (error: any) {
-      console.error(`Text analysis failed for analysis ${analysisId}:`, error);
+      this.logger.error(`[FoodProcessor] Text analysis failed for analysis ${analysisId}:`, error);
       
       // Update status to failed
       await this.prisma.analysis.update({

@@ -36,7 +36,7 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
   animationType = 'fade',
   presentationStyle = 'pageSheet',
 }) => {
-  const { tokens } = useTheme();
+  const { tokens, colors } = useTheme();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -187,6 +187,7 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
             styles.content,
             isFullScreen && styles.contentFullScreen,
             {
+              backgroundColor: colors.surface || colors.card || colors.background,
               transform: getTransform(),
               opacity: animationType === 'fade' ? opacity : 1,
             },
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   content: {
-    backgroundColor: 'white',
+    // backgroundColor will be set dynamically from theme
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: SCREEN_HEIGHT * 0.9,

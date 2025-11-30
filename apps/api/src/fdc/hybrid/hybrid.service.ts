@@ -218,17 +218,35 @@ export class HybridService {
       });
     }
 
-    // Save nutrients (skip for slim/Branded)
-    if (!useSlim && foodData.foodNutrients) {
+    // Always save nutrients if they exist (BUG 1: Branded products need nutrients too)
+    if (foodData.foodNutrients && foodData.foodNutrients.length > 0) {
       await this.prisma.foodNutrient.deleteMany({ where: { foodId: food.id } });
-      await this.prisma.foodNutrient.createMany({
+      const savedNutrients = await this.prisma.foodNutrient.createMany({
         data: foodData.foodNutrients
-          .filter((fn: any) => fn.nutrient && fn.amount !== null)
+          .filter((fn: any) => fn.nutrient && fn.amount !== null && fn.amount > 0)
           .map((fn: any) => ({
             foodId: food.id,
             nutrientId: fn.nutrient.id,
             amount: fn.amount || 0,
           })),
+      });
+      
+      // Task 1: Log warning if no nutrients were saved despite having foodNutrients array
+      if (savedNutrients.count === 0 && foodData.foodNutrients.length > 0) {
+        this.logger.warn('[HybridService] Food saved but no nutrients persisted', {
+          fdcId: food.fdcId,
+          description: food.description,
+          dataType: food.dataType,
+          foodNutrientsCount: foodData.foodNutrients.length,
+          reason: 'All nutrients filtered out (null/zero amounts or missing nutrient.id)',
+        });
+      }
+    } else if (foodData.dataType === 'Branded' && !foodData.labelNutrients) {
+      // Task 1: Warn if Branded product has no nutrients at all
+      this.logger.warn('[HybridService] Branded product saved without nutrients', {
+        fdcId: food.fdcId,
+        description: food.description,
+        reason: 'No foodNutrients array and no labelNutrients',
       });
     }
 
@@ -315,21 +333,36 @@ export class HybridService {
         fiber: nutrients.fiber,
         sugars: nutrients.sugars,
         sodium: nutrients.sodium,
+        satFat: nutrients.satFat || 0, // BUG 2: Add satFat
       },
     };
+  }
+
+  // BUG 3: Extract label value from nested structure or direct value
+  private extractLabelValue(labelField: any): number {
+    if (labelField === null || labelField === undefined) return 0;
+    if (typeof labelField === 'number') return labelField;
+    if (typeof labelField === 'object' && labelField.value !== undefined) {
+      return labelField.value;
+    }
+    return 0;
   }
 
   private extractNutrients(food: any): any {
     // Priority: LabelNutrients > FoodNutrient (1008 Energy) > FoodNutrient (Atwater 2047/2048)
     if (food.label) {
+      // BUG 3: Handle nested structure { "calories": { "value": 203 } }
+      const fatValue = this.extractLabelValue(food.label.fat);
       return {
-        calories: food.label.calories || 0,
-        protein: food.label.protein || 0,
-        fat: food.label.fat || 0,
-        carbs: food.label.carbohydrates || 0,
-        fiber: food.label.fiber || 0,
-        sugars: food.label.sugars || 0,
-        sodium: food.label.sodium || 0,
+        calories: this.extractLabelValue(food.label.calories),
+        protein: this.extractLabelValue(food.label.protein),
+        fat: fatValue,
+        carbs: this.extractLabelValue(food.label.carbohydrates),
+        fiber: this.extractLabelValue(food.label.fiber),
+        sugars: this.extractLabelValue(food.label.sugars),
+        sodium: this.extractLabelValue(food.label.sodium),
+        // Task 2: Add satFat from label or estimate from fat (only if fat > 0)
+        satFat: this.extractLabelValue(food.label.saturatedFat) || (fatValue > 0 ? fatValue * 0.35 : 0),
       };
     }
 
@@ -351,15 +384,20 @@ export class HybridService {
     const sugars = nutrients.find((n: any) => n.nutrientId === 2000);
     // Sodium: 1093 (Sodium, Na)
     const sodium = nutrients.find((n: any) => n.nutrientId === 1093);
+    // BUG 2: Saturated Fat: 1258 (Fatty acids, total saturated)
+    const satFat = nutrients.find((n: any) => n.nutrientId === 1258);
 
+    const fatAmount = fat?.amount || 0;
     return {
       calories: energy?.amount || 0,
       protein: protein?.amount || 0,
-      fat: fat?.amount || 0,
+      fat: fatAmount,
       carbs: carbs?.amount || 0,
       fiber: fiber?.amount || 0,
       sugars: sugars?.amount || 0,
       sodium: sodium?.amount || 0,
+      // Task 2: Add satFat from nutrients or estimate from fat (only if fat > 0)
+      satFat: satFat?.amount || (fatAmount > 0 ? fatAmount * 0.35 : 0),
     };
   }
 }

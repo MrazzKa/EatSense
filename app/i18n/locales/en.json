@@ -65,6 +65,18 @@
     "analysisCounter": {
       "today": "Today",
       "total": "Total"
+    },
+    "specialists": {
+      "title": "Talk to a real nutrition expert (coming soon)",
+      "shortDescription": "Talk to a real nutrition expert (coming soon)",
+      "description": "In the future, you'll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.",
+      "gotIt": "Got it"
+    },
+    "suggestedFood": {
+      "title": "Get simple ideas of what to eat today (coming soon)",
+      "shortDescription": "Get simple ideas of what to eat today (coming soon)",
+      "description": "Soon, you'll receive personalized food suggestions based on your goals, preferences, and nutritional needs.",
+      "gotIt": "Got it"
     }
   },
   "articles": {
@@ -465,7 +477,12 @@
       "metrics": "Metrics",
       "recommendation": "Recommendations",
       "placeholder": "Paste your health information or lab results here...",
-      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions."
+      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
+      "addPhoto": "Add Photo",
+      "selectPhoto": "Select a photo to analyze",
+      "analyzing": "Analyzing photo...",
+      "photoResultTitle": "Analyzed: {{dish}}",
+      "error": "Failed to analyze photo. Please try again."
     }
   },
   "assistant": {

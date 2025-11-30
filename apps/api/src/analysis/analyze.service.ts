@@ -181,6 +181,21 @@ export class AnalyzeService {
           portionG,
         );
 
+        // BUG 4 & 5: Debug logging for FDC match and zero calories
+        if (process.env.ANALYSIS_DEBUG === 'true' || nutrients.calories === 0) {
+          this.logger.debug('[AnalyzeService] FDC match for component', {
+            componentName: component.name,
+            fdcId: bestMatch.fdcId,
+            fdcDescription: bestMatch.description,
+            normalizedNutrients: normalized.nutrients,
+            portionG: portionG,
+            calculatedCalories: nutrients.calories,
+            calculatedProtein: nutrients.protein,
+            calculatedCarbs: nutrients.carbs,
+            calculatedFat: nutrients.fat,
+          });
+        }
+
         const originalNameEn = normalizeFoodName(bestMatch.description || food.description || component.name);
         const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
@@ -299,6 +314,43 @@ export class AnalyzeService {
           nutrients: it.nutrients,
         })),
       });
+    }
+
+    // Task 3: Check if ALL items have 0 calories and log ERROR with full details
+    const allItemsZeroCalories = items.length > 0 && items.every(item => (item.nutrients?.calories || 0) === 0);
+    if (allItemsZeroCalories) {
+      this.logger.error('[AnalyzeService] All items have zero calories - analysis needs review', {
+        imageHash,
+        cacheKey,
+        itemCount: items.length,
+        componentCount: visionComponents.length,
+        items: items.map(item => ({
+          name: item.name,
+          portion_g: item.portion_g,
+          calories: item.nutrients?.calories,
+          protein: item.nutrients?.protein,
+          fat: item.nutrients?.fat,
+          carbs: item.nutrients?.carbs,
+          source: item.source,
+          fdcId: item.fdcId,
+          dataType: item.dataType,
+        })),
+        total: {
+          calories: total.calories,
+          protein: total.protein,
+          fat: total.fat,
+          carbs: total.carbs,
+        },
+        visionComponents: visionComponents.slice(0, 10).map(c => ({
+          name: c.name,
+          preparation: c.preparation,
+          est_portion_g: c.est_portion_g,
+          confidence: c.confidence,
+        })),
+      });
+      
+      // Mark as needsReview if all items have zero calories
+      needsReview = true;
     }
 
     // Log final analysis in debug mode or for first N analyses
@@ -547,8 +599,25 @@ export class AnalyzeService {
     // Calculate energy density (kcal per 100g)
     const energyDensity = base.calories || 0;
 
+    const calculatedCalories = Math.round((base.calories || 0) * scale);
+
+    // Task 3: Enhanced zero-calories diagnostics
+    if (calculatedCalories === 0) {
+      this.logger.warn('[AnalyzeService] Zero calories from FDC', {
+        fdcId: normalized.fdcId,
+        description: normalized.description,
+        rawNutrients: base,
+        portionG,
+        scale,
+        baseCalories: base.calories,
+        hasProtein: (base.protein || 0) > 0,
+        hasFat: (base.fat || 0) > 0,
+        hasCarbs: (base.carbs || 0) > 0,
+      });
+    }
+
     return {
-      calories: Math.round((base.calories || 0) * scale),
+      calories: calculatedCalories,
       protein: this.round((base.protein || 0) * scale, 1),
       carbs: this.round((base.carbs || 0) * scale, 1),
       fat: this.round((base.fat || 0) * scale, 1),
@@ -736,8 +805,20 @@ export class AnalyzeService {
     const portionWeight = totalPortion || 250; // fallback 250g meal
     const proteinScore = this.positiveScore(total.protein, 30);
     const fiberScore = this.positiveScore(total.fiber || 0, 10);
-    const satFatScore = this.negativeScore(total.satFat || (total.fat * 0.3) || 0, 8);
-    const sugarScore = this.negativeScore(total.sugars || 0, 15);
+    
+    // Task 2: Fallback estimates when specific data is missing but parent macro exists
+    // Use fallback only when satFat is 0 or missing but fat > 0
+    const estimatedSatFat = total.satFat > 0 
+      ? total.satFat 
+      : (total.fat > 0 ? total.fat * 0.35 : 0); // ~35% of fat is typically saturated
+      
+    // Use fallback only when sugars is 0 or missing but carbs > 0
+    const estimatedSugars = total.sugars > 0 
+      ? total.sugars 
+      : (total.carbs > 0 ? total.carbs * 0.1 : 0); // ~10% of carbs as sugars fallback
+    
+    const satFatScore = this.negativeScore(estimatedSatFat, 8);
+    const sugarScore = this.negativeScore(estimatedSugars, 15);
     const energyDensity = portionWeight ? total.calories / portionWeight : total.calories / 250;
     const energyDensityScore = this.negativeScore(energyDensity, 4);
 

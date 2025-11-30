@@ -18,6 +18,8 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { clientLog } from '../utils/clientLog';
 import { mapLanguageToLocale } from '../utils/locale';
+import { ImagePickerBlock } from './ImagePickerBlock';
+import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 
 interface Message {
   id: string;
@@ -60,6 +62,10 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   const [healthText, setHealthText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [healthResult, setHealthResult] = useState<HealthResult | null>(null);
+  // Task 6: Photo analysis state
+  const [healthAnalysisImage, setHealthAnalysisImage] = useState<string | null>(null);
+  const [isAnalyzingPhoto, setIsAnalyzingPhoto] = useState(false);
+  const [photoAnalysisResult, setPhotoAnalysisResult] = useState<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
 
@@ -340,7 +346,157 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
     );
   };
 
+  // Task 6: Handle photo analysis in Health Analysis tab
+  const handlePhotoAnalysis = useCallback(async (imageUri: string) => {
+    if (!imageUri || isAnalyzingPhoto || !user?.id) return;
+
+    setIsAnalyzingPhoto(true);
+    setHealthAnalysisImage(imageUri);
+    setPhotoAnalysisResult(null);
+    setHealthResult(null);
+
+    try {
+      await clientLog('AiAssistant:healthPhotoAnalysis', { imageUri }).catch(() => {});
+      
+      const locale = mapLanguageToLocale(language);
+      const analysisResponse = await ApiService.analyzeImage(imageUri, locale);
+      
+      // Wait for analysis to complete
+      let analysisId = analysisResponse.analysisId;
+      if (!analysisId && analysisResponse.id) {
+        analysisId = analysisResponse.id;
+      }
+
+      if (analysisId) {
+        // Poll for results
+        let attempts = 0;
+        const maxAttempts = 30;
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+          
+          try {
+            const result = await ApiService.getAnalysisResult(analysisId);
+            if (result && result.status === 'COMPLETED' && result.items && result.items.length > 0) {
+              // Format as health result
+              const totalCalories = result.totalCalories || 0;
+              const totalProtein = result.totalProtein || 0;
+              const totalCarbs = result.totalCarbs || 0;
+              const totalFat = result.totalFat || 0;
+              
+              setPhotoAnalysisResult({
+                analysisId,
+                dishName: result.dishName || 'Analyzed Meal',
+                calories: totalCalories,
+                protein: totalProtein,
+                carbs: totalCarbs,
+                fat: totalFat,
+                healthScore: result.healthScore,
+                ingredients: result.ingredients || [],
+                imageUrl: result.imageUrl || imageUri,
+              });
+              
+              setHealthResult({
+                id: `photo-${analysisId}`,
+                summary: t('aiAssistant.healthAnalysis.photoResultTitle', { dish: result.dishName }) || 
+                  `Analyzed: ${result.dishName}`,
+                recommendation: result.healthScore?.feedback?.[0] || '',
+                keyFindings: result.healthScore?.feedback || [],
+              });
+              
+              setIsAnalyzingPhoto(false);
+              return;
+            }
+          } catch (pollError: any) {
+            if (pollError?.status === 404) {
+              // Analysis not ready yet, continue polling
+              attempts++;
+              continue;
+            }
+            throw pollError;
+          }
+          
+          attempts++;
+        }
+        
+        throw new Error('Analysis timeout');
+      } else {
+        throw new Error('No analysis ID returned');
+      }
+    } catch (error: any) {
+      console.error('[RealAiAssistant] Error analyzing photo:', error);
+      await clientLog('AiAssistant:healthPhotoError', { 
+        message: error?.message || String(error),
+      }).catch(() => {});
+      
+      setHealthResult({
+        id: `error-${Date.now()}`,
+        summary: t('aiAssistant.healthAnalysis.error') || 'Failed to analyze photo. Please try again.',
+        recommendation: '',
+      });
+    } finally {
+      setIsAnalyzingPhoto(false);
+    }
+  }, [isAnalyzingPhoto, user?.id, language, t]);
+
   const renderHealthResults = () => {
+    // Task 6: Show photo analysis result if available
+    if (photoAnalysisResult) {
+      return (
+        <ScrollView style={styles.labResultsContainer} contentContainerStyle={styles.labResultsContent}>
+          <View style={[styles.labSection, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
+            <Text style={[styles.labSectionTitle, { color: colors.text || '#000000' }]}>
+              {t('aiAssistant.healthAnalysis.photoResultTitle', { dish: photoAnalysisResult.dishName }) || 
+                `Analyzed: ${photoAnalysisResult.dishName}`}
+            </Text>
+            <View style={styles.photoAnalysisSummary}>
+              <View style={styles.photoAnalysisRow}>
+                <Text style={[styles.photoAnalysisLabel, { color: colors.textSecondary }]}>
+                  {t('dashboard.calories') || 'Calories'}
+                </Text>
+                <Text style={[styles.photoAnalysisValue, { color: colors.primary }]}>
+                  {formatCalories(photoAnalysisResult.calories)}
+                </Text>
+              </View>
+              <View style={styles.photoAnalysisRow}>
+                <Text style={[styles.photoAnalysisLabel, { color: colors.textSecondary }]}>
+                  {t('dashboard.protein') || 'Protein'}
+                </Text>
+                <Text style={[styles.photoAnalysisValue, { color: colors.primary }]}>
+                  {formatMacro(photoAnalysisResult.protein)}
+                </Text>
+              </View>
+              <View style={styles.photoAnalysisRow}>
+                <Text style={[styles.photoAnalysisLabel, { color: colors.textSecondary }]}>
+                  {t('dashboard.carbs') || 'Carbs'}
+                </Text>
+                <Text style={[styles.photoAnalysisValue, { color: colors.primary }]}>
+                  {formatMacro(photoAnalysisResult.carbs)}
+                </Text>
+              </View>
+              <View style={styles.photoAnalysisRow}>
+                <Text style={[styles.photoAnalysisLabel, { color: colors.textSecondary }]}>
+                  {t('dashboard.fat') || 'Fat'}
+                </Text>
+                <Text style={[styles.photoAnalysisValue, { color: colors.primary }]}>
+                  {formatMacro(photoAnalysisResult.fat)}
+                </Text>
+              </View>
+            </View>
+            {photoAnalysisResult.healthScore && (
+              <View style={styles.healthScoreSection}>
+                <Text style={[styles.healthScoreLabel, { color: colors.text }]}>
+                  {t('healthScore.title') || 'Health Score'}
+                </Text>
+                <Text style={[styles.healthScoreValue, { color: colors.primary }]}>
+                  {photoAnalysisResult.healthScore.score || 0}/100
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      );
+    }
+
     if (!healthResult) {
       return (
         <View style={styles.emptyState}>
@@ -376,7 +532,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                 style={[
                   styles.labMetricCard,
                   {
-                    backgroundColor: colors.surface || '#FFFFFF',
+                    backgroundColor: colors.surface || colors.card,
                     borderColor: colors.primary || '#007AFF',
                   },
                 ]}
@@ -400,7 +556,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                 style={[
                   styles.labMetricCard,
                   {
-                    backgroundColor: colors.surface || '#FFFFFF',
+                    backgroundColor: colors.surface || colors.card,
                     borderColor: metric.isNormal
                       ? colors.success || '#34C759'
                       : metric.level === 'high'
@@ -476,9 +632,9 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background || '#FFFFFF' }]}>
+    <View style={[styles.container, { backgroundColor: colors.background || colors.surface }]}>
       {/* Tabs */}
-      <View style={[styles.tabsContainer, { backgroundColor: colors.surface || '#FFFFFF', borderBottomColor: colors.border || '#E5E5EA' }]}>
+      <View style={[styles.tabsContainer, { backgroundColor: colors.surface || colors.card, borderBottomColor: colors.border || '#E5E5EA' }]}>
         <TouchableOpacity
           style={[
             styles.tab,
@@ -566,7 +722,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
 
             {/* Input */}
             <View style={[styles.inputContainer, { 
-              backgroundColor: colors.surface || '#FFFFFF', 
+              backgroundColor: colors.surface || colors.card, 
               borderTopColor: colors.border || '#E5E5EA',
             }]}>
               <TextInput
@@ -621,9 +777,32 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         ) : (
           <>
             {renderHealthResults()}
+            
+            {/* Task 6: Photo upload section */}
+            {!photoAnalysisResult && (
+              <View style={[styles.photoUploadSection, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
+                <Text style={[styles.photoUploadTitle, { color: colors.text }]}>
+                  {t('aiAssistant.healthAnalysis.addPhoto') || 'Add Photo'}
+                </Text>
+                <ImagePickerBlock
+                  onImageSelected={handlePhotoAnalysis}
+                  selectedImage={healthAnalysisImage || undefined}
+                  placeholder={t('aiAssistant.healthAnalysis.selectPhoto') || 'Select a photo to analyze'}
+                />
+                {isAnalyzingPhoto && (
+                  <View style={styles.analyzingContainer}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                    <Text style={[styles.analyzingText, { color: colors.textSecondary }]}>
+                      {t('aiAssistant.healthAnalysis.analyzing') || 'Analyzing photo...'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
             {/* Health Analysis Input */}
             <View style={[styles.inputContainer, { 
-              backgroundColor: colors.surface || '#FFFFFF', 
+              backgroundColor: colors.surface || colors.card, 
               borderTopColor: colors.border || '#E5E5EA',
               paddingBottom: insets.bottom || 12,
             }]}>
@@ -642,7 +821,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                 onChangeText={setHealthText}
                 multiline
                 maxLength={2000}
-                editable={!isLoading}
+                editable={!isLoading && !isAnalyzingPhoto}
                 returnKeyType="done"
               />
               <TouchableOpacity
@@ -650,13 +829,13 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                   styles.sendButton,
                   {
                     backgroundColor:
-                      healthText.trim() && !isLoading
+                      healthText.trim() && !isLoading && !isAnalyzingPhoto
                         ? colors.primary || '#007AFF'
                         : colors.surfaceMuted || '#E5E5EA',
                   },
                 ]}
                 onPress={handleAnalyzeHealth}
-                disabled={!healthText.trim() || isLoading}
+                disabled={!healthText.trim() || isLoading || isAnalyzingPhoto}
               >
                 {isLoading ? (
                   <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
@@ -665,7 +844,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                     name="analytics"
                     size={20}
                     color={
-                      healthText.trim() && !isLoading
+                      healthText.trim() && !isLoading && !isAnalyzingPhoto
                         ? colors.onPrimary || '#FFFFFF'
                         : colors.textTertiary || '#8E8E93'
                     }
@@ -683,7 +862,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    // backgroundColor will be set dynamically from theme
   },
   keyboardView: {
     flex: 1,

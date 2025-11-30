@@ -22,6 +22,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
 import AppCard from '../components/common/AppCard';
 import { clientLog } from '../utils/clientLog';
+import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 
 const formatMacroValue = (value) => {
   const num = Number(value);
@@ -55,7 +56,8 @@ export default function AnalysisResultsScreen() {
   const capturedImageUri = routeParams.imageUri ?? null;
   const initialAnalysisParam = routeParams.analysisResult ?? null;
   const readOnly = Boolean(routeParams.readOnly);
-  const baseImageUri = capturedImageUri || initialAnalysisParam?.imageUri || null;
+  // Task 5: Use imageUrl from result if available, fallback to imageUri
+  const baseImageUri = capturedImageUri || initialAnalysisParam?.imageUrl || initialAnalysisParam?.imageUri || null;
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
 
@@ -367,7 +369,8 @@ export default function AnalysisResultsScreen() {
 
   const autoSaveInfo = analysisResult?.autoSave || null;
   const hasAutoSave = Boolean(autoSaveInfo?.mealId);
-  const previewImage = analysisResult?.imageUri || baseImageUri;
+  // Task 5: Use imageUrl from result if available
+  const previewImage = analysisResult?.imageUrl || analysisResult?.imageUri || baseImageUri;
 
   const dishTitle =
     analysisResult?.dishName ||

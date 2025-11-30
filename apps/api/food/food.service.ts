@@ -349,6 +349,11 @@ export class FoodService {
     // AutoSave is handled in processor, not in AnalysisData
     const autoSave = null;
 
+    // BUG 8: Get locale from analysis data for localization
+    const locale = raw.locale || 'en';
+    const withWord = locale === 'ru' ? 'с' : locale === 'kk' ? 'менен' : 'with';
+    const andMore = locale === 'ru' ? 'и другое' : locale === 'kk' ? 'және басқалары' : 'and more';
+
     // Prefer localized dish name if available, otherwise fall back to original / derived
     const dishName =
       raw.dishNameLocalized ||
@@ -361,10 +366,10 @@ export class FoodService {
           return name.length > 60 ? name.substring(0, 57) + '...' : name;
         }
         if (names.length === 2) {
-          const combined = `${names[0]} with ${names[1]}`;
-          return combined.length > 60 ? names[0] + ' and more' : combined;
+          const combined = `${names[0]} ${withWord} ${names[1]}`;
+          return combined.length > 60 ? `${names[0]} ${andMore}` : combined;
         }
-        return names[0] + ' and more';
+        return `${names[0]} ${andMore}`;
       })();
 
     const result: any = {
