@@ -61,9 +61,9 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
       >
         <View style={[styles.header, { backgroundColor: colors.surface || colors.card, borderBottomColor: colors.border || '#E5E7EB' }]}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="close" size={24} color={colors.text || '#2C3E50'} />
+            <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.text || '#2C3E50' }]}>
+          <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
             {t('statistics.title') || 'Statistics'}
           </Text>
           <View style={styles.placeholder} />
@@ -86,7 +86,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
             {/* Today's Stats */}
             {stats && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.text || '#2C3E50' }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
                   {t('statistics.today') || 'Today'}
                 </Text>
                 
@@ -112,7 +112,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                       <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
                         {t('dashboard.protein') || 'Protein'}
                       </Text>
-                      <Text style={[styles.macroValue, { color: colors.text || '#2C3E50' }]}>
+                      <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
                         {formatNumber(stats.today?.protein || 0)}g
                       </Text>
                     </View>
@@ -120,7 +120,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                       <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
                         {t('dashboard.carbs') || 'Carbs'}
                       </Text>
-                      <Text style={[styles.macroValue, { color: colors.text || '#2C3E50' }]}>
+                      <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
                         {formatNumber(stats.today?.carbs || 0)}g
                       </Text>
                     </View>
@@ -128,7 +128,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                       <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
                         {t('dashboard.fat') || 'Fat'}
                       </Text>
-                      <Text style={[styles.macroValue, { color: colors.text || '#2C3E50' }]}>
+                      <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
                         {formatNumber(stats.today?.fat || 0)}g
                       </Text>
                     </View>
@@ -140,36 +140,41 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
             {/* Monthly Highlights */}
             {monthlyStats && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.text || '#2C3E50' }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
                   {t('dashboard.monthlyStats.title') || 'Monthly Highlights'}
                 </Text>
                 
                 {monthlyStats.topFoods && monthlyStats.topFoods.length > 0 && (
                   <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
-                    <Text style={[styles.cardTitle, { color: colors.text || '#2C3E50' }]}>
+                    <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
                       {t('dashboard.monthlyStats.topFoods') || 'Top Foods'}
                     </Text>
-                    {monthlyStats.topFoods.slice(0, 5).map((food: any, index: number) => (
+                    {monthlyStats.topFoods.slice(0, 5).map((food: any, index: number) => {
+                      const displayName =
+                        !food.name || food.name === 'Unknown'
+                          ? t('statistics.unnamedProduct') || 'Без названия продукта'
+                          : food.name;
+                      return (
                       <View key={index} style={styles.foodItem}>
-                        <Text style={[styles.foodName, { color: colors.text || '#2C3E50' }]} numberOfLines={1}>
-                          {food.name || 'Unknown'}
+                        <Text style={[styles.foodName, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
+                          {displayName}
                         </Text>
                         <Text style={[styles.foodCount, { color: colors.textSecondary || '#7F8C8D' }]}>
                           {food.count || 0} {t('statistics.times') || 'times'}
                         </Text>
                       </View>
-                    ))}
+                    )})}
                   </View>
                 )}
 
                 {monthlyStats.mealDistribution && monthlyStats.mealDistribution.length > 0 && (
                   <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
-                    <Text style={[styles.cardTitle, { color: colors.text || '#2C3E50' }]}>
+                    <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
                       {t('dashboard.monthlyStats.mealDistribution') || 'Meal Distribution'}
                     </Text>
                     {monthlyStats.mealDistribution.map((meal: any, index: number) => (
                       <View key={index} style={styles.mealItem}>
-                        <Text style={[styles.mealLabel, { color: colors.text || '#2C3E50' }]}>
+                        <Text style={[styles.mealLabel, { color: colors.textPrimary || colors.text }]}>
                           {meal.type || 'Meal'}
                         </Text>
                         <View style={styles.mealBarContainer}>

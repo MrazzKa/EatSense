@@ -235,14 +235,47 @@ export class HybridService {
       } else {
         await this.prisma.foodNutrient.deleteMany({ where: { foodId: food.id } });
 
-        await this.prisma.foodNutrient.createMany({
-          data: mapped.map((n) => ({
-            foodId: food.id,
-            nutrientId: n.nutrientId,
-            amount: n.amount, // allowed to be 0, это норма
-          })),
-          skipDuplicates: true,
-        });
+        // Filter by existing Nutrient IDs to avoid FK violations in production
+        const uniqueIds = Array.from(
+          new Set(mapped.map((n) => n.nutrientId).filter((id) => Number.isFinite(id))),
+        ) as number[];
+
+        if (uniqueIds.length === 0) {
+          this.logger.warn(
+            '[HybridService] Skipping nutrient persistence: no valid nutrientIds after mapping',
+            {
+              fdcId: food.fdcId,
+              description: foodData.description,
+            },
+          );
+        } else {
+          const existing = await this.prisma.nutrient.findMany({
+            where: { id: { in: uniqueIds } },
+            select: { id: true },
+          });
+          const existingIds = new Set(existing.map((n) => n.id));
+          const safeNutrients = mapped.filter((n) => existingIds.has(n.nutrientId));
+
+          if (!safeNutrients.length) {
+            this.logger.warn(
+              '[HybridService] No matching nutrients in DB for mapped food nutrients, skipping save',
+              {
+                fdcId: food.fdcId,
+                description: foodData.description,
+                triedIds: uniqueIds,
+              },
+            );
+          } else {
+            await this.prisma.foodNutrient.createMany({
+              data: safeNutrients.map((n) => ({
+                foodId: food.id,
+                nutrientId: n.nutrientId,
+                amount: n.amount, // allowed to be 0, это норма
+              })),
+              skipDuplicates: true,
+            });
+          }
+        }
       }
     } else if (foodData.dataType === 'Branded' && !foodData.labelNutrients) {
       // Task 1: Warn if Branded product has no nutrients at all

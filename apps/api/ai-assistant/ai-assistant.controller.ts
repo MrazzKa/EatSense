@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Query, Request, ServiceUnavailableException, UseGuards, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, Post, Query, Request, ServiceUnavailableException, UseGuards, InternalServerErrorException, Logger, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AiAssistantService } from './ai-assistant.service';
@@ -174,19 +175,48 @@ export class AiAssistantController {
   }
 
   @Post('lab-results')
+  @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Analyze lab results (blood tests)' })
   @ApiResponse({ status: 200, description: 'Lab results analyzed successfully' })
   async analyzeLabResults(
     @Body() dto: LabResultsDto,
-    @Body('userId') userIdFromBody?: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB
+          new FileTypeValidator({ fileType: /(image|pdf)/ }),
+        ],
+      })
+    ) file?: Express.Multer.File,
     @Request() req?: any,
   ) {
-    const userId = dto.userId || userIdFromBody || req?.user?.id;
+    const userId = dto.userId || req?.user?.id;
     if (!userId) {
       throw new BadRequestException('userId is required');
     }
+    
+    // Extract text from body or file
+    let rawText = dto.rawText || '';
+    
+    // TODO: If file is provided, extract text from image/PDF using OCR
+    // For now, use rawText from body or placeholder
+    if (file && !rawText) {
+      rawText = `[Lab results file uploaded: ${file.originalname || 'file'}]`;
+      // In production, you would use OCR or PDF parsing here
+    }
+    
+    if (!rawText || rawText.trim().length < 10) {
+      throw new BadRequestException('Lab results text is required (at least 10 characters)');
+    }
+    
     try {
-      return await this.assistantService.analyzeLabResults(userId, dto.rawText, dto.language);
+      return await this.assistantService.analyzeLabResults(
+        userId, 
+        rawText, 
+        dto.language,
+        dto.labType
+      );
     } catch (error: any) {
       if (error?.message === 'AI_QUOTA_EXCEEDED' || error?.status === 429) {
         throw new ServiceUnavailableException({

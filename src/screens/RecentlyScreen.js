@@ -21,26 +21,33 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 const formatDateLabel = (date, t, language) => {
   if (!date) return '';
+  
+  // Ensure date is a Date object
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (isNaN(dateObj.getTime())) return '';
+  
   const now = new Date();
-  const dayDiff = Math.floor((now - date) / MS_PER_DAY);
+  const dayDiff = Math.floor((now.getTime() - dateObj.getTime()) / MS_PER_DAY);
 
   if (dayDiff <= 0) {
-    return t('recently.today');
+    return t('recently.today') || 'Сегодня';
   }
   if (dayDiff === 1) {
-    return t('recently.yesterday');
+    return t('recently.yesterday') || 'Вчера';
   }
   if (dayDiff <= 6) {
-    return t('recently.daysAgo', { count: dayDiff });
+    // Use i18next pluralization if available, otherwise fallback
+    const key = dayDiff === 1 ? 'recently.daysAgo_one' : 'recently.daysAgo_other';
+    return t(key, { count: dayDiff }) || t('recently.daysAgo', { count: dayDiff }) || `${dayDiff} дн. назад`;
   }
 
   try {
-    return date.toLocaleDateString(language || 'en', {
+    return dateObj.toLocaleDateString(language || 'en', {
       month: 'short',
       day: 'numeric',
     });
   } catch {
-    return date.toLocaleDateString('en-US', {
+    return dateObj.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
     });
@@ -182,7 +189,7 @@ export default function RecentlyScreen() {
 
           <View style={styles.itemContent}>
             <View style={styles.itemHeader}>
-              <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>
+              <Text style={[styles.itemName, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
                 {item.dishName}
               </Text>
               <Text style={[styles.itemDate, { color: colors.textSecondary }]}>{dateLabel}</Text>
@@ -223,7 +230,7 @@ export default function RecentlyScreen() {
                 ]}
               >
                 <Ionicons name="heart" size={14} color={colors.primary} />
-                <Text style={[styles.healthBadgeText, { color: colors.text }]}>
+                <Text style={[styles.healthBadgeText, { color: colors.textPrimary || colors.text }]}>
                   {t('recently.healthScoreLabel', { score: healthScoreValue })}
                 </Text>
                 {item.healthGrade && (
@@ -314,7 +321,7 @@ const createStyles = (tokens, colors) =>
     headerTitle: {
       fontSize: tokens.typography.headingM.fontSize,
       fontWeight: tokens.typography.headingM.fontWeight,
-      color: colors.text,
+      color: colors.textPrimary || colors.text,
     },
     filterButton: {
       padding: tokens.spacing.xs,
@@ -361,7 +368,7 @@ const createStyles = (tokens, colors) =>
       flex: 1,
       fontSize: tokens.typography.bodyStrong.fontSize,
       fontWeight: tokens.typography.bodyStrong.fontWeight,
-      color: colors.text,
+      color: colors.textPrimary || colors.text,
     },
     itemDate: {
       fontSize: tokens.typography.caption.fontSize,

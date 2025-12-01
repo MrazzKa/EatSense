@@ -393,7 +393,7 @@ CRITICAL RULES:
 `;
   }
 
-  async analyzeLabResults(userId: string, rawText: string, language?: string) {
+  async analyzeLabResults(userId: string, rawText: string, language?: string, labType?: string) {
     const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
     const userLanguage = language || (userProfile?.preferences as any)?.language || 'en';
     
@@ -410,7 +410,22 @@ CRITICAL RULES:
     };
     const responseLanguage = languageMap[userLanguage] || 'English';
 
+    // Map lab type to context
+    const labTypeContext: Record<string, string> = {
+      cbc: 'Complete Blood Count (CBC)',
+      biochemistry: 'Blood Biochemistry Panel',
+      lipid: 'Lipid Profile',
+      glycemic: 'Glycemic Profile',
+      vitamins: 'Vitamins & Micronutrients',
+      hormonal: 'Hormonal Profile',
+      inflammation: 'Inflammation Markers',
+      other: 'General Lab Results',
+    };
+    
+    const labTypeLabel = labType ? labTypeContext[labType] || labType : 'General Lab Results';
+
     const systemPrompt = `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
+This is a ${labTypeLabel} analysis.
 
 CRITICAL RULES:
 1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
