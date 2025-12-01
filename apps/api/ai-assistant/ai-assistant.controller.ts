@@ -188,7 +188,7 @@ export class AiAssistantController {
           new FileTypeValidator({ fileType: /(image|pdf)/ }),
         ],
       })
-    ) file?: Express.Multer.File,
+    ) file?: any,
     @Request() req?: any,
   ) {
     const userId = dto.userId || req?.user?.id;
