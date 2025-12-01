@@ -26,6 +26,7 @@ import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
+import { LabResultsModal } from '../components/LabResultsModal';
 
 
 export default function DashboardScreen() {
@@ -365,14 +366,11 @@ export default function DashboardScreen() {
     setShowAiAssistant(true);
   };
 
+  const [showLabResultsModal, setShowLabResultsModal] = useState(false);
+
   const handleOpenManualAnalysis = () => {
-    // Navigate to manual text analysis
-    if (navigation && typeof navigation.navigate === 'function') {
-      navigation.navigate('AnalysisResults', {
-        description: '',
-        source: 'text',
-      });
-    }
+    // Open lab results modal for health analysis
+    setShowLabResultsModal(true);
   };
 
 
@@ -664,6 +662,12 @@ export default function DashboardScreen() {
         visible={showStatistics}
         onClose={() => setShowStatistics(false)}
       />
+
+      {/* Lab Results Modal */}
+      <LabResultsModal
+        visible={showLabResultsModal}
+        onClose={() => setShowLabResultsModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -699,7 +703,7 @@ const createStyles = (tokens) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.lg, // Reduced from xl
       paddingHorizontal: tokens.spacing.xl,
       gap: tokens.spacing.xl,
     },
@@ -765,7 +769,7 @@ const createStyles = (tokens) =>
     statItem: {
       alignItems: 'center',
       backgroundColor: tokens.colors.card,
-      paddingVertical: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.lg, // Reduced from xl
       paddingHorizontal: tokens.spacing.xl,
       borderRadius: tokens.radii.lg,
       minWidth: 80,
@@ -785,7 +789,7 @@ const createStyles = (tokens) =>
     },
     articlesSection: {
       paddingHorizontal: tokens.spacing.xl,
-      marginBottom: tokens.spacing.xl,
+      marginBottom: tokens.spacing.lg, // Reduced from xl
       gap: tokens.spacing.md,
     },
     articlesHeader: {
@@ -895,7 +899,7 @@ const createStyles = (tokens) =>
     aiAssistantButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: tokens.spacing.lg,
+      padding: tokens.spacing.md, // Reduced from lg for compactness
       borderRadius: tokens.radii.lg,
       backgroundColor: tokens.colors.card,
       borderWidth: 1,
@@ -925,14 +929,14 @@ const createStyles = (tokens) =>
       color: tokens.colors.textSecondary,
     },
     section: {
-      marginBottom: tokens.spacing.lg,
+      marginBottom: tokens.spacing.md, // Reduced from lg for compactness
       paddingHorizontal: tokens.spacing.xl,
     },
     recentContainer: {
       paddingHorizontal: tokens.spacing.xl,
-      paddingBottom: tokens.spacing.gutter,
-      gap: tokens.spacing.md,
-      marginBottom: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.md, // Reduced from gutter
+      gap: tokens.spacing.sm, // Reduced from md
+      marginBottom: tokens.spacing.md, // Reduced from lg
     },
     recentHeader: {
       flexDirection: 'row',
@@ -1058,7 +1062,7 @@ const createStyles = (tokens) =>
     },
     monthlySection: {
       paddingHorizontal: tokens.spacing.xl,
-      marginBottom: tokens.spacing.xl,
+      marginBottom: tokens.spacing.lg, // Reduced from xl
       gap: tokens.spacing.md,
     },
     viewInsightsButton: {
@@ -1172,7 +1176,7 @@ const createStyles = (tokens) =>
     },
     analysisCounterContainer: {
       paddingHorizontal: tokens.spacing.xl,
-      marginBottom: tokens.spacing.xl,
+      marginBottom: tokens.spacing.lg, // Reduced from xl
     },
     analysisCounterCard: {
       backgroundColor: tokens.colors.card,
@@ -1214,7 +1218,7 @@ const createStyles = (tokens) =>
     featureCard: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: tokens.spacing.lg,
+      padding: tokens.spacing.md, // Reduced from lg for compactness
       borderRadius: tokens.radii.lg,
       borderWidth: 1,
       ...(tokens.states.cardShadow || tokens.elevations.sm),
@@ -1313,7 +1317,7 @@ const createStyles = (tokens) =>
     addFoodModalSubtitle: {
       fontSize: 16,
       color: tokens.colors.textSecondary,
-      marginBottom: tokens.spacing.xl,
+      marginBottom: tokens.spacing.lg, // Reduced from xl
     },
     addFoodModalButtons: {
       gap: tokens.spacing.lg,

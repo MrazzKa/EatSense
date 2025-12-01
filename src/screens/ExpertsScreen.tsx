@@ -10,11 +10,13 @@ export default function ExpertsScreen() {
   const { t } = useI18n();
 
   const handleDietitianPress = () => {
-    // TODO: navigate to dietitian flow / link
+    // Coming soon - will navigate to dietitian chat/booking flow
+    // For now, just show an alert or keep as placeholder
   };
 
   const handleNutritionistPress = () => {
-    // TODO: navigate to nutritionist flow / link
+    // Coming soon - will navigate to nutritionist chat/booking flow
+    // For now, just show an alert or keep as placeholder
   };
 
   return (

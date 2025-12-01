@@ -7,10 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,6 +17,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { clientLog } from '../utils/clientLog';
 import { mapLanguageToLocale } from '../utils/locale';
+import { LabResultsModal } from './LabResultsModal';
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -37,6 +37,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [labModalVisible, setLabModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
 
@@ -225,11 +226,25 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
     );
   };
 
+  const handleLabResult = (result: any) => {
+    if (!result) return;
+    const summary =
+      result.summary ||
+      result.recommendation ||
+      t('aiAssistant.lab.analysisComplete') ||
+      'Lab results analyzed.';
+    const assistantMessage: Message = {
+      id: `lab-${Date.now()}`,
+      role: 'assistant',
+      content: summary,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
+  };
+
   return (
-    <KeyboardAvoidingView
+    <View
       style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={insets.top}
     >
       {/* Messages */}
       <ScrollView
@@ -262,16 +277,19 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
       </ScrollView>
 
       {/* Input */}
-      <View style={[styles.inputContainer, { 
-        backgroundColor: colors.surface || colors.card, 
-        borderTopColor: colors.border || '#E5E5EA',
-        paddingBottom: insets.bottom || 8,
-      }]}>
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            backgroundColor: colors.surface || colors.card,
+            borderTopColor: colors.border || '#E5E5EA',
+            paddingBottom: (insets.bottom || 0) + 8,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => {
-            // TODO: implement attach file/photo logic
-          }}
+          onPress={() => setLabModalVisible(true)}
         >
           <Ionicons name="attach" size={20} color={colors.textTertiary || '#8E8E93'} />
         </TouchableOpacity>
@@ -323,7 +341,13 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
           )}
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+
+      <LabResultsModal
+        visible={labModalVisible}
+        onClose={() => setLabModalVisible(false)}
+        onResult={handleLabResult}
+      />
+    </View>
   );
 };
 

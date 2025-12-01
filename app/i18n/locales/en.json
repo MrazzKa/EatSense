@@ -15,7 +15,9 @@
     "retry": "Retry",
     "search": "Search",
     "viewAll": "View All",
-    "ok": "OK"
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -61,6 +63,10 @@
         "title": "Choose from Gallery",
         "description": "Select a photo from your gallery"
       }
+    },
+    "manualAnalysis": {
+      "title": "Insert your own analysis",
+      "subtitle": "Manually enter meal data or upload lab results"
     },
     "analysisCounter": {
       "today": "Today",
@@ -244,7 +250,64 @@
       "mostPopular": "Most popular",
       "save33": "Save 33%"
     },
-    "currentPlan": "Current plan"
+    "currentPlan": "Current plan",
+    "policy": "Privacy Policy",
+    "politics": "Data Processing Policy",
+    "termsOfService": "Terms of Service",
+    "advanced": "Advanced Health Parameters",
+    "noData": "No data",
+    "policyError": "Failed to open policy",
+    "termsError": "Failed to open terms",
+    "health": {
+      "metabolic": "Metabolic Parameters",
+      "sleep": "Sleep & Circadian Rhythms",
+      "eatingBehavior": "Eating Behavior",
+      "glp1Module": "GLP-1 Module",
+      "healthFocus": "Health Focus Areas",
+      "bodyFatPercent": "Body Fat %",
+      "waistCm": "Waist Circumference",
+      "hipCm": "Hip Circumference",
+      "whr": "WHR (Waist / Hip)",
+      "auto": "auto",
+      "fatDistributionType": "Fat Distribution Type",
+      "fatDistribution": {
+        "visceral": "Visceral",
+        "gynoid": "Gynoid",
+        "mixed": "Mixed"
+      },
+      "mealsPerDay": "Meals per Day",
+      "snackingTendency": "Snacking Tendency",
+      "snacking": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "eveningAppetite": "Evening Appetite",
+      "sleepHours": "Sleep (hours)",
+      "chronotype": "Chronotype",
+      "chronotypeOptions": {
+        "early": "Early",
+        "mid": "Mid",
+        "late": "Late"
+      },
+      "isGlp1User": "GLP-1 User",
+      "drugType": "Drug Type",
+      "therapyGoal": "Therapy Goal",
+      "therapyGoalOptions": {
+        "preserve_muscle": "Preserve Muscle",
+        "appetite_control": "Appetite Control",
+        "weight_maintenance": "Weight Maintenance",
+        "slow_weight_loss": "Slow Weight Loss"
+      },
+      "focus": {
+        "sugarControl": "Sugar Control",
+        "cholesterol": "Cholesterol",
+        "inflammation": "Inflammation",
+        "iron": "Iron",
+        "microbiome": "Microbiome",
+        "hormonalBalance": "Hormonal Balance"
+      }
+    }
   },
   "gallery": {
     "title": "Select Photo",
@@ -347,7 +410,20 @@
     "dashboard": "Home",
     "articles": "Articles",
     "recently": "Recent",
-    "profile": "Profile"
+    "profile": "Profile",
+    "experts": "Experts"
+  },
+  "experts": {
+    "title": "Experts",
+    "subtitle": "The team that helps you work with nutrition",
+    "dietitian": {
+      "title": "Dietitian",
+      "subtitle": "Medical approach to metabolism and analysis"
+    },
+    "nutritionist": {
+      "title": "Nutritionist",
+      "subtitle": "Meal planning and habits tailored to your goals"
+    }
   },
   "terms": {
     "title": "Terms of Service",
@@ -568,6 +644,12 @@
     "today": "Today",
     "empty": "No statistics available yet",
     "times": "times"
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Use",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Use"
   }
 }
 

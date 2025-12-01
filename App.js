@@ -17,6 +17,7 @@ import CameraScreen from './src/screens/CameraScreen';
 import GalleryScreen from './src/screens/GalleryScreen';
 import AnalysisResultsScreen from './src/screens/AnalysisResultsScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
+import LegalDocumentScreen from './src/screens/LegalDocumentScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 import { clientLog } from './src/utils/clientLog';
 
@@ -131,6 +132,13 @@ function AppContent() {
             <Stack.Screen
               name="ArticleDetail"
               component={ArticleDetailScreen}
+              options={{
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="LegalDocument"
+              component={LegalDocumentScreen}
               options={{
                 presentation: 'card',
               }}

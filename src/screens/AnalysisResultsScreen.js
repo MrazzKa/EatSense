@@ -587,6 +587,7 @@ export default function AnalysisResultsScreen() {
   }
 
   const totalCaloriesLabel = formatCalories(analysisResult.totalCalories);
+  // formatMacro already includes " g" unit, so we don't need to add another "g"
   const totalProteinLabel = formatMacro(analysisResult.totalProtein);
   const totalCarbsLabel = formatMacro(analysisResult.totalCarbs);
   const totalFatLabel = formatMacro(analysisResult.totalFat);
@@ -643,15 +644,15 @@ export default function AnalysisResultsScreen() {
                   <Text style={styles.nutritionLabel}>{t('analysis.calories')}</Text>
                 </View>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{totalProteinLabel}g</Text>
+                  <Text style={styles.nutritionValue}>{totalProteinLabel}</Text>
                   <Text style={styles.nutritionLabel}>{t('dashboard.protein')}</Text>
                 </View>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{totalCarbsLabel}g</Text>
+                  <Text style={styles.nutritionValue}>{totalCarbsLabel}</Text>
                   <Text style={styles.nutritionLabel}>{t('dashboard.carbs')}</Text>
                 </View>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{totalFatLabel}g</Text>
+                  <Text style={styles.nutritionValue}>{totalFatLabel}</Text>
                   <Text style={styles.nutritionLabel}>{t('dashboard.fat')}</Text>
                 </View>
               </View>
@@ -724,7 +725,7 @@ export default function AnalysisResultsScreen() {
                       <>
                         <Text style={styles.ingredientCalories}>{ingredient.calories} cal</Text>
                         <Text style={styles.ingredientMacros}>
-                          P: {ingredient.protein}g • C: {ingredient.carbs}g • F: {ingredient.fat}g
+                          P: {formatMacro(ingredient.protein)} • C: {formatMacro(ingredient.carbs)} • F: {formatMacro(ingredient.fat)}
                         </Text>
                       </>
                     )}

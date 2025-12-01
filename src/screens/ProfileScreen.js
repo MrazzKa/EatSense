@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/apiService';
@@ -675,15 +675,30 @@ const ProfileScreen = () => {
           presentationStyle="fullScreen"
           onRequestClose={handleCancel}
         >
-          <SafeAreaView style={[styles.editModalContainer, { backgroundColor: tokens.colors.background }]}>
-            <View style={[styles.editModalHeader, { borderBottomColor: tokens.colors.border }]}>
-              <View style={styles.editModalCloseButton} />
-              <Text style={[styles.editModalTitle, { color: tokens.colors.textPrimary }]}>
-                {t('profile.editProfile') || 'Edit Profile'}
-              </Text>
-              <View style={styles.editModalCloseButton} />
-            </View>
-            <ScrollView style={styles.editModalContent} contentContainerStyle={styles.editModalContentInner}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          >
+            <SafeAreaView style={[styles.editModalContainer, { backgroundColor: tokens.colors.background }]} edges={['top']}>
+              <View style={[styles.editModalHeader, { borderBottomColor: tokens.colors.border }]}>
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  style={styles.editModalCloseButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="close" size={24} color={tokens.colors.textPrimary || tokens.colors.text} />
+                </TouchableOpacity>
+                <Text style={[styles.editModalTitle, { color: tokens.colors.textPrimary }]}>
+                  {t('profile.editProfile') || 'Edit Profile'}
+                </Text>
+                <View style={styles.editModalCloseButton} />
+              </View>
+              <ScrollView
+                style={styles.editModalContent}
+                contentContainerStyle={styles.editModalContentInner}
+                keyboardShouldPersistTaps="handled"
+              >
               <AppCard style={styles.formCard}>
                 <Text style={styles.sectionTitle}>{t('profile.details')}</Text>
             <View style={styles.fieldRow}>
@@ -833,6 +848,7 @@ const ProfileScreen = () => {
               />
             </View>
           </SafeAreaView>
+          </KeyboardAvoidingView>
         </Modal>
 
         <AppCard style={styles.preferencesCard}>
@@ -936,7 +952,51 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </AppCard>
 
-        {/* Health Profile Sections */}
+        {/* Health Profile Summary */}
+        <AppCard style={styles.healthSection}>
+          <View style={styles.healthSummaryHeader}>
+            <View style={styles.healthSummaryContent}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                {t('profile.health.advanced') || 'Расширенные параметры здоровья'}
+              </Text>
+              <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
+                {(() => {
+                  const parts = [];
+                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% жира`);
+                  if (healthProfile.metabolic?.waistCm) parts.push(`Талия ${healthProfile.metabolic.waistCm} см`);
+                  if (healthProfile.sleep?.sleepHours) parts.push(`Сон ${healthProfile.sleep.sleepHours} ч`);
+                  const focusAreas = Object.entries(healthProfile.healthFocus || {})
+                    .filter(([_, val]) => val === true)
+                    .map(([key, _]) => {
+                      const keyMap = {
+                        sugarControl: t('profile.health.focus.sugarControl') || 'контроль сахара',
+                        cholesterol: t('profile.health.focus.cholesterol') || 'холестерин',
+                        inflammation: t('profile.health.focus.inflammation') || 'воспаление',
+                        iron: t('profile.health.focus.iron') || 'железо',
+                        microbiome: t('profile.health.focus.microbiome') || 'микробиом',
+                        hormonalBalance: t('profile.health.focus.hormonalBalance') || 'гормоны',
+                      };
+                      return keyMap[key] || key;
+                    });
+                  if (focusAreas.length > 0) parts.push(`Цели: ${focusAreas.slice(0, 2).join(', ')}${focusAreas.length > 2 ? '...' : ''}`);
+                  return parts.length > 0 ? parts.join(' • ') : t('profile.health.noData') || 'Нет данных';
+                })()}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.editHealthButton}
+              onPress={() => setShowHealthDetails(!showHealthDetails)}
+            >
+              <Text style={[styles.editHealthButtonText, { color: colors.primary }]}>
+                {showHealthDetails ? (t('common.close') || 'Закрыть') : (t('common.edit') || 'Изменить')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </AppCard>
+
+        {/* Health Profile Sections - Collapsible */}
+        {showHealthDetails && (
+          <>
         <AppCard style={styles.healthSection}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
             {t('profile.health.metabolic') || 'Метаболические параметры'}
@@ -1093,9 +1153,9 @@ const ProfileScreen = () => {
             label={t('profile.health.chronotype') || 'Хронотип'}
             value={healthProfile.sleep.chronotype || 'late'}
             options={[
-              { value: 'early', label: t('profile.health.chronotype.early') || 'Ранний' },
-              { value: 'mid', label: t('profile.health.chronotype.mid') || 'Средний' },
-              { value: 'late', label: t('profile.health.chronotype.late') || 'Поздний' },
+              { value: 'early', label: t('profile.health.chronotypeOptions.early') || t('profile.health.chronotype.early') || 'Ранний' },
+              { value: 'mid', label: t('profile.health.chronotypeOptions.mid') || t('profile.health.chronotype.mid') || 'Средний' },
+              { value: 'late', label: t('profile.health.chronotypeOptions.late') || t('profile.health.chronotype.late') || 'Поздний' },
             ]}
             onChange={(value) =>
               setHealthProfile((prev) => ({
@@ -1148,10 +1208,10 @@ const ProfileScreen = () => {
                 label={t('profile.health.therapyGoal') || 'Цель терапии'}
                 value={healthProfile.glp1Module.therapyGoal || 'preserve_muscle'}
                 options={[
-                  { value: 'preserve_muscle', label: t('profile.health.therapyGoal.preserve_muscle') || 'Сохранить мышцы' },
-                  { value: 'appetite_control', label: t('profile.health.therapyGoal.appetite_control') || 'Контроль аппетита' },
-                  { value: 'weight_maintenance', label: t('profile.health.therapyGoal.weight_maintenance') || 'Поддерживать вес' },
-                  { value: 'slow_weight_loss', label: t('profile.health.therapyGoal.slow_weight_loss') || 'Плавное снижение веса' },
+                  { value: 'preserve_muscle', label: t('profile.health.therapyGoalOptions.preserve_muscle') || 'Сохранить мышцы' },
+                  { value: 'appetite_control', label: t('profile.health.therapyGoalOptions.appetite_control') || 'Контроль аппетита' },
+                  { value: 'weight_maintenance', label: t('profile.health.therapyGoalOptions.weight_maintenance') || 'Поддерживать вес' },
+                  { value: 'slow_weight_loss', label: t('profile.health.therapyGoalOptions.slow_weight_loss') || 'Плавное снижение веса' },
                 ]}
                 onChange={(value) =>
                   setHealthProfile((prev) => ({
@@ -1235,22 +1295,33 @@ const ProfileScreen = () => {
             }
           />
         </AppCard>
+          </>
+        )}
 
-        {/* Footer links */}
+        {/* Footer links: Privacy Policy / Terms of Use */}
         <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border }]}>
-          <TouchableOpacity onPress={handleOpenPolicy} style={styles.footerLink}>
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation && typeof navigation.navigate === 'function') {
+                navigation.navigate('LegalDocument', { type: 'privacy' });
+              }
+            }}
+            style={styles.footerLink}
+          >
             <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-              {t('profile.policy') || 'Policy'}
+              {t('legal.privacyLink') || t('profile.policy') || 'Privacy Policy'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleOpenPolitics} style={styles.footerLink}>
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation && typeof navigation.navigate === 'function') {
+                navigation.navigate('LegalDocument', { type: 'terms' });
+              }
+            }}
+            style={styles.footerLink}
+          >
             <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-              {t('profile.politics') || 'Politics'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleOpenTerms} style={styles.footerLink}>
-            <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-              {t('profile.termsOfService') || 'Terms of Service'}
+              {t('legal.termsLink') || t('profile.termsOfService') || 'Terms of Use'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1259,19 +1330,26 @@ const ProfileScreen = () => {
       <Modal
         visible={planModalVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => !planSaving && setPlanModalVisible(false)}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modalContent, { backgroundColor: tokens.colors.surface }]}>
+        <View style={[styles.modalBackdrop, { backgroundColor: colors.scrim || 'rgba(0, 0, 0, 0.6)' }]}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => !planSaving && setPlanModalVisible(false)}
+          />
+          <SafeAreaView edges={['bottom']} style={{ justifyContent: 'flex-end' }}>
+            <View style={[styles.modalContent, { backgroundColor: tokens.colors.surface || colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: tokens.colors.textPrimary || tokens.colors.text }]}>
                 {safeT('profile.choosePlan', 'Choose a plan')}
               </Text>
               <TouchableOpacity
                 onPress={() => !planSaving && setPlanModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close" size={24} color={tokens.colors.text} />
+                <Ionicons name="close" size={24} color={tokens.colors.textPrimary || tokens.colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -1330,7 +1408,7 @@ const ProfileScreen = () => {
                       ))}
                     </View>
                     {isCurrentPlan && (
-                      <Text style={styles.currentPlanLabel}>
+                      <Text style={[styles.currentPlanLabel, { color: tokens.colors.primary }]}>
                         {safeT('profile.currentPlan', 'Current plan')}
                       </Text>
                     )}
@@ -1350,6 +1428,7 @@ const ProfileScreen = () => {
               style={styles.modalApplyButton}
             />
           </View>
+          </SafeAreaView>
         </View>
       </Modal>
     </SafeAreaView>
@@ -1495,17 +1574,17 @@ const createStyles = (tokens) =>
     },
     modalBackdrop: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.4)',
-      padding: tokens.spacing.xl,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: 'flex-end',
     },
     modalContent: {
       backgroundColor: tokens.colors.surfacePrimary || tokens.colors.surface,
-      borderRadius: tokens.radii.xl,
-      maxHeight: '85%',
+      borderTopLeftRadius: tokens.radii.xl,
+      borderTopRightRadius: tokens.radii.xl,
+      maxHeight: '90%',
       width: '100%',
-      maxWidth: 500,
+      paddingHorizontal: tokens.spacing.xl,
+      paddingTop: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xl,
       padding: tokens.spacing.xl,
       gap: tokens.spacing.lg,
       ...(tokens.states.cardShadow || tokens.elevations.md),
@@ -1830,6 +1909,28 @@ const createStyles = (tokens) =>
       fontSize: 14,
       color: tokens.colors.textPrimary,
       fontWeight: '500',
+    },
+    healthSummaryHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: tokens.spacing.md,
+    },
+    healthSummaryContent: {
+      flex: 1,
+      gap: tokens.spacing.xs,
+    },
+    healthSummaryText: {
+      fontSize: tokens.typography.body.fontSize,
+      lineHeight: tokens.typography.body.lineHeight,
+    },
+    editHealthButton: {
+      paddingVertical: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.md,
+    },
+    editHealthButtonText: {
+      fontSize: tokens.typography.bodyStrong.fontSize,
+      fontWeight: tokens.typography.bodyStrong.fontWeight,
     },
     footerLinksContainer: {
       marginTop: tokens.spacing.xl,

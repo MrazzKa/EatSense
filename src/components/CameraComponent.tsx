@@ -8,6 +8,8 @@ import {
   useCameraPermissions,
 } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CameraComponentProps {
   onPhotoTaken: (uri: string) => void;
@@ -18,6 +20,8 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   onPhotoTaken,
   onClose,
 }) => {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [type, setType] = useState<CameraType>('back');
   const [flashMode, setFlashMode] = useState<'off' | 'on' | 'auto'>('auto');
@@ -85,34 +89,36 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
     });
   };
 
+  const renderPermissionFallback = (message: string) => (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.message, { color: colors.textPrimary }]}>
+        {message}
+      </Text>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: colors.primary }]}
+        onPress={() => {
+          if (onClose && typeof onClose === 'function') {
+            onClose();
+          }
+        }}
+      >
+        <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
+          Close
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   if (!permission) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Requesting camera permission...</Text>
-      </View>
-    );
+    return renderPermissionFallback('Requesting camera permission...');
   }
 
   if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>No access to camera</Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            if (onClose && typeof onClose === 'function') {
-              onClose();
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>Close</Text>
-        </TouchableOpacity>
-      </View>
-    );
+    return renderPermissionFallback('No access to camera');
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <CameraView
         style={styles.camera}
         facing={type}
@@ -120,7 +126,12 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
         flash={flashMode}
       >
         <View style={styles.overlay}>
-          <View style={styles.topControls}>
+          <View
+            style={[
+              styles.topControls,
+              { paddingTop: insets.top + 12 },
+            ]}
+          >
             <TouchableOpacity 
               style={styles.controlButton} 
               onPress={() => {
@@ -129,7 +140,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
                 }
               }}
             >
-              <Ionicons name="close" size={24} color="white" />
+              <Ionicons name="close" size={24} color={colors.onPrimary} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.controlButton} onPress={toggleFlash}>
               <Ionicons
@@ -141,14 +152,19 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
                     : 'flash'
                 }
                 size={24}
-                color="white"
+                color={colors.onPrimary}
               />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.bottomControls}>
+          <View
+            style={[
+              styles.bottomControls,
+              { paddingBottom: insets.bottom + 24 },
+            ]}
+          >
             <TouchableOpacity style={styles.flipButton} onPress={flipCamera}>
-              <Ionicons name="camera-reverse" size={24} color="white" />
+              <Ionicons name="camera-reverse" size={24} color={colors.onPrimary} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
@@ -166,7 +182,6 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
   },
   camera: {
     flex: 1,
@@ -179,21 +194,19 @@ const styles = StyleSheet.create({
   topControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 50,
     paddingHorizontal: 20,
   },
   bottomControls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 50,
     paddingHorizontal: 20,
   },
   controlButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -201,7 +214,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -209,7 +222,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'white',
+    backgroundColor: '#F9FAFB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -217,26 +230,23 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#3498DB',
+    backgroundColor: '#3B82F6',
   },
   placeholder: {
     width: 44,
   },
   message: {
     fontSize: 18,
-    color: 'white',
     textAlign: 'center',
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#3498DB',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
     alignSelf: 'center',
   },
   buttonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

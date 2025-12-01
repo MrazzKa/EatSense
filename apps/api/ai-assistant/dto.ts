@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MinLength, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GeneralQuestionDto {
@@ -27,14 +27,23 @@ export class LabResultsDto {
 
   @ApiProperty({ example: 'WBC: 7.5, RBC: 4.5, Glucose: 95' })
   @IsString()
-  @IsNotEmpty()
-  @MinLength(10)
-  rawText!: string;
+  @IsOptional()
+  rawText?: string;
 
   @ApiProperty({ example: 'en', required: false })
   @IsString()
   @IsOptional()
   language?: string;
+
+  @ApiProperty({ 
+    example: 'cbc',
+    enum: ['cbc', 'biochemistry', 'lipid', 'glycemic', 'vitamins', 'hormonal', 'inflammation', 'other'],
+    required: false 
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(['cbc', 'biochemistry', 'lipid', 'glycemic', 'vitamins', 'hormonal', 'inflammation', 'other'])
+  labType?: string;
 }
 
 export class NutritionAdviceDto {

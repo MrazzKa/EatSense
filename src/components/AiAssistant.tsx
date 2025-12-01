@@ -99,42 +99,62 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
       animationType="fade"
       presentationStyle="fullScreen"
     >
-      <View style={[styles.container, { backgroundColor: colors.surface || '#FFFFFF' }]}>
-          <View style={[styles.header, { 
-            borderBottomColor: colors.border || '#E5E5EA',
-            paddingTop: insets.top,
-            paddingHorizontal: 16,
-          }]}>
-        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-          {t('dashboard.aiAssistant') || 'AI Assistant'}
-        </Text>
-            <TouchableOpacity 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom + 8 : 0}
+      >
+        <SafeAreaView
+          style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
+          edges={['top', 'bottom']}
+        >
+          <View
+            style={[
+              styles.header,
+              {
+                borderBottomColor: colors.border || '#E5E5EA',
+                paddingTop: 8,
+                paddingHorizontal: 16,
+              },
+            ]}
+          >
+            <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
+              {t('dashboard.aiAssistant') || 'AI Assistant'}
+            </Text>
+            <TouchableOpacity
               onPress={typeof handleClose === 'function' ? handleClose : () => {}}
               style={styles.closeButton}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               activeOpacity={0.7}
             >
-            <Ionicons name="close" size={24} color={colors.textPrimary || colors.text || '#000'} />
-          </TouchableOpacity>
-        </View>
-        
-        <ErrorBoundary>
-          {hasError ? (
-            <AiAssistantFallback onClose={handleClose} t={t} />
-          ) : (
-            <Suspense fallback={
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={colors.primary || '#007AFF'} />
-                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                  {t('common.loading') || 'Loading...'}
-                </Text>
-              </View>
-            }>
-              <RealAiAssistant onClose={handleClose} />
-            </Suspense>
-          )}
-        </ErrorBoundary>
-      </View>
+              <Ionicons
+                name="close"
+                size={24}
+                color={colors.textPrimary || colors.text || '#000'}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <ErrorBoundary>
+            {hasError ? (
+              <AiAssistantFallback onClose={handleClose} t={t} />
+            ) : (
+              <Suspense
+                fallback={
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary || '#007AFF'} />
+                    <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                      {t('common.loading') || 'Loading...'}
+                    </Text>
+                  </View>
+                }
+              >
+                <RealAiAssistant onClose={handleClose} />
+              </Suspense>
+            )}
+          </ErrorBoundary>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </SwipeClosableModal>
   );
 };
@@ -146,7 +166,6 @@ const AiAssistant: React.FC<AiAssistantProps> = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',

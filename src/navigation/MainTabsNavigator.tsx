@@ -83,7 +83,7 @@ export function MainTabsNavigator() {
         options={{
           tabBarLabel: t('tabs.experts') || 'Experts',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size || 24} color={color} />
+            <Ionicons name="person-check" size={size || 24} color={color} />
           ),
         }}
       />
