@@ -114,6 +114,7 @@ const ProfileScreen = () => {
   const [notificationSaving, setNotificationSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showHealthDetails, setShowHealthDetails] = useState(false);
   
   const initials = useMemo(() => {
     const parts = [profile.firstName, profile.lastName].filter(Boolean);

@@ -299,6 +299,41 @@
         "content": "For privacy questions, contact: privacy@eatsense.ch"
       }
     }
+  },
+  "aiAssistant": {
+    "lab": {
+      "title": "Lab test type",
+      "typeTitle": "Lab Results Analysis",
+      "attachPhoto": "Attach photo",
+      "attachPdf": "Attach file (PDF)",
+      "manualTitle": "Or paste your lab results manually",
+      "manualPlaceholder": "Paste your lab results here...",
+      "submit": "Send",
+      "submitted": "Lab results submitted successfully",
+      "error": "Failed to submit lab results. Please try again.",
+      "emptyError": "Please provide lab results text or attach a file",
+      "type": {
+        "auto": "Auto-detect",
+        "cbc": "Complete blood count (CBC)",
+        "biochemistry": "Blood biochemistry",
+        "lipid": "Lipid profile",
+        "glycemic": "Glycemic profile",
+        "vitamins": "Vitamins and trace elements",
+        "hormonal": "Hormonal profile",
+        "inflammation": "Inflammation markers",
+        "other": "Other"
+      }
+    }
+  },
+  "statistics": {
+    "title": "Statistics",
+    "today": "Today",
+    "monthlySummary": "Monthly summary",
+    "popularFoods": "Popular foods",
+    "unnamedProduct": "Unnamed product",
+    "noDataToday": "No data for today yet",
+    "empty": "No statistics available yet",
+    "times": "times"
   }
 }
 

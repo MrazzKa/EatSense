@@ -15,6 +15,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
@@ -53,7 +54,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
 
   const [selectedLabType, setSelectedLabType] = useState<string>('auto');
   const [question, setQuestion] = useState('');
-  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ type: 'image' | 'pdf'; uri: string; name: string; mimeType: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePickImage = async () => {
@@ -69,56 +70,51 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 0.8,
+        quality: 0.9,
+        allowsEditing: false,
       });
 
-      if (!result.canceled && result.assets[0]) {
-        setAttachedImage(result.assets[0].uri);
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        setSelectedFile({
+          type: 'image',
+          uri: asset.uri,
+          name: asset.fileName || 'lab-photo.jpg',
+          mimeType: asset.mimeType || 'image/jpeg',
+        });
       }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert(t('common.error') || 'Error', t('gallery.error') || 'Failed to select image');
+    } catch (e) {
+      console.warn('handlePickImage error', e);
     }
   };
 
   const handlePickDocument = async () => {
-    // Use ImagePicker for both images and documents
-    // Users can select PDF files through the image picker on some platforms
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert(
-          t('common.error') || 'Error',
-          t('gallery.permissionRequired') || 'Permission to access gallery is required',
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All, // Allow images and videos (PDF support varies by platform)
-        allowsEditing: false,
-        quality: 1,
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf'],
+        multiple: false,
+        copyToCacheDirectory: true,
       });
 
-      if (!result.canceled && result.assets[0]) {
-        setAttachedImage(result.assets[0].uri);
+      if (result.type === 'success') {
+        setSelectedFile({
+          type: 'pdf',
+          uri: result.uri,
+          name: result.name,
+          mimeType: 'application/pdf',
+        });
       }
-    } catch (error) {
-      console.error('Error picking document:', error);
-      Alert.alert(
-        t('common.error') || 'Error',
-        t('aiAssistant.lab.error') || 'Failed to select file',
-      );
+    } catch (e) {
+      console.warn('handlePickDocument error', e);
     }
   };
 
   const handleRemoveAttachment = () => {
-    setAttachedImage(null);
+    setSelectedFile(null);
   };
 
   const handleSubmit = async () => {
-    if (!question.trim() && !attachedImage) {
+    if (!question.trim() && !selectedFile) {
       Alert.alert(
         t('common.error') || 'Error',
         t('aiAssistant.lab.emptyError') || 'Please provide lab results text or attach a file',
@@ -136,7 +132,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
     try {
       const locale = mapLanguageToLocale(language);
 
-      if (attachedImage) {
+      if (selectedFile) {
         // Create FormData for multipart/form-data
         const formData = new FormData();
         formData.append('question', question.trim() || '');
@@ -145,14 +141,10 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
           formData.append('labType', selectedLabType);
         }
 
-        // Determine file type
-        const fileName = attachedImage.split('/').pop() || 'image.jpg';
-        const fileType = fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
-
         formData.append('file', {
-          uri: attachedImage,
-          name: fileName,
-          type: fileType,
+          uri: selectedFile.uri,
+          name: selectedFile.name,
+          type: selectedFile.mimeType,
         } as any);
 
         // Use fetch directly for multipart/form-data
@@ -183,7 +175,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
         }
         // Reset form
         setQuestion('');
-        setAttachedImage(null);
+        setSelectedFile(null);
         setSelectedLabType('auto');
         onClose();
       } else {
@@ -228,14 +220,17 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
       enableSwipe={true}
       enableBackdropClose={true}
       animationType="slide"
-      presentationStyle="fullScreen"
+      presentationStyle="pageSheet"
     >
       <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: colors.surface || colors.background }]}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={insets.top}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}
       >
-        <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <SafeAreaView
+          style={[styles.container, { backgroundColor: colors.background }]}
+          edges={['top', 'bottom']}
+        >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: colors.border || colors.borderMuted }]}>
             <TouchableOpacity
@@ -246,19 +241,19 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
               <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
-              {t('aiAssistant.lab.typeTitle') || 'Lab Results Analysis'}
+              {t('aiAssistant.lab.title') || t('aiAssistant.lab.typeTitle') || 'Lab Results Analysis'}
             </Text>
             <View style={styles.placeholder} />
           </View>
 
           <ScrollView
             style={styles.scrollView}
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: insets.bottom + 24 },
+              { paddingBottom: insets.bottom + 32 },
             ]}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
           >
             {/* Lab Type Selection */}
             <View style={styles.section}>
@@ -278,10 +273,6 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
 
             {/* Attachment Block */}
             <View style={styles.section}>
-              <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-                {t('aiAssistant.lab.hint') || 'Attach a photo of your lab results or enter the results manually'}
-              </Text>
-
               <View style={styles.attachmentRow}>
                 <TouchableOpacity
                   style={[styles.attachButton, { borderColor: colors.border || colors.borderMuted }]}
@@ -299,14 +290,23 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                 >
                   <Ionicons name="document-attach-outline" size={24} color={colors.primary} />
                   <Text style={[styles.attachButtonText, { color: colors.textPrimary || colors.text }]}>
-                    {t('aiAssistant.lab.attachFile') || 'Attach File (PDF)'}
+                    {t('aiAssistant.lab.attachPdf') || 'Attach File (PDF)'}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              {attachedImage && (
+              {selectedFile && (
                 <View style={[styles.attachmentPreview, { backgroundColor: colors.surfaceMuted || colors.card }]}>
-                  <Image source={{ uri: attachedImage }} style={styles.previewImage} resizeMode="cover" />
+                  {selectedFile.type === 'image' ? (
+                    <Image source={{ uri: selectedFile.uri }} style={styles.previewImage} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.pdfPreview}>
+                      <Ionicons name="document-text" size={48} color={colors.primary} />
+                      <Text style={[styles.pdfName, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {selectedFile.name}
+                      </Text>
+                    </View>
+                  )}
                   <TouchableOpacity
                     style={styles.removeButton}
                     onPress={handleRemoveAttachment}
@@ -320,23 +320,22 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
             {/* Text Input */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('aiAssistant.lab.textInputLabel') || 'Or enter lab results manually:'}
+                {t('aiAssistant.lab.manualTitle') || 'Or paste your lab results manually'}
               </Text>
               <TextInput
                 style={[
-                  styles.textInput,
+                  styles.manualInput,
                   {
-                    backgroundColor: colors.inputBackground || colors.surfaceMuted,
-                    color: colors.textPrimary || colors.text,
+                    backgroundColor: colors.surface,
+                    color: colors.textPrimary,
                     borderColor: colors.border || colors.borderMuted,
                   },
                 ]}
-                placeholder={t('aiAssistant.lab.placeholder') || 'Paste your lab results here...'}
+                placeholder={t('aiAssistant.lab.manualPlaceholder') || 'Paste your lab results here...'}
                 placeholderTextColor={colors.textTertiary || colors.textSecondary}
                 value={question}
                 onChangeText={setQuestion}
                 multiline
-                numberOfLines={6}
                 textAlignVertical="top"
                 editable={!isSubmitting}
               />
@@ -348,13 +347,13 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                 styles.submitButton,
                 {
                   backgroundColor:
-                    (question.trim() || attachedImage) && !isSubmitting
+                    (question.trim() || selectedFile) && !isSubmitting
                       ? colors.primary
                       : colors.surfaceMuted || '#E5E5EA',
                 },
               ]}
               onPress={handleSubmit}
-              disabled={(!question.trim() && !attachedImage) || isSubmitting}
+              disabled={(!question.trim() && !selectedFile) || isSubmitting}
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
@@ -402,9 +401,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    gap: 16,
+  },
+  manualInput: {
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 16,
-    paddingTop: 24,
-    gap: 24,
+    fontSize: 16,
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  pdfPreview: {
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  pdfName: {
+    fontSize: 14,
+    paddingHorizontal: 16,
   },
   section: {
     gap: 12,

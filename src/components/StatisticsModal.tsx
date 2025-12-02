@@ -90,50 +90,58 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                   {t('statistics.today') || 'Today'}
                 </Text>
                 
-                <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
-                  <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                      <Text style={[styles.statLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
-                        {t('dashboard.calories') || 'Calories'}
-                      </Text>
-                      <Text style={[styles.statValue, { color: colors.primary || '#3498DB' }]}>
-                        {formatNumber(stats.today?.calories || 0)}
-                      </Text>
-                      {stats.goals?.calories && (
-                        <Text style={[styles.statGoal, { color: colors.textTertiary || '#95A5A6' }]}>
-                          {t('dashboard.ofGoal', { goal: formatNumber(stats.goals.calories) }) || `of ${formatNumber(stats.goals.calories)} goal`}
+                {(!stats.today || (stats.today.totalCalories === 0 && !stats.todayHasMeals)) ? (
+                  <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
+                    <Text style={[styles.noDataText, { color: colors.textSecondary }]}>
+                      {t('statistics.noDataToday') || 'No data for today yet'}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
+                    <View style={styles.statsRow}>
+                      <View style={styles.statItem}>
+                        <Text style={[styles.statLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
+                          {t('dashboard.calories') || 'Calories'}
                         </Text>
-                      )}
+                        <Text style={[styles.statValue, { color: colors.primary || '#3498DB' }]}>
+                          {formatNumber(stats.today?.calories || 0)}
+                        </Text>
+                        {stats.goals?.calories && (
+                          <Text style={[styles.statGoal, { color: colors.textTertiary || '#95A5A6' }]}>
+                            {t('dashboard.ofGoal', { goal: formatNumber(stats.goals.calories) }) || `of ${formatNumber(stats.goals.calories)} goal`}
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                  </View>
 
-                  <View style={styles.macrosRow}>
-                    <View style={styles.macroItem}>
-                      <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
-                        {t('dashboard.protein') || 'Protein'}
-                      </Text>
-                      <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
-                        {formatNumber(stats.today?.protein || 0)}g
-                      </Text>
-                    </View>
-                    <View style={styles.macroItem}>
-                      <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
-                        {t('dashboard.carbs') || 'Carbs'}
-                      </Text>
-                      <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
-                        {formatNumber(stats.today?.carbs || 0)}g
-                      </Text>
-                    </View>
-                    <View style={styles.macroItem}>
-                      <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
-                        {t('dashboard.fat') || 'Fat'}
-                      </Text>
-                      <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
-                        {formatNumber(stats.today?.fat || 0)}g
-                      </Text>
+                    <View style={styles.macrosRow}>
+                      <View style={styles.macroItem}>
+                        <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
+                          {t('dashboard.protein') || 'Protein'}
+                        </Text>
+                        <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
+                          {formatNumber(stats.today?.protein || 0)}g
+                        </Text>
+                      </View>
+                      <View style={styles.macroItem}>
+                        <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
+                          {t('dashboard.carbs') || 'Carbs'}
+                        </Text>
+                        <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
+                          {formatNumber(stats.today?.carbs || 0)}g
+                        </Text>
+                      </View>
+                      <View style={styles.macroItem}>
+                        <Text style={[styles.macroLabel, { color: colors.textSecondary || '#7F8C8D' }]}>
+                          {t('dashboard.fat') || 'Fat'}
+                        </Text>
+                        <Text style={[styles.macroValue, { color: colors.textPrimary || colors.text }]}>
+                          {formatNumber(stats.today?.fat || 0)}g
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
+                )}
               </View>
             )}
 
@@ -364,5 +372,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 12,
     textAlign: 'center',
+  },
+  noDataText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 20,
   },
 });

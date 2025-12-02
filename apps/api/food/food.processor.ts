@@ -183,6 +183,7 @@ export class FoodProcessor {
               const meal = await this.mealsService.createMeal(userId, {
                 name: dishName,
                 type: 'MEAL',
+                consumedAt: new Date().toISOString(), // Set current date/time for the meal
                 items: validItems,
                 healthScore: analysisResult.healthScore,
                 imageUri: imageUrl || null, // Include imageUrl when auto-saving meal

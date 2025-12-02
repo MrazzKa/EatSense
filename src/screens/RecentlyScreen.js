@@ -64,10 +64,18 @@ const normalizeMeal = (meal) => {
 
   const sumMacro = (key) => items.reduce((sum, item) => sum + toNumber(item[key]), 0);
 
-  const totalCalories = Math.round(sumMacro('calories'));
-  const totalProtein = Math.round(sumMacro('protein'));
-  const totalCarbs = Math.round(sumMacro('carbs'));
-  const totalFat = Math.round(sumMacro('fat'));
+  const totalCalories = items.length
+    ? Math.round(sumMacro('calories'))
+    : Math.round(meal.totalCalories ?? 0);
+  const totalProtein = items.length
+    ? Math.round(sumMacro('protein'))
+    : Math.round(meal.totalProtein ?? 0);
+  const totalCarbs = items.length
+    ? Math.round(sumMacro('carbs'))
+    : Math.round(meal.totalCarbs ?? 0);
+  const totalFat = items.length
+    ? Math.round(sumMacro('fat'))
+    : Math.round(meal.totalFat ?? 0);
 
   const normalizedIngredients = items.map((item) => ({
     name: item.name || 'Ingredient',
@@ -81,6 +89,8 @@ const normalizeMeal = (meal) => {
   const healthScore = meal.healthInsights || null;
   const healthGrade = meal.healthGrade || healthScore?.grade || null;
 
+  const imageUri = meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || null;
+
   return {
     id: meal.id,
     dishName: meal.name || 'Meal',
@@ -89,7 +99,7 @@ const normalizeMeal = (meal) => {
     protein: totalProtein,
     carbs: totalCarbs,
     fat: totalFat,
-    imageUri: meal.imageUrl || meal.imageUri || meal.coverUrl || null,
+    imageUri,
     healthScore,
     healthGrade,
     analysisResult: {
@@ -106,7 +116,7 @@ const normalizeMeal = (meal) => {
             savedAt: meal.createdAt,
           }
         : null,
-      imageUri: meal.imageUrl || meal.imageUri || meal.coverUrl || null,
+      imageUri,
     },
   };
 };
