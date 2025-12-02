@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -16,8 +17,9 @@ import { PADDING, SPACING, BORDER_RADIUS, SHADOW } from '../utils/designConstant
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 
 export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => {
-  const { colors } = useTheme();
+  const { colors, tokens } = useTheme();
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const [editedItem, setEditedItem] = useState({
     name: item?.name || '',
     calories: item?.calories?.toString() || '0',
@@ -87,13 +89,16 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
       swipeDirection="down"
       enableSwipe={true}
       enableBackdropClose={true}
-      animationType="fade"
+      animationType="slide"
+      presentationStyle="pageSheet"
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalContainer}
-        >
-        <View style={[styles.modal, { backgroundColor: colors.surface }]}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom + 8 : 0}
+        style={{ flex: 1 }}
+      >
+        <SafeAreaView style={styles.modalContainer} edges={['bottom']}>
+          <View style={[styles.modal, { backgroundColor: colors.surface }]}>
             <View style={[styles.header, { borderBottomColor: colors.border }]}>
               <View>
                 <Text style={[styles.title, { color: colors.text }]}>{t('editFood.title')}</Text>
@@ -111,7 +116,12 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={styles.content} 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 16 }}
+            >
               {/* Food Name */}
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>{t('editFood.name')}</Text>
@@ -224,7 +234,7 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
               </View>
             </ScrollView>
 
-            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom }]}>
               <TouchableOpacity 
                 style={[styles.cancelButton, { borderColor: colors.border, backgroundColor: colors.surface }]} 
                 onPress={() => {
@@ -236,11 +246,12 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
                 <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={handleSave}>
-                <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
+                <Ionicons name="checkmark" size={20} color={colors.onPrimary || '#FFFFFF'} />
+                <Text style={[styles.saveButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>{t('common.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </SwipeClosableModal>
   );
@@ -249,9 +260,14 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
+    justifyContent: 'flex-end',
   },
   modal: {
-    flex: 1,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
     maxHeight: '90%',
   },
   header: {

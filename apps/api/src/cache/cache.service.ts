@@ -144,6 +144,10 @@ export class CacheService {
     }
   }
 
+  async invalidateNamespace(namespace: CacheNamespace, userId?: string): Promise<void> {
+    await this.clear(namespace);
+  }
+
   async healthCheck(): Promise<boolean> {
     try {
       const key = this.buildKey('health', 'general');

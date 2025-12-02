@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger, Inject, Optional } from '@nestjs/common';
 import { MealLogMealType } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { CreateMealDto, UpdateMealItemDto } from './dto';
+import { CacheService } from '../src/cache/cache.service';
 
 @Injectable()
 export class MealsService {
   private readonly logger = new Logger(MealsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() @Inject(CacheService) private readonly cache?: CacheService,
+  ) {}
 
   async getMeals(userId: string, date?: string) {
     const where: any = { userId };
@@ -159,6 +163,16 @@ export class MealsService {
       this.logger.warn(`mealLog=failed userId=${userId} mealId=${meal.id} reason=${error.message}`);
     }
 
+    // Invalidate stats cache when meal is created
+    if (this.cache) {
+      try {
+        await this.cache.invalidateNamespace('stats:monthly', userId);
+        await this.cache.invalidateNamespace('stats:daily' as any, userId);
+      } catch (error: any) {
+        this.logger.warn(`Failed to invalidate stats cache: ${error?.message || String(error)}`);
+      }
+    }
+
     // B2: Map imageUri to imageUrl for frontend consistency
     return {
       ...mealWithImageUrl,
@@ -230,6 +244,16 @@ export class MealsService {
     await this.prisma.meal.delete({
       where: { id: mealId },
     });
+
+    // Invalidate stats cache when meal is deleted
+    if (this.cache) {
+      try {
+        await this.cache.invalidateNamespace('stats:monthly', userId);
+        await this.cache.invalidateNamespace('stats:daily' as any, userId);
+      } catch (error: any) {
+        this.logger.warn(`Failed to invalidate stats cache: ${error?.message || String(error)}`);
+      }
+    }
 
     return { message: 'Meal deleted successfully' };
   }

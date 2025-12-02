@@ -107,14 +107,28 @@ export default function AnalysisResultsScreen() {
       const toMacro = (value) => Math.round(toNumber(value) * 10) / 10;
 
       const ingredientsSource = raw.ingredients || raw.items || [];
-      const normalizedIngredients = (Array.isArray(ingredientsSource) ? ingredientsSource : []).map((item) => ({
-        name: item.name || item.label || 'Ingredient',
-        calories: Math.max(0, Math.round(toNumber(item.calories ?? item.kcal))),
-        protein: toMacro(item.protein),
-        carbs: toMacro(item.carbs),
-        fat: toMacro(item.fat),
-        weight: Math.round(toNumber(item.weight ?? item.gramsMean ?? item.portion_g)),
-      }));
+      const normalizedIngredients = (Array.isArray(ingredientsSource) ? ingredientsSource : []).map((item) => {
+        const caloriesFromApi = Math.max(0, Math.round(toNumber(item.calories ?? item.kcal)));
+        const hasMacros = Number.isFinite(toNumber(item.protein)) || Number.isFinite(toNumber(item.carbs)) || Number.isFinite(toNumber(item.fat));
+        let calories = caloriesFromApi;
+
+        if (calories === 0 && hasMacros) {
+          const p = toNumber(item.protein ?? 0);
+          const c = toNumber(item.carbs ?? 0);
+          const f = toNumber(item.fat ?? 0);
+          const recalculated = p * 4 + c * 4 + f * 9;
+          calories = Math.max(1, Math.round(recalculated)); // at least 1 kcal
+        }
+        
+        return {
+          name: item.name || item.label || 'Ingredient',
+          calories,
+          protein: toMacro(item.protein),
+          carbs: toMacro(item.carbs),
+          fat: toMacro(item.fat),
+          weight: Math.round(toNumber(item.weight ?? item.gramsMean ?? item.portion_g)),
+        };
+      });
 
       const sumFromIngredients = (key) =>
         normalizedIngredients.reduce((acc, ing) => acc + toNumber(ing[key]), 0);
@@ -534,40 +548,42 @@ export default function AnalysisResultsScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.analyzingContainer}>
-          <View style={styles.imageContainer}>
-            {renderImage(baseImageUri, styles.analyzingImage, false)}
-            <View style={styles.analyzingOverlay}>
-              <View style={styles.analyzingContent}>
-                <View style={styles.analyzingIconContainer}>
-                  <ActivityIndicator size="large" color={colors.primary} />
+        <View style={styles.analyzingRoot}>
+          <View style={styles.analyzingContainer}>
+            <View style={styles.imageContainer}>
+              {renderImage(baseImageUri, styles.analyzingImage, false)}
+              <View style={styles.analyzingOverlay}>
+                <View style={styles.analyzingContent}>
+                  <View style={styles.analyzingIconContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                  </View>
+                  <Text style={[styles.analyzingText, { color: colors.onSurface }]}>{t('analysis.analyzing')}</Text>
+                  <Text style={[styles.analyzingSubtext, { color: colors.textSecondary }]}>{t('analysis.subtitle')}</Text>
                 </View>
-                <Text style={styles.analyzingText}>{t('analysis.analyzing')}</Text>
-                <Text style={styles.analyzingSubtext}>{t('analysis.subtitle')}</Text>
               </View>
             </View>
-          </View>
 
-          <View style={styles.progressSteps}>
-            <View style={styles.step}>
-              <View style={[styles.stepIcon, styles.stepCompleted]}>
-                <Ionicons name="checkmark" size={20} color={colors.inverseText} />
+            <View style={[styles.progressSteps, { marginTop: tokens.spacing.xl }]}>
+              <View style={styles.step}>
+                <View style={[styles.stepIcon, styles.stepCompleted]}>
+                  <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                </View>
+                <Text style={[styles.stepText, { color: colors.textSecondary }]}>{t('analysis.uploaded')}</Text>
               </View>
-              <Text style={styles.stepText}>{t('analysis.uploaded')}</Text>
-            </View>
 
-            <View style={styles.step}>
-              <View style={[styles.stepIcon, styles.stepActive]}>
-                <ActivityIndicator size="small" color={colors.inverseText} />
+              <View style={styles.step}>
+                <View style={[styles.stepIcon, styles.stepActive]}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                </View>
+                <Text style={[styles.stepText, { color: colors.textSecondary }]}>{t('analysis.analyzingStep')}</Text>
               </View>
-              <Text style={styles.stepText}>{t('analysis.analyzingStep')}</Text>
-            </View>
 
-            <View style={styles.step}>
-              <View style={[styles.stepIcon, styles.stepPending]}>
-                <Ionicons name="calculator" size={20} color={colors.textSecondary} />
+              <View style={styles.step}>
+                <View style={[styles.stepIcon, styles.stepPending]}>
+                  <Ionicons name="calculator" size={20} color={colors.textSecondary} />
+                </View>
+                <Text style={[styles.stepText, { color: colors.textSecondary }]}>{t('analysis.calculating')}</Text>
               </View>
-              <Text style={styles.stepText}>{t('analysis.calculating')}</Text>
             </View>
           </View>
         </View>
@@ -703,7 +719,7 @@ export default function AnalysisResultsScreen() {
           {/* Ingredients */}
           <View>
             <View style={styles.ingredientsContainer}>
-              <Text style={styles.ingredientsTitle}>{t('analysis.ingredients')}</Text>
+              <Text style={[styles.ingredientsTitle, { color: colors.textPrimary }]}>{t('analysis.ingredients')}</Text>
             {(analysisResult?.ingredients && Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients : []).map((ingredient, index) => (
               <View key={index}>
                 <TouchableOpacity
@@ -713,8 +729,8 @@ export default function AnalysisResultsScreen() {
                   activeOpacity={allowEditing ? 0.7 : 1}
                 >
                   <View style={styles.ingredientInfo}>
-                    <Text style={styles.ingredientName}>{ingredient.name}</Text>
-                    <Text style={styles.ingredientWeight}>{ingredient.weight}g</Text>
+                    <Text style={[styles.ingredientName, { color: colors.textPrimary }]}>{ingredient.name}</Text>
+                    <Text style={[styles.ingredientAmount, { color: colors.textSecondary }]}>{ingredient.weight}g</Text>
                   </View>
                   <View style={styles.ingredientNutrition}>
                     {ingredient.hasNutrition === false ? (
@@ -723,8 +739,8 @@ export default function AnalysisResultsScreen() {
                       </Text>
                     ) : (
                       <>
-                        <Text style={styles.ingredientCalories}>{ingredient.calories} cal</Text>
-                        <Text style={styles.ingredientMacros}>
+                        <Text style={[styles.ingredientCalories, { color: colors.textPrimary }]}>{ingredient.calories} cal</Text>
+                        <Text style={[styles.ingredientMacros, { color: colors.textSecondary }]}>
                           P: {formatMacro(ingredient.protein)} • C: {formatMacro(ingredient.carbs)} • F: {formatMacro(ingredient.fat)}
                         </Text>
                       </>
@@ -815,16 +831,18 @@ const createStyles = (tokens) =>
     scrollView: {
       flex: 1,
     },
-    analyzingContainer: {
+    analyzingRoot: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: tokens.spacing.xl,
+    },
+    analyzingContainer: {
+      width: '90%',
+      borderRadius: 24,
+      overflow: 'hidden',
     },
     imageContainer: {
       position: 'relative',
-      marginBottom: tokens.spacing.xxxl,
-      width: '100%',
     },
     analyzingImage: {
       width: '100%',
@@ -857,15 +875,10 @@ const createStyles = (tokens) =>
       textAlign: 'left',
     },
     analyzingOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: tokens.states.scrim,
-      borderRadius: tokens.radii.lg,
+      ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.45)',
     },
     analyzingContent: {
       alignItems: 'center',
@@ -891,17 +904,16 @@ const createStyles = (tokens) =>
       borderColor: tokens.colors.borderMuted,
     },
     analyzingText: {
-      color: tokens.colors.inverseText,
-      fontSize: tokens.typography.headingS.fontSize,
-      fontWeight: tokens.typography.headingS.fontWeight,
-      marginTop: tokens.spacing.md,
+      color: tokens.colors.onSurface,
+      fontSize: tokens.typography.subtitle1?.fontSize || tokens.typography.headingS.fontSize,
+      fontWeight: '600',
+      textAlign: 'center',
     },
     analyzingSubtext: {
-      color: tokens.colors.inverseText,
-      fontSize: tokens.typography.body.fontSize,
-      lineHeight: tokens.typography.body.lineHeight,
-      marginTop: tokens.spacing.xs,
+      marginTop: 4,
+      color: tokens.colors.textSecondary,
       textAlign: 'center',
+      fontSize: tokens.typography.body.fontSize,
     },
     progressSteps: {
       flexDirection: 'row',
@@ -929,8 +941,10 @@ const createStyles = (tokens) =>
       backgroundColor: tokens.colors.borderMuted,
     },
     stepText: {
+      marginTop: 8,
       fontSize: tokens.typography.caption.fontSize,
       color: tokens.colors.textSecondary,
+      textAlign: 'center',
     },
     progressContainer: {
       width: '100%',
@@ -986,20 +1000,18 @@ const createStyles = (tokens) =>
     nutritionGrid: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: tokens.spacing.lg,
+      alignItems: 'center',
+      gap: tokens.spacing.md,
     },
     nutritionItem: {
       flex: 1,
       alignItems: 'center',
-      gap: tokens.spacing.xs,
     },
     nutritionValue: {
-      color: tokens.colors.primary,
       fontSize: tokens.typography.headingM.fontSize,
       fontWeight: tokens.typography.headingM.fontWeight,
     },
     nutritionLabel: {
-      color: tokens.colors.textSecondary,
       fontSize: tokens.typography.caption.fontSize,
     },
     ingredientsContainer: {

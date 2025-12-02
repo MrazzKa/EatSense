@@ -619,13 +619,26 @@ export class AnalyzeService {
       });
     }
 
-    const calculatedCalories = Math.round(baseCalories * scale);
+    let calculatedCalories = Math.round(baseCalories * scale);
+    
+    // Fallback: if calories is 0 but macros exist, calculate from macros
+    if (!calculatedCalories && (base.protein || base.carbs || base.fat)) {
+      const protein = (base.protein || 0) * scale;
+      const carbs = (base.carbs || 0) * scale;
+      const fat = (base.fat || 0) * scale;
+      const fromMacros = protein * 4 + carbs * 4 + fat * 9;
+      calculatedCalories = Math.max(1, Math.round(fromMacros));
+    }
+
+    const protein = this.round((base.protein || 0) * scale, 1);
+    const carbs = this.round((base.carbs || 0) * scale, 1);
+    const fat = this.round((base.fat || 0) * scale, 1);
 
     return {
       calories: calculatedCalories,
-      protein: this.round((base.protein || 0) * scale, 1),
-      carbs: this.round((base.carbs || 0) * scale, 1),
-      fat: this.round((base.fat || 0) * scale, 1),
+      protein,
+      carbs,
+      fat,
       fiber: this.round((base.fiber || 0) * scale, 1),
       sugars: this.round((base.sugars || 0) * scale, 1),
       satFat: this.round(satFat * scale, 1),

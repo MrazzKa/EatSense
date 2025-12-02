@@ -2,7 +2,7 @@
 // Wrapped in ErrorBoundary to prevent crashes
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { clientLog } from '../utils/clientLog';
