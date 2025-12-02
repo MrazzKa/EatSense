@@ -557,8 +557,22 @@ export default function AnalysisResultsScreen() {
                   <View style={styles.analyzingIconContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                   </View>
-                  <Text style={[styles.analyzingText, { color: colors.onSurface }]}>{t('analysis.analyzing')}</Text>
-                  <Text style={[styles.analyzingSubtext, { color: colors.textSecondary }]}>{t('analysis.subtitle')}</Text>
+                  <Text
+                    style={[
+                      styles.analyzingText,
+                      { color: colors.inverseText || '#FFFFFF' },
+                    ]}
+                  >
+                    {t('analysis.analyzing')}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.analyzingSubtext,
+                      { color: colors.inverseText || '#E5E7EB' },
+                    ]}
+                  >
+                    {t('analysis.subtitle')}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -838,8 +852,14 @@ const createStyles = (tokens) =>
     },
     analyzingContainer: {
       width: '90%',
-      borderRadius: 24,
+      borderRadius: tokens.radii.xl,
       overflow: 'hidden',
+      backgroundColor: tokens.colors.surface,
+      padding: tokens.spacing.lg,
+      borderWidth: 1,
+      borderColor: tokens.colors.borderMuted,
+      ...(tokens.states.cardShadow || tokens.elevations.lg),
+      gap: tokens.spacing.lg,
     },
     imageContainer: {
       position: 'relative',
@@ -1010,9 +1030,11 @@ const createStyles = (tokens) =>
     nutritionValue: {
       fontSize: tokens.typography.headingM.fontSize,
       fontWeight: tokens.typography.headingM.fontWeight,
+      color: tokens.colors.textPrimary,
     },
     nutritionLabel: {
       fontSize: tokens.typography.caption.fontSize,
+      color: tokens.colors.textSecondary,
     },
     ingredientsContainer: {
       paddingHorizontal: tokens.spacing.xl,

@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -243,103 +244,115 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
+    <KeyboardAvoidingView
+      style={styles.keyboardView}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom || 0 : 0}
     >
-      {/* Messages */}
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
-        showsVerticalScrollIndicator={false}
+      <View
+        style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
       >
-        {messages.length === 0 && !isLoading && (
-          <View style={styles.emptyState}>
-            <Ionicons name="chatbubbles" size={64} color={colors.textTertiary || '#8E8E93'} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary || '#6B7280' }]}>
-              {t('aiAssistant.emptyState') || 'Start a conversation with your AI assistant'}
-            </Text>
-          </View>
-        )}
-        
-        {messages.map(renderMessage)}
-        
-        {isLoading && (
-          <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
-            <View style={[styles.messageBubble, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
-              <ActivityIndicator size="small" color={colors.primary || '#007AFF'} />
-              <Text style={[styles.messageText, { color: colors.textSecondary || '#6B7280', marginLeft: 8 }]}>
-                {t('aiAssistant.typing') || 'Assistant is typing...'}
+        {/* Messages */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {messages.length === 0 && !isLoading && (
+            <View style={styles.emptyState}>
+              <Ionicons name="chatbubbles" size={64} color={colors.textTertiary || '#8E8E93'} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary || '#6B7280' }]}>
+                {t('aiAssistant.emptyState') || 'Start a conversation with your AI assistant'}
               </Text>
             </View>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Input */}
-      <View
-        style={[
-          styles.inputContainer,
-          {
-            backgroundColor: colors.surface || colors.card,
-            borderTopColor: colors.border || '#E5E5EA',
-            paddingBottom: (insets.bottom || 0) + 8,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => setLabModalVisible(true)}
-        >
-          <Ionicons name="attach" size={20} color={colors.textTertiary || '#8E8E93'} />
-        </TouchableOpacity>
-        <TextInput
-          ref={inputRef}
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.inputBackground || '#F2F2F7',
-              color: colors.textPrimary || colors.text || '#000000',
-              borderColor: colors.border || '#E5E5EA',
-            },
-          ]}
-          placeholder={t('aiAssistant.placeholder') || 'Ask anything about your nutrition…'}
-          placeholderTextColor={colors.textTertiary || '#8E8E93'}
-          value={inputText}
-          onChangeText={setInputText}
-          onSubmitEditing={handleSend}
-          multiline
-          maxLength={500}
-          editable={!isLoading}
-          returnKeyType="send"
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor:
-                inputText.trim() && !isLoading
-                  ? colors.primary || '#007AFF'
-                  : colors.surfaceMuted || '#E5E5EA',
-            },
-          ]}
-          onPress={handleSend}
-          disabled={!inputText.trim() || isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
-          ) : (
-            <Ionicons
-              name="send"
-              size={20}
-              color={
-                inputText.trim() && !isLoading
-                  ? colors.onPrimary || '#FFFFFF'
-                  : colors.textTertiary || '#8E8E93'
-              }
-            />
           )}
-        </TouchableOpacity>
+
+          {messages.map(renderMessage)}
+
+          {isLoading && (
+            <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
+              <View style={[styles.messageBubble, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
+                <ActivityIndicator size="small" color={colors.primary || '#007AFF'} />
+                <Text
+                  style={[
+                    styles.messageText,
+                    { color: colors.textSecondary || '#6B7280', marginLeft: 8 },
+                  ]}
+                >
+                  {t('aiAssistant.typing') || 'Assistant is typing...'}
+                </Text>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Input */}
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: colors.surface || colors.card,
+              borderTopColor: colors.border || '#E5E5EA',
+              paddingBottom: (insets.bottom || 0) + 8,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => setLabModalVisible(true)}
+          >
+            <Ionicons name="attach" size={20} color={colors.textTertiary || '#8E8E93'} />
+          </TouchableOpacity>
+          <TextInput
+            ref={inputRef}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.inputBackground || '#F2F2F7',
+                color: colors.textPrimary || colors.text || '#000000',
+                borderColor: colors.border || '#E5E5EA',
+              },
+            ]}
+            placeholder={t('aiAssistant.placeholder') || 'Ask anything about your nutrition…'}
+            placeholderTextColor={colors.textTertiary || '#8E8E93'}
+            value={inputText}
+            onChangeText={setInputText}
+            onSubmitEditing={handleSend}
+            multiline
+            maxLength={500}
+            editable={!isLoading}
+            returnKeyType="send"
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              {
+                backgroundColor:
+                  inputText.trim() && !isLoading
+                    ? colors.primary || '#007AFF'
+                    : colors.surfaceMuted || '#E5E5EA',
+              },
+            ]}
+            onPress={handleSend}
+            disabled={!inputText.trim() || isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
+            ) : (
+              <Ionicons
+                name="send"
+                size={20}
+                color={
+                  inputText.trim() && !isLoading
+                    ? colors.onPrimary || '#FFFFFF'
+                    : colors.textTertiary || '#8E8E93'
+                }
+              />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <LabResultsModal
@@ -347,7 +360,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         onClose={() => setLabModalVisible(false)}
         onResult={handleLabResult}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

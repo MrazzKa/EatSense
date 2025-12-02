@@ -1,29 +1,25 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
+  Modal,
   View,
   StyleSheet,
-  Modal,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
+  TouchableWithoutFeedback,
   PanResponder,
-  Platform,
+  Animated,
 } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SWIPE_THRESHOLD = 100; // Minimum distance to trigger close
-const VELOCITY_THRESHOLD = 0.5; // Minimum velocity to trigger close
+type AnimationType = 'none' | 'slide' | 'fade';
+type PresentationType = 'fullScreen' | 'pageSheet' | 'overFullScreen';
 
 interface SwipeClosableModalProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  swipeDirection?: 'down' | 'up' | 'left' | 'right';
+  swipeDirection?: 'down' | 'up';
   enableSwipe?: boolean;
   enableBackdropClose?: boolean;
-  animationType?: 'slide' | 'fade' | 'none';
-  presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
+  animationType?: AnimationType;
+  presentationStyle?: PresentationType;
 }
 
 export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
@@ -33,52 +29,44 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
   swipeDirection = 'down',
   enableSwipe = true,
   enableBackdropClose = true,
-  animationType = 'fade',
-  presentationStyle = 'pageSheet',
+  animationType = 'slide',
+  // presentationStyle из пропсов сейчас не критичен — всегда используем overFullScreen,
+  // чтобы модалки занимали весь экран и не обрезались.
+  presentationStyle,
 }) => {
-  const { tokens, colors } = useTheme();
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const translateX = useRef(new Animated.Value(0)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => enableSwipe,
-      onMoveShouldSetPanResponder: () => enableSwipe,
-      onPanResponderGrant: () => {
-        // Stop any ongoing animations
-        translateY.stopAnimation();
-        translateX.stopAnimation();
-      },
-      onPanResponderMove: (_, gestureState) => {
-        if (swipeDirection === 'down') {
-          translateY.setValue(Math.max(0, gestureState.dy));
-        } else if (swipeDirection === 'up') {
-          translateY.setValue(Math.min(0, gestureState.dy));
-        } else if (swipeDirection === 'right') {
-          translateX.setValue(Math.max(0, gestureState.dx));
-        } else if (swipeDirection === 'left') {
-          translateX.setValue(Math.min(0, gestureState.dx));
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        enableSwipe && Math.abs(gesture.dy) > 4,
+      onPanResponderMove: (_, gesture) => {
+        const delta = gesture.dy;
+        if (swipeDirection === 'down' && delta > 0) {
+          translateY.setValue(delta);
+        } else if (swipeDirection === 'up' && delta < 0) {
+          translateY.setValue(delta);
         }
       },
-      onPanResponderRelease: (_, gestureState) => {
+      onPanResponderRelease: (_, gesture) => {
+        const threshold = 80;
+        const delta = gesture.dy;
         const shouldClose =
-          (swipeDirection === 'down' && (gestureState.dy > SWIPE_THRESHOLD || gestureState.vy > VELOCITY_THRESHOLD)) ||
-          (swipeDirection === 'up' && (gestureState.dy < -SWIPE_THRESHOLD || gestureState.vy < -VELOCITY_THRESHOLD)) ||
-          (swipeDirection === 'right' && (gestureState.dx > SWIPE_THRESHOLD || gestureState.vx > VELOCITY_THRESHOLD)) ||
-          (swipeDirection === 'left' && (gestureState.dx < -SWIPE_THRESHOLD || gestureState.vx < -VELOCITY_THRESHOLD));
+          (swipeDirection === 'down' && delta > threshold) ||
+          (swipeDirection === 'up' && delta < -threshold);
 
-        if (shouldClose && enableSwipe) {
-          closeModal();
-        } else {
-      // Snap back to original position with a very small, simple animation
-      Animated.timing(translateY, {
-        toValue: swipeDirection === 'down' || swipeDirection === 'up' ? 0 : translateY._value,
-        duration: 150,
+        if (shouldClose) {
+          Animated.timing(translateY, {
+            toValue: swipeDirection === 'down' ? 500 : -500,
+            duration: 150,
             useNativeDriver: true,
-          }).start();
-      Animated.timing(translateX, {
+          }).start(() => {
+            translateY.setValue(0);
+            onClose && onClose();
+          });
+        } else {
+          Animated.spring(translateY, {
             toValue: 0,
-        duration: 150,
             useNativeDriver: true,
           }).start();
         }
@@ -86,119 +74,30 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
     }),
   ).current;
 
-  useEffect(() => {
-    if (visible) {
-      if (animationType === 'slide') {
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }).start();
-      }
-      // For fade / default, just animate opacity lightly
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      if (animationType === 'slide') {
-        Animated.timing(translateY, {
-          toValue: swipeDirection === 'down' ? SCREEN_HEIGHT : swipeDirection === 'up' ? -SCREEN_HEIGHT : 0,
-          duration: 150,
-          useNativeDriver: true,
-        }).start();
-      }
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible, animationType, swipeDirection]);
-
-  const closeModal = () => {
-    if (typeof onClose !== 'function') {
-      return;
-    }
-    if (animationType === 'slide') {
-      Animated.timing(translateY, {
-        toValue: swipeDirection === 'down' ? SCREEN_HEIGHT : swipeDirection === 'up' ? -SCREEN_HEIGHT : 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => onClose());
-    } else {
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => onClose());
-    }
-  };
-
-  if (!visible) {
-    return null;
-  }
-
-  const getTransform = () => {
-    const transforms: any[] = [];
-    if (animationType === 'slide') {
-      if (swipeDirection === 'down' || swipeDirection === 'up') {
-        transforms.push({ translateY });
-      } else {
-        transforms.push({ translateX });
-      }
-    }
-    return transforms;
-  };
-
-  const isFullScreen = presentationStyle === 'fullScreen';
-
   return (
     <Modal
       visible={visible}
-      transparent={!isFullScreen}
-      animationType="none"
-      presentationStyle={presentationStyle}
-      onRequestClose={closeModal}
+      transparent
+      animationType={animationType}
+      presentationStyle="overFullScreen"
+      onRequestClose={onClose}
     >
-      <View style={[styles.overlay, isFullScreen && styles.overlayFullScreen]}>
-        {!isFullScreen && (
-        <Animated.View
-          style={[
-            styles.backdrop,
-            {
-              opacity: animationType === 'fade' ? opacity : 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            },
-          ]}
-        >
-          {enableBackdropClose && (
-            <TouchableOpacity
-              style={StyleSheet.absoluteFill}
-              activeOpacity={1}
-              onPress={closeModal}
-            />
-          )}
-        </Animated.View>
+      <View style={styles.backdrop}>
+        {enableBackdropClose ? (
+          <TouchableWithoutFeedback onPress={onClose}>
+            <View style={styles.backdropTouchable} />
+          </TouchableWithoutFeedback>
+        ) : (
+          <View style={styles.backdropTouchable} />
         )}
+
         <Animated.View
           style={[
-            styles.content,
-            isFullScreen && styles.contentFullScreen,
-            {
-              backgroundColor: colors.surface || colors.card || colors.background,
-              transform: getTransform(),
-              opacity: animationType === 'fade' ? opacity : 1,
-            },
+            styles.sheetContainer,
+            { transform: [{ translateY }] },
           ]}
-          {...(enableSwipe && swipeDirection === 'down' && !isFullScreen ? panResponder.panHandlers : {})}
+          {...(enableSwipe ? panResponder.panHandlers : {})}
         >
-          {enableSwipe && swipeDirection === 'down' && !isFullScreen && (
-            <View style={styles.swipeHandle}>
-              <View style={[styles.handleBar, { backgroundColor: tokens.colors.borderMuted || '#BDC3C7' }]} />
-            </View>
-          )}
           {children}
         </Animated.View>
       </View>
@@ -207,38 +106,16 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  overlayFullScreen: {
-    justifyContent: 'center',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    // backgroundColor will be set dynamically from theme
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: SCREEN_HEIGHT * 0.9,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-  },
-  contentFullScreen: {
-    maxHeight: SCREEN_HEIGHT,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+  backdropTouchable: {
     flex: 1,
   },
-  swipeHandle: {
-    alignItems: 'center',
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
+  sheetContainer: {
+    maxHeight: '90%',
+    width: '100%',
   },
 });
-

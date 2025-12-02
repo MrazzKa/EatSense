@@ -940,25 +940,27 @@ const ProfileScreen = () => {
           </View>
         </AppCard>
 
-        <AppCard style={styles.dangerCard}>
-          <Text style={[styles.sectionTitle, styles.dangerTitle]}>{t('profile.deleteAccount')}</Text>
-          <Text style={styles.dangerDescription}>{t('profile.deleteAccountMessage')}</Text>
-          <TouchableOpacity
-            style={styles.dangerButton}
-            onPress={typeof handleDeleteAccount === 'function' ? handleDeleteAccount : () => {}}
-            disabled={loading}
-          >
-            <Ionicons name="trash-outline" size={18} color={tokens.colors.error} />
-            <Text style={styles.dangerButtonText}>{t('profile.deleteAccount')}</Text>
-          </TouchableOpacity>
-        </AppCard>
+        {false && (
+          <AppCard style={styles.dangerCard}>
+            <Text style={[styles.sectionTitle, styles.dangerTitle]}>{t('profile.deleteAccount')}</Text>
+            <Text style={styles.dangerDescription}>{t('profile.deleteAccountMessage')}</Text>
+            <TouchableOpacity
+              style={styles.dangerButton}
+              onPress={typeof handleDeleteAccount === 'function' ? handleDeleteAccount : () => {}}
+              disabled={loading}
+            >
+              <Ionicons name="trash-outline" size={18} color={tokens.colors.error} />
+              <Text style={styles.dangerButtonText}>{t('profile.deleteAccount')}</Text>
+            </TouchableOpacity>
+          </AppCard>
+        )}
 
         {/* Health Profile Summary */}
         <AppCard style={styles.healthSection}>
           <View style={styles.healthSummaryHeader}>
             <View style={styles.healthSummaryContent}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {t('profile.health.advanced') || 'Расширенные параметры здоровья'}
+                {safeT('profile.health.advanced', 'Расширенные параметры здоровья')}
               </Text>
               <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
                 {(() => {
@@ -1302,11 +1304,7 @@ const ProfileScreen = () => {
         {/* Footer links: Privacy Policy / Terms of Use */}
         <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border }]}>
           <TouchableOpacity
-            onPress={() => {
-              if (navigation && typeof navigation.navigate === 'function') {
-                navigation.navigate('LegalDocument', { type: 'privacy' });
-              }
-            }}
+            onPress={handleOpenPolicy}
             style={styles.footerLink}
           >
             <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
@@ -1314,11 +1312,7 @@ const ProfileScreen = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => {
-              if (navigation && typeof navigation.navigate === 'function') {
-                navigation.navigate('LegalDocument', { type: 'terms' });
-              }
-            }}
+            onPress={handleOpenTerms}
             style={styles.footerLink}
           >
             <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
