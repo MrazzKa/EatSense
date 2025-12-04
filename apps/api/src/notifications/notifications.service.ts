@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+import type { ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+import { Expo } from 'expo-server-sdk';
 import { DateTime } from 'luxon';
-import { PrismaService } from '../../prisma.service';
-import { RegisterPushTokenDto } from './dto/register-push-token.dto';
-import { SendTestNotificationDto } from './dto/send-test-notification.dto';
-import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+import type { PrismaService } from '../../prisma.service';
+import type { RegisterPushTokenDto } from './dto/register-push-token.dto';
+import type { SendTestNotificationDto } from './dto/send-test-notification.dto';
+import type { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 
 @Injectable()
 export class NotificationsService {

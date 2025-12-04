@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma.service';
 import { CacheService } from '../src/cache/cache.service';
 import { MealLogMealType } from '@prisma/client';
 import * as crypto from 'crypto';
+import PDFDocument from 'pdfkit';
+import { Readable } from 'stream';
 
 // Calculate daily calories based on user profile or return default
 function calculateDailyCalories(userProfile: any): number {
@@ -379,5 +381,59 @@ export class StatsService {
     await this.cache.set(cacheKey, payload, 'stats:monthly');
 
     return payload;
+  }
+
+  async generateMonthlyReportPDF(userId: string, year: number, month: number): Promise<Readable> {
+    const fromDate = new Date(year, month - 1, 1);
+    const toDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+    const summary = await this.getPersonalStats(
+      userId,
+      fromDate.toISOString(),
+      toDate.toISOString(),
+    );
+
+    const doc = new PDFDocument({ margin: 40 });
+    const stream = new Readable();
+    stream._read = () => {};
+
+    doc.on('data', (chunk) => {
+      stream.push(chunk);
+    });
+
+    doc.on('end', () => {
+      stream.push(null);
+    });
+
+    const title = `EatSense Monthly Report - ${year}-${String(month).padStart(2, '0')}`;
+
+    doc.fontSize(20).text(title, { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Total calories: ${Math.round(summary.totals.calories)}`);
+    doc.text(`Average calories per day: ${Math.round(summary.totals.calories / 30)}`);
+    
+    const totalMacroCalories = summary.totals.protein * 4 + summary.totals.carbs * 4 + summary.totals.fat * 9;
+    const avgProteinPerc = totalMacroCalories > 0 ? (summary.totals.protein * 4 / totalMacroCalories) * 100 : 0;
+    const avgFatPerc = totalMacroCalories > 0 ? (summary.totals.fat * 9 / totalMacroCalories) * 100 : 0;
+    const avgCarbPerc = totalMacroCalories > 0 ? (summary.totals.carbs * 4 / totalMacroCalories) * 100 : 0;
+
+    doc.text(`Average protein: ${Math.round(avgProteinPerc)}%`);
+    doc.text(`Average fat: ${Math.round(avgFatPerc)}%`);
+    doc.text(`Average carbs: ${Math.round(avgCarbPerc)}%`);
+    doc.moveDown();
+
+    doc.fontSize(14).text('Top foods:', { underline: true });
+    doc.moveDown(0.5);
+
+    summary.topFoods.slice(0, 10).forEach((food: any, idx: number) => {
+      doc.fontSize(12).text(
+        `${idx + 1}. ${food.label} — ${Math.round(food.totalCalories)} kcal (${food.count} entries)`,
+      );
+    });
+
+    doc.end();
+
+    return stream;
   }
 }

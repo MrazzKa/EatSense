@@ -31,6 +31,8 @@ interface RealAiAssistantProps {
 }
 
 export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => {
+  console.log('[RealAiAssistant] mounted');
+  
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { colors } = useTheme();
@@ -106,7 +108,12 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputText.trim();
-    if (!trimmedInput || isLoading || !user?.id) return;
+    if (!trimmedInput || isLoading || !user?.id) {
+      console.log('[RealAiAssistant] Cannot send: empty input or loading or no user');
+      return;
+    }
+
+    console.log('[RealAiAssistant] Sending message:', trimmedInput.substring(0, 50));
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -133,6 +140,8 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         trimmedInput,
         mapLanguageToLocale(language),
       );
+
+      console.log('[RealAiAssistant] Received response:', response?.answer ? 'has answer' : 'no answer');
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
@@ -245,9 +254,9 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
 
   return (
     <KeyboardAvoidingView
-      style={styles.keyboardView}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom || 0 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
       <View
         style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
@@ -442,4 +451,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+export default RealAiAssistant;
 

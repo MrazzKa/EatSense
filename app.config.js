@@ -30,13 +30,15 @@ export default {
 
     ios: {
             bundleIdentifier: "ch.eatsense.app",
-            buildNumber: "55",
+            buildNumber: "59",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {
         CFBundleDisplayName: "EatSense",
         CFBundleName: "EatSense",
         ITSAppUsesNonExemptEncryption: false,
+        CADisableMinimumFrameDurationOnPhone: true,
+        NSAllowsLocalNetworking: true,
         NSCameraUsageDescription:
           "EatSense needs access to your camera to take photos of food for nutrition analysis.",
         NSPhotoLibraryUsageDescription:
@@ -48,14 +50,18 @@ export default {
         NSHealthShareUsageDescription:
           "EatSense can integrate with HealthKit to sync nutrition data (optional).",
         NSHealthUpdateUsageDescription:
-          "EatSense can update HealthKit with your nutrition data (optional)."
+          "EatSense can update HealthKit with your nutrition data (optional).",
+        NSMicrophoneUsageDescription:
+          "Allow EatSense to access your microphone",
+        NSFaceIDUsageDescription:
+          "Allow EatSense to access your Face ID biometric data."
       },
       associatedDomains: ["applinks:eatsense.app", "applinks:*.eatsense.app"]
     },
 
     android: {
       package: "ch.eatsense.app",
-            versionCode: 43,
+            versionCode: 47,
       adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#FFFFFF" },
       permissions: ["CAMERA","READ_MEDIA_IMAGES","ACCESS_FINE_LOCATION","ACCESS_COARSE_LOCATION","POST_NOTIFICATIONS"],
       intentFilters: [{

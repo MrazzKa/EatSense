@@ -27,10 +27,10 @@ export const ManualAnalysisCard: React.FC<ManualAnalysisCardProps> = ({ onPressA
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-            {t('dashboard.manualAnalysis.title') || 'Insert your own analysis'}
+            {t('dashboard.manualAnalysis.title') || 'Upload medical lab results'}
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {t('dashboard.manualAnalysis.subtitle') || 'Manually enter meal data or upload lab results.'}
+            {t('dashboard.manualAnalysis.subtitle') || 'Attach a photo or PDF file of your lab results (blood tests, etc.) for interpretation.'}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || colors.textSecondary} />

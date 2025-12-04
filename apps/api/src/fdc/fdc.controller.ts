@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { FdcService } from './fdc.service';
-import { SearchFoodsDto } from './dto/search-foods.dto';
+import type { FdcService } from './fdc.service';
+import type { SearchFoodsDto } from './dto/search-foods.dto';
 
 @ApiTags('USDA FoodData Central')
 @Controller('v1/integrations/fdc')

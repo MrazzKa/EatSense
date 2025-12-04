@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { HybridService } from '../fdc/hybrid/hybrid.service';
+import type { ConfigService } from '@nestjs/config';
+import type { HybridService } from '../fdc/hybrid/hybrid.service';
 
 @Controller('debug')
 export class DebugController {

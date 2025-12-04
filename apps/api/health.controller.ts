@@ -1,10 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Health')
-@Controller('health')
+@Controller()
 export class HealthController {
-  @Get()
+  @Get('health')
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({ status: 200, description: 'Service is healthy' })
   check() {
@@ -14,5 +14,12 @@ export class HealthController {
       uptime: process.uptime(),
       version: process.env.npm_package_version || '1.0.0',
     };
+  }
+
+  @Get('robots.txt')
+  @Header('Content-Type', 'text/plain')
+  getRobots(): string {
+    // Пока запрещаем индексацию всего
+    return 'User-agent: *\nDisallow: /\n';
   }
 }
