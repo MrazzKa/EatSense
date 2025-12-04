@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import type { ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import { Expo } from 'expo-server-sdk';
 import { DateTime } from 'luxon';
-import type { PrismaService } from '../../prisma.service';
+import { PrismaService } from '../../prisma.service';
 import type { RegisterPushTokenDto } from './dto/register-push-token.dto';
 import type { SendTestNotificationDto } from './dto/send-test-notification.dto';
 import type { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
