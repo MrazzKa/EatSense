@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
-import type { PrismaService } from '../../prisma.service';
-import type { NotificationsService } from './notifications.service';
+import { PrismaService } from '../../prisma.service';
+import { NotificationsService } from './notifications.service';
 
 @Injectable()
 export class NotificationsScheduler {
