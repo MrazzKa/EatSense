@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../prisma.service';
-import { FdcApiService } from '../api/fdc-api.service';
+import type { PrismaService } from '../../../prisma.service';
+import type { FdcApiService } from '../api/fdc-api.service';
 // FoodSource enum defined inline
 enum FoodSource {
   USDA_LOCAL = 'USDA_LOCAL',

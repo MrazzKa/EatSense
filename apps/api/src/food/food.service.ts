@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { FoodAnalyzerService } from '../../food/food-analyzer/food-analyzer.service';
-import { MediaService, UploadResult } from '../../media/media.service';
-import { PrismaService } from '../../prisma.service';
+import type { FoodAnalyzerService } from '../../food/food-analyzer/food-analyzer.service';
+import type { MediaService, UploadResult } from '../../media/media.service';
+import type { PrismaService } from '../../prisma.service';
 import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import type { Queue } from 'bull';
 
 @Injectable()
 export class FoodService {

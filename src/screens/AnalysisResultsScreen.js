@@ -45,7 +45,7 @@ export default function AnalysisResultsScreen() {
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
 
-  const [isAnalyzing, setIsAnalyzing] = useState(!initialAnalysisParam);
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // Убрали отдельное окно процесса анализа
   const [analysisResult, setAnalysisResult] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [editingItem, setEditingItem] = useState(null);
@@ -525,92 +525,17 @@ export default function AnalysisResultsScreen() {
     );
   };
 
-  if (isAnalyzing) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => {
-              // Navigate directly to MainTabs (Dashboard) instead of going back
-              if (navigation && typeof navigation.reset === 'function') {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }],
-                });
-              } else if (navigation && typeof navigation.navigate === 'function') {
-                navigation.navigate('MainTabs', { screen: 'Dashboard' });
-              } else if (navigation && typeof navigation.goBack === 'function') {
-                navigation.goBack();
-              }
-            }}
-          >
-            <Ionicons name="close" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+  // Убрали отдельное окно процесса анализа - показываем skeleton на экране результатов
 
-        <View style={styles.analyzingRoot}>
-          <View style={styles.analyzingContainer}>
-            <View style={styles.imageContainer}>
-              {renderImage(baseImageUri, styles.analyzingImage, false)}
-              <View style={styles.analyzingOverlay}>
-                <View style={styles.analyzingContent}>
-                  <View style={styles.analyzingIconContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                  </View>
-                  <Text
-                    style={[
-                      styles.analyzingText,
-                      { color: colors.inverseText || '#FFFFFF' },
-                    ]}
-                  >
-                    {t('analysis.analyzing')}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.analyzingSubtext,
-                      { color: colors.inverseText || '#E5E7EB' },
-                    ]}
-                  >
-                    {t('analysis.subtitle')}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={[styles.progressSteps, { marginTop: tokens.spacing.xl }]}>
-              <View style={styles.step}>
-                <View style={[styles.stepIcon, styles.stepCompleted]}>
-                  <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                </View>
-                <Text style={[styles.stepText, { color: colors.textSecondary }]}>{t('analysis.uploaded')}</Text>
-              </View>
-
-              <View style={styles.step}>
-                <View style={[styles.stepIcon, styles.stepActive]}>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                </View>
-                <Text style={[styles.stepText, { color: colors.textSecondary }]}>{t('analysis.analyzingStep')}</Text>
-              </View>
-
-              <View style={styles.step}>
-                <View style={[styles.stepIcon, styles.stepPending]}>
-                  <Ionicons name="calculator" size={20} color={colors.textSecondary} />
-                </View>
-                <Text style={[styles.stepText, { color: colors.textSecondary }]}>{t('analysis.calculating')}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
+  // Показываем skeleton пока загружается анализ
   if (!analysisResult) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyState}>
-          <Ionicons name="alert-circle" size={36} color={colors.textSecondary} />
-          <Text style={[styles.emptyText, { color: colors.text }]}>{t('common.error')}</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 16 }]}>
+            {t('analysis.analyzing') || 'Analyzing...'}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -709,7 +634,10 @@ export default function AnalysisResultsScreen() {
 
           {/* Health Score */}
           {analysisResult?.healthScore && (
-            <HealthScoreCard healthScore={analysisResult.healthScore} />
+            <HealthScoreCard 
+              healthScore={analysisResult.healthScore} 
+              dishName={analysisResult.dishName}
+            />
           )}
 
           {/* Auto Save Banner */}
@@ -777,10 +705,17 @@ export default function AnalysisResultsScreen() {
           {/* Share Button */}
           <View style={styles.shareContainer}>
             <TouchableOpacity 
-              style={[styles.shareButton, { backgroundColor: colors.primary }]} 
+              style={[styles.shareButton, {
+                backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
+                borderColor: colors.borderMuted || colors.border || '#E5E5EA',
+              }]} 
               onPress={handleShare}
+              activeOpacity={0.8}
             >
-              <Text style={styles.shareButtonText}>{t('analysis.share')}</Text>
+              <Ionicons name="share-outline" size={18} color={colors.textPrimary || colors.text} style={styles.shareIcon} />
+              <Text style={[styles.shareButtonText, { color: colors.textPrimary || colors.text }]}>
+                {t('analysis.share') || 'Share'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -898,7 +833,7 @@ const createStyles = (tokens) =>
       ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.45)',
+      backgroundColor: 'rgba(0,0,0,0.65)',
     },
     analyzingContent: {
       alignItems: 'center',
@@ -924,14 +859,12 @@ const createStyles = (tokens) =>
       borderColor: tokens.colors.borderMuted,
     },
     analyzingText: {
-      color: tokens.colors.onSurface,
       fontSize: tokens.typography.subtitle1?.fontSize || tokens.typography.headingS.fontSize,
       fontWeight: '600',
       textAlign: 'center',
     },
     analyzingSubtext: {
       marginTop: 4,
-      color: tokens.colors.textSecondary,
       textAlign: 'center',
       fontSize: tokens.typography.body.fontSize,
     },
@@ -1097,15 +1030,19 @@ const createStyles = (tokens) =>
       alignItems: 'center',
     },
     shareButton: {
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 999,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 999,
+      borderWidth: 1,
+    },
+    shareIcon: {
+      marginRight: 8,
     },
     shareButtonText: {
-      color: '#FFFFFF',
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '600',
     },
     correctButton: {

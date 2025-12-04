@@ -31,6 +31,7 @@ import { HealthController } from './health.controller';
 import { configSchema } from './src/config/config.schema';
 import { NotificationsModule } from './src/notifications/notifications.module';
 import { DebugModule } from './src/debug/debug.module';
+import { SuggestionsModule } from './src/suggestions/suggestions.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { DebugModule } from './src/debug/debug.module';
     ArticlesModule,
     NotificationsModule,
     DebugModule,
+    SuggestionsModule,
   ],
   controllers: [HealthController],
 })

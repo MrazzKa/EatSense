@@ -13,11 +13,9 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - displayProgress);
   
-  // Color based on progress
+  // Единый аккуратный цвет прогресса
   const getProgressColor = () => {
-    if (clampedProgress < 0.5) return colors.success || '#10B981';
-    if (clampedProgress < 0.8) return colors.warning || '#F59E0B';
-    return colors.error || '#EF4444';
+    return colors.primary || '#007AFF';
   };
 
   return (
@@ -50,14 +48,16 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
         {children || (
           <>
             <Text style={[styles.value, { color: colors.primary }]}>
-              {value !== undefined ? value.toLocaleString() : (
-                clampedProgress >= 5 
-                  ? '500+%' 
-                  : `${Math.round(clampedProgress * 100)}%`
-              )}
+              {value != null
+                ? value.toLocaleString()
+                : Math.round(clampedProgress * 100)}
             </Text>
             {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
-            {goal && <Text style={[styles.goal, { color: colors.textTertiary }]}>{goal}</Text>}
+            {goal && (
+              <Text style={[styles.goal, { color: colors.textTertiary }]}>
+                {typeof goal === 'number' ? `of ${goal.toLocaleString()} kcal` : goal}
+              </Text>
+            )}
           </>
         )}
       </View>

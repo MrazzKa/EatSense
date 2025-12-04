@@ -511,6 +511,16 @@ class ApiService {
     }
   }
 
+  async getSuggestedFoods() {
+    try {
+      const response = await this.request('/suggestions/foods');
+      return response || [];
+    } catch (error) {
+      console.error('[ApiService] getSuggestedFoods error:', error);
+      return [];
+    }
+  }
+
   // Media
   async uploadImage(imageUri) {
     const formData = new FormData();

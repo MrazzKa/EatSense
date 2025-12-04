@@ -1,69 +1,50 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Modal,
   View,
   StyleSheet,
-  TouchableWithoutFeedback,
-  PanResponder,
   Animated,
+  PanResponder,
+  Platform,
+  StatusBar,
 } from 'react-native';
-
-type AnimationType = 'none' | 'slide' | 'fade';
-type PresentationType = 'fullScreen' | 'pageSheet' | 'overFullScreen';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SwipeClosableModalProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  swipeDirection?: 'down' | 'up';
-  enableSwipe?: boolean;
-  enableBackdropClose?: boolean;
-  animationType?: AnimationType;
-  presentationStyle?: PresentationType;
+  presentationStyle?: 'fullScreen' | 'pageSheet';
 }
+
+const SWIPE_CLOSE_THRESHOLD = 80;
 
 export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
   visible,
   onClose,
   children,
-  swipeDirection = 'down',
-  enableSwipe = true,
-  enableBackdropClose = true,
-  animationType = 'slide',
-  // presentationStyle из пропсов сейчас не критичен — всегда используем overFullScreen,
-  // чтобы модалки занимали весь экран и не обрезались.
-  presentationStyle,
+  presentationStyle = 'fullScreen',
 }) => {
+  const { colors } = useTheme();
   const translateY = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) =>
-        enableSwipe && Math.abs(gesture.dy) > 4,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        return gesture.dy > 5;
+      },
       onPanResponderMove: (_, gesture) => {
-        const delta = gesture.dy;
-        if (swipeDirection === 'down' && delta > 0) {
-          translateY.setValue(delta);
-        } else if (swipeDirection === 'up' && delta < 0) {
-          translateY.setValue(delta);
+        if (gesture.dy > 0) {
+          translateY.setValue(gesture.dy);
         }
       },
       onPanResponderRelease: (_, gesture) => {
-        const threshold = 80;
-        const delta = gesture.dy;
-        const shouldClose =
-          (swipeDirection === 'down' && delta > threshold) ||
-          (swipeDirection === 'up' && delta < -threshold);
-
-        if (shouldClose) {
+        if (gesture.dy > SWIPE_CLOSE_THRESHOLD) {
           Animated.timing(translateY, {
-            toValue: swipeDirection === 'down' ? 500 : -500,
-            duration: 150,
+            toValue: 1000,
+            duration: 200,
             useNativeDriver: true,
-          }).start(() => {
-            translateY.setValue(0);
-            onClose && onClose();
-          });
+          }).start(onClose);
         } else {
           Animated.spring(translateY, {
             toValue: 0,
@@ -71,32 +52,42 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
           }).start();
         }
       },
-    }),
+    })
   ).current;
+
+  useEffect(() => {
+    if (!visible) {
+      translateY.setValue(0);
+    }
+  }, [visible, translateY]);
+
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType={animationType}
-      presentationStyle="overFullScreen"
       onRequestClose={onClose}
+      animationType="slide"
+      transparent={false}
+      presentationStyle={presentationStyle === 'fullScreen' ? 'fullScreen' : 'pageSheet'}
     >
-      <View style={styles.backdrop}>
-        {enableBackdropClose ? (
-          <TouchableWithoutFeedback onPress={onClose}>
-            <View style={styles.backdropTouchable} />
-          </TouchableWithoutFeedback>
-        ) : (
-          <View style={styles.backdropTouchable} />
-        )}
-
+      <View
+        style={[
+          styles.root,
+          {
+            backgroundColor: colors.background || colors.surface || '#FFFFFF',
+            paddingTop:
+              Platform.OS === 'ios' && presentationStyle === 'fullScreen'
+                ? (StatusBar.currentHeight || 0)
+                : 0,
+          },
+        ]}
+      >
         <Animated.View
-          style={[
-            styles.sheetContainer,
-            { transform: [{ translateY }] },
-          ]}
-          {...(enableSwipe ? panResponder.panHandlers : {})}
+          style={[styles.sheet, { transform: [{ translateY }] }]}
+          {...panResponder.panHandlers}
         >
           {children}
         </Animated.View>
@@ -106,16 +97,12 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  backdropTouchable: {
+  root: {
     flex: 1,
   },
-  sheetContainer: {
-    maxHeight: '90%',
-    width: '100%',
+  sheet: {
+    flex: 1,
   },
 });
+
+export default SwipeClosableModal;

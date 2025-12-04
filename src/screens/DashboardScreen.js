@@ -171,9 +171,11 @@ export default function DashboardScreen() {
 
   const loadRecent = React.useCallback(async () => {
     try {
+      console.log('[Dashboard] Loading recent meals for date:', selectedDate);
       // Используем selectedDate для загрузки meals по выбранной дате
       const meals = await ApiService.getMeals(selectedDate);
       const items = Array.isArray(meals) ? meals.slice(0, 5) : [];
+      console.log('[Dashboard] Loaded recent meals:', items.length);
       setRecentItems(items);
       const withInsights = items.find(item => item.healthInsights);
       if (withInsights?.healthInsights?.score) {
@@ -185,7 +187,8 @@ export default function DashboardScreen() {
       } else {
         setHighlightMeal(null);
       }
-    } catch {
+    } catch (error) {
+      console.error('[Dashboard] Error loading recent meals:', error);
       setRecentItems([]);
       setHighlightMeal(null);
     }
@@ -292,8 +295,10 @@ export default function DashboardScreen() {
   };
 
   const handlePlusPress = () => {
+    console.log('[Dashboard] FAB plus button pressed');
     // Check limit before opening modal
     if (hasReachedDailyLimit(userStats)) {
+      console.log('[Dashboard] Daily limit reached, showing alert');
       Alert.alert(
         t('limits.title') || 'Daily Limit Reached',
         t('limits.dailyLimitReached', { count: userStats.dailyLimit }) || 
@@ -316,6 +321,7 @@ export default function DashboardScreen() {
     });
 
     // Show modal with options
+    console.log('[Dashboard] Opening FAB modal');
     setShowModal(true);
   };
 
@@ -325,6 +331,7 @@ export default function DashboardScreen() {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const handleCameraPress = async () => {
+    console.log('[Dashboard] Camera option selected');
     // Check limit before opening camera
     if (hasReachedDailyLimit(userStats)) {
       Alert.alert(
@@ -339,11 +346,15 @@ export default function DashboardScreen() {
     await clientLog('Dashboard:openCameraPressed').catch(() => {});
     setShowModal(false);
     if (navigation && typeof navigation.navigate === 'function') {
+      console.log('[Dashboard] Navigating to Camera screen');
       navigation.navigate('Camera');
+    } else {
+      console.warn('[Dashboard] Navigation not available');
     }
   };
 
   const handleGalleryPress = async () => {
+    console.log('[Dashboard] Gallery option selected');
     // Check limit before opening gallery
     if (hasReachedDailyLimit(userStats)) {
       Alert.alert(
@@ -358,18 +369,23 @@ export default function DashboardScreen() {
     await clientLog('Dashboard:openGalleryPressed').catch(() => {});
     setShowModal(false);
     if (navigation && typeof navigation.navigate === 'function') {
+      console.log('[Dashboard] Navigating to Gallery screen');
       navigation.navigate('Gallery');
+    } else {
+      console.warn('[Dashboard] Navigation not available');
     }
   };
 
   const handleAiAssistantPress = () => {
+    console.log('[Dashboard] AI Assistant card pressed');
     setShowAiAssistant(true);
   };
 
   const [showLabResultsModal, setShowLabResultsModal] = useState(false);
 
   const handleOpenManualAnalysis = () => {
-    // Open lab results modal for health analysis
+    console.log('[Dashboard] Opening manual analysis modal');
+    setShowModal(false);
     setShowLabResultsModal(true);
   };
 
@@ -431,9 +447,9 @@ export default function DashboardScreen() {
             progress={stats.goal > 0 ? Math.min(1, stats.totalCalories / stats.goal) : 0}
             size={220}
             strokeWidth={8}
-            value={stats.totalCalories}
-            label={t('dashboard.calories')}
-            goal={t('dashboard.ofGoal', { goal: stats.goal.toLocaleString() })}
+            value={Math.round(stats.totalCalories)}
+            label={t('dashboard.calories') || 'Calories'}
+            goal={Math.round(stats.goal)}
           />
         </View>
 
@@ -457,19 +473,6 @@ export default function DashboardScreen() {
         <View style={styles.recentContainer}>
           <View style={styles.recentHeader}>
             <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
-            {recentItems && recentItems.length > 3 && (
-              <TouchableOpacity
-                onPress={() => {
-                  if (navigation && typeof navigation.navigate === 'function') {
-                    navigation.navigate('Recently');
-                  }
-                }}
-              >
-                <Text style={[styles.seeAllText, { color: colors.primary }]}>
-                  {t('dashboard.seeAll') || 'See all'}
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
           {recentItems && recentItems.length > 0 ? (
             (recentItems || []).slice(0, 3).map((item) => (
@@ -482,8 +485,12 @@ export default function DashboardScreen() {
                   }
                 }}
               >
-                {item.imageUri ? (
-                  <Image source={{ uri: item.imageUri }} style={styles.recentItemImage} />
+                {getItemImageUrl(item) ? (
+                  <Image 
+                    source={{ uri: getItemImageUrl(item) }} 
+                    style={styles.recentItemImage}
+                    resizeMode="cover"
+                  />
                 ) : (
                   <View style={styles.recentItemImagePlaceholder}>
                     <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
@@ -512,9 +519,50 @@ export default function DashboardScreen() {
           )}
         </View>
 
-        {/* PART A: Section 3 - AI Assistant teaser */}
+        {/* PART A: Section 3 - Smart Recommendations Cards */}
+        {/* 1. Suggested Food */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.aiAssistantButton, {
+              backgroundColor: colors.surface || colors.card,
+              borderColor: colors.border || colors.borderMuted,
+              borderWidth: 1,
+            }]}
+            onPress={() => {
+              console.log('[Dashboard] Navigating to Suggested Food');
+              if (navigation && typeof navigation.navigate === 'function') {
+                navigation.navigate('SuggestedFood');
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.aiAssistantIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
+              <Ionicons name="fast-food-outline" size={24} color={colors.primary || '#007AFF'} />
+            </View>
+            <View style={styles.aiAssistantContent}>
+              <Text style={[styles.aiAssistantTitle, { color: colors.textPrimary || colors.text }]}>
+                {t('dashboard.suggestedFood.title') || 'Suggested Food'}
+              </Text>
+              <Text style={[styles.aiAssistantSubtitle, { color: colors.textSecondary }]}>
+                {t('dashboard.suggestedFood.subtitle') || 'Get personalized food recommendations'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 2. AI Assistant */}
         <View style={styles.aiAssistantContainer}>
-          <TouchableOpacity style={styles.aiAssistantButton} onPress={typeof handleAiAssistantPress === 'function' ? handleAiAssistantPress : () => {}}>
+          <TouchableOpacity 
+            style={styles.aiAssistantButton} 
+            onPress={() => {
+              console.log('[Dashboard] Opening AI Assistant');
+              if (typeof handleAiAssistantPress === 'function') {
+                handleAiAssistantPress();
+              }
+            }}
+            activeOpacity={0.8}
+          >
             <View style={styles.aiAssistantIcon}>
               <Ionicons name="chatbubble" size={24} color={colors.onPrimary || colors.inverseText} />
             </View>
@@ -528,52 +576,16 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* PART A: Section 4 - Insert analysis / Upload analysis */}
+        {/* 3. Manual Analysis / "Вставьте свой анализ" */}
         <View style={styles.section}>
-          <ManualAnalysisCard onPressAddManual={handleOpenManualAnalysis} />
+          <ManualAnalysisCard onPressAddManual={() => {
+            console.log('[Dashboard] Opening manual analysis modal');
+            handleOpenManualAnalysis();
+          }} />
         </View>
 
         {/* PART A: Section 5 - Nutrition section */}
-        {monthlyStats && monthlyStats.topFoods && monthlyStats.topFoods.length > 0 && (
-          <View style={styles.monthlySection}>
-            <View style={styles.monthlyHeader}>
-              <Text style={styles.sectionTitle}>{t('dashboard.monthlyStats.title')}</Text>
-              {formatRangeLabel(monthlyStats?.range) ? (
-                <Text style={styles.sectionSubtle}>{formatRangeLabel(monthlyStats?.range)}</Text>
-              ) : null}
-            </View>
-
-            <View style={styles.topFoodsContainer}>
-              <Text style={styles.sectionSubtitle}>{t('dashboard.monthlyStats.topFoods')}</Text>
-              {(monthlyStats.topFoods || []).slice(0, 3).map((food, index) => (
-                <View key={`${food.label}-${index}`} style={styles.topFoodRow}>
-                  <Text style={styles.topFoodRank}>{index + 1}</Text>
-                  <View style={styles.topFoodContent}>
-                    <Text numberOfLines={1} style={styles.topFoodLabel}>{food.label}</Text>
-                    <Text style={styles.topFoodMeta}>
-                      {t('dashboard.monthlyStats.foodMeta', {
-                        count: food.count,
-                        calories: Math.round(food.totalCalories || 0),
-                      })}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={styles.viewInsightsButton}
-              onPress={() => {
-                setShowStatistics(true);
-              }}
-            >
-              <Text style={styles.viewInsightsButtonText}>
-                {t('dashboard.monthlyStats.viewFullInsights') || 'View full insights'}
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* TODO: replaced by Monthly PDF report */}
       </ScrollView>
 
       {/* Floating Plus Button - Right Side (fixed, non-draggable) */}
@@ -645,6 +657,19 @@ export default function DashboardScreen() {
               <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.gallery.title')}</Text>
               <Text style={styles.addFoodModalButtonSubtitle}>
                 {t('dashboard.addFood.gallery.description')}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.addFoodModalButton}
+              onPress={typeof handleOpenManualAnalysis === 'function' ? handleOpenManualAnalysis : () => {}}
+            >
+              <View style={styles.addFoodModalButtonIcon}>
+                <Ionicons name="create-outline" size={32} color={colors.primary} />
+              </View>
+              <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.manual.title') || 'Ввести вручную'}</Text>
+              <Text style={styles.addFoodModalButtonSubtitle}>
+                {t('dashboard.addFood.manual.description') || 'Добавить анализ вручную или загрузить файл'}
               </Text>
             </TouchableOpacity>
           </View>

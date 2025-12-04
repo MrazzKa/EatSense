@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service';
-import { HybridService } from '../fdc/hybrid/hybrid.service';
-import { VisionService, VisionComponent } from './vision.service';
-import { PortionService } from './portion.service';
-import { CacheService } from '../cache/cache.service';
+import type { PrismaService } from '../../prisma.service';
+import type { HybridService } from '../fdc/hybrid/hybrid.service';
+import type { VisionService, VisionComponent } from './vision.service';
+import type { PortionService } from './portion.service';
+import type { CacheService } from '../cache/cache.service';
 import { normalizeFoodName } from './text-utils';
-import {
+import type {
   AnalysisData,
   AnalyzedItem,
   AnalysisTotals,
@@ -14,7 +14,7 @@ import {
   AnalysisDebug,
   AnalysisSanityIssue,
 } from './analysis.types';
-import { FoodLocalizationService } from './food-localization.service';
+import type { FoodLocalizationService } from './food-localization.service';
 import * as crypto from 'crypto';
 
 type HealthWeights = {
@@ -202,12 +202,46 @@ export class AnalyzeService {
         // Check if item has valid nutrition data
         const hasNutrition = nutrients.calories > 0 || nutrients.protein > 0 || nutrients.carbs > 0 || nutrients.fat > 0;
         
+        // Determine if this is a drink based on name
+        const nameLower = (originalNameEn || component.name || '').toLowerCase();
+        const drinkKeywords = [
+          'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
+          'tea', 'chai', 'matcha',
+          'juice', 'smoothie', 'shake',
+          'soda', 'cola', 'fanta', 'sprite', 'pepsi',
+          'energy drink', 'red bull',
+          'water', 'sparkling water',
+          'milk', 'almond milk', 'soy milk',
+          'beer', 'wine', 'cocktail', 'drink', 'beverage',
+          'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
+        ];
+        const isDrink = drinkKeywords.some(keyword => nameLower.includes(keyword));
+        
+        // For drinks, adjust portion if needed (default volumes)
+        let finalPortionG = portionG;
+        if (isDrink && portionG < 50) {
+          // Default volumes for drinks
+          if (nameLower.includes('coffee') || nameLower.includes('tea') || nameLower.includes('кофе') || nameLower.includes('чай')) {
+            finalPortionG = 200; // 200ml for coffee/tea
+          } else if (nameLower.includes('juice') || nameLower.includes('soda') || nameLower.includes('cola') || nameLower.includes('сок') || nameLower.includes('газировка')) {
+            finalPortionG = 250; // 250ml for juice/soda
+          } else {
+            finalPortionG = 250; // Default 250ml
+          }
+          // Recalculate nutrients with adjusted portion
+          const adjustedNutrients = this.calculateNutrientsForPortion(normalized, finalPortionG);
+          nutrients.calories = adjustedNutrients.calories;
+          nutrients.protein = adjustedNutrients.protein;
+          nutrients.carbs = adjustedNutrients.carbs;
+          nutrients.fat = adjustedNutrients.fat;
+        }
+        
         // Create AnalyzedItem with localized and original names
         const item: AnalyzedItem = {
           name: localizedName || originalNameEn,
           originalName: originalNameEn,
           label: component.name,
-          portion_g: portionG,
+          portion_g: finalPortionG,
           nutrients,
           source: 'fdc',
           fdcId: bestMatch.fdcId,
@@ -259,7 +293,7 @@ export class AnalyzeService {
       total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
     }
 
-    const healthScore = this.computeHealthScore(total, total.portion_g);
+    const healthScore = this.computeHealthScore(total, total.portion_g, items);
 
     // Q1: Run sanity check
     const sanity = this.runSanityCheck({ items, total, healthScore, debug });
@@ -531,7 +565,7 @@ export class AnalyzeService {
       total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
     }
 
-    const healthScore = this.computeHealthScore(total, total.portion_g);
+    const healthScore = this.computeHealthScore(total, total.portion_g, items);
 
     // Q1: Run sanity check
     const sanity = this.runSanityCheck({ items, total, healthScore, debug });
@@ -820,9 +854,34 @@ export class AnalyzeService {
     return crypto.createHash('sha256').update(str).digest('hex').substring(0, 16);
   }
 
-  private computeHealthScore(total: AnalysisTotals, totalPortion: number): HealthScore {
+  /**
+   * Check if analysis represents a drink based on item names
+   */
+  private isDrinkAnalysis(items: AnalyzedItem[]): boolean {
+    const drinkKeywords = [
+      'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
+      'tea', 'chai', 'matcha',
+      'juice', 'smoothie', 'shake',
+      'soda', 'cola', 'fanta', 'sprite', 'pepsi',
+      'energy drink', 'red bull',
+      'water', 'sparkling water',
+      'milk', 'almond milk', 'soy milk',
+      'beer', 'wine', 'cocktail', 'drink', 'beverage',
+      'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
+    ];
+    
+    const itemNames = items.map(item => 
+      (item.name || item.originalName || item.label || '').toLowerCase()
+    ).join(' ');
+    
+    return drinkKeywords.some(keyword => itemNames.includes(keyword));
+  }
+
+  private computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[]): HealthScore {
     const weights = this.getHealthWeights();
     const portionWeight = totalPortion || 250; // fallback 250g meal
+    const isDrink = items ? this.isDrinkAnalysis(items) : false;
+    
     const proteinScore = this.positiveScore(total.protein, 30);
     const fiberScore = this.positiveScore(total.fiber || 0, 10);
     
@@ -837,10 +896,19 @@ export class AnalyzeService {
       ? total.sugars 
       : (total.carbs > 0 ? total.carbs * 0.1 : 0); // ~10% of carbs as sugars fallback
     
-    const satFatScore = this.negativeScore(estimatedSatFat, 8);
-    const sugarScore = this.negativeScore(estimatedSugars, 15);
-    const energyDensity = portionWeight ? total.calories / portionWeight : total.calories / 250;
-    const energyDensityScore = this.negativeScore(energyDensity, 4);
+    // For drinks, use stricter thresholds for sugar
+    const sugarThreshold = isDrink ? 10 : 15;
+    const satFatThreshold = isDrink ? 5 : 8;
+    
+    const satFatScore = this.negativeScore(estimatedSatFat, satFatThreshold);
+    const sugarScore = this.negativeScore(estimatedSugars, sugarThreshold);
+    
+    // For drinks, use volume-based energy density (ml instead of grams)
+    // Default drink volume: 250ml for coffee/tea, 330ml for soda
+    const effectivePortion = isDrink ? (portionWeight || 250) : portionWeight;
+    const energyDensity = effectivePortion ? total.calories / effectivePortion : total.calories / 250;
+    const energyDensityThreshold = isDrink ? 2 : 4; // Drinks should have lower energy density
+    const energyDensityScore = this.negativeScore(energyDensity, energyDensityThreshold);
 
     const factorMap = {
       protein: { label: 'Protein', score: proteinScore, weight: weights.protein },

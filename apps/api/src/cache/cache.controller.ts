@@ -11,7 +11,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse } from '@nestjs/swagger';
-import { CacheService } from './cache.service';
+import type { CacheService } from './cache.service';
 
 interface CacheSetRequest {
   value: any;

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import ApiService from '../services/apiService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -13,6 +15,7 @@ import PrimaryButton from '../components/common/PrimaryButton';
 import { ProfileNumberRow } from '../components/ProfileNumberRow';
 import { ProfileSegmentedControl } from '../components/ProfileSegmentedControl';
 import { ProfileToggleRow } from '../components/ProfileToggleRow';
+import { API_BASE_URL } from '../config/env';
 
 const ProfileScreen = () => {
   const { t, language, changeLanguage, availableLanguages } = useI18n();
@@ -938,6 +941,68 @@ const ProfileScreen = () => {
               disabled={notificationLoading || notificationSaving}
             />
           </View>
+        </AppCard>
+
+        {/* Monthly Report */}
+        <AppCard style={styles.preferencesCard}>
+          <TouchableOpacity
+            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            onPress={async () => {
+              try {
+                console.log('[ProfileScreen] Downloading monthly report');
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth() + 1;
+                const url = `${API_BASE_URL}/stats/monthly-report?year=${year}&month=${month}`;
+                console.log('[ProfileScreen] Report URL:', url);
+                const fileUri = FileSystem.cacheDirectory + `eatsense-monthly-report-${year}-${String(month).padStart(2, '0')}.pdf`;
+
+                const downloadResumable = FileSystem.createDownloadResumable(
+                  url,
+                  fileUri,
+                  {
+                    headers: ApiService.getHeaders(),
+                  }
+                );
+
+                console.log('[ProfileScreen] Starting download to:', fileUri);
+                const result = await downloadResumable.downloadAsync();
+                if (result?.uri) {
+                  console.log('[ProfileScreen] Download completed, sharing:', result.uri);
+                  const canShare = await Sharing.isAvailableAsync();
+                  if (canShare) {
+                    await Sharing.shareAsync(result.uri);
+                  } else {
+                    Alert.alert(
+                      t('common.success') || 'Success',
+                      t('profile.monthlyReportDownloaded') || 'Report downloaded successfully',
+                    );
+                  }
+                }
+              } catch (e) {
+                console.error('[ProfileScreen] Failed to download monthly report', e);
+                Alert.alert(
+                  t('common.error') || 'Error',
+                  t('profile.monthlyReportError') || 'Failed to download monthly report. Please try again later.',
+                );
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardContent}>
+              <Ionicons name="document-text-outline" size={24} color={colors.primary} />
+              <View style={styles.cardTextContainer}>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('profile.monthlyReportTitle') || 'Monthly nutrition report (PDF)'}
+                </Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  {t('profile.monthlyReportSubtitle') ||
+                    'Download a detailed report about your eating habits for the last month.'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </View>
+          </TouchableOpacity>
         </AppCard>
 
         {false && (
@@ -1940,6 +2005,28 @@ const createStyles = (tokens) =>
     footerLinkText: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    card: {
+      borderRadius: tokens.radii.md,
+      borderWidth: 1,
+      padding: tokens.spacing.md,
+    },
+    cardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.md,
+    },
+    cardTextContainer: {
+      flex: 1,
+      gap: tokens.spacing.xs,
+    },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    cardSubtitle: {
+      fontSize: 13,
+      lineHeight: 18,
     },
   });
 

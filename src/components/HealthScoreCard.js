@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { spacing, radii, elevations } from '../design/tokens';
 
-export const HealthScoreCard = ({ healthScore }) => {
+export const HealthScoreCard = ({ healthScore, dishName }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -14,6 +14,22 @@ export const HealthScoreCard = ({ healthScore }) => {
   }
 
   const { score, grade, factors = {}, feedback } = healthScore;
+
+  // Определяем, является ли блюдо напитком
+  const isDrink = React.useMemo(() => {
+    if (!dishName) return false;
+    const nameLower = dishName.toLowerCase();
+    const drinkKeywords = [
+      'milk', 'молоко', 'молочко',
+      'coffee', 'кофе', 'капучино', 'cappuccino', 'латте', 'latte',
+      'tea', 'чай', 'chai',
+      'juice', 'сок',
+      'soda', 'газировка',
+      'water', 'вода',
+      'drink', 'напиток', 'напитки',
+    ];
+    return drinkKeywords.some(keyword => nameLower.includes(keyword));
+  }, [dishName]);
 
   const factorEntries = Object.entries(factors).map(([key, value]) => {
     if (typeof value === 'number') {
@@ -31,19 +47,18 @@ export const HealthScoreCard = ({ healthScore }) => {
   });
 
   const getGradeColor = () => {
-    switch (grade) {
-      case 'A':
-        return colors.success;
-      case 'B':
-        return '#34C759';
-      case 'C':
-        return colors.warning;
-      case 'D':
-        return '#FF9500';
-      case 'F':
-        return colors.error;
-      default:
-        return colors.textTertiary;
+    const s = typeof score === 'number' ? score : 0;
+    
+    // Для напитков смягчаем нижнюю границу
+    if (isDrink) {
+      if (s < 30) return colors.error || '#EF4444';
+      if (s < 70) return colors.warning || '#F59E0B';
+      return colors.success || colors.primary || '#10B981';
+    } else {
+      // Для обычной еды
+      if (s < 40) return colors.error || '#EF4444';
+      if (s < 70) return colors.warning || '#F59E0B';
+      return colors.success || colors.primary || '#10B981';
     }
   };
 
@@ -143,29 +158,29 @@ export const HealthScoreCard = ({ healthScore }) => {
       <View style={styles.factorsContainer}>
         <Text style={[styles.factorsTitle, { color: colors.textSecondary }]}>{t('healthScore.qualityFactors')}</Text>
         <View style={styles.factorsGrid}>
-          {factorEntries.map(entry => (
-            <View key={entry.key} style={styles.factorItem}>
-              <View style={styles.factorHeader}>
-                <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
-                {entry.weight !== undefined && (
-                  <Text style={[styles.factorWeight, { color: colors.textSubdued }]}>
-                    {Math.round(Math.abs(entry.weight || 0) * 100)}%
+          {factorEntries.map(entry => {
+            // Единый источник правды: score уже в диапазоне 0-100
+            const valuePercent = Math.round(Math.max(0, Math.min(100, entry.score || 0)));
+            
+            return (
+              <View key={entry.key} style={styles.factorItem}>
+                <View style={styles.factorHeader}>
+                  <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
+                  <Text style={[styles.factorValue, { color: colors.textSecondary }]}>
+                    {valuePercent}%
                   </Text>
-                )}
+                </View>
+                <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
+                  <View
+                    style={[
+                      styles.factorFill,
+                      { width: `${valuePercent}%`, backgroundColor: colors.primary },
+                    ]}
+                  />
+                </View>
               </View>
-              <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
-                <View
-                  style={[
-                    styles.factorFill,
-                    { width: `${Math.round(entry.score)}%`, backgroundColor: colors.primary },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.factorValue, { color: colors.textSecondary }]}>
-                {Math.round(entry.score)}%
-              </Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
 
@@ -264,10 +279,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  factorWeight: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
   factorBar: {
     height: 4,
     borderRadius: 2,
@@ -278,7 +289,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   factorValue: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
   },
   feedbackContainer: {

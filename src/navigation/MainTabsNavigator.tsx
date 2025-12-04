@@ -8,9 +8,9 @@ import { useI18n } from '../../app/i18n/hooks';
 // Import screens
 import DashboardScreen from '../screens/DashboardScreen';
 import ArticlesScreen from '../screens/ArticlesScreen';
-import RecentlyScreen from '../screens/RecentlyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
+import ReportsScreen from '../screens/ReportsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -68,22 +68,22 @@ export function MainTabsNavigator() {
         }}
       />
       <Tab.Screen
-        name="Recently"
-        component={RecentlyScreen}
-        options={{
-          tabBarLabel: t('tabs.recently') || 'Recently',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size || 24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Experts"
         component={ExpertsScreen}
         options={{
           tabBarLabel: t('tabs.experts') || 'Experts',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-check" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Reports"
+        component={ReportsScreen}
+        options={{
+          tabBarLabel: t('tabs.reports') || 'Reports',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="document-text-outline" size={size || 24} color={color} />
           ),
         }}
       />

@@ -47,6 +47,8 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
   onClose,
   onResult,
 }) => {
+  console.log('[LabResultsModal] visible:', visible);
+  
   const { t, language } = useI18n();
   const { colors, tokens } = useTheme();
   const { user } = useAuth();
@@ -96,12 +98,13 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
         copyToCacheDirectory: true,
       });
 
-      if (result.type === 'success') {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
         setSelectedFile({
           type: 'pdf',
-          uri: result.uri,
-          name: result.name,
-          mimeType: 'application/pdf',
+          uri: asset.uri,
+          name: asset.name || 'document.pdf',
+          mimeType: asset.mimeType || 'application/pdf',
         });
       }
     } catch (e) {
@@ -222,15 +225,16 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}
-      >
-        <SafeAreaView
-          style={[styles.container, { backgroundColor: colors.background }]}
-          edges={['top', 'bottom']}
+      <View style={{ flex: 1, backgroundColor: colors.background || colors.surface }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}
         >
+          <SafeAreaView
+            style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
+            edges={['top', 'bottom']}
+          >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: colors.border || colors.borderMuted }]}>
             <TouchableOpacity
@@ -367,8 +371,9 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
               )}
             </TouchableOpacity>
           </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+      </View>
     </SwipeClosableModal>
   );
 };
@@ -498,4 +503,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default LabResultsModal;
 
