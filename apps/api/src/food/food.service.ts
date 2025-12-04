@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { FoodAnalyzerService } from '../../food/food-analyzer/food-analyzer.service';
-import type { MediaService, UploadResult } from '../../media/media.service';
-import type { PrismaService } from '../../prisma.service';
+import { FoodAnalyzerService } from '../../food/food-analyzer/food-analyzer.service';
+import { MediaService, type UploadResult } from '../../media/media.service';
+import { PrismaService } from '../../prisma.service';
 import { InjectQueue } from '@nestjs/bull';
 import type { Queue } from 'bull';
 

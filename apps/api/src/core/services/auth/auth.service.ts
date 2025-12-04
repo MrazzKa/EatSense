@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import type { JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import type { PrismaService } from '../../../../prisma.service';
+import { PrismaService } from '../../../../prisma.service';
 import type { RegisterDto } from '../../../../auth/dto';
-import type { MailerService } from '../../../../mailer/mailer.service';
-import type { OtpService } from '../../../../auth/otp.service';
-import type { UsersService } from '../../../../users/users.service';
+import { MailerService } from '../../../../mailer/mailer.service';
+import { OtpService } from '../../../../auth/otp.service';
+import { UsersService } from '../../../../users/users.service';
 
 @Injectable()
 export class AuthService {

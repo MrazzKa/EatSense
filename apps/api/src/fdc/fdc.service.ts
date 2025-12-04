@@ -1,10 +1,10 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
-import type { HttpService } from '@nestjs/axios';
+import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as crypto from 'crypto';
-import type { PrismaService } from '../../prisma.service';
-import type { FtsService } from './fts/fts.service';
-import type { CacheService } from '../cache/cache.service';
+import { PrismaService } from '../../prisma.service';
+import { FtsService } from './fts/fts.service';
+import { CacheService } from '../cache/cache.service';
 import type { SearchFoodsDto } from './dto/search-foods.dto';
 
 type NormalizedSearchBody = {

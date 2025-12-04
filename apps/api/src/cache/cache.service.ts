@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { RedisService } from '../../redis/redis.service';
+import { RedisService } from '../../redis/redis.service';
 
 type CacheNamespace =
   | 'general'
