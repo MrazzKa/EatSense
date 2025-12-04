@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { PrismaService } from '../../prisma.service';
-import type { HybridService } from '../fdc/hybrid/hybrid.service';
-import type { VisionService, VisionComponent } from './vision.service';
-import type { PortionService } from './portion.service';
-import type { CacheService } from '../cache/cache.service';
+import { PrismaService } from '../../prisma.service';
+import { HybridService } from '../fdc/hybrid/hybrid.service';
+import { VisionService, type VisionComponent } from './vision.service';
+import { PortionService } from './portion.service';
+import { CacheService } from '../cache/cache.service';
 import { normalizeFoodName } from './text-utils';
 import type {
   AnalysisData,
@@ -14,7 +14,7 @@ import type {
   AnalysisDebug,
   AnalysisSanityIssue,
 } from './analysis.types';
-import type { FoodLocalizationService } from './food-localization.service';
+import { FoodLocalizationService } from './food-localization.service';
 import * as crypto from 'crypto';
 
 type HealthWeights = {

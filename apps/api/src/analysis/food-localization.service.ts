@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createHash } from 'crypto';
 import OpenAI from 'openai';
-import type { CacheService } from '../cache/cache.service';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class FoodLocalizationService {

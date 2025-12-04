@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { StatsService } from '../../stats/stats.service';
-import type { PrismaService } from '../../prisma.service';
+import { StatsService } from '../../stats/stats.service';
+import { PrismaService } from '../../prisma.service';
 
 export interface SuggestedFoodItem {
   id: string;

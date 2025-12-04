@@ -1,5 +1,5 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import type { SuggestionsService, SuggestedFoodItem } from './suggestions.service';
+import { SuggestionsService, type SuggestedFoodItem } from './suggestions.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @Controller('suggestions')

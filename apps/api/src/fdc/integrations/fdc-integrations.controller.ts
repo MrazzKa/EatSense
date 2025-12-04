@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
-import type { HybridService } from '../hybrid/hybrid.service';
+import { HybridService } from '../hybrid/hybrid.service';
 
 @ApiTags('FDC Integrations')
 @Controller('integrations/fdc')
