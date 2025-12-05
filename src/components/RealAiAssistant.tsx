@@ -5,25 +5,34 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
   Platform,
   KeyboardAvoidingView,
+  ActionSheetIOS,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import ApiService from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { clientLog } from '../utils/clientLog';
 import { mapLanguageToLocale } from '../utils/locale';
-import { LabResultsModal } from './LabResultsModal';
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  attachment?: {
+    type: 'image' | 'pdf';
+    uri: string;
+    name: string;
+  };
 }
 
 interface RealAiAssistantProps {
@@ -42,11 +51,11 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [labModalVisible, setLabModalVisible] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<{ type: 'image' | 'pdf'; uri: string; name: string } | null>(null);
+  const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
 
-  // Load conversation history on mount
+  // C1: Load conversation history on mount
   useEffect(() => {
     const loadHistory = async () => {
       if (!user?.id) return;
@@ -54,7 +63,18 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
       try {
         await clientLog('AiAssistant:loadingHistory').catch(() => {});
         if (!ApiService || typeof ApiService.getConversationHistory !== 'function') {
-          console.warn('[RealAiAssistant] ApiService.getConversationHistory is not available');
+          if (__DEV__) {
+            console.warn('[RealAiAssistant] ApiService.getConversationHistory is not available');
+          }
+          // Show welcome message if history not available
+          setMessages([
+            {
+              id: 'welcome-1',
+              role: 'assistant',
+              content: t('aiAssistant.welcome'),
+              timestamp: new Date(),
+            },
+          ]);
           return;
         }
         const history = await ApiService.getConversationHistory(user.id, 10);
@@ -87,7 +107,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
           {
             id: 'welcome-1',
             role: 'assistant',
-            content: t('aiAssistant.welcome') || 'Hello! I\'m your AI nutrition assistant. How can I help you today?',
+            content: t('aiAssistant.welcome'),
             timestamp: new Date(),
           },
         ]);
@@ -97,53 +117,158 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
     loadHistory();
   }, [user?.id, t]);
 
-  // Auto-scroll to bottom when messages change
+  // C2: Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (scrollViewRef.current && messages.length > 0) {
+    if (flatListRef.current && messages.length > 0) {
       setTimeout(() => {
-        if (scrollViewRef.current && typeof scrollViewRef.current.scrollToEnd === 'function') {
-          scrollViewRef.current.scrollToEnd({ animated: true });
-        }
+        flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   }, [messages]);
 
+  // C3: Handle attachment selection (photo or PDF)
+  const handleAttachmentPress = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [
+            t('aiAssistant.attach.photo') || 'Choose Photo',
+            t('aiAssistant.attach.file') || 'Choose File (PDF)',
+            t('common.cancel') || 'Cancel',
+          ],
+          cancelButtonIndex: 2,
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 0) {
+            await handlePickImage();
+          } else if (buttonIndex === 1) {
+            await handlePickDocument();
+          }
+        },
+      );
+    } else {
+      // Android: show Alert with options
+      Alert.alert(
+        t('aiAssistant.attach.title') || 'Attach File',
+        '',
+        [
+          {
+            text: t('aiAssistant.attach.photo') || 'Choose Photo',
+            onPress: () => handlePickImage(),
+          },
+          {
+            text: t('aiAssistant.attach.file') || 'Choose File (PDF)',
+            onPress: () => handlePickDocument(),
+          },
+          {
+            text: t('common.cancel') || 'Cancel',
+            style: 'cancel',
+          },
+        ],
+      );
+    }
+  }, [t]);
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('common.error'),
+          t('gallery.permissionRequired'),
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.9,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        setSelectedAttachment({
+          type: 'image',
+          uri: asset.uri,
+          name: asset.fileName || 'photo.jpg',
+        });
+      }
+    } catch (error) {
+      console.error('[RealAiAssistant] Error picking image:', error);
+      Alert.alert(t('common.error'), t('gallery.error'));
+    }
+  };
+
+  const handlePickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf'],
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setSelectedAttachment({
+          type: 'pdf',
+          uri: asset.uri,
+          name: asset.name || 'document.pdf',
+        });
+      }
+    } catch (error) {
+      console.error('[RealAiAssistant] Error picking document:', error);
+      Alert.alert(t('common.error'), t('aiAssistant.attach.error') || 'Failed to pick file');
+    }
+  };
+
+  const handleRemoveAttachment = () => {
+    setSelectedAttachment(null);
+  };
+
   const handleSend = useCallback(async () => {
     const trimmedInput = inputText.trim();
-    if (!trimmedInput || isLoading || !user?.id) {
+    if ((!trimmedInput && !selectedAttachment) || isLoading || !user?.id) {
       if (__DEV__) {
-        console.log('[RealAiAssistant] Cannot send: empty input or loading or no user');
+        console.log('[RealAiAssistant] Cannot send: empty input/attachment or loading or no user');
       }
       return;
     }
 
     if (__DEV__) {
-      console.log('[RealAiAssistant] Sending message:', trimmedInput.substring(0, 50));
+      console.log('[RealAiAssistant] Sending message:', trimmedInput.substring(0, 50), selectedAttachment ? 'with attachment' : '');
     }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: trimmedInput,
+      content: trimmedInput || (selectedAttachment ? `[${selectedAttachment.type === 'image' ? t('aiAssistant.attach.photo') : t('aiAssistant.attach.file')}]` : ''),
       timestamp: new Date(),
+      attachment: selectedAttachment || undefined,
     };
 
     // Add user message immediately
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
+    setSelectedAttachment(null);
     setIsLoading(true);
 
     try {
-      await clientLog('AiAssistant:messageSent', { messageLength: trimmedInput.length }).catch(() => {});
+      await clientLog('AiAssistant:messageSent', { 
+        messageLength: trimmedInput.length,
+        hasAttachment: !!selectedAttachment,
+      }).catch(() => {});
 
       // Call API - check if method exists
       if (!ApiService || typeof ApiService.getGeneralQuestion !== 'function') {
         throw new Error('ApiService.getGeneralQuestion is not available');
       }
 
+      // TODO: If API supports file attachments, send them here
+      // For now, send text only
       const response = await ApiService.getGeneralQuestion(
         user.id,
-        trimmedInput,
+        trimmedInput || (selectedAttachment ? `[${selectedAttachment.type === 'image' ? 'Photo' : 'PDF'} attached]` : ''),
         mapLanguageToLocale(language),
       );
 
@@ -201,21 +326,13 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         }
       }, 100);
     }
-  }, [inputText, isLoading, user?.id, language, t]);
+  }, [inputText, selectedAttachment, isLoading, user?.id, language, t]);
 
-  const handleClose = useCallback(async () => {
-    if (onClose && typeof onClose === 'function') {
-      await clientLog('AiAssistant:closed').catch(() => {});
-      onClose();
-    }
-  }, [onClose]);
-
-  const renderMessage = (message: Message) => {
+  const renderMessage = ({ item: message }: { item: Message }) => {
     const isUser = message.role === 'user';
     
     return (
       <View
-        key={message.id}
         style={[
           styles.messageContainer,
           isUser ? styles.userMessageContainer : styles.assistantMessageContainer,
@@ -229,12 +346,30 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
               : { backgroundColor: colors.surfaceMuted || '#F2F2F7' },
           ]}
         >
+          {message.attachment && (
+            <View style={styles.attachmentPreview}>
+              <Ionicons 
+                name={message.attachment.type === 'image' ? 'image' : 'document-text'} 
+                size={20} 
+                color={isUser ? colors.onPrimary : colors.textPrimary} 
+              />
+              <Text
+                style={[
+                  styles.attachmentText,
+                  { color: isUser ? colors.onPrimary : colors.textPrimary },
+                ]}
+                numberOfLines={1}
+              >
+                {message.attachment.name}
+              </Text>
+            </View>
+          )}
           <Text
             style={[
               styles.messageText,
               isUser
                 ? { color: colors.onPrimary || '#FFFFFF' }
-                : { color: colors.text || '#000000' },
+                : { color: colors.textPrimary || colors.text || '#000000' },
             ]}
           >
             {message.content}
@@ -244,138 +379,171 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
     );
   };
 
-  const handleLabResult = (result: any) => {
-    if (!result) return;
-    const summary =
-      result.summary ||
-      result.recommendation ||
-      t('aiAssistant.lab.analysisComplete');
-    const assistantMessage: Message = {
-      id: `lab-${Date.now()}`,
-      role: 'assistant',
-      content: summary,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, assistantMessage]);
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Ionicons name="chatbubbles" size={64} color={colors.textTertiary || '#8E8E93'} />
+      <Text style={[styles.emptyText, { color: colors.textSecondary || '#6B7280' }]}>
+        {t('aiAssistant.emptyState')}
+      </Text>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!isLoading) return null;
+    return (
+      <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
+        <View style={[styles.messageBubble, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
+          <ActivityIndicator size="small" color={colors.primary || '#007AFF'} />
+          <Text
+            style={[
+              styles.messageText,
+              { color: colors.textSecondary || '#6B7280', marginLeft: 8 },
+            ]}
+          >
+            {t('aiAssistant.typing')}
+          </Text>
+        </View>
+      </View>
+    );
   };
 
+  // C1: New structure with proper layout
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background || colors.surface }]} edges={['top', 'bottom']}>
+    <SafeAreaView 
+      style={[styles.safeArea, { backgroundColor: colors.background || colors.surface }]} 
+      edges={['top', 'bottom']}
+    >
+      {/* Header/Toolbar */}
+      <View style={[styles.header, { backgroundColor: colors.surface || colors.card, borderBottomColor: colors.border || '#E5E5EA' }]}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={onClose}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
+          {t('aiAssistant.title')}
+        </Text>
+        <View style={styles.headerPlaceholder} />
+      </View>
+
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={insets.top + 48}
       >
-        <View
-          style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
-        >
-        {/* Messages */}
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.messagesContainer}
-          contentContainerStyle={styles.messagesContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {messages.length === 0 && !isLoading && (
-            <View style={styles.emptyState}>
-              <Ionicons name="chatbubbles" size={64} color={colors.textTertiary || '#8E8E93'} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary || '#6B7280' }]}>
-                {t('aiAssistant.emptyState')}
-              </Text>
-            </View>
-          )}
-
-          {messages.map(renderMessage)}
-
-          {isLoading && (
-            <View style={[styles.messageContainer, styles.assistantMessageContainer]}>
-              <View style={[styles.messageBubble, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
-                <ActivityIndicator size="small" color={colors.primary || '#007AFF'} />
-                <Text
-                  style={[
-                    styles.messageText,
-                    { color: colors.textSecondary || '#6B7280', marginLeft: 8 },
-                  ]}
-                >
-                  {t('aiAssistant.typing')}
-                </Text>
-              </View>
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Input */}
-        <View
-          style={[
-            styles.inputContainer,
-            {
-              backgroundColor: colors.surface || colors.card,
-              borderTopColor: colors.border || '#E5E5EA',
-              paddingBottom: (insets.bottom || 0) + 8,
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => setLabModalVisible(true)}
-          >
-            <Ionicons name="attach" size={20} color={colors.textTertiary || '#8E8E93'} />
-          </TouchableOpacity>
-          <TextInput
-            ref={inputRef}
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.inputBackground || '#F2F2F7',
-                color: colors.textPrimary || colors.text || '#000000',
-                borderColor: colors.border || '#E5E5EA',
-              },
+        <View style={[styles.container, { backgroundColor: colors.background || colors.surface }]}>
+          {/* Messages List */}
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={[
+              styles.messagesContent,
+              messages.length === 0 && styles.messagesContentEmpty,
             ]}
-            placeholder={t('aiAssistant.placeholder')}
-            placeholderTextColor={colors.textTertiary || '#8E8E93'}
-            value={inputText}
-            onChangeText={setInputText}
-            onSubmitEditing={handleSend}
-            multiline
-            maxLength={500}
-            editable={!isLoading}
-            returnKeyType="send"
+            ListEmptyComponent={renderEmptyState}
+            ListFooterComponent={renderFooter}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={() => {
+              if (flatListRef.current && messages.length > 0) {
+                flatListRef.current.scrollToEnd({ animated: true });
+              }
+            }}
           />
-          <TouchableOpacity
+
+          {/* Attachment Preview */}
+          {selectedAttachment && (
+            <View style={[styles.attachmentBar, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
+              <Ionicons 
+                name={selectedAttachment.type === 'image' ? 'image' : 'document-text'} 
+                size={20} 
+                color={colors.primary} 
+              />
+              <Text 
+                style={[styles.attachmentBarText, { color: colors.textPrimary }]} 
+                numberOfLines={1}
+              >
+                {selectedAttachment.name}
+              </Text>
+              <TouchableOpacity
+                onPress={handleRemoveAttachment}
+                style={styles.removeAttachmentButton}
+              >
+                <Ionicons name="close-circle" size={24} color={colors.error || '#EF4444'} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Input Bar */}
+          <View
             style={[
-              styles.sendButton,
+              styles.inputContainer,
               {
-                backgroundColor:
-                  inputText.trim() && !isLoading
-                    ? colors.primary || '#007AFF'
-                    : colors.surfaceMuted || '#E5E5EA',
+                backgroundColor: colors.surface || colors.card,
+                borderTopColor: colors.border || '#E5E5EA',
+                paddingBottom: (insets.bottom || 0) + 8,
               },
             ]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || isLoading}
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
-            ) : (
-              <Ionicons
-                name="send"
-                size={20}
-                color={
-                  inputText.trim() && !isLoading
-                    ? colors.onPrimary || '#FFFFFF'
-                    : colors.textTertiary || '#8E8E93'
-                }
-              />
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleAttachmentPress}
+            >
+              <Ionicons name="attach" size={20} color={colors.textTertiary || '#8E8E93'} />
+            </TouchableOpacity>
+            <TextInput
+              ref={inputRef}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground || '#F2F2F7',
+                  color: colors.textPrimary || colors.text || '#000000',
+                  borderColor: colors.border || '#E5E5EA',
+                },
+              ]}
+              placeholder={t('aiAssistant.placeholder')}
+              placeholderTextColor={colors.textTertiary || '#8E8E93'}
+              value={inputText}
+              onChangeText={setInputText}
+              onSubmitEditing={handleSend}
+              multiline
+              maxLength={500}
+              editable={!isLoading}
+              returnKeyType="send"
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor:
+                    (inputText.trim() || selectedAttachment) && !isLoading
+                      ? colors.primary || '#007AFF'
+                      : colors.surfaceMuted || '#E5E5EA',
+                },
+              ]}
+              onPress={handleSend}
+              disabled={(!inputText.trim() && !selectedAttachment) || isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
+              ) : (
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={
+                    (inputText.trim() || selectedAttachment) && !isLoading
+                      ? colors.onPrimary || '#FFFFFF'
+                      : colors.textTertiary || '#8E8E93'
+                  }
+                />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-        <LabResultsModal
-          visible={labModalVisible}
-          onClose={() => setLabModalVisible(false)}
-          onResult={handleLabResult}
-        />
-      </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -385,23 +553,43 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerPlaceholder: {
+    width: 32,
+  },
   keyboardView: {
     flex: 1,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  messagesContainer: {
-    flex: 1,
   },
   messagesContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 8,
+    flexGrow: 1,
+  },
+  messagesContentEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   emptyState: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 64,
@@ -432,11 +620,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+  attachmentPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  attachmentText: {
+    fontSize: 14,
+    flex: 1,
+  },
+  attachmentBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  attachmentBarText: {
+    flex: 1,
+    fontSize: 14,
+  },
+  removeAttachmentButton: {
+    padding: 4,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
     gap: 8,
   },
@@ -465,4 +677,3 @@ const styles = StyleSheet.create({
 });
 
 export default RealAiAssistant;
-

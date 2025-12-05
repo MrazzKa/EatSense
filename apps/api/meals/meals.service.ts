@@ -55,13 +55,39 @@ export class MealsService {
         items: true,
       },
       orderBy: { createdAt: 'desc' },
+      take: 20, // B: Limit to last 20 meals for dashboard performance
     });
 
-    // B2: Map imageUri to imageUrl for frontend consistency
-    return meals.map(meal => ({
-      ...meal,
-      imageUrl: meal.imageUri || null, // Use imageUri as imageUrl for frontend
-    }));
+    // B: Map meals with calculated totals from items
+    // Frontend expects totalCalories, totalProtein, totalCarbs, totalFat for Recent items
+    return meals.map(meal => {
+      // Calculate totals from items
+      const totals = meal.items.reduce(
+        (acc, item) => {
+          acc.calories += item.calories || 0;
+          acc.protein += item.protein || 0;
+          acc.carbs += item.carbs || 0;
+          acc.fat += item.fat || 0;
+          return acc;
+        },
+        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      );
+
+      return {
+        ...meal,
+        imageUrl: meal.imageUri || null, // Use imageUri as imageUrl for frontend
+        // B: Add totals for frontend Recent items display
+        totalCalories: totals.calories,
+        totalProtein: totals.protein,
+        totalCarbs: totals.carbs,
+        totalFat: totals.fat,
+        // Also keep legacy fields for backward compatibility
+        calories: totals.calories,
+        protein: totals.protein,
+        carbs: totals.carbs,
+        fat: totals.fat,
+      };
+    });
   }
 
   async createMeal(userId: string, createMealDto: CreateMealDto) {

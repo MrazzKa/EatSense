@@ -53,6 +53,46 @@ export class AnalyzeService {
     'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
   ];
 
+  /**
+   * Check if a food name represents plain water (not flavored, not sweetened)
+   * UX heuristic: plain water should have zero calories and neutral health score
+   * 
+   * @param name - Food name to check (can be vision label, baseName, or displayName)
+   * @returns true if the name represents plain water
+   */
+  private isPlainWater(name: string): boolean {
+    if (!name || typeof name !== 'string') return false;
+    
+    const nameLower = name.toLowerCase().trim();
+    
+    // Positive indicators: contains water-related keywords
+    const waterKeywords = [
+      'water',
+      'still water',
+      'sparkling water',
+      'mineral water',
+      'вода',
+      'минеральная вода',
+      'газированная вода',
+      'still',
+      'sparkling',
+    ];
+    
+    // Negative indicators: contains flavoring/sweetening keywords
+    const excludeKeywords = [
+      'juice', 'cola', 'soda', 'lemonade', 'sweet', 'syrup', 'flavor', 'flavored',
+      'сок', 'лимонад', 'газировка', 'со вкусом', 'подслащ', 'сироп',
+      'vitamin', 'electrolyte', 'sports drink', 'energy',
+      'витамин', 'электролит', 'спортивный напиток',
+    ];
+    
+    const hasWaterKeyword = waterKeywords.some(keyword => nameLower.includes(keyword));
+    const hasExcludeKeyword = excludeKeywords.some(keyword => nameLower.includes(keyword));
+    
+    // Must have water keyword AND not have exclude keywords
+    return hasWaterKeyword && !hasExcludeKeyword;
+  }
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly hybrid: HybridService,
@@ -137,6 +177,47 @@ export class AnalyzeService {
 
     for (const component of visionComponents) {
       try {
+        // A1: Check for plain water FIRST, before FDC matching
+        // This prevents wrong FDC matches (e.g., "Beets, raw" for water)
+        const isWaterFromVision = this.isPlainWater(component.name);
+        
+        // If it's water, skip FDC matching and create water item directly
+        if (isWaterFromVision) {
+          const portionG = component.est_portion_g && component.est_portion_g > 0 ? component.est_portion_g : 250;
+          const waterNameEn = 'Water';
+          const waterNameLocalized = await this.foodLocalization.localizeName(waterNameEn, locale);
+          
+          const waterItem: AnalyzedItem = {
+            name: waterNameLocalized || waterNameEn,
+            originalName: waterNameEn,
+            label: component.name,
+            portion_g: portionG,
+            nutrients: {
+              calories: 0,
+              protein: 0,
+              carbs: 0,
+              fat: 0,
+              fiber: 0,
+              sugars: 0,
+              satFat: 0,
+              energyDensity: 0,
+            },
+            source: 'vision_fallback', // Use vision_fallback as source type
+            locale,
+            hasNutrition: false,
+          };
+          
+          items.push(waterItem);
+          debug.components.push({ type: 'matched', vision: component, waterDetected: true, skippedFdc: true });
+          
+          if (process.env.ANALYSIS_DEBUG === 'true') {
+            this.logger.debug('[AnalyzeService] Detected plain water from Vision, skipping FDC match', {
+              componentName: component.name,
+            });
+          }
+          continue; // Skip FDC matching for water
+        }
+        
         const query = `${component.name} ${component.preparation || ''}`.trim();
         
         // Detect if component is likely a drink based on name
@@ -269,9 +350,33 @@ export class AnalyzeService {
         const nameLower = (originalNameEn || component.name || '').toLowerCase();
         const isDrink = this.DRINK_KEYWORDS.some(keyword => nameLower.includes(keyword));
         
-        // For drinks, adjust portion if needed (default volumes)
+        // A1: Special handling for plain water - force zero nutrients
+        // UX heuristic: plain water should always show 0 calories and neutral health score
+        const isWater = this.isPlainWater(originalNameEn || component.name || localizedName || '');
         let finalPortionG = portionG;
-        if (isDrink && portionG < 50) {
+        
+        if (isWater) {
+          // Force zero nutrients for plain water
+          nutrients.calories = 0;
+          nutrients.protein = 0;
+          nutrients.carbs = 0;
+          nutrients.fat = 0;
+          nutrients.fiber = 0;
+          nutrients.sugars = 0;
+          nutrients.satFat = 0;
+          
+          // Set reasonable portion for water (250ml default)
+          finalPortionG = portionG >= 50 ? portionG : 250;
+          
+          if (process.env.ANALYSIS_DEBUG === 'true') {
+            this.logger.debug('[AnalyzeService] Detected plain water, forcing zero nutrients', {
+              componentName: component.name,
+              originalNameEn,
+              localizedName,
+            });
+          }
+        } else if (isDrink && portionG < 50) {
+          // For other drinks, adjust portion if needed (default volumes)
           // Default volumes for drinks
           if (nameLower.includes('coffee') || nameLower.includes('tea') || nameLower.includes('кофе') || nameLower.includes('чай')) {
             finalPortionG = 200; // 200ml for coffee/tea
@@ -578,16 +683,43 @@ export class AnalyzeService {
         const normalized = await this.hybrid.getFoodNormalized(bestMatch.fdcId);
         const fdcServingSizeG = food.portions?.[0]?.gramWeight || null;
         const portionG = this.estimatePortionInGrams(component, fdcServingSizeG, debug);
-        const nutrients = this.calculateNutrientsForPortion(normalized, portionG);
+        let nutrients = this.calculateNutrientsForPortion(normalized, portionG);
 
         const originalNameEn = normalizeFoodName(bestMatch.description || food.description || component.name);
         const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
+
+        // A1: Special handling for plain water in text analysis - force zero nutrients
+        const isWater = this.isPlainWater(originalNameEn || component.name || localizedName || '');
+        let finalPortionG = portionG;
+        if (isWater) {
+          // Force zero nutrients for plain water
+          nutrients = {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            fiber: 0,
+            sugars: 0,
+            satFat: 0,
+            energyDensity: 0,
+          };
+          // Set reasonable portion for water (250ml default)
+          finalPortionG = portionG >= 50 ? portionG : 250;
+          
+          if (process.env.ANALYSIS_DEBUG === 'true') {
+            this.logger.debug('[AnalyzeService] Detected plain water in text analysis, forcing zero nutrients', {
+              componentName: component.name,
+              originalNameEn,
+              localizedName,
+            });
+          }
+        }
 
         const item: AnalyzedItem = {
           name: localizedName || originalNameEn,
           originalName: originalNameEn,
           label: component.name,
-          portion_g: portionG,
+          portion_g: finalPortionG,
           nutrients,
           source: 'fdc',
           fdcId: bestMatch.fdcId,
@@ -773,20 +905,50 @@ export class AnalyzeService {
 
     const fallbackPortion = this.estimatePortionInGrams(component, null, debug);
 
-    const fallbackNutrients: Nutrients = {
-      calories: Math.round(fallbackPortion * 1.2), // условно 1.2 ккал/г — "средне"
-      protein: this.round(fallbackPortion * 0.04, 1), // ~4 г белка на 100г
-      carbs: this.round(fallbackPortion * 0.15, 1), // ~15 г углеводов на 100г
-      fat: this.round(fallbackPortion * 0.06, 1), // ~6 г жиров на 100г
-      fiber: 0,
-      sugars: 0,
-      satFat: 0,
-      energyDensity: 120, // 120 ккал/100г
-    };
+    const baseName = this.buildBaseFoodName(component.name);
+    const originalNameEn = normalizeFoodName(baseName);
+    const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
-        const baseName = this.buildBaseFoodName(component.name);
-        const originalNameEn = normalizeFoodName(baseName);
-        const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
+    // A1: Special handling for plain water in fallback - force zero nutrients
+    const isWater = this.isPlainWater(originalNameEn || component.name || localizedName || '');
+    let fallbackNutrients: Nutrients;
+    let finalFallbackPortion = fallbackPortion;
+    
+    if (isWater) {
+      // Force zero nutrients for plain water
+      fallbackNutrients = {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 0,
+      };
+      // Set reasonable portion for water (250ml default)
+      finalFallbackPortion = fallbackPortion >= 50 ? fallbackPortion : 250;
+      
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.debug('[AnalyzeService] Detected plain water in fallback, forcing zero nutrients', {
+          componentName: component.name,
+          originalNameEn,
+          localizedName,
+        });
+      }
+    } else {
+      // Default fallback nutrients for non-water items
+      fallbackNutrients = {
+        calories: Math.round(fallbackPortion * 1.2), // условно 1.2 ккал/г — "средне"
+        protein: this.round(fallbackPortion * 0.04, 1), // ~4 г белка на 100г
+        carbs: this.round(fallbackPortion * 0.15, 1), // ~15 г углеводов на 100г
+        fat: this.round(fallbackPortion * 0.06, 1), // ~6 г жиров на 100г
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 120, // 120 ккал/100г
+      };
+    }
 
         const fallbackItem: AnalyzedItem & { baseName?: string; displayNameLocalized?: string } = {
           name: localizedName || originalNameEn,
@@ -794,7 +956,7 @@ export class AnalyzeService {
           baseName: baseName,
           displayNameLocalized: locale !== 'en' ? localizedName : undefined,
           label: component.name,
-          portion_g: fallbackPortion,
+          portion_g: finalFallbackPortion,
           nutrients: fallbackNutrients,
           source: 'vision_fallback',
           locale,
@@ -1046,18 +1208,42 @@ export class AnalyzeService {
       }
     }
 
-    // Heuristic B: Plain coffee/tea (very low calories, minimal sugar/fat)
-    // Condition: drink analysis, very low calories, minimal sugar and sat fat
+    // Heuristic B: Zero-calorie drinks (water, plain tea, etc.)
+    // A2: Extended to cover zero-calorie drinks - should not show aggressive warnings
+    // Condition: drink analysis, very low calories (<=5), minimal sugar (<=1) and sat fat (<=0.5)
+    // UX heuristic: zero-calorie drinks should get high score (90+) and grade A/B
     if (
       isDrink &&
+      total.calories <= 5 &&
+      (total.sugars || 0) <= 1 &&
+      (total.satFat || 0) <= 0.5
+    ) {
+      score = Math.max(score, 90);
+      grade = this.deriveGrade(score);
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.debug('[HealthScore] Applied Heuristic B (zero-calorie drinks)', {
+          originalScore: weightedScore,
+          adjustedScore: score,
+          calories: total.calories,
+          sugars: total.sugars,
+          satFat: total.satFat,
+        });
+      }
+    }
+    
+    // Heuristic B2: Plain coffee/tea (low calories, minimal sugar/fat)
+    // Condition: drink analysis, low calories (5-30), minimal sugar (<=3) and sat fat (<=1)
+    if (
+      isDrink &&
+      total.calories > 5 &&
       total.calories <= 30 &&
-      total.sugars <= 3 &&
-      total.satFat <= 1
+      (total.sugars || 0) <= 3 &&
+      (total.satFat || 0) <= 1
     ) {
       score = Math.max(score, 85);
       grade = this.deriveGrade(score);
       if (process.env.ANALYSIS_DEBUG === 'true') {
-        this.logger.debug('[HealthScore] Applied Heuristic B (plain coffee/tea)', {
+        this.logger.debug('[HealthScore] Applied Heuristic B2 (plain coffee/tea)', {
           originalScore: weightedScore,
           adjustedScore: score,
           calories: total.calories,
