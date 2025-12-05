@@ -51,7 +51,7 @@ export function MainTabsNavigator() {
         name="Dashboard"
         component={DashboardScreen}
         options={{
-          tabBarLabel: t('tabs.dashboard') || 'Dashboard',
+          tabBarLabel: t('tabs.dashboard'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size || 24} color={color} />
           ),
@@ -71,7 +71,7 @@ export function MainTabsNavigator() {
         name="Experts"
         component={ExpertsScreen}
         options={{
-          tabBarLabel: t('tabs.experts') || 'Experts',
+          tabBarLabel: t('tabs.experts'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-check" size={size || 24} color={color} />
           ),
@@ -81,7 +81,7 @@ export function MainTabsNavigator() {
         name="Reports"
         component={ReportsScreen}
         options={{
-          tabBarLabel: t('tabs.reports') || 'Reports',
+          tabBarLabel: t('tabs.reports'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size || 24} color={color} />
           ),
@@ -91,7 +91,7 @@ export function MainTabsNavigator() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: t('tabs.profile') || 'Profile',
+          tabBarLabel: t('tabs.profile'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size || 24} color={color} />
           ),

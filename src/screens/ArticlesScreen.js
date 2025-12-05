@@ -50,16 +50,18 @@ export default function ArticlesScreen() {
         ApiService.getFeaturedArticles(FEATURED_LIMIT, currentLocale),
       ]);
       
-      // Remove duplicates by slug (unique per locale)
+      // Remove duplicates by slug and filter by locale
       const uniqueArticles = Object.values(
-        feedData.articles.reduce((acc, article) => {
-          if (!article?.slug) return acc;
-          const key = `${article.locale || currentLocale}:${article.slug}`;
-          if (!acc[key]) {
-            acc[key] = article;
-          }
-          return acc;
-        }, {})
+        feedData.articles
+          .filter((article) => !article.locale || article.locale === currentLocale)
+          .reduce((acc, article) => {
+            if (!article?.slug) return acc;
+            const key = `${article.locale || currentLocale}:${article.slug}`;
+            if (!acc[key]) {
+              acc[key] = article;
+            }
+            return acc;
+          }, {})
       );
       
       setFeed({
@@ -67,16 +69,18 @@ export default function ArticlesScreen() {
         articles: uniqueArticles,
       });
       
-      // Remove duplicates by slug and ensure featuredData is an array
+      // Remove duplicates by slug, filter by locale, and ensure featuredData is an array
       if (Array.isArray(featuredData)) {
         const seen = new Set();
-        const unique = featuredData.filter((article) => {
-          if (!article?.slug) return false;
-          const key = `${article.locale || currentLocale}:${article.slug}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
+        const unique = featuredData
+          .filter((article) => !article.locale || article.locale === currentLocale)
+          .filter((article) => {
+            if (!article?.slug) return false;
+            const key = `${article.locale || currentLocale}:${article.slug}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
         setFeatured(unique.slice(0, FEATURED_LIMIT));
       } else {
         setFeatured([]);
@@ -209,17 +213,24 @@ export default function ArticlesScreen() {
     return feed;
   }, [feed, searchFeed, tagFeed, searchQuery, selectedTag]);
 
-  // Deduplicate articles by slug before rendering
+  // Deduplicate articles by slug, filter by locale, and filter out invalid articles before rendering
   const articles = useMemo(() => {
     const articlesList = activeFeed?.articles || [];
+    const currentLocale = language || 'ru';
     const seen = new Set();
-    return articlesList.filter((article) => {
-      if (!article?.slug) return false;
-      if (seen.has(article.slug)) return false;
-      seen.add(article.slug);
-      return true;
-    });
-  }, [activeFeed?.articles]);
+    return articlesList
+      .filter((article) => !article.locale || article.locale === currentLocale)
+      .filter((article) => {
+        // Don't render if title is missing or empty
+        if (!article?.title || article.title.trim().length === 0) return false;
+        // Don't render if both excerpt and subtitle are missing
+        if (!article?.excerpt && !article?.subtitle) return false;
+        if (!article?.slug) return false;
+        if (seen.has(article.slug)) return false;
+        seen.add(article.slug);
+        return true;
+      });
+  }, [activeFeed?.articles, language]);
   const showEmptyState = !isLoading && !isSearching && !isTagLoading && articles.length === 0;
 
   const renderTagChip = ({ item }) => {

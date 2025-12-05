@@ -77,13 +77,11 @@ export default function AnalysisResultsScreen() {
     (titleKey = 'analysis.errorTitle', messageKey = 'analysis.errorMessage') => {
       setIsAnalyzing(false);
       Alert.alert(
-        t(titleKey) || t('analysis.errorTitle') || 'Analysis unavailable',
-        t(messageKey) ||
-          t('analysis.errorMessage') ||
-          'The analysis service is temporarily unavailable. Please try again later.',
+        t(titleKey) || t('analysis.errorTitle'),
+        t(messageKey) || t('analysis.errorMessage'),
         [
           {
-            text: t('common.ok') || 'OK',
+            text: t('common.ok'),
             onPress: () => navigateToDashboard(),
           },
         ],
@@ -373,8 +371,7 @@ export default function AnalysisResultsScreen() {
   const dishTitle =
     analysisResult?.dishName ||
     analysisResult?.name ||
-    t('analysis.title') ||
-    'Meal';
+    t('analysis.title');
 
   const handleShare = async () => {
     if (!analysisResult) return;
@@ -394,7 +391,7 @@ export default function AnalysisResultsScreen() {
     setEditingIndex(index);
   };
 
-  const handleSaveEdit = (updatedItem, index) => {
+  const handleSaveEdit = async (updatedItem, index) => {
     const updatedIngredients = [...(analysisResult?.ingredients || [])];
     updatedIngredients[index] = {
       ...updatedItem,
@@ -405,6 +402,41 @@ export default function AnalysisResultsScreen() {
       weight: Number(updatedItem.weight) || 0,
     };
 
+    // Try to trigger re-analysis if analysisId is available
+    const analysisId = routeParams.analysisId || analysisResult?.analysisId;
+    if (analysisId && ApiService && typeof ApiService.reanalyzeAnalysis === 'function') {
+      try {
+        // Convert ingredients to backend format
+        const itemsForReanalysis = updatedIngredients.map((ing) => ({
+          id: ing.id,
+          name: ing.name || 'Unknown',
+          portion_g: Number(ing.weight) || 100,
+          calories: Number(ing.calories) || 0,
+          protein: Number(ing.protein) || 0,
+          carbs: Number(ing.carbs) || 0,
+          fat: Number(ing.fat) || 0,
+          fiber: Number(ing.fiber) || 0,
+          sugars: Number(ing.sugars) || 0,
+          satFat: Number(ing.satFat) || 0,
+        }));
+
+        const reanalyzed = await ApiService.reanalyzeAnalysis(analysisId, itemsForReanalysis);
+        
+        // Update analysisResult with re-analyzed data
+        if (reanalyzed) {
+          const normalized = normalizeAnalysis(reanalyzed, baseImageUri);
+          if (normalized) {
+            setAnalysisResult(normalized);
+            return; // Early return, state already updated
+          }
+        }
+      } catch (error) {
+        // If re-analysis fails, fall back to local calculation
+        console.warn('[AnalysisResultsScreen] Re-analysis failed, using local calculation', error);
+      }
+    }
+
+    // Fallback: local calculation if re-analysis not available or failed
     const newTotalCalories = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.calories) || 0), 0);
     const newTotalProtein = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.protein) || 0), 0);
     const newTotalCarbs = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.carbs) || 0), 0);
@@ -426,7 +458,7 @@ export default function AnalysisResultsScreen() {
 
   const handleSave = async () => {
     if (!analysisResult) {
-      Alert.alert(t('common.error') || 'Error', t('analysis.noDataToSave') || 'No analysis data to save');
+      Alert.alert(t('common.error'), t('analysis.noDataToSave') || t('analysis.errorMessage'));
       return;
     }
 
@@ -455,11 +487,11 @@ export default function AnalysisResultsScreen() {
         }).catch(() => {});
         
         Alert.alert(
-          t('analysis.savedTitle') || 'Saved',
-          t('analysis.savedMessage') || 'Meal saved to your journal',
+          t('analysis.savedTitle'),
+          t('analysis.savedMessage'),
           [
             {
-              text: t('common.ok') || 'OK',
+              text: t('common.ok'),
               onPress: () => {
                 // Navigate directly to MainTabs (Dashboard)
                 if (navigation && typeof navigation.navigate === 'function') {
@@ -481,8 +513,8 @@ export default function AnalysisResultsScreen() {
         message: error?.message || String(error),
       }).catch(() => {});
       Alert.alert(
-        t('common.error') || 'Error',
-        t('analysis.saveError') || 'Failed to save meal. Please try again.'
+        t('common.error'),
+        t('analysis.saveError')
       );
     }
   };
@@ -534,7 +566,7 @@ export default function AnalysisResultsScreen() {
         <View style={styles.emptyState}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 16 }]}>
-            {t('analysis.analyzing') || 'Analyzing...'}
+            {t('analysis.analyzing')}
           </Text>
         </View>
       </SafeAreaView>
@@ -615,18 +647,35 @@ export default function AnalysisResultsScreen() {
             </View>
           </View>
 
+          {/* Suspicious Analysis Warning Banner */}
+          {analysisResult?.isSuspicious && (
+            <View style={{ marginBottom: tokens.spacing.md }}>
+              <AppCard style={[styles.warningCard, { backgroundColor: colors.errorBackground || '#FEE2E2', borderColor: colors.error || '#EF4444' }]}>
+                <View style={styles.warningHeader}>
+                  <Ionicons name="warning" size={22} color={colors.error || '#EF4444'} />
+                  <Text style={[styles.warningTitle, { color: colors.errorText || '#991B1B' }]}>
+                    {t('analysis.warning.suspiciousTitle')}
+                  </Text>
+                </View>
+                <Text style={[styles.warningDescription, { color: colors.errorText || '#991B1B' }]}>
+                  {t('analysis.warning.suspiciousDescription')}
+                </Text>
+              </AppCard>
+            </View>
+          )}
+
           {/* Needs Review Banner */}
           {analysisResult?.needsReview && (
-            <View>
+            <View style={{ marginBottom: tokens.spacing.md }}>
               <AppCard style={[styles.warningCard, { backgroundColor: colors.warningBackground || '#FFF3CD', borderColor: colors.warning || '#FFC107' }]}>
                 <View style={styles.warningHeader}>
                   <Ionicons name="alert-circle" size={22} color={colors.warning || '#FFC107'} />
                   <Text style={[styles.warningTitle, { color: colors.warningText || '#856404' }]}>
-                    {t('analysis.needsReviewTitle') || 'Review Required'}
+                    {t('analysis.warning.needsReview')}
                   </Text>
                 </View>
                 <Text style={[styles.warningDescription, { color: colors.warningText || '#856404' }]}>
-                  {t('analysis.needsReviewMessage') || 'We\'re not fully confident about this analysis. Please double-check and edit the values.'}
+                  {t('analysis.needsReviewMessage')}
                 </Text>
               </AppCard>
             </View>
@@ -714,7 +763,7 @@ export default function AnalysisResultsScreen() {
             >
               <Ionicons name="share-outline" size={18} color={colors.textPrimary || colors.text} style={styles.shareIcon} />
               <Text style={[styles.shareButtonText, { color: colors.textPrimary || colors.text }]}>
-                {t('analysis.share') || 'Share'}
+                {t('analysis.share')}
               </Text>
             </TouchableOpacity>
           </View>

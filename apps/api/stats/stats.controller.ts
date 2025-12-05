@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, Request, Res } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -35,6 +35,7 @@ export class StatsController {
   @Get('monthly-report')
   @ApiOperation({ summary: 'Get monthly nutrition report as PDF' })
   @ApiResponse({ status: 200, description: 'PDF report generated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid month parameter' })
   async getMonthlyReport(
     @Request() req: any,
     @Res() res: Response,
@@ -51,6 +52,19 @@ export class StatsController {
       const [yearPart, monthPart] = monthStr.split('-').map(Number);
       year = yearPart;
       month = monthPart;
+      
+      // Validate month range
+      if (month < 1 || month > 12) {
+        throw new BadRequestException('Invalid month: must be between 01 and 12');
+      }
+      
+      // Validate year (reasonable range: 2020-2100)
+      if (year < 2020 || year > 2100) {
+        throw new BadRequestException('Invalid year: must be between 2020 and 2100');
+      }
+    } else if (monthStr) {
+      // Invalid format
+      throw new BadRequestException('Invalid month format: expected YYYY-MM (e.g., 2024-12)');
     } else {
       year = now.getFullYear();
       month = now.getMonth() + 1;

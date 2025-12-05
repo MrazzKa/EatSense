@@ -385,6 +385,13 @@ class ApiService {
     return this.request(`/food/analysis/${analysisId}/result`);
   }
 
+  async reanalyzeAnalysis(analysisId, items) {
+    return this.request(`/food/analysis/${analysisId}/reanalyze`, {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    });
+  }
+
   // Meals
   async getMeals(date) {
     try {

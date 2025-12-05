@@ -64,8 +64,8 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
         Alert.alert(
-          t('common.error') || 'Error',
-          t('gallery.permissionRequired') || 'Permission to access gallery is required',
+          t('common.error'),
+          t('gallery.permissionRequired'),
         );
         return;
       }
@@ -119,14 +119,14 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
   const handleSubmit = async () => {
     if (!question.trim() && !selectedFile) {
       Alert.alert(
-        t('common.error') || 'Error',
-        t('aiAssistant.lab.emptyError') || 'Please provide lab results text or attach a file',
+        t('common.error'),
+        t('aiAssistant.lab.emptyError'),
       );
       return;
     }
 
     if (!user?.id) {
-      Alert.alert(t('common.error') || 'Error', t('auth.error') || 'User not authenticated');
+      Alert.alert(t('common.error'), t('auth.error'));
       return;
     }
 
@@ -170,8 +170,8 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
 
         const result = await response.json();
         Alert.alert(
-          t('common.success') || 'Success',
-          t('aiAssistant.lab.submitted') || 'Lab results submitted successfully',
+          t('common.success'),
+          t('aiAssistant.lab.submitted'),
         );
         if (onResult) {
           onResult(result);
@@ -194,8 +194,8 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
         });
 
         Alert.alert(
-          t('common.success') || 'Success',
-          t('aiAssistant.lab.submitted') || 'Lab results submitted successfully',
+          t('common.success'),
+          t('aiAssistant.lab.submitted'),
         );
         if (onResult) {
           onResult(response);
@@ -207,8 +207,8 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
     } catch (error: any) {
       console.error('Error submitting lab results:', error);
       Alert.alert(
-        t('common.error') || 'Error',
-        t('aiAssistant.lab.error') || 'Failed to submit lab results. Please try again.',
+        t('common.error'),
+        t('aiAssistant.lab.error'),
       );
     } finally {
       setIsSubmitting(false);
@@ -245,7 +245,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
               <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
-              {t('aiAssistant.lab.title') || t('aiAssistant.lab.typeTitle') || 'Lab Results Analysis'}
+              {t('aiAssistant.lab.title') || t('aiAssistant.lab.typeTitle')}
             </Text>
             <View style={styles.placeholder} />
           </View>
@@ -262,7 +262,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
             {/* Lab Type Selection */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
-                {t('aiAssistant.lab.typeTitle') || 'Lab Analysis Type'}
+                {t('aiAssistant.lab.typeTitle')}
               </Text>
               <ProfileSegmentedControl
                 label=""
@@ -284,7 +284,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                 >
                   <Ionicons name="image-outline" size={24} color={colors.primary} />
                   <Text style={[styles.attachButtonText, { color: colors.textPrimary || colors.text }]}>
-                    {t('aiAssistant.lab.attachPhoto') || 'Attach Photo'}
+                    {t('aiAssistant.lab.attachPhoto')}
                   </Text>
                 </TouchableOpacity>
 
@@ -294,7 +294,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                 >
                   <Ionicons name="document-attach-outline" size={24} color={colors.primary} />
                   <Text style={[styles.attachButtonText, { color: colors.textPrimary || colors.text }]}>
-                    {t('aiAssistant.lab.attachPdf') || 'Attach File (PDF)'}
+                    {t('aiAssistant.lab.attachPdf')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -324,7 +324,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
             {/* Text Input */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('aiAssistant.lab.manualTitle') || 'Or paste your lab results manually'}
+                {t('aiAssistant.lab.manualTitle')}
               </Text>
               <TextInput
                 style={[
@@ -335,7 +335,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                     borderColor: colors.border || colors.borderMuted,
                   },
                 ]}
-                placeholder={t('aiAssistant.lab.manualPlaceholder') || 'Paste your lab results here...'}
+                placeholder={t('aiAssistant.lab.manualPlaceholder')}
                 placeholderTextColor={colors.textTertiary || colors.textSecondary}
                 value={question}
                 onChangeText={setQuestion}
@@ -365,7 +365,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                 <>
                   <Ionicons name="send" size={20} color={colors.onPrimary || '#FFFFFF'} />
                   <Text style={[styles.submitButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
-                    {t('aiAssistant.lab.submit') || t('common.send') || 'Submit'}
+                    {t('aiAssistant.lab.submit') || t('common.send')}
                   </Text>
                 </>
               )}

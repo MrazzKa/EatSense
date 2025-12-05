@@ -10,7 +10,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,7 +31,9 @@ interface RealAiAssistantProps {
 }
 
 export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => {
-  console.log('[RealAiAssistant] mounted');
+  if (__DEV__) {
+    console.log('[RealAiAssistant] mounted');
+  }
   
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -73,7 +75,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
             {
               id: 'welcome-1',
               role: 'assistant',
-              content: t('aiAssistant.welcome') || 'Hello! I\'m your AI nutrition assistant. How can I help you today?',
+              content: t('aiAssistant.welcome'),
               timestamp: new Date(),
             },
           ]);
@@ -109,11 +111,15 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputText.trim();
     if (!trimmedInput || isLoading || !user?.id) {
-      console.log('[RealAiAssistant] Cannot send: empty input or loading or no user');
+      if (__DEV__) {
+        console.log('[RealAiAssistant] Cannot send: empty input or loading or no user');
+      }
       return;
     }
 
-    console.log('[RealAiAssistant] Sending message:', trimmedInput.substring(0, 50));
+    if (__DEV__) {
+      console.log('[RealAiAssistant] Sending message:', trimmedInput.substring(0, 50));
+    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -141,12 +147,14 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         mapLanguageToLocale(language),
       );
 
-      console.log('[RealAiAssistant] Received response:', response?.answer ? 'has answer' : 'no answer');
+      if (__DEV__) {
+        console.log('[RealAiAssistant] Received response:', response?.answer ? 'has answer' : 'no answer');
+      }
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: response?.answer || t('aiAssistant.error') || 'Sorry, I could not process your question. Please try again.',
+        content: response?.answer || t('aiAssistant.error'),
         timestamp: new Date(),
       };
 
@@ -171,8 +179,8 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         id: `error-${Date.now()}`,
         role: 'assistant',
         content: isQuotaExceeded
-          ? (t('aiAssistant.quotaExceeded') || 'AI Assistant quota exceeded. The service is temporarily unavailable. Please try again later.')
-          : (t('aiAssistant.error') || 'Sorry, something went wrong. Please try again later.'),
+          ? t('aiAssistant.quotaExceeded')
+          : t('aiAssistant.error'),
         timestamp: new Date(),
       };
 
@@ -241,8 +249,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
     const summary =
       result.summary ||
       result.recommendation ||
-      t('aiAssistant.lab.analysisComplete') ||
-      'Lab results analyzed.';
+      t('aiAssistant.lab.analysisComplete');
     const assistantMessage: Message = {
       id: `lab-${Date.now()}`,
       role: 'assistant',
@@ -253,14 +260,15 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-    >
-      <View
-        style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background || colors.surface }]} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}
       >
+        <View
+          style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
+        >
         {/* Messages */}
         <ScrollView
           ref={scrollViewRef}
@@ -273,7 +281,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
             <View style={styles.emptyState}>
               <Ionicons name="chatbubbles" size={64} color={colors.textTertiary || '#8E8E93'} />
               <Text style={[styles.emptyText, { color: colors.textSecondary || '#6B7280' }]}>
-                {t('aiAssistant.emptyState') || 'Start a conversation with your AI assistant'}
+                {t('aiAssistant.emptyState')}
               </Text>
             </View>
           )}
@@ -290,7 +298,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                     { color: colors.textSecondary || '#6B7280', marginLeft: 8 },
                   ]}
                 >
-                  {t('aiAssistant.typing') || 'Assistant is typing...'}
+                  {t('aiAssistant.typing')}
                 </Text>
               </View>
             </View>
@@ -324,7 +332,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                 borderColor: colors.border || '#E5E5EA',
               },
             ]}
-            placeholder={t('aiAssistant.placeholder') || 'Ask anything about your nutrition…'}
+            placeholder={t('aiAssistant.placeholder')}
             placeholderTextColor={colors.textTertiary || '#8E8E93'}
             value={inputText}
             onChangeText={setInputText}
@@ -362,24 +370,28 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
             )}
           </TouchableOpacity>
         </View>
+        <LabResultsModal
+          visible={labModalVisible}
+          onClose={() => setLabModalVisible(false)}
+          onResult={handleLabResult}
+        />
       </View>
-
-      <LabResultsModal
-        visible={labModalVisible}
-        onClose={() => setLabModalVisible(false)}
-        onResult={handleLabResult}
-      />
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    // backgroundColor will be set dynamically from theme
   },
   keyboardView: {
     flex: 1,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   messagesContainer: {
     flex: 1,

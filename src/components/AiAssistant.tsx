@@ -28,12 +28,11 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => s
       </View>
       
       <Text style={[styles.mainTitle, { color: colors.textPrimary || colors.text }]}>
-        {t('aiAssistant.unavailable') || 'AI Assistant temporarily unavailable'}
+        {t('aiAssistant.unavailable')}
       </Text>
       
       <Text style={[styles.description, { color: colors.textSecondary }]}>
-        {t('aiAssistant.unavailableDescription') || 
-          'We are testing the first version of the app. The assistant section is temporarily disabled, but everything else is working.'}
+        {t('aiAssistant.unavailableDescription')}
       </Text>
       
       <TouchableOpacity 
@@ -45,7 +44,7 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => s
         }}
       >
         <Text style={[styles.closeButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
-          {t('common.close') || 'Close'}
+          {t('common.close')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -117,7 +116,7 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
           ]}
         >
           <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-            {t('dashboard.aiAssistant') || 'AI Assistant'}
+            {t('dashboard.aiAssistant')}
           </Text>
           <TouchableOpacity
             onPress={typeof handleClose === 'function' ? handleClose : () => {}}
@@ -142,7 +141,7 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color={colors.primary || '#007AFF'} />
                   <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                    {t('common.loading') || 'Loading...'}
+                    {t('common.loading')}
                   </Text>
                 </View>
               }

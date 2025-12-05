@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { PrismaService } from '../prisma.service';
@@ -6,7 +6,9 @@ import { FoodAnalyzerService } from './food-analyzer/food-analyzer.service';
 import { RedisService } from '../redis/redis.service';
 import { calculateHealthScore } from './food-health-score.util';
 import { normalizeFoodName } from '../src/analysis/text-utils';
-import { AnalysisData, AnalyzedItem } from '../src/analysis/analysis.types';
+import { AnalysisData, AnalyzedItem, AnalysisTotals, HealthScore, Nutrients } from '../src/analysis/analysis.types';
+import { AnalyzeService } from '../src/analysis/analyze.service';
+import { ReanalyzeDto } from './dto';
 
 @Injectable()
 export class FoodService {
@@ -17,6 +19,7 @@ export class FoodService {
     private readonly foodAnalyzer: FoodAnalyzerService,
     @InjectQueue('food-analysis') private readonly analysisQueue: Queue,
     private readonly redisService: RedisService,
+    private readonly analyzeService: AnalyzeService,
   ) {}
 
   async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk') {
@@ -479,5 +482,161 @@ export class FoodService {
       limit,
       offset,
     };
+  }
+
+  /**
+   * Re-analyze an existing analysis after manual ingredient edits
+   * Recalculates totals, HealthScore, and flags (isSuspicious, needsReview)
+   */
+  async reanalyzeFromManual(analysisId: string, dto: ReanalyzeDto, userId: string) {
+    // 1. Verify analysis belongs to this user
+    const analysis = await this.prisma.analysis.findFirst({
+      where: {
+        id: analysisId,
+        userId,
+      },
+      include: {
+        results: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!analysis) {
+      throw new ForbiddenException('Analysis not found or access denied');
+    }
+
+    // 2. Convert DTO items to AnalyzedItem format
+    const items: AnalyzedItem[] = dto.items.map((item) => {
+      const nutrients: Nutrients = {
+        calories: item.calories,
+        protein: item.protein,
+        carbs: item.carbs,
+        fat: item.fat,
+        fiber: item.fiber || 0,
+        sugars: item.sugars || 0,
+        satFat: item.satFat || 0,
+        energyDensity: 0, // Will be recalculated
+      };
+
+      return {
+        id: item.id,
+        name: item.name,
+        originalName: item.name,
+        portion_g: item.portion_g,
+        nutrients,
+        source: 'manual',
+        locale: 'en', // TODO: Get from analysis metadata or user profile
+      };
+    });
+
+    // 3. Build AnalysisTotals from items (same logic as AnalyzeService)
+    const total: AnalysisTotals = items.reduce(
+      (acc, item) => {
+        acc.portion_g += item.portion_g;
+        acc.calories += item.nutrients.calories;
+        acc.protein += item.nutrients.protein;
+        acc.carbs += item.nutrients.carbs;
+        acc.fat += item.nutrients.fat;
+        acc.fiber += item.nutrients.fiber;
+        acc.sugars += item.nutrients.sugars;
+        acc.satFat += item.nutrients.satFat;
+        return acc;
+      },
+      {
+        portion_g: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 0,
+      },
+    );
+
+    // Recalculate energyDensity as calories per 100g
+    if (total.portion_g > 0) {
+      total.energyDensity = Math.round((total.calories / total.portion_g) * 100 * 10) / 10;
+    }
+
+    // 4. Compute HealthScore using AnalyzeService (reuse existing logic)
+    const healthScore = this.analyzeService.computeHealthScore(total, total.portion_g, items);
+
+    // 5. Run sanity check
+    const debug: any = {};
+    const sanity = this.analyzeService.runSanityCheck({ items, total, healthScore, debug });
+
+    // 6. Compute flags
+    const hasSeriousIssues = sanity.some(
+      (i: any) => i.type === 'macro_kcal_mismatch' || i.type === 'suspicious_energy_density',
+    );
+    const isSuspicious = hasSeriousIssues;
+
+    const allMacrosZero = total.calories === 0 && total.protein === 0 && total.carbs === 0 && total.fat === 0;
+    const hasItemsButNoData = items.length > 0 && allMacrosZero;
+    const anyItemHasWeightAndZeroMacros = items.some(item =>
+      item.portion_g > 0 &&
+      item.nutrients.calories === 0 &&
+      item.nutrients.protein === 0 &&
+      item.nutrients.carbs === 0 &&
+      item.nutrients.fat === 0
+    );
+    const needsReview = hasItemsButNoData || anyItemHasWeightAndZeroMacros;
+
+    // 7. Get locale from existing analysis metadata
+    const metadata = analysis.metadata as any;
+    const locale = metadata?.locale || 'en';
+
+    // 8. Build dish name (reuse logic from AnalyzeService)
+    const originalDishName = this.analyzeService.buildDishNameEn(items);
+    
+    // Localize dish name if needed
+    let dishNameLocalized = originalDishName;
+    if (locale !== 'en') {
+      try {
+        // Access foodLocalization via AnalyzeService (it's private, but we can use a workaround)
+        // TODO: Consider making foodLocalization accessible or adding a public method
+        const foodLocalization = (this.analyzeService as any).foodLocalization;
+        if (foodLocalization && typeof foodLocalization.localizeName === 'function') {
+          dishNameLocalized = await foodLocalization.localizeName(originalDishName, locale);
+        }
+      } catch (error) {
+        this.logger.warn('[FoodService] Failed to localize dish name', error);
+      }
+    }
+
+    // 9. Update AnalysisResult in DB
+    const updatedAnalysisData: AnalysisData = {
+      items,
+      total,
+      healthScore,
+      locale: locale as 'en' | 'ru' | 'kk',
+      dishNameLocalized: dishNameLocalized || originalDishName,
+      originalDishName,
+      isSuspicious,
+      needsReview,
+    };
+
+    if (analysis.results && analysis.results.length > 0) {
+      // Update existing result
+      await this.prisma.analysisResult.update({
+        where: { id: analysis.results[0].id },
+        data: { data: updatedAnalysisData as any },
+      });
+    } else {
+      // Create new result
+      await this.prisma.analysisResult.create({
+        data: {
+          analysisId: analysis.id,
+          data: updatedAnalysisData as any,
+        },
+      });
+    }
+
+    // 10. Return updated data in frontend-compatible format
+    return this.mapAnalysisResult(updatedAnalysisData);
   }
 }

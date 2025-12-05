@@ -18,8 +18,12 @@ export class HybridService {
 
   /**
    * Find foods by text query using Postgres FTS + API fallback
+   * @param query Search query
+   * @param k Number of results to return
+   * @param minScore Minimum score threshold
+   * @param expectedCategory Optional hint: 'drink' | 'solid' | 'unknown' to improve matching
    */
-  async findByText(query: string, k = 10, minScore = 0.6): Promise<any[]> {
+  async findByText(query: string, k = 10, minScore = 0.6, expectedCategory?: 'drink' | 'solid' | 'unknown'): Promise<any[]> {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) {
       return [];
@@ -28,7 +32,7 @@ export class HybridService {
     try {
       const results = await this.textSearch(normalizedQuery, k * 2);
       const filtered = results.filter((r) => r.score >= minScore).slice(0, k);
-      const reranked = await this.rerankResults(filtered, normalizedQuery);
+      const reranked = await this.rerankResults(filtered, normalizedQuery, expectedCategory);
 
       if (reranked.length > 0) {
         return reranked;
@@ -103,7 +107,31 @@ export class HybridService {
     }
   }
 
-  private async rerankResults(results: any[], query: string): Promise<any[]> {
+  /**
+   * Check if description clearly indicates a dessert or yogurt product
+   */
+  private isClearlyDessertOrYogurt(desc: string): boolean {
+    const d = desc.toLowerCase();
+    return [
+      'yogurt', 'yoghurt', 'ice cream', 'parfait', 'dessert',
+      'pudding', 'gelato', 'sorbet', 'tiramisu', 'cheesecake',
+      'mousse', 'custard', 'flan',
+    ].some(k => d.includes(k));
+  }
+
+  /**
+   * Check if description likely indicates plain coffee or tea (not dessert)
+   */
+  private isLikelyPlainCoffeeOrTea(desc: string): boolean {
+    const d = desc.toLowerCase();
+    return (
+      (d.includes('coffee') || d.includes('espresso') || d.includes('cappuccino') || 
+       d.includes('latte') || d.includes('tea') || d.includes('chai') || d.includes('matcha')) &&
+      !this.isClearlyDessertOrYogurt(desc)
+    );
+  }
+
+  private async rerankResults(results: any[], query: string, expectedCategory?: 'drink' | 'solid' | 'unknown'): Promise<any[]> {
     // Simple reranking based on dataType priority and text match
     const typePriority: Record<string, number> = {
       'Branded': 4,
@@ -112,12 +140,33 @@ export class HybridService {
       'SR Legacy': 1,
     };
 
+    const queryLower = query.toLowerCase();
+    const isDrinkQuery = expectedCategory === 'drink' || 
+      ['coffee', 'latte', 'cappuccino', 'espresso', 'mocha', 'tea', 'chai', 'matcha', 
+       'juice', 'smoothie', 'shake', 'soda', 'cola', 'milk', 'drink', 'beverage',
+       'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко'].some(k => queryLower.includes(k));
+
     return results
-      .map(r => ({
-        ...r,
-        priority: typePriority[r.dataType] || 0,
-        textMatch: r.description.toLowerCase().includes(query.toLowerCase()) ? 1 : 0,
-      }))
+      .map(r => {
+        const desc = (r.description || '').toLowerCase();
+        let penalty = 0;
+        
+        // Penalize dessert/yogurt matches for drink queries
+        if (isDrinkQuery) {
+          if (this.isClearlyDessertOrYogurt(desc)) {
+            penalty += 2; // Strong penalty
+          } else if (!this.isLikelyPlainCoffeeOrTea(desc) && 
+                     (desc.includes('yogurt') || desc.includes('ice cream'))) {
+            penalty += 1; // Moderate penalty
+          }
+        }
+
+        return {
+          ...r,
+          priority: (typePriority[r.dataType] || 0) - penalty,
+          textMatch: desc.includes(queryLower) ? 1 : 0,
+        };
+      })
       .sort((a, b) => {
         if (a.priority !== b.priority) return b.priority - a.priority;
         if (a.textMatch !== b.textMatch) return b.textMatch - a.textMatch;

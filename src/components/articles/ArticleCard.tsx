@@ -30,9 +30,9 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       onPress={() => onPress && typeof onPress === 'function' ? onPress(article.slug) : null}
       activeOpacity={0.9}
     >
-      {article.coverUrl ? (
+      {(article.coverUrl || article.heroImageUrl) ? (
         <ImageBackground
-          source={{ uri: article.coverUrl }}
+          source={{ uri: article.coverUrl || article.heroImageUrl }}
           style={styles.cover}
           imageStyle={styles.coverImage}
         >
@@ -46,7 +46,9 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         </ImageBackground>
       ) : (
         <View style={[styles.coverPlaceholder, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.coverPlaceholderText, { color: colors.textTertiary }]}>EatSense</Text>
+          <Text style={[styles.coverPlaceholderText, { color: colors.textTertiary }]}>
+            {article.title || 'EatSense'}
+          </Text>
         </View>
       )}
 
@@ -75,9 +77,9 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           {article.title}
         </Text>
 
-        {article.excerpt ? (
+        {(article.excerpt || article.subtitle) ? (
           <Text style={[styles.excerpt, { color: colors.textSecondary }]} numberOfLines={3}>
-            {article.excerpt}
+            {article.excerpt || article.subtitle}
           </Text>
         ) : null}
 
