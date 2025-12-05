@@ -39,6 +39,19 @@ export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
   // Versioned cache key to avoid conflicts with legacy cached shapes
   private readonly ANALYSIS_CACHE_VERSION = 'v5';
+  
+  // Keywords to detect drinks in food names
+  private readonly DRINK_KEYWORDS = [
+    'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
+    'tea', 'chai', 'matcha',
+    'juice', 'smoothie', 'shake',
+    'soda', 'cola', 'fanta', 'sprite', 'pepsi',
+    'energy drink', 'red bull',
+    'water', 'sparkling water',
+    'milk', 'almond milk', 'soy milk',
+    'beer', 'wine', 'cocktail', 'drink', 'beverage',
+    'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
+  ];
 
   constructor(
     private readonly prisma: PrismaService,
@@ -128,21 +141,10 @@ export class AnalyzeService {
         
         // Detect if component is likely a drink based on name
         const componentNameLower = component.name.toLowerCase();
-        const drinkKeywords = [
-          'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
-          'tea', 'chai', 'matcha',
-          'juice', 'smoothie', 'shake',
-          'soda', 'cola', 'fanta', 'sprite', 'pepsi',
-          'energy drink', 'red bull',
-          'water', 'sparkling water',
-          'milk', 'almond milk', 'soy milk',
-          'beer', 'wine', 'cocktail', 'drink', 'beverage',
-          'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
-        ];
-        const isDrinkComponent = drinkKeywords.some(keyword => componentNameLower.includes(keyword));
+        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
         const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
         
-        const matches = await this.hybrid.findByText(query, 5, 0.7, expectedCategory);
+        const matches = await (this.hybrid as any).findByText(query, 5, 0.7, expectedCategory);
 
         if (!matches || matches.length === 0) {
           debug.components.push({ type: 'no_match', vision: component });
@@ -265,18 +267,7 @@ export class AnalyzeService {
         
         // Determine if this is a drink based on name (already detected earlier, but check again for consistency)
         const nameLower = (originalNameEn || component.name || '').toLowerCase();
-        const drinkKeywords = [
-          'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
-          'tea', 'chai', 'matcha',
-          'juice', 'smoothie', 'shake',
-          'soda', 'cola', 'fanta', 'sprite', 'pepsi',
-          'energy drink', 'red bull',
-          'water', 'sparkling water',
-          'milk', 'almond milk', 'soy milk',
-          'beer', 'wine', 'cocktail', 'drink', 'beverage',
-          'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
-        ];
-        const isDrink = drinkKeywords.some(keyword => nameLower.includes(keyword));
+        const isDrink = this.DRINK_KEYWORDS.some(keyword => nameLower.includes(keyword));
         
         // For drinks, adjust portion if needed (default volumes)
         let finalPortionG = portionG;
@@ -524,21 +515,10 @@ export class AnalyzeService {
         
         // Detect if component is likely a drink (same logic as image analysis)
         const componentNameLower = component.name.toLowerCase();
-        const drinkKeywords = [
-          'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
-          'tea', 'chai', 'matcha',
-          'juice', 'smoothie', 'shake',
-          'soda', 'cola', 'fanta', 'sprite', 'pepsi',
-          'energy drink', 'red bull',
-          'water', 'sparkling water',
-          'milk', 'almond milk', 'soy milk',
-          'beer', 'wine', 'cocktail', 'drink', 'beverage',
-          'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
-        ];
-        const isDrinkComponent = drinkKeywords.some(keyword => componentNameLower.includes(keyword));
+        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
         const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
         
-        const matches = await this.hybrid.findByText(query, 5, 0.7, expectedCategory);
+        const matches = await (this.hybrid as any).findByText(query, 5, 0.7, expectedCategory);
 
         if (!matches || matches.length === 0) {
           debug.components.push({ type: 'no_match', vision: component });
@@ -985,23 +965,11 @@ export class AnalyzeService {
    * Check if analysis represents a drink based on item names
    */
   private isDrinkAnalysis(items: AnalyzedItem[]): boolean {
-    const drinkKeywords = [
-      'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
-      'tea', 'chai', 'matcha',
-      'juice', 'smoothie', 'shake',
-      'soda', 'cola', 'fanta', 'sprite', 'pepsi',
-      'energy drink', 'red bull',
-      'water', 'sparkling water',
-      'milk', 'almond milk', 'soy milk',
-      'beer', 'wine', 'cocktail', 'drink', 'beverage',
-      'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
-    ];
-    
     const itemNames = items.map(item => 
       (item.name || item.originalName || item.label || '').toLowerCase()
     ).join(' ');
     
-    return drinkKeywords.some(keyword => itemNames.includes(keyword));
+    return this.DRINK_KEYWORDS.some(keyword => itemNames.includes(keyword));
   }
 
   /**
