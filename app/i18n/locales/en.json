@@ -555,6 +555,35 @@
     "error": "Sorry, something went wrong. Please try again later.",
     "quotaExceeded": "AI Assistant quota exceeded. The service is temporarily unavailable. Please try again later.",
     "quickActions": "Quick actions",
+    "attach": {
+      "title": "Attach File",
+      "photo": "Choose Photo",
+      "file": "Choose File (PDF)",
+      "error": "Failed to pick file"
+    },
+    "lab": {
+      "title": "Lab Results Analysis",
+      "typeTitle": "Type of analysis",
+      "type": {
+        "auto": "Auto-detect",
+        "cbc": "Complete Blood Count (CBC)",
+        "biochemistry": "Blood Biochemistry",
+        "lipid": "Lipid Profile",
+        "glycemic": "Glycemic Profile",
+        "vitamins": "Vitamins and Trace Elements",
+        "hormonal": "Hormonal Profile",
+        "inflammation": "Inflammation Markers",
+        "other": "Other"
+      },
+      "attachPhoto": "Attach Photo",
+      "attachPdf": "Attach PDF",
+      "manualTitle": "Manual Entry",
+      "manualPlaceholder": "Enter your lab results here...",
+      "submit": "Submit",
+      "submitted": "Lab results submitted successfully",
+      "error": "Failed to send results. Please try again.",
+      "emptyError": "Please enter lab results or attach a file"
+    },
     "unavailable": "AI Assistant temporarily unavailable",
     "unavailableDescription": "We are testing the first version of the app. The assistant section is temporarily disabled, but everything else is working.",
     "suggestions": {
