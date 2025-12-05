@@ -29,6 +29,20 @@ import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 import { LabResultsModal } from '../components/LabResultsModal';
 
 
+// Helper function to get image URL from item (handles various field names)
+function getItemImageUrl(item) {
+  if (!item) return null;
+  return (
+    item.imageUrl ||
+    item.imageURI ||
+    item.imageUri ||
+    item.photoUrl ||
+    item.thumbnailUrl ||
+    (item.media && item.media.url) ||
+    null
+  );
+}
+
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
@@ -175,7 +189,9 @@ export default function DashboardScreen() {
       // Используем selectedDate для загрузки meals по выбранной дате
       const meals = await ApiService.getMeals(selectedDate);
       const items = Array.isArray(meals) ? meals.slice(0, 5) : [];
-      console.log('[Dashboard] Loaded recent meals:', items.length);
+        if (__DEV__) {
+          console.log('[Dashboard] Loaded recent meals:', items.length);
+        }
       setRecentItems(items);
       const withInsights = items.find(item => item.healthInsights);
       if (withInsights?.healthInsights?.score) {
@@ -295,10 +311,14 @@ export default function DashboardScreen() {
   };
 
   const handlePlusPress = () => {
-    console.log('[Dashboard] FAB plus button pressed');
+    if (__DEV__) {
+      console.log('[Dashboard] FAB plus button pressed');
+    }
     // Check limit before opening modal
     if (hasReachedDailyLimit(userStats)) {
-      console.log('[Dashboard] Daily limit reached, showing alert');
+      if (__DEV__) {
+        console.log('[Dashboard] Daily limit reached, showing alert');
+      }
       Alert.alert(
         t('limits.title') || 'Daily Limit Reached',
         t('limits.dailyLimitReached', { count: userStats.dailyLimit }) || 
@@ -321,7 +341,9 @@ export default function DashboardScreen() {
     });
 
     // Show modal with options
-    console.log('[Dashboard] Opening FAB modal');
+    if (__DEV__) {
+      console.log('[Dashboard] Opening FAB modal');
+    }
     setShowModal(true);
   };
 
@@ -346,7 +368,9 @@ export default function DashboardScreen() {
     await clientLog('Dashboard:openCameraPressed').catch(() => {});
     setShowModal(false);
     if (navigation && typeof navigation.navigate === 'function') {
-      console.log('[Dashboard] Navigating to Camera screen');
+      if (__DEV__) {
+        console.log('[Dashboard] Navigating to Camera screen');
+      }
       navigation.navigate('Camera');
     } else {
       console.warn('[Dashboard] Navigation not available');
@@ -354,7 +378,9 @@ export default function DashboardScreen() {
   };
 
   const handleGalleryPress = async () => {
-    console.log('[Dashboard] Gallery option selected');
+    if (__DEV__) {
+      console.log('[Dashboard] Gallery option selected');
+    }
     // Check limit before opening gallery
     if (hasReachedDailyLimit(userStats)) {
       Alert.alert(
@@ -369,7 +395,9 @@ export default function DashboardScreen() {
     await clientLog('Dashboard:openGalleryPressed').catch(() => {});
     setShowModal(false);
     if (navigation && typeof navigation.navigate === 'function') {
-      console.log('[Dashboard] Navigating to Gallery screen');
+      if (__DEV__) {
+        console.log('[Dashboard] Navigating to Gallery screen');
+      }
       navigation.navigate('Gallery');
     } else {
       console.warn('[Dashboard] Navigation not available');
@@ -377,7 +405,9 @@ export default function DashboardScreen() {
   };
 
   const handleAiAssistantPress = () => {
-    console.log('[Dashboard] AI Assistant card pressed');
+    if (__DEV__) {
+      console.log('[Dashboard] AI Assistant card pressed');
+    }
     setShowAiAssistant(true);
   };
 
@@ -448,7 +478,7 @@ export default function DashboardScreen() {
             size={220}
             strokeWidth={8}
             value={Math.round(stats.totalCalories)}
-            label={t('dashboard.calories') || 'Calories'}
+            label={t('dashboard.calories')}
             goal={Math.round(stats.goal)}
           />
         </View>
@@ -529,7 +559,9 @@ export default function DashboardScreen() {
               borderWidth: 1,
             }]}
             onPress={() => {
-              console.log('[Dashboard] Navigating to Suggested Food');
+              if (__DEV__) {
+                console.log('[Dashboard] Navigating to Suggested Food');
+              }
               if (navigation && typeof navigation.navigate === 'function') {
                 navigation.navigate('SuggestedFood');
               }
@@ -541,10 +573,10 @@ export default function DashboardScreen() {
             </View>
             <View style={styles.aiAssistantContent}>
               <Text style={[styles.aiAssistantTitle, { color: colors.textPrimary || colors.text }]}>
-                {t('dashboard.suggestedFood.title') || 'Suggested Food'}
+                {t('dashboard.suggestedFood.title')}
               </Text>
               <Text style={[styles.aiAssistantSubtitle, { color: colors.textSecondary }]}>
-                {t('dashboard.suggestedFood.subtitle') || 'Get personalized food recommendations'}
+                {t('dashboard.suggestedFood.subtitle')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
@@ -556,7 +588,9 @@ export default function DashboardScreen() {
           <TouchableOpacity 
             style={styles.aiAssistantButton} 
             onPress={() => {
-              console.log('[Dashboard] Opening AI Assistant');
+              if (__DEV__) {
+                console.log('[Dashboard] Opening AI Assistant');
+              }
               if (typeof handleAiAssistantPress === 'function') {
                 handleAiAssistantPress();
               }
@@ -579,7 +613,9 @@ export default function DashboardScreen() {
         {/* 3. Manual Analysis / "Вставьте свой анализ" */}
         <View style={styles.section}>
           <ManualAnalysisCard onPressAddManual={() => {
-            console.log('[Dashboard] Opening manual analysis modal');
+            if (__DEV__) {
+              console.log('[Dashboard] Opening manual analysis modal');
+            }
             handleOpenManualAnalysis();
           }} />
         </View>
@@ -667,9 +703,9 @@ export default function DashboardScreen() {
               <View style={styles.addFoodModalButtonIcon}>
                 <Ionicons name="create-outline" size={32} color={colors.primary} />
               </View>
-              <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.manual.title') || 'Ввести вручную'}</Text>
+              <Text style={styles.addFoodModalButtonTitle}>{t('dashboard.addFood.manual.title')}</Text>
               <Text style={styles.addFoodModalButtonSubtitle}>
-                {t('dashboard.addFood.manual.description') || 'Добавить анализ вручную или загрузить файл'}
+                {t('dashboard.addFood.manual.description')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -728,9 +764,10 @@ const createStyles = (tokens) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: tokens.spacing.lg, // Reduced from xl
+      paddingVertical: tokens.spacing.lg || 16,
       paddingHorizontal: tokens.spacing.xl,
       gap: tokens.spacing.xl,
+      marginBottom: tokens.spacing.lg || 16, // Consistent spacing after calendar
     },
     calendarButton: {
       padding: tokens.spacing.sm,
@@ -750,7 +787,8 @@ const createStyles = (tokens) =>
     },
     caloriesContainer: {
       alignItems: 'center',
-      paddingVertical: tokens.spacing.xxxl,
+      paddingVertical: tokens.spacing.xl || 20,
+      marginBottom: tokens.spacing.lg || 16, // Consistent spacing after calories ring
     },
     caloriesCircle: {
       width: 220,
@@ -788,8 +826,9 @@ const createStyles = (tokens) =>
       flexDirection: 'row',
       justifyContent: 'space-around',
       paddingHorizontal: tokens.spacing.xl,
-      paddingVertical: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.lg || 16,
       gap: tokens.spacing.md,
+      marginBottom: tokens.spacing.lg || 16, // Consistent spacing after macros
     },
     statItem: {
       alignItems: 'center',
@@ -919,7 +958,7 @@ const createStyles = (tokens) =>
     },
     aiAssistantContainer: {
       paddingHorizontal: tokens.spacing.xl,
-      marginBottom: tokens.spacing.lg,
+      marginBottom: tokens.spacing.lg || 16, // Consistent 16px spacing
     },
     aiAssistantButton: {
       flexDirection: 'row',
@@ -954,14 +993,14 @@ const createStyles = (tokens) =>
       color: tokens.colors.textSecondary,
     },
     section: {
-      marginBottom: tokens.spacing.md, // Reduced from lg for compactness
+      marginBottom: tokens.spacing.lg || 16, // Consistent 16px spacing between sections
       paddingHorizontal: tokens.spacing.xl,
     },
     recentContainer: {
       paddingHorizontal: tokens.spacing.xl,
-      paddingBottom: tokens.spacing.md, // Reduced from gutter
-      gap: tokens.spacing.sm, // Reduced from md
-      marginBottom: tokens.spacing.md, // Reduced from lg
+      paddingBottom: tokens.spacing.md,
+      gap: tokens.spacing.sm,
+      marginBottom: tokens.spacing.lg || 16, // Consistent 16px spacing
     },
     recentHeader: {
       flexDirection: 'row',

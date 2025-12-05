@@ -32,6 +32,7 @@ import { configSchema } from './src/config/config.schema';
 import { NotificationsModule } from './src/notifications/notifications.module';
 import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
+import { OpenFoodFactsModule } from './src/openfoodfacts/openfoodfacts.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { SuggestionsModule } from './src/suggestions/suggestions.module';
     NotificationsModule,
     DebugModule,
     SuggestionsModule,
+    OpenFoodFactsModule,
   ],
   controllers: [HealthController],
 })

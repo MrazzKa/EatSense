@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { HybridService } from '../fdc/hybrid/hybrid.service';
-import { VisionService, type VisionComponent } from './vision.service';
+import { VisionService, VisionComponent } from './vision.service';
 import { PortionService } from './portion.service';
 import { CacheService } from '../cache/cache.service';
 import { normalizeFoodName } from './text-utils';
-import type {
+import {
   AnalysisData,
   AnalyzedItem,
   AnalysisTotals,
@@ -25,6 +25,15 @@ type HealthWeights = {
   energyDensity: number;
 };
 
+/**
+ * Main service for analyzing food images and text descriptions.
+ * Orchestrates Vision extraction, FDC matching, portion estimation, and HealthScore calculation.
+ * 
+ * TODO: Future enhancement - barcode-based product lookup:
+ * - When a barcode is detected in an image or provided by user, use OpenFoodFactsService
+ *   to look up product data directly, bypassing vision/FDC matching for known products.
+ * - This would provide more accurate nutrition data for packaged foods.
+ */
 @Injectable()
 export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
@@ -116,33 +125,83 @@ export class AnalyzeService {
     for (const component of visionComponents) {
       try {
         const query = `${component.name} ${component.preparation || ''}`.trim();
-        const matches = await this.hybrid.findByText(query, 5, 0.7);
+        
+        // Detect if component is likely a drink based on name
+        const componentNameLower = component.name.toLowerCase();
+        const drinkKeywords = [
+          'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
+          'tea', 'chai', 'matcha',
+          'juice', 'smoothie', 'shake',
+          'soda', 'cola', 'fanta', 'sprite', 'pepsi',
+          'energy drink', 'red bull',
+          'water', 'sparkling water',
+          'milk', 'almond milk', 'soy milk',
+          'beer', 'wine', 'cocktail', 'drink', 'beverage',
+          'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
+        ];
+        const isDrinkComponent = drinkKeywords.some(keyword => componentNameLower.includes(keyword));
+        const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
+        
+        const matches = await this.hybrid.findByText(query, 5, 0.7, expectedCategory);
 
         if (!matches || matches.length === 0) {
           debug.components.push({ type: 'no_match', vision: component });
+          if (process.env.ANALYSIS_DEBUG === 'true' && isDrinkComponent) {
+            this.logger.debug('[AnalyzeService] No FDC matches for drink component', {
+              componentName: component.name,
+              query,
+            });
+          }
           // Q4: Fallback при отсутствии FDC
           await this.addVisionFallback(component, items, debug, locale);
           continue;
         }
 
-        // Select best match only (already sorted by score)
+        // Select best match only (already sorted by score, with penalties applied)
         const bestMatch = matches[0];
         
         // Filter weak matches
         if (bestMatch.score < 0.7) {
           debug.components.push({ type: 'low_score', vision: component, bestMatch, score: bestMatch.score });
+          if (process.env.ANALYSIS_DEBUG === 'true' && isDrinkComponent) {
+            this.logger.debug('[AnalyzeService] Low score match for drink component', {
+              componentName: component.name,
+              bestMatchDescription: bestMatch.description,
+              score: bestMatch.score,
+            });
+          }
           // Q4: Fallback при отсутствии FDC
           await this.addVisionFallback(component, items, debug, locale);
           continue;
         }
 
         // Check text overlap between component name and food description
+        // For beverages, require stronger overlap (at least 2 words or beverage keyword match)
         const desc = (bestMatch.description || '').toLowerCase();
         const componentWords = component.name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-        const hasOverlap = componentWords.some(w => desc.includes(w));
+        let hasOverlap: boolean;
+        
+        if (isDrinkComponent) {
+          // For drinks: require at least 2 overlapping words OR beverage keyword match
+          const beverageKeywords = ['coffee', 'tea', 'juice', 'soda', 'milk', 'drink', 'beverage', 'кофе', 'чай', 'сок'];
+          const hasBeverageKeyword = beverageKeywords.some(kw => 
+            componentNameLower.includes(kw) && desc.includes(kw)
+          );
+          const overlappingWords = componentWords.filter(w => desc.includes(w));
+          hasOverlap = hasBeverageKeyword || overlappingWords.length >= 2;
+        } else {
+          // For solids: single word overlap is enough (existing behavior)
+          hasOverlap = componentWords.some(w => desc.includes(w));
+        }
         
         if (!hasOverlap) {
           debug.components.push({ type: 'no_overlap', vision: component, bestMatch });
+          if (process.env.ANALYSIS_DEBUG === 'true' && isDrinkComponent) {
+            this.logger.debug('[AnalyzeService] No text overlap for drink component', {
+              componentName: component.name,
+              bestMatchDescription: bestMatch.description,
+            });
+          }
           // Q4: Fallback при отсутствии FDC
           await this.addVisionFallback(component, items, debug, locale);
           continue;
@@ -196,13 +255,15 @@ export class AnalyzeService {
           });
         }
 
-        const originalNameEn = normalizeFoodName(bestMatch.description || food.description || component.name);
+        // Build clean base name from FDC description or vision name
+        const baseName = this.buildBaseFoodName(component.name, bestMatch.description || food.description);
+        const originalNameEn = normalizeFoodName(baseName);
         const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
         // Check if item has valid nutrition data
         const hasNutrition = nutrients.calories > 0 || nutrients.protein > 0 || nutrients.carbs > 0 || nutrients.fat > 0;
         
-        // Determine if this is a drink based on name
+        // Determine if this is a drink based on name (already detected earlier, but check again for consistency)
         const nameLower = (originalNameEn || component.name || '').toLowerCase();
         const drinkKeywords = [
           'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
@@ -237,9 +298,11 @@ export class AnalyzeService {
         }
         
         // Create AnalyzedItem with localized and original names
-        const item: AnalyzedItem = {
+        const item: AnalyzedItem & { baseName?: string; displayNameLocalized?: string } = {
           name: localizedName || originalNameEn,
           originalName: originalNameEn,
+          baseName: baseName, // Clean canonical English name
+          displayNameLocalized: locale !== 'en' ? localizedName : undefined, // Localized name if not English
           label: component.name,
           portion_g: finalPortionG,
           nutrients,
@@ -458,7 +521,24 @@ export class AnalyzeService {
     for (const component of components) {
       try {
         const query = component.name;
-        const matches = await this.hybrid.findByText(query, 5, 0.7);
+        
+        // Detect if component is likely a drink (same logic as image analysis)
+        const componentNameLower = component.name.toLowerCase();
+        const drinkKeywords = [
+          'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
+          'tea', 'chai', 'matcha',
+          'juice', 'smoothie', 'shake',
+          'soda', 'cola', 'fanta', 'sprite', 'pepsi',
+          'energy drink', 'red bull',
+          'water', 'sparkling water',
+          'milk', 'almond milk', 'soy milk',
+          'beer', 'wine', 'cocktail', 'drink', 'beverage',
+          'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
+        ];
+        const isDrinkComponent = drinkKeywords.some(keyword => componentNameLower.includes(keyword));
+        const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
+        
+        const matches = await this.hybrid.findByText(query, 5, 0.7, expectedCategory);
 
         if (!matches || matches.length === 0) {
           debug.components.push({ type: 'no_match', vision: component });
@@ -474,10 +554,21 @@ export class AnalyzeService {
           continue;
         }
 
-        // Check text overlap
+        // Check text overlap (same logic as image analysis)
         const desc = (bestMatch.description || '').toLowerCase();
         const componentWords = component.name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-        const hasOverlap = componentWords.some(w => desc.includes(w));
+        let hasOverlap: boolean;
+        
+        if (isDrinkComponent) {
+          const beverageKeywords = ['coffee', 'tea', 'juice', 'soda', 'milk', 'drink', 'beverage', 'кофе', 'чай', 'сок'];
+          const hasBeverageKeyword = beverageKeywords.some(kw => 
+            componentNameLower.includes(kw) && desc.includes(kw)
+          );
+          const overlappingWords = componentWords.filter(w => desc.includes(w));
+          hasOverlap = hasBeverageKeyword || overlappingWords.length >= 2;
+        } else {
+          hasOverlap = componentWords.some(w => desc.includes(w));
+        }
         
         if (!hasOverlap) {
           debug.components.push({ type: 'no_overlap', vision: component, bestMatch });
@@ -713,12 +804,15 @@ export class AnalyzeService {
       energyDensity: 120, // 120 ккал/100г
     };
 
-        const originalNameEn = normalizeFoodName(component.name);
+        const baseName = this.buildBaseFoodName(component.name);
+        const originalNameEn = normalizeFoodName(baseName);
         const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
-        const fallbackItem: AnalyzedItem = {
+        const fallbackItem: AnalyzedItem & { baseName?: string; displayNameLocalized?: string } = {
           name: localizedName || originalNameEn,
           originalName: originalNameEn,
+          baseName: baseName,
+          displayNameLocalized: locale !== 'en' ? localizedName : undefined,
           label: component.name,
           portion_g: fallbackPortion,
           nutrients: fallbackNutrients,
@@ -738,8 +832,9 @@ export class AnalyzeService {
 
   /**
    * Q1: Run sanity check on analysis data
+   * Public method for re-analysis use cases
    */
-  private runSanityCheck(input: {
+  runSanityCheck(input: {
     items: AnalyzedItem[];
     total: AnalysisTotals;
     healthScore?: HealthScore | null;
@@ -834,19 +929,51 @@ export class AnalyzeService {
   }
 
   /**
-   * Build a concise English dish name from analyzed items (using originalName/name).
+   * Build a clean, human-readable base food name from raw vision name and FDC description.
+   * Prefers generic, non-branded descriptions when available.
    */
-  private buildDishNameEn(items: AnalyzedItem[]): string {
-    const names = items
-      .map(i => (i.originalName || i.name || '').trim())
+  private buildBaseFoodName(rawName: string, fdcDescription?: string): string {
+    const desc = (fdcDescription || '').toLowerCase();
+    const raw = (rawName || '').toLowerCase();
+
+    // Prefer generic, non-branded description if it looks clean
+    if (desc && !desc.includes('yogurt') && !desc.includes('yoghurt') && !desc.includes('ice cream')) {
+      // Strip brand stuff like ", company name" if present
+      const cleaned = desc.replace(/\s*,\s*[^,]+$/i, '').trim();
+      if (cleaned.length > 0 && cleaned.length <= 60) {
+        return cleaned;
+      }
+    }
+
+    // Fallback to raw vision name
+    return raw || desc || 'food';
+  }
+
+  /**
+   * Build a concise English dish name from analyzed items (using baseName when available).
+   * Picks 1-3 main items (ignoring small portions like sauces).
+   * Public method for re-analysis use cases
+   */
+  buildDishNameEn(items: AnalyzedItem[]): string {
+    // Filter out very small items (likely sauces, dressings) - threshold: < 20g
+    const mainItems = items.filter(item => item.portion_g >= 20);
+    const itemsToUse = mainItems.length > 0 ? mainItems : items;
+
+    const names = itemsToUse
+      .map(i => {
+        // Use baseName if available (from buildBaseFoodName), otherwise originalName or name
+        return (i as any).baseName || i.originalName || i.name || '';
+      })
+      .map(n => n.trim())
       .filter(Boolean);
 
     if (!names.length) return 'Meal';
 
     const unique = Array.from(new Set(names));
     if (unique.length === 1) return unique[0];
-    if (unique.length === 2) return `${unique[0]} with ${unique[1]}`;
-    return `${unique[0]} and more`;
+    if (unique.length === 2) return `${unique[0]} + ${unique[1]}`;
+    // For 3+, show first two + "and more"
+    return `${unique[0]} + ${unique[1]} and more`;
   }
 
   private hashImage(params: { imageUrl?: string; imageBase64?: string }): string {
@@ -877,7 +1004,11 @@ export class AnalyzeService {
     return drinkKeywords.some(keyword => itemNames.includes(keyword));
   }
 
-  private computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[]): HealthScore {
+  /**
+   * Compute health score from totals and items
+   * Public method for re-analysis use cases
+   */
+  computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[]): HealthScore {
     const weights = this.getHealthWeights();
     const portionWeight = totalPortion || 250; // fallback 250g meal
     const isDrink = items ? this.isDrinkAnalysis(items) : false;
@@ -922,8 +1053,52 @@ export class AnalyzeService {
     const factorEntries = Object.values(factorMap) as Array<{ label: string; score: number; weight: number }>;
     const weightedScore = factorEntries.reduce((acc: number, factor) => acc + factor.score * (factor.weight || 0), 0) /
       totalWeight;
-    const score = Math.round(Math.max(0, Math.min(100, weightedScore)));
-    const grade = this.deriveGrade(score);
+    let score = Math.round(Math.max(0, Math.min(100, weightedScore)));
+    let grade = this.deriveGrade(score);
+
+    // UX-oriented heuristics: protect obviously "okay" foods from getting unfairly low scores
+    // These are UX overrides, not strict nutrition science
+
+    // Heuristic A: Very light & "clean" foods (small fruits, plain vegetables, clear soups)
+    // Condition: low calories, low sugar, low sat fat, reasonable energy density
+    if (
+      total.calories <= 80 &&
+      sugarScore >= 80 &&
+      satFatScore >= 80 &&
+      energyDensityScore >= 80
+    ) {
+      score = Math.max(score, 80);
+      grade = this.deriveGrade(score);
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.debug('[HealthScore] Applied Heuristic A (light clean food)', {
+          originalScore: weightedScore,
+          adjustedScore: score,
+          calories: total.calories,
+        });
+      }
+    }
+
+    // Heuristic B: Plain coffee/tea (very low calories, minimal sugar/fat)
+    // Condition: drink analysis, very low calories, minimal sugar and sat fat
+    if (
+      isDrink &&
+      total.calories <= 30 &&
+      total.sugars <= 3 &&
+      total.satFat <= 1
+    ) {
+      score = Math.max(score, 85);
+      grade = this.deriveGrade(score);
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.debug('[HealthScore] Applied Heuristic B (plain coffee/tea)', {
+          originalScore: weightedScore,
+          adjustedScore: score,
+          calories: total.calories,
+          sugars: total.sugars,
+          satFat: total.satFat,
+        });
+      }
+    }
+
     const feedbackObjects = this.buildFeedback(factorMap);
 
     return {

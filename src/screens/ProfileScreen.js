@@ -949,12 +949,17 @@ const ProfileScreen = () => {
             style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={async () => {
               try {
-                console.log('[ProfileScreen] Downloading monthly report');
+                if (__DEV__) {
+                  console.log('[ProfileScreen] Downloading monthly report');
+                }
                 const now = new Date();
                 const year = now.getFullYear();
                 const month = now.getMonth() + 1;
-                const url = `${API_BASE_URL}/stats/monthly-report?year=${year}&month=${month}`;
-                console.log('[ProfileScreen] Report URL:', url);
+                const monthString = `${year}-${String(month).padStart(2, '0')}`;
+                const url = `${API_BASE_URL}/stats/monthly-report?month=${monthString}`;
+                if (__DEV__) {
+                  console.log('[ProfileScreen] Report URL:', url);
+                }
                 const fileUri = FileSystem.cacheDirectory + `eatsense-monthly-report-${year}-${String(month).padStart(2, '0')}.pdf`;
 
                 const downloadResumable = FileSystem.createDownloadResumable(
@@ -965,10 +970,14 @@ const ProfileScreen = () => {
                   }
                 );
 
-                console.log('[ProfileScreen] Starting download to:', fileUri);
+                if (__DEV__) {
+                  console.log('[ProfileScreen] Starting download to:', fileUri);
+                }
                 const result = await downloadResumable.downloadAsync();
                 if (result?.uri) {
-                  console.log('[ProfileScreen] Download completed, sharing:', result.uri);
+                  if (__DEV__) {
+                    console.log('[ProfileScreen] Download completed, sharing:', result.uri);
+                  }
                   const canShare = await Sharing.isAvailableAsync();
                   if (canShare) {
                     await Sharing.shareAsync(result.uri);
@@ -993,11 +1002,10 @@ const ProfileScreen = () => {
               <Ionicons name="document-text-outline" size={24} color={colors.primary} />
               <View style={styles.cardTextContainer}>
                 <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-                  {t('profile.monthlyReportTitle') || 'Monthly nutrition report (PDF)'}
+                  {t('profile.monthlyReportTitle')}
                 </Text>
                 <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                  {t('profile.monthlyReportSubtitle') ||
-                    'Download a detailed report about your eating habits for the last month.'}
+                  {t('profile.monthlyReportSubtitle')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />

@@ -31,20 +31,30 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
     return drinkKeywords.some(keyword => nameLower.includes(keyword));
   }, [dishName]);
 
-  const factorEntries = Object.entries(factors).map(([key, value]) => {
-    if (typeof value === 'number') {
-      const translatedLabel = t(`healthScore.factors.${key}`, { defaultValue: key });
-      return { key, label: translatedLabel, score: value };
-    }
-    const fallbackLabel = value.label || key;
-    const translatedLabel = t(`healthScore.factors.${key}`, { defaultValue: fallbackLabel });
-    return {
-      key,
-      label: translatedLabel,
-      score: value.score ?? 0,
-      weight: value.weight,
-    };
-  });
+  // Helper to normalize factor data
+  const normalizeFactor = (key, value) => {
+    const score = typeof value === 'number' ? value : value?.score ?? 0;
+    const weight = typeof value === 'number' ? undefined : value?.weight;
+    const label = typeof value === 'number' 
+      ? t(`healthScore.factors.${key}`, { defaultValue: key })
+      : t(`healthScore.factors.${key}`, { defaultValue: value?.label || key });
+    
+    const scorePercent = Math.max(0, Math.min(100, Math.round(score)));
+    
+    return { key, label, scorePercent, weight };
+  };
+
+  // Helper to get risk level label for negative factors
+  const getRiskLabel = (key, scorePercent) => {
+    const negativeFactors = ['satFat', 'sugar', 'energyDensity'];
+    if (!negativeFactors.includes(key)) return null;
+    
+    if (scorePercent >= 80) return t('healthScore.factorLevel.good', { defaultValue: 'Good' });
+    if (scorePercent >= 40) return t('healthScore.factorLevel.ok', { defaultValue: 'Okay' });
+    return t('healthScore.factorLevel.bad', { defaultValue: 'Needs attention' });
+  };
+
+  const factorEntries = Object.entries(factors).map(([key, value]) => normalizeFactor(key, value));
 
   const getGradeColor = () => {
     const s = typeof score === 'number' ? score : 0;
@@ -159,22 +169,36 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
         <Text style={[styles.factorsTitle, { color: colors.textSecondary }]}>{t('healthScore.qualityFactors')}</Text>
         <View style={styles.factorsGrid}>
           {factorEntries.map(entry => {
-            // Единый источник правды: score уже в диапазоне 0-100
-            const valuePercent = Math.round(Math.max(0, Math.min(100, entry.score || 0)));
+            const riskLabel = getRiskLabel(entry.key, entry.scorePercent);
+            const isNegativeFactor = ['satFat', 'sugar', 'energyDensity'].includes(entry.key);
             
             return (
               <View key={entry.key} style={styles.factorItem}>
                 <View style={styles.factorHeader}>
-                  <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
+                  <View style={styles.factorLabelContainer}>
+                    <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
+                    {riskLabel && (
+                      <Text style={[styles.factorRiskLabel, { color: colors.textTertiary }]}>
+                        {' • '}{riskLabel}
+                      </Text>
+                    )}
+                  </View>
                   <Text style={[styles.factorValue, { color: colors.textSecondary }]}>
-                    {valuePercent}%
+                    {entry.scorePercent}%
                   </Text>
                 </View>
                 <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
                   <View
                     style={[
                       styles.factorFill,
-                      { width: `${valuePercent}%`, backgroundColor: colors.primary },
+                      { 
+                        width: `${entry.scorePercent}%`, 
+                        backgroundColor: isNegativeFactor && entry.scorePercent < 40 
+                          ? colors.error 
+                          : isNegativeFactor && entry.scorePercent < 80
+                          ? colors.warning
+                          : colors.primary 
+                      },
                     ]}
                   />
                 </View>
@@ -275,9 +299,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  factorLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   factorLabel: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  factorRiskLabel: {
+    fontSize: 11,
+    fontWeight: '400',
+    fontStyle: 'italic',
   },
   factorBar: {
     height: 4,

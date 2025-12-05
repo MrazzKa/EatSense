@@ -54,8 +54,8 @@ export default function ReportsScreen() {
           await Sharing.shareAsync(result.uri);
         } else {
           Alert.alert(
-            t('common.success') || 'Success',
-            t('reports.downloaded') || 'Report downloaded successfully',
+            t('common.success'),
+            t('reports.downloaded'),
           );
         }
       } else {
@@ -64,8 +64,8 @@ export default function ReportsScreen() {
     } catch (error: any) {
       console.error('[ReportsScreen] Failed to download monthly report:', error);
       Alert.alert(
-        t('common.error') || 'Error',
-        t('reports.error') || 'Failed to download monthly report. Please try again later.',
+        t('common.error'),
+        t('reports.error'),
       );
     } finally {
       setLoading(false);
@@ -83,10 +83,10 @@ export default function ReportsScreen() {
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-            {t('reports.title') || 'Reports'}
+            {t('reports.title')}
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {t('reports.subtitle') || 'Download detailed reports about your nutrition'}
+            {t('reports.subtitle')}
           </Text>
         </View>
 
@@ -97,10 +97,10 @@ export default function ReportsScreen() {
             </View>
             <View style={styles.cardTextContainer}>
               <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-                {t('reports.monthly.title') || 'Monthly nutrition report'}
+                {t('reports.monthly.title')}
               </Text>
               <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                {t('reports.monthly.subtitle') || 'Detailed PDF about your month: calories, macros, top foods.'}
+                {t('reports.monthly.subtitle')}
               </Text>
             </View>
           </View>
@@ -119,7 +119,7 @@ export default function ReportsScreen() {
               <>
                 <Ionicons name="download-outline" size={18} color="#fff" style={styles.buttonIcon} />
                 <Text style={styles.buttonText}>
-                  {t('reports.monthly.downloadCurrent') || 'Download current month'}
+                  {t('reports.monthly.downloadCurrent')}
                 </Text>
               </>
             )}

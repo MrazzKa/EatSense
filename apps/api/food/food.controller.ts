@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DailyLimitGuard } from '../limits/daily-limit.guard';
 import { DailyLimit } from '../limits/daily-limit.decorator';
 import { FoodService } from './food.service';
-import { AnalyzeImageDto, AnalyzeTextDto } from './dto';
+import { AnalyzeImageDto, AnalyzeTextDto, ReanalyzeDto } from './dto';
 
 @ApiTags('Food Analysis')
 @Controller('food')
@@ -125,5 +125,37 @@ export class FoodController {
     }
 
     return this.foodService.getRawAnalysis(analysisId, userId);
+  }
+
+  @Post('analysis/:analysisId/reanalyze')
+  @ApiOperation({ summary: 'Re-analyze after manual ingredient edits' })
+  @ApiResponse({ status: 200, description: 'Analysis recalculated successfully' })
+  async reanalyzeFromManual(
+    @Param('analysisId') analysisId: string,
+    @Body() body: ReanalyzeDto,
+    @Request() req: any,
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    try {
+      return await this.foodService.reanalyzeFromManual(analysisId, body, userId);
+    } catch (error: any) {
+      this.logger.error('[FoodController] reanalyzeFromManual error', {
+        message: error.message,
+        stack: error.stack,
+        status: error.status,
+        userId,
+        analysisId,
+      });
+
+      if (error instanceof BadRequestException || error instanceof ForbiddenException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('REANALYSIS_FAILED');
+    }
   }
 }
