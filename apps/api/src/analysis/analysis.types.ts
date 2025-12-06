@@ -26,7 +26,7 @@ export interface AnalyzedItem {
   label?: string;
   portion_g: number;   // фактический вес порции в граммах
   nutrients: Nutrients;
-  source: 'fdc' | 'vision_fallback' | 'manual';
+  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir';
   fdcId?: string | number;
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)

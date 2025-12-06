@@ -95,11 +95,7 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
     <SwipeClosableModal
       visible={visible}
       onClose={handleClose}
-      swipeDirection="down"
-      enableSwipe={true}
-      enableBackdropClose={true}
-      animationType="fade"
-      presentationStyle="fullScreen"
+      presentationStyle="pageSheet"
     >
       <SafeAreaView
         style={[styles.container, { backgroundColor: colors.background || colors.surface }]}

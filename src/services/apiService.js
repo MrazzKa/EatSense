@@ -614,6 +614,12 @@ class ApiService {
     });
   }
 
+  async sendAiAssistantMessage(message) {
+    // This method should be called with userId from component
+    // For now, use getGeneralQuestion directly
+    throw new Error('sendAiAssistantMessage requires userId - use getGeneralQuestion instead');
+  }
+
   async getConversationHistory(userId, limit = 10) {
     try {
       const result = await this.request(`/ai-assistant/conversation-history?userId=${encodeURIComponent(userId)}&limit=${limit}`);
@@ -629,6 +635,14 @@ class ApiService {
     return this.request('/ai-assistant/lab-results', {
       method: 'POST',
       body: JSON.stringify({ userId, rawText, language }),
+    });
+  }
+
+  async sendLabResults(payload) {
+    // STEP 6: Send lab results with JSON body (type, manualText)
+    return this.request('/ai-assistant/lab-results', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 import { useI18n } from '../../app/i18n/hooks';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface DescribeFoodModalProps {
   visible: boolean;
@@ -13,6 +14,7 @@ interface DescribeFoodModalProps {
 export const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({ visible, onClose, onAnalyze }) => {
   const [description, setDescription] = useState('');
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const handleAnalyze = () => {
     if (description.trim()) {
@@ -35,17 +37,21 @@ export const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({ visible, o
       enableBackdropClose={true}
       animationType="fade"
     >
-          <View style={styles.content}>
-            <Text style={styles.title}>{t('describeFood.title') || 'Describe Your Food'}</Text>
-            <Text style={styles.subtitle}>
-              {t('describeFood.subtitle') || "Tell us what you ate and we'll analyze it"}
+          <View style={[styles.content, { backgroundColor: colors.background || colors.surface }]}>
+            <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>{t('describeFood.title')}</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {t('describeFood.subtitle')}
             </Text>
             
             <View style={styles.inputContainer}>
               <TextInput
-                style={styles.textInput}
-                placeholder={t('describeFood.placeholder') || 'e.g., Grilled chicken breast with rice and vegetables'}
-                placeholderTextColor="#95A5A6"
+                style={[styles.textInput, {
+                  backgroundColor: colors.inputBackground || colors.surface,
+                  borderColor: colors.border || colors.borderMuted,
+                  color: colors.textPrimary || colors.text,
+                }]}
+                placeholder={t('describeFood.placeholder')}
+                placeholderTextColor={colors.textTertiary || colors.textSecondary}
                 value={description}
                 onChangeText={setDescription}
                 multiline
@@ -55,13 +61,17 @@ export const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({ visible, o
             </View>
             
             <TouchableOpacity 
-              style={[styles.analyzeButton, !description.trim() && styles.analyzeButtonDisabled]} 
+              style={[
+                styles.analyzeButton, 
+                { backgroundColor: colors.primary || '#3498DB' },
+                !description.trim() && { backgroundColor: colors.surfaceMuted || '#BDC3C7' }
+              ]} 
               onPress={handleAnalyze}
               disabled={!description.trim()}
             >
-              <Ionicons name="sparkles" size={20} color="white" />
-              <Text style={styles.analyzeButtonText}>
-                {t('describeFood.analyze') || 'Analyze'}
+              <Ionicons name="sparkles" size={20} color={colors.onPrimary || '#FFFFFF'} />
+              <Text style={[styles.analyzeButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
+                {t('describeFood.analyze')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -78,13 +88,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2C3E50',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#7F8C8D',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -93,16 +101,12 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#2C3E50',
-    backgroundColor: '#F8F9FA',
     minHeight: 100,
   },
   analyzeButton: {
-    backgroundColor: '#3498DB',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -110,11 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
   },
-  analyzeButtonDisabled: {
-    backgroundColor: '#BDC3C7',
-  },
   analyzeButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

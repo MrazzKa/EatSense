@@ -983,16 +983,16 @@ const ProfileScreen = () => {
                     await Sharing.shareAsync(result.uri);
                   } else {
                     Alert.alert(
-                      t('common.success') || 'Success',
-                      t('profile.monthlyReportDownloaded') || 'Report downloaded successfully',
+                      t('common.success'),
+                      t('profile.monthlyReportDownloaded'),
                     );
                   }
                 }
               } catch (e) {
                 console.error('[ProfileScreen] Failed to download monthly report', e);
                 Alert.alert(
-                  t('common.error') || 'Error',
-                  t('profile.monthlyReportError') || 'Failed to download monthly report. Please try again later.',
+                  t('common.error'),
+                  t('profile.monthlyReportError'),
                 );
               }
             }}

@@ -393,9 +393,17 @@ CRITICAL RULES:
 `;
   }
 
-  async analyzeLabResults(userId: string, rawText: string, language?: string, labType?: string) {
+  async analyzeLabResults(userId: string, dto: { type: string; manualText?: string }) {
+    const { type, manualText } = dto;
+    
+    if (!manualText?.trim()) {
+      throw new BadRequestException('MANUAL_TEXT_OR_FILE_REQUIRED');
+    }
+    
+    const rawText = manualText.trim();
+    const labType = type === 'auto' ? undefined : type;
     const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
-    const userLanguage = language || (userProfile?.preferences as any)?.language || 'en';
+    const userLanguage = (userProfile?.preferences as any)?.language || 'en';
     
     const languageMap: Record<string, string> = {
       en: 'English',
@@ -417,7 +425,7 @@ CRITICAL RULES:
       lipid: 'Lipid Profile',
       glycemic: 'Glycemic Profile',
       vitamins: 'Vitamins & Micronutrients',
-      hormonal: 'Hormonal Profile',
+      hormones: 'Hormonal Profile',
       inflammation: 'Inflammation Markers',
       other: 'General Lab Results',
     };
@@ -505,12 +513,18 @@ Return ONLY valid JSON in this format:
         recommendation: parsed.recommendation || '',
       };
     } catch (error: any) {
+      this.logger.error(
+        `[AiAssistant] LLM error while analyzing lab results for user=${userId}`,
+        error?.stack || error,
+      );
+      
       if (error?.status === 429 || error?.response?.status === 429) {
         const quotaError: any = new Error('AI_QUOTA_EXCEEDED');
         quotaError.status = 429;
         throw quotaError;
       }
-      throw error;
+      
+      throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
     }
   }
 }

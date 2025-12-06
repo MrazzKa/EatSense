@@ -226,6 +226,8 @@
     "deleteAccountError": "Failed to delete account. Please try again.",
     "monthlyReportTitle": "Monthly nutrition report",
     "monthlyReportSubtitle": "Download a detailed report about your eating habits for the last month",
+    "monthlyReportDownloaded": "Report downloaded successfully",
+    "monthlyReportError": "Failed to download monthly report. Please try again later.",
     "goalsTitle": "Goals & diet",
     "goalLabel": "Goal",
     "goalLoseWeight": "Lose weight",
@@ -571,6 +573,7 @@
         "lipid": "Lipid Profile",
         "glycemic": "Glycemic Profile",
         "vitamins": "Vitamins and Trace Elements",
+        "hormones": "Hormonal Profile",
         "hormonal": "Hormonal Profile",
         "inflammation": "Inflammation Markers",
         "other": "Other"
@@ -581,6 +584,7 @@
       "manualPlaceholder": "Enter your lab results here...",
       "submit": "Submit",
       "submitted": "Lab results submitted successfully",
+      "success": "Lab results analyzed successfully",
       "error": "Failed to send results. Please try again.",
       "emptyError": "Please enter lab results or attach a file"
     },
