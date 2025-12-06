@@ -53,7 +53,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
       enableSwipe={true}
       enableBackdropClose={true}
       animationType="fade"
-      presentationStyle="fullScreen"
+      presentationStyle="pageSheet"
     >
       <SafeAreaView 
         style={[styles.container, { backgroundColor: colors.background || colors.surface || '#F8F9FA', flex: 1 }]} 

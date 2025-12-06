@@ -173,24 +173,24 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
             const isNegativeFactor = ['satFat', 'sugar', 'energyDensity'].includes(entry.key);
             
             return (
-              <View key={entry.key} style={styles.factorItem}>
-                <View style={styles.factorHeader}>
+            <View key={entry.key} style={styles.factorItem}>
+              <View style={styles.factorHeader}>
                   <View style={styles.factorLabelContainer}>
-                    <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
+                <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
                     {riskLabel && (
                       <Text style={[styles.factorRiskLabel, { color: colors.textTertiary }]}>
                         {' • '}{riskLabel}
-                      </Text>
-                    )}
+                  </Text>
+                )}
                   </View>
                   <Text style={[styles.factorValue, { color: colors.textSecondary }]}>
                     {entry.scorePercent}%
                   </Text>
-                </View>
-                <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
-                  <View
-                    style={[
-                      styles.factorFill,
+              </View>
+              <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
+                <View
+                  style={[
+                    styles.factorFill,
                       { 
                         width: `${entry.scorePercent}%`, 
                         backgroundColor: isNegativeFactor && entry.scorePercent < 40 
@@ -199,8 +199,8 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
                           ? colors.warning
                           : colors.primary 
                       },
-                    ]}
-                  />
+                  ]}
+                />
                 </View>
               </View>
             );

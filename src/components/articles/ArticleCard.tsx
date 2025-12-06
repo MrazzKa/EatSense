@@ -30,27 +30,31 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       onPress={() => onPress && typeof onPress === 'function' ? onPress(article.slug) : null}
       activeOpacity={0.9}
     >
-      {(article.coverUrl || article.heroImageUrl) ? (
-        <ImageBackground
-          source={{ uri: article.coverUrl || article.heroImageUrl }}
-          style={styles.cover}
-          imageStyle={styles.coverImage}
-        >
-          {featured && (
-            <View style={[styles.featuredBadge, { backgroundColor: colors.primary }]}
-            >
-              <Text style={styles.featuredText}>★</Text>
-              <Text style={styles.featuredLabel}>{featuredLabel}</Text>
-            </View>
-          )}
-        </ImageBackground>
-      ) : (
-        <View style={[styles.coverPlaceholder, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.coverPlaceholderText, { color: colors.textTertiary }]}>
-            {article.title || 'EatSense'}
-          </Text>
-        </View>
-      )}
+      {/* G: Build proper image URL strategy - prioritize coverUrl, then heroImageUrl, then imageUrl, then thumbnailUrl */}
+      {(() => {
+        const imageUrl = article.coverUrl || article.heroImageUrl || article.imageUrl || article.thumbnailUrl || null;
+        return imageUrl ? (
+          <ImageBackground
+            source={{ uri: imageUrl }}
+            style={styles.cover}
+            imageStyle={styles.coverImage}
+          >
+            {featured && (
+              <View style={[styles.featuredBadge, { backgroundColor: colors.primary }]}
+              >
+                <Text style={styles.featuredText}>★</Text>
+                <Text style={styles.featuredLabel}>{featuredLabel}</Text>
+              </View>
+            )}
+          </ImageBackground>
+        ) : (
+          <View style={[styles.coverPlaceholder, { backgroundColor: colors.surface || colors.card }]}>
+            <Text style={[styles.coverPlaceholderText, { color: colors.textTertiary || colors.textSecondary }]}>
+              {article.title || 'EatSense'}
+            </Text>
+          </View>
+        );
+      })()}
 
       <View style={styles.content}>
         <View style={styles.metaRow}>
@@ -73,7 +77,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           ) : null}
         </View>
 
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]} numberOfLines={2}>
           {article.title}
         </Text>
 

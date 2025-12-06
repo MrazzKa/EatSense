@@ -6,9 +6,10 @@ import { FoodLocalizationService } from './food-localization.service';
 import { HybridModule } from '../fdc/hybrid/hybrid.module';
 import { PrismaModule } from '../../prisma.module';
 import { CacheModule } from '../cache/cache.module';
+import { NutritionModule } from './providers/nutrition.module';
 
 @Module({
-  imports: [HybridModule, PrismaModule, CacheModule],
+  imports: [HybridModule, PrismaModule, CacheModule, NutritionModule],
   providers: [VisionService, PortionService, FoodLocalizationService, AnalyzeService],
   exports: [AnalyzeService, VisionService],
 })

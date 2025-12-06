@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AiAssistantService } from './ai-assistant.service';
 import { AssistantOrchestratorService } from './assistant-orchestrator.service';
 import { GeneralQuestionDto, LabResultsDto, NutritionAdviceDto } from './dto';
+import { AnalyzeLabResultsDto } from './dto/analyze-lab-results.dto';
 
 @ApiTags('AI Assistant')
 @Controller('ai-assistant')
@@ -175,49 +176,25 @@ export class AiAssistantController {
   }
 
   @Post('lab-results')
-  @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Analyze lab results (blood tests)' })
   @ApiResponse({ status: 200, description: 'Lab results analyzed successfully' })
   async analyzeLabResults(
-    @Body() dto: LabResultsDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        fileIsRequired: false,
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB
-          new FileTypeValidator({ fileType: /(image|pdf)/ }),
-        ],
-      })
-    ) file?: any,
-    @Request() req?: any,
+    @Body() dto: AnalyzeLabResultsDto,
+    @Request() req: any,
   ) {
-    const userId = dto.userId || req?.user?.id;
+    const userId = req?.user?.id;
     if (!userId) {
-      throw new BadRequestException('userId is required');
+      throw new BadRequestException('User not authenticated');
     }
-    
-    // Extract text from body or file
-    let rawText = dto.rawText || '';
-    
-    // TODO: If file is provided, extract text from image/PDF using OCR
-    // For now, use rawText from body or placeholder
-    if (file && !rawText) {
-      rawText = `[Lab results file uploaded: ${file.originalname || 'file'}]`;
-      // In production, you would use OCR or PDF parsing here
-    }
-    
-    if (!rawText || rawText.trim().length < 10) {
-      throw new BadRequestException('Lab results text is required (at least 10 characters)');
-    }
-    
+
     try {
-      return await this.assistantService.analyzeLabResults(
-        userId, 
-        rawText, 
-        dto.language,
-        dto.labType
-      );
+      return await this.assistantService.analyzeLabResults(userId, dto);
     } catch (error: any) {
+      this.logger.error(
+        '[AiAssistant] Failed to analyze lab results',
+        error?.stack || error,
+      );
+      
       if (error?.message === 'AI_QUOTA_EXCEEDED' || error?.status === 429) {
         throw new ServiceUnavailableException({
           message: 'AI Assistant quota exceeded. Please try again later.',
@@ -225,7 +202,8 @@ export class AiAssistantController {
           statusCode: 503,
         });
       }
-      throw error;
+      
+      throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
     }
   }
 }

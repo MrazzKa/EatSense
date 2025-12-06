@@ -37,7 +37,7 @@ const LAB_TYPES = [
   { id: 'lipid', i18nKey: 'aiAssistant.lab.type.lipid' },
   { id: 'glycemic', i18nKey: 'aiAssistant.lab.type.glycemic' },
   { id: 'vitamins', i18nKey: 'aiAssistant.lab.type.vitamins' },
-  { id: 'hormonal', i18nKey: 'aiAssistant.lab.type.hormonal' },
+  { id: 'hormones', i18nKey: 'aiAssistant.lab.type.hormones' },
   { id: 'inflammation', i18nKey: 'aiAssistant.lab.type.inflammation' },
   { id: 'other', i18nKey: 'aiAssistant.lab.type.other' },
 ];
@@ -133,79 +133,31 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const locale = mapLanguageToLocale(language);
+      // STEP 6: Send JSON body with type and manualText (not multipart when only manualText)
+      const payload = {
+        type: selectedLabType,
+        manualText: question.trim() || undefined,
+      };
 
-      if (selectedFile) {
-        // Create FormData for multipart/form-data
-        const formData = new FormData();
-        formData.append('question', question.trim() || '');
-        formData.append('language', locale);
-        if (selectedLabType !== 'auto') {
-          formData.append('labType', selectedLabType);
-        }
+      await ApiService.sendLabResults(payload);
 
-        formData.append('file', {
-          uri: selectedFile.uri,
-          name: selectedFile.name,
-          type: selectedFile.mimeType,
-        } as any);
+      Alert.alert(
+        t('common.success'),
+        t('aiAssistant.lab.success'),
+      );
 
-        // Use fetch directly for multipart/form-data
-        // Note: Don't set Content-Type header manually - browser/React Native will set it with boundary
-        const headers: any = ApiService.getHeaders();
-        delete headers['Content-Type']; // Let FormData set the Content-Type with boundary
-        
-        // Get baseURL from ApiService instance
-        const baseURL = (ApiService as any).baseURL || 'http://localhost:3000';
-        
-        const response = await fetch(`${baseURL}/ai-assistant/lab-results`, {
-          method: 'POST',
-          headers,
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-        Alert.alert(
-          t('common.success'),
-          t('aiAssistant.lab.submitted'),
-        );
-        if (onResult) {
-          onResult(result);
-        }
-        // Reset form
-        setQuestion('');
-        setSelectedFile(null);
-        setSelectedLabType('auto');
-        onClose();
-      } else {
-        // Text-only submission
-        const response = await ApiService.request('/ai-assistant/lab-results', {
-          method: 'POST',
-          body: JSON.stringify({
-            userId: user.id,
-            rawText: question.trim(),
-            language: locale,
-            labType: selectedLabType !== 'auto' ? selectedLabType : undefined,
-          }),
-        });
-
-        Alert.alert(
-          t('common.success'),
-          t('aiAssistant.lab.submitted'),
-        );
-        if (onResult) {
-          onResult(response);
-        }
-        setQuestion('');
-        setSelectedLabType('auto');
-        onClose();
+      // Reset form
+      setQuestion('');
+      setSelectedLabType('auto');
+      setSelectedFile(null);
+      
+      if (onResult) {
+        onResult({ success: true });
       }
+      
+      onClose();
     } catch (error: any) {
-      console.error('Error submitting lab results:', error);
+      console.error('[LabResultsModal] Error submitting lab results:', error);
       Alert.alert(
         t('common.error'),
         t('aiAssistant.lab.error'),
@@ -336,7 +288,7 @@ export const LabResultsModal: React.FC<LabResultsModalProps> = ({
                   },
                 ]}
                 placeholder={t('aiAssistant.lab.manualPlaceholder')}
-                placeholderTextColor={colors.textTertiary || colors.textSecondary}
+                placeholderTextColor="#9BA3B5"
                 value={question}
                 onChangeText={setQuestion}
                 multiline

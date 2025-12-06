@@ -119,12 +119,12 @@ export default function AnalysisResultsScreen() {
         }
         
         return {
-          name: item.name || item.label || 'Ingredient',
+        name: item.name || item.label || 'Ingredient',
           calories,
-          protein: toMacro(item.protein),
-          carbs: toMacro(item.carbs),
-          fat: toMacro(item.fat),
-          weight: Math.round(toNumber(item.weight ?? item.gramsMean ?? item.portion_g)),
+        protein: toMacro(item.protein),
+        carbs: toMacro(item.carbs),
+        fat: toMacro(item.fat),
+        weight: Math.round(toNumber(item.weight ?? item.gramsMean ?? item.portion_g)),
         };
       });
 

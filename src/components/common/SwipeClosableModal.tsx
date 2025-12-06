@@ -6,8 +6,8 @@ import {
   Animated,
   PanResponder,
   Platform,
-  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface SwipeClosableModalProps {
@@ -23,9 +23,10 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
   visible,
   onClose,
   children,
-  presentationStyle = 'fullScreen',
+  presentationStyle = 'pageSheet', // Default to pageSheet to avoid gray screen on iOS
 }) => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
@@ -78,10 +79,8 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
           styles.root,
           {
             backgroundColor: colors.background || colors.surface || '#FFFFFF',
-            paddingTop:
-              Platform.OS === 'ios' && presentationStyle === 'fullScreen'
-                ? (StatusBar.currentHeight || 0)
-                : 0,
+            // Use safe area insets instead of StatusBar.currentHeight (which is undefined on iOS)
+            paddingTop: Platform.OS === 'ios' && presentationStyle === 'fullScreen' ? insets.top : 0,
           },
         ]}
       >

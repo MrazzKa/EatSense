@@ -18,6 +18,7 @@ import GalleryScreen from './src/screens/GalleryScreen';
 import AnalysisResultsScreen from './src/screens/AnalysisResultsScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import LegalDocumentScreen from './src/screens/LegalDocumentScreen';
+import SuggestedFoodScreen from './src/screens/SuggestedFoodScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 import { clientLog } from './src/utils/clientLog';
 
@@ -139,6 +140,13 @@ function AppContent() {
             <Stack.Screen
               name="LegalDocument"
               component={LegalDocumentScreen}
+              options={{
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="SuggestedFood"
+              component={SuggestedFoodScreen}
               options={{
                 presentation: 'card',
               }}
