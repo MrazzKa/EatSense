@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import OpenAI from 'openai';
 import { AssistantOrchestratorService } from './assistant-orchestrator.service';
