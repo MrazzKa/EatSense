@@ -23,8 +23,6 @@ export default function ReportsScreen() {
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
 
-  const [noData, setNoData] = useState(false);
-
   const handleDownloadCurrentMonth = async () => {
     try {
       console.log('[ReportsScreen] Downloading monthly report');
