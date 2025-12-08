@@ -27,6 +27,7 @@ model User {
   refreshTokens          RefreshToken[]
   userProfile            UserProfile?
   userStats              UserStats?
+  medications            MedicationSchedule[]
 
   @@map("users")
 }
@@ -377,6 +378,29 @@ model UserStats {
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_stats")
+}
+
+// P3.1: Medication Schedule Model
+model MedicationSchedule {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  dosage          String?  // e.g., "1 tablet", "500mg"
+  frequency       String   // e.g., "daily", "twice_daily", "weekly", "custom"
+  times           String[] // Array of time strings in HH:mm format, e.g., ["08:00", "20:00"]
+  daysOfWeek      Int[]?   // 0-6 (Sunday-Saturday), null means every day
+  startDate       DateTime @default(now()) @map("start_date")
+  endDate         DateTime? @map("end_date")
+  notes           String?
+  isActive        Boolean  @default(true) @map("is_active")
+  reminderEnabled Boolean  @default(true) @map("reminder_enabled")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([userId, startDate])
+  @@map("medication_schedules")
 }
 
 model LabResult {

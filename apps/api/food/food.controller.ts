@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DailyLimitGuard } from '../limits/daily-limit.guard';
 import { DailyLimit } from '../limits/daily-limit.decorator';
 import { FoodService } from './food.service';
-import { AnalyzeImageDto, AnalyzeTextDto, ReanalyzeDto } from './dto';
+import { AnalyzeImageDto, AnalyzeTextDto, ReanalyzeDto, ManualReanalyzeDto, ReanalyzeRequestDto } from './dto';
 
 @ApiTags('Food Analysis')
 @Controller('food')
@@ -149,6 +149,77 @@ export class FoodController {
         status: error.status,
         userId,
         analysisId,
+      });
+
+      if (error instanceof BadRequestException || error instanceof ForbiddenException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('REANALYSIS_FAILED');
+    }
+  }
+
+  @Post('analysis/:id/manual-reanalyze')
+  @ApiOperation({ summary: 'Re-analyze with manually edited items (name, portion, macros)' })
+  @ApiResponse({ status: 200, description: 'Analysis recalculated with manual edits' })
+  async manualReanalyze(
+    @Param('id') id: string,
+    @Body() body: any, // Will use NewManualReanalyzeDto
+    @Request() req: any,
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    try {
+      // Use new manualReanalyze method
+      return await this.foodService.manualReanalyze(id, userId, body);
+    } catch (error: any) {
+      this.logger.error('[FoodController] manualReanalyze error', {
+        message: error.message,
+        stack: error.stack,
+        status: error.status,
+        userId,
+        analysisId: id,
+      });
+
+      if (error instanceof BadRequestException || error instanceof ForbiddenException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('MANUAL_REANALYSIS_FAILED');
+    }
+  }
+
+  @Post('analysis/:id/reanalyze')
+  @ApiOperation({ summary: 'Re-analyze: recalculate totals, HealthScore and feedback from current items' })
+  @ApiResponse({ status: 200, description: 'Analysis recalculated successfully' })
+  async reanalyze(
+    @Param('id') id: string,
+    @Body() body: ReanalyzeRequestDto,
+    @Request() req: any,
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    try {
+      // If mode is provided, use full reanalysis from original input
+      if (body?.mode) {
+        return await this.foodService.reanalyzeFromOriginalInput(id, body, userId);
+      }
+      
+      // Otherwise, use simple reanalyze (recalculate totals/healthScore from current items)
+      return await this.foodService.reanalyze(id, userId);
+    } catch (error: any) {
+      this.logger.error('[FoodController] reanalyze error', {
+        message: error.message,
+        stack: error.stack,
+        status: error.status,
+        userId,
+        analysisId: id,
       });
 
       if (error instanceof BadRequestException || error instanceof ForbiddenException) {

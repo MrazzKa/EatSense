@@ -83,11 +83,50 @@
       "gotIt": "Got it"
     },
     "suggestedFood": {
-      "title": "Suggested Food",
-      "subtitle": "Get personalized food recommendations based on your last 7 days",
+      "title": "Smart food suggestions",
+      "subtitle": "Here are simple ideas to better match your goal for the next few days.",
       "shortDescription": "Get simple ideas of what to eat today",
       "description": "Personalized food suggestions based on your goals, preferences, and nutritional needs.",
-      "gotIt": "Got it"
+      "gotIt": "Got it",
+      "loading": "Loading suggestions...",
+      "empty": "We don't have suggestions right now. Try adding a few meals first.",
+      "error": {
+        "generic": "We couldn't load suggestions. We'll show some basic ideas instead."
+      },
+      "sections": {
+        "protein": {
+          "title": "Protein sources",
+          "subtitle": "You're slightly under your protein target. Try adding 1–2 of these options daily.",
+          "items": {
+            "cottageCheese": {
+              "title": "Low-fat cottage cheese",
+              "description": "200 g of cottage cheese for breakfast or dinner is a simple and budget-friendly way to boost protein."
+            },
+            "chickenBreast": {
+              "title": "Chicken breast",
+              "description": "Baked or boiled chicken breast works well with any side — rice, buckwheat, or vegetables."
+            },
+            "eggs": {
+              "title": "Eggs",
+              "description": "2–3 eggs for breakfast, omelet or boiled, give a quick portion of protein and keep you full longer."
+            }
+          }
+        },
+        "fiber": {
+          "title": "Fiber and slow carbs",
+          "subtitle": "A bit more fiber will help with satiety and digestion.",
+          "items": {
+            "oats": {
+              "title": "Oatmeal",
+              "description": "Oatmeal with a little fruit or berries is a simple breakfast that gives long-lasting energy."
+            },
+            "vegetables": {
+              "title": "Vegetable side dishes",
+              "description": "Add fresh or cooked vegetables to lunch and dinner — start with 100–150 g per meal."
+            }
+          }
+        }
+      }
     }
   },
   "articles": {
@@ -125,6 +164,12 @@
     "calories": "Calories",
     "ingredients": "Ingredients",
     "share": "Share",
+    "fixButton": "Fix",
+    "reanalyze": "Re-analyze",
+    "shareButton": "Share",
+    "reanalyzedSuccess": "Analysis recalculated successfully",
+    "reanalyzeError": "Failed to recalculate analysis. Please try again.",
+    "noAnalysisId": "Analysis ID not found",
     "saveToJournal": "Save to Journal",
     "autoSavedTitle": "Auto-saved to your journal",
     "autoSavedDescription": "We saved this meal to your recent entries. You can open or edit it anytime.",
@@ -145,30 +190,52 @@
       "suspiciousTitle": "Analysis may be inaccurate",
       "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
       "needsReview": "Nutrition data unavailable"
-    }
+    },
+    "reanalyze": "Re-analyze",
+    "reanalyzeConfirmTitle": "Re-analyze dish?",
+    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ.",
+    "reanalyzedSuccess": "Analysis recalculated successfully",
+    "reanalyzeError": "Failed to recalculate analysis",
+    "noAnalysisId": "Analysis ID not found"
   },
   "describeFood": {
-    "title": "Describe Your Food",
-    "subtitle": "Tell us what you ate and we'll analyze it",
-    "placeholder": "e.g., Grilled chicken breast with rice and vegetables",
-    "analyze": "Analyze"
+    "title": "Describe your meal",
+    "subtitle": "Describe what you ate in free text. The AI will estimate calories and macros.",
+    "label": "Meal description",
+    "placeholder": "Example: Omelet from 3 eggs with cheese and tomatoes, 2 slices of toast with butter, a cup of cappuccino...",
+    "analyzeButton": "Analyze",
+    "errors": {
+      "emptyText": "Please describe your meal first.",
+      "noAnalysisId": "Analysis created but no ID was returned. Please try again.",
+      "navigationFailed": "Failed to navigate to results. Please try again.",
+      "generic": "Failed to analyze the meal. Please try again."
+    }
   },
   "healthScore": {
+    "title": "Health score",
+    "subtitle": "We estimate how balanced this meal is based on macros and energy density.",
+    "level": {
+      "poor": "Needs improvement",
+      "average": "Okay, but could be better",
+      "good": "Good choice",
+      "excellent": "Excellent choice"
+    },
     "factorLevel": {
       "good": "Good",
       "ok": "Okay",
       "bad": "Needs attention"
     },
-    "title": "Health Score",
     "qualityFactors": "Quality Factors",
     "macroBalance": "Macro Balance",
     "proteinQuality": "Protein Quality",
     "feedback": "Feedback",
     "factors": {
-      "protein": "Protein",
-      "fiber": "Fiber",
+      "protein": "Protein density",
+      "fiber": "Fiber density",
       "satFat": "Saturated fat",
-      "sugar": "Sugar",
+      "saturatedFat": "Saturated fat",
+      "sugar": "Free sugars",
+      "sugars": "Free sugars",
       "energyDensity": "Energy density",
       "macroBalance": "Macro balance",
       "calorieDensity": "Calorie density",
@@ -217,6 +284,10 @@
     "savedMessage": "Your profile was updated successfully.",
     "errorTitle": "Update failed",
     "errorMessage": "Could not update profile. Please try again later.",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "updateFailed": "Could not update profile. Please try again."
+    },
     "deleteAccount": "Delete Account",
     "deleteAccountTitle": "Delete Account",
     "deleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
@@ -549,6 +620,7 @@
     "title": "AI Nutrition Assistant",
     "subtitle": "Ask anything about nutrition, meals, or wellness",
     "placeholder": "Type your question...",
+    "inputPlaceholder": "Type your question...",
     "send": "Send",
     "stop": "Stop",
     "typing": "Assistant is typing...",
@@ -565,6 +637,26 @@
     },
     "lab": {
       "title": "Lab Results Analysis",
+      "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
+      "mode": {
+        "text": "Text",
+        "file": "PDF file"
+      },
+      "textLabel": "Lab results (text)",
+      "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
+      "fileLabel": "PDF report",
+      "attachPdf": "Attach PDF",
+      "fileHint": "Attach a PDF file with your lab report.",
+      "analyzeButton": "Analyze",
+      "resultTitle": "AI Interpretation",
+      "errors": {
+        "emptyText": "Please enter lab results text first.",
+        "noFile": "Please attach a PDF file first.",
+        "filePickFailed": "Failed to pick a file.",
+        "fileNotSupported": "File-based analysis is not yet configured. Please use text mode.",
+        "generic": "Failed to analyze lab results. Please try again.",
+        "noSummary": "The AI did not return a summary. Please try again."
+      },
       "typeTitle": "Type of analysis",
       "type": {
         "auto": "Auto-detect",
@@ -579,7 +671,6 @@
         "other": "Other"
       },
       "attachPhoto": "Attach Photo",
-      "attachPdf": "Attach PDF",
       "manualTitle": "Manual Entry",
       "manualPlaceholder": "Enter your lab results here...",
       "submit": "Submit",
@@ -706,7 +797,11 @@
       "downloadCurrent": "Download current month"
     },
     "downloaded": "Report downloaded successfully",
-    "error": "Failed to download monthly report. Please try again later."
+    "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
+    "error": {
+      "generic": "Failed to generate monthly report. Please try again later.",
+      "network": "Network error. Please check your connection and try again."
+    }
   },
   "legal": {
     "privacyTitle": "Privacy Policy",

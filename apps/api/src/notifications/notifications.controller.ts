@@ -45,7 +45,7 @@ export class NotificationsController {
 
   @Put('preferences')
   @ApiOperation({ summary: 'Update notification preferences for the authenticated user' })
-  updatePreferences(@Request() req: any, @Body() dto: UpdateNotificationPreferencesDto) {
+  async updatePreferences(@Request() req: any, @Body() dto: UpdateNotificationPreferencesDto) {
     return this.notificationsService.updatePreferences(req.user.id, dto);
   }
 }

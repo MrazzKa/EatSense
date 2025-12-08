@@ -209,10 +209,15 @@ export class FoodProcessor {
       }
 
       // Save results (with optional auto-save metadata)
+      // Include imageUrl in result data for future reanalysis
+      const resultDataWithImage = {
+        ...result,
+        imageUrl: imageUrl || null,
+      };
       await this.prisma.analysisResult.create({
         data: {
           analysisId,
-          data: result as any,
+          data: resultDataWithImage as any,
         },
       });
 
@@ -358,6 +363,7 @@ export class FoodProcessor {
                 type: 'MEAL',
                 items: validItems,
                 healthScore: analysisResult.healthScore,
+                imageUri: null, // Text analysis has no image
               });
               result.autoSave = {
                 mealId: meal.id,

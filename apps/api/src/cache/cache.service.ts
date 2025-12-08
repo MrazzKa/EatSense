@@ -6,6 +6,7 @@ type CacheNamespace =
   | 'usda:search'
   | 'usda:detail'
   | 'analysis'
+  | 'vision'
   | 'articles:list'
   | 'articles:detail'
   | 'stats:monthly'
@@ -26,6 +27,7 @@ export class CacheService {
   private readonly defaultTtl = parseInt(process.env.CACHE_DEFAULT_TTL_SEC || '900', 10);
   private readonly usdaTtl = parseInt(process.env.USDA_CACHE_TTL_SEC || '259200', 10);
   private readonly analysisTtl = parseInt(process.env.ANALYSIS_CACHE_TTL_SEC || '86400', 10);
+  private readonly visionTtl = parseInt(process.env.VISION_CACHE_TTL_SEC || '604800', 10); // 7 days default
   private readonly articlesFeedTtl = parseInt(process.env.ARTICLES_FEED_CACHE_TTL_SEC || '900', 10);
   private readonly articlesDetailTtl = parseInt(process.env.ARTICLES_DETAIL_CACHE_TTL_SEC || '86400', 10);
 
@@ -42,6 +44,10 @@ export class CacheService {
 
     if (namespace.startsWith('analysis')) {
       return this.analysisTtl;
+    }
+
+    if (namespace === 'vision') {
+      return this.visionTtl;
     }
 
     if (namespace === 'articles:list') {

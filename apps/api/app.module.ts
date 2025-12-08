@@ -33,6 +33,7 @@ import { NotificationsModule } from './src/notifications/notifications.module';
 import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
 import { OpenFoodFactsModule } from './src/openfoodfacts/openfoodfacts.module';
+import { MedicationsModule } from './src/medications/medications.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { OpenFoodFactsModule } from './src/openfoodfacts/openfoodfacts.module';
     DebugModule,
     SuggestionsModule,
     OpenFoodFactsModule,
+    MedicationsModule,
   ],
   controllers: [HealthController],
 })

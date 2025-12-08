@@ -2,13 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
+import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../../app/i18n/hooks';
 
 interface BottomSheetProps {
   visible: boolean;
   onClose: () => void;
   onCameraPress: () => void;
   onGalleryPress: () => void;
-  onDescribePress: () => void;
+  onDescribeFoodPress: () => void; // Renamed from onDescribePress for clarity
+  onLabResultsPress?: () => void; // Optional, separate from describe food
 }
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
@@ -16,41 +19,73 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onClose,
   onCameraPress,
   onGalleryPress,
-  onDescribePress
+  onDescribeFoodPress,
+  onLabResultsPress,
 }) => {
+  const { colors, tokens } = useTheme();
+  const { t } = useI18n();
+
   return (
     <SwipeClosableModal
       visible={visible}
       onClose={onClose}
-      swipeDirection="down"
-      enableSwipe={true}
-      enableBackdropClose={true}
-      animationType="fade"
+      presentationStyle="pageSheet"
     >
-      <View style={styles.content}>
-        <Text style={styles.title}>Add Food</Text>
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
+        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
+          {t('dashboard.bottomSheet.title') || 'Add Food'}
+        </Text>
         
         <View style={styles.options}>
-          <TouchableOpacity style={styles.option} onPress={onCameraPress}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="camera" size={24} color="#3498DB" />
+          <TouchableOpacity
+            style={[styles.option, { backgroundColor: colors.card || colors.surface }]}
+            onPress={onCameraPress}
+          >
+            <View style={[styles.optionIcon, { backgroundColor: colors.primary + '15' }]}>
+              <Ionicons name="camera" size={24} color={colors.primary} />
             </View>
-            <Text style={styles.optionText}>Camera</Text>
+            <Text style={[styles.optionText, { color: colors.textPrimary || colors.text }]}>
+              {t('dashboard.bottomSheet.takePhoto') || 'Camera'}
+            </Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.option} onPress={onGalleryPress}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="images" size={24} color="#3498DB" />
+          <TouchableOpacity
+            style={[styles.option, { backgroundColor: colors.card || colors.surface }]}
+            onPress={onGalleryPress}
+          >
+            <View style={[styles.optionIcon, { backgroundColor: colors.primary + '15' }]}>
+              <Ionicons name="images" size={24} color={colors.primary} />
             </View>
-            <Text style={styles.optionText}>Gallery</Text>
+            <Text style={[styles.optionText, { color: colors.textPrimary || colors.text }]}>
+              {t('dashboard.bottomSheet.fromGallery') || 'Gallery'}
+            </Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.option} onPress={onDescribePress}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="create" size={24} color="#3498DB" />
+          <TouchableOpacity
+            style={[styles.option, { backgroundColor: colors.card || colors.surface }]}
+            onPress={onDescribeFoodPress}
+          >
+            <View style={[styles.optionIcon, { backgroundColor: colors.primary + '15' }]}>
+              <Ionicons name="create" size={24} color={colors.primary} />
             </View>
-            <Text style={styles.optionText}>Describe Food</Text>
+            <Text style={[styles.optionText, { color: colors.textPrimary || colors.text }]}>
+              {t('dashboard.bottomSheet.describeFood') || 'Describe Food'}
+            </Text>
           </TouchableOpacity>
+
+          {onLabResultsPress && (
+            <TouchableOpacity
+              style={[styles.option, { backgroundColor: colors.card || colors.surface }]}
+              onPress={onLabResultsPress}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: colors.primary + '15' }]}>
+                <Ionicons name="flask" size={24} color={colors.primary} />
+              </View>
+              <Text style={[styles.optionText, { color: colors.textPrimary || colors.text }]}>
+                {t('dashboard.bottomSheet.labResults') || 'Lab Results'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </SwipeClosableModal>
@@ -66,7 +101,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2C3E50',
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -78,14 +112,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: '#F8F9FA',
     borderRadius: 12,
   },
   optionIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E8F4FD',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -93,6 +125,5 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2C3E50',
   },
 });

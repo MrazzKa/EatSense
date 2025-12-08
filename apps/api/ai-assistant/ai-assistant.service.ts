@@ -393,17 +393,38 @@ CRITICAL RULES:
 `;
   }
 
-  async analyzeLabResults(userId: string, dto: { type: string; manualText?: string }) {
-    const { type, manualText } = dto;
-    
-    if (!manualText?.trim()) {
-      throw new BadRequestException('MANUAL_TEXT_OR_FILE_REQUIRED');
+  public async analyzeLabResults(userId: string, dto: { inputType: 'text' | 'file'; text?: string; fileId?: string; fileName?: string; mimeType?: string; locale?: string }) {
+    const { inputType, text, fileId, fileName, mimeType, locale } = dto;
+    const normalizedLocale = (locale || 'en').toLowerCase();
+
+    if (inputType === 'text') {
+      if (!text || !text.trim()) {
+        throw new BadRequestException('Lab results text is required for inputType="text".');
+      }
+      return this.analyzeLabResultsText(userId, text.trim(), normalizedLocale);
     }
-    
-    const rawText = manualText.trim();
-    const labType = type === 'auto' ? undefined : type;
+
+    if (inputType === 'file') {
+      if (!fileId) {
+        throw new BadRequestException('File-based lab results analysis is not yet configured. Please use text mode.');
+      }
+      return this.analyzeLabResultsFile(userId, fileId, {
+        fileName,
+        mimeType,
+        locale: normalizedLocale,
+      });
+    }
+
+    throw new BadRequestException(`Unsupported inputType: ${inputType}`);
+  }
+
+  private async analyzeLabResultsText(userId: string, text: string, locale: string) {
+    this.logger.log(
+      `[AiAssistantService] analyzeLabResultsText() called, locale=${locale}`,
+    );
+
     const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
-    const userLanguage = (userProfile?.preferences as any)?.language || 'en';
+    const userLanguage = locale || (userProfile?.preferences as any)?.language || 'en';
     
     const languageMap: Record<string, string> = {
       en: 'English',
@@ -418,56 +439,29 @@ CRITICAL RULES:
     };
     const responseLanguage = languageMap[userLanguage] || 'English';
 
-    // Map lab type to context
-    const labTypeContext: Record<string, string> = {
-      cbc: 'Complete Blood Count (CBC)',
-      biochemistry: 'Blood Biochemistry Panel',
-      lipid: 'Lipid Profile',
-      glycemic: 'Glycemic Profile',
-      vitamins: 'Vitamins & Micronutrients',
-      hormones: 'Hormonal Profile',
-      inflammation: 'Inflammation Markers',
-      other: 'General Lab Results',
-    };
+    const prompt = this.buildLabResultsPrompt(text, responseLanguage);
+    const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
+    const userLanguage = locale || (userProfile?.preferences as any)?.language || 'en';
     
-    const labTypeLabel = labType ? labTypeContext[labType] || labType : 'General Lab Results';
-
-    const systemPrompt = `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
-This is a ${labTypeLabel} analysis.
-
-CRITICAL RULES:
-1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
-2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
-3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
-4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
-5. Provide structured JSON output with:
-   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
-   - summary: brief overall summary string
-   - recommendation: actionable recommendations string
-6. Respond in ${responseLanguage}.
-
-Return ONLY valid JSON in this format:
-{
-  "metrics": [
-    {
-      "name": "WBC",
-      "value": 7.5,
-      "unit": "10^3/μL",
-      "isNormal": true,
-      "level": "normal",
-      "comment": "Within typical range"
-    }
-  ],
-  "summary": "Overall summary...",
-  "recommendation": "Recommendations..."
-}`;
+    const languageMap: Record<string, string> = {
+      en: 'English',
+      ru: 'Russian',
+      kk: 'Kazakh',
+      es: 'Spanish',
+      de: 'German',
+      fr: 'French',
+      ko: 'Korean',
+      ja: 'Japanese',
+      zh: 'Chinese',
+    };
+    const responseLanguage = languageMap[userLanguage] || 'English';
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-5.1',
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Analyze these lab results:\n\n${rawText}` },
+          { role: 'system', content: prompt },
+          { role: 'user', content: `Analyze these lab results:\n\n${text}` },
         ],
         max_completion_tokens: 2000,
         temperature: 0.3,
@@ -481,7 +475,7 @@ Return ONLY valid JSON in this format:
       const labResult = await this.prisma.labResult.create({
         data: {
           userId,
-          rawText,
+          rawText: text,
           summary: parsed.summary || '',
           recommendation: parsed.recommendation || '',
         },
@@ -511,6 +505,10 @@ Return ONLY valid JSON in this format:
         metrics: parsed.metrics || [],
         summary: parsed.summary || '',
         recommendation: parsed.recommendation || '',
+        rawInterpretation: {
+          prompt,
+          locale,
+        },
       };
     } catch (error: any) {
       this.logger.error(
@@ -526,5 +524,126 @@ Return ONLY valid JSON in this format:
       
       throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
     }
+  }
+
+  private async analyzeLabResultsFile(
+    userId: string,
+    fileId: string,
+    opts: { fileName?: string; mimeType?: string; locale: string },
+  ) {
+    this.logger.log(
+      `[AiAssistantService] analyzeLabResultsFile() called, fileId=${fileId}, locale=${opts.locale}`,
+    );
+
+    // TODO: Download file by fileId, parse PDF, and send to LLM
+    const summary =
+      opts.locale.startsWith('ru')
+        ? `Пока что анализ PDF-анализов по fileId=${fileId} не реализован. Пожалуйста, введите значения вручную в текстовом режиме.`
+        : opts.locale.startsWith('kk')
+        ? `Қазіргі кезде PDF талдауы fileId=${fileId} үшін іске асырылмаған. Өтінемін, көрсеткіштерді мәтін түрінде енгізіңіз.`
+        : `File-based lab result analysis (fileId=${fileId}) is not configured yet. Please use text mode for now.`;
+
+    return {
+      summary,
+      rawInterpretation: {
+        fileId,
+        fileName: opts.fileName,
+        mimeType: opts.mimeType,
+        locale: opts.locale,
+      },
+    };
+  }
+
+  private buildLabResultsPrompt(text: string, language: string): string {
+    if (language === 'Russian') {
+      return `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
+
+CRITICAL RULES:
+1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
+2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
+3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
+4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
+5. Provide structured JSON output with:
+   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
+   - summary: brief overall summary string in Russian
+   - recommendation: actionable recommendations string in Russian
+6. Respond in Russian.
+
+Return ONLY valid JSON in this format:
+{
+  "metrics": [
+    {
+      "name": "WBC",
+      "value": 7.5,
+      "unit": "10^3/μL",
+      "isNormal": true,
+      "level": "normal",
+      "comment": "В пределах нормы"
+    }
+  ],
+  "summary": "Общая сводка...",
+  "recommendation": "Рекомендации..."
+}`;
+    }
+
+    if (language === 'Kazakh') {
+      return `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
+
+CRITICAL RULES:
+1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
+2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
+3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
+4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
+5. Provide structured JSON output with:
+   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
+   - summary: brief overall summary string in Kazakh
+   - recommendation: actionable recommendations string in Kazakh
+6. Respond in Kazakh.
+
+Return ONLY valid JSON in this format:
+{
+  "metrics": [
+    {
+      "name": "WBC",
+      "value": 7.5,
+      "unit": "10^3/μL",
+      "isNormal": true,
+      "level": "normal",
+      "comment": "Қалыпты шеңберде"
+    }
+  ],
+  "summary": "Жалпы қорытынды...",
+  "recommendation": "Ұсыныстар..."
+}`;
+    }
+
+    return `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
+
+CRITICAL RULES:
+1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
+2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
+3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
+4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
+5. Provide structured JSON output with:
+   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
+   - summary: brief overall summary string
+   - recommendation: actionable recommendations string
+6. Respond in English.
+
+Return ONLY valid JSON in this format:
+{
+  "metrics": [
+    {
+      "name": "WBC",
+      "value": 7.5,
+      "unit": "10^3/μL",
+      "isNormal": true,
+      "level": "normal",
+      "comment": "Within typical range"
+    }
+  ],
+  "summary": "Overall summary...",
+  "recommendation": "Recommendations..."
+}`;
   }
 }

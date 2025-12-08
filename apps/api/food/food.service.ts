@@ -8,7 +8,8 @@ import { calculateHealthScore } from './food-health-score.util';
 import { normalizeFoodName } from '../src/analysis/text-utils';
 import { AnalysisData, AnalyzedItem, AnalysisTotals, HealthScore, Nutrients } from '../src/analysis/analysis.types';
 import { AnalyzeService } from '../src/analysis/analyze.service';
-import { ReanalyzeDto } from './dto';
+import { ReanalyzeDto, ManualReanalyzeDto, ReanalyzeRequestDto } from './dto';
+import { ManualReanalyzeDto as NewManualReanalyzeDto } from './dto/manual-reanalyze.dto';
 
 @Injectable()
 export class FoodService {
@@ -563,7 +564,7 @@ export class FoodService {
     }
 
     // 4. Compute HealthScore using AnalyzeService (reuse existing logic)
-    const healthScore = this.analyzeService.computeHealthScore(total, total.portion_g, items);
+    const healthScore = this.analyzeService.computeHealthScore(total, total.portion_g, items, locale as 'en' | 'ru' | 'kk');
 
     // 5. Run sanity check
     const debug: any = {};
@@ -638,5 +639,470 @@ export class FoodService {
 
     // 10. Return updated data in frontend-compatible format
     return this.mapAnalysisResult(updatedAnalysisData);
+  }
+
+  /**
+   * Re-analyze from original input (image/text) - full re-run
+   */
+  async reanalyzeFromOriginalInput(
+    analysisId: string,
+    dto: ReanalyzeRequestDto,
+    userId: string,
+  ): Promise<any> {
+    // 1. Verify analysis belongs to this user
+    const analysis = await this.prisma.analysis.findFirst({
+      where: {
+        id: analysisId,
+        userId,
+      },
+      include: {
+        results: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!analysis) {
+      throw new ForbiddenException('Analysis not found or access denied');
+    }
+
+    // 2. Get original input from analysis metadata
+    const metadata = analysis.metadata as any;
+    const imageUrl = metadata?.imageUrl;
+    const textQuery = metadata?.textQuery;
+    const locale = metadata?.locale || 'en';
+    const region = metadata?.region;
+
+    if (!imageUrl && !textQuery) {
+      throw new BadRequestException('Original analysis input (image or text) not found');
+    }
+
+    // 3. Re-run analysis using AnalyzeService
+    let newAnalysisData: AnalysisData;
+    const mode = dto.mode || 'review';
+
+    if (imageUrl) {
+      this.logger.log(`[FoodService] Re-analyzing image from original URL for analysis ${analysisId}`);
+      newAnalysisData = await this.analyzeService.analyzeImage({
+        imageUrl,
+        locale: locale as 'en' | 'ru' | 'kk',
+        mode,
+      });
+    } else if (textQuery) {
+      this.logger.log(`[FoodService] Re-analyzing text from original query for analysis ${analysisId}`);
+      newAnalysisData = await this.analyzeService.analyzeText(
+        textQuery,
+        locale as 'en' | 'ru' | 'kk',
+      );
+    } else {
+      throw new BadRequestException('No valid input found for re-analysis');
+    }
+
+    // 4. Mark as reanalysis
+    newAnalysisData.reanalysisOf = analysisId;
+    newAnalysisData.source = 'reanalysis';
+
+    // 5. Update AnalysisResult in DB
+    if (analysis.results && analysis.results.length > 0) {
+      // Update existing result
+      await this.prisma.analysisResult.update({
+        where: { id: analysis.results[0].id },
+        data: { data: newAnalysisData as any },
+      });
+    } else {
+      // Create new result
+      await this.prisma.analysisResult.create({
+        data: {
+          analysisId: analysis.id,
+          data: newAnalysisData as any,
+        },
+      });
+    }
+
+    // 6. Return updated data in frontend-compatible format
+    return this.mapAnalysisResult(newAnalysisData);
+  }
+
+  /**
+   * Re-analyze with manually edited component names and portions
+   * Uses AnalyzeService.reanalyzeWithManualComponents to recalculate nutrients
+   */
+  async reanalyzeWithManualComponents(
+    dto: ManualReanalyzeDto & { analysisId: string },
+    userId: string,
+  ): Promise<any> {
+    this.logger.log(`[FoodService] reanalyzeWithManualComponents() called for analysisId=${dto.analysisId}, userId=${userId}`);
+
+    // 1. Verify analysis belongs to this user
+    const analysis = await this.prisma.analysis.findFirst({
+      where: {
+        id: dto.analysisId,
+        userId,
+      },
+    });
+
+    if (!analysis) {
+      throw new ForbiddenException('Analysis not found or access denied');
+    }
+
+    try {
+      // 2. Call AnalyzeService to reanalyze with manual components
+      const newAnalysisData = await this.analyzeService.reanalyzeWithManualComponents(
+        {
+          analysisId: dto.analysisId,
+          components: dto.components,
+          locale: dto.locale,
+          region: dto.region,
+        },
+        userId,
+      );
+
+      // 3. Update AnalysisResult in DB
+      const existingResult = await this.prisma.analysisResult.findFirst({
+        where: { analysisId: dto.analysisId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (existingResult) {
+        await this.prisma.analysisResult.update({
+          where: { id: existingResult.id },
+          data: { data: newAnalysisData as any },
+        });
+      } else {
+        await this.prisma.analysisResult.create({
+          data: {
+            analysisId: dto.analysisId,
+            data: newAnalysisData as any,
+          },
+        });
+      }
+
+      // 4. Update Meal and MealItem if they exist
+      await this.updateMealFromAnalysisResult(dto.analysisId, newAnalysisData);
+
+      // 5. Return updated data in frontend-compatible format
+      return this.mapAnalysisResult(newAnalysisData);
+    } catch (error: any) {
+      this.logger.error(
+        `[FoodService] reanalyzeWithManualComponents() failed for analysisId=${dto.analysisId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Manual reanalyze: обновление items на основе пользовательских правок
+   * и пересчёт totals + HealthScore + feedback.
+   */
+  async manualReanalyze(
+    analysisId: string,
+    userId: string,
+    dto: NewManualReanalyzeDto,
+  ): Promise<any> {
+    // 1. Находим анализ и проверяем владельца
+    const analysis = await this.prisma.analysis.findFirst({
+      where: {
+        id: analysisId,
+        userId,
+      },
+      include: {
+        results: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!analysis) {
+      throw new ForbiddenException('Analysis not found or access denied');
+    }
+
+    if (!analysis.results.length) {
+      throw new BadRequestException('Analysis results not found');
+    }
+
+    const lastResult = analysis.results[0];
+    const previousData = (lastResult.data || {}) as AnalysisData;
+    const previousItems = previousData.items || [];
+
+    // 2. Собираем карту по id, а также по индексу для fallback
+    const itemsById = new Map<string, AnalyzedItem>();
+    previousItems.forEach((item, index) => {
+      if (item.id) {
+        itemsById.set(item.id, item);
+      } else {
+        // индекс в качестве псевдо-id
+        itemsById.set(String(index), item);
+      }
+    });
+
+    // 3. Строим новый список items с учётом dto
+    const updatedItems: AnalyzedItem[] = dto.items.map((incoming, index) => {
+      const key = incoming.id || String(index);
+      const original = itemsById.get(key);
+
+      if (!original) {
+        // Если не нашли исходный — создаём новый элемент
+        const portion = incoming.portion_g;
+        return {
+          id: incoming.id || `manual-${index}`,
+          name: incoming.name,
+          originalName: incoming.name,
+          portion_g: portion,
+          nutrients: {
+            calories: incoming.calories ?? 0,
+            protein: incoming.protein_g ?? 0,
+            carbs: incoming.carbs_g ?? 0,
+            fat: incoming.fat_g ?? 0,
+            fiber: 0,
+            sugars: 0,
+            satFat: 0,
+            energyDensity: incoming.calories && portion > 0 ? (incoming.calories / portion) * 100 : 0,
+          },
+          source: 'manual' as AnalyzedItem['source'],
+        };
+      }
+
+      // Если исходный есть, скейлим КБЖУ пропорционально новой порции
+      const newPortion = incoming.portion_g;
+      const oldPortion = original.portion_g || newPortion || 1;
+      const factor = oldPortion > 0 ? newPortion / oldPortion : 1;
+
+      return {
+        ...original,
+        id: original.id || incoming.id || `manual-${index}`,
+        name: incoming.name,
+        originalName: incoming.name,
+        portion_g: newPortion,
+        nutrients: {
+          calories: incoming.calories ?? original.nutrients.calories * factor,
+          protein: incoming.protein_g ?? original.nutrients.protein * factor,
+          fat: incoming.fat_g ?? original.nutrients.fat * factor,
+          carbs: incoming.carbs_g ?? original.nutrients.carbs * factor,
+          fiber: original.nutrients.fiber * factor,
+          sugars: original.nutrients.sugars * factor,
+          satFat: original.nutrients.satFat * factor,
+          energyDensity: incoming.calories && newPortion > 0 
+            ? (incoming.calories / newPortion) * 100 
+            : (original.nutrients.energyDensity || 0),
+        },
+        source: 'manual' as AnalyzedItem['source'],
+      };
+    });
+
+    // 4. Пересчитываем totals + healthScore + feedback
+    const { totals, healthScore, feedback } =
+      await this.recalculateAnalysisFromItems(updatedItems, analysis);
+
+    const metadata = (analysis.metadata || {}) as any;
+    const locale = metadata.locale || 'en';
+
+    const newData: AnalysisData = {
+      ...previousData,
+      items: updatedItems,
+      total: totals,
+      totals,
+      healthScore,
+      feedback,
+      locale: locale as 'en' | 'ru' | 'kk',
+    };
+
+    // 5. Создаём новый AnalysisResult
+    const newResult = await this.prisma.analysisResult.create({
+      data: {
+        analysisId: analysis.id,
+        data: newData as any,
+      },
+    });
+
+    // 6. Обновляем Meal если есть
+    await this.updateMealFromAnalysisResult(analysisId, newData);
+
+    this.logger.log(
+      `[manualReanalyze] Analysis ${analysisId} updated manually by user ${userId}`,
+    );
+
+    // 7. Возвращаем в формате для фронта
+    return this.mapAnalysisResult(newData);
+  }
+
+  /**
+   * Reanalyze без изменения items:
+   * перезапускает расчёт totals + HealthScore + feedback по текущим items.
+   */
+  async reanalyze(analysisId: string, userId: string): Promise<any> {
+    const analysis = await this.prisma.analysis.findFirst({
+      where: {
+        id: analysisId,
+        userId,
+      },
+      include: {
+        results: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!analysis) {
+      throw new ForbiddenException('Analysis not found or access denied');
+    }
+
+    if (!analysis.results.length) {
+      throw new BadRequestException('Analysis results not found');
+    }
+
+    const lastResult = analysis.results[0];
+    const previousData = (lastResult.data || {}) as AnalysisData;
+    const items = previousData.items || [];
+
+    // Пересчитываем totals + healthScore + feedback
+    const { totals, healthScore, feedback } =
+      await this.recalculateAnalysisFromItems(items, analysis);
+
+    const metadata = (analysis.metadata || {}) as any;
+    const locale = metadata.locale || 'en';
+
+    const newData: AnalysisData = {
+      ...previousData,
+      total: totals,
+      totals,
+      healthScore,
+      feedback,
+      locale: locale as 'en' | 'ru' | 'kk',
+    };
+
+    // Создаём новый AnalysisResult
+    const newResult = await this.prisma.analysisResult.create({
+      data: {
+        analysisId: analysis.id,
+        data: newData as any,
+      },
+    });
+
+    // Обновляем Meal если есть
+    await this.updateMealFromAnalysisResult(analysisId, newData);
+
+    this.logger.log(
+      `[reanalyze] Analysis ${analysisId} reanalyzed for user ${userId}`,
+    );
+
+    return this.mapAnalysisResult(newData);
+  }
+
+  /**
+   * Вспомогательный метод пересчёта totals + HealthScore + feedback
+   * по списку items.
+   */
+  private async recalculateAnalysisFromItems(
+    items: AnalyzedItem[],
+    analysis: { metadata?: any },
+  ): Promise<{
+    totals: AnalysisTotals;
+    healthScore: HealthScore;
+    feedback: any;
+  }> {
+    // 1. totals
+    const totals: AnalysisTotals = items.reduce(
+      (acc, item) => {
+        acc.portion_g += item.portion_g || 0;
+        acc.calories += item.nutrients?.calories || 0;
+        acc.protein += item.nutrients?.protein || 0;
+        acc.fat += item.nutrients?.fat || 0;
+        acc.carbs += item.nutrients?.carbs || 0;
+        acc.fiber += item.nutrients?.fiber || 0;
+        acc.sugars += item.nutrients?.sugars || 0;
+        acc.satFat += item.nutrients?.satFat || 0;
+        return acc;
+      },
+      {
+        portion_g: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 0,
+      } as AnalysisTotals,
+    );
+
+    // Recalculate energyDensity
+    if (totals.portion_g > 0) {
+      totals.energyDensity = (totals.calories / totals.portion_g) * 100;
+    }
+
+    // 2. locale можно взять из metadata анализа
+    const metadata = (analysis.metadata || {}) as any;
+    const locale = metadata.locale || 'en';
+
+    // 3. HealthScore + feedback — используем AnalyzeService
+    const healthScore = this.analyzeService.computeHealthScore(
+      totals,
+      totals.portion_g,
+      items,
+      locale as 'en' | 'ru' | 'kk',
+    );
+
+    // Feedback уже включен в healthScore
+    const feedback = healthScore.feedback || [];
+
+    return { totals, healthScore, feedback };
+  }
+
+  /**
+   * Helper method: Update Meal and MealItem from AnalysisResult
+   */
+  private async updateMealFromAnalysisResult(analysisId: string, result: AnalysisData) {
+    try {
+      const meal = await this.prisma.meal.findFirst({
+        where: { analysisId },
+        include: { items: true },
+      });
+
+      if (!meal) {
+        this.logger.debug(`[FoodService] No Meal found for analysisId=${analysisId}, skipping meal update`);
+        return;
+      }
+
+      const items = result.items || [];
+      const mealName = result.dishNameLocalized || result.originalDishName || meal.name;
+
+      // Delete old items and create new ones
+      await this.prisma.mealItem.deleteMany({
+        where: { mealId: meal.id },
+      });
+
+      await this.prisma.meal.update({
+        where: { id: meal.id },
+        data: {
+          name: mealName,
+          healthScore: result.healthScore?.score ?? null,
+          healthGrade: result.healthScore?.grade ?? null,
+          healthInsights: result.healthScore ? (result.healthScore as any) : null,
+          items: {
+            create: items.map((item: AnalyzedItem) => ({
+              name: item.name,
+              calories: item.nutrients.calories,
+              protein: item.nutrients.protein,
+              carbs: item.nutrients.carbs,
+              fat: item.nutrients.fat,
+              weight: item.portion_g,
+            })),
+          },
+        },
+      });
+
+      this.logger.log(`[FoodService] Updated Meal ${meal.id} from analysis result`);
+    } catch (error: any) {
+      this.logger.warn(
+        `[FoodService] Failed to update Meal from analysis result for analysisId=${analysisId}`,
+        error instanceof Error ? error.message : String(error),
+      );
+      // Don't throw - meal update failure shouldn't block reanalysis
+    }
   }
 }

@@ -366,15 +366,25 @@ class ApiService {
     });
   }
 
-  async analyzeText(description, locale) {
+  /**
+   * Analyze food from text description
+   * @param {string} text - Food description text
+   * @param {string} locale - Locale (en/ru/kk)
+   * @returns {Promise<{analysisId: string}>} - Returns analysisId for polling or direct navigation
+   */
+  async analyzeText(text, locale) {
     const localeParam = locale || 'en';
-    return this.request('/food/analyze-text', {
+    const response = await this.request('/food/analyze-text', {
       method: 'POST',
       body: JSON.stringify({
-        description: description.trim(),
+        description: text.trim(),
         locale: localeParam,
       }),
     });
+    
+    // Backend should return { analysisId: string } or similar
+    // If it returns the full analysis object, extract analysisId
+    return response;
   }
 
   async getAnalysisStatus(analysisId) {
@@ -385,11 +395,101 @@ class ApiService {
     return this.request(`/food/analysis/${analysisId}/result`);
   }
 
-  async reanalyzeAnalysis(analysisId, items) {
+  /**
+   * Reanalyze: recalculate totals, HealthScore and feedback from current items
+   * (without changing items or calling Vision/providers)
+   */
+  async reanalyzeAnalysis(analysisId) {
     return this.request(`/food/analysis/${analysisId}/reanalyze`, {
       method: 'POST',
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({}),
     });
+  }
+
+  /**
+   * Re-analyze with manually edited items (name, portion, macros)
+   * Backend will recalculate totals, HealthScore and feedback
+   */
+  async manualReanalyzeAnalysis(analysisId, items) {
+    return this.request(`/food/analysis/${analysisId}/manual-reanalyze`, {
+      method: 'POST',
+      body: JSON.stringify({
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name.trim(),
+          portion_g: Number(item.portion_g) || 0,
+          calories: item.calories !== undefined ? Number(item.calories) : undefined,
+          protein_g: item.protein_g !== undefined ? Number(item.protein_g) : undefined,
+          fat_g: item.fat_g !== undefined ? Number(item.fat_g) : undefined,
+          carbs_g: item.carbs_g !== undefined ? Number(item.carbs_g) : undefined,
+        })),
+      }),
+    });
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   */
+  async manualReanalyze(analysisId, components) {
+    return this.manualReanalyzeAnalysis(
+      analysisId,
+      components.map(comp => ({
+        id: comp.id || String(comp.index),
+        name: comp.name,
+        portion_g: comp.portion_g,
+      }))
+    );
+  }
+
+  /**
+   * Re-analyze from original input (full re-run)
+   * @param {string} analysisId - Analysis ID
+   * @param {object} options - Options with mode ('default' | 'review')
+   */
+  async reanalyzeFromOriginal(analysisId, options = {}) {
+    return this.request(`/food/analysis/${analysisId}/reanalyze`, {
+      method: 'POST',
+      body: JSON.stringify({
+        mode: options.mode || 'review',
+      }),
+    });
+  }
+
+  /**
+   * Get monthly report as PDF
+   * @param {object} params - Parameters: { year, month, locale }
+   * @returns {Promise<{status: number, ok: boolean, data: Blob|null}>} - Response with PDF blob or 204 if no data
+   */
+  async getMonthlyReport(params = {}) {
+    const { year, month, locale } = params;
+    const queryParams = new URLSearchParams();
+    
+    if (year) queryParams.append('year', year.toString());
+    if (month) queryParams.append('month', month.toString());
+    if (locale) queryParams.append('locale', locale);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/stats/monthly-report${queryString ? `?${queryString}` : ''}`;
+
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      // Return response with status for handling on the screen
+      // Don't throw on 204/404 - let the screen handle it
+      return {
+        status: response.status,
+        ok: response.ok,
+        headers: response.headers,
+        data: response.status === 200 ? await response.blob() : null,
+      };
+    } catch (error) {
+      console.error('[ApiService] getMonthlyReport error:', error);
+      // Re-throw network errors so screen can handle them
+      throw error;
+    }
   }
 
   // Meals
@@ -518,13 +618,23 @@ class ApiService {
     }
   }
 
-  async getSuggestedFoods() {
+  /**
+   * Get personalized food suggestions from backend
+   * @param {string} locale - User's locale ('en' | 'ru' | 'kk')
+   * @returns {Promise<Array|Object>} Array of suggested food items or object with sections
+   */
+  async getSuggestedFoods(locale) {
     try {
-      const response = await this.request('/suggestions/foods');
+      // Pass locale to backend for personalized suggestions
+      const params = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+      const response = await this.request(`/suggestions/foods${params}`);
+      // Backend may return array of items, array of sections, or object with sections
+      // Return as-is, let screen normalize
       return response || [];
     } catch (error) {
       console.error('[ApiService] getSuggestedFoods error:', error);
-      return [];
+      // Re-throw so screen can handle fallback gracefully
+      throw error;
     }
   }
 
@@ -631,19 +741,29 @@ class ApiService {
     }
   }
 
-  async analyzeLabResults(userId, rawText, language) {
-    return this.request('/ai-assistant/lab-results', {
-      method: 'POST',
-      body: JSON.stringify({ userId, rawText, language }),
-    });
-  }
-
-  async sendLabResults(payload) {
-    // STEP 6: Send lab results with JSON body (type, manualText)
+  /**
+   * Analyze lab results (text or file)
+   * @param {Object} payload - { inputType: 'text' | 'file', text?: string, fileId?: string, fileName?: string, mimeType?: string, locale?: string }
+   */
+  async analyzeLabResults(payload) {
     return this.request('/ai-assistant/lab-results', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   * @deprecated Use analyzeLabResults instead
+   */
+  async sendLabResults(payload) {
+    // Convert old format to new format
+    const newPayload = {
+      inputType: payload.manualText ? 'text' : 'file',
+      text: payload.manualText,
+      locale: payload.locale,
+    };
+    return this.analyzeLabResults(newPayload);
   }
 
   async listAssistantFlows() {

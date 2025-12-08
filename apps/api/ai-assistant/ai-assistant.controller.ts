@@ -191,10 +191,21 @@ export class AiAssistantController {
       return await this.assistantService.analyzeLabResults(userId, dto);
     } catch (error: any) {
       this.logger.error(
-        '[AiAssistant] Failed to analyze lab results',
-        error?.stack || error,
+        '[AiAssistantController] analyzeLabResults error',
+        {
+          message: error.message,
+          stack: error.stack,
+          status: error.status,
+          userId,
+          inputType: dto.inputType,
+        },
       );
-      
+
+      // If service threw HttpException (BadRequest, etc.) - re-throw as-is
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
       if (error?.message === 'AI_QUOTA_EXCEEDED' || error?.status === 429) {
         throw new ServiceUnavailableException({
           message: 'AI Assistant quota exceeded. Please try again later.',
@@ -202,8 +213,9 @@ export class AiAssistantController {
           statusCode: 503,
         });
       }
-      
-      throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
+
+      // For other errors, throw InternalServerErrorException
+      throw new InternalServerErrorException('Failed to analyze lab results');
     }
   }
 }

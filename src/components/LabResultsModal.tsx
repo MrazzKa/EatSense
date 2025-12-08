@@ -3,26 +3,20 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   TextInput,
-  ScrollView,
-  Image,
-  Alert,
+  TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
+  ScrollView,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
-import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
-import { mapLanguageToLocale } from '../utils/locale';
-import { ProfileSegmentedControl } from './ProfileSegmentedControl';
+
+type LabMode = 'text' | 'file';
 
 interface LabResultsModalProps {
   visible: boolean;
@@ -30,431 +24,375 @@ interface LabResultsModalProps {
   onResult?: (result: any) => void;
 }
 
-const LAB_TYPES = [
-  { id: 'auto', i18nKey: 'aiAssistant.lab.type.auto' },
-  { id: 'cbc', i18nKey: 'aiAssistant.lab.type.cbc' },
-  { id: 'biochemistry', i18nKey: 'aiAssistant.lab.type.biochemistry' },
-  { id: 'lipid', i18nKey: 'aiAssistant.lab.type.lipid' },
-  { id: 'glycemic', i18nKey: 'aiAssistant.lab.type.glycemic' },
-  { id: 'vitamins', i18nKey: 'aiAssistant.lab.type.vitamins' },
-  { id: 'hormones', i18nKey: 'aiAssistant.lab.type.hormones' },
-  { id: 'inflammation', i18nKey: 'aiAssistant.lab.type.inflammation' },
-  { id: 'other', i18nKey: 'aiAssistant.lab.type.other' },
-];
-
-export const LabResultsModal: React.FC<LabResultsModalProps> = ({
-  visible,
-  onClose,
-  onResult,
-}) => {
-  console.log('[LabResultsModal] visible:', visible);
-  
-  const { t, language } = useI18n();
-  const { colors, tokens } = useTheme();
-  const { user } = useAuth();
+const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onResult }) => {
   const insets = useSafeAreaInsets();
+  const { colors, tokens } = useTheme();
+  const { t, language } = useI18n();
 
-  const [selectedLabType, setSelectedLabType] = useState<string>('auto');
-  const [question, setQuestion] = useState('');
-  const [selectedFile, setSelectedFile] = useState<{ type: 'image' | 'pdf'; uri: string; name: string; mimeType: string } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState<LabMode>('text');
+  const [text, setText] = useState('');
+  const [file, setFile] = useState<DocumentPicker.DocumentPickerResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
 
-  const handlePickImage = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert(
-          t('common.error'),
-          t('gallery.permissionRequired'),
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.9,
-        allowsEditing: false,
-      });
-
-      if (!result.canceled && result.assets?.[0]) {
-        const asset = result.assets[0];
-        setSelectedFile({
-          type: 'image',
-          uri: asset.uri,
-          name: asset.fileName || 'lab-photo.jpg',
-          mimeType: asset.mimeType || 'image/jpeg',
-        });
-      }
-    } catch (e) {
-      console.warn('handlePickImage error', e);
-    }
+  const resetState = () => {
+    setMode('text');
+    setText('');
+    setFile(null);
+    setLoading(false);
+    setError(null);
+    setResult(null);
   };
 
-  const handlePickDocument = async () => {
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
+  const handlePickFile = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
+      setError(null);
+      const res = await DocumentPicker.getDocumentAsync({
         type: ['application/pdf'],
         multiple: false,
         copyToCacheDirectory: true,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        setSelectedFile({
-          type: 'pdf',
-          uri: asset.uri,
-          name: asset.name || 'document.pdf',
-          mimeType: asset.mimeType || 'application/pdf',
-        });
+      if (res.canceled) return;
+
+      if (res.assets && res.assets.length > 0) {
+        setFile(res);
+        setMode('file');
       }
-    } catch (e) {
-      console.warn('handlePickDocument error', e);
+    } catch (err) {
+      console.error('LabResultsModal: file pick error', err);
+      setError(t('aiAssistant.lab.errors.filePickFailed'));
     }
   };
 
-  const handleRemoveAttachment = () => {
-    setSelectedFile(null);
-  };
+  const handleAnalyze = async () => {
+    setError(null);
+    setResult(null);
 
-  const handleSubmit = async () => {
-    if (!question.trim() && !selectedFile) {
-      Alert.alert(
-        t('common.error'),
-        t('aiAssistant.lab.emptyError'),
-      );
-      return;
+    // Simple validation: either text or file
+    if (mode === 'text') {
+      if (!text.trim()) {
+        setError(t('aiAssistant.lab.errors.emptyText'));
+        return;
+      }
     }
 
-    if (!user?.id) {
-      Alert.alert(t('common.error'), t('auth.error'));
-      return;
+    if (mode === 'file') {
+      if (!file || file.canceled || !file.assets || file.assets.length === 0) {
+        setError(t('aiAssistant.lab.errors.noFile'));
+        return;
+      }
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
 
     try {
-      // STEP 6: Send JSON body with type and manualText (not multipart when only manualText)
-      const payload = {
-        type: selectedLabType,
-        manualText: question.trim() || undefined,
+      const locale = language === 'ru' ? 'ru' : language === 'kk' ? 'kk' : 'en';
+      const payload: any = {
+        inputType: mode,
+        locale,
       };
 
-      await ApiService.sendLabResults(payload);
-
-      Alert.alert(
-        t('common.success'),
-        t('aiAssistant.lab.success'),
-      );
-
-      // Reset form
-      setQuestion('');
-      setSelectedLabType('auto');
-      setSelectedFile(null);
-      
-      if (onResult) {
-        onResult({ success: true });
+      if (mode === 'text') {
+        payload.text = text.trim();
       }
-      
-      onClose();
-    } catch (error: any) {
-      console.error('[LabResultsModal] Error submitting lab results:', error);
-      Alert.alert(
-        t('common.error'),
-        t('aiAssistant.lab.error'),
-      );
+
+      // For file mode, we would need to upload the file first and get fileId
+      // For now, we'll show an error that file mode is not yet implemented
+      if (mode === 'file') {
+        setError(t('aiAssistant.lab.errors.fileNotSupported'));
+        setLoading(false);
+        return;
+      }
+
+      const response = await ApiService.analyzeLabResults(payload);
+
+      if (response?.summary) {
+        setResult(response.summary);
+        if (onResult) {
+          onResult({ success: true, summary: response.summary });
+        }
+      } else if (typeof response === 'string') {
+        setResult(response);
+        if (onResult) {
+          onResult({ success: true, summary: response });
+        }
+      } else {
+        setError(t('aiAssistant.lab.errors.noSummary'));
+      }
+    } catch (err: any) {
+      console.error('LabResultsModal: analyze error', err);
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        t('aiAssistant.lab.errors.generic');
+      setError(message);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
     <SwipeClosableModal
       visible={visible}
-      onClose={onClose}
-      swipeDirection="down"
-      enableSwipe={true}
-      enableBackdropClose={true}
-      animationType="slide"
+      onClose={handleClose}
       presentationStyle="pageSheet"
     >
-      <View style={{ flex: 1, backgroundColor: colors.background || colors.surface }}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}
-        >
-          <SafeAreaView
-            style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
-            edges={['top', 'bottom']}
-          >
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.border || colors.borderMuted }]}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
-              {t('aiAssistant.lab.title') || t('aiAssistant.lab.typeTitle')}
+      <View style={[styles.container, { paddingBottom: insets.bottom + 16, backgroundColor: colors.background }]}>
+        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
+          {t('aiAssistant.lab.title')}
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {t('aiAssistant.lab.subtitle')}
+        </Text>
+
+        {/* Mode Switch */}
+        <View style={styles.modeSwitch}>
+          <ModeButton
+            label={t('aiAssistant.lab.mode.text')}
+            active={mode === 'text'}
+            onPress={() => {
+              setMode('text');
+              setFile(null);
+            }}
+            colors={colors}
+          />
+          <ModeButton
+            label={t('aiAssistant.lab.mode.file')}
+            active={mode === 'file'}
+            onPress={() => {
+              setMode('file');
+              setText('');
+            }}
+            colors={colors}
+          />
+        </View>
+
+        {/* Text Input */}
+        {mode === 'text' && (
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
+              {t('aiAssistant.lab.textLabel')}
             </Text>
-            <View style={styles.placeholder} />
-          </View>
-
-          <ScrollView
-            style={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: insets.bottom + 32 },
-            ]}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Lab Type Selection */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
-                {t('aiAssistant.lab.typeTitle')}
-              </Text>
-              <ProfileSegmentedControl
-                label=""
-                value={selectedLabType}
-                options={LAB_TYPES.map((type) => ({
-                  value: type.id,
-                  label: t(type.i18nKey) || type.id,
-                }))}
-                onChange={setSelectedLabType}
-              />
-            </View>
-
-            {/* Attachment Block */}
-            <View style={styles.section}>
-              <View style={styles.attachmentRow}>
-                <TouchableOpacity
-                  style={[styles.attachButton, { borderColor: colors.border || colors.borderMuted }]}
-                  onPress={handlePickImage}
-                >
-                  <Ionicons name="image-outline" size={24} color={colors.primary} />
-                  <Text style={[styles.attachButtonText, { color: colors.textPrimary || colors.text }]}>
-                    {t('aiAssistant.lab.attachPhoto')}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.attachButton, { borderColor: colors.border || colors.borderMuted }]}
-                  onPress={handlePickDocument}
-                >
-                  <Ionicons name="document-attach-outline" size={24} color={colors.primary} />
-                  <Text style={[styles.attachButtonText, { color: colors.textPrimary || colors.text }]}>
-                    {t('aiAssistant.lab.attachPdf')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {selectedFile && (
-                <View style={[styles.attachmentPreview, { backgroundColor: colors.surfaceMuted || colors.card }]}>
-                  {selectedFile.type === 'image' ? (
-                    <Image source={{ uri: selectedFile.uri }} style={styles.previewImage} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.pdfPreview}>
-                      <Ionicons name="document-text" size={48} color={colors.primary} />
-                      <Text style={[styles.pdfName, { color: colors.textPrimary }]} numberOfLines={1}>
-                        {selectedFile.name}
-                      </Text>
-                    </View>
-                  )}
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={handleRemoveAttachment}
-                  >
-                    <Ionicons name="close-circle" size={24} color={colors.error || '#EF4444'} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
-            {/* Text Input */}
-            <View style={styles.section}>
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('aiAssistant.lab.manualTitle')}
-              </Text>
-              <TextInput
-                style={[
-                  styles.manualInput,
-                  {
-                    backgroundColor: colors.surface,
-                    color: colors.textPrimary,
-                    borderColor: colors.border || colors.borderMuted,
-                  },
-                ]}
-                placeholder={t('aiAssistant.lab.manualPlaceholder')}
-                placeholderTextColor="#9BA3B5"
-                value={question}
-                onChangeText={setQuestion}
-                multiline
-                textAlignVertical="top"
-                editable={!isSubmitting}
-              />
-            </View>
-
-            {/* Submit Button */}
-            <TouchableOpacity
+            <TextInput
               style={[
-                styles.submitButton,
+                styles.textInput,
                 {
-                  backgroundColor:
-                    (question.trim() || selectedFile) && !isSubmitting
-                      ? colors.primary
-                      : colors.surfaceMuted || '#E5E5EA',
+                  color: colors.textPrimary || colors.text,
+                  borderColor: colors.border || colors.borderMuted,
+                  backgroundColor: colors.card || colors.surface,
                 },
               ]}
-              onPress={handleSubmit}
-              disabled={(!question.trim() && !selectedFile) || isSubmitting}
+              placeholder={t('aiAssistant.lab.textPlaceholder')}
+              placeholderTextColor={colors.textTertiary || colors.textSecondary}
+              multiline
+              value={text}
+              onChangeText={setText}
+              editable={!loading}
+            />
+          </View>
+        )}
+
+        {/* File */}
+        {mode === 'file' && (
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
+              {t('aiAssistant.lab.fileLabel')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.fileButton, { borderColor: colors.primary }]}
+              onPress={handlePickFile}
+              disabled={loading}
             >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color={colors.onPrimary || '#FFFFFF'} />
-              ) : (
-                <>
-                  <Ionicons name="send" size={20} color={colors.onPrimary || '#FFFFFF'} />
-                  <Text style={[styles.submitButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
-                    {t('aiAssistant.lab.submit') || t('common.send')}
-                  </Text>
-                </>
-              )}
+              <Text style={[styles.fileButtonText, { color: colors.primary }]}>
+                {file?.assets?.[0]?.name || t('aiAssistant.lab.attachPdf')}
+              </Text>
             </TouchableOpacity>
+            <Text style={[styles.helperText, { color: colors.textTertiary || colors.textSecondary }]}>
+              {t('aiAssistant.lab.fileHint')}
+            </Text>
+          </View>
+        )}
+
+        {/* Errors */}
+        {error && (
+          <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+          </View>
+        )}
+
+        {/* Analyze Button */}
+        <TouchableOpacity
+          style={[
+            styles.analyzeButton,
+            {
+              backgroundColor: colors.primary,
+              opacity: loading ? 0.7 : 1,
+            },
+          ]}
+          onPress={handleAnalyze}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.onPrimary || '#FFFFFF'} />
+          ) : (
+            <Text style={[styles.analyzeButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
+              {t('aiAssistant.lab.analyzeButton')}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Result */}
+        {result && (
+          <ScrollView style={[styles.resultBox, { backgroundColor: colors.card || colors.surface }]}>
+            <Text style={[styles.resultTitle, { color: colors.textPrimary || colors.text }]}>
+              {t('aiAssistant.lab.resultTitle')}
+            </Text>
+            <Text style={[styles.resultText, { color: colors.textSecondary }]}>
+              {result}
+            </Text>
           </ScrollView>
-          </SafeAreaView>
-        </KeyboardAvoidingView>
+        )}
       </View>
     </SwipeClosableModal>
   );
 };
 
+interface ModeButtonProps {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  colors: any;
+}
+
+const ModeButton: React.FC<ModeButtonProps> = ({ label, active, onPress, colors }) => {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.modeButton,
+        {
+          backgroundColor: active ? colors.primary : 'transparent',
+          borderColor: colors.primary,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <Text
+        style={[
+          styles.modeButtonText,
+          { color: active ? colors.onPrimary || '#FFFFFF' : colors.primary },
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    flex: 1,
-    textAlign: 'center',
-  },
-  placeholder: {
-    width: 32,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    gap: 16,
+    flex: 1,
   },
-  manualInput: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 120,
-    textAlignVertical: 'top',
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
   },
-  pdfPreview: {
-    width: '100%',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pdfName: {
+  subtitle: {
     fontSize: 14,
-    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  modeSwitch: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  modeButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  hintText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  attachmentRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  attachButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 8,
-  },
-  attachButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  attachmentPreview: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  previewImage: {
-    width: '100%',
-    height: 200,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 12,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
+    marginBottom: 6,
     fontWeight: '500',
-    marginBottom: 8,
   },
   textInput: {
+    minHeight: 120,
     borderWidth: 1,
     borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 120,
+    padding: 10,
+    fontSize: 14,
     textAlignVertical: 'top',
   },
-  submitButton: {
-    flexDirection: 'row',
+  fileButton: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  fileButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  helperText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  errorBox: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 10,
+    borderRadius: 8,
+  },
+  errorText: {
+    fontSize: 13,
+  },
+  analyzeButton: {
+    marginTop: 8,
+    borderRadius: 999,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 8,
   },
-  submitButtonText: {
-    fontSize: 16,
+  analyzeButtonText: {
     fontWeight: '600',
+    fontSize: 15,
+  },
+  resultBox: {
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 12,
+    maxHeight: 300,
+  },
+  resultTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  resultText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
 
 export default LabResultsModal;
-

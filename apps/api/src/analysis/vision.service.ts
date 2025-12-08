@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { CacheService } from '../cache/cache.service';
+import * as crypto from 'crypto';
 
 const VisionComponentSchema = z.object({
   name: z.string(),
@@ -30,27 +32,49 @@ export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly openai: OpenAI;
 
-  constructor() {
+  constructor(private readonly cache: CacheService) {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
   }
 
   /**
-   * Extract food components from image using OpenAI Vision
+   * Generate cache key from image identifier
+   * P2: Cache Vision API results to reduce API calls
    */
-  async extractComponents(params: { imageUrl?: string; imageBase64?: string }): Promise<VisionComponent[]> {
-    const { imageUrl, imageBase64 } = params;
+  private generateCacheKey(imageUrl?: string, imageBase64?: string, mode?: string): string {
+    const identifier = imageUrl || imageBase64 || '';
+    const hash = crypto.createHash('sha256').update(`${identifier}:${mode || 'default'}`).digest('hex');
+    return `vision:${hash.substring(0, 16)}`;
+  }
+
+  /**
+   * Extract food components from image using OpenAI Vision
+   * P2: Optimized with caching to reduce API calls
+   */
+  async extractComponents(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review' }): Promise<VisionComponent[]> {
+    const { imageUrl, imageBase64, mode = 'default' } = params;
 
     if (!imageUrl && !imageBase64) {
       throw new Error('Either imageUrl or imageBase64 must be provided');
     }
 
+    // P2: Check cache first
+    const cacheKey = this.generateCacheKey(imageUrl, imageBase64, mode);
+    const cached = await this.cache.get<VisionComponent[]>(cacheKey, 'vision');
+    if (cached) {
+      this.logger.debug(`[VisionService] Cache hit for vision analysis (key: ${cacheKey.substring(0, 20)}...)`);
+      return cached;
+    }
+
+    this.logger.debug(`[VisionService] Cache miss, calling OpenAI Vision API (key: ${cacheKey.substring(0, 20)}...)`);
+
     const imageContent: any = imageUrl
       ? { type: 'image_url', image_url: { url: imageUrl } }
       : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } };
 
-    const systemPrompt = `You are a professional nutritionist and food analyst. Analyze food images and extract all visible food components.
+    // Base system prompt
+    let systemPrompt = `You are a professional nutritionist and food analyst. Analyze food images and extract all visible food components.
 
 CRITICAL RULES:
 1. Return ONLY valid JSON with this exact structure - no markdown, no additional keys, no explanations
@@ -64,7 +88,20 @@ CRITICAL RULES:
 9. If you see grains (rice, quinoa, barley, etc.), name them correctly, NOT as bread or pasta unless clearly visible
 10. Main protein should be identified first and most accurately (e.g., "pan-fried salmon fillet", "grilled chicken breast")
 11. Vegetables should be identified by type when visible (e.g., "steamed broccoli", "roasted carrots")
-12. NEVER use ALL CAPS or excessive descriptive words - keep names simple and natural
+12. NEVER use ALL CAPS or excessive descriptive words - keep names simple and natural`;
+
+    // Add review mode instructions
+    if (mode === 'review') {
+      systemPrompt += `
+
+REVIEW MODE - This is a re-analysis. Be extra careful:
+- Be more conservative with confidence scores - only use high confidence (0.7+) if you're very certain
+- If you're unsure about a specific dish name, prefer a more general term (e.g., "fish dish" instead of a complex local cuisine name)
+- Double-check that you're not confusing similar-looking foods (e.g., rice vs. quinoa, chicken vs. fish)
+- Be honest about uncertainty - it's better to give a lower confidence score than to guess incorrectly`;
+    }
+
+    systemPrompt += `
 
 REQUIRED OUTPUT FORMAT - Return ONLY valid JSON with this exact structure:
 [{"name": "grilled chicken breast", "preparation": "grilled", "est_portion_g": 180, "confidence": 0.87}, {"name": "olive oil", "preparation": "raw", "est_portion_g": 15, "confidence": 0.65}]
@@ -145,6 +182,13 @@ No markdown, no additional keys, no text before or after JSON.`;
         } catch (compError) {
           this.logger.warn(`[VisionService] Invalid component skipped:`, comp);
         }
+      }
+
+      // P2: Cache successful results
+      if (validated.length > 0) {
+        await this.cache.set(cacheKey, validated, 'vision').catch((err) => {
+          this.logger.warn(`[VisionService] Failed to cache vision result: ${err.message}`);
+        });
       }
 
       return validated;

@@ -46,38 +46,79 @@ export class NotificationsService {
   }
 
   async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
-    await this.ensurePreferences(userId);
-    const updateData: any = {};
-    if (dto.dailyPushEnabled !== undefined) {
-      updateData.dailyPushEnabled = dto.dailyPushEnabled;
-      if (!dto.dailyPushEnabled) {
+    this.logger.log(`[NotificationsService] updatePreferences() called for userId=${userId}`);
+    
+    try {
+      // Normalize and validate input data
+      const updateData: any = {};
+      
+      // Handle dailyPushEnabled
+      if (dto.dailyPushEnabled !== undefined) {
+        // Ensure it's a boolean
+        updateData.dailyPushEnabled = Boolean(dto.dailyPushEnabled);
+        if (!updateData.dailyPushEnabled) {
+          updateData.lastPushSentAt = null;
+        }
+      }
+      
+      // Handle dailyPushHour - ensure it's a valid integer between 0-23
+      if (dto.dailyPushHour !== undefined) {
+        const hour = typeof dto.dailyPushHour === 'string' 
+          ? parseInt(dto.dailyPushHour, 10) 
+          : Number(dto.dailyPushHour);
+        
+        if (Number.isNaN(hour) || hour < 0 || hour > 23) {
+          throw new BadRequestException('dailyPushHour must be an integer between 0 and 23');
+        }
+        updateData.dailyPushHour = hour;
         updateData.lastPushSentAt = null;
       }
-    }
-    if (dto.dailyPushHour !== undefined) {
-      updateData.dailyPushHour = dto.dailyPushHour;
-      updateData.lastPushSentAt = null;
-    }
-    if (dto.timezone !== undefined) {
-      const zone = dto.timezone || 'UTC';
-      const test = DateTime.utc().setZone(zone);
-      if (!test.isValid) {
-        throw new BadRequestException('Invalid timezone provided');
+      
+      // Handle timezone
+      if (dto.timezone !== undefined) {
+        const zone = dto.timezone?.trim() || 'UTC';
+        const test = DateTime.utc().setZone(zone);
+        if (!test.isValid) {
+          throw new BadRequestException(`Invalid timezone provided: ${zone}`);
+        }
+        updateData.timezone = zone;
       }
-      updateData.timezone = zone;
+
+      // Get existing preferences for defaults
+      const existing = await this.prisma.notificationPreference.findUnique({
+        where: { userId },
+      });
+
+      // Use upsert to handle both create and update cases
+      const prefs = await this.prisma.notificationPreference.upsert({
+        where: { userId },
+        create: {
+          userId,
+          dailyPushEnabled: updateData.dailyPushEnabled ?? false,
+          dailyPushHour: updateData.dailyPushHour ?? (Number.isNaN(this.defaultHour) ? 8 : this.defaultHour),
+          timezone: updateData.timezone ?? 'UTC',
+          lastPushSentAt: null,
+        },
+        update: updateData,
+      });
+
+      this.logger.log(
+        `[NotificationsService] updatePreferences() succeeded for userId=${userId}`,
+      );
+
+      return {
+        dailyPushEnabled: prefs.dailyPushEnabled,
+        dailyPushHour: prefs.dailyPushHour,
+        timezone: prefs.timezone,
+        lastPushSentAt: prefs.lastPushSentAt,
+      };
+    } catch (error) {
+      this.logger.error(
+        `[NotificationsService] updatePreferences() failed for userId=${userId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
     }
-
-    const prefs = await this.prisma.notificationPreference.update({
-      where: { userId },
-      data: updateData,
-    });
-
-    return {
-      dailyPushEnabled: prefs.dailyPushEnabled,
-      dailyPushHour: prefs.dailyPushHour,
-      timezone: prefs.timezone,
-      lastPushSentAt: prefs.lastPushSentAt,
-    };
   }
 
   async registerPushToken(userId: string, dto: RegisterPushTokenDto) {
