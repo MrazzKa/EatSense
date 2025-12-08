@@ -440,21 +440,6 @@ CRITICAL RULES:
     const responseLanguage = languageMap[userLanguage] || 'English';
 
     const prompt = this.buildLabResultsPrompt(text, responseLanguage);
-    const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
-    const userLanguage = locale || (userProfile?.preferences as any)?.language || 'en';
-    
-    const languageMap: Record<string, string> = {
-      en: 'English',
-      ru: 'Russian',
-      kk: 'Kazakh',
-      es: 'Spanish',
-      de: 'German',
-      fr: 'French',
-      ko: 'Korean',
-      ja: 'Japanese',
-      zh: 'Chinese',
-    };
-    const responseLanguage = languageMap[userLanguage] || 'English';
 
     try {
       const response = await this.openai.chat.completions.create({
