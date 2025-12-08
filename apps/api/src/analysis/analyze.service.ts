@@ -453,9 +453,11 @@ export class AnalyzeService {
           name,
           preparation,
           est_portion_g,
-          category,
-          volume_ml,
         } = component;
+        
+        // category and volume_ml may not exist in VisionComponent type
+        const category = (component as any).category;
+        const volume_ml = (component as any).volume_ml;
 
         // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
         const beverageDetection = this.detectBeverageForItem({
@@ -595,6 +597,7 @@ export class AnalyzeService {
         const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
 
         // Special handling for milk coffee drinks: sanity check and fallback
+        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
         if (isMilkCoffee && isDrink) {
           const kcalPer100 = canonicalFood.per100g.calories || 0;
           const kcalPerPortion = nutrients.calories;
@@ -758,7 +761,13 @@ export class AnalyzeService {
       healthScore = {
         score,
         grade: this.deriveGrade(score),
-        factors: {},
+        factors: {
+          protein: 0,
+          fiber: 0,
+          saturatedFat: 0,
+          sugars: 0,
+          energyDensity: 0,
+        },
         feedback: [],
       };
 
@@ -835,6 +844,9 @@ export class AnalyzeService {
     // Task 3: Check if ALL items have 0 calories and log ERROR with full details
     const allItemsZeroCalories = items.length > 0 && items.every(item => (item.nutrients?.calories || 0) === 0);
     if (allItemsZeroCalories) {
+      // imageHash and cacheKey are defined earlier in analyzeImage method
+      const imageHash = this.hashImage({ imageUrl: params.imageUrl, imageBase64: params.imageBase64 });
+      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
       this.logger.error('[AnalyzeService] All items have zero calories - analysis needs review', {
         imageHash,
         cacheKey,
@@ -901,8 +913,12 @@ export class AnalyzeService {
       needsReview,
     };
 
-    // Cache for 24 hours
-    await this.cache.set(cacheKey, result, 'analysis');
+    // Cache for 24 hours (only if not in review mode)
+    if (mode !== 'review') {
+      const imageHash = this.hashImage(params);
+      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+      await this.cache.set(cacheKey, result, 'analysis');
+    }
 
     return result;
   }
@@ -1101,6 +1117,7 @@ export class AnalyzeService {
         const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
 
         // Special handling for milk coffee drinks
+        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
         if (isMilkCoffee && isDrink) {
           const kcalPer100 = canonicalFood.per100g.calories || 0;
           const kcalPerPortion = nutrients.calories;
@@ -1254,7 +1271,13 @@ export class AnalyzeService {
       healthScore = {
         score,
         grade: this.deriveGrade(score),
-        factors: {},
+        factors: {
+          protein: 0,
+          fiber: 0,
+          saturatedFat: 0,
+          sugars: 0,
+          energyDensity: 0,
+        },
         feedback: [],
       };
 
@@ -1490,7 +1513,7 @@ export class AnalyzeService {
     // Handle beverages with safe fallback
     if (isBeverage) {
       // Try to classify beverage type
-      const plainCoffeeTea = this.detectPlainCoffeeOrTea(component.name);
+      const plainCoffeeTea = this.detectPlainCoffeeOrTeaLegacy(component.name);
       if (plainCoffeeTea.isPlain) {
         // Should have been handled earlier, but if we're here, use canonical values
         const portionG = component.est_portion_g && component.est_portion_g > 0 
@@ -2124,7 +2147,7 @@ export class AnalyzeService {
     totals: { calories: number; protein: number; carbs: number; fat: number; fiber?: number; satFat?: number; sugars?: number },
     locale: string,
   ): HealthFeedbackItem[] {
-    const total = 'total' in healthScore ? healthScore.total : healthScore.score || 0;
+    const total = 'total' in healthScore ? healthScore.total : ('score' in healthScore ? healthScore.score : 0);
     const level = 'level' in healthScore ? healthScore.level : (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
     const factors = healthScore.factors;
     const { calories, protein, fiber, sugars, satFat } = totals;
@@ -2394,7 +2417,7 @@ export class AnalyzeService {
         }
 
         // Check for plain coffee/tea
-        const plainCoffeeTea = this.detectPlainCoffeeOrTea(name);
+        const plainCoffeeTea = this.detectPlainCoffeeOrTeaLegacy(name);
         if (plainCoffeeTea.isPlain) {
           const baseName = this.buildBaseFoodName(name);
           const originalNameEn = normalizeFoodName(baseName);
@@ -2612,6 +2635,7 @@ export class AnalyzeService {
         const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
 
         // Special handling for milk coffee drinks
+        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
         if (isMilkCoffee && isDrink) {
           const kcalPer100 = canonicalFood.per100g.calories || 0;
           const kcalPerPortion = nutrients.calories;

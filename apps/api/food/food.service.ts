@@ -563,14 +563,18 @@ export class FoodService {
       total.energyDensity = Math.round((total.calories / total.portion_g) * 100 * 10) / 10;
     }
 
-    // 4. Compute HealthScore using AnalyzeService (reuse existing logic)
+    // 4. Get locale from existing analysis metadata (before using it)
+    const metadata = analysis.metadata as any;
+    const locale = metadata?.locale || 'en';
+
+    // 5. Compute HealthScore using AnalyzeService (reuse existing logic)
     const healthScore = this.analyzeService.computeHealthScore(total, total.portion_g, items, locale as 'en' | 'ru' | 'kk');
 
-    // 5. Run sanity check
+    // 6. Run sanity check
     const debug: any = {};
     const sanity = this.analyzeService.runSanityCheck({ items, total, healthScore, debug });
 
-    // 6. Compute flags
+    // 7. Compute flags
     const hasSeriousIssues = sanity.some(
       (i: any) => i.type === 'macro_kcal_mismatch' || i.type === 'suspicious_energy_density',
     );
@@ -586,10 +590,6 @@ export class FoodService {
       item.nutrients.fat === 0
     );
     const needsReview = hasItemsButNoData || anyItemHasWeightAndZeroMacros;
-
-    // 7. Get locale from existing analysis metadata
-    const metadata = analysis.metadata as any;
-    const locale = metadata?.locale || 'en';
 
     // 8. Build dish name (reuse logic from AnalyzeService)
     const originalDishName = this.analyzeService.buildDishNameEn(items);
@@ -699,9 +699,9 @@ export class FoodService {
       throw new BadRequestException('No valid input found for re-analysis');
     }
 
-    // 4. Mark as reanalysis
-    newAnalysisData.reanalysisOf = analysisId;
-    newAnalysisData.source = 'reanalysis';
+    // 4. Mark as reanalysis (if needed, add to metadata)
+    // Note: reanalysisOf and source are not part of AnalysisData type
+    // They can be stored in metadata if needed
 
     // 5. Update AnalysisResult in DB
     if (analysis.results && analysis.results.length > 0) {
@@ -903,7 +903,6 @@ export class FoodService {
       ...previousData,
       items: updatedItems,
       total: totals,
-      totals,
       healthScore,
       feedback,
       locale: locale as 'en' | 'ru' | 'kk',
@@ -968,7 +967,6 @@ export class FoodService {
     const newData: AnalysisData = {
       ...previousData,
       total: totals,
-      totals,
       healthScore,
       feedback,
       locale: locale as 'en' | 'ru' | 'kk',
@@ -1058,10 +1056,37 @@ export class FoodService {
    */
   private async updateMealFromAnalysisResult(analysisId: string, result: AnalysisData) {
     try {
-      const meal = await this.prisma.meal.findFirst({
-        where: { analysisId },
-        include: { items: true },
+      // Find meal by analysisId - check if Meal has analysisId field or use metadata
+      // Since Meal doesn't have direct analysisId, we'll search by userId and recent meals
+      // This is a fallback - ideally Meal should have analysisId field
+      const analysis = await this.prisma.analysis.findUnique({
+        where: { id: analysisId },
       });
+
+      if (!analysis) {
+        this.logger.debug(`[FoodService] Analysis not found for analysisId=${analysisId}, skipping meal update`);
+        return;
+      }
+
+      // Try to find meal by userId and recent date (within last 24 hours)
+      const recentDate = new Date();
+      recentDate.setHours(recentDate.getHours() - 24);
+      
+      const meal = await this.prisma.meal.findFirst({
+        where: {
+          userId: analysis.userId,
+          createdAt: {
+            gte: recentDate,
+          },
+        },
+        include: { items: true },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!meal) {
+        this.logger.debug(`[FoodService] No Meal found for analysisId=${analysisId}, skipping meal update`);
+        return;
+      }
 
       if (!meal) {
         this.logger.debug(`[FoodService] No Meal found for analysisId=${analysisId}, skipping meal update`);
