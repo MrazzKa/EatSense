@@ -759,8 +759,10 @@ export class AnalyzeService {
 
       const score = 95; // A-grade for plain water
       healthScore = {
-        score,
-        grade: this.deriveGrade(score),
+        total: score,
+        level: 'excellent' as HealthScoreLevel,
+        score, // legacy
+        grade: this.deriveGrade(score), // legacy
         factors: {
           protein: 0,
           fiber: 0,
@@ -1269,8 +1271,10 @@ export class AnalyzeService {
 
       const score = 95; // A-grade for plain water
       healthScore = {
-        score,
-        grade: this.deriveGrade(score),
+        total: score,
+        level: 'excellent' as HealthScoreLevel,
+        score, // legacy
+        grade: this.deriveGrade(score), // legacy
         factors: {
           protein: 0,
           fiber: 0,
@@ -2147,7 +2151,7 @@ export class AnalyzeService {
     totals: { calories: number; protein: number; carbs: number; fat: number; fiber?: number; satFat?: number; sugars?: number },
     locale: string,
   ): HealthFeedbackItem[] {
-    const total = 'total' in healthScore ? healthScore.total : ('score' in healthScore ? healthScore.score : 0);
+    const total = 'total' in healthScore ? healthScore.total : (('score' in healthScore && typeof healthScore.score === 'number') ? healthScore.score : 0);
     const level = 'level' in healthScore ? healthScore.level : (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
     const factors = healthScore.factors;
     const { calories, protein, fiber, sugars, satFat } = totals;
