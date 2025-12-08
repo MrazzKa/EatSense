@@ -40,7 +40,6 @@ export class HiddenIngredientsService {
               energyDensity: 900,
             },
             source: 'hidden_ingredient',
-            suspicious: false,
             locale: item.locale || 'en',
           });
         }
@@ -76,7 +75,6 @@ export class HiddenIngredientsService {
               energyDensity: 250,
             },
             source: 'hidden_ingredient',
-            suspicious: false,
             locale: item.locale || 'en',
           });
         }
