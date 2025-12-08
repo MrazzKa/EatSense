@@ -2151,7 +2151,15 @@ export class AnalyzeService {
     totals: { calories: number; protein: number; carbs: number; fat: number; fiber?: number; satFat?: number; sugars?: number },
     locale: string,
   ): HealthFeedbackItem[] {
-    const total = 'total' in healthScore ? healthScore.total : (('score' in healthScore && typeof healthScore.score === 'number') ? healthScore.score : 0);
+    let total: number;
+    if ('total' in healthScore) {
+      total = healthScore.total;
+    } else if ('score' in healthScore) {
+      const hs = healthScore as HealthScore;
+      total = typeof hs.score === 'number' ? hs.score : 0;
+    } else {
+      total = 0;
+    }
     const level = 'level' in healthScore ? healthScore.level : (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
     const factors = healthScore.factors;
     const { calories, protein, fiber, sugars, satFat } = totals;
