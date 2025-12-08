@@ -824,7 +824,7 @@ export class FoodService {
     }
 
     const lastResult = analysis.results[0];
-    const previousData = (lastResult.data || {}) as AnalysisData;
+    const previousData = (lastResult.data || {}) as unknown as AnalysisData;
     const previousItems = previousData.items || [];
 
     // 2. Собираем карту по id, а также по индексу для fallback
@@ -904,7 +904,6 @@ export class FoodService {
       items: updatedItems,
       total: totals,
       healthScore,
-      feedback,
       locale: locale as 'en' | 'ru' | 'kk',
     };
 
@@ -954,7 +953,7 @@ export class FoodService {
     }
 
     const lastResult = analysis.results[0];
-    const previousData = (lastResult.data || {}) as AnalysisData;
+    const previousData = (lastResult.data || {}) as unknown as AnalysisData;
     const items = previousData.items || [];
 
     // Пересчитываем totals + healthScore + feedback
@@ -968,7 +967,6 @@ export class FoodService {
       ...previousData,
       total: totals,
       healthScore,
-      feedback,
       locale: locale as 'en' | 'ru' | 'kk',
     };
 
