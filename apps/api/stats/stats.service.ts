@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CacheService } from '../src/cache/cache.service';
 import { MealLogMealType } from '@prisma/client';
@@ -383,57 +383,142 @@ export class StatsService {
     return payload;
   }
 
-  async generateMonthlyReportPDF(userId: string, year: number, month: number): Promise<Readable> {
-    const fromDate = new Date(year, month - 1, 1);
-    const toDate = new Date(year, month, 0, 23, 59, 59, 999);
+  async generateMonthlyReportPDF(
+    userId: string,
+    year: number,
+    month: number,
+    locale: string = 'en',
+  ): Promise<Readable | null> {
+    try {
+      const fromDate = new Date(year, month - 1, 1);
+      const toDate = new Date(year, month, 0, 23, 59, 59, 999);
 
-    const summary = await this.getPersonalStats(
-      userId,
-      fromDate.toISOString(),
-      toDate.toISOString(),
-    );
-
-    const doc = new PDFDocument({ margin: 40 });
-    const stream = new Readable();
-    stream._read = () => {};
-
-    doc.on('data', (chunk) => {
-      stream.push(chunk);
-    });
-
-    doc.on('end', () => {
-      stream.push(null);
-    });
-
-    const title = `EatSense Monthly Report - ${year}-${String(month).padStart(2, '0')}`;
-
-    doc.fontSize(20).text(title, { align: 'center' });
-    doc.moveDown();
-
-    doc.fontSize(12).text(`Total calories: ${Math.round(summary.totals.calories)}`);
-    doc.text(`Average calories per day: ${Math.round(summary.totals.calories / 30)}`);
-    
-    const totalMacroCalories = summary.totals.protein * 4 + summary.totals.carbs * 4 + summary.totals.fat * 9;
-    const avgProteinPerc = totalMacroCalories > 0 ? (summary.totals.protein * 4 / totalMacroCalories) * 100 : 0;
-    const avgFatPerc = totalMacroCalories > 0 ? (summary.totals.fat * 9 / totalMacroCalories) * 100 : 0;
-    const avgCarbPerc = totalMacroCalories > 0 ? (summary.totals.carbs * 4 / totalMacroCalories) * 100 : 0;
-
-    doc.text(`Average protein: ${Math.round(avgProteinPerc)}%`);
-    doc.text(`Average fat: ${Math.round(avgFatPerc)}%`);
-    doc.text(`Average carbs: ${Math.round(avgCarbPerc)}%`);
-    doc.moveDown();
-
-    doc.fontSize(14).text('Top foods:', { underline: true });
-    doc.moveDown(0.5);
-
-    summary.topFoods.slice(0, 10).forEach((food: any, idx: number) => {
-      doc.fontSize(12).text(
-        `${idx + 1}. ${food.label} — ${Math.round(food.totalCalories)} kcal (${food.count} entries)`,
+      const summary = await this.getPersonalStats(
+        userId,
+        fromDate.toISOString(),
+        toDate.toISOString(),
       );
-    });
 
-    doc.end();
+      // Check if there's any data for this month
+      const hasData = summary.totals.calories > 0 || 
+                      (summary.topFoods && summary.topFoods.length > 0) ||
+                      (summary.meals && summary.meals.length > 0);
 
-    return stream;
+      if (!hasData) {
+        // No data for this month - return null (controller will send 204)
+        return null;
+      }
+
+      const doc = new PDFDocument({ margin: 40 });
+      const stream = new Readable();
+      stream._read = () => {};
+
+      let streamError: Error | null = null;
+
+      doc.on('data', (chunk) => {
+        if (!streamError) {
+          stream.push(chunk);
+        }
+      });
+
+      doc.on('end', () => {
+        if (!streamError) {
+          stream.push(null);
+        }
+      });
+
+      doc.on('error', (error) => {
+        streamError = error;
+        stream.destroy(error);
+      });
+
+      // Localized titles
+      const title = locale === 'ru'
+        ? `EatSense — Отчёт о питании за месяц`
+        : locale === 'kk'
+        ? `EatSense — Айлық тамақтану есебі`
+        : `EatSense Monthly Report`;
+
+      const subtitle = `${year}-${String(month).padStart(2, '0')}`;
+
+      doc.fontSize(20).text(title, { align: 'left' });
+      doc.moveDown(0.5);
+      doc.fontSize(16).text(subtitle, { align: 'left' });
+      doc.moveDown(1);
+
+      // Monthly summary
+      const summaryTitle = locale === 'ru'
+        ? 'Сводка за месяц'
+        : locale === 'kk'
+        ? 'Айлық қорытынды'
+        : 'Monthly summary';
+
+      doc.fontSize(14).text(summaryTitle);
+      doc.moveDown(0.5);
+
+      const daysCount = summary.meals?.length || 1;
+      const avgCalories = Math.round(summary.totals.calories / daysCount);
+
+      if (locale === 'ru') {
+        doc.fontSize(12).text(`Калории (всего): ${Math.round(summary.totals.calories)}`);
+        doc.text(`Белки (всего): ${Math.round(summary.totals.protein)} г`);
+        doc.text(`Жиры (всего): ${Math.round(summary.totals.fat)} г`);
+        doc.text(`Углеводы (всего): ${Math.round(summary.totals.carbs)} г`);
+        doc.moveDown(0.5);
+        doc.text(`Калории в день (сред.): ${avgCalories}`);
+      } else if (locale === 'kk') {
+        doc.fontSize(12).text(`Калориялар (барлығы): ${Math.round(summary.totals.calories)}`);
+        doc.text(`Ақуыз (барлығы): ${Math.round(summary.totals.protein)} г`);
+        doc.text(`Май (барлығы): ${Math.round(summary.totals.fat)} г`);
+        doc.text(`Көмірсулар (барлығы): ${Math.round(summary.totals.carbs)} г`);
+        doc.moveDown(0.5);
+        doc.text(`Күнделікті калориялар (орташа): ${avgCalories}`);
+      } else {
+        doc.fontSize(12).text(`Calories (total): ${Math.round(summary.totals.calories)}`);
+        doc.text(`Protein (total): ${Math.round(summary.totals.protein)} g`);
+        doc.text(`Fat (total): ${Math.round(summary.totals.fat)} g`);
+        doc.text(`Carbs (total): ${Math.round(summary.totals.carbs)} g`);
+        doc.moveDown(0.5);
+        doc.text(`Calories per day (avg): ${avgCalories}`);
+      }
+
+      doc.moveDown(1);
+
+      // Top foods if available
+      if (summary.topFoods && summary.topFoods.length > 0) {
+        const topFoodsTitle = locale === 'ru'
+          ? 'Популярные блюда'
+          : locale === 'kk'
+          ? 'Танымал тағамдар'
+          : 'Top foods';
+
+        doc.fontSize(14).text(topFoodsTitle, { underline: true });
+        doc.moveDown(0.5);
+
+        summary.topFoods.slice(0, 10).forEach((food: any, idx: number) => {
+          const line = locale === 'ru'
+            ? `${idx + 1}. ${food.label} — ${Math.round(food.totalCalories)} ккал (${food.count} записей)`
+            : locale === 'kk'
+            ? `${idx + 1}. ${food.label} — ${Math.round(food.totalCalories)} ккал (${food.count} жазба)`
+            : `${idx + 1}. ${food.label} — ${Math.round(food.totalCalories)} kcal (${food.count} entries)`;
+          doc.fontSize(12).text(line);
+        });
+      }
+
+      doc.end();
+
+      return stream;
+    } catch (error: any) {
+      // Log the error for debugging
+      console.error('[StatsService] generateMonthlyReportPDF error:', error);
+      
+      // If it's a known error (e.g., no data), return null
+      if (error?.message?.includes('No data') || error?.message?.includes('no data')) {
+        return null;
+      }
+
+      // For other errors, throw ServiceUnavailableException
+      throw new ServiceUnavailableException('Failed to generate monthly report PDF');
+    }
   }
 }

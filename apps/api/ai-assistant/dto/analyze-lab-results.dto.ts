@@ -1,33 +1,32 @@
-import { IsIn, IsOptional, IsString } from 'class-validator';
-
-export type LabResultsType =
-  | 'auto'
-  | 'cbc'
-  | 'biochemistry'
-  | 'lipid'
-  | 'glycemic'
-  | 'vitamins'
-  | 'hormones'
-  | 'inflammation'
-  | 'other';
+import { IsIn, IsNotEmpty, IsOptional, IsString, ValidateIf } from 'class-validator';
 
 export class AnalyzeLabResultsDto {
   @IsString()
-  @IsIn([
-    'auto',
-    'cbc',
-    'biochemistry',
-    'lipid',
-    'glycemic',
-    'vitamins',
-    'hormones',
-    'inflammation',
-    'other',
-  ])
-  type: LabResultsType;
+  @IsIn(['text', 'file'])
+  inputType: 'text' | 'file';
+
+  @ValidateIf((o) => o.inputType === 'text')
+  @IsString()
+  @IsNotEmpty()
+  text?: string;
+
+  @ValidateIf((o) => o.inputType === 'file')
+  @IsOptional()
+  @IsString()
+  fileId?: string;
+
+  @ValidateIf((o) => o.inputType === 'file')
+  @IsOptional()
+  @IsString()
+  fileName?: string;
+
+  @ValidateIf((o) => o.inputType === 'file')
+  @IsOptional()
+  @IsString()
+  mimeType?: string;
 
   @IsOptional()
   @IsString()
-  manualText?: string;
+  locale?: string;
 }
 

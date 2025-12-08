@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Put, Body, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserProfilesService } from './user-profiles.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('User Profiles')
@@ -30,9 +31,9 @@ export class UserProfilesController {
   @Put()
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
-  async updateProfile(@Request() req, @Body() profileData: any) {
+  async updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
     const userId = req.user.id;
-    return this.userProfilesService.updateProfile(userId, profileData);
+    return this.userProfilesService.updateProfile(userId, dto);
   }
 
   @Post('complete-onboarding')

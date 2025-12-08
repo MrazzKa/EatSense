@@ -505,7 +505,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
                   borderColor: colors.border || '#E5E5EA',
                 },
               ]}
-              placeholder={t('aiAssistant.placeholder')}
+              placeholder={t('aiAssistant.inputPlaceholder') || t('aiAssistant.placeholder')}
               placeholderTextColor={colors.textTertiary || '#8E8E93'}
               value={inputText}
               onChangeText={setInputText}

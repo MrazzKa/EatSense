@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { VisionService, VisionComponent } from './vision.service';
 import { PortionService } from './portion.service';
@@ -13,8 +13,28 @@ import {
   AnalysisDebug,
   AnalysisSanityIssue,
 } from './analysis.types';
+
+// Local type definitions for Health Score (matching analysis.types.ts)
+type HealthScoreLevel = 'poor' | 'average' | 'good' | 'excellent';
+
+interface HealthScoreFactors {
+  protein: number;
+  fiber: number;
+  saturatedFat: number;
+  sugars: number;
+  energyDensity: number;
+}
+
+type HealthFeedbackType = 'positive' | 'warning';
+
+interface HealthFeedbackItem {
+  type: HealthFeedbackType;
+  code: string;
+  message: string;
+}
 import { FoodLocalizationService } from './food-localization.service';
 import { NutritionOrchestrator } from './providers/nutrition-orchestrator.service';
+import { HiddenIngredientsService } from './hidden-ingredients.service';
 // Import types - interfaces are exported from nutrition-provider.interface.ts
 // Note: If TypeScript shows import errors, restart TS server or check that file is saved
 import type {
@@ -32,6 +52,22 @@ type HealthWeights = {
   sugar: number;
   energyDensity: number;
 };
+
+// Тип результата детектора напитка
+interface BeverageDetectionResult {
+  isBeverage: boolean;
+  kind: 'water' | 'black_coffee' | 'tea' | 'milk_coffee' | 'other';
+  // стандартная порция в мл
+  volume_ml?: number;
+  // канонические значения на всю порцию
+  calories?: number;
+  protein_g?: number;
+  fat_g?: number;
+  carbs_g?: number;
+  fiber_g?: number;
+  sugars_g?: number;
+  satFat_g?: number;
+}
 
 /**
  * Main service for analyzing food images and text descriptions.
@@ -62,30 +98,38 @@ export class AnalyzeService {
   ];
 
   /**
-   * Check if a food name represents plain water (not flavored, not sweetened)
-   * UX heuristic: plain water should have zero calories and neutral health score
-   * 
-   * @param name - Food name to check (can be vision label, baseName, or displayName)
-   * @returns true if the name represents plain water
+   * Normalize text for comparison
    */
-  private isPlainWater(name: string): boolean {
-    if (!name || typeof name !== 'string') return false;
-    
-    const nameLower = name.toLowerCase().trim();
-    
-    // Positive indicators: contains water-related keywords
+  private normalizeText(value?: string | null): string {
+    return (value || '').trim().toLowerCase();
+  }
+
+  /**
+   * Detect plain water and return canonical values
+   */
+  private detectPlainWater(name: string, category?: string): BeverageDetectionResult | null {
+    const n = this.normalizeText(name);
+    const c = this.normalizeText(category);
+
+    // Ключевые слова
     const waterKeywords = [
       'water',
       'still water',
       'sparkling water',
       'mineral water',
       'вода',
+      'питьевая вода',
       'минеральная вода',
       'газированная вода',
-      'still',
-      'sparkling',
     ];
-    
+
+    const isWaterByName = waterKeywords.some((kw) => n.includes(kw));
+    const isWaterByCategory = c.includes('water');
+
+    if (!isWaterByName && !isWaterByCategory) {
+      return null;
+    }
+
     // Negative indicators: contains flavoring/sweetening keywords
     const excludeKeywords = [
       'juice', 'cola', 'soda', 'lemonade', 'sweet', 'syrup', 'flavor', 'flavored',
@@ -93,99 +137,206 @@ export class AnalyzeService {
       'vitamin', 'electrolyte', 'sports drink', 'energy',
       'витамин', 'электролит', 'спортивный напиток',
     ];
-    
-    const hasWaterKeyword = waterKeywords.some(keyword => nameLower.includes(keyword));
-    const hasExcludeKeyword = excludeKeywords.some(keyword => nameLower.includes(keyword));
-    
-    // Must have water keyword AND not have exclude keywords
-    return hasWaterKeyword && !hasExcludeKeyword;
+
+    const hasExcludeKeyword = excludeKeywords.some((kw) => n.includes(kw));
+    if (hasExcludeKeyword) {
+      return null;
+    }
+
+    // Каноническая порция 250 мл
+    return {
+      isBeverage: true,
+      kind: 'water',
+      volume_ml: 250,
+      calories: 0,
+      protein_g: 0,
+      fat_g: 0,
+      carbs_g: 0,
+      fiber_g: 0,
+      sugars_g: 0,
+      satFat_g: 0,
+    };
+  }
+
+  /**
+   * Check if a food name represents plain water (not flavored, not sweetened)
+   * Legacy method for backward compatibility
+   * 
+   * @param name - Food name to check (can be vision label, baseName, or displayName)
+   * @returns true if the name represents plain water
+   */
+  private isPlainWater(name: string): boolean {
+    return this.detectPlainWater(name) !== null;
   }
 
   /**
    * STEP 1: Helper to detect plain water based on name and drink status
    * Used before computeHealthScore to force zero macros and high score for water
    */
+  /**
+   * Объединяющий детектор напитка - проверяет все типы напитков в правильном порядке
+   */
+  private detectBeverageForItem(component: {
+    name: string;
+    category?: string;
+    volume_ml?: number;
+    portion_g?: number;
+  }): BeverageDetectionResult | null {
+    const { name, category, volume_ml } = component;
+
+    // 1) Вода
+    const water = this.detectPlainWater(name, category);
+    if (water) return water;
+
+    // 2) Чёрный кофе / чай
+    const plainCoffeeOrTea = this.detectPlainCoffeeOrTea(name, category);
+    if (plainCoffeeOrTea) return plainCoffeeOrTea;
+
+    // 3) Молочные кофейные напитки
+    const milkCoffee = this.detectMilkCoffeeDrink(name, category, volume_ml);
+    if (milkCoffee) return milkCoffee;
+
+    return null;
+  }
+
   private isLikelyPlainWater(
     name?: string | null,
     isDrink?: boolean,
   ): boolean {
     if (!isDrink) return false;
     if (!name) return false;
-
-    const n = name.toLowerCase();
-    const waterKeywords = ['water', 'вода', 'воды', 'agua', 'wasser'];
-
-    return waterKeywords.some((w) => n.includes(w));
+    return this.detectPlainWater(name) !== null;
   }
 
   /**
-   * Detect plain coffee or tea (without sugar/milk/dessert)
+   * Detect plain coffee or tea (without sugar/milk/dessert) and return canonical values
    */
-  private detectPlainCoffeeOrTea(name: string): { isPlain: boolean; type: 'coffee' | 'tea' | null } {
-    if (!name || typeof name !== 'string') {
+  private detectPlainCoffeeOrTea(name: string, category?: string): BeverageDetectionResult | null {
+    const n = this.normalizeText(name);
+    const c = this.normalizeText(category);
+
+    const coffeeKeywords = ['black coffee', 'espresso', 'americano', 'кофе', 'эспрессо', 'американо', 'черный кофе'];
+    const teaKeywords = ['tea', 'чай', 'black tea', 'green tea', 'green чай'];
+
+    // Если найдена "milk", "latte", "капучино" и т.п. — это уже не plain coffee/tea
+    const milkIndicators = ['latte', 'капучино', 'cappuccino', 'flat white', 'raf', 'раф', 'milk', 'молоко', 'сливки'];
+
+    const hasMilkIndicator = milkIndicators.some((kw) => n.includes(kw));
+    if (hasMilkIndicator) {
+      return null;
+    }
+
+    const isCoffee = coffeeKeywords.some((kw) => n.includes(kw));
+    const isTea = teaKeywords.some((kw) => n.includes(kw));
+
+    if (!isCoffee && !isTea && !c.includes('coffee') && !c.includes('tea')) {
+      return null;
+    }
+
+    // Каноническая порция 200 мл
+    // ~2-5 ккал, примем 4 ккал
+    return {
+      isBeverage: true,
+      kind: isCoffee ? 'black_coffee' : 'tea',
+      volume_ml: 200,
+      calories: 4,
+      protein_g: 0.3,
+      fat_g: 0.1,
+      carbs_g: 0.7,
+      fiber_g: 0,
+      sugars_g: 0,
+      satFat_g: 0,
+    };
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   */
+  private detectPlainCoffeeOrTeaLegacy(name: string): { isPlain: boolean; type: 'coffee' | 'tea' | null } {
+    const result = this.detectPlainCoffeeOrTea(name);
+    if (!result) {
       return { isPlain: false, type: null };
     }
-    
-    const nameLower = name.toLowerCase();
-    
-    // Positive indicators: coffee/tea keywords
-    const coffeeKeywords = [
-      'coffee', 'espresso', 'black coffee', 'americano',
-      'кофе', 'эспрессо', 'американо', 'черный кофе',
-    ];
-    
-    const teaKeywords = [
-      'tea', 'black tea', 'green tea', 'herbal tea',
-      'чай', 'черный чай', 'зеленый чай', 'травяной чай',
-    ];
-    
-    // Negative indicators: dessert/flavored keywords
-    const excludeKeywords = [
-      'latte', 'cappuccino', 'mocha', 'frappe', 'yogurt', 'ice cream', 'dessert',
-      'sugar', 'sweet', 'cream', 'milk', 'syrup', 'flavor', 'flavored',
-      'латте', 'капучино', 'йогурт', 'мороженое', 'десерт', 'сахар', 'сливки', 'молоко',
-    ];
-    
-    const hasCoffeeKeyword = coffeeKeywords.some(kw => nameLower.includes(kw));
-    const hasTeaKeyword = teaKeywords.some(kw => nameLower.includes(kw));
-    const hasExcludeKeyword = excludeKeywords.some(kw => nameLower.includes(kw));
-    
-    if (hasExcludeKeyword) {
-      return { isPlain: false, type: null };
-    }
-    
-    if (hasCoffeeKeyword) {
-      return { isPlain: true, type: 'coffee' };
-    }
-    
-    if (hasTeaKeyword) {
-      return { isPlain: true, type: 'tea' };
-    }
-    
-    return { isPlain: false, type: null };
+    return {
+      isPlain: true,
+      type: result.kind === 'black_coffee' ? 'coffee' : 'tea',
+    };
   }
 
   /**
    * Legacy method for backward compatibility
    */
   private isLikelyPlainCoffeeOrTea(name: string): boolean {
-    return this.detectPlainCoffeeOrTea(name).isPlain;
+    return this.detectPlainCoffeeOrTea(name) !== null;
   }
 
   /**
-   * Detect milk coffee drinks (cappuccino, latte, etc.)
+   * Detect milk coffee drinks (cappuccino, latte, etc.) and return canonical values
    */
-  private detectMilkCoffeeDrink(name: string): boolean {
-    if (!name || typeof name !== 'string') return false;
-    
-    const nameLower = name.toLowerCase();
-    
+  private detectMilkCoffeeDrink(
+    name: string,
+    category?: string,
+    volumeFromVision?: number,
+  ): BeverageDetectionResult | null {
+    const n = this.normalizeText(name);
+    const c = this.normalizeText(category);
+
     const milkCoffeeKeywords = [
-      'latte', 'cappuccino', 'flat white', 'macchiato', 'raf',
-      'кофе с молоком', 'латте', 'капучино', 'раф',
+      'latte',
+      'cappuccino',
+      'flat white',
+      'raf',
+      'раф',
+      'капучино',
+      'латте',
+      'молочный кофе',
     ];
-    
-    return milkCoffeeKeywords.some(kw => nameLower.includes(kw));
+
+    const isMilkCoffee =
+      milkCoffeeKeywords.some((kw) => n.includes(kw)) ||
+      c.includes('latte') ||
+      c.includes('cappuccino');
+
+    if (!isMilkCoffee) {
+      return null;
+    }
+
+    // Определяем объем (если Vision дал volume_ml, используем его)
+    const baseVolume = volumeFromVision && volumeFromVision > 0 ? volumeFromVision : 250;
+
+    // Примерная энергетическая плотность капучино/латте на коровьем молоке:
+    // ~60 ккал на 100 мл (на молоке 2-3.2%).
+    const caloriesPer100ml = 60;
+    const calories = (caloriesPer100ml * baseVolume) / 100;
+
+    // Примерный БЖУ на 100 мл
+    const proteinPer100ml = 3.2;
+    const fatPer100ml = 3.5;
+    const carbsPer100ml = 4.5;
+
+    const protein_g = (proteinPer100ml * baseVolume) / 100;
+    const fat_g = (fatPer100ml * baseVolume) / 100;
+    const carbs_g = (carbsPer100ml * baseVolume) / 100;
+
+    return {
+      isBeverage: true,
+      kind: 'milk_coffee',
+      volume_ml: baseVolume,
+      calories: Math.round(calories),
+      protein_g: this.round(protein_g, 1),
+      fat_g: this.round(fat_g, 1),
+      carbs_g: this.round(carbs_g, 1),
+      fiber_g: 0,
+      sugars_g: this.round((4.5 * baseVolume) / 100, 1), // ~4.5g per 100ml
+      satFat_g: this.round((2.0 * baseVolume) / 100, 1), // ~2.0g per 100ml
+    };
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   */
+  private detectMilkCoffeeDrinkLegacy(name: string): boolean {
+    return this.detectMilkCoffeeDrink(name) !== null;
   }
 
   /**
@@ -217,6 +368,7 @@ export class AnalyzeService {
     private readonly portion: PortionService,
     private readonly cache: CacheService,
     private readonly foodLocalization: FoodLocalizationService,
+    private readonly hiddenIngredients: HiddenIngredientsService,
   ) {}
 
   /**
@@ -265,21 +417,24 @@ export class AnalyzeService {
   /**
    * Analyze image and return normalized nutrition data
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review' }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | undefined) || 'en';
+    const mode = params.mode || 'default';
     
-    // Check cache
-    const imageHash = this.hashImage(params);
-    const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
-    const cached = await this.cache.get<AnalysisData>(cacheKey, 'analysis');
-    if (cached) {
-      this.logger.debug('Cache hit for image analysis');
-      return cached;
+    // Check cache (skip for review mode to ensure fresh analysis)
+    if (mode !== 'review') {
+      const imageHash = this.hashImage(params);
+      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+      const cached = await this.cache.get<AnalysisData>(cacheKey, 'analysis');
+      if (cached) {
+        this.logger.debug('Cache hit for image analysis');
+        return cached;
+      }
     }
 
     // Extract components via Vision
-    const visionComponents = await this.vision.extractComponents({ imageUrl: params.imageUrl, imageBase64: params.imageBase64 });
+    const visionComponents = await this.vision.extractComponents({ imageUrl: params.imageUrl, imageBase64: params.imageBase64, mode });
     
     // Initialize debug object
     const debug: AnalysisDebug = {
@@ -294,96 +449,98 @@ export class AnalyzeService {
 
     for (const component of visionComponents) {
       try {
-        // A1: Check for plain water FIRST, before FDC matching
-        // This prevents wrong FDC matches (e.g., "Beets, raw" for water)
-        const isWaterFromVision = this.isPlainWater(component.name);
-        
-        // If it's water, skip provider lookup and create water item directly
-        if (isWaterFromVision) {
-          const portionG = component.est_portion_g && component.est_portion_g > 0 ? component.est_portion_g : 250;
-          const waterNameEn = 'Water';
-          const waterNameLocalized = await this.foodLocalization.localizeName(waterNameEn, locale);
+        const {
+          name,
+          preparation,
+          est_portion_g,
+          category,
+          volume_ml,
+        } = component;
+
+        // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
+        const beverageDetection = this.detectBeverageForItem({
+          name: name,
+          category: category,
+          volume_ml: volume_ml || (est_portion_g && est_portion_g > 0 ? est_portion_g : undefined),
+          portion_g: est_portion_g,
+        });
+
+        if (beverageDetection && beverageDetection.isBeverage) {
+          // Создать "канонический" AnalyzedItem без вызова провайдеров
+          const volume = beverageDetection.volume_ml ?? volume_ml ?? (est_portion_g && est_portion_g > 0 ? est_portion_g : 250);
+          const portionG = est_portion_g && est_portion_g > 0 
+            ? (est_portion_g < 50 ? volume : (est_portion_g > 800 ? 800 : est_portion_g))
+            : volume;
+
+          // Определяем source в зависимости от типа напитка
+          let source: AnalyzedItem['source'];
+          let baseNameEn: string;
           
-          const waterItem: AnalyzedItem = {
-            name: waterNameLocalized || waterNameEn,
-            originalName: waterNameEn,
-            label: component.name,
+          switch (beverageDetection.kind) {
+            case 'water':
+              source = 'canonical_water';
+              baseNameEn = 'Water';
+              break;
+            case 'black_coffee':
+              source = 'canonical_plain_coffee';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Black Coffee';
+              break;
+            case 'tea':
+              source = 'canonical_plain_tea';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Tea';
+              break;
+            case 'milk_coffee':
+              source = 'canonical_milk_coffee_fallback';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Cappuccino';
+              break;
+            default:
+              source = 'canonical_beverage';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Beverage';
+          }
+
+          const localizedName = await this.foodLocalization.localizeName(baseNameEn, locale);
+
+          const beverageItem: AnalyzedItem = {
+            name: localizedName || baseNameEn,
+            originalName: baseNameEn,
+            label: name,
             portion_g: portionG,
             nutrients: {
-              calories: 0,
-              protein: 0,
-              carbs: 0,
-              fat: 0,
-              fiber: 0,
-              sugars: 0,
-              satFat: 0,
-              energyDensity: 0,
+              calories: beverageDetection.calories ?? 0,
+              protein: beverageDetection.protein_g ?? 0,
+              carbs: beverageDetection.carbs_g ?? 0,
+              fat: beverageDetection.fat_g ?? 0,
+              fiber: beverageDetection.fiber_g ?? 0,
+              sugars: beverageDetection.sugars_g ?? 0,
+              satFat: beverageDetection.satFat_g ?? 0,
+              energyDensity: beverageDetection.calories && portionG > 0 
+                ? (beverageDetection.calories / portionG) * 100 
+                : 0,
             },
-            source: 'canonical_water' as AnalyzedItem['source'],
+            source,
             locale,
-            hasNutrition: false,
+            hasNutrition: beverageDetection.kind !== 'water',
           };
-          
-          items.push(waterItem);
-          debug.components.push({ 
-            type: 'matched', 
-            vision: component, 
-            waterDetected: true, 
-            skippedProvider: true,
-            provider: 'canonical_water',
-          });
-          
-          if (process.env.ANALYSIS_DEBUG === 'true') {
-            this.logger.debug('[AnalyzeService] Detected plain water from Vision, skipping provider lookup', {
-              componentName: component.name,
-            });
-          }
-          continue; // Skip provider lookup for water
-        }
 
-        // Check for plain coffee/tea BEFORE provider lookup
-        const plainCoffeeTea = this.detectPlainCoffeeOrTea(component.name);
-        if (plainCoffeeTea.isPlain) {
-          const portionG = component.est_portion_g && component.est_portion_g > 0 
-            ? component.est_portion_g 
-            : 200; // Default 200ml for coffee/tea
-          const clampedPortion = portionG < 50 ? 200 : (portionG > 800 ? 800 : portionG);
-          
-          const baseName = this.buildBaseFoodName(component.name);
-          const originalNameEn = normalizeFoodName(baseName);
-          const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
-          
-          const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
-          
-          const coffeeTeaItem: AnalyzedItem = {
-            name: localizedName || originalNameEn,
-            originalName: originalNameEn,
-            label: component.name,
-            portion_g: clampedPortion,
-            nutrients: this.getPlainCoffeeOrTeaNutrients(clampedPortion),
-            source: sourceType,
-            locale,
-            hasNutrition: true,
-          };
-          
-          items.push(coffeeTeaItem);
-          debug.components.push({ 
-            type: 'matched', 
-            vision: component, 
-            plainCoffeeTea: true,
-            coffeeTeaType: plainCoffeeTea.type,
+          items.push(beverageItem);
+          debug.components.push({
+            type: 'matched',
+            vision: component,
+            beverageDetected: true,
+            beverageKind: beverageDetection.kind,
             skippedProvider: true,
-            provider: sourceType,
+            provider: source,
           });
-          
+
           if (process.env.ANALYSIS_DEBUG === 'true') {
-            this.logger.debug('[AnalyzeService] Detected plain coffee/tea, using predefined values', {
-              componentName: component.name,
-              type: plainCoffeeTea.type,
-              portionG: clampedPortion,
+            this.logger.debug('[AnalyzeService] Detected beverage, using canonical values', {
+              componentName: name,
+              kind: beverageDetection.kind,
+              portionG,
+              calories: beverageDetection.calories,
             });
           }
-          continue; // Skip provider lookup for plain coffee/tea
+          continue; // Переходим к следующему компоненту, провайдеров не трогаем
         }
         
         const query = `${component.name} ${component.preparation || ''}`.trim();
@@ -392,9 +549,6 @@ export class AnalyzeService {
         const componentNameLower = component.name.toLowerCase();
         const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
         const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
-        
-        // Check for milk coffee drinks (cappuccino, latte, etc.)
-        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name);
         
         // Build lookup context
         // TODO: Get user region from profile/preferences
@@ -620,7 +774,7 @@ export class AnalyzeService {
         },
       ];
     } else {
-      healthScore = this.computeHealthScore(total, total.portion_g, items);
+      healthScore = this.computeHealthScore(total, total.portion_g, items, locale);
     }
 
     // Q1: Run sanity check
@@ -785,53 +939,95 @@ export class AnalyzeService {
 
     for (const component of components) {
       try {
-        // Check for plain water FIRST
-        const isWaterFromText = this.isPlainWater(component.name);
-        if (isWaterFromText) {
-          const portionG = component.est_portion_g && component.est_portion_g > 0 ? component.est_portion_g : 250;
-          const waterNameEn = 'Water';
-          const waterNameLocalized = await this.foodLocalization.localizeName(waterNameEn, normalizedLocale);
+        const { name, est_portion_g } = component;
+
+        // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
+        const beverageDetection = this.detectBeverageForItem({
+          name: name,
+          category: undefined,
+          volume_ml: est_portion_g && est_portion_g > 0 ? est_portion_g : undefined,
+          portion_g: est_portion_g,
+        });
+
+        if (beverageDetection && beverageDetection.isBeverage) {
+          // Создать "канонический" AnalyzedItem без вызова провайдеров
+          const volume = beverageDetection.volume_ml ?? (est_portion_g && est_portion_g > 0 ? est_portion_g : 250);
+          const portionG = est_portion_g && est_portion_g > 0 
+            ? (est_portion_g < 50 ? volume : (est_portion_g > 800 ? 800 : est_portion_g))
+            : volume;
+
+          // Определяем source в зависимости от типа напитка
+          let source: AnalyzedItem['source'];
+          let baseNameEn: string;
           
-          const waterItem: AnalyzedItem = {
-            name: waterNameLocalized || waterNameEn,
-            originalName: waterNameEn,
-            label: component.name,
+          switch (beverageDetection.kind) {
+            case 'water':
+              source = 'canonical_water';
+              baseNameEn = 'Water';
+              break;
+            case 'black_coffee':
+              source = 'canonical_plain_coffee';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Black Coffee';
+              break;
+            case 'tea':
+              source = 'canonical_plain_tea';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Tea';
+              break;
+            case 'milk_coffee':
+              source = 'canonical_milk_coffee_fallback';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Cappuccino';
+              break;
+            default:
+              source = 'canonical_beverage';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Beverage';
+          }
+
+          const localizedName = await this.foodLocalization.localizeName(baseNameEn, normalizedLocale);
+
+          const beverageItem: AnalyzedItem = {
+            name: localizedName || baseNameEn,
+            originalName: baseNameEn,
+            label: name,
             portion_g: portionG,
             nutrients: {
-              calories: 0,
-              protein: 0,
-              carbs: 0,
-              fat: 0,
-              fiber: 0,
-              sugars: 0,
-              satFat: 0,
-              energyDensity: 0,
+              calories: beverageDetection.calories ?? 0,
+              protein: beverageDetection.protein_g ?? 0,
+              carbs: beverageDetection.carbs_g ?? 0,
+              fat: beverageDetection.fat_g ?? 0,
+              fiber: beverageDetection.fiber_g ?? 0,
+              sugars: beverageDetection.sugars_g ?? 0,
+              satFat: beverageDetection.satFat_g ?? 0,
+              energyDensity: beverageDetection.calories && portionG > 0 
+                ? (beverageDetection.calories / portionG) * 100 
+                : 0,
             },
-            source: 'canonical_water' as AnalyzedItem['source'],
+            source,
             locale: normalizedLocale,
-            hasNutrition: false,
+            hasNutrition: beverageDetection.kind !== 'water',
           };
-          
-          items.push(waterItem);
-          debug.components.push({ 
-            type: 'matched', 
-            vision: component, 
-            waterDetected: true, 
+
+          items.push(beverageItem);
+          debug.components.push({
+            type: 'matched',
+            vision: component,
+            beverageDetected: true,
+            beverageKind: beverageDetection.kind,
             skippedProvider: true,
-            provider: 'canonical_water',
+            provider: source,
           });
-          continue;
+          continue; // Переходим к следующему компоненту, провайдеров не трогаем
         }
 
-        // Check for plain coffee/tea
-        const plainCoffeeTea = this.detectPlainCoffeeOrTea(component.name);
+        // 2) Если не напиток — обычный пайплайн (NutritionOrchestrator)
+        // Fallback для старых вызовов (если detectPlainCoffeeOrTea был вызван напрямую)
+        const plainCoffeeTea = this.detectPlainCoffeeOrTeaLegacy(name);
         if (plainCoffeeTea.isPlain) {
-          const portionG = component.est_portion_g && component.est_portion_g > 0 
-            ? component.est_portion_g 
+          const portionG = est_portion_g && est_portion_g > 0 
+            ? est_portion_g 
             : 200;
           const clampedPortion = portionG < 50 ? 200 : (portionG > 800 ? 800 : portionG);
           
-          const baseName = this.buildBaseFoodName(component.name);
+          const baseName = this.buildBaseFoodName(name);
           const originalNameEn = normalizeFoodName(baseName);
           const localizedName = await this.foodLocalization.localizeName(originalNameEn, normalizedLocale);
           
@@ -840,7 +1036,7 @@ export class AnalyzeService {
           const coffeeTeaItem: AnalyzedItem = {
             name: localizedName || originalNameEn,
             originalName: originalNameEn,
-            label: component.name,
+            label: name,
             portion_g: clampedPortion,
             nutrients: this.getPlainCoffeeOrTeaNutrients(clampedPortion),
             source: sourceType,
@@ -860,15 +1056,15 @@ export class AnalyzeService {
           continue;
         }
 
+        // Обработка напитков уже выполнена выше через detectBeverageForItem
+        // Этот блок больше не нужен, так как все напитки обрабатываются унифицированно
+
         const query = component.name;
         
         // Detect if component is likely a drink
         const componentNameLower = component.name.toLowerCase();
         const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
         const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
-        
-        // Check for milk coffee drinks
-        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name);
         
         // Build lookup context
         const lookupContext: NutritionLookupContext = {
@@ -987,7 +1183,20 @@ export class AnalyzeService {
       }
     }
 
-    // Calculate totals
+    // P3.2: Detect hidden ingredients (oils, sauces, etc.)
+    const hiddenItems = this.hiddenIngredients.detectHiddenIngredients(items);
+    if (hiddenItems.length > 0) {
+      items.push(...hiddenItems);
+      if (debug) {
+        debug.hiddenIngredients = hiddenItems.map((h) => ({
+          name: h.name,
+          portion_g: h.portion_g,
+          calories: h.nutrients.calories,
+        }));
+      }
+    }
+
+    // Calculate totals (including hidden ingredients)
     const total: AnalysisTotals = items.reduce(
       (acc, item) => {
         acc.portion_g += item.portion_g;
@@ -1061,7 +1270,7 @@ export class AnalyzeService {
         },
       ];
     } else {
-      healthScore = this.computeHealthScore(total, total.portion_g, items);
+      healthScore = this.computeHealthScore(total, total.portion_g, items, locale);
     }
 
     // Q1: Run sanity check
@@ -1592,133 +1801,151 @@ export class AnalyzeService {
   }
 
   /**
+   * Internal method for calculating HealthScore with proper normalization.
+   * Accepts totals and list of items to calculate energy density.
+   */
+  /**
+   * Map value to score (0-100) with optional reverse logic
+   */
+  private mapToScore(value: number, min: number, max: number, reverse = false): number {
+    if (!Number.isFinite(value)) return 0;
+    const clamped = this.clamp(value, min, max);
+    const ratio = (clamped - min) / (max - min || 1);
+    const score = reverse
+      ? 100 * (1 - ratio) // меньше = лучше
+      : 100 * ratio;      // больше = лучше
+    return this.clamp(score, 0, 100);
+  }
+
+  private computeHealthScoreInternal(
+    totals: { calories: number; protein: number; carbs: number; fat: number; fiber?: number; satFat?: number; sugars?: number },
+    items: AnalyzedItem[],
+  ): HealthScore {
+    const calories = totals.calories || 0;
+    const protein_g = totals.protein || 0;
+    const carbs_g = totals.carbs || 0;
+    const fat_g = totals.fat || 0;
+    const fiber_g = totals.fiber || 0;
+
+    // Total weight of the dish (if portion_g is set for components)
+    const portion_g = items.reduce(
+      (sum, item) => sum + (item.portion_g || 0),
+      0,
+    ) || 250; // fallback to 250g if no portion data
+
+    // Saturated fats and sugars - use actual values if available, otherwise estimate
+    const saturatedFat_g = totals.satFat > 0 
+      ? totals.satFat 
+      : (fat_g > 0 ? fat_g * 0.4 : 0); // ~40% of fats are saturated
+    const sugars_g = totals.sugars > 0 
+      ? totals.sugars 
+      : (carbs_g > 0 ? carbs_g * 0.5 : 0); // ~50% of carbs are sugars
+
+    const safeCalories = calories > 0 ? calories : 1;
+    const safePortion = portion_g > 0 ? portion_g : 1;
+    const safeFat = fat_g > 0 ? fat_g : 1;
+
+    // 1) Плотность питательных веществ (g / 1000 kcal)
+    const proteinPer1000kcal = (protein_g * 1000) / safeCalories;
+    const fiberPer1000kcal = (fiber_g * 1000) / safeCalories;
+
+    // 2) Доли "рисковых" факторов
+    // saturated fat share (доля сат. жиров в общем жире)
+    const satFatShare = saturatedFat_g / safeFat;      // 0..1+
+    // sugars share in calories (доля ккал из сахара)
+    const sugarsKcal = sugars_g * 4;
+    const sugarsShare = sugarsKcal / safeCalories;     // 0..1+
+
+    // 3) Энергетическая плотность (kcal / g)
+    const energyDensityKcalPerGram = calories / safePortion;
+
+    // Нормализация по факторам (0–100)
+    // Протеин: 0–15 г/1000ккал => 0–100 (выше 15 уже считаем 100)
+    const proteinScore = this.mapToScore(proteinPer1000kcal, 0, 15, false);
+    // Клетчатка: 0–14 г/1000ккал => 0–100
+    const fiberScore = this.mapToScore(fiberPer1000kcal, 0, 14, false);
+    // Сатурированные жиры: 0–40% => 100–0 (чем больше доля, тем хуже)
+    const satFatScore = this.mapToScore(satFatShare, 0, 0.4, true);
+    // Сахара: 0–25% ккал => 100–0
+    const sugarsScore = this.mapToScore(sugarsShare, 0, 0.25, true);
+    // Энерго-плотность: 0.5–3.0 ккал/г => 100–0
+    const energyDensityScore = this.mapToScore(energyDensityKcalPerGram, 0.5, 3.0, true);
+
+    // Веса факторов (сумма ≈ 1.0)
+    const weights = {
+      protein: 0.25,
+      fiber: 0.20,
+      saturatedFat: 0.20,
+      sugars: 0.15,
+      energyDensity: 0.20,
+    };
+
+    const totalRaw =
+      proteinScore * weights.protein +
+      fiberScore * weights.fiber +
+      satFatScore * weights.saturatedFat +
+      sugarsScore * weights.sugars +
+      energyDensityScore * weights.energyDensity;
+
+    const total = this.clamp(Math.round(totalRaw), 0, 100);
+
+    let level: 'poor' | 'average' | 'good' | 'excellent';
+    if (total < 40) {
+      level = 'poor';
+    } else if (total < 60) {
+      level = 'average';
+    } else if (total < 80) {
+      level = 'good';
+    } else {
+      level = 'excellent';
+    }
+
+    const factors: HealthScoreFactors = {
+      protein: Math.round(proteinScore),
+      fiber: Math.round(fiberScore),
+      saturatedFat: Math.round(satFatScore),
+      sugars: Math.round(sugarsScore),
+      energyDensity: Math.round(energyDensityScore),
+    };
+
+    return {
+      total,
+      score: total, // backward compatibility
+      level: level as HealthScoreLevel,
+      grade: this.deriveGrade(total),
+      factors,
+      feedback: [], // will be filled by buildHealthFeedback
+    } as HealthScore;
+  }
+
+  /**
    * Compute health score from totals and items
    * Public method for re-analysis use cases
    */
-  computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[]): HealthScore {
-    const weights = this.getHealthWeights();
-    const portionWeight = totalPortion || 250; // fallback 250g meal
-    const isDrink = items ? this.isDrinkAnalysis(items) : false;
-    
-    const proteinScore = this.positiveScore(total.protein, 30);
-    const fiberScore = this.positiveScore(total.fiber || 0, 10);
-    
-    // Task 2: Fallback estimates when specific data is missing but parent macro exists
-    // Use fallback only when satFat is 0 or missing but fat > 0
-    const estimatedSatFat = total.satFat > 0 
-      ? total.satFat 
-      : (total.fat > 0 ? total.fat * 0.35 : 0); // ~35% of fat is typically saturated
-      
-    // Use fallback only when sugars is 0 or missing but carbs > 0
-    const estimatedSugars = total.sugars > 0 
-      ? total.sugars 
-      : (total.carbs > 0 ? total.carbs * 0.1 : 0); // ~10% of carbs as sugars fallback
-    
-    // For drinks, use stricter thresholds for sugar
-    const sugarThreshold = isDrink ? 10 : 15;
-    const satFatThreshold = isDrink ? 5 : 8;
-    
-    const satFatScore = this.negativeScore(estimatedSatFat, satFatThreshold);
-    const sugarScore = this.negativeScore(estimatedSugars, sugarThreshold);
-    
-    // For drinks, use volume-based energy density (ml instead of grams)
-    // Default drink volume: 250ml for coffee/tea, 330ml for soda
-    const effectivePortion = isDrink ? (portionWeight || 250) : portionWeight;
-    const energyDensity = effectivePortion ? total.calories / effectivePortion : total.calories / 250;
-    const energyDensityThreshold = isDrink ? 2 : 4; // Drinks should have lower energy density
-    const energyDensityScore = this.negativeScore(energyDensity, energyDensityThreshold);
+  computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' = 'en'): HealthScore {
+    // Use new internal method for proper calculation
+    const itemsArray = items || [];
+    const totalsForInternal = {
+      calories: total.calories || 0,
+      protein: total.protein || 0,
+      carbs: total.carbs || 0,
+      fat: total.fat || 0,
+      fiber: total.fiber || 0,
+      satFat: total.satFat || 0,
+      sugars: total.sugars || 0,
+    };
 
-    const factorMap = {
-      protein: { label: 'Protein', score: proteinScore, weight: weights.protein },
-      fiber: { label: 'Fiber', score: fiberScore, weight: weights.fiber },
-      satFat: { label: 'Saturated fat', score: satFatScore, weight: weights.satFat },
-      sugar: { label: 'Sugar', score: sugarScore, weight: weights.sugar },
-      energyDensity: { label: 'Energy density', score: energyDensityScore, weight: weights.energyDensity },
-    } as const;
+    const baseHealthScore = this.computeHealthScoreInternal(totalsForInternal, itemsArray);
+    const feedback = this.buildHealthFeedback(baseHealthScore, totalsForInternal, locale);
 
-    const totalWeight = Object.values(weights).reduce((acc: number, weight: number) => acc + weight, 0) || 1;
-    const factorEntries = Object.values(factorMap) as Array<{ label: string; score: number; weight: number }>;
-    const weightedScore = factorEntries.reduce((acc: number, factor) => acc + factor.score * (factor.weight || 0), 0) /
-      totalWeight;
-    let score = Math.round(Math.max(0, Math.min(100, weightedScore)));
-    let grade = this.deriveGrade(score);
-
-    // UX-oriented heuristics: protect obviously "okay" foods from getting unfairly low scores
-    // These are UX overrides, not strict nutrition science
-
-    // Heuristic A: Very light & "clean" foods (small fruits, plain vegetables, clear soups)
-    // Condition: low calories, low sugar, low sat fat, reasonable energy density
-    if (
-      total.calories <= 80 &&
-      sugarScore >= 80 &&
-      satFatScore >= 80 &&
-      energyDensityScore >= 80
-    ) {
-      score = Math.max(score, 80);
-      grade = this.deriveGrade(score);
-      if (process.env.ANALYSIS_DEBUG === 'true') {
-        this.logger.debug('[HealthScore] Applied Heuristic A (light clean food)', {
-          originalScore: weightedScore,
-          adjustedScore: score,
-          calories: total.calories,
-        });
-      }
-    }
-
-    // Heuristic B: Zero-calorie drinks (water, plain tea, etc.)
-    // A2: Extended to cover zero-calorie drinks - should not show aggressive warnings
-    // Condition: drink analysis, very low calories (<=5), minimal sugar (<=1) and sat fat (<=0.5)
-    // UX heuristic: zero-calorie drinks should get high score (90+) and grade A/B
-    if (
-      isDrink &&
-      total.calories <= 5 &&
-      (total.sugars || 0) <= 1 &&
-      (total.satFat || 0) <= 0.5
-    ) {
-      score = Math.max(score, 90);
-      grade = this.deriveGrade(score);
-      if (process.env.ANALYSIS_DEBUG === 'true') {
-        this.logger.debug('[HealthScore] Applied Heuristic B (zero-calorie drinks)', {
-          originalScore: weightedScore,
-          adjustedScore: score,
-          calories: total.calories,
-          sugars: total.sugars,
-          satFat: total.satFat,
-        });
-      }
-    }
-    
-    // Heuristic B2: Plain coffee/tea (low calories, minimal sugar/fat)
-    // Condition: drink analysis, low calories (5-30), minimal sugar (<=3) and sat fat (<=1)
-    if (
-      isDrink &&
-      total.calories > 5 &&
-      total.calories <= 30 &&
-      (total.sugars || 0) <= 3 &&
-      (total.satFat || 0) <= 1
-    ) {
-      score = Math.max(score, 85);
-      grade = this.deriveGrade(score);
-      if (process.env.ANALYSIS_DEBUG === 'true') {
-        this.logger.debug('[HealthScore] Applied Heuristic B2 (plain coffee/tea)', {
-          originalScore: weightedScore,
-          adjustedScore: score,
-          calories: total.calories,
-          sugars: total.sugars,
-          satFat: total.satFat,
-        });
-      }
-    }
-
-    const feedbackObjects = this.buildFeedback(factorMap);
+    // Convert feedback to legacy format for backward compatibility
+    const feedbackLegacy = feedback.map(item => item.message);
 
     return {
-      score,
-      grade,
-      factors: factorMap,
-      // Expose only human-readable messages; internal structure is kept in debug if needed
-      feedback: feedbackObjects.map((f) => f.message),
-    };
+      ...baseHealthScore,
+      feedback,
+      feedbackLegacy, // backward compatibility
+    } as any as HealthScore & { feedbackLegacy?: string[] };
   }
 
   private getHealthWeights(): HealthWeights {
@@ -1737,6 +1964,48 @@ export class AnalyzeService {
     }
   }
 
+  /**
+   * Clamp value between min and max, handling NaN
+   */
+  private clamp(value: number, min: number, max: number): number {
+    if (Number.isNaN(value)) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+  }
+
+  /**
+   * For nutrients where higher is better (e.g., protein, fiber).
+   * minValue ~ 0, maxValue ~ "enough".
+   * At value >= maxValue → 100, at 0 → 0.
+   */
+  private scoreHigherIsBetter(value: number, maxValue: number): number {
+    if (value <= 0) return 0;
+    if (value >= maxValue) return 100;
+    return this.clamp((value / maxValue) * 100, 0, 100);
+  }
+
+  /**
+   * For nutrients where lower is better (sugar, saturated fats, energy density).
+   * If value <= bestThreshold → 100
+   * If value >= worstThreshold → 0
+   * Linear interpolation between them.
+   */
+  private scoreLowerIsBetter(
+    value: number,
+    bestThreshold: number,
+    worstThreshold: number,
+  ): number {
+    if (value <= bestThreshold) return 100;
+    if (value >= worstThreshold) return 0;
+    const ratio = (value - bestThreshold) / (worstThreshold - bestThreshold);
+    const score = 100 * (1 - ratio);
+    return this.clamp(score, 0, 100);
+  }
+
+  /**
+   * Legacy methods for backward compatibility
+   */
   private positiveScore(value: number, target: number) {
     if (target <= 0) return 0;
     const ratio = Math.min(1.5, value / target);
@@ -1762,9 +2031,37 @@ export class AnalyzeService {
 
   private buildFeedback(
     factors: Record<string, { label: string; score: number; weight: number }>,
+    locale: 'en' | 'ru' | 'kk' = 'en',
   ): Array<{ key: string; label: string; action: 'celebrate' | 'increase' | 'reduce' | 'monitor'; message: string }> {
     const entries: Array<{ key: string; label: string; action: 'celebrate' | 'increase' | 'reduce' | 'monitor'; message: string }> = [];
     const penaltyKeys = ['satFat', 'sugar', 'energyDensity'];
+
+    // Localized feedback messages
+    const feedbackI18n = {
+      en: {
+        reduce: (label: string) => `Reduce ${label.toLowerCase()} to improve overall score.`,
+        monitor: (label: string) => `Keep an eye on ${label.toLowerCase()} to stay on track.`,
+        increase: (label: string) => `Increase ${label.toLowerCase()} to improve overall score.`,
+        celebrate: 'Great job! This meal looks well balanced.',
+        overallBalance: 'Overall balance',
+      },
+      ru: {
+        reduce: (label: string) => `Уменьшите ${this.translateLabel(label, 'ru').toLowerCase()} для улучшения общего балла.`,
+        monitor: (label: string) => `Следите за ${this.translateLabel(label, 'ru').toLowerCase()}, чтобы оставаться на правильном пути.`,
+        increase: (label: string) => `Увеличьте ${this.translateLabel(label, 'ru').toLowerCase()} для улучшения общего балла.`,
+        celebrate: 'Отличная работа! Это блюдо выглядит хорошо сбалансированным.',
+        overallBalance: 'Общий баланс',
+      },
+      kk: {
+        reduce: (label: string) => `Жалпы баллды жақсарту үшін ${this.translateLabel(label, 'kk').toLowerCase()} азайтыңыз.`,
+        monitor: (label: string) => `Дұрыс жолда қалу үшін ${this.translateLabel(label, 'kk').toLowerCase()} бақылаңыз.`,
+        increase: (label: string) => `Жалпы баллды жақсарту үшін ${this.translateLabel(label, 'kk').toLowerCase()} арттырыңыз.`,
+        celebrate: 'Тамаша! Бұл тағам жақсы теңгерілген сияқты.',
+        overallBalance: 'Жалпы теңгерім',
+      },
+    };
+
+    const dict = feedbackI18n[locale] || feedbackI18n.en;
 
     Object.entries(factors).forEach(([key, factor]) => {
       const label = factor.label || key;
@@ -1776,14 +2073,14 @@ export class AnalyzeService {
             key,
             label,
             action: 'reduce',
-            message: `Reduce ${labelLower} to improve overall score.`,
+            message: dict.reduce(label),
           });
         } else if (factor.score < 85) {
           entries.push({
             key,
             label,
             action: 'monitor',
-            message: `Keep an eye on ${labelLower} to stay on track.`,
+            message: dict.monitor(label),
           });
         }
       } else if (factor.score < 70) {
@@ -1791,7 +2088,7 @@ export class AnalyzeService {
           key,
           label,
           action: 'increase',
-          message: `Increase ${labelLower} to improve overall score.`,
+          message: dict.increase(label),
         });
       }
     });
@@ -1799,13 +2096,738 @@ export class AnalyzeService {
     if (entries.length === 0) {
       entries.push({
         key: 'overall',
-        label: 'Overall balance',
+        label: dict.overallBalance,
         action: 'celebrate',
-        message: 'Great job! This meal looks well balanced.',
+        message: dict.celebrate,
       });
     }
 
     return entries;
+  }
+
+  private translateLabel(label: string, locale: 'en' | 'ru' | 'kk'): string {
+    const translations: Record<string, Record<string, string>> = {
+      Protein: { ru: 'Белок', kk: 'Ақуыз' },
+      Fiber: { ru: 'Клетчатка', kk: 'Талшық' },
+      'Saturated fat': { ru: 'Насыщенные жиры', kk: 'Қаныққан майлар' },
+      Sugar: { ru: 'Сахар', kk: 'Қант' },
+      'Energy density': { ru: 'Энергетическая плотность', kk: 'Энергия тығыздығы' },
+    };
+    return translations[label]?.[locale] || label;
+  }
+
+  /**
+   * Build localized health feedback messages based on health score and totals
+   */
+  private buildHealthFeedback(
+    healthScore: { total: number; level: HealthScoreLevel; factors: HealthScoreFactors } | HealthScore,
+    totals: { calories: number; protein: number; carbs: number; fat: number; fiber?: number; satFat?: number; sugars?: number },
+    locale: string,
+  ): HealthFeedbackItem[] {
+    const total = 'total' in healthScore ? healthScore.total : healthScore.score || 0;
+    const level = 'level' in healthScore ? healthScore.level : (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
+    const factors = healthScore.factors;
+    const { calories, protein, fiber, sugars, satFat } = totals;
+
+    // Приводим locale к базовым ('en' | 'ru' | 'kk')
+    const lang = (locale || 'en').split('-')[0] as 'en' | 'ru' | 'kk';
+
+    // Хелпер для текстов
+    const t = (code: string): string => {
+      const dict: Record<typeof lang, Record<string, string>> = {
+        en: {
+          overall_excellent: 'This looks like a very balanced and nutrient-dense meal.',
+          overall_good: 'Overall this meal looks fairly balanced.',
+          overall_average: 'This meal is okay, but there is room for improvement.',
+          overall_poor: 'This meal is quite unbalanced. Try to improve it next time.',
+          high_protein: 'Good protein content — this helps preserve muscle mass.',
+          low_protein: 'Protein is relatively low. Consider adding meat, fish, eggs, or legumes.',
+          high_fiber: 'Nice amount of fiber — good for digestion and blood sugar control.',
+          low_fiber: 'Fiber is low. Try to add vegetables, fruits, or whole grains.',
+          low_saturated_fat: 'Saturated fat is within reasonable limits.',
+          high_saturated_fat: 'Saturated fat is high. Try to reduce fatty meat, butter, or pastries.',
+          low_sugar: 'Free sugar is within a sensible range.',
+          high_sugar: 'Free sugar is relatively high — be careful with sweets and sugary drinks.',
+          low_energy_density: 'Energy density is low, which usually means more volume for fewer calories.',
+          high_energy_density: 'Energy density is high. Such meals are easy to overeat without noticing.',
+          caloric_surplus_warning: 'The total calories of this meal are relatively high; watch your overall daily intake.',
+          caloric_low_warning: 'Calories are low — this looks more like a snack than a full meal.',
+        },
+        ru: {
+          overall_excellent: 'По составу это очень сбалансированный и питательный приём пищи.',
+          overall_good: 'В целом приём пищи выглядит достаточно сбалансированным.',
+          overall_average: 'Приём пищи в порядке, но есть куда улучшать.',
+          overall_poor: 'Приём пищи довольно несбалансированный. В следующий раз можно улучшить состав.',
+          high_protein: 'Хорошее содержание белка — это помогает сохранять мышечную массу.',
+          low_protein: 'Белка относительно мало. Подумайте о том, чтобы добавить мясо, рыбу, яйца или бобовые.',
+          high_fiber: 'Неплохое количество клетчатки — это полезно для пищеварения и сахара крови.',
+          low_fiber: 'Клетчатки маловато. Попробуйте добавить овощи, фрукты или цельнозерновые продукты.',
+          low_saturated_fat: 'Насыщенные жиры находятся в разумных пределах.',
+          high_saturated_fat: 'Много насыщенных жиров. Стоит сократить жирное мясо, сливочное масло и выпечку.',
+          low_sugar: 'Свободные сахара в разумных пределах.',
+          high_sugar: 'Доля сахара достаточно высока — аккуратнее со сладостями и сладкими напитками.',
+          low_energy_density: 'Невысокая энергетическая плотность — обычно это значит больше объёма за меньшее число калорий.',
+          high_energy_density: 'Энергетическая плотность высокая — такие блюда легко переесть, не заметив.',
+          caloric_surplus_warning: 'Общая калорийность приёма пищи довольно высокая — следите за суточным потреблением.',
+          caloric_low_warning: 'Калорийность невысокая — это больше похоже на перекус, чем на полноценный приём пищи.',
+        },
+        kk: {
+          overall_excellent: 'Бұл өте теңгерілген және қоректік тамақтану болып көрінеді.',
+          overall_good: 'Жалпы алғанда бұл тамақтану жеткілікті теңгерілген.',
+          overall_average: 'Тамақтану жаман емес, бірақ жақсартуға мүмкіндік бар.',
+          overall_poor: 'Бұл тамақтану онша теңгерілмеген. Келесі жолы сәл жақсартуға тырысыңыз.',
+          high_protein: 'Ақуыз мөлшері жақсы — бұлшықет массасын сақтауға көмектеседі.',
+          low_protein: 'Ақуыз аздау. Ет, балық, жұмыртқа немесе бұршақ тұқымдастарын қосуды ойластырыңыз.',
+          high_fiber: 'Клетчатка мөлшері жақсы — ас қорытуға және қантты бақылауға пайдалы.',
+          low_fiber: 'Клетчатка аз. Көкөністер, жемістер немесе тұтас дәнді өнімдер қосып көріңіз.',
+          low_saturated_fat: 'Қаныққан майлар мөлшері ақылға қонымды шектерде.',
+          high_saturated_fat: 'Қаныққан майлар көп. Майлы етті, сары майды және қамырлы тағамдарды азайтқан дұрыс.',
+          low_sugar: 'Бос қанттар адекватты деңгейде.',
+          high_sugar: 'Қанттың үлесі жоғарырақ — тәттілер мен тәтті сусындарға абай болыңыз.',
+          low_energy_density: 'Энергетикалық тығыздық төмен — әдетте бұл аз калорияға көбірек көлем дегенді білдіреді.',
+          high_energy_density: 'Энергетикалық тығыздық жоғары — мұндай тағамдарды байқамай-ақ артық жеуге болады.',
+          caloric_surplus_warning: 'Бұл тамақтанудың жалпы калориясы жоғары — тәуліктік норманы бақылаңыз.',
+          caloric_low_warning: 'Калориясы төмен — бұл толыққанды тамақтанудан гөрі жеңіл жеңілдеу сияқты.',
+        },
+      };
+      return dict[lang]?.[code] ?? dict.en[code] ?? code;
+    };
+
+    const feedback: HealthFeedbackItem[] = [];
+
+    // 1) Общая оценка
+    if (total >= 80) {
+      feedback.push({ type: 'positive', code: 'overall_excellent', message: t('overall_excellent') });
+    } else if (total >= 60) {
+      feedback.push({ type: 'positive', code: 'overall_good', message: t('overall_good') });
+    } else if (total >= 40) {
+      feedback.push({ type: 'warning', code: 'overall_average', message: t('overall_average') });
+    } else {
+      feedback.push({ type: 'warning', code: 'overall_poor', message: t('overall_poor') });
+    }
+
+    // 2) Белок
+    if (factors.protein >= 70) {
+      feedback.push({ type: 'positive', code: 'high_protein', message: t('high_protein') });
+    } else if (factors.protein <= 40) {
+      feedback.push({ type: 'warning', code: 'low_protein', message: t('low_protein') });
+    }
+
+    // 3) Клетчатка
+    if (factors.fiber >= 70) {
+      feedback.push({ type: 'positive', code: 'high_fiber', message: t('high_fiber') });
+    } else if (factors.fiber <= 40) {
+      feedback.push({ type: 'warning', code: 'low_fiber', message: t('low_fiber') });
+    }
+
+    // 4) Насыщенные жиры
+    if (factors.saturatedFat >= 70) {
+      feedback.push({
+        type: 'positive',
+        code: 'low_saturated_fat',
+        message: t('low_saturated_fat'),
+      });
+    } else if (factors.saturatedFat <= 40) {
+      feedback.push({
+        type: 'warning',
+        code: 'high_saturated_fat',
+        message: t('high_saturated_fat'),
+      });
+    }
+
+    // 5) Сахара
+    if (factors.sugars >= 70) {
+      feedback.push({ type: 'positive', code: 'low_sugar', message: t('low_sugar') });
+    } else if (factors.sugars <= 40) {
+      feedback.push({ type: 'warning', code: 'high_sugar', message: t('high_sugar') });
+    }
+
+    // 6) Энергетическая плотность
+    if (factors.energyDensity >= 70) {
+      feedback.push({
+        type: 'positive',
+        code: 'low_energy_density',
+        message: t('low_energy_density'),
+      });
+    } else if (factors.energyDensity <= 40) {
+      feedback.push({
+        type: 'warning',
+        code: 'high_energy_density',
+        message: t('high_energy_density'),
+      });
+    }
+
+    // 7) Дополнительные замечания по калорийности
+    if (calories >= 800) {
+      feedback.push({
+        type: 'warning',
+        code: 'caloric_surplus_warning',
+        message: t('caloric_surplus_warning'),
+      });
+    } else if (calories <= 300) {
+      feedback.push({
+        type: 'warning',
+        code: 'caloric_low_warning',
+        message: t('caloric_low_warning'),
+      });
+    }
+
+    // Можно ограничить вывод, чтобы не перегружать пользователя
+    // Например, показать не больше 6 сообщений
+    return feedback.slice(0, 6);
+  }
+
+  /**
+   * Helper method for cases when we only have totals and items
+   * (e.g., during manual-reanalyze after manual ingredient editing).
+   */
+  public async computeHealthScoreFromTotals(params: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber?: number;
+    satFat?: number;
+    sugars?: number;
+    items: AnalyzedItem[];
+    locale?: string;
+  }): Promise<HealthScore> {
+    const { calories, protein, carbs, fat, fiber, satFat, sugars, items, locale } = params;
+
+    const totals = { calories, protein, carbs, fat, fiber, satFat, sugars };
+
+    const baseHealthScore = this.computeHealthScoreInternal(totals, items);
+    const feedback = this.buildHealthFeedback(
+      baseHealthScore,
+      totals,
+      locale || 'en',
+    );
+
+    // Convert feedback to legacy format for backward compatibility
+    const feedbackLegacy = feedback.map(item => item.message);
+
+    return {
+      ...baseHealthScore,
+      feedback,
+      feedbackLegacy, // backward compatibility
+    } as any as HealthScore & { feedbackLegacy?: string[] };
+  }
+
+  /**
+   * Re-analyze with manually edited component names and portions
+   * Does NOT call Vision - uses user-provided names directly
+   */
+  async reanalyzeWithManualComponents(
+    input: {
+      analysisId: string;
+      components: Array<{ id: string; name: string; portion_g: number }>;
+      locale?: 'en' | 'ru' | 'kk';
+      region?: 'US' | 'CH' | 'EU' | 'OTHER';
+    },
+    userId: string,
+  ): Promise<AnalysisData> {
+    const locale = input.locale || 'en';
+    const region = input.region;
+
+    // Build lookup context
+    const lookupContext: NutritionLookupContext = {
+      locale,
+      region,
+      expectedCategory: undefined, // Will be determined per component
+    };
+
+    const items: AnalyzedItem[] = [];
+    const debug: AnalysisDebug = {
+      components: [],
+      timestamp: new Date().toISOString(),
+      model: 'manual_reanalysis',
+    };
+
+    // Process each manually edited component
+    for (const component of input.components) {
+      try {
+        const name = component.name.trim();
+        const portionG = component.portion_g;
+
+        if (!name || portionG <= 0) {
+          continue;
+        }
+
+        // Check for special cases (water, plain coffee/tea) BEFORE provider lookup
+        const isWater = this.isPlainWater(name);
+        if (isWater) {
+          const waterNameEn = 'Water';
+          const waterNameLocalized = await this.foodLocalization.localizeName(waterNameEn, locale);
+          
+          const waterItem: AnalyzedItem = {
+            name: waterNameLocalized || waterNameEn,
+            originalName: waterNameEn,
+            label: name,
+            portion_g: portionG,
+            nutrients: {
+              calories: 0,
+              protein: 0,
+              carbs: 0,
+              fat: 0,
+              fiber: 0,
+              sugars: 0,
+              satFat: 0,
+              energyDensity: 0,
+            },
+            source: 'canonical_water',
+            locale,
+            hasNutrition: false,
+            userEditedName: name,
+            userEditedPortionG: portionG,
+            wasManuallyEdited: true,
+          };
+          
+          items.push(waterItem);
+          debug.components.push({
+            type: 'matched',
+            componentName: name,
+            waterDetected: true,
+            skippedProvider: true,
+            provider: 'canonical_water',
+          });
+          continue;
+        }
+
+        // Check for plain coffee/tea
+        const plainCoffeeTea = this.detectPlainCoffeeOrTea(name);
+        if (plainCoffeeTea.isPlain) {
+          const baseName = this.buildBaseFoodName(name);
+          const originalNameEn = normalizeFoodName(baseName);
+          const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
+          
+          const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
+          
+          const coffeeTeaItem: AnalyzedItem = {
+            name: localizedName || originalNameEn,
+            originalName: originalNameEn,
+            label: name,
+            portion_g: portionG,
+            nutrients: this.getPlainCoffeeOrTeaNutrients(portionG),
+            source: sourceType,
+            locale,
+            hasNutrition: true,
+            userEditedName: name,
+            userEditedPortionG: portionG,
+            wasManuallyEdited: true,
+          };
+          
+          items.push(coffeeTeaItem);
+          debug.components.push({
+            type: 'matched',
+            componentName: name,
+            plainCoffeeTea: true,
+            coffeeTeaType: plainCoffeeTea.type,
+            skippedProvider: true,
+            provider: sourceType,
+          });
+          continue;
+        }
+
+        // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
+        const beverageDetection = this.detectBeverageForItem({
+          name: name,
+          category: undefined,
+          volume_ml: portionG && portionG > 0 ? portionG : undefined,
+          portion_g: portionG,
+        });
+
+        if (beverageDetection && beverageDetection.isBeverage) {
+          // Создать "канонический" AnalyzedItem без вызова провайдеров
+          const volume = beverageDetection.volume_ml ?? (portionG && portionG > 0 ? portionG : 250);
+          const finalPortionG = portionG && portionG > 0 
+            ? (portionG < 50 ? volume : (portionG > 800 ? 800 : portionG))
+            : volume;
+
+          // Определяем source в зависимости от типа напитка
+          let source: AnalyzedItem['source'];
+          let baseNameEn: string;
+          
+          switch (beverageDetection.kind) {
+            case 'water':
+              source = 'canonical_water';
+              baseNameEn = 'Water';
+              break;
+            case 'black_coffee':
+              source = 'canonical_plain_coffee';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Black Coffee';
+              break;
+            case 'tea':
+              source = 'canonical_plain_tea';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Tea';
+              break;
+            case 'milk_coffee':
+              source = 'canonical_milk_coffee_fallback';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Cappuccino';
+              break;
+            default:
+              source = 'canonical_beverage';
+              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Beverage';
+          }
+
+          const localizedName = await this.foodLocalization.localizeName(baseNameEn, locale);
+
+          const beverageItem: AnalyzedItem = {
+            name: localizedName || baseNameEn,
+            originalName: baseNameEn,
+            label: name,
+            portion_g: finalPortionG,
+            nutrients: {
+              calories: beverageDetection.calories ?? 0,
+              protein: beverageDetection.protein_g ?? 0,
+              carbs: beverageDetection.carbs_g ?? 0,
+              fat: beverageDetection.fat_g ?? 0,
+              fiber: beverageDetection.fiber_g ?? 0,
+              sugars: beverageDetection.sugars_g ?? 0,
+              satFat: beverageDetection.satFat_g ?? 0,
+              energyDensity: beverageDetection.calories && finalPortionG > 0 
+                ? (beverageDetection.calories / finalPortionG) * 100 
+                : 0,
+            },
+            source,
+            locale,
+            hasNutrition: beverageDetection.kind !== 'water',
+            userEditedName: name,
+            userEditedPortionG: portionG,
+            wasManuallyEdited: true,
+          };
+
+          items.push(beverageItem);
+          debug.components.push({
+            type: 'matched',
+            componentName: name,
+            beverageDetected: true,
+            beverageKind: beverageDetection.kind,
+            skippedProvider: true,
+            provider: source,
+          });
+          continue; // Переходим к следующему компоненту, провайдеров не трогаем
+        }
+
+        // 2) Если не напиток — обычный пайплайн (NutritionOrchestrator)
+        // Detect if it's a drink
+        const nameLower = name.toLowerCase();
+        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => nameLower.includes(keyword));
+        const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
+        const contextWithCategory = { ...lookupContext, expectedCategory };
+
+        // Try to find nutrition data via orchestrator
+        const providerResult = await this.nutrition.findNutrition(name, contextWithCategory);
+
+        if (!providerResult || !providerResult.food) {
+          // Fallback for unknown items
+          if (isDrinkComponent) {
+            // Use conservative beverage fallback
+            const sweetDrinkKeywords = ['cola', 'soda', 'juice', 'сок', 'лимонад', 'sweet', 'sweetened'];
+            const isSweetDrink = sweetDrinkKeywords.some(kw => nameLower.includes(kw));
+            const kcalPer250ml = isSweetDrink ? 100 : 20;
+            const calories = Math.round((portionG / 250) * kcalPer250ml);
+            
+            const fallbackNutrients: Nutrients = {
+              calories,
+              protein: 0,
+              carbs: isSweetDrink ? this.round((portionG / 250) * 25, 1) : 0,
+              fat: 0,
+              fiber: 0,
+              sugars: isSweetDrink ? this.round((portionG / 250) * 24, 1) : 0,
+              satFat: 0,
+              energyDensity: calories > 0 ? (calories / portionG) * 100 : 0,
+            };
+
+            const baseName = this.buildBaseFoodName(name);
+            const originalNameEn = normalizeFoodName(baseName);
+            const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
+
+            const fallbackItem: AnalyzedItem = {
+              name: localizedName || originalNameEn,
+              originalName: originalNameEn,
+              label: name,
+              portion_g: portionG,
+              nutrients: fallbackNutrients,
+              source: 'unknown_drink_low_calorie_fallback',
+              locale,
+              hasNutrition: true,
+              userEditedName: name,
+              userEditedPortionG: portionG,
+              wasManuallyEdited: true,
+            };
+
+            items.push(fallbackItem);
+            debug.components.push({
+              type: 'vision_fallback',
+              componentName: name,
+              message: 'Added conservative fallback for unknown beverage',
+              provider: 'unknown_drink_low_calorie_fallback',
+            });
+          } else {
+            // Solid food fallback
+            const fallbackNutrients: Nutrients = {
+              calories: Math.round(portionG * 1.2),
+              protein: this.round(portionG * 0.04, 1),
+              carbs: this.round(portionG * 0.15, 1),
+              fat: this.round(portionG * 0.06, 1),
+              fiber: 0,
+              sugars: 0,
+              satFat: 0,
+              energyDensity: 120,
+            };
+
+            const baseName = this.buildBaseFoodName(name);
+            const originalNameEn = normalizeFoodName(baseName);
+            const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
+
+            const fallbackItem: AnalyzedItem = {
+              name: localizedName || originalNameEn,
+              originalName: originalNameEn,
+              label: name,
+              portion_g: portionG,
+              nutrients: fallbackNutrients,
+              source: 'vision_fallback',
+              locale,
+              hasNutrition: true,
+              userEditedName: name,
+              userEditedPortionG: portionG,
+              wasManuallyEdited: true,
+            };
+
+            items.push(fallbackItem);
+            debug.components.push({
+              type: 'vision_fallback',
+              componentName: name,
+              message: 'Added fallback for unknown solid food',
+              provider: 'vision_fallback',
+            });
+          }
+          continue;
+        }
+
+        const canonicalFood = providerResult.food;
+        const isDrink = canonicalFood.category === 'drink';
+
+        // Calculate nutrients for portion
+        const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
+
+        // Special handling for milk coffee drinks
+        if (isMilkCoffee && isDrink) {
+          const kcalPer100 = canonicalFood.per100g.calories || 0;
+          const kcalPerPortion = nutrients.calories;
+          
+          if (kcalPer100 > 150 || (kcalPerPortion > 400 && portionG <= 300)) {
+            // Use canonical fallback
+            const canonicalKcalPer250ml = 90;
+            const scale = portionG / 250;
+            nutrients.calories = Math.round(canonicalKcalPer250ml * scale);
+            nutrients.protein = this.round(3 * scale, 1);
+            nutrients.carbs = this.round(9 * scale, 1);
+            nutrients.fat = this.round(4.5 * scale, 1);
+            nutrients.fiber = 0;
+            nutrients.sugars = this.round(8 * scale, 1);
+            nutrients.satFat = this.round(2.5 * scale, 1);
+            nutrients.energyDensity = this.round((nutrients.calories / portionG) * 100, 1);
+            
+            const item = await this.createAnalyzedItemFromCanonical(
+              { name, preparation: 'unknown', est_portion_g: portionG, confidence: 0.8 },
+              canonicalFood,
+              portionG,
+              nutrients,
+              locale,
+              'canonical_milk_coffee_fallback',
+            );
+            
+            item.userEditedName = name;
+            item.userEditedPortionG = portionG;
+            item.wasManuallyEdited = true;
+            
+            items.push(item);
+            debug.components.push({
+              type: 'matched',
+              componentName: name,
+              provider: canonicalFood.providerId,
+              canonicalFallback: true,
+              reason: 'milk_coffee_calories_too_high',
+            });
+            continue;
+          }
+        }
+
+        // Create item from canonical food
+        const item = await this.createAnalyzedItemFromCanonical(
+          { name, preparation: 'unknown', est_portion_g: portionG, confidence: 0.8 },
+          canonicalFood,
+          portionG,
+          nutrients,
+          locale,
+          canonicalFood.providerId === 'usda' ? 'fdc' : canonicalFood.providerId,
+        );
+
+        item.userEditedName = name;
+        item.userEditedPortionG = portionG;
+        item.wasManuallyEdited = true;
+
+        items.push(item);
+        debug.components.push({
+          type: 'matched',
+          componentName: name,
+          provider: canonicalFood.providerId,
+          providerId: canonicalFood.providerFoodId,
+          foodName: canonicalFood.displayName,
+          confidence: providerResult.confidence,
+        });
+      } catch (error: any) {
+        this.logger.error(`Error processing manual component ${component.name}:`, error.message);
+        debug.components.push({
+          type: 'no_match',
+          componentName: component.name,
+          error: error.message,
+        });
+      }
+    }
+
+    // Calculate totals
+    const total: AnalysisTotals = items.reduce(
+      (acc, item) => {
+        acc.portion_g += item.portion_g;
+        acc.calories += item.nutrients.calories;
+        acc.protein += item.nutrients.protein;
+        acc.carbs += item.nutrients.carbs;
+        acc.fat += item.nutrients.fat;
+        acc.fiber += item.nutrients.fiber || 0;
+        acc.sugars += item.nutrients.sugars || 0;
+        acc.satFat += item.nutrients.satFat || 0;
+        return acc;
+      },
+      {
+        portion_g: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 0,
+      },
+    );
+
+    if (total.portion_g > 0) {
+      total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
+    }
+
+    // Calculate HealthScore
+    const healthScore = this.computeHealthScore(total, total.portion_g, items, locale);
+
+    // Run sanity check
+    const sanity = this.runSanityCheck({ items, total, healthScore, debug });
+
+    // Build dish name
+    const dishNameEn = this.buildDishNameEn(items);
+    const dishNameLocalized = await this.foodLocalization.localizeName(dishNameEn, locale);
+
+    return {
+      items,
+      total,
+      healthScore,
+      debug,
+      isSuspicious: sanity.some(i => i.level === 'error'),
+      needsReview: items.length > 0 && total.calories === 0 && total.protein === 0 && total.carbs === 0 && total.fat === 0,
+      locale,
+      dishNameLocalized,
+      originalDishName: dishNameEn,
+    };
+  }
+
+  /**
+   * Re-analyze from original input (image/text)
+   * Finds original analysis, extracts input, and runs full analysis again
+   */
+  async reanalyzeFromOriginalInput(
+    analysisId: string,
+    options: { mode?: 'default' | 'review' },
+    userId: string,
+  ): Promise<AnalysisData> {
+    // 1. Find analysis record
+    const analysis = await this.prisma.analysis.findFirst({
+      where: {
+        id: analysisId,
+        userId,
+      },
+      include: {
+        results: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!analysis) {
+      throw new BadRequestException('Analysis not found or access denied');
+    }
+
+    // 2. Extract original input from metadata
+    const metadata = analysis.metadata as any;
+    const analysisType = analysis.type;
+    const locale = metadata?.locale || 'en';
+
+    let result: AnalysisData;
+
+    if (analysisType === 'IMAGE') {
+      // For image analysis, try to get imageUrl from:
+      // 1. Latest result data (if stored there)
+      // 2. Metadata
+      let imageUrl: string | undefined;
+      let imageBase64: string | undefined;
+
+      // Try to get from latest result
+      if (analysis.results && analysis.results.length > 0) {
+        const resultData = analysis.results[0].data as any;
+        imageUrl = resultData?.imageUrl || resultData?.imageUri;
+      }
+
+      // Fallback to metadata
+      if (!imageUrl) {
+        imageUrl = metadata?.imageUrl || metadata?.imageUri;
+      }
+
+      if (!imageUrl) {
+        throw new BadRequestException('Original image URL not available for reanalysis. Please upload a new image.');
+      }
+
+      result = await this.analyzeImage({
+        imageUrl,
+        imageBase64,
+        locale,
+        mode: options.mode || 'review',
+      });
+    } else if (analysisType === 'TEXT') {
+      const textQuery = metadata?.textQuery || metadata?.description;
+      if (!textQuery) {
+        throw new BadRequestException('Original text query not available for reanalysis');
+      }
+
+      result = await this.analyzeText(textQuery, locale);
+    } else {
+      throw new BadRequestException(`Unsupported analysis type: ${analysisType}`);
+    }
+
+    // 3. Mark as reanalysis
+    result.debug = result.debug || {
+      components: [],
+      timestamp: new Date().toISOString(),
+    };
+    (result.debug as any).reanalysisOf = analysisId;
+    (result.debug as any).reanalysisMode = options.mode || 'review';
+
+    // Update source for items to indicate reanalysis
+    result.items = result.items.map(item => ({
+      ...item,
+      source: item.source === 'fdc' ? 'fdc' : (item.source === 'manual' ? 'manual' : 'reanalysis') as AnalyzedItem['source'],
+    }));
+
+    return result;
   }
 }
 

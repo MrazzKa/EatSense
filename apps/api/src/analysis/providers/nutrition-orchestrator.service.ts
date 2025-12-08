@@ -137,6 +137,7 @@ export class NutritionOrchestrator {
 
   /**
    * Find nutrition data by text query
+   * P2: Optimized with parallel provider queries
    */
   async findNutrition(
     query: string,
@@ -151,73 +152,131 @@ export class NutritionOrchestrator {
     };
 
     const sorted = await this.sortProviders(contextWithRegion);
+    if (sorted.length === 0) {
+      return null;
+    }
 
-    let bestSuspiciousResult: NutritionProviderResult | null = null;
-
-    for (const provider of sorted) {
+    // P2: Launch all provider queries in parallel
+    const tasks = sorted.map(async (provider) => {
       try {
         const result = await provider.findByText(trimmed, contextWithRegion);
-
-        if (!result || !result.food) {
-          continue;
-        }
-
-        // Validate result
-        const validation = this.validateResult(result, contextWithRegion);
-
-        if (!validation.isValid) {
-          this.logger.debug(
-            `[Orchestrator] Invalid result from provider=${provider.id}: ${validation.reason}`,
-          );
-          continue;
-        }
-
-        // If suspicious, save but try next provider
-        if (validation.isSuspicious) {
-          if (!bestSuspiciousResult || (result.confidence > (bestSuspiciousResult.confidence || 0))) {
-            bestSuspiciousResult = {
-              ...result,
-              isSuspicious: true,
-              debug: {
-                ...result.debug,
-                validationReason: validation.reason,
-                providerId: provider.id,
-              },
-            };
-          }
-          this.logger.debug(
-            `[Orchestrator] Suspicious result from provider=${provider.id}: ${validation.reason}`,
-          );
-          continue;
-        }
-
-        // Good result found
-        if (result.confidence >= 0.7) {
-          this.logger.log(
-            `[Orchestrator] Found by text in provider=${provider.id} id=${result.food.providerFoodId} name=${result.food.displayName} confidence=${result.confidence}`,
-          );
-          return {
-            ...result,
-            debug: {
-              ...result.debug,
-              providerId: provider.id,
-              kcalPer100: result.food.per100g.calories ?? 0,
-            },
-          };
-        }
+        return {
+          providerId: provider.id,
+          result,
+          error: null,
+        };
       } catch (e: any) {
         this.logger.warn(
           `[Orchestrator] Error in provider=${provider.id} findByText: ${e.message}`,
         );
+        return {
+          providerId: provider.id,
+          result: null,
+          error: e.message,
+        };
+      }
+    });
+
+    // Wait for all providers to complete (or fail)
+    const responses = await Promise.allSettled(tasks);
+    
+    // Extract valid results
+    const validResults: Array<{
+      providerId: string;
+      result: NutritionProviderResult;
+      validation: { isValid: boolean; isSuspicious: boolean; reason?: string };
+    }> = [];
+
+    for (const response of responses) {
+      if (response.status === 'fulfilled' && response.value.result && response.value.result.food) {
+        const validation = this.validateResult(response.value.result, contextWithRegion);
+        
+        if (validation.isValid) {
+          validResults.push({
+            providerId: response.value.providerId,
+            result: {
+              ...response.value.result,
+              isSuspicious: validation.isSuspicious,
+              debug: {
+                ...response.value.result.debug,
+                validationReason: validation.reason,
+                providerId: response.value.providerId,
+              },
+            },
+            validation,
+          });
+        } else {
+          this.logger.debug(
+            `[Orchestrator] Invalid result from provider=${response.value.providerId}: ${validation.reason}`,
+          );
+        }
       }
     }
 
-    // If no good result, return best suspicious one if available
-    if (bestSuspiciousResult) {
-      this.logger.warn(
-        `[Orchestrator] Only suspicious results found, using best: ${bestSuspiciousResult.debug?.validationReason}`,
+    if (validResults.length === 0) {
+      return null;
+    }
+
+    // Separate good and suspicious results
+    const goodResults = validResults.filter((r) => !r.validation.isSuspicious && (r.result.confidence ?? 0) >= 0.7);
+    const suspiciousResults = validResults.filter((r) => r.validation.isSuspicious);
+
+    // Prioritize good results
+    if (goodResults.length > 0) {
+      // Sort by confidence (descending), then by provider priority
+      goodResults.sort((a, b) => {
+        const confidenceDiff = (b.result.confidence ?? 0) - (a.result.confidence ?? 0);
+        if (Math.abs(confidenceDiff) > 0.01) {
+          return confidenceDiff;
+        }
+        // If confidence is similar, prefer higher priority provider (earlier in sorted array)
+        const aIndex = sorted.findIndex((p) => p.id === a.providerId);
+        const bIndex = sorted.findIndex((p) => p.id === b.providerId);
+        return aIndex - bIndex;
+      });
+
+      const best = goodResults[0];
+      this.logger.log(
+        `[Orchestrator] Found by text in provider=${best.providerId} id=${best.result.food.providerFoodId} name=${best.result.food.displayName} confidence=${best.result.confidence} (parallel, ${goodResults.length} good results)`,
       );
-      return bestSuspiciousResult;
+      return {
+        ...best.result,
+        debug: {
+          ...best.result.debug,
+          providerId: best.providerId,
+          kcalPer100: best.result.food.per100g.calories ?? 0,
+          parallelResults: goodResults.length,
+          totalProviders: sorted.length,
+        },
+      };
+    }
+
+    // Fallback to best suspicious result if no good results
+    if (suspiciousResults.length > 0) {
+      suspiciousResults.sort((a, b) => {
+        const confidenceDiff = (b.result.confidence ?? 0) - (a.result.confidence ?? 0);
+        if (Math.abs(confidenceDiff) > 0.01) {
+          return confidenceDiff;
+        }
+        const aIndex = sorted.findIndex((p) => p.id === a.providerId);
+        const bIndex = sorted.findIndex((p) => p.id === b.providerId);
+        return aIndex - bIndex;
+      });
+
+      const best = suspiciousResults[0];
+      this.logger.warn(
+        `[Orchestrator] Only suspicious results found, using best from provider=${best.providerId}: ${best.validation.reason}`,
+      );
+      return {
+        ...best.result,
+        debug: {
+          ...best.result.debug,
+          providerId: best.providerId,
+          kcalPer100: best.result.food.per100g.calories ?? 0,
+          parallelResults: suspiciousResults.length,
+          totalProviders: sorted.length,
+        },
+      };
     }
 
     return null;
@@ -225,6 +284,7 @@ export class NutritionOrchestrator {
 
   /**
    * Find nutrition data by barcode
+   * P2: Optimized with parallel provider queries
    */
   async findByBarcode(
     barcode: string,
@@ -238,35 +298,85 @@ export class NutritionOrchestrator {
     };
 
     const sorted = await this.sortProviders(contextWithRegion);
+    
+    // Filter providers that support barcode lookup
+    const barcodeProviders = sorted.filter((p) => p.getByBarcode);
+    if (barcodeProviders.length === 0) {
+      return null;
+    }
 
-    for (const provider of sorted) {
-      if (!provider.getByBarcode) continue;
-
+    // P2: Launch all barcode queries in parallel
+    const tasks = barcodeProviders.map(async (provider) => {
       try {
-        const result = await provider.getByBarcode(barcode, contextWithRegion);
-        if (result && result.food) {
-          const validation = this.validateResult(result, contextWithRegion);
-          if (validation.isValid && !validation.isSuspicious && result.confidence >= 0.7) {
-            this.logger.log(
-              `[Orchestrator] Found by barcode in provider=${provider.id} id=${result.food.providerFoodId}`,
-            );
-            return {
-              ...result,
-              debug: {
-                ...result.debug,
-                providerId: provider.id,
-              },
-            };
-          }
-        }
+        const result = await provider.getByBarcode!(barcode, contextWithRegion);
+        return {
+          providerId: provider.id,
+          result,
+          error: null,
+        };
       } catch (e: any) {
         this.logger.warn(
           `[Orchestrator] Error in provider=${provider.id} getByBarcode: ${e.message}`,
         );
+        return {
+          providerId: provider.id,
+          result: null,
+          error: e.message,
+        };
+      }
+    });
+
+    const responses = await Promise.allSettled(tasks);
+
+    // Extract valid results
+    const validResults: Array<{
+      providerId: string;
+      result: NutritionProviderResult;
+      validation: { isValid: boolean; isSuspicious: boolean; reason?: string };
+    }> = [];
+
+    for (const response of responses) {
+      if (response.status === 'fulfilled' && response.value.result && response.value.result.food) {
+        const validation = this.validateResult(response.value.result, contextWithRegion);
+        
+        if (validation.isValid && !validation.isSuspicious && (response.value.result.confidence ?? 0) >= 0.7) {
+          validResults.push({
+            providerId: response.value.providerId,
+            result: response.value.result,
+            validation,
+          });
+        }
       }
     }
 
-    return null;
+    if (validResults.length === 0) {
+      return null;
+    }
+
+    // Sort by confidence, then by provider priority
+    validResults.sort((a, b) => {
+      const confidenceDiff = (b.result.confidence ?? 0) - (a.result.confidence ?? 0);
+      if (Math.abs(confidenceDiff) > 0.01) {
+        return confidenceDiff;
+      }
+      const aIndex = sorted.findIndex((p) => p.id === a.providerId);
+      const bIndex = sorted.findIndex((p) => p.id === b.providerId);
+      return aIndex - bIndex;
+    });
+
+    const best = validResults[0];
+    this.logger.log(
+      `[Orchestrator] Found by barcode in provider=${best.providerId} id=${best.result.food.providerFoodId} (parallel, ${validResults.length} results)`,
+    );
+    return {
+      ...best.result,
+      debug: {
+        ...best.result.debug,
+        providerId: best.providerId,
+        parallelResults: validResults.length,
+        totalProviders: barcodeProviders.length,
+      },
+    };
   }
 
   // Legacy method for backward compatibility

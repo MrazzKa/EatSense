@@ -27,6 +27,7 @@ import { StatisticsModal } from '../components/StatisticsModal';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 import { LabResultsModal } from '../components/LabResultsModal';
+import { DescribeFoodModal } from '../components/DescribeFoodModal';
 
 
 // Helper function to get image URL from item (handles various field names)
@@ -412,11 +413,49 @@ export default function DashboardScreen() {
   };
 
   const [showLabResultsModal, setShowLabResultsModal] = useState(false);
+  const [showDescribeFoodModal, setShowDescribeFoodModal] = useState(false);
 
   const handleOpenManualAnalysis = () => {
-    console.log('[Dashboard] Opening manual analysis modal');
+    console.log('[Dashboard] Opening manual analysis modal (Lab Results)');
     setShowModal(false);
     setShowLabResultsModal(true);
+  };
+
+  const handleDescribeFood = () => {
+    console.log('[Dashboard] Opening Describe Food modal');
+    setShowModal(false);
+    setShowDescribeFoodModal(true);
+  };
+
+  const handleAnalyzeTextFood = async (description) => {
+    if (!description || !description.trim()) {
+      Alert.alert(t('common.error'), t('describeFood.error') || 'Please enter a description');
+      return;
+    }
+
+    try {
+      setShowDescribeFoodModal(false);
+      // Call analyzeText API directly
+      const result = await ApiService.analyzeText(description.trim(), language || 'en');
+      
+      if (result && result.analysisId) {
+        // Navigate to AnalysisResults screen with the analysis ID
+        if (navigation && typeof navigation.navigate === 'function') {
+          navigation.navigate('AnalysisResults', { 
+            analysisId: result.analysisId,
+            mode: 'text',
+          });
+        }
+      } else {
+        throw new Error('No analysis ID returned');
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error analyzing text food:', error);
+      Alert.alert(
+        t('common.error'), 
+        t('analysis.errorMessage') || 'Failed to analyze food. Please try again.'
+      );
+    }
   };
 
 
@@ -529,12 +568,7 @@ export default function DashboardScreen() {
                 <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
                   <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
                   <Text numberOfLines={1} style={styles.articleRowExcerpt}>
-                    {t('dashboard.recentMacroSummary', {
-                      calories: item.totalCalories ?? item.calories ?? 0,
-                      protein: item.totalProtein ?? item.protein ?? 0,
-                      carbs: item.totalCarbs ?? item.carbs ?? 0,
-                      fat: item.totalFat ?? item.fat ?? 0,
-                    })}
+                    {formatCalories(item.totalCalories ?? item.calories ?? 0)} · P {formatMacro(item.totalProtein ?? item.protein ?? 0)} · C {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · F {formatMacro(item.totalFat ?? item.fat ?? 0)}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
@@ -698,7 +732,7 @@ export default function DashboardScreen() {
             
             <TouchableOpacity
               style={styles.addFoodModalButton}
-              onPress={typeof handleOpenManualAnalysis === 'function' ? handleOpenManualAnalysis : () => {}}
+              onPress={typeof handleDescribeFood === 'function' ? handleDescribeFood : () => {}}
             >
               <View style={styles.addFoodModalButtonIcon}>
                 <Ionicons name="create-outline" size={32} color={colors.primary} />
@@ -728,6 +762,21 @@ export default function DashboardScreen() {
       <LabResultsModal
         visible={showLabResultsModal}
         onClose={() => setShowLabResultsModal(false)}
+      />
+
+      {/* Describe Food Modal */}
+      <DescribeFoodModal
+        visible={showDescribeFoodModal}
+        onClose={() => setShowDescribeFoodModal(false)}
+        onAnalysisCompleted={(analysisId) => {
+          // Navigate to AnalysisResultsScreen with analysisId
+          if (navigation && typeof navigation.navigate === 'function') {
+            navigation.navigate('AnalysisResults', {
+              analysisId,
+            });
+          }
+          setShowDescribeFoodModal(false);
+        }}
       />
     </SafeAreaView>
   );

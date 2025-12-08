@@ -50,6 +50,7 @@ export default function AnalysisResultsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [editingItem, setEditingItem] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
 
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const subduedColor = colors.textSecondary || colors.textMuted || '#6B7280';
@@ -104,71 +105,95 @@ export default function AnalysisResultsScreen() {
 
       const toMacro = (value) => Math.round(toNumber(value) * 10) / 10;
 
-      const ingredientsSource = raw.ingredients || raw.items || [];
+      // Поддерживаем как старый формат (ingredients/items на верхнем уровне), так и новый (data.items)
+      const ingredientsSource = raw.data?.items || raw.ingredients || raw.items || [];
       const normalizedIngredients = (Array.isArray(ingredientsSource) ? ingredientsSource : []).map((item) => {
-        const caloriesFromApi = Math.max(0, Math.round(toNumber(item.calories ?? item.kcal)));
-        const hasMacros = Number.isFinite(toNumber(item.protein)) || Number.isFinite(toNumber(item.carbs)) || Number.isFinite(toNumber(item.fat));
+        // Поддерживаем как старый формат (calories, protein, carbs, fat), так и новый (nutrients)
+        const nutrients = item.nutrients || {};
+        const caloriesFromApi = Math.max(0, Math.round(toNumber(item.calories ?? item.kcal ?? nutrients.calories ?? 0)));
+        const protein = toNumber(item.protein ?? nutrients.protein ?? 0);
+        const carbs = toNumber(item.carbs ?? nutrients.carbs ?? 0);
+        const fat = toNumber(item.fat ?? nutrients.fat ?? 0);
+        const hasMacros = Number.isFinite(protein) || Number.isFinite(carbs) || Number.isFinite(fat);
         let calories = caloriesFromApi;
 
         if (calories === 0 && hasMacros) {
-          const p = toNumber(item.protein ?? 0);
-          const c = toNumber(item.carbs ?? 0);
-          const f = toNumber(item.fat ?? 0);
-          const recalculated = p * 4 + c * 4 + f * 9;
+          const recalculated = protein * 4 + carbs * 4 + fat * 9;
           calories = Math.max(1, Math.round(recalculated)); // at least 1 kcal
         }
         
         return {
-        name: item.name || item.label || 'Ingredient',
+          id: item.id || String(Math.random()),
+          name: item.name || item.label || 'Ingredient',
           calories,
-        protein: toMacro(item.protein),
-        carbs: toMacro(item.carbs),
-        fat: toMacro(item.fat),
-        weight: Math.round(toNumber(item.weight ?? item.gramsMean ?? item.portion_g)),
+          protein: toMacro(protein),
+          carbs: toMacro(carbs),
+          fat: toMacro(fat),
+          weight: Math.round(toNumber(item.weight ?? item.gramsMean ?? item.portion_g ?? 0)),
+          // Сохраняем оригинальные поля для совместимости
+          portion_g: item.portion_g || item.weight || 0,
+          nutrients: item.nutrients || {
+            calories,
+            protein: toMacro(protein),
+            carbs: toMacro(carbs),
+            fat: toMacro(fat),
+          },
         };
       });
 
       const sumFromIngredients = (key) =>
         normalizedIngredients.reduce((acc, ing) => acc + toNumber(ing[key]), 0);
 
-      const providedCalories = toNumber(raw.totalCalories ?? raw.calories);
+      // Поддерживаем как старый формат (totalCalories, totalProtein и т.д.), так и новый (data.total или data.totals)
+      const totals = raw.data?.total || raw.data?.totals || {};
+      const providedCalories = toNumber(raw.totalCalories ?? raw.calories ?? totals.calories ?? 0);
       const totalCalories = Math.max(0,
         providedCalories ? Math.round(providedCalories) : Math.round(sumFromIngredients('calories')),
       );
 
-      const providedProtein = toNumber(raw.totalProtein ?? raw.protein);
+      const providedProtein = toNumber(raw.totalProtein ?? raw.protein ?? totals.protein ?? 0);
       const totalProtein = providedProtein
         ? toMacro(providedProtein)
         : toMacro(sumFromIngredients('protein'));
 
-      const providedCarbs = toNumber(raw.totalCarbs ?? raw.carbs);
+      const providedCarbs = toNumber(raw.totalCarbs ?? raw.carbs ?? totals.carbs ?? 0);
       const totalCarbs = providedCarbs
         ? toMacro(providedCarbs)
         : toMacro(sumFromIngredients('carbs'));
 
-      const providedFat = toNumber(raw.totalFat ?? raw.fat);
+      const providedFat = toNumber(raw.totalFat ?? raw.fat ?? totals.fat ?? 0);
       const totalFat = providedFat
         ? toMacro(providedFat)
         : toMacro(sumFromIngredients('fat'));
 
-      const healthScore = raw.healthScore || raw.healthInsights || null;
+      // Поддерживаем как старый формат (healthScore, healthInsights), так и новый (data.healthScore)
+      const healthScore = raw.data?.healthScore || raw.healthScore || raw.healthInsights || null;
       const autoSave = raw.autoSave || raw.savedMeal || null;
       const needsReview = raw.analysisFlags?.needsReview || raw.needsReview || false;
       const isSuspicious = raw.analysisFlags?.isSuspicious || raw.isSuspicious || false;
 
       return {
-        id: raw.id || raw.analysisId || null,
+        id: raw.id || raw.analysisId || analysisIdOverride || null,
+        analysisId: raw.analysisId || raw.id || analysisIdOverride || routeParams.analysisId || null,
         dishName:
+          raw.data?.dishNameLocalized || raw.data?.originalDishName ||
           raw.dishName ||
           raw.name ||
           normalizedIngredients[0]?.name ||
           'Food Analysis',
-        imageUri: raw.imageUrl || raw.imageUri || fallbackImage || null,
+        imageUri: raw.imageUrl || raw.imageUri || raw.data?.imageUrl || fallbackImage || null,
         totalCalories,
         totalProtein,
         totalCarbs,
         totalFat,
         ingredients: normalizedIngredients,
+        // Сохраняем data для совместимости
+        data: raw.data || {
+          items: normalizedIngredients,
+          total: totals,
+          totals,
+          healthScore,
+        },
         healthScore,
         autoSave,
         needsReview,
@@ -280,11 +305,32 @@ export default function AnalysisResultsScreen() {
         let analysisResponse;
         try {
           const locale = mapLanguageToLocale(language);
+          
+          // P2.3: Optimistic UI - show loading state immediately
+          setIsAnalyzing(true);
+          
           analysisResponse = await ApiService.analyzeImage(capturedImageUri, locale);
           await clientLog('Analysis:apiCalled', {
             hasAnalysisId: !!analysisResponse?.analysisId,
             hasResult: !!analysisResponse?.items,
           }).catch(() => {});
+
+          // P2.3: If we have immediate results, show them optimistically
+          if (analysisResponse && analysisResponse.items && analysisResponse.items.length > 0 && !analysisResponse.analysisId) {
+            // Immediate result available - show it right away
+            const optimisticResult = normalizeAnalysis(analysisResponse, capturedImageUri);
+            if (optimisticResult) {
+              fadeAnim.setValue(0);
+              setAnalysisResult(optimisticResult);
+              setIsAnalyzing(false);
+              Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+              }).start();
+              return; // Early return, no polling needed
+            }
+          }
         } catch (analysisError) {
           console.error('[AnalysisResultsScreen] Analysis API failed:', analysisError);
           await clientLog('Analysis:apiFailed', {
@@ -294,6 +340,7 @@ export default function AnalysisResultsScreen() {
           }).catch(() => {});
 
           cancelled = true;
+          setIsAnalyzing(false);
           showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
           return;
         }
@@ -385,6 +432,35 @@ export default function AnalysisResultsScreen() {
     }
   };
 
+  const handleReanalyze = async () => {
+    const analysisId = routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    if (!analysisId) {
+      Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
+      return;
+    }
+
+    setIsReanalyzing(true);
+    try {
+      // Вызываем reanalyze без mode - просто пересчет totals, HealthScore, feedback
+      const reanalyzed = await ApiService.reanalyzeAnalysis(analysisId);
+      if (reanalyzed) {
+        const normalized = normalizeAnalysis(reanalyzed, baseImageUri, analysisId);
+        if (normalized) {
+          setAnalysisResult(normalized);
+          // Не показываем alert, так как изменения уже применены
+        }
+      }
+    } catch (error) {
+      console.error('[AnalysisResultsScreen] Re-analysis failed:', error);
+      Alert.alert(
+        t('common.error'),
+        t('analysis.reanalyzeError') || 'Failed to recalculate analysis. Please try again.'
+      );
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
+
   const handleCorrect = (item, index) => {
     if (!allowEditing) return;
     setEditingItem(item);
@@ -392,68 +468,70 @@ export default function AnalysisResultsScreen() {
   };
 
   const handleSaveEdit = async (updatedItem, index) => {
-    const updatedIngredients = [...(analysisResult?.ingredients || [])];
-    updatedIngredients[index] = {
-      ...updatedItem,
-      calories: Math.max(0, Math.round(Number(updatedItem.calories) || 0)),
-      protein: Number(updatedItem.protein) || 0,
-      carbs: Number(updatedItem.carbs) || 0,
-      fat: Number(updatedItem.fat) || 0,
-      weight: Number(updatedItem.weight) || 0,
-    };
-
-    // Try to trigger re-analysis if analysisId is available
-    const analysisId = routeParams.analysisId || analysisResult?.analysisId;
-    if (analysisId && ApiService && typeof ApiService.reanalyzeAnalysis === 'function') {
-      try {
-        // Convert ingredients to backend format
-        const itemsForReanalysis = updatedIngredients.map((ing) => ({
-          id: ing.id,
-          name: ing.name || 'Unknown',
-          portion_g: Number(ing.weight) || 100,
-          calories: Number(ing.calories) || 0,
-          protein: Number(ing.protein) || 0,
-          carbs: Number(ing.carbs) || 0,
-          fat: Number(ing.fat) || 0,
-          fiber: Number(ing.fiber) || 0,
-          sugars: Number(ing.sugars) || 0,
-          satFat: Number(ing.satFat) || 0,
-        }));
-
-        const reanalyzed = await ApiService.reanalyzeAnalysis(analysisId, itemsForReanalysis);
-        
-        // Update analysisResult with re-analyzed data
-        if (reanalyzed) {
-          const normalized = normalizeAnalysis(reanalyzed, baseImageUri);
-          if (normalized) {
-            setAnalysisResult(normalized);
-            return; // Early return, state already updated
-          }
-        }
-      } catch (error) {
-        // If re-analysis fails, fall back to local calculation
-        console.warn('[AnalysisResultsScreen] Re-analysis failed, using local calculation', error);
-      }
+    const analysisId = routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    
+    if (!analysisId) {
+      Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
+      return;
     }
 
-    // Fallback: local calculation if re-analysis not available or failed
-    const newTotalCalories = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.calories) || 0), 0);
-    const newTotalProtein = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.protein) || 0), 0);
-    const newTotalCarbs = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.carbs) || 0), 0);
-    const newTotalFat = updatedIngredients.reduce((sum, ing) => sum + (Number(ing.fat) || 0), 0);
+    try {
+      setIsReanalyzing(true);
 
-    setAnalysisResult((prev) =>
-      prev
-        ? {
-            ...prev,
-            ingredients: updatedIngredients,
-            totalCalories: newTotalCalories,
-            totalProtein: newTotalProtein,
-            totalCarbs: newTotalCarbs,
-            totalFat: newTotalFat,
-          }
-        : prev,
-    );
+      // 1. Получаем текущие items из analysisResult
+      const currentItems = analysisResult?.data?.items || analysisResult?.ingredients || [];
+      
+      // 2. Формируем новый список items для отправки на сервер
+      const updatedItems = currentItems.map((item, idx) => {
+        // Проверяем, это ли тот item, который редактировали
+        const itemId = item.id || String(idx);
+        const updatedItemId = updatedItem.id || String(index);
+        
+        if (itemId === updatedItemId || idx === index) {
+          // Обновляем этот item
+          return {
+            id: item.id || String(idx),
+            name: updatedItem.name || item.name,
+            portion_g: updatedItem.portion_g || updatedItem.weight || item.portion_g || item.weight || 0,
+            calories: updatedItem.calories !== undefined ? updatedItem.calories : (item.calories || item.nutrients?.calories),
+            protein_g: updatedItem.protein_g !== undefined ? updatedItem.protein_g : (item.protein || item.nutrients?.protein),
+            fat_g: updatedItem.fat_g !== undefined ? updatedItem.fat_g : (item.fat || item.nutrients?.fat),
+            carbs_g: updatedItem.carbs_g !== undefined ? updatedItem.carbs_g : (item.carbs || item.nutrients?.carbs),
+          };
+        }
+        
+        // Оставляем остальные items без изменений
+        return {
+          id: item.id || String(idx),
+          name: item.name,
+          portion_g: item.portion_g || item.weight || 0,
+          calories: item.calories || item.nutrients?.calories || 0,
+          protein_g: item.protein || item.nutrients?.protein || 0,
+          fat_g: item.fat || item.nutrients?.fat || 0,
+          carbs_g: item.carbs || item.nutrients?.carbs || 0,
+        };
+      });
+
+      // 3. Вызываем manualReanalyze на бэке
+      const newResult = await ApiService.manualReanalyzeAnalysis(analysisId, updatedItems);
+
+      // 4. Обновляем стейт локально
+      if (newResult) {
+        const normalized = normalizeAnalysis(newResult, baseImageUri, analysisId);
+        if (normalized) {
+          setAnalysisResult(normalized);
+          // Не показываем alert, так как изменения уже применены
+        }
+      }
+    } catch (error) {
+      console.error('[AnalysisResultsScreen] Failed to manual reanalyze', error);
+      Alert.alert(
+        t('common.error'),
+        t('analysis.reanalyzeError') || 'Failed to update analysis after manual changes. Please try again.',
+      );
+    } finally {
+      setIsReanalyzing(false);
+    }
   };
 
   const handleSave = async () => {
@@ -751,21 +829,44 @@ export default function AnalysisResultsScreen() {
             </View>
           </View>
 
-          {/* Share Button */}
+          {/* Share and Reanalyze Buttons */}
           <View style={styles.shareContainer}>
-            <TouchableOpacity 
-              style={[styles.shareButton, {
-                backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
-                borderColor: colors.borderMuted || colors.border || '#E5E5EA',
-              }]} 
-              onPress={handleShare}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="share-outline" size={18} color={colors.textPrimary || colors.text} style={styles.shareIcon} />
-              <Text style={[styles.shareButtonText, { color: colors.textPrimary || colors.text }]}>
-                {t('analysis.share')}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.actionButtonsRow}>
+              <TouchableOpacity 
+                style={[styles.actionButton, {
+                  backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
+                  borderColor: colors.borderMuted || colors.border || '#E5E5EA',
+                }]} 
+                onPress={handleReanalyze}
+                activeOpacity={0.8}
+                disabled={isReanalyzing}
+              >
+                {isReanalyzing ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <>
+                    <Ionicons name="refresh-outline" size={18} color={colors.textPrimary || colors.text} style={styles.actionIcon} />
+                    <Text style={[styles.actionButtonText, { color: colors.textPrimary || colors.text }]}>
+                      {t('analysis.fixButton') || t('analysis.reanalyze') || 'Fix'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.actionButton, {
+                  backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
+                  borderColor: colors.borderMuted || colors.border || '#E5E5EA',
+                }]} 
+                onPress={handleShare}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="share-outline" size={18} color={colors.textPrimary || colors.text} style={styles.actionIcon} />
+                <Text style={[styles.actionButtonText, { color: colors.textPrimary || colors.text }]}>
+                  {t('analysis.shareButton') || t('analysis.share') || 'Share'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Auto-save info only - no save button since analysis is auto-saved */}
@@ -867,13 +968,13 @@ const createStyles = (tokens) =>
       right: 0,
       height: 100,
       borderRadius: tokens.radii.lg,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: tokens.colors.overlay || 'rgba(0, 0, 0, 0.5)',
       justifyContent: 'flex-end',
       padding: tokens.spacing.lg,
       paddingBottom: tokens.spacing.xl,
     },
     dishNameOverlay: {
-      color: tokens.colors.inverseText || '#FFFFFF',
+      color: tokens.colors.inverseText || tokens.colors.onPrimary || tokens.colors.textOnDark || '#FFFFFF',
       fontSize: tokens.typography.headingM.fontSize,
       fontWeight: tokens.typography.headingM.fontWeight,
       textAlign: 'left',
@@ -882,7 +983,7 @@ const createStyles = (tokens) =>
       ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.65)',
+      backgroundColor: tokens.colors.overlay || 'rgba(0,0,0,0.65)',
     },
     analyzingContent: {
       alignItems: 'center',
@@ -1077,6 +1178,29 @@ const createStyles = (tokens) =>
       marginTop: 24,
       marginBottom: 32,
       alignItems: 'center',
+    },
+    actionButtonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      width: '100%',
+      paddingHorizontal: tokens.spacing.md,
+    },
+    actionButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: tokens.radii.md || 8,
+      borderWidth: 1,
+    },
+    actionIcon: {
+      marginRight: 8,
+    },
+    actionButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
     },
     shareButton: {
       flexDirection: 'row',

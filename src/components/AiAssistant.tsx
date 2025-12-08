@@ -95,40 +95,11 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
     <SwipeClosableModal
       visible={visible}
       onClose={handleClose}
-      presentationStyle="pageSheet"
+      enableSwipe={false}
+      enableBackdropClose={true}
+      presentationStyle="fullScreen"
     >
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background || colors.surface }]}
-        edges={['top', 'bottom']}
-      >
-        <View
-          style={[
-            styles.header,
-            {
-              borderBottomColor: colors.border || '#E5E5EA',
-              paddingTop: 8,
-              paddingHorizontal: 16,
-            },
-          ]}
-        >
-          <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-            {t('dashboard.aiAssistant')}
-          </Text>
-          <TouchableOpacity
-            onPress={typeof handleClose === 'function' ? handleClose : () => {}}
-            style={styles.closeButton}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="close"
-              size={24}
-              color={colors.textPrimary || colors.text || '#000'}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <ErrorBoundary>
+      <ErrorBoundary>
           {hasError ? (
             <AiAssistantFallback onClose={handleClose} t={t} />
           ) : (
@@ -146,7 +117,6 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
             </Suspense>
           )}
         </ErrorBoundary>
-      </SafeAreaView>
     </SwipeClosableModal>
   );
 };
@@ -156,31 +126,6 @@ const AiAssistant: React.FC<AiAssistantProps> = (props) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-    minHeight: 56,
-    zIndex: 10,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    flex: 1,
-  },
-  closeButton: {
-    padding: 12,
-    minWidth: 48,
-    minHeight: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   content: {
     flex: 1,
     justifyContent: 'center',

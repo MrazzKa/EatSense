@@ -87,3 +87,50 @@ export class ReanalyzeDto {
   @Type(() => ReanalyzeItemDto)
   items!: ReanalyzeItemDto[];
 }
+
+export class ManualComponentInputDto {
+  @ApiProperty({ description: 'Client-side id or index for mapping to items' })
+  @IsString()
+  @IsNotEmpty()
+  id!: string;
+
+  @ApiProperty({ example: 'рыба хе', description: 'New interpretation name (e.g., "рыба хе" instead of "рис")' })
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @ApiProperty({ example: 200, description: 'Portion in grams' })
+  @IsNumber()
+  @Min(1)
+  portion_g!: number;
+}
+
+export class ManualReanalyzeDto {
+  @ApiProperty({ description: 'Analysis ID to reanalyze' })
+  @IsString()
+  @IsNotEmpty()
+  analysisId!: string;
+
+  @ApiProperty({ type: [ManualComponentInputDto], description: 'List of manually edited components' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ManualComponentInputDto)
+  components!: ManualComponentInputDto[];
+
+  @ApiProperty({ required: false, enum: ['en', 'ru', 'kk'] })
+  @IsOptional()
+  @IsIn(['en', 'ru', 'kk'])
+  locale?: 'en' | 'ru' | 'kk';
+
+  @ApiProperty({ required: false, enum: ['US', 'CH', 'EU', 'OTHER'] })
+  @IsOptional()
+  @IsIn(['US', 'CH', 'EU', 'OTHER'])
+  region?: 'US' | 'CH' | 'EU' | 'OTHER';
+}
+
+export class ReanalyzeRequestDto {
+  @ApiProperty({ required: false, enum: ['default', 'review'], description: 'Vision mode: review = more careful analysis' })
+  @IsOptional()
+  @IsIn(['default', 'review'])
+  mode?: 'default' | 'review';
+}

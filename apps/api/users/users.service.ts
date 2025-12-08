@@ -64,20 +64,46 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Build update data (only include defined fields)
+    // Build update data (only include defined fields that exist in UserProfile model)
+    // UserProfile fields: firstName, lastName, age, height, weight, gender, activityLevel, goal, targetWeight, dailyCalories, preferences, healthProfile, isOnboardingCompleted
+    // Note: email is NOT in UserProfile, it's in User model
     const updateData: any = {};
-    if (updateProfileDto.firstName !== undefined) updateData.firstName = updateProfileDto.firstName;
-    if (updateProfileDto.lastName !== undefined) updateData.lastName = updateProfileDto.lastName;
-    if (updateProfileDto.age !== undefined) updateData.age = updateProfileDto.age;
-    if (updateProfileDto.height !== undefined) updateData.height = updateProfileDto.height;
-    if (updateProfileDto.weight !== undefined) updateData.weight = updateProfileDto.weight;
-    if (updateProfileDto.gender !== undefined) updateData.gender = updateProfileDto.gender;
-    if (updateProfileDto.activityLevel !== undefined) updateData.activityLevel = updateProfileDto.activityLevel;
-    if (updateProfileDto.goal !== undefined) updateData.goal = updateProfileDto.goal;
-    if (updateProfileDto.targetWeight !== undefined) updateData.targetWeight = updateProfileDto.targetWeight;
-    if (updateProfileDto.dailyCalories !== undefined) updateData.dailyCalories = updateProfileDto.dailyCalories;
-    if (updateProfileDto.preferences !== undefined) updateData.preferences = updateProfileDto.preferences;
-    if (updateProfileDto.isOnboardingCompleted !== undefined) updateData.isOnboardingCompleted = updateProfileDto.isOnboardingCompleted;
+    if (updateProfileDto.firstName !== undefined) {
+      updateData.firstName = updateProfileDto.firstName || null;
+    }
+    if (updateProfileDto.lastName !== undefined) {
+      updateData.lastName = updateProfileDto.lastName || null;
+    }
+    if (updateProfileDto.age !== undefined) {
+      updateData.age = updateProfileDto.age || null;
+    }
+    if (updateProfileDto.height !== undefined) {
+      updateData.height = updateProfileDto.height || null;
+    }
+    if (updateProfileDto.weight !== undefined) {
+      updateData.weight = updateProfileDto.weight || null;
+    }
+    if (updateProfileDto.gender !== undefined) {
+      updateData.gender = updateProfileDto.gender || null;
+    }
+    if (updateProfileDto.activityLevel !== undefined) {
+      updateData.activityLevel = updateProfileDto.activityLevel || null;
+    }
+    if (updateProfileDto.goal !== undefined) {
+      updateData.goal = updateProfileDto.goal || null;
+    }
+    if (updateProfileDto.targetWeight !== undefined) {
+      updateData.targetWeight = updateProfileDto.targetWeight || null;
+    }
+    if (updateProfileDto.dailyCalories !== undefined) {
+      updateData.dailyCalories = updateProfileDto.dailyCalories || null;
+    }
+    if (updateProfileDto.preferences !== undefined) {
+      updateData.preferences = updateProfileDto.preferences || null;
+    }
+    if (updateProfileDto.isOnboardingCompleted !== undefined) {
+      updateData.isOnboardingCompleted = updateProfileDto.isOnboardingCompleted;
+    }
 
     // Handle healthProfile merge
     if (updateProfileDto.healthProfile !== undefined) {
@@ -140,13 +166,27 @@ export class UsersService {
       updateData.healthProfile = nextHealthProfile;
     }
 
+    // Sanitize updateData: remove any fields that don't exist in UserProfile model
+    // UserProfile fields: id, userId, firstName, lastName, age, height, weight, gender, activityLevel, goal, targetWeight, dailyCalories, preferences, healthProfile, isOnboardingCompleted, createdAt, updatedAt
+    const allowedFields = [
+      'firstName', 'lastName', 'age', 'height', 'weight', 'gender', 
+      'activityLevel', 'goal', 'targetWeight', 'dailyCalories', 
+      'preferences', 'healthProfile', 'isOnboardingCompleted'
+    ];
+    const sanitizedUpdateData: any = {};
+    for (const key of allowedFields) {
+      if (key in updateData) {
+        sanitizedUpdateData[key] = updateData[key];
+      }
+    }
+
     // Update or create UserProfile
     await this.prisma.userProfile.upsert({
       where: { userId },
-      update: updateData,
+      update: sanitizedUpdateData,
       create: {
         userId,
-        ...updateData,
+        ...sanitizedUpdateData,
       },
     });
 

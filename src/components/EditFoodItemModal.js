@@ -44,15 +44,17 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
   }, [item, visible]);
 
   const handleSave = () => {
+    // Формируем payload в формате, который ожидает backend
     const updatedItem = {
-      ...item,
-      name: editedItem.name,
-      calories: parseFloat(editedItem.calories) || 0,
-      protein: parseFloat(editedItem.protein) || 0,
-      carbs: parseFloat(editedItem.carbs) || 0,
-      fat: parseFloat(editedItem.fat) || 0,
-      weight: parseFloat(editedItem.weight) || 0,
+      id: item?.id || String(index),
+      name: editedItem.name.trim(),
+      portion_g: parseFloat(editedItem.weight) || item?.portion_g || item?.weight || 0,
+      calories: parseFloat(editedItem.calories) || item?.calories || item?.nutrients?.calories || 0,
+      protein_g: parseFloat(editedItem.protein) || item?.protein || item?.nutrients?.protein || 0,
+      carbs_g: parseFloat(editedItem.carbs) || item?.carbs || item?.nutrients?.carbs || 0,
+      fat_g: parseFloat(editedItem.fat) || item?.fat || item?.nutrients?.fat || 0,
     };
+    
     if (onSave && typeof onSave === 'function') {
       onSave(updatedItem, index);
     }

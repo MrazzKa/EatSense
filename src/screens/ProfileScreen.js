@@ -267,29 +267,96 @@ const ProfileScreen = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updatedProfile = {
-        ...profile,
-        preferences: {
-          ...(profile.preferences || {}),
-          goal,
-          diets: dietPreferences,
-          subscription: {
-            ...(profile.preferences?.subscription || {}),
-            planId: subscription.planId,
-            billingCycle: subscription.billingCycle,
-          },
-        },
-        healthProfile: healthProfile,
+      // Validate email if provided (email is not sent to backend, but validate for UI consistency)
+      const trimmedEmail = (profile.email || '').trim();
+      if (trimmedEmail.length > 0) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trimmedEmail)) {
+          Alert.alert(
+            safeT('profile.errorTitle', 'Error'),
+            safeT('profile.errors.invalidEmail', 'Please enter a valid email address.')
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Sanitize profile data - only include fields that exist in UserProfile model
+      // Exclude email (it's in User model, not UserProfile)
+      const { email, ...profileWithoutEmail } = profile;
+      
+      // Normalize empty strings to null/undefined for optional fields
+      const sanitizedProfile = {};
+      
+      // String fields: normalize empty strings
+      if (profileWithoutEmail.firstName !== undefined) {
+        sanitizedProfile.firstName = profileWithoutEmail.firstName?.trim() || undefined;
+      }
+      if (profileWithoutEmail.lastName !== undefined) {
+        sanitizedProfile.lastName = profileWithoutEmail.lastName?.trim() || undefined;
+      }
+      
+      // Number fields: only include if valid
+      if (profileWithoutEmail.height !== undefined && profileWithoutEmail.height !== null && profileWithoutEmail.height > 0) {
+        sanitizedProfile.height = Number(profileWithoutEmail.height);
+      }
+      if (profileWithoutEmail.weight !== undefined && profileWithoutEmail.weight !== null && profileWithoutEmail.weight > 0) {
+        sanitizedProfile.weight = Number(profileWithoutEmail.weight);
+      }
+      if (profileWithoutEmail.age !== undefined && profileWithoutEmail.age !== null && profileWithoutEmail.age > 0) {
+        sanitizedProfile.age = Number(profileWithoutEmail.age);
+      }
+      if (profileWithoutEmail.dailyCalories !== undefined && profileWithoutEmail.dailyCalories !== null && profileWithoutEmail.dailyCalories > 0) {
+        sanitizedProfile.dailyCalories = Number(profileWithoutEmail.dailyCalories);
+      }
+
+      // Build preferences object
+      const preferencesObj = {
+        ...(profile.preferences || {}),
       };
-      await ApiService.updateUserProfile(updatedProfile);
-      setProfile(updatedProfile);
+      if (goal) {
+        preferencesObj.goal = goal;
+      }
+      if (dietPreferences && dietPreferences.length > 0) {
+        preferencesObj.diets = dietPreferences;
+      }
+      if (subscription.planId || subscription.billingCycle) {
+        preferencesObj.subscription = {
+          ...(profile.preferences?.subscription || {}),
+          planId: subscription.planId,
+          billingCycle: subscription.billingCycle,
+        };
+      }
+      if (Object.keys(preferencesObj).length > 0) {
+        sanitizedProfile.preferences = preferencesObj;
+      }
+
+      // Health profile
+      if (healthProfile && Object.keys(healthProfile).length > 0) {
+        sanitizedProfile.healthProfile = healthProfile;
+      }
+
+      await ApiService.updateUserProfile(sanitizedProfile);
+      
+      // Update local state (keep email in local state for display, but don't send to backend)
+      setProfile({
+        ...profileWithoutEmail,
+        email: profile.email, // Keep email in local state
+      });
       setEditing(false);
+      
       // Reload profile to get updated data and recalculate BMI
       await loadProfile();
-      Alert.alert(safeT('profile.savedTitle', 'Saved'), safeT('profile.savedMessage', 'Profile updated successfully'));
+      Alert.alert(
+        safeT('profile.savedTitle', 'Saved'),
+        safeT('profile.savedMessage', 'Profile updated successfully')
+      );
     } catch (error) {
       console.error('Profile update failed', error);
-      Alert.alert(safeT('profile.errorTitle', 'Error'), safeT('profile.errorMessage', 'Failed to update profile'));
+      Alert.alert(
+        safeT('profile.errorTitle', 'Error'),
+        safeT('profile.errors.updateFailed', 'Could not update profile. Please try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -395,19 +462,30 @@ const ProfileScreen = () => {
   const handleNotificationToggle = async (value) => {
     try {
       setNotificationSaving(true);
-      const updated = await ApiService.updateNotificationPreferences({
-        dailyPushEnabled: value,
-        timezone: notificationPreferences.timezone || deviceTimezone,
-        dailyPushHour: notificationPreferences.dailyPushHour,
-      });
+      // Ensure all values are properly typed
+      const payload = {
+        dailyPushEnabled: Boolean(value),
+        timezone: (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
+        dailyPushHour: Number(notificationPreferences.dailyPushHour) || 8,
+      };
+      
+      // Validate dailyPushHour is between 0-23
+      if (payload.dailyPushHour < 0 || payload.dailyPushHour > 23) {
+        payload.dailyPushHour = 8;
+      }
+      
+      const updated = await ApiService.updateNotificationPreferences(payload);
       setNotificationPreferences({
-        dailyPushEnabled: !!updated.dailyPushEnabled,
+        dailyPushEnabled: Boolean(updated.dailyPushEnabled),
         dailyPushHour: typeof updated.dailyPushHour === 'number' ? updated.dailyPushHour : notificationPreferences.dailyPushHour,
-        timezone: updated.timezone || notificationPreferences.timezone || deviceTimezone,
+        timezone: (updated.timezone || notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
       });
     } catch (error) {
       console.error('Failed to update push preferences', error);
-      Alert.alert(safeT('profile.notificationsErrorTitle', 'Error'), safeT('profile.notificationsErrorMessage', 'Failed to update notifications'));
+      Alert.alert(
+        safeT('profile.notificationsErrorTitle', 'Error'),
+        safeT('profile.notificationsErrorMessage', 'Failed to update notifications')
+      );
     } finally {
       setNotificationSaving(false);
     }
@@ -418,19 +496,30 @@ const ProfileScreen = () => {
     const nextHour = reminderOptions[(currentIndex + 1 + reminderOptions.length) % reminderOptions.length];
     try {
       setNotificationSaving(true);
-      const updated = await ApiService.updateNotificationPreferences({
-        dailyPushEnabled: notificationPreferences.dailyPushEnabled,
-        dailyPushHour: nextHour,
-        timezone: notificationPreferences.timezone || deviceTimezone,
-      });
+      // Ensure all values are properly typed
+      const payload = {
+        dailyPushEnabled: Boolean(notificationPreferences.dailyPushEnabled),
+        dailyPushHour: Number(nextHour) || 8,
+        timezone: (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
+      };
+      
+      // Validate dailyPushHour is between 0-23
+      if (payload.dailyPushHour < 0 || payload.dailyPushHour > 23) {
+        payload.dailyPushHour = 8;
+      }
+      
+      const updated = await ApiService.updateNotificationPreferences(payload);
       setNotificationPreferences({
-        dailyPushEnabled: !!updated.dailyPushEnabled,
+        dailyPushEnabled: Boolean(updated.dailyPushEnabled),
         dailyPushHour: typeof updated.dailyPushHour === 'number' ? updated.dailyPushHour : nextHour,
-        timezone: updated.timezone || notificationPreferences.timezone || deviceTimezone,
+        timezone: (updated.timezone || notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
       });
     } catch (error) {
       console.error('Failed to update reminder hour', error);
-      Alert.alert(safeT('profile.notificationsErrorTitle', 'Error'), safeT('profile.notificationsErrorMessage', 'Failed to update notifications'));
+      Alert.alert(
+        safeT('profile.notificationsErrorTitle', 'Error'),
+        safeT('profile.notificationsErrorMessage', 'Failed to update notifications')
+      );
     } finally {
       setNotificationSaving(false);
     }
@@ -681,7 +770,7 @@ const ProfileScreen = () => {
         >
           <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
           >
             <SafeAreaView style={[styles.editModalContainer, { backgroundColor: tokens.colors.background }]} edges={['top']}>
@@ -974,6 +1063,16 @@ const ProfileScreen = () => {
                   console.log('[ProfileScreen] Starting download to:', fileUri);
                 }
                 const result = await downloadResumable.downloadAsync();
+                
+                // Check if download was successful (204 means no data)
+                if (result && result.status === 204) {
+                  Alert.alert(
+                    t('common.info') || 'Info',
+                    t('reports.noDataForMonth') || 'No data available for this month',
+                  );
+                  return;
+                }
+                
                 if (result?.uri) {
                   if (__DEV__) {
                     console.log('[ProfileScreen] Download completed, sharing:', result.uri);
@@ -990,10 +1089,19 @@ const ProfileScreen = () => {
                 }
               } catch (e) {
                 console.error('[ProfileScreen] Failed to download monthly report', e);
-                Alert.alert(
-                  t('common.error'),
-                  t('profile.monthlyReportError'),
-                );
+                
+                // Check if error is 204 No Content
+                if (e?.status === 204 || e?.message?.includes('204')) {
+                  Alert.alert(
+                    t('common.info') || 'Info',
+                    t('reports.noDataForMonth') || 'No data available for this month',
+                  );
+                } else {
+                  Alert.alert(
+                    t('common.error'),
+                    t('reports.error.generic') || t('profile.monthlyReportError') || 'Failed to download monthly report',
+                  );
+                }
               }
             }}
             activeOpacity={0.8}
@@ -1659,6 +1767,8 @@ const createStyles = (tokens) =>
     },
     editModalContainer: {
       flex: 1,
+      // Prevent layout jumps
+      minHeight: '100%',
     },
     editModalHeader: {
       flexDirection: 'row',

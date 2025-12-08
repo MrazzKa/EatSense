@@ -26,7 +26,7 @@ export interface AnalyzedItem {
   label?: string;
   portion_g: number;   // фактический вес порции в граммах
   nutrients: Nutrients;
-  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir';
+  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir' | 'reanalysis';
   fdcId?: string | number;
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)
@@ -34,6 +34,10 @@ export interface AnalyzedItem {
   locale?: 'en' | 'ru' | 'kk';
   // Flag indicating if nutrition data is available (false = no data, show "No nutrition data")
   hasNutrition?: boolean;
+  // Manual edits by user:
+  userEditedName?: string;      // If user renamed component (e.g., "рис" → "рыба хе")
+  userEditedPortionG?: number;  // If user changed portion
+  wasManuallyEdited?: boolean;  // Flag that this item was manually edited
 }
 
 export interface AnalysisTotals extends Nutrients {
@@ -43,17 +47,51 @@ export interface AnalysisTotals extends Nutrients {
   weight?: number;
 }
 
+export type HealthScoreLevel = 'poor' | 'average' | 'good' | 'excellent';
+
+export interface HealthScoreFactors {
+  protein: number;        // 0–100
+  fiber: number;          // 0–100
+  saturatedFat: number;   // 0–100 (чем меньше сат.жир, тем выше субскор)
+  sugars: number;         // 0–100 (чем меньше сахара, тем выше субскор)
+  energyDensity: number;  // 0–100 (чем ниже калорийность на грамм, тем выше субскор)
+}
+
+export type HealthFeedbackType = 'positive' | 'warning';
+
+export interface HealthFeedbackItem {
+  type: HealthFeedbackType;
+  code: string;        // machine-readable code, например "high_protein", "too_much_sugar"
+  message: string;     // локализованное сообщение
+}
+
 export interface HealthScore {
-  score: number; // 0–100
-  // Existing fields used internally / by current API
-  grade?: string; // A, B, C, D, F
+  total: number;                // 0–100 (renamed from score for clarity)
+  level: HealthScoreLevel;      // poor | average | good | excellent
+  factors: HealthScoreFactors;
+  // Legacy fields for backward compatibility
+  score?: number;                // alias for total
+  grade?: string;                // A, B, C, D, F (derived from total)
   label?: string;
-  factors: Record<string, any>;
-  feedback?: string[];
+  // New feedback format
+  feedback?: HealthFeedbackItem[];
+  // Legacy feedback format (string[]) - kept for backward compatibility
+  feedbackLegacy?: string[];
   // Additional fields to align with high-level spec
   category?: string;
   message?: string;
   details?: any;
+}
+
+export interface AnalysisNutritionTotals {
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number;
+  sugars_g: number;
+  saturatedFat_g: number;
+  portion_g: number; // общий вес блюда
 }
 
 export type AnalysisSanityIssueType =
