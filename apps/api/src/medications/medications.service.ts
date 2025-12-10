@@ -1,8 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { DateTime } from 'luxon';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MedicationsService {
@@ -17,18 +18,26 @@ export class MedicationsService {
     const now = DateTime.now().setZone(timezone);
     const currentTime = now.toFormat('HH:mm');
 
-    const medications = await this.prisma.medication.findMany({
-      where: {
-        userId,
-        isActive: true,
-        startDate: { lte: now.toJSDate() },
-        OR: [
-          { endDate: null },
-          { endDate: { gte: now.toJSDate() } },
-        ],
-      },
-      include: { doses: true },
-    });
+    let medications;
+    try {
+      medications = await this.prisma.medication.findMany({
+        where: {
+          userId,
+          isActive: true,
+          startDate: { lte: now.toJSDate() },
+          OR: [
+            { endDate: null },
+            { endDate: { gte: now.toJSDate() } },
+          ],
+        },
+        include: { doses: true },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+      }
+      throw err;
+    }
 
     // Filter medications that are due today
     const dueToday = medications.filter((med) => {
@@ -49,21 +58,36 @@ export class MedicationsService {
    * Find all medications for user (new model)
    */
   async findAllForUser(userId: string) {
-    return this.prisma.medication.findMany({
-      where: { userId, isActive: true },
-      orderBy: { createdAt: 'desc' },
-      include: { doses: true },
-    });
+    try {
+      return await this.prisma.medication.findMany({
+        where: { userId, isActive: true },
+        orderBy: { createdAt: 'desc' },
+        include: { doses: true },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+      }
+      throw err;
+    }
   }
 
   /**
    * Find one medication for user (new model)
    */
   async findOneForUser(userId: string, id: string) {
-    const medication = await this.prisma.medication.findFirst({
-      where: { id, userId },
-      include: { doses: true },
-    });
+    let medication;
+    try {
+      medication = await this.prisma.medication.findFirst({
+        where: { id, userId },
+        include: { doses: true },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+      }
+      throw err;
+    }
 
     if (!medication) {
       throw new NotFoundException('Medication not found');
@@ -87,26 +111,33 @@ export class MedicationsService {
       doses,
     } = dto;
 
-    return this.prisma.medication.create({
-      data: {
-        userId,
-        name,
-        dosage,
-        instructions,
-        startDate: new Date(startDate),
-        endDate: endDate ? new Date(endDate) : null,
-        timezone: timezone || 'UTC',
-        isActive: isActive ?? true,
-        doses: {
-          create: doses.map((dose) => ({
-            timeOfDay: dose.timeOfDay,
-            beforeMeal: !!dose.beforeMeal,
-            afterMeal: !!dose.afterMeal,
-          })),
+    try {
+      return await this.prisma.medication.create({
+        data: {
+          userId,
+          name,
+          dosage,
+          instructions,
+          startDate: new Date(startDate),
+          endDate: endDate ? new Date(endDate) : null,
+          timezone: timezone || 'UTC',
+          isActive: isActive ?? true,
+          doses: {
+            create: doses.map((dose) => ({
+              timeOfDay: dose.timeOfDay,
+              beforeMeal: !!dose.beforeMeal,
+              afterMeal: !!dose.afterMeal,
+            })),
+          },
         },
-      },
-      include: { doses: true },
-    });
+        include: { doses: true },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+      }
+      throw err;
+    }
   }
 
   /**
@@ -118,7 +149,9 @@ export class MedicationsService {
     const { doses, ...rest } = dto;
 
     // Обновляем сам Medication
-    const updated = await this.prisma.medication.update({
+    let updated;
+    try {
+      updated = await this.prisma.medication.update({
       where: { id: existing.id },
       data: {
         ...('name' in rest && rest.name !== undefined ? { name: rest.name } : {}),
@@ -138,22 +171,35 @@ export class MedicationsService {
           : {}),
       },
       include: { doses: true },
-    });
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+      }
+      throw err;
+    }
 
     // Если передали doses — пере-создаём их
     if (doses) {
-      await this.prisma.medicationDose.deleteMany({
-        where: { medicationId: existing.id },
-      });
+      try {
+        await this.prisma.medicationDose.deleteMany({
+          where: { medicationId: existing.id },
+        });
 
-      await this.prisma.medicationDose.createMany({
-        data: doses.map((dose) => ({
-          medicationId: existing.id,
-          timeOfDay: dose.timeOfDay,
-          beforeMeal: !!dose.beforeMeal,
-          afterMeal: !!dose.afterMeal,
-        })),
-      });
+        await this.prisma.medicationDose.createMany({
+          data: doses.map((dose) => ({
+            medicationId: existing.id,
+            timeOfDay: dose.timeOfDay,
+            beforeMeal: !!dose.beforeMeal,
+            afterMeal: !!dose.afterMeal,
+          })),
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+          throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+        }
+        throw err;
+      }
     }
 
     return this.findOneForUser(userId, id);
@@ -166,11 +212,18 @@ export class MedicationsService {
     const existing = await this.findOneForUser(userId, id);
 
     // Soft delete через isActive=false
-    return this.prisma.medication.update({
-      where: { id: existing.id },
-      data: { isActive: false },
-      include: { doses: true },
-    });
+    try {
+      return await this.prisma.medication.update({
+        where: { id: existing.id },
+        data: { isActive: false },
+        include: { doses: true },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
+      }
+      throw err;
+    }
   }
 }
 

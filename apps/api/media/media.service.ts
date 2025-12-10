@@ -152,4 +152,19 @@ export class MediaService {
       return `${base}/${this.s3Bucket}/${key}`;
     }
   }
+
+  /**
+   * Convert relative media path to absolute public URL
+   * Used for OpenAI Vision API which requires absolute URLs
+   */
+  makePublicUrl(relativePath: string): string {
+    const baseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || 'http://localhost:3000';
+    
+    let normalized = relativePath;
+    if (!normalized.startsWith('/')) {
+      normalized = '/' + normalized;
+    }
+
+    return `${baseUrl}${normalized}`;
+  }
 }

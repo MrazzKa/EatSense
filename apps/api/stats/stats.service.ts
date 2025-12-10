@@ -3,8 +3,10 @@ import { PrismaService } from '../prisma.service';
 import { CacheService } from '../src/cache/cache.service';
 import { MealLogMealType } from '@prisma/client';
 import * as crypto from 'crypto';
-import PDFDocument from 'pdfkit';
 import { Readable } from 'stream';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const PDFDocument = require('pdfkit');
 
 // Calculate daily calories based on user profile or return default
 function calculateDailyCalories(userProfile: any): number {

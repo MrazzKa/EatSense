@@ -441,12 +441,31 @@ export class AnalyzeService {
 
     // Extract components via Vision (with caching)
     // Use getOrExtractComponents for better cache support with Buffer
-    const visionComponents = await this.vision.getOrExtractComponents({
-      imageUrl: params.imageUrl,
-      imageBase64: params.imageBase64,
-      locale,
-      mode,
-    });
+    let visionComponents: VisionComponent[];
+    try {
+      visionComponents = await this.vision.getOrExtractComponents({
+        imageUrl: params.imageUrl,
+        imageBase64: params.imageBase64,
+        locale,
+        mode,
+      });
+    } catch (error: any) {
+      // Handle Vision API errors gracefully
+      this.logger.error('[AnalyzeService] Vision extraction failed', {
+        error: error.message,
+        status: error?.status,
+        imageUrl: params.imageUrl ? (params.imageUrl.startsWith('/') ? 'relative' : params.imageUrl.substring(0, 50)) : 'none',
+        hasBase64: Boolean(params.imageBase64),
+      });
+      
+      // Transform into a controlled error that can be handled by FoodProcessor
+      if (error?.status === 400 || error?.message?.includes('Failed to download image') || error?.message?.includes('Image URL is invalid')) {
+        throw new BadRequestException('Failed to process image. Please ensure the image is valid and accessible.');
+      }
+      
+      // Re-throw other errors
+      throw error;
+    }
     
     // Initialize debug object
     const debug: AnalysisDebug = {

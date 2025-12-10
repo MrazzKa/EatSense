@@ -97,7 +97,8 @@ export class AiAssistantService {
           },
         });
       } else {
-        this.logger.warn(`[AiAssistantService] User not found for flow completion log: ${userId}`);
+        // User may have been deleted or doesn't exist - this is harmless, just skip history save
+        this.logger.debug(`[AiAssistantService] User not found for flow completion log: ${userId} (skipping)`);
       }
     } catch (error: any) {
       // Log but don't throw - flow completion logging is non-critical
@@ -167,7 +168,8 @@ export class AiAssistantService {
           });
           this.logger.debug(`[AiAssistantService] History saved for userId: ${userId}, type: ${type}`);
         } else {
-          this.logger.warn(`[AiAssistantService] User not found for history save: ${userId}`);
+          // User may have been deleted or doesn't exist - this is harmless, just skip history save
+          this.logger.debug(`[AiAssistantService] User not found for history save: ${userId} (skipping)`);
         }
       } catch (historyError: any) {
         // Log but don't throw - history saving is non-critical
