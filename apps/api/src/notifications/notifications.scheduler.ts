@@ -18,26 +18,7 @@ export class NotificationsScheduler {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async handleMedicationReminders() {
-    const nowUtc = DateTime.utc();
-
-    // Находим все активные лекарства, у которых есть дозировки
-    const medications = await this.prisma.medication.findMany({
-      where: {
-        isActive: true,
-        doses: { some: {} },
-      },
-      include: {
-        doses: true,
-        user: {
-          include: {
-            notificationPreference: true,
-            pushTokens: {
-              where: { enabled: true },
-            },
-          },
-        },
-      },
-    });
+    return;
 
     for (const med of medications) {
       const tz = med.timezone || 'UTC';

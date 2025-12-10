@@ -165,9 +165,25 @@ export class VisionService {
 
     this.logger.debug(`[VisionService] Cache miss, calling OpenAI Vision API (key: ${cacheKey.substring(0, 20)}...)`);
 
-    const imageContent: any = imageUrl
-      ? { type: 'image_url', image_url: { url: imageUrl } }
-      : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } };
+    // Convert relative URLs to absolute URLs for OpenAI Vision API
+    // If base64 is available, prefer it over URL (more reliable)
+    let finalImageUrl = imageUrl;
+    if (imageUrl && imageUrl.startsWith('/')) {
+      // Relative URL - convert to absolute using API_BASE_URL or API_PUBLIC_URL
+      const apiBaseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || 'http://localhost:3000';
+      finalImageUrl = `${apiBaseUrl}${imageUrl}`;
+      this.logger.debug(`[VisionService] Converted relative URL to absolute: ${finalImageUrl}`);
+    }
+
+    // Prefer base64 when available (more reliable for OpenAI Vision API)
+    const imageContent: any = imageBase64
+      ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+      : { type: 'image_url', image_url: { url: finalImageUrl } };
+
+    // Debug log (only log first N chars of base64, not full string)
+    this.logger.debug(
+      `[VisionService] Calling OpenAI Vision with base64=${Boolean(imageBase64)}, url=${imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl}`,
+    );
 
     // Base system prompt
     let systemPrompt = `You are a professional nutritionist and food analyst. Analyze food images and extract all visible food components AND identify likely hidden ingredients.
