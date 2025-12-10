@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { clientLog } from '../utils/clientLog';
-import { DescribeFoodModal } from '../components/DescribeFoodModal';
+import DescribeFoodModal from '../components/DescribeFoodModal';
 
 export default function CameraScreen() {
   const navigation = useNavigation();

@@ -12,7 +12,7 @@ interface AuthContextValue {
   user: any;
   loading: boolean;
   refreshUser: () => Promise<void>;
-  setUser: (value: any) => void;
+  setUser: (_value: any) => void;
   signOut: () => Promise<void>;
 }
 
@@ -45,12 +45,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Unexpected response format - try to use result as-is
         setUser(result || null);
       }
-    } catch (error) {
+    } catch (error: any) {
       // Check if error is 404 (profile not found) vs 401 (unauthorized)
       const isUnauthorized = error?.status === 401 || error?.response?.status === 401;
       if (isUnauthorized) {
         // Token expired or invalid - clear user
-        console.log('[AuthContext] Unauthorized - clearing user:', error.message);
+        console.log('[AuthContext] Unauthorized - clearing user:', error?.message || 'Unknown error');
         setUser(null);
         await ApiService.setToken(null, null);
       } else {
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log('[AuthContext] Profile not found but token exists - showing onboarding');
           setUser({ isOnboardingCompleted: false });
         } else {
-          console.log('[AuthContext] Error refreshing user (no token):', error.message);
+          console.log('[AuthContext] Error refreshing user (no token):', (error as any)?.message || 'Unknown error');
           setUser(null);
         }
       }
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               return;
             }
           } catch (refreshError) {
-            console.log('[AuthContext] Auto-login failed (refresh token invalid/expired):', refreshError.message);
+            console.log('[AuthContext] Auto-login failed (refresh token invalid/expired):', (refreshError as any)?.message || 'Unknown error');
             // Clear invalid tokens
             await ApiService.setToken(null, null);
           }
@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setLoading(false);
         }
       } catch (error) {
-        console.log('[AuthContext] Auto-login error:', error.message);
+        console.log('[AuthContext] Auto-login error:', (error as any)?.message || 'Unknown error');
         setUser(null);
         setLoading(false);
       }

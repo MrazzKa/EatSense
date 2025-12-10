@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
@@ -7,9 +7,8 @@ import * as Sharing from 'expo-sharing';
 import ApiService from '../services/apiService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import { useAuth } from '../contexts/AuthContext';
 import { LanguageSelector } from '../components/LanguageSelector';
-import { clientLog } from '../utils/clientLog';
+// import { clientLog } from '../utils/clientLog'; // Unused
 import AppCard from '../components/common/AppCard';
 import PrimaryButton from '../components/common/PrimaryButton';
 import { ProfileNumberRow } from '../components/ProfileNumberRow';
@@ -20,9 +19,8 @@ import { API_BASE_URL } from '../config/env';
 const ProfileScreen = () => {
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const themeContext = useTheme();
-  const authContext = useAuth();
   
-  const tokens = themeContext?.tokens || {};
+  const tokens = useMemo(() => themeContext?.tokens || {}, [themeContext?.tokens]);
   const colors = themeContext?.colors || {};
   const isDark = themeContext?.isDark || false;
   const themeMode = themeContext?.themeMode || 'light';
@@ -33,11 +31,6 @@ const ProfileScreen = () => {
     }
   }, [themeContext]);
   
-  const signOut = useCallback(async () => {
-    if (authContext?.signOut && typeof authContext.signOut === 'function') {
-      await authContext.signOut();
-    }
-  }, [authContext]);
   
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
@@ -102,7 +95,8 @@ const ProfileScreen = () => {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         return tz || 'UTC';
       }
-    } catch (e) {
+    } catch {
+      // Ignore timezone detection errors
     }
     return 'UTC';
   }, []);
@@ -576,63 +570,6 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      safeT('profile.deleteAccountTitle', 'Delete Account'),
-      safeT('profile.deleteAccountMessage', 'Are you sure you want to delete your account? This action cannot be undone.'),
-      [
-        {
-          text: safeT('profile.deleteAccountCancel', 'Cancel'),
-          style: 'cancel',
-        },
-        {
-          text: safeT('profile.deleteAccountConfirm', 'Delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              
-              if (ApiService && typeof ApiService.deleteAccount === 'function') {
-                await ApiService.deleteAccount();
-              } else {
-                await clientLog('Profile:deleteAccountNotAvailable').catch(() => {});
-              }
-              
-              if (ApiService && typeof ApiService.setToken === 'function') {
-                await ApiService.setToken(null, null);
-              }
-              
-              if (signOut && typeof signOut === 'function') {
-                await signOut();
-              } else {
-                await clientLog('Profile:signOutNotAvailable').catch(() => {});
-              }
-              
-              Alert.alert(safeT('profile.deleteAccountSuccess', 'Account deleted'), '', [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                  },
-                },
-              ]);
-            } catch (error) {
-              console.error('[ProfileScreen] Failed to delete account:', error);
-              await clientLog('Profile:deleteAccountError', {
-                message: error?.message || String(error),
-              }).catch(() => {});
-              Alert.alert(
-                safeT('profile.errorTitle', 'Error'),
-                safeT('profile.deleteAccountError', 'Failed to delete account')
-              );
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ],
-      { cancelable: true },
-    );
-  };
 
   const toggleDietPreference = (dietId) => {
     setDietPreferences(prev => {
@@ -648,10 +585,7 @@ const ProfileScreen = () => {
     Alert.alert('Policy', 'Policy screen coming soon');
   };
 
-  const handleOpenPolitics = () => {
-    // TODO: navigate/open explanation of app politics, etc.
-    Alert.alert('Politics', 'Politics screen coming soon');
-  };
+  // Removed unused function: handleOpenPolitics
 
   const handleOpenTerms = () => {
     // TODO: navigate to Terms of Service screen or open WebView
@@ -1121,21 +1055,6 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </AppCard>
 
-        {false && (
-          <AppCard style={styles.dangerCard}>
-            <Text style={[styles.sectionTitle, styles.dangerTitle]}>{t('profile.deleteAccount')}</Text>
-            <Text style={styles.dangerDescription}>{t('profile.deleteAccountMessage')}</Text>
-            <TouchableOpacity
-              style={styles.dangerButton}
-              onPress={typeof handleDeleteAccount === 'function' ? handleDeleteAccount : () => {}}
-              disabled={loading}
-            >
-              <Ionicons name="trash-outline" size={18} color={tokens.colors.error} />
-              <Text style={styles.dangerButtonText}>{t('profile.deleteAccount')}</Text>
-            </TouchableOpacity>
-          </AppCard>
-        )}
-
         {/* Health Profile Summary */}
         <AppCard style={styles.healthSection}>
           <View style={styles.healthSummaryHeader}>
@@ -1150,8 +1069,8 @@ const ProfileScreen = () => {
                   if (healthProfile.metabolic?.waistCm) parts.push(`Талия ${healthProfile.metabolic.waistCm} см`);
                   if (healthProfile.sleep?.sleepHours) parts.push(`Сон ${healthProfile.sleep.sleepHours} ч`);
                   const focusAreas = Object.entries(healthProfile.healthFocus || {})
-                    .filter(([_, val]) => val === true)
-                    .map(([key, _]) => {
+                    .filter(([, val]) => val === true)
+                    .map(([key]) => {
                       const keyMap = {
                         sugarControl: t('profile.health.focus.sugarControl') || 'контроль сахара',
                         cholesterol: t('profile.health.focus.cholesterol') || 'холестерин',

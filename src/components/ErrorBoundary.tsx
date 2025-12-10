@@ -29,8 +29,10 @@ export class ErrorBoundary extends Component<Props, State> {
       // Опционально: отправить в API (можно раскомментировать)
       // const { default: ApiService } = require('../services/apiService');
       // ApiService.request('/logs/client', { method: 'POST', body: { error: String(error), stack: error?.stack, info: errorInfo }}).catch(() => {});
-    } catch {}
-    this.setState({ errorInfo });
+    } catch {
+      // Ignore errors in error handler
+    }
+    this.setState({ errorInfo: errorInfo ? { componentStack: errorInfo.componentStack || undefined } : null });
   }
 
   handleReset = () => {

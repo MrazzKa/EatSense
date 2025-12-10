@@ -9,18 +9,7 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
 
-  if (!healthScore) {
-    return null;
-  }
-
-  // Support both new format (total, level, factors) and legacy format (score, grade, factors)
-  const total = healthScore.total ?? healthScore.score ?? 0;
-  const level = healthScore.level || (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
-  const grade = healthScore.grade || (total >= 90 ? 'A' : total >= 80 ? 'B' : total >= 70 ? 'C' : total >= 60 ? 'D' : 'F');
-  const factors = healthScore.factors || {};
-  const feedback = healthScore.feedback || healthScore.feedbackLegacy || [];
-
-  // Определяем, является ли блюдо напитком
+  // Определяем, является ли блюдо напитком (вызываем хук ДО раннего return)
   const isDrink = React.useMemo(() => {
     if (!dishName) return false;
     const nameLower = dishName.toLowerCase();
@@ -35,6 +24,17 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
     ];
     return drinkKeywords.some(keyword => nameLower.includes(keyword));
   }, [dishName]);
+
+  if (!healthScore) {
+    return null;
+  }
+
+  // Support both new format (total, level, factors) and legacy format (score, grade, factors)
+  const total = healthScore.total ?? healthScore.score ?? 0;
+  const level = healthScore.level || (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
+  const grade = healthScore.grade || (total >= 90 ? 'A' : total >= 80 ? 'B' : total >= 70 ? 'C' : total >= 60 ? 'D' : 'F');
+  const factors = healthScore.factors || {};
+  const feedback = healthScore.feedback || healthScore.feedbackLegacy || [];
 
   // Helper to normalize factor data
   // New format: factors = { protein: 75, fiber: 60, ... } (numbers 0-100)
@@ -196,7 +196,6 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
         <Text style={[styles.factorsTitle, { color: colors.textSecondary }]}>{t('healthScore.qualityFactors')}</Text>
         <View style={styles.factorsGrid}>
           {factorEntries.map(entry => {
-            const normalizedKey = entry.key === 'saturatedFat' ? 'satFat' : entry.key === 'sugars' ? 'sugar' : entry.key;
             const riskLabel = getRiskLabel(entry.key, entry.scorePercent);
             const isNegativeFactor = ['satFat', 'sugar', 'energyDensity', 'saturatedFat', 'sugars'].includes(entry.key);
             
@@ -379,4 +378,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
+export default HealthScoreCard;
 

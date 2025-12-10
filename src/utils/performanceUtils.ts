@@ -22,6 +22,9 @@ export class PerformanceMonitor {
       throw new Error(`Start mark "${startMark}" not found`);
     }
     
+    if (end === undefined) {
+      throw new Error(`End mark "${endMark}" not found`);
+    }
     const duration = end - start;
     
     if (!this.measures.has(name)) {
@@ -97,22 +100,24 @@ export const measureAsync = async <T>(name: string, fn: () => Promise<T>): Promi
 const hasWindow = typeof window !== 'undefined';
 type TimerHandle = ReturnType<typeof setTimeout>;
 
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (..._args: any[]) => any>(
   func: T,
   wait: number
-): ((...args: Parameters<T>) => void) => {
-  let timeout: TimerHandle | null = null;
+): ((..._args: Parameters<T>) => void) => {
+  let timeout: TimerHandle | null | undefined = null;
   
   return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
+    if (timeout != null) {
+      clearTimeout(timeout);
+    }
     timeout = setTimeout(() => func(...args), wait);
   };
 };
 
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (..._args: any[]) => any>(
   func: T,
   limit: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let inThrottle = false;
   
   return (...args: Parameters<T>) => {
@@ -125,16 +130,16 @@ export const throttle = <T extends (...args: any[]) => any>(
 };
 
 type IdleCallbackHandle = number;
-type IdleCallback = (deadline: IdleDeadline) => void;
+type IdleCallback = (_deadline: IdleDeadline) => void;
 
 interface IdleDeadline {
   didTimeout: boolean;
   timeRemaining: () => number;
 }
 
-const requestIdle: (cb: IdleCallback, timeout?: number) => IdleCallbackHandle = (callback, timeout) => {
+const requestIdle: (_cb: IdleCallback, _timeout?: number) => IdleCallbackHandle = (callback, timeout) => {
   if (hasWindow && typeof window.requestIdleCallback === 'function') {
-    return window.requestIdleCallback(callback, { timeout });
+    return window.requestIdleCallback(callback, timeout ? { timeout } : undefined);
   }
   const start = Date.now();
   return setTimeout(() => {
@@ -143,7 +148,7 @@ const requestIdle: (cb: IdleCallback, timeout?: number) => IdleCallbackHandle = 
       timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
     };
     callback(deadline);
-  }, timeout ?? 0);
+  }, timeout ?? 0) as unknown as IdleCallbackHandle;
 };
 
 export const requestIdleCallback = (callback: () => void, timeout?: number): IdleCallbackHandle => {
@@ -163,7 +168,7 @@ export const requestAnimationFrame = (callback: () => void): number => {
     return window.requestAnimationFrame(callback);
   }
   
-  return setTimeout(callback, 16);
+  return setTimeout(callback, 16) as unknown as number;
 };
 
 export const cancelAnimationFrame = (id: number): void => {

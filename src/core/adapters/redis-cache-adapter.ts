@@ -1,4 +1,9 @@
-import type { CacheAdapter } from './cache-adapter';
+export interface CacheAdapter {
+  get(_key: string): Promise<any>;
+  set(_key: string, _value: any, _ttl?: number): Promise<void>;
+  delete(_key: string): Promise<void>;
+  clear(): Promise<void>;
+}
 
 export interface RedisCacheConfig {
   baseUrl: string;
@@ -138,7 +143,6 @@ export class RedisCacheAdapter implements CacheAdapter {
 // Factory function to create Redis cache adapter with environment config
 export const createRedisCacheAdapter = (): RedisCacheAdapter => {
   // Use safeEnv helper for normalized env values
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const safeEnv = require('../../utils/env').default;
   const baseUrl = safeEnv.apiBaseUrl || 'http://172.20.10.2:3000';
   

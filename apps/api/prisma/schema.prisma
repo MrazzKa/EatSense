@@ -28,6 +28,7 @@ model User {
   userProfile            UserProfile?
   userStats              UserStats?
   medications            MedicationSchedule[]
+  medicationsNew         Medication[]            @relation("UserMedications")
 
   @@map("users")
 }
@@ -368,51 +369,91 @@ enum MealLogMealType {
 }
 
 model UserStats {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  totalPhotosAnalyzed   Int      @default(0) @map("total_photos_analyzed")
-  todayPhotosAnalyzed   Int      @default(0) @map("today_photos_analyzed")
-  lastAnalysisDate      DateTime? @map("last_analysis_date")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  totalPhotosAnalyzed Int       @default(0) @map("total_photos_analyzed")
+  todayPhotosAnalyzed Int       @default(0) @map("today_photos_analyzed")
+  lastAnalysisDate    DateTime? @map("last_analysis_date")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_stats")
 }
 
-// P3.1: Medication Schedule Model
+// P3.1: Medication Schedule Model (legacy - kept for backward compatibility)
 model MedicationSchedule {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
   name            String
-  dosage          String?  // e.g., "1 tablet", "500mg"
-  frequency       String   // e.g., "daily", "twice_daily", "weekly", "custom"
+  dosage          String? // e.g., "1 tablet", "500mg"
+  frequency       String // e.g., "daily", "twice_daily", "weekly", "custom"
   times           String[] // Array of time strings in HH:mm format, e.g., ["08:00", "20:00"]
-  daysOfWeek      Int[]    // 0-6 (Sunday-Saturday), empty array means every day
-  startDate       DateTime @default(now()) @map("start_date")
+  daysOfWeek      Int[] // 0-6 (Sunday-Saturday), empty array means every day
+  startDate       DateTime  @default(now()) @map("start_date")
   endDate         DateTime? @map("end_date")
   notes           String?
-  isActive        Boolean  @default(true) @map("is_active")
-  reminderEnabled Boolean  @default(true) @map("reminder_enabled")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive        Boolean   @default(true) @map("is_active")
+  reminderEnabled Boolean   @default(true) @map("reminder_enabled")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isActive])
   @@index([userId, startDate])
   @@map("medication_schedules")
 }
 
+// P3.1: New Medication Model with MedicationDose support
+model Medication {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation("UserMedications", fields: [userId], references: [id], onDelete: Cascade)
+  name         String // Название лекарства: "Метформин", "Витамин D" и т.п.
+  dosage       String? // Свободная строка: "500 mg", "1 таблетка", ...
+  instructions String? // Доп. инструкции: "Перед едой", "После ужина" и т.д.
+  startDate    DateTime  @default(now()) // Дата начала курса
+  endDate      DateTime? // Дата окончания курса (nullable; если null — бессрочно)
+  timezone     String    @default("UTC") // IANA timezone, например "Asia/Almaty"
+  isActive     Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doses MedicationDose[]
+
+  @@index([userId, isActive])
+  @@index([userId, startDate])
+  @@map("medications")
+}
+
+model MedicationDose {
+  id           String     @id @default(cuid())
+  medicationId String
+  medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+
+  // Время приёма в формате "HH:mm" (локальное время в timezone лекарства)
+  timeOfDay String
+
+  beforeMeal Boolean @default(false)
+  afterMeal  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("medication_doses")
+}
+
 model LabResult {
-  id          String        @id @default(cuid())
-  userId      String
-  rawText     String?       @map("raw_text")
-  summary     String?
+  id             String      @id @default(cuid())
+  userId         String
+  rawText        String?     @map("raw_text")
+  summary        String?
   recommendation String?
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  metrics     LabMetric[]
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metrics        LabMetric[]
 
   @@index([userId, createdAt])
   @@map("lab_results")
@@ -425,7 +466,7 @@ model LabMetric {
   value       Float
   unit        String
   isNormal    Boolean   @default(true) @map("is_normal")
-  level       String    // "low", "normal", "high"
+  level       String // "low", "normal", "high"
   comment     String?
   createdAt   DateTime  @default(now()) @map("created_at")
   labResult   LabResult @relation(fields: [labResultId], references: [id], onDelete: Cascade)

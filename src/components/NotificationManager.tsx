@@ -12,7 +12,7 @@ interface Notification {
 
 interface NotificationManagerProps {
   notifications: Notification[];
-  onRemove: (id: string) => void;
+  onRemove: (_id: string) => void;
 }
 
 export const NotificationManager: React.FC<NotificationManagerProps> = ({
@@ -105,7 +105,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
             ]}
           >
             <View style={styles.content}>
-              <Ionicons name={style.icon} size={20} color="white" />
+              <Ionicons name={style.icon as any} size={20} color="white" />
               <View style={styles.textContainer}>
                 <Text style={styles.title}>{notification.title}</Text>
                 <Text style={styles.message}>{notification.message}</Text>

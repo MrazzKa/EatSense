@@ -1,12 +1,19 @@
 export class AppError extends Error {
+  public code: string;
+  public statusCode: number;
+  public _details?: any;
+  
   constructor(
     message: string,
-    public code: string,
-    public statusCode: number = 500,
-    public details?: any
+    code: string,
+    statusCode: number = 500,
+    details?: any
   ) {
     super(message);
     this.name = 'AppError';
+    this.code = code;
+    this.statusCode = statusCode;
+    this._details = details;
   }
 }
 

@@ -94,9 +94,9 @@ export const createCache = <T = any>(maxSize?: number, defaultTTL?: number): Mem
   return new MemoryCache<T>(maxSize, defaultTTL);
 };
 
-export const memoize = <T extends (...args: any[]) => any>(
+export const memoize = <T extends (..._args: any[]) => any>(
   fn: T,
-  keyGenerator?: (...args: Parameters<T>) => string,
+  keyGenerator?: (..._args: Parameters<T>) => string,
   ttl?: number
 ): T => {
   const cache = new MemoryCache<ReturnType<T>>(1000, ttl);
@@ -115,9 +115,9 @@ export const memoize = <T extends (...args: any[]) => any>(
   }) as T;
 };
 
-export const withCache = <T extends (...args: any[]) => any>(
+export const withCache = <T extends (..._args: any[]) => any>(
   fn: T,
-  keyGenerator?: (...args: Parameters<T>) => string,
+  keyGenerator?: (..._args: Parameters<T>) => string,
   ttl?: number
 ): T => {
   const cache = new MemoryCache<ReturnType<T>>(1000, ttl);

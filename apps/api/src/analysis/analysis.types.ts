@@ -16,6 +16,33 @@ export interface Nutrients {
   [key: string]: number | undefined;
 }
 
+export type HiddenIngredientCategory =
+  | 'cooking_oil'
+  | 'butter_or_cream'
+  | 'sauce_or_dressing'
+  | 'added_sugar'
+  | 'breaded_or_batter'
+  | 'processed_meat_fillers'
+  | 'other';
+
+export interface HiddenIngredientEstimate {
+  /** Человекочитаемое название: "Оливковое масло", "Салатная заправка", "Добавленный сахар" */
+  name: string;
+  /** Категория для логики и UI */
+  category: HiddenIngredientCategory;
+  /** Краткое объяснение, почему мы добавили этот ингредиент */
+  reason: string; // "fried_pan", "deep_fried", "salad_with_dressing", "sweet_drink", ...
+  /** Оценка уверенности (0-1) */
+  confidence: number;
+  /** Оценка массы скрытого ингредиента (в граммах) — не обязательно 100% точная */
+  estimated_grams: number;
+  /** Оценка КБЖУ, которые добавляет этот ингредиент */
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 export interface AnalyzedItem {
   id?: string;
   // Localized display name for UI (short, in user's locale)
@@ -38,6 +65,22 @@ export interface AnalyzedItem {
   userEditedName?: string;      // If user renamed component (e.g., "рис" → "рыба хе")
   userEditedPortionG?: number;  // If user changed portion
   wasManuallyEdited?: boolean;  // Flag that this item was manually edited
+  /** Список скрытых ингредиентов, которые мы добавили к этому элементу (масло, соусы, сахар и т.п.) */
+  hiddenIngredients?: HiddenIngredientEstimate[];
+  /** 
+   * Флаг, что макросы/калории для этого элемента уже включают hiddenIngredients.
+   * Нужен, чтобы не посчитать их ещё раз где-то выше.
+   */
+  includesHiddenIngredientsInMacros?: boolean;
+  /** Дополнительные подсказки от модели Vision */
+  cookingMethodHints?: {
+    method?: 'fried' | 'deep_fried' | 'baked' | 'grilled' | 'boiled' | 'steamed' | 'raw' | 'mixed';
+    hasVisibleOil?: boolean;
+    hasCreamOrButter?: boolean;
+    hasSauceOrDressing?: boolean;
+    looksSugary?: boolean;
+    hasBreadingOrBatter?: boolean;
+  };
 }
 
 export interface AnalysisTotals extends Nutrients {
@@ -143,6 +186,99 @@ export interface AnalysisDebug {
   hiddenIngredients?: any[];
 }
 
+// Food Compatibility Types
+export type FoodCompatibilitySeverity = 'low' | 'medium' | 'high';
+
+export type FoodCompatibilityScoreLabel =
+  | 'excellent'
+  | 'good'
+  | 'moderate'
+  | 'problematic';
+
+export interface FoodCompatibilityIssue {
+  /** Машинный код правила: нужен для отладки и локализации на фронте */
+  code:
+    | 'sugar_plus_saturated_fat'
+    | 'very_high_energy_density'
+    | 'low_fiber_high_carbs'
+    | 'low_protein_meal'
+    | 'heavy_evening_meal'
+    | 'too_many_processed_meats'
+    | 'too_many_refined_carbs'
+    | 'other';
+  severity: FoodCompatibilitySeverity;
+  /** Краткий заголовок на английском. На фронте можно локализовать по code. */
+  title: string;
+  /** Более подробное объяснение, почему это потенциальная проблема. */
+  description: string;
+  /** Практический совет: что можно улучшить. */
+  advice: string;
+  /** Какие компоненты/ингредиенты особенно участвуют в этой проблеме (по именам блюд). */
+  relatedItems?: string[];
+}
+
+export interface FoodCompatibilityPositiveHighlight {
+  code:
+    | 'good_protein_fiber_balance'
+    | 'moderate_energy_density'
+    | 'low_sugar'
+    | 'whole_grains'
+    | 'good_veggie_portion'
+    | 'balanced_macros'
+    | 'other';
+  title: string;
+  description: string;
+  relatedItems?: string[];
+}
+
+export interface FoodCompatibilityScore {
+  /** 0–100, чем выше — тем более "здоровое" сочетание компонентов */
+  value: number;
+  label: FoodCompatibilityScoreLabel;
+  /** Основные причины, почему score такой */
+  reasons: string[];
+}
+
+export interface FoodCompatibilityResult {
+  score: FoodCompatibilityScore;
+  positives: FoodCompatibilityPositiveHighlight[];
+  issues: FoodCompatibilityIssue[];
+}
+
+// Carcinogenic Risk Types
+export type CarcinogenicRiskLevel = 'none' | 'low' | 'moderate' | 'high';
+
+export interface ItemCarcinogenRisk {
+  /** Имя ингредиента/компонента */
+  itemName: string;
+  /** Уровень риска для данного продукта */
+  level: CarcinogenicRiskLevel;
+  /** Краткие машинные причины (коды правил) */
+  reasonCodes: string[];
+  /** Человекочитаемые пояснения (на англ., на фронте можно локализовать по code) */
+  reasons: string[];
+  /** Теги, по которым продукт попал в "риск" (processed_meat, fried и т.д.) */
+  tags: string[];
+}
+
+export interface CarcinogenicRiskSummary {
+  /** Итоговый уровень риска для всего блюда */
+  level: CarcinogenicRiskLevel;
+  /** Числовой score 0–100, где выше — больше риска */
+  score: number;
+  /** Основные причины на уровне блюда (коды правил) */
+  reasonCodes: string[];
+  /** Краткое текстовое объяснение на английском */
+  summaryText: string;
+  /** Дисклеймер, что это образовательная оценка, а не диагноз */
+  disclaimer: string;
+}
+
+export interface CarcinogenicRiskResult {
+  summary: CarcinogenicRiskSummary;
+  highRiskItems: ItemCarcinogenRisk[];
+}
+
 export interface AnalysisData {
   items: AnalyzedItem[];
   total: AnalysisTotals;
@@ -156,5 +292,9 @@ export interface AnalysisData {
   dishNameLocalized?: string;
   // Normalized English dish name base (for internal use)
   originalDishName?: string;
+  // Food compatibility analysis
+  foodCompatibility?: FoodCompatibilityResult;
+  // Эвристическая оценка канцерогенного риска по составу блюда
+  carcinogenicRisk?: CarcinogenicRiskResult;
 }
 

@@ -2,14 +2,13 @@
 // Wrapped in ErrorBoundary to prevent crashes
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { clientLog } from '../utils/clientLog';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
-import { RealAiAssistant } from './RealAiAssistant';
+import RealAiAssistant from './RealAiAssistant';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 
 interface AiAssistantProps {
@@ -18,7 +17,7 @@ interface AiAssistantProps {
 }
 
 // Safe fallback component
-const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => string }> = ({ onClose, t }) => {
+const AiAssistantFallback: React.FC<{ onClose: () => void; t: (_key: string) => string }> = ({ onClose, t: _t }) => {
   const { colors } = useTheme();
   
   return (
@@ -28,11 +27,11 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => s
       </View>
       
       <Text style={[styles.mainTitle, { color: colors.textPrimary || colors.text }]}>
-        {t('aiAssistant.unavailable')}
+        {_t('aiAssistant.unavailable')}
       </Text>
       
       <Text style={[styles.description, { color: colors.textSecondary }]}>
-        {t('aiAssistant.unavailableDescription')}
+        {_t('aiAssistant.unavailableDescription')}
       </Text>
       
       <TouchableOpacity 
@@ -44,7 +43,7 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => s
         }}
       >
         <Text style={[styles.closeButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>
-          {t('common.close')}
+          {_t('common.close')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -55,7 +54,6 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (key: string) => s
 const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) => {
   const { t } = useI18n();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {

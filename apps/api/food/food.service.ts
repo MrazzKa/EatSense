@@ -257,26 +257,28 @@ export class FoodService {
       throw new BadRequestException('Analysis not found');
     }
 
-    if (analysis.status !== 'COMPLETED') {
-      throw new BadRequestException(`Analysis is ${analysis.status}, not completed`);
-    }
+    // Return status and data even if not completed (for polling)
+    const hasResults = analysis.results && analysis.results.length > 0;
+    const resultData = hasResults ? (analysis.results[0].data as unknown as AnalysisData) : null;
 
-    if (!analysis.results || analysis.results.length === 0) {
-      throw new BadRequestException('Analysis result not found');
-    }
-
-    const resultData = analysis.results[0].data as unknown as AnalysisData;
-    
-    // Map AnalysisData to frontend format
-    const mapped = this.mapAnalysisResult(resultData);
+    // Map AnalysisData to frontend format if result exists
+    const mapped = resultData ? this.mapAnalysisResult(resultData) : null;
     
     // Include imageUrl from analysis result if available
-    const rawData = analysis.results[0].data as any;
-    if (rawData && rawData.imageUrl) {
-      (mapped as any).imageUrl = rawData.imageUrl;
+    if (hasResults && mapped) {
+      const rawData = analysis.results[0].data as any;
+      if (rawData && rawData.imageUrl) {
+        (mapped as any).imageUrl = rawData.imageUrl;
+      }
     }
     
-    return mapped;
+    // Return status-aware response
+    return {
+      status: analysis.status,
+      analysisId: analysis.id,
+      data: mapped,
+      error: analysis.error || null,
+    };
   }
 
   /**

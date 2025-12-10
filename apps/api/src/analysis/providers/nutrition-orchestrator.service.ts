@@ -5,8 +5,15 @@ import {
   NutritionProviderResult,
   CanonicalFood,
 } from './nutrition-provider.interface';
+import { CacheService } from '../../cache/cache.service';
 
 export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
+
+export interface NutritionCacheKeyInput {
+  normalizedName: string;
+  locale: string;
+  portionGrams?: number;
+}
 
 @Injectable()
 export class NutritionOrchestrator {
@@ -15,6 +22,7 @@ export class NutritionOrchestrator {
   constructor(
     @Inject(NUTRITION_PROVIDERS)
     private readonly providers: INutritionProvider[],
+    private readonly cacheService: CacheService,
   ) {}
 
   /**
@@ -136,8 +144,62 @@ export class NutritionOrchestrator {
   }
 
   /**
+   * Build cache key for nutrition lookup
+   */
+  private buildNutritionCacheKey(input: NutritionCacheKeyInput): string {
+    const { normalizedName, locale, portionGrams } = input;
+    const namespace = 'nutrition:lookup';
+    const base = normalizedName.trim().toLowerCase();
+    const portionPart = portionGrams ? `:${Math.round(portionGrams)}` : '';
+    return `${namespace}:${base}:${locale}${portionPart}`;
+  }
+
+  /**
+   * Extract confidence score from provider result
+   */
+  private extractConfidenceScore(data: any, provider: string): number | undefined {
+    // Simple heuristic: if provider returns score or matchConfidence, use it
+    if (provider === 'openfoodfacts' && typeof data?.score === 'number') {
+      return data.score / 100; // Normalize to 0-1 if needed
+    }
+    if (typeof data?.matchConfidence === 'number') {
+      return data.matchConfidence;
+    }
+    if (typeof data?.confidence === 'number') {
+      return data.confidence;
+    }
+    return undefined;
+  }
+
+  /**
+   * Wrap provider call with error handling
+   */
+  private async wrapProviderCall(
+    provider: INutritionProvider,
+    fn: () => Promise<NutritionProviderResult | null>,
+  ): Promise<{ providerId: string; result: NutritionProviderResult | null; error: any }> {
+    try {
+      const result = await fn();
+      return {
+        providerId: provider.id,
+        result,
+        error: null,
+      };
+    } catch (e: any) {
+      this.logger.warn(
+        `[Orchestrator] Error in provider=${provider.id}: ${e.message}`,
+      );
+      return {
+        providerId: provider.id,
+        result: null,
+        error: e.message,
+      };
+    }
+  }
+
+  /**
    * Find nutrition data by text query
-   * P2: Optimized with parallel provider queries
+   * P2: Optimized with parallel provider queries and caching
    */
   async findNutrition(
     query: string,
@@ -151,31 +213,35 @@ export class NutritionOrchestrator {
       region: this.determineRegion(context),
     };
 
+    // Normalize query for cache key
+    const normalizedName = trimmed.toLowerCase().trim();
+    const cacheKey = this.buildNutritionCacheKey({
+      normalizedName,
+      locale: context.locale || 'en',
+    });
+
+    // Try cache first
+    const cached = await this.cacheService.get<NutritionProviderResult>(cacheKey, 'nutrition:lookup');
+    if (cached) {
+      this.logger.debug(
+        `[NutritionOrchestrator] Cache hit for "${normalizedName}" locale=${context.locale}`,
+      );
+      return cached;
+    }
+
+    this.logger.debug(
+      `[NutritionOrchestrator] Cache miss for "${normalizedName}", querying providers in parallel...`,
+    );
+
     const sorted = await this.sortProviders(contextWithRegion);
     if (sorted.length === 0) {
       return null;
     }
 
     // P2: Launch all provider queries in parallel
-    const tasks = sorted.map(async (provider) => {
-      try {
-        const result = await provider.findByText(trimmed, contextWithRegion);
-        return {
-          providerId: provider.id,
-          result,
-          error: null,
-        };
-      } catch (e: any) {
-        this.logger.warn(
-          `[Orchestrator] Error in provider=${provider.id} findByText: ${e.message}`,
-        );
-        return {
-          providerId: provider.id,
-          result: null,
-          error: e.message,
-        };
-      }
-    });
+    const tasks = sorted.map((provider) =>
+      this.wrapProviderCall(provider, () => provider.findByText(trimmed, contextWithRegion)),
+    );
 
     // Wait for all providers to complete (or fail)
     const responses = await Promise.allSettled(tasks);
@@ -236,10 +302,7 @@ export class NutritionOrchestrator {
       });
 
       const best = goodResults[0];
-      this.logger.log(
-        `[Orchestrator] Found by text in provider=${best.providerId} id=${best.result.food.providerFoodId} name=${best.result.food.displayName} confidence=${best.result.confidence} (parallel, ${goodResults.length} good results)`,
-      );
-      return {
+      const finalResult = {
         ...best.result,
         debug: {
           ...best.result.debug,
@@ -249,6 +312,16 @@ export class NutritionOrchestrator {
           totalProviders: sorted.length,
         },
       };
+
+      // Cache successful result (30 days default via CacheService)
+      await this.cacheService.set(cacheKey, finalResult, 'nutrition:lookup').catch((err) => {
+        this.logger.warn(`[NutritionOrchestrator] Failed to cache result: ${err.message}`);
+      });
+
+      this.logger.log(
+        `[Orchestrator] Found by text in provider=${best.providerId} id=${best.result.food.providerFoodId} name=${best.result.food.displayName} confidence=${best.result.confidence} (parallel, ${goodResults.length} good results, cached)`,
+      );
+      return finalResult;
     }
 
     // Fallback to best suspicious result if no good results

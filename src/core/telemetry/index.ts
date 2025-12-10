@@ -66,6 +66,7 @@ export class TelemetryManager {
         screen_name: screenName,
         ...properties,
       },
+      timestamp: new Date(),
     });
   }
 
@@ -76,6 +77,7 @@ export class TelemetryManager {
         action,
         ...properties,
       },
+      timestamp: new Date(),
     });
   }
 
@@ -86,6 +88,7 @@ export class TelemetryManager {
         error,
         ...properties,
       },
+      timestamp: new Date(),
     });
   }
 
@@ -97,6 +100,7 @@ export class TelemetryManager {
         value,
         ...properties,
       },
+      timestamp: new Date(),
     });
   }
 

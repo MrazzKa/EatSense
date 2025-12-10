@@ -10,7 +10,7 @@ export const unique = <T>(array: T[]): T[] => {
   return [...new Set(array)];
 };
 
-export const uniqueBy = <T, K>(array: T[], key: (item: T) => K): T[] => {
+export const uniqueBy = <T, K>(array: T[], key: (_item: T) => K): T[] => {
   const seen = new Set<K>();
   return array.filter(item => {
     const k = key(item);
@@ -22,7 +22,7 @@ export const uniqueBy = <T, K>(array: T[], key: (item: T) => K): T[] => {
   });
 };
 
-export const groupBy = <T, K>(array: T[], key: (item: T) => K): Map<K, T[]> => {
+export const groupBy = <T, K>(array: T[], key: (_item: T) => K): Map<K, T[]> => {
   const groups = new Map<K, T[]>();
   for (const item of array) {
     const k = key(item);
@@ -34,7 +34,7 @@ export const groupBy = <T, K>(array: T[], key: (item: T) => K): Map<K, T[]> => {
   return groups;
 };
 
-export const sortBy = <T>(array: T[], key: (item: T) => any): T[] => {
+export const sortBy = <T>(array: T[], key: (_item: T) => any): T[] => {
   return [...array].sort((a, b) => {
     const aVal = key(a);
     const bVal = key(b);
@@ -44,7 +44,7 @@ export const sortBy = <T>(array: T[], key: (item: T) => any): T[] => {
   });
 };
 
-export const sortByDesc = <T>(array: T[], key: (item: T) => any): T[] => {
+export const sortByDesc = <T>(array: T[], key: (_item: T) => any): T[] => {
   return [...array].sort((a, b) => {
     const aVal = key(a);
     const bVal = key(b);
@@ -90,7 +90,7 @@ export const union = <T>(array1: T[], array2: T[]): T[] => {
   return unique([...array1, ...array2]);
 };
 
-export const partition = <T>(array: T[], predicate: (item: T) => boolean): [T[], T[]] => {
+export const partition = <T>(array: T[], predicate: (_item: T) => boolean): [T[], T[]] => {
   const pass: T[] = [];
   const fail: T[] = [];
   for (const item of array) {

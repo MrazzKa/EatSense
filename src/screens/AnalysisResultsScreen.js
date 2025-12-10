@@ -17,6 +17,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import { EditFoodItemModal } from '../components/EditFoodItemModal';
 import { HealthScoreCard } from '../components/HealthScoreCard';
+import FoodCompatibilityCard from '../components/FoodCompatibilityCard';
+import CarcinogenicRiskCard from '../components/CarcinogenicRiskCard';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
@@ -173,8 +175,8 @@ export default function AnalysisResultsScreen() {
       const isSuspicious = raw.analysisFlags?.isSuspicious || raw.isSuspicious || false;
 
       return {
-        id: raw.id || raw.analysisId || analysisIdOverride || null,
-        analysisId: raw.analysisId || raw.id || analysisIdOverride || routeParams.analysisId || null,
+        id: raw.id || raw.analysisId || null,
+        analysisId: raw.analysisId || raw.id || routeParams.analysisId || null,
         dishName:
           raw.data?.dishNameLocalized || raw.data?.originalDishName ||
           raw.dishName ||
@@ -201,7 +203,7 @@ export default function AnalysisResultsScreen() {
         consumedAt: raw.consumedAt || raw.date || raw.createdAt || null,
       };
     },
-    [baseImageUri],
+    [baseImageUri, routeParams.analysisId],
   );
 
   const applyResult = useCallback(
@@ -352,26 +354,53 @@ export default function AnalysisResultsScreen() {
           const pollForResults = async () => {
             if (cancelled) return;
             try {
-              const status = await ApiService.getAnalysisStatus(analysisResponse.analysisId);
-
-              if (status.status === 'completed') {
-                const result = await ApiService.getAnalysisResult(analysisResponse.analysisId);
+              // P2.3: Use getAnalysisResult which now returns status-aware response
+              const response = await ApiService.getAnalysisResult(analysisResponse.analysisId);
+              
+              // Handle status-aware response
+              const currentStatus = response.status?.toUpperCase() || 'PENDING';
+              
+              if (currentStatus === 'COMPLETED') {
+                const result = response.data || response;
                 await clientLog('Analysis:completed', {
                   hasResult: !!result,
                   dishName: result?.dishName || 'unknown',
                 }).catch(() => {});
                 finish(result);
-              } else if (status.status === 'failed') {
+              } else if (currentStatus === 'FAILED') {
                 await clientLog('Analysis:statusFailed').catch(() => {});
                 cancelled = true;
-                showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
+                setIsAnalyzing(false);
+                const errorMessage = response.error || t('analysis.errorMessage');
+                Alert.alert(
+                  t('analysis.errorTitle'),
+                  errorMessage,
+                  [{ text: t('common.ok'), onPress: () => navigateToDashboard() }],
+                  { cancelable: false },
+                );
+              } else if (currentStatus === 'PENDING' || currentStatus === 'PROCESSING') {
+                // Continue polling for PENDING/PROCESSING
+                if (attempts < maxAttempts) {
+                  attempts += 1;
+                  setTimeout(() => {
+                    if (!cancelled) {
+                      pollForResults();
+                    }
+                  }, 3000); // Poll every 3 seconds
+                } else {
+                  await clientLog('Analysis:timeout', { attempts }).catch(() => {});
+                  cancelled = true;
+                  setIsAnalyzing(false);
+                  showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
+                }
               } else if (attempts < maxAttempts) {
+                // Unknown status, continue polling
                 attempts += 1;
                 setTimeout(() => {
                   if (!cancelled) {
                     pollForResults();
                   }
-                }, 1000);
+                }, 3000);
               } else {
                 await clientLog('Analysis:timeout', { attempts }).catch(() => {});
                 cancelled = true;
@@ -408,7 +437,7 @@ export default function AnalysisResultsScreen() {
     return () => {
       cancelled = true;
     };
-  }, [applyResult, baseImageUri, capturedImageUri, initialAnalysisParam, showAnalysisError]);
+  }, [applyResult, baseImageUri, capturedImageUri, initialAnalysisParam, showAnalysisError, fadeAnim, language, navigateToDashboard, normalizeAnalysis, routeParams.description, routeParams.source, t]);
 
   const autoSaveInfo = analysisResult?.autoSave || null;
   const hasAutoSave = Boolean(autoSaveInfo?.mealId);
@@ -534,68 +563,7 @@ export default function AnalysisResultsScreen() {
     }
   };
 
-  const handleSave = async () => {
-    if (!analysisResult) {
-      Alert.alert(t('common.error'), t('analysis.noDataToSave') || t('analysis.errorMessage'));
-      return;
-    }
-
-    try {
-      const mealData = {
-        name: dishTitle || 'Meal',
-        type: 'meal',
-        consumedAt: new Date().toISOString(), // Set current date/time for the meal
-        imageUri: analysisResult.imageUri || previewImage || null,
-        items: (analysisResult.ingredients && Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients : []).map((ingredient) => ({
-          name: ingredient.name || 'Unknown',
-          calories: Number(ingredient.calories) || 0,
-          protein: Number(ingredient.protein) || 0,
-          fat: Number(ingredient.fat) || 0,
-          carbs: Number(ingredient.carbs) || 0,
-          weight: Number(ingredient.weight) || 0,
-        })),
-        healthScore: analysisResult.healthScore || null,
-      };
-
-      if (ApiService && typeof ApiService.createMeal === 'function') {
-        await ApiService.createMeal(mealData);
-        await clientLog('Analysis:mealSaved', { 
-          dishName: mealData.name,
-          itemsCount: mealData.items.length,
-        }).catch(() => {});
-        
-        Alert.alert(
-          t('analysis.savedTitle'),
-          t('analysis.savedMessage'),
-          [
-            {
-              text: t('common.ok'),
-              onPress: () => {
-                // Navigate directly to MainTabs (Dashboard)
-                if (navigation && typeof navigation.navigate === 'function') {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }],
-                  });
-                }
-              },
-            },
-          ]
-        );
-      } else {
-        throw new Error('ApiService.createMeal not available');
-      }
-    } catch (error) {
-      console.error('[AnalysisResultsScreen] Save error:', error);
-      await clientLog('Analysis:saveError', {
-        message: error?.message || String(error),
-      }).catch(() => {});
-      Alert.alert(
-        t('common.error'),
-        t('analysis.saveError')
-      );
-    }
-  };
+  // Removed unused function: handleSave
 
   const handleViewMeal = () => {
     if (hasAutoSave && autoSaveInfo?.mealId) {
@@ -635,18 +603,37 @@ export default function AnalysisResultsScreen() {
     );
   };
 
-  // Убрали отдельное окно процесса анализа - показываем skeleton на экране результатов
-
-  // Показываем skeleton пока загружается анализ
-  if (!analysisResult) {
+  // P2.3: Optimistic UI - показываем skeleton на экране результатов с изображением (если есть)
+  if (!analysisResult || isAnalyzing) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.emptyState}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 16 }]}>
-            {t('analysis.analyzing')}
-          </Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={navigateToDashboard}>
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('analysis.title')}</Text>
+          <View style={styles.headerButton} />
         </View>
+        
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Show image if available during analysis */}
+          {baseImageUri && (
+            <View style={styles.imageContainer}>
+              {renderImage(baseImageUri, styles.resultImage, false)}
+            </View>
+          )}
+          
+          {/* Pending state with better UX */}
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.emptyText, { color: colors.textPrimary, marginTop: 16, fontSize: 18, fontWeight: '600' }]}>
+              {t('analysis.analyzing') || 'Analyzing your meal...'}
+            </Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 8, fontSize: 14 }]}>
+              {t('analysis.analyzingSubtitle') || 'This may take a few seconds'}
+            </Text>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -765,6 +752,16 @@ export default function AnalysisResultsScreen() {
               healthScore={analysisResult.healthScore} 
               dishName={analysisResult.dishName}
             />
+          )}
+
+          {/* Food Compatibility */}
+          {analysisResult?.data?.foodCompatibility && (
+            <FoodCompatibilityCard compatibility={analysisResult.data.foodCompatibility} />
+          )}
+
+          {/* Carcinogenic Risk */}
+          {analysisResult?.data?.carcinogenicRisk && (
+            <CarcinogenicRiskCard risk={analysisResult.data.carcinogenicRisk} />
           )}
 
           {/* Auto Save Banner */}

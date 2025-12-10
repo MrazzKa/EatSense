@@ -6,10 +6,10 @@ import { BORDER_RADIUS, PADDING, SPACING, SHADOW } from '../../utils/designConst
 
 interface ArticleCardProps {
   article: ArticleSummary;
-  onPress: (slug: string) => void;
+  onPress: (_slug: string) => void;
   featured?: boolean;
-  readingTimeLabel: (minutes: number | null) => string;
-  dateLabel: (iso: string | null) => string;
+  readingTimeLabel: (_minutes: number | null) => string;
+  dateLabel: (_iso: string | null) => string;
   featuredLabel: string;
 }
 
@@ -32,7 +32,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     >
       {/* G: Build proper image URL strategy - prioritize coverUrl, then heroImageUrl, then imageUrl, then thumbnailUrl */}
       {(() => {
-        const imageUrl = article.coverUrl || article.heroImageUrl || article.imageUrl || article.thumbnailUrl || null;
+        const imageUrl = article.coverUrl || article.heroImageUrl || (article as any).imageUrl || (article as any).thumbnailUrl || null;
         return imageUrl ? (
           <ImageBackground
             source={{ uri: imageUrl }}

@@ -282,5 +282,39 @@ export class NotificationsService {
       }),
     );
   }
+
+  /**
+   * Send medication reminder push notification
+   */
+  async sendMedicationReminder(params: {
+    userId: string;
+    medicationId: string;
+    medicationName: string;
+    dosage?: string | null;
+    doseTime: string;
+    beforeMeal?: boolean;
+    afterMeal?: boolean;
+  }) {
+    const { userId, medicationName, dosage, doseTime, beforeMeal, afterMeal } = params;
+
+    const title = 'Reminder: medication time';
+    let body = `${medicationName} at ${doseTime}`;
+
+    if (dosage) {
+      body += ` (${dosage})`;
+    }
+
+    if (beforeMeal) {
+      body += ' — before meal';
+    } else if (afterMeal) {
+      body += ' — after meal';
+    }
+
+    // Используем существующий метод sendPushNotification
+    return this.sendPushNotification(userId, title, body, {
+      type: 'medication_reminder',
+      medicationId: params.medicationId,
+    });
+  }
 }
 

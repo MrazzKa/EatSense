@@ -1,9 +1,9 @@
 type TimerHandle = ReturnType<typeof setTimeout>;
 
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (..._args: any[]) => any>(
   func: T,
   wait: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let timeout: TimerHandle | null = null;
   
   return (...args: Parameters<T>) => {
@@ -14,10 +14,10 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (..._args: any[]) => any>(
   func: T,
   limit: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let inThrottle: boolean;
   
   return (...args: Parameters<T>) => {
@@ -29,9 +29,9 @@ export const throttle = <T extends (...args: any[]) => any>(
   };
 };
 
-export const once = <T extends (...args: any[]) => any>(
+export const once = <T extends (..._args: any[]) => any>(
   func: T
-): ((...args: Parameters<T>) => ReturnType<T> | undefined) => {
+): ((..._args: Parameters<T>) => ReturnType<T> | undefined) => {
   let called = false;
   let result: ReturnType<T>;
   
@@ -44,9 +44,9 @@ export const once = <T extends (...args: any[]) => any>(
   };
 };
 
-export const memoize = <T extends (...args: any[]) => any>(
+export const memoize = <T extends (..._args: any[]) => any>(
   func: T,
-  keyGenerator?: (...args: Parameters<T>) => string
+  keyGenerator?: (..._args: Parameters<T>) => string
 ): T => {
   const cache = new Map<string, ReturnType<T>>();
   

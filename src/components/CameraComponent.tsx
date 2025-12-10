@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import {
   CameraView,
-  CameraType,
+  type CameraType,
   useCameraPermissions,
 } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface CameraComponentProps {
-  onPhotoTaken: (uri: string) => void;
+  onPhotoTaken: (_uri: string) => void;
   onClose: () => void;
 }
 

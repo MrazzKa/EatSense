@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Platform,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,12 +20,12 @@ type LabMode = 'text' | 'file';
 interface LabResultsModalProps {
   visible: boolean;
   onClose: () => void;
-  onResult?: (result: any) => void;
+  onResult?: (_result: any) => void;
 }
 
 const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onResult }) => {
   const insets = useSafeAreaInsets();
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   const { t, language } = useI18n();
 
   const [mode, setMode] = useState<LabMode>('text');

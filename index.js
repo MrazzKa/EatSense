@@ -36,31 +36,33 @@ try {
   console.error('[index.js] Error stack:', error.stack);
 
   // Fallback App that shows error
-  App = () => (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#FFFFFF',
-      }}
-    >
-      <Text style={{ fontSize: 18, color: '#E74C3C', textAlign: 'center' }}>
-        Ошибка загрузки приложения
-      </Text>
-      <Text
+  App = function FallbackApp() {
+    return (
+      <View
         style={{
-          fontSize: 12,
-          color: '#666',
-          textAlign: 'center',
-          marginTop: 10,
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+          backgroundColor: '#FFFFFF',
         }}
       >
-        {error?.message || 'Unknown error'}
-      </Text>
-    </View>
-  );
+        <Text style={{ fontSize: 18, color: '#E74C3C', textAlign: 'center' }}>
+          Ошибка загрузки приложения
+        </Text>
+        <Text
+          style={{
+            fontSize: 12,
+            color: '#666',
+            textAlign: 'center',
+            marginTop: 10,
+          }}
+        >
+          {error?.message || 'Unknown error'}
+        </Text>
+      </View>
+    );
+  };
 }
 
 registerRootComponent(App);

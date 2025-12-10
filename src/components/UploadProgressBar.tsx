@@ -92,7 +92,7 @@ export const UploadProgressBar: React.FC<UploadProgressBarProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <Ionicons name={statusInfo.icon} size={24} color={statusInfo.color} />
+          <Ionicons name={statusInfo.icon as any} size={24} color={statusInfo.color} />
         </Animated.View>
         <Text style={styles.statusText}>{statusInfo.text}</Text>
         <Text style={styles.progressText}>{Math.round(progress)}%</Text>

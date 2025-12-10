@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AnalyzedItem } from './analysis.types';
+import { AnalyzedItem, HiddenIngredientEstimate } from './analysis.types';
+import { applyHiddenIngredientsHeuristics } from './hidden-ingredients-heuristics';
 
 /**
  * P3.2: Service for detecting hidden ingredients in food analysis
@@ -10,7 +11,19 @@ export class HiddenIngredientsService {
   private readonly logger = new Logger(HiddenIngredientsService.name);
 
   /**
-   * P3.2: Detect hidden ingredients based on cooking methods and food types
+   * P3.2: Apply hidden ingredients heuristics to items
+   * This integrates hidden ingredients into existing items rather than creating separate items
+   */
+  applyHiddenIngredientsToItems(
+    items: AnalyzedItem[],
+    globalHiddenFromVision: HiddenIngredientEstimate[] = [],
+  ): AnalyzedItem[] {
+    return items.map((item) => applyHiddenIngredientsHeuristics(item, globalHiddenFromVision));
+  }
+
+  /**
+   * P3.2: Legacy method - kept for backward compatibility
+   * Now creates separate items for hidden ingredients (old behavior)
    */
   detectHiddenIngredients(items: AnalyzedItem[]): AnalyzedItem[] {
     const hidden: AnalyzedItem[] = [];

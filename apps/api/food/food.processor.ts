@@ -100,8 +100,11 @@ export class FoodProcessor {
       const imageBase64 = processedBuffer.toString('base64');
       
       // Use new AnalyzeService with USDA + RAG
+      // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
+      // can also accept imageBuffer directly for better caching
       const analysisResult = await this.analyzeService.analyzeImage({
         imageBase64,
+        imageUrl, // Pass imageUrl if available for better cache key generation
         locale,
       });
 

@@ -1,3 +1,4 @@
+// LogLevel enum values are used for type checking and comparisons
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,

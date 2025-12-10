@@ -21,9 +21,7 @@ import ApiService from '../services/apiService';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigation } from '@react-navigation/native';
 import { clientLog } from '../utils/clientLog';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const safeEnv = require('../utils/env').default;
 
 // Complete web browser auth session for Google
@@ -46,8 +44,7 @@ const OTP_LENGTH = 6;
 export default function AuthScreen({ onAuthSuccess }) {
   const { t } = useI18n();
   const { tokens, colors, isDark } = useTheme();
-  const { refreshUser, setUser } = useAuth();
-  const navigation = useNavigation();
+  const { setUser } = useAuth();
   const styles = useMemo(() => createStyles(tokens, colors, isDark), [tokens, colors, isDark]);
 
   const [step, setStep] = useState('welcome'); // 'welcome' | 'email' | 'verify'
@@ -335,7 +332,7 @@ export default function AuthScreen({ onAuthSuccess }) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [t, onAuthSuccess, getErrorMessage]);
+  }, [t, onAuthSuccess, getErrorMessage, setUser]);
 
   const handleGoogleSignIn = async () => {
     try {

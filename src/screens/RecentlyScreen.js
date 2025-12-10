@@ -166,7 +166,7 @@ export default function RecentlyScreen() {
     setRefreshing(false);
   };
 
-  const renderRecentItem = ({ item, index }) => {
+  const renderRecentItem = ({ item }) => {
     const dateLabel = formatDateLabel(item.date, t, language);
     const healthScoreValue = item.healthScore?.score ? Math.round(item.healthScore.score) : null;
 

@@ -37,7 +37,7 @@ export const clearAll = async (): Promise<void> => {
 
 export const getAllKeys = async (): Promise<string[]> => {
   try {
-    return await AsyncStorage.getAllKeys();
+    return [...(await AsyncStorage.getAllKeys())];
   } catch (error) {
     console.error('Error getting all keys:', error);
     return [];
@@ -46,7 +46,7 @@ export const getAllKeys = async (): Promise<string[]> => {
 
 export const multiGet = async (keys: string[]): Promise<[string, string | null][]> => {
   try {
-    return await AsyncStorage.multiGet(keys);
+    return [...(await AsyncStorage.multiGet(keys))];
   } catch (error) {
     console.error('Error getting multiple data:', error);
     return [];

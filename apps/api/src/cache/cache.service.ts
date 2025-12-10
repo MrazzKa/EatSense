@@ -7,6 +7,7 @@ type CacheNamespace =
   | 'usda:detail'
   | 'analysis'
   | 'vision'
+  | 'nutrition:lookup'
   | 'articles:list'
   | 'articles:detail'
   | 'stats:monthly'
@@ -28,6 +29,7 @@ export class CacheService {
   private readonly usdaTtl = parseInt(process.env.USDA_CACHE_TTL_SEC || '259200', 10);
   private readonly analysisTtl = parseInt(process.env.ANALYSIS_CACHE_TTL_SEC || '86400', 10);
   private readonly visionTtl = parseInt(process.env.VISION_CACHE_TTL_SEC || '604800', 10); // 7 days default
+  private readonly nutritionTtl = parseInt(process.env.NUTRITION_CACHE_TTL_SEC || '2592000', 10); // 30 days default
   private readonly articlesFeedTtl = parseInt(process.env.ARTICLES_FEED_CACHE_TTL_SEC || '900', 10);
   private readonly articlesDetailTtl = parseInt(process.env.ARTICLES_DETAIL_CACHE_TTL_SEC || '86400', 10);
 
@@ -48,6 +50,10 @@ export class CacheService {
 
     if (namespace === 'vision') {
       return this.visionTtl;
+    }
+
+    if (namespace === 'nutrition:lookup') {
+      return this.nutritionTtl;
     }
 
     if (namespace === 'articles:list') {

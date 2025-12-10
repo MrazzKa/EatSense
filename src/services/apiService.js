@@ -35,7 +35,7 @@ class ApiService {
         // Fallback to AsyncStorage if SecureStore is unavailable
         try {
           await SecureStore.setItemAsync('auth.refreshToken', refreshToken);
-        } catch (secureStoreError) {
+        } catch {
           if (__DEV__) console.warn('SecureStore not available, using AsyncStorage fallback');
           await AsyncStorage.setItem('auth.refreshToken', refreshToken);
         }
@@ -43,13 +43,13 @@ class ApiService {
         // Try to delete from both SecureStore and AsyncStorage
         try {
           await SecureStore.deleteItemAsync('auth.refreshToken');
-        } catch (secureStoreError) {
+        } catch {
           // Ignore SecureStore errors when deleting
           if (__DEV__) console.warn('SecureStore delete error (ignored)');
         }
         try {
           await AsyncStorage.removeItem('auth.refreshToken');
-        } catch (asyncStorageError) {
+        } catch {
           // Ignore AsyncStorage errors when deleting
           if (__DEV__) console.warn('AsyncStorage delete error (ignored)');
         }
@@ -73,7 +73,7 @@ class ApiService {
         if (refreshToken) {
           this.refreshTokenValue = refreshToken;
         }
-      } catch (secureStoreError) {
+      } catch {
         // SecureStore might not be available in all environments
         if (__DEV__) console.warn('SecureStore not available, trying AsyncStorage');
         const refreshToken = await AsyncStorage.getItem('auth.refreshToken');
@@ -724,7 +724,7 @@ class ApiService {
     });
   }
 
-  async sendAiAssistantMessage(message) {
+  async sendAiAssistantMessage() {
     // This method should be called with userId from component
     // For now, use getGeneralQuestion directly
     throw new Error('sendAiAssistantMessage requires userId - use getGeneralQuestion instead');
@@ -928,6 +928,44 @@ class ApiService {
     } catch (error) {
       console.error('[ApiService] Failed to register push token', error);
     }
+  }
+
+  // ========== Medication Schedule Methods ==========
+
+  /**
+   * Get all medications for current user
+   */
+  async getMedications() {
+    return this.request('/medications');
+  }
+
+  /**
+   * Create medication
+   */
+  async createMedication(payload) {
+    return this.request('/medications', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Update medication
+   */
+  async updateMedication(id, payload) {
+    return this.request(`/medications/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Delete medication (soft delete)
+   */
+  async deleteMedication(id) {
+    return this.request(`/medications/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

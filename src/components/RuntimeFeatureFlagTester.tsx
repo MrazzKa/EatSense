@@ -7,7 +7,7 @@ interface FeatureFlag {
   name: string;
   description: string;
   enabled: boolean;
-  onToggle: (key: string, enabled: boolean) => void;
+  onToggle: (_key: string, _enabled: boolean) => void;
 }
 
 interface RuntimeFeatureFlagTesterProps {

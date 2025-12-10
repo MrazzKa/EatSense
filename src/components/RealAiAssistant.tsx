@@ -126,6 +126,59 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
     }
   }, [messages]);
 
+  const handlePickImage = useCallback(async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('common.error'),
+          t('gallery.permissionRequired'),
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.9,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        setSelectedAttachment({
+          type: 'image',
+          uri: asset.uri,
+          name: asset.fileName || 'photo.jpg',
+        });
+      }
+    } catch (error) {
+      console.error('[RealAiAssistant] Error picking image:', error);
+      Alert.alert(t('common.error'), t('gallery.error'));
+    }
+  }, [t, setSelectedAttachment]);
+
+  const handlePickDocument = useCallback(async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf'],
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setSelectedAttachment({
+          type: 'pdf',
+          uri: asset.uri,
+          name: asset.name || 'document.pdf',
+        });
+      }
+    } catch (error) {
+      console.error('[RealAiAssistant] Error picking document:', error);
+      Alert.alert(t('common.error'), t('aiAssistant.attach.error') || 'Failed to pick file');
+    }
+  }, [t, setSelectedAttachment]);
+
   // C3: Handle attachment selection (photo or PDF)
   const handleAttachmentPress = useCallback(() => {
     if (Platform.OS === 'ios') {
@@ -167,60 +220,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         ],
       );
     }
-  }, [t]);
-
-  const handlePickImage = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          t('common.error'),
-          t('gallery.permissionRequired'),
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.9,
-        allowsEditing: false,
-      });
-
-      if (!result.canceled && result.assets?.[0]) {
-        const asset = result.assets[0];
-        setSelectedAttachment({
-          type: 'image',
-          uri: asset.uri,
-          name: asset.fileName || 'photo.jpg',
-        });
-      }
-    } catch (error) {
-      console.error('[RealAiAssistant] Error picking image:', error);
-      Alert.alert(t('common.error'), t('gallery.error'));
-    }
-  };
-
-  const handlePickDocument = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf'],
-        multiple: false,
-        copyToCacheDirectory: true,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        setSelectedAttachment({
-          type: 'pdf',
-          uri: asset.uri,
-          name: asset.name || 'document.pdf',
-        });
-      }
-    } catch (error) {
-      console.error('[RealAiAssistant] Error picking document:', error);
-      Alert.alert(t('common.error'), t('aiAssistant.attach.error') || 'Failed to pick file');
-    }
-  };
+  }, [t, handlePickImage, handlePickDocument]);
 
   const handleRemoveAttachment = () => {
     setSelectedAttachment(null);

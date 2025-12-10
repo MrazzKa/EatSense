@@ -6,8 +6,8 @@ export type LegalDocumentType = 'privacy' | 'terms';
 type LangCode = 'en' | 'ru' | 'kk';
 
 interface LegalDocumentMap {
-  [key: string]: {
-    [lang in LangCode]: string;
+  [_key: string]: {
+    [K in LangCode]: string;
   };
 }
 

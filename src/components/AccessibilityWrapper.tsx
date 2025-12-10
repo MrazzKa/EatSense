@@ -1,4 +1,5 @@
 import React from 'react';
+import type { AccessibilityRole } from 'react-native';
 import { View, StyleSheet } from 'react-native';
 
 interface AccessibilityWrapperProps {
@@ -6,7 +7,7 @@ interface AccessibilityWrapperProps {
   accessible?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
-  accessibilityRole?: string;
+  accessibilityRole?: AccessibilityRole | string;
 }
 
 export const AccessibilityWrapper: React.FC<AccessibilityWrapperProps> = ({
@@ -14,7 +15,7 @@ export const AccessibilityWrapper: React.FC<AccessibilityWrapperProps> = ({
   accessible = true,
   accessibilityLabel,
   accessibilityHint,
-  accessibilityRole = 'button',
+  accessibilityRole = 'button' as AccessibilityRole,
 }) => {
   return (
     <View
@@ -22,7 +23,7 @@ export const AccessibilityWrapper: React.FC<AccessibilityWrapperProps> = ({
       accessible={accessible}
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
-      accessibilityRole={accessibilityRole}
+      accessibilityRole={accessibilityRole as AccessibilityRole}
     >
       {children}
     </View>

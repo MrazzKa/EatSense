@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 interface ImagePickerBlockProps {
-  onImageSelected: (imageUri: string) => void;
+  onImageSelected: (_imageUri: string) => void;
   selectedImage?: string;
   placeholder?: string;
 }
@@ -39,7 +39,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
     setIsLoading(true);
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -63,7 +63,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
     setIsLoading(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,

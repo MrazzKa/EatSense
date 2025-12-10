@@ -22,7 +22,7 @@ export const createTimingAnimation = (
   toValue: number,
   config: {
     duration?: number;
-    easing?: (value: number) => number;
+    easing?: (_value: number) => number;
     useNativeDriver?: boolean;
   } = {}
 ): Animated.CompositeAnimation => {
@@ -51,7 +51,10 @@ export const createStaggerAnimation = (
   stagger: number = 100
 ): Animated.CompositeAnimation => {
   const staggeredAnimations = animations.map((animation, index) => {
-    return Animated.delay(index * stagger, animation);
+    return Animated.sequence([
+      Animated.delay(index * stagger),
+      animation,
+    ]);
   });
   
   return Animated.parallel(staggeredAnimations);
@@ -68,5 +71,5 @@ export const createRepeatAnimation = (
   animation: Animated.CompositeAnimation,
   iterations: number = 1
 ): Animated.CompositeAnimation => {
-  return Animated.repeat(animation, iterations);
+  return Animated.loop(animation, { iterations });
 };

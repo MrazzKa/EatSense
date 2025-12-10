@@ -11,7 +11,7 @@ interface ProfileSegmentedControlProps {
   label: string;
   value: string;
   options: ProfileSegmentedControlOption[];
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
 }
 
 export const ProfileSegmentedControl: React.FC<ProfileSegmentedControlProps> = ({

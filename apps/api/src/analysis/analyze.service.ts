@@ -35,6 +35,10 @@ interface HealthFeedbackItem {
 import { FoodLocalizationService } from './food-localization.service';
 import { NutritionOrchestrator } from './providers/nutrition-orchestrator.service';
 import { HiddenIngredientsService } from './hidden-ingredients.service';
+import { FoodCompatibilityService } from './food-compatibility.service';
+import { CarcinogenicRiskService } from './carcinogenic-risk.service';
+import { applyHiddenIngredientsHeuristics } from './hidden-ingredients-heuristics';
+import { HiddenIngredientEstimate } from './analysis.types';
 // Import types - interfaces are exported from nutrition-provider.interface.ts
 // Note: If TypeScript shows import errors, restart TS server or check that file is saved
 import type {
@@ -369,7 +373,9 @@ export class AnalyzeService {
     private readonly cache: CacheService,
     private readonly foodLocalization: FoodLocalizationService,
     private readonly hiddenIngredients: HiddenIngredientsService,
-  ) {}
+    private readonly foodCompatibility: FoodCompatibilityService,
+    private readonly carcinogenicRisk: CarcinogenicRiskService,
+    ) {}
 
   /**
    * Helper: Estimate portion in grams
@@ -433,8 +439,14 @@ export class AnalyzeService {
       }
     }
 
-    // Extract components via Vision
-    const visionComponents = await this.vision.extractComponents({ imageUrl: params.imageUrl, imageBase64: params.imageBase64, mode });
+    // Extract components via Vision (with caching)
+    // Use getOrExtractComponents for better cache support with Buffer
+    const visionComponents = await this.vision.getOrExtractComponents({
+      imageUrl: params.imageUrl,
+      imageBase64: params.imageBase64,
+      locale,
+      mode,
+    });
     
     // Initialize debug object
     const debug: AnalysisDebug = {
@@ -522,6 +534,7 @@ export class AnalyzeService {
             source,
             locale,
             hasNutrition: beverageDetection.kind !== 'water',
+            cookingMethodHints: this.extractCookingMethodHints(component),
           };
 
           items.push(beverageItem);
@@ -679,6 +692,9 @@ export class AnalyzeService {
           canonicalFood.providerId === 'usda' ? 'fdc' : canonicalFood.providerId,
         );
 
+        // Add cookingMethodHints from Vision component
+        item.cookingMethodHints = this.extractCookingMethodHints(component);
+
         items.push(item);
         debug.components.push({ 
           type: 'matched', 
@@ -702,7 +718,40 @@ export class AnalyzeService {
       }
     }
 
-    // Calculate totals
+    // P3.2: Apply hidden ingredients heuristics to items (integrate into existing items)
+    // Extract hidden items from Vision response if available
+    const globalHiddenFromVision: HiddenIngredientEstimate[] = [];
+    // TODO: Extract hidden items from Vision response when available
+    
+    // Apply heuristics to each item
+    const itemsWithHidden = this.hiddenIngredients.applyHiddenIngredientsToItems(
+      items,
+      globalHiddenFromVision,
+    );
+
+    // Update items array with hidden ingredients integrated
+    items.length = 0;
+    items.push(...itemsWithHidden);
+
+    // Legacy: Also detect separate hidden items for backward compatibility
+    const hiddenItems = this.hiddenIngredients.detectHiddenIngredients(items);
+    if (hiddenItems.length > 0 && process.env.ENABLE_LEGACY_HIDDEN_ITEMS === 'true') {
+      items.push(...hiddenItems);
+    }
+
+    if (debug) {
+      const allHidden = items.flatMap((item) => item.hiddenIngredients || []);
+      if (allHidden.length > 0) {
+        debug.hiddenIngredients = allHidden.map((h) => ({
+          name: h.name,
+          category: h.category,
+          calories: h.calories,
+          estimated_grams: h.estimated_grams,
+        }));
+      }
+    }
+
+    // Calculate totals (including hidden ingredients integrated into items)
     const total: AnalysisTotals = items.reduce(
       (acc, item) => {
         acc.portion_g += item.portion_g;
@@ -915,6 +964,25 @@ export class AnalyzeService {
       needsReview,
     };
 
+    // Evaluate food compatibility
+    // Note: metadata is not available in this context, using defaults
+    const mealType = 'lunch';
+    const localDateTime = undefined;
+
+    result.foodCompatibility = this.foodCompatibility.evaluateFromAnalysisData(
+      result,
+      {
+        mealType,
+        localDateTime,
+        locale,
+      },
+    );
+
+    // Evaluate carcinogenic risk
+    result.carcinogenicRisk = this.carcinogenicRisk.evaluateFromAnalysisData(
+      result,
+    );
+
     // Cache for 24 hours (only if not in review mode)
     if (mode !== 'review') {
       const imageHash = this.hashImage(params);
@@ -1060,6 +1128,7 @@ export class AnalyzeService {
             source: sourceType,
             locale: normalizedLocale,
             hasNutrition: true,
+            cookingMethodHints: this.extractCookingMethodHints(component),
           };
           
           items.push(coffeeTeaItem);
@@ -1155,6 +1224,9 @@ export class AnalyzeService {
               'canonical_milk_coffee_fallback',
             );
             
+            // Add cookingMethodHints from Vision component
+            item.cookingMethodHints = this.extractCookingMethodHints(component);
+            
             items.push(item);
             debug.components.push({
               type: 'matched',
@@ -1180,6 +1252,9 @@ export class AnalyzeService {
           canonicalFood.providerId === 'usda' ? 'fdc' : canonicalFood.providerId,
         );
 
+        // Add cookingMethodHints from Vision component
+        item.cookingMethodHints = this.extractCookingMethodHints(component);
+
         items.push(item);
         debug.components.push({ 
           type: 'matched', 
@@ -1202,20 +1277,40 @@ export class AnalyzeService {
       }
     }
 
-    // P3.2: Detect hidden ingredients (oils, sauces, etc.)
+    // P3.2: Apply hidden ingredients heuristics to items (integrate into existing items)
+    // Extract hidden items from Vision response if available
+    const globalHiddenFromVision: HiddenIngredientEstimate[] = [];
+    // TODO: Extract hidden items from Vision response when available
+    
+    // Apply heuristics to each item
+    const itemsWithHidden = this.hiddenIngredients.applyHiddenIngredientsToItems(
+      items,
+      globalHiddenFromVision,
+    );
+
+    // Update items array with hidden ingredients integrated
+    items.length = 0;
+    items.push(...itemsWithHidden);
+
+    // Legacy: Also detect separate hidden items for backward compatibility
     const hiddenItems = this.hiddenIngredients.detectHiddenIngredients(items);
-    if (hiddenItems.length > 0) {
+    if (hiddenItems.length > 0 && process.env.ENABLE_LEGACY_HIDDEN_ITEMS === 'true') {
       items.push(...hiddenItems);
-      if (debug) {
-        debug.hiddenIngredients = hiddenItems.map((h) => ({
+    }
+
+    if (debug) {
+      const allHidden = items.flatMap((item) => item.hiddenIngredients || []);
+      if (allHidden.length > 0) {
+        debug.hiddenIngredients = allHidden.map((h) => ({
           name: h.name,
-          portion_g: h.portion_g,
-          calories: h.nutrients.calories,
+          category: h.category,
+          calories: h.calories,
+          estimated_grams: h.estimated_grams,
         }));
       }
     }
 
-    // Calculate totals (including hidden ingredients)
+    // Calculate totals (including hidden ingredients integrated into items)
     const total: AnalysisTotals = items.reduce(
       (acc, item) => {
         acc.portion_g += item.portion_g;
@@ -2864,6 +2959,24 @@ export class AnalyzeService {
     }));
 
     return result;
+  }
+
+  /**
+   * Extract cooking method hints from Vision component
+   */
+  private extractCookingMethodHints(component: VisionComponent): AnalyzedItem['cookingMethodHints'] {
+    const cookingMethod = component.cooking_method;
+    const tags = component.tags || [];
+    const notes = component.notes || '';
+
+    return {
+      method: cookingMethod as any,
+      hasVisibleOil: tags.includes('visible_oil') || notes.toLowerCase().includes('oil'),
+      hasCreamOrButter: tags.includes('creamy_sauce') || tags.includes('creamy') || notes.toLowerCase().includes('cream') || notes.toLowerCase().includes('butter'),
+      hasSauceOrDressing: tags.includes('salad_with_dressing') || tags.includes('sauce') || notes.toLowerCase().includes('dressing') || notes.toLowerCase().includes('sauce'),
+      looksSugary: tags.includes('sweet_dessert') || tags.includes('sugary_drink') || notes.toLowerCase().includes('sweet') || notes.toLowerCase().includes('sugar'),
+      hasBreadingOrBatter: tags.includes('breaded') || tags.includes('batter') || notes.toLowerCase().includes('breaded') || notes.toLowerCase().includes('batter'),
+    };
   }
 }
 

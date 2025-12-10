@@ -18,38 +18,38 @@ export const timeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
 export const retry = async <T>(
   fn: () => Promise<T>,
   retries: number = 3,
-  delay: number = 1000
+  delayMs: number = 1000
 ): Promise<T> => {
   try {
     return await fn();
   } catch (error) {
     if (retries > 0) {
-      await delay(delay);
-      return retry(fn, retries - 1, delay * 2);
+      await delay(delayMs);
+      return retry(fn, retries - 1, delayMs * 2);
     }
     throw error;
   }
 };
 
-export const race = <T>(promises: Promise<T>[]): Promise<T> => {
-  return Promise.race(promises);
+export const race = <T>(_promises: Promise<T>[]): Promise<T> => {
+  return Promise.race(_promises);
 };
 
-export const all = <T>(promises: Promise<T>[]): Promise<T[]> => {
-  return Promise.all(promises);
+export const all = <T>(_promises: Promise<T>[]): Promise<T[]> => {
+  return Promise.all(_promises);
 };
 
-export const allSettled = <T>(promises: Promise<T>[]): Promise<PromiseSettledResult<T>[]> => {
-  return Promise.allSettled(promises);
+export const allSettled = <T>(_promises: Promise<T>[]): Promise<PromiseSettledResult<T>[]> => {
+  return Promise.allSettled(_promises);
 };
 
-export const any = <T>(promises: Promise<T>[]): Promise<T> => {
-  return Promise.any(promises);
+export const any = <T>(_promises: Promise<T>[]): Promise<T> => {
+  return Promise.any(_promises);
 };
 
 export const map = async <T, U>(
   array: T[],
-  fn: (item: T, index: number) => Promise<U>
+  fn: (_item: T, _index: number) => Promise<U>
 ): Promise<U[]> => {
   if (!Array.isArray(array)) {
     return [];
@@ -59,7 +59,7 @@ export const map = async <T, U>(
 
 export const mapSeries = async <T, U>(
   array: T[],
-  fn: (item: T, index: number) => Promise<U>
+  fn: (_item: T, _index: number) => Promise<U>
 ): Promise<U[]> => {
   const results: U[] = [];
   for (let i = 0; i < array.length; i++) {
@@ -70,7 +70,7 @@ export const mapSeries = async <T, U>(
 
 export const filter = async <T>(
   array: T[],
-  fn: (item: T, index: number) => Promise<boolean>
+  fn: (_item: T, _index: number) => Promise<boolean>
 ): Promise<T[]> => {
   const results: T[] = [];
   for (let i = 0; i < array.length; i++) {
@@ -83,7 +83,7 @@ export const filter = async <T>(
 
 export const reduce = async <T, U>(
   array: T[],
-  fn: (acc: U, item: T, index: number) => Promise<U>,
+  fn: (_acc: U, _item: T, _index: number) => Promise<U>,
   initial: U
 ): Promise<U> => {
   let acc = initial;
@@ -95,7 +95,7 @@ export const reduce = async <T, U>(
 
 export const find = async <T>(
   array: T[],
-  fn: (item: T, index: number) => Promise<boolean>
+  fn: (_item: T, _index: number) => Promise<boolean>
 ): Promise<T | undefined> => {
   for (let i = 0; i < array.length; i++) {
     if (await fn(array[i], i)) {
@@ -107,7 +107,7 @@ export const find = async <T>(
 
 export const some = async <T>(
   array: T[],
-  fn: (item: T, index: number) => Promise<boolean>
+  fn: (_item: T, _index: number) => Promise<boolean>
 ): Promise<boolean> => {
   for (let i = 0; i < array.length; i++) {
     if (await fn(array[i], i)) {
@@ -119,7 +119,7 @@ export const some = async <T>(
 
 export const every = async <T>(
   array: T[],
-  fn: (item: T, index: number) => Promise<boolean>
+  fn: (_item: T, _index: number) => Promise<boolean>
 ): Promise<boolean> => {
   for (let i = 0; i < array.length; i++) {
     if (!(await fn(array[i], i))) {
@@ -131,7 +131,7 @@ export const every = async <T>(
 
 export const forEach = async <T>(
   array: T[],
-  fn: (item: T, index: number) => Promise<void>
+  fn: (_item: T, _index: number) => Promise<void>
 ): Promise<void> => {
   for (let i = 0; i < array.length; i++) {
     await fn(array[i], i);
@@ -158,11 +158,11 @@ export const series = async <T>(
 };
 
 export const waterfall = async <T>(
-  functions: ((result: T) => Promise<T>)[]
+  functions: ((_result: T) => Promise<T>)[]
 ): Promise<T> => {
-  let result: T = {} as T;
+  let currentResult: T = {} as T;
   for (const fn of functions) {
-    result = await fn(result);
+    currentResult = await fn(currentResult);
   }
-  return result;
+  return currentResult;
 };

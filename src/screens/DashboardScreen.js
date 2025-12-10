@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
-  Modal,
-  ActivityIndicator,
   Alert,
   Image,
 } from 'react-native';
@@ -18,16 +16,14 @@ import ApiService from '../services/apiService';
 import AiAssistant from '../components/AiAssistant';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import { HealthScoreCard } from '../components/HealthScoreCard';
 import { CircularProgress } from '../components/CircularProgress';
 import { clientLog } from '../utils/clientLog';
-import { CommonActions } from '@react-navigation/native';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
-import { LabResultsModal } from '../components/LabResultsModal';
-import { DescribeFoodModal } from '../components/DescribeFoodModal';
+import LabResultsModal from '../components/LabResultsModal';
+import DescribeFoodModal from '../components/DescribeFoodModal';
 
 
 // Helper function to get image URL from item (handles various field names)
@@ -60,12 +56,7 @@ export default function DashboardScreen() {
     totalFat: 0,
     goal: 2000,
   });
-  const [monthlyStats, setMonthlyStats] = useState(null);
-  const [monthlyLoading, setMonthlyLoading] = useState(true);
-  const [featuredArticles, setFeaturedArticles] = useState([]);
-  const [feedArticles, setFeedArticles] = useState([]);
-  const [recentItems, setRecentItems] = useState([]);
-  const [highlightMeal, setHighlightMeal] = useState(null);
+  const [recentItems] = useState([]);
   const [userStats, setUserStats] = useState({
     totalPhotosAnalyzed: 0,
     todayPhotosAnalyzed: 0,
@@ -87,7 +78,7 @@ export default function DashboardScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [plusOpacity, plusScale]);
 
   // Определяем функции ПЕРЕД их использованием в хуках
   const loadStats = React.useCallback(async () => {
@@ -125,91 +116,8 @@ export default function DashboardScreen() {
     }
   }, [selectedDate]);
 
-  const loadMonthlyStats = React.useCallback(async () => {
-    try {
-      setMonthlyLoading(true);
-      const response = await ApiService.getMonthlyStats();
-      setMonthlyStats(response);
-    } catch (error) {
-      console.error('Error loading monthly stats:', error);
-      setMonthlyStats(null);
-    } finally {
-      setMonthlyLoading(false);
-    }
-  }, []);
-
-  const loadArticles = React.useCallback(async () => {
-    try {
-      const [featured, feed] = await Promise.all([
-        ApiService.getFeaturedArticles(3, language || 'ru'),
-        ApiService.getArticlesFeed(1, 5, language || 'ru'),
-      ]);
-      
-      const currentLocale = language || 'ru';
-      
-      // Deduplicate featured articles by slug (unique per locale)
-      if (Array.isArray(featured)) {
-        const seen = new Set();
-        const unique = featured.filter((article) => {
-          if (!article?.slug) return false;
-          const key = `${article.locale || currentLocale}:${article.slug}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        setFeaturedArticles(unique.slice(0, 3));
-      } else {
-        setFeaturedArticles([]);
-      }
-      
-      // Deduplicate feed articles by slug (unique per locale)
-      if (feed && typeof feed === 'object' && Array.isArray(feed.articles)) {
-        const seen = new Set();
-        const unique = feed.articles.filter((article) => {
-          if (!article?.slug) return false;
-          const key = `${article.locale || currentLocale}:${article.slug}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        setFeedArticles(unique.slice(0, 5));
-      } else {
-        console.warn('[DashboardScreen] Invalid feed response:', feed);
-        setFeedArticles([]);
-      }
-    } catch (err) {
-      console.error('[DashboardScreen] Error loading articles:', err);
-      setFeaturedArticles([]);
-      setFeedArticles([]);
-    }
-  }, [language]);
-
-  const loadRecent = React.useCallback(async () => {
-    try {
-      console.log('[Dashboard] Loading recent meals for date:', selectedDate);
-      // Используем selectedDate для загрузки meals по выбранной дате
-      const meals = await ApiService.getMeals(selectedDate);
-      const items = Array.isArray(meals) ? meals.slice(0, 5) : [];
-        if (__DEV__) {
-          console.log('[Dashboard] Loaded recent meals:', items.length);
-        }
-      setRecentItems(items);
-      const withInsights = items.find(item => item.healthInsights);
-      if (withInsights?.healthInsights?.score) {
-        setHighlightMeal({
-          id: withInsights.id,
-          name: withInsights.name || withInsights.dishName || t('analysis.title'),
-          healthScore: withInsights.healthInsights,
-        });
-      } else {
-        setHighlightMeal(null);
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error loading recent meals:', error);
-      setRecentItems([]);
-      setHighlightMeal(null);
-    }
-  }, [t, selectedDate]);
+  // Removed unused functions: loadMonthlyStats, loadArticles, loadRecent
+  // These functions used removed state setters (setMonthlyLoading, setMonthlyStats, setFeaturedArticles, setFeedArticles, setHighlightMeal)
 
   const loadUserStats = React.useCallback(async () => {
     try {
@@ -244,20 +152,14 @@ export default function DashboardScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadStats();
-      loadMonthlyStats();
-      loadArticles();
-      loadRecent();
       loadUserStats();
-    }, [loadStats, loadMonthlyStats, loadArticles, loadRecent, loadUserStats])
+    }, [loadStats, loadUserStats])
   );
 
   useEffect(() => {
     loadStats();
-    loadMonthlyStats();
-    loadArticles();
-    loadRecent();
     loadUserStats();
-  }, [selectedDate, loadStats, loadMonthlyStats, loadArticles, loadRecent, loadUserStats]);
+  }, [selectedDate, loadStats, loadUserStats]);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString(language || 'en', {
@@ -273,37 +175,6 @@ export default function DashboardScreen() {
       month: 'long',
       day: 'numeric',
     });
-  };
-
-  const formatRangeLabel = (range) => {
-    if (!range?.from || !range?.to) {
-      return null;
-    }
-    try {
-      const fromDate = new Date(range.from);
-      const toDate = new Date(range.to);
-      return `${fromDate.toLocaleDateString(language || 'en', {
-        month: 'short',
-        day: 'numeric',
-      })} – ${toDate.toLocaleDateString(language || 'en', {
-        month: 'short',
-        day: 'numeric',
-      })}`;
-    } catch {
-      return null;
-    }
-  };
-
-  const getMealTypeLabel = (mealType) => {
-    switch (mealType) {
-      case 'BREAKFAST':
-        return t('dashboard.mealTypes.breakfast');
-      case 'DINNER':
-        return t('dashboard.mealTypes.dinner');
-      case 'LUNCH':
-      default:
-        return t('dashboard.mealTypes.lunch');
-    }
   };
 
   // Check if daily limit reached
@@ -427,36 +298,7 @@ export default function DashboardScreen() {
     setShowDescribeFoodModal(true);
   };
 
-  const handleAnalyzeTextFood = async (description) => {
-    if (!description || !description.trim()) {
-      Alert.alert(t('common.error'), t('describeFood.error') || 'Please enter a description');
-      return;
-    }
-
-    try {
-      setShowDescribeFoodModal(false);
-      // Call analyzeText API directly
-      const result = await ApiService.analyzeText(description.trim(), language || 'en');
-      
-      if (result && result.analysisId) {
-        // Navigate to AnalysisResults screen with the analysis ID
-        if (navigation && typeof navigation.navigate === 'function') {
-          navigation.navigate('AnalysisResults', { 
-            analysisId: result.analysisId,
-            mode: 'text',
-          });
-        }
-      } else {
-        throw new Error('No analysis ID returned');
-      }
-    } catch (error) {
-      console.error('[Dashboard] Error analyzing text food:', error);
-      Alert.alert(
-        t('common.error'), 
-        t('analysis.errorMessage') || 'Failed to analyze food. Please try again.'
-      );
-    }
-  };
+  // Removed unused function: handleAnalyzeTextFood
 
 
   const navigateToDate = (direction) => {
@@ -1358,19 +1200,19 @@ const createStyles = (tokens) =>
       color: tokens.colors.textSecondary,
     },
     // Modal styles for Specialists and Suggested Food
-    modalContent: {
+    modalContentFull: {
       flex: 1,
       paddingTop: tokens.spacing.lg,
       paddingBottom: tokens.spacing.lg,
       paddingHorizontal: tokens.spacing.xl,
     },
-    modalHeader: {
+    modalHeaderFull: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: tokens.spacing.lg,
     },
-    modalTitle: {
+    modalTitleFull: {
       fontSize: 24,
       fontWeight: '600',
       color: tokens.colors.textPrimary,
@@ -1397,7 +1239,7 @@ const createStyles = (tokens) =>
       paddingBottom: tokens.spacing.md,
       borderTopWidth: 1,
     },
-    modalButton: {
+    modalButtonFull: {
       borderRadius: tokens.radii.lg,
       paddingVertical: tokens.spacing.md,
       paddingHorizontal: tokens.spacing.xl,

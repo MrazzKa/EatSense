@@ -33,12 +33,13 @@ export default function GalleryScreen() {
   const [error, setError] = useState(null);
   const isOpeningRef = useRef(false);
 
-  const ensurePermission = useCallback(async () => {
-    setState(STATE.CHECKING);
-    setError(null);
+  useEffect(() => {
+    const checkPermissions = async () => {
+      setState(STATE.CHECKING);
+      setError(null);
 
-    try {
-      const p0 = await ImagePicker.getMediaLibraryPermissionsAsync();
+      try {
+        const p0 = await ImagePicker.getMediaLibraryPermissionsAsync();
 
       // Проверяем granted или limited (iOS частичный доступ)
       if (p0.granted) {
@@ -108,6 +109,9 @@ export default function GalleryScreen() {
       setError(String(e?.message ?? e));
       return false;
     }
+    };
+
+    checkPermissions();
   }, []);
 
   const openSettings = useCallback(() => {

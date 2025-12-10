@@ -24,7 +24,7 @@ interface DescribeFoodModalProps {
    * If provided, modal will NOT navigate itself,
    * but will pass analysisId to parent.
    */
-  onAnalysisCompleted?: (analysisId: string) => void;
+  onAnalysisCompleted?: (_analysisId: string) => void;
 }
 
 const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({
@@ -33,7 +33,7 @@ const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({
   onAnalysisCompleted,
 }) => {
   const insets = useSafeAreaInsets();
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   const { t, language } = useI18n();
   const navigation = useNavigation<any>();
 
@@ -68,12 +68,12 @@ const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({
       // Call analyzeText API
       const response = await ApiService.analyzeText(text.trim(), locale);
 
-      // Backend returns { analysisId, status, message }
-      const analysisId = response?.analysisId || response?.id || response?.analysis?.id;
+      // Backend returns { analysisId: string }
+      const analysisId = response?.analysisId;
 
       if (!analysisId) {
         console.warn(
-          '[DescribeFoodModal] analyzeText response has no analysisId/id. Response =',
+          '[DescribeFoodModal] analyzeText response has no analysisId. Response =',
           response,
         );
         setError(t('describeFood.errors.noAnalysisId'));
@@ -81,21 +81,7 @@ const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({
         return;
       }
 
-      // If status is PENDING, we need to poll for results
-      // For now, navigate with analysisId and let AnalysisResultsScreen handle polling
-      if (response?.status === 'PENDING') {
-        // Analysis is being processed, navigate to results screen which will poll
-        if (onAnalysisCompleted) {
-          onAnalysisCompleted(analysisId);
-        } else if (navigation && typeof navigation.navigate === 'function') {
-          navigation.navigate('AnalysisResults', {
-            analysisId,
-          });
-        }
-        handleClose();
-        return;
-      }
-
+      // Navigate with analysisId and let AnalysisResultsScreen handle polling
       // If onAnalysisCompleted is provided, call it instead of navigating
       if (onAnalysisCompleted) {
         onAnalysisCompleted(analysisId);

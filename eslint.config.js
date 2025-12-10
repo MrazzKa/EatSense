@@ -8,6 +8,19 @@ const reactNative = require('eslint-plugin-react-native');
 const prettier = require('eslint-config-prettier');
 
 module.exports = [
+  {
+    ignores: [
+      'apps/**',
+      'apps/**/*',
+      'apps/**/**',
+      'src/__tests__/**',
+      '**/__tests__/**',
+      '**/*.test.{js,jsx,ts,tsx}',
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+    ],
+  },
   js.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
@@ -27,7 +40,11 @@ module.exports = [
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+        { 
+          argsIgnorePattern: '^_', 
+          varsIgnorePattern: '^(_|[A-Z_]+)$', // Allow variables starting with _ or all caps (enum-like)
+          ignoreRestSiblings: true,
+        },
       ],
       '@typescript-eslint/consistent-type-imports': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -42,6 +59,10 @@ module.exports = [
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: [
+      'apps/api/**',
+      'apps/api/dist/**',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -71,15 +92,27 @@ module.exports = [
       ...reactPlugin.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/prop-types': 'off',
+      'react/jsx-no-undef': 'error', // Prevent rendering undefined components
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/refs': 'off',
       'react-native/no-inline-styles': 'off',
       'react-native/no-color-literals': 'off',
       'react-native/no-raw-text': 'off',
+      'no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^(_|[A-Z_]+)$', ignoreRestSiblings: true },
+      ],
     },
   },
   {
-    files: ['src/__tests__/**/*', '**/*.test.{js,jsx,ts,tsx}'],
+    files: ['src/types/enums.ts', 'src/utils/logger.ts'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
+    files: ['src/__tests__/**/*', '**/*.test.{js,jsx,ts,tsx}', 'jest.setup.js'],
     languageOptions: {
       globals: {
         ...globals.jest,

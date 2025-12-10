@@ -1,4 +1,4 @@
-export const pick = <T, K extends keyof T>(object: T, keys: K[]): Pick<T, K> => {
+export const pick = <T extends object, K extends keyof T>(object: T, keys: K[]): Pick<T, K> => {
   const result = {} as Pick<T, K>;
   for (const key of keys) {
     if (key in object) {
@@ -59,7 +59,7 @@ export const deepMerge = <T>(target: T, source: Partial<T>): T => {
       ) {
         result[key] = deepMerge(targetValue, sourceValue);
       } else {
-        result[key] = sourceValue;
+        result[key] = sourceValue as T[Extract<keyof T, string>];
       }
     }
   }

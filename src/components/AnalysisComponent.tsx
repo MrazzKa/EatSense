@@ -7,7 +7,7 @@ import { mapLanguageToLocale } from '../utils/locale';
 
 interface AnalysisComponentProps {
   imageUri: string;
-  onAnalysisComplete: (result: any) => void;
+  onAnalysisComplete: (_result: any) => void;
   onClose: () => void;
 }
 
