@@ -20,6 +20,29 @@ export class NotificationsScheduler {
   async handleMedicationReminders() {
     return;
 
+    // TODO: Uncomment when medications table is created and migrations are applied
+    /*
+    const nowUtc = DateTime.utc();
+
+    // Находим все активные лекарства, у которых есть дозировки
+    const medications = await this.prisma.medication.findMany({
+      where: {
+        isActive: true,
+        doses: { some: {} },
+      },
+      include: {
+        doses: true,
+        user: {
+          include: {
+            notificationPreference: true,
+            pushTokens: {
+              where: { enabled: true },
+            },
+          },
+        },
+      },
+    });
+
     for (const med of medications) {
       const tz = med.timezone || 'UTC';
 
@@ -87,6 +110,7 @@ export class NotificationsScheduler {
         }
       }
     }
+    */
   }
 
   @Cron('0 */15 * * * *')
