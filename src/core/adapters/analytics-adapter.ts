@@ -5,12 +5,12 @@ export interface AnalyticsEvent {
 }
 
 export interface AnalyticsAdapter {
-  track(event: AnalyticsEvent): void;
-  trackScreenView(screenName: string, properties?: Record<string, any>): void;
-  trackUserAction(action: string, properties?: Record<string, any>): void;
-  trackError(error: string, properties?: Record<string, any>): void;
-  setUserProperties(properties: Record<string, any>): void;
-  setUserId(userId: string): void;
+  track(_event: AnalyticsEvent): void;
+  trackScreenView(_screenName: string, _properties?: Record<string, any>): void;
+  trackUserAction(_action: string, _properties?: Record<string, any>): void;
+  trackError(_error: string, _properties?: Record<string, any>): void;
+  setUserProperties(_properties: Record<string, any>): void;
+  setUserId(_userId: string): void;
 }
 
 export class ConsoleAnalyticsAdapter implements AnalyticsAdapter {

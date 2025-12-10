@@ -4,7 +4,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
 
 export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, value, label, goal, children }) {
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   
   // Clamp progress between 0 and 1, and cap display percentage at 500%
   const clampedProgress = Math.min(1, Math.max(0, progress));

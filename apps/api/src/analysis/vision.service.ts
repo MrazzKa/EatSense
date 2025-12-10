@@ -9,6 +9,17 @@ const VisionComponentSchema = z.object({
   preparation: z.string().optional(),
   est_portion_g: z.number().optional(),
   confidence: z.number().optional(),
+  cooking_method: z.enum(['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed']).optional(),
+  tags: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+});
+
+const VisionHiddenItemSchema = z.object({
+  name: z.string(),
+  category: z.enum(['cooking_oil', 'butter_or_cream', 'sauce_or_dressing', 'added_sugar', 'breaded_or_batter', 'processed_meat_fillers', 'other']),
+  reason: z.string(),
+  confidence: z.number().min(0).max(1),
+  estimated_grams: z.number().optional(),
 });
 
 const VisionArraySchema = z.array(VisionComponentSchema);
@@ -22,10 +33,15 @@ const VisionFlexibleSchema = z.union([
   z.object({
     items: VisionArraySchema,
   }),
+  z.object({
+    visible_items: VisionArraySchema,
+    hidden_items: z.array(VisionHiddenItemSchema).optional(),
+  }),
 ]);
 
 // Export type for use in AnalyzeService
 export type VisionComponent = z.infer<typeof VisionComponentSchema>;
+export type VisionHiddenItem = z.infer<typeof VisionHiddenItemSchema>;
 
 @Injectable()
 export class VisionService {
@@ -41,11 +57,91 @@ export class VisionService {
   /**
    * Generate cache key from image identifier
    * P2: Cache Vision API results to reduce API calls
+   * 
+   * Improved: Uses SHA-256 hash of image buffer/base64 for better cache hits
+   * on identical images regardless of URL changes
+   */
+  private buildCacheKey(params: { buffer?: Buffer; url?: string; base64?: string }, locale?: string, mode?: string): string {
+    const namespace = 'vision:components';
+    const localePart = locale || 'en';
+    const modePart = mode || 'default';
+    
+    // Priority: Buffer > base64 > URL (most reliable to least)
+    if (params.buffer) {
+      const hash = crypto.createHash('sha256').update(params.buffer).digest('hex');
+      return `${namespace}:${hash}:${localePart}:${modePart}`;
+    }
+    
+    if (params.base64) {
+      const hash = crypto.createHash('sha256').update(`${params.base64}:${localePart}:${modePart}`).digest('hex');
+      return `${namespace}:${hash.substring(0, 32)}:${localePart}:${modePart}`;
+    }
+    
+    if (params.url) {
+      const hash = crypto.createHash('sha256').update(`${params.url}:${localePart}:${modePart}`).digest('hex');
+      return `${namespace}:${hash.substring(0, 32)}:${localePart}:${modePart}`;
+    }
+    
+    // Fallback
+    const rand = Math.random().toString(36).slice(2);
+    return `${namespace}:nohash:${rand}:${localePart}:${modePart}`;
+  }
+
+  /**
+   * Legacy method for backward compatibility
    */
   private generateCacheKey(imageUrl?: string, imageBase64?: string, mode?: string): string {
-    const identifier = imageUrl || imageBase64 || '';
-    const hash = crypto.createHash('sha256').update(`${identifier}:${mode || 'default'}`).digest('hex');
-    return `vision:${hash.substring(0, 16)}`;
+    return this.buildCacheKey({ url: imageUrl, base64: imageBase64 }, undefined, mode);
+  }
+
+  /**
+   * Get or extract components with caching
+   * P2: Optimized wrapper that checks cache before calling Vision API
+   */
+  async getOrExtractComponents(params: {
+    imageBuffer?: Buffer;
+    imageUrl?: string;
+    imageBase64?: string;
+    locale?: string;
+    mode?: 'default' | 'review';
+  }): Promise<VisionComponent[]> {
+    const { imageBuffer, imageUrl, imageBase64, locale = 'en', mode = 'default' } = params;
+
+    if (!imageBuffer && !imageUrl && !imageBase64) {
+      throw new Error('Either imageBuffer, imageUrl, or imageBase64 must be provided');
+    }
+
+    // Build cache key
+    const cacheKey = this.buildCacheKey(
+      { buffer: imageBuffer, url: imageUrl, base64: imageBase64 },
+      locale,
+      mode,
+    );
+
+    // Try cache first
+    const cached = await this.cache.get<VisionComponent[]>(cacheKey, 'vision');
+    if (cached) {
+      this.logger.debug(`[VisionService] Cache hit for vision analysis (key: ${cacheKey.substring(0, 40)}...)`);
+      return cached;
+    }
+
+    this.logger.debug(`[VisionService] Cache miss, calling OpenAI Vision API (key: ${cacheKey.substring(0, 40)}...)`);
+
+    // Call actual extractComponents
+    const components = await this.extractComponents({
+      imageUrl,
+      imageBase64: imageBase64 || (imageBuffer ? imageBuffer.toString('base64') : undefined),
+      mode,
+    });
+
+    // Cache successful results (7 days default via CacheService)
+    if (components.length > 0) {
+      await this.cache.set(cacheKey, components, 'vision').catch((err) => {
+        this.logger.warn(`[VisionService] Failed to cache vision result: ${err.message}`);
+      });
+    }
+
+    return components;
   }
 
   /**
@@ -74,21 +170,31 @@ export class VisionService {
       : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } };
 
     // Base system prompt
-    let systemPrompt = `You are a professional nutritionist and food analyst. Analyze food images and extract all visible food components.
+    let systemPrompt = `You are a professional nutritionist and food analyst. Analyze food images and extract all visible food components AND identify likely hidden ingredients.
 
 CRITICAL RULES:
 1. Return ONLY valid JSON with this exact structure - no markdown, no additional keys, no explanations
-2. Each component must have: name (English, lowercase), preparation method, estimated portion in grams, confidence (0-1)
-3. Include sauces, oils, dressings as separate items when visible
+2. For VISIBLE components: name (English, lowercase), preparation method, estimated portion in grams, confidence (0-1), cooking_method, tags, notes
+3. Include sauces, oils, dressings as separate VISIBLE items when clearly visible
 4. Names must be specific, in lowercase, and concise (max 3-4 words). Example: "grilled chicken breast" not "GRILLED CHICKEN BREAST" or "perfectly grilled premium chicken breast fillet"
 5. Preparation methods: raw, boiled, steamed, baked, grilled, fried, roasted, sauteed, unknown
-6. Estimate realistic portion sizes based on visual appearance (use typical serving sizes)
-7. Confidence should reflect certainty of identification (0.55+ for visible items)
-8. IMPORTANT: Identify foods accurately - if you see fish (salmon, tuna, etc.), name it as fish, NOT sausage or processed meat
-9. If you see grains (rice, quinoa, barley, etc.), name them correctly, NOT as bread or pasta unless clearly visible
-10. Main protein should be identified first and most accurately (e.g., "pan-fried salmon fillet", "grilled chicken breast")
-11. Vegetables should be identified by type when visible (e.g., "steamed broccoli", "roasted carrots")
-12. NEVER use ALL CAPS or excessive descriptive words - keep names simple and natural`;
+6. Cooking methods: fried, deep_fried, baked, grilled, boiled, steamed, raw, mixed
+7. Tags: use tags like "salad_with_dressing", "sweet_dessert", "breaded", "creamy_sauce", "visible_oil", "sugary_drink", "processed_meat" to help identify hidden ingredients
+8. Estimate realistic portion sizes based on visual appearance (use typical serving sizes)
+9. Confidence should reflect certainty of identification (0.55+ for visible items)
+10. IMPORTANT: Identify foods accurately - if you see fish (salmon, tuna, etc.), name it as fish, NOT sausage or processed meat
+11. If you see grains (rice, quinoa, barley, etc.), name them correctly, NOT as bread or pasta unless clearly visible
+12. Main protein should be identified first and most accurately (e.g., "pan-fried salmon fillet", "grilled chicken breast")
+13. Vegetables should be identified by type when visible (e.g., "steamed broccoli", "roasted carrots")
+14. NEVER use ALL CAPS or excessive descriptive words - keep names simple and natural
+15. HIDDEN INGREDIENTS: Identify likely hidden ingredients that add calories but may not be clearly visible:
+    - Cooking oil/butter used for frying or roasting (if food looks fried but oil not clearly visible)
+    - Creamy sauces and salad dressings (if salad looks glossy or creamy but dressing not visible)
+    - Added sugar or syrup (if dessert/drink looks sweet but sugar not visible)
+    - Hidden fats in processed meats
+    - Batter or breading soaked with oil
+16. For each hidden ingredient, provide: name (short, human readable), category (cooking_oil, butter_or_cream, sauce_or_dressing, added_sugar, breaded_or_batter, processed_meat_fillers, other), reason (why present), confidence (0.0-1.0), estimated_grams (approximate)
+17. Do NOT double count: hidden ingredients represent "extra" calories (oil, sugar, etc.), not the main components themselves`;
 
     // Add review mode instructions
     if (mode === 'review') {
@@ -104,9 +210,44 @@ REVIEW MODE - This is a re-analysis. Be extra careful:
     systemPrompt += `
 
 REQUIRED OUTPUT FORMAT - Return ONLY valid JSON with this exact structure:
-[{"name": "grilled chicken breast", "preparation": "grilled", "est_portion_g": 180, "confidence": 0.87}, {"name": "olive oil", "preparation": "raw", "est_portion_g": 15, "confidence": 0.65}]
 
-OR as object:
+PREFERRED FORMAT (with hidden ingredients):
+{
+  "visible_items": [
+    {
+      "name": "grilled chicken breast",
+      "preparation": "grilled",
+      "est_portion_g": 180,
+      "confidence": 0.87,
+      "cooking_method": "grilled",
+      "tags": ["lean_protein"],
+      "notes": "boneless skinless chicken"
+    },
+    {
+      "name": "green salad",
+      "preparation": "raw",
+      "est_portion_g": 100,
+      "confidence": 0.85,
+      "cooking_method": "raw",
+      "tags": ["salad_with_dressing"],
+      "notes": "glossy look suggests dressing"
+    }
+  ],
+  "hidden_items": [
+    {
+      "name": "olive oil for salad dressing",
+      "category": "sauce_or_dressing",
+      "reason": "green salad with glossy look and no visible low-fat dressing",
+      "confidence": 0.8,
+      "estimated_grams": 10
+    }
+  ]
+}
+
+LEGACY FORMAT (backward compatible):
+[{"name": "grilled chicken breast", "preparation": "grilled", "est_portion_g": 180, "confidence": 0.87}]
+
+OR:
 {"components": [{"name": "grilled chicken breast", "preparation": "grilled", "est_portion_g": 180, "confidence": 0.87}]}
 
 No markdown, no additional keys, no text before or after JSON.`;
@@ -155,9 +296,20 @@ No markdown, no additional keys, no text before or after JSON.`;
       }
 
       // Extract components array from flexible structure
-      const components = Array.isArray(parsed)
-        ? parsed
-        : (parsed as any).components ?? (parsed as any).items ?? [];
+      let components: any[] = [];
+      let hiddenItems: VisionHiddenItem[] = [];
+
+      if (Array.isArray(parsed)) {
+        // Legacy format: array of components
+        components = parsed;
+      } else if ((parsed as any).visible_items) {
+        // New format: { visible_items, hidden_items }
+        components = (parsed as any).visible_items || [];
+        hiddenItems = (parsed as any).hidden_items || [];
+      } else {
+        // Legacy object format: { components: [...] } or { items: [...] }
+        components = (parsed as any).components ?? (parsed as any).items ?? [];
+      }
 
       // Validate and filter components
       const validated: VisionComponent[] = [];
@@ -171,6 +323,9 @@ No markdown, no additional keys, no text before or after JSON.`;
             preparation: validatedComp.preparation || 'unknown',
             est_portion_g: validatedComp.est_portion_g || 100,
             confidence: validatedComp.confidence ?? 0.7,
+            cooking_method: validatedComp.cooking_method,
+            tags: validatedComp.tags,
+            notes: validatedComp.notes,
           };
           
           // Filter low confidence items
@@ -182,6 +337,20 @@ No markdown, no additional keys, no text before or after JSON.`;
         } catch (compError) {
           this.logger.warn(`[VisionService] Invalid component skipped:`, comp);
         }
+      }
+
+      // Store hidden items - we'll need to pass them to AnalyzeService
+      // For now, attach them as a property on each component that might need them
+      // Or store in a separate cache entry
+      // Since we can't change return type easily, we'll store hidden items separately
+      // and AnalyzeService will need to extract them from the raw response
+      
+      // Cache hidden items separately if needed
+      if (hiddenItems.length > 0) {
+        const hiddenCacheKey = `${cacheKey}:hidden`;
+        await this.cache.set(hiddenCacheKey, hiddenItems, 'vision').catch((err) => {
+          this.logger.warn(`[VisionService] Failed to cache hidden items: ${err.message}`);
+        });
       }
 
       // P2: Cache successful results

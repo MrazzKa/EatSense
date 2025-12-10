@@ -11,11 +11,12 @@ import ArticlesScreen from '../screens/ArticlesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
 import ReportsScreen from '../screens/ReportsScreen';
+import MedicationScheduleScreen from '../screens/MedicationScheduleScreen';
 
 const Tab = createBottomTabNavigator();
 
 export function MainTabsNavigator() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
@@ -73,7 +74,7 @@ export function MainTabsNavigator() {
         options={{
           tabBarLabel: t('tabs.experts'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-check" size={size || 24} color={color} />
+            <Ionicons name={"person-check" as any} size={size || 24} color={color} />
           ),
         }}
       />
@@ -84,6 +85,16 @@ export function MainTabsNavigator() {
           tabBarLabel: t('tabs.reports'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size || 24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Medications"
+        component={MedicationScheduleScreen}
+        options={{
+          tabBarLabel: t('medications.tabTitle') || t('tabs.medications') || 'Medications',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="medkit-outline" size={size || 24} color={color} />
           ),
         }}
       />

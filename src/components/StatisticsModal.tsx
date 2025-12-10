@@ -13,7 +13,7 @@ interface StatisticsModalProps {
 }
 
 export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClose }) => {
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
@@ -108,7 +108,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                         </Text>
                         {stats.goals?.calories && (
                           <Text style={[styles.statGoal, { color: colors.textTertiary || '#95A5A6' }]}>
-                            {t('dashboard.ofGoal', { goal: formatNumber(stats.goals.calories) }) || `of ${formatNumber(stats.goals.calories)} goal`}
+                            {String(t('dashboard.ofGoal', { goal: formatNumber(stats.goals.calories) } as any)) || `of ${formatNumber(stats.goals.calories)} goal`}
                           </Text>
                         )}
                       </View>

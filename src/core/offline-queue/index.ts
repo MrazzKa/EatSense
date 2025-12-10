@@ -53,7 +53,7 @@ export class OfflineQueue {
     return this.queue.find(item => item.id === id);
   }
 
-  async processQueue(processor: (item: OfflineQueueItem) => Promise<boolean>): Promise<void> {
+  async processQueue(processor: (_item: OfflineQueueItem) => Promise<boolean>): Promise<void> {
     if (this.isProcessing) return;
     
     this.isProcessing = true;
@@ -76,7 +76,7 @@ export class OfflineQueue {
               await new Promise(resolve => setTimeout(resolve, this.retryDelay * item.retryCount));
             }
           }
-        } catch (error) {
+        } catch {
           item.retryCount++;
           
           if (item.retryCount >= item.maxRetries) {

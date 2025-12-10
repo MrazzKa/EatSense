@@ -9,7 +9,7 @@ interface ProfileNumberRowProps {
   min?: number;
   max?: number;
   step?: number;
-  onChange: (value: number) => void;
+  onChange: (_value: number) => void;
 }
 
 export const ProfileNumberRow: React.FC<ProfileNumberRowProps> = ({

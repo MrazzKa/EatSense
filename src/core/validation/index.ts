@@ -1,5 +1,5 @@
 export interface ValidationRule<T = any> {
-  validate(value: T): ValidationResult;
+  validate(_value: T): ValidationResult;
 }
 
 export interface ValidationResult {
@@ -18,25 +18,25 @@ export class RequiredRule implements ValidationRule<any> {
 }
 
 export class MinLengthRule implements ValidationRule<string> {
-  constructor(private minLength: number) {}
+  constructor(private _minLength: number) {}
   
   validate(value: string): ValidationResult {
-    const isValid = value.length >= this.minLength;
+    const isValid = value.length >= this._minLength;
     return {
       isValid,
-      errors: isValid ? [] : [`Minimum length is ${this.minLength} characters`],
+      errors: isValid ? [] : [`Minimum length is ${this._minLength} characters`],
     };
   }
 }
 
 export class MaxLengthRule implements ValidationRule<string> {
-  constructor(private maxLength: number) {}
+  constructor(private _maxLength: number) {}
   
   validate(value: string): ValidationResult {
-    const isValid = value.length <= this.maxLength;
+    const isValid = value.length <= this._maxLength;
     return {
       isValid,
-      errors: isValid ? [] : [`Maximum length is ${this.maxLength} characters`],
+      errors: isValid ? [] : [`Maximum length is ${this._maxLength} characters`],
     };
   }
 }
@@ -53,37 +53,43 @@ export class EmailRule implements ValidationRule<string> {
 }
 
 export class MinValueRule implements ValidationRule<number> {
-  constructor(private minValue: number) {}
+  constructor(private _minValue: number) {}
   
   validate(value: number): ValidationResult {
-    const isValid = value >= this.minValue;
+    const isValid = value >= this._minValue;
     return {
       isValid,
-      errors: isValid ? [] : [`Minimum value is ${this.minValue}`],
+      errors: isValid ? [] : [`Minimum value is ${this._minValue}`],
     };
   }
 }
 
 export class MaxValueRule implements ValidationRule<number> {
-  constructor(private maxValue: number) {}
+  constructor(private _maxValue: number) {}
   
   validate(value: number): ValidationResult {
-    const isValid = value <= this.maxValue;
+    const isValid = value <= this._maxValue;
     return {
       isValid,
-      errors: isValid ? [] : [`Maximum value is ${this.maxValue}`],
+      errors: isValid ? [] : [`Maximum value is ${this._maxValue}`],
     };
   }
 }
 
 export class PatternRule implements ValidationRule<string> {
-  constructor(private pattern: RegExp, private message: string) {}
+  private pattern: RegExp;
+  private _message: string;
+  
+  constructor(pattern: RegExp, message: string) {
+    this.pattern = pattern;
+    this._message = message;
+  }
   
   validate(value: string): ValidationResult {
     const isValid = this.pattern.test(value);
     return {
       isValid,
-      errors: isValid ? [] : [this.message],
+      errors: isValid ? [] : [this._message],
     };
   }
 }

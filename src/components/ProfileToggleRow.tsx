@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 interface ProfileToggleRowProps {
   label: string;
   value: boolean;
-  onChange: (value: boolean) => void;
+  onChange: (_value: boolean) => void;
 }
 
 export const ProfileToggleRow: React.FC<ProfileToggleRowProps> = ({

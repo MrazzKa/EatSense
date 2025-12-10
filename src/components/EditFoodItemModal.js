@@ -17,7 +17,7 @@ import { PADDING, SPACING, BORDER_RADIUS, SHADOW } from '../utils/designConstant
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 
 export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => {
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [editedItem, setEditedItem] = useState({
@@ -411,4 +411,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+
+export default EditFoodItemModal;
 

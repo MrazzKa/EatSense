@@ -5,19 +5,9 @@ import i18n, { getSupportedLocales, setAppLocale } from './config';
 import { LANGUAGE_OPTIONS } from './languages';
 
 export const useI18n = () => {
-  // Безопасный useTranslation с fallback
-  let translation;
-  try {
-    translation = useTranslation();
-  } catch (error) {
-    console.warn('[useI18n] useTranslation failed, using fallback:', error);
-    // Fallback если i18n не инициализирован
-    translation = {
-      t: (key: string) => key,
-      i18n: { language: 'en' },
-      ready: false,
-    };
-  }
+  // Хуки должны вызываться безусловно
+  // Вызываем useTranslation всегда, без try-catch, так как хук не может быть условным
+  const translation = useTranslation();
 
   const { t } = translation;
 

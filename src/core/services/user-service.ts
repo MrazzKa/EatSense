@@ -42,9 +42,19 @@ export class UserService {
       throw new Error('User not found');
     }
     
+    const mergedPreferences = updates.preferences 
+      ? { ...user.preferences, ...updates.preferences }
+      : user.preferences;
+    
+    // Ensure language is always defined
+    if (!mergedPreferences.language) {
+      mergedPreferences.language = user.preferences.language;
+    }
+    
     return {
       ...user,
       ...updates,
+      preferences: mergedPreferences as UserPreferences,
       updatedAt: new Date(),
     };
   }

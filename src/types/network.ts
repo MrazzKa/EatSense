@@ -42,7 +42,7 @@ export interface RequestConfig {
 export interface RetryConfig {
   maxRetries: number;
   retryDelay: number;
-  retryCondition: (error: any) => boolean;
+  retryCondition: (_error: any) => boolean;
 }
 
 export interface CacheConfig {

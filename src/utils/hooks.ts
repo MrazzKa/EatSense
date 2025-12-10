@@ -24,7 +24,7 @@ export const useDebounce = <T>(value: T, delay: number): T => {
   return debouncedValue;
 };
 
-export const useThrottle = <T extends (...args: any[]) => any>(
+export const useThrottle = <T extends (..._args: any[]) => any>(
   callback: T,
   delay: number
 ): T => {
@@ -50,7 +50,7 @@ export const useThrottle = <T extends (...args: any[]) => any>(
 };
 
 export const usePrevious = <T>(value: T): T | undefined => {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     ref.current = value;
@@ -111,7 +111,7 @@ const writeStorageValue = <T>(storage: Storage | null, key: string, value: T) =>
   }
 };
 
-export const useLocalStorage = <T>(key: string, initialValue: T): [T, (value: T) => void] => {
+export const useLocalStorage = <T>(key: string, initialValue: T): [T, (_value: T) => void] => {
   const storage = getLocalStorage();
   const [storedValue, setStoredValue] = useState<T>(() => readStorageValue(storage, key, initialValue));
 
@@ -126,7 +126,7 @@ export const useLocalStorage = <T>(key: string, initialValue: T): [T, (value: T)
   return [storedValue, setValue];
 };
 
-export const useSessionStorage = <T>(key: string, initialValue: T): [T, (value: T) => void] => {
+export const useSessionStorage = <T>(key: string, initialValue: T): [T, (_value: T) => void] => {
   const storage = getSessionStorage();
   const [storedValue, setStoredValue] = useState<T>(() => readStorageValue(storage, key, initialValue));
 
@@ -212,7 +212,7 @@ export const useTimeout = (callback: () => void, delay: number | null) => {
 
 export const useOnClickOutside = <T extends HTMLElement>(
   ref: RefObject<T>,
-  handler: (event: MouseEvent | TouchEvent) => void
+  handler: (_event: MouseEvent | TouchEvent) => void
 ) => {
   useEffect(() => {
     if (!hasDocument) {

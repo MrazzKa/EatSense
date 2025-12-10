@@ -6,7 +6,6 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
@@ -74,7 +73,7 @@ export const SuggestedFoodScreen: React.FC = () => {
     try {
       // 1. Try to get personalized suggestions from backend
       const data = await ApiService.getSuggestedFoods(language);
-      const normalizedSections = normalizeBackendData(data);
+      const normalizedSections = normalizeBackendData(data as BackendResponse);
       
       if (normalizedSections.length > 0) {
         setSections(normalizedSections);
@@ -103,7 +102,7 @@ export const SuggestedFoodScreen: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [language]); // Reload when language changes
+  }, [language, loadData]); // Reload when language changes
 
   if (loading && sections.length === 0) {
     return (
@@ -196,7 +195,7 @@ export const SuggestedFoodScreen: React.FC = () => {
 };
 
 // Fallback data - fully localized via i18n
-function getStaticFallbackSections(t: (key: string) => string): SuggestedFoodSection[] {
+function getStaticFallbackSections(t: (_key: string) => string): SuggestedFoodSection[] {
   return [
     {
       id: 'protein',

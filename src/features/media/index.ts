@@ -26,7 +26,7 @@ export interface UploadProgress {
 export const uploadFile = async (
   file: File | Blob,
   userId: string,
-  onProgress?: (progress: UploadProgress) => void
+  onProgress?: (_progress: UploadProgress) => void
 ): Promise<MediaFile> => {
   // Mock implementation
   const fileId = Math.random().toString(36).substr(2, 9);

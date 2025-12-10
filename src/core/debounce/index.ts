@@ -1,7 +1,7 @@
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (..._args: any[]) => any>(
   func: T,
   wait: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let timeout: ReturnType<typeof setTimeout>;
   
   return (...args: Parameters<T>) => {
@@ -10,10 +10,10 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (..._args: any[]) => any>(
   func: T,
   limit: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let inThrottle: boolean;
   
   return (...args: Parameters<T>) => {
@@ -25,10 +25,10 @@ export const throttle = <T extends (...args: any[]) => any>(
   };
 };
 
-export const debounceAsync = <T extends (...args: any[]) => Promise<any>>(
+export const debounceAsync = <T extends (..._args: any[]) => Promise<any>>(
   func: T,
   wait: number
-): ((...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>>) => {
+): ((..._args: Parameters<T>) => Promise<Awaited<ReturnType<T>>>) => {
   let timeout: ReturnType<typeof setTimeout>;
   let currentPromise: Promise<Awaited<ReturnType<T>>> | null = null;
   

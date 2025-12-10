@@ -9,10 +9,11 @@ import { EuroFirProvider } from './eurofir.provider';
 import { FaoWhoReferenceProvider } from './fao-who-reference.provider';
 import { HybridModule } from '../../fdc/hybrid/hybrid.module';
 import { OpenFoodFactsModule } from '../../openfoodfacts/openfoodfacts.module';
+import { CacheModule } from '../../cache/cache.module';
 import { INutritionProvider } from './nutrition-provider.interface';
 
 @Module({
-  imports: [HttpModule, HybridModule, OpenFoodFactsModule],
+  imports: [HttpModule, HybridModule, OpenFoodFactsModule, CacheModule],
   providers: [
     NutritionOrchestrator,
     UsdaNutritionProvider,

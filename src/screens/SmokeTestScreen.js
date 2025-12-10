@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, Button, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { clientLog } from '../utils/clientLog';
 

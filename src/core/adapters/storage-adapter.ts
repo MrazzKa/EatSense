@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface StorageAdapter {
-  get<T>(key: string): Promise<T | null>;
-  set<T>(key: string, value: T): Promise<void>;
-  remove(key: string): Promise<void>;
+  get<T>(_key: string): Promise<T | null>;
+  set<T>(_key: string, _value: T): Promise<void>;
+  remove(_key: string): Promise<void>;
   clear(): Promise<void>;
   keys(): Promise<string[]>;
 }
@@ -48,7 +48,7 @@ export class AsyncStorageAdapter implements StorageAdapter {
 
   async keys(): Promise<string[]> {
     try {
-      return await AsyncStorage.getAllKeys();
+      return [...(await AsyncStorage.getAllKeys())];
     } catch (error) {
       console.error('Error getting storage keys:', error);
       return [];

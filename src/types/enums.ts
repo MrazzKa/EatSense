@@ -1,3 +1,4 @@
+// Enums exported for type checking - values used indirectly via types
 export enum AnalysisType {
   IMAGE = 'IMAGE',
   TEXT = 'TEXT',

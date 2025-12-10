@@ -12,13 +12,17 @@ export interface AnalysisResult {
   }>;
 }
 
-export const analyzeImage = async (imageUri: string): Promise<AnalysisResult> => {
+export const analyzeImage = async (imageUri: string, locale?: string): Promise<AnalysisResult> => {
   const formData = new FormData();
   formData.append('image', {
     uri: imageUri,
     type: 'image/jpeg',
     name: 'image.jpg',
   } as any);
+
+  if (locale) {
+    formData.append('locale', locale);
+  }
 
   try {
     const response = await fetchWithTimeout(`${URLS.API_BASE_URL}/analyze`, {

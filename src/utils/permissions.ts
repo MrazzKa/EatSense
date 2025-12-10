@@ -1,10 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
-import * as Camera from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 
 export const requestCameraPermission = async (): Promise<boolean> => {
   try {
-    const { status } = await Camera.requestCameraPermissionsAsync();
+    // Use ImagePicker API which works with expo-camera
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
     return status === 'granted';
   } catch (error) {
     console.error('Error requesting camera permission:', error);
@@ -36,7 +36,8 @@ export const requestImagePickerPermissions = async (): Promise<boolean> => {
 
 export const checkCameraPermission = async (): Promise<boolean> => {
   try {
-    const { status } = await Camera.getCameraPermissionsAsync();
+    // Use ImagePicker API which works with expo-camera
+    const { status } = await ImagePicker.getCameraPermissionsAsync();
     return status === 'granted';
   } catch (error) {
     console.error('Error checking camera permission:', error);

@@ -16,14 +16,16 @@ export class MedicationsController {
   @ApiOperation({ summary: 'Create medication schedule' })
   @ApiResponse({ status: 201, description: 'Medication schedule created successfully' })
   async create(@Request() req: any, @Body() dto: CreateMedicationDto) {
-    return this.medicationsService.create(req.user.id, dto);
+    // Use new model
+    return this.medicationsService.createForUser(req.user.id, dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all medication schedules for user' })
   @ApiResponse({ status: 200, description: 'List of medication schedules' })
   async findAll(@Request() req: any, @Query('includeInactive') includeInactive?: string) {
-    return this.medicationsService.findAll(req.user.id, includeInactive === 'true');
+    // Use new model by default, fallback to old if needed
+    return this.medicationsService.findAllForUser(req.user.id);
   }
 
   @Get('due-today')
@@ -37,21 +39,24 @@ export class MedicationsController {
   @ApiOperation({ summary: 'Get medication schedule by ID' })
   @ApiResponse({ status: 200, description: 'Medication schedule details' })
   async findOne(@Request() req: any, @Param('id') id: string) {
-    return this.medicationsService.findOne(req.user.id, id);
+    // Use new model
+    return this.medicationsService.findOneForUser(req.user.id, id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update medication schedule' })
   @ApiResponse({ status: 200, description: 'Medication schedule updated successfully' })
   async update(@Request() req: any, @Param('id') id: string, @Body() dto: UpdateMedicationDto) {
-    return this.medicationsService.update(req.user.id, id, dto);
+    // Use new model
+    return this.medicationsService.updateForUser(req.user.id, id, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete medication schedule' })
   @ApiResponse({ status: 200, description: 'Medication schedule deleted successfully' })
   async remove(@Request() req: any, @Param('id') id: string) {
-    await this.medicationsService.remove(req.user.id, id);
+    // Use new model (soft delete)
+    await this.medicationsService.removeForUser(req.user.id, id);
     return { message: 'Medication schedule deleted successfully' };
   }
 }

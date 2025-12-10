@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
-import { API_BASE_URL } from '../config/env';
+// import { API_BASE_URL } from '../config/env'; // Unused
 
 export default function ReportsScreen() {
   const { colors, tokens } = useTheme();
@@ -59,21 +59,30 @@ export default function ReportsScreen() {
 
       // Save PDF blob to file
       const monthString = `${year}-${String(month).padStart(2, '0')}`;
-      const fileUri = `${FileSystem.cacheDirectory}eatsense-monthly-report-${monthString}.pdf`;
+      const cacheDir = (FileSystem as any).cacheDirectory || '';
+      const fileUri = `${cacheDir}eatsense-monthly-report-${monthString}.pdf`;
 
       // Convert blob to base64 for FileSystem
       const reader = new FileReader();
-      const base64 = await new Promise((resolve, reject) => {
+      const base64 = await new Promise<string>((resolve, reject) => {
         reader.onloadend = () => {
           const base64String = reader.result?.toString().split(',')[1];
-          resolve(base64String);
+          if (base64String) {
+            resolve(base64String);
+          } else {
+            reject(new Error('Failed to convert blob to base64'));
+          }
         };
         reader.onerror = reject;
-        reader.readAsDataURL(response.data);
+        if (response.data) {
+          reader.readAsDataURL(response.data);
+        } else {
+          reject(new Error('Response data is null'));
+        }
       });
 
       await FileSystem.writeAsStringAsync(fileUri, base64, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: ((FileSystem as any).EncodingType?.Base64) || 'base64' as any,
       });
 
       console.log('[ReportsScreen] PDF saved to:', fileUri);
@@ -180,7 +189,7 @@ export default function ReportsScreen() {
   );
 }
 
-const createStyles = (tokens) =>
+const createStyles = (tokens: any) =>
   StyleSheet.create({
     container: {
       flex: 1,

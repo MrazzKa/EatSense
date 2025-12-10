@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface GracefulDegradationWrapperProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
-  onError?: (error: Error) => void;
+  onError?: (_error: Error) => void;
 }
 
 export const GracefulDegradationWrapper: React.FC<GracefulDegradationWrapperProps> = ({

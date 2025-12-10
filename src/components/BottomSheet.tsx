@@ -22,7 +22,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onDescribeFoodPress,
   onLabResultsPress,
 }) => {
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   const { t } = useI18n();
 
   return (

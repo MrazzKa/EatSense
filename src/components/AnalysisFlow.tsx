@@ -6,7 +6,7 @@ import { analyzeImage as analyzeImageAPI } from '../lib/api';
 
 interface AnalysisFlowProps {
   onClose: () => void;
-  onAnalysisComplete: (result: any, imageUri: string) => void;
+  onAnalysisComplete: (_result: any, _imageUri: string) => void;
   source?: 'camera' | 'gallery';
 }
 
@@ -59,7 +59,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
     
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -88,7 +88,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
     
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,

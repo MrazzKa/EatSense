@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface LanguageSelectorProps {
   selectedLanguage: string;
-  onLanguageChange: (languageCode: string) => void | Promise<void>;
+  onLanguageChange: (_languageCode: string) => void | Promise<void>;
   languages?: LanguageOption[];
 }
 

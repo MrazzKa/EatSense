@@ -155,7 +155,10 @@
   },
   "analysis": {
     "title": "Analysis Complete",
-    "analyzing": "Analyzing your dish...",
+    "analyzing": "Analyzing your meal...",
+    "analyzingSubtitle": "This may take a few seconds",
+    "processing": "Processing your meal...",
+    "processingSubtitle": "Identifying ingredients and matching nutrition data...",
     "subtitle": "AI is identifying ingredients and calories",
     "uploaded": "Uploaded",
     "analyzingStep": "Analyzing",
@@ -503,7 +506,8 @@
     "recently": "Recent",
     "profile": "Profile",
     "experts": "Experts",
-    "reports": "Reports"
+    "reports": "Reports",
+    "medications": "Medications"
   },
   "experts": {
     "title": "Experts",
@@ -808,6 +812,120 @@
     "termsTitle": "Terms of Use",
     "privacyLink": "Privacy Policy",
     "termsLink": "Terms of Use"
+  },
+  "analysis": {
+    "hiddenIngredients": {
+      "badge": "Includes estimated hidden ingredients (oil, sauces, sugar).",
+      "calories": "{{calories}} kcal from hidden ingredients"
+    }
+  },
+  "foodCompatibility": {
+    "title": "Food compatibility",
+    "positives": "What works well",
+    "issues": "What could be improved",
+    "scoreLabel": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "moderate": "Mixed",
+      "problematic": "Needs improvement"
+    }
+  },
+  "carcinogenicRisk": {
+    "title": "Long-term risk factors",
+    "highRiskItems": "Items to keep in moderation",
+    "level": {
+      "none": "No significant factors",
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "Elevated"
+    }
+  },
+  "medications": {
+    "title": "Medication schedule",
+    "tabTitle": "Medications",
+    "error": {
+      "load": "Failed to load medications",
+      "save": "Failed to save medication",
+      "delete": "Failed to delete medication",
+      "nameRequired": "Medication name is required"
+    },
+    "empty": "No medications yet. Add your first one.",
+    "noDoses": "No times specified",
+    "edit": "Edit medication",
+    "add": "Add medication",
+    "deleteConfirm": "Delete medication",
+    "deleteMessage": "Are you sure you want to delete this medication?",
+    "fields": {
+      "name": "Name",
+      "dosage": "Dosage",
+      "instructions": "Instructions",
+      "startDate": "Start date (YYYY-MM-DD)",
+      "endDate": "End date (optional)",
+      "timezone": "Timezone",
+      "doses": "Dose times"
+    },
+    "placeholders": {
+      "name": "Metformin",
+      "dosage": "500 mg",
+      "instructions": "Before dinner, with water"
+    },
+    "times": "Times",
+    "beforeMeal": "Before",
+    "afterMeal": "After",
+    "addDose": "Add time"
+  },
+  "aiAssistant": {
+    "title": "AI Nutrition Assistant",
+    "subtitle": "Ask me anything about nutrition",
+    "placeholder": "Type your question...",
+    "inputPlaceholder": "Ask about nutrition, recipes, or meal planning...",
+    "welcome": "Hello! I'm your AI nutrition assistant. I can help you with meal planning, nutrition questions, and healthy eating tips. What would you like to know?",
+    "unavailable": "AI Assistant is currently unavailable",
+    "unavailableSubtitle": "Please try again later",
+    "send": "Send",
+    "sending": "Sending...",
+    "attach": {
+      "title": "Attach File",
+      "image": "Attach Image",
+      "pdf": "Attach PDF",
+      "cancel": "Cancel"
+    },
+    "error": {
+      "send": "Failed to send message. Please try again.",
+      "loadHistory": "Failed to load conversation history.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "empty": "No messages yet. Start a conversation!",
+    "thinking": "Thinking...",
+    "lab": {
+      "title": "Lab Results Analysis",
+      "subtitle": "Upload your lab results for AI analysis",
+      "type": {
+        "manual": "Enter manually",
+        "auto": "Upload PDF"
+      },
+      "attachPdf": "Attach PDF",
+      "analyze": "Analyze",
+      "analyzing": "Analyzing...",
+      "placeholder": "Enter lab results text (e.g., Hemoglobin 100 g/L)",
+      "error": {
+        "empty": "Please enter lab results or upload a PDF",
+        "upload": "Failed to upload PDF",
+        "analyze": "Failed to analyze lab results"
+      }
+    }
+  },
+  "describeFood": {
+    "title": "Describe Food",
+    "subtitle": "Enter a description of your meal",
+    "placeholder": "e.g., Grilled chicken breast with rice and vegetables",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "errors": {
+      "emptyText": "Please enter a description of your meal",
+      "noAnalysisId": "Failed to start analysis. Please try again.",
+      "analyzeFailed": "Failed to analyze meal. Please try again."
+    }
   }
 }
 

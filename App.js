@@ -29,11 +29,6 @@ function AppContent() {
   const isAuthenticated = !!user;
   const needsOnboarding = isAuthenticated && !user?.isOnboardingCompleted;
   
-  // Show loading/splash while checking auth
-  if (loading) {
-    return <EmptySplash />;
-  }
-
   useEffect(() => {
     clientLog('RootNav:render', { 
       isAuthenticated, 
@@ -41,6 +36,11 @@ function AppContent() {
       userId: user?.id || 'none',
     }).catch(() => {});
   }, [isAuthenticated, needsOnboarding, user?.id]);
+  
+  // Show loading/splash while checking auth
+  if (loading) {
+    return <EmptySplash />;
+  }
 
   const handleAuthSuccess = async () => {
     await clientLog('App:authSuccess').catch(() => {});

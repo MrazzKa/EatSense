@@ -4,7 +4,8 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
-import { legalDocuments, LegalDocumentType } from '../legal/legalContent';
+import type { LegalDocumentType } from '../legal/legalContent';
+import { legalDocuments } from '../legal/legalContent';
 
 type RootStackParamList = {
   LegalDocument: { type: LegalDocumentType };

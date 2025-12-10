@@ -88,7 +88,8 @@ const initializeI18next = () => {
         react: {
           useSuspense: false,
         },
-      });
+      })
+      .then(() => {});
   }
 
   return initializationPromise;

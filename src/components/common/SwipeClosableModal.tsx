@@ -15,6 +15,10 @@ interface SwipeClosableModalProps {
   onClose: () => void;
   children: React.ReactNode;
   presentationStyle?: 'fullScreen' | 'pageSheet';
+  enableSwipe?: boolean;
+  enableBackdropClose?: boolean;
+  animationType?: 'slide' | 'fade';
+  swipeDirection?: 'down' | 'up';
 }
 
 const SWIPE_CLOSE_THRESHOLD = 80;
@@ -24,6 +28,10 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
   onClose,
   children,
   presentationStyle = 'pageSheet', // Default to pageSheet to avoid gray screen on iOS
+  enableSwipe = true,
+  enableBackdropClose: _enableBackdropClose = false,
+  animationType = 'slide',
+  swipeDirection = 'down',
 }) => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -32,17 +40,27 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gesture) => {
-        return gesture.dy > 5;
+        if (!enableSwipe) return false;
+        if (swipeDirection === 'down') {
+          return gesture.dy > 5;
+        } else {
+          return gesture.dy < -5;
+        }
       },
       onPanResponderMove: (_, gesture) => {
-        if (gesture.dy > 0) {
+        if (!enableSwipe) return;
+        if (swipeDirection === 'down' && gesture.dy > 0) {
+          translateY.setValue(gesture.dy);
+        } else if (swipeDirection === 'up' && gesture.dy < 0) {
           translateY.setValue(gesture.dy);
         }
       },
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dy > SWIPE_CLOSE_THRESHOLD) {
+        if (!enableSwipe) return;
+        const threshold = swipeDirection === 'down' ? gesture.dy : -gesture.dy;
+        if (threshold > SWIPE_CLOSE_THRESHOLD) {
           Animated.timing(translateY, {
-            toValue: 1000,
+            toValue: swipeDirection === 'down' ? 1000 : -1000,
             duration: 200,
             useNativeDriver: true,
           }).start(onClose);
@@ -70,8 +88,8 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
     <Modal
       visible={visible}
       onRequestClose={onClose}
-      animationType="slide"
-      transparent={false}
+      animationType={animationType}
+      transparent={animationType === 'fade'}
       presentationStyle={presentationStyle === 'fullScreen' ? 'fullScreen' : 'pageSheet'}
     >
       <View

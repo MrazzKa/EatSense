@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 
 interface GalleryComponentProps {
-  onImageSelect: (imageUri: string) => void;
+  onImageSelect: (_imageUri: string) => void;
   onClose: () => void;
 }
 

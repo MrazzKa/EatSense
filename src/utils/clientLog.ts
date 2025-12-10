@@ -31,7 +31,7 @@ export async function clientLog(
         extra: extra ?? null,
       }),
     });
-  } catch (error) {
+  } catch {
     // В проде просто молча глотаем ошибки
     // Не хотим добавлять дополнительную нагрузку на ошибки сетевых запросов
   }
