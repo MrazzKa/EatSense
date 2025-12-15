@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { ArticleSummary } from '../../types/articles';
 import { BORDER_RADIUS, PADDING, SPACING, SHADOW } from '../../utils/designConstants';
@@ -48,10 +49,14 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             )}
           </ImageBackground>
         ) : (
-          <View style={[styles.coverPlaceholder, { backgroundColor: colors.surface || colors.card }]}>
-            <Text style={[styles.coverPlaceholderText, { color: colors.textTertiary || colors.textSecondary }]}>
-              {article.title || 'EatSense'}
-            </Text>
+          <View style={[styles.coverPlaceholder, { backgroundColor: colors.surfaceMuted || colors.surface || colors.card }]}>
+            <Ionicons name="newspaper-outline" size={48} color={colors.textTertiary || colors.textSecondary} />
+            {featured && (
+              <View style={[styles.featuredBadge, { backgroundColor: colors.primary }]}>
+                <Text style={styles.featuredText}>★</Text>
+                <Text style={styles.featuredLabel}>{featuredLabel}</Text>
+              </View>
+            )}
           </View>
         );
       })()}
@@ -121,10 +126,7 @@ const styles = StyleSheet.create({
     height: 180,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  coverPlaceholderText: {
-    fontSize: 18,
-    fontWeight: '600',
+    position: 'relative',
   },
   featuredBadge: {
     alignSelf: 'flex-start',

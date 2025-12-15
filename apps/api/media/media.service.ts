@@ -61,9 +61,12 @@ export class MediaService {
       throw new BadRequestException('File size must be less than 10MB');
     }
 
+    // Process image - Strip EXIF metadata and convert to JPEG
+    // Note: Sharp removes EXIF metadata automatically when converting to JPEG format
+    // We don't call withMetadata() to ensure no metadata is preserved
     const processedImage = await sharp(file.buffer)
       .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: 80 })
+      .jpeg({ quality: 80, mozjpeg: true })
       .toBuffer();
 
     if (this.s3Enabled && this.s3Client && this.s3Bucket) {

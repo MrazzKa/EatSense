@@ -20,7 +20,7 @@ import { CircularProgress } from '../components/CircularProgress';
 import { clientLog } from '../utils/clientLog';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
-import { formatMacro, formatCalories } from '../utils/nutritionFormat';
+import { formatMacro, formatMacroInt, formatCalories } from '../utils/nutritionFormat';
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 import LabResultsModal from '../components/LabResultsModal';
 import DescribeFoodModal from '../components/DescribeFoodModal';
@@ -355,27 +355,28 @@ export default function DashboardScreen() {
         {/* Calories Circle with Progress */}
         <View style={styles.caloriesContainer}>
           <CircularProgress
-            progress={stats.goal > 0 ? Math.min(1, stats.totalCalories / stats.goal) : 0}
+            progress={stats.goal > 0 ? Math.min(5, Math.max(0, stats.totalCalories / stats.goal)) : 0}
             size={220}
             strokeWidth={8}
             value={Math.round(stats.totalCalories)}
             label={t('dashboard.calories')}
             goal={Math.round(stats.goal)}
+            goalUnit={t('dashboard.caloriesUnit')}
           />
         </View>
 
         {/* Quick Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatMacro(stats.totalProtein)}</Text>
+            <Text style={styles.statNumber}>{formatMacroInt(stats.totalProtein)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatMacro(stats.totalCarbs)}</Text>
+            <Text style={styles.statNumber}>{formatMacroInt(stats.totalCarbs)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatMacro(stats.totalFat)}</Text>
+            <Text style={styles.statNumber}>{formatMacroInt(stats.totalFat)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
           </View>
         </View>

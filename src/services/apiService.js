@@ -151,55 +151,27 @@ class ApiService {
 
       if (__DEV__) console.log(`[ApiService] Response status: ${response.status}`);
 
-      if (response.status === 401 && this.refreshTokenValue) {
-        let refreshTimeoutId = null;
-        let retryTimeoutId = null;
-        try {
-          // Create new AbortController for refresh token request
-          const refreshAbortController = new AbortController();
-          refreshTimeoutId = setTimeout(() => {
-            refreshAbortController.abort();
+      if (response.status === 401) {
+        const refreshed = await this.refreshToken();
+        if (refreshed) {
+          // Retry the original request with new token
+          config.headers = this.getHeaders();
+          // Create new AbortController for retry request
+          const retryAbortController = new AbortController();
+          const retryTimeoutId = setTimeout(() => {
+            retryAbortController.abort();
           }, timeoutMs);
+          config.signal = retryAbortController.signal;
           
-          const refreshRes = await fetch(`${this.baseURL}/auth/refresh-token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken: this.refreshTokenValue }),
-            signal: refreshAbortController.signal,
-          });
-          
-          clearTimeout(refreshTimeoutId);
-          refreshTimeoutId = null;
-          
-          if (refreshRes.ok) {
-            const tokens = await refreshRes.json();
-            if (tokens.accessToken) {
-              await this.setToken(tokens.accessToken, tokens.refreshToken || this.refreshTokenValue);
-              config.headers = this.getHeaders();
-              // Create new AbortController for retry request
-              const retryAbortController = new AbortController();
-              retryTimeoutId = setTimeout(() => {
-                retryAbortController.abort();
-              }, timeoutMs);
-              config.signal = retryAbortController.signal;
-              response = await fetch(url, config);
-              clearTimeout(retryTimeoutId);
-              retryTimeoutId = null;
-            } else {
-              // Clear retry timeout if tokens are invalid
-              if (retryTimeoutId) clearTimeout(retryTimeoutId);
-            }
-          } else {
-            // Clear refresh timeout if refresh failed
-            if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
+          try {
+            response = await fetch(url, config);
+            clearTimeout(retryTimeoutId);
+          } catch (retryError) {
+            clearTimeout(retryTimeoutId);
+            throw retryError;
           }
-        } catch (refreshError) {
-          // Clear timeouts on error
-          if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
-          if (retryTimeoutId) clearTimeout(retryTimeoutId);
-          console.warn('[ApiService] Token refresh failed', refreshError);
-          // If refresh fails, clear tokens and re-throw original 401
-          await this.setToken(null, null);
+        } else {
+          // Refresh failed, throw original 401 error
           throw await this.buildHttpError(response);
         }
       }
@@ -320,12 +292,33 @@ class ApiService {
 
   async refreshToken() {
     if (!this.refreshTokenValue) {
-      throw new Error('No refresh token available');
+      return false;
     }
-    return this.request('/auth/refresh-token', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken: this.refreshTokenValue }),
-    });
+    
+    try {
+      const refreshUrl = `${this.baseURL}/auth/refresh-token`;
+      const refreshRes = await fetch(refreshUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: this.refreshTokenValue }),
+      });
+      
+      if (refreshRes.ok) {
+        const tokens = await refreshRes.json();
+        if (tokens.accessToken) {
+          await this.setToken(tokens.accessToken, tokens.refreshToken || this.refreshTokenValue);
+          return true;
+        }
+      }
+      
+      // Refresh failed, clear tokens
+      await this.setToken(null, null);
+      return false;
+    } catch (error) {
+      console.warn('[ApiService] Token refresh failed', error);
+      await this.setToken(null, null);
+      return false;
+    }
   }
 
   async signInWithApple(appleData) {

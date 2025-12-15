@@ -18,6 +18,19 @@ export function formatMacro(value: number | null | undefined): string {
 }
 
 /**
+ * Format a macro value as integer (for dashboard display)
+ * @param value - The numeric value to format
+ * @returns Formatted string (e.g., "25" or "0")
+ */
+export function formatMacroInt(value: number | null | undefined): string {
+  if (value == null || isNaN(value)) {
+    return '0';
+  }
+  // Round to nearest integer for dashboard display
+  return Math.round(value).toString();
+}
+
+/**
  * Format calories to whole number
  * @param value - The numeric value to format
  * @returns Formatted string (e.g., "250" or "0")

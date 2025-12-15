@@ -10,7 +10,8 @@ datasource db {
 model User {
   id                     String                  @id @default(cuid())
   email                  String                  @unique
-  password               String
+  password               String?
+  appleUserId            String?                 @unique
   profile                Json?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
@@ -46,6 +47,7 @@ model UserProfile {
   goal                  String?
   targetWeight          Float?
   dailyCalories         Int?
+  avatarUrl             String?
   preferences           Json?
   healthProfile         Json?
   isOnboardingCompleted Boolean  @default(false)
@@ -478,4 +480,37 @@ model LabMetric {
 enum FoodSource {
   USDA_LOCAL
   USDA_API
+}
+
+// Локальная таблица топ-100 самых частых продуктов для быстрого поиска
+model LocalFood {
+  id          String   @id @default(cuid())
+  name        String   // Название продукта (нормализованное)
+  nameEn      String?  @map("name_en") // Английское название
+  nameRu      String?  @map("name_ru") // Русское название
+  nameKk      String?  @map("name_kk") // Казахское название
+  
+  // Питательные вещества на 100г
+  calories    Float    @default(0)
+  protein     Float    @default(0)
+  carbs       Float    @default(0)
+  fat         Float    @default(0)
+  fiber       Float?   @default(0)
+  sugars      Float?   @default(0)
+  satFat      Float?   @default(0) @map("sat_fat")
+  
+  // Категория
+  category    String?  // "vegetable", "fruit", "meat", "dairy", etc.
+  
+  // Порядок сортировки (чем меньше, тем популярнее)
+  popularity  Int      @default(100)
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([name])
+  @@index([name])
+  @@index([popularity])
+  @@index([category])
+  @@map("local_foods")
 }

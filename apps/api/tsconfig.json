@@ -18,9 +18,10 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "lib": ["ES2020"],
-    "types": ["node"]
+    "types": ["node"],
+    "downlevelIteration": true
   },
-  "include": ["src/**/*.ts", "*.ts", "food/**/*.ts"],
+  "include": ["src/**/*.ts", "*.ts", "food/**/*.ts", "articles/**/*.ts", "stats/**/*.ts", "auth/**/*.ts", "meals/**/*.ts", "media/**/*.ts", "ai-assistant/**/*.ts", "limits/**/*.ts"],
   "exclude": [
     "node_modules",
     "dist",

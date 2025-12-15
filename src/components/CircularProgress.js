@@ -2,19 +2,26 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
+import { useI18n } from '../../app/i18n/hooks';
 
-export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, value, label, goal, children }) {
+export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, value, label, goal, goalUnit, children }) {
   const { colors } = useTheme();
+  const { t } = useI18n();
   
-  // Clamp progress between 0 and 1, and cap display percentage at 500%
-  const clampedProgress = Math.min(1, Math.max(0, progress));
-  const displayProgress = Math.min(5, clampedProgress); // Cap at 500% for display
+  // Clamp progress between 0 and 5 (0% to 500%), allowing display of values exceeding goal
+  // Progress can be > 1 when value exceeds goal (e.g., 1500/1000 = 1.5 = 150%)
+  const isOverGoal = progress > 1;
+  const clampedProgress = Math.min(1, Math.max(0, progress)); // Clamp to 0-1 for display
+  const displayProgress = Math.min(5, Math.max(0, progress)); // Cap at 500% for display, allow > 1
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - displayProgress);
   
-  // Единый аккуратный цвет прогресса
+  // Color changes to warning when over goal
   const getProgressColor = () => {
+    if (isOverGoal) {
+      return colors.warning || '#F59E0B';
+    }
     return colors.primary || '#007AFF';
   };
 
@@ -54,9 +61,18 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
             </Text>
             {label && <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>}
             {goal && (
-              <Text style={[styles.goal, { color: colors.textTertiary }]}>
-                {typeof goal === 'number' ? `of ${goal.toLocaleString()} kcal` : goal}
-              </Text>
+              <>
+                <Text style={[styles.goal, { color: colors.textTertiary }]}>
+                  {typeof goal === 'number' 
+                    ? `${t('dashboard.ofGoal', { goal: Math.round(goal) })} ${goalUnit || t('dashboard.caloriesUnit')}` 
+                    : goal}
+                </Text>
+                {isOverGoal && value != null && goal && (
+                  <Text style={[styles.overGoal, { color: colors.warning || '#F59E0B' }]}>
+                    +{Math.round(value - goal)} {goalUnit || t('dashboard.caloriesUnit')} {t('dashboard.overGoal', { defaultValue: 'over goal' })}
+                  </Text>
+                )}
+              </>
             )}
           </>
         )}
@@ -88,6 +104,11 @@ const styles = StyleSheet.create({
   },
   goal: {
     fontSize: 14,
+  },
+  overGoal: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
   },
 });
 

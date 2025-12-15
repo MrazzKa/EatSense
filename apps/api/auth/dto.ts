@@ -91,20 +91,18 @@ export class AppleSignInDto {
 }
 
 export class GoogleSignInDto {
-  @ApiProperty({ example: 'ya29.a0AfH6SMC...' })
+  @ApiProperty({ example: 'ya29.a0AfH6SMC...', required: false })
   @IsString()
-  @IsNotEmpty()
-  accessToken!: string;
+  accessToken?: string;
 
   @ApiProperty({ example: 'eyJhbGciOiJSUzI1NiIs...', required: false })
   @IsString()
   idToken?: string;
 
-  @ApiProperty({ example: 'user@example.com' })
+  @ApiProperty({ example: 'user@example.com', required: false })
   @IsEmail()
-  @IsNotEmpty()
   @Transform(({ value }) => (value || '').toString().trim().toLowerCase())
-  email!: string;
+  email?: string;
 
   @ApiProperty({ example: 'John Doe', required: false })
   @IsString()

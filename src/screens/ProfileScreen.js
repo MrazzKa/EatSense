@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -17,6 +18,7 @@ import { ProfileToggleRow } from '../components/ProfileToggleRow';
 import { API_BASE_URL } from '../config/env';
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const themeContext = useTheme();
   
@@ -1055,6 +1057,31 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </AppCard>
 
+        {/* Medications Section */}
+        <AppCard style={styles.medicationsCard}>
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation && typeof navigation.navigate === 'function') {
+                navigation.navigate('MedicationSchedule');
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardContent}>
+              <Ionicons name="medkit-outline" size={24} color={colors.primary} />
+              <View style={styles.cardTextContainer}>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.title') || t('profile.medications') || 'Medications'}
+                </Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  {t('medications.subtitle') || t('profile.medicationsSubtitle') || 'Manage your medication schedule'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </View>
+          </TouchableOpacity>
+        </AppCard>
+
         {/* Health Profile Summary */}
         <AppCard style={styles.healthSection}>
           <View style={styles.healthSummaryHeader}>
@@ -2064,6 +2091,9 @@ const createStyles = (tokens) =>
     cardSubtitle: {
       fontSize: 13,
       lineHeight: 18,
+    },
+    medicationsCard: {
+      marginTop: tokens.spacing.lg,
     },
   });
 

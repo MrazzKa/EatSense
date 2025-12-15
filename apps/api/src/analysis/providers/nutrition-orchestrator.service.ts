@@ -6,6 +6,7 @@ import {
   CanonicalFood,
 } from './nutrition-provider.interface';
 import { CacheService } from '../../cache/cache.service';
+import { LocalFoodService } from './local-food.service';
 
 export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 
@@ -23,6 +24,7 @@ export class NutritionOrchestrator {
     @Inject(NUTRITION_PROVIDERS)
     private readonly providers: INutritionProvider[],
     private readonly cacheService: CacheService,
+    private readonly localFoodService: LocalFoodService,
   ) {}
 
   /**
@@ -83,6 +85,7 @@ export class NutritionOrchestrator {
 
   /**
    * Validate nutrition result for suspicious values
+   * Enhanced with product-specific validation ranges
    */
   private validateResult(
     result: NutritionProviderResult,
@@ -92,9 +95,16 @@ export class NutritionOrchestrator {
       return { isValid: false, isSuspicious: false };
     }
 
-    const { per100g, category } = result.food;
+    const { per100g, category, displayName } = result.food;
     const calories = per100g.calories ?? 0;
     const kcalPer100 = calories;
+    const nameLower = (displayName || '').toLowerCase();
+
+    // Product-specific validation for common foods with known calorie ranges
+    const productValidation = this.validateProductSpecificCalories(nameLower, kcalPer100);
+    if (productValidation) {
+      return productValidation;
+    }
 
     // Validation for drinks
     if (category === 'drink') {
@@ -141,6 +151,110 @@ export class NutritionOrchestrator {
     }
 
     return { isValid: true, isSuspicious: false };
+  }
+
+  /**
+   * Validate calories for specific products with known ranges
+   * Returns validation result if product matches, null otherwise
+   */
+  private validateProductSpecificCalories(
+    nameLower: string,
+    kcalPer100: number,
+  ): { isValid: boolean; isSuspicious: boolean; reason?: string } | null {
+    // Vegetables (low calorie)
+    if (nameLower.includes('свёкл') || nameLower.includes('beet') || nameLower.includes('beetroot')) {
+      if (kcalPer100 < 20 || kcalPer100 > 50) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `beetroot_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 26-43)`,
+        };
+      }
+    }
+
+    if (nameLower.includes('морков') || nameLower.includes('carrot')) {
+      if (kcalPer100 < 30 || kcalPer100 > 45) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `carrot_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 32-41)`,
+        };
+      }
+    }
+
+    if (nameLower.includes('огурец') || nameLower.includes('cucumber')) {
+      if (kcalPer100 < 10 || kcalPer100 > 20) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `cucumber_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 12-16)`,
+        };
+      }
+    }
+
+    if (nameLower.includes('помидор') || nameLower.includes('томат') || nameLower.includes('tomato')) {
+      if (kcalPer100 < 15 || kcalPer100 > 25) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `tomato_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 18-20)`,
+        };
+      }
+    }
+
+    if (nameLower.includes('капуст') || nameLower.includes('cabbage')) {
+      if (kcalPer100 < 20 || kcalPer100 > 30) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `cabbage_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 25)`,
+        };
+      }
+    }
+
+    // Fruits
+    if (nameLower.includes('яблок') || nameLower.includes('apple')) {
+      if (kcalPer100 < 45 || kcalPer100 > 60) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `apple_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 52)`,
+        };
+      }
+    }
+
+    if (nameLower.includes('банан') || nameLower.includes('banana')) {
+      if (kcalPer100 < 85 || kcalPer100 > 100) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `banana_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 89-93)`,
+        };
+      }
+    }
+
+    // Grains
+    if (nameLower.includes('рис') || nameLower.includes('rice')) {
+      if (kcalPer100 < 120 || kcalPer100 > 140) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `rice_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 130)`,
+        };
+      }
+    }
+
+    if (nameLower.includes('гречк') || nameLower.includes('buckwheat')) {
+      if (kcalPer100 < 300 || kcalPer100 > 350) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `buckwheat_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 343)`,
+        };
+      }
+    }
+
+    return null; // No specific validation matched
   }
 
   /**
@@ -229,8 +343,27 @@ export class NutritionOrchestrator {
       return cached;
     }
 
+    // P4: Check local food database first (instant lookup)
+    const localFood = await this.localFoodService.findLocalFood(trimmed, context.locale || 'en');
+    if (localFood) {
+      this.logger.debug(
+        `[NutritionOrchestrator] Found in local database: "${normalizedName}"`,
+      );
+      
+      const result: NutritionProviderResult = {
+        food: localFood,
+        confidence: 0.95, // High confidence for local foods
+        isSuspicious: false,
+      };
+      
+      // Cache the result
+      await this.cacheService.set(cacheKey, result, 'nutrition:lookup');
+      
+      return result;
+    }
+
     this.logger.debug(
-      `[NutritionOrchestrator] Cache miss for "${normalizedName}", querying providers in parallel...`,
+      `[NutritionOrchestrator] Cache miss and not in local DB for "${normalizedName}", querying providers in parallel...`,
     );
 
     const sorted = await this.sortProviders(contextWithRegion);
@@ -238,12 +371,27 @@ export class NutritionOrchestrator {
       return null;
     }
 
-    // P2: Launch all provider queries in parallel
-    const tasks = sorted.map((provider) =>
-      this.wrapProviderCall(provider, () => provider.findByText(trimmed, contextWithRegion)),
-    );
+    // P2: Launch all provider queries in parallel with timeouts
+    const NUTRITION_PROVIDER_TIMEOUT_MS = parseInt(process.env.NUTRITION_PROVIDER_TIMEOUT_MS || '3000', 10); // 3 seconds default (reduced from 10s for faster response)
+    
+    const tasks = sorted.map((provider) => {
+      const providerCall = this.wrapProviderCall(provider, () => provider.findByText(trimmed, contextWithRegion));
+      
+      // Add timeout for each provider call
+      const timeoutPromise = new Promise<{ providerId: string; result: null; error: string }>((resolve) => {
+        setTimeout(() => {
+          resolve({
+            providerId: provider.id,
+            result: null,
+            error: `Provider ${provider.id} timed out after ${NUTRITION_PROVIDER_TIMEOUT_MS}ms`,
+          });
+        }, NUTRITION_PROVIDER_TIMEOUT_MS);
+      });
+      
+      return Promise.race([providerCall, timeoutPromise]);
+    });
 
-    // Wait for all providers to complete (or fail)
+    // Wait for all providers to complete (or fail or timeout)
     const responses = await Promise.allSettled(tasks);
     
     // Extract valid results
@@ -254,6 +402,14 @@ export class NutritionOrchestrator {
     }> = [];
 
     for (const response of responses) {
+      // Handle timeout errors
+      if (response.status === 'fulfilled' && response.value.error && response.value.error.includes('timed out')) {
+        this.logger.warn(
+          `[Orchestrator] Provider ${response.value.providerId} timed out, skipping`,
+        );
+        continue;
+      }
+      
       if (response.status === 'fulfilled' && response.value.result && response.value.result.food) {
         const validation = this.validateResult(response.value.result, contextWithRegion);
         
@@ -409,6 +565,14 @@ export class NutritionOrchestrator {
     }> = [];
 
     for (const response of responses) {
+      // Handle timeout errors
+      if (response.status === 'fulfilled' && response.value.error && response.value.error.includes('timed out')) {
+        this.logger.warn(
+          `[Orchestrator] Provider ${response.value.providerId} timed out during barcode lookup, skipping`,
+        );
+        continue;
+      }
+      
       if (response.status === 'fulfilled' && response.value.result && response.value.result.food) {
         const validation = this.validateResult(response.value.result, contextWithRegion);
         

@@ -70,16 +70,21 @@ export class OfflineQueue {
           } else {
             item.retryCount++;
             
-            if (item.retryCount >= item.maxRetries) {
+            // maxRetries means max number of retries after initial attempt
+            // For maxRetries=2: initial (retryCount=0) + retry1 (retryCount=1) + retry2 (retryCount=2) = 3 total attempts
+            // After incrementing, retryCount represents the number of attempts made
+            // Use this.maxRetries (current value) instead of item.maxRetries (value at creation time)
+            if (item.retryCount > this.maxRetries) {
               this.queue.shift();
             } else {
+              // Continue retrying - wait before next attempt
               await new Promise(resolve => setTimeout(resolve, this.retryDelay * item.retryCount));
             }
           }
         } catch {
           item.retryCount++;
           
-          if (item.retryCount >= item.maxRetries) {
+          if (item.retryCount > this.maxRetries) {
             this.queue.shift();
           } else {
             await new Promise(resolve => setTimeout(resolve, this.retryDelay * item.retryCount));

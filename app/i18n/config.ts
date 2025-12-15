@@ -88,6 +88,11 @@ const initializeI18next = () => {
         react: {
           useSuspense: false,
         },
+        // Log missing keys in dev mode
+        missingKeyHandler: __DEV__ ? (lng, ns, key) => {
+          console.warn(`[i18n] Missing translation key: "${key}" for language: ${lng}`);
+        } : undefined,
+        saveMissing: false, // Don't save missing keys to backend
       })
       .then(() => {});
   }

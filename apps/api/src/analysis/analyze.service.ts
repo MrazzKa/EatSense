@@ -37,7 +37,6 @@ import { NutritionOrchestrator } from './providers/nutrition-orchestrator.servic
 import { HiddenIngredientsService } from './hidden-ingredients.service';
 import { FoodCompatibilityService } from './food-compatibility.service';
 import { CarcinogenicRiskService } from './carcinogenic-risk.service';
-import { applyHiddenIngredientsHeuristics } from './hidden-ingredients-heuristics';
 import { HiddenIngredientEstimate } from './analysis.types';
 // Import types - interfaces are exported from nutrition-provider.interface.ts
 // Note: If TypeScript shows import errors, restart TS server or check that file is saved
@@ -101,11 +100,165 @@ export class AnalyzeService {
     'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
   ];
 
+  private readonly FOOD_SYNONYMS: Map<string, string> = new Map([
+    // Яйца
+    ['egg', 'egg'], ['яйц', 'egg'], ['желток', 'egg'], ['белок яйц', 'egg'],
+    ['yolk', 'egg'], ['omelet', 'egg'], ['омлет', 'egg'], ['scrambled', 'egg'],
+    ['boiled egg', 'egg'], ['fried egg', 'egg'], ['вкрутую', 'egg'],
+    
+    // Курица
+    ['chicken', 'chicken'], ['курин', 'chicken'], ['куриц', 'chicken'],
+    ['курятин', 'chicken'], ['грудка', 'chicken'], ['breast', 'chicken'],
+    ['бедро кур', 'chicken'], ['крыл', 'chicken'], ['wing', 'chicken'],
+    
+    // Говядина
+    ['beef', 'beef'], ['говядин', 'beef'], ['говяж', 'beef'],
+    ['стейк', 'beef'], ['steak', 'beef'], ['фарш', 'beef'],
+    
+    // Свинина
+    ['pork', 'pork'], ['свинин', 'pork'], ['свиной', 'pork'],
+    ['бекон', 'pork'], ['bacon', 'pork'], ['ветчин', 'pork'], ['ham', 'pork'],
+    ['сосиск', 'pork'], ['sausage', 'pork'], ['колбас', 'pork'],
+    
+    // Рыба
+    ['fish', 'fish'], ['рыб', 'fish'], ['salmon', 'fish'], ['лосось', 'fish'],
+    ['сёмга', 'fish'], ['тунец', 'fish'], ['tuna', 'fish'], ['треска', 'fish'],
+    ['cod', 'fish'], ['форель', 'fish'], ['trout', 'fish'],
+    
+    // Морепродукты
+    ['shrimp', 'shrimp'], ['креветк', 'shrimp'], ['prawn', 'shrimp'],
+    ['морепродукт', 'seafood'], ['seafood', 'seafood'], ['кальмар', 'seafood'],
+    
+    // Сыр
+    ['cheese', 'cheese'], ['сыр', 'cheese'], ['моцарел', 'cheese'],
+    ['пармезан', 'cheese'], ['чеддер', 'cheese'], ['фета', 'cheese'],
+    
+    // Молочка
+    ['milk', 'milk'], ['молок', 'milk'], ['молоч', 'milk'],
+    ['сливк', 'cream'], ['cream', 'cream'], ['сметан', 'cream'],
+    ['yogurt', 'yogurt'], ['йогурт', 'yogurt'], ['кефир', 'yogurt'],
+    ['творог', 'cottage'], ['cottage', 'cottage'],
+    ['butter', 'butter'], ['масло слив', 'butter'],
+    ['oil', 'oil'], ['масло раст', 'oil'], ['оливк', 'oil'],
+    
+    // Гарниры
+    ['potato', 'potato'], ['картоф', 'potato'], ['картош', 'potato'],
+    ['fries', 'potato'], ['фри', 'potato'], ['пюре картоф', 'potato'],
+    ['rice', 'rice'], ['рис', 'rice'], ['ризотто', 'rice'],
+    ['pasta', 'pasta'], ['макарон', 'pasta'], ['спагетти', 'pasta'],
+    ['noodle', 'pasta'], ['лапша', 'pasta'], ['пенне', 'pasta'],
+    ['bread', 'bread'], ['хлеб', 'bread'], ['тост', 'bread'], ['булк', 'bread'],
+    ['батон', 'bread'], ['багет', 'bread'], ['лаваш', 'bread'],
+    ['buckwheat', 'buckwheat'], ['гречк', 'buckwheat'],
+    ['oat', 'oatmeal'], ['овсян', 'oatmeal'], ['porridge', 'oatmeal'],
+    ['мюсли', 'oatmeal'], ['granola', 'oatmeal'],
+    
+    // Овощи
+    ['tomato', 'tomato'], ['помидор', 'tomato'], ['томат', 'tomato'], ['черри', 'tomato'],
+    ['cucumber', 'cucumber'], ['огурец', 'cucumber'],
+    ['carrot', 'carrot'], ['морков', 'carrot'],
+    ['beet', 'beetroot'], ['свекл', 'beetroot'], ['свёкл', 'beetroot'],
+    ['cabbage', 'cabbage'], ['капуст', 'cabbage'], ['coleslaw', 'cabbage'],
+    ['onion', 'onion'], ['лук', 'onion'],
+    ['pepper', 'pepper'], ['перец', 'pepper'], ['паприк', 'pepper'],
+    ['broccoli', 'broccoli'], ['брокколи', 'broccoli'],
+    ['spinach', 'spinach'], ['шпинат', 'spinach'],
+    ['lettuce', 'lettuce'], ['салат лист', 'lettuce'], ['латук', 'lettuce'],
+    ['руккола', 'lettuce'], ['arugula', 'lettuce'], ['зелен', 'greens'],
+    ['corn', 'corn'], ['кукуруз', 'corn'],
+    ['peas', 'peas'], ['горох', 'peas'],
+    ['beans', 'beans'], ['фасоль', 'beans'],
+    ['mushroom', 'mushroom'], ['гриб', 'mushroom'],
+    ['zucchini', 'zucchini'], ['кабачок', 'zucchini'],
+    ['eggplant', 'eggplant'], ['баклажан', 'eggplant'],
+    ['avocado', 'avocado'], ['авокадо', 'avocado'],
+    
+    // Фрукты
+    ['apple', 'apple'], ['яблок', 'apple'],
+    ['banana', 'banana'], ['банан', 'banana'],
+    ['orange', 'orange'], ['апельсин', 'orange'], ['мандарин', 'orange'],
+    ['grape', 'grape'], ['виноград', 'grape'],
+    ['berry', 'berry'], ['ягод', 'berry'], ['клубник', 'berry'],
+    ['черник', 'berry'], ['голубик', 'berry'],
+    
+    // Соусы
+    ['sauce', 'sauce'], ['соус', 'sauce'],
+    ['mayo', 'mayo'], ['майонез', 'mayo'],
+    ['ketchup', 'ketchup'], ['кетчуп', 'ketchup'],
+    ['dressing', 'dressing'], ['заправк', 'dressing'],
+    
+    // Напитки
+    ['coffee', 'coffee'], ['кофе', 'coffee'], ['латте', 'coffee'],
+    ['капучино', 'coffee'], ['эспрессо', 'coffee'], ['американо', 'coffee'],
+    ['tea', 'tea'], ['чай', 'tea'],
+    ['juice', 'juice'], ['сок', 'juice'],
+    ['water', 'water'], ['вода', 'water'],
+    
+    // Прочее
+    ['crab stick', 'crab_stick'], ['крабов', 'crab_stick'], ['сурими', 'crab_stick'],
+  ]);
+
   /**
    * Normalize text for comparison
    */
   private normalizeText(value?: string | null): string {
     return (value || '').trim().toLowerCase();
+  }
+
+  private getNormalizedFoodKey(name: string): string {
+    const lower = name.toLowerCase();
+
+    // Use Array.from to iterate Map for better TypeScript compatibility
+    for (const [pattern, group] of Array.from(this.FOOD_SYNONYMS.entries())) {
+      if (lower.includes(pattern)) {
+        return group;
+      }
+    }
+
+    const words = lower
+      .replace(/[^a-zа-яё0-9\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3);
+
+    if (words.length > 0) {
+      const longest = words.reduce((a, b) => (a.length > b.length ? a : b));
+      const isRussian = /[а-яё]/.test(longest);
+      return longest.slice(0, isRussian ? 5 : 4);
+    }
+
+    return lower.slice(0, 8);
+  }
+
+  private deduplicateComponents(components: VisionComponent[]): VisionComponent[] {
+    const groups = new Map<string, VisionComponent>();
+
+    for (const comp of components) {
+      const key = this.getNormalizedFoodKey(comp.name);
+      const existing = groups.get(key);
+
+      if (!existing) {
+        groups.set(key, { ...comp });
+      } else {
+        existing.est_portion_g = (existing.est_portion_g || 0) + (comp.est_portion_g || 0);
+
+        if ((comp as any).confidence > ((existing as any).confidence || 0)) {
+          existing.name = comp.name;
+          (existing as any).confidence = (comp as any).confidence;
+        }
+
+        this.logger.debug(
+          `[Dedupe] Merged "${comp.name}" into "${existing.name}", total: ${existing.est_portion_g}g`
+        );
+      }
+    }
+
+    const result = Array.from(groups.values());
+
+    if (result.length < components.length) {
+      this.logger.log(`[Dedupe] Reduced ${components.length} → ${result.length} components`);
+    }
+
+    return result;
   }
 
   /**
@@ -421,6 +574,281 @@ export class AnalyzeService {
   }
 
   /**
+   * Process a single component asynchronously
+   */
+  private async processComponentAsync(
+    component: VisionComponent,
+    locale: 'en' | 'ru' | 'kk',
+    debug: AnalysisDebug,
+  ): Promise<AnalyzedItem[]> {
+    const items: AnalyzedItem[] = [];
+    
+    try {
+      const {
+        name,
+        preparation,
+        est_portion_g,
+      } = component;
+      
+      // category and volume_ml may not exist in VisionComponent type
+      const category = (component as any).category;
+      const volume_ml = (component as any).volume_ml;
+
+      // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
+      const beverageDetection = this.detectBeverageForItem({
+        name: name,
+        category: category,
+        volume_ml: volume_ml || (est_portion_g && est_portion_g > 0 ? est_portion_g : undefined),
+        portion_g: est_portion_g,
+      });
+
+      if (beverageDetection && beverageDetection.isBeverage) {
+        // Создать "канонический" AnalyzedItem без вызова провайдеров
+        const volume = beverageDetection.volume_ml ?? volume_ml ?? (est_portion_g && est_portion_g > 0 ? est_portion_g : 250);
+        const portionG = est_portion_g && est_portion_g > 0 
+          ? (est_portion_g < 50 ? volume : (est_portion_g > 800 ? 800 : est_portion_g))
+          : volume;
+
+        // Определяем source в зависимости от типа напитка
+        let source: AnalyzedItem['source'];
+        let baseNameEn: string;
+        
+        switch (beverageDetection.kind) {
+          case 'water':
+            source = 'canonical_water';
+            baseNameEn = 'Water';
+            break;
+          case 'black_coffee':
+            source = 'canonical_plain_coffee';
+            baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Black Coffee';
+            break;
+          case 'tea':
+            source = 'canonical_plain_tea';
+            baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Tea';
+            break;
+          case 'milk_coffee':
+            source = 'canonical_milk_coffee_fallback';
+            baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Cappuccino';
+            break;
+          default:
+            source = 'canonical_beverage';
+            baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Beverage';
+        }
+
+        const localizedName = await this.foodLocalization.localizeName(baseNameEn, locale);
+
+        const beverageItem: AnalyzedItem = {
+          name: localizedName || baseNameEn,
+          originalName: baseNameEn,
+          label: name,
+          portion_g: portionG,
+          nutrients: {
+            calories: beverageDetection.calories ?? 0,
+            protein: beverageDetection.protein_g ?? 0,
+            carbs: beverageDetection.carbs_g ?? 0,
+            fat: beverageDetection.fat_g ?? 0,
+            fiber: beverageDetection.fiber_g ?? 0,
+            sugars: beverageDetection.sugars_g ?? 0,
+            satFat: beverageDetection.satFat_g ?? 0,
+            energyDensity: beverageDetection.calories && portionG > 0 
+              ? (beverageDetection.calories / portionG) * 100 
+              : 0,
+          },
+          source,
+          locale,
+          hasNutrition: beverageDetection.kind !== 'water',
+          cookingMethodHints: this.extractCookingMethodHints(component),
+        };
+
+        items.push(beverageItem);
+        debug.components.push({
+          type: 'matched',
+          vision: component,
+          beverageDetected: true,
+          beverageKind: beverageDetection.kind,
+          skippedProvider: true,
+          provider: source,
+        });
+
+        if (process.env.ANALYSIS_DEBUG === 'true') {
+          this.logger.debug('[AnalyzeService] Detected beverage, using canonical values', {
+            componentName: name,
+            kind: beverageDetection.kind,
+            portionG,
+            calories: beverageDetection.calories,
+          });
+        }
+        return items; // Переходим к следующему компоненту, провайдеров не трогаем
+      }
+      
+      const query = `${component.name} ${component.preparation || ''}`.trim();
+      
+      // Detect if component is likely a drink based on name
+      const componentNameLower = component.name.toLowerCase();
+      const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
+      const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
+      
+      // Build lookup context
+      // TODO: Get user region from profile/preferences
+      const lookupContext: NutritionLookupContext = {
+        locale,
+        region: locale === 'en' ? 'US' : 'EU', // Simple mapping for now
+        expectedCategory,
+      };
+      
+      // Try to find nutrition data via orchestrator
+      const nutritionStartTime = Date.now();
+      const providerResult: NutritionProviderResult | null = await this.nutrition.findNutrition(
+        query,
+        lookupContext,
+      );
+      const nutritionDuration = Date.now() - nutritionStartTime;
+      if (nutritionDuration > 1000) {
+        this.logger.debug(`[AnalyzeService] Nutrition lookup for "${query}" took ${nutritionDuration}ms`);
+      }
+
+      if (!providerResult || !providerResult.food) {
+        debug.components.push({ 
+          type: 'no_match', 
+          vision: component,
+          provider: null,
+        });
+        if (process.env.ANALYSIS_DEBUG === 'true' && isDrinkComponent) {
+          this.logger.debug('[AnalyzeService] No provider matches for drink component', {
+            componentName: component.name,
+            query,
+          });
+        }
+        // Use fallback (will handle beverages appropriately)
+        await this.addVisionFallback(component, items, debug, locale, isDrinkComponent);
+        return items;
+      }
+
+      const canonicalFood = providerResult.food;
+      const isDrink = canonicalFood.category === 'drink';
+
+      // Estimate portion (with clamping)
+      const portionG = this.estimatePortionInGrams(
+        component,
+        canonicalFood.defaultPortionG || null,
+        debug,
+      );
+
+      // Calculate nutrients for portion (provider data is per 100g/ml)
+      const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
+
+      // Special handling for milk coffee drinks: sanity check and fallback
+      const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
+      if (isMilkCoffee && isDrink) {
+        const kcalPer100 = canonicalFood.per100g.calories || 0;
+        const kcalPerPortion = nutrients.calories;
+        
+        // If calories seem too high (> 150 kcal/100ml or > 400 kcal/300ml), use canonical values
+        if (kcalPer100 > 150 || (kcalPerPortion > 400 && portionG <= 300)) {
+          if (process.env.ANALYSIS_DEBUG === 'true') {
+            this.logger.warn('[AnalyzeService] Milk coffee calories too high, using canonical fallback', {
+              componentName: component.name,
+              originalKcalPer100: kcalPer100,
+              originalKcalPerPortion: kcalPerPortion,
+              portionG,
+              provider: canonicalFood.providerId,
+            });
+          }
+          
+          // Use conservative canonical values for cappuccino/latte
+          const canonicalKcalPer250ml = 90; // Average: 60-120 kcal
+          const scale = portionG / 250;
+          nutrients.calories = Math.round(canonicalKcalPer250ml * scale);
+          nutrients.protein = this.round(3 * scale, 1); // ~3g per 250ml
+          nutrients.carbs = this.round(9 * scale, 1); // ~9g per 250ml
+          nutrients.fat = this.round(4.5 * scale, 1); // ~4.5g per 250ml
+          nutrients.fiber = 0;
+          nutrients.sugars = this.round(8 * scale, 1); // ~8g per 250ml
+          nutrients.satFat = this.round(2.5 * scale, 1); // ~2.5g per 250ml
+          nutrients.energyDensity = this.round((nutrients.calories / portionG) * 100, 1);
+          
+          // Update source to indicate canonical fallback
+          const item = await this.createAnalyzedItemFromCanonical(
+            component,
+            canonicalFood,
+            portionG,
+            nutrients,
+            locale,
+            'canonical_milk_coffee_fallback',
+          );
+          
+          items.push(item);
+          debug.components.push({
+            type: 'matched',
+            vision: component,
+            provider: canonicalFood.providerId,
+            providerId: canonicalFood.providerFoodId,
+            foodName: canonicalFood.displayName,
+            canonicalFallback: true,
+            reason: 'milk_coffee_calories_too_high',
+            originalCalories: kcalPerPortion,
+            originalProvider: canonicalFood.providerId,
+          });
+          return items;
+        }
+      }
+
+      // Debug logging
+      if (process.env.ANALYSIS_DEBUG === 'true' || nutrients.calories === 0) {
+        this.logger.debug('[AnalyzeService] Provider match for component', {
+          componentName: component.name,
+          providerId: canonicalFood.providerId,
+          foodId: canonicalFood.providerFoodId,
+          foodName: canonicalFood.displayName,
+          portionG: portionG,
+          calculatedCalories: nutrients.calories,
+          calculatedProtein: nutrients.protein,
+          calculatedCarbs: nutrients.carbs,
+          calculatedFat: nutrients.fat,
+          confidence: providerResult.confidence,
+          isSuspicious: providerResult.isSuspicious,
+        });
+      }
+
+      // Create AnalyzedItem from canonical food
+      const item = await this.createAnalyzedItemFromCanonical(
+        component,
+        canonicalFood,
+        portionG,
+        nutrients,
+        locale,
+        canonicalFood.providerId === 'usda' ? 'fdc' : canonicalFood.providerId,
+      );
+
+      // Add cookingMethodHints from Vision component
+      item.cookingMethodHints = this.extractCookingMethodHints(component);
+
+      items.push(item);
+      debug.components.push({ 
+        type: 'matched', 
+        vision: component, 
+        provider: canonicalFood.providerId,
+        providerId: canonicalFood.providerFoodId,
+        foodName: canonicalFood.displayName,
+        confidence: providerResult.confidence,
+        isSuspicious: providerResult.isSuspicious,
+        kcalPer100: canonicalFood.per100g.calories || 0,
+      });
+    } catch (error: any) {
+      this.logger.error(`Error analyzing component ${component.name}:`, error.message);
+      debug.components.push({ type: 'no_match', vision: component, error: error.message });
+      // Only use fallback for non-beverages
+      const componentNameLower = component.name.toLowerCase();
+      const isBeverage = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
+      if (!isBeverage) {
+        await this.addVisionFallback(component, items, debug, locale);
+      }
+    }
+    
+    return items;
+  }
+
+  /**
    * Analyze image and return normalized nutrition data
    */
   async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review' }): Promise<AnalysisData> {
@@ -442,6 +870,7 @@ export class AnalyzeService {
     // Extract components via Vision (with caching)
     // Use getOrExtractComponents for better cache support with Buffer
     let visionComponents: VisionComponent[];
+    const visionStartTime = Date.now();
     try {
       visionComponents = await this.vision.getOrExtractComponents({
         imageUrl: params.imageUrl,
@@ -449,6 +878,8 @@ export class AnalyzeService {
         locale,
         mode,
       });
+      const visionDuration = Date.now() - visionStartTime;
+      this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms`);
     } catch (error: any) {
       // Handle Vision API errors gracefully
       this.logger.error('[AnalyzeService] Vision extraction failed', {
@@ -475,266 +906,26 @@ export class AnalyzeService {
       model: process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-5.1',
     };
 
-    // Analyze each component
+    // Дедупликация: объединяем похожие продукты
+    const uniqueComponents = this.deduplicateComponents(visionComponents);
+
+    (debug as any).deduplication = {
+      before: visionComponents.length,
+      after: uniqueComponents.length,
+      removed: visionComponents.length - uniqueComponents.length,
+    };
+
+    // Analyze each component in parallel
     const items: AnalyzedItem[] = [];
 
-    for (const component of visionComponents) {
-      try {
-        const {
-          name,
-          preparation,
-          est_portion_g,
-        } = component;
-        
-        // category and volume_ml may not exist in VisionComponent type
-        const category = (component as any).category;
-        const volume_ml = (component as any).volume_ml;
-
-        // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
-        const beverageDetection = this.detectBeverageForItem({
-          name: name,
-          category: category,
-          volume_ml: volume_ml || (est_portion_g && est_portion_g > 0 ? est_portion_g : undefined),
-          portion_g: est_portion_g,
-        });
-
-        if (beverageDetection && beverageDetection.isBeverage) {
-          // Создать "канонический" AnalyzedItem без вызова провайдеров
-          const volume = beverageDetection.volume_ml ?? volume_ml ?? (est_portion_g && est_portion_g > 0 ? est_portion_g : 250);
-          const portionG = est_portion_g && est_portion_g > 0 
-            ? (est_portion_g < 50 ? volume : (est_portion_g > 800 ? 800 : est_portion_g))
-            : volume;
-
-          // Определяем source в зависимости от типа напитка
-          let source: AnalyzedItem['source'];
-          let baseNameEn: string;
-          
-          switch (beverageDetection.kind) {
-            case 'water':
-              source = 'canonical_water';
-              baseNameEn = 'Water';
-              break;
-            case 'black_coffee':
-              source = 'canonical_plain_coffee';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Black Coffee';
-              break;
-            case 'tea':
-              source = 'canonical_plain_tea';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Tea';
-              break;
-            case 'milk_coffee':
-              source = 'canonical_milk_coffee_fallback';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Cappuccino';
-              break;
-            default:
-              source = 'canonical_beverage';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Beverage';
-          }
-
-          const localizedName = await this.foodLocalization.localizeName(baseNameEn, locale);
-
-          const beverageItem: AnalyzedItem = {
-            name: localizedName || baseNameEn,
-            originalName: baseNameEn,
-            label: name,
-            portion_g: portionG,
-            nutrients: {
-              calories: beverageDetection.calories ?? 0,
-              protein: beverageDetection.protein_g ?? 0,
-              carbs: beverageDetection.carbs_g ?? 0,
-              fat: beverageDetection.fat_g ?? 0,
-              fiber: beverageDetection.fiber_g ?? 0,
-              sugars: beverageDetection.sugars_g ?? 0,
-              satFat: beverageDetection.satFat_g ?? 0,
-              energyDensity: beverageDetection.calories && portionG > 0 
-                ? (beverageDetection.calories / portionG) * 100 
-                : 0,
-            },
-            source,
-            locale,
-            hasNutrition: beverageDetection.kind !== 'water',
-            cookingMethodHints: this.extractCookingMethodHints(component),
-          };
-
-          items.push(beverageItem);
-          debug.components.push({
-            type: 'matched',
-            vision: component,
-            beverageDetected: true,
-            beverageKind: beverageDetection.kind,
-            skippedProvider: true,
-            provider: source,
-          });
-
-          if (process.env.ANALYSIS_DEBUG === 'true') {
-            this.logger.debug('[AnalyzeService] Detected beverage, using canonical values', {
-              componentName: name,
-              kind: beverageDetection.kind,
-              portionG,
-              calories: beverageDetection.calories,
-            });
-          }
-          continue; // Переходим к следующему компоненту, провайдеров не трогаем
-        }
-        
-        const query = `${component.name} ${component.preparation || ''}`.trim();
-        
-        // Detect if component is likely a drink based on name
-        const componentNameLower = component.name.toLowerCase();
-        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
-        const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
-        
-        // Build lookup context
-        // TODO: Get user region from profile/preferences
-        const lookupContext: NutritionLookupContext = {
-          locale,
-          region: locale === 'en' ? 'US' : 'EU', // Simple mapping for now
-          expectedCategory,
-        };
-        
-        // Try to find nutrition data via orchestrator
-        const providerResult: NutritionProviderResult | null = await this.nutrition.findNutrition(
-          query,
-          lookupContext,
-        );
-
-        if (!providerResult || !providerResult.food) {
-          debug.components.push({ 
-            type: 'no_match', 
-            vision: component,
-            provider: null,
-          });
-          if (process.env.ANALYSIS_DEBUG === 'true' && isDrinkComponent) {
-            this.logger.debug('[AnalyzeService] No provider matches for drink component', {
-              componentName: component.name,
-              query,
-            });
-          }
-          // Use fallback (will handle beverages appropriately)
-          await this.addVisionFallback(component, items, debug, locale, isDrinkComponent);
-          continue;
-        }
-
-        const canonicalFood = providerResult.food;
-        const isDrink = canonicalFood.category === 'drink';
-
-        // Estimate portion (with clamping)
-        const portionG = this.estimatePortionInGrams(
-          component,
-          canonicalFood.defaultPortionG || null,
-          debug,
-        );
-
-        // Calculate nutrients for portion (provider data is per 100g/ml)
-        const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
-
-        // Special handling for milk coffee drinks: sanity check and fallback
-        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
-        if (isMilkCoffee && isDrink) {
-          const kcalPer100 = canonicalFood.per100g.calories || 0;
-          const kcalPerPortion = nutrients.calories;
-          
-          // If calories seem too high (> 150 kcal/100ml or > 400 kcal/300ml), use canonical values
-          if (kcalPer100 > 150 || (kcalPerPortion > 400 && portionG <= 300)) {
-            if (process.env.ANALYSIS_DEBUG === 'true') {
-              this.logger.warn('[AnalyzeService] Milk coffee calories too high, using canonical fallback', {
-                componentName: component.name,
-                originalKcalPer100: kcalPer100,
-                originalKcalPerPortion: kcalPerPortion,
-                portionG,
-                provider: canonicalFood.providerId,
-              });
-            }
-            
-            // Use conservative canonical values for cappuccino/latte
-            const canonicalKcalPer250ml = 90; // Average: 60-120 kcal
-            const scale = portionG / 250;
-            nutrients.calories = Math.round(canonicalKcalPer250ml * scale);
-            nutrients.protein = this.round(3 * scale, 1); // ~3g per 250ml
-            nutrients.carbs = this.round(9 * scale, 1); // ~9g per 250ml
-            nutrients.fat = this.round(4.5 * scale, 1); // ~4.5g per 250ml
-            nutrients.fiber = 0;
-            nutrients.sugars = this.round(8 * scale, 1); // ~8g per 250ml
-            nutrients.satFat = this.round(2.5 * scale, 1); // ~2.5g per 250ml
-            nutrients.energyDensity = this.round((nutrients.calories / portionG) * 100, 1);
-            
-            // Update source to indicate canonical fallback
-            const item = await this.createAnalyzedItemFromCanonical(
-              component,
-              canonicalFood,
-              portionG,
-              nutrients,
-              locale,
-              'canonical_milk_coffee_fallback',
-            );
-            
-            items.push(item);
-            debug.components.push({
-              type: 'matched',
-              vision: component,
-              provider: canonicalFood.providerId,
-              providerId: canonicalFood.providerFoodId,
-              foodName: canonicalFood.displayName,
-              canonicalFallback: true,
-              reason: 'milk_coffee_calories_too_high',
-              originalCalories: kcalPerPortion,
-              originalProvider: canonicalFood.providerId,
-            });
-            continue;
-          }
-        }
-
-        // Debug logging
-        if (process.env.ANALYSIS_DEBUG === 'true' || nutrients.calories === 0) {
-          this.logger.debug('[AnalyzeService] Provider match for component', {
-            componentName: component.name,
-            providerId: canonicalFood.providerId,
-            foodId: canonicalFood.providerFoodId,
-            foodName: canonicalFood.displayName,
-            portionG: portionG,
-            calculatedCalories: nutrients.calories,
-            calculatedProtein: nutrients.protein,
-            calculatedCarbs: nutrients.carbs,
-            calculatedFat: nutrients.fat,
-            confidence: providerResult.confidence,
-            isSuspicious: providerResult.isSuspicious,
-          });
-        }
-
-        // Create AnalyzedItem from canonical food
-        const item = await this.createAnalyzedItemFromCanonical(
-          component,
-          canonicalFood,
-          portionG,
-          nutrients,
-          locale,
-          canonicalFood.providerId === 'usda' ? 'fdc' : canonicalFood.providerId,
-        );
-
-        // Add cookingMethodHints from Vision component
-        item.cookingMethodHints = this.extractCookingMethodHints(component);
-
-        items.push(item);
-        debug.components.push({ 
-          type: 'matched', 
-          vision: component, 
-          provider: canonicalFood.providerId,
-          providerId: canonicalFood.providerFoodId,
-          foodName: canonicalFood.displayName,
-          confidence: providerResult.confidence,
-          isSuspicious: providerResult.isSuspicious,
-          kcalPer100: canonicalFood.per100g.calories || 0,
-        });
-      } catch (error: any) {
-        this.logger.error(`Error analyzing component ${component.name}:`, error.message);
-        debug.components.push({ type: 'no_match', vision: component, error: error.message });
-        // Only use fallback for non-beverages
-        const componentNameLower = component.name.toLowerCase();
-        const isBeverage = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
-        if (!isBeverage) {
-          await this.addVisionFallback(component, items, debug, locale);
-        }
-      }
+    const componentPromises = uniqueComponents.map(component => 
+      this.processComponentAsync(component, locale, debug)
+    );
+    const processedItemsArrays = await Promise.all(componentPromises);
+    
+    // Flatten the results
+    for (const processedItems of processedItemsArrays) {
+      items.push(...processedItems);
     }
 
     // P3.2: Apply hidden ingredients heuristics to items (integrate into existing items)
@@ -981,6 +1172,8 @@ export class AnalyzeService {
       originalDishName,
       isSuspicious,
       needsReview,
+      imageUrl: params.imageUrl,
+      imageUri: params.imageUrl, // For backward compatibility
     };
 
     // Evaluate food compatibility
@@ -1015,7 +1208,7 @@ export class AnalyzeService {
   /**
    * Analyze text description
    */
-  async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk'): Promise<AnalysisData> {
+  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk'): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     // Normalize locale
     const normalizedLocale: 'en' | 'ru' | 'kk' =
@@ -1040,260 +1233,16 @@ export class AnalyzeService {
       model: 'text-input',
     };
 
+    // Use the same processing logic as analyzeImage for consistency
     const items: AnalyzedItem[] = [];
-
-    for (const component of components) {
-      try {
-        const { name, est_portion_g } = component;
-
-        // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
-        const beverageDetection = this.detectBeverageForItem({
-          name: name,
-          category: undefined,
-          volume_ml: est_portion_g && est_portion_g > 0 ? est_portion_g : undefined,
-          portion_g: est_portion_g,
-        });
-
-        if (beverageDetection && beverageDetection.isBeverage) {
-          // Создать "канонический" AnalyzedItem без вызова провайдеров
-          const volume = beverageDetection.volume_ml ?? (est_portion_g && est_portion_g > 0 ? est_portion_g : 250);
-          const portionG = est_portion_g && est_portion_g > 0 
-            ? (est_portion_g < 50 ? volume : (est_portion_g > 800 ? 800 : est_portion_g))
-            : volume;
-
-          // Определяем source в зависимости от типа напитка
-          let source: AnalyzedItem['source'];
-          let baseNameEn: string;
-          
-          switch (beverageDetection.kind) {
-            case 'water':
-              source = 'canonical_water';
-              baseNameEn = 'Water';
-              break;
-            case 'black_coffee':
-              source = 'canonical_plain_coffee';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Black Coffee';
-              break;
-            case 'tea':
-              source = 'canonical_plain_tea';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Tea';
-              break;
-            case 'milk_coffee':
-              source = 'canonical_milk_coffee_fallback';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Cappuccino';
-              break;
-            default:
-              source = 'canonical_beverage';
-              baseNameEn = normalizeFoodName(this.buildBaseFoodName(name)) || 'Beverage';
-          }
-
-          const localizedName = await this.foodLocalization.localizeName(baseNameEn, normalizedLocale);
-
-          const beverageItem: AnalyzedItem = {
-            name: localizedName || baseNameEn,
-            originalName: baseNameEn,
-            label: name,
-            portion_g: portionG,
-            nutrients: {
-              calories: beverageDetection.calories ?? 0,
-              protein: beverageDetection.protein_g ?? 0,
-              carbs: beverageDetection.carbs_g ?? 0,
-              fat: beverageDetection.fat_g ?? 0,
-              fiber: beverageDetection.fiber_g ?? 0,
-              sugars: beverageDetection.sugars_g ?? 0,
-              satFat: beverageDetection.satFat_g ?? 0,
-              energyDensity: beverageDetection.calories && portionG > 0 
-                ? (beverageDetection.calories / portionG) * 100 
-                : 0,
-            },
-            source,
-            locale: normalizedLocale,
-            hasNutrition: beverageDetection.kind !== 'water',
-          };
-
-          items.push(beverageItem);
-          debug.components.push({
-            type: 'matched',
-            vision: component,
-            beverageDetected: true,
-            beverageKind: beverageDetection.kind,
-            skippedProvider: true,
-            provider: source,
-          });
-          continue; // Переходим к следующему компоненту, провайдеров не трогаем
-        }
-
-        // 2) Если не напиток — обычный пайплайн (NutritionOrchestrator)
-        // Fallback для старых вызовов (если detectPlainCoffeeOrTea был вызван напрямую)
-        const plainCoffeeTea = this.detectPlainCoffeeOrTeaLegacy(name);
-        if (plainCoffeeTea.isPlain) {
-          const portionG = est_portion_g && est_portion_g > 0 
-            ? est_portion_g 
-            : 200;
-          const clampedPortion = portionG < 50 ? 200 : (portionG > 800 ? 800 : portionG);
-          
-          const baseName = this.buildBaseFoodName(name);
-          const originalNameEn = normalizeFoodName(baseName);
-          const localizedName = await this.foodLocalization.localizeName(originalNameEn, normalizedLocale);
-          
-          const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
-          
-          const coffeeTeaItem: AnalyzedItem = {
-            name: localizedName || originalNameEn,
-            originalName: originalNameEn,
-            label: name,
-            portion_g: clampedPortion,
-            nutrients: this.getPlainCoffeeOrTeaNutrients(clampedPortion),
-            source: sourceType,
-            locale: normalizedLocale,
-            hasNutrition: true,
-            cookingMethodHints: this.extractCookingMethodHints(component),
-          };
-          
-          items.push(coffeeTeaItem);
-          debug.components.push({ 
-            type: 'matched', 
-            vision: component, 
-            plainCoffeeTea: true,
-            coffeeTeaType: plainCoffeeTea.type,
-            skippedProvider: true,
-            provider: sourceType,
-          });
-          continue;
-        }
-
-        // Обработка напитков уже выполнена выше через detectBeverageForItem
-        // Этот блок больше не нужен, так как все напитки обрабатываются унифицированно
-
-        const query = component.name;
-        
-        // Detect if component is likely a drink
-        const componentNameLower = component.name.toLowerCase();
-        const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
-        const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
-        
-        // Build lookup context
-        const lookupContext: NutritionLookupContext = {
-          locale: normalizedLocale,
-          region: normalizedLocale === 'en' ? 'US' : 'EU',
-          expectedCategory,
-        };
-        
-        // Try to find nutrition data via orchestrator
-        const providerResult: NutritionProviderResult | null = await this.nutrition.findNutrition(
-          query,
-          lookupContext,
-        );
-
-        if (!providerResult || !providerResult.food) {
-          debug.components.push({ 
-            type: 'no_match', 
-            vision: component,
-            provider: null,
-          });
-          // Use fallback (will handle beverages appropriately)
-          await this.addVisionFallback(component, items, debug, normalizedLocale, isDrinkComponent);
-          continue;
-        }
-
-        const canonicalFood = providerResult.food;
-        const isDrink = canonicalFood.category === 'drink';
-
-        const portionG = this.estimatePortionInGrams(
-          component,
-          canonicalFood.defaultPortionG || null,
-          debug,
-        );
-        const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
-
-        // Special handling for milk coffee drinks
-        const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
-        if (isMilkCoffee && isDrink) {
-          const kcalPer100 = canonicalFood.per100g.calories || 0;
-          const kcalPerPortion = nutrients.calories;
-          
-          if (kcalPer100 > 150 || (kcalPerPortion > 400 && portionG <= 300)) {
-            if (process.env.ANALYSIS_DEBUG === 'true') {
-              this.logger.warn('[AnalyzeService] Milk coffee calories too high in text analysis, using canonical fallback', {
-                componentName: component.name,
-                originalKcalPer100: kcalPer100,
-                originalKcalPerPortion: kcalPerPortion,
-                portionG,
-                provider: canonicalFood.providerId,
-              });
-            }
-            
-            const canonicalKcalPer250ml = 90;
-            const scale = portionG / 250;
-            nutrients.calories = Math.round(canonicalKcalPer250ml * scale);
-            nutrients.protein = this.round(3 * scale, 1);
-            nutrients.carbs = this.round(9 * scale, 1);
-            nutrients.fat = this.round(4.5 * scale, 1);
-            nutrients.fiber = 0;
-            nutrients.sugars = this.round(8 * scale, 1);
-            nutrients.satFat = this.round(2.5 * scale, 1);
-            nutrients.energyDensity = this.round((nutrients.calories / portionG) * 100, 1);
-            
-            const item = await this.createAnalyzedItemFromCanonical(
-              component,
-              canonicalFood,
-              portionG,
-              nutrients,
-              normalizedLocale,
-              'canonical_milk_coffee_fallback',
-            );
-            
-            // Add cookingMethodHints from Vision component
-            item.cookingMethodHints = this.extractCookingMethodHints(component);
-            
-            items.push(item);
-            debug.components.push({
-              type: 'matched',
-              vision: component,
-              provider: canonicalFood.providerId,
-              providerId: canonicalFood.providerFoodId,
-              foodName: canonicalFood.displayName,
-              canonicalFallback: true,
-              reason: 'milk_coffee_calories_too_high',
-              originalCalories: kcalPerPortion,
-              originalProvider: canonicalFood.providerId,
-            });
-            continue;
-          }
-        }
-
-        const item = await this.createAnalyzedItemFromCanonical(
-          component,
-          canonicalFood,
-          portionG,
-          nutrients,
-          normalizedLocale,
-          canonicalFood.providerId === 'usda' ? 'fdc' : canonicalFood.providerId,
-        );
-
-        // Add cookingMethodHints from Vision component
-        item.cookingMethodHints = this.extractCookingMethodHints(component);
-
-        items.push(item);
-        debug.components.push({ 
-          type: 'matched', 
-          vision: component, 
-          provider: canonicalFood.providerId,
-          providerId: canonicalFood.providerFoodId,
-          foodName: canonicalFood.displayName,
-          confidence: providerResult.confidence,
-          isSuspicious: providerResult.isSuspicious,
-          kcalPer100: canonicalFood.per100g.calories || 0,
-        });
-      } catch (error: any) {
-        this.logger.error(`Error analyzing text component ${component.name}:`, error.message);
-        debug.components.push({ type: 'no_match', vision: component, error: error.message });
-        const componentNameLower = component.name.toLowerCase();
-        const isBeverage = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
-        if (!isBeverage) {
-          await this.addVisionFallback(component, items, debug, normalizedLocale);
-        }
-      }
+    const componentPromises = components.map(component => 
+      this.processComponentAsync(component, normalizedLocale, debug)
+    );
+    const processedItemsArrays = await Promise.all(componentPromises);
+    
+    // Flatten the results
+    for (const processedItems of processedItemsArrays) {
+      items.push(...processedItems);
     }
 
     // P3.2: Apply hidden ingredients heuristics to items (integrate into existing items)
@@ -1463,67 +1412,6 @@ export class AnalyzeService {
       originalDishName,
       isSuspicious,
       needsReview,
-    };
-  }
-
-  /**
-   * Calculate nutrients for a specific portion size
-   * FDC data is per 100g, so we scale by portionG / 100
-   */
-  private calculateNutrientsForPortion(
-    normalized: any,
-    portionG: number,
-  ): Nutrients {
-    // FDC nutrients are always per 100g
-    const scale = portionG / 100;
-    const base = normalized.nutrients || {};
-
-    // Extract saturated fat from various possible fields
-    const satFat = base.satFat ?? base.saturatedFat ?? base.saturated_fat ?? base.saturated ?? 0;
-
-    // Calculate energy density (kcal per 100g)
-    const energyDensity = base.calories || 0;
-
-    // Task 2.1: Log if base calories are 0 before scaling
-    const baseCalories = base.calories || 0;
-    if (baseCalories === 0 && portionG > 0) {
-      this.logger.warn('[AnalyzeService] Zero calories from FDC', {
-        fdcId: normalized.fdcId,
-        description: normalized.description,
-        rawNutrients: base,
-        portionG,
-        baseCalories,
-        hasProtein: (base.protein || 0) > 0,
-        hasFat: (base.fat || 0) > 0,
-        hasCarbs: (base.carbs || 0) > 0,
-        dataType: normalized.dataType,
-      });
-    }
-
-    let calculatedCalories = Math.round(baseCalories * scale);
-    
-    // Fallback: if calories is 0 but macros exist, calculate from macros
-    if (!calculatedCalories && (base.protein || base.carbs || base.fat)) {
-      const protein = (base.protein || 0) * scale;
-      const carbs = (base.carbs || 0) * scale;
-      const fat = (base.fat || 0) * scale;
-      const fromMacros = protein * 4 + carbs * 4 + fat * 9;
-      calculatedCalories = Math.max(1, Math.round(fromMacros));
-    }
-
-    const protein = this.round((base.protein || 0) * scale, 1);
-    const carbs = this.round((base.carbs || 0) * scale, 1);
-    const fat = this.round((base.fat || 0) * scale, 1);
-
-    return {
-      calories: calculatedCalories,
-      protein,
-      carbs,
-      fat,
-      fiber: this.round((base.fiber || 0) * scale, 1),
-      sugars: this.round((base.sugars || 0) * scale, 1),
-      satFat: this.round(satFat * scale, 1),
-      energyDensity: this.round(energyDensity, 1),
     };
   }
 
@@ -1777,7 +1665,7 @@ export class AnalyzeService {
    * Q1: Run sanity check on analysis data
    * Public method for re-analysis use cases
    */
-  runSanityCheck(input: {
+  public runSanityCheck(input: {
     items: AnalyzedItem[];
     total: AnalysisTotals;
     healthScore?: HealthScore | null;
@@ -1903,7 +1791,7 @@ export class AnalyzeService {
    * Picks 1-3 main items (ignoring small portions like sauces).
    * Public method for re-analysis use cases
    */
-  buildDishNameEn(items: AnalyzedItem[]): string {
+  public buildDishNameEn(items: AnalyzedItem[]): string {
     // Filter out very small items (likely sauces, dressings) - threshold: < 20g
     const mainItems = items.filter(item => item.portion_g >= 20);
     const itemsToUse = mainItems.length > 0 ? mainItems : items;
@@ -2063,7 +1951,7 @@ export class AnalyzeService {
    * Compute health score from totals and items
    * Public method for re-analysis use cases
    */
-  computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' = 'en'): HealthScore {
+  public computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' = 'en'): HealthScore {
     // Use new internal method for proper calculation
     const itemsArray = items || [];
     const totalsForInternal = {
@@ -2466,7 +2354,7 @@ export class AnalyzeService {
    * Re-analyze with manually edited component names and portions
    * Does NOT call Vision - uses user-provided names directly
    */
-  async reanalyzeWithManualComponents(
+  public async reanalyzeWithManualComponents(
     input: {
       analysisId: string;
       components: Array<{ id: string; name: string; portion_g: number }>;

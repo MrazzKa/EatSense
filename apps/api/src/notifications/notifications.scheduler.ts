@@ -18,99 +18,106 @@ export class NotificationsScheduler {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async handleMedicationReminders() {
-    return;
+    try {
+      // Check if medications table exists by attempting a query
+      // If it fails, we'll catch and log the error but not crash
+      const nowUtc = DateTime.utc();
 
-    // TODO: Uncomment when medications table is created and migrations are applied
-    /*
-    const nowUtc = DateTime.utc();
-
-    // Находим все активные лекарства, у которых есть дозировки
-    const medications = await this.prisma.medication.findMany({
-      where: {
-        isActive: true,
-        doses: { some: {} },
-      },
-      include: {
-        doses: true,
-        user: {
-          include: {
-            notificationPreference: true,
-            pushTokens: {
-              where: { enabled: true },
+      // Находим все активные лекарства, у которых есть дозировки
+      const medications = await this.prisma.medication.findMany({
+        where: {
+          isActive: true,
+          doses: { some: {} },
+        },
+        include: {
+          doses: true,
+          user: {
+            include: {
+              notificationPreference: true,
+              pushTokens: {
+                where: { enabled: true },
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    for (const med of medications) {
-      const tz = med.timezone || 'UTC';
+      for (const med of medications) {
+        const tz = med.timezone || 'UTC';
 
-      // Проверяем, попадает ли текущий день в диапазон [startDate, endDate]
-      const todayLocal = nowUtc.setZone(tz);
-      if (!todayLocal.isValid) {
-        this.logger.warn(`Invalid timezone="${tz}" for medication=${med.id}, skipping`);
-        continue;
-      }
+        // Проверяем, попадает ли текущий день в диапазон [startDate, endDate]
+        const todayLocal = nowUtc.setZone(tz);
+        if (!todayLocal.isValid) {
+          this.logger.warn(`Invalid timezone="${tz}" for medication=${med.id}, skipping`);
+          continue;
+        }
 
-      const start = DateTime.fromJSDate(med.startDate).setZone(tz).startOf('day');
-      const end = med.endDate
-        ? DateTime.fromJSDate(med.endDate).setZone(tz).endOf('day')
-        : null;
+        const start = DateTime.fromJSDate(med.startDate).setZone(tz).startOf('day');
+        const end = med.endDate
+          ? DateTime.fromJSDate(med.endDate).setZone(tz).endOf('day')
+          : null;
 
-      if (todayLocal.toMillis() < start.toMillis() || (end && todayLocal.toMillis() > end.toMillis())) {
-        continue;
-      }
+        if (todayLocal.toMillis() < start.toMillis() || (end && todayLocal.toMillis() > end.toMillis())) {
+          continue;
+        }
 
-      // Если у юзера выключены medication-уведомления (если такое поле есть) — пропускаем
-      const prefs: any = med.user?.notificationPreference || {};
-      // Для MVP проверяем только общий флаг dailyPushEnabled
-      if (prefs && prefs.dailyPushEnabled === false) {
-        continue;
-      }
+        // Если у юзера выключены medication-уведомления (если такое поле есть) — пропускаем
+        const prefs: any = med.user?.notificationPreference || {};
+        // Для MVP проверяем только общий флаг dailyPushEnabled
+        if (prefs && prefs.dailyPushEnabled === false) {
+          continue;
+        }
 
-      // Проверяем, есть ли активные push tokens
-      if (!med.user?.pushTokens || med.user.pushTokens.length === 0) {
-        continue;
-      }
+        // Проверяем, есть ли активные push tokens
+        if (!med.user?.pushTokens || med.user.pushTokens.length === 0) {
+          continue;
+        }
 
-      for (const dose of med.doses) {
-        const [targetHour, targetMinute] = dose.timeOfDay
-          .split(':')
-          .map((v) => parseInt(v, 10));
+        for (const dose of med.doses) {
+          const [targetHour, targetMinute] = dose.timeOfDay
+            .split(':')
+            .map((v) => parseInt(v, 10));
 
-        const localNow = nowUtc.setZone(tz);
+          const localNow = nowUtc.setZone(tz);
 
-        // Простая логика: напоминание срабатывает, если текущее время совпадает по часам и минутам.
-        if (
-          localNow.hour === targetHour &&
-          localNow.minute === targetMinute
-        ) {
-          try {
-            await this.notificationsService.sendMedicationReminder({
-              userId: med.userId,
-              medicationId: med.id,
-              medicationName: med.name,
-              dosage: med.dosage,
-              doseTime: dose.timeOfDay,
-              beforeMeal: dose.beforeMeal,
-              afterMeal: dose.afterMeal,
-            });
+          // Простая логика: напоминание срабатывает, если текущее время совпадает по часам и минутам.
+          if (
+            localNow.hour === targetHour &&
+            localNow.minute === targetMinute
+          ) {
+            try {
+              await this.notificationsService.sendMedicationReminder({
+                userId: med.userId,
+                medicationId: med.id,
+                medicationName: med.name,
+                dosage: med.dosage,
+                doseTime: dose.timeOfDay,
+                beforeMeal: dose.beforeMeal,
+                afterMeal: dose.afterMeal,
+              });
 
-            this.logger.debug(
-              `[NotificationsScheduler] Sent medication reminder for medicationId=${med.id}, userId=${med.userId}, time=${dose.timeOfDay}`,
-            );
-          } catch (error: any) {
-            this.logger.error(
-              `Failed to send medication reminder for medicationId=${med.id}: ${
-                error?.message || error
-              }`,
-            );
+              this.logger.debug(
+                `[NotificationsScheduler] Sent medication reminder for medicationId=${med.id}, userId=${med.userId}, time=${dose.timeOfDay}`,
+              );
+            } catch (error: any) {
+              this.logger.error(
+                `Failed to send medication reminder for medicationId=${med.id}: ${
+                  error?.message || error
+                }`,
+              );
+            }
           }
         }
       }
+    } catch (error: any) {
+      // If medications table doesn't exist or there's a database error, log and continue
+      // This prevents the scheduler from crashing the entire application
+      if (error?.code === 'P2021' || error?.message?.includes('does not exist')) {
+        this.logger.debug('[NotificationsScheduler] Medications table not found, skipping medication reminders');
+      } else {
+        this.logger.error(`[NotificationsScheduler] Error in handleMedicationReminders: ${error?.message || error}`);
+      }
     }
-    */
   }
 
   @Cron('0 */15 * * * *')

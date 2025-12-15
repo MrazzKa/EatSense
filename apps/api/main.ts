@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './src/core/middleware/error-handler.middleware';
+import os from 'node:os';
 
 function resolveCorsOrigins(): string | string[] {
   const multi = process.env.CORS_ORIGINS;
@@ -88,7 +89,6 @@ async function bootstrap() {
   console.log(`📡 API Base URL: ${process.env.API_BASE_URL || 'not set'}`);
   console.log('========================================');
 
-  const os = require('os');
   const interfaces = os.networkInterfaces();
   const addresses: string[] = [];
   Object.keys(interfaces).forEach((ifname) => {

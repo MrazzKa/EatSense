@@ -431,7 +431,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={insets.top + 48}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
         <View style={[styles.container, { backgroundColor: colors.background || colors.surface }]}>
           {/* Messages List */}

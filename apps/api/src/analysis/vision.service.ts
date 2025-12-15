@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { CacheService } from '../cache/cache.service';
@@ -166,19 +166,34 @@ export class VisionService {
     this.logger.debug(`[VisionService] Cache miss, calling OpenAI Vision API (key: ${cacheKey.substring(0, 20)}...)`);
 
     // Convert relative URLs to absolute URLs for OpenAI Vision API
-    // If base64 is available, prefer it over URL (more reliable)
+    // CRITICAL: OpenAI Vision API requires absolute URLs, not relative paths
+    // If base64 is available, prefer it over URL (more reliable and faster, avoids network issues)
     let finalImageUrl = imageUrl;
-    if (imageUrl && imageUrl.startsWith('/')) {
-      // Relative URL - convert to absolute using API_BASE_URL or API_PUBLIC_URL
-      const apiBaseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || 'http://localhost:3000';
-      finalImageUrl = `${apiBaseUrl}${imageUrl}`;
-      this.logger.debug(`[VisionService] Converted relative URL to absolute: ${finalImageUrl}`);
+    if (imageUrl && !imageBase64) {
+      // Only process URL if we don't have base64 (base64 is preferred)
+      if (imageUrl.startsWith('/')) {
+        // Relative URL - convert to absolute using API_BASE_URL or API_PUBLIC_URL
+        const apiBaseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        finalImageUrl = `${apiBaseUrl}${imageUrl}`;
+        this.logger.debug(`[VisionService] Converted relative URL to absolute: ${finalImageUrl}`);
+      } else if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://') && !imageUrl.startsWith('data:')) {
+        // URL doesn't start with http/https/data - might be a relative path without leading slash
+        const apiBaseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        finalImageUrl = `${apiBaseUrl}/${imageUrl}`;
+        this.logger.debug(`[VisionService] Converted non-absolute URL to absolute: ${finalImageUrl}`);
+      }
     }
 
-    // Prefer base64 when available (more reliable for OpenAI Vision API)
+    // CRITICAL: Prefer base64 when available (more reliable for OpenAI Vision API, avoids URL timeout issues)
+    // Base64 is embedded in the request, so no network call needed to fetch the image
     const imageContent: any = imageBase64
       ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
       : { type: 'image_url', image_url: { url: finalImageUrl } };
+
+    // Validate that we have either base64 or a valid URL
+    if (!imageBase64 && !finalImageUrl) {
+      throw new BadRequestException('Either imageBase64 or valid imageUrl must be provided');
+    }
 
     // Debug log (only log first N chars of base64, not full string)
     this.logger.debug(
@@ -271,8 +286,19 @@ No markdown, no additional keys, no text before or after JSON.`;
     const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-5.1';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
     
+    // Configure timeout for Vision API call (default 60 seconds, configurable via env)
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '60000', 10);
+    
     try {
-      const response = await this.openai.chat.completions.create({
+      // Create timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Vision API call timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+      });
+
+      // Create Vision API call promise
+      const visionApiPromise = this.openai.chat.completions.create({
         // Use global OPENAI_MODEL if provided (e.g. gpt-5.1), fallback to VISION_MODEL or default
         model,
         messages: [
@@ -288,7 +314,17 @@ No markdown, no additional keys, no text before or after JSON.`;
         max_completion_tokens: 2000,
         temperature: 0.3,
         response_format: { type: 'json_object' },
+      }, {
+        timeout: timeoutMs, // Set timeout in request options
       });
+
+      // Race between API call and timeout
+      const response = await Promise.race([visionApiPromise, timeoutPromise]);
+
+      // Type guard to check if response is not a timeout error
+      if (!response || typeof response !== 'object' || !('choices' in response)) {
+        throw new Error('Vision API call timed out or returned invalid response');
+      }
 
       const content = response.choices[0]?.message?.content;
       if (!content) {
@@ -378,6 +414,17 @@ No markdown, no additional keys, no text before or after JSON.`;
 
       return validated;
     } catch (error: any) {
+      // Check if it's a timeout error
+      if (error?.message?.includes('timed out') || error?.message?.includes('timeout')) {
+        this.logger.error('[VisionService] Vision API timeout', {
+          timeoutMs,
+          model,
+          hasBase64: Boolean(imageBase64),
+          imageUrl: imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl,
+        });
+        throw new Error(`Vision API call timed out after ${timeoutMs}ms. The image may be too large or the network is slow.`);
+      }
+
       this.logger.error('[VisionService] Vision extraction error', {
         message: error.message,
         name: error.name,
@@ -386,10 +433,17 @@ No markdown, no additional keys, no text before or after JSON.`;
         responseStatus: error?.response?.status,
         responseData: error?.response?.data,
         model,
+        hasBase64: Boolean(imageBase64),
+        imageUrl: imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl,
       });
       
       if (error?.status === 429 || error?.response?.status === 429) {
         throw new Error('OpenAI rate limit exceeded. Please try again later.');
+      }
+
+      // If URL-based and error, suggest using base64
+      if (!imageBase64 && finalImageUrl) {
+        this.logger.warn('[VisionService] Vision API error with URL, consider using base64 for better reliability');
       }
 
       throw error;

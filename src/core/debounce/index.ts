@@ -30,26 +30,32 @@ export const debounceAsync = <T extends (..._args: any[]) => Promise<any>>(
   wait: number
 ): ((..._args: Parameters<T>) => Promise<Awaited<ReturnType<T>>>) => {
   let timeout: ReturnType<typeof setTimeout>;
-  let currentPromise: Promise<Awaited<ReturnType<T>>> | null = null;
+  let pendingResolvers: Array<(_value: Awaited<ReturnType<T>>) => void> = [];
+  let pendingRejectors: Array<(_error: any) => void> = [];
+  let currentArgs: Parameters<T> | null = null;
   
   return (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     return new Promise((resolve, reject) => {
       clearTimeout(timeout);
       
+      // Store resolve/reject functions for all pending calls
+      pendingResolvers.push(resolve);
+      pendingRejectors.push(reject);
+      currentArgs = args;
+      
       timeout = setTimeout(async () => {
         try {
-          if (currentPromise) {
-            const result = await currentPromise;
-            resolve(result);
-          } else {
-            currentPromise = func(...args);
-            const result = await currentPromise;
-            currentPromise = null;
-            resolve(result);
-          }
+          const result = await func(...currentArgs!);
+          
+          // Resolve all pending promises with the same result
+          pendingResolvers.forEach(resolveFn => resolveFn(result));
+          pendingResolvers = [];
+          pendingRejectors = [];
         } catch (error) {
-          currentPromise = null;
-          reject(error);
+          // Reject all pending promises with the same error
+          pendingRejectors.forEach(rejectFn => rejectFn(error));
+          pendingResolvers = [];
+          pendingRejectors = [];
         }
       }, wait);
     });
