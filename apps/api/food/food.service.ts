@@ -1108,6 +1108,7 @@ export class FoodService {
           healthScore: result.healthScore?.score ?? null,
           healthGrade: result.healthScore?.grade ?? null,
           healthInsights: result.healthScore ? (result.healthScore as any) : null,
+          imageUri: result.imageUrl || result.imageUri || meal.imageUri, // Preserve image URL
           items: {
             create: items.map((item: AnalyzedItem) => ({
               name: item.name,

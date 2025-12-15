@@ -49,6 +49,7 @@ export default function AnalysisResultsScreen() {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false); // Убрали отдельное окно процесса анализа
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisId, setAnalysisId] = useState(routeParams.analysisId || null); // Сохраняем analysisId в состоянии
   const [fadeAnim] = useState(new Animated.Value(0));
   const [editingItem, setEditingItem] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -207,11 +208,17 @@ export default function AnalysisResultsScreen() {
   );
 
   const applyResult = useCallback(
-    (payload, imageOverride) => {
+    (payload, imageOverride, analysisIdOverride) => {
       const normalized = normalizeAnalysis(payload, imageOverride);
       if (!normalized) {
         setIsAnalyzing(false);
         return;
+      }
+
+      // Сохраняем analysisId если он есть
+      const idToSave = analysisIdOverride || normalized.analysisId || normalized.id || analysisId;
+      if (idToSave) {
+        setAnalysisId(idToSave);
       }
 
       fadeAnim.setValue(0);
@@ -224,7 +231,7 @@ export default function AnalysisResultsScreen() {
         useNativeDriver: true,
       }).start();
     },
-    [fadeAnim, normalizeAnalysis],
+    [fadeAnim, normalizeAnalysis, analysisId, setAnalysisId],
   );
 
   useEffect(() => {
@@ -235,7 +242,88 @@ export default function AnalysisResultsScreen() {
       return () => clearTimeout(timeoutId);
     }
 
-    // Handle text description analysis
+    // Handle analysisId from route params (from DescribeFoodModal or other sources)
+    const analysisIdFromRoute = routeParams.analysisId;
+    if (analysisIdFromRoute) {
+      setIsAnalyzing(true);
+      let cancelled = false;
+      
+      const pollForResults = async () => {
+        if (cancelled) return;
+        
+        try {
+          let attempts = 0;
+          const maxAttempts = 60;
+          
+          const poll = async () => {
+            if (cancelled) return;
+            
+            try {
+              const status = await ApiService.getAnalysisStatus(analysisIdFromRoute);
+              console.log(`[AnalysisResultsScreen] Polling analysis ${analysisIdFromRoute}, status:`, status.status);
+              
+              if (status.status === 'COMPLETED' || status.status === 'completed') {
+                const result = await ApiService.getAnalysisResult(analysisIdFromRoute);
+                console.log(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} completed, result:`, result);
+                if (!cancelled) {
+                  applyResult(result, null);
+                }
+              } else if (status.status === 'FAILED' || status.status === 'failed') {
+                console.error(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} failed`);
+                if (!cancelled) {
+                  showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
+                }
+              } else if (status.status === 'PROCESSING' || status.status === 'processing' || status.status === 'PENDING' || status.status === 'pending') {
+                if (attempts < maxAttempts) {
+                  attempts += 1;
+                  setTimeout(poll, 1000);
+                } else {
+                  console.error(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} timeout after ${maxAttempts} attempts`);
+                  if (!cancelled) {
+                    showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
+                  }
+                }
+              } else {
+                console.warn(`[AnalysisResultsScreen] Unknown analysis status: ${status.status}`);
+                if (attempts < maxAttempts) {
+                  attempts += 1;
+                  setTimeout(poll, 1000);
+                } else {
+                  if (!cancelled) {
+                    showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`[AnalysisResultsScreen] Polling error for analysis ${analysisIdFromRoute}:`, error);
+              if (attempts < maxAttempts) {
+                attempts += 1;
+                setTimeout(poll, 2000); // Longer delay on error
+              } else {
+                if (!cancelled) {
+                  showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
+                }
+              }
+            }
+          };
+          
+          poll();
+        } catch (error) {
+          console.error(`[AnalysisResultsScreen] Failed to start polling for analysis ${analysisIdFromRoute}:`, error);
+          if (!cancelled) {
+            showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
+          }
+        }
+      };
+      
+      pollForResults();
+      
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Handle text description analysis (legacy - for backward compatibility)
     const description = routeParams.description;
     if (description) {
       setIsAnalyzing(true);
@@ -243,31 +331,42 @@ export default function AnalysisResultsScreen() {
         try {
           const locale = mapLanguageToLocale(language);
           const analysisResponse = await ApiService.analyzeText(description, locale);
-          if (analysisResponse.analysisId) {
-            // Poll for results similar to image analysis
-            let attempts = 0;
-            const maxAttempts = 60;
-            const pollForResults = async () => {
-              try {
-                const status = await ApiService.getAnalysisStatus(analysisResponse.analysisId);
-                if (status.status === 'completed') {
-                  const result = await ApiService.getAnalysisResult(analysisResponse.analysisId);
-                  applyResult(result, null);
-                } else if (status.status === 'failed') {
+          console.log('[AnalysisResultsScreen] Text analysis response:', analysisResponse);
+          
+          if (analysisResponse?.analysisId) {
+            // Navigate with analysisId to use the polling logic above
+            // This will trigger the useEffect again with analysisId
+            if (navigation && typeof navigation.replace === 'function') {
+              navigation.replace('AnalysisResults', {
+                analysisId: analysisResponse.analysisId,
+              });
+            } else {
+              // Fallback: poll directly
+              let attempts = 0;
+              const maxAttempts = 60;
+              const pollForResults = async () => {
+                try {
+                  const status = await ApiService.getAnalysisStatus(analysisResponse.analysisId);
+                  if (status.status === 'completed' || status.status === 'COMPLETED') {
+                    const result = await ApiService.getAnalysisResult(analysisResponse.analysisId);
+                    applyResult(result, null);
+                  } else if (status.status === 'failed' || status.status === 'FAILED') {
+                    showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
+                  } else if (attempts < maxAttempts) {
+                    attempts += 1;
+                    setTimeout(pollForResults, 1000);
+                  } else {
+                    showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
+                  }
+                } catch (error) {
+                  console.error('Text analysis polling error:', error);
                   showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-                } else if (attempts < maxAttempts) {
-                  attempts += 1;
-                  setTimeout(pollForResults, 1000);
-                } else {
-                  showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
                 }
-              } catch (error) {
-                console.error('Text analysis polling error:', error);
-                showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-              }
-            };
-            pollForResults();
+              };
+              pollForResults();
+            }
           } else {
+            console.error('[AnalysisResultsScreen] Text analysis response has no analysisId:', analysisResponse);
             showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
           }
         } catch (error) {
@@ -365,7 +464,12 @@ export default function AnalysisResultsScreen() {
                 await clientLog('Analysis:completed', {
                   hasResult: !!result,
                   dishName: result?.dishName || 'unknown',
+                  analysisId: analysisIdFromRoute,
                 }).catch(() => {});
+                // Сохраняем analysisId при получении результата
+                if (analysisIdFromRoute) {
+                  setAnalysisId(analysisIdFromRoute);
+                }
                 finish(result);
               } else if (currentStatus === 'FAILED') {
                 await clientLog('Analysis:statusFailed').catch(() => {});
@@ -437,7 +541,7 @@ export default function AnalysisResultsScreen() {
     return () => {
       cancelled = true;
     };
-  }, [applyResult, baseImageUri, capturedImageUri, initialAnalysisParam, showAnalysisError, fadeAnim, language, navigateToDashboard, normalizeAnalysis, routeParams.description, routeParams.source, t]);
+  }, [applyResult, baseImageUri, capturedImageUri, initialAnalysisParam, showAnalysisError, fadeAnim, language, navigateToDashboard, normalizeAnalysis, routeParams.description, routeParams.source, routeParams.analysisId, t, navigation, setAnalysisId]);
 
   const autoSaveInfo = analysisResult?.autoSave || null;
   const hasAutoSave = Boolean(autoSaveInfo?.mealId);
@@ -462,28 +566,60 @@ export default function AnalysisResultsScreen() {
   };
 
   const handleReanalyze = async () => {
-    const analysisId = routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
-    if (!analysisId) {
-      Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
+    // Используем analysisId из состояния, если он есть, иначе из routeParams или результата
+    const currentAnalysisId = analysisId || routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    
+    if (!currentAnalysisId) {
+      console.error('[AnalysisResultsScreen] handleReanalyze: no analysisId available', {
+        analysisId,
+        routeParamsAnalysisId: routeParams.analysisId,
+        resultAnalysisId: analysisResult?.analysisId,
+        resultId: analysisResult?.id,
+      });
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('analysis.noAnalysisId') || 'Analysis ID not found. Please try analyzing again.'
+      );
       return;
     }
 
+    console.log(`[AnalysisResultsScreen] Starting reanalyze for analysisId: ${currentAnalysisId}`);
     setIsReanalyzing(true);
+    
     try {
       // Вызываем reanalyze без mode - просто пересчет totals, HealthScore, feedback
-      const reanalyzed = await ApiService.reanalyzeAnalysis(analysisId);
+      const reanalyzed = await ApiService.reanalyzeAnalysis(currentAnalysisId);
+      console.log('[AnalysisResultsScreen] Reanalyze response:', reanalyzed);
+      
       if (reanalyzed) {
-        const normalized = normalizeAnalysis(reanalyzed, baseImageUri, analysisId);
+        const normalized = normalizeAnalysis(reanalyzed, baseImageUri);
         if (normalized) {
+          // Убеждаемся что analysisId сохраняется
+          if (normalized.analysisId || normalized.id) {
+            setAnalysisId(normalized.analysisId || normalized.id);
+          }
           setAnalysisResult(normalized);
-          // Не показываем alert, так как изменения уже применены
+          fadeAnim.setValue(0);
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
         }
+      } else {
+        throw new Error('Empty response from reanalyze API');
       }
     } catch (error) {
       console.error('[AnalysisResultsScreen] Re-analysis failed:', error);
+      const errorMessage = 
+        error?.response?.data?.message ||
+        error?.message ||
+        t('analysis.reanalyzeError') ||
+        'Failed to recalculate analysis. Please try again.';
+      
       Alert.alert(
-        t('common.error'),
-        t('analysis.reanalyzeError') || 'Failed to recalculate analysis. Please try again.'
+        t('common.error') || 'Error',
+        errorMessage
       );
     } finally {
       setIsReanalyzing(false);
@@ -543,10 +679,15 @@ export default function AnalysisResultsScreen() {
 
       // 3. Вызываем manualReanalyze на бэке
       const newResult = await ApiService.manualReanalyzeAnalysis(analysisId, updatedItems);
+      console.log('[AnalysisResultsScreen] Manual reanalyze response:', newResult);
 
       // 4. Обновляем стейт локально
       if (newResult) {
-        const normalized = normalizeAnalysis(newResult, baseImageUri, analysisId);
+        const normalized = normalizeAnalysis(newResult, baseImageUri);
+        // Убеждаемся что analysisId сохраняется
+        if (normalized.analysisId || normalized.id) {
+          setAnalysisId(normalized.analysisId || normalized.id);
+        }
         if (normalized) {
           setAnalysisResult(normalized);
           // Не показываем alert, так как изменения уже применены
@@ -963,18 +1104,22 @@ const createStyles = (tokens) =>
       bottom: 0,
       left: 0,
       right: 0,
-      height: 100,
+      height: 120,
       borderRadius: tokens.radii.lg,
-      backgroundColor: tokens.colors.overlay || 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)', // Darker overlay for better text contrast
       justifyContent: 'flex-end',
       padding: tokens.spacing.lg,
       paddingBottom: tokens.spacing.xl,
     },
     dishNameOverlay: {
-      color: tokens.colors.inverseText || tokens.colors.onPrimary || tokens.colors.textOnDark || '#FFFFFF',
+      color: '#FFFFFF',
       fontSize: tokens.typography.headingM.fontSize,
       fontWeight: tokens.typography.headingM.fontWeight,
       textAlign: 'left',
+      textShadowColor: 'rgba(0, 0, 0, 0.75)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 3,
+      lineHeight: tokens.typography.headingM.lineHeight,
     },
     analyzingOverlay: {
       ...StyleSheet.absoluteFillObject,

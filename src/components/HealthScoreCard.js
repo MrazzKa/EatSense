@@ -30,7 +30,9 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   }
 
   // Support both new format (total, level, factors) and legacy format (score, grade, factors)
-  const total = healthScore.total ?? healthScore.score ?? 0;
+  // Ensure total is a valid number between 0 and 100
+  const rawTotal = healthScore.total ?? healthScore.score ?? 0;
+  const total = Math.max(0, Math.min(100, Math.round(rawTotal))); // Clamp and round to 0-100
   const level = healthScore.level || (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
   const grade = healthScore.grade || (total >= 90 ? 'A' : total >= 80 ? 'B' : total >= 70 ? 'C' : total >= 60 ? 'D' : 'F');
   const factors = healthScore.factors || {};
@@ -176,7 +178,11 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
         <View style={[styles.scoreBadge, { backgroundColor: gradeColor + '20' }]}>
           <Ionicons name={getGradeIcon()} size={20} color={gradeColor} />
           <Text style={[styles.scoreText, { color: gradeColor }]}>{total}</Text>
-          <Text style={[styles.gradeText, { color: gradeColor }]}>
+          <Text 
+            style={[styles.gradeText, { color: gradeColor }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {t(`healthScore.level.${level}`, { defaultValue: level })}
           </Text>
         </View>
@@ -219,16 +225,16 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
                   style={[
                     styles.factorFill,
                       { 
-                        width: `${entry.scorePercent}%`, 
+                        width: `${Math.max(0, Math.min(100, entry.scorePercent))}%`, // Ensure valid percentage
                         backgroundColor: isNegativeFactor && entry.scorePercent < 40 
-                          ? colors.error 
+                          ? (colors.error || '#EF4444')
                           : isNegativeFactor && entry.scorePercent < 80
-                          ? colors.warning
-                          : colors.primary 
+                          ? (colors.warning || '#F59E0B')
+                          : (colors.primary || colors.success || '#10B981')
                       },
                   ]}
                 />
-                </View>
+              </View>
               </View>
             );
           })}
@@ -286,6 +292,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radii.md,
     gap: spacing.xs,
+    flexWrap: 'wrap', // Allow wrapping if content is too wide
+    maxWidth: '100%', // Prevent overflow
+    flexShrink: 1, // Allow shrinking if needed
   },
   scoreText: {
     fontSize: 20,
@@ -344,10 +353,12 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     overflow: 'hidden',
+    width: '100%', // Ensure full width
   },
   factorFill: {
     height: '100%',
     borderRadius: 2,
+    minWidth: 0, // Allow shrinking to 0 if score is 0
   },
   factorValue: {
     fontSize: 12,

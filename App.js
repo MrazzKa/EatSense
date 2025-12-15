@@ -1,10 +1,12 @@
 // App.js - Main navigation structure
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { I18nProvider } from './app/i18n/provider';
+import { ensureI18nReady } from './app/i18n/config';
 import { AppWrapper } from './src/components/AppWrapper';
 import { EmptySplash } from './src/components/EmptySplash';
 import { useAuth } from './src/contexts/AuthContext';
@@ -19,6 +21,7 @@ import AnalysisResultsScreen from './src/screens/AnalysisResultsScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import LegalDocumentScreen from './src/screens/LegalDocumentScreen';
 import SuggestedFoodScreen from './src/screens/SuggestedFoodScreen';
+import MedicationScheduleScreen from './src/screens/MedicationScheduleScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 import { clientLog } from './src/utils/clientLog';
 
@@ -152,6 +155,14 @@ function AppContent() {
               }}
             />
             <Stack.Screen
+              name="MedicationSchedule"
+              component={MedicationScheduleScreen}
+              options={{
+                presentation: 'card',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
               name="Onboarding"
               component={OnboardingScreen}
               options={{
@@ -166,9 +177,24 @@ function AppContent() {
 }
 
 export default function App() {
+  const [i18nReady, setI18nReady] = useState(false);
+
   React.useEffect(() => {
     clientLog('App:rootMounted').catch(() => {});
+    
+    ensureI18nReady().then(() => {
+      setI18nReady(true);
+    });
   }, []);
+
+  // Блокируем рендер пока i18n не готов
+  if (!i18nReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <ErrorBoundary>

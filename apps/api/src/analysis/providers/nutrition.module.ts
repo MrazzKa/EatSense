@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { NutritionOrchestrator, NUTRITION_PROVIDERS } from './nutrition-orchestrator.service';
+import { LocalFoodService } from './local-food.service';
 import { UsdaNutritionProvider } from './usda.provider';
 import { SwissFoodProvider } from './swiss-food.provider';
 import { OpenFoodFactsProvider } from './open-food-facts.provider';
@@ -10,12 +11,14 @@ import { FaoWhoReferenceProvider } from './fao-who-reference.provider';
 import { HybridModule } from '../../fdc/hybrid/hybrid.module';
 import { OpenFoodFactsModule } from '../../openfoodfacts/openfoodfacts.module';
 import { CacheModule } from '../../cache/cache.module';
+import { PrismaModule } from '../../../prisma.module';
 import { INutritionProvider } from './nutrition-provider.interface';
 
 @Module({
-  imports: [HttpModule, HybridModule, OpenFoodFactsModule, CacheModule],
+  imports: [HttpModule, HybridModule, OpenFoodFactsModule, CacheModule, PrismaModule],
   providers: [
     NutritionOrchestrator,
+    LocalFoodService,
     UsdaNutritionProvider,
     SwissFoodProvider,
     OpenFoodFactsProvider,

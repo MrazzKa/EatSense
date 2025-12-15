@@ -22,7 +22,9 @@
   "dashboard": {
     "title": "Dashboard",
     "calories": "calories",
+    "caloriesUnit": "kcal",
     "ofGoal": "of {{goal}} goal",
+    "overGoal": "over goal",
     "protein": "Protein",
     "carbs": "Carbs",
     "fat": "Fat",
@@ -194,12 +196,8 @@
       "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
       "needsReview": "Nutrition data unavailable"
     },
-    "reanalyze": "Re-analyze",
     "reanalyzeConfirmTitle": "Re-analyze dish?",
-    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ.",
-    "reanalyzedSuccess": "Analysis recalculated successfully",
-    "reanalyzeError": "Failed to recalculate analysis",
-    "noAnalysisId": "Analysis ID not found"
+    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ."
   },
   "describeFood": {
     "title": "Describe your meal",
@@ -813,12 +811,6 @@
     "privacyLink": "Privacy Policy",
     "termsLink": "Terms of Use"
   },
-  "analysis": {
-    "hiddenIngredients": {
-      "badge": "Includes estimated hidden ingredients (oil, sauces, sugar).",
-      "calories": "{{calories}} kcal from hidden ingredients"
-    }
-  },
   "foodCompatibility": {
     "title": "Food compatibility",
     "positives": "What works well",
@@ -873,59 +865,6 @@
     "beforeMeal": "Before",
     "afterMeal": "After",
     "addDose": "Add time"
-  },
-  "aiAssistant": {
-    "title": "AI Nutrition Assistant",
-    "subtitle": "Ask me anything about nutrition",
-    "placeholder": "Type your question...",
-    "inputPlaceholder": "Ask about nutrition, recipes, or meal planning...",
-    "welcome": "Hello! I'm your AI nutrition assistant. I can help you with meal planning, nutrition questions, and healthy eating tips. What would you like to know?",
-    "unavailable": "AI Assistant is currently unavailable",
-    "unavailableSubtitle": "Please try again later",
-    "send": "Send",
-    "sending": "Sending...",
-    "attach": {
-      "title": "Attach File",
-      "image": "Attach Image",
-      "pdf": "Attach PDF",
-      "cancel": "Cancel"
-    },
-    "error": {
-      "send": "Failed to send message. Please try again.",
-      "loadHistory": "Failed to load conversation history.",
-      "generic": "Something went wrong. Please try again."
-    },
-    "empty": "No messages yet. Start a conversation!",
-    "thinking": "Thinking...",
-    "lab": {
-      "title": "Lab Results Analysis",
-      "subtitle": "Upload your lab results for AI analysis",
-      "type": {
-        "manual": "Enter manually",
-        "auto": "Upload PDF"
-      },
-      "attachPdf": "Attach PDF",
-      "analyze": "Analyze",
-      "analyzing": "Analyzing...",
-      "placeholder": "Enter lab results text (e.g., Hemoglobin 100 g/L)",
-      "error": {
-        "empty": "Please enter lab results or upload a PDF",
-        "upload": "Failed to upload PDF",
-        "analyze": "Failed to analyze lab results"
-      }
-    }
-  },
-  "describeFood": {
-    "title": "Describe Food",
-    "subtitle": "Enter a description of your meal",
-    "placeholder": "e.g., Grilled chicken breast with rice and vegetables",
-    "analyze": "Analyze",
-    "analyzing": "Analyzing...",
-    "errors": {
-      "emptyText": "Please enter a description of your meal",
-      "noAnalysisId": "Failed to start analysis. Please try again.",
-      "analyzeFailed": "Failed to analyze meal. Please try again."
-    }
   }
 }
 

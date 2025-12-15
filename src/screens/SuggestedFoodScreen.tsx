@@ -8,9 +8,11 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
+import AppCard from '../components/common/AppCard';
 
 type SuggestedFoodItem = {
   id: string;
@@ -153,86 +155,176 @@ export const SuggestedFoodScreen: React.FC = () => {
             </Text>
           </View>
         ) : (
-          sections.map((section) => (
-            <View
-              key={section.id}
-              style={[
-                styles.sectionCard,
-                {
-                  backgroundColor: colors.surface || colors.card,
-                  borderColor: colors.border || colors.borderMuted,
-                },
-              ]}
-            >
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
-                {section.title}
-              </Text>
-              {section.subtitle && (
-                <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-                  {section.subtitle}
-                </Text>
-              )}
-
-              {section.items.map((item) => (
-                <View key={item.id} style={styles.itemRow}>
-                  <View style={[styles.bullet, { backgroundColor: colors.primary }]} />
-                  <View style={styles.itemTextContainer}>
-                    <Text style={[styles.itemTitle, { color: colors.textPrimary || colors.text }]}>
-                      {item.title}
+          sections.map((section) => {
+            const sectionIcon = getSectionIcon(section.id);
+            const sectionColor = getSectionColor(section.id, colors);
+            return (
+              <AppCard key={section.id} style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIconContainer, { backgroundColor: sectionColor + '20' }]}>
+                    <Ionicons name={sectionIcon} size={24} color={sectionColor} />
+                  </View>
+                  <View style={styles.sectionHeaderText}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
+                      {section.title}
                     </Text>
-                    <Text style={[styles.itemDescription, { color: colors.textSecondary }]}>
-                      {item.description}
-                    </Text>
+                    {section.subtitle && (
+                      <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+                        {section.subtitle}
+                      </Text>
+                    )}
                   </View>
                 </View>
-              ))}
-            </View>
-          ))
+
+                <View style={styles.itemsContainer}>
+                  {section.items.map((item, index) => (
+                    <View 
+                      key={item.id} 
+                      style={[
+                        styles.itemCard,
+                        index < section.items.length - 1 && styles.itemCardWithBorder,
+                        { borderBottomColor: colors.borderMuted || colors.border }
+                      ]}
+                    >
+                      <View style={[styles.itemBullet, { backgroundColor: sectionColor }]} />
+                      <View style={styles.itemTextContainer}>
+                        <Text style={[styles.itemTitle, { color: colors.textPrimary || colors.text }]}>
+                          {item.title}
+                        </Text>
+                        <Text style={[styles.itemDescription, { color: colors.textSecondary }]}>
+                          {item.description}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </AppCard>
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+// Helper functions for section styling
+function getSectionIcon(sectionId: string): keyof typeof Ionicons.glyphMap {
+  const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+    protein: 'fitness',
+    fiber: 'leaf',
+    carbs: 'nutrition',
+    healthy_fat: 'water',
+    snacks: 'fast-food',
+    general: 'restaurant',
+  };
+  return iconMap[sectionId] || 'restaurant';
+}
+
+function getSectionColor(sectionId: string, colors: any): string {
+  const colorMap: Record<string, string> = {
+    protein: colors.primary || '#2563EB',
+    fiber: colors.success || '#10B981',
+    carbs: colors.warning || '#F59E0B',
+    healthy_fat: colors.secondary || '#7C3AED',
+    snacks: colors.info || '#0EA5E9',
+    general: colors.primary || '#2563EB',
+  };
+  return colorMap[sectionId] || colors.primary || '#2563EB';
+}
+
 // Fallback data - fully localized via i18n
 function getStaticFallbackSections(t: (_key: string) => string): SuggestedFoodSection[] {
   return [
     {
       id: 'protein',
-      title: t('suggestedFood.sections.protein.title'),
-      subtitle: t('suggestedFood.sections.protein.subtitle'),
+      title: t('suggestedFood.sections.protein.title') || 'Protein Sources',
+      subtitle: t('suggestedFood.sections.protein.subtitle') || 'High-quality protein for muscle maintenance',
       items: [
         {
           id: 'protein-1',
-          title: t('suggestedFood.sections.protein.items.cottageCheese.title'),
-          description: t('suggestedFood.sections.protein.items.cottageCheese.description'),
+          title: t('suggestedFood.sections.protein.items.cottageCheese.title') || 'Cottage Cheese',
+          description: t('suggestedFood.sections.protein.items.cottageCheese.description') || 'Low-fat, high-protein option. Great for breakfast or snacks.',
         },
         {
           id: 'protein-2',
-          title: t('suggestedFood.sections.protein.items.chickenBreast.title'),
-          description: t('suggestedFood.sections.protein.items.chickenBreast.description'),
+          title: t('suggestedFood.sections.protein.items.chickenBreast.title') || 'Chicken Breast',
+          description: t('suggestedFood.sections.protein.items.chickenBreast.description') || 'Lean protein source. Perfect for lunch or dinner.',
         },
         {
           id: 'protein-3',
-          title: t('suggestedFood.sections.protein.items.eggs.title'),
-          description: t('suggestedFood.sections.protein.items.eggs.description'),
+          title: t('suggestedFood.sections.protein.items.eggs.title') || 'Eggs',
+          description: t('suggestedFood.sections.protein.items.eggs.description') || 'Complete protein with essential amino acids. Versatile and nutritious.',
+        },
+        {
+          id: 'protein-4',
+          title: t('suggestedFood.sections.protein.items.fish.title') || 'Fish (Salmon, Tuna)',
+          description: t('suggestedFood.sections.protein.items.fish.description') || 'Rich in omega-3 fatty acids. Supports heart and brain health.',
+        },
+      ],
+    },
+    {
+      id: 'carbs',
+      title: t('suggestedFood.sections.carbs.title') || 'Complex Carbohydrates',
+      subtitle: t('suggestedFood.sections.carbs.subtitle') || 'Sustained energy from whole grains',
+      items: [
+        {
+          id: 'carbs-1',
+          title: t('suggestedFood.sections.carbs.items.brownRice.title') || 'Brown Rice',
+          description: t('suggestedFood.sections.carbs.items.brownRice.description') || 'Whole grain with fiber. Better than white rice for blood sugar control.',
+        },
+        {
+          id: 'carbs-2',
+          title: t('suggestedFood.sections.carbs.items.quinoa.title') || 'Quinoa',
+          description: t('suggestedFood.sections.carbs.items.quinoa.description') || 'Complete protein and complex carbs. Gluten-free option.',
+        },
+        {
+          id: 'carbs-3',
+          title: t('suggestedFood.sections.carbs.items.sweetPotato.title') || 'Sweet Potato',
+          description: t('suggestedFood.sections.carbs.items.sweetPotato.description') || 'Rich in beta-carotene and fiber. Natural sweetness without added sugar.',
         },
       ],
     },
     {
       id: 'fiber',
-      title: t('suggestedFood.sections.fiber.title'),
-      subtitle: t('suggestedFood.sections.fiber.subtitle'),
+      title: t('suggestedFood.sections.fiber.title') || 'Fiber-Rich Foods',
+      subtitle: t('suggestedFood.sections.fiber.subtitle') || 'Support digestive health and satiety',
       items: [
         {
           id: 'fiber-1',
-          title: t('suggestedFood.sections.fiber.items.oats.title'),
-          description: t('suggestedFood.sections.fiber.items.oats.description'),
+          title: t('suggestedFood.sections.fiber.items.oats.title') || 'Oats',
+          description: t('suggestedFood.sections.fiber.items.oats.description') || 'Soluble fiber helps lower cholesterol. Great for breakfast.',
         },
         {
           id: 'fiber-2',
-          title: t('suggestedFood.sections.fiber.items.vegetables.title'),
-          description: t('suggestedFood.sections.fiber.items.vegetables.description'),
+          title: t('suggestedFood.sections.fiber.items.vegetables.title') || 'Leafy Greens & Vegetables',
+          description: t('suggestedFood.sections.fiber.items.vegetables.description') || 'Low calories, high volume. Add to every meal for fullness.',
+        },
+        {
+          id: 'fiber-3',
+          title: t('suggestedFood.sections.fiber.items.legumes.title') || 'Legumes (Beans, Lentils)',
+          description: t('suggestedFood.sections.fiber.items.legumes.description') || 'Plant-based protein and fiber. Budget-friendly and nutritious.',
+        },
+      ],
+    },
+    {
+      id: 'healthy_fat',
+      title: t('suggestedFood.sections.healthyFat.title') || 'Healthy Fats',
+      subtitle: t('suggestedFood.sections.healthyFat.subtitle') || 'Essential for hormone production and nutrient absorption',
+      items: [
+        {
+          id: 'fat-1',
+          title: t('suggestedFood.sections.healthyFat.items.avocado.title') || 'Avocado',
+          description: t('suggestedFood.sections.healthyFat.items.avocado.description') || 'Monounsaturated fats. Supports heart health and satiety.',
+        },
+        {
+          id: 'fat-2',
+          title: t('suggestedFood.sections.healthyFat.items.nuts.title') || 'Nuts & Seeds',
+          description: t('suggestedFood.sections.healthyFat.items.nuts.description') || 'Omega-3 and omega-6 fatty acids. Great for snacks in moderation.',
+        },
+        {
+          id: 'fat-3',
+          title: t('suggestedFood.sections.healthyFat.items.oliveOil.title') || 'Olive Oil',
+          description: t('suggestedFood.sections.healthyFat.items.oliveOil.description') || 'Extra virgin olive oil for cooking and dressings. Mediterranean diet staple.',
         },
       ],
     },
@@ -289,40 +381,60 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sectionCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
     marginBottom: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    gap: 12,
+  },
+  sectionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionHeaderText: {
+    flex: 1,
+    gap: 4,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '700',
   },
   sectionSubtitle: {
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 12,
   },
-  itemRow: {
+  itemsContainer: {
+    gap: 0,
+  },
+  itemCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    paddingVertical: 12,
+    paddingLeft: 4,
   },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 7,
-    marginRight: 8,
+  itemCardWithBorder: {
+    borderBottomWidth: 1,
+  },
+  itemBullet: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 6,
+    marginRight: 12,
+    flexShrink: 0,
   },
   itemTextContainer: {
     flex: 1,
+    gap: 4,
   },
   itemTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 15,
+    fontWeight: '600',
   },
   itemDescription: {
     fontSize: 13,

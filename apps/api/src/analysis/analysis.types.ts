@@ -292,6 +292,10 @@ export interface AnalysisData {
   dishNameLocalized?: string;
   // Normalized English dish name base (for internal use)
   originalDishName?: string;
+  // Image URL for display (absolute URL or data URI)
+  imageUrl?: string;
+  // Image URI for backward compatibility
+  imageUri?: string;
   // Food compatibility analysis
   foodCompatibility?: FoodCompatibilityResult;
   // Эвристическая оценка канцерогенного риска по составу блюда

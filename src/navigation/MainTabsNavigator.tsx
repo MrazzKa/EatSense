@@ -11,7 +11,7 @@ import ArticlesScreen from '../screens/ArticlesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
 import ReportsScreen from '../screens/ReportsScreen';
-import MedicationScheduleScreen from '../screens/MedicationScheduleScreen';
+// MedicationScheduleScreen moved to ProfileScreen
 
 const Tab = createBottomTabNavigator();
 
@@ -85,16 +85,6 @@ export function MainTabsNavigator() {
           tabBarLabel: t('tabs.reports'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size || 24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Medications"
-        component={MedicationScheduleScreen}
-        options={{
-          tabBarLabel: t('medications.tabTitle') || t('tabs.medications') || 'Medications',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="medkit-outline" size={size || 24} color={color} />
           ),
         }}
       />

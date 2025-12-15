@@ -25,6 +25,8 @@ import {
 } from './dto';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import * as jose from 'jose';
+import { OAuth2Client } from 'google-auth-library';
 
 const OTP_TTL_SECONDS = 10 * 60;
 const OTP_EMAIL_COOLDOWN_SECONDS = 60;
@@ -36,6 +38,8 @@ const MAGIC_LINK_TTL_MINUTES = 15;
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private applePublicKeys: jose.JWTVerifyGetKey | null = null;
+  private googleClient: OAuth2Client | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -44,6 +48,30 @@ export class AuthService {
     private readonly redisService: RedisService,
     private readonly mailerService: MailerService,
   ) {}
+
+  private async getApplePublicKeys(): Promise<jose.JWTVerifyGetKey> {
+    if (!this.applePublicKeys) {
+      const JWKS = jose.createRemoteJWKSet(
+        new URL('https://appleid.apple.com/auth/keys')
+      );
+      this.applePublicKeys = JWKS;
+    }
+    return this.applePublicKeys;
+  }
+
+  private getGoogleClient(): OAuth2Client {
+    if (!this.googleClient) {
+      // Use GOOGLE_CLIENT_ID if provided, otherwise fallback to GOOGLE_WEB_CLIENT_ID
+      const clientId = process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_WEB_CLIENT_ID;
+      if (!clientId) {
+        throw new Error('GOOGLE_CLIENT_ID or GOOGLE_WEB_CLIENT_ID must be set in environment variables');
+      }
+      this.googleClient = new OAuth2Client({
+        clientId,
+      });
+    }
+    return this.googleClient;
+  }
 
   async register(_: RegisterDto) {
     throw new BadRequestException('Password registration is disabled. Use email code login.');
@@ -294,91 +322,197 @@ export class AuthService {
 
   async signInWithApple(appleSignInDto: AppleSignInDto) {
     try {
-      // Verify Apple identity token (simplified - in production, verify with Apple's public keys)
-      // For now, we'll trust the token from the client and extract email/user info
-      const email = appleSignInDto.email || appleSignInDto.user;
-      const normalizedEmail = this.normalizeEmail(email);
+      const { identityToken, user, email: providedEmail, fullName } = appleSignInDto;
 
-      if (!normalizedEmail || !normalizedEmail.includes('@')) {
-        throw new BadRequestException('Invalid email from Apple Sign In');
+      if (!identityToken) {
+        throw new BadRequestException('Identity token is required');
       }
 
-      // Find or create user
-      const user = await this.findOrCreateUser(normalizedEmail);
+      const JWKS = await this.getApplePublicKeys();
 
-      // Update or create user profile with name if provided
-      if (appleSignInDto.fullName) {
-        const firstName = appleSignInDto.fullName.givenName || '';
-        const lastName = appleSignInDto.fullName.familyName || '';
-        if (firstName || lastName) {
-          await this.prisma.userProfile.upsert({
-            where: { userId: user.id },
-            update: {
-              firstName: firstName || undefined,
-              lastName: lastName || undefined,
-            },
-            create: {
-              userId: user.id,
-              firstName: firstName || undefined,
-              lastName: lastName || undefined,
-            },
-          });
+      let payload: jose.JWTPayload;
+      try {
+        const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, {
+          issuer: 'https://appleid.apple.com',
+          audience: process.env.APPLE_BUNDLE_ID || 'com.eatsense.app',
+        });
+        payload = verifiedPayload;
+      } catch (jwtError: any) {
+        this.logger.error('[AuthService] Apple token verification failed:', jwtError.message);
+        throw new UnauthorizedException('Invalid Apple identity token');
+      }
+
+      const tokenEmail = payload.email as string | undefined;
+      const tokenSub = payload.sub as string;
+
+      let email = tokenEmail || providedEmail;
+
+      if (!email) {
+        const existingUser = await this.prisma.user.findFirst({
+          where: { appleUserId: tokenSub },
+        });
+        
+        if (existingUser) {
+          email = existingUser.email;
+        } else {
+          this.logger.error('[AuthService] Apple Sign In: no email in token and no existing user');
+          throw new BadRequestException('Email is required for first Apple Sign In');
         }
       }
 
-      const tokens = await this.generateTokens(user.id, user.email);
+      const normalizedEmail = this.normalizeEmail(email);
+
+      let user_ = await this.prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      if (!user_) {
+        const password = await this.generateRandomPasswordHash();
+        user_ = await this.prisma.user.create({
+          data: {
+            email: normalizedEmail,
+            password,
+            appleUserId: tokenSub,
+          },
+        });
+      } else if (!user_.appleUserId) {
+        user_ = await this.prisma.user.update({
+          where: { id: user_.id },
+          data: { appleUserId: tokenSub },
+        });
+      }
+
+      if (fullName && (fullName.givenName || fullName.familyName)) {
+        await this.prisma.userProfile.upsert({
+          where: { userId: user_.id },
+          update: {
+            firstName: fullName.givenName || undefined,
+            lastName: fullName.familyName || undefined,
+          },
+          create: {
+            userId: user_.id,
+            firstName: fullName.givenName || undefined,
+            lastName: fullName.familyName || undefined,
+          },
+        });
+      }
+
+      const tokens = await this.generateTokens(user_.id, user_.email);
 
       this.logger.log(`[AuthService] Apple Sign In successful for ${this.maskEmail(normalizedEmail)}`);
 
       return {
         message: 'Signed in successfully with Apple.',
         user: {
-          id: user.id,
-          email: user.email,
+          id: user_.id,
+          email: user_.email,
         },
         ...tokens,
       };
     } catch (error) {
-      this.logger.error(`[AuthService] Apple Sign In failed:`, error);
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error('[AuthService] Apple Sign In failed:', error);
       throw new UnauthorizedException('Apple Sign In failed. Please try again.');
     }
   }
 
   async signInWithGoogle(googleSignInDto: GoogleSignInDto) {
     try {
-      const normalizedEmail = this.normalizeEmail(googleSignInDto.email);
+      const { idToken, accessToken, email: providedEmail, name, picture } = googleSignInDto;
 
-      if (!normalizedEmail || !normalizedEmail.includes('@')) {
-        throw new BadRequestException('Invalid email from Google Sign In');
+      let verifiedEmail: string;
+      let verifiedName: string | undefined = name;
+      let verifiedPicture: string | undefined = picture;
+
+      if (idToken) {
+        try {
+          const client = this.getGoogleClient();
+          const ticket = await client.verifyIdToken({
+            idToken,
+            audience: [
+              process.env.GOOGLE_IOS_CLIENT_ID,
+              process.env.GOOGLE_ANDROID_CLIENT_ID,
+              process.env.GOOGLE_WEB_CLIENT_ID,
+            ].filter(Boolean) as string[],
+          });
+
+          const payload = ticket.getPayload();
+          if (!payload || !payload.email) {
+            throw new UnauthorizedException('Invalid Google ID token');
+          }
+
+          verifiedEmail = payload.email;
+          verifiedName = payload.name || name;
+          verifiedPicture = payload.picture || picture;
+
+          if (!payload.email_verified) {
+            throw new BadRequestException('Google email is not verified');
+          }
+        } catch (tokenError: any) {
+          this.logger.error('[AuthService] Google ID token verification failed:', tokenError.message);
+          throw new UnauthorizedException('Invalid Google ID token');
+        }
+      } else if (accessToken) {
+        try {
+          const response = await fetch(
+            `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`
+          );
+
+          if (!response.ok) {
+            throw new UnauthorizedException('Invalid Google access token');
+          }
+
+          const userInfo = await response.json() as {
+            email?: string;
+            name?: string;
+            picture?: string;
+            email_verified?: boolean;
+          };
+
+          if (!userInfo.email) {
+            throw new UnauthorizedException('No email in Google response');
+          }
+
+          verifiedEmail = userInfo.email;
+          verifiedName = userInfo.name || name;
+          verifiedPicture = userInfo.picture || picture;
+
+          if (!userInfo.email_verified) {
+            throw new BadRequestException('Google email is not verified');
+          }
+        } catch (fetchError: any) {
+          this.logger.error('[AuthService] Google userinfo fetch failed:', fetchError.message);
+          throw new UnauthorizedException('Failed to verify Google token');
+        }
+      } else {
+        throw new BadRequestException('Either idToken or accessToken is required');
       }
 
-      // Verify Google access token by fetching user info (already done on client, but we can verify)
-      // For production, verify the idToken signature with Google's public keys
-      // For now, we trust the email provided
+      const normalizedEmail = this.normalizeEmail(verifiedEmail);
 
-      // Find or create user
       const user = await this.findOrCreateUser(normalizedEmail);
 
-      // Update or create user profile with name if provided
-      if (googleSignInDto.name) {
-        const nameParts = googleSignInDto.name.split(' ') || [];
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
+      if (verifiedName || verifiedPicture) {
+        const nameParts = (verifiedName || '').split(' ');
+        const firstName = nameParts[0] || undefined;
+        const lastName = nameParts.slice(1).join(' ') || undefined;
 
-        if (firstName || lastName) {
-          await this.prisma.userProfile.upsert({
-            where: { userId: user.id },
-            update: {
-              firstName: firstName || undefined,
-              lastName: lastName || undefined,
-            },
-            create: {
-              userId: user.id,
-              firstName: firstName || undefined,
-              lastName: lastName || undefined,
-            },
-          });
-        }
+        await this.prisma.userProfile.upsert({
+          where: { userId: user.id },
+          update: {
+            ...(firstName && { firstName }),
+            ...(lastName && { lastName }),
+            ...(verifiedPicture && { avatarUrl: verifiedPicture }),
+          },
+          create: {
+            userId: user.id,
+            firstName,
+            lastName,
+            avatarUrl: verifiedPicture,
+          },
+        });
       }
 
       const tokens = await this.generateTokens(user.id, user.email);
@@ -394,7 +528,10 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      this.logger.error(`[AuthService] Google Sign In failed:`, error);
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error('[AuthService] Google Sign In failed:', error);
       throw new UnauthorizedException('Google Sign In failed. Please try again.');
     }
   }

@@ -95,10 +95,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Try to refresh token if we have one
         if (ApiService.refreshTokenValue) {
           try {
-            const tokens = await ApiService.refreshToken();
-            if (tokens?.accessToken) {
-              await ApiService.setToken(tokens.accessToken, tokens.refreshToken || ApiService.refreshTokenValue);
-              // Load user profile after successful token refresh
+            const refreshSuccess = await ApiService.refreshToken();
+            if (refreshSuccess) {
+              // refreshToken() already sets the token internally, just load user profile
               await refreshUser();
               return;
             }

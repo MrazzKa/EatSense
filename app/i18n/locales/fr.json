@@ -15,7 +15,9 @@
     "retry": "Réessayer",
     "search": "Rechercher",
     "viewAll": "Voir tout",
-    "ok": "OK"
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -42,7 +44,8 @@
       "topFoods": "Aliments favoris",
       "foodMeta": "{{count}} entrées • {{calories}} kcal au total",
       "mealDistribution": "Répartition des repas",
-      "mealMeta": "{{count}} repas • {{calories}} kcal"
+      "mealMeta": "{{count}} repas • {{calories}} kcal",
+      "viewFullInsights": "View full insights"
     },
     "mealTypes": {
       "breakfast": "Petit-déjeuner",
@@ -59,6 +62,72 @@
       "gallery": {
         "title": "Choisir depuis la galerie",
         "description": "Sélectionnez une photo depuis votre galerie"
+      },
+      "manual": {
+        "title": "Enter manually",
+        "description": "Add a meal without a photo or upload lab results"
+      }
+    },
+    "caloriesUnit": "kcal",
+    "overGoal": "over goal",
+    "manualAnalysis": {
+      "title": "Insert your own analysis",
+      "subtitle": "Manually enter meal data or upload lab results"
+    },
+    "analysisCounter": {
+      "today": "Today",
+      "total": "Total"
+    },
+    "specialists": {
+      "title": "Talk to a real nutrition expert (coming soon)",
+      "shortDescription": "Talk to a real nutrition expert (coming soon)",
+      "description": "In the future, you'll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.",
+      "gotIt": "Got it"
+    },
+    "suggestedFood": {
+      "title": "Smart food suggestions",
+      "subtitle": "Here are simple ideas to better match your goal for the next few days.",
+      "shortDescription": "Get simple ideas of what to eat today",
+      "description": "Personalized food suggestions based on your goals, preferences, and nutritional needs.",
+      "gotIt": "Got it",
+      "loading": "Loading suggestions...",
+      "empty": "We don't have suggestions right now. Try adding a few meals first.",
+      "error": {
+        "generic": "We couldn't load suggestions. We'll show some basic ideas instead."
+      },
+      "sections": {
+        "protein": {
+          "title": "Protein sources",
+          "subtitle": "You're slightly under your protein target. Try adding 1–2 of these options daily.",
+          "items": {
+            "cottageCheese": {
+              "title": "Low-fat cottage cheese",
+              "description": "200 g of cottage cheese for breakfast or dinner is a simple and budget-friendly way to boost protein."
+            },
+            "chickenBreast": {
+              "title": "Chicken breast",
+              "description": "Baked or boiled chicken breast works well with any side — rice, buckwheat, or vegetables."
+            },
+            "eggs": {
+              "title": "Eggs",
+              "description": "2–3 eggs for breakfast, omelet or boiled, give a quick portion of protein and keep you full longer."
+            }
+          }
+        },
+        "fiber": {
+          "title": "Fiber and slow carbs",
+          "subtitle": "A bit more fiber will help with satiety and digestion.",
+          "items": {
+            "oats": {
+              "title": "Oatmeal",
+              "description": "Oatmeal with a little fruit or berries is a simple breakfast that gives long-lasting energy."
+            },
+            "vegetables": {
+              "title": "Vegetable side dishes",
+              "description": "Add fresh or cooked vegetables to lunch and dinner — start with 100–150 g per meal."
+            }
+          }
+        }
       }
     }
   },
@@ -101,7 +170,34 @@
     "autoSavedTitle": "Enregistré automatiquement dans votre journal",
     "autoSavedDescription": "Nous avons enregistré ce repas dans vos entrées récentes. Vous pouvez le consulter ou le modifier à tout moment.",
     "viewMeal": "Voir le repas",
-    "saveAsNewEntry": "Enregistrer comme nouvelle entrée"
+    "saveAsNewEntry": "Enregistrer comme nouvelle entrée",
+    "analyzingSubtitle": "This may take a few seconds",
+    "processing": "Processing your meal...",
+    "processingSubtitle": "Identifying ingredients and matching nutrition data...",
+    "fixButton": "Fix",
+    "reanalyze": "Re-analyze",
+    "shareButton": "Share",
+    "reanalyzedSuccess": "Analysis recalculated successfully",
+    "reanalyzeError": "Failed to recalculate analysis. Please try again.",
+    "noAnalysisId": "Analysis ID not found",
+    "errorTitle": "Analysis Error",
+    "errorMessage": "We couldn't analyze your meal. Please try again.",
+    "timeoutTitle": "Analysis Timeout",
+    "timeoutMessage": "The analysis is taking longer than expected. Please try again.",
+    "savedTitle": "Saved",
+    "savedMessage": "Meal saved to your journal",
+    "saveError": "Failed to save meal. Please try again.",
+    "noDataToSave": "No analysis data to save",
+    "needsReviewTitle": "Review Required",
+    "needsReviewMessage": "We're not fully confident about this analysis. Please double-check and edit the values.",
+    "noNutritionData": "No nutrition data",
+    "warning": {
+      "suspiciousTitle": "Analysis may be inaccurate",
+      "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
+      "needsReview": "Nutrition data unavailable"
+    },
+    "reanalyzeConfirmTitle": "Re-analyze dish?",
+    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ."
   },
   "healthScore": {
     "title": "Score santé",
@@ -118,13 +214,27 @@
       "macroBalance": "Équilibre des macros",
       "calorieDensity": "Densité calorique",
       "proteinQuality": "Qualité des protéines",
-      "processingLevel": "Niveau de transformation"
+      "processingLevel": "Niveau de transformation",
+      "saturatedFat": "Saturated fat",
+      "sugars": "Free sugars"
     },
     "feedbackMessages": {
       "celebrate": "Bravo ! Ce repas est bien équilibré.",
       "increase": "Augmentez {{factor}} pour améliorer votre score.",
       "reduce": "Réduisez {{factor}} pour améliorer votre score.",
       "monitor": "Surveillez {{factor}}."
+    },
+    "subtitle": "We estimate how balanced this meal is based on macros and energy density.",
+    "level": {
+      "poor": "Needs improvement",
+      "average": "Okay, but could be better",
+      "good": "Good choice",
+      "excellent": "Excellent choice"
+    },
+    "factorLevel": {
+      "good": "Good",
+      "ok": "Okay",
+      "bad": "Needs attention"
     }
   },
   "profile": {
@@ -161,7 +271,122 @@
     "savedTitle": "Profil enregistré",
     "savedMessage": "Votre profil a été mis à jour avec succès.",
     "errorTitle": "Erreur",
-    "errorMessage": "Impossible de mettre à jour le profil. Réessayez plus tard."
+    "errorMessage": "Impossible de mettre à jour le profil. Réessayez plus tard.",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "updateFailed": "Could not update profile. Please try again."
+    },
+    "deleteAccount": "Delete Account",
+    "deleteAccountTitle": "Delete Account",
+    "deleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
+    "deleteAccountConfirm": "Delete",
+    "deleteAccountCancel": "Cancel",
+    "deleteAccountSuccess": "Account deleted successfully",
+    "deleteAccountError": "Failed to delete account. Please try again.",
+    "monthlyReportTitle": "Monthly nutrition report",
+    "monthlyReportSubtitle": "Download a detailed report about your eating habits for the last month",
+    "monthlyReportDownloaded": "Report downloaded successfully",
+    "monthlyReportError": "Failed to download monthly report. Please try again later.",
+    "goalsTitle": "Goals & diet",
+    "goalLabel": "Goal",
+    "goalLoseWeight": "Lose weight",
+    "goalMaintainWeight": "Maintain weight",
+    "goalGainMuscle": "Gain muscle",
+    "dietLabel": "Diet type",
+    "dietBalanced": "Balanced",
+    "dietHighProtein": "High protein",
+    "dietLowCarb": "Low carb",
+    "dietMediterranean": "Mediterranean",
+    "dietPlantBased": "Plant-based",
+    "choosePlan": "Choose a plan",
+    "selectPlan": "Select Plan",
+    "subscriptionTitle": "Subscription",
+    "changePlan": "Change plan",
+    "billingAnnual": "Billed annually",
+    "billingMonthly": "Billed monthly",
+    "billingFree": "Free forever",
+    "planFreeName": "EatSense Free",
+    "planProName": "EatSense Pro",
+    "planFreePrice": "Free",
+    "planMonthlyPrice": "{{price}} / month",
+    "planAnnualPrice": "{{price}} / year",
+    "planFreeDescription": "Start tracking meals with essential features.",
+    "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
+    "planFeatures": {
+      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "calorieTracking": "Calorie tracking",
+      "basicStats": "Basic statistics",
+      "unlimitedAnalyses": "Unlimited AI food analysis",
+      "advancedInsights": "Advanced nutrition insights",
+      "coachingTips": "Personalized coaching tips",
+      "everythingInProMonthly": "Everything in Pro Monthly",
+      "annualWebinars": "Exclusive annual webinars",
+      "earlyAccess": "Early access to new features"
+    },
+    "planBadges": {
+      "included": "Included",
+      "mostPopular": "Most popular",
+      "save33": "Save 33%"
+    },
+    "currentPlan": "Current plan",
+    "policy": "Privacy Policy",
+    "politics": "Data Processing Policy",
+    "termsOfService": "Terms of Service",
+    "advanced": "Advanced Health Parameters",
+    "noData": "No data",
+    "policyError": "Failed to open policy",
+    "termsError": "Failed to open terms",
+    "health": {
+      "metabolic": "Metabolic Parameters",
+      "sleep": "Sleep & Circadian Rhythms",
+      "eatingBehavior": "Eating Behavior",
+      "glp1Module": "GLP-1 Module",
+      "healthFocus": "Health Focus Areas",
+      "bodyFatPercent": "Body Fat %",
+      "waistCm": "Waist Circumference",
+      "hipCm": "Hip Circumference",
+      "whr": "WHR (Waist / Hip)",
+      "auto": "auto",
+      "fatDistributionType": "Fat Distribution Type",
+      "fatDistribution": {
+        "visceral": "Visceral",
+        "gynoid": "Gynoid",
+        "mixed": "Mixed"
+      },
+      "mealsPerDay": "Meals per Day",
+      "snackingTendency": "Snacking Tendency",
+      "snacking": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "eveningAppetite": "Evening Appetite",
+      "sleepHours": "Sleep (hours)",
+      "chronotype": "Chronotype",
+      "chronotypeOptions": {
+        "early": "Early",
+        "mid": "Mid",
+        "late": "Late"
+      },
+      "isGlp1User": "GLP-1 User",
+      "drugType": "Drug Type",
+      "therapyGoal": "Therapy Goal",
+      "therapyGoalOptions": {
+        "preserve_muscle": "Preserve Muscle",
+        "appetite_control": "Appetite Control",
+        "weight_maintenance": "Weight Maintenance",
+        "slow_weight_loss": "Slow Weight Loss"
+      },
+      "focus": {
+        "sugarControl": "Sugar Control",
+        "cholesterol": "Cholesterol",
+        "inflammation": "Inflammation",
+        "iron": "Iron",
+        "microbiome": "Microbiome",
+        "hormonalBalance": "Hormonal Balance"
+      }
+    }
   },
   "gallery": {
     "title": "Sélectionner une photo",
@@ -186,7 +411,8 @@
     "flashModeAuto": "Flash auto",
     "switchCamera": "Inverser la caméra",
     "zoomLabel": "Zoom {{value}}x",
-    "captureError": "Impossible de capturer la photo. Veuillez réessayer."
+    "captureError": "Impossible de capturer la photo. Veuillez réessayer.",
+    "typeInstead": "Type instead"
   },
   "editFood": {
     "title": "Modifier l'ingrédient",
@@ -244,7 +470,11 @@
       "expiredCode": "Ce code a expiré. Demandez-en un nouveau.",
       "rateLimited": "Trop de tentatives. Réessayez dans {{seconds}} s.",
       "codeLength": "Saisissez le code à 6 chiffres reçu par e-mail."
-    }
+    },
+    "signInWithApple": "Sign Up With Apple",
+    "continueWithGoogle": "Continue With Google",
+    "signUpWithEmail": "Sign Up With E-mail",
+    "termsAcceptance": "By continuing, I accept the Terms and Conditions."
   },
   "onboarding": {
     "welcome": "Bienvenue sur EatSense",
@@ -259,7 +489,10 @@
     "dashboard": "Accueil",
     "articles": "Articles",
     "recently": "Récent",
-    "profile": "Profil"
+    "profile": "Profil",
+    "experts": "Experts",
+    "reports": "Reports",
+    "medications": "Medications"
   },
   "terms": {
     "title": "Conditions d'Utilisation",
@@ -377,6 +610,76 @@
       "mealIdeas": "Idées de repas sains",
       "dietPlan": "Planifier mon régime",
       "calorieAdvice": "Conseils sur les calories"
+    },
+    "inputPlaceholder": "Type your question...",
+    "quotaExceeded": "AI Assistant quota exceeded. The service is temporarily unavailable. Please try again later.",
+    "attach": {
+      "title": "Attach File",
+      "photo": "Choose Photo",
+      "file": "Choose File (PDF)",
+      "error": "Failed to pick file"
+    },
+    "lab": {
+      "title": "Lab Results Analysis",
+      "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
+      "mode": {
+        "text": "Text",
+        "file": "PDF file"
+      },
+      "textLabel": "Lab results (text)",
+      "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
+      "fileLabel": "PDF report",
+      "attachPdf": "Attach PDF",
+      "fileHint": "Attach a PDF file with your lab report.",
+      "analyzeButton": "Analyze",
+      "resultTitle": "AI Interpretation",
+      "errors": {
+        "emptyText": "Please enter lab results text first.",
+        "noFile": "Please attach a PDF file first.",
+        "filePickFailed": "Failed to pick a file.",
+        "fileNotSupported": "File-based analysis is not yet configured. Please use text mode.",
+        "generic": "Failed to analyze lab results. Please try again.",
+        "noSummary": "The AI did not return a summary. Please try again."
+      },
+      "typeTitle": "Type of analysis",
+      "type": {
+        "auto": "Auto-detect",
+        "cbc": "Complete Blood Count (CBC)",
+        "biochemistry": "Blood Biochemistry",
+        "lipid": "Lipid Profile",
+        "glycemic": "Glycemic Profile",
+        "vitamins": "Vitamins and Trace Elements",
+        "hormones": "Hormonal Profile",
+        "hormonal": "Hormonal Profile",
+        "inflammation": "Inflammation Markers",
+        "other": "Other"
+      },
+      "attachPhoto": "Attach Photo",
+      "manualTitle": "Manual Entry",
+      "manualPlaceholder": "Enter your lab results here...",
+      "submit": "Submit",
+      "submitted": "Lab results submitted successfully",
+      "success": "Lab results analyzed successfully",
+      "error": "Failed to send results. Please try again.",
+      "emptyError": "Please enter lab results or attach a file"
+    },
+    "tabs": {
+      "chat": "Chat",
+      "healthAnalysis": "Health Analysis"
+    },
+    "healthAnalysis": {
+      "empty": "Paste your health information or lab results below to analyze",
+      "summary": "Summary",
+      "keyFindings": "Key Findings",
+      "metrics": "Metrics",
+      "recommendation": "Recommendations",
+      "placeholder": "Paste your health information or lab results here...",
+      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
+      "addPhoto": "Add Photo",
+      "selectPhoto": "Select a photo to analyze",
+      "analyzing": "Analyzing photo...",
+      "photoResultTitle": "Analyzed: {{dish}}",
+      "error": "Failed to analyze photo. Please try again."
     }
   },
   "assistant": {
@@ -392,13 +695,16 @@
     "flow": {
       "injury": {
         "title": "Triage de blessure",
-        "desc": "Décrivez les symptômes et recevez les étapes suivantes." },
+        "desc": "Décrivez les symptômes et recevez les étapes suivantes."
+      },
       "nutrition": {
         "title": "Objectif nutritionnel",
-        "desc": "Définissez votre objectif, vos défis et vos ressources." },
+        "desc": "Définissez votre objectif, vos défis et vos ressources."
+      },
       "hydration": {
         "title": "Bilan d’hydratation",
-        "desc": "Analysez votre hydratation quotidienne et obtenez un plan." }
+        "desc": "Analysez votre hydratation quotidienne et obtenez un plan."
+      }
     }
   },
   "recently": {
@@ -427,6 +733,139 @@
     "empty": "Aucun repas enregistré pour le moment.",
     "addMeal": "Ajouter un repas",
     "mealDetails": "Détails du repas"
+  },
+  "describeFood": {
+    "title": "Describe your meal",
+    "subtitle": "Describe what you ate in free text. The AI will estimate calories and macros.",
+    "label": "Meal description",
+    "placeholder": "Example: Omelet from 3 eggs with cheese and tomatoes, 2 slices of toast with butter, a cup of cappuccino...",
+    "analyzeButton": "Analyze",
+    "errors": {
+      "emptyText": "Please describe your meal first.",
+      "noAnalysisId": "Analysis created but no ID was returned. Please try again.",
+      "navigationFailed": "Failed to navigate to results. Please try again.",
+      "generic": "Failed to analyze the meal. Please try again."
+    }
+  },
+  "experts": {
+    "title": "Experts",
+    "subtitle": "The team that helps you work with nutrition",
+    "dietitian": {
+      "title": "Dietitian",
+      "subtitle": "Medical approach to metabolism and analysis"
+    },
+    "nutritionist": {
+      "title": "Nutritionist",
+      "subtitle": "Meal planning and habits tailored to your goals"
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "plan": {
+      "free": "EatSense Free",
+      "pro": "EatSense Pro",
+      "premium": "EatSense Premium"
+    },
+    "features": {
+      "analyses": "AI analyses per day",
+      "tracking": "Calorie tracking",
+      "stats": "Advanced statistics"
+    },
+    "billing": {
+      "perMonth": "per month",
+      "perYear": "per year",
+      "free": "Free forever",
+      "currency": {
+        "ru": "₽",
+        "kk": "₸",
+        "default": "$"
+      }
+    }
+  },
+  "limits": {
+    "title": "Daily Limit Reached",
+    "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow."
+  },
+  "statistics": {
+    "title": "Statistics",
+    "today": "Today",
+    "empty": "No statistics available yet",
+    "times": "times"
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Track your monthly progress",
+    "monthly": {
+      "title": "Monthly nutrition report",
+      "subtitle": "Detailed PDF about your month: calories, macros, top foods.",
+      "downloadCurrent": "Download current month"
+    },
+    "downloaded": "Report downloaded successfully",
+    "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
+    "error": {
+      "generic": "Failed to generate monthly report. Please try again later.",
+      "network": "Network error. Please check your connection and try again."
+    }
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Use",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Use"
+  },
+  "foodCompatibility": {
+    "title": "Food compatibility",
+    "positives": "What works well",
+    "issues": "What could be improved",
+    "scoreLabel": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "moderate": "Mixed",
+      "problematic": "Needs improvement"
+    }
+  },
+  "carcinogenicRisk": {
+    "title": "Long-term risk factors",
+    "highRiskItems": "Items to keep in moderation",
+    "level": {
+      "none": "No significant factors",
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "Elevated"
+    }
+  },
+  "medications": {
+    "title": "Medication schedule",
+    "tabTitle": "Medications",
+    "error": {
+      "load": "Failed to load medications",
+      "save": "Failed to save medication",
+      "delete": "Failed to delete medication",
+      "nameRequired": "Medication name is required"
+    },
+    "empty": "No medications yet. Add your first one.",
+    "noDoses": "No times specified",
+    "edit": "Edit medication",
+    "add": "Add medication",
+    "deleteConfirm": "Delete medication",
+    "deleteMessage": "Are you sure you want to delete this medication?",
+    "fields": {
+      "name": "Name",
+      "dosage": "Dosage",
+      "instructions": "Instructions",
+      "startDate": "Start date (YYYY-MM-DD)",
+      "endDate": "End date (optional)",
+      "timezone": "Timezone",
+      "doses": "Dose times"
+    },
+    "placeholders": {
+      "name": "Metformin",
+      "dosage": "500 mg",
+      "instructions": "Before dinner, with water"
+    },
+    "times": "Times",
+    "beforeMeal": "Before",
+    "afterMeal": "After",
+    "addDose": "Add time"
   }
 }
-

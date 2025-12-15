@@ -9,7 +9,9 @@ import {
   ScrollView,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -31,6 +33,7 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
   const [mode, setMode] = useState<LabMode>('text');
   const [text, setText] = useState('');
   const [file, setFile] = useState<DocumentPicker.DocumentPickerResult | null>(null);
+  const [imageFile, setImageFile] = useState<{ uri: string; name: string; type: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
@@ -39,6 +42,7 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
     setMode('text');
     setText('');
     setFile(null);
+    setImageFile(null);
     setLoading(false);
     setError(null);
     setResult(null);
@@ -62,10 +66,35 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
 
       if (res.assets && res.assets.length > 0) {
         setFile(res);
+        setImageFile(null);
         setMode('file');
       }
     } catch (err) {
       console.error('LabResultsModal: file pick error', err);
+      setError(t('aiAssistant.lab.errors.filePickFailed'));
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      setError(null);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setImageFile({
+          uri: result.assets[0].uri,
+          name: `lab-photo-${Date.now()}.jpg`,
+          type: 'image/jpeg',
+        });
+        setFile(null);
+        setMode('file');
+      }
+    } catch (err) {
+      console.error('LabResultsModal: image pick error', err);
       setError(t('aiAssistant.lab.errors.filePickFailed'));
     }
   };
@@ -83,7 +112,7 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
     }
 
     if (mode === 'file') {
-      if (!file || file.canceled || !file.assets || file.assets.length === 0) {
+      if ((!file || file.canceled || !file.assets || file.assets.length === 0) && !imageFile) {
         setError(t('aiAssistant.lab.errors.noFile'));
         return;
       }
@@ -204,15 +233,40 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
             <Text style={[styles.label, { color: colors.textSecondary }]}>
               {t('aiAssistant.lab.fileLabel')}
             </Text>
-            <TouchableOpacity
-              style={[styles.fileButton, { borderColor: colors.primary }]}
-              onPress={handlePickFile}
-              disabled={loading}
-            >
-              <Text style={[styles.fileButtonText, { color: colors.primary }]}>
-                {file?.assets?.[0]?.name || t('aiAssistant.lab.attachPdf')}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.fileButtonsRow}>
+              <TouchableOpacity
+                style={[styles.fileButton, { borderColor: colors.primary, flex: 1, marginRight: 8 }]}
+                onPress={handlePickFile}
+                disabled={loading}
+              >
+                <Ionicons name="document-text" size={20} color={colors.primary} style={{ marginRight: 8 }} />
+                <Text style={[styles.fileButtonText, { color: colors.primary }]}>
+                  {file?.assets?.[0]?.name || t('aiAssistant.lab.attachPdf')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.fileButton, { borderColor: colors.primary, flex: 1, marginLeft: 8 }]}
+                onPress={handlePickImage}
+                disabled={loading}
+              >
+                <Ionicons name="image" size={20} color={colors.primary} style={{ marginRight: 8 }} />
+                <Text style={[styles.fileButtonText, { color: colors.primary }]}>
+                  {imageFile?.name || t('aiAssistant.lab.attachPhoto')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {(file || imageFile) && (
+              <View style={styles.selectedFileInfo}>
+                <Ionicons 
+                  name={file ? "document-text" : "image"} 
+                  size={16} 
+                  color={colors.textSecondary} 
+                />
+                <Text style={[styles.selectedFileText, { color: colors.textSecondary }]}>
+                  {file?.assets?.[0]?.name || imageFile?.name}
+                </Text>
+              </View>
+            )}
             <Text style={[styles.helperText, { color: colors.textTertiary || colors.textSecondary }]}>
               {t('aiAssistant.lab.fileHint')}
             </Text>
@@ -342,16 +396,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlignVertical: 'top',
   },
+  fileButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   fileButton: {
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 12,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   fileButtonText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  selectedFileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    gap: 8,
+  },
+  selectedFileText: {
+    fontSize: 13,
+    flex: 1,
   },
   helperText: {
     fontSize: 12,

@@ -4,7 +4,8 @@ export type NutritionProviderId =
   | 'openfoodfacts'
   | 'rag'
   | 'eurofir'
-  | 'fao_who_ref';
+  | 'fao_who_ref'
+  | 'local_food';
 
 export type NutritionCategory = 'drink' | 'solid' | 'unknown';
 

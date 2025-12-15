@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { debounce, throttle, debounceAsync } from '../../../core/debounce';
 
 describe('Debounce', () => {
@@ -52,10 +52,14 @@ describe('Debounce', () => {
 
     expect(mockAsyncFn).not.toHaveBeenCalled();
 
+    // Advance timers and wait for promises
     jest.advanceTimersByTime(100);
-    await Promise.all([promise1, promise2, promise3]);
+    
+    // Wait for all promises to resolve
+    const results = await Promise.all([promise1, promise2, promise3]);
 
     expect(mockAsyncFn).toHaveBeenCalledTimes(1);
     expect(mockAsyncFn).toHaveBeenCalledWith('arg3');
-  });
+    expect(results).toEqual(['result', 'result', 'result']);
+  }, 10000);
 });

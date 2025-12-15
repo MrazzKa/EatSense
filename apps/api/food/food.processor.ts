@@ -62,6 +62,9 @@ export class FoodProcessor {
       // Sharp will handle any input format and convert to JPEG
       let processedBuffer: Buffer;
       try {
+        // Process image - Strip EXIF metadata and convert to JPEG
+        // Note: Sharp removes EXIF metadata automatically when converting to JPEG format
+        // We don't call withMetadata() to ensure no metadata is preserved
         processedBuffer = await sharp(imageBuffer)
           .jpeg({ quality: 90, mozjpeg: true })
           .toBuffer();
@@ -301,6 +304,25 @@ export class FoodProcessor {
   async handleTextAnalysis(job: Job) {
     const { analysisId, description, userId, locale } = job.data;
 
+    if (!analysisId) {
+      this.logger.error('[FoodProcessor] handleTextAnalysis: missing analysisId in job data');
+      throw new Error('Analysis ID is required for text analysis');
+    }
+
+    if (!description || !description.trim()) {
+      this.logger.error(`[FoodProcessor] handleTextAnalysis: missing or empty description for analysis ${analysisId}`);
+      await this.prisma.analysis.update({
+        where: { id: analysisId },
+        data: { 
+          status: 'FAILED',
+          error: 'Description is required',
+        },
+      });
+      return;
+    }
+
+    this.logger.log(`[FoodProcessor] Starting text analysis for analysis ${analysisId}, description length: ${description.length}`);
+
     try {
       // Update status to processing
       await this.prisma.analysis.update({
@@ -308,8 +330,12 @@ export class FoodProcessor {
         data: { status: 'PROCESSING' },
       });
 
+      this.logger.debug(`[FoodProcessor] Text analysis ${analysisId} status updated to PROCESSING`);
+
       // Use new AnalyzeService for text analysis
       const analysisResult = await this.analyzeService.analyzeText(description, locale);
+      
+      this.logger.log(`[FoodProcessor] Text analysis ${analysisId} completed, items count: ${analysisResult.items?.length || 0}`);
 
       // Transform to old format for compatibility
       const result: any = {
