@@ -260,15 +260,18 @@ const createStyles = (tokens, colors) => {
       color: onPrimary,
     },
     plansContainer: {
-      gap: tokens.spacing?.lg ?? 16,
+      gap: tokens.spacing?.md ?? 12,
+      flex: 1,
     },
     planButton: {
       backgroundColor: surface,
       borderRadius: tokens.radii?.xl ?? 16,
-      padding: tokens.spacing?.xxl ?? 24,
+      padding: tokens.spacing?.lg ?? 16,
       borderWidth: 2,
       borderColor: borderMuted,
       position: 'relative',
+      flex: 1,
+      minHeight: 140,
     },
     planButtonPopular: {
       borderColor: colors.primary,
@@ -288,26 +291,27 @@ const createStyles = (tokens, colors) => {
       color: onPrimary,
     },
     planName: {
-      fontSize: tokens.typography?.headingM?.fontSize ?? 20,
-      fontWeight: tokens.typography?.headingM?.fontWeight ?? '700',
+      fontSize: tokens.typography?.headingS?.fontSize ?? 18,
+      fontWeight: tokens.typography?.headingS?.fontWeight ?? '700',
       color: colors.text,
-      marginBottom: tokens.spacing?.sm ?? 8,
+      marginBottom: tokens.spacing?.xs ?? 4,
     },
     planHeadline: {
-      fontSize: tokens.typography?.body?.fontSize ?? 14,
+      fontSize: tokens.typography?.caption?.fontSize ?? 12,
       color: textSecondary,
     },
     planPrice: {
-      fontSize: tokens.typography?.headingL?.fontSize ?? 24,
-      fontWeight: tokens.typography?.headingL?.fontWeight ?? '700',
+      fontSize: tokens.typography?.headingM?.fontSize ?? 20,
+      fontWeight: tokens.typography?.headingM?.fontWeight ?? '700',
       color: colors.primary,
-      marginBottom: tokens.spacing?.md ?? 16,
+      marginBottom: tokens.spacing?.sm ?? 8,
+      marginTop: tokens.spacing?.xs ?? 4,
     },
     planFeatures: {
-      gap: tokens.spacing?.sm ?? 8,
+      gap: tokens.spacing?.xs ?? 4,
     },
     planFeature: {
-      fontSize: tokens.typography?.body?.fontSize ?? 14,
+      fontSize: tokens.typography?.caption?.fontSize ?? 12,
       color: textSecondary,
     },
     planFeatureSelected: {
@@ -444,7 +448,7 @@ const OnboardingScreen = () => {
     firstName: '',
     lastName: '',
     age: 25,
-    height: 170, // cm
+    height: 170, // cm - will be properly initialized in slider
     weight: 70, // kg
     gender: '',
     activityLevel: '',
@@ -709,11 +713,18 @@ const OnboardingScreen = () => {
     onValueChange,
     unit,
     step = 1,
+    sliderKey, // Add key prop to prevent cross-step interference
   }) => {
     // Ensure value is within bounds
     const clampedValue = Math.max(minimumValue, Math.min(maximumValue, value));
     const [tempValue, setTempValue] = useState(clampedValue);
     const [isSliding, setIsSliding] = useState(false);
+    
+    // Initialize with proper value on mount
+    useEffect(() => {
+      const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
+      setTempValue(newValue);
+    }, [sliderKey]); // Only re-initialize when sliderKey changes (different step)
     
     useEffect(() => {
       if (!isSliding) {
@@ -722,7 +733,7 @@ const OnboardingScreen = () => {
           setTempValue(newValue);
         }
       }
-    }, [value, minimumValue, maximumValue, isSliding, tempValue]);
+    }, [value, minimumValue, maximumValue, isSliding, tempValue, sliderKey]);
     
     return (
       <View style={styles.interactiveSliderContainer}>
@@ -769,6 +780,7 @@ const OnboardingScreen = () => {
     onValueChange: PropTypes.func.isRequired,
     unit: PropTypes.string.isRequired,
     step: PropTypes.number,
+    sliderKey: PropTypes.string,
   };
 
   const renderWelcomeStep = () => (
@@ -825,6 +837,8 @@ const OnboardingScreen = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Age</Text>
             <InteractiveSlider
+              key="age-slider"
+              sliderKey="age"
               value={profileData.age}
               minimumValue={16}
               maximumValue={100}
@@ -842,22 +856,26 @@ const OnboardingScreen = () => {
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Height</Text>
         <InteractiveSlider
+          key="height-slider"
+          sliderKey="height"
           value={profileData.height}
           minimumValue={120}
           maximumValue={220}
           onValueChange={(value) => setProfileData({ ...profileData, height: Math.round(value) })}
-              unit=" cm"
+          unit=" cm"
           step={1}
         />
       </View>
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Weight</Text>
         <InteractiveSlider
+          key="weight-slider"
+          sliderKey="weight"
           value={profileData.weight}
           minimumValue={30}
           maximumValue={200}
           onValueChange={(value) => setProfileData({ ...profileData, weight: Math.round(value) })}
-              unit=" kg"
+          unit=" kg"
           step={0.5}
         />
       </View>
@@ -1104,30 +1122,6 @@ const OnboardingScreen = () => {
             <TouchableOpacity style={styles.backButton} onPress={prevStep}>
               <Ionicons name="chevron-back" size={24} color={colors.primary} />
               <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
-          )}
-          
-          {/* Show "Skip" button on plan step if Free plan is not selected, or allow closing */}
-          {currentStep === steps.length - 1 && (
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={async () => {
-                // Auto-select Free plan and complete
-                await clientLog('Onboarding:planSkippedFreeSelected').catch(() => {});
-                setProfileData({
-                  ...profileData,
-                  selectedPlan: 'free',
-                  planBillingCycle: 'lifetime',
-                });
-                // Small delay to ensure state is updated, then complete
-                setTimeout(() => {
-                  handleComplete();
-                }, 100);
-              }}
-            >
-              <Text style={styles.skipButtonText}>
-                {profileData.selectedPlan === 'free' ? 'Continue with Free' : 'Skip & Use Free'}
-              </Text>
             </TouchableOpacity>
           )}
           
