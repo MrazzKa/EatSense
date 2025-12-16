@@ -55,6 +55,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           throw error;
         }
       }
+
+      // Check if user_profiles.avatarUrl column exists
+      try {
+        await this.$queryRaw`SELECT "avatarUrl" FROM "user_profiles" LIMIT 1`;
+        this.logger.log('[Schema] ✓ user_profiles.avatarUrl column exists');
+      } catch (error: any) {
+        if (error?.code === '42703' || error?.message?.includes('does not exist')) {
+          this.logger.warn('[Schema] ⚠ user_profiles.avatarUrl column missing - run migrations');
+        } else {
+          throw error;
+        }
+      }
     } catch (error: any) {
       // Don't crash on schema check failures - migrations may be pending
       this.logger.warn(`[Schema] Schema check failed: ${error?.message || error}`);
