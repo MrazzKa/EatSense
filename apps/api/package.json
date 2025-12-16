@@ -10,6 +10,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "prestart:prod": "prisma generate && prisma migrate deploy",
+    "start:railway": "prisma generate && prisma migrate deploy && node dist/main.js",
     "lint": "eslint . --fix",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
