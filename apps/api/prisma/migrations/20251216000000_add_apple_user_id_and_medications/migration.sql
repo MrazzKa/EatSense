@@ -4,6 +4,9 @@ ALTER TABLE "users" ADD COLUMN "appleUserId" TEXT;
 -- CreateIndex: Add unique constraint for appleUserId
 CREATE UNIQUE INDEX "users_appleUserId_key" ON "users"("appleUserId") WHERE "appleUserId" IS NOT NULL;
 
+-- AlterTable: Add avatarUrl column to user_profiles table
+ALTER TABLE "user_profiles" ADD COLUMN "avatarUrl" TEXT;
+
 -- CreateTable: MedicationSchedule (legacy model)
 CREATE TABLE "medication_schedules" (
     "id" TEXT NOT NULL,
