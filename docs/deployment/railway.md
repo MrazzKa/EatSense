@@ -25,7 +25,7 @@ pnpm --filter eatsense-api prisma migrate deploy
 | **Root Directory** | `apps/api` |
 | **Install Command** | `pnpm install --frozen-lockfile` |
 | **Build Command** | `pnpm build` |
-| **Start Command** | `pnpm prisma migrate deploy && node dist/main.js` |
+| **Start Command** | `pnpm start:railway` |
 
 ## 3. Environment Variables
 
