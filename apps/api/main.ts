@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './src/core/middleware/error-handler.middleware';
-import os from 'node:os';
+import * as os from 'node:os';
 
 function resolveCorsOrigins(): string | string[] {
   const multi = process.env.CORS_ORIGINS;
@@ -79,7 +79,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = Number(process.env.PORT ?? 8080);
   await app.listen(port, '0.0.0.0');
 
   console.log('========================================');
@@ -89,24 +89,34 @@ async function bootstrap() {
   console.log(`📡 API Base URL: ${process.env.API_BASE_URL || 'not set'}`);
   console.log('========================================');
 
-  const interfaces = os.networkInterfaces();
-  const addresses: string[] = [];
-  Object.keys(interfaces).forEach((ifname) => {
-    interfaces[ifname]?.forEach((iface: any) => {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        addresses.push(iface.address);
-      }
-    });
-  });
+  // Network interfaces debug info (only in non-production)
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const interfaces = os.networkInterfaces();
+      if (interfaces) {
+        const addresses: string[] = [];
+        Object.keys(interfaces).forEach((ifname) => {
+          interfaces[ifname]?.forEach((iface: any) => {
+            if (iface.family === 'IPv4' && !iface.internal) {
+              addresses.push(iface.address);
+            }
+          });
+        });
 
-  console.log(`🌐 Accessible on:`);
-  console.log(`   http://localhost:${port} (local)`);
-  if (addresses.length > 0) {
-    addresses.forEach((addr) => {
-      console.log(`   http://${addr}:${port}`);
-    });
+        console.log(`🌐 Accessible on:`);
+        console.log(`   http://localhost:${port} (local)`);
+        if (addresses.length > 0) {
+          addresses.forEach((addr) => {
+            console.log(`   http://${addr}:${port}`);
+          });
+        }
+        console.log(`   Use Windows IP (172.20.10.2) if mobile is on same network`);
+      }
+    } catch (error) {
+      // Silently ignore network interface errors - they should never crash the server
+      console.warn('[Network] Could not enumerate network interfaces:', error instanceof Error ? error.message : String(error));
+    }
   }
-  console.log(`   Use Windows IP (172.20.10.2) if mobile is on same network`);
 }
 
 bootstrap().catch((error) => {
