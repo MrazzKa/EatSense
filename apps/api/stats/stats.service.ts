@@ -462,9 +462,28 @@ export class StatsService {
 
       // Регистрируем шрифты с поддержкой кириллицы
       const fontsPath = path.join(__dirname, '..', 'assets', 'fonts', 'Roboto', 'static');
-      doc.registerFont('Roboto', path.join(fontsPath, 'Roboto-Regular.ttf'));
-      doc.registerFont('Roboto-Bold', path.join(fontsPath, 'Roboto-Bold.ttf'));
-      doc.registerFont('Roboto-Light', path.join(fontsPath, 'Roboto-Light.ttf'));
+      const fs = require('fs');
+      let useCustomFonts = false;
+      
+      try {
+        const regularFont = path.join(fontsPath, 'Roboto-Regular.ttf');
+        const boldFont = path.join(fontsPath, 'Roboto-Bold.ttf');
+        const lightFont = path.join(fontsPath, 'Roboto-Light.ttf');
+        
+        if (fs.existsSync(regularFont) && fs.existsSync(boldFont) && fs.existsSync(lightFont)) {
+          doc.registerFont('Roboto', regularFont);
+          doc.registerFont('Roboto-Bold', boldFont);
+          doc.registerFont('Roboto-Light', lightFont);
+          useCustomFonts = true;
+        } else {
+          this.logger.warn('[StatsService] Font files not found, using default fonts', { fontsPath });
+        }
+      } catch (fontError) {
+        this.logger.warn('[StatsService] Failed to register custom fonts, using default fonts', fontError);
+      }
+
+      // Сохраняем флаг для использования в методах
+      (doc as any)._useCustomFonts = useCustomFonts;
 
       // Цвета бренда
       const colors = {
