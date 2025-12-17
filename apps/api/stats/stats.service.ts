@@ -476,10 +476,10 @@ export class StatsService {
           doc.registerFont('Roboto-Light', lightFont);
           useCustomFonts = true;
         } else {
-          this.logger.warn('[StatsService] Font files not found, using default fonts', { fontsPath });
+          console.warn('[StatsService] Font files not found, using default fonts', { fontsPath });
         }
       } catch (fontError) {
-        this.logger.warn('[StatsService] Failed to register custom fonts, using default fonts', fontError);
+        console.warn('[StatsService] Failed to register custom fonts, using default fonts', fontError);
       }
 
       // Сохраняем флаг для использования в методах
