@@ -46,6 +46,28 @@ export class LocalFoodService {
       if (!localFood) {
         return null;
       }
+
+      // Convert to CanonicalFood format
+      const canonicalFood: CanonicalFood = {
+        displayName: this.getDisplayName(localFood, locale),
+        originalQuery: query, // Original search query
+        per100g: {
+          calories: localFood.calories,
+          protein: localFood.protein,
+          carbs: localFood.carbs,
+          fat: localFood.fat,
+          fiber: localFood.fiber || 0,
+          sugars: localFood.sugars || 0,
+          satFat: localFood.satFat || 0,
+        },
+        defaultPortionG: 100, // Standard portion
+        category: (localFood.category as NutritionCategory) || 'unknown',
+        providerId: 'local_food' as NutritionProviderId,
+        providerFoodId: localFood.id,
+      };
+
+      this.logger.debug(`[LocalFoodService] Found local food: ${canonicalFood.displayName}`);
+      return canonicalFood;
     } catch (error: any) {
       // Handle case when local_foods table doesn't exist yet
       // This is non-critical - analysis will fallback to other providers
@@ -58,28 +80,6 @@ export class LocalFoodService {
       // Re-throw other errors
       throw error;
     }
-
-    // Convert to CanonicalFood format
-    const canonicalFood: CanonicalFood = {
-      displayName: this.getDisplayName(localFood, locale),
-      originalQuery: query, // Original search query
-      per100g: {
-        calories: localFood.calories,
-        protein: localFood.protein,
-        carbs: localFood.carbs,
-        fat: localFood.fat,
-        fiber: localFood.fiber || 0,
-        sugars: localFood.sugars || 0,
-        satFat: localFood.satFat || 0,
-      },
-      defaultPortionG: 100, // Standard portion
-      category: (localFood.category as NutritionCategory) || 'unknown',
-      providerId: 'local_food' as NutritionProviderId,
-      providerFoodId: localFood.id,
-    };
-
-    this.logger.debug(`[LocalFoodService] Found local food: ${canonicalFood.displayName}`);
-    return canonicalFood;
   }
 
   /**
