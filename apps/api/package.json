@@ -4,14 +4,16 @@
   "description": "EatSense API - AI-powered nutrition analysis backend",
   "main": "dist/main.js",
   "scripts": {
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "prebuild": "pnpm run prisma:generate",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "prestart:prod": "prisma generate && prisma migrate deploy",
-    "start:railway": "prisma generate && prisma migrate deploy && node dist/main.js",
+    "start:prod": "node dist/main.js",
+    "prestart:prod": "prisma generate && prisma migrate deploy --schema prisma/schema.prisma",
+    "start:railway": "prisma generate --schema prisma/schema.prisma && prisma migrate deploy --schema prisma/schema.prisma && node dist/main.js",
     "lint": "eslint . --fix",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
@@ -24,10 +26,12 @@
     "fdc:import:sr": "ts-node -r tsconfig-paths/register src/fdc/etl/etl-import-raw.ts --file=$USDA_DATA_DIR/sr-legacy-2018-04.json --type=SRLegacy",
     "fdc:import:branded": "ts-node -r tsconfig-paths/register src/fdc/etl/etl-import-raw.ts --file=$USDA_DATA_DIR/branded-2025-04.json --type=Branded",
     "fdc:reindex": "ts-node -r tsconfig-paths/register src/fdc/etl/etl-reindex.ts",
-    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:seed:nutrients": "ts-node -r tsconfig-paths/register prisma/seeds/seed-nutrients.ts",
     "prisma:seed:articles": "ts-node -r tsconfig-paths/register prisma/seeds/seed-articles.ts",
-    "prisma:seed:local-foods": "ts-node -r tsconfig-paths/register prisma/seeds/seed-local-foods.ts"
+    "prisma:seed:local-foods": "ts-node -r tsconfig-paths/register prisma/seeds/seed-local-foods.ts",
+    "seed:local-food": "ts-node -r tsconfig-paths/register prisma/seeds/seed-local-foods.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.917.0",
@@ -78,7 +82,8 @@
     "slugify": "^1.6.6",
     "stream-json": "^1.8.0",
     "ts-node": "^10.9.1",
-    "zod": "^3.22.0"
+    "zod": "^3.22.0",
+    "prisma": "^6.18.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -102,7 +107,6 @@
     "eslint-plugin-prettier": "^5.0.0",
     "jest": "^29.5.0",
     "prettier": "^3.0.0",
-    "prisma": "^6.18.0",
     "source-map-support": "^0.5.21",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",

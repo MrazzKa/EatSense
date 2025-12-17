@@ -20,17 +20,49 @@ pnpm --filter eatsense-api prisma migrate deploy
 
 ## 2. Configure Railway Web Service
 
+### Option A: Root Directory = `.` (Current Setup)
+
+| Setting | Value |
+| --- | --- |
+| **Root Directory** | `.` |
+| **Install Command** | `pnpm install --frozen-lockfile` |
+| **Build Command** | `pnpm -r build` |
+| **Pre-deploy Command** | `pnpm --filter ./apps/api run prisma:migrate:deploy && pnpm --filter ./apps/api run prisma:seed:nutrients && pnpm --filter ./apps/api run prisma:seed:articles` |
+| **Start Command** | `pnpm --filter ./apps/api exec node dist/main.js` |
+
+### Option B: Root Directory = `apps/api` (Recommended)
+
 | Setting | Value |
 | --- | --- |
 | **Root Directory** | `apps/api` |
 | **Install Command** | `pnpm install --frozen-lockfile` |
 | **Build Command** | `pnpm build` |
-| **Start Command** | `pnpm --filter ./apps/api exec prisma generate && pnpm --filter ./apps/api exec prisma migrate deploy && pnpm --filter ./apps/api exec node dist/main.js` |
-
-**Alternative (if Root Directory is set to `apps/api`):**
 | **Start Command** | `pnpm start:railway` |
 
-## 3. Environment Variables
+Both variants ensure that Prisma migrations are deployed before the NestJS app starts.
+
+**Important:** If you see an error like `Could not load --schema from provided path apps/api/prisma/schema.prisma`, it means Railway is trying to use the wrong path. Make sure:
+- If Root Directory is `apps/api`, use `pnpm start:railway` (which uses `prisma/schema.prisma`)
+- If Root Directory is `.`, use `pnpm --filter ./apps/api start:railway`
+- Never use `apps/api/prisma/schema.prisma` when Root Directory is already `apps/api`
+
+## 3. Prisma schema verification helpers
+
+For manual checks of the `user_profiles` table on Railway or locally, prefer `prisma db execute` with `--file` or `--stdin` (avoid the deprecated `--script`):
+
+```bash
+# Example: check user_profiles columns via stdin
+echo 'SELECT column_name FROM information_schema.columns WHERE table_schema = '\''public'\'' AND table_name = '\''user_profiles'\'';' \
+  | pnpm exec prisma db execute --schema prisma/schema.prisma --stdin --non-interactive
+```
+
+You can also save SQL into a file (e.g. `scripts/check-user-profiles.sql`) and run:
+
+```bash
+pnpm exec prisma db execute --schema prisma/schema.prisma --file scripts/check-user-profiles.sql --non-interactive
+```
+
+## 4. Environment Variables
 
 Use Railway variable references to avoid hard-coding secrets. Example:
 
@@ -71,14 +103,14 @@ Use Railway variable references to avoid hard-coding secrets. Example:
 
 Add other cache or feature flags as needed (`NUTRITION_PROVIDER`, etc.).
 
-## 4. Attach Postgres & Redis
+## 5. Attach Postgres & Redis
 
 In the Railway dashboard, add variable references:
 
 - `DATABASE_URL = ${DATABASE_URL}` from the PostgreSQL resource (connection string)
 - `REDIS_URL = ${REDIS_URL}` from the Redis resource
 
-## 5. MinIO Service
+## 6. MinIO Service
 
 1. Add a **Docker** service on Railway using `minio/minio:latest`.
 2. Set the start command to:
@@ -90,12 +122,12 @@ In the Railway dashboard, add variable references:
 5. Expose the HTTP endpoint (port 9000) and console (9001) internally.
 6. Use the generated URL for `S3_ENDPOINT`. Ensure `S3_FORCE_PATH_STYLE=true`.
 
-## 6. Domain & SSL
+## 7. Domain & SSL
 
 - Point `api.eatsense.app` to the Railway web-service CNAME (`*.up.railway.app`).
 - Use Railway’s custom domain wizard to provision TLS automatically.
 
-## 7. Smoke Test
+## 8. Smoke Test
 
 After deployment:
 

@@ -12,7 +12,6 @@ import { EmptySplash } from './src/components/EmptySplash';
 import { useAuth } from './src/contexts/AuthContext';
 
 // Import screens
-import SmokeTestScreen from './src/screens/SmokeTestScreen';
 import AuthScreen from './src/components/AuthScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import CameraScreen from './src/screens/CameraScreen';
@@ -70,14 +69,11 @@ function AppContent() {
         {!isAuthenticated ? (
           // Not authenticated - show Auth screen
           <Stack.Navigator
-            initialRouteName={__DEV__ ? "_SmokeTest" : "Auth"}
+            initialRouteName="Auth"
             screenOptions={{
               headerShown: false,
             }}
           >
-            {__DEV__ && (
-              <Stack.Screen name="_SmokeTest" component={SmokeTestScreen} />
-            )}
             <Stack.Screen name="Auth">
               {(props) => <AuthScreen {...props} onAuthSuccess={handleAuthSuccess} />}
             </Stack.Screen>

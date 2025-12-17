@@ -4,6 +4,7 @@ import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { DateTime } from 'luxon';
 import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class MedicationsService {
@@ -33,7 +34,7 @@ export class MedicationsService {
         include: { doses: true },
       });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+      if (err instanceof PrismaClientKnownRequestError && err.code === 'P2021') {
         throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
       }
       throw err;
@@ -65,7 +66,7 @@ export class MedicationsService {
         include: { doses: true },
       });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+      if (err instanceof PrismaClientKnownRequestError && err.code === 'P2021') {
         throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
       }
       throw err;
@@ -83,7 +84,7 @@ export class MedicationsService {
         include: { doses: true },
       });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+      if (err instanceof PrismaClientKnownRequestError && err.code === 'P2021') {
         throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
       }
       throw err;
@@ -195,7 +196,7 @@ export class MedicationsService {
           })),
         });
       } catch (err) {
-        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+        if (err instanceof PrismaClientKnownRequestError && err.code === 'P2021') {
           throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
         }
         throw err;
@@ -219,7 +220,7 @@ export class MedicationsService {
         include: { doses: true },
       });
     } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
+      if (err instanceof PrismaClientKnownRequestError && err.code === 'P2021') {
         throw new ServiceUnavailableException('Medications feature is not initialized (table missing).');
       }
       throw err;

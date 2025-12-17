@@ -7,7 +7,11 @@ declare const __DEV__: boolean | undefined;
 
 const safeEnv = {
   // API Configuration
-  apiBaseUrl: String(process.env.EXPO_PUBLIC_API_BASE_URL ?? '').trim() || 'http://localhost:3000',
+  // If EXPO_PUBLIC_API_BASE_URL is not set, default to production Railway URL
+  // to avoid accidental usage of localhost or temporary ngrok tunnels in Expo Go
+  apiBaseUrl:
+    String(process.env.EXPO_PUBLIC_API_BASE_URL ?? '').trim() ||
+    'https://caloriecam-production.up.railway.app',
   
   // Google OAuth Client IDs - safely normalized
   googleIosClientId: String(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '').trim(),

@@ -46,21 +46,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(result || null);
       }
     } catch (error: any) {
-      // Check if error is 404 (profile not found) vs 401 (unauthorized)
-      const isUnauthorized = error?.status === 401 || error?.response?.status === 401;
+      const status = error?.status || error?.response?.status;
+      const isUnauthorized = status === 401;
+      const isNotFound = status === 404;
+      const isServerError = status >= 500;
+      
       if (isUnauthorized) {
         // Token expired or invalid - clear user
         console.log('[AuthContext] Unauthorized - clearing user:', error?.message || 'Unknown error');
         setUser(null);
         await ApiService.setToken(null, null);
-      } else {
-        // Profile doesn't exist (404) or other error - if we have a token, user is authenticated
-        // This ensures new users (no profile yet) see onboarding instead of login screen
+      } else if (isServerError) {
+        // Server error (500, 502, etc.) - don't show onboarding, log error
+        // This could be a database schema issue or other server problem
+        console.error('[AuthContext] Server error fetching profile:', status, error?.message || 'Unknown error');
+        // Keep current user state, don't change it
+        // The app should handle this gracefully (maybe show error message)
+        if (!ApiService.token) {
+          setUser(null);
+        }
+      } else if (isNotFound) {
+        // Profile doesn't exist (404) - if we have a token, user is authenticated but needs onboarding
         if (ApiService.token) {
           console.log('[AuthContext] Profile not found but token exists - showing onboarding');
           setUser({ isOnboardingCompleted: false });
         } else {
-          console.log('[AuthContext] Error refreshing user (no token):', (error as any)?.message || 'Unknown error');
+          console.log('[AuthContext] Profile not found and no token - clearing user');
+          setUser(null);
+        }
+      } else {
+        // Other error (network, etc.) - if we have a token, assume user is authenticated
+        // but don't force onboarding, keep current state
+        console.warn('[AuthContext] Error refreshing user:', status, error?.message || 'Unknown error');
+        if (!ApiService.token) {
           setUser(null);
         }
       }
