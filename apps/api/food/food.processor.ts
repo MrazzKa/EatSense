@@ -62,9 +62,8 @@ export class FoodProcessor {
       // Sharp will handle any input format and convert to JPEG
       let processedBuffer: Buffer;
       try {
-        // Process image - Strip EXIF metadata and convert to JPEG
-        // Note: Sharp removes EXIF metadata automatically when converting to JPEG format
-        // We don't call withMetadata() to ensure no metadata is preserved
+        // Process image - convert to JPEG suitable for Vision API
+        // Note: Sharp does not preserve EXIF metadata when converting to JPEG by default
         processedBuffer = await sharp(imageBuffer)
           .jpeg({ quality: 90, mozjpeg: true })
           .toBuffer();

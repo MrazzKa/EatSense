@@ -180,13 +180,13 @@ export default function AuthScreen({ onAuthSuccess }) {
 
   // Google OAuth configuration with separate Client IDs for iOS/Android/Web
   // Use safeEnv helper to prevent "undefined is not a function" errors
-  // For mobile apps: use only iOS/Android Client IDs (no Web Client ID needed)
-  // Web Client ID is only for web platform
+  // На мобильных мы можем безопасно передавать webClientId вместе с iOS/Android ID.
   const iosClientId = Constants.expoConfig?.extra?.googleIosClientId || safeEnv.googleIosClientId;
   const androidClientId = Constants.expoConfig?.extra?.googleAndroidClientId || safeEnv.googleAndroidClientId;
-  const webClientId = Platform.OS === 'web' 
-    ? (Constants.expoConfig?.extra?.googleWebClientId || safeEnv.googleWebClientId || safeEnv.googleClientId)
-    : undefined; // Don't use Web Client ID on mobile - use iOS/Android Client IDs instead
+  const webClientId =
+    Constants.expoConfig?.extra?.googleWebClientId ||
+    safeEnv.googleWebClientId ||
+    safeEnv.googleClientId;
   
   // Create redirect URI for Google OAuth
   // For mobile: expo-auth-session will use iOS/Android Client IDs with their own redirect handling
@@ -209,7 +209,7 @@ export default function AuthScreen({ onAuthSuccess }) {
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
     iosClientId,
     androidClientId,
-    webClientId, // Only for web platform, undefined for mobile
+    webClientId,
     scopes: ['openid', 'profile', 'email'],
     redirectUri,
   });

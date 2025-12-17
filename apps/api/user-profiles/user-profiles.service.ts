@@ -94,7 +94,7 @@ export class UserProfilesService {
       const allowedFields = [
         'firstName', 'lastName', 'age', 'height', 'weight', 'gender', 
         'activityLevel', 'goal', 'targetWeight', 'dailyCalories', 
-        'preferences', 'healthProfile', 'isOnboardingCompleted'
+        'avatarUrl', 'preferences', 'healthProfile', 'isOnboardingCompleted'
       ];
       const sanitizedFinalData: any = {};
       for (const key of allowedFields) {

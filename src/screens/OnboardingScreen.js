@@ -444,6 +444,7 @@ const OnboardingScreen = () => {
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
   const onPrimaryColor = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const [currentStep, setCurrentStep] = useState(0);
+  const [confirmedSteps, setConfirmedSteps] = useState(new Set());
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -531,6 +532,15 @@ const OnboardingScreen = () => {
     },
   ];
 
+  const markStepConfirmed = (stepIndex) => {
+    setConfirmedSteps((prev) => {
+      if (prev.has(stepIndex)) return prev;
+      const next = new Set(prev);
+      next.add(stepIndex);
+      return next;
+    });
+  };
+
   const nextStep = () => {
     // Валидация для каждого шага
     if (currentStep === 1) { // Personal step
@@ -554,6 +564,9 @@ const OnboardingScreen = () => {
         return;
       }
     }
+
+    // Шаг считается "подтверждённым" только когда пользователь явно нажал Next
+    markStepConfirmed(currentStep);
 
     if (currentStep < steps.length - 1) {
       const nextStepIndex = currentStep + 1;
@@ -1088,12 +1101,16 @@ const OnboardingScreen = () => {
             <View
               style={[
                 styles.progressFill,
-                { width: `${((currentStep + 1) / steps.length) * 100}%` },
+                {
+                  width: `${
+                    (Math.max(1, confirmedSteps.size || 1) / steps.length) * 100
+                  }%`,
+                },
               ]}
             />
           </View>
           <Text style={styles.progressText}>
-            {currentStep + 1} of {steps.length}
+            {Math.max(1, confirmedSteps.size || 1)} of {steps.length}
           </Text>
         </View>
       </View>

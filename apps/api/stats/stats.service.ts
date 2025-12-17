@@ -131,6 +131,16 @@ export class StatsService {
     };
   }
 
+  // Helper to safely convert Prisma Decimal / string / number to number
+  private toNum(value: any): number {
+    if (value == null) return 0;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') return Number(value) || 0;
+    // Prisma Decimal has toJSON / valueOf returning string
+    const asNumber = Number((value as any).valueOf?.() ?? (value as any).toJSON?.());
+    return Number.isFinite(asNumber) ? asNumber : 0;
+  }
+
   async getNutritionStats(userId: string) {
     const last30Days = new Date();
     last30Days.setDate(last30Days.getDate() - 30);
@@ -154,22 +164,38 @@ export class StatsService {
       }
       
       meal.items.forEach(item => {
-        acc[date].calories += item.calories;
-        acc[date].protein += item.protein;
-        acc[date].fat += item.fat;
-        acc[date].carbs += item.carbs;
+        acc[date].calories += this.toNum(item.calories);
+        acc[date].protein += this.toNum(item.protein);
+        acc[date].fat += this.toNum(item.fat);
+        acc[date].carbs += this.toNum(item.carbs);
       });
       
       return acc;
     }, {} as Record<string, any>);
 
+    const days = Object.values(dailyStats) as Array<{
+      calories: any;
+      protein: any;
+      fat: any;
+      carbs: any;
+    }>;
+    const daysCount = days.length || 1;
+
     return {
       dailyStats,
       average: {
-        calories: Object.values(dailyStats).reduce((sum: number, day: any) => sum + day.calories, 0) / Object.keys(dailyStats).length || 0,
-        protein: Object.values(dailyStats).reduce((sum: number, day: any) => sum + day.protein, 0) / Object.keys(dailyStats).length || 0,
-        fat: Object.values(dailyStats).reduce((sum: number, day: any) => sum + day.fat, 0) / Object.keys(dailyStats).length || 0,
-        carbs: Object.values(dailyStats).reduce((sum: number, day: any) => sum + day.carbs, 0) / Object.keys(dailyStats).length || 0,
+        calories:
+          days.reduce((sum, day) => sum + this.toNum(day.calories), 0) /
+            (days.length || 1),
+        protein:
+          days.reduce((sum, day) => sum + this.toNum(day.protein), 0) /
+            daysCount,
+        fat:
+          days.reduce((sum, day) => sum + this.toNum(day.fat), 0) /
+            daysCount,
+        carbs:
+          days.reduce((sum, day) => sum + this.toNum(day.carbs), 0) /
+            daysCount,
       },
     };
   }
