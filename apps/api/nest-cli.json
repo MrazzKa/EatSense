@@ -14,7 +14,8 @@
       {
         "include": "assets/**/*",
         "outDir": "dist",
-        "watchAssets": true
+        "watchAssets": true,
+        "exclude": "**/*.ts"
       }
     ]
   },
