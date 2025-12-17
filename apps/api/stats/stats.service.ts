@@ -5,7 +5,8 @@ import { MealLogMealType } from '@prisma/client';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { Readable } from 'stream';
-import PDFDocument from 'pdfkit';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const PDFDocument = require('pdfkit') as typeof import('pdfkit');
 import type * as PDFKit from 'pdfkit';
 
 // Calculate daily calories based on user profile or return default
