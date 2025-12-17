@@ -10,7 +10,12 @@
 В настройках Railway сервиса `EatSense`, в разделе **Deploy → Pre-deploy Command**, замените команду на:
 
 ```bash
-pnpm --filter ./apps/api exec prisma generate --schema apps/api/prisma/schema.prisma && pnpm --filter ./apps/api run prisma:migrate:deploy
+pnpm --filter ./apps/api run prisma:generate && pnpm --filter ./apps/api run prisma:migrate:deploy
+```
+
+**Или альтернативный вариант:**
+```bash
+pnpm --filter ./apps/api exec prisma generate --schema prisma/schema.prisma && pnpm --filter ./apps/api run prisma:migrate:deploy
 ```
 
 **Важно:** `prisma generate` должен быть ПЕРЕД `prisma migrate deploy`!
