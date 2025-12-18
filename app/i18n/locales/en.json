@@ -87,6 +87,9 @@
     "suggestedFood": {
       "title": "Smart food suggestions",
       "subtitle": "Here are simple ideas to better match your goal for the next few days.",
+      "summary": {
+        "title": "Personal recommendation"
+      },
       "shortDescription": "Get simple ideas of what to eat today",
       "description": "Personalized food suggestions based on your goals, preferences, and nutritional needs.",
       "gotIt": "Got it",
@@ -170,6 +173,12 @@
     "ingredients": "Ingredients",
     "share": "Share",
     "fixButton": "Fix",
+    "fix": "Fix",
+    "fixTitle": "Fix Result",
+    "fixMessage": "AI will analyze this dish again more carefully to remove any discrepancies or errors.",
+    "fixConfirm": "Fix",
+    "fixSuccess": "Analysis updated with more accurate results",
+    "fixError": "Failed to fix analysis. Please try again.",
     "reanalyze": "Re-analyze",
     "shareButton": "Share",
     "reanalyzedSuccess": "Analysis recalculated successfully",
@@ -646,8 +655,8 @@
       },
       "textLabel": "Lab results (text)",
       "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
-      "fileLabel": "PDF report",
-      "attachPdf": "Attach PDF",
+      "fileLabel": "File",
+      "attachPdf": "Attach",
       "fileHint": "Attach a PDF file with your lab report.",
       "analyzeButton": "Analyze",
       "resultTitle": "AI Interpretation",
@@ -733,6 +742,10 @@
   "recently": {
     "title": "Recently",
     "subtitle": "Your latest meals and analyses",
+    "analyzing": "Analyzing...",
+    "pending": "Pending...",
+    "analyzingStatus": "Identifying ingredients...",
+    "pendingStatus": "Waiting for analysis to start...",
     "noItems": "No recent items yet. Start by analyzing a meal!",
     "today": "Today",
     "yesterday": "Yesterday",
@@ -865,6 +878,13 @@
     "beforeMeal": "Before",
     "afterMeal": "After",
     "addDose": "Add time"
+  },
+  "foodDescriptionPrompt": {
+    "title": "What did you eat?",
+    "subtitle": "This will help us better analyze your meal",
+    "placeholder": "For example: khachapuri, borscht, salad...",
+    "skip": "Skip",
+    "confirm": "Continue"
   }
 }
 

@@ -38,6 +38,7 @@ import { HiddenIngredientsService } from './hidden-ingredients.service';
 import { FoodCompatibilityService } from './food-compatibility.service';
 import { CarcinogenicRiskService } from './carcinogenic-risk.service';
 import { HiddenIngredientEstimate } from './analysis.types';
+import { AnalysisValidatorService } from './validation/analysis-validator.service';
 // Import types - interfaces are exported from nutrition-provider.interface.ts
 // Note: If TypeScript shows import errors, restart TS server or check that file is saved
 import type {
@@ -528,6 +529,7 @@ export class AnalyzeService {
     private readonly hiddenIngredients: HiddenIngredientsService,
     private readonly foodCompatibility: FoodCompatibilityService,
     private readonly carcinogenicRisk: CarcinogenicRiskService,
+    private readonly validator: AnalysisValidatorService,
     ) {}
 
   /**
@@ -851,7 +853,7 @@ export class AnalyzeService {
   /**
    * Analyze image and return normalized nutrition data
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review' }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | undefined) || 'en';
     const mode = params.mode || 'default';
@@ -877,6 +879,7 @@ export class AnalyzeService {
         imageBase64: params.imageBase64,
         locale,
         mode,
+        foodDescription: params.foodDescription,
       });
       const visionDuration = Date.now() - visionStartTime;
       this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms`);

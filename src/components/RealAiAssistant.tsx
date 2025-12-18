@@ -37,9 +37,19 @@ interface Message {
 
 interface RealAiAssistantProps {
   onClose: () => void;
+  mealContext?: {
+    dishName?: string;
+    ingredients?: Array<{ name: string; weight?: number; calories?: number; protein?: number; carbs?: number; fat?: number }>;
+    totalCalories?: number;
+    totalProtein?: number;
+    totalCarbs?: number;
+    totalFat?: number;
+    healthScore?: any;
+    imageUri?: string | null;
+  } | null;
 }
 
-export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => {
+export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealContext }) => {
   if (__DEV__) {
     console.log('[RealAiAssistant] mounted');
   }
@@ -116,6 +126,27 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
 
     loadHistory();
   }, [user?.id, t]);
+
+  // Add meal context as initial message if provided
+  useEffect(() => {
+    if (mealContext && mealContext.dishName && messages.length === 0) {
+      const contextMessage = `I just analyzed this meal: ${mealContext.dishName}. ` +
+        (mealContext.totalCalories ? `${mealContext.totalCalories} calories. ` : '') +
+        (mealContext.ingredients && mealContext.ingredients.length > 0 
+          ? `Ingredients: ${mealContext.ingredients.map(i => i.name).join(', ')}. ` 
+          : '') +
+        'Can you tell me more about it?';
+      
+      setMessages([
+        {
+          id: 'meal-context-1',
+          role: 'user',
+          content: contextMessage,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [mealContext, messages.length]);
 
   // C2: Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -264,13 +295,51 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose }) => 
         throw new Error('ApiService.getGeneralQuestion is not available');
       }
 
-      // TODO: If API supports file attachments, send them here
-      // For now, send text only
-      const response = await ApiService.getGeneralQuestion(
-        user.id,
-        trimmedInput || (selectedAttachment ? `[${selectedAttachment.type === 'image' ? 'Photo' : 'PDF'} attached]` : ''),
-        mapLanguageToLocale(language),
-      );
+      // If mealContext is provided, use nutrition advice endpoint with context
+      // Otherwise use general question endpoint
+      let response;
+      if (mealContext) {
+        // Build context string from meal data
+        const contextParts = [];
+        if (mealContext.dishName) {
+          contextParts.push(`Dish: ${mealContext.dishName}`);
+        }
+        if (mealContext.ingredients && mealContext.ingredients.length > 0) {
+          const ingredientsList = mealContext.ingredients.map(ing => 
+            `${ing.name}${ing.weight ? ` (${ing.weight}g)` : ''}`
+          ).join(', ');
+          contextParts.push(`Ingredients: ${ingredientsList}`);
+        }
+        if (mealContext.totalCalories) {
+          contextParts.push(`Total: ${mealContext.totalCalories} kcal, P: ${mealContext.totalProtein || 0}g, C: ${mealContext.totalCarbs || 0}g, F: ${mealContext.totalFat || 0}g`);
+        }
+        
+        const contextString = contextParts.join('\n');
+        const questionWithContext = `${trimmedInput}\n\nContext about this meal:\n${contextString}`;
+        
+        if (ApiService && typeof ApiService.getNutritionAdvice === 'function') {
+          response = await ApiService.getNutritionAdvice(
+            user.id,
+            questionWithContext,
+            mealContext,
+            mapLanguageToLocale(language),
+          );
+        } else {
+          // Fallback to general question if nutrition advice not available
+          response = await ApiService.getGeneralQuestion(
+            user.id,
+            questionWithContext,
+            mapLanguageToLocale(language),
+          );
+        }
+      } else {
+        // No meal context - use general question
+        response = await ApiService.getGeneralQuestion(
+          user.id,
+          trimmedInput || (selectedAttachment ? `[${selectedAttachment.type === 'image' ? 'Photo' : 'PDF'} attached]` : ''),
+          mapLanguageToLocale(language),
+        );
+      }
 
       if (__DEV__) {
         console.log('[RealAiAssistant] Received response:', response?.answer ? 'has answer' : 'no answer');
@@ -613,12 +682,18 @@ const styles = StyleSheet.create({
   messageBubble: {
     maxWidth: '80%',
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 18,
+    paddingVertical: 12,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   messageText: {
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
+    letterSpacing: 0.2,
   },
   attachmentPreview: {
     flexDirection: 'row',
@@ -654,13 +729,14 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 44,
     maxHeight: 100,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: 12,
+    borderRadius: 22,
     borderWidth: 1,
     fontSize: 16,
+    lineHeight: 20,
   },
   iconButton: {
     padding: 8,
@@ -668,11 +744,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
 });
 

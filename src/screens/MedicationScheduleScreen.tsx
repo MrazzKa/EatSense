@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -38,6 +39,7 @@ type Medication = {
 };
 
 const MedicationScheduleScreen: React.FC = () => {
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -251,6 +253,8 @@ const MedicationScheduleScreen: React.FC = () => {
     headerTitle: {
       fontSize: 20,
       fontWeight: '600',
+      flex: 1,
+      textAlign: 'center',
     },
     card: {
       borderRadius: 12,
@@ -373,6 +377,16 @@ const MedicationScheduleScreen: React.FC = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigation && typeof navigation.goBack === 'function') {
+              navigation.goBack();
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
+        </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
           {t('medications.title') || 'Medication schedule'}
         </Text>

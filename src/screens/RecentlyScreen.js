@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   RefreshControl,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
+import { CircularProgress } from '../components/CircularProgress';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -128,26 +130,73 @@ export default function RecentlyScreen() {
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
   const [recentItems, setRecentItems] = useState([]);
+  const [activeAnalyses, setActiveAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const pollingIntervalRef = useRef(null);
 
   const loadRecentItems = useCallback(async () => {
     try {
       setLoading(true);
-      const meals = await ApiService.getMeals();
+      const [meals, activeAnalysesData] = await Promise.all([
+        ApiService.getMeals(),
+        ApiService.getActiveAnalyses().catch(() => []), // Fallback to empty array if fails
+      ]);
       const normalized = Array.isArray(meals)
         ? meals.map(normalizeMeal).filter(Boolean)
         : [];
       // Always use real data - no fallback/demo meals
       setRecentItems(normalized);
+      setActiveAnalyses(Array.isArray(activeAnalysesData) ? activeAnalysesData : []);
     } catch (error) {
       console.error('Error loading recent items:', error);
       // On error, show empty state - no demo data
       setRecentItems([]);
+      setActiveAnalyses([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const checkAnalysisStatus = useCallback(async (analysisId) => {
+    try {
+      const status = await ApiService.getAnalysisStatus(analysisId);
+      if (status.status === 'completed' || status.status === 'failed') {
+        // Analysis completed, reload meals
+        loadRecentItems();
+        return false; // Stop polling
+      }
+      return true; // Continue polling
+    } catch (error) {
+      console.error(`Error checking analysis status for ${analysisId}:`, error);
+      return false; // Stop polling on error
+    }
+  }, [loadRecentItems]);
+
+  useEffect(() => {
+    // Poll active analyses every 2 seconds
+    if (activeAnalyses.length > 0) {
+      pollingIntervalRef.current = setInterval(async () => {
+        const shouldContinue = await Promise.all(
+          activeAnalyses.map((analysis) => checkAnalysisStatus(analysis.analysisId))
+        );
+        // If all analyses are completed, stop polling
+        if (!shouldContinue.some(Boolean)) {
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [activeAnalyses, checkAnalysisStatus]);
 
   useEffect(() => {
     loadRecentItems();
@@ -165,6 +214,89 @@ export default function RecentlyScreen() {
     await loadRecentItems();
     setRefreshing(false);
   };
+
+  const ActiveAnalysisCard = React.memo(function ActiveAnalysisCard({ item }) {
+    const progressAnim = useRef(new Animated.Value(0)).current;
+    const isProcessing = item.status === 'PROCESSING' || item.status === 'processing';
+    // Removed unused isPending variable
+    // Use actual progress from backend if available, otherwise simulate based on status
+    // Backend returns status as lowercase ('pending' or 'processing')
+    const progress = item.progress !== undefined ? item.progress / 100 : (isProcessing ? 0.5 : 0.2);
+
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(progressAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(progressAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    }, [progressAnim]);
+
+    const opacity = progressAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.5, 1],
+    });
+
+    const dateLabel = formatDateLabel(item.createdAt, t, language);
+
+    return (
+      <View style={[styles.recentItem, { backgroundColor: colors.card, borderColor: colors.borderMuted }]}>
+        {item.imageUri ? (
+          <Image 
+            source={{ uri: item.imageUri }} 
+            style={styles.itemImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.itemPlaceholder}>
+            <CircularProgress
+              progress={progress}
+              size={48}
+              strokeWidth={4}
+              color={colors.primary}
+              backgroundColor={colors.borderMuted}
+              value={Math.round(progress * 100)}
+              label="%"
+              labelStyle={{ fontSize: 10, color: colors.textPrimary }}
+              valueStyle={{ fontSize: 12, color: colors.primary }}
+            />
+          </View>
+        )}
+
+        <View style={styles.itemContent}>
+          <View style={styles.itemHeader}>
+            <Animated.View style={{ opacity }}>
+              <Text style={[styles.itemName, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
+                {isProcessing ? t('recently.analyzing') || 'Анализируем...' : t('recently.pending') || 'Ожидание...'}
+              </Text>
+            </Animated.View>
+            <Text style={[styles.itemDate, { color: colors.textSecondary }]}>{dateLabel}</Text>
+          </View>
+
+          <Text style={[styles.itemDescription, { color: colors.textSecondary }]} numberOfLines={1}>
+            {item.description || (isProcessing ? t('recently.analyzingSubtitle') : t('recently.pending'))}
+          </Text>
+
+          <View style={styles.itemStatus}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.itemStatusText, { color: colors.primary }]}>
+              {Math.round(progress * 100)}%
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  });
+
+  const renderActiveAnalysis = ({ item }) => <ActiveAnalysisCard item={item} />;
 
   const renderRecentItem = ({ item }) => {
     const dateLabel = formatDateLabel(item.date, t, language);
@@ -294,11 +426,20 @@ export default function RecentlyScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      ) : recentItems.length > 0 ? (
+      ) : (recentItems.length > 0 || activeAnalyses.length > 0) ? (
         <FlatList
-          data={recentItems}
-          renderItem={renderRecentItem}
-          keyExtractor={(item, index) => item.id || `item-${index}`}
+          data={[
+            ...activeAnalyses.map((analysis) => ({ ...analysis, isActiveAnalysis: true })),
+            ...recentItems,
+          ]}
+          renderItem={({ item }) => 
+            item.isActiveAnalysis ? renderActiveAnalysis({ item }) : renderRecentItem({ item })
+          }
+          keyExtractor={(item, index) => 
+            item.isActiveAnalysis 
+              ? `analysis-${item.analysisId}` 
+              : item.id || `item-${index}`
+          }
           contentContainerStyle={[styles.listContainer, { backgroundColor: colors.background }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -456,5 +597,47 @@ const createStyles = (tokens, colors) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    itemDescription: {
+      fontSize: tokens.typography.caption.fontSize,
+      color: colors.textSecondary,
+      marginTop: tokens.spacing.xs,
+    },
+    itemStatus: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.xs,
+      marginTop: tokens.spacing.sm,
+    },
+    itemStatusText: {
+      fontSize: tokens.typography.caption.fontSize,
+      fontWeight: tokens.typography.bodyStrong.fontWeight,
+      color: colors.primary,
+    },
+    progressContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: tokens.spacing.sm,
+      gap: tokens.spacing.sm,
+    },
+    progressBar: {
+      flex: 1,
+      height: 4,
+      borderRadius: 2,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 2,
+    },
+    progressText: {
+      fontSize: tokens.typography.caption.fontSize,
+      fontWeight: tokens.typography.bodyStrong.fontWeight,
+      minWidth: 40,
+      textAlign: 'right',
+    },
+    analysisStatusText: {
+      fontSize: tokens.typography.caption.fontSize,
+      marginTop: tokens.spacing.xs,
     },
   });

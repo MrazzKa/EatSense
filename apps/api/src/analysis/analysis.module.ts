@@ -11,6 +11,7 @@ import { HybridModule } from '../fdc/hybrid/hybrid.module';
 import { PrismaModule } from '../../prisma.module';
 import { CacheModule } from '../cache/cache.module';
 import { NutritionModule } from './providers/nutrition.module';
+import { AnalysisValidatorService } from './validation/analysis-validator.service';
 
 @Module({
   imports: [HybridModule, PrismaModule, CacheModule, NutritionModule],
@@ -21,6 +22,7 @@ import { NutritionModule } from './providers/nutrition.module';
     HiddenIngredientsService,
     FoodCompatibilityService,
     CarcinogenicRiskService,
+    AnalysisValidatorService,
     AnalyzeService,
     LocalFoodService,
   ],

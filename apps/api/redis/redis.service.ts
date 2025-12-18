@@ -7,15 +7,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private isConnected = false;
 
   async onModuleInit() {
-    const redisHost = process.env.REDIS_HOST || 'localhost';
-    const redisPort = parseInt(process.env.REDIS_PORT || '6379');
-    const redisPassword = process.env.REDIS_PASSWORD;
+    // Priority: REDIS_URL > REDIS_HOST/PORT/PASSWORD
+    // This ensures Railway (REDIS_URL) works correctly
+    let redisUrl: string;
     
-    const redisUrl = process.env.REDIS_URL || `redis://${redisHost}:${redisPort}`;
+    if (process.env.REDIS_URL) {
+      redisUrl = process.env.REDIS_URL;
+    } else {
+      const redisHost = process.env.REDIS_HOST || 'localhost';
+      const redisPort = parseInt(process.env.REDIS_PORT || '6379');
+      const redisPassword = process.env.REDIS_PASSWORD;
+      redisUrl = redisPassword 
+        ? `redis://:${redisPassword}@${redisHost}:${redisPort}`
+        : `redis://${redisHost}:${redisPort}`;
+    }
     
     this.client = createClient({
       url: redisUrl,
-      password: redisPassword || undefined,
       socket: {
         connectTimeout: parseInt(process.env.REDIS_CONNECT_TIMEOUT_MS || '5000', 10),
         keepAlive: parseInt(process.env.REDIS_KEEP_ALIVE_MS || '5000', 10),

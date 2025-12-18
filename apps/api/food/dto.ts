@@ -14,6 +14,14 @@ export class AnalyzeImageDto {
   @IsOptional()
   @IsIn(['en', 'ru', 'kk'])
   locale?: 'en' | 'ru' | 'kk';
+
+  @ApiProperty({
+    required: false,
+    description: 'Optional food description to help with analysis (e.g., "khachapuri", "borscht")',
+  })
+  @IsOptional()
+  @IsString()
+  foodDescription?: string;
 }
 
 export class AnalyzeTextDto {

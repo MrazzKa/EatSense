@@ -336,7 +336,7 @@ class ApiService {
   }
 
   // Food Analysis
-  async analyzeImage(imageUri, locale) {
+  async analyzeImage(imageUri, locale, foodDescription) {
     const formData = new FormData();
     formData.append('image', {
       uri: imageUri,
@@ -346,6 +346,10 @@ class ApiService {
 
     if (locale) {
       formData.append('locale', locale);
+    }
+
+    if (foodDescription) {
+      formData.append('foodDescription', foodDescription);
     }
 
     // Get headers with token, but remove Content-Type for FormData
@@ -382,6 +386,10 @@ class ApiService {
 
   async getAnalysisStatus(analysisId) {
     return this.request(`/food/analysis/${analysisId}/status`);
+  }
+
+  async getActiveAnalyses() {
+    return this.request('/food/analyses/active');
   }
 
   async getAnalysisResult(analysisId) {
@@ -446,6 +454,15 @@ class ApiService {
         mode: options.mode || 'review',
       }),
     });
+  }
+
+  /**
+   * Re-analyze with specific mode (convenience method)
+   * @param {string} analysisId - Analysis ID
+   * @param {string} mode - 'default' | 'review'
+   */
+  async reanalyzeAnalysisWithMode(analysisId, mode = 'review') {
+    return this.reanalyzeFromOriginal(analysisId, { mode });
   }
 
   /**
@@ -866,6 +883,51 @@ class ApiService {
     } catch (error) {
       console.error('[ApiService] getArticleBySlug error:', error);
       throw error;
+    }
+  }
+
+  async searchFoods(query, pageSize = 10) {
+    try {
+      const response = await this.request('/v1/integrations/fdc/search', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+          pageSize,
+          dataType: ['Branded', 'Foundation'],
+        }),
+      });
+      return response?.foods || [];
+    } catch (error) {
+      console.error('[ApiService] searchFoods error:', error);
+      return [];
+    }
+  }
+
+  async getUSDAFoodDetails(fdcId) {
+    try {
+      const response = await this.request(`/v1/integrations/fdc/food/${fdcId}`);
+      return response;
+    } catch (error) {
+      console.error('[ApiService] getUSDAFoodDetails error:', error);
+      throw error;
+    }
+  }
+
+  async searchUSDAFoods(query, pageSize = 10) {
+    return this.searchFoods(query, pageSize);
+  }
+
+  async saveAnalysisCorrection(correction) {
+    try {
+      const response = await this.request('/food/corrections', {
+        method: 'POST',
+        body: JSON.stringify(correction),
+      });
+      return response;
+    } catch (error) {
+      console.error('[ApiService] saveAnalysisCorrection error:', error);
+      // Non-critical, don't throw
+      return null;
     }
   }
 

@@ -154,7 +154,8 @@ export default function ArticlesScreen() {
     try {
       setSelectedTag(tag);
       setIsTagLoading(true);
-      const result = await ApiService.getArticlesByTag(tag);
+      const currentLocale = language || 'ru';
+      const result = await ApiService.getArticlesByTag(tag, 1, 20, currentLocale);
       setTagFeed(result);
     } catch (err) {
       console.error('Error loading tag articles:', err);

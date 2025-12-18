@@ -8,6 +8,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +17,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { PADDING, SPACING, BORDER_RADIUS, SHADOW } from '../utils/designConstants';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
+import ApiService from '../services/apiService';
+
+// Portion Presets
+const PORTION_PRESETS = {
+  small: { label: 'Small', multiplier: 0.5 },
+  medium: { label: 'Medium', multiplier: 1.0 },
+  large: { label: 'Large', multiplier: 1.5 },
+};
 
 export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => {
   const { colors } = useTheme();
@@ -28,17 +38,24 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
     fat: item?.fat?.toString() || '0',
     weight: item?.weight?.toString() || '0',
   });
+  const [originalWeight, setOriginalWeight] = useState(parseFloat(item?.weight) || 100);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Reset form when item changes
   useEffect(() => {
     if (item) {
+      const weight = parseFloat(item?.weight) || 100;
+      setOriginalWeight(weight);
       setEditedItem({
         name: item?.name || '',
         calories: item?.calories?.toString() || '0',
         protein: item?.protein?.toString() || '0',
         carbs: item?.carbs?.toString() || '0',
         fat: item?.fat?.toString() || '0',
-        weight: item?.weight?.toString() || '0',
+        weight: weight.toString(),
       });
     }
   }, [item, visible]);
@@ -53,6 +70,15 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
       protein_g: parseFloat(editedItem.protein) || item?.protein || item?.nutrients?.protein || 0,
       carbs_g: parseFloat(editedItem.carbs) || item?.carbs || item?.nutrients?.carbs || 0,
       fat_g: parseFloat(editedItem.fat) || item?.fat || item?.nutrients?.fat || 0,
+      // Include original values for feedback loop
+      originalValues: {
+        name: item?.name,
+        portion_g: item?.weight || item?.portion_g,
+        calories: item?.calories || item?.nutrients?.calories,
+        protein_g: item?.protein || item?.nutrients?.protein,
+        carbs_g: item?.carbs || item?.nutrients?.carbs,
+        fat_g: item?.fat || item?.nutrients?.fat,
+      },
     };
     
     if (onSave && typeof onSave === 'function') {
@@ -124,9 +150,23 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: 16 }}
             >
-              {/* Food Name */}
+              {/* Food Name with Search */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: colors.text }]}>{t('editFood.name')}</Text>
+                <View style={styles.labelRow}>
+                  <Text style={[styles.label, { color: colors.text }]}>{t('editFood.name')}</Text>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      // Show search modal
+                      setShowSearch(true);
+                    }}
+                    style={styles.searchButton}
+                  >
+                    <Ionicons name="search-outline" size={18} color={colors.primary} />
+                    <Text style={[styles.searchButtonText, { color: colors.primary }]}>
+                      {t('editFood.searchUSDA') || 'Search USDA'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
                 <TextInput
                   style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.input, borderColor: colors.border }]}
                   value={editedItem.name}
@@ -136,14 +176,64 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
                 />
               </View>
 
-              {/* Weight */}
+              {/* Weight with Presets */}
               <View style={styles.inputGroup}>
                 <View style={styles.labelRow}>
                   <Text style={[styles.label, { color: colors.text }]}>{t('editFood.weight')}</Text>
                   <Text style={[styles.labelHint, { color: colors.textSecondary }]}>{t('editFood.weightHint')}</Text>
                 </View>
+                {/* Preset Buttons */}
+                <View style={styles.presetContainer}>
+                  {Object.entries(PORTION_PRESETS).map(([key, preset]) => {
+                    const presetWeight = Math.round(originalWeight * preset.multiplier);
+                    const isSelected = Math.abs(parseFloat(editedItem.weight) - presetWeight) < 1;
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={[
+                          styles.presetButton,
+                          {
+                            backgroundColor: isSelected ? colors.primary : colors.inputBackground,
+                            borderColor: isSelected ? colors.primary : colors.border,
+                          },
+                        ]}
+                        onPress={() => {
+                          const newWeight = presetWeight.toString();
+                          setEditedItem({ ...editedItem, weight: newWeight });
+                          // Recalculate macros proportionally
+                          const scale = preset.multiplier;
+                          setEditedItem(prev => ({
+                            ...prev,
+                            weight: newWeight,
+                            calories: Math.round(parseFloat(prev.calories) * scale).toString(),
+                            protein: (parseFloat(prev.protein) * scale).toFixed(1),
+                            carbs: (parseFloat(prev.carbs) * scale).toFixed(1),
+                            fat: (parseFloat(prev.fat) * scale).toFixed(1),
+                          }));
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.presetButtonText,
+                            { color: isSelected ? colors.onPrimary || '#FFFFFF' : colors.text },
+                          ]}
+                        >
+                          {preset.label}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.presetButtonSubtext,
+                            { color: isSelected ? colors.onPrimary || '#FFFFFF' : colors.textSecondary },
+                          ]}
+                        >
+                          {presetWeight}g
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.input, borderColor: colors.border }]}
+                  style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.input, borderColor: colors.border, marginTop: 12 }]}
                   value={editedItem.weight}
                   onChangeText={(text) => handleNumberChange('weight', text)}
                   placeholder="0"
@@ -255,6 +345,145 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+
+      {/* USDA Search Modal */}
+      {showSearch && (
+        <SwipeClosableModal
+          visible={showSearch}
+          onClose={() => {
+            setShowSearch(false);
+            setSearchQuery('');
+            setSearchResults([]);
+          }}
+          presentationStyle="pageSheet"
+        >
+          <SafeAreaView style={[styles.searchModal, { backgroundColor: colors.surface }]} edges={['bottom']}>
+            <View style={[styles.searchHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.searchTitle, { color: colors.text }]}>
+                {t('editFood.searchUSDA') || 'Search USDA Database'}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSearch(false);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                }}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+              <TextInput
+                style={[styles.searchInput, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={t('editFood.searchPlaceholder') || 'Search for food...'}
+                placeholderTextColor={colors.textTertiary}
+                onSubmitEditing={async () => {
+                  if (searchQuery.trim()) {
+                    setIsSearching(true);
+                    try {
+                      const results = await ApiService.searchFoods(searchQuery.trim(), 10);
+                      setSearchResults(results || []);
+                    } catch (error) {
+                      console.error('[EditFoodItemModal] Search error:', error);
+                      setSearchResults([]);
+                    } finally {
+                      setIsSearching(false);
+                    }
+                  }
+                }}
+                returnKeyType="search"
+              />
+              {isSearching && (
+                <ActivityIndicator size="small" color={colors.primary} style={styles.searchLoader} />
+              )}
+            </View>
+
+            <FlatList
+              data={searchResults}
+              keyExtractor={(food, idx) => `food-${food.fdcId || idx}`}
+              renderItem={({ item: food }) => (
+                <TouchableOpacity
+                  style={[styles.searchResultItem, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={async () => {
+                    try {
+                      setIsSearching(true);
+                      // Get full food details if fdcId is available
+                      let foodDetails = food;
+                      if (food.fdcId) {
+                        try {
+                          foodDetails = await ApiService.getUSDAFoodDetails(food.fdcId);
+                        } catch (error) {
+                          console.error('[EditFoodItemModal] Error fetching food details:', error);
+                          // Fallback to the food object we already have
+                        }
+                      }
+                      
+                      // Apply selected food
+                      const description = foodDetails.description || food.description || food.brandOwner || '';
+                      const nutrients = foodDetails.foodNutrients || food.foodNutrients || [];
+                      
+                      // Extract nutrition values (USDA format)
+                      const getNutrient = (nutrientId) => {
+                        const nutrient = nutrients.find(n => 
+                          (n.nutrientId === nutrientId || n.nutrient?.id === nutrientId) ||
+                          (n.nutrient && n.nutrient.id === nutrientId)
+                        );
+                        return nutrient?.value || nutrient?.amount || 0;
+                      };
+                      
+                      // USDA nutrient IDs: 1008=Energy, 1003=Protein, 1005=Carbohydrate, 1004=Total lipid
+                      const calories = getNutrient(1008); // Energy (kcal)
+                      const protein = getNutrient(1003); // Protein (g)
+                      const carbs = getNutrient(1005); // Carbs (g)
+                      const fat = getNutrient(1004); // Fat (g)
+                      
+                      setEditedItem({
+                        name: description,
+                        calories: Math.round(calories).toString(),
+                        protein: protein.toFixed(1),
+                        carbs: carbs.toFixed(1),
+                        fat: fat.toFixed(1),
+                        weight: editedItem.weight, // Keep current weight
+                      });
+                      setShowSearch(false);
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    } catch (error) {
+                      console.error('[EditFoodItemModal] Error applying food:', error);
+                    } finally {
+                      setIsSearching(false);
+                    }
+                  }}
+                >
+                  <Text style={[styles.searchResultName, { color: colors.textPrimary }]}>
+                    {food.description || food.brandOwner || 'Unknown'}
+                  </Text>
+                  {food.brandOwner && (
+                    <Text style={[styles.searchResultBrand, { color: colors.textSecondary }]}>
+                      {food.brandOwner}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                searchQuery.trim() && !isSearching ? (
+                  <View style={styles.emptySearch}>
+                    <Text style={[styles.emptySearchText, { color: colors.textSecondary }]}>
+                      {t('editFood.noResults') || 'No results found'}
+                    </Text>
+                  </View>
+                ) : null
+              }
+              contentContainerStyle={{ padding: 16 }}
+            />
+          </SafeAreaView>
+        </SwipeClosableModal>
+      )}
     </SwipeClosableModal>
   );
 };
@@ -409,6 +638,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  // USDA Search Modal Styles
+  searchModal: {
+    flex: 1,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  searchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: PADDING.screen,
+    paddingVertical: PADDING.md,
+    borderBottomWidth: 1,
+  },
+  searchTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: PADDING.screen,
+    paddingVertical: SPACING.md,
+    gap: SPACING.sm,
+  },
+  searchIcon: {
+    marginRight: SPACING.xs,
+  },
+  searchInput: {
+    flex: 1,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    fontSize: 16,
+    borderWidth: 1,
+  },
+  searchLoader: {
+    marginLeft: SPACING.sm,
+  },
+  searchResultItem: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: PADDING.screen,
+    borderBottomWidth: 1,
+  },
+  searchResultName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  searchResultBrand: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  emptySearch: {
+    paddingVertical: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptySearchText: {
+    fontSize: 16,
   },
 });
 

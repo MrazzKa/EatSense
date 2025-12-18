@@ -50,11 +50,27 @@ import { MedicationsModule } from './src/medications/medications.module';
       },
     ]),
     BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-      },
+      redis: (() => {
+        // Priority: REDIS_URL > REDIS_HOST/PORT/PASSWORD
+        // BullModule doesn't support URL directly, so we parse it
+        if (process.env.REDIS_URL) {
+          try {
+            const url = new URL(process.env.REDIS_URL);
+            return {
+              host: url.hostname,
+              port: parseInt(url.port || '6379'),
+              password: url.password || undefined,
+            };
+          } catch (error) {
+            console.warn('[BullModule] Failed to parse REDIS_URL, falling back to HOST/PORT');
+          }
+        }
+        return {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD || undefined,
+        };
+      })(),
     }),
     PrismaModule,
     AuthModule,

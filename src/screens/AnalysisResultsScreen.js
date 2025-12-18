@@ -8,7 +8,6 @@ import {
   Image,
   ActivityIndicator,
   Alert,
-  Share,
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import { EditFoodItemModal } from '../components/EditFoodItemModal';
+import { SwipeableIngredientItem } from '../components/SwipeableIngredientItem';
 import { HealthScoreCard } from '../components/HealthScoreCard';
 import FoodCompatibilityCard from '../components/FoodCompatibilityCard';
 import CarcinogenicRiskCard from '../components/CarcinogenicRiskCard';
@@ -25,6 +25,8 @@ import { mapLanguageToLocale } from '../utils/locale';
 import AppCard from '../components/common/AppCard';
 import { clientLog } from '../utils/clientLog';
 import { formatMacro, formatCalories } from '../utils/nutritionFormat';
+import AiAssistant from '../components/AiAssistant';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const formatTimestamp = (value) => {
   if (!value) return '';
@@ -54,6 +56,7 @@ export default function AnalysisResultsScreen() {
   const [editingItem, setEditingItem] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const [showAiAssistant, setShowAiAssistant] = useState(false);
 
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const subduedColor = colors.textSecondary || colors.textMuted || '#6B7280';
@@ -410,7 +413,8 @@ export default function AnalysisResultsScreen() {
           // P2.3: Optimistic UI - show loading state immediately
           setIsAnalyzing(true);
           
-          analysisResponse = await ApiService.analyzeImage(capturedImageUri, locale);
+          const foodDescription = routeParams.foodDescription;
+          analysisResponse = await ApiService.analyzeImage(capturedImageUri, locale, foodDescription);
           await clientLog('Analysis:apiCalled', {
             hasAnalysisId: !!analysisResponse?.analysisId,
             hasResult: !!analysisResponse?.items,
@@ -548,88 +552,86 @@ export default function AnalysisResultsScreen() {
   // Task 5: Use imageUrl from result if available
   const previewImage = analysisResult?.imageUrl || analysisResult?.imageUri || baseImageUri;
 
-  const dishTitle =
-    analysisResult?.dishName ||
-    analysisResult?.name ||
-    t('analysis.title');
+  // Removed unused dishTitle variable
 
-  const handleShare = async () => {
-    if (!analysisResult) return;
-    try {
-      await Share.share({
-        message: `I just analyzed my meal: ${dishTitle}! ${analysisResult.totalCalories} calories.`,
-        title: 'EatSense Analysis',
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
-  const handleReanalyze = async () => {
-    // Используем analysisId из состояния, если он есть, иначе из routeParams или результата
-    const currentAnalysisId = analysisId || routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
-    
-    if (!currentAnalysisId) {
-      console.error('[AnalysisResultsScreen] handleReanalyze: no analysisId available', {
-        analysisId,
-        routeParamsAnalysisId: routeParams.analysisId,
-        resultAnalysisId: analysisResult?.analysisId,
-        resultId: analysisResult?.id,
-      });
-      Alert.alert(
-        t('common.error') || 'Error',
-        t('analysis.noAnalysisId') || 'Analysis ID not found. Please try analyzing again.'
-      );
-      return;
-    }
-
-    console.log(`[AnalysisResultsScreen] Starting reanalyze for analysisId: ${currentAnalysisId}`);
-    setIsReanalyzing(true);
-    
-    try {
-      // Вызываем reanalyze без mode - просто пересчет totals, HealthScore, feedback
-      const reanalyzed = await ApiService.reanalyzeAnalysis(currentAnalysisId);
-      console.log('[AnalysisResultsScreen] Reanalyze response:', reanalyzed);
-      
-      if (reanalyzed) {
-        const normalized = normalizeAnalysis(reanalyzed, baseImageUri);
-        if (normalized) {
-          // Убеждаемся что analysisId сохраняется
-          if (normalized.analysisId || normalized.id) {
-            setAnalysisId(normalized.analysisId || normalized.id);
-          }
-          setAnalysisResult(normalized);
-          fadeAnim.setValue(0);
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }).start();
-        }
-      } else {
-        throw new Error('Empty response from reanalyze API');
-      }
-    } catch (error) {
-      console.error('[AnalysisResultsScreen] Re-analysis failed:', error);
-      const errorMessage = 
-        error?.response?.data?.message ||
-        error?.message ||
-        t('analysis.reanalyzeError') ||
-        'Failed to recalculate analysis. Please try again.';
-      
-      Alert.alert(
-        t('common.error') || 'Error',
-        errorMessage
-      );
-    } finally {
-      setIsReanalyzing(false);
-    }
-  };
+  // Removed unused handleShare and handleReanalyze - they are replaced by handleAsk and handleFix
 
   const handleCorrect = (item, index) => {
     if (!allowEditing) return;
     setEditingItem(item);
     setEditingIndex(index);
+  };
+
+  const handleDeleteItem = async (itemIdOrIndex) => {
+    const analysisId = routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    
+    if (!analysisId) {
+      Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
+      return;
+    }
+
+    try {
+      setIsReanalyzing(true);
+
+      // 1. Получаем текущие items
+      const currentItems = analysisResult?.data?.items || analysisResult?.ingredients || [];
+      const itemToDelete = currentItems.find((item, idx) => 
+        (item.id || String(idx)) === String(itemIdOrIndex) || idx === itemIdOrIndex
+      );
+
+      if (!itemToDelete) {
+        console.warn('[AnalysisResultsScreen] Item to delete not found:', itemIdOrIndex);
+        return;
+      }
+
+      // 2. Сохраняем исправление для Feedback Loop
+      await ApiService.saveAnalysisCorrection({
+        analysisId,
+        itemId: itemToDelete.id || String(itemIdOrIndex),
+        originalName: itemToDelete.name,
+        correctionType: 'item_delete',
+        foodCategory: detectFoodCategory(itemToDelete.name),
+      }).catch(() => {}); // Non-critical
+
+      // 3. Удаляем элемент из списка
+      const updatedItems = currentItems
+        .filter((item, idx) => {
+          const itemId = item.id || String(idx);
+          return itemId !== String(itemIdOrIndex) && idx !== itemIdOrIndex;
+        })
+        .map((item, idx) => ({
+          id: item.id || String(idx),
+          name: item.name,
+          portion_g: item.portion_g || item.weight || 0,
+          calories: item.calories || item.nutrients?.calories || 0,
+          protein_g: item.protein || item.nutrients?.protein || 0,
+          fat_g: item.fat || item.nutrients?.fat || 0,
+          carbs_g: item.carbs || item.nutrients?.carbs || 0,
+        }));
+
+      // 4. Вызываем manualReanalyze на бэке
+      const newResult = await ApiService.manualReanalyzeAnalysis(analysisId, updatedItems);
+      console.log('[AnalysisResultsScreen] Manual reanalyze after delete response:', newResult);
+
+      // 5. Обновляем стейт локально
+      if (newResult) {
+        const normalized = normalizeAnalysis(newResult, baseImageUri);
+        if (normalized.analysisId || normalized.id) {
+          setAnalysisId(normalized.analysisId || normalized.id);
+        }
+        if (normalized) {
+          setAnalysisResult(normalized);
+        }
+      }
+    } catch (error) {
+      console.error('[AnalysisResultsScreen] Failed to delete item and reanalyze', error);
+      Alert.alert(
+        t('common.error'),
+        t('analysis.deleteError') || 'Failed to delete item. Please try again.',
+      );
+    } finally {
+      setIsReanalyzing(false);
+    }
   };
 
   const handleSaveEdit = async (updatedItem, index) => {
@@ -645,8 +647,31 @@ export default function AnalysisResultsScreen() {
 
       // 1. Получаем текущие items из analysisResult
       const currentItems = analysisResult?.data?.items || analysisResult?.ingredients || [];
+      const originalItem = currentItems[index] || currentItems.find((item, idx) => (item.id || String(idx)) === (updatedItem.id || String(index)));
       
-      // 2. Формируем новый список items для отправки на сервер
+      // 2. Сохраняем исправление для Feedback Loop
+      if (originalItem) {
+        await ApiService.saveAnalysisCorrection({
+          analysisId,
+          itemId: originalItem.id || String(index),
+          originalName: originalItem.name,
+          correctedName: updatedItem.name,
+          originalPortionG: originalItem.portion_g || originalItem.weight,
+          correctedPortionG: updatedItem.portion_g || updatedItem.weight,
+          originalCalories: originalItem.calories || originalItem.nutrients?.calories,
+          correctedCalories: updatedItem.calories,
+          originalProtein: originalItem.protein || originalItem.nutrients?.protein,
+          correctedProtein: updatedItem.protein_g,
+          originalCarbs: originalItem.carbs || originalItem.nutrients?.carbs,
+          correctedCarbs: updatedItem.carbs_g,
+          originalFat: originalItem.fat || originalItem.nutrients?.fat,
+          correctedFat: updatedItem.fat_g,
+          correctionType: 'nutrients', // or 'name', 'portion', 'replace'
+          foodCategory: detectFoodCategory(updatedItem.name),
+        }).catch(() => {}); // Non-critical
+      }
+      
+      // 3. Формируем новый список items для отправки на сервер
       const updatedItems = currentItems.map((item, idx) => {
         // Проверяем, это ли тот item, который редактировали
         const itemId = item.id || String(idx);
@@ -677,11 +702,11 @@ export default function AnalysisResultsScreen() {
         };
       });
 
-      // 3. Вызываем manualReanalyze на бэке
+      // 4. Вызываем manualReanalyze на бэке
       const newResult = await ApiService.manualReanalyzeAnalysis(analysisId, updatedItems);
       console.log('[AnalysisResultsScreen] Manual reanalyze response:', newResult);
 
-      // 4. Обновляем стейт локально
+      // 5. Обновляем стейт локально
       if (newResult) {
         const normalized = normalizeAnalysis(newResult, baseImageUri);
         // Убеждаемся что analysisId сохраняется
@@ -703,6 +728,88 @@ export default function AnalysisResultsScreen() {
       setIsReanalyzing(false);
     }
   };
+
+  // Helper to detect food category for feedback
+  const detectFoodCategory = (name) => {
+    const nameLower = (name || '').toLowerCase();
+    if (nameLower.includes('chicken') || nameLower.includes('beef') || nameLower.includes('pork') || nameLower.includes('meat') || nameLower.includes('курица') || nameLower.includes('говядина') || nameLower.includes('мясо')) return 'meat';
+    if (nameLower.includes('fish') || nameLower.includes('salmon') || nameLower.includes('рыба') || nameLower.includes('лосось')) return 'fish';
+    if (nameLower.includes('vegetable') || nameLower.includes('salad') || nameLower.includes('овощ') || nameLower.includes('салат')) return 'vegetable';
+    if (nameLower.includes('fruit') || nameLower.includes('apple') || nameLower.includes('фрукт') || nameLower.includes('яблоко')) return 'fruit';
+    if (nameLower.includes('rice') || nameLower.includes('pasta') || nameLower.includes('bread') || nameLower.includes('рис') || nameLower.includes('хлеб')) return 'grain';
+    return 'other';
+  };
+
+  const handleAsk = useCallback(() => {
+    setShowAiAssistant(true);
+  }, []);
+
+  const handleFix = useCallback(async () => {
+    // Используем analysisId из состояния, если он есть, иначе из routeParams или результата
+    const currentAnalysisId = analysisId || routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    
+    if (!currentAnalysisId) {
+      Alert.alert(
+        t('common.error') || 'Ошибка',
+        t('analysis.fixError') || 'Не удалось исправить: ID анализа не найден',
+      );
+      return;
+    }
+
+    Alert.alert(
+      t('analysis.fixTitle') || 'Исправление результата',
+      t('analysis.fixMessage') || 'ИИ снова проанализирует это блюдо более внимательно, чтобы убрать любые несоответствия или ошибки.',
+      [
+        {
+          text: t('common.cancel') || 'Отмена',
+          style: 'cancel',
+        },
+        {
+          text: t('analysis.fixConfirm') || 'Исправить',
+          onPress: async () => {
+            setIsReanalyzing(true);
+            try {
+              // Вызываем reanalyze с mode='review' для более внимательного анализа
+              const fixed = await ApiService.reanalyzeAnalysisWithMode(currentAnalysisId, 'review');
+              console.log('[AnalysisResultsScreen] Fix response:', fixed);
+              
+              if (fixed) {
+                const normalized = normalizeAnalysis(fixed, baseImageUri);
+                if (normalized) {
+                  if (normalized.analysisId || normalized.id) {
+                    setAnalysisId(normalized.analysisId || normalized.id);
+                  }
+                  applyResult(normalized, baseImageUri);
+                  Alert.alert(
+                    t('common.success') || 'Успешно',
+                    t('analysis.fixSuccess') || 'Анализ обновлен с более точными результатами',
+                  );
+                } else {
+                  throw new Error('Failed to normalize fixed result');
+                }
+              } else {
+                throw new Error('Empty response from fix API');
+              }
+            } catch (error) {
+              console.error('[AnalysisResultsScreen] Fix failed:', error);
+              const errorMessage = 
+                error?.response?.data?.message ||
+                error?.message ||
+                t('analysis.fixError') ||
+                'Не удалось исправить анализ. Попробуйте еще раз.';
+              
+              Alert.alert(
+                t('common.error') || 'Ошибка',
+                errorMessage
+              );
+            } finally {
+              setIsReanalyzing(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [analysisId, routeParams.analysisId, analysisResult, baseImageUri, normalizeAnalysis, applyResult, setAnalysisId, t]);
 
   // Removed unused function: handleSave
 
@@ -786,8 +893,9 @@ export default function AnalysisResultsScreen() {
   const totalFatLabel = formatMacro(analysisResult.totalFat);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => {
             // Navigate directly to MainTabs (Dashboard) instead of going back
@@ -927,83 +1035,59 @@ export default function AnalysisResultsScreen() {
           <View>
             <View style={styles.ingredientsContainer}>
               <Text style={[styles.ingredientsTitle, { color: colors.textPrimary }]}>{t('analysis.ingredients')}</Text>
-            {(analysisResult?.ingredients && Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients : []).map((ingredient, index) => (
-              <View key={index}>
-                <TouchableOpacity
-                  style={[styles.ingredientItem, !allowEditing && styles.ingredientItemDisabled]}
-                  onPress={allowEditing && typeof handleCorrect === 'function' ? () => handleCorrect(ingredient, index) : () => {}}
-                  disabled={!allowEditing}
-                  activeOpacity={allowEditing ? 0.7 : 1}
-                >
-                  <View style={styles.ingredientInfo}>
-                    <Text style={[styles.ingredientName, { color: colors.textPrimary }]}>{ingredient.name}</Text>
-                    <Text style={[styles.ingredientAmount, { color: colors.textSecondary }]}>{ingredient.weight}g</Text>
-                  </View>
-                  <View style={styles.ingredientNutrition}>
-                    {ingredient.hasNutrition === false ? (
-                      <Text style={[styles.ingredientCalories, { color: colors.textTertiary, fontStyle: 'italic' }]}>
-                        {t('analysis.noNutritionData')}
-                      </Text>
-                    ) : (
-                      <>
-                        <Text style={[styles.ingredientCalories, { color: colors.textPrimary }]}>{ingredient.calories} cal</Text>
-                        <Text style={[styles.ingredientMacros, { color: colors.textSecondary }]}>
-                          P: {formatMacro(ingredient.protein)} • C: {formatMacro(ingredient.carbs)} • F: {formatMacro(ingredient.fat)}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                  {allowEditing && (
-                    <TouchableOpacity
-                      style={styles.editIcon}
-                      onPress={() => handleCorrect(ingredient, index)}
-                    >
-                      <Ionicons name="create-outline" size={18} color={colors.primary} />
-                    </TouchableOpacity>
-                  )}
-                </TouchableOpacity>
-              </View>
-            ))}
+              {(analysisResult?.ingredients && Array.isArray(analysisResult.ingredients) ? analysisResult.ingredients : []).map((ingredient, index) => (
+                <SwipeableIngredientItem
+                  key={ingredient.id || index}
+                  ingredient={ingredient}
+                  index={index}
+                  allowEditing={allowEditing}
+                  onPress={() => handleCorrect(ingredient, index)}
+                  onDelete={(item, idx) => handleDeleteItem(item?.id || idx)}
+                />
+              ))}
             </View>
           </View>
 
-          {/* Share and Reanalyze Buttons */}
+          {/* Ask and Fix Buttons */}
           <View style={styles.shareContainer}>
             <View style={styles.actionButtonsRow}>
               <TouchableOpacity 
                 style={[styles.actionButton, {
                   backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
                   borderColor: colors.borderMuted || colors.border || '#E5E5EA',
+                  flex: 1,
+                  marginRight: 8,
                 }]} 
-                onPress={handleReanalyze}
-                activeOpacity={0.8}
-                disabled={isReanalyzing}
-              >
-                {isReanalyzing ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <>
-                    <Ionicons name="refresh-outline" size={18} color={colors.textPrimary || colors.text} style={styles.actionIcon} />
-                    <Text style={[styles.actionButtonText, { color: colors.textPrimary || colors.text }]}>
-                      {t('analysis.fixButton') || t('analysis.reanalyze') || 'Fix'}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.actionButton, {
-                  backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
-                  borderColor: colors.borderMuted || colors.border || '#E5E5EA',
-                }]} 
-                onPress={handleShare}
+                onPress={handleAsk}
                 activeOpacity={0.8}
               >
-                <Ionicons name="share-outline" size={18} color={colors.textPrimary || colors.text} style={styles.actionIcon} />
+                <Ionicons name="chatbubble-outline" size={18} color={colors.textPrimary || colors.text} style={styles.actionIcon} />
                 <Text style={[styles.actionButtonText, { color: colors.textPrimary || colors.text }]}>
-                  {t('analysis.shareButton') || t('analysis.share') || 'Share'}
+                  {t('analysis.askButton') || t('analysis.ask') || 'Спросить'}
                 </Text>
               </TouchableOpacity>
+              {allowEditing && (
+                <TouchableOpacity 
+                  style={[styles.actionButton, {
+                    backgroundColor: colors.surfaceElevated || colors.surface || colors.card,
+                    borderColor: colors.borderMuted || colors.border || '#E5E5EA',
+                    flex: 1,
+                    marginLeft: 8,
+                  }]} 
+                  onPress={handleFix}
+                  activeOpacity={0.8}
+                  disabled={isReanalyzing}
+                >
+                  {isReanalyzing ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Ionicons name="refresh-outline" size={18} color={colors.textPrimary || colors.text} style={styles.actionIcon} />
+                  )}
+                  <Text style={[styles.actionButtonText, { color: colors.textPrimary || colors.text }]}>
+                    {t('analysis.fixButton') || t('analysis.fix') || 'Исправить'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -1019,22 +1103,39 @@ export default function AnalysisResultsScreen() {
             </View>
           )}
         </ScrollView>
-      </Animated.View>
+        </Animated.View>
 
-      {/* Edit Modal */}
-      {allowEditing && editingItem && (
-        <EditFoodItemModal
-          visible={!!editingItem}
-          onClose={() => {
-            setEditingItem(null);
-            setEditingIndex(null);
-          }}
-          item={editingItem}
-          onSave={handleSaveEdit}
-          index={editingIndex}
+        {/* Edit Modal */}
+        {allowEditing && editingItem && (
+          <EditFoodItemModal
+            visible={!!editingItem}
+            onClose={() => {
+              setEditingItem(null);
+              setEditingIndex(null);
+            }}
+            item={editingItem}
+            onSave={handleSaveEdit}
+            index={editingIndex}
+          />
+        )}
+
+        {/* AI Assistant Modal */}
+        <AiAssistant
+          visible={showAiAssistant}
+          onClose={() => setShowAiAssistant(false)}
+          mealContext={analysisResult ? {
+            dishName: analysisResult.dishName,
+            ingredients: analysisResult.ingredients || [],
+            totalCalories: analysisResult.totalCalories,
+            totalProtein: analysisResult.totalProtein,
+            totalCarbs: analysisResult.totalCarbs,
+            totalFat: analysisResult.totalFat,
+            healthScore: analysisResult.healthScore,
+            imageUri: baseImageUri,
+          } : null}
         />
-      )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 

@@ -51,14 +51,32 @@ export const SuggestedFoodScreen: React.FC = () => {
         // It's sections
         return data as SuggestedFoodSection[];
       }
-      // It's items - convert to single section
-      return [
-        {
-          id: 'general',
-          title: t('suggestedFood.sections.protein.title'),
-          items: data as SuggestedFoodItem[],
-        },
-      ];
+      
+      // Backend returns SuggestedFoodItem[] with name, reason, tip, category
+      // Convert to SuggestedFoodSection[] format expected by UI
+      const backendItems = data as any[];
+      const sectionsMap = new Map<string, SuggestedFoodSection>();
+      
+      backendItems.forEach((item) => {
+        const category = item.category || 'general';
+        if (!sectionsMap.has(category)) {
+          sectionsMap.set(category, {
+            id: category,
+            title: t(`suggestedFood.sections.${category}.title`) || category.charAt(0).toUpperCase() + category.slice(1),
+            subtitle: item.reason || undefined,
+            items: [],
+          });
+        }
+        
+        const section = sectionsMap.get(category)!;
+        section.items.push({
+          id: item.id || `item-${section.items.length}`,
+          title: item.name || 'Food item',
+          description: item.tip || '',
+        });
+      });
+      
+      return Array.from(sectionsMap.values());
     }
 
     // If object with sections

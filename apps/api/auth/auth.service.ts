@@ -250,10 +250,22 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
       });
 
-      const tokenRecord = await this.prisma.refreshToken.findUnique({
-        where: { token: refreshToken },
-        include: { user: true },
-      });
+      // Use jti from payload if available, otherwise fall back to token lookup
+      const jti = (payload as any).jti;
+      let tokenRecord;
+      
+      if (jti) {
+        tokenRecord = await this.prisma.refreshToken.findUnique({
+          where: { jti },
+          include: { user: true },
+        });
+      } else {
+        // Fallback for old tokens without jti
+        tokenRecord = await this.prisma.refreshToken.findUnique({
+          where: { token: refreshToken },
+          include: { user: true },
+        });
+      }
 
       if (!tokenRecord || tokenRecord.revoked) {
         // Add to blacklist if token was revoked
@@ -266,13 +278,18 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      // Generate new tokens (rotation)
-      const tokens = await this.generateTokens(tokenRecord.user.id, tokenRecord.user.email);
+      // Atomic token rotation: revoke old token and create new one in a transaction
+      const tokens = await this.prisma.$transaction(async (tx) => {
+        // Revoke old token
+        await tx.refreshToken.update({
+          where: { id: tokenRecord.id },
+          data: { revoked: true },
+        });
 
-      // Revoke old token and add to blacklist
-      await this.prisma.refreshToken.update({
-        where: { id: tokenRecord.id },
-        data: { revoked: true },
+        // Generate new tokens
+        const newTokens = await this.generateTokensInTransaction(tx, tokenRecord.user.id, tokenRecord.user.email);
+
+        return newTokens;
       });
 
       // Add old token to Redis blacklist until it expires
@@ -288,9 +305,46 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      this.logger.warn(`[AuthService] Refresh token verification failed: ${error.message}`);
+      this.logger.warn(`[AuthService] Refresh token verification failed: ${error.message || error}`);
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  // Helper method for generating tokens within a transaction
+  private async generateTokensInTransaction(tx: any, userId: string, email: string) {
+    const jti = crypto.randomUUID();
+    
+    const payload = { sub: userId, email, jti };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '45m',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
+      expiresIn: '30d',
+    });
+
+    // Use upsert to handle race conditions
+    await tx.refreshToken.upsert({
+      where: { jti },
+      update: {
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        revoked: false,
+      },
+      create: {
+        token: refreshToken,
+        jti,
+        userId,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   async logout(userId: string) {
@@ -539,8 +593,11 @@ export class AuthService {
   private async generateTokens(userId: string, email: string) {
     this.logger.log(`[AuthService] generateTokens() called for userId=${userId}, email=${this.maskEmail(email)}`);
     
-    const payload = { sub: userId, email };
-    this.logger.log(`[AuthService] generateTokens() - payload created`);
+    // Generate unique jti (JWT ID) to ensure token uniqueness even with parallel requests
+    const jti = crypto.randomUUID();
+    
+    const payload = { sub: userId, email, jti };
+    this.logger.log(`[AuthService] generateTokens() - payload created with jti=${jti}`);
 
     this.logger.log(`[AuthService] generateTokens() - signing access token...`);
     const accessToken = this.jwtService.sign(payload, {
@@ -556,14 +613,31 @@ export class AuthService {
     this.logger.log(`[AuthService] generateTokens() - refresh token signed, length=${refreshToken.length}`);
 
     this.logger.log(`[AuthService] generateTokens() - creating refresh token in database...`);
-    await this.prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      },
-    });
-    this.logger.log(`[AuthService] generateTokens() - refresh token saved to database`);
+    // Use upsert to handle race conditions: if jti already exists, update instead of failing
+    try {
+      await this.prisma.refreshToken.upsert({
+        where: { jti },
+        update: {
+          token: refreshToken,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          revoked: false,
+        },
+        create: {
+          token: refreshToken,
+          jti,
+          userId,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      });
+      this.logger.log(`[AuthService] generateTokens() - refresh token saved to database`);
+    } catch (error: any) {
+      // If token (not jti) collision occurs, retry with new jti (extremely rare)
+      if (error.code === 'P2002' && error.meta?.target?.includes('token')) {
+        this.logger.warn(`[AuthService] Token collision detected, retrying with new jti...`);
+        return this.generateTokens(userId, email); // Recursive retry
+      }
+      throw error;
+    }
 
     const result = {
       accessToken,

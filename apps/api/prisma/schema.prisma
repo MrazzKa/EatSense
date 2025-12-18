@@ -30,6 +30,7 @@ model User {
   userStats              UserStats?
   medications            MedicationSchedule[]
   medicationsNew         Medication[]            @relation("UserMedications")
+  analysisCorrections    AnalysisCorrection[]
 
   @@map("users")
 }
@@ -156,12 +157,13 @@ model RefreshToken {
   id        String   @id @default(cuid())
   token     String   @unique
   userId    String
-  jti       String?
+  jti       String?  @unique
   revoked   Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("refresh_tokens")
 }
 
@@ -381,6 +383,37 @@ model UserStats {
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_stats")
+}
+
+model AnalysisCorrection {
+  id              String    @id @default(cuid())
+  userId          String
+  analysisId      String?
+  mealId          String?
+  itemId          String?
+  originalName    String
+  correctedName   String?
+  originalPortionG Float?   @map("original_portion_g")
+  correctedPortionG Float?  @map("corrected_portion_g")
+  originalCalories Float?   @map("original_calories")
+  correctedCalories Float?  @map("corrected_calories")
+  originalProtein Float?   @map("original_protein")
+  correctedProtein Float?  @map("corrected_protein")
+  originalCarbs   Float?   @map("original_carbs")
+  correctedCarbs  Float?   @map("corrected_carbs")
+  originalFat     Float?   @map("original_fat")
+  correctedFat    Float?   @map("corrected_fat")
+  correctionType  String   @map("correction_type")
+  foodCategory    String?  @map("food_category")
+  createdAt       DateTime @default(now()) @map("created_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([analysisId])
+  @@index([mealId])
+  @@index([correctionType])
+  @@index([foodCategory])
+  @@map("analysis_corrections")
 }
 
 // P3.1: Medication Schedule Model (legacy - kept for backward compatibility)

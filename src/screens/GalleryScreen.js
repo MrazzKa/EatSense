@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { PADDING, SPACING } from '../utils/designConstants';
-import { clientLog } from '../utils/clientLog';
+import { FoodDescriptionPrompt } from '../components/FoodDescriptionPrompt';
 
 const STATE = {
   IDLE: 'idle',
@@ -31,6 +31,8 @@ export default function GalleryScreen() {
   const navigation = useNavigation();
   const [state, setState] = useState(STATE.CHECKING);
   const [error, setError] = useState(null);
+  const [showFoodPrompt, setShowFoodPrompt] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState(null);
   const isOpeningRef = useRef(false);
 
   useEffect(() => {
@@ -181,20 +183,13 @@ export default function GalleryScreen() {
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      if (__DEV__) console.log('[GalleryScreen] Image compressed, navigating...');
+      if (__DEV__) console.log('[GalleryScreen] Image compressed, showing prompt...');
       setState(STATE.READY);
       isOpeningRef.current = false;
       
-      // Navigate to analysis results with the image
-      if (navigation && typeof navigation.navigate === 'function') {
-        await clientLog('Gallery:imageSelected', {
-          compressedSize: compressedImage.width + 'x' + compressedImage.height,
-        }).catch(() => {});
-        navigation.navigate('AnalysisResults', {
-          imageUri: compressedImage.uri,
-          source: 'gallery',
-        });
-      }
+      // Show food description prompt before navigating
+      setSelectedImageUri(compressedImage.uri);
+      setShowFoodPrompt(true);
     } catch (e) {
       if (__DEV__) console.error('[GalleryScreen] Error picking image:', e);
       setState(STATE.ERROR);
@@ -274,16 +269,9 @@ export default function GalleryScreen() {
             setState(STATE.READY);
             isOpeningRef.current = false;
             
-            // Navigate to analysis results with the image
-            if (navigation && typeof navigation.navigate === 'function') {
-              await clientLog('Gallery:imageSelected', {
-                compressedSize: compressedImage.width + 'x' + compressedImage.height,
-              }).catch(() => {});
-              navigation.navigate('AnalysisResults', {
-                imageUri: compressedImage.uri,
-                source: 'gallery',
-              });
-            }
+            // Show food description prompt before navigating
+            setSelectedImageUri(compressedImage.uri);
+            setShowFoodPrompt(true);
           } catch (e) {
             if (!mounted) return;
             if (__DEV__) console.error('[GalleryScreen] Error picking image:', e);
@@ -316,6 +304,22 @@ export default function GalleryScreen() {
     if (navigation && typeof navigation.goBack === 'function') {
       navigation.goBack();
     }
+  };
+
+  const handleFoodPromptConfirm = (description) => {
+    setShowFoodPrompt(false);
+    if (navigation && typeof navigation.navigate === 'function' && selectedImageUri) {
+      navigation.navigate('AnalysisResults', {
+        imageUri: selectedImageUri,
+        source: 'gallery',
+        foodDescription: description || undefined, // Pass description if provided
+      });
+      // Navigate to Dashboard after starting analysis
+      setTimeout(() => {
+        navigation.navigate('MainTabs', { screen: 'Dashboard' });
+      }, 100);
+    }
+    setSelectedImageUri(null);
   };
 
   const renderContent = () => {
@@ -386,6 +390,16 @@ export default function GalleryScreen() {
       </View>
       
       {renderContent()}
+
+      <FoodDescriptionPrompt
+        visible={showFoodPrompt}
+        onClose={() => {
+          setShowFoodPrompt(false);
+          setSelectedImageUri(null);
+        }}
+        onConfirm={handleFoodPromptConfirm}
+        imageUri={selectedImageUri}
+      />
     </SafeAreaView>
   );
 }
