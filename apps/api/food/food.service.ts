@@ -23,7 +23,7 @@ export class FoodService {
     private readonly analyzeService: AnalyzeService,
   ) {}
 
-  async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk') {
+  async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk', foodDescription?: string) {
     try {
       if (!file) {
         throw new BadRequestException('No image file provided');
@@ -84,6 +84,7 @@ export class FoodService {
             mimetype: file.mimetype,
             size: file.size,
             locale: effectiveLocale,
+            foodDescription: foodDescription || undefined, // Store food description in metadata
           },
         },
       });
@@ -98,6 +99,7 @@ export class FoodService {
         imageBufferBase64: imageBufferBase64,
         userId,
         locale: effectiveLocale,
+        foodDescription: foodDescription || undefined, // Pass food description to processor
       });
 
       // Increment daily limit counter after successful analysis creation
@@ -235,6 +237,36 @@ export class FoodService {
       status: analysis.status.toLowerCase(),
       analysisId: analysis.id,
     };
+  }
+
+  async getActiveAnalyses(userId: string) {
+    const analyses = await this.prisma.analysis.findMany({
+      where: {
+        userId,
+        status: {
+          in: ['PENDING', 'PROCESSING'],
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        status: true,
+        type: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return analyses.map((analysis) => ({
+      analysisId: analysis.id,
+      status: analysis.status.toLowerCase(),
+      type: analysis.type,
+      imageUri: (analysis.metadata as any)?.imageUrl || (analysis.metadata as any)?.imageUri || null,
+      createdAt: analysis.createdAt,
+      updatedAt: analysis.updatedAt,
+    }));
   }
 
   async getAnalysisResult(analysisId: string, userId: string) {
@@ -1129,6 +1161,44 @@ export class FoodService {
         error instanceof Error ? error.message : String(error),
       );
       // Don't throw - meal update failure shouldn't block reanalysis
+    }
+  }
+
+  /**
+   * Save analysis correction for feedback loop
+   */
+  async saveCorrection(userId: string, correction: any) {
+    try {
+      const correctionData = {
+        userId,
+        analysisId: correction.analysisId || null,
+        mealId: correction.mealId || null,
+        itemId: correction.itemId || null,
+        originalName: correction.originalName || '',
+        correctedName: correction.correctedName || null,
+        originalPortionG: correction.originalPortionG || null,
+        correctedPortionG: correction.correctedPortionG || null,
+        originalCalories: correction.originalCalories || null,
+        correctedCalories: correction.correctedCalories || null,
+        originalProtein: correction.originalProtein || null,
+        correctedProtein: correction.correctedProtein || null,
+        originalCarbs: correction.originalCarbs || null,
+        correctedCarbs: correction.correctedCarbs || null,
+        originalFat: correction.originalFat || null,
+        correctedFat: correction.correctedFat || null,
+        correctionType: correction.correctionType || 'nutrients',
+        foodCategory: correction.foodCategory || null,
+      };
+
+      const saved = await this.prisma.analysisCorrection.create({
+        data: correctionData,
+      });
+
+      this.logger.debug(`[FoodService] Correction saved: ${saved.id} for user ${userId}`);
+      return saved;
+    } catch (error) {
+      this.logger.error(`[FoodService] Failed to save correction: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to save correction');
     }
   }
 }

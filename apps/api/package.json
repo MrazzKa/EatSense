@@ -31,7 +31,8 @@
     "prisma:seed:nutrients": "ts-node -r tsconfig-paths/register prisma/seeds/seed-nutrients.ts",
     "prisma:seed:articles": "ts-node -r tsconfig-paths/register prisma/seeds/seed-articles.ts",
     "prisma:seed:local-foods": "ts-node -r tsconfig-paths/register prisma/seeds/seed-local-foods.ts",
-    "seed:local-food": "ts-node -r tsconfig-paths/register prisma/seeds/seed-local-foods.ts"
+    "seed:local-food": "ts-node -r tsconfig-paths/register prisma/seeds/seed-local-foods.ts",
+    "check:articles": "ts-node -r tsconfig-paths/register scripts/check-articles.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.917.0",

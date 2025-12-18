@@ -636,33 +636,20 @@ export class StatsService {
     // Фон заголовка
     doc.rect(0, 0, doc.page.width, 120).fill(colors.primary);
 
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-
     // Логотип / название
-    safeFont('Roboto-Bold')
+    (doc as any)._safeFont('Roboto-Bold')
        .fontSize(28)
        .fillColor(colors.white)
        .text('EatSense', 50, 35);
 
     // Подзаголовок
-    safeFont('Roboto-Light')
+    (doc as any)._safeFont('Roboto-Light')
        .fontSize(12)
        .fillColor(colors.white)
        .text('Smart nutrition, Swiss precision', 50, 70);
 
     // Период справа
-    safeFont('Roboto-Bold')
+    (doc as any)._safeFont('Roboto-Bold')
        .fontSize(18)
        .fillColor(colors.white)
        .text(`${monthName} ${year}`, 50, 35, {
@@ -670,7 +657,7 @@ export class StatsService {
          align: 'right',
        });
 
-    safeFont('Roboto')
+    (doc as any)._safeFont('Roboto')
        .fontSize(10)
        .text(this.t(locale, 'period'), 50, 60, {
          width: pageWidth,
@@ -690,24 +677,7 @@ export class StatsService {
   ): void {
     const userName = profile.user?.email?.split('@')[0] || 'User';
 
-    const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto')
+    (doc as any)._safeFont('Roboto')
        .fontSize(12)
        .fillColor(colors.textLight)
        .text(`${locale === 'ru' ? 'Пользователь' : locale === 'kk' ? 'Пайдаланушы' : 'User'}: ${userName}`);
@@ -747,24 +717,7 @@ export class StatsService {
     );
 
     // Заголовок секции
-    const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Bold')
+    (doc as any)._safeFont('Roboto-Bold')
        .fontSize(16)
        .fillColor(colors.primary)
        .text(this.t(locale, 'summary'));
@@ -812,24 +765,7 @@ export class StatsService {
          .fill(colors.background);
 
       // Значение
-      const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Bold')
+      (doc as any)._safeFont('Roboto-Bold')
          .fontSize(20)
          .fillColor(stat.color)
          .text(String(stat.value), x + 10, startY + 12, {
@@ -838,19 +774,7 @@ export class StatsService {
          });
 
       // Единица измерения
-      const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Light')
+      (doc as any)._safeFont('Roboto-Light')
          .fontSize(10)
          .fillColor(colors.textLight)
          .text(stat.unit, x + 10, startY + 35, {
@@ -859,19 +783,7 @@ export class StatsService {
          });
 
       // Название
-      const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto')
+      (doc as any)._safeFont('Roboto')
          .fontSize(9)
          .fillColor(colors.text)
          .text(stat.label, x + 10, startY + 50, {
@@ -891,24 +803,7 @@ export class StatsService {
     pageWidth: number,
   ): void {
     // Заголовок
-    const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Bold')
+    (doc as any)._safeFont('Roboto-Bold')
        .fontSize(16)
        .fillColor(colors.primary)
        .text(this.t(locale, 'macros'));
@@ -955,24 +850,7 @@ export class StatsService {
     legendItems.forEach((item, idx) => {
       const x = startX + idx * 150;
       doc.circle(x + 5, legendY + 5, 5).fill(item.color);
-      const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto')
+      (doc as any)._safeFont('Roboto')
          .fontSize(10)
          .fillColor(colors.text)
          .text(item.label, x + 15, legendY);
@@ -995,24 +873,7 @@ export class StatsService {
     }
 
     // Заголовок
-    const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Bold')
+    (doc as any)._safeFont('Roboto-Bold')
        .fontSize(16)
        .fillColor(colors.primary)
        .text(this.t(locale, 'topFoods'));
@@ -1027,47 +888,13 @@ export class StatsService {
       const barWidth = ((food.totalCalories || 0) / maxCalories) * (pageWidth * 0.5);
 
       // Номер
-      const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Bold')
+      (doc as any)._safeFont('Roboto-Bold')
          .fontSize(11)
          .fillColor(colors.primary)
          .text(`${idx + 1}.`, startX, y);
 
       // Название продукта
-      const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto')
+      (doc as any)._safeFont('Roboto')
          .fontSize(11)
          .fillColor(colors.text)
          .text(food.label || 'Unknown', startX + 25, y, {
@@ -1080,24 +907,7 @@ export class StatsService {
          .fill(colors.secondary);
 
       // Калории
-      const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto')
+      (doc as any)._safeFont('Roboto')
          .fontSize(10)
          .fillColor(colors.textLight)
          .text(
@@ -1125,24 +935,7 @@ export class StatsService {
        .stroke();
 
     // Текст "Поделитесь с врачом"
-    const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto')
+    (doc as any)._safeFont('Roboto')
        .fontSize(9)
        .fillColor(colors.textLight)
        .text(this.t(locale, 'shareWithDoctor'), 50, bottomY + 10, {
@@ -1158,24 +951,7 @@ export class StatsService {
     });
 
     // EatSense
-    const getFont = (doc as any)._getFont || ((name: string) => {
-      if (name === 'Roboto-Bold') return 'Helvetica-Bold';
-      if (name === 'Roboto-Light') return 'Helvetica-Oblique';
-      return 'Helvetica';
-    });
-    const safeFont = (doc as any)._safeFont || ((name: string) => {
-      const getFont = (doc as any)._getFont || ((n: string) => {
-        if (n === 'Roboto-Bold') return 'Helvetica-Bold';
-        if (n === 'Roboto-Light') return 'Helvetica-Oblique';
-        return 'Helvetica';
-      });
-      try {
-        return doc.font(getFont(name));
-      } catch {
-        return doc.font('Helvetica');
-      }
-    });
-    safeFont('Roboto-Light')
+    (doc as any)._safeFont('Roboto-Light')
        .fontSize(8)
        .text('© EatSense — Smart nutrition, Swiss precision', 50, bottomY + 40, {
          width: doc.page.width - 100,

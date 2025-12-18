@@ -10,7 +10,9 @@ import {
   Alert,
   TextInput,
   InteractionManager,
+  Platform,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Slider from '@react-native-community/slider';
@@ -434,6 +436,31 @@ const createStyles = (tokens, colors) => {
       color: textTertiary,
       fontWeight: tokens.typography?.caption?.fontWeight ?? '500',
     },
+    unitToggleContainer: {
+      flexDirection: 'row',
+      backgroundColor: surfaceMuted,
+      borderRadius: tokens.radii?.lg ?? 12,
+      padding: tokens.spacing?.xs ?? 4,
+      marginBottom: tokens.spacing?.lg ?? 16,
+      alignSelf: 'center',
+    },
+    unitToggleButton: {
+      paddingVertical: tokens.spacing?.sm ?? 8,
+      paddingHorizontal: tokens.spacing?.lg ?? 16,
+      borderRadius: tokens.radii?.md ?? 8,
+    },
+    unitToggleButtonActive: {
+      backgroundColor: colors.primary,
+    },
+    unitToggleText: {
+      fontSize: tokens.typography?.body?.fontSize ?? 14,
+      fontWeight: tokens.typography?.body?.fontWeight ?? '500',
+      color: textSecondary,
+    },
+    unitToggleTextActive: {
+      color: onPrimary,
+      fontWeight: tokens.typography?.bodyStrong?.fontWeight ?? '600',
+    },
   });
 };
 
@@ -458,23 +485,25 @@ const OnboardingScreen = () => {
     selectedPlan: 'free',
     planBillingCycle: 'lifetime',
   });
+  const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
 
   const scrollViewRef = useRef(null);
 
+  // Simplified steps order: Welcome -> Personal Info (name, age, gender) -> Physical Stats (height, weight) -> Activity & Goals -> Plan
   const steps = [
     { id: 'welcome', title: 'Welcome to EatSense' },
-    { id: 'personal', title: 'Personal Information' },
-    { id: 'physical', title: 'Physical Stats' },
-    { id: 'activity', title: 'Activity Level' },
-    { id: 'goals', title: 'Your Goals' },
+    { id: 'personal', title: 'Personal Information' }, // Combined: name, age, gender
+    { id: 'physical', title: 'Physical Stats' }, // height, weight with unit toggle
+    { id: 'activity', title: 'Activity & Goals' }, // Combined: activity level and goals
     { id: 'plan', title: 'Choose Your Plan' },
   ];
 
-  const genders = [
-    { id: 'male', label: 'Male', icon: 'male' },
-    { id: 'female', label: 'Female', icon: 'female' },
-    { id: 'other', label: 'Other', icon: 'person' },
-  ];
+  // Removed unused genders array
+  // const genders = [
+  //   { id: 'male', label: 'Male', icon: 'male' },
+  //   { id: 'female', label: 'Female', icon: 'female' },
+  //   { id: 'other', label: 'Other', icon: 'person' },
+  // ];
 
   const activityLevels = [
     { id: 'sedentary', label: 'Sedentary', description: 'Little to no exercise' },
@@ -553,12 +582,11 @@ const OnboardingScreen = () => {
         Alert.alert('Required Field', 'Please select your gender.');
         return;
       }
-    } else if (currentStep === 3) { // Activity step
+    } else if (currentStep === 3) { // Combined Activity & Goals step
       if (!profileData.activityLevel) {
         Alert.alert('Required Field', 'Please select your activity level.');
         return;
       }
-    } else if (currentStep === 4) { // Goals step
       if (!profileData.goal) {
         Alert.alert('Required Field', 'Please select your goal.');
         return;
@@ -718,7 +746,7 @@ const OnboardingScreen = () => {
     }
   };
 
-  // Interactive Slider Component (native Slider only)
+  // Interactive Slider Component with haptics
   const InteractiveSlider = ({
     value,
     minimumValue,
@@ -726,27 +754,39 @@ const OnboardingScreen = () => {
     onValueChange,
     unit,
     step = 1,
-    sliderKey, // Add key prop to prevent cross-step interference
+    sliderKey,
+    enableHaptics = true,
   }) => {
-    // Ensure value is within bounds
     const clampedValue = Math.max(minimumValue, Math.min(maximumValue, value));
     const [tempValue, setTempValue] = useState(clampedValue);
     const [isSliding, setIsSliding] = useState(false);
+    const lastHapticValue = useRef(clampedValue);
     
-    // Initialize with proper value on mount
     useEffect(() => {
       const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
       setTempValue(newValue);
-    }, [sliderKey]); // Only re-initialize when sliderKey changes (different step)
+      lastHapticValue.current = newValue;
+    }, [sliderKey]);
     
     useEffect(() => {
       if (!isSliding) {
         const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
-        if (Math.abs(newValue - tempValue) > 0.1) { // Only update if significant change
+        if (Math.abs(newValue - tempValue) > 0.1) {
           setTempValue(newValue);
+          lastHapticValue.current = newValue;
         }
       }
     }, [value, minimumValue, maximumValue, isSliding, tempValue, sliderKey]);
+    
+    const triggerHaptic = () => {
+      if (enableHaptics && Platform.OS === 'ios') {
+        try {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        } catch {
+          // Haptics not available
+        }
+      }
+    };
     
     return (
       <View style={styles.interactiveSliderContainer}>
@@ -764,10 +804,19 @@ const OnboardingScreen = () => {
             onValueChange={(v) => {
               setIsSliding(true);
               setTempValue(v);
+              // Trigger haptic feedback on step change
+              if (enableHaptics && Math.abs(Math.round(v) - Math.round(lastHapticValue.current)) >= step) {
+                triggerHaptic();
+                lastHapticValue.current = v;
+              }
             }}
-            onSlidingStart={() => setIsSliding(true)}
+            onSlidingStart={() => {
+              setIsSliding(true);
+              triggerHaptic();
+            }}
             onSlidingComplete={(v) => {
               setIsSliding(false);
+              triggerHaptic();
               if (onValueChange && typeof onValueChange === 'function') {
                 onValueChange(v);
               }
@@ -863,136 +912,218 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderPhysicalStep = () => (
+  // Convert between metric and imperial
+  const cmToFeetInches = (cm) => {
+    const totalInches = cm / 2.54;
+    const feet = Math.floor(totalInches / 12);
+    const inches = Math.round(totalInches % 12);
+    return { feet, inches, totalInches };
+  };
+
+  const feetInchesToCm = (feet, inches) => {
+    return Math.round((feet * 12 + inches) * 2.54);
+  };
+
+  const kgToLbs = (kg) => Math.round(kg * 2.20462);
+  const lbsToKg = (lbs) => Math.round((lbs / 2.20462) * 10) / 10;
+
+  const renderPhysicalStep = () => {
+    // Convert values based on unit system
+    const heightValue = unitSystem === 'metric' 
+      ? profileData.height 
+      : cmToFeetInches(profileData.height).totalInches;
+    const weightValue = unitSystem === 'metric'
+      ? profileData.weight
+      : kgToLbs(profileData.weight);
+
+    const heightMin = unitSystem === 'metric' ? 120 : 47; // ~120cm = ~47in
+    const heightMax = unitSystem === 'metric' ? 220 : 87; // ~220cm = ~87in
+    const weightMin = unitSystem === 'metric' ? 30 : 66; // ~30kg = ~66lbs
+    const weightMax = unitSystem === 'metric' ? 200 : 440; // ~200kg = ~440lbs
+
+    const heightUnit = unitSystem === 'metric' ? ' cm' : ' in';
+    const weightUnit = unitSystem === 'metric' ? ' kg' : ' lbs';
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Your physical stats</Text>
+        
+        {/* Unit System Toggle */}
+        <View style={styles.unitToggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'metric' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => {
+              // Convert values when switching
+              if (unitSystem === 'imperial') {
+                const heightIn = profileData.height / 2.54;
+                const feet = Math.floor(heightIn / 12);
+                const inches = Math.round(heightIn % 12);
+                const newHeight = feetInchesToCm(feet, inches);
+                const newWeight = lbsToKg(profileData.weight * 2.20462);
+                setProfileData({ ...profileData, height: newHeight, weight: newWeight });
+              }
+              setUnitSystem('metric');
+            }}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'metric' && styles.unitToggleTextActive,
+              ]}
+            >
+              Metric
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'imperial' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => {
+              // Convert values when switching
+              if (unitSystem === 'metric') {
+                const heightIn = cmToFeetInches(profileData.height).totalInches;
+                const weightLbs = kgToLbs(profileData.weight);
+                setProfileData({ ...profileData, height: heightIn * 2.54, weight: weightLbs / 2.20462 });
+              }
+              setUnitSystem('imperial');
+            }}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'imperial' && styles.unitToggleTextActive,
+              ]}
+            >
+              Imperial
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Height</Text>
+          <InteractiveSlider
+            key={`height-slider-${unitSystem}`}
+            sliderKey={`height-${unitSystem}`}
+            value={heightValue}
+            minimumValue={heightMin}
+            maximumValue={heightMax}
+            onValueChange={(value) => {
+              const newHeight = unitSystem === 'metric' 
+                ? Math.round(value)
+                : feetInchesToCm(Math.floor(value / 12), Math.round(value % 12));
+              setProfileData({ ...profileData, height: newHeight });
+            }}
+            unit={heightUnit}
+            step={unitSystem === 'metric' ? 1 : 1}
+            enableHaptics={true}
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Weight</Text>
+          <InteractiveSlider
+            key={`weight-slider-${unitSystem}`}
+            sliderKey={`weight-${unitSystem}`}
+            value={weightValue}
+            minimumValue={weightMin}
+            maximumValue={weightMax}
+            onValueChange={(value) => {
+              const newWeight = unitSystem === 'metric'
+                ? Math.round(value * 10) / 10
+                : lbsToKg(value);
+              setProfileData({ ...profileData, weight: newWeight });
+            }}
+            unit={weightUnit}
+            step={unitSystem === 'metric' ? 0.5 : 1}
+            enableHaptics={true}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  // Combined Activity & Goals step
+  const renderActivityStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Your physical stats</Text>
+      <Text style={styles.stepTitle}>Activity & Goals</Text>
+      
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Height</Text>
-        <InteractiveSlider
-          key="height-slider"
-          sliderKey="height"
-          value={profileData.height}
-          minimumValue={120}
-          maximumValue={220}
-          onValueChange={(value) => setProfileData({ ...profileData, height: Math.round(value) })}
-          unit=" cm"
-          step={1}
-        />
+        <Text style={styles.inputLabel}>How active are you?</Text>
+        <View style={styles.activityContainer}>
+          {(activityLevels || []).map((level) => (
+            <TouchableOpacity
+              key={level.id}
+              style={[
+                styles.activityButton,
+                profileData.activityLevel === level.id && styles.activityButtonSelected,
+              ]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setProfileData({ ...profileData, activityLevel: level.id });
+              }}
+            >
+              <Text
+                style={[
+                  styles.activityLabel,
+                  profileData.activityLevel === level.id && styles.activityLabelSelected,
+                ]}
+              >
+                {level.label}
+              </Text>
+              <Text
+                style={[
+                  styles.activityDescription,
+                  profileData.activityLevel === level.id && styles.activityDescriptionSelected,
+                ]}
+              >
+                {level.description}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
+
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Weight</Text>
-        <InteractiveSlider
-          key="weight-slider"
-          sliderKey="weight"
-          value={profileData.weight}
-          minimumValue={30}
-          maximumValue={200}
-          onValueChange={(value) => setProfileData({ ...profileData, weight: Math.round(value) })}
-          unit=" kg"
-          step={0.5}
-        />
-      </View>
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Gender</Text>
-        <View style={styles.optionsContainer}>
-          {(genders || []).map((gender) => {
-            const isSelected = profileData.gender === gender.id;
+        <Text style={styles.inputLabel}>What&apos;s your goal?</Text>
+        <View style={styles.goalsContainer}>
+          {(goals || []).map((goal) => {
+            const isSelected = profileData.goal === goal.id;
             return (
               <TouchableOpacity
-                key={gender.id}
+                key={goal.id}
                 style={[
-                  styles.optionButton,
-                  isSelected && styles.optionButtonSelected,
+                  styles.goalButton,
+                  isSelected && styles.goalButtonSelected,
                 ]}
-                onPress={() => setProfileData({ ...profileData, gender: gender.id })}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setProfileData({ ...profileData, goal: goal.id });
+                }}
               >
                 <Ionicons
-                  name={gender.icon}
-                  size={24}
+                  name={goal.icon}
+                  size={32}
                   color={isSelected ? onPrimaryColor : colors.primary}
                 />
                 <Text
                   style={[
-                    styles.optionText,
-                    isSelected && styles.optionTextSelected,
+                    styles.goalText,
+                    isSelected && styles.goalTextSelected,
                   ]}
                 >
-                  {gender.label}
+                  {goal.label}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
-      </View>
-    </View>
-  );
-
-  const renderActivityStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>How active are you?</Text>
-      <View style={styles.activityContainer}>
-        {(activityLevels || []).map((level) => (
-          <TouchableOpacity
-            key={level.id}
-            style={[
-              styles.activityButton,
-              profileData.activityLevel === level.id && styles.activityButtonSelected,
-            ]}
-            onPress={() => setProfileData({ ...profileData, activityLevel: level.id })}
-          >
-            <Text
-              style={[
-                styles.activityLabel,
-                profileData.activityLevel === level.id && styles.activityLabelSelected,
-              ]}
-            >
-              {level.label}
-            </Text>
-            <Text
-              style={[
-                styles.activityDescription,
-                profileData.activityLevel === level.id && styles.activityDescriptionSelected,
-              ]}
-            >
-              {level.description}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderGoalsStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>What&apos;s your goal?</Text>
-      <View style={styles.goalsContainer}>
-        {(goals || []).map((goal) => {
-          const isSelected = profileData.goal === goal.id;
-          return (
-            <TouchableOpacity
-              key={goal.id}
-              style={[
-                styles.goalButton,
-                isSelected && styles.goalButtonSelected,
-              ]}
-              onPress={() => setProfileData({ ...profileData, goal: goal.id })}
-            >
-              <Ionicons
-                name={goal.icon}
-                size={32}
-                color={isSelected ? onPrimaryColor : colors.primary}
-              />
-              <Text
-                style={[
-                  styles.goalText,
-                  isSelected && styles.goalTextSelected,
-                ]}
-              >
-                {goal.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
       </View>
     </View>
   );
@@ -1083,10 +1214,8 @@ const OnboardingScreen = () => {
       case 2:
         return renderPhysicalStep();
       case 3:
-        return renderActivityStep();
+        return renderActivityStep(); // Combined Activity & Goals
       case 4:
-        return renderGoalsStep();
-      case 5:
         return renderPlanStep();
       default:
         return renderWelcomeStep();

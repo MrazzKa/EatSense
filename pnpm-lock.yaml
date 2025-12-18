@@ -95,6 +95,9 @@ importers:
       expo-font:
         specifier: ~14.0.9
         version: 14.0.9(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      expo-haptics:
+        specifier: ~14.0.0
+        version: 14.0.1(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
       expo-image-manipulator:
         specifier: ~14.0.7
         version: 14.0.7(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
@@ -4249,6 +4252,11 @@ packages:
       expo: '*'
       react: '*'
       react-native: '*'
+
+  expo-haptics@14.0.1:
+    resolution: {integrity: sha512-V81FZ7xRUfqM6uSI6FA1KnZ+QpEKnISqafob/xEfcx1ymwhm4V3snuLWWFjmAz+XaZQTqlYa8z3QbqEXz7G63w==}
+    peerDependencies:
+      expo: '*'
 
   expo-image-loader@6.0.0:
     resolution: {integrity: sha512-nKs/xnOGw6ACb4g26xceBD57FKLFkSwEUTDXEDF3Gtcu3MqF3ZIYd3YM+sSb1/z9AKV1dYT7rMSGVNgsveXLIQ==}
@@ -12883,6 +12891,10 @@ snapshots:
       fontfaceobserver: 2.3.0
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+
+  expo-haptics@14.0.1(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)):
+    dependencies:
+      expo: 54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
 
   expo-image-loader@6.0.0(expo@54.0.25(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)):
     dependencies:

@@ -14,6 +14,16 @@ import { SwipeClosableModal } from './common/SwipeClosableModal';
 interface AiAssistantProps {
   visible: boolean;
   onClose: () => void;
+  mealContext?: {
+    dishName?: string;
+    ingredients?: Array<{ name: string; weight?: number; calories?: number; protein?: number; carbs?: number; fat?: number }>;
+    totalCalories?: number;
+    totalProtein?: number;
+    totalCarbs?: number;
+    totalFat?: number;
+    healthScore?: any;
+    imageUri?: string | null;
+  } | null;
 }
 
 // Safe fallback component
@@ -51,7 +61,7 @@ const AiAssistantFallback: React.FC<{ onClose: () => void; t: (_key: string) => 
 };
 
 // Main component with error boundary
-const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) => {
+const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, mealContext }) => {
   const { t } = useI18n();
   const { colors } = useTheme();
   const [hasError, setHasError] = useState(false);
@@ -111,7 +121,7 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose }) =>
                 </View>
               }
             >
-              <RealAiAssistant onClose={handleClose} />
+              <RealAiAssistant onClose={handleClose} mealContext={mealContext} />
             </Suspense>
           )}
         </ErrorBoundary>

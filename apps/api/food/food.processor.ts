@@ -22,7 +22,7 @@ export class FoodProcessor {
 
   @Process('analyze-image')
   async handleImageAnalysis(job: Job) {
-    const { analysisId, imageBufferBase64, userId: jobUserId, locale } = job.data;
+    const { analysisId, imageBufferBase64, userId: jobUserId, locale, foodDescription } = job.data;
     
     // Получаем userId из анализа, так как он точно правильный
     const analysis = await this.prisma.analysis.findUnique({
@@ -108,6 +108,7 @@ export class FoodProcessor {
         imageBase64,
         imageUrl, // Pass imageUrl if available for better cache key generation
         locale,
+        foodDescription: foodDescription || undefined, // Pass food description if provided
       });
 
       // Transform to old format for compatibility

@@ -44,8 +44,7 @@ export default function DashboardScreen() {
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [now, setNow] = useState(new Date());
+  // Removed unused currentTime and now state variables
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [plusScale] = useState(new Animated.Value(1));
   const [plusOpacity] = useState(new Animated.Value(0));
@@ -62,6 +61,13 @@ export default function DashboardScreen() {
     todayPhotosAnalyzed: 0,
     dailyLimit: 3,
   });
+  const [suggestedFoodSummary, setSuggestedFoodSummary] = useState(null);
+  const [cardAnimations] = useState(() => ({
+    calories: new Animated.Value(0),
+    stats: new Animated.Value(0),
+    recent: new Animated.Value(0),
+    suggested: new Animated.Value(0),
+  }));
 
   // Animate plus button on mount
   useEffect(() => {
@@ -79,6 +85,32 @@ export default function DashboardScreen() {
       }),
     ]).start();
   }, [plusOpacity, plusScale]);
+
+  // Animate cards on mount and when stats change
+  useEffect(() => {
+    Animated.stagger(100, [
+      Animated.timing(cardAnimations.calories, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardAnimations.stats, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardAnimations.recent, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardAnimations.suggested, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [stats.totalCalories]); // Re-animate when calories change
 
   // Определяем функции ПЕРЕД их использованием в хуках
   const loadStats = React.useCallback(async () => {
@@ -134,48 +166,52 @@ export default function DashboardScreen() {
     }
   }, []);
 
+  const loadSuggestedFoodSummary = React.useCallback(async () => {
+    try {
+      const currentLocale = language || 'ru';
+      const suggestions = await ApiService.getSuggestedFoods(currentLocale);
+      if (Array.isArray(suggestions) && suggestions.length > 0) {
+        // Take the first suggestion as summary
+        const firstSuggestion = suggestions[0];
+        setSuggestedFoodSummary({
+          reason: firstSuggestion.reason || firstSuggestion.tip || '',
+          category: firstSuggestion.category || 'general',
+        });
+      } else {
+        setSuggestedFoodSummary(null);
+      }
+    } catch (error) {
+      console.error('[DashboardScreen] Error loading suggested food summary:', error);
+      setSuggestedFoodSummary(null);
+    }
+  }, [language]);
+
   // Теперь используем функции в хуках ПОСЛЕ их определения
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      // Removed setCurrentTime call
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  // Update time every minute for display
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60000);
-    return () => clearInterval(id);
-  }, []);
+  // Removed unused time update effect
 
   useFocusEffect(
     React.useCallback(() => {
       loadStats();
       loadUserStats();
-    }, [loadStats, loadUserStats])
+      loadSuggestedFoodSummary();
+    }, [loadStats, loadUserStats, loadSuggestedFoodSummary])
   );
 
   useEffect(() => {
     loadStats();
     loadUserStats();
-  }, [selectedDate, loadStats, loadUserStats]);
+    loadSuggestedFoodSummary();
+  }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary]);
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString(language || 'en', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString(language || 'en', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  // Removed unused formatTime and formatDate functions
 
   // Check if daily limit reached
   const hasReachedDailyLimit = (stats) => {
@@ -315,14 +351,6 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Compact header with time and date */}
-        <View style={styles.header}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{formatTime(now)}</Text>
-            <Text style={styles.dateText}>{formatDate(currentTime)}</Text>
-          </View>
-        </View>
-
         {/* Calendar */}
         <View style={styles.calendarContainer}>
           <TouchableOpacity
@@ -352,21 +380,50 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Calories Circle with Progress */}
-        <View style={styles.caloriesContainer}>
-          <CircularProgress
-            progress={stats.goal > 0 ? Math.min(5, Math.max(0, stats.totalCalories / stats.goal)) : 0}
-            size={220}
-            strokeWidth={8}
-            value={Math.round(stats.totalCalories)}
-            label={t('dashboard.calories')}
-            goal={Math.round(stats.goal)}
-            goalUnit={t('dashboard.caloriesUnit')}
-          />
-        </View>
+        {/* Calories Circle with Progress and Macros - Compact Layout */}
+        <Animated.View 
+          style={[
+            styles.caloriesAndMacrosContainer,
+            {
+              opacity: cardAnimations.calories,
+              transform: [{
+                scale: cardAnimations.calories.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.9, 1],
+                }),
+              }],
+            },
+          ]}
+        >
+          {/* Calories Circle - Smaller */}
+          <View style={styles.caloriesWrapper}>
+            <CircularProgress
+              progress={stats.goal > 0 ? Math.min(5, Math.max(0, stats.totalCalories / stats.goal)) : 0}
+              size={220}
+              strokeWidth={8}
+              value={Math.round(stats.totalCalories)}
+              label={t('dashboard.calories')}
+              goal={Math.round(stats.goal)}
+              goalUnit={t('dashboard.caloriesUnit')}
+            />
+          </View>
+        </Animated.View>
 
         {/* Quick Stats */}
-        <View style={styles.statsContainer}>
+        <Animated.View 
+          style={[
+            styles.statsContainer,
+            {
+              opacity: cardAnimations.stats,
+              transform: [{
+                translateY: cardAnimations.stats.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0],
+                }),
+              }],
+            },
+          ]}
+        >
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{formatMacroInt(stats.totalProtein)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
@@ -379,10 +436,17 @@ export default function DashboardScreen() {
             <Text style={styles.statNumber}>{formatMacroInt(stats.totalFat)}</Text>
             <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* PART A: Section 2 - Recent meals (short list) */}
-        <View style={styles.recentContainer}>
+        <Animated.View 
+          style={[
+            styles.recentContainer,
+            {
+              opacity: cardAnimations.recent || cardAnimations.stats || 1,
+            },
+          ]}
+        >
           <View style={styles.recentHeader}>
             <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
           </View>
@@ -424,11 +488,79 @@ export default function DashboardScreen() {
               <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
             </View>
           )}
-        </View>
+        </Animated.View>
 
         {/* PART A: Section 3 - Smart Recommendations Cards */}
-        {/* 1. Suggested Food */}
-        <View style={styles.section}>
+        {/* 1. Suggested Food Summary Card */}
+        {suggestedFoodSummary && suggestedFoodSummary.reason && (
+          <Animated.View 
+            style={[
+              styles.section,
+              {
+                opacity: cardAnimations.suggested,
+                transform: [{
+                  translateY: cardAnimations.suggested.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                }],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={[styles.suggestedFoodSummaryCard, {
+                backgroundColor: colors.surface || colors.card,
+                borderColor: colors.border || colors.borderMuted,
+                borderLeftWidth: 4,
+                borderLeftColor: colors.primary || '#007AFF',
+              }]}
+              onPress={() => {
+                if (__DEV__) {
+                  console.log('[Dashboard] Navigating to Suggested Food from summary');
+                }
+                if (navigation && typeof navigation.navigate === 'function') {
+                  navigation.navigate('SuggestedFood');
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.suggestedFoodSummaryContent}>
+                <View style={styles.suggestedFoodSummaryIcon}>
+                  <Ionicons 
+                    name={
+                      suggestedFoodSummary.category === 'protein' ? 'fitness-outline' :
+                      suggestedFoodSummary.category === 'fiber' ? 'leaf-outline' :
+                      suggestedFoodSummary.category === 'healthy_fat' ? 'water-outline' :
+                      suggestedFoodSummary.category === 'carb' ? 'barbell-outline' :
+                      'nutrition-outline'
+                    } 
+                    size={20} 
+                    color={colors.primary || '#007AFF'} 
+                  />
+                </View>
+                <View style={styles.suggestedFoodSummaryText}>
+                  <Text style={[styles.suggestedFoodSummaryTitle, { color: colors.textPrimary || colors.text }]}>
+                    {t('dashboard.suggestedFood.summary.title') || t('dashboard.suggestedFood.title')}
+                  </Text>
+                  <Text style={[styles.suggestedFoodSummaryReason, { color: colors.textSecondary }]} numberOfLines={2}>
+                    {suggestedFoodSummary.reason}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* 2. Suggested Food Full Button */}
+        <Animated.View 
+          style={[
+            styles.section,
+            {
+              opacity: cardAnimations.suggested,
+            },
+          ]}
+        >
           <TouchableOpacity
             style={[styles.aiAssistantButton, {
               backgroundColor: colors.surface || colors.card,
@@ -458,10 +590,17 @@ export default function DashboardScreen() {
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* 2. AI Assistant */}
-        <View style={styles.aiAssistantContainer}>
+        <Animated.View 
+          style={[
+            styles.aiAssistantContainer,
+            {
+              opacity: cardAnimations.suggested,
+            },
+          ]}
+        >
           <TouchableOpacity 
             style={styles.aiAssistantButton} 
             onPress={() => {
@@ -485,17 +624,24 @@ export default function DashboardScreen() {
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* 3. Manual Analysis / "Вставьте свой анализ" */}
-        <View style={styles.section}>
+        <Animated.View 
+          style={[
+            styles.section,
+            {
+              opacity: cardAnimations.suggested,
+            },
+          ]}
+        >
           <ManualAnalysisCard onPressAddManual={() => {
             if (__DEV__) {
               console.log('[Dashboard] Opening manual analysis modal');
             }
             handleOpenManualAnalysis();
           }} />
-        </View>
+        </Animated.View>
 
         {/* PART A: Section 5 - Nutrition section */}
         {/* TODO: replaced by Monthly PDF report */}
@@ -677,6 +823,20 @@ const createStyles = (tokens) =>
       fontSize: 16,
       color: tokens.colors.textSecondary,
     },
+    caloriesAndMacrosContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: tokens.spacing.xl,
+      paddingVertical: tokens.spacing.lg || 16,
+      marginBottom: tokens.spacing.lg || 16,
+      gap: tokens.spacing.lg,
+    },
+    caloriesWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     caloriesContainer: {
       alignItems: 'center',
       paddingVertical: tokens.spacing.xl || 20,
@@ -722,6 +882,12 @@ const createStyles = (tokens) =>
       gap: tokens.spacing.md,
       marginBottom: tokens.spacing.lg || 16, // Consistent spacing after macros
     },
+    statsContainerCompact: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      gap: tokens.spacing.sm,
+    },
     statItem: {
       alignItems: 'center',
       backgroundColor: tokens.colors.card,
@@ -734,14 +900,35 @@ const createStyles = (tokens) =>
       borderColor: tokens.colors.borderMuted,
       ...(tokens.states.cardShadow || tokens.elevations.sm),
     },
+    statItemCompact: {
+      flex: 1,
+      alignItems: 'center',
+      backgroundColor: tokens.colors.card,
+      paddingVertical: tokens.spacing.md,
+      paddingHorizontal: tokens.spacing.sm,
+      borderRadius: tokens.radii.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.borderMuted,
+      ...(tokens.states.cardShadow || tokens.elevations.sm),
+    },
     statNumber: {
       fontSize: 20,
       fontWeight: '600',
       color: tokens.colors.textPrimary,
     },
+    statNumberCompact: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: tokens.colors.textPrimary,
+    },
     statLabel: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    statLabelCompact: {
+      fontSize: 12,
+      color: tokens.colors.textSecondary,
+      marginTop: tokens.spacing.xxs,
     },
     articlesSection: {
       paddingHorizontal: tokens.spacing.xl,
@@ -883,6 +1070,39 @@ const createStyles = (tokens) =>
     aiAssistantSubtitle: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    suggestedFoodSummaryCard: {
+      borderRadius: tokens.radii.lg,
+      padding: tokens.spacing.md,
+      borderWidth: 1,
+      ...(tokens.states.cardShadow || tokens.elevations.sm),
+    },
+    suggestedFoodSummaryContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.md,
+    },
+    suggestedFoodSummaryIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: tokens.colors.primaryTint || tokens.colors.primary + '20',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    suggestedFoodSummaryText: {
+      flex: 1,
+      gap: tokens.spacing.xs,
+    },
+    suggestedFoodSummaryTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: tokens.colors.textPrimary,
+    },
+    suggestedFoodSummaryReason: {
+      fontSize: 13,
+      color: tokens.colors.textSecondary,
+      lineHeight: 18,
     },
     section: {
       marginBottom: tokens.spacing.lg || 16, // Consistent 16px spacing between sections

@@ -13,6 +13,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { clientLog } from '../utils/clientLog';
 import DescribeFoodModal from '../components/DescribeFoodModal';
+import { FoodDescriptionPrompt } from '../components/FoodDescriptionPrompt';
 
 export default function CameraScreen() {
   const navigation = useNavigation();
@@ -25,6 +26,8 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
+  const [showFoodPrompt, setShowFoodPrompt] = useState(false);
+  const [capturedImageUri, setCapturedImageUri] = useState(null);
   
   // Safe requestPermission wrapper
   const handleRequestPermission = async () => {
@@ -104,15 +107,9 @@ export default function CameraScreen() {
         uri: compressedImage.uri ? 'present' : 'missing',
       }).catch(() => {});
 
-      if (navigation && typeof navigation.navigate === 'function') {
-        navigation.navigate('AnalysisResults', {
-          imageUri: compressedImage.uri,
-          source: 'camera',
-        });
-      } else {
-        await clientLog('Camera:navigationNotAvailable').catch(() => {});
-        Alert.alert(t('common.error') || 'Error', 'Navigation not available');
-      }
+      // Show food description prompt before navigating
+      setCapturedImageUri(compressedImage.uri);
+      setShowFoodPrompt(true);
     } catch (error) {
       if (__DEV__) console.error('[CameraScreen] Error taking picture:', error);
       await clientLog('Camera:takePictureError', {
@@ -160,6 +157,22 @@ export default function CameraScreen() {
       });
     }
     setShowDescribeModal(false);
+  };
+
+  const handleFoodPromptConfirm = (description) => {
+    setShowFoodPrompt(false);
+    if (navigation && typeof navigation.navigate === 'function' && capturedImageUri) {
+      navigation.navigate('AnalysisResults', {
+        imageUri: capturedImageUri,
+        source: 'camera',
+        foodDescription: description || undefined, // Pass description if provided
+      });
+      // Navigate to Dashboard after starting analysis
+      setTimeout(() => {
+        navigation.navigate('MainTabs', { screen: 'Dashboard' });
+      }, 100);
+    }
+    setCapturedImageUri(null);
   };
 
   if (!permission) {
@@ -306,6 +319,16 @@ export default function CameraScreen() {
         visible={showDescribeModal}
         onClose={() => setShowDescribeModal(false)}
         onAnalyze={handleDescribeFood}
+      />
+
+      <FoodDescriptionPrompt
+        visible={showFoodPrompt}
+        onClose={() => {
+          setShowFoodPrompt(false);
+          setCapturedImageUri(null);
+        }}
+        onConfirm={handleFoodPromptConfirm}
+        imageUri={capturedImageUri}
       />
     </View>
   );

@@ -880,6 +880,55 @@ const ProfileScreen = () => {
           </KeyboardAvoidingView>
         </Modal>
 
+        {/* Health Profile Summary - Moved up */}
+        <AppCard style={styles.healthSection}>
+          <View style={styles.healthSummaryHeader}>
+            <View style={styles.healthSummaryContent}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                {safeT('profile.health.advanced', 'Расширенные параметры здоровья')}
+              </Text>
+              <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
+                {(() => {
+                  const parts = [];
+                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% жира`);
+                  if (healthProfile.metabolic?.waistCm) parts.push(`Талия ${healthProfile.metabolic.waistCm} см`);
+                  if (healthProfile.sleep?.sleepHours) parts.push(`Сон ${healthProfile.sleep.sleepHours} ч`);
+                  const focusAreas = Object.entries(healthProfile.healthFocus || {})
+                    .filter(([, val]) => val === true)
+                    .map(([key]) => {
+                      const keyMap = {
+                        sugarControl: t('profile.health.focus.sugarControl') || 'контроль сахара',
+                        cholesterol: t('profile.health.focus.cholesterol') || 'холестерин',
+                        inflammation: t('profile.health.focus.inflammation') || 'воспаление',
+                        iron: t('profile.health.focus.iron') || 'железо',
+                        microbiome: t('profile.health.focus.microbiome') || 'микробиом',
+                        hormonalBalance: t('profile.health.focus.hormonalBalance') || 'гормоны',
+                      };
+                      return keyMap[key] || key;
+                    });
+                  if (focusAreas.length > 0) parts.push(`Цели: ${focusAreas.slice(0, 2).join(', ')}${focusAreas.length > 2 ? '...' : ''}`);
+                  return parts.length > 0 ? parts.join(' • ') : t('profile.health.noData') || 'Нет данных';
+                })()}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.editHealthButton}
+              onPress={() => setShowHealthDetails(!showHealthDetails)}
+            >
+              <Text style={[styles.editHealthButtonText, { color: colors.primary }]}>
+                {showHealthDetails ? t('common.hide') || 'Скрыть' : t('common.show') || 'Показать'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {showHealthDetails && (
+            <View style={styles.healthDetails}>
+              <Text style={[styles.healthDetailsText, { color: colors.textSecondary }]}>
+                {t('profile.health.details') || 'Детальная информация о ваших параметрах здоровья'}
+              </Text>
+            </View>
+          )}
+        </AppCard>
+
         <AppCard style={styles.preferencesCard}>
           <Text style={styles.sectionTitle}>{t('profile.preferences')}</Text>
           <View style={styles.preferenceRow}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
@@ -7,6 +7,7 @@ import { useI18n } from '../../app/i18n/hooks';
 export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, value, label, goal, goalUnit, children }) {
   const { colors } = useTheme();
   const { t } = useI18n();
+  const [animatedProgress, setAnimatedProgress] = useState(0);
   
   // Clamp progress between 0 and 5 (0% to 500%), allowing display of values exceeding goal
   // Progress can be > 1 when value exceeds goal (e.g., 1500/1000 = 1.5 = 150%)
@@ -15,7 +16,38 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   const displayProgress = Math.min(5, Math.max(0, progress)); // Cap at 500% for display, allow > 1
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - displayProgress);
+  
+  // Animate progress change smoothly
+  useEffect(() => {
+    const startValue = animatedProgress;
+    const endValue = displayProgress;
+    const duration = 800;
+    const startTime = Date.now();
+    
+    const animate = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      const progressRatio = Math.min(elapsed / duration, 1);
+      
+      // Easing function (ease-out)
+      const eased = 1 - Math.pow(1 - progressRatio, 3);
+      const currentValue = startValue + (endValue - startValue) * eased;
+      
+      setAnimatedProgress(currentValue);
+      
+      if (progressRatio < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setAnimatedProgress(endValue);
+      }
+    };
+    
+    if (Math.abs(startValue - endValue) > 0.01) {
+      requestAnimationFrame(animate);
+    }
+  }, [displayProgress]);
+  
+  const strokeDashoffset = circumference * (1 - animatedProgress);
   
   // Color changes to warning when over goal
   const getProgressColor = () => {

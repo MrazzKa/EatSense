@@ -110,7 +110,9 @@ async function bootstrap() {
             console.log(`   http://${addr}:${port}`);
           });
         }
-        console.log(`   Use Windows IP (172.20.10.2) if mobile is on same network`);
+        if (process.env.API_BASE_URL) {
+          console.log(`   ${process.env.API_BASE_URL} (via ngrok/tunnel)`);
+        }
       }
     } catch (error) {
       // Silently ignore network interface errors - they should never crash the server

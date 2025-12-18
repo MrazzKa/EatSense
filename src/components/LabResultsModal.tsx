@@ -171,11 +171,23 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
       visible={visible}
       onClose={handleClose}
       presentationStyle="pageSheet"
+      enableSwipe={true}
+      enableBackdropClose={true}
     >
       <View style={[styles.container, { paddingBottom: insets.bottom + 16, backgroundColor: colors.background }]}>
-        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-          {t('aiAssistant.lab.title')}
-        </Text>
+        {/* Header with close button */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
+            {t('aiAssistant.lab.title')}
+          </Text>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={handleClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           {t('aiAssistant.lab.subtitle')}
         </Text>
@@ -305,11 +317,18 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
         {result && (
           <ScrollView style={[styles.resultBox, { backgroundColor: colors.card || colors.surface }]}>
             <Text style={[styles.resultTitle, { color: colors.textPrimary || colors.text }]}>
-              {t('aiAssistant.lab.resultTitle')}
+              {t('aiAssistant.lab.resultTitle') || 'Разбор и рекомендации'}
             </Text>
             <Text style={[styles.resultText, { color: colors.textSecondary }]}>
               {result}
             </Text>
+            {/* Disclaimer */}
+            <View style={[styles.disclaimerBox, { backgroundColor: colors.surfaceMuted || colors.surface }]}>
+              <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
+                {t('aiAssistant.lab.disclaimer') || 'Приложение не является заменой профессиональной медицинской консультации. При наличии проблем со здоровьем обратитесь к врачу.'}
+              </Text>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -354,10 +373,20 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 4,
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   subtitle: {
     fontSize: 14,
@@ -464,6 +493,19 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  disclaimerBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  disclaimerText: {
+    fontSize: 12,
+    lineHeight: 16,
+    flex: 1,
   },
 });
 
