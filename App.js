@@ -19,6 +19,8 @@ import GalleryScreen from './src/screens/GalleryScreen';
 import AnalysisResultsScreen from './src/screens/AnalysisResultsScreen';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import LegalDocumentScreen from './src/screens/LegalDocumentScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 import SuggestedFoodScreen from './src/screens/SuggestedFoodScreen';
 import MedicationScheduleScreen from './src/screens/MedicationScheduleScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
@@ -141,6 +143,22 @@ function AppContent() {
               component={LegalDocumentScreen}
               options={{
                 presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="PrivacyPolicy"
+              component={PrivacyPolicyScreen}
+              options={{
+                presentation: 'card',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="TermsOfService"
+              component={TermsOfServiceScreen}
+              options={{
+                presentation: 'card',
+                headerShown: false,
               }}
             />
             <Stack.Screen

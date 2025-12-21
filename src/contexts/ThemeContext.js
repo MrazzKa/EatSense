@@ -30,7 +30,7 @@ export const useDesignTokens = () => {
 
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [themeMode, setThemeMode] = useState('system'); // 'light', 'dark', 'system'
+  const [themeMode, setThemeMode] = useState('light'); // 'light', 'dark', 'monochrome'
   const [isDark, setIsDark] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -50,12 +50,8 @@ export const ThemeProvider = ({ children }) => {
   }, [loadThemePreference]);
 
   useEffect(() => {
-    if (themeMode === 'system') {
-      setIsDark(systemColorScheme === 'dark');
-    } else {
-      setIsDark(themeMode === 'dark');
-    }
-  }, [themeMode, systemColorScheme]);
+    setIsDark(themeMode === 'dark');
+  }, [themeMode]);
 
   useEffect(() => {
     const loadReduceMotion = async () => {
@@ -94,14 +90,23 @@ export const ThemeProvider = ({ children }) => {
     }
   };
 
-  const palette = useMemo(
-    () => (isDark ? palettes?.dark || palettes?.light || {} : palettes?.light || {}),
-    [isDark],
-  );
+  const palette = useMemo(() => {
+    if (themeMode === 'monochrome') {
+      return palettes?.monochrome || palettes?.light || {};
+    }
+    return isDark ? (palettes?.dark || palettes?.light || {}) : (palettes?.light || {});
+  }, [isDark, themeMode]);
   const themeTokens = useMemo(() => {
     try {
       const { states: stateTokens, ...restTokens } = baseTokens || {};
-      const resolvedStates = stateTokens ? (isDark ? stateTokens.dark : stateTokens.light) : {};
+      let resolvedStates = {};
+      if (stateTokens) {
+        if (themeMode === 'monochrome') {
+          resolvedStates = stateTokens.monochrome || {};
+        } else {
+          resolvedStates = isDark ? stateTokens.dark : stateTokens.light;
+        }
+      }
 
       return {
         ...restTokens,
@@ -115,7 +120,7 @@ export const ThemeProvider = ({ children }) => {
         states: {},
       };
     }
-  }, [isDark, palette]);
+  }, [isDark, palette, themeMode]);
 
   const getColor = (key) => palette[key] ?? key;
 

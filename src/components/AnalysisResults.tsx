@@ -142,10 +142,28 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         <View style={styles.ingredientsCard}>
           <Text style={styles.ingredientsTitle}>Ingredients</Text>
           
-          {(result?.items && Array.isArray(result.items) ? result.items : []).map((item: any, index: number) => (
+          {(result?.items && Array.isArray(result.items) ? result.items : []).map((item: any, index: number) => {
+            // Helper to check if string looks like a localization key
+            const isLocalizationKey = (str: string): boolean => {
+              if (!str || typeof str !== 'string') return false;
+              return str.includes('.') && str.length > 3 && str.split('.').length >= 2;
+            };
+            
+            // Helper to safely get label, avoiding localization keys
+            const getItemLabel = (label: string | undefined | null): string => {
+              if (!label) return 'Ingredient';
+              if (isLocalizationKey(label)) {
+                const parts = label.split('.');
+                const fallback = parts[parts.length - 1];
+                return fallback.charAt(0).toUpperCase() + fallback.slice(1).replace(/_/g, ' ');
+              }
+              return label;
+            };
+            
+            return (
             <View key={index} style={styles.ingredientItem}>
               <View style={styles.ingredientInfo}>
-                <Text style={styles.ingredientName}>{item.label}</Text>
+                <Text style={styles.ingredientName}>{getItemLabel(item.label || item.name)}</Text>
                 <Text style={styles.ingredientWeight}>
                   {item.gramsMean ? `${Math.round(item.gramsMean)}g per portion` : 'Weight not determined'}
                 </Text>

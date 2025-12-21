@@ -489,11 +489,34 @@ class ApiService {
 
       // Return response with status for handling on the screen
       // Don't throw on 204/404 - let the screen handle it
+      let data = null;
+      if (response.status === 200) {
+        // In React Native, response.blob() returns an object with _data property
+        // We need to read it as arrayBuffer instead
+        try {
+          data = await response.arrayBuffer();
+        } catch (e) {
+          // Fallback to blob if arrayBuffer fails
+          try {
+            const blob = await response.blob();
+            // If blob has _data, extract it
+            if (blob && blob._data) {
+              data = blob._data;
+            } else {
+              data = blob;
+            }
+          } catch (e2) {
+            console.error('[ApiService] Failed to read response data:', e2);
+            data = null;
+          }
+        }
+      }
+      
       return {
         status: response.status,
         ok: response.ok,
         headers: response.headers,
-        data: response.status === 200 ? await response.blob() : null,
+        data,
       };
     } catch (error) {
       console.error('[ApiService] getMonthlyReport error:', error);

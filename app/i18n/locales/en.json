@@ -34,7 +34,7 @@
     "aiAssistantSubtitle": "Get personalized nutrition advice",
     "healthScoreTitle": "{{meal}} health snapshot",
     "healthScoreSubtitle": "Tap the card to open the full analysis in Recent.",
-    "recent": "Recent",
+    "recent": "Diary",
     "recentEmptyTitle": "No recent items",
     "recentEmptySubtitle": "Start by taking a photo of your meal",
     "mealFallback": "Meal",
@@ -71,8 +71,8 @@
       }
     },
     "manualAnalysis": {
-      "title": "Insert your own analysis",
-      "subtitle": "Manually enter meal data or upload lab results"
+      "title": "Medical Lab Results",
+      "subtitle": "Upload lab results for AI interpretation"
     },
     "analysisCounter": {
       "today": "Today",

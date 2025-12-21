@@ -187,6 +187,7 @@ export default function AnalysisResultsScreen() {
           raw.name ||
           normalizedIngredients[0]?.name ||
           'Food Analysis',
+        imageUrl: raw.imageUrl || raw.imageUri || raw.data?.imageUrl || fallbackImage || null,
         imageUri: raw.imageUrl || raw.imageUri || raw.data?.imageUrl || fallbackImage || null,
         totalCalories,
         totalProtein,
@@ -915,24 +916,25 @@ export default function AnalysisResultsScreen() {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Image with gradient overlay */}
-          <View style={styles.imageContainer}>
-            {renderImage(previewImage, styles.resultImage, true)}
-            {previewImage && (
+          {/* Image with gradient overlay - only show if image exists */}
+          {previewImage && (
+            <View style={styles.imageContainer}>
+              {renderImage(previewImage, styles.resultImage, true)}
               <View style={styles.imageGradientOverlay}>
                 <Text style={styles.dishNameOverlay}>{analysisResult?.dishName}</Text>
               </View>
-            )}
-          </View>
-
-          {/* Dish Name (fallback if no image) */}
-          {!previewImage && (
-            <View>
-              <View style={styles.dishNameContainer}>
-                <Text style={styles.dishName}>{analysisResult?.dishName}</Text>
-              </View>
             </View>
           )}
+
+          {/* Dish Name - always show, larger for text-only analysis */}
+          <View style={styles.dishNameContainer}>
+            <Text style={[
+              styles.dishName,
+              !previewImage && { fontSize: 28, marginTop: 8, marginBottom: 8 }
+            ]}>
+              {analysisResult?.dishName}
+            </Text>
+          </View>
 
           {/* Total Nutrition */}
           <View>

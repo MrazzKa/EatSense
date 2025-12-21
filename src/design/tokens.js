@@ -13,11 +13,11 @@ export const spacing = {
 
 export const radii = {
   none: 0,
-  xs: 6,
-  sm: 10,
-  md: 14,
-  lg: 18,
-  xl: 24,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 20,
+  xl: 28,
   pill: 999,
   full: 9999,
 };
@@ -115,6 +115,48 @@ const neutralPaletteDark = {
   900: '#E0E7FF',
 };
 
+// Monochrome (Black & White) palette
+const monochromePalette = {
+  background: '#FFFFFF',
+  surface: '#FFFFFF',
+  surfaceMuted: '#FAFAFA',
+  surfaceContrast: '#000000',
+  surfaceElevated: '#FFFFFF',
+  overlay: '#FFFFFF',
+  primary: '#000000',
+  primaryTint: '#F5F5F5',
+  onPrimary: '#FFFFFF',
+  secondary: '#000000',
+  secondaryTint: '#F5F5F5',
+  text: '#000000',
+  textPrimary: '#000000',
+  textSecondary: '#666666',
+  textTertiary: '#999999',
+  textMuted: '#999999',
+  textSubdued: '#CCCCCC',
+  textDisabled: 'rgba(0, 0, 0, 0.4)',
+  inverseText: '#FFFFFF',
+  border: '#E5E5E5',
+  borderMuted: '#F0F0F0',
+  borderStrong: '#CCCCCC',
+  success: '#000000',
+  successTint: '#F5F5F5',
+  warning: '#666666',
+  warningTint: '#F5F5F5',
+  error: '#000000',
+  errorTint: '#F5F5F5',
+  info: '#000000',
+  infoTint: '#F5F5F5',
+  card: '#FFFFFF',
+  inputBackground: '#FAFAFA',
+  icon: '#000000',
+  iconMuted: '#999999',
+  overlayTint: 'rgba(0, 0, 0, 0.08)',
+  scrim: 'rgba(0, 0, 0, 0.55)',
+  focusRing: 'rgba(0, 0, 0, 0.35)',
+  neutrals: neutralPaletteLight,
+};
+
 export const palettes = {
   light: {
     background: '#F4F5F7',
@@ -196,6 +238,7 @@ export const palettes = {
     focusRing: 'rgba(148, 163, 184, 0.5)',
     neutrals: neutralPaletteDark,
   },
+  monochrome: monochromePalette,
 };
 
 export const states = {
@@ -254,6 +297,35 @@ export const states = {
       shadowOpacity: 1,
       shadowOffset: { width: 0, height: 6 },
       shadowRadius: 14,
+      elevation: 6,
+    },
+  },
+  monochrome: {
+    focusRing: 'rgba(0, 0, 0, 0.35)',
+    overlay: 'rgba(0, 0, 0, 0.08)',
+    scrim: 'rgba(0, 0, 0, 0.55)',
+    primary: {
+      base: '#000000',
+      hover: '#333333',
+      pressed: '#666666',
+      disabled: '#CCCCCC',
+      border: '#000000',
+      on: '#FFFFFF',
+      disabledText: '#999999',
+      disabledBorder: '#E5E5E5',
+    },
+    surface: {
+      base: '#FFFFFF',
+      elevated: '#FFFFFF',
+      hovered: '#FAFAFA',
+      pressed: '#F5F5F5',
+      border: '#E5E5E5',
+    },
+    cardShadow: {
+      shadowColor: 'rgba(0, 0, 0, 0.12)',
+      shadowOpacity: 1,
+      shadowOffset: { width: 0, height: 10 },
+      shadowRadius: 20,
       elevation: 6,
     },
   },

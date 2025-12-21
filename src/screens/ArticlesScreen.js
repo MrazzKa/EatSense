@@ -45,18 +45,56 @@ export default function ArticlesScreen() {
       }
       setError(null);
       const currentLocale = language || 'ru';
-      const [feedData, featuredData] = await Promise.all([
-        ApiService.getArticlesFeed(1, 50, currentLocale),
-        ApiService.getFeaturedArticles(FEATURED_LIMIT, currentLocale),
-      ]);
+      
+      if (__DEV__) {
+        console.log('[ArticlesScreen] Loading articles for locale:', currentLocale);
+      }
+      
+      let feedData, featuredData;
+      try {
+        [feedData, featuredData] = await Promise.all([
+          ApiService.getArticlesFeed(1, 50, currentLocale).catch((err) => {
+            if (__DEV__) console.warn('[ArticlesScreen] getArticlesFeed failed, using empty result:', err);
+            return { articles: [], total: 0, page: 1, pageSize: 50 };
+          }),
+          ApiService.getFeaturedArticles(FEATURED_LIMIT, currentLocale).catch((err) => {
+            if (__DEV__) console.warn('[ArticlesScreen] getFeaturedArticles failed, using empty result:', err);
+            return [];
+          }),
+        ]);
+      } catch (err) {
+        if (__DEV__) console.error('[ArticlesScreen] Error in Promise.all:', err);
+        feedData = { articles: [], total: 0, page: 1, pageSize: 50 };
+        featuredData = [];
+      }
+      
+      if (__DEV__) {
+        console.log('[ArticlesScreen] Raw API response:', { 
+          articlesCount: feedData?.articles?.length || 0,
+          total: feedData?.total || 0,
+          featuredCount: Array.isArray(featuredData) ? featuredData.length : 0,
+          feedDataKeys: feedData ? Object.keys(feedData) : [],
+          feedSample: feedData?.articles?.[0],
+          featuredSample: Array.isArray(featuredData) ? featuredData[0] : null,
+        });
+      }
       
       // Remove duplicates by slug and filter by locale
+      // Be less strict with filtering - allow articles without slug or locale
       const uniqueArticles = Object.values(
-        feedData.articles
-          .filter((article) => !article.locale || article.locale === currentLocale)
+        (feedData?.articles || [])
+          .filter((article) => {
+            // Basic validation - must have at least title or slug
+            if (!article || (!article.title && !article.slug && !article.name)) return false;
+            // Filter by locale only if both article.locale and currentLocale are set
+            // Don't filter if article.locale is not set (allow articles without locale)
+            if (article.locale && currentLocale && article.locale !== currentLocale) return false;
+            return true;
+          })
           .reduce((acc, article) => {
-            if (!article?.slug) return acc;
-            const key = `${article.locale || currentLocale}:${article.slug}`;
+            // Use slug if available, otherwise use title or name, or generate a key
+            const articleKey = article.slug || article.title || article.name || `article-${Math.random()}`;
+            const key = `${article.locale || currentLocale}:${articleKey}`;
             if (!acc[key]) {
               acc[key] = article;
             }
@@ -64,30 +102,52 @@ export default function ArticlesScreen() {
           }, {})
       );
       
+      if (__DEV__) {
+        console.log('[ArticlesScreen] After filtering:', {
+          uniqueCount: uniqueArticles.length,
+          sample: uniqueArticles[0],
+        });
+      }
+      
       setFeed({
         ...feedData,
         articles: uniqueArticles,
+        total: uniqueArticles.length,
       });
       
       // Remove duplicates by slug, filter by locale, and ensure featuredData is an array
-      if (Array.isArray(featuredData)) {
+      if (Array.isArray(featuredData) && featuredData.length > 0) {
         const seen = new Set();
         const unique = featuredData
-          .filter((article) => !article.locale || article.locale === currentLocale)
           .filter((article) => {
-            if (!article?.slug) return false;
-            const key = `${article.locale || currentLocale}:${article.slug}`;
+            // Allow articles without slug if they have title or name
+            if (!article || (!article.slug && !article.title && !article.name)) return false;
+            // Filter by locale only if both article.locale and currentLocale are set
+            if (article.locale && currentLocale && article.locale !== currentLocale) return false;
+            return true;
+          })
+          .filter((article) => {
+            // Use slug if available, otherwise use title or name
+            const articleKey = article.slug || article.title || article.name || `article-${Math.random()}`;
+            const key = `${article.locale || currentLocale}:${articleKey}`;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
           });
         setFeatured(unique.slice(0, FEATURED_LIMIT));
+        
+        if (__DEV__) {
+          console.log('[ArticlesScreen] Featured after filtering:', unique.length);
+        }
       } else {
         setFeatured([]);
       }
     } catch (err) {
       if (__DEV__) console.error('[ArticlesScreen] Error loading articles:', err);
-      setError(t('articles.errorLoading'));
+      setError(t('articles.errorLoading') || 'Failed to load articles');
+      // Set empty arrays on error to show empty state
+      setFeed({ articles: [], total: 0, page: 1, pageSize: 50 });
+      setFeatured([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -219,19 +279,45 @@ export default function ArticlesScreen() {
     const articlesList = activeFeed?.articles || [];
     const currentLocale = language || 'ru';
     const seen = new Set();
-    return articlesList
-      .filter((article) => !article.locale || article.locale === currentLocale)
+    const filtered = articlesList
       .filter((article) => {
-        // Don't render if title is missing or empty
-        if (!article?.title || article.title.trim().length === 0) return false;
-        // Don't render if both excerpt and subtitle are missing
-        if (!article?.excerpt && !article?.subtitle) return false;
-        if (!article?.slug) return false;
-        if (seen.has(article.slug)) return false;
-        seen.add(article.slug);
+        // Basic validation - must have at least slug, title, or name
+        if (!article || (!article.slug && !article.title && !article.name)) return false;
+        // Filter by locale only if both article.locale and currentLocale are set
+        // Don't filter if article.locale is not set (allow articles without locale)
+        if (article.locale && currentLocale && article.locale !== currentLocale) return false;
+        // Check if title/name is a localization key (contains dots and looks like a key)
+        // But be less strict - only filter if it's clearly a key like "articles.title"
+        const titleOrName = article.title || article.name || '';
+        if (titleOrName && titleOrName.includes('.') && titleOrName.length > 3 && titleOrName.split('.').length >= 2) {
+          // Check if it starts with common i18n prefixes
+          const isKey = titleOrName.startsWith('articles.') || 
+                       titleOrName.startsWith('common.') ||
+                       titleOrName.startsWith('profile.');
+          if (isKey) {
+            return false;
+          }
+        }
+        // Use slug if available, otherwise use title or name, or generate a key
+        const articleKey = article.slug || article.title || article.name || `article-${Math.random()}`;
+        const key = `${article.locale || currentLocale}:${articleKey}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
         return true;
       });
-  }, [activeFeed?.articles, language]);
+    
+    if (__DEV__) {
+      console.log('[ArticlesScreen] Filtered articles:', {
+        inputCount: articlesList.length,
+        outputCount: filtered.length,
+        currentLocale,
+        activeFeedType: searchQuery ? 'search' : selectedTag ? 'tag' : 'feed',
+        firstArticle: filtered[0] ? { id: filtered[0].id, title: filtered[0].title, slug: filtered[0].slug } : null,
+      });
+    }
+    
+    return filtered;
+  }, [activeFeed?.articles, language, searchQuery, selectedTag]);
   const showEmptyState = !isLoading && !isSearching && !isTagLoading && articles.length === 0;
 
   const renderTagChip = ({ item }) => {

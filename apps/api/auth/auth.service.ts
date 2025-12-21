@@ -325,21 +325,45 @@ export class AuthService {
       expiresIn: '30d',
     });
 
-    // Use upsert to handle race conditions
-    await tx.refreshToken.upsert({
+    // Use findFirst + create/update to handle race conditions
+    // This works even with partial unique indexes (WHERE jti IS NOT NULL)
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    
+    // Try to find existing token by jti
+    const existingToken = await tx.refreshToken.findFirst({
       where: { jti },
-      update: {
-        token: refreshToken,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        revoked: false,
-      },
-      create: {
-        token: refreshToken,
-        jti,
-        userId,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      },
     });
+
+    if (existingToken) {
+      // Update existing token
+      await tx.refreshToken.update({
+        where: { id: existingToken.id },
+        data: {
+          token: refreshToken,
+          expiresAt,
+          revoked: false,
+        },
+      });
+    } else {
+      // Create new token
+      try {
+        await tx.refreshToken.create({
+          data: {
+            token: refreshToken,
+            jti,
+            userId,
+            expiresAt,
+          },
+        });
+      } catch (createError: any) {
+        // If token (not jti) collision occurs, retry with new jti (extremely rare)
+        if (createError.code === 'P2002' && createError.meta?.target?.includes('token')) {
+          this.logger.warn(`[AuthService] Token collision detected during create in transaction, retrying with new jti...`);
+          return this.generateTokensInTransaction(tx, userId, email); // Recursive retry
+        }
+        throw createError;
+      }
+    }
 
     return {
       accessToken,
@@ -388,7 +412,7 @@ export class AuthService {
       try {
         const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, {
           issuer: 'https://appleid.apple.com',
-          audience: process.env.APPLE_BUNDLE_ID || 'com.eatsense.app',
+          audience: process.env.APPLE_BUNDLE_ID || 'ch.eatsense.app',
         });
         payload = verifiedPayload;
       } catch (jwtError: any) {
@@ -613,29 +637,50 @@ export class AuthService {
     this.logger.log(`[AuthService] generateTokens() - refresh token signed, length=${refreshToken.length}`);
 
     this.logger.log(`[AuthService] generateTokens() - creating refresh token in database...`);
-    // Use upsert to handle race conditions: if jti already exists, update instead of failing
+    // Use findFirst + create/update to handle race conditions
+    // This works even with partial unique indexes (WHERE jti IS NOT NULL)
     try {
-      await this.prisma.refreshToken.upsert({
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      
+      // Try to find existing token by jti
+      const existingToken = await this.prisma.refreshToken.findFirst({
         where: { jti },
-        update: {
-          token: refreshToken,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          revoked: false,
-        },
-        create: {
-          token: refreshToken,
-          jti,
-          userId,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        },
       });
-      this.logger.log(`[AuthService] generateTokens() - refresh token saved to database`);
-    } catch (error: any) {
-      // If token (not jti) collision occurs, retry with new jti (extremely rare)
-      if (error.code === 'P2002' && error.meta?.target?.includes('token')) {
-        this.logger.warn(`[AuthService] Token collision detected, retrying with new jti...`);
-        return this.generateTokens(userId, email); // Recursive retry
+
+      if (existingToken) {
+        // Update existing token
+        await this.prisma.refreshToken.update({
+          where: { id: existingToken.id },
+          data: {
+            token: refreshToken,
+            expiresAt,
+            revoked: false,
+          },
+        });
+        this.logger.log(`[AuthService] generateTokens() - refresh token updated in database`);
+      } else {
+        // Create new token
+        try {
+          await this.prisma.refreshToken.create({
+            data: {
+              token: refreshToken,
+              jti,
+              userId,
+              expiresAt,
+            },
+          });
+          this.logger.log(`[AuthService] generateTokens() - refresh token created in database`);
+        } catch (createError: any) {
+          // If token collision occurs (P2002), retry with new jti
+          if (createError.code === 'P2002' && createError.meta?.target?.includes('token')) {
+            this.logger.warn(`[AuthService] Token collision detected, retrying with new jti...`);
+            return this.generateTokens(userId, email); // Recursive retry
+          }
+          throw createError;
+        }
       }
+    } catch (error: any) {
+      this.logger.error(`[AuthService] generateTokens() - error saving refresh token:`, error);
       throw error;
     }
 
