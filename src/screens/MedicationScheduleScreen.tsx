@@ -197,11 +197,34 @@ const MedicationScheduleScreen: React.FC = () => {
     );
   };
 
+  // Helper function to check if a string looks like a localization key
+  const isLocalizationKey = (str: string): boolean => {
+    if (!str || typeof str !== 'string') return false;
+    // Check if it contains dots (like "medications.name") or looks like a key path
+    return str.includes('.') && str.length > 3 && str.split('.').length >= 2;
+  };
+
+  // Helper function to safely get medication name, avoiding localization keys
+  const getMedicationName = (name: string | undefined | null): string => {
+    if (!name) return '';
+    // If it looks like a localization key, return a fallback
+    if (isLocalizationKey(name)) {
+      // Try to extract the last part as a fallback
+      const parts = name.split('.');
+      const fallback = parts[parts.length - 1];
+      // Capitalize first letter and replace underscores with spaces
+      return fallback.charAt(0).toUpperCase() + fallback.slice(1).replace(/_/g, ' ');
+    }
+    return name;
+  };
+
   const renderMedicationItem = ({ item }: { item: Medication }) => {
     const dosesText =
       item.doses && item.doses.length
         ? item.doses.map((d) => d.timeOfDay).join(', ')
         : t('medications.noDoses') || 'No times specified';
+
+    const medicationName = getMedicationName(item.name);
 
     return (
       <TouchableOpacity
@@ -210,7 +233,7 @@ const MedicationScheduleScreen: React.FC = () => {
       >
         <View style={styles.cardHeader}>
           <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-            {item.name}
+            {medicationName}
           </Text>
           <TouchableOpacity onPress={() => handleDelete(item)}>
             <Ionicons name="trash-outline" size={20} color={colors.error || colors.danger || '#FF3B30'} />
@@ -309,6 +332,14 @@ const MedicationScheduleScreen: React.FC = () => {
     modalTitle: {
       fontSize: 18,
       fontWeight: '600',
+      flex: 1,
+    },
+    modalCloseButton: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
     },
     modalBody: {
       marginTop: 8,
@@ -421,7 +452,12 @@ const MedicationScheduleScreen: React.FC = () => {
         />
       )}
 
-      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+      <Modal 
+        visible={isModalVisible} 
+        animationType="slide" 
+        transparent={true}
+        onRequestClose={closeModal}
+      >
         <View style={[styles.modalBackdrop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
           <View style={[styles.modalContent, { backgroundColor: colors.card || colors.surface }]}>
             <View style={styles.modalHeader}>
@@ -430,7 +466,12 @@ const MedicationScheduleScreen: React.FC = () => {
                   ? t('medications.edit') || 'Edit medication'
                   : t('medications.add') || 'Add medication'}
               </Text>
-              <TouchableOpacity onPress={closeModal}>
+              <TouchableOpacity 
+                onPress={closeModal}
+                style={styles.modalCloseButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
               </TouchableOpacity>
             </View>

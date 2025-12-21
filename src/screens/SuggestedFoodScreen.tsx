@@ -6,9 +6,11 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
@@ -34,12 +36,33 @@ type BackendResponse =
   | SuggestedFoodSection[];
 
 export const SuggestedFoodScreen: React.FC = () => {
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { t, language } = useI18n();
   const [sections, setSections] = useState<SuggestedFoodSection[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Helper function to get display name for category
+  const getCategoryDisplayName = useCallback((category: string): string => {
+    const categoryNames: Record<string, string> = {
+      protein: t('suggestedFood.sections.protein.title') || 'Белки',
+      fiber: t('suggestedFood.sections.fiber.title') || 'Клетчатка',
+      carbs: t('suggestedFood.sections.carbs.title') || 'Углеводы',
+      healthy_fat: t('suggestedFood.sections.healthyFat.title') || 'Полезные жиры',
+      general: t('suggestedFood.sections.general.title') || 'Общие рекомендации',
+    };
+    
+    const localized = categoryNames[category];
+    // Check if localization worked (not a key itself)
+    if (localized && !localized.includes('suggestedFood.sections')) {
+      return localized;
+    }
+    
+    // Fallback to human-readable name
+    return category.charAt(0).toUpperCase() + category.slice(1).replace(/_/g, ' ');
+  }, [t]);
 
   const normalizeBackendData = useCallback((data: BackendResponse): SuggestedFoodSection[] => {
     if (!data) return [];
@@ -60,18 +83,28 @@ export const SuggestedFoodScreen: React.FC = () => {
       backendItems.forEach((item) => {
         const category = item.category || 'general';
         if (!sectionsMap.has(category)) {
+          // Get localized title with proper fallback
+          const title = getCategoryDisplayName(category);
+          
           sectionsMap.set(category, {
             id: category,
-            title: t(`suggestedFood.sections.${category}.title`) || category.charAt(0).toUpperCase() + category.slice(1),
+            title,
             subtitle: item.reason || undefined,
             items: [],
           });
         }
         
         const section = sectionsMap.get(category)!;
+        // Check if item.name is a localization key and provide fallback
+        let itemTitle = item.name || 'Food item';
+        if (itemTitle.includes('.') && itemTitle.length > 3 && itemTitle.split('.').length >= 2) {
+          // Looks like a localization key, use fallback
+          const parts = itemTitle.split('.');
+          itemTitle = parts[parts.length - 1].charAt(0).toUpperCase() + parts[parts.length - 1].slice(1).replace(/_/g, ' ');
+        }
         section.items.push({
           id: item.id || `item-${section.items.length}`,
-          title: item.name || 'Food item',
+          title: itemTitle,
           description: item.tip || '',
         });
       });
@@ -85,7 +118,7 @@ export const SuggestedFoodScreen: React.FC = () => {
     }
 
     return [];
-  }, [t]);
+  }, [t, getCategoryDisplayName]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -137,6 +170,25 @@ export const SuggestedFoodScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      {/* Header with close button */}
+      <View style={[styles.screenHeader, { borderBottomColor: colors.border || colors.borderMuted }]}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigation && typeof navigation.goBack === 'function') {
+              navigation.goBack();
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.closeButton}
+        >
+          <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.screenHeaderTitle, { color: colors.textPrimary || colors.text }]}>
+          {t('suggestedFood.title')}
+        </Text>
+        <View style={styles.closeButton} />
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -150,9 +202,6 @@ export const SuggestedFoodScreen: React.FC = () => {
         }
       >
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
-            {t('suggestedFood.title')}
-          </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {t('suggestedFood.subtitle')}
           </Text>
@@ -352,6 +401,26 @@ function getStaticFallbackSections(t: (_key: string) => string): SuggestedFoodSe
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  screenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  screenHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,

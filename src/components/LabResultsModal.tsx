@@ -171,7 +171,7 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
       visible={visible}
       onClose={handleClose}
       presentationStyle="pageSheet"
-      enableSwipe={true}
+      enableSwipe={false}
       enableBackdropClose={true}
     >
       <View style={[styles.container, { paddingBottom: insets.bottom + 16, backgroundColor: colors.background }]}>

@@ -55,7 +55,7 @@ export default function DashboardScreen() {
     totalFat: 0,
     goal: 2000,
   });
-  const [recentItems] = useState([]);
+  const [recentItems, setRecentItems] = useState([]);
   const [userStats, setUserStats] = useState({
     totalPhotosAnalyzed: 0,
     todayPhotosAnalyzed: 0,
@@ -148,7 +148,53 @@ export default function DashboardScreen() {
     }
   }, [selectedDate]);
 
-  // Removed unused functions: loadMonthlyStats, loadArticles, loadRecent
+  // Load recent meals for dashboard display
+  const loadRecentItems = React.useCallback(async () => {
+    try {
+      const meals = await ApiService.getMeals();
+      if (Array.isArray(meals)) {
+        // Normalize meals similar to RecentlyScreen
+        const normalized = meals.slice(0, 3).map((meal) => {
+          if (!meal) return null;
+          const items = Array.isArray(meal.items) ? meal.items : [];
+          const toNumber = (value) => {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : 0;
+          };
+          const sumMacro = (key) => items.reduce((sum, item) => sum + toNumber(item[key]), 0);
+          return {
+            id: meal.id,
+            name: meal.name || 'Meal',
+            dishName: meal.name || 'Meal',
+            totalCalories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
+            totalProtein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
+            totalCarbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
+            totalFat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
+            calories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
+            protein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
+            carbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
+            fat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
+            imageUrl: meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || null,
+            analysisResult: {
+              dishName: meal.name || 'Meal',
+              totalCalories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
+              totalProtein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
+              totalCarbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
+              totalFat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
+            },
+          };
+        }).filter(Boolean);
+        setRecentItems(normalized);
+      } else {
+        setRecentItems([]);
+      }
+    } catch (error) {
+      console.error('[DashboardScreen] Error loading recent items:', error);
+      setRecentItems([]);
+    }
+  }, []);
+
+  // Removed unused functions: loadMonthlyStats, loadArticles
   // These functions used removed state setters (setMonthlyLoading, setMonthlyStats, setFeaturedArticles, setFeedArticles, setHighlightMeal)
 
   const loadUserStats = React.useCallback(async () => {
@@ -171,11 +217,37 @@ export default function DashboardScreen() {
       const currentLocale = language || 'ru';
       const suggestions = await ApiService.getSuggestedFoods(currentLocale);
       if (Array.isArray(suggestions) && suggestions.length > 0) {
-        // Take the first suggestion as summary
-        const firstSuggestion = suggestions[0];
+        // Analyze suggestions to create user-friendly summary messages
+        const categoryMessages = {
+          protein: t('dashboard.suggestedFood.messages.lowProtein') || 'В последнее время вы потребляете мало белка',
+          fiber: t('dashboard.suggestedFood.messages.lowFiber') || 'Вам не хватает клетчатки',
+          carbs: t('dashboard.suggestedFood.messages.lowCarbs') || 'Вы потребляете мало углеводов',
+          healthy_fat: t('dashboard.suggestedFood.messages.lowHealthyFat') || 'Вам не хватает полезных жиров',
+          general: t('dashboard.suggestedFood.messages.general') || 'Персональные рекомендации по питанию',
+        };
+        
+        // Group suggestions by category to find most common issue
+        const categoryCounts = {};
+        suggestions.forEach(suggestion => {
+          const cat = suggestion.category || 'general';
+          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+        });
+        
+        // Find most common category
+        const mostCommonCategory = Object.keys(categoryCounts).reduce((a, b) => 
+          categoryCounts[a] > categoryCounts[b] ? a : b, 'general'
+        );
+        
+        // Create summary message
+        const summaryMessage = categoryMessages[mostCommonCategory] || 
+          suggestions[0]?.reason || 
+          suggestions[0]?.tip || 
+          t('dashboard.suggestedFood.messages.general') || 'Персональные рекомендации по питанию';
+        
         setSuggestedFoodSummary({
-          reason: firstSuggestion.reason || firstSuggestion.tip || '',
-          category: firstSuggestion.category || 'general',
+          reason: summaryMessage,
+          category: mostCommonCategory,
+          count: suggestions.length,
         });
       } else {
         setSuggestedFoodSummary(null);
@@ -184,7 +256,15 @@ export default function DashboardScreen() {
       console.error('[DashboardScreen] Error loading suggested food summary:', error);
       setSuggestedFoodSummary(null);
     }
-  }, [language]);
+  }, [language, t]);
+
+  // Load data on mount and when date changes
+  useEffect(() => {
+    loadStats();
+    loadUserStats();
+    loadSuggestedFoodSummary();
+    loadRecentItems();
+  }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
   // Теперь используем функции в хуках ПОСЛЕ их определения
   useEffect(() => {
@@ -202,20 +282,24 @@ export default function DashboardScreen() {
       loadStats();
       loadUserStats();
       loadSuggestedFoodSummary();
-    }, [loadStats, loadUserStats, loadSuggestedFoodSummary])
+      loadRecentItems();
+    }, [loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems])
   );
 
   useEffect(() => {
     loadStats();
     loadUserStats();
     loadSuggestedFoodSummary();
-  }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary]);
+    loadRecentItems();
+  }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
   // Removed unused formatTime and formatDate functions
 
-  // Check if daily limit reached
+  // Check if daily limit reached - TEMPORARILY DISABLED
   const hasReachedDailyLimit = (stats) => {
-    return stats && stats.todayPhotosAnalyzed >= stats.dailyLimit;
+    // Temporarily disabled for testing
+    return false;
+    // return stats && stats.todayPhotosAnalyzed >= stats.dailyLimit;
   };
 
   const handlePlusPress = () => {
@@ -551,46 +635,6 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </Animated.View>
         )}
-
-        {/* 2. Suggested Food Full Button */}
-        <Animated.View 
-          style={[
-            styles.section,
-            {
-              opacity: cardAnimations.suggested,
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.aiAssistantButton, {
-              backgroundColor: colors.surface || colors.card,
-              borderColor: colors.border || colors.borderMuted,
-              borderWidth: 1,
-            }]}
-            onPress={() => {
-              if (__DEV__) {
-                console.log('[Dashboard] Navigating to Suggested Food');
-              }
-              if (navigation && typeof navigation.navigate === 'function') {
-                navigation.navigate('SuggestedFood');
-              }
-            }}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.aiAssistantIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
-              <Ionicons name="fast-food-outline" size={24} color={colors.primary || '#007AFF'} />
-            </View>
-            <View style={styles.aiAssistantContent}>
-              <Text style={[styles.aiAssistantTitle, { color: colors.textPrimary || colors.text }]}>
-                {t('dashboard.suggestedFood.title')}
-              </Text>
-              <Text style={[styles.aiAssistantSubtitle, { color: colors.textSecondary }]}>
-                {t('dashboard.suggestedFood.subtitle')}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
-        </Animated.View>
 
         {/* 2. AI Assistant */}
         <Animated.View 

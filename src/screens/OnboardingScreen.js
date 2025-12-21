@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TextInput,
   InteractionManager,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -23,7 +24,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const createStyles = (tokens, colors) => {
   const onPrimary = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
@@ -80,7 +81,14 @@ const createStyles = (tokens, colors) => {
       fontWeight: tokens.typography?.headingL?.fontWeight ?? '700',
       color: colors.text,
       textAlign: 'center',
-      marginBottom: tokens.spacing?.xxl ?? 40,
+      marginBottom: tokens.spacing?.md ?? 16,
+    },
+    stepSubtitle: {
+      fontSize: tokens.typography?.body?.fontSize ?? 16,
+      fontWeight: tokens.typography?.body?.fontWeight ?? '400',
+      color: textTertiary,
+      marginBottom: tokens.spacing?.xl ?? 24,
+      textAlign: 'center',
     },
     welcomeContent: {
       flex: 1,
@@ -461,6 +469,148 @@ const createStyles = (tokens, colors) => {
       color: onPrimary,
       fontWeight: tokens.typography?.bodyStrong?.fontWeight ?? '600',
     },
+    // Vertical Scroll Picker Styles
+    verticalPickerContainer: {
+      position: 'relative',
+      width: '100%',
+      overflow: 'hidden',
+    },
+    verticalPickerItem: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    verticalPickerItemSelected: {
+      backgroundColor: 'transparent',
+    },
+    verticalPickerItemText: {
+      fontSize: tokens.typography?.body?.fontSize ?? 18,
+      color: textTertiary,
+      fontWeight: tokens.typography?.body?.fontWeight ?? '400',
+    },
+    verticalPickerItemTextSelected: {
+      fontSize: tokens.typography?.headingM?.fontSize ?? 32,
+      color: colors.primary,
+      fontWeight: tokens.typography?.headingM?.fontWeight ?? '700',
+    },
+    // Removed overlay styles - minimalistic design without blue lines
+    // Horizontal Scroll Picker Styles
+    horizontalPickerContainer: {
+      position: 'relative',
+      height: 120,
+      overflow: 'hidden',
+      alignSelf: 'center',
+    },
+    horizontalPickerItem: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    horizontalPickerItemSelected: {
+      backgroundColor: 'transparent',
+    },
+    horizontalPickerItemText: {
+      fontSize: tokens.typography?.body?.fontSize ?? 18,
+      color: textTertiary,
+      fontWeight: tokens.typography?.body?.fontWeight ?? '400',
+    },
+    horizontalPickerItemTextSelected: {
+      fontSize: tokens.typography?.headingM?.fontSize ?? 32,
+      color: colors.primary,
+      fontWeight: tokens.typography?.headingM?.fontWeight ?? '700',
+    },
+    // Removed overlay styles - minimalistic design without blue lines
+    // Large Value Display
+    largeValueContainer: {
+      alignItems: 'center',
+      marginBottom: tokens.spacing?.xl ?? 24,
+    },
+    largeValueText: {
+      fontSize: tokens.typography?.display?.fontSize ?? 64,
+      fontWeight: tokens.typography?.display?.fontWeight ?? '700',
+      color: colors.primary,
+    },
+    largeValueUnit: {
+      fontSize: tokens.typography?.headingM?.fontSize ?? 24,
+      fontWeight: tokens.typography?.headingM?.fontWeight ?? '600',
+      color: textSecondary,
+      marginTop: tokens.spacing?.xs ?? 4,
+    },
+    // Gender Selection Styles
+    genderContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      gap: tokens.spacing?.md ?? 16,
+      marginTop: tokens.spacing?.xl ?? 24,
+    },
+    genderOption: {
+      flex: 1,
+      backgroundColor: surface,
+      borderRadius: tokens.radii?.xl ?? 16,
+      padding: tokens.spacing?.xl ?? 24,
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: borderMuted,
+      minHeight: 120,
+      justifyContent: 'center',
+    },
+    genderOptionSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    genderIcon: {
+      fontSize: 48,
+      marginBottom: tokens.spacing?.sm ?? 8,
+    },
+    genderLabel: {
+      fontSize: tokens.typography?.bodyStrong?.fontSize ?? 18,
+      fontWeight: tokens.typography?.bodyStrong?.fontWeight ?? '600',
+      color: colors.primary,
+      marginTop: tokens.spacing?.sm ?? 8,
+    },
+    genderLabelSelected: {
+      color: onPrimary,
+    },
+    summaryItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: tokens.spacing?.md ?? 12,
+      borderBottomWidth: 1,
+      borderBottomColor: borderMuted,
+    },
+    summaryLabel: {
+      fontSize: tokens.typography?.body?.fontSize ?? 16,
+      color: textSecondary,
+      fontWeight: '500',
+    },
+    summaryValue: {
+      fontSize: tokens.typography?.body?.fontSize ?? 16,
+      color: colors.text,
+      fontWeight: '600',
+    },
+    ratingContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: tokens.spacing?.md ?? 16,
+      marginTop: tokens.spacing?.xl ?? 24,
+    },
+    planSummary: {
+      marginTop: tokens.spacing?.xl ?? 24,
+      padding: tokens.spacing?.lg ?? 20,
+      backgroundColor: surface,
+      borderRadius: tokens.radii?.lg ?? 16,
+      borderWidth: 1,
+      borderColor: borderMuted,
+    },
+    planSummaryTitle: {
+      fontSize: tokens.typography?.headingS?.fontSize ?? 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: tokens.spacing?.md ?? 12,
+    },
+    planSummaryText: {
+      fontSize: tokens.typography?.body?.fontSize ?? 16,
+      color: textSecondary,
+      marginBottom: tokens.spacing?.sm ?? 8,
+    },
   });
 };
 
@@ -482,6 +632,14 @@ const OnboardingScreen = () => {
     activityLevel: '',
     goal: '',
     targetWeight: 70,
+    weightChangeRate: 'moderate', // slow, moderate, fast
+    obstacles: [], // What prevents you from reaching your goal
+    diet: '', // Are you following any diet
+    walkingTime: '', // How much time do you spend walking
+    shortnessOfBreath: false, // Do you get shortness of breath after stairs
+    stepGoal: 10000, // Daily step goal
+    healthConditions: [], // Health conditions (gastritis, high cholesterol, diabetes, thyroid, etc.)
+    firstMeasurements: 7, // Days until first measurements
     selectedPlan: 'free',
     planBillingCycle: 'lifetime',
   });
@@ -489,13 +647,34 @@ const OnboardingScreen = () => {
 
   const scrollViewRef = useRef(null);
 
-  // Simplified steps order: Welcome -> Personal Info (name, age, gender) -> Physical Stats (height, weight) -> Activity & Goals -> Plan
+  // Expanded steps order according to requirements
   const steps = [
     { id: 'welcome', title: 'Welcome to EatSense' },
-    { id: 'personal', title: 'Personal Information' }, // Combined: name, age, gender
-    { id: 'physical', title: 'Physical Stats' }, // height, weight with unit toggle
-    { id: 'activity', title: 'Activity & Goals' }, // Combined: activity level and goals
-    { id: 'plan', title: 'Choose Your Plan' },
+    { id: 'goals', title: 'What are your goals?' }, // Goals selection
+    { id: 'support', title: 'We care about you' }, // Support message
+    { id: 'gender', title: 'What\'s your gender?' }, // Gender selection
+    { id: 'age', title: 'How old are you?' }, // Age with vertical scroll
+    { id: 'height', title: 'What\'s your height?' }, // Height with vertical scroll
+    { id: 'weight', title: 'What\'s your weight?' }, // Weight with horizontal scroll
+    { id: 'activity', title: 'How active are you?' }, // Activity level
+    { id: 'walking', title: 'How much do you walk?' }, // Walking time
+    { id: 'breath', title: 'Do you get shortness of breath?' }, // Shortness of breath after stairs
+    { id: 'steps', title: 'Daily step goal' }, // Step goal with scroll
+    { id: 'obstacles', title: 'What prevents you from reaching your goal?' }, // Obstacles
+    { id: 'diet', title: 'Are you following any diet?' }, // Diet selection
+    { id: 'health', title: 'What should we know about you?' }, // Health conditions
+    { id: 'care', title: 'We care about you' }, // Care message with disclaimer
+    { id: 'targetWeight', title: 'What weight do you want?' }, // Target weight
+    { id: 'weightRate', title: 'Weight change rate' }, // Rate of weight change
+    { id: 'trust', title: 'Thank you for trusting us' }, // Trust message
+    { id: 'healthKit', title: 'Connect Apple Health' }, // Apple Health connection
+    { id: 'notifications', title: 'Enable notifications' }, // Notifications permission
+    { id: 'firstMeasurements', title: 'First measurements' }, // Days until first measurements
+    { id: 'loading', title: 'Creating your plan' }, // Loading animation with plan
+    { id: 'almostReady', title: 'Almost ready' }, // Account creation
+    { id: 'summary', title: 'Your choices' }, // Summary of choices
+    { id: 'rating', title: 'Rate us' }, // App rating
+    { id: 'plan', title: 'Choose Your Plan' }, // Plan selection
   ];
 
   // Removed unused genders array
@@ -572,17 +751,17 @@ const OnboardingScreen = () => {
 
   const nextStep = () => {
     // Валидация для каждого шага
-    if (currentStep === 1) { // Personal step
+    if (currentStep === 1) { // Name step
       if (!profileData.firstName.trim() || !profileData.lastName.trim()) {
         Alert.alert('Required Fields', 'Please enter your first and last name.');
         return;
       }
-    } else if (currentStep === 2) { // Physical step
+    } else if (currentStep === 3) { // Gender step
       if (!profileData.gender) {
         Alert.alert('Required Field', 'Please select your gender.');
         return;
       }
-    } else if (currentStep === 3) { // Combined Activity & Goals step
+    } else if (currentStep === 6) { // Combined Activity & Goals step
       if (!profileData.activityLevel) {
         Alert.alert('Required Field', 'Please select your activity level.');
         return;
@@ -746,6 +925,303 @@ const OnboardingScreen = () => {
     }
   };
 
+  // Vertical Scroll Picker Component for Age and Height - Smooth with deceleration
+  const VerticalScrollPicker = ({
+    value,
+    minimumValue,
+    maximumValue,
+    onValueChange,
+    unit,
+    step = 1,
+    enableHaptics = true,
+  }) => {
+    const scrollViewRef = useRef(null);
+    const isScrollingRef = useRef(false);
+    const scrollTimeoutRef = useRef(null);
+    const itemHeight = 60;
+    const visibleItems = 5;
+    const containerHeight = itemHeight * visibleItems;
+    const lastValueRef = useRef(value);
+    const scrollY = useRef(new Animated.Value(0));
+    
+    // Initialize scroll position only once
+    const initializedRef = useRef(false);
+    useEffect(() => {
+      if (scrollViewRef.current && !initializedRef.current) {
+        const initialOffset = ((value - minimumValue) / step) * itemHeight;
+        scrollY.current.setValue(initialOffset);
+        scrollViewRef.current.scrollTo({ y: initialOffset, animated: false });
+        lastValueRef.current = value;
+        initializedRef.current = true;
+      }
+    }, []);
+    
+    // Sync scroll position when value changes externally
+    useEffect(() => {
+      if (!isScrollingRef.current && scrollViewRef.current && lastValueRef.current !== value) {
+        const newOffset = ((value - minimumValue) / step) * itemHeight;
+        scrollY.current.setValue(newOffset);
+        scrollViewRef.current.scrollTo({ y: newOffset, animated: true });
+        lastValueRef.current = value;
+      }
+    }, [value, minimumValue, step]);
+    
+    const handleScroll = Animated.event(
+      [{ nativeEvent: { contentOffset: { y: scrollY.current } } }],
+      {
+        useNativeDriver: false,
+        listener: (event) => {
+          isScrollingRef.current = true;
+          const offsetY = event.nativeEvent.contentOffset.y;
+          const index = Math.round(offsetY / itemHeight);
+          const newValue = Math.max(
+            minimumValue,
+            Math.min(maximumValue, minimumValue + index * step)
+          );
+          
+          if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - lastValueRef.current) >= step) {
+            try {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch {}
+          }
+          
+          if (newValue !== lastValueRef.current) {
+            lastValueRef.current = newValue;
+            onValueChange(newValue);
+          }
+          
+          // Clear existing timeout
+          if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+          }
+          
+          // Set new timeout to detect scroll end
+          scrollTimeoutRef.current = setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 150);
+        },
+      }
+    );
+    
+    const handleMomentumScrollEnd = (event) => {
+      isScrollingRef.current = false;
+      const offsetY = event.nativeEvent.contentOffset.y;
+      const index = Math.round(offsetY / itemHeight);
+      const targetOffset = index * itemHeight;
+      
+      // Smooth snap to nearest item
+      scrollViewRef.current?.scrollTo({
+        y: targetOffset,
+        animated: true,
+      });
+      
+      const snappedValue = Math.max(
+        minimumValue,
+        Math.min(maximumValue, minimumValue + index * step)
+      );
+      
+      if (snappedValue !== lastValueRef.current) {
+        lastValueRef.current = snappedValue;
+        onValueChange(snappedValue);
+      }
+    };
+    
+    const items = [];
+    for (let i = minimumValue; i <= maximumValue; i += step) {
+      items.push(i);
+    }
+    
+    return (
+      <View style={[styles.verticalPickerContainer, { height: containerHeight }]}>
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={itemHeight}
+          decelerationRate={0.92} // Smooth deceleration (0.92 = slower, more natural)
+          onScroll={handleScroll}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          scrollEventThrottle={16}
+          bounces={false}
+          contentContainerStyle={{
+            paddingTop: containerHeight / 2 - itemHeight / 2,
+            paddingBottom: containerHeight / 2 - itemHeight / 2,
+          }}
+        >
+          {items.map((item) => {
+            const isSelected = item === value;
+            return (
+              <View
+                key={item}
+                style={[
+                  styles.verticalPickerItem,
+                  { height: itemHeight },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.verticalPickerItemText,
+                    isSelected && styles.verticalPickerItemTextSelected,
+                  ]}
+                >
+                  {item}{unit}
+                </Text>
+              </View>
+            );
+          })}
+        </Animated.ScrollView>
+      </View>
+    );
+  };
+
+  // Horizontal Scroll Picker Component for Weight - Smooth with deceleration
+  const HorizontalScrollPicker = ({
+    value,
+    minimumValue,
+    maximumValue,
+    onValueChange,
+    unit,
+    step = 0.5,
+    enableHaptics = true,
+  }) => {
+    const scrollViewRef = useRef(null);
+    const isScrollingRef = useRef(false);
+    const scrollTimeoutRef = useRef(null);
+    const itemWidth = 80;
+    const visibleItems = 5;
+    const containerWidth = itemWidth * visibleItems;
+    const lastValueRef = useRef(value);
+    const scrollX = useRef(new Animated.Value(0));
+    
+    // Initialize scroll position only once
+    const initializedRef = useRef(false);
+    useEffect(() => {
+      if (scrollViewRef.current && !initializedRef.current) {
+        const initialOffset = ((value - minimumValue) / step) * itemWidth;
+        scrollX.current.setValue(initialOffset);
+        scrollViewRef.current.scrollTo({ x: initialOffset, animated: false });
+        lastValueRef.current = value;
+        initializedRef.current = true;
+      }
+    }, []);
+    
+    // Sync scroll position when value changes externally
+    useEffect(() => {
+      if (!isScrollingRef.current && scrollViewRef.current && lastValueRef.current !== value) {
+        const newOffset = ((value - minimumValue) / step) * itemWidth;
+        scrollX.current.setValue(newOffset);
+        scrollViewRef.current.scrollTo({ x: newOffset, animated: true });
+        lastValueRef.current = value;
+      }
+    }, [value, minimumValue, step]);
+    
+    const handleScroll = Animated.event(
+      [{ nativeEvent: { contentOffset: { x: scrollX.current } } }],
+      {
+        useNativeDriver: false,
+        listener: (event) => {
+          isScrollingRef.current = true;
+          const offsetX = event.nativeEvent.contentOffset.x;
+          const index = Math.round(offsetX / itemWidth);
+          const newValue = Math.max(
+            minimumValue,
+            Math.min(maximumValue, minimumValue + index * step)
+          );
+          
+          if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - lastValueRef.current) >= step) {
+            try {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch {}
+          }
+          
+          if (newValue !== lastValueRef.current) {
+            lastValueRef.current = newValue;
+            onValueChange(newValue);
+          }
+          
+          // Clear existing timeout
+          if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+          }
+          
+          // Set new timeout to detect scroll end
+          scrollTimeoutRef.current = setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 150);
+        },
+      }
+    );
+    
+    const handleMomentumScrollEnd = (event) => {
+      isScrollingRef.current = false;
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(offsetX / itemWidth);
+      const targetOffset = index * itemWidth;
+      
+      // Smooth snap to nearest item
+      scrollViewRef.current?.scrollTo({
+        x: targetOffset,
+        animated: true,
+      });
+      
+      const snappedValue = Math.max(
+        minimumValue,
+        Math.min(maximumValue, minimumValue + index * step)
+      );
+      
+      if (snappedValue !== lastValueRef.current) {
+        lastValueRef.current = snappedValue;
+        onValueChange(snappedValue);
+      }
+    };
+    
+    const items = [];
+    for (let i = minimumValue; i <= maximumValue; i += step) {
+      items.push(parseFloat(i.toFixed(1)));
+    }
+    
+    return (
+      <View style={[styles.horizontalPickerContainer, { width: containerWidth }]}>
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={itemWidth}
+          decelerationRate={0.92} // Smooth deceleration
+          onScroll={handleScroll}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          scrollEventThrottle={16}
+          bounces={false}
+          contentContainerStyle={{
+            paddingLeft: containerWidth / 2 - itemWidth / 2,
+            paddingRight: containerWidth / 2 - itemWidth / 2,
+          }}
+        >
+          {items.map((item) => {
+            const isSelected = Math.abs(item - value) < step / 2;
+            return (
+              <View
+                key={item}
+                style={[
+                  styles.horizontalPickerItem,
+                  { width: itemWidth },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.horizontalPickerItemText,
+                    isSelected && styles.horizontalPickerItemTextSelected,
+                  ]}
+                >
+                  {item}{unit}
+                </Text>
+              </View>
+            );
+          })}
+        </Animated.ScrollView>
+      </View>
+    );
+  };
+
   // Interactive Slider Component with haptics
   const InteractiveSlider = ({
     value,
@@ -761,22 +1237,27 @@ const OnboardingScreen = () => {
     const [tempValue, setTempValue] = useState(clampedValue);
     const [isSliding, setIsSliding] = useState(false);
     const lastHapticValue = useRef(clampedValue);
+    const isInitialized = useRef(false);
     
+    // Initialize tempValue on mount or when sliderKey changes
     useEffect(() => {
       const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
-      setTempValue(newValue);
-      lastHapticValue.current = newValue;
-    }, [sliderKey]);
+      if (!isInitialized.current || sliderKey) {
+        setTempValue(newValue);
+        lastHapticValue.current = newValue;
+        isInitialized.current = true;
+      }
+    }, [sliderKey, minimumValue, maximumValue]);
     
     useEffect(() => {
-      if (!isSliding) {
+      if (!isSliding && isInitialized.current) {
         const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
         if (Math.abs(newValue - tempValue) > 0.1) {
           setTempValue(newValue);
           lastHapticValue.current = newValue;
         }
       }
-    }, [value, minimumValue, maximumValue, isSliding, tempValue, sliderKey]);
+    }, [value, minimumValue, maximumValue, isSliding, tempValue]);
     
     const triggerHaptic = () => {
       if (enableHaptics && Platform.OS === 'ios') {
@@ -873,7 +1354,16 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderPersonalStep = () => (
+  // Memoize onChange handlers to prevent unnecessary re-renders
+  const handleFirstNameChange = useCallback((text) => {
+    setProfileData((prev) => ({ ...prev, firstName: text }));
+  }, []);
+
+  const handleLastNameChange = useCallback((text) => {
+    setProfileData((prev) => ({ ...prev, lastName: text }));
+  }, []);
+
+  const renderNameStep = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Tell us about yourself</Text>
       <View style={styles.inputGroup}>
@@ -881,7 +1371,7 @@ const OnboardingScreen = () => {
         <TextInput
           style={styles.textInput}
           value={profileData.firstName}
-          onChangeText={(text) => setProfileData({ ...profileData, firstName: text })}
+          onChangeText={handleFirstNameChange}
           placeholder="Enter your first name"
           placeholderTextColor={colors.textTertiary}
         />
@@ -891,26 +1381,250 @@ const OnboardingScreen = () => {
         <TextInput
           style={styles.textInput}
           value={profileData.lastName}
-          onChangeText={(text) => setProfileData({ ...profileData, lastName: text })}
+          onChangeText={handleLastNameChange}
           placeholder="Enter your last name"
           placeholderTextColor={colors.textTertiary}
         />
       </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Age</Text>
-            <InteractiveSlider
-              key="age-slider"
-              sliderKey="age"
-              value={profileData.age}
-              minimumValue={16}
-              maximumValue={100}
-              onValueChange={(value) => setProfileData({ ...profileData, age: Math.round(value) })}
-              unit=" years"
-              step={1}
-            />
-          </View>
     </View>
   );
+
+  const renderAgeStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>How old are you?</Text>
+      <Text style={styles.stepSubtitle}>Age helps us personalize your experience</Text>
+      <View style={styles.largeValueContainer}>
+        <Text style={styles.largeValueText}>{profileData.age}</Text>
+        <Text style={styles.largeValueUnit}>years</Text>
+      </View>
+      <VerticalScrollPicker
+        value={profileData.age}
+        minimumValue={16}
+        maximumValue={100}
+        onValueChange={(value) => setProfileData((prev) => ({ ...prev, age: Math.round(value) }))}
+        unit=" years"
+        step={1}
+        enableHaptics={true}
+      />
+    </View>
+  );
+
+  const renderGenderStep = () => {
+    const genders = [
+      { id: 'male', label: 'Male', icon: '♂' },
+      { id: 'female', label: 'Female', icon: '♀' },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Indicate your gender</Text>
+        <Text style={styles.stepSubtitle}>Metabolism depends on gender</Text>
+        <View style={styles.genderContainer}>
+          {genders.map((gender) => (
+            <TouchableOpacity
+              key={gender.id}
+              style={[
+                styles.genderOption,
+                profileData.gender === gender.id && styles.genderOptionSelected,
+              ]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  try {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  } catch {}
+                }
+                setProfileData((prev) => ({ ...prev, gender: gender.id }));
+              }}
+            >
+              <Text style={styles.genderIcon}>{gender.icon}</Text>
+              <Text
+                style={[
+                  styles.genderLabel,
+                  profileData.gender === gender.id && styles.genderLabelSelected,
+                ]}
+              >
+                {gender.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  const renderHeightStep = () => {
+    const heightValue = unitSystem === 'metric' 
+      ? profileData.height 
+      : cmToFeetInches(profileData.height).totalInches;
+    const heightMin = unitSystem === 'metric' ? 120 : 47;
+    const heightMax = unitSystem === 'metric' ? 220 : 87;
+    const heightUnit = unitSystem === 'metric' ? ' cm' : ' in';
+    const displayValue = unitSystem === 'metric' 
+      ? profileData.height 
+      : `${Math.floor(heightValue / 12)}'${Math.round(heightValue % 12)}"`;
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>What is your height?</Text>
+        <Text style={styles.stepSubtitle}>Height will help determine body proportions</Text>
+        
+        {/* Unit Toggle */}
+        <View style={styles.unitToggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'metric' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => {
+              if (unitSystem === 'imperial') {
+                const heightIn = profileData.height / 2.54;
+                const feet = Math.floor(heightIn / 12);
+                const inches = Math.round(heightIn % 12);
+                const newHeight = feetInchesToCm(feet, inches);
+                setProfileData((prev) => ({ ...prev, height: newHeight }));
+              }
+              setUnitSystem('metric');
+            }}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'metric' && styles.unitToggleTextActive,
+              ]}
+            >
+              CM
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'imperial' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => {
+              if (unitSystem === 'metric') {
+                const heightIn = cmToFeetInches(profileData.height).totalInches;
+                setProfileData((prev) => ({ ...prev, height: heightIn * 2.54 }));
+              }
+              setUnitSystem('imperial');
+            }}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'imperial' && styles.unitToggleTextActive,
+              ]}
+            >
+              FT
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.largeValueContainer}>
+          <Text style={styles.largeValueText}>{displayValue}</Text>
+        </View>
+        <VerticalScrollPicker
+          value={heightValue}
+          minimumValue={heightMin}
+          maximumValue={heightMax}
+          onValueChange={(value) => {
+            const newHeight = unitSystem === 'metric' 
+              ? Math.round(value)
+              : feetInchesToCm(Math.floor(value / 12), Math.round(value % 12));
+            setProfileData((prev) => ({ ...prev, height: newHeight }));
+          }}
+          unit={heightUnit}
+          step={1}
+          enableHaptics={true}
+        />
+      </View>
+    );
+  };
+
+  const renderWeightStep = () => {
+    const weightValue = unitSystem === 'metric'
+      ? profileData.weight
+      : kgToLbs(profileData.weight);
+    const weightMin = unitSystem === 'metric' ? 30 : 66;
+    const weightMax = unitSystem === 'metric' ? 200 : 440;
+    const weightUnit = unitSystem === 'metric' ? ' kg' : ' lbs';
+    const displayValue = unitSystem === 'metric'
+      ? profileData.weight.toFixed(1)
+      : weightValue.toFixed(0);
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>How much do you weigh?</Text>
+        <Text style={styles.stepSubtitle}>Let's set a starting point for progress tracking</Text>
+        
+        {/* Unit Toggle */}
+        <View style={styles.unitToggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'metric' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => {
+              if (unitSystem === 'imperial') {
+                const newWeight = lbsToKg(profileData.weight * 2.20462);
+                setProfileData((prev) => ({ ...prev, weight: newWeight }));
+              }
+              setUnitSystem('metric');
+            }}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'metric' && styles.unitToggleTextActive,
+              ]}
+            >
+              kg
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'imperial' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => {
+              if (unitSystem === 'metric') {
+                const weightLbs = kgToLbs(profileData.weight);
+                setProfileData((prev) => ({ ...prev, weight: weightLbs / 2.20462 }));
+              }
+              setUnitSystem('imperial');
+            }}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'imperial' && styles.unitToggleTextActive,
+              ]}
+            >
+              pounds
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.largeValueContainer}>
+          <Text style={styles.largeValueText}>{displayValue}</Text>
+          <Text style={styles.largeValueUnit}>{unitSystem === 'metric' ? 'kg' : 'lbs'}</Text>
+        </View>
+        <HorizontalScrollPicker
+          value={weightValue}
+          minimumValue={weightMin}
+          maximumValue={weightMax}
+          onValueChange={(value) => {
+            const newWeight = unitSystem === 'metric'
+              ? parseFloat(value.toFixed(1))
+              : lbsToKg(value);
+            setProfileData((prev) => ({ ...prev, weight: newWeight }));
+          }}
+          unit={weightUnit}
+          step={unitSystem === 'metric' ? 0.5 : 1}
+          enableHaptics={true}
+        />
+      </View>
+    );
+  };
 
   // Convert between metric and imperial
   const cmToFeetInches = (cm) => {
@@ -927,123 +1641,6 @@ const OnboardingScreen = () => {
   const kgToLbs = (kg) => Math.round(kg * 2.20462);
   const lbsToKg = (lbs) => Math.round((lbs / 2.20462) * 10) / 10;
 
-  const renderPhysicalStep = () => {
-    // Convert values based on unit system
-    const heightValue = unitSystem === 'metric' 
-      ? profileData.height 
-      : cmToFeetInches(profileData.height).totalInches;
-    const weightValue = unitSystem === 'metric'
-      ? profileData.weight
-      : kgToLbs(profileData.weight);
-
-    const heightMin = unitSystem === 'metric' ? 120 : 47; // ~120cm = ~47in
-    const heightMax = unitSystem === 'metric' ? 220 : 87; // ~220cm = ~87in
-    const weightMin = unitSystem === 'metric' ? 30 : 66; // ~30kg = ~66lbs
-    const weightMax = unitSystem === 'metric' ? 200 : 440; // ~200kg = ~440lbs
-
-    const heightUnit = unitSystem === 'metric' ? ' cm' : ' in';
-    const weightUnit = unitSystem === 'metric' ? ' kg' : ' lbs';
-
-    return (
-      <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>Your physical stats</Text>
-        
-        {/* Unit System Toggle */}
-        <View style={styles.unitToggleContainer}>
-          <TouchableOpacity
-            style={[
-              styles.unitToggleButton,
-              unitSystem === 'metric' && styles.unitToggleButtonActive,
-            ]}
-            onPress={() => {
-              // Convert values when switching
-              if (unitSystem === 'imperial') {
-                const heightIn = profileData.height / 2.54;
-                const feet = Math.floor(heightIn / 12);
-                const inches = Math.round(heightIn % 12);
-                const newHeight = feetInchesToCm(feet, inches);
-                const newWeight = lbsToKg(profileData.weight * 2.20462);
-                setProfileData({ ...profileData, height: newHeight, weight: newWeight });
-              }
-              setUnitSystem('metric');
-            }}
-          >
-            <Text
-              style={[
-                styles.unitToggleText,
-                unitSystem === 'metric' && styles.unitToggleTextActive,
-              ]}
-            >
-              Metric
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.unitToggleButton,
-              unitSystem === 'imperial' && styles.unitToggleButtonActive,
-            ]}
-            onPress={() => {
-              // Convert values when switching
-              if (unitSystem === 'metric') {
-                const heightIn = cmToFeetInches(profileData.height).totalInches;
-                const weightLbs = kgToLbs(profileData.weight);
-                setProfileData({ ...profileData, height: heightIn * 2.54, weight: weightLbs / 2.20462 });
-              }
-              setUnitSystem('imperial');
-            }}
-          >
-            <Text
-              style={[
-                styles.unitToggleText,
-                unitSystem === 'imperial' && styles.unitToggleTextActive,
-              ]}
-            >
-              Imperial
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Height</Text>
-          <InteractiveSlider
-            key={`height-slider-${unitSystem}`}
-            sliderKey={`height-${unitSystem}`}
-            value={heightValue}
-            minimumValue={heightMin}
-            maximumValue={heightMax}
-            onValueChange={(value) => {
-              const newHeight = unitSystem === 'metric' 
-                ? Math.round(value)
-                : feetInchesToCm(Math.floor(value / 12), Math.round(value % 12));
-              setProfileData({ ...profileData, height: newHeight });
-            }}
-            unit={heightUnit}
-            step={unitSystem === 'metric' ? 1 : 1}
-            enableHaptics={true}
-          />
-        </View>
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Weight</Text>
-          <InteractiveSlider
-            key={`weight-slider-${unitSystem}`}
-            sliderKey={`weight-${unitSystem}`}
-            value={weightValue}
-            minimumValue={weightMin}
-            maximumValue={weightMax}
-            onValueChange={(value) => {
-              const newWeight = unitSystem === 'metric'
-                ? Math.round(value * 10) / 10
-                : lbsToKg(value);
-              setProfileData({ ...profileData, weight: newWeight });
-            }}
-            unit={weightUnit}
-            step={unitSystem === 'metric' ? 0.5 : 1}
-            enableHaptics={true}
-          />
-        </View>
-      </View>
-    );
-  };
 
   // Combined Activity & Goals step
   const renderActivityStep = () => (
@@ -1205,17 +1802,751 @@ const OnboardingScreen = () => {
     </View>
   );
 
+  // New render functions for additional steps
+  const renderGoalsStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>What are your goals?</Text>
+      <Text style={styles.stepSubtitle}>Choose what you want to achieve</Text>
+      <View style={styles.goalsContainer}>
+        {goals.map((goal) => {
+          const isSelected = profileData.goal === goal.id;
+          return (
+            <TouchableOpacity
+              key={goal.id}
+              style={[
+                styles.goalButton,
+                isSelected && styles.goalButtonSelected,
+              ]}
+              onPress={() => {
+                if (Platform.OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setProfileData({ ...profileData, goal: goal.id });
+              }}
+            >
+              <Ionicons
+                name={goal.icon}
+                size={32}
+                color={isSelected ? onPrimaryColor : colors.primary}
+              />
+              <Text
+                style={[
+                  styles.goalText,
+                  isSelected && styles.goalTextSelected,
+                ]}
+              >
+                {goal.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  const renderSupportStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="heart" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>We care about you</Text>
+        <Text style={styles.stepSubtitle}>
+          EatSense is here to support you on your journey to better health and nutrition.
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderObstaclesStep = () => {
+    const obstacles = [
+      { id: 'time', label: 'Lack of time' },
+      { id: 'motivation', label: 'Lack of motivation' },
+      { id: 'knowledge', label: 'Lack of knowledge' },
+      { id: 'support', label: 'Lack of support' },
+      { id: 'habits', label: 'Bad habits' },
+      { id: 'stress', label: 'Stress' },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>What prevents you from reaching your goal?</Text>
+        <Text style={styles.stepSubtitle}>Select all that apply</Text>
+        <View style={styles.activityContainer}>
+          {obstacles.map((obstacle) => {
+            const isSelected = profileData.obstacles?.includes(obstacle.id);
+            return (
+              <TouchableOpacity
+                key={obstacle.id}
+                style={[
+                  styles.activityButton,
+                  isSelected && styles.activityButtonSelected,
+                ]}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setProfileData((prev) => {
+                    const obstacles = prev.obstacles || [];
+                    if (obstacles.includes(obstacle.id)) {
+                      return { ...prev, obstacles: obstacles.filter(id => id !== obstacle.id) };
+                    }
+                    return { ...prev, obstacles: [...obstacles, obstacle.id] };
+                  });
+                }}
+              >
+                <Text
+                  style={[
+                    styles.activityLabel,
+                    isSelected && styles.activityLabelSelected,
+                  ]}
+                >
+                  {obstacle.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderDietStep = () => {
+    const diets = [
+      { id: 'none', label: 'No diet' },
+      { id: 'keto', label: 'Keto' },
+      { id: 'paleo', label: 'Paleo' },
+      { id: 'vegan', label: 'Vegan' },
+      { id: 'vegetarian', label: 'Vegetarian' },
+      { id: 'mediterranean', label: 'Mediterranean' },
+      { id: 'low_carb', label: 'Low Carb' },
+      { id: 'other', label: 'Other' },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Are you following any diet?</Text>
+        <Text style={styles.stepSubtitle}>Select your diet type</Text>
+        <View style={styles.activityContainer}>
+          {diets.map((diet) => {
+            const isSelected = profileData.diet === diet.id;
+            return (
+              <TouchableOpacity
+                key={diet.id}
+                style={[
+                  styles.activityButton,
+                  isSelected && styles.activityButtonSelected,
+                ]}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setProfileData({ ...profileData, diet: diet.id });
+                }}
+              >
+                <Text
+                  style={[
+                    styles.activityLabel,
+                    isSelected && styles.activityLabelSelected,
+                  ]}
+                >
+                  {diet.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderHealthConditionsStep = () => {
+    const conditions = [
+      { id: 'gastritis', label: 'Gastritis' },
+      { id: 'high_cholesterol', label: 'High Cholesterol' },
+      { id: 'diabetes', label: 'Diabetes' },
+      { id: 'thyroid', label: 'Thyroid Issues' },
+      { id: 'other', label: 'Not in list, I\'ll write' },
+      { id: 'none', label: 'No health problems' },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>What should we know about you?</Text>
+        <Text style={styles.stepSubtitle}>Select your health conditions</Text>
+        <View style={styles.activityContainer}>
+          {conditions.map((condition) => {
+            const isSelected = profileData.healthConditions?.includes(condition.id);
+            return (
+              <TouchableOpacity
+                key={condition.id}
+                style={[
+                  styles.activityButton,
+                  isSelected && styles.activityButtonSelected,
+                ]}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  if (condition.id === 'none') {
+                    setProfileData({ ...profileData, healthConditions: [] });
+                  } else {
+                    setProfileData((prev) => {
+                      const conditions = prev.healthConditions || [];
+                      if (conditions.includes(condition.id)) {
+                        return { ...prev, healthConditions: conditions.filter(id => id !== condition.id) };
+                      }
+                      return { ...prev, healthConditions: [...conditions, condition.id] };
+                    });
+                  }
+                }}
+              >
+                <Text
+                  style={[
+                    styles.activityLabel,
+                    isSelected && styles.activityLabelSelected,
+                  ]}
+                >
+                  {condition.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderTargetWeightStep = () => {
+    const weightValue = unitSystem === 'metric'
+      ? profileData.targetWeight
+      : kgToLbs(profileData.targetWeight);
+    const weightMin = unitSystem === 'metric' ? 30 : 66;
+    const weightMax = unitSystem === 'metric' ? 200 : 440;
+    const weightUnit = unitSystem === 'metric' ? ' kg' : ' lbs';
+    const displayValue = unitSystem === 'metric'
+      ? profileData.targetWeight.toFixed(1)
+      : weightValue.toFixed(0);
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>What weight do you want?</Text>
+        <Text style={styles.stepSubtitle}>Set your target weight</Text>
+        
+        <View style={styles.unitToggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'metric' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => setUnitSystem('metric')}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'metric' && styles.unitToggleTextActive,
+              ]}
+            >
+              kg
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.unitToggleButton,
+              unitSystem === 'imperial' && styles.unitToggleButtonActive,
+            ]}
+            onPress={() => setUnitSystem('imperial')}
+          >
+            <Text
+              style={[
+                styles.unitToggleText,
+                unitSystem === 'imperial' && styles.unitToggleTextActive,
+              ]}
+            >
+              pounds
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.largeValueContainer}>
+          <Text style={styles.largeValueText}>{displayValue}</Text>
+          <Text style={styles.largeValueUnit}>{unitSystem === 'metric' ? 'kg' : 'lbs'}</Text>
+        </View>
+        <HorizontalScrollPicker
+          value={weightValue}
+          minimumValue={weightMin}
+          maximumValue={weightMax}
+          onValueChange={(value) => {
+            const newWeight = unitSystem === 'metric'
+              ? parseFloat(value.toFixed(1))
+              : lbsToKg(value);
+            setProfileData((prev) => ({ ...prev, targetWeight: newWeight }));
+          }}
+          unit={weightUnit}
+          step={unitSystem === 'metric' ? 0.5 : 1}
+          enableHaptics={true}
+        />
+      </View>
+    );
+  };
+
+  const renderWeightRateStep = () => {
+    const rates = [
+      { id: 'slow', label: 'Slow (0.25-0.5 kg/week)', value: 'slow' },
+      { id: 'moderate', label: 'Moderate (0.5-1 kg/week)', value: 'moderate' },
+      { id: 'fast', label: 'Fast (1-1.5 kg/week)', value: 'fast' },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Weight change rate</Text>
+        <Text style={styles.stepSubtitle}>How quickly do you want to change your weight?</Text>
+        <View style={styles.activityContainer}>
+          {rates.map((rate) => {
+            const isSelected = profileData.weightChangeRate === rate.value;
+            return (
+              <TouchableOpacity
+                key={rate.id}
+                style={[
+                  styles.activityButton,
+                  isSelected && styles.activityButtonSelected,
+                ]}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setProfileData({ ...profileData, weightChangeRate: rate.value });
+                }}
+              >
+                <Text
+                  style={[
+                    styles.activityLabel,
+                    isSelected && styles.activityLabelSelected,
+                  ]}
+                >
+                  {rate.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderTrustStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="heart-outline" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>Thank you for trusting us</Text>
+        <Text style={styles.stepSubtitle}>
+          We're committed to helping you achieve your health and nutrition goals.
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderCareStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="shield-checkmark" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>We care about you</Text>
+        <Text style={styles.stepSubtitle}>
+          Our personalized recommendations are designed to help you reach your goals.
+          {'\n\n'}
+          Please note: This app is not a substitute for professional medical consultation.
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderWalkingStep = () => {
+    const walkingOptions = [
+      { id: 'none', label: 'Less than 30 min/day' },
+      { id: 'low', label: '30-60 min/day' },
+      { id: 'moderate', label: '1-2 hours/day' },
+      { id: 'high', label: 'More than 2 hours/day' },
+    ];
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>How much time do you spend walking?</Text>
+        <Text style={styles.stepSubtitle}>Select your daily walking time</Text>
+        <View style={styles.activityContainer}>
+          {walkingOptions.map((option) => {
+            const isSelected = profileData.walkingTime === option.id;
+            return (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.activityButton,
+                  isSelected && styles.activityButtonSelected,
+                ]}
+                onPress={() => {
+                  if (Platform.OS === 'ios') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setProfileData({ ...profileData, walkingTime: option.id });
+                }}
+              >
+                <Text
+                  style={[
+                    styles.activityLabel,
+                    isSelected && styles.activityLabelSelected,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderBreathStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Do you get shortness of breath after climbing stairs?</Text>
+      <Text style={styles.stepSubtitle}>This helps us understand your fitness level</Text>
+      <View style={styles.genderContainer}>
+        <TouchableOpacity
+          style={[
+            styles.genderOption,
+            profileData.shortnessOfBreath === true && styles.genderOptionSelected,
+          ]}
+          onPress={() => {
+            if (Platform.OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            setProfileData((prev) => ({ ...prev, shortnessOfBreath: true }));
+          }}
+        >
+          <Ionicons name="checkmark-circle" size={48} color={profileData.shortnessOfBreath === true ? onPrimaryColor : colors.textSecondary} />
+          <Text
+            style={[
+              styles.genderLabel,
+              profileData.shortnessOfBreath === true && styles.genderLabelSelected,
+            ]}
+          >
+            Yes
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.genderOption,
+            profileData.shortnessOfBreath === false && styles.genderOptionSelected,
+          ]}
+          onPress={() => {
+            if (Platform.OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            setProfileData((prev) => ({ ...prev, shortnessOfBreath: false }));
+          }}
+        >
+          <Ionicons name="close-circle" size={48} color={profileData.shortnessOfBreath === false ? onPrimaryColor : colors.textSecondary} />
+          <Text
+            style={[
+              styles.genderLabel,
+              profileData.shortnessOfBreath === false && styles.genderLabelSelected,
+            ]}
+          >
+            No
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderStepsStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Daily step goal</Text>
+      <Text style={styles.stepSubtitle}>Set your target number of steps per day</Text>
+      <View style={styles.largeValueContainer}>
+        <Text style={styles.largeValueText}>{profileData.stepGoal.toLocaleString()}</Text>
+        <Text style={styles.largeValueUnit}>steps</Text>
+      </View>
+      <VerticalScrollPicker
+        value={profileData.stepGoal}
+        minimumValue={5000}
+        maximumValue={20000}
+        onValueChange={(value) => setProfileData((prev) => ({ ...prev, stepGoal: Math.round(value / 500) * 500 }))}
+        unit=" steps"
+        step={500}
+        enableHaptics={true}
+      />
+    </View>
+  );
+
+  const renderHealthKitStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="fitness" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>Connect Apple Health</Text>
+        <Text style={styles.stepSubtitle}>
+          Connect your Apple Health data to get more accurate insights and track your progress automatically.
+        </Text>
+        <TouchableOpacity
+          style={[styles.nextButton, { marginTop: 32 }]}
+          onPress={async () => {
+            // Request HealthKit permissions
+            // This would require expo-health or similar library
+            // For now, just proceed
+            nextStep();
+          }}
+        >
+          <Text style={styles.nextButtonText}>Connect</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderNotificationsStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="notifications" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>Enable notifications</Text>
+        <Text style={styles.stepSubtitle}>
+          Get reminders about meals, water intake, and your health goals.
+        </Text>
+        <TouchableOpacity
+          style={[styles.nextButton, { marginTop: 32 }]}
+          onPress={async () => {
+            // Request notification permissions
+            // This would require expo-notifications
+            // For now, just proceed
+            nextStep();
+          }}
+        >
+          <Text style={styles.nextButtonText}>Enable</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderFirstMeasurementsStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>First measurements</Text>
+      <Text style={styles.stepSubtitle}>When would you like to take your first measurements?</Text>
+      <View style={styles.largeValueContainer}>
+        <Text style={styles.largeValueText}>{profileData.firstMeasurements}</Text>
+        <Text style={styles.largeValueUnit}>days</Text>
+      </View>
+      <VerticalScrollPicker
+        value={profileData.firstMeasurements}
+        minimumValue={1}
+        maximumValue={30}
+        onValueChange={(value) => setProfileData((prev) => ({ ...prev, firstMeasurements: Math.round(value) }))}
+        unit=" days"
+        step={1}
+        enableHaptics={true}
+      />
+    </View>
+  );
+
+  // Effect for loading step - calculate plan when on loading step
+  useEffect(() => {
+    if (currentStep === 21) { // Loading step
+      setLoadingProgress(0);
+      setPlanData(null);
+      const interval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            // Calculate recommended plan based on user data
+            const activityMultiplier = profileData.activityLevel === 'sedentary' ? 1.2 :
+              profileData.activityLevel === 'lightly_active' ? 1.375 :
+              profileData.activityLevel === 'moderately_active' ? 1.55 :
+              profileData.activityLevel === 'very_active' ? 1.725 : 1.9;
+            const recommendedCalories = Math.round(
+              (profileData.gender === 'male' ? 88.362 : 447.593) +
+              (13.397 * profileData.weight) +
+              (4.799 * profileData.height) -
+              (5.677 * profileData.age) * activityMultiplier
+            );
+            
+            setPlanData({
+              recommendedWeight: profileData.targetWeight,
+              dailyCalories: recommendedCalories,
+              dailyProtein: Math.round(recommendedCalories * 0.3 / 4),
+              dailyCarbs: Math.round(recommendedCalories * 0.4 / 4),
+              dailyFat: Math.round(recommendedCalories * 0.3 / 9),
+            });
+            return 100;
+          }
+          return prev + 2;
+        });
+      }, 50);
+      return () => clearInterval(interval);
+    } else {
+      // Reset when leaving loading step
+      setLoadingProgress(0);
+      setPlanData(null);
+    }
+  }, [currentStep, profileData]);
+
+  const renderLoadingStep = () => {
+
+    return (
+      <View style={styles.stepContainer}>
+        <View style={styles.welcomeContent}>
+          {loadingProgress < 100 ? (
+            <>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={styles.stepTitle}>Creating your plan</Text>
+              <Text style={styles.stepSubtitle}>{Math.round(loadingProgress)}%</Text>
+            </>
+          ) : planData ? (
+            <>
+              <Ionicons name="checkmark-circle" size={64} color={colors.success} />
+              <Text style={styles.stepTitle}>Your personalized plan</Text>
+              <View style={styles.planSummary}>
+                <Text style={styles.planSummaryTitle}>Recommended daily intake:</Text>
+                <Text style={styles.planSummaryText}>Calories: {planData.dailyCalories} kcal</Text>
+                <Text style={styles.planSummaryText}>Protein: {planData.dailyProtein} g</Text>
+                <Text style={styles.planSummaryText}>Carbs: {planData.dailyCarbs} g</Text>
+                <Text style={styles.planSummaryText}>Fat: {planData.dailyFat} g</Text>
+                <Text style={[styles.planSummaryText, { marginTop: 16 }]}>
+                  Target weight: {planData.recommendedWeight} kg
+                </Text>
+              </View>
+            </>
+          ) : null}
+        </View>
+      </View>
+    );
+  };
+
+  const renderAlmostReadyStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="person-add" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>Almost ready</Text>
+        <Text style={styles.stepSubtitle}>
+          Create your account to save your progress and access all features.
+        </Text>
+        <Text style={styles.stepSubtitle}>
+          You can sign in with Apple, Google, or email.
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderSummaryStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Your choices</Text>
+      <ScrollView style={{ flex: 1 }}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Goal:</Text>
+          <Text style={styles.summaryValue}>
+            {goals.find(g => g.id === profileData.goal)?.label || 'Not set'}
+          </Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Gender:</Text>
+          <Text style={styles.summaryValue}>
+            {profileData.gender === 'male' ? 'Male' : profileData.gender === 'female' ? 'Female' : 'Not set'}
+          </Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Age:</Text>
+          <Text style={styles.summaryValue}>{profileData.age} years</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Height:</Text>
+          <Text style={styles.summaryValue}>{profileData.height} cm</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Weight:</Text>
+          <Text style={styles.summaryValue}>{profileData.weight} kg</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Activity Level:</Text>
+          <Text style={styles.summaryValue}>
+            {activityLevels.find(a => a.id === profileData.activityLevel)?.label || 'Not set'}
+          </Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Target Weight:</Text>
+          <Text style={styles.summaryValue}>{profileData.targetWeight} kg</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+
+  const renderRatingStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.welcomeContent}>
+        <Ionicons name="star" size={64} color={colors.primary} />
+        <Text style={styles.stepTitle}>Rate us</Text>
+        <Text style={styles.stepSubtitle}>
+          We'd love to hear your feedback! Please rate your experience.
+        </Text>
+        <View style={styles.ratingContainer}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <TouchableOpacity key={star} onPress={() => {
+              // Handle rating
+              nextStep();
+            }}>
+              <Ionicons name="star-outline" size={48} color={colors.primary} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+
   const renderStep = () => {
     switch (currentStep) {
       case 0:
         return renderWelcomeStep();
       case 1:
-        return renderPersonalStep();
+        return renderGoalsStep();
       case 2:
-        return renderPhysicalStep();
+        return renderSupportStep();
       case 3:
-        return renderActivityStep(); // Combined Activity & Goals
+        return renderGenderStep();
       case 4:
+        return renderAgeStep();
+      case 5:
+        return renderHeightStep();
+      case 6:
+        return renderWeightStep();
+      case 7:
+        return renderActivityStep();
+      case 8:
+        return renderWalkingStep();
+      case 9:
+        return renderBreathStep();
+      case 10:
+        return renderStepsStep();
+      case 11:
+        return renderObstaclesStep();
+      case 12:
+        return renderDietStep();
+      case 13:
+        return renderHealthConditionsStep();
+      case 14:
+        return renderCareStep();
+      case 15:
+        return renderTargetWeightStep();
+      case 16:
+        return renderWeightRateStep();
+      case 17:
+        return renderTrustStep();
+      case 18:
+        return renderHealthKitStep();
+      case 19:
+        return renderNotificationsStep();
+      case 20:
+        return renderFirstMeasurementsStep();
+      case 21:
+        return renderLoadingStep();
+      case 22:
+        return renderAlmostReadyStep();
+      case 23:
+        return renderSummaryStep();
+      case 24:
+        return renderRatingStep();
+      case 25:
         return renderPlanStep();
       default:
         return renderWelcomeStep();

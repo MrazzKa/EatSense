@@ -13,20 +13,20 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { clientLog } from '../utils/clientLog';
 import DescribeFoodModal from '../components/DescribeFoodModal';
-import { FoodDescriptionPrompt } from '../components/FoodDescriptionPrompt';
+import ApiService from '../services/apiService';
+import { mapLanguageToLocale } from '../utils/locale';
 
 export default function CameraScreen() {
   const navigation = useNavigation();
   const [permission, requestPermission] = useCameraPermissions();
   const { tokens } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
   const [zoom, setZoom] = useState(0);
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
-  const [showFoodPrompt, setShowFoodPrompt] = useState(false);
   const [capturedImageUri, setCapturedImageUri] = useState(null);
   
   // Safe requestPermission wrapper
@@ -107,9 +107,8 @@ export default function CameraScreen() {
         uri: compressedImage.uri ? 'present' : 'missing',
       }).catch(() => {});
 
-      // Show food description prompt before navigating
-      setCapturedImageUri(compressedImage.uri);
-      setShowFoodPrompt(true);
+      // Start analysis immediately without prompt
+      await startAnalysis(compressedImage.uri);
     } catch (error) {
       if (__DEV__) console.error('[CameraScreen] Error taking picture:', error);
       await clientLog('Camera:takePictureError', {
@@ -159,21 +158,48 @@ export default function CameraScreen() {
     setShowDescribeModal(false);
   };
 
-  const handleFoodPromptConfirm = (description) => {
-    setShowFoodPrompt(false);
-    if (navigation && typeof navigation.navigate === 'function' && capturedImageUri) {
-      navigation.navigate('AnalysisResults', {
-        imageUri: capturedImageUri,
-        source: 'camera',
-        foodDescription: description || undefined, // Pass description if provided
-      });
-      // Navigate to Dashboard after starting analysis
-      setTimeout(() => {
+  const startAnalysis = useCallback(async (imageUri) => {
+    if (!imageUri) return;
+    
+    try {
+      // Start background analysis immediately without prompt
+      const locale = mapLanguageToLocale(language);
+      
+      if (__DEV__) {
+        console.log('[CameraScreen] Starting image analysis:', {
+          hasImage: !!imageUri,
+          locale,
+        });
+      }
+      
+      // Start analysis in background - it will appear in Diary
+      const response = await ApiService.analyzeImage(imageUri, locale);
+      
+      if (__DEV__) {
+        console.log('[CameraScreen] Analysis response:', {
+          hasAnalysisId: !!response?.analysisId,
+          hasItems: !!response?.items,
+          status: response?.status,
+          responseKeys: response ? Object.keys(response) : [],
+        });
+      }
+      
+      // If analysis returns immediately with result, it will be saved automatically
+      // If it returns analysisId, it will be tracked via getActiveAnalyses
+      // Either way, navigate to Dashboard - analysis will show in Diary
+      if (navigation && typeof navigation.navigate === 'function') {
         navigation.navigate('MainTabs', { screen: 'Dashboard' });
-      }, 100);
+      }
+    } catch (error) {
+      console.error('[CameraScreen] Error starting background analysis:', error);
+      // On error, still navigate to dashboard - user can retry
+      if (navigation && typeof navigation.navigate === 'function') {
+        navigation.navigate('MainTabs', { screen: 'Dashboard' });
+      }
+    } finally {
+      setCapturedImageUri(null);
     }
-    setCapturedImageUri(null);
-  };
+  }, [language, navigation]);
 
   if (!permission) {
     return (
@@ -321,15 +347,6 @@ export default function CameraScreen() {
         onAnalyze={handleDescribeFood}
       />
 
-      <FoodDescriptionPrompt
-        visible={showFoodPrompt}
-        onClose={() => {
-          setShowFoodPrompt(false);
-          setCapturedImageUri(null);
-        }}
-        onConfirm={handleFoodPromptConfirm}
-        imageUri={capturedImageUri}
-      />
     </View>
   );
 }

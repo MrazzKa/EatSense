@@ -17,27 +17,73 @@ export const SwipeableIngredientItem = ({
   const { t } = useI18n();
 
   const renderRightActions = (progress, dragX) => {
-    const scale = dragX.interpolate({
-      inputRange: [-100, 0],
-      outputRange: [1, 0],
+    const translateX = dragX.interpolate({
+      inputRange: [-200, 0],
+      outputRange: [0, 200],
+      extrapolate: 'clamp',
+    });
+
+    const deleteScale = dragX.interpolate({
+      inputRange: [-200, -100, 0],
+      outputRange: [1, 0.8, 0],
+      extrapolate: 'clamp',
+    });
+
+    const editScale = dragX.interpolate({
+      inputRange: [-200, -100, 0],
+      outputRange: [1, 0.8, 0],
       extrapolate: 'clamp',
     });
 
     return (
-      <TouchableOpacity
-        style={[styles.deleteButton, { backgroundColor: colors.error || '#FF3B30' }]}
-        onPress={() => {
-          if (onDelete && typeof onDelete === 'function') {
-            onDelete(ingredient, index);
-          }
-        }}
-        activeOpacity={0.8}
-      >
-        <Animated.View style={{ transform: [{ scale }] }}>
-          <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+      <View style={styles.rightActions}>
+        <Animated.View
+          style={[
+            styles.actionButton,
+            styles.editButton,
+            {
+              backgroundColor: colors.primary,
+              transform: [{ translateX }, { scale: editScale }],
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.actionButtonContent}
+            onPress={() => {
+              if (onPress && typeof onPress === 'function') {
+                onPress();
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>{t('common.edit') || 'Edit'}</Text>
+          </TouchableOpacity>
         </Animated.View>
-        <Text style={styles.deleteButtonText}>{t('common.delete') || 'Delete'}</Text>
-      </TouchableOpacity>
+        <Animated.View
+          style={[
+            styles.actionButton,
+            styles.deleteButton,
+            {
+              backgroundColor: colors.error || '#FF3B30',
+              transform: [{ translateX }, { scale: deleteScale }],
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.actionButtonContent}
+            onPress={() => {
+              if (onDelete && typeof onDelete === 'function') {
+                onDelete(ingredient, index);
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>{t('common.delete') || 'Delete'}</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
     );
   };
 
@@ -116,6 +162,34 @@ export const SwipeableIngredientItem = ({
 };
 
 const styles = StyleSheet.create({
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: 16,
+  },
+  actionButton: {
+    width: 80,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  actionButtonContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  editButton: {
+    backgroundColor: '#007AFF',
+  },
   ingredientItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -153,16 +227,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   deleteButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 80,
-    paddingHorizontal: 16,
-  },
-  deleteButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
+    backgroundColor: '#FF3B30',
   },
 });
 

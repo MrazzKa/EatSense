@@ -143,15 +143,26 @@ export default function AuthScreen({ onAuthSuccess }) {
       });
 
       if (credential.identityToken) {
+        // Filter fullName to only include givenName and familyName
+        // Apple may return additional fields (namePrefix, middleName, nickname, nameSuffix)
+        // that are not expected by the backend DTO
+        const filteredFullName = credential.fullName ? {
+          givenName: credential.fullName.givenName,
+          familyName: credential.fullName.familyName,
+        } : undefined;
+
         // Send identity token to backend for verification
+        // Only include email if it's not empty
+        const applePayload = {
+          identityToken: credential.identityToken,
+          user: credential.user,
+          ...(credential.email && credential.email.trim() ? { email: credential.email.trim().toLowerCase() } : {}),
+          ...(filteredFullName && (filteredFullName.givenName || filteredFullName.familyName) ? { fullName: filteredFullName } : {}),
+        };
+        
         const response = await ApiService.request('/auth/apple', {
           method: 'POST',
-          body: JSON.stringify({
-            identityToken: credential.identityToken,
-            user: credential.user,
-            email: credential.email,
-            fullName: credential.fullName,
-          }),
+          body: JSON.stringify(applePayload),
         });
 
         if (response?.accessToken) {
@@ -215,7 +226,6 @@ export default function AuthScreen({ onAuthSuccess }) {
 
   // Google OAuth configuration with separate Client IDs for iOS/Android/Web
   // Use safeEnv helper to prevent "undefined is not a function" errors
-  // На мобильных мы можем безопасно передавать webClientId вместе с iOS/Android ID.
   const iosClientId = Constants.expoConfig?.extra?.googleIosClientId || safeEnv.googleIosClientId;
   const androidClientId = Constants.expoConfig?.extra?.googleAndroidClientId || safeEnv.googleAndroidClientId;
   const webClientId =
@@ -224,29 +234,69 @@ export default function AuthScreen({ onAuthSuccess }) {
     safeEnv.googleClientId;
   
   // Create redirect URI for Google OAuth
-  // For mobile: expo-auth-session will use iOS/Android Client IDs with their own redirect handling
+  // For Expo Go: use useProxy: true to use Expo's proxy server (works with webClientId)
+  // For standalone builds: use native scheme (works with iOS/Android Client IDs)
   // For web: use full domain URL
+  // Detect Expo Go: executionEnvironment === 'storeClient' or appOwnership === 'expo'
+  // For local development/testing in Expo Go, always use proxy
+  const isExpoGo = 
+    Constants.executionEnvironment === 'storeClient' || 
+    Constants.appOwnership === 'expo' ||
+    (Constants.executionEnvironment === undefined && __DEV__);
+  
+  // For Expo Go and local dev, always use proxy
+  const shouldUseProxy = isExpoGo || __DEV__;
+  
   const redirectUri = Platform.select({
     web: 'https://eatsense.app/auth/google/callback',
     default: makeRedirectUri({
       scheme: 'eatsense',
       usePath: false,
-      useProxy: false,
+      // Use proxy for Expo Go and local dev to handle redirects properly
+      useProxy: shouldUseProxy,
     }),
   });
   
+  // For Expo Go: use ONLY webClientId with proxy (expo-auth-session handles this correctly)
+  // For standalone builds: use platform-specific Client IDs
+  // For web: use webClientId only
+  let googleClientIds;
+  if (Platform.OS === 'web') {
+    googleClientIds = { webClientId };
+  } else if (Platform.OS === 'ios') {
+    if (isExpoGo) {
+      // Expo Go: ONLY webClientId with proxy - expo-auth-session will use proxy automatically
+      // DO NOT pass iosClientId - it causes redirect URI mismatch
+      googleClientIds = { webClientId };
+    } else {
+      // Standalone build: use iOS Client ID only
+      googleClientIds = { iosClientId };
+    }
+  } else if (Platform.OS === 'android') {
+    if (isExpoGo) {
+      // Expo Go: use webClientId with proxy
+      googleClientIds = { webClientId };
+    } else {
+      // Standalone build: use Android Client ID
+      googleClientIds = { androidClientId };
+    }
+  } else {
+    // Default fallback
+    googleClientIds = { iosClientId, androidClientId, webClientId };
+  }
+  
   // Log the exact redirect URI that will be used
   console.log('[AuthScreen] Google OAuth redirectUri:', redirectUri);
-  console.log('[AuthScreen] Google OAuth Client IDs:', { iosClientId, androidClientId, webClientId });
+  console.log('[AuthScreen] Google OAuth Client IDs:', googleClientIds);
   console.log('[AuthScreen] Platform:', Platform.OS);
-  console.log('[AuthScreen] Using webClientId on mobile:', !!webClientId && Platform.OS !== 'web');
+  console.log('[AuthScreen] Is Expo Go:', isExpoGo);
   
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
-    iosClientId,
-    androidClientId,
-    webClientId,
+    ...googleClientIds,
     scopes: ['openid', 'profile', 'email'],
     redirectUri,
+    // Explicitly set useProxy for Expo Go and dev mode
+    useProxy: shouldUseProxy,
   });
   
   // Log Google request state

@@ -36,14 +36,8 @@ export default function ReportsScreen() {
 
       const response = await ApiService.getMonthlyReport({ year, month, locale });
 
-      if (response.status === 204) {
+      if (!response || response.status === 204 || response.status === 404) {
         // No data for this month
-        setNoData(true);
-        return;
-      }
-
-      if (response.status === 404) {
-        // Alternative: backend returns 404 for no data
         setNoData(true);
         return;
       }
@@ -57,32 +51,111 @@ export default function ReportsScreen() {
         return;
       }
 
-      // Save PDF blob to file
+      // Convert arrayBuffer/blob to base64 FIRST (before checking directories)
       const monthString = `${year}-${String(month).padStart(2, '0')}`;
-      const cacheDir = (FileSystem as any).cacheDirectory || '';
-      const fileUri = `${cacheDir}eatsense-monthly-report-${monthString}.pdf`;
-
-      // Convert blob to base64 for FileSystem
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onloadend = () => {
-          const base64String = reader.result?.toString().split(',')[1];
-          if (base64String) {
-            resolve(base64String);
-          } else {
-            reject(new Error('Failed to convert blob to base64'));
-          }
-        };
-        reader.onerror = reject;
-        if (response.data) {
-          reader.readAsDataURL(response.data);
-        } else {
-          reject(new Error('Response data is null'));
+      let base64Data: string;
+      
+      // Handle ArrayBuffer (preferred)
+      if (response.data instanceof ArrayBuffer) {
+        const uint8Array = new Uint8Array(response.data);
+        
+        // Convert to base64 manually (btoa not available in React Native)
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        let base64 = '';
+        let i = 0;
+        while (i < uint8Array.length) {
+          const a = uint8Array[i++];
+          const b = i < uint8Array.length ? uint8Array[i++] : 0;
+          const c = i < uint8Array.length ? uint8Array[i++] : 0;
+          
+          const bitmap = (a << 16) | (b << 8) | c;
+          
+          base64 += chars.charAt((bitmap >> 18) & 63);
+          base64 += chars.charAt((bitmap >> 12) & 63);
+          base64 += i - 2 < uint8Array.length ? chars.charAt((bitmap >> 6) & 63) : '=';
+          base64 += i - 1 < uint8Array.length ? chars.charAt(bitmap & 63) : '=';
         }
-      });
+        base64Data = base64;
+      } else if (response.data && typeof response.data.arrayBuffer === 'function') {
+        // Handle Blob with arrayBuffer method
+        try {
+          const arrayBuffer = await response.data.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+          let base64 = '';
+          let i = 0;
+          while (i < uint8Array.length) {
+            const a = uint8Array[i++];
+            const b = i < uint8Array.length ? uint8Array[i++] : 0;
+            const c = i < uint8Array.length ? uint8Array[i++] : 0;
+            
+            const bitmap = (a << 16) | (b << 8) | c;
+            
+            base64 += chars.charAt((bitmap >> 18) & 63);
+            base64 += chars.charAt((bitmap >> 12) & 63);
+            base64 += i - 2 < uint8Array.length ? chars.charAt((bitmap >> 6) & 63) : '=';
+            base64 += i - 1 < uint8Array.length ? chars.charAt(bitmap & 63) : '=';
+          }
+          base64Data = base64;
+        } catch (blobError) {
+          console.error('[ReportsScreen] Error converting blob to base64:', blobError);
+          throw new Error('Failed to convert PDF blob to base64');
+        }
+      } else if (typeof response.data === 'string') {
+        // Already base64 string
+        base64Data = response.data.includes('data:') 
+          ? response.data.split(',')[1] 
+          : response.data;
+      } else {
+        console.error('[ReportsScreen] Invalid response data format:', typeof response.data, response.data);
+        throw new Error('Invalid response data format: expected ArrayBuffer, Blob or string');
+      }
 
-      await FileSystem.writeAsStringAsync(fileUri, base64, {
-        encoding: ((FileSystem as any).EncodingType?.Base64) || 'base64' as any,
+      // Now check if we can save to file system
+      const documentDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+      
+      // If both are null (e.g., in Expo Go), share directly via data URI
+      if (!documentDir) {
+        if (__DEV__) {
+          console.warn('[ReportsScreen] Both documentDirectory and cacheDirectory are null, sharing directly via data URI');
+        }
+        
+        // Share directly via data URI
+        const dataUri = `data:application/pdf;base64,${base64Data}`;
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(dataUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: `EatSense Monthly Report ${monthString}`,
+          });
+          setLoading(false);
+          return;
+        } else {
+          Alert.alert(
+            t('common.error'),
+            t('reports.error.noDirectory') || 'Cannot save or share report. File system not available.',
+          );
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Save to file system
+      const cleanDocDir = documentDir.endsWith('/') ? documentDir : `${documentDir}/`;
+      const fileUri = `${cleanDocDir}eatsense-monthly-report-${monthString}.pdf`;
+      
+      if (__DEV__) {
+        console.log('[ReportsScreen] Using directory:', documentDir === FileSystem.documentDirectory ? 'documentDirectory' : 'cacheDirectory');
+        console.log('[ReportsScreen] File path:', fileUri);
+        console.log('[ReportsScreen] Writing file with base64 data, length:', base64Data?.length || 0);
+      }
+
+      // Use legacy API directly (cacheDirectory is writable)
+      const { writeAsStringAsync } = await import('expo-file-system/legacy');
+      
+      await writeAsStringAsync(fileUri, base64Data, {
+        encoding: 'base64', // Use string literal instead of enum
       });
 
       console.log('[ReportsScreen] PDF saved to:', fileUri);

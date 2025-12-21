@@ -2,9 +2,9 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } f
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { NotificationsService } from './notifications.service';
-import type { RegisterPushTokenDto } from './dto/register-push-token.dto';
-import type { SendTestNotificationDto } from './dto/send-test-notification.dto';
-import type { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+import { RegisterPushTokenDto } from './dto/register-push-token.dto';
+import { SendTestNotificationDto } from './dto/send-test-notification.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()

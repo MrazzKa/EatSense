@@ -140,14 +140,26 @@ export default function RecentlyScreen() {
       setLoading(true);
       const [meals, activeAnalysesData] = await Promise.all([
         ApiService.getMeals(),
-        ApiService.getActiveAnalyses().catch(() => []), // Fallback to empty array if fails
+        ApiService.getActiveAnalyses().catch((err) => {
+          if (__DEV__) console.warn('[RecentlyScreen] Failed to get active analyses:', err);
+          return [];
+        }), // Fallback to empty array if fails
       ]);
       const normalized = Array.isArray(meals)
         ? meals.map(normalizeMeal).filter(Boolean)
         : [];
       // Always use real data - no fallback/demo meals
       setRecentItems(normalized);
-      setActiveAnalyses(Array.isArray(activeAnalysesData) ? activeAnalysesData : []);
+      const analysesArray = Array.isArray(activeAnalysesData) ? activeAnalysesData : [];
+      setActiveAnalyses(analysesArray);
+      
+      if (__DEV__) {
+        console.log('[RecentlyScreen] Loaded items:', {
+          mealsCount: normalized.length,
+          activeAnalysesCount: analysesArray.length,
+          activeAnalyses: analysesArray.map(a => ({ id: a.analysisId, status: a.status })),
+        });
+      }
     } catch (error) {
       console.error('Error loading recent items:', error);
       // On error, show empty state - no demo data
@@ -161,7 +173,9 @@ export default function RecentlyScreen() {
   const checkAnalysisStatus = useCallback(async (analysisId) => {
     try {
       const status = await ApiService.getAnalysisStatus(analysisId);
-      if (status.status === 'completed' || status.status === 'failed') {
+      // Backend returns lowercase status: 'completed', 'failed', 'pending', 'processing'
+      const statusLower = (status.status || '').toLowerCase();
+      if (statusLower === 'completed' || statusLower === 'failed' || statusLower === 'COMPLETED' || statusLower === 'FAILED') {
         // Analysis completed, reload meals
         loadRecentItems();
         return false; // Stop polling
