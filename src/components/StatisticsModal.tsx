@@ -55,8 +55,8 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
       animationType="fade"
       presentationStyle="pageSheet"
     >
-      <SafeAreaView 
-        style={[styles.container, { backgroundColor: colors.background || colors.surface || '#F8F9FA', flex: 1 }]} 
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background || colors.surface || '#F8F9FA', flex: 1 }]}
         edges={['top', 'bottom']}
       >
         <View style={[styles.header, { backgroundColor: colors.surface || colors.card, borderBottomColor: colors.border || '#E5E7EB' }]}>
@@ -77,9 +77,9 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
             </Text>
           </View>
         ) : (
-          <ScrollView 
+          <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent} 
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
           >
@@ -89,7 +89,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                 <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
                   {t('statistics.today') || 'Today'}
                 </Text>
-                
+
                 {(!stats.today || (stats.today.totalCalories === 0 && !stats.todayHasMeals)) ? (
                   <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
                     <Text style={[styles.noDataText, { color: colors.textSecondary }]}>
@@ -151,7 +151,7 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                 <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
                   {t('dashboard.monthlyStats.title') || 'Monthly Highlights'}
                 </Text>
-                
+
                 {monthlyStats.topFoods && monthlyStats.topFoods.length > 0 && (
                   <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
                     <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
@@ -163,22 +163,23 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                           ? t('statistics.unnamedProduct') || 'Без названия продукта'
                           : food.name;
                       return (
-                      <View key={index} style={styles.foodItem}>
-                        <Text style={[styles.foodName, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
-                          {displayName}
-                        </Text>
-                        <Text style={[styles.foodCount, { color: colors.textSecondary || '#7F8C8D' }]}>
-                          {food.count || 0} {t('statistics.times') || 'times'}
-                        </Text>
-                      </View>
-                    )})}
+                        <View key={index} style={styles.foodItem}>
+                          <Text style={[styles.foodName, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
+                            {displayName}
+                          </Text>
+                          <Text style={[styles.foodCount, { color: colors.textSecondary || '#7F8C8D' }]}>
+                            {food.count || 0} {t('statistics.times') || 'times'}
+                          </Text>
+                        </View>
+                      )
+                    })}
                   </View>
                 )}
 
                 {monthlyStats.mealDistribution && monthlyStats.mealDistribution.length > 0 && (
                   <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card }]}>
                     <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-                      {t('dashboard.monthlyStats.mealDistribution') || 'Meal Distribution'}
+                      {t('statistics.mealDistribution') || t('dashboard.monthlyStats.mealDistribution') || 'Meal Distribution'}
                     </Text>
                     {monthlyStats.mealDistribution.map((meal: any, index: number) => (
                       <View key={index} style={styles.mealItem}>
@@ -186,18 +187,56 @@ export const StatisticsModal: React.FC<StatisticsModalProps> = ({ visible, onClo
                           {meal.type || 'Meal'}
                         </Text>
                         <View style={styles.mealBarContainer}>
-                          <View 
+                          <View
                             style={[
-                              styles.mealBar, 
-                              { 
+                              styles.mealBar,
+                              {
                                 width: `${Math.min(100, Math.max(0, meal.percentage || 0))}%`,
                                 backgroundColor: colors.primary || '#3498DB'
                               }
-                            ]} 
+                            ]}
                           />
                         </View>
                         <Text style={[styles.mealPercentage, { color: colors.textSecondary || '#7F8C8D' }]}>
                           {Math.round(meal.percentage || 0)}%
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Adherence & Conclusions */}
+                {/* Goal Adherence */}
+                {monthlyStats.adherence && (
+                  <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card, marginTop: 16 }]}>
+                    <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                      {t('statistics.adherence')}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View>
+                        <Text style={{ fontSize: 32, fontWeight: '700', color: monthlyStats.adherence.status === 'on_track' ? colors.secondary : monthlyStats.adherence.status === 'over' ? colors.error : colors.warning }}>
+                          {Math.round(monthlyStats.adherence.percentage)}%
+                        </Text>
+                        <Text style={{ color: colors.textSecondary }}>
+                          {monthlyStats.adherence.status === 'on_track' ? t('statistics.onTrack') : monthlyStats.adherence.status === 'over' ? t('statistics.over') : t('statistics.under')}
+                        </Text>
+                      </View>
+                      {/* Simple progress ring or bar could go here, for now just text is fine */}
+                    </View>
+                  </View>
+                )}
+
+                {/* Short Conclusions */}
+                {monthlyStats.conclusions && monthlyStats.conclusions.length > 0 && (
+                  <View style={[styles.statsCard, { backgroundColor: colors.surface || colors.card, marginTop: 16 }]}>
+                    <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                      {t('statistics.conclusions')}
+                    </Text>
+                    {monthlyStats.conclusions.map((text: string, idx: number) => (
+                      <View key={idx} style={{ flexDirection: 'row', marginBottom: 8 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, marginTop: 8, marginRight: 8 }} />
+                        <Text style={{ flex: 1, fontSize: 14, color: colors.textPrimary, lineHeight: 20 }}>
+                          {text}
                         </Text>
                       </View>
                     ))}

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -226,12 +227,36 @@ export default function AuthScreen({ onAuthSuccess }) {
 
   // Google OAuth configuration with separate Client IDs for iOS/Android/Web
   // Use safeEnv helper to prevent "undefined is not a function" errors
-  const iosClientId = Constants.expoConfig?.extra?.googleIosClientId || safeEnv.googleIosClientId;
-  const androidClientId = Constants.expoConfig?.extra?.googleAndroidClientId || safeEnv.googleAndroidClientId;
-  const webClientId =
-    Constants.expoConfig?.extra?.googleWebClientId ||
-    safeEnv.googleWebClientId ||
-    safeEnv.googleClientId;
+  const googleIds = {
+    expoClientId: Constants.expoConfig?.extra?.googleExpoClientId || process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID || '',
+    iosClientId: Constants.expoConfig?.extra?.googleIosClientId || safeEnv.googleIosClientId || '',
+    androidClientId: Constants.expoConfig?.extra?.googleAndroidClientId || safeEnv.googleAndroidClientId || '',
+    webClientId: Constants.expoConfig?.extra?.googleWebClientId || safeEnv.googleWebClientId || safeEnv.googleClientId || '',
+  };
+  
+  // Create safe config where NO field is undefined - prevents crashes
+  const safeGoogleConfig = {
+    expoClientId: googleIds.expoClientId || 'DISABLED_EXPO_CLIENT_ID',
+    iosClientId: googleIds.iosClientId || 'DISABLED_IOS_CLIENT_ID',
+    androidClientId: googleIds.androidClientId || 'DISABLED_ANDROID_CLIENT_ID',
+    webClientId: googleIds.webClientId || 'DISABLED_WEB_CLIENT_ID',
+  };
+  
+  // Determine if Google Sign-In is configured for current platform
+  const isGoogleConfigured = Platform.OS === 'ios'
+    ? !!googleIds.iosClientId
+    : Platform.OS === 'android'
+    ? !!googleIds.androidClientId
+    : !!googleIds.webClientId;
+  
+  // Log warning once if iOS Client ID is missing
+  const warnedRef = useRef(false);
+  useEffect(() => {
+    if (Platform.OS === 'ios' && !googleIds.iosClientId && !warnedRef.current) {
+      console.warn('[AuthScreen] Missing EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID');
+      warnedRef.current = true;
+    }
+  }, [googleIds.iosClientId]);
   
   // Create redirect URI for Google OAuth
   // For Expo Go: use useProxy: true to use Expo's proxy server (works with webClientId)
@@ -257,45 +282,47 @@ export default function AuthScreen({ onAuthSuccess }) {
     }),
   });
   
-  // For Expo Go: use ONLY webClientId with proxy (expo-auth-session handles this correctly)
-  // For standalone builds: use platform-specific Client IDs
-  // For web: use webClientId only
+  // Build platform-specific config for useAuthRequest
+  // Always use safeGoogleConfig to prevent undefined values
   let googleClientIds;
   if (Platform.OS === 'web') {
-    googleClientIds = { webClientId };
+    googleClientIds = { webClientId: safeGoogleConfig.webClientId };
   } else if (Platform.OS === 'ios') {
-    if (isExpoGo) {
-      // Expo Go: ONLY webClientId with proxy - expo-auth-session will use proxy automatically
-      // DO NOT pass iosClientId - it causes redirect URI mismatch
-      googleClientIds = { webClientId };
+    if (isExpoGo && googleIds.webClientId) {
+      // Expo Go: use both iosClientId and webClientId with proxy
+      googleClientIds = { 
+        iosClientId: safeGoogleConfig.iosClientId,
+        webClientId: safeGoogleConfig.webClientId,
+      };
     } else {
       // Standalone build: use iOS Client ID only
-      googleClientIds = { iosClientId };
+      googleClientIds = { iosClientId: safeGoogleConfig.iosClientId };
     }
   } else if (Platform.OS === 'android') {
-    if (isExpoGo) {
+    if (isExpoGo && googleIds.webClientId) {
       // Expo Go: use webClientId with proxy
-      googleClientIds = { webClientId };
+      googleClientIds = { webClientId: safeGoogleConfig.webClientId };
     } else {
       // Standalone build: use Android Client ID
-      googleClientIds = { androidClientId };
+      googleClientIds = { androidClientId: safeGoogleConfig.androidClientId };
     }
   } else {
-    // Default fallback
-    googleClientIds = { iosClientId, androidClientId, webClientId };
+    // Default fallback - use all IDs from safe config
+    googleClientIds = {
+      iosClientId: safeGoogleConfig.iosClientId,
+      androidClientId: safeGoogleConfig.androidClientId,
+      webClientId: safeGoogleConfig.webClientId,
+    };
   }
   
-  // Log the exact redirect URI that will be used
-  console.log('[AuthScreen] Google OAuth redirectUri:', redirectUri);
-  console.log('[AuthScreen] Google OAuth Client IDs:', googleClientIds);
-  console.log('[AuthScreen] Platform:', Platform.OS);
-  console.log('[AuthScreen] Is Expo Go:', isExpoGo);
+  // Only create auth request if Google is properly configured for current platform
+  const shouldCreateGoogleAuth = isGoogleConfigured;
   
+  // Always use safeGoogleConfig to prevent undefined values in useAuthRequest
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
     ...googleClientIds,
     scopes: ['openid', 'profile', 'email'],
     redirectUri,
-    // Explicitly set useProxy for Expo Go and dev mode
     useProxy: shouldUseProxy,
   });
   
@@ -424,9 +451,35 @@ export default function AuthScreen({ onAuthSuccess }) {
       setIsSubmitting(true);
       resetFeedback();
 
+      // Check if Google auth is properly configured for current platform
+      if (!isGoogleConfigured) {
+        const platformMessage = Platform.OS === 'ios'
+          ? t('auth.errors.googleIosClientIdMissing') || 
+            'Google Sign-In is not configured for iOS. Please contact support or configure EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in your environment.'
+          : Platform.OS === 'android'
+          ? t('auth.errors.googleAndroidClientIdMissing') || 
+            'Google Sign-In is not configured for Android. Please contact support or configure EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in your environment.'
+          : t('auth.errors.googleNotConfiguredMessage') || 
+            'Google Sign-In is not properly configured.';
+        
+        Alert.alert(
+          t('auth.errors.googleNotConfigured') || 'Google Sign-In Not Available',
+          platformMessage,
+          [{ text: t('common.ok') || 'OK' }]
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!googleRequest) {
         console.error('[AuthScreen] Google OAuth request not available');
-        throw new Error('Google OAuth not configured');
+        Alert.alert(
+          t('auth.errors.googleNotConfigured') || 'Google Sign-In Not Available',
+          t('auth.errors.googleNotConfiguredMessage') || 'Google Sign-In is not properly configured.',
+          [{ text: t('common.ok') || 'OK' }]
+        );
+        setIsSubmitting(false);
+        return;
       }
 
       console.log('[AuthScreen] Starting Google OAuth flow...');
@@ -629,9 +682,13 @@ export default function AuthScreen({ onAuthSuccess }) {
         )}
 
         <TouchableOpacity
-          style={[styles.oauthButton, styles.googleButton, isSubmitting && styles.disabledButton]}
+          style={[
+            styles.oauthButton, 
+            styles.googleButton, 
+            (isSubmitting || !isGoogleConfigured) && styles.disabledButton
+          ]}
           onPress={handleGoogleSignIn}
-          disabled={!googleRequest || isSubmitting}
+          disabled={!isGoogleConfigured || !googleRequest || isSubmitting}
         >
           <View style={styles.googleIconContainer}>
             <View style={styles.googleIcon}>

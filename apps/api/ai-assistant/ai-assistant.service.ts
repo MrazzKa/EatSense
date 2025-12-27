@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, InternalServerErrorException }
 import { PrismaService } from '../prisma.service';
 import OpenAI from 'openai';
 import { AssistantOrchestratorService } from './assistant-orchestrator.service';
+import { MediaService } from '../media/media.service';
 
 @Injectable()
 export class AiAssistantService {
@@ -11,6 +12,7 @@ export class AiAssistantService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly orchestrator: AssistantOrchestratorService,
+    private readonly mediaService: MediaService,
   ) {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -226,7 +228,7 @@ export class AiAssistantService {
     // Get user language from profile or use provided language or default to English
     const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
     const userLanguage = language || (userProfile?.preferences as any)?.language || 'en';
-    
+
     // Map language codes to language names for OpenAI
     const languageMap: Record<string, string> = {
       en: 'English',
@@ -240,7 +242,7 @@ export class AiAssistantService {
       zh: 'Chinese',
     };
     const responseLanguage = languageMap[userLanguage] || 'English';
-    
+
     if (type === 'general_question') {
       return {
         systemPrompt: `You are a nutrition and health assistant. Provide accurate, concise, and actionable answers.
@@ -427,7 +429,7 @@ CRITICAL RULES:
 
     const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
     const userLanguage = locale || (userProfile?.preferences as any)?.language || 'en';
-    
+
     const languageMap: Record<string, string> = {
       en: 'English',
       ru: 'Russian',
@@ -445,13 +447,13 @@ CRITICAL RULES:
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        model: 'gpt-4o', // Use GPT-4o for better medical text analysis
         messages: [
           { role: 'system', content: prompt },
           { role: 'user', content: `Analyze these lab results:\n\n${text}` },
         ],
-        max_completion_tokens: 2000,
-        temperature: 0.3,
+        max_completion_tokens: 4000,
+        temperature: 0.2, // Lower temperature for more consistent medical analysis
         response_format: { type: 'json_object' },
       });
 
@@ -502,13 +504,13 @@ CRITICAL RULES:
         `[AiAssistant] LLM error while analyzing lab results for user=${userId}`,
         error?.stack || error,
       );
-      
+
       if (error?.status === 429 || error?.response?.status === 429) {
         const quotaError: any = new Error('AI_QUOTA_EXCEEDED');
         quotaError.status = 429;
         throw quotaError;
       }
-      
+
       throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
     }
   }
@@ -522,115 +524,344 @@ CRITICAL RULES:
       `[AiAssistantService] analyzeLabResultsFile() called, fileId=${fileId}, locale=${opts.locale}`,
     );
 
-    // TODO: Download file by fileId, parse PDF, and send to LLM
-    const summary =
-      opts.locale.startsWith('ru')
-        ? `Пока что анализ PDF-анализов по fileId=${fileId} не реализован. Пожалуйста, введите значения вручную в текстовом режиме.`
-        : opts.locale.startsWith('kk')
-        ? `Қазіргі кезде PDF талдауы fileId=${fileId} үшін іске асырылмаған. Өтінемін, көрсеткіштерді мәтін түрінде енгізіңіз.`
-        : `File-based lab result analysis (fileId=${fileId}) is not configured yet. Please use text mode for now.`;
+    // Get media file as base64 for Vision API
+    const mediaData = await this.mediaService.getMediaAsBase64(fileId);
+    if (!mediaData) {
+      throw new BadRequestException('File not found or could not be retrieved');
+    }
 
-    return {
-      summary,
-      rawInterpretation: {
-        fileId,
-        fileName: opts.fileName,
-        mimeType: opts.mimeType,
-        locale: opts.locale,
-      },
+    const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
+    const userLanguage = opts.locale || (userProfile?.preferences as any)?.language || 'en';
+
+    const languageMap: Record<string, string> = {
+      en: 'English',
+      ru: 'Russian',
+      kk: 'Kazakh',
     };
+    const responseLanguage = languageMap[userLanguage] || 'English';
+
+    // Build image-specific prompt for OCR + analysis
+    const imagePrompt = this.buildLabResultsImagePrompt(responseLanguage);
+
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o', // Use GPT-4o for Vision analysis of medical docs
+
+        messages: [
+          { role: 'system', content: imagePrompt },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'First, carefully transcribe ALL text visible in this document using OCR. Then analyze the extracted values. If the image contains a medical report, extract all metrics, units, and reference ranges. If the image is blurry, rotated, or text is not readable, return a summary explaining the specific issue.',
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: mediaData.dataUrl,
+                  detail: 'high',
+                },
+              },
+            ],
+          },
+        ],
+        max_completion_tokens: 4000,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      });
+
+      const content = response.choices[0]?.message?.content || '{}';
+
+      this.logger.debug(`[AiAssistantService] Vision API response for lab results:`, content.substring(0, 500));
+
+      let parsed: any;
+      try {
+        parsed = JSON.parse(content);
+      } catch (parseError) {
+        this.logger.error(`[AiAssistantService] Failed to parse Vision API response:`, content);
+        throw new Error('Failed to parse lab results analysis');
+      }
+
+      // Check if image was unreadable
+      if (parsed.error || (!parsed.metrics?.length && !parsed.summary)) {
+        const errorMessage = parsed.error || parsed.summary || 'Could not extract lab results from image';
+        this.logger.warn(`[AiAssistantService] Vision API could not read lab results image:`, errorMessage);
+
+        return {
+          id: null,
+          metrics: [],
+          summary: responseLanguage === 'Russian'
+            ? `Не удалось распознать текст на изображении. Пожалуйста, убедитесь, что фото четкое, хорошо освещено и текст читаем.`
+            : responseLanguage === 'Kazakh'
+              ? `Суреттегі мәтінді оқу мүмкін болмады. Фотосуреттің анық, жақсы жарықтандырылған және мәтіннің оқылатынына көз жеткізіңіз.`
+              : `Could not read text in the image. Please ensure the photo is clear, well-lit, and the text is legible.`,
+          recommendation: '',
+          rawInterpretation: {
+            fileId,
+            fileName: opts.fileName,
+            mimeType: opts.mimeType,
+            locale: opts.locale,
+            ocrFailed: true,
+          },
+        };
+      }
+
+      // Save to database
+      const labResult = await this.prisma.labResult.create({
+        data: {
+          userId,
+          rawText: `[Image analysis: ${opts.fileName || fileId}]`,
+          summary: parsed.summary || '',
+          recommendation: parsed.recommendation || '',
+        },
+      });
+
+      // Save metrics
+      if (Array.isArray(parsed.metrics)) {
+        await Promise.all(
+          parsed.metrics.map((metric: any) =>
+            this.prisma.labMetric.create({
+              data: {
+                labResultId: labResult.id,
+                name: metric.name || '',
+                value: metric.value || 0,
+                unit: metric.unit || '',
+                isNormal: metric.isNormal !== false,
+                level: metric.level || 'normal',
+                comment: metric.comment || null,
+              },
+            }),
+          ),
+        );
+      }
+
+      return {
+        id: labResult.id,
+        metrics: parsed.metrics || [],
+        summary: parsed.summary || '',
+        recommendation: parsed.recommendation || '',
+        rawInterpretation: {
+          fileId,
+          fileName: opts.fileName,
+          mimeType: opts.mimeType,
+          locale: opts.locale,
+          extractedText: parsed.extractedText,
+        },
+      };
+    } catch (error: any) {
+      this.logger.error(
+        `[AiAssistant] Vision API error analyzing lab results for user=${userId}`,
+        error?.stack || error,
+      );
+
+      if (error?.status === 429 || error?.response?.status === 429) {
+        const quotaError: any = new Error('AI_QUOTA_EXCEEDED');
+        quotaError.status = 429;
+        throw quotaError;
+      }
+
+      throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
+    }
   }
 
+  /**
+   * Build a specialized prompt for analyzing lab results from images
+   */
+  private buildLabResultsImagePrompt(language: string): string {
+    const langName = language === 'Russian' ? 'Russian' : language === 'Kazakh' ? 'Kazakh' : 'English';
+    const disclaimer = {
+      Russian: 'Это не медицинский диагноз. Для решений обратитесь к врачу.',
+      Kazakh: 'Бұл медициналық диагноз емес. Шешім қабылдау үшін дәрігерге хабарласыңыз.',
+      English: 'This is not a medical diagnosis. Consult a doctor for decisions.',
+    }[langName] || 'This is not a medical diagnosis. Consult a doctor for decisions.';
+
+    return `You are a Medical Document Interpreter with OCR capabilities inside a mobile health app.
+
+=== YOUR TASK ===
+1. FIRST: Extract ALL text visible in the image using OCR
+2. THEN: Identify the document type (lab results, X-ray, doctor's note, prescription, etc.)
+3. FINALLY: Analyze and provide structured interpretation
+
+=== CRITICAL RULES ===
+1. You do NOT diagnose. Use soft language: "may indicate", "could be associated with".
+2. ALWAYS include disclaimer: "${disclaimer}"
+3. If image is blurry/rotated/unreadable, note what you couldn't read.
+4. Respond in ${langName}.
+
+=== DOCUMENT TYPE IDENTIFICATION ===
+Look for clues:
+- LAB RESULTS: Tables with values, units, reference ranges (WBC, RBC, glucose, etc.)
+- RADIOLOGY: "Описание/Description", "Заключение/Conclusion", "Impression", mentions of X-ray/CT/MRI/УЗИ
+- DOCTOR NOTE: "Жалобы/Complaints", "Осмотр/Examination", "Диагноз/Diagnosis", ICD codes
+- PRESCRIPTION: Drug names, dosages, "Рецепт/Recipe"
+- X-RAY IMAGE WITHOUT TEXT: If it's a photo of actual X-ray film (not the report), say: "This appears to be a photo of an X-ray/scan image rather than a text report. Without the radiologist's written conclusion, I cannot reliably interpret the image. Please provide the text report."
+
+=== OCR EXTRACTION RULES ===
+- Extract text exactly as written
+- Note any unclear/unreadable sections
+- Look for:
+  * Test names and values
+  * Units (10^3/μL, g/dL, mg/dL, IU/L, etc.)
+  * Reference ranges (often in parentheses or separate column)
+  * Doctor's handwriting (note if illegible)
+  * Stamps, signatures, dates
+
+=== JSON OUTPUT FORMAT (STRICT) ===
+Return ONLY valid JSON:
+{
+  "extractedText": "All text extracted from image via OCR",
+  
+  "document_type": "lab_results|radiology|doctor_consultation|prescription|medical_certificate|xray_image|mixed|unreadable",
+  "confidence": "high|medium|low",
+  "confidence_reason": "why this confidence level",
+  
+  "summary": "2-5 line summary in ${langName}",
+  
+  "details": {
+    "metrics": [
+      { "name": "...", "value": "...", "unit": "...", "reference": "...", "flag": "low|high|normal|unknown", "explanation": "..." }
+    ],
+    "description": "for radiology - what was described",
+    "conclusion": "for radiology - official conclusion",
+    "diagnosis": "if present",
+    "recommendations": "if present"
+  },
+  
+  "attention_points": ["Items requiring attention"],
+  "questions_for_doctor": ["Questions to ask"],
+  
+  "missing_data": ["What could not be read or is missing"],
+  
+  "disclaimer": "${disclaimer}"
+}
+
+If image is completely unreadable:
+{
+  "error": "Could not read image",
+  "error_type": "blurry|dark|rotated|not_medical|xray_without_report",
+  "suggestion": "Please try taking a clearer photo of the document / Please provide the text report instead of the image",
+  "disclaimer": "${disclaimer}"
+}
+
+Now analyze the uploaded image and return ONLY the JSON response in ${langName}:`;
+  }
+
+
+
   private buildLabResultsPrompt(text: string, language: string): string {
-    if (language === 'Russian') {
-      return `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
+    const langName = language === 'Russian' ? 'Russian' : language === 'Kazakh' ? 'Kazakh' : 'English';
+    const disclaimer = {
+      Russian: 'Это не медицинский диагноз. Для решений обратитесь к врачу.',
+      Kazakh: 'Бұл медициналық диагноз емес. Шешім қабылдау үшін дәрігерге хабарласыңыз.',
+      English: 'This is not a medical diagnosis. Consult a doctor for decisions.',
+    }[langName] || 'This is not a medical diagnosis. Consult a doctor for decisions.';
 
-CRITICAL RULES:
-1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
-2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
-3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
-4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
-5. Provide structured JSON output with:
-   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
-   - summary: brief overall summary string in Russian
-   - recommendation: actionable recommendations string in Russian
-6. Respond in Russian.
+    return `You are a Medical Document Interpreter (non-diagnostic) inside a mobile health app. Your task is to carefully and safely interpret any medical document uploaded by the user (text/PDF/photo of reports, test results, prescriptions, discharge summaries, etc.).
 
-Return ONLY valid JSON in this format:
+=== CRITICAL RULES ===
+1. You do NOT diagnose, prescribe treatment, or replace a doctor.
+2. You provide cautious interpretation, explaining in understandable terms what is written and what it typically means.
+3. If data is insufficient or unreadable, write: "not found in document / unreadable".
+4. ALWAYS end with disclaimer: "${disclaimer}"
+5. Use soft language: "may indicate", "could be", "often associated with" - NEVER definitive diagnoses.
+6. Respond in ${langName}.
+
+=== STEP 1: Identify Document Type ===
+Classify the document:
+- "lab_results" - Laboratory tests with metrics, values, reference ranges
+- "radiology" - X-ray, CT, MRI, Ultrasound, Fluorography, ECG (has "Description/Conclusion/Impression")
+- "doctor_consultation" - Complaints, examination, diagnosis (ICD code), recommendations
+- "discharge_summary" - Hospital discharge with treatment history
+- "prescription" - Medication orders
+- "medical_certificate" - Fitness certificates, medical clearance
+- "mixed" - Multiple types in one document
+- "image_only" - Just an image of a scan without text interpretation → say "Without official radiologist's text report, I cannot reliably interpret the image. Please provide the written conclusion."
+
+=== STEP 2: Extract & Structure Data ===
+
+For ALL documents, extract if present:
+- document_date, medical_organization, doctor_name
+- patient_info (age, gender if mentioned)
+- main_conclusion (any "Заключение", "Impression", "Diagnosis", "Recommendation")
+
+For LAB_RESULTS specifically:
+Extract table: { name, value, unit, reference_range, flag: "low"/"high"/"normal"/"unknown" }
+If reference ranges missing, note "reference not provided".
+DO NOT diagnose. Say: "elevated/lowered level may be associated with... (list common causes), discuss with doctor."
+
+For RADIOLOGY (X-ray, CT, MRI, Ultrasound, Fluorography):
+Separate "Description" from "Conclusion".
+Explain medical terms in simple words:
+- "очаг/lesion" = localized area of abnormality
+- "инфильтрация/infiltration" = fluid/cells in tissue
+- "фиброз/fibrosis" = scar tissue
+- "кардиомегалия/cardiomegaly" = enlarged heart
+If "норма/no pathology" - reflect that.
+Highlight any follow-up recommendations (CT, repeat, consultation).
+
+For DOCTOR_CONSULTATION:
+Extract: complaints, examination findings, preliminary diagnosis, treatment plan, prescriptions.
+Explain what each recommendation means (without dosages if not specified).
+
+For DISCHARGE_SUMMARY:
+Extract: reason for hospitalization, procedures performed, treatment given, condition at discharge, follow-up recommendations.
+
+=== STEP 3: Output Format (STRICT JSON) ===
+
+Return ONLY valid JSON:
 {
-  "metrics": [
-    {
-      "name": "WBC",
-      "value": 7.5,
-      "unit": "10^3/μL",
-      "isNormal": true,
-      "level": "normal",
-      "comment": "В пределах нормы"
-    }
+  "document_type": "lab_results|radiology|doctor_consultation|discharge_summary|prescription|medical_certificate|mixed|image_only",
+  "confidence": "high|medium|low",
+  "confidence_reason": "why this confidence level",
+  
+  "summary": "2-5 line summary in ${langName}",
+  
+  "extracted_data": {
+    "document_date": "if found",
+    "organization": "if found",
+    "doctor": "if found",
+    "patient_info": "age/gender if found",
+    "main_conclusion": "main finding/diagnosis/conclusion"
+  },
+  
+  "details": {
+    "metrics": [
+      { "name": "...", "value": "...", "unit": "...", "reference": "...", "flag": "low|high|normal|unknown", "explanation": "..." }
+    ],
+    "description": "for radiology - what was described",
+    "conclusion": "for radiology - official conclusion",
+    "complaints": "for doctor notes",
+    "examination": "for doctor notes",
+    "diagnosis": "for doctor notes",
+    "recommendations": "treatment plan/recommendations"
+  },
+  
+  "attention_points": [
+    "3-8 specific items requiring attention, from document text"
   ],
-  "summary": "Общая сводка...",
-  "recommendation": "Рекомендации..."
-}`;
-    }
-
-    if (language === 'Kazakh') {
-      return `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
-
-CRITICAL RULES:
-1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
-2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
-3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
-4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
-5. Provide structured JSON output with:
-   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
-   - summary: brief overall summary string in Kazakh
-   - recommendation: actionable recommendations string in Kazakh
-6. Respond in Kazakh.
-
-Return ONLY valid JSON in this format:
-{
-  "metrics": [
-    {
-      "name": "WBC",
-      "value": 7.5,
-      "unit": "10^3/μL",
-      "isNormal": true,
-      "level": "normal",
-      "comment": "Қалыпты шеңберде"
-    }
+  
+  "questions_for_doctor": [
+    "3-7 specific questions to ask the doctor"
   ],
-  "summary": "Жалпы қорытынды...",
-  "recommendation": "Ұсыныстар..."
-}`;
-    }
-
-    return `You are a medical lab results interpreter. Analyze blood test results and provide structured feedback.
-
-CRITICAL RULES:
-1. Interpret common lab metrics (e.g., WBC, RBC, platelets, glucose, cholesterol, etc.) using typical reference ranges for adults.
-2. For each metric, determine if it is within a typical range, higher than typical, or lower than typical.
-3. Use soft language ("higher than a typical range", "could indicate issues") - never make definitive diagnoses.
-4. ALWAYS add a disclaimer that this is not a diagnosis and a doctor must be consulted.
-5. Provide structured JSON output with:
-   - metrics: array of { name, value, unit, isNormal, level ("low"/"high"/"normal"), comment }
-   - summary: brief overall summary string
-   - recommendation: actionable recommendations string
-6. Respond in English.
-
-Return ONLY valid JSON in this format:
-{
-  "metrics": [
-    {
-      "name": "WBC",
-      "value": 7.5,
-      "unit": "10^3/μL",
-      "isNormal": true,
-      "level": "normal",
-      "comment": "Within typical range"
-    }
+  
+  "urgent_warning": "Only if document contains urgent indicators, otherwise null",
+  
+  "missing_data": [
+    "List what could not be read or is missing"
   ],
-  "summary": "Overall summary...",
-  "recommendation": "Recommendations..."
-}`;
+  
+  "disclaimer": "${disclaimer}"
+}
+
+=== CRITICAL: Document Type Logic ===
+- If document is NOT lab results, do NOT write "no laboratory values found"
+- Instead write: "This is a [type] document. I can interpret the text. Laboratory flags (high/low) only apply to blood/urine tests."
+- If it's an image of an X-ray/scan without text description: "Without official radiologist's text report, I cannot reliably interpret the image."
+
+=== INPUT TEXT ===
+${text || '[No text provided - this may be an image-only upload]'}
+
+Now analyze and return ONLY the JSON response in ${langName}:`;
   }
 }

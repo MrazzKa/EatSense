@@ -30,7 +30,7 @@ type SuggestedFoodSection = {
 };
 
 // Backend may return items directly or sections
-type BackendResponse = 
+type BackendResponse =
   | SuggestedFoodItem[]
   | { sections: SuggestedFoodSection[] }
   | SuggestedFoodSection[];
@@ -47,19 +47,19 @@ export const SuggestedFoodScreen: React.FC = () => {
   // Helper function to get display name for category
   const getCategoryDisplayName = useCallback((category: string): string => {
     const categoryNames: Record<string, string> = {
-      protein: t('suggestedFood.sections.protein.title') || 'Белки',
-      fiber: t('suggestedFood.sections.fiber.title') || 'Клетчатка',
-      carbs: t('suggestedFood.sections.carbs.title') || 'Углеводы',
-      healthy_fat: t('suggestedFood.sections.healthyFat.title') || 'Полезные жиры',
-      general: t('suggestedFood.sections.general.title') || 'Общие рекомендации',
+      protein: t('dashboard.suggestedFood.sections.protein.title') || 'Белки',
+      fiber: t('dashboard.suggestedFood.sections.fiber.title') || 'Клетчатка',
+      carbs: t('dashboard.suggestedFood.sections.carbs.title') || 'Углеводы',
+      healthy_fat: t('dashboard.suggestedFood.sections.healthyFat.title') || 'Полезные жиры',
+      general: t('dashboard.suggestedFood.sections.general.title') || 'Общие рекомендации',
     };
-    
+
     const localized = categoryNames[category];
     // Check if localization worked (not a key itself)
-    if (localized && !localized.includes('suggestedFood.sections')) {
+    if (localized && !localized.includes('dashboard.suggestedFood.sections')) {
       return localized;
     }
-    
+
     // Fallback to human-readable name
     return category.charAt(0).toUpperCase() + category.slice(1).replace(/_/g, ' ');
   }, [t]);
@@ -74,18 +74,18 @@ export const SuggestedFoodScreen: React.FC = () => {
         // It's sections
         return data as SuggestedFoodSection[];
       }
-      
+
       // Backend returns SuggestedFoodItem[] with name, reason, tip, category
       // Convert to SuggestedFoodSection[] format expected by UI
       const backendItems = data as any[];
       const sectionsMap = new Map<string, SuggestedFoodSection>();
-      
+
       backendItems.forEach((item) => {
         const category = item.category || 'general';
         if (!sectionsMap.has(category)) {
           // Get localized title with proper fallback
           const title = getCategoryDisplayName(category);
-          
+
           sectionsMap.set(category, {
             id: category,
             title,
@@ -93,7 +93,7 @@ export const SuggestedFoodScreen: React.FC = () => {
             items: [],
           });
         }
-        
+
         const section = sectionsMap.get(category)!;
         // Check if item.name is a localization key and provide fallback
         let itemTitle = item.name || 'Food item';
@@ -108,7 +108,7 @@ export const SuggestedFoodScreen: React.FC = () => {
           description: item.tip || '',
         });
       });
-      
+
       return Array.from(sectionsMap.values());
     }
 
@@ -127,7 +127,7 @@ export const SuggestedFoodScreen: React.FC = () => {
       // 1. Try to get personalized suggestions from backend
       const data = await ApiService.getSuggestedFoods(language);
       const normalizedSections = normalizeBackendData(data as BackendResponse);
-      
+
       if (normalizedSections.length > 0) {
         setSections(normalizedSections);
       } else {
@@ -136,7 +136,7 @@ export const SuggestedFoodScreen: React.FC = () => {
       }
     } catch (e) {
       console.warn('[SuggestedFoodScreen] API failed, using fallback', e);
-      setError(t('suggestedFood.error.generic'));
+      setError(t('dashboard.suggestedFood.error.generic'));
       // 3. Always show fallback on error
       setSections(getStaticFallbackSections(t));
     } finally {
@@ -162,7 +162,7 @@ export const SuggestedFoodScreen: React.FC = () => {
       <SafeAreaView style={[styles.center, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          {t('suggestedFood.loading')}
+          {t('dashboard.suggestedFood.loading')}
         </Text>
       </SafeAreaView>
     );
@@ -184,7 +184,7 @@ export const SuggestedFoodScreen: React.FC = () => {
           <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
         </TouchableOpacity>
         <Text style={[styles.screenHeaderTitle, { color: colors.textPrimary || colors.text }]}>
-          {t('suggestedFood.title')}
+          {t('dashboard.suggestedFood.title')}
         </Text>
         <View style={styles.closeButton} />
       </View>
@@ -193,8 +193,8 @@ export const SuggestedFoodScreen: React.FC = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
@@ -203,7 +203,7 @@ export const SuggestedFoodScreen: React.FC = () => {
       >
         <View style={styles.header}>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {t('suggestedFood.subtitle')}
+            {t('dashboard.suggestedFood.subtitle')}
           </Text>
         </View>
 
@@ -218,7 +218,7 @@ export const SuggestedFoodScreen: React.FC = () => {
         {sections.length === 0 && !loading ? (
           <View style={styles.emptyState}>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {t('suggestedFood.empty')}
+              {t('dashboard.suggestedFood.empty')}
             </Text>
           </View>
         ) : (
@@ -245,8 +245,8 @@ export const SuggestedFoodScreen: React.FC = () => {
 
                 <View style={styles.itemsContainer}>
                   {section.items.map((item, index) => (
-                    <View 
-                      key={item.id} 
+                    <View
+                      key={item.id}
                       style={[
                         styles.itemCard,
                         index < section.items.length - 1 && styles.itemCardWithBorder,
@@ -304,94 +304,94 @@ function getStaticFallbackSections(t: (_key: string) => string): SuggestedFoodSe
   return [
     {
       id: 'protein',
-      title: t('suggestedFood.sections.protein.title') || 'Protein Sources',
-      subtitle: t('suggestedFood.sections.protein.subtitle') || 'High-quality protein for muscle maintenance',
+      title: t('dashboard.suggestedFood.sections.protein.title') || 'Protein Sources',
+      subtitle: t('dashboard.suggestedFood.sections.protein.subtitle') || 'High-quality protein for muscle maintenance',
       items: [
         {
           id: 'protein-1',
-          title: t('suggestedFood.sections.protein.items.cottageCheese.title') || 'Cottage Cheese',
-          description: t('suggestedFood.sections.protein.items.cottageCheese.description') || 'Low-fat, high-protein option. Great for breakfast or snacks.',
+          title: t('dashboard.suggestedFood.sections.protein.items.cottageCheese.title') || 'Cottage Cheese',
+          description: t('dashboard.suggestedFood.sections.protein.items.cottageCheese.description') || 'Low-fat, high-protein option. Great for breakfast or snacks.',
         },
         {
           id: 'protein-2',
-          title: t('suggestedFood.sections.protein.items.chickenBreast.title') || 'Chicken Breast',
-          description: t('suggestedFood.sections.protein.items.chickenBreast.description') || 'Lean protein source. Perfect for lunch or dinner.',
+          title: t('dashboard.suggestedFood.sections.protein.items.chickenBreast.title') || 'Chicken Breast',
+          description: t('dashboard.suggestedFood.sections.protein.items.chickenBreast.description') || 'Lean protein source. Perfect for lunch or dinner.',
         },
         {
           id: 'protein-3',
-          title: t('suggestedFood.sections.protein.items.eggs.title') || 'Eggs',
-          description: t('suggestedFood.sections.protein.items.eggs.description') || 'Complete protein with essential amino acids. Versatile and nutritious.',
+          title: t('dashboard.suggestedFood.sections.protein.items.eggs.title') || 'Eggs',
+          description: t('dashboard.suggestedFood.sections.protein.items.eggs.description') || 'Complete protein with essential amino acids. Versatile and nutritious.',
         },
         {
           id: 'protein-4',
-          title: t('suggestedFood.sections.protein.items.fish.title') || 'Fish (Salmon, Tuna)',
-          description: t('suggestedFood.sections.protein.items.fish.description') || 'Rich in omega-3 fatty acids. Supports heart and brain health.',
+          title: t('dashboard.suggestedFood.sections.protein.items.fish.title') || 'Fish (Salmon, Tuna)',
+          description: t('dashboard.suggestedFood.sections.protein.items.fish.description') || 'Rich in omega-3 fatty acids. Supports heart and brain health.',
         },
       ],
     },
     {
       id: 'carbs',
-      title: t('suggestedFood.sections.carbs.title') || 'Complex Carbohydrates',
-      subtitle: t('suggestedFood.sections.carbs.subtitle') || 'Sustained energy from whole grains',
+      title: t('dashboard.suggestedFood.sections.carbs.title') || 'Complex Carbohydrates',
+      subtitle: t('dashboard.suggestedFood.sections.carbs.subtitle') || 'Sustained energy from whole grains',
       items: [
         {
           id: 'carbs-1',
-          title: t('suggestedFood.sections.carbs.items.brownRice.title') || 'Brown Rice',
-          description: t('suggestedFood.sections.carbs.items.brownRice.description') || 'Whole grain with fiber. Better than white rice for blood sugar control.',
+          title: t('dashboard.suggestedFood.sections.carbs.items.brownRice.title') || 'Brown Rice',
+          description: t('dashboard.suggestedFood.sections.carbs.items.brownRice.description') || 'Whole grain with fiber. Better than white rice for blood sugar control.',
         },
         {
           id: 'carbs-2',
-          title: t('suggestedFood.sections.carbs.items.quinoa.title') || 'Quinoa',
-          description: t('suggestedFood.sections.carbs.items.quinoa.description') || 'Complete protein and complex carbs. Gluten-free option.',
+          title: t('dashboard.suggestedFood.sections.carbs.items.quinoa.title') || 'Quinoa',
+          description: t('dashboard.suggestedFood.sections.carbs.items.quinoa.description') || 'Complete protein and complex carbs. Gluten-free option.',
         },
         {
           id: 'carbs-3',
-          title: t('suggestedFood.sections.carbs.items.sweetPotato.title') || 'Sweet Potato',
-          description: t('suggestedFood.sections.carbs.items.sweetPotato.description') || 'Rich in beta-carotene and fiber. Natural sweetness without added sugar.',
+          title: t('dashboard.suggestedFood.sections.carbs.items.sweetPotato.title') || 'Sweet Potato',
+          description: t('dashboard.suggestedFood.sections.carbs.items.sweetPotato.description') || 'Rich in beta-carotene and fiber. Natural sweetness without added sugar.',
         },
       ],
     },
     {
       id: 'fiber',
-      title: t('suggestedFood.sections.fiber.title') || 'Fiber-Rich Foods',
-      subtitle: t('suggestedFood.sections.fiber.subtitle') || 'Support digestive health and satiety',
+      title: t('dashboard.suggestedFood.sections.fiber.title') || 'Fiber-Rich Foods',
+      subtitle: t('dashboard.suggestedFood.sections.fiber.subtitle') || 'Support digestive health and satiety',
       items: [
         {
           id: 'fiber-1',
-          title: t('suggestedFood.sections.fiber.items.oats.title') || 'Oats',
-          description: t('suggestedFood.sections.fiber.items.oats.description') || 'Soluble fiber helps lower cholesterol. Great for breakfast.',
+          title: t('dashboard.suggestedFood.sections.fiber.items.oats.title') || 'Oats',
+          description: t('dashboard.suggestedFood.sections.fiber.items.oats.description') || 'Soluble fiber helps lower cholesterol. Great for breakfast.',
         },
         {
           id: 'fiber-2',
-          title: t('suggestedFood.sections.fiber.items.vegetables.title') || 'Leafy Greens & Vegetables',
-          description: t('suggestedFood.sections.fiber.items.vegetables.description') || 'Low calories, high volume. Add to every meal for fullness.',
+          title: t('dashboard.suggestedFood.sections.fiber.items.vegetables.title') || 'Leafy Greens & Vegetables',
+          description: t('dashboard.suggestedFood.sections.fiber.items.vegetables.description') || 'Low calories, high volume. Add to every meal for fullness.',
         },
         {
           id: 'fiber-3',
-          title: t('suggestedFood.sections.fiber.items.legumes.title') || 'Legumes (Beans, Lentils)',
-          description: t('suggestedFood.sections.fiber.items.legumes.description') || 'Plant-based protein and fiber. Budget-friendly and nutritious.',
+          title: t('dashboard.suggestedFood.sections.fiber.items.legumes.title') || 'Legumes (Beans, Lentils)',
+          description: t('dashboard.suggestedFood.sections.fiber.items.legumes.description') || 'Plant-based protein and fiber. Budget-friendly and nutritious.',
         },
       ],
     },
     {
       id: 'healthy_fat',
-      title: t('suggestedFood.sections.healthyFat.title') || 'Healthy Fats',
-      subtitle: t('suggestedFood.sections.healthyFat.subtitle') || 'Essential for hormone production and nutrient absorption',
+      title: t('dashboard.suggestedFood.sections.healthyFat.title') || 'Healthy Fats',
+      subtitle: t('dashboard.suggestedFood.sections.healthyFat.subtitle') || 'Essential for hormone production and nutrient absorption',
       items: [
         {
           id: 'fat-1',
-          title: t('suggestedFood.sections.healthyFat.items.avocado.title') || 'Avocado',
-          description: t('suggestedFood.sections.healthyFat.items.avocado.description') || 'Monounsaturated fats. Supports heart health and satiety.',
+          title: t('dashboard.suggestedFood.sections.healthyFat.items.avocado.title') || 'Avocado',
+          description: t('dashboard.suggestedFood.sections.healthyFat.items.avocado.description') || 'Monounsaturated fats. Supports heart health and satiety.',
         },
         {
           id: 'fat-2',
-          title: t('suggestedFood.sections.healthyFat.items.nuts.title') || 'Nuts & Seeds',
-          description: t('suggestedFood.sections.healthyFat.items.nuts.description') || 'Omega-3 and omega-6 fatty acids. Great for snacks in moderation.',
+          title: t('dashboard.suggestedFood.sections.healthyFat.items.nuts.title') || 'Nuts & Seeds',
+          description: t('dashboard.suggestedFood.sections.healthyFat.items.nuts.description') || 'Omega-3 and omega-6 fatty acids. Great for snacks in moderation.',
         },
         {
           id: 'fat-3',
-          title: t('suggestedFood.sections.healthyFat.items.oliveOil.title') || 'Olive Oil',
-          description: t('suggestedFood.sections.healthyFat.items.oliveOil.description') || 'Extra virgin olive oil for cooking and dressings. Mediterranean diet staple.',
+          title: t('dashboard.suggestedFood.sections.healthyFat.items.oliveOil.title') || 'Olive Oil',
+          description: t('dashboard.suggestedFood.sections.healthyFat.items.oliveOil.description') || 'Extra virgin olive oil for cooking and dressings. Mediterranean diet staple.',
         },
       ],
     },

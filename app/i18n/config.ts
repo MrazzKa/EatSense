@@ -78,7 +78,7 @@ const initializeI18next = () => {
       .use(initReactI18next)
       .init({
         resources,
-        lng: DEFAULT_FALLBACK,
+        lng: detectDeviceLocale(),
         fallbackLng: DEFAULT_FALLBACK,
         supportedLngs: SUPPORTED_LOCALES,
         compatibilityJSON: 'v3',
@@ -94,7 +94,7 @@ const initializeI18next = () => {
         } : undefined,
         saveMissing: false, // Don't save missing keys to backend
       })
-      .then(() => {});
+      .then(() => { });
   }
 
   return initializationPromise;

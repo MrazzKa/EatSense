@@ -13,11 +13,14 @@
     "error": "Error",
     "success": "Success",
     "retry": "Retry",
+    "rerun": "Rerun",
     "search": "Search",
     "viewAll": "View All",
     "ok": "OK",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "confirm": "Confirm",
+    "info": "Info"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -132,6 +135,14 @@
           }
         }
       }
+    },
+    "diary": {
+      "analyzing": "Analyzing...",
+      "analyzingHint": "This may take 10-30 seconds",
+      "failed": "Analysis failed",
+      "failedHint": "Tap to retry",
+      "needsReview": "Needs review",
+      "needsReviewHint": "Could not calculate nutrition"
     }
   },
   "articles": {
@@ -170,7 +181,14 @@
     "calculating": "Calculating",
     "totalNutrition": "Total Nutrition",
     "calories": "Calories",
+    "kcal": "kcal",
+    "proteinShort": "P",
+    "carbsShort": "C",
+    "fatShort": "F",
+    "grams": "g",
+    "askAi": "Ask AI",
     "ingredients": "Ingredients",
+    "addIngredient": "Add ingredient",
     "share": "Share",
     "fixButton": "Fix",
     "fix": "Fix",
@@ -206,7 +224,12 @@
       "needsReview": "Nutrition data unavailable"
     },
     "reanalyzeConfirmTitle": "Re-analyze dish?",
-    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ."
+    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ.",
+    "noIngredients": "No ingredients recognized",
+    "fixWithAi": "Fix with AI",
+    "fixWithAiHint": "Tap to ask AI to fix or improve this analysis",
+    "askButton": "Ask AI",
+    "healthScore": "Health Score"
   },
   "describeFood": {
     "title": "Describe your meal",
@@ -449,7 +472,8 @@
     "fat": "Fat",
     "calories": "Calories (kcal)",
     "calculate": "Calculate: {{value}}",
-    "calculatedAuto": "Calculated automatically from macronutrients"
+    "calculatedAuto": "Calculated automatically from macronutrients",
+    "searchUSDA": "Search USDA Database"
   },
   "auth": {
     "email": "Email",
@@ -688,7 +712,10 @@
       "submitted": "Lab results submitted successfully",
       "success": "Lab results analyzed successfully",
       "error": "Failed to send results. Please try again.",
-      "emptyError": "Please enter lab results or attach a file"
+      "emptyError": "Please enter lab results or attach a file",
+      "photoAttached": "Photo attached",
+      "pdfAttached": "PDF attached",
+      "disclaimer": "This is not a medical diagnosis. Consult a healthcare professional for medical decisions."
     },
     "unavailable": "AI Assistant temporarily unavailable",
     "unavailableDescription": "We are testing the first version of the app. The assistant section is temporarily disabled, but everything else is working.",
@@ -729,14 +756,16 @@
     "flow": {
       "injury": {
         "title": "Injury triage",
-        "desc": "Collect symptom details and get next steps." }
-,
+        "desc": "Collect symptom details and get next steps."
+      },
       "nutrition": {
         "title": "Nutrition goal setup",
-        "desc": "Define your goal, challenges, and resources." },
+        "desc": "Define your goal, challenges, and resources."
+      },
       "hydration": {
         "title": "Hydration check",
-        "desc": "Audit daily intake and build a hydration schedule." }
+        "desc": "Audit daily intake and build a hydration schedule."
+      }
     }
   },
   "recently": {
@@ -800,8 +829,16 @@
   "statistics": {
     "title": "Statistics",
     "today": "Today",
+    "noDataToday": "No data for today yet",
+    "unnamedProduct": "Unnamed Product",
     "empty": "No statistics available yet",
-    "times": "times"
+    "times": "times",
+    "period": "Period",
+    "adherence": "Goal Adherence",
+    "conclusions": "Conclusions",
+    "onTrack": "On Track",
+    "over": "Over Goal",
+    "under": "Under Goal"
   },
   "reports": {
     "title": "Reports",
@@ -811,11 +848,18 @@
       "subtitle": "Detailed PDF about your month: calories, macros, top foods.",
       "downloadCurrent": "Download current month"
     },
+    "history": {
+      "title": "Recent Reports",
+      "subtitle": "Previously downloaded reports"
+    },
     "downloaded": "Report downloaded successfully",
     "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
+    "deleteConfirm": "Delete this report from history?",
+    "fileSaved": "Report saved",
     "error": {
       "generic": "Failed to generate monthly report. Please try again later.",
-      "network": "Network error. Please check your connection and try again."
+      "network": "Network error. Please check your connection and try again.",
+      "openFailed": "Failed to open report file."
     }
   },
   "legal": {
@@ -887,4 +931,3 @@
     "confirm": "Continue"
   }
 }
-

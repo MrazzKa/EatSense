@@ -89,6 +89,37 @@ async function bootstrap() {
   console.log(`📡 API Base URL: ${process.env.API_BASE_URL || 'not set'}`);
   console.log('========================================');
 
+  // Seed articles if empty (check both ru and en)
+  try {
+    const { ArticlesService } = await import('./articles/articles.service');
+    const articlesService = app.get(ArticlesService);
+    if (articlesService && typeof articlesService.findAll === 'function') {
+      // Check Russian articles
+      const ruArticlesCount = await articlesService.findAll('ru', 1, 1);
+      if (ruArticlesCount.articles.length === 0) {
+        console.log('[Bootstrap] Seeding Russian articles...');
+        if (typeof articlesService.seedArticles === 'function') {
+          await articlesService.seedArticles();
+        }
+      } else {
+        console.log(`[Bootstrap] Russian articles already exist (${ruArticlesCount.total} total)`);
+      }
+      
+      // Check English articles
+      const enArticlesCount = await articlesService.findAll('en', 1, 1);
+      if (enArticlesCount.articles.length === 0) {
+        console.log('[Bootstrap] Seeding English articles...');
+        if (typeof articlesService.seedArticles === 'function') {
+          await articlesService.seedArticles();
+        }
+      } else {
+        console.log(`[Bootstrap] English articles already exist (${enArticlesCount.total} total)`);
+      }
+    }
+  } catch (seedError) {
+    console.warn('[Bootstrap] Could not seed articles:', seedError instanceof Error ? seedError.message : String(seedError));
+  }
+
   // Network interfaces debug info (only in non-production)
   if (process.env.NODE_ENV !== 'production') {
     try {

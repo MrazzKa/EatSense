@@ -11,11 +11,11 @@ export class MealsService {
   constructor(
     private readonly prisma: PrismaService,
     @Optional() @Inject(CacheService) private readonly cache?: CacheService,
-  ) {}
+  ) { }
 
   async getMeals(userId: string, date?: string) {
     const where: any = { userId };
-    
+
     // Filter by date if provided (date should be in YYYY-MM-DD format)
     if (date) {
       try {
@@ -25,7 +25,7 @@ export class MealsService {
           startOfDay.setHours(0, 0, 0, 0);
           const endOfDay = new Date(dateObj);
           endOfDay.setHours(23, 59, 59, 999);
-          
+
           // Filter by consumedAt if available, otherwise by createdAt
           where.OR = [
             {
@@ -73,6 +73,18 @@ export class MealsService {
         { calories: 0, protein: 0, carbs: 0, fat: 0 }
       );
 
+      // Map items to ingredients format for AnalysisResultsScreen
+      const ingredients = meal.items.map(item => ({
+        id: item.id,
+        name: item.name || 'Unknown',
+        calories: item.calories || 0,
+        protein: item.protein || 0,
+        carbs: item.carbs || 0,
+        fat: item.fat || 0,
+        weight: item.weight || 0,
+        hasNutrition: true,
+      }));
+
       return {
         ...meal,
         imageUrl: meal.imageUri || null, // Use imageUri as imageUrl for frontend
@@ -86,34 +98,42 @@ export class MealsService {
         protein: totals.protein,
         carbs: totals.carbs,
         fat: totals.fat,
+        // Add ingredients alias for AnalysisResultsScreen compatibility
+        ingredients,
+        // Include health score data for AnalysisResultsScreen
+        healthScore: meal.healthInsights || (meal.healthScore ? {
+          score: meal.healthScore,
+          grade: meal.healthGrade || 'C',
+        } : null),
+        healthInsights: meal.healthInsights || null,
       };
     });
   }
 
   async createMeal(userId: string, createMealDto: CreateMealDto) {
     const { items, consumedAt, healthScore: healthScorePayload, imageUri, ...mealData } = createMealDto;
-    
+
     // Валидация: проверяем, что есть хотя бы один item
     if (!items || items.length === 0) {
       throw new BadRequestException('Meal must have at least one item');
     }
-    
+
     // Валидация: проверяем, что name существует
     if (!mealData.name || mealData.name.trim().length === 0) {
       throw new BadRequestException('Meal name is required');
     }
-    
+
     // Преобразуем consumedAt из строки в Date, если передано
     const consumedAtDate = consumedAt ? new Date(consumedAt) : new Date();
-    
+
     // Проверяем валидность даты
     if (isNaN(consumedAtDate.getTime())) {
       throw new BadRequestException('Invalid consumedAt date');
     }
-    
+
     // Нормализуем type: 'meal' -> 'MEAL', или оставляем как есть
     const normalizedType = mealData.type?.toUpperCase() || 'MEAL';
-    
+
     // Валидация и нормализация items
     const validItems = items
       .filter(item => item && (item.name || item.calories || item.protein || item.fat || item.carbs))
@@ -125,11 +145,11 @@ export class MealsService {
         carbs: Number(item.carbs) || 0,
         weight: Number(item.weight) || 0,
       }));
-    
+
     if (validItems.length === 0) {
       throw new BadRequestException('Meal must have at least one valid item');
     }
-    
+
     const meal = await this.prisma.meal.create({
       data: {
         userId,

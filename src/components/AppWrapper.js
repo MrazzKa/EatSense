@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { AnalysisProvider } from '../contexts/AnalysisContext';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import ApiService from '../services/apiService';
 import Constants from 'expo-constants';
@@ -18,7 +19,7 @@ function AppContent({ children }) {
       const deviceId = Constants.deviceId || Constants.installationId || 'unknown';
       const appVersion = Constants.expoConfig?.version || Constants.nativeAppVersion || '1.0.0';
       const platform = Platform.OS;
-      
+
       ApiService.registerPushToken(expoPushToken, deviceId, platform, appVersion).catch((error) => {
         console.error('[AppWrapper] Failed to register push token:', error);
       });
@@ -50,13 +51,16 @@ export function AppWrapper({ children }) {
         console.log('[BOOT:AppWrapper] Inside ThemeProvider, rendering AuthProvider');
         return (
           <AuthProvider>
-            {(() => {
-              console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
-              return <AppContent>{children}</AppContent>;
-            })()}
+            <AnalysisProvider>
+              {(() => {
+                console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
+                return <AppContent>{children}</AppContent>;
+              })()}
+            </AnalysisProvider>
           </AuthProvider>
         );
       })()}
     </ThemeProvider>
   );
 }
+

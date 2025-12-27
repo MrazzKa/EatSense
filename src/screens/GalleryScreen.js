@@ -17,6 +17,7 @@ import { PADDING, SPACING } from '../utils/designConstants';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
 import ApiService from '../services/apiService';
+import { useAnalysis } from '../contexts/AnalysisContext';
 
 const STATE = {
   IDLE: 'idle',
@@ -25,42 +26,22 @@ const STATE = {
   DENIED: 'denied',
   LIMITED: 'limited',
   OPENING: 'opening',
+  OPENING_TIMEOUT: 'opening_timeout', // Added: when picker takes too long
   CANCELED: 'canceled',
   ERROR: 'error',
 };
 
+// Timeout for image picker - if it doesn't respond, show manual button
+const PICKER_TIMEOUT_MS = 3000;
+
 export default function GalleryScreen() {
   const navigation = useNavigation();
   const { language } = useI18n();
-  const [state, setState] = useState(STATE.CHECKING);
+  const { addPendingAnalysis } = useAnalysis();
+  const [state, setState] = useState(STATE.READY); // Start with READY - show button immediately
   const [error, setError] = useState(null);
   const isOpeningRef = useRef(false);
-
-  // On mount: check permissions only, don't auto-open
-  useEffect(() => {
-    const checkPermissions = async () => {
-      try {
-        const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
-        
-        if (permission.granted) {
-          setState(STATE.READY);
-        } else if (permission.status === 'limited') {
-          setState(STATE.LIMITED);
-        } else if (permission.canAskAgain) {
-          // Can ask, but don't auto-request - let user click button
-          setState(STATE.DENIED);
-        } else {
-          setState(STATE.DENIED);
-        }
-      } catch (error) {
-        if (__DEV__) console.error('[GalleryScreen] Error checking permissions:', error);
-        setState(STATE.ERROR);
-        setError(String(error?.message ?? error));
-      }
-    };
-
-    checkPermissions();
-  }, []);
+  const pickerTimeoutRef = useRef(null);
 
   const openSettings = useCallback(() => {
     if (Platform.OS === 'ios') {
@@ -69,6 +50,49 @@ export default function GalleryScreen() {
       Linking.openSettings();
     }
   }, []);
+
+  const startAnalysis = useCallback(async (imageUri) => {
+    if (!imageUri) return;
+
+    try {
+      // Start background analysis immediately without prompt
+      const locale = mapLanguageToLocale(language);
+
+      if (__DEV__) {
+        console.log('[GalleryScreen] Starting image analysis:', {
+          hasImage: !!imageUri,
+          locale,
+        });
+      }
+
+      // Start analysis in background - it will appear in Diary
+      const response = await ApiService.analyzeImage(imageUri, locale);
+
+      if (__DEV__) {
+        console.log('[GalleryScreen] Analysis response:', {
+          hasAnalysisId: !!response?.analysisId,
+          hasItems: !!response?.items,
+          status: response?.status,
+        });
+      }
+
+      // Add to pending analyses for processing card display
+      if (response?.analysisId) {
+        addPendingAnalysis(response.analysisId, imageUri);
+      }
+
+      // Navigate to Dashboard - analysis will show in Diary as processing card
+      if (navigation && typeof navigation.navigate === 'function') {
+        navigation.navigate('MainTabs', { screen: 'Dashboard' });
+      }
+    } catch (error) {
+      console.error('[GalleryScreen] Error starting background analysis:', error);
+      // On error, still navigate to dashboard - user can retry
+      if (navigation && typeof navigation.navigate === 'function') {
+        navigation.navigate('MainTabs', { screen: 'Dashboard' });
+      }
+    }
+  }, [language, navigation, addPendingAnalysis]);
 
   const pickImage = useCallback(async () => {
     if (isOpeningRef.current) {
@@ -80,39 +104,46 @@ export default function GalleryScreen() {
     setError(null);
     setState(STATE.OPENING);
 
-    // Timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
+    // Set timeout - if picker doesn't respond in time, show manual button
+    if (pickerTimeoutRef.current) {
+      clearTimeout(pickerTimeoutRef.current);
+    }
+    pickerTimeoutRef.current = setTimeout(() => {
       if (isOpeningRef.current) {
-        if (__DEV__) console.warn('[GalleryScreen] Timeout waiting for image picker, resetting state');
-        isOpeningRef.current = false;
-        setState(STATE.READY); // Reset to ready to allow retry
-        setError('Timeout: Image picker took too long. Please try again.');
+        if (__DEV__) console.log('[GalleryScreen] Picker timeout - showing manual button');
+        setState(STATE.OPENING_TIMEOUT);
       }
-    }, 15000); // 15 second timeout
+    }, PICKER_TIMEOUT_MS);
 
     try {
-      // Проверяем разрешения, но даже если denied - пробуем открыть пикер
+      // Check permissions, but still try to open picker even if denied
       const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
-      
-      // iOS странность: accessPrivileges="all" но granted=false - пробуем открыть
-      const shouldTryOpen = permission.granted || 
+
+      // iOS quirk: accessPrivileges="all" but granted=false - try to open anyway
+      const shouldTryOpen = permission.granted ||
         (Platform.OS === 'ios' && permission.accessPrivileges === 'all') ||
         permission.status === 'limited';
-      
+
       if (!shouldTryOpen && permission.canAskAgain) {
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       }
 
-      // Пробуем открыть пикер даже если разрешение denied (iOS может разрешить)
+      // Clear timeout since picker is responding
+      if (pickerTimeoutRef.current) {
+        clearTimeout(pickerTimeoutRef.current);
+        pickerTimeoutRef.current = null;
+      }
+
+      // Try to open picker even if permission denied (iOS may allow)
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: false,
         quality: 1,
         selectionLimit: 1,
         exif: false,
       });
 
-      clearTimeout(timeoutId); // Clear timeout on successful interaction
+
 
       if (result.canceled) {
         setState(STATE.CANCELED);
@@ -126,7 +157,6 @@ export default function GalleryScreen() {
 
       const asset = result.assets?.[0];
       if (!asset) {
-        clearTimeout(timeoutId);
         setState(STATE.ERROR);
         setError('No asset returned');
         isOpeningRef.current = false;
@@ -134,7 +164,7 @@ export default function GalleryScreen() {
       }
 
       if (__DEV__) console.log('[GalleryScreen] Image selected, compressing...');
-      
+
       // Compress the image
       const compressedImage = await ImageManipulator.manipulateAsync(
         asset.uri,
@@ -142,35 +172,35 @@ export default function GalleryScreen() {
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      clearTimeout(timeoutId);
       if (__DEV__) console.log('[GalleryScreen] Image compressed, starting analysis...');
       setState(STATE.READY);
       isOpeningRef.current = false;
-      
+
       // Start analysis immediately without prompt
       await startAnalysis(compressedImage.uri);
     } catch (e) {
-      clearTimeout(timeoutId);
+
       if (__DEV__) console.error('[GalleryScreen] Error picking image:', e);
       setState(STATE.ERROR);
       setError(String(e?.message ?? e));
       isOpeningRef.current = false;
     }
-  }, [navigation]);
+  }, [navigation, startAnalysis]);
 
-  // On mount: check permissions only, don't auto-open
+  // On mount: just check permissions, don't auto-open (was causing issues on iOS)
   useEffect(() => {
     const checkPermissions = async () => {
       try {
         const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
-        
-        if (permission.granted) {
+
+        if (permission.granted ||
+          (Platform.OS === 'ios' && permission.accessPrivileges === 'all') ||
+          permission.status === 'limited') {
+          // Permission granted - show the button to open gallery
           setState(STATE.READY);
-        } else if (permission.status === 'limited') {
-          setState(STATE.LIMITED);
         } else if (permission.canAskAgain) {
-          // Can ask, but don't auto-request - let user click button
-          setState(STATE.DENIED);
+          // Will ask for permission when user taps the button
+          setState(STATE.READY);
         } else {
           setState(STATE.DENIED);
         }
@@ -182,21 +212,33 @@ export default function GalleryScreen() {
     };
 
     checkPermissions();
+  }, []); // Empty dependency array - run only once on mount
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pickerTimeoutRef.current) {
+        clearTimeout(pickerTimeoutRef.current);
+      }
+    };
   }, []);
 
   const handleOpenGallery = useCallback(async () => {
+    // Always allow retry - reset the ref
+    isOpeningRef.current = false;
+
     if (isOpeningRef.current) {
       return;
     }
 
     // Check permission first
     let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
-    
+
     if (!permission.granted && permission.canAskAgain) {
       permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     }
 
-    const canProceed = permission.granted || 
+    const canProceed = permission.granted ||
       (Platform.OS === 'ios' && permission.accessPrivileges === 'all') ||
       permission.status === 'limited';
 
@@ -215,53 +257,6 @@ export default function GalleryScreen() {
     }
   };
 
-  const startAnalysis = useCallback(async (imageUri) => {
-    if (!imageUri) return;
-    
-    try {
-      // Start background analysis immediately without prompt
-      const locale = mapLanguageToLocale(language);
-      
-      if (__DEV__) {
-        console.log('[GalleryScreen] Starting image analysis:', {
-          hasImage: !!imageUri,
-          locale,
-        });
-      }
-      
-      // Start analysis in background - it will appear in Diary
-      const response = await ApiService.analyzeImage(imageUri, locale);
-      
-      if (__DEV__) {
-        console.log('[GalleryScreen] Analysis response:', {
-          hasAnalysisId: !!response?.analysisId,
-          hasItems: !!response?.items,
-          status: response?.status,
-          responseKeys: response ? Object.keys(response) : [],
-          fullResponse: response,
-        });
-      }
-      
-      // If analysis returns immediately with result, it will be saved automatically
-      // If it returns analysisId, it will be tracked via getActiveAnalyses
-      // Either way, navigate to Dashboard - analysis will show in Diary
-      if (navigation && typeof navigation.navigate === 'function') {
-        navigation.navigate('MainTabs', { screen: 'Dashboard' });
-      }
-    } catch (error) {
-      console.error('[GalleryScreen] Error starting background analysis:', error);
-      if (__DEV__) {
-        console.error('[GalleryScreen] Error details:', {
-          message: error?.message,
-          stack: error?.stack,
-        });
-      }
-      // On error, still navigate to dashboard - user can retry
-      if (navigation && typeof navigation.navigate === 'function') {
-        navigation.navigate('MainTabs', { screen: 'Dashboard' });
-      }
-    }
-  }, [language, navigation]);
 
   const renderContent = () => {
     if (state === STATE.CHECKING || state === STATE.OPENING) {
@@ -271,6 +266,26 @@ export default function GalleryScreen() {
           <Text style={styles.loadingText}>
             {state === STATE.CHECKING ? 'Checking permissions...' : 'Opening gallery...'}
           </Text>
+        </View>
+      );
+    }
+
+    // Timeout state - picker took too long, show manual button
+    if (state === STATE.OPENING_TIMEOUT) {
+      return (
+        <View style={styles.content}>
+          <Ionicons name="images-outline" size={64} color="#007AFF" />
+          <Text style={styles.permissionTitle}>Gallery Not Responding</Text>
+          <Text style={styles.permissionText}>
+            The photo picker is taking too long. Tap the button below to try again.
+          </Text>
+          <TouchableOpacity style={styles.pickButton} onPress={handleOpenGallery}>
+            <Ionicons name="folder-open-outline" size={24} color="#FFFFFF" />
+            <Text style={styles.pickButtonText}>Open Gallery</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.secondaryButton, { borderWidth: 1, borderColor: '#8E8E93', marginTop: 12 }]} onPress={handleClose}>
+            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>Go Back</Text>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -378,7 +393,7 @@ export default function GalleryScreen() {
         <Text style={styles.headerTitle}>Select Photo</Text>
         <View style={styles.headerButton} />
       </View>
-      
+
       {renderContent()}
     </SafeAreaView>
   );

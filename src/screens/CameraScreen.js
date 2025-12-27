@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
@@ -15,12 +15,14 @@ import { clientLog } from '../utils/clientLog';
 import DescribeFoodModal from '../components/DescribeFoodModal';
 import ApiService from '../services/apiService';
 import { mapLanguageToLocale } from '../utils/locale';
+import { useAnalysis } from '../contexts/AnalysisContext';
 
 export default function CameraScreen() {
   const navigation = useNavigation();
   const [permission, requestPermission] = useCameraPermissions();
   const { tokens } = useTheme();
   const { t, language } = useI18n();
+  const { addPendingAnalysis } = useAnalysis();
   const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
   const [zoom, setZoom] = useState(0);
@@ -28,28 +30,28 @@ export default function CameraScreen() {
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
   const [capturedImageUri, setCapturedImageUri] = useState(null);
-  
+
   // Safe requestPermission wrapper
   const handleRequestPermission = async () => {
     if (requestPermission && typeof requestPermission === 'function') {
       try {
-        await clientLog('Camera:requestPermissionStart').catch(() => {});
+        await clientLog('Camera:requestPermissionStart').catch(() => { });
         const result = await requestPermission();
         await clientLog('Camera:requestPermissionResult', {
           granted: result?.granted || false,
           status: result?.status || 'unknown',
-        }).catch(() => {});
+        }).catch(() => { });
       } catch (error) {
         await clientLog('Camera:requestPermissionError', {
           message: error?.message || String(error),
-        }).catch(() => {});
+        }).catch(() => { });
         Alert.alert(
           t('common.error') || 'Error',
           t('camera.permissionError') || 'Failed to request camera permission'
         );
       }
     } else {
-      await clientLog('Camera:requestPermissionNotFunction').catch(() => {});
+      await clientLog('Camera:requestPermissionNotFunction').catch(() => { });
       Alert.alert(
         t('common.error') || 'Error',
         'Camera permission function not available'
@@ -61,21 +63,21 @@ export default function CameraScreen() {
 
   const takePicture = async () => {
     if (!cameraRef.current || isLoading) {
-      await clientLog('Camera:takePictureNoRef').catch(() => {});
+      await clientLog('Camera:takePictureNoRef').catch(() => { });
       return;
     }
 
     // Check if takePictureAsync exists
     if (typeof cameraRef.current.takePictureAsync !== 'function') {
-      await clientLog('Camera:takePictureAsyncNotFunction').catch(() => {});
+      await clientLog('Camera:takePictureAsyncNotFunction').catch(() => { });
       Alert.alert(t('common.error') || 'Error', t('camera.captureError') || 'Camera function not available');
       return;
     }
 
     setIsLoading(true);
     try {
-      await clientLog('Camera:takePictureStart').catch(() => {});
-      
+      await clientLog('Camera:takePictureStart').catch(() => { });
+
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
         base64: false,
@@ -105,7 +107,7 @@ export default function CameraScreen() {
         width: compressedImage.width || 0,
         height: compressedImage.height || 0,
         uri: compressedImage.uri ? 'present' : 'missing',
-      }).catch(() => {});
+      }).catch(() => { });
 
       // Start analysis immediately without prompt
       await startAnalysis(compressedImage.uri);
@@ -114,7 +116,7 @@ export default function CameraScreen() {
       await clientLog('Camera:takePictureError', {
         message: error?.message || String(error),
         stack: String(error?.stack || '').substring(0, 500),
-      }).catch(() => {});
+      }).catch(() => { });
       Alert.alert(
         t('common.error') || 'Error',
         t('camera.captureError') || 'Failed to take picture. Please try again.'
@@ -160,33 +162,35 @@ export default function CameraScreen() {
 
   const startAnalysis = useCallback(async (imageUri) => {
     if (!imageUri) return;
-    
+
     try {
       // Start background analysis immediately without prompt
       const locale = mapLanguageToLocale(language);
-      
+
       if (__DEV__) {
         console.log('[CameraScreen] Starting image analysis:', {
           hasImage: !!imageUri,
           locale,
         });
       }
-      
+
       // Start analysis in background - it will appear in Diary
       const response = await ApiService.analyzeImage(imageUri, locale);
-      
+
       if (__DEV__) {
         console.log('[CameraScreen] Analysis response:', {
           hasAnalysisId: !!response?.analysisId,
           hasItems: !!response?.items,
           status: response?.status,
-          responseKeys: response ? Object.keys(response) : [],
         });
       }
-      
-      // If analysis returns immediately with result, it will be saved automatically
-      // If it returns analysisId, it will be tracked via getActiveAnalyses
-      // Either way, navigate to Dashboard - analysis will show in Diary
+
+      // Add to pending analyses for processing card display
+      if (response?.analysisId) {
+        addPendingAnalysis(response.analysisId, imageUri);
+      }
+
+      // Navigate to Dashboard - analysis will show in Diary as processing card
       if (navigation && typeof navigation.navigate === 'function') {
         navigation.navigate('MainTabs', { screen: 'Dashboard' });
       }
@@ -199,7 +203,7 @@ export default function CameraScreen() {
     } finally {
       setCapturedImageUri(null);
     }
-  }, [language, navigation]);
+  }, [language, navigation, addPendingAnalysis]);
 
   if (!permission) {
     return (
@@ -225,8 +229,8 @@ export default function CameraScreen() {
           <Text style={[styles.permissionText, { color: tokens.colors.textSecondary }]}>
             {t('camera.accessBody')}
           </Text>
-          <Pressable 
-            style={[styles.permissionButton, { backgroundColor: tokens.colors.primary }]} 
+          <Pressable
+            style={[styles.permissionButton, { backgroundColor: tokens.colors.primary }]}
             onPress={handleRequestPermission}
           >
             <Text style={[styles.permissionButtonText, { color: tokens.colors.onPrimary }]}>
@@ -264,7 +268,7 @@ export default function CameraScreen() {
           <View
             style={[styles.header, { paddingTop: tokens.spacing.lg }]}
           >
-            <Pressable style={styles.headerButton} onPress={typeof handleClose === 'function' ? handleClose : () => {}}>
+            <Pressable style={styles.headerButton} onPress={typeof handleClose === 'function' ? handleClose : () => { }}>
               <Ionicons name="close" size={24} color={tokens.colors.onPrimary} />
             </Pressable>
             <Text style={[styles.headerTitle, { color: tokens.colors.onPrimary }]}>{t('camera.takePhoto')}</Text>
@@ -275,7 +279,7 @@ export default function CameraScreen() {
             style={[styles.controls, { paddingBottom: tokens.spacing.xl }]}
           >
             <View style={styles.controlRow}>
-              <Pressable style={styles.controlButton} onPress={typeof handleFlashToggle === 'function' ? handleFlashToggle : () => {}}>
+              <Pressable style={styles.controlButton} onPress={typeof handleFlashToggle === 'function' ? handleFlashToggle : () => { }}>
                 <Ionicons
                   name={
                     flashMode === 'off' ? 'flash-off' : flashMode === 'on' ? 'flash' : 'flash-outline'
@@ -289,7 +293,7 @@ export default function CameraScreen() {
               <View style={styles.captureWrapper}>
                 <Pressable
                   style={[styles.captureButton, isLoading && styles.captureButtonDisabled]}
-                  onPress={typeof takePicture === 'function' ? takePicture : () => {}}
+                  onPress={typeof takePicture === 'function' ? takePicture : () => { }}
                   disabled={isLoading}
                 >
                   {isLoading ? (

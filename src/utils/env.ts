@@ -7,8 +7,10 @@ declare const __DEV__: boolean | undefined;
 
 const safeEnv = {
   // API Configuration
-  // If EXPO_PUBLIC_API_BASE_URL is not set, default to production Railway URL
-  // to avoid accidental usage of localhost or temporary ngrok tunnels in Expo Go
+  // Priority: EXPO_PUBLIC_API_BASE_URL > default production URL
+  // For local dev: set EXPO_PUBLIC_API_BASE_URL=http://localhost:3000 (iOS Simulator)
+  // For real device: set EXPO_PUBLIC_API_BASE_URL=http://<LAN_IP>:3000
+  // For ngrok: set EXPO_PUBLIC_API_BASE_URL=https://<ngrok>.ngrok-free.app
   apiBaseUrl:
     String(process.env.EXPO_PUBLIC_API_BASE_URL ?? '').trim() ||
     'https://caloriecam-production.up.railway.app',

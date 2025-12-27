@@ -10,10 +10,15 @@ class ApiService {
     this.refreshTokenValue = DEV_REFRESH_TOKEN || null;
     /** @type {string | null} */
     this.expoPushToken = null;
-    
-    // Log configuration on init (using safe values) - only in dev
+
+    // Log configuration on init (using safe values) - always log in dev
     if (__DEV__) {
-    console.log('[ApiService] Initialized with baseURL:', this.baseURL);
+      console.log('[ApiService] Initialized with baseURL:', this.baseURL);
+      console.log('[ApiService] API Base URL source:',
+        process.env.EXPO_PUBLIC_API_BASE_URL
+          ? 'EXPO_PUBLIC_API_BASE_URL env var'
+          : 'default production URL'
+      );
     }
   }
 
@@ -99,17 +104,35 @@ class ApiService {
     return headers;
   }
 
+  /**
+   * Convert relative media URL to absolute URL
+   * @param {string} url - Relative URL (e.g., "/media/abc123") or absolute URL
+   * @returns {string} Absolute URL
+   */
+  resolveMediaUrl(url) {
+    if (!url) return null;
+
+    // If already absolute URL, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+
+    // If relative path, prepend baseURL
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    return `${this.baseURL}${normalized}`;
+  }
+
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     if (__DEV__) console.log(`[ApiService] Requesting: ${url}`);
-    
+
     // Create AbortController for timeout (more reliable than AbortSignal.timeout)
     const timeoutMs = 30000; // 30 seconds
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => {
       abortController.abort();
     }, timeoutMs);
-    
+
     const config = {
       headers: this.getHeaders(),
       ...options,
@@ -125,12 +148,12 @@ class ApiService {
       }
 
       if (__DEV__) {
-      console.log(`[ApiService] Fetch config:`, {
-        method: config.method || 'GET',
-        headers: Object.keys(config.headers || {}),
-        hasBody: !!config.body,
-        hasAuth: !!(config.headers && config.headers['Authorization']),
-      });
+        console.log(`[ApiService] Fetch config:`, {
+          method: config.method || 'GET',
+          headers: Object.keys(config.headers || {}),
+          hasBody: !!config.body,
+          hasAuth: !!(config.headers && config.headers['Authorization']),
+        });
       }
 
       let response;
@@ -145,7 +168,7 @@ class ApiService {
         error.cause = fetchError;
         throw error;
       }
-      
+
       // Clear timeout on successful fetch
       clearTimeout(timeoutId);
 
@@ -162,7 +185,7 @@ class ApiService {
             retryAbortController.abort();
           }, timeoutMs);
           config.signal = retryAbortController.signal;
-          
+
           try {
             response = await fetch(url, config);
             clearTimeout(retryTimeoutId);
@@ -184,7 +207,7 @@ class ApiService {
     } catch (error) {
       // Clear timeout on error
       clearTimeout(timeoutId);
-      
+
       // Check if error is due to abort (timeout)
       if (error.name === 'AbortError') {
         const timeoutError = new Error(`Request timeout after ${timeoutMs}ms`);
@@ -192,10 +215,10 @@ class ApiService {
         timeoutError.status = 408;
         throw timeoutError;
       }
-      
+
       if (__DEV__) {
-      console.error(`[ApiService] Request failed for ${url}:`, error.message);
-      console.error('[ApiService] Error details:', error);
+        console.error(`[ApiService] Request failed for ${url}:`, error.message);
+        console.error('[ApiService] Error details:', error);
       }
       throw error;
     }
@@ -216,6 +239,7 @@ class ApiService {
     const contentType = response.headers.get('content-type') || '';
     let payload = null;
     let message = `HTTP error! status: ${response.status}`;
+    let errorCode = null;
 
     if (contentType.includes('application/json')) {
       payload = await response.json().catch(() => null);
@@ -228,12 +252,36 @@ class ApiService {
     } else {
       const text = await response.text().catch(() => '');
       if (text) {
-        message = text;
+        // Detect HTML responses (e.g., ngrok 502, gateway errors)
+        if (text.includes('<!DOCTYPE html>') || text.includes('<html') || text.includes('ERR_NGROK')) {
+          // Extract ngrok error code if present
+          const ngrokMatch = text.match(/ERR_NGROK_(\d+)/);
+          if (ngrokMatch) {
+            errorCode = `NGROK_${ngrokMatch[1]}`;
+          }
+
+          // Return user-friendly message instead of HTML
+          if (response.status === 502) {
+            message = 'Server temporarily unavailable. Please try again.';
+          } else if (response.status === 504) {
+            message = 'Request timed out. Please try again.';
+          } else {
+            message = 'Connection error. Please check your network.';
+          }
+        } else {
+          // Non-HTML text response - use as-is but limit length
+          message = text.length > 200 ? text.substring(0, 200) + '...' : text;
+        }
       }
     }
 
     const error = new Error(message);
     error.status = response.status;
+    error.isServerError = response.status >= 500;
+    error.isNetworkError = response.status === 502 || response.status === 503 || response.status === 504;
+    if (errorCode) {
+      error.code = errorCode;
+    }
     if (payload) {
       error.payload = payload;
     }
@@ -262,10 +310,10 @@ class ApiService {
       body: JSON.stringify({ email, code: otp }),
     });
     if (__DEV__) {
-    console.log('[ApiService] verifyOtp response:', {
-      hasAccessToken: !!response?.accessToken,
-      hasRefreshToken: !!response?.refreshToken,
-    });
+      console.log('[ApiService] verifyOtp response:', {
+        hasAccessToken: !!response?.accessToken,
+        hasRefreshToken: !!response?.refreshToken,
+      });
     }
     return response;
   }
@@ -294,7 +342,7 @@ class ApiService {
     if (!this.refreshTokenValue) {
       return false;
     }
-    
+
     try {
       const refreshUrl = `${this.baseURL}/auth/refresh-token`;
       const refreshRes = await fetch(refreshUrl, {
@@ -302,7 +350,7 @@ class ApiService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: this.refreshTokenValue }),
       });
-      
+
       if (refreshRes.ok) {
         const tokens = await refreshRes.json();
         if (tokens.accessToken) {
@@ -310,7 +358,7 @@ class ApiService {
           return true;
         }
       }
-      
+
       // Refresh failed, clear tokens
       await this.setToken(null, null);
       return false;
@@ -378,7 +426,7 @@ class ApiService {
         locale: localeParam,
       }),
     });
-    
+
     // Backend should return { analysisId: string } or similar
     // If it returns the full analysis object, extract analysisId
     return response;
@@ -473,7 +521,7 @@ class ApiService {
   async getMonthlyReport(params = {}) {
     const { year, month, locale } = params;
     const queryParams = new URLSearchParams();
-    
+
     if (year) queryParams.append('year', year.toString());
     if (month) queryParams.append('month', month.toString());
     if (locale) queryParams.append('locale', locale);
@@ -511,7 +559,7 @@ class ApiService {
           }
         }
       }
-      
+
       return {
         status: response.status,
         ok: response.ok,
@@ -783,6 +831,28 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  }
+
+  /**
+   * Analyze lab results with multipart/form-data (for file uploads)
+   * @param {FormData} formData - FormData with file, inputType, locale
+   */
+  async analyzeLabResultsMultipart(formData) {
+    const headers = this.getHeaders();
+    delete headers['Content-Type']; // Let fetch set it automatically for FormData
+
+    const response = await fetch(`${this.baseURL}/ai-assistant/lab-results`, {
+      method: 'POST',
+      headers: headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to analyze lab results' }));
+      throw new Error(errorData.message || `HTTP ${response.status}`);
+    }
+
+    return response.json();
   }
 
   /**

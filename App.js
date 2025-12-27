@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { I18nProvider } from './app/i18n/provider';
 import { ensureI18nReady } from './app/i18n/config';
@@ -32,22 +33,22 @@ function AppContent() {
   const { user, loading } = useAuth();
   const isAuthenticated = !!user;
   const needsOnboarding = isAuthenticated && !user?.isOnboardingCompleted;
-  
+
   useEffect(() => {
-    clientLog('RootNav:render', { 
-      isAuthenticated, 
+    clientLog('RootNav:render', {
+      isAuthenticated,
       needsOnboarding,
       userId: user?.id || 'none',
-    }).catch(() => {});
+    }).catch(() => { });
   }, [isAuthenticated, needsOnboarding, user?.id]);
-  
+
   // Show loading/splash while checking auth
   if (loading) {
     return <EmptySplash />;
   }
 
   const handleAuthSuccess = async () => {
-    await clientLog('App:authSuccess').catch(() => {});
+    await clientLog('App:authSuccess').catch(() => { });
     // Navigation будет обработан внутри AuthScreen
   };
 
@@ -55,16 +56,16 @@ function AppContent() {
     <SafeAreaProvider>
       <NavigationContainer
         onReady={() => {
-          clientLog('App:navigationReady').catch(() => {});
+          clientLog('App:navigationReady').catch(() => { });
         }}
         onStateChange={(state) => {
           const currentRoute = state?.routes?.[state.index]?.name;
           if (currentRoute) {
-            clientLog('App:navigationStateChange', { 
-              route: currentRoute, 
+            clientLog('App:navigationStateChange', {
+              route: currentRoute,
               isAuthenticated,
               needsOnboarding,
-            }).catch(() => {});
+            }).catch(() => { });
           }
         }}
       >
@@ -99,8 +100,8 @@ function AppContent() {
             }}
           >
             {/* Main Bottom Tab Navigator */}
-            <Stack.Screen 
-              name="MainTabs" 
+            <Stack.Screen
+              name="MainTabs"
               component={MainTabsNavigator}
               options={{
                 headerShown: false,
@@ -194,8 +195,8 @@ export default function App() {
   const [i18nReady, setI18nReady] = useState(false);
 
   React.useEffect(() => {
-    clientLog('App:rootMounted').catch(() => {});
-    
+    clientLog('App:rootMounted').catch(() => { });
+
     ensureI18nReady().then(() => {
       setI18nReady(true);
     });
@@ -211,12 +212,14 @@ export default function App() {
   }
 
   return (
-    <ErrorBoundary>
-      <I18nProvider fallback={<EmptySplash />}>
-        <AppWrapper>
-          <AppContent />
-        </AppWrapper>
-      </I18nProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <I18nProvider fallback={<EmptySplash />}>
+          <AppWrapper>
+            <AppContent />
+          </AppWrapper>
+        </I18nProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }

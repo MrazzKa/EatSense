@@ -1,6 +1,12 @@
 [
   {
-    "keywords": ["chicken", "breast", "grilled", "baked", "roasted"],
+    "keywords": [
+      "chicken",
+      "breast",
+      "grilled",
+      "baked",
+      "roasted"
+    ],
     "nutrition": {
       "label": "Chicken Breast (Grilled)",
       "kcal": 165,
@@ -11,9 +17,20 @@
     }
   },
   {
-    "keywords": ["rice", "white", "cooked", "steamed", "boiled"],
+    "keywords": [
+      "rice",
+      "white",
+      "cooked",
+      "steamed",
+      "boiled",
+      "рис",
+      "белый",
+      "отварной",
+      "вареный"
+    ],
     "nutrition": {
       "label": "White Rice (Cooked)",
+      "labelRu": "Рис отварной",
       "kcal": 130,
       "protein": 2.7,
       "fat": 0.3,
@@ -22,7 +39,11 @@
     }
   },
   {
-    "keywords": ["rice", "brown", "cooked"],
+    "keywords": [
+      "rice",
+      "brown",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Brown Rice (Cooked)",
       "kcal": 112,
@@ -33,7 +54,12 @@
     }
   },
   {
-    "keywords": ["apple", "red", "green", "fresh"],
+    "keywords": [
+      "apple",
+      "red",
+      "green",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Apple (Fresh)",
       "kcal": 52,
@@ -44,7 +70,11 @@
     }
   },
   {
-    "keywords": ["banana", "yellow", "ripe"],
+    "keywords": [
+      "banana",
+      "yellow",
+      "ripe"
+    ],
     "nutrition": {
       "label": "Banana (Fresh)",
       "kcal": 89,
@@ -55,7 +85,12 @@
     }
   },
   {
-    "keywords": ["bread", "white", "slice", "toast"],
+    "keywords": [
+      "bread",
+      "white",
+      "slice",
+      "toast"
+    ],
     "nutrition": {
       "label": "White Bread (Slice)",
       "kcal": 265,
@@ -66,7 +101,12 @@
     }
   },
   {
-    "keywords": ["bread", "whole", "wheat", "slice"],
+    "keywords": [
+      "bread",
+      "whole",
+      "wheat",
+      "slice"
+    ],
     "nutrition": {
       "label": "Whole Wheat Bread (Slice)",
       "kcal": 247,
@@ -77,7 +117,13 @@
     }
   },
   {
-    "keywords": ["egg", "boiled", "fried", "scrambled", "poached"],
+    "keywords": [
+      "egg",
+      "boiled",
+      "fried",
+      "scrambled",
+      "poached"
+    ],
     "nutrition": {
       "label": "Egg (Large)",
       "kcal": 155,
@@ -88,7 +134,12 @@
     }
   },
   {
-    "keywords": ["milk", "whole", "cow", "dairy"],
+    "keywords": [
+      "milk",
+      "whole",
+      "cow",
+      "dairy"
+    ],
     "nutrition": {
       "label": "Whole Milk",
       "kcal": 61,
@@ -99,7 +150,11 @@
     }
   },
   {
-    "keywords": ["milk", "skim", "low-fat"],
+    "keywords": [
+      "milk",
+      "skim",
+      "low-fat"
+    ],
     "nutrition": {
       "label": "Skim Milk",
       "kcal": 34,
@@ -110,7 +165,12 @@
     }
   },
   {
-    "keywords": ["yogurt", "greek", "plain", "natural"],
+    "keywords": [
+      "yogurt",
+      "greek",
+      "plain",
+      "natural"
+    ],
     "nutrition": {
       "label": "Greek Yogurt (Plain)",
       "kcal": 59,
@@ -121,7 +181,13 @@
     }
   },
   {
-    "keywords": ["salmon", "fish", "grilled", "baked", "fried"],
+    "keywords": [
+      "salmon",
+      "fish",
+      "grilled",
+      "baked",
+      "fried"
+    ],
     "nutrition": {
       "label": "Salmon (Grilled)",
       "kcal": 206,
@@ -132,7 +198,12 @@
     }
   },
   {
-    "keywords": ["tuna", "fish", "canned", "grilled"],
+    "keywords": [
+      "tuna",
+      "fish",
+      "canned",
+      "grilled"
+    ],
     "nutrition": {
       "label": "Tuna (Canned)",
       "kcal": 144,
@@ -143,7 +214,12 @@
     }
   },
   {
-    "keywords": ["broccoli", "vegetable", "steamed", "boiled"],
+    "keywords": [
+      "broccoli",
+      "vegetable",
+      "steamed",
+      "boiled"
+    ],
     "nutrition": {
       "label": "Broccoli (Steamed)",
       "kcal": 34,
@@ -154,7 +230,12 @@
     }
   },
   {
-    "keywords": ["carrot", "vegetable", "raw", "cooked"],
+    "keywords": [
+      "carrot",
+      "vegetable",
+      "raw",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Carrot (Raw)",
       "kcal": 41,
@@ -165,7 +246,11 @@
     }
   },
   {
-    "keywords": ["tomato", "vegetable", "fresh"],
+    "keywords": [
+      "tomato",
+      "vegetable",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Tomato (Fresh)",
       "kcal": 18,
@@ -176,7 +261,12 @@
     }
   },
   {
-    "keywords": ["potato", "baked", "boiled", "fried"],
+    "keywords": [
+      "potato",
+      "baked",
+      "boiled",
+      "fried"
+    ],
     "nutrition": {
       "label": "Potato (Baked)",
       "kcal": 93,
@@ -187,7 +277,12 @@
     }
   },
   {
-    "keywords": ["pasta", "spaghetti", "noodles", "cooked"],
+    "keywords": [
+      "pasta",
+      "spaghetti",
+      "noodles",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Pasta (Cooked)",
       "kcal": 131,
@@ -198,7 +293,12 @@
     }
   },
   {
-    "keywords": ["beef", "steak", "grilled", "roasted"],
+    "keywords": [
+      "beef",
+      "steak",
+      "grilled",
+      "roasted"
+    ],
     "nutrition": {
       "label": "Beef Steak (Grilled)",
       "kcal": 271,
@@ -209,7 +309,12 @@
     }
   },
   {
-    "keywords": ["pork", "chop", "grilled", "roasted"],
+    "keywords": [
+      "pork",
+      "chop",
+      "grilled",
+      "roasted"
+    ],
     "nutrition": {
       "label": "Pork Chop (Grilled)",
       "kcal": 242,
@@ -220,7 +325,11 @@
     }
   },
   {
-    "keywords": ["cheese", "cheddar", "mozzarella"],
+    "keywords": [
+      "cheese",
+      "cheddar",
+      "mozzarella"
+    ],
     "nutrition": {
       "label": "Cheddar Cheese",
       "kcal": 402,
@@ -231,7 +340,10 @@
     }
   },
   {
-    "keywords": ["avocado", "fresh"],
+    "keywords": [
+      "avocado",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Avocado (Fresh)",
       "kcal": 160,
@@ -242,7 +354,10 @@
     }
   },
   {
-    "keywords": ["orange", "fresh"],
+    "keywords": [
+      "orange",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Orange (Fresh)",
       "kcal": 47,
@@ -253,7 +368,10 @@
     }
   },
   {
-    "keywords": ["strawberry", "fresh"],
+    "keywords": [
+      "strawberry",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Strawberries (Fresh)",
       "kcal": 32,
@@ -264,7 +382,11 @@
     }
   },
   {
-    "keywords": ["chicken", "thigh", "grilled"],
+    "keywords": [
+      "chicken",
+      "thigh",
+      "grilled"
+    ],
     "nutrition": {
       "label": "Chicken Thigh (Grilled)",
       "kcal": 209,
@@ -275,7 +397,11 @@
     }
   },
   {
-    "keywords": ["turkey", "breast", "grilled"],
+    "keywords": [
+      "turkey",
+      "breast",
+      "grilled"
+    ],
     "nutrition": {
       "label": "Turkey Breast (Grilled)",
       "kcal": 135,
@@ -286,7 +412,11 @@
     }
   },
   {
-    "keywords": ["oats", "oatmeal", "porridge"],
+    "keywords": [
+      "oats",
+      "oatmeal",
+      "porridge"
+    ],
     "nutrition": {
       "label": "Oatmeal (Cooked)",
       "kcal": 68,
@@ -297,7 +427,10 @@
     }
   },
   {
-    "keywords": ["peanut", "butter"],
+    "keywords": [
+      "peanut",
+      "butter"
+    ],
     "nutrition": {
       "label": "Peanut Butter",
       "kcal": 588,
@@ -308,7 +441,10 @@
     }
   },
   {
-    "keywords": ["almond", "nuts"],
+    "keywords": [
+      "almond",
+      "nuts"
+    ],
     "nutrition": {
       "label": "Almonds (Raw)",
       "kcal": 579,
@@ -319,7 +455,12 @@
     }
   },
   {
-    "keywords": ["spinach", "vegetable", "raw", "cooked"],
+    "keywords": [
+      "spinach",
+      "vegetable",
+      "raw",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Spinach (Raw)",
       "kcal": 23,
@@ -330,7 +471,11 @@
     }
   },
   {
-    "keywords": ["lettuce", "salad", "green"],
+    "keywords": [
+      "lettuce",
+      "salad",
+      "green"
+    ],
     "nutrition": {
       "label": "Lettuce (Raw)",
       "kcal": 15,
@@ -341,7 +486,10 @@
     }
   },
   {
-    "keywords": ["cucumber", "fresh"],
+    "keywords": [
+      "cucumber",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Cucumber (Fresh)",
       "kcal": 16,
@@ -352,7 +500,11 @@
     }
   },
   {
-    "keywords": ["onion", "raw", "cooked"],
+    "keywords": [
+      "onion",
+      "raw",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Onion (Raw)",
       "kcal": 40,
@@ -363,7 +515,10 @@
     }
   },
   {
-    "keywords": ["garlic", "clove"],
+    "keywords": [
+      "garlic",
+      "clove"
+    ],
     "nutrition": {
       "label": "Garlic (Raw)",
       "kcal": 149,
@@ -374,7 +529,12 @@
     }
   },
   {
-    "keywords": ["pepper", "bell", "red", "green"],
+    "keywords": [
+      "pepper",
+      "bell",
+      "red",
+      "green"
+    ],
     "nutrition": {
       "label": "Bell Pepper (Red)",
       "kcal": 31,
@@ -385,7 +545,10 @@
     }
   },
   {
-    "keywords": ["mushroom", "fresh"],
+    "keywords": [
+      "mushroom",
+      "fresh"
+    ],
     "nutrition": {
       "label": "Mushrooms (Fresh)",
       "kcal": 22,
@@ -396,7 +559,11 @@
     }
   },
   {
-    "keywords": ["cabbage", "raw", "cooked"],
+    "keywords": [
+      "cabbage",
+      "raw",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Cabbage (Raw)",
       "kcal": 25,
@@ -407,7 +574,10 @@
     }
   },
   {
-    "keywords": ["corn", "sweet"],
+    "keywords": [
+      "corn",
+      "sweet"
+    ],
     "nutrition": {
       "label": "Sweet Corn (Cooked)",
       "kcal": 96,
@@ -418,7 +588,10 @@
     }
   },
   {
-    "keywords": ["peas", "green"],
+    "keywords": [
+      "peas",
+      "green"
+    ],
     "nutrition": {
       "label": "Green Peas (Cooked)",
       "kcal": 81,
@@ -429,7 +602,11 @@
     }
   },
   {
-    "keywords": ["beans", "kidney", "black"],
+    "keywords": [
+      "beans",
+      "kidney",
+      "black"
+    ],
     "nutrition": {
       "label": "Kidney Beans (Cooked)",
       "kcal": 127,
@@ -440,7 +617,10 @@
     }
   },
   {
-    "keywords": ["lentil", "cooked"],
+    "keywords": [
+      "lentil",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Lentils (Cooked)",
       "kcal": 116,
@@ -451,7 +631,10 @@
     }
   },
   {
-    "keywords": ["quinoa", "cooked"],
+    "keywords": [
+      "quinoa",
+      "cooked"
+    ],
     "nutrition": {
       "label": "Quinoa (Cooked)",
       "kcal": 120,
@@ -462,7 +645,11 @@
     }
   },
   {
-    "keywords": ["sweet", "potato", "baked"],
+    "keywords": [
+      "sweet",
+      "potato",
+      "baked"
+    ],
     "nutrition": {
       "label": "Sweet Potato (Baked)",
       "kcal": 90,
@@ -473,7 +660,10 @@
     }
   },
   {
-    "keywords": ["pizza", "slice"],
+    "keywords": [
+      "pizza",
+      "slice"
+    ],
     "nutrition": {
       "label": "Pizza (Slice)",
       "kcal": 266,
@@ -484,7 +674,10 @@
     }
   },
   {
-    "keywords": ["burger", "hamburger"],
+    "keywords": [
+      "burger",
+      "hamburger"
+    ],
     "nutrition": {
       "label": "Hamburger",
       "kcal": 295,
@@ -495,7 +688,11 @@
     }
   },
   {
-    "keywords": ["sandwich", "ham", "cheese"],
+    "keywords": [
+      "sandwich",
+      "ham",
+      "cheese"
+    ],
     "nutrition": {
       "label": "Ham and Cheese Sandwich",
       "kcal": 250,
@@ -506,7 +703,11 @@
     }
   },
   {
-    "keywords": ["soup", "chicken", "noodle"],
+    "keywords": [
+      "soup",
+      "chicken",
+      "noodle"
+    ],
     "nutrition": {
       "label": "Chicken Noodle Soup",
       "kcal": 48,
@@ -517,7 +718,11 @@
     }
   },
   {
-    "keywords": ["salad", "mixed", "green"],
+    "keywords": [
+      "salad",
+      "mixed",
+      "green"
+    ],
     "nutrition": {
       "label": "Mixed Green Salad",
       "kcal": 15,
@@ -528,7 +733,10 @@
     }
   },
   {
-    "keywords": ["ice", "cream"],
+    "keywords": [
+      "ice",
+      "cream"
+    ],
     "nutrition": {
       "label": "Ice Cream",
       "kcal": 207,
@@ -539,7 +747,10 @@
     }
   },
   {
-    "keywords": ["chocolate", "dark"],
+    "keywords": [
+      "chocolate",
+      "dark"
+    ],
     "nutrition": {
       "label": "Dark Chocolate",
       "kcal": 546,
@@ -550,7 +761,10 @@
     }
   },
   {
-    "keywords": ["coffee", "black"],
+    "keywords": [
+      "coffee",
+      "black"
+    ],
     "nutrition": {
       "label": "Black Coffee",
       "kcal": 2,
@@ -561,7 +775,11 @@
     }
   },
   {
-    "keywords": ["tea", "green", "black"],
+    "keywords": [
+      "tea",
+      "green",
+      "black"
+    ],
     "nutrition": {
       "label": "Green Tea",
       "kcal": 2,
@@ -572,7 +790,9 @@
     }
   },
   {
-    "keywords": ["water"],
+    "keywords": [
+      "water"
+    ],
     "nutrition": {
       "label": "Water",
       "kcal": 0,
@@ -583,7 +803,10 @@
     }
   },
   {
-    "keywords": ["orange", "juice"],
+    "keywords": [
+      "orange",
+      "juice"
+    ],
     "nutrition": {
       "label": "Orange Juice",
       "kcal": 45,
@@ -594,7 +817,9 @@
     }
   },
   {
-    "keywords": ["beer"],
+    "keywords": [
+      "beer"
+    ],
     "nutrition": {
       "label": "Beer",
       "kcal": 43,
@@ -605,7 +830,11 @@
     }
   },
   {
-    "keywords": ["wine", "red", "white"],
+    "keywords": [
+      "wine",
+      "red",
+      "white"
+    ],
     "nutrition": {
       "label": "Red Wine",
       "kcal": 85,
@@ -616,7 +845,9 @@
     }
   },
   {
-    "keywords": ["butter"],
+    "keywords": [
+      "butter"
+    ],
     "nutrition": {
       "label": "Butter",
       "kcal": 717,
@@ -627,7 +858,10 @@
     }
   },
   {
-    "keywords": ["olive", "oil"],
+    "keywords": [
+      "olive",
+      "oil"
+    ],
     "nutrition": {
       "label": "Olive Oil",
       "kcal": 884,
@@ -638,7 +872,10 @@
     }
   },
   {
-    "keywords": ["sugar", "white"],
+    "keywords": [
+      "sugar",
+      "white"
+    ],
     "nutrition": {
       "label": "White Sugar",
       "kcal": 387,
@@ -649,7 +886,9 @@
     }
   },
   {
-    "keywords": ["honey"],
+    "keywords": [
+      "honey"
+    ],
     "nutrition": {
       "label": "Honey",
       "kcal": 304,
@@ -660,7 +899,10 @@
     }
   },
   {
-    "keywords": ["shrimp", "prawn"],
+    "keywords": [
+      "shrimp",
+      "prawn"
+    ],
     "nutrition": {
       "label": "Shrimp (Cooked)",
       "kcal": 99,
@@ -671,7 +913,10 @@
     }
   },
   {
-    "keywords": ["cod", "fish"],
+    "keywords": [
+      "cod",
+      "fish"
+    ],
     "nutrition": {
       "label": "Cod (Cooked)",
       "kcal": 82,
@@ -682,7 +927,9 @@
     }
   },
   {
-    "keywords": ["tofu"],
+    "keywords": [
+      "tofu"
+    ],
     "nutrition": {
       "label": "Tofu (Firm)",
       "kcal": 144,
@@ -693,7 +940,9 @@
     }
   },
   {
-    "keywords": ["hummus"],
+    "keywords": [
+      "hummus"
+    ],
     "nutrition": {
       "label": "Hummus",
       "kcal": 166,
@@ -704,7 +953,11 @@
     }
   },
   {
-    "keywords": ["yogurt", "regular", "plain"],
+    "keywords": [
+      "yogurt",
+      "regular",
+      "plain"
+    ],
     "nutrition": {
       "label": "Plain Yogurt",
       "kcal": 59,
@@ -715,7 +968,10 @@
     }
   },
   {
-    "keywords": ["cottage", "cheese"],
+    "keywords": [
+      "cottage",
+      "cheese"
+    ],
     "nutrition": {
       "label": "Cottage Cheese",
       "kcal": 98,
@@ -726,7 +982,10 @@
     }
   },
   {
-    "keywords": ["sausage", "pork"],
+    "keywords": [
+      "sausage",
+      "pork"
+    ],
     "nutrition": {
       "label": "Pork Sausage",
       "kcal": 301,
@@ -737,7 +996,9 @@
     }
   },
   {
-    "keywords": ["bacon"],
+    "keywords": [
+      "bacon"
+    ],
     "nutrition": {
       "label": "Bacon (Cooked)",
       "kcal": 541,
@@ -748,7 +1009,9 @@
     }
   },
   {
-    "keywords": ["pancake"],
+    "keywords": [
+      "pancake"
+    ],
     "nutrition": {
       "label": "Pancake",
       "kcal": 227,
@@ -759,7 +1022,9 @@
     }
   },
   {
-    "keywords": ["waffle"],
+    "keywords": [
+      "waffle"
+    ],
     "nutrition": {
       "label": "Waffle",
       "kcal": 291,
@@ -770,7 +1035,9 @@
     }
   },
   {
-    "keywords": ["croissant"],
+    "keywords": [
+      "croissant"
+    ],
     "nutrition": {
       "label": "Croissant",
       "kcal": 406,
@@ -781,7 +1048,9 @@
     }
   },
   {
-    "keywords": ["bagel"],
+    "keywords": [
+      "bagel"
+    ],
     "nutrition": {
       "label": "Bagel",
       "kcal": 257,
@@ -792,4 +1061,3 @@
     }
   }
 ]
-

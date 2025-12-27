@@ -12,7 +12,16 @@ const VisionComponentSchema = z.object({
   cooking_method: z.enum(['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed']).optional(),
   tags: z.array(z.string()).optional(),
   notes: z.string().optional(),
+  // GPT-estimated nutrients as fallback when USDA/FDC lookup fails
+  estimated_nutrients: z.object({
+    calories: z.number().optional(),
+    protein_g: z.number().optional(),
+    carbs_g: z.number().optional(),
+    fat_g: z.number().optional(),
+    fiber_g: z.number().optional(),
+  }).optional(),
 });
+
 
 const VisionHiddenItemSchema = z.object({
   name: z.string(),
@@ -65,23 +74,23 @@ export class VisionService {
     const namespace = 'vision:components';
     const localePart = locale || 'en';
     const modePart = mode || 'default';
-    
+
     // Priority: Buffer > base64 > URL (most reliable to least)
     if (params.buffer) {
       const hash = crypto.createHash('sha256').update(params.buffer).digest('hex');
       return `${namespace}:${hash}:${localePart}:${modePart}`;
     }
-    
+
     if (params.base64) {
       const hash = crypto.createHash('sha256').update(`${params.base64}:${localePart}:${modePart}`).digest('hex');
       return `${namespace}:${hash.substring(0, 32)}:${localePart}:${modePart}`;
     }
-    
+
     if (params.url) {
       const hash = crypto.createHash('sha256').update(`${params.url}:${localePart}:${modePart}`).digest('hex');
       return `${namespace}:${hash.substring(0, 32)}:${localePart}:${modePart}`;
     }
-    
+
     // Fallback
     const rand = Math.random().toString(36).slice(2);
     return `${namespace}:nohash:${rand}:${localePart}:${modePart}`;
@@ -298,6 +307,32 @@ Before outputting, verify calories make sense:
 | Drinks (non-alcohol) | 0-60 | Suspicious |
 | Water/black coffee/tea | 0-5 | Must be near 0 |
 
+### STEP 6: CRITICAL GRAIN IDENTIFICATION
+
+RICE vs RICE PRODUCTS - VERY IMPORTANT:
+| Visual Appearance | Correct English Name | Correct Russian Name | WRONG Name | kcal/100g |
+|-------------------|---------------------|----------------------|------------|-----------|
+| White fluffy separate grains | "boiled rice" | "рис отварной" | "rice flour" / "рисовая мука" | 130 |
+| White powder, fine texture | "rice flour" | "рисовая мука" | "boiled rice" | 350 |
+| Sticky clumped grains | "steamed rice" | "рис на пару" | "rice flour" | 130 |
+| Fried with vegetables | "fried rice" | "жареный рис" | "rice flour" | 160 |
+| Brown/tan grains | "brown rice" | "бурый рис" | "rice flour" | 111 |
+
+**CRITICAL**: NEVER call visible rice grains "rice flour" (рисовая мука) - flour is a POWDER used for baking, not a cooked side dish!
+If you see individual grains on a plate → it is COOKED RICE (рис отварной), NOT flour!
+
+### STEP 7: DISH NAMING
+
+When creating dish names, use this format:
+- For plates with multiple components: "Plate with [main protein], [side], and [vegetables]"
+- Russian: "Тарелка с [белок], [гарнир] и [овощи]"
+- Examples:
+  - "Plate with chicken breast, rice and vegetables" / "Тарелка с куриной грудкой, рисом и овощами"
+  - "Grilled salmon with quinoa and broccoli" / "Лосось на гриле с киноа и брокколи"
+  - "Balanced plate with beef, potatoes and salad" / "Сбалансированная тарелка с говядиной, картофелем и салатом"
+
+For balanced/healthy plates you may use: "ПП тарелка" (Russian) or "Healthy plate" (English)
+
 ## COMMON MISTAKES TO AVOID
 
 ### Shape Confusion:
@@ -307,10 +342,19 @@ Before outputting, verify calories make sense:
 | "meatball" for a cutlet | "chicken cutlet" | Meatballs are SPHERICAL, cutlets are FLAT |
 | "bread" for a pancake | "pancake" | Pancakes are thinner, often stacked, softer |
 
+### Grain Confusion (CRITICAL):
+| WRONG | RIGHT | How to tell |
+|-------|-------|-------------|
+| "rice flour" for cooked rice | "boiled rice" / "рис отварной" | Flour is POWDER, rice is visible GRAINS |
+| "рисовая мука" for рис | "рис отварной" | Мука - порошок для выпечки, рис - зёрна |
+| "wheat flour" for pasta | "pasta" / "макароны" | Pasta is shaped, flour is powder |
+
 ### Calorie Confusion:
 | WRONG | RIGHT |
 |-------|-------|
 | Mashed potato 350 kcal/100g | Mashed potato 90-110 kcal/100g (even with butter) |
+| Boiled rice 350 kcal/100g | Boiled rice 130 kcal/100g |
+| Rice flour dish 130 kcal/100g | Rice flour 350 kcal/100g (but flour is rarely served as-is) |
 | Water 50 kcal | Water 0 kcal |
 | Black coffee 100 kcal | Black coffee 2 kcal |
 | Fresh strawberry 150 kcal/100g | Fresh strawberry 32 kcal/100g |
@@ -465,10 +509,10 @@ No markdown, no additional keys, no text before or after JSON.`;
 
     const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-5.1';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
-    
+
     // Configure timeout for Vision API call (default 60 seconds, configurable via env)
     const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '60000', 10);
-    
+
     try {
       // Create timeout promise
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -486,9 +530,9 @@ No markdown, no additional keys, no text before or after JSON.`;
           {
             role: 'user',
             content: [
-              { 
-                type: 'text', 
-                text: foodDescription 
+              {
+                type: 'text',
+                text: foodDescription
                   ? `Analyze this food image. The user mentioned this is "${foodDescription}". Use this information to help identify the dish and its components more accurately. Extract all components.`
                   : 'Analyze this food image and extract all components.'
               },
@@ -563,8 +607,9 @@ No markdown, no additional keys, no text before or after JSON.`;
             cooking_method: validatedComp.cooking_method,
             tags: validatedComp.tags,
             notes: validatedComp.notes,
+            estimated_nutrients: validatedComp.estimated_nutrients,
           };
-          
+
           // Filter low confidence items
           if ((finalComp.confidence ?? 0) >= 0.55) {
             validated.push(finalComp);
@@ -576,12 +621,13 @@ No markdown, no additional keys, no text before or after JSON.`;
         }
       }
 
+
       // Store hidden items - we'll need to pass them to AnalyzeService
       // For now, attach them as a property on each component that might need them
       // Or store in a separate cache entry
       // Since we can't change return type easily, we'll store hidden items separately
       // and AnalyzeService will need to extract them from the raw response
-      
+
       // Cache hidden items separately if needed
       if (hiddenItems.length > 0) {
         const hiddenCacheKey = `${cacheKey}:hidden`;
@@ -621,7 +667,7 @@ No markdown, no additional keys, no text before or after JSON.`;
         hasBase64: Boolean(imageBase64),
         imageUrl: imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl,
       });
-      
+
       if (error?.status === 429 || error?.response?.status === 429) {
         throw new Error('OpenAI rate limit exceeded. Please try again later.');
       }

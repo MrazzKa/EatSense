@@ -18,12 +18,12 @@ export class FoodProcessor {
     private readonly analyzeService: AnalyzeService,
     private readonly mealsService: MealsService,
     private readonly mediaService: MediaService,
-  ) {}
+  ) { }
 
   @Process('analyze-image')
   async handleImageAnalysis(job: Job) {
     const { analysisId, imageBufferBase64, userId: jobUserId, locale, foodDescription } = job.data;
-    
+
     // Получаем userId из анализа, так как он точно правильный
     const analysis = await this.prisma.analysis.findUnique({
       where: { id: analysisId },
@@ -67,7 +67,7 @@ export class FoodProcessor {
         processedBuffer = await sharp(imageBuffer)
           .jpeg({ quality: 90, mozjpeg: true })
           .toBuffer();
-        
+
         if (!processedBuffer || processedBuffer.length === 0) {
           throw new Error('Image processing resulted in empty buffer');
         }
@@ -93,6 +93,19 @@ export class FoodProcessor {
         const mediaResult = await this.mediaService.uploadFile(mockFile, userId);
         imageUrl = mediaResult.url;
         console.log(`[FoodProcessor] Image saved to media, URL: ${imageUrl}`);
+
+        // Update analysis metadata with imageUrl for future reanalysis
+        const existingAnalysis = await this.prisma.analysis.findUnique({ where: { id: analysisId } });
+        const existingMetadata = (existingAnalysis?.metadata as any) || {};
+        await this.prisma.analysis.update({
+          where: { id: analysisId },
+          data: {
+            metadata: {
+              ...existingMetadata,
+              imageUrl,
+            },
+          },
+        });
       } catch (mediaError: any) {
         this.logger.warn(`[FoodProcessor] Failed to save image to media:`, mediaError.message);
         // Continue without imageUrl - analysis can still proceed
@@ -100,7 +113,7 @@ export class FoodProcessor {
 
       // Convert buffer to base64 for new analysis service
       const imageBase64 = processedBuffer.toString('base64');
-      
+
       // Use new AnalyzeService with USDA + RAG
       // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
       // can also accept imageBuffer directly for better caching
@@ -142,7 +155,7 @@ export class FoodProcessor {
                 const fat = item.nutrients?.fat ?? 0;
                 const carbs = item.nutrients?.carbs ?? 0;
                 const weight = item.portion_g ?? 100;
-                
+
                 return {
                   name: item.name || 'Unknown Food',
                   calories: Math.max(0, Math.round(calories)),
@@ -157,10 +170,10 @@ export class FoodProcessor {
                 const hasValidName = item.name && item.name !== 'Unknown Food';
                 const hasNutrition = item.calories > 0 || item.protein > 0 || item.fat > 0 || item.carbs > 0;
                 const hasReasonablePortion = item.weight >= 10; // At least 10g
-                
+
                 return hasValidName && (hasNutrition || hasReasonablePortion);
               });
-            
+
             // Task 14: Log WARN when auto-save filtering removes all items
             if (validItems.length === 0 && items.length > 0) {
               this.logger.warn('[FoodProcessor] Auto-save skipped: all items filtered out during validation', {
@@ -179,7 +192,7 @@ export class FoodProcessor {
                 reason: 'Items did not pass validation (missing name, no nutrition data, or portion < 10g)',
                 needsReview: true,
               });
-              
+
               result.autoSave = {
                 skipped: true,
                 reason: 'no_valid_items',
@@ -284,12 +297,12 @@ export class FoodProcessor {
         status: error?.status,
         responseData: error?.response?.data,
       });
-      
+
       // Update status to failed
       try {
         await this.prisma.analysis.update({
           where: { id: analysisId },
-          data: { 
+          data: {
             status: 'FAILED',
             error: error.message || 'Unknown error',
           },
@@ -313,7 +326,7 @@ export class FoodProcessor {
       this.logger.error(`[FoodProcessor] handleTextAnalysis: missing or empty description for analysis ${analysisId}`);
       await this.prisma.analysis.update({
         where: { id: analysisId },
-        data: { 
+        data: {
           status: 'FAILED',
           error: 'Description is required',
         },
@@ -334,7 +347,7 @@ export class FoodProcessor {
 
       // Use new AnalyzeService for text analysis
       const analysisResult = await this.analyzeService.analyzeText(description, locale);
-      
+
       this.logger.log(`[FoodProcessor] Text analysis ${analysisId} completed, items count: ${analysisResult.items?.length || 0}`);
 
       // Transform to old format for compatibility
@@ -367,7 +380,7 @@ export class FoodProcessor {
                 const fat = item.nutrients?.fat ?? 0;
                 const carbs = item.nutrients?.carbs ?? 0;
                 const weight = item.portion_g ?? 100;
-                
+
                 return {
                   name: item.name || 'Unknown Food',
                   calories: Math.max(0, Math.round(calories)),
@@ -382,10 +395,10 @@ export class FoodProcessor {
                 const hasValidName = item.name && item.name !== 'Unknown Food';
                 const hasNutrition = item.calories > 0 || item.protein > 0 || item.fat > 0 || item.carbs > 0;
                 const hasReasonablePortion = item.weight >= 10; // At least 10g
-                
+
                 return hasValidName && (hasNutrition || hasReasonablePortion);
               });
-            
+
             if (validItems.length > 0) {
               const meal = await this.mealsService.createMeal(userId, {
                 name: dishName,
@@ -425,11 +438,11 @@ export class FoodProcessor {
       console.log(`Text analysis completed for analysis ${analysisId}`);
     } catch (error: any) {
       this.logger.error(`[FoodProcessor] Text analysis failed for analysis ${analysisId}:`, error);
-      
+
       // Update status to failed
       await this.prisma.analysis.update({
         where: { id: analysisId },
-        data: { 
+        data: {
           status: 'FAILED',
           error: error.message,
         },

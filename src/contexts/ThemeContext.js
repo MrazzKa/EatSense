@@ -15,7 +15,7 @@ export const useTheme = () => {
       themeMode: 'light',
       colors: palettes.light,
       tokens: baseTokens,
-      toggleTheme: () => {},
+      toggleTheme: () => { },
       reduceMotion: false,
       getColor: (key) => palettes.light[key] ?? key,
     };
@@ -94,6 +94,9 @@ export const ThemeProvider = ({ children }) => {
     if (themeMode === 'monochrome') {
       return palettes?.monochrome || palettes?.light || {};
     }
+    if (themeMode === 'rose') {
+      return palettes?.rose || palettes?.light || {};
+    }
     return isDark ? (palettes?.dark || palettes?.light || {}) : (palettes?.light || {});
   }, [isDark, themeMode]);
   const themeTokens = useMemo(() => {
@@ -103,6 +106,8 @@ export const ThemeProvider = ({ children }) => {
       if (stateTokens) {
         if (themeMode === 'monochrome') {
           resolvedStates = stateTokens.monochrome || {};
+        } else if (themeMode === 'rose') {
+          resolvedStates = stateTokens.rose || {};
         } else {
           resolvedStates = isDark ? stateTokens.dark : stateTokens.light;
         }

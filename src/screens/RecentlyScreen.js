@@ -91,7 +91,36 @@ const normalizeMeal = (meal) => {
   const healthScore = meal.healthInsights || null;
   const healthGrade = meal.healthGrade || healthScore?.grade || null;
 
-  const imageUri = meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || null;
+  const imageUri = (() => {
+    const rawUri = meal.imageUrl || 
+                meal.imageUri || 
+                meal.coverUrl || 
+                meal.analysisImageUrl ||
+                meal.image?.url ||
+                meal.data?.imageUrl ||
+                null;
+    
+    // Resolve relative URLs to absolute URLs
+    const uri = rawUri ? (
+      rawUri.startsWith('/media/') || rawUri.startsWith('/')
+        ? ApiService.resolveMediaUrl(rawUri)
+        : rawUri
+    ) : null;
+    
+    if (__DEV__ && uri) {
+      console.log('[RecentlyScreen] Meal image:', {
+        mealId: meal.id,
+        hasImageUrl: !!meal.imageUrl,
+        hasImageUri: !!meal.imageUri,
+        hasCoverUrl: !!meal.coverUrl,
+        hasAnalysisImageUrl: !!meal.analysisImageUrl,
+        rawUri,
+        finalUri: uri,
+      });
+    }
+    
+    return uri;
+  })();
 
   return {
     id: meal.id,
@@ -331,17 +360,28 @@ export default function RecentlyScreen() {
           }}
         >
           {/* Task 11: Use imageUrl or imageUri, show placeholder if none */}
-          {(item.imageUrl || item.imageUri) ? (
-            <Image 
-              source={{ uri: item.imageUrl || item.imageUri }} 
-              style={styles.itemImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={styles.itemPlaceholder}>
-              <Ionicons name="fast-food" size={24} color={colors.textTertiary || colors.textSecondary} />
-            </View>
-          )}
+          {(() => {
+            const imageUri = item.imageUrl || item.imageUri || null;
+            
+            if (imageUri) {
+              return (
+                <Image 
+                  source={{ uri: imageUri }} 
+                  style={styles.itemImage}
+                  resizeMode="cover"
+                  onError={(error) => {
+                    console.error('[RecentlyScreen] Image load error:', error, 'URI:', imageUri);
+                  }}
+                />
+              );
+            }
+            
+            return (
+              <View style={styles.itemPlaceholder}>
+                <Ionicons name="fast-food" size={24} color={colors.textTertiary || colors.textSecondary} />
+              </View>
+            );
+          })()}
 
           <View style={styles.itemContent}>
             <View style={styles.itemHeader}>

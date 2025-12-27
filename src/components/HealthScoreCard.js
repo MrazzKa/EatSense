@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { CircularProgress } from './CircularProgress';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { spacing, radii, elevations } from '../design/tokens';
@@ -44,15 +45,15 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   const normalizeFactor = (key, value) => {
     const score = typeof value === 'number' ? value : value?.score ?? 0;
     const weight = typeof value === 'number' ? undefined : value?.weight;
-    
+
     // Map key names (saturatedFat -> satFat for i18n, sugars -> sugar)
     const i18nKey = key === 'saturatedFat' ? 'satFat' : key === 'sugars' ? 'sugar' : key;
-    const label = typeof value === 'number' 
+    const label = typeof value === 'number'
       ? t(`healthScore.factors.${i18nKey}`, { defaultValue: key })
       : t(`healthScore.factors.${i18nKey}`, { defaultValue: value?.label || key });
-    
+
     const scorePercent = Math.max(0, Math.min(100, Math.round(score)));
-    
+
     return { key, label, scorePercent, weight };
   };
 
@@ -62,7 +63,7 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
     const normalizedKey = key === 'saturatedFat' ? 'satFat' : key === 'sugars' ? 'sugar' : key;
     const negativeFactors = ['satFat', 'sugar', 'energyDensity'];
     if (!negativeFactors.includes(normalizedKey)) return null;
-    
+
     if (scorePercent >= 80) return t('healthScore.factorLevel.good', { defaultValue: 'Good' });
     if (scorePercent >= 40) return t('healthScore.factorLevel.ok', { defaultValue: 'Okay' });
     return t('healthScore.factorLevel.bad', { defaultValue: 'Needs attention' });
@@ -100,45 +101,45 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   // Support both new format (HealthFeedbackItem[]) and legacy format (string[])
   const feedbackEntries = Array.isArray(feedback)
     ? feedback.map((entry, index) => {
-        // New format: { type: 'positive' | 'warning', code: string, message: string }
-        if (typeof entry === 'object' && entry.type && entry.message) {
-          return {
-            key: entry.code || `note-${index}`,
-            label: 'overall',
-            action: entry.type === 'positive' ? 'celebrate' : 'monitor',
-            message: entry.message,
-            type: entry.type,
-          };
-        }
-        // Legacy format: string
-        if (typeof entry === 'string') {
-          return {
-            key: `note-${index}`,
-            label: 'overall',
-            action: 'monitor',
-            message: entry,
-            type: 'warning',
-          };
-        }
-        // Legacy format: { key, label, action, message }
-        const fallbackLabel = entry.label || entry.key || 'overall';
-        const translatedLabel = entry.key
-          ? t(`healthScore.factors.${entry.key}`, { defaultValue: fallbackLabel })
-          : fallbackLabel;
-        const action = entry.action || 'monitor';
+      // New format: { type: 'positive' | 'warning', code: string, message: string }
+      if (typeof entry === 'object' && entry.type && entry.message) {
         return {
-          key: entry.key || `note-${index}`,
-          label: translatedLabel,
-          action,
-          message:
-            entry.message ||
-            t(`healthScore.feedbackMessages.${action}`, {
-              defaultValue: entry.message,
-              factor: translatedLabel,
-            }),
-          type: entry.type || (action === 'celebrate' ? 'positive' : 'warning'),
+          key: entry.code || `note-${index}`,
+          label: 'overall',
+          action: entry.type === 'positive' ? 'celebrate' : 'monitor',
+          message: entry.message,
+          type: entry.type,
         };
-      })
+      }
+      // Legacy format: string
+      if (typeof entry === 'string') {
+        return {
+          key: `note-${index}`,
+          label: 'overall',
+          action: 'monitor',
+          message: entry,
+          type: 'warning',
+        };
+      }
+      // Legacy format: { key, label, action, message }
+      const fallbackLabel = entry.label || entry.key || 'overall';
+      const translatedLabel = entry.key
+        ? t(`healthScore.factors.${entry.key}`, { defaultValue: fallbackLabel })
+        : fallbackLabel;
+      const action = entry.action || 'monitor';
+      return {
+        key: entry.key || `note-${index}`,
+        label: translatedLabel,
+        action,
+        message:
+          entry.message ||
+          t(`healthScore.feedbackMessages.${action}`, {
+            defaultValue: entry.message,
+            factor: translatedLabel,
+          }),
+        type: entry.type || (action === 'celebrate' ? 'positive' : 'warning'),
+      };
+    })
     : [];
 
   const actionColorMap = {
@@ -170,31 +171,25 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="heart" size={24} color={gradeColor} />
-          <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>{t('healthScore.title')}</Text>
-        </View>
-        <View style={[styles.scoreBadge, { backgroundColor: gradeColor + '20' }]}>
-          <Ionicons name={getGradeIcon()} size={20} color={gradeColor} />
-          <Text style={[styles.scoreText, { color: gradeColor }]}>{total}</Text>
-          <Text 
-            style={[styles.gradeText, { color: gradeColor }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {t(`healthScore.level.${level}`, { defaultValue: level })}
-          </Text>
-        </View>
-      </View>
-
-      {/* Score Progress Bar */}
-      <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { backgroundColor: colors.inputBackground }]}>
-          <View
-            style={[styles.progressFill, { width: `${total}%`, backgroundColor: gradeColor }]}
-          />
-        </View>
+      {/* Header with Circular Score */}
+      <View style={styles.headerCentered}>
+        <CircularProgress
+          progress={total / 100}
+          size={120}
+          strokeWidth={10}
+          value={total}
+        >
+          <View style={{ alignItems: 'center', gap: 2 }}>
+            {grade === 'A' || grade === 'B' ? (
+              <Ionicons name={getGradeIcon()} size={20} color={gradeColor} style={{ marginBottom: -2 }} />
+            ) : null}
+            <Text style={[styles.scoreText, { color: gradeColor, fontSize: 32, lineHeight: 36 }]}>{total}</Text>
+          </View>
+        </CircularProgress>
+        {/* Level text below the circle */}
+        <Text style={[styles.levelText, { color: gradeColor, marginTop: 8 }]}>
+          {t(`healthScore.level.${level}`, { defaultValue: level })}
+        </Text>
       </View>
 
       {/* Factors */}
@@ -204,37 +199,37 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
           {factorEntries.map(entry => {
             const riskLabel = getRiskLabel(entry.key, entry.scorePercent);
             const isNegativeFactor = ['satFat', 'sugar', 'energyDensity', 'saturatedFat', 'sugars'].includes(entry.key);
-            
+
             return (
-            <View key={entry.key} style={styles.factorItem}>
-              <View style={styles.factorHeader}>
+              <View key={entry.key} style={styles.factorItem}>
+                <View style={styles.factorHeader}>
                   <View style={styles.factorLabelContainer}>
-                <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
+                    <Text style={[styles.factorLabel, { color: colors.textTertiary }]}>{entry.label}</Text>
                     {riskLabel && (
                       <Text style={[styles.factorRiskLabel, { color: colors.textTertiary }]}>
                         {' • '}{riskLabel}
-                  </Text>
-                )}
+                      </Text>
+                    )}
                   </View>
                   <Text style={[styles.factorValue, { color: colors.textSecondary }]}>
                     {entry.scorePercent}%
                   </Text>
-              </View>
-              <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
-                <View
-                  style={[
-                    styles.factorFill,
-                      { 
+                </View>
+                <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
+                  <View
+                    style={[
+                      styles.factorFill,
+                      {
                         width: `${Math.max(0, Math.min(100, entry.scorePercent))}%`, // Ensure valid percentage
-                        backgroundColor: isNegativeFactor && entry.scorePercent < 40 
+                        backgroundColor: isNegativeFactor && entry.scorePercent < 40
                           ? (colors.error || '#EF4444')
                           : isNegativeFactor && entry.scorePercent < 80
-                          ? (colors.warning || '#F59E0B')
-                          : (colors.primary || colors.success || '#10B981')
+                            ? (colors.warning || '#F59E0B')
+                            : (colors.primary || colors.success || '#10B981')
                       },
-                  ]}
-                />
-              </View>
+                    ]}
+                  />
+                </View>
               </View>
             );
           })}
@@ -249,10 +244,16 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
             const color = actionColorMap[entry.action] || colors.textSecondary;
             const icon = actionIconMap[entry.action] || 'information-circle-outline';
             return (
-            <View key={index} style={styles.feedbackItem}>
+              <View key={index} style={styles.feedbackItem}>
                 <Ionicons name={icon} size={16} color={color} style={styles.feedbackIcon} />
-                <Text style={[styles.feedbackText, { color: colors.textPrimary || colors.textSecondary }]}>{getFeedbackMessage(entry)}</Text>
-            </View>
+                <Text
+                  style={[styles.feedbackText, { color: colors.textPrimary || colors.textSecondary }]}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {getFeedbackMessage(entry)}
+                </Text>
+              </View>
             );
           })}
         </View>
@@ -270,11 +271,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     ...elevations.sm,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  headerCentered: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    justifyContent: 'center',
+    paddingVertical: spacing.lg,
+    marginBottom: spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -303,6 +304,11 @@ const styles = StyleSheet.create({
   gradeText: {
     fontSize: 18,
     fontWeight: '600',
+  },
+  levelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   progressContainer: {
     marginBottom: spacing.lg,

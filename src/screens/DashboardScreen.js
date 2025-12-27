@@ -8,6 +8,7 @@ import {
   Animated,
   Alert,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,20 +25,25 @@ import { formatMacro, formatMacroInt, formatCalories } from '../utils/nutritionF
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 import LabResultsModal from '../components/LabResultsModal';
 import DescribeFoodModal from '../components/DescribeFoodModal';
+import { PendingMealCard } from '../components/PendingMealCard';
+import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 
 
-// Helper function to get image URL from item (handles various field names)
+// Helper function to get image URL from item (handles various field names and resolves relative URLs)
 function getItemImageUrl(item) {
   if (!item) return null;
-  return (
+  const rawUrl =
     item.imageUrl ||
     item.imageURI ||
     item.imageUri ||
     item.photoUrl ||
     item.thumbnailUrl ||
+    item.mediaUrl ||
     (item.media && item.media.url) ||
-    null
-  );
+    null;
+
+  // Resolve relative URLs to absolute using ApiService
+  return ApiService.resolveMediaUrl(rawUrl);
 }
 
 export default function DashboardScreen() {
@@ -56,6 +62,8 @@ export default function DashboardScreen() {
     goal: 2000,
   });
   const [recentItems, setRecentItems] = useState([]);
+  const pendingAnalyses = usePendingAnalyses();
+  const { retryAnalysis, removePendingAnalysis } = useAnalysis();
   const [userStats, setUserStats] = useState({
     totalPhotosAnalyzed: 0,
     todayPhotosAnalyzed: 0,
@@ -174,7 +182,22 @@ export default function DashboardScreen() {
             protein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
             carbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
             fat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
-            imageUrl: meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || null,
+            imageUrl: ApiService.resolveMediaUrl(
+              meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || meal.mediaUrl || null
+            ),
+            // Include ingredients from items or meal.ingredients
+            ingredients: meal.ingredients || items.map(item => ({
+              id: item.id || String(Math.random()),
+              name: item.name || 'Ingredient',
+              calories: toNumber(item.calories),
+              protein: toNumber(item.protein),
+              carbs: toNumber(item.carbs),
+              fat: toNumber(item.fat),
+              weight: toNumber(item.weight),
+              hasNutrition: true,
+            })),
+            // Include health score data
+            healthScore: meal.healthScore || meal.healthInsights || null,
             analysisResult: {
               dishName: meal.name || 'Meal',
               totalCalories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
@@ -225,25 +248,25 @@ export default function DashboardScreen() {
           healthy_fat: t('dashboard.suggestedFood.messages.lowHealthyFat') || 'Вам не хватает полезных жиров',
           general: t('dashboard.suggestedFood.messages.general') || 'Персональные рекомендации по питанию',
         };
-        
+
         // Group suggestions by category to find most common issue
         const categoryCounts = {};
         suggestions.forEach(suggestion => {
           const cat = suggestion.category || 'general';
           categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
         });
-        
+
         // Find most common category
-        const mostCommonCategory = Object.keys(categoryCounts).reduce((a, b) => 
+        const mostCommonCategory = Object.keys(categoryCounts).reduce((a, b) =>
           categoryCounts[a] > categoryCounts[b] ? a : b, 'general'
         );
-        
+
         // Create summary message
-        const summaryMessage = categoryMessages[mostCommonCategory] || 
-          suggestions[0]?.reason || 
-          suggestions[0]?.tip || 
+        const summaryMessage = categoryMessages[mostCommonCategory] ||
+          suggestions[0]?.reason ||
+          suggestions[0]?.tip ||
           t('dashboard.suggestedFood.messages.general') || 'Персональные рекомендации по питанию';
-        
+
         setSuggestedFoodSummary({
           reason: summaryMessage,
           category: mostCommonCategory,
@@ -293,6 +316,26 @@ export default function DashboardScreen() {
     loadRecentItems();
   }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
+  // Auto-refresh when pending analyses change (e.g., when an analysis completes)
+  const prevPendingCountRef = React.useRef(pendingAnalyses.length);
+  useEffect(() => {
+    const currentCount = pendingAnalyses.length;
+    const prevCount = prevPendingCountRef.current;
+
+    // When an analysis gets removed from pending (completed), reload data
+    if (prevCount > 0 && currentCount < prevCount) {
+      // Analysis completed - wait a moment for DB to settle then reload
+      // This fix ensures the new meal is actually retrievable
+      const timer = setTimeout(() => {
+        loadStats();
+        loadRecentItems();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+
+    prevPendingCountRef.current = currentCount;
+  }, [pendingAnalyses.length, loadStats, loadRecentItems]);
+
   // Removed unused formatTime and formatDate functions
 
   // Check if daily limit reached - TEMPORARILY DISABLED
@@ -313,7 +356,7 @@ export default function DashboardScreen() {
       }
       Alert.alert(
         t('limits.title') || 'Daily Limit Reached',
-        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) || 
+        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) ||
         `You have reached your daily limit of ${userStats.dailyLimit} photo analyses. Please try again tomorrow.`,
       );
       return;
@@ -350,14 +393,14 @@ export default function DashboardScreen() {
     if (hasReachedDailyLimit(userStats)) {
       Alert.alert(
         t('limits.title') || 'Daily Limit Reached',
-        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) || 
+        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) ||
         `You have reached your daily limit of ${userStats.dailyLimit} photo analyses. Please try again tomorrow.`,
       );
       setShowModal(false);
       return;
     }
 
-    await clientLog('Dashboard:openCameraPressed').catch(() => {});
+    await clientLog('Dashboard:openCameraPressed').catch(() => { });
     setShowModal(false);
     if (navigation && typeof navigation.navigate === 'function') {
       if (__DEV__) {
@@ -377,14 +420,14 @@ export default function DashboardScreen() {
     if (hasReachedDailyLimit(userStats)) {
       Alert.alert(
         t('limits.title') || 'Daily Limit Reached',
-        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) || 
+        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) ||
         `You have reached your daily limit of ${userStats.dailyLimit} photo analyses. Please try again tomorrow.`,
       );
       setShowModal(false);
       return;
     }
 
-    await clientLog('Dashboard:openGalleryPressed').catch(() => {});
+    await clientLog('Dashboard:openGalleryPressed').catch(() => { });
     setShowModal(false);
     if (navigation && typeof navigation.navigate === 'function') {
       if (__DEV__) {
@@ -427,10 +470,7 @@ export default function DashboardScreen() {
     setSelectedDate(newDate);
   };
 
-  // Temporary log to verify Dashboard renders without crash
-  if (__DEV__) {
-    console.log('[DashboardScreen] rendered OK');
-  }
+  // Dashboard render check removed to reduce console spam
 
   return (
     <SafeAreaView style={styles.container}>
@@ -443,7 +483,7 @@ export default function DashboardScreen() {
           >
             <Ionicons name="chevron-back" size={24} color={colors.primary} />
           </TouchableOpacity>
-          
+
           <View style={styles.calendarDate}>
             <Text style={styles.calendarDateText}>
               {selectedDate.toLocaleDateString(language || 'en', {
@@ -455,7 +495,7 @@ export default function DashboardScreen() {
               {selectedDate.getFullYear()}
             </Text>
           </View>
-          
+
           <TouchableOpacity
             style={styles.calendarButton}
             onPress={() => navigateToDate(1)}
@@ -465,7 +505,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* Calories Circle with Progress and Macros - Compact Layout */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.caloriesAndMacrosContainer,
             {
@@ -494,7 +534,7 @@ export default function DashboardScreen() {
         </Animated.View>
 
         {/* Quick Stats */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.statsContainer,
             {
@@ -523,7 +563,7 @@ export default function DashboardScreen() {
         </Animated.View>
 
         {/* PART A: Section 2 - Recent meals (short list) */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.recentContainer,
             {
@@ -534,6 +574,29 @@ export default function DashboardScreen() {
           <View style={styles.recentHeader}>
             <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
           </View>
+
+          {/* Pending Analyses - Show processing cards at the top */}
+          {pendingAnalyses && pendingAnalyses.length > 0 && (
+            pendingAnalyses.map((analysis) => (
+              <PendingMealCard
+                key={analysis.id}
+                analysis={analysis}
+                onPress={() => {
+                  if (navigation && typeof navigation.navigate === 'function') {
+                    navigation.navigate('AnalysisResults', {
+                      analysisId: analysis.analysisId,
+                      status: analysis.status,
+                      localPreviewUri: analysis.localPreviewUri,
+                    });
+                  }
+                }}
+                onRetry={() => retryAnalysis(analysis.analysisId)}
+                onDelete={() => removePendingAnalysis(analysis.analysisId)}
+              />
+            ))
+          )}
+
+          {/* Completed meals */}
           {recentItems && recentItems.length > 0 ? (
             (recentItems || []).slice(0, 3).map((item) => (
               <TouchableOpacity
@@ -546,8 +609,8 @@ export default function DashboardScreen() {
                 }}
               >
                 {getItemImageUrl(item) ? (
-                  <Image 
-                    source={{ uri: getItemImageUrl(item) }} 
+                  <Image
+                    source={{ uri: getItemImageUrl(item) }}
                     style={styles.recentItemImage}
                     resizeMode="cover"
                   />
@@ -559,25 +622,25 @@ export default function DashboardScreen() {
                 <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
                   <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
                   <Text numberOfLines={1} style={styles.articleRowExcerpt}>
-                    {formatCalories(item.totalCalories ?? item.calories ?? 0)} · P {formatMacro(item.totalProtein ?? item.protein ?? 0)} · C {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · F {formatMacro(item.totalFat ?? item.fat ?? 0)}
+                    {formatCalories(item.totalCalories ?? item.calories ?? 0)} · {t('analysis.proteinShort') || 'P'} {formatMacro(item.totalProtein ?? item.protein ?? 0)} · {t('analysis.carbsShort') || 'C'} {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · {t('analysis.fatShort') || 'F'} {formatMacro(item.totalFat ?? item.fat ?? 0)}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             ))
-          ) : (
+          ) : !pendingAnalyses || pendingAnalyses.length === 0 ? (
             <View style={styles.recentEmpty}>
               <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
               <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
               <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
             </View>
-          )}
+          ) : null}
         </Animated.View>
 
         {/* PART A: Section 3 - Smart Recommendations Cards */}
         {/* 1. Suggested Food Summary Card */}
         {suggestedFoodSummary && suggestedFoodSummary.reason && (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.section,
               {
@@ -610,16 +673,16 @@ export default function DashboardScreen() {
             >
               <View style={styles.suggestedFoodSummaryContent}>
                 <View style={styles.suggestedFoodSummaryIcon}>
-                  <Ionicons 
+                  <Ionicons
                     name={
                       suggestedFoodSummary.category === 'protein' ? 'fitness-outline' :
-                      suggestedFoodSummary.category === 'fiber' ? 'leaf-outline' :
-                      suggestedFoodSummary.category === 'healthy_fat' ? 'water-outline' :
-                      suggestedFoodSummary.category === 'carb' ? 'barbell-outline' :
-                      'nutrition-outline'
-                    } 
-                    size={20} 
-                    color={colors.primary || '#007AFF'} 
+                        suggestedFoodSummary.category === 'fiber' ? 'leaf-outline' :
+                          suggestedFoodSummary.category === 'healthy_fat' ? 'water-outline' :
+                            suggestedFoodSummary.category === 'carb' ? 'barbell-outline' :
+                              'nutrition-outline'
+                    }
+                    size={20}
+                    color={colors.primary || '#007AFF'}
                   />
                 </View>
                 <View style={styles.suggestedFoodSummaryText}>
@@ -637,7 +700,7 @@ export default function DashboardScreen() {
         )}
 
         {/* 2. AI Assistant */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.aiAssistantContainer,
             {
@@ -645,8 +708,8 @@ export default function DashboardScreen() {
             },
           ]}
         >
-          <TouchableOpacity 
-            style={styles.aiAssistantButton} 
+          <TouchableOpacity
+            style={styles.aiAssistantButton}
             onPress={() => {
               if (__DEV__) {
                 console.log('[Dashboard] Opening AI Assistant');
@@ -671,7 +734,7 @@ export default function DashboardScreen() {
         </Animated.View>
 
         {/* 3. Manual Analysis / "Вставьте свой анализ" */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.section,
             {
@@ -703,7 +766,7 @@ export default function DashboardScreen() {
       >
         <TouchableOpacity
           style={styles.plusButton}
-          onPress={typeof handlePlusPress === 'function' ? handlePlusPress : () => {}}
+          onPress={typeof handlePlusPress === 'function' ? handlePlusPress : () => { }}
           activeOpacity={0.8}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
@@ -724,22 +787,22 @@ export default function DashboardScreen() {
         <SafeAreaView style={styles.addFoodModalContent} edges={['bottom']}>
           <View style={styles.addFoodModalHeader}>
             <Text style={styles.addFoodModalTitle}>{t('dashboard.addFood.title')}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setShowModal(false)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Ionicons name="close" size={24} color={colors.text || colors.textSecondary} />
             </TouchableOpacity>
           </View>
-          
+
           <Text style={styles.addFoodModalSubtitle}>
             {t('dashboard.addFood.subtitle')}
           </Text>
-          
+
           <View style={styles.addFoodModalButtons}>
             <TouchableOpacity
               style={styles.addFoodModalButton}
-              onPress={typeof handleCameraPress === 'function' ? handleCameraPress : () => {}}
+              onPress={typeof handleCameraPress === 'function' ? handleCameraPress : () => { }}
             >
               <View style={styles.addFoodModalButtonIcon}>
                 <Ionicons name="camera" size={32} color={colors.primary} />
@@ -749,10 +812,10 @@ export default function DashboardScreen() {
                 {t('dashboard.addFood.camera.description')}
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={styles.addFoodModalButton}
-              onPress={typeof handleGalleryPress === 'function' ? handleGalleryPress : () => {}}
+              onPress={typeof handleGalleryPress === 'function' ? handleGalleryPress : () => { }}
             >
               <View style={styles.addFoodModalButtonIcon}>
                 <Ionicons name="images" size={32} color={colors.primary} />
@@ -762,10 +825,10 @@ export default function DashboardScreen() {
                 {t('dashboard.addFood.gallery.description')}
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={styles.addFoodModalButton}
-              onPress={typeof handleDescribeFood === 'function' ? handleDescribeFood : () => {}}
+              onPress={typeof handleDescribeFood === 'function' ? handleDescribeFood : () => { }}
             >
               <View style={styles.addFoodModalButtonIcon}>
                 <Ionicons name="create-outline" size={32} color={colors.primary} />

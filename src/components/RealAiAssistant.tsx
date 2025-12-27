@@ -33,6 +33,7 @@ interface Message {
     uri: string;
     name: string;
   };
+  isError?: boolean;
 }
 
 interface RealAiAssistantProps {
@@ -53,7 +54,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
   if (__DEV__) {
     console.log('[RealAiAssistant] mounted');
   }
-  
+
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { colors } = useTheme();
@@ -68,10 +69,11 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
   // C1: Load conversation history on mount
   useEffect(() => {
     const loadHistory = async () => {
-      if (!user?.id) return;
-      
+      // If we are in "Dish Context" mode, do NOT load global history. Start fresh.
+      if (!user?.id || mealContext) return;
+
       try {
-        await clientLog('AiAssistant:loadingHistory').catch(() => {});
+        await clientLog('AiAssistant:loadingHistory').catch(() => { });
         if (!ApiService || typeof ApiService.getConversationHistory !== 'function') {
           if (__DEV__) {
             console.warn('[RealAiAssistant] ApiService.getConversationHistory is not available');
@@ -88,7 +90,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           return;
         }
         const history = await ApiService.getConversationHistory(user.id, 10);
-        
+
         if (Array.isArray(history) && history.length > 0) {
           const historyMessages: Message[] = history
             .slice(0, 10)
@@ -127,16 +129,43 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
     loadHistory();
   }, [user?.id, t]);
 
-  // Add meal context as initial message if provided
+  // Add meal context as initial message if provided - this takes priority over history
   useEffect(() => {
-    if (mealContext && mealContext.dishName && messages.length === 0) {
-      const contextMessage = `I just analyzed this meal: ${mealContext.dishName}. ` +
-        (mealContext.totalCalories ? `${mealContext.totalCalories} calories. ` : '') +
-        (mealContext.ingredients && mealContext.ingredients.length > 0 
-          ? `Ingredients: ${mealContext.ingredients.map(i => i.name).join(', ')}. ` 
-          : '') +
-        'Can you tell me more about it?';
-      
+    if (mealContext && mealContext.dishName) {
+      // Build localized context message
+      const locale = mapLanguageToLocale(language);
+      let contextMessage = '';
+
+      if (locale === 'ru') {
+        contextMessage = `Я только что проанализировал это блюдо: ${mealContext.dishName}. `;
+        if (mealContext.totalCalories) {
+          contextMessage += `${Math.round(mealContext.totalCalories)} калорий. `;
+        }
+        if (mealContext.ingredients && mealContext.ingredients.length > 0) {
+          contextMessage += `Ингредиенты: ${mealContext.ingredients.map(i => i.name).join(', ')}. `;
+        }
+        contextMessage += 'Расскажи мне больше об этом блюде?';
+      } else if (locale === 'kk') {
+        contextMessage = `Мен бұл тағамды талдадым: ${mealContext.dishName}. `;
+        if (mealContext.totalCalories) {
+          contextMessage += `${Math.round(mealContext.totalCalories)} калория. `;
+        }
+        if (mealContext.ingredients && mealContext.ingredients.length > 0) {
+          contextMessage += `Ингредиенттер: ${mealContext.ingredients.map(i => i.name).join(', ')}. `;
+        }
+        contextMessage += 'Маған бұл тағам туралы көбірек айтыңыз?';
+      } else {
+        contextMessage = `I just analyzed this meal: ${mealContext.dishName}. `;
+        if (mealContext.totalCalories) {
+          contextMessage += `${Math.round(mealContext.totalCalories)} calories. `;
+        }
+        if (mealContext.ingredients && mealContext.ingredients.length > 0) {
+          contextMessage += `Ingredients: ${mealContext.ingredients.map(i => i.name).join(', ')}. `;
+        }
+        contextMessage += 'Can you tell me more about it?';
+      }
+
+      // Set initial context message and auto-send
       setMessages([
         {
           id: 'meal-context-1',
@@ -145,8 +174,73 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           timestamp: new Date(),
         },
       ]);
+
+      // Automatically trigger the assistant to respond with meal analysis
+      setInputText('');
+      setIsLoading(true);
+
+      (async () => {
+        try {
+          const contextParts = [];
+          if (mealContext.dishName) {
+            contextParts.push(`Dish: ${mealContext.dishName}`);
+          }
+          if (mealContext.ingredients && mealContext.ingredients.length > 0) {
+            const ingredientsList = mealContext.ingredients.map(ing =>
+              `${ing.name}${ing.weight ? ` (${ing.weight}g)` : ''}`
+            ).join(', ');
+            contextParts.push(`Ingredients: ${ingredientsList}`);
+          }
+          if (mealContext.totalCalories) {
+            contextParts.push(`Total: ${mealContext.totalCalories} kcal, P: ${mealContext.totalProtein || 0}g, C: ${mealContext.totalCarbs || 0}g, F: ${mealContext.totalFat || 0}g`);
+          }
+          if (mealContext.healthScore) {
+            const score = typeof mealContext.healthScore === 'object' ? mealContext.healthScore.score : mealContext.healthScore;
+            if (score) {
+              contextParts.push(`Health Score: ${score}`);
+            }
+          }
+
+          const contextString = contextParts.join('\n');
+
+          let response;
+          if (ApiService && typeof ApiService.getNutritionAdvice === 'function') {
+            response = await ApiService.getNutritionAdvice(
+              user?.id || '',
+              `Please analyze this meal and provide nutritional insights:\n\n${contextString}`,
+              mealContext,
+              locale,
+            );
+          } else if (ApiService && typeof ApiService.getGeneralQuestion === 'function') {
+            response = await ApiService.getGeneralQuestion(
+              user?.id || '',
+              `Please analyze this meal and provide nutritional insights:\n\n${contextString}`,
+              locale,
+            );
+          }
+
+          if (response?.answer) {
+            setMessages(prev => [...prev, {
+              id: 'meal-analysis-response-1',
+              role: 'assistant',
+              content: response.answer,
+              timestamp: new Date(),
+            }]);
+          }
+        } catch (error) {
+          console.error('[RealAiAssistant] Error getting meal analysis:', error);
+          setMessages(prev => [...prev, {
+            id: 'meal-analysis-error-1',
+            role: 'assistant',
+            content: t('aiAssistant.error'),
+            timestamp: new Date(),
+          }]);
+        } finally {
+          setIsLoading(false);
+        }
+      })();
     }
-  }, [mealContext, messages.length]);
+  }, [mealContext, language, t, user?.id]);
 
   // C2: Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -169,7 +263,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         quality: 0.9,
         allowsEditing: false,
       });
@@ -257,46 +351,20 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
     setSelectedAttachment(null);
   };
 
-  const handleSend = useCallback(async () => {
-    const trimmedInput = inputText.trim();
-    if ((!trimmedInput && !selectedAttachment) || isLoading || !user?.id) {
-      if (__DEV__) {
-        console.log('[RealAiAssistant] Cannot send: empty input/attachment or loading or no user');
-      }
-      return;
-    }
 
-    if (__DEV__) {
-      console.log('[RealAiAssistant] Sending message:', trimmedInput.substring(0, 50), selectedAttachment ? 'with attachment' : '');
-    }
 
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: trimmedInput || (selectedAttachment ? `[${selectedAttachment.type === 'image' ? t('aiAssistant.attach.photo') : t('aiAssistant.attach.file')}]` : ''),
-      timestamp: new Date(),
-      attachment: selectedAttachment || undefined,
-    };
-
-    // Add user message immediately
-    setMessages((prev) => [...prev, userMessage]);
-    setInputText('');
-    setSelectedAttachment(null);
+  const sendMessageToApi = async (text: string, attachment: any) => {
     setIsLoading(true);
-
     try {
-      await clientLog('AiAssistant:messageSent', { 
-        messageLength: trimmedInput.length,
-        hasAttachment: !!selectedAttachment,
-      }).catch(() => {});
+      await clientLog('AiAssistant:messageSent', {
+        messageLength: text.length,
+        hasAttachment: !!attachment,
+      }).catch(() => { });
 
-      // Call API - check if method exists
       if (!ApiService || typeof ApiService.getGeneralQuestion !== 'function') {
         throw new Error('ApiService.getGeneralQuestion is not available');
       }
 
-      // If mealContext is provided, use nutrition advice endpoint with context
-      // Otherwise use general question endpoint
       let response;
       if (mealContext) {
         // Build context string from meal data
@@ -305,7 +373,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           contextParts.push(`Dish: ${mealContext.dishName}`);
         }
         if (mealContext.ingredients && mealContext.ingredients.length > 0) {
-          const ingredientsList = mealContext.ingredients.map(ing => 
+          const ingredientsList = mealContext.ingredients.map(ing =>
             `${ing.name}${ing.weight ? ` (${ing.weight}g)` : ''}`
           ).join(', ');
           contextParts.push(`Ingredients: ${ingredientsList}`);
@@ -313,36 +381,30 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
         if (mealContext.totalCalories) {
           contextParts.push(`Total: ${mealContext.totalCalories} kcal, P: ${mealContext.totalProtein || 0}g, C: ${mealContext.totalCarbs || 0}g, F: ${mealContext.totalFat || 0}g`);
         }
-        
+
         const contextString = contextParts.join('\n');
-        const questionWithContext = `${trimmedInput}\n\nContext about this meal:\n${contextString}`;
-        
+        const questionWithContext = `${text}\n\nContext about this meal:\n${contextString}`;
+
         if (ApiService && typeof ApiService.getNutritionAdvice === 'function') {
           response = await ApiService.getNutritionAdvice(
-            user.id,
+            user?.id || '',
             questionWithContext,
             mealContext,
             mapLanguageToLocale(language),
           );
         } else {
-          // Fallback to general question if nutrition advice not available
           response = await ApiService.getGeneralQuestion(
-            user.id,
+            user?.id || '',
             questionWithContext,
             mapLanguageToLocale(language),
           );
         }
       } else {
-        // No meal context - use general question
         response = await ApiService.getGeneralQuestion(
-          user.id,
-          trimmedInput || (selectedAttachment ? `[${selectedAttachment.type === 'image' ? 'Photo' : 'PDF'} attached]` : ''),
+          user?.id || '',
+          text || (attachment ? `[${attachment.type === 'image' ? 'Photo' : 'PDF'} attached]` : ''),
           mapLanguageToLocale(language),
         );
-      }
-
-      if (__DEV__) {
-        console.log('[RealAiAssistant] Received response:', response?.answer ? 'has answer' : 'no answer');
       }
 
       const assistantMessage: Message = {
@@ -352,23 +414,27 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
         timestamp: new Date(),
       };
 
-      await clientLog('AiAssistant:messageReceived', { 
+      if (!response?.answer) {
+        assistantMessage.isError = true;
+      }
+
+      await clientLog('AiAssistant:messageReceived', {
         hasAnswer: !!response?.answer,
         answerLength: response?.answer?.length || 0,
-      }).catch(() => {});
+      }).catch(() => { });
 
       setMessages((prev) => [...prev, assistantMessage]);
+
     } catch (error: any) {
       console.error('[RealAiAssistant] Error sending message:', error);
-      
-      // Check for quota exceeded error
-      const isQuotaExceeded = 
+
+      const isQuotaExceeded =
         error?.status === 503 ||
         error?.status === 429 ||
         error?.payload?.code === 'AI_QUOTA_EXCEEDED' ||
         error?.message?.includes('quota') ||
         error?.message?.includes('AI_QUOTA_EXCEEDED');
-      
+
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
@@ -376,30 +442,67 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           ? t('aiAssistant.quotaExceeded')
           : t('aiAssistant.error'),
         timestamp: new Date(),
+        isError: true,
       };
-
-      await clientLog('AiAssistant:messageError', { 
-        message: error?.message || String(error),
-        status: error?.status,
-        code: error?.payload?.code,
-        isQuotaExceeded,
-      }).catch(() => {});
-
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      // Focus input after sending
-      setTimeout(() => {
-        if (inputRef.current && typeof inputRef.current.focus === 'function') {
-          inputRef.current.focus();
-        }
-      }, 100);
     }
-  }, [inputText, selectedAttachment, isLoading, user?.id, language, t]);
+  };
+
+  const handleSend = useCallback(async () => {
+    const trimmedInput = inputText.trim();
+    const attachment = selectedAttachment;
+
+    if ((!trimmedInput && !attachment) || isLoading || !user?.id) return;
+
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: trimmedInput || (attachment ? `[${attachment.type === 'image' ? t('aiAssistant.attach.photo') : t('aiAssistant.attach.file')}]` : ''),
+      timestamp: new Date(),
+      attachment: attachment || undefined,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText('');
+    setSelectedAttachment(null);
+
+    await sendMessageToApi(trimmedInput, attachment);
+  }, [inputText, selectedAttachment, isLoading, user?.id, language, t, mealContext]);
+
+  const handleRetry = useCallback(async () => {
+    if (isLoading) return;
+
+    // Find last user message
+    const reversedMsg = [...messages].reverse();
+    const lastUserMsg = reversedMsg.find(m => m.role === 'user');
+
+    if (lastUserMsg) {
+      // Remove the error message(s) from the end
+      setMessages(prev => {
+        const newMsgs = [...prev];
+        while (newMsgs.length > 0 && newMsgs[newMsgs.length - 1].role === 'assistant' && newMsgs[newMsgs.length - 1].isError) {
+          newMsgs.pop();
+        }
+        return newMsgs;
+      });
+
+      // Extract original text from content if possible, or just use content
+      // Note: content might contain [Photo attached] tag, but sendMessageToApi handles it.
+      // Actually, sendMessageToApi expects RAW text and attachment.
+      // Recovering raw text from formatted content is hard if we don't store it.
+      // But `lastUserMsg.content` seems to be what was sent (or fallback).
+      // If attachment is present, content might be fallback text.
+      // We'll use lastUserMsg.content as text, ensuring we don't double-bracket.
+
+      await sendMessageToApi(lastUserMsg.content, lastUserMsg.attachment);
+    }
+  }, [messages, isLoading]);
 
   const renderMessage = ({ item: message }: { item: Message }) => {
     const isUser = message.role === 'user';
-    
+
     return (
       <View
         style={[
@@ -417,10 +520,10 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
         >
           {message.attachment && (
             <View style={styles.attachmentPreview}>
-              <Ionicons 
-                name={message.attachment.type === 'image' ? 'image' : 'document-text'} 
-                size={20} 
-                color={isUser ? colors.onPrimary : colors.textPrimary} 
+              <Ionicons
+                name={message.attachment.type === 'image' ? 'image' : 'document-text'}
+                size={20}
+                color={isUser ? colors.onPrimary : colors.textPrimary}
               />
               <Text
                 style={[
@@ -443,6 +546,11 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           >
             {message.content}
           </Text>
+          {message.isError && (
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+              <Text style={[styles.retryText, { color: colors.error }]}>{t('common.retry') || 'Retry'}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -478,8 +586,8 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
 
   // C1: New structure with proper layout
   return (
-    <SafeAreaView 
-      style={[styles.safeArea, { backgroundColor: colors.background || colors.surface }]} 
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background || colors.surface }]}
       edges={['top', 'bottom']}
     >
       {/* Header/Toolbar */}
@@ -496,6 +604,18 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
         </Text>
         <View style={styles.headerPlaceholder} />
       </View>
+
+      {/* Pinned Dish Context Card */}
+      {mealContext && (
+        <View style={styles.pinnedContextContainer}>
+          <View style={styles.pinnedContent}>
+            <Text style={styles.pinnedTitle} numberOfLines={1}>{mealContext.dishName}</Text>
+            <Text style={styles.pinnedSubtitle}>
+              {Math.round(mealContext.totalCalories || 0)} kcal • {Math.round(mealContext.totalProtein || 0)}g P • {Math.round(mealContext.totalCarbs || 0)}g C • {Math.round(mealContext.totalFat || 0)}g F
+            </Text>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -527,13 +647,13 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           {/* Attachment Preview */}
           {selectedAttachment && (
             <View style={[styles.attachmentBar, { backgroundColor: colors.surfaceMuted || '#F2F2F7' }]}>
-              <Ionicons 
-                name={selectedAttachment.type === 'image' ? 'image' : 'document-text'} 
-                size={20} 
-                color={colors.primary} 
+              <Ionicons
+                name={selectedAttachment.type === 'image' ? 'image' : 'document-text'}
+                size={20}
+                color={colors.primary}
               />
-              <Text 
-                style={[styles.attachmentBarText, { color: colors.textPrimary }]} 
+              <Text
+                style={[styles.attachmentBarText, { color: colors.textPrimary }]}
                 numberOfLines={1}
               >
                 {selectedAttachment.name}
@@ -578,7 +698,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
               placeholderTextColor={colors.textTertiary || '#8E8E93'}
               value={inputText}
               onChangeText={setInputText}
-              onSubmitEditing={handleSend}
+              onSubmitEditing={() => handleSend()}
               multiline
               maxLength={500}
               editable={!isLoading}
@@ -594,7 +714,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
                       : colors.surfaceMuted || '#E5E5EA',
                 },
               ]}
-              onPress={handleSend}
+              onPress={() => handleSend()}
               disabled={(!inputText.trim() && !selectedAttachment) || isLoading}
             >
               {isLoading ? (
@@ -698,9 +818,22 @@ const styles = StyleSheet.create({
   attachmentPreview: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 4,
   },
+  retryButton: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderRadius: 12,
+  },
+  retryText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
   attachmentText: {
     fontSize: 14,
     flex: 1,
@@ -708,9 +841,8 @@ const styles = StyleSheet.create({
   attachmentBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
+    padding: 12,
+    gap: 12,
   },
   attachmentBarText: {
     flex: 1,
@@ -754,6 +886,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 3,
     elevation: 3,
+  },
+  pinnedContextContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  pinnedContent: {
+    gap: 4,
+  },
+  pinnedTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pinnedSubtitle: {
+    fontSize: 12,
+    opacity: 0.7,
   },
 });
 
