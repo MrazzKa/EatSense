@@ -280,8 +280,8 @@ const createStyles = (tokens, colors) => {
       borderWidth: 2,
       borderColor: borderMuted,
       position: 'relative',
-      flex: 1,
-      minHeight: 140,
+      // Removed flex: 1 to allow cards to size based on content
+      minHeight: 130,
     },
     planButtonPopular: {
       borderColor: colors.primary,
@@ -323,14 +323,17 @@ const createStyles = (tokens, colors) => {
     planFeature: {
       fontSize: tokens.typography?.caption?.fontSize ?? 12,
       color: textSecondary,
+      flex: 1,
+      flexWrap: 'wrap',
     },
     planFeatureSelected: {
       color: onPrimary,
     },
     planFeatureRow: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       gap: tokens.spacing?.xs ?? 8,
+      paddingRight: 4,
     },
     planButtonSelected: {
       borderColor: colors.primary,
@@ -343,7 +346,11 @@ const createStyles = (tokens, colors) => {
     planHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'flex-start',
+    },
+    planHeaderText: {
+      flex: 1,
+      marginRight: 8,
     },
     planToggle: {
       paddingVertical: tokens.spacing?.sm ?? 8,
@@ -644,6 +651,8 @@ const OnboardingScreen = () => {
     planBillingCycle: 'lifetime',
   });
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
+  const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
+  const [planData, setPlanData] = useState(null); // Calculated plan data
 
   const scrollViewRef = useRef(null);
 
@@ -750,24 +759,23 @@ const OnboardingScreen = () => {
   };
 
   const nextStep = () => {
-    // Валидация для каждого шага
-    if (currentStep === 1) { // Name step
-      if (!profileData.firstName.trim() || !profileData.lastName.trim()) {
-        Alert.alert('Required Fields', 'Please enter your first and last name.');
+    // Get current step ID for validation
+    const currentStepId = steps[currentStep]?.id;
+
+    // Validation based on step ID (not hard-coded indices)
+    if (currentStepId === 'goals') {
+      if (!profileData.goal) {
+        Alert.alert('Required Field', 'Please select your goal.');
         return;
       }
-    } else if (currentStep === 3) { // Gender step
+    } else if (currentStepId === 'gender') {
       if (!profileData.gender) {
         Alert.alert('Required Field', 'Please select your gender.');
         return;
       }
-    } else if (currentStep === 6) { // Combined Activity & Goals step
+    } else if (currentStepId === 'activity') {
       if (!profileData.activityLevel) {
         Alert.alert('Required Field', 'Please select your activity level.');
-        return;
-      }
-      if (!profileData.goal) {
-        Alert.alert('Required Field', 'Please select your goal.');
         return;
       }
     }
@@ -815,7 +823,7 @@ const OnboardingScreen = () => {
       };
 
       profileDataWithoutPlan.preferences = mergedPreferences;
-      
+
       // Проверяем, есть ли уже профиль
       try {
         await ApiService.getUserProfile();
@@ -825,12 +833,12 @@ const OnboardingScreen = () => {
         // Если профиля нет, создаем новый
         await ApiService.createUserProfile(profileDataWithoutPlan);
       }
-      
+
       const onboardingResult = await ApiService.completeOnboarding();
       console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
-      
-      await clientLog('Onboarding:completed').catch(() => {});
-      
+
+      await clientLog('Onboarding:completed').catch(() => { });
+
       // Update user profile in context to mark onboarding as completed
       try {
         const updatedProfile = await ApiService.getUserProfile();
@@ -842,10 +850,10 @@ const OnboardingScreen = () => {
         console.warn('[OnboardingScreen] Failed to update user context:', updateError);
         // Try to refresh user anyway
         if (refreshUser && typeof refreshUser === 'function') {
-          refreshUser().catch(() => {});
+          refreshUser().catch(() => { });
         }
       }
-      
+
       // Используем InteractionManager для безопасного вызова navigation после завершения всех анимаций
       InteractionManager.runAfterInteractions(() => {
         // Дополнительная задержка для гарантии готовности navigation
@@ -853,7 +861,7 @@ const OnboardingScreen = () => {
           try {
             if (navigation && navigation.isReady && navigation.isReady()) {
               console.log('[OnboardingScreen] Navigation is ready, calling reset');
-              clientLog('Onboarding:navigateToMainTabs').catch(() => {});
+              clientLog('Onboarding:navigateToMainTabs').catch(() => { });
               navigation.dispatch(
                 CommonActions.reset({
                   index: 0,
@@ -862,7 +870,7 @@ const OnboardingScreen = () => {
               );
             } else if (navigation && typeof navigation.reset === 'function') {
               console.log('[OnboardingScreen] Navigation reset available, calling directly');
-              clientLog('Onboarding:navigateToMainTabs').catch(() => {});
+              clientLog('Onboarding:navigateToMainTabs').catch(() => { });
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'MainTabs' }],
@@ -909,16 +917,16 @@ const OnboardingScreen = () => {
 
       if (navigation && (navigation.isReady || typeof navigation.reset === 'function')) {
         Alert.alert(
-          'Setup Complete', 
+          'Setup Complete',
           'Profile saved locally. You can complete setup later in settings.',
-          [{ 
-            text: 'OK', 
+          [{
+            text: 'OK',
             onPress: navigateToMain
           }]
         );
       } else {
         Alert.alert(
-          'Setup Complete', 
+          'Setup Complete',
           'Profile saved locally. Please restart the app to continue.'
         );
       }
@@ -943,7 +951,7 @@ const OnboardingScreen = () => {
     const containerHeight = itemHeight * visibleItems;
     const lastValueRef = useRef(value);
     const scrollY = useRef(new Animated.Value(0));
-    
+
     // Initialize scroll position only once
     const initializedRef = useRef(false);
     useEffect(() => {
@@ -955,7 +963,7 @@ const OnboardingScreen = () => {
         initializedRef.current = true;
       }
     }, []);
-    
+
     // Sync scroll position when value changes externally
     useEffect(() => {
       if (!isScrollingRef.current && scrollViewRef.current && lastValueRef.current !== value) {
@@ -965,7 +973,7 @@ const OnboardingScreen = () => {
         lastValueRef.current = value;
       }
     }, [value, minimumValue, step]);
-    
+
     const handleScroll = Animated.event(
       [{ nativeEvent: { contentOffset: { y: scrollY.current } } }],
       {
@@ -978,23 +986,23 @@ const OnboardingScreen = () => {
             minimumValue,
             Math.min(maximumValue, minimumValue + index * step)
           );
-          
+
           if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - lastValueRef.current) >= step) {
             try {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            } catch {}
+            } catch { }
           }
-          
+
           if (newValue !== lastValueRef.current) {
             lastValueRef.current = newValue;
             onValueChange(newValue);
           }
-          
+
           // Clear existing timeout
           if (scrollTimeoutRef.current) {
             clearTimeout(scrollTimeoutRef.current);
           }
-          
+
           // Set new timeout to detect scroll end
           scrollTimeoutRef.current = setTimeout(() => {
             isScrollingRef.current = false;
@@ -1002,35 +1010,35 @@ const OnboardingScreen = () => {
         },
       }
     );
-    
+
     const handleMomentumScrollEnd = (event) => {
       isScrollingRef.current = false;
       const offsetY = event.nativeEvent.contentOffset.y;
       const index = Math.round(offsetY / itemHeight);
       const targetOffset = index * itemHeight;
-      
+
       // Smooth snap to nearest item
       scrollViewRef.current?.scrollTo({
         y: targetOffset,
         animated: true,
       });
-      
+
       const snappedValue = Math.max(
         minimumValue,
         Math.min(maximumValue, minimumValue + index * step)
       );
-      
+
       if (snappedValue !== lastValueRef.current) {
         lastValueRef.current = snappedValue;
         onValueChange(snappedValue);
       }
     };
-    
+
     const items = [];
     for (let i = minimumValue; i <= maximumValue; i += step) {
       items.push(i);
     }
-    
+
     return (
       <View style={[styles.verticalPickerContainer, { height: containerHeight }]}>
         <Animated.ScrollView
@@ -1091,7 +1099,7 @@ const OnboardingScreen = () => {
     const containerWidth = itemWidth * visibleItems;
     const lastValueRef = useRef(value);
     const scrollX = useRef(new Animated.Value(0));
-    
+
     // Initialize scroll position only once
     const initializedRef = useRef(false);
     useEffect(() => {
@@ -1103,7 +1111,7 @@ const OnboardingScreen = () => {
         initializedRef.current = true;
       }
     }, []);
-    
+
     // Sync scroll position when value changes externally
     useEffect(() => {
       if (!isScrollingRef.current && scrollViewRef.current && lastValueRef.current !== value) {
@@ -1113,7 +1121,7 @@ const OnboardingScreen = () => {
         lastValueRef.current = value;
       }
     }, [value, minimumValue, step]);
-    
+
     const handleScroll = Animated.event(
       [{ nativeEvent: { contentOffset: { x: scrollX.current } } }],
       {
@@ -1126,23 +1134,23 @@ const OnboardingScreen = () => {
             minimumValue,
             Math.min(maximumValue, minimumValue + index * step)
           );
-          
+
           if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - lastValueRef.current) >= step) {
             try {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            } catch {}
+            } catch { }
           }
-          
+
           if (newValue !== lastValueRef.current) {
             lastValueRef.current = newValue;
             onValueChange(newValue);
           }
-          
+
           // Clear existing timeout
           if (scrollTimeoutRef.current) {
             clearTimeout(scrollTimeoutRef.current);
           }
-          
+
           // Set new timeout to detect scroll end
           scrollTimeoutRef.current = setTimeout(() => {
             isScrollingRef.current = false;
@@ -1150,35 +1158,35 @@ const OnboardingScreen = () => {
         },
       }
     );
-    
+
     const handleMomentumScrollEnd = (event) => {
       isScrollingRef.current = false;
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(offsetX / itemWidth);
       const targetOffset = index * itemWidth;
-      
+
       // Smooth snap to nearest item
       scrollViewRef.current?.scrollTo({
         x: targetOffset,
         animated: true,
       });
-      
+
       const snappedValue = Math.max(
         minimumValue,
         Math.min(maximumValue, minimumValue + index * step)
       );
-      
+
       if (snappedValue !== lastValueRef.current) {
         lastValueRef.current = snappedValue;
         onValueChange(snappedValue);
       }
     };
-    
+
     const items = [];
     for (let i = minimumValue; i <= maximumValue; i += step) {
       items.push(parseFloat(i.toFixed(1)));
     }
-    
+
     return (
       <View style={[styles.horizontalPickerContainer, { width: containerWidth }]}>
         <Animated.ScrollView
@@ -1238,7 +1246,7 @@ const OnboardingScreen = () => {
     const [isSliding, setIsSliding] = useState(false);
     const lastHapticValue = useRef(clampedValue);
     const isInitialized = useRef(false);
-    
+
     // Initialize tempValue on mount or when sliderKey changes
     useEffect(() => {
       const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
@@ -1248,7 +1256,7 @@ const OnboardingScreen = () => {
         isInitialized.current = true;
       }
     }, [sliderKey, minimumValue, maximumValue]);
-    
+
     useEffect(() => {
       if (!isSliding && isInitialized.current) {
         const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
@@ -1258,7 +1266,7 @@ const OnboardingScreen = () => {
         }
       }
     }, [value, minimumValue, maximumValue, isSliding, tempValue]);
-    
+
     const triggerHaptic = () => {
       if (enableHaptics && Platform.OS === 'ios') {
         try {
@@ -1268,13 +1276,13 @@ const OnboardingScreen = () => {
         }
       }
     };
-    
+
     return (
       <View style={styles.interactiveSliderContainer}>
         <Animated.Text style={styles.sliderValue}>
           {Math.round(tempValue)}{unit}
         </Animated.Text>
-        
+
         <View style={styles.gestureSliderContainer}>
           <Slider
             style={styles.slider}
@@ -1306,7 +1314,7 @@ const OnboardingScreen = () => {
             maximumTrackTintColor={colors.borderMuted}
             thumbStyle={styles.sliderThumb}
           />
-          
+
           <View style={styles.sliderIndicators}>
             <Text style={styles.sliderIndicatorText}>{minimumValue}{unit}</Text>
             <Text style={styles.sliderIndicatorText}>{maximumValue}{unit}</Text>
@@ -1431,7 +1439,7 @@ const OnboardingScreen = () => {
                 if (Platform.OS === 'ios') {
                   try {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  } catch {}
+                  } catch { }
                 }
                 setProfileData((prev) => ({ ...prev, gender: gender.id }));
               }}
@@ -1453,21 +1461,21 @@ const OnboardingScreen = () => {
   };
 
   const renderHeightStep = () => {
-    const heightValue = unitSystem === 'metric' 
-      ? profileData.height 
+    const heightValue = unitSystem === 'metric'
+      ? profileData.height
       : cmToFeetInches(profileData.height).totalInches;
     const heightMin = unitSystem === 'metric' ? 120 : 47;
     const heightMax = unitSystem === 'metric' ? 220 : 87;
     const heightUnit = unitSystem === 'metric' ? ' cm' : ' in';
-    const displayValue = unitSystem === 'metric' 
-      ? profileData.height 
+    const displayValue = unitSystem === 'metric'
+      ? profileData.height
       : `${Math.floor(heightValue / 12)}'${Math.round(heightValue % 12)}"`;
 
     return (
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>What is your height?</Text>
         <Text style={styles.stepSubtitle}>Height will help determine body proportions</Text>
-        
+
         {/* Unit Toggle */}
         <View style={styles.unitToggleContainer}>
           <TouchableOpacity
@@ -1527,7 +1535,7 @@ const OnboardingScreen = () => {
           minimumValue={heightMin}
           maximumValue={heightMax}
           onValueChange={(value) => {
-            const newHeight = unitSystem === 'metric' 
+            const newHeight = unitSystem === 'metric'
               ? Math.round(value)
               : feetInchesToCm(Math.floor(value / 12), Math.round(value % 12));
             setProfileData((prev) => ({ ...prev, height: newHeight }));
@@ -1555,7 +1563,7 @@ const OnboardingScreen = () => {
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>How much do you weigh?</Text>
         <Text style={styles.stepSubtitle}>Let's set a starting point for progress tracking</Text>
-        
+
         {/* Unit Toggle */}
         <View style={styles.unitToggleContainer}>
           <TouchableOpacity
@@ -1646,7 +1654,7 @@ const OnboardingScreen = () => {
   const renderActivityStep = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Activity & Goals</Text>
-      
+
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>How active are you?</Text>
         <View style={styles.activityContainer}>
@@ -1759,9 +1767,9 @@ const OnboardingScreen = () => {
               }
             >
               <View style={styles.planHeader}>
-                <View>
+                <View style={styles.planHeaderText}>
                   <Text style={styles.planName}>{plan.name}</Text>
-                  <Text style={styles.planHeadline}>{plan.headline}</Text>
+                  <Text style={styles.planHeadline} numberOfLines={2}>{plan.headline}</Text>
                 </View>
                 {plan.badge && (
                   <View style={styles.popularBadge}>
@@ -2030,7 +2038,7 @@ const OnboardingScreen = () => {
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>What weight do you want?</Text>
         <Text style={styles.stepSubtitle}>Set your target weight</Text>
-        
+
         <View style={styles.unitToggleContainer}>
           <TouchableOpacity
             style={[
@@ -2344,7 +2352,8 @@ const OnboardingScreen = () => {
 
   // Effect for loading step - calculate plan when on loading step
   useEffect(() => {
-    if (currentStep === 21) { // Loading step
+    const currentStepId = steps[currentStep]?.id;
+    if (currentStepId === 'loading') {
       setLoadingProgress(0);
       setPlanData(null);
       const interval = setInterval(() => {
@@ -2354,15 +2363,15 @@ const OnboardingScreen = () => {
             // Calculate recommended plan based on user data
             const activityMultiplier = profileData.activityLevel === 'sedentary' ? 1.2 :
               profileData.activityLevel === 'lightly_active' ? 1.375 :
-              profileData.activityLevel === 'moderately_active' ? 1.55 :
-              profileData.activityLevel === 'very_active' ? 1.725 : 1.9;
+                profileData.activityLevel === 'moderately_active' ? 1.55 :
+                  profileData.activityLevel === 'very_active' ? 1.725 : 1.9;
             const recommendedCalories = Math.round(
               (profileData.gender === 'male' ? 88.362 : 447.593) +
               (13.397 * profileData.weight) +
               (4.799 * profileData.height) -
               (5.677 * profileData.age) * activityMultiplier
             );
-            
+
             setPlanData({
               recommendedWeight: profileData.targetWeight,
               dailyCalories: recommendedCalories,
@@ -2381,7 +2390,7 @@ const OnboardingScreen = () => {
       setLoadingProgress(0);
       setPlanData(null);
     }
-  }, [currentStep, profileData]);
+  }, [currentStep, profileData, steps]);
 
   const renderLoadingStep = () => {
 
@@ -2562,9 +2571,8 @@ const OnboardingScreen = () => {
               style={[
                 styles.progressFill,
                 {
-                  width: `${
-                    (Math.max(1, confirmedSteps.size || 1) / steps.length) * 100
-                  }%`,
+                  width: `${(Math.max(1, confirmedSteps.size || 1) / steps.length) * 100
+                    }%`,
                 },
               ]}
             />
@@ -2601,7 +2609,7 @@ const OnboardingScreen = () => {
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
           )}
-          
+
           <TouchableOpacity
             style={[
               styles.nextButton,

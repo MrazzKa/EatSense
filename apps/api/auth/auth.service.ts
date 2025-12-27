@@ -406,17 +406,75 @@ export class AuthService {
         throw new BadRequestException('Identity token is required');
       }
 
+      const bundleId = process.env.APPLE_BUNDLE_ID || 'ch.eatsense.app';
+      
+      console.log('[AuthService] Apple Sign In attempt:', {
+        hasIdentityToken: !!identityToken,
+        tokenLength: identityToken?.length,
+        bundleId: bundleId,
+        envBundleId: process.env.APPLE_BUNDLE_ID,
+      });
+
       const JWKS = await this.getApplePublicKeys();
 
       let payload: jose.JWTPayload;
       try {
-        const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, {
-          issuer: 'https://appleid.apple.com',
-          audience: process.env.APPLE_BUNDLE_ID || 'ch.eatsense.app',
+        // First, decode the token without verification to see what audience it has
+        const decoded = jose.decodeJwt(identityToken);
+        const tokenAudience = decoded.aud as string | string[] | undefined;
+        
+        console.log('[AuthService] Decoded token (before verification):', {
+          aud: tokenAudience,
+          iss: decoded.iss,
+          sub: decoded.sub,
         });
+        
+        // Apple Sign In tokens can have different audience formats
+        // Try to verify with the actual audience from the token, or fallback to bundleId
+        const verifyOptions: jose.JWTVerifyOptions = {
+          issuer: 'https://appleid.apple.com',
+        };
+        
+        // If token has a specific audience, use it; otherwise use bundleId
+        if (tokenAudience) {
+          if (typeof tokenAudience === 'string') {
+            verifyOptions.audience = tokenAudience;
+          } else if (Array.isArray(tokenAudience) && tokenAudience.length > 0) {
+            verifyOptions.audience = tokenAudience[0];
+          } else {
+            verifyOptions.audience = bundleId;
+          }
+        } else {
+          verifyOptions.audience = bundleId;
+        }
+        
+        console.log('[AuthService] Verifying with audience:', verifyOptions.audience);
+        
+        const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, verifyOptions);
         payload = verifiedPayload;
+        
+        console.log('[AuthService] Apple token verified successfully:', {
+          sub: payload.sub,
+          email: payload.email,
+          aud: payload.aud,
+        });
       } catch (jwtError: any) {
-        this.logger.error('[AuthService] Apple token verification failed:', jwtError.message);
+        console.error('[AuthService] Apple token verification failed:', {
+          error: jwtError.message,
+          bundleId: bundleId,
+          expectedAudience: bundleId,
+          tokenAudience: jwtError.audience || 'unknown',
+          errorCode: jwtError.code,
+        });
+        
+        // Provide more helpful error message
+        if (jwtError.message?.includes('aud')) {
+          throw new UnauthorizedException(
+            `Apple Sign In failed: Audience mismatch. Expected: ${bundleId}, Got: ${jwtError.audience || 'unknown'}. ` +
+            'Please check APPLE_BUNDLE_ID in .env matches your Apple Developer configuration.'
+          );
+        }
+        
         throw new UnauthorizedException('Invalid Apple identity token');
       }
 

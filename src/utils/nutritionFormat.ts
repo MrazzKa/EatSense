@@ -37,10 +37,14 @@ export function formatMacroInt(value: number | null | undefined): string {
  */
 export function formatCalories(value: number | null | undefined): string {
   if (value == null || isNaN(value)) {
-    return '0';
+    return '—';
   }
   // Round to nearest integer
   const rounded = Math.round(value);
+  // Show em-dash for zero calories (indicates no data)
+  if (rounded === 0) {
+    return '—';
+  }
   return rounded.toString();
 }
 

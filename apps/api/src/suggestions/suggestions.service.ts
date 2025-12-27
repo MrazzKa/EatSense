@@ -18,7 +18,7 @@ export class SuggestionsService {
   constructor(
     private readonly statsService: StatsService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * P2.4: Improved personalization with user profile, goals, preferences, and history
@@ -104,6 +104,14 @@ export class SuggestionsService {
 
     const suggestions: SuggestedFoodItem[] = [];
 
+    // Collect stats for personalized messages
+    const userStats = {
+      proteinPerc: avgProteinPerc,
+      fatPerc: avgFatPerc,
+      carbPerc: avgCarbPerc,
+      fiberGrams: avgFiberGrams,
+    };
+
     // P2.4: Personalized thresholds based on goal
     const proteinThreshold = goal === 'lose_weight' ? 20 : goal === 'gain_weight' ? 25 : 18;
     const fatThreshold = goal === 'lose_weight' ? 30 : 35;
@@ -122,7 +130,7 @@ export class SuggestionsService {
           id: 'high_protein',
           name: foods.join(', '),
           category: 'protein',
-          reason: this.getLocalizedReason('low_protein', locale, goal),
+          reason: this.getLocalizedReason('low_protein', locale, goal, userStats),
           tip: this.getLocalizedTip('protein', locale, goal),
           locale,
         });
@@ -142,7 +150,7 @@ export class SuggestionsService {
           id: 'lower_fat',
           name: foods.join(', '),
           category: 'healthy_fat',
-          reason: this.getLocalizedReason('high_fat', locale, goal),
+          reason: this.getLocalizedReason('high_fat', locale, goal, userStats),
           tip: this.getLocalizedTip('fat', locale, goal),
           locale,
         });
@@ -162,7 +170,7 @@ export class SuggestionsService {
           id: 'more_fiber',
           name: foods.join(', '),
           category: 'fiber',
-          reason: this.getLocalizedReason('low_fiber', locale, goal),
+          reason: this.getLocalizedReason('low_fiber', locale, goal, userStats),
           tip: this.getLocalizedTip('fiber', locale, goal),
           locale,
         });
@@ -182,7 +190,7 @@ export class SuggestionsService {
           id: 'carb_balance',
           name: foods.join(', '),
           category: 'carb',
-          reason: this.getLocalizedReason('high_carb', locale, goal),
+          reason: this.getLocalizedReason('high_carb', locale, goal, userStats),
           tip: this.getLocalizedTip('carb', locale, goal),
           locale,
         });
@@ -191,16 +199,16 @@ export class SuggestionsService {
 
     // P2.4: If balanced, suggest variety
     if (suggestions.length === 0) {
-      const balancedName = locale === 'ru' 
+      const balancedName = locale === 'ru'
         ? 'Рацион в целом сбалансирован'
         : locale === 'kk'
-        ? 'Рацион жалпы теңгерілген'
-        : 'Your diet is well balanced';
+          ? 'Рацион жалпы теңгерілген'
+          : 'Your diet is well balanced';
       suggestions.push({
         id: 'balanced',
         name: balancedName,
         category: 'general',
-        reason: this.getLocalizedReason('balanced', locale, goal),
+        reason: this.getLocalizedReason('balanced', locale, goal, userStats),
         tip: this.getLocalizedTip('balanced', locale, goal),
         locale,
       });
@@ -289,42 +297,40 @@ export class SuggestionsService {
   }
 
   /**
-   * P2.4: Get localized reason messages
+   * P2.4: Get localized reason messages with actual stats
    */
-  private getLocalizedReason(type: string, locale: 'en' | 'ru' | 'kk', goal: string): string {
+  private getLocalizedReason(
+    type: string,
+    locale: 'en' | 'ru' | 'kk',
+    goal: string,
+    stats?: { proteinPerc?: number; fatPerc?: number; carbPerc?: number; fiberGrams?: number }
+  ): string {
+    const proteinPerc = stats?.proteinPerc ? Math.round(stats.proteinPerc) : 0;
+    const fatPerc = stats?.fatPerc ? Math.round(stats.fatPerc) : 0;
+    const carbPerc = stats?.carbPerc ? Math.round(stats.carbPerc) : 0;
+    const fiberGrams = stats?.fiberGrams ? Math.round(stats.fiberGrams) : 0;
+
     const reasons = {
       en: {
-        low_protein: goal === 'lose_weight' 
-          ? 'Protein intake is below target for weight loss.'
-          : goal === 'gain_weight'
-          ? 'Protein intake is below target for muscle gain.'
-          : 'Protein intake is below recommended range.',
-        high_fat: 'Fat intake is above recommended range.',
-        low_fiber: 'Fiber intake is low.',
-        high_carb: 'Carb intake is above recommended range.',
-        balanced: 'Macro profile is within normal range for the last 7 days.',
+        low_protein: `Your protein is ${proteinPerc}% of calories (target: ${goal === 'lose_weight' ? '25%+' : '20%+'}).`,
+        high_fat: `Fat intake is ${fatPerc}% of calories (target: below ${goal === 'lose_weight' ? '30%' : '35%'}).`,
+        low_fiber: `Fiber intake is ${fiberGrams}g/day (recommended: 25-30g).`,
+        high_carb: `Carbs are ${carbPerc}% of calories (target: below ${goal === 'lose_weight' ? '45%' : '50%'}).`,
+        balanced: 'Great job! Your nutrition is well balanced for the last 7 days.',
       },
       ru: {
-        low_protein: goal === 'lose_weight'
-          ? 'Потребление белка ниже цели для похудения.'
-          : goal === 'gain_weight'
-          ? 'Потребление белка ниже цели для набора массы.'
-          : 'В рационе мало белка по сравнению с целью.',
-        high_fat: 'Доля жиров выше рекомендованного диапазона.',
-        low_fiber: 'Низкое потребление клетчатки.',
-        high_carb: 'Доля углеводов выше рекомендованного диапазона.',
-        balanced: 'Профиль БЖУ в пределах нормы за последние 7 дней.',
+        low_protein: `Белок составляет ${proteinPerc}% от калорий (цель: ${goal === 'lose_weight' ? '25%+' : '20%+'}).`,
+        high_fat: `Жиры составляют ${fatPerc}% от калорий (цель: ниже ${goal === 'lose_weight' ? '30%' : '35%'}).`,
+        low_fiber: `Клетчатка: ${fiberGrams}г/день (рекомендуется: 25-30г).`,
+        high_carb: `Углеводы: ${carbPerc}% от калорий (цель: ниже ${goal === 'lose_weight' ? '45%' : '50%'}).`,
+        balanced: 'Отлично! Ваше питание сбалансировано за последние 7 дней.',
       },
       kk: {
-        low_protein: goal === 'lose_weight'
-          ? 'Ақуыз тұтыну салмақ жоғалту мақсатынан төмен.'
-          : goal === 'gain_weight'
-          ? 'Ақуыз тұтыну массаны арттыру мақсатынан төмен.'
-          : 'Рационда ақуыз мақсатпен салыстырғанда аз.',
-        high_fat: 'Майлардың үлесі ұсынылған диапазоннан жоғары.',
-        low_fiber: 'Талшық тұтынуы төмен.',
-        high_carb: 'Көмірсулардың үлесі ұсынылған диапазоннан жоғары.',
-        balanced: 'БЖУ профилі соңғы 7 күнде қалыпты диапазонда.',
+        low_protein: `Ақуыз калориялардың ${proteinPerc}% құрайды (мақсат: ${goal === 'lose_weight' ? '25%+' : '20%+'}).`,
+        high_fat: `Майлар калориялардың ${fatPerc}% құрайды (мақсат: ${goal === 'lose_weight' ? '30%' : '35%'} төмен).`,
+        low_fiber: `Талшық: ${fiberGrams}г/күн (ұсынылады: 25-30г).`,
+        high_carb: `Көмірсулар: ${carbPerc}% калориялардан (мақсат: ${goal === 'lose_weight' ? '45%' : '50%'} төмен).`,
+        balanced: 'Керемет! Соңғы 7 күнде тамақтануыңыз теңгерілген.',
       },
     };
 
@@ -340,8 +346,8 @@ export class SuggestionsService {
         protein: goal === 'lose_weight'
           ? 'Add a protein portion to each meal (yogurt, eggs, cottage cheese, poultry) to support metabolism.'
           : goal === 'gain_weight'
-          ? 'Increase protein intake with lean sources (chicken, fish, legumes) to support muscle growth.'
-          : 'Add a protein portion to each meal (yogurt, eggs, cottage cheese, poultry).',
+            ? 'Increase protein intake with lean sources (chicken, fish, legumes) to support muscle growth.'
+            : 'Add a protein portion to each meal (yogurt, eggs, cottage cheese, poultry).',
         fat: 'Choose lean protein sources more often and reduce added oils in cooking.',
         fiber: 'Add vegetables to every meal and choose whole grain bread/cereals.',
         carb: 'Shift focus from simple carbs to complex ones (oats, buckwheat, legumes).',
@@ -351,8 +357,8 @@ export class SuggestionsService {
         protein: goal === 'lose_weight'
           ? 'Добавь порцию белка в каждый приём пищи (йогурт, яйца, творог, птица) для поддержания метаболизма.'
           : goal === 'gain_weight'
-          ? 'Увеличь потребление белка из постных источников (курица, рыба, бобовые) для роста мышц.'
-          : 'Добавь порцию белкового продукта в каждый приём пищи (йогурт, яйца, творог, птица).',
+            ? 'Увеличь потребление белка из постных источников (курица, рыба, бобовые) для роста мышц.'
+            : 'Добавь порцию белкового продукта в каждый приём пищи (йогурт, яйца, творог, птица).',
         fat: 'Чаще выбирай постные источники белка и убирай лишнее масло при приготовлении.',
         fiber: 'Добавляй овощи к каждому приёму пищи и выбирай цельнозерновой хлеб/крупы.',
         carb: 'Смести фокус с быстрых углеводов на сложные (овсянка, гречка, фасоль).',
@@ -362,8 +368,8 @@ export class SuggestionsService {
         protein: goal === 'lose_weight'
           ? 'Әр тамақта ақуыз порциясын қосыңыз (йогурт, жұмыртқа, ірімшік, құс) метаболизмді қолдау үшін.'
           : goal === 'gain_weight'
-          ? 'Бұлшықет өсуін қолдау үшін азық көздерден (тауық, балық, бұршақ) ақуыз тұтынуды арттырыңыз.'
-          : 'Әр тамақта ақуыз өнімінің порциясын қосыңыз (йогурт, жұмыртқа, ірімшік, құс).',
+            ? 'Бұлшықет өсуін қолдау үшін азық көздерден (тауық, балық, бұршақ) ақуыз тұтынуды арттырыңыз.'
+            : 'Әр тамақта ақуыз өнімінің порциясын қосыңыз (йогурт, жұмыртқа, ірімшік, құс).',
         fat: 'Жиі азық ақуыз көздерін таңдап, дайындау кезінде артық майды алып тастаңыз.',
         fiber: 'Әр тамаққа көкөністерді қосып, толық дән нан/крупаларды таңдаңыз.',
         carb: 'Жедел көмірсулардан күрделілерге ауысыңыз (бұршақ, қарақұмық, бұршақ).',

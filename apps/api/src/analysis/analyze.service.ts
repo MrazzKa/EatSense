@@ -87,7 +87,7 @@ export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
   // Versioned cache key to avoid conflicts with legacy cached shapes
   private readonly ANALYSIS_CACHE_VERSION = 'v5';
-  
+
   // Keywords to detect drinks in food names
   private readonly DRINK_KEYWORDS = [
     'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
@@ -106,34 +106,34 @@ export class AnalyzeService {
     ['egg', 'egg'], ['яйц', 'egg'], ['желток', 'egg'], ['белок яйц', 'egg'],
     ['yolk', 'egg'], ['omelet', 'egg'], ['омлет', 'egg'], ['scrambled', 'egg'],
     ['boiled egg', 'egg'], ['fried egg', 'egg'], ['вкрутую', 'egg'],
-    
+
     // Курица
     ['chicken', 'chicken'], ['курин', 'chicken'], ['куриц', 'chicken'],
     ['курятин', 'chicken'], ['грудка', 'chicken'], ['breast', 'chicken'],
     ['бедро кур', 'chicken'], ['крыл', 'chicken'], ['wing', 'chicken'],
-    
+
     // Говядина
     ['beef', 'beef'], ['говядин', 'beef'], ['говяж', 'beef'],
     ['стейк', 'beef'], ['steak', 'beef'], ['фарш', 'beef'],
-    
+
     // Свинина
     ['pork', 'pork'], ['свинин', 'pork'], ['свиной', 'pork'],
     ['бекон', 'pork'], ['bacon', 'pork'], ['ветчин', 'pork'], ['ham', 'pork'],
     ['сосиск', 'pork'], ['sausage', 'pork'], ['колбас', 'pork'],
-    
+
     // Рыба
     ['fish', 'fish'], ['рыб', 'fish'], ['salmon', 'fish'], ['лосось', 'fish'],
     ['сёмга', 'fish'], ['тунец', 'fish'], ['tuna', 'fish'], ['треска', 'fish'],
     ['cod', 'fish'], ['форель', 'fish'], ['trout', 'fish'],
-    
+
     // Морепродукты
     ['shrimp', 'shrimp'], ['креветк', 'shrimp'], ['prawn', 'shrimp'],
     ['морепродукт', 'seafood'], ['seafood', 'seafood'], ['кальмар', 'seafood'],
-    
+
     // Сыр
     ['cheese', 'cheese'], ['сыр', 'cheese'], ['моцарел', 'cheese'],
     ['пармезан', 'cheese'], ['чеддер', 'cheese'], ['фета', 'cheese'],
-    
+
     // Молочка
     ['milk', 'milk'], ['молок', 'milk'], ['молоч', 'milk'],
     ['сливк', 'cream'], ['cream', 'cream'], ['сметан', 'cream'],
@@ -141,7 +141,7 @@ export class AnalyzeService {
     ['творог', 'cottage'], ['cottage', 'cottage'],
     ['butter', 'butter'], ['масло слив', 'butter'],
     ['oil', 'oil'], ['масло раст', 'oil'], ['оливк', 'oil'],
-    
+
     // Гарниры
     ['potato', 'potato'], ['картоф', 'potato'], ['картош', 'potato'],
     ['fries', 'potato'], ['фри', 'potato'], ['пюре картоф', 'potato'],
@@ -153,7 +153,7 @@ export class AnalyzeService {
     ['buckwheat', 'buckwheat'], ['гречк', 'buckwheat'],
     ['oat', 'oatmeal'], ['овсян', 'oatmeal'], ['porridge', 'oatmeal'],
     ['мюсли', 'oatmeal'], ['granola', 'oatmeal'],
-    
+
     // Овощи
     ['tomato', 'tomato'], ['помидор', 'tomato'], ['томат', 'tomato'], ['черри', 'tomato'],
     ['cucumber', 'cucumber'], ['огурец', 'cucumber'],
@@ -173,7 +173,7 @@ export class AnalyzeService {
     ['zucchini', 'zucchini'], ['кабачок', 'zucchini'],
     ['eggplant', 'eggplant'], ['баклажан', 'eggplant'],
     ['avocado', 'avocado'], ['авокадо', 'avocado'],
-    
+
     // Фрукты
     ['apple', 'apple'], ['яблок', 'apple'],
     ['banana', 'banana'], ['банан', 'banana'],
@@ -181,20 +181,20 @@ export class AnalyzeService {
     ['grape', 'grape'], ['виноград', 'grape'],
     ['berry', 'berry'], ['ягод', 'berry'], ['клубник', 'berry'],
     ['черник', 'berry'], ['голубик', 'berry'],
-    
+
     // Соусы
     ['sauce', 'sauce'], ['соус', 'sauce'],
     ['mayo', 'mayo'], ['майонез', 'mayo'],
     ['ketchup', 'ketchup'], ['кетчуп', 'ketchup'],
     ['dressing', 'dressing'], ['заправк', 'dressing'],
-    
+
     // Напитки
     ['coffee', 'coffee'], ['кофе', 'coffee'], ['латте', 'coffee'],
     ['капучино', 'coffee'], ['эспрессо', 'coffee'], ['американо', 'coffee'],
     ['tea', 'tea'], ['чай', 'tea'],
     ['juice', 'juice'], ['сок', 'juice'],
     ['water', 'water'], ['вода', 'water'],
-    
+
     // Прочее
     ['crab stick', 'crab_stick'], ['крабов', 'crab_stick'], ['сурими', 'crab_stick'],
   ]);
@@ -506,7 +506,7 @@ export class AnalyzeService {
     // Using conservative estimate: 3 kcal per 200ml = 0.015 kcal/ml
     const kcalPerMl = 0.015;
     const calories = Math.round(portionG * kcalPerMl);
-    
+
     return {
       calories: Math.max(0, Math.min(calories, 10)), // Cap at 10 kcal for safety
       protein: 0,
@@ -530,7 +530,7 @@ export class AnalyzeService {
     private readonly foodCompatibility: FoodCompatibilityService,
     private readonly carcinogenicRisk: CarcinogenicRiskService,
     private readonly validator: AnalysisValidatorService,
-    ) {}
+  ) { }
 
   /**
    * Helper: Estimate portion in grams
@@ -545,8 +545,8 @@ export class AnalyzeService {
     const originalEstimate = component.est_portion_g && component.est_portion_g > 0
       ? component.est_portion_g
       : fdcServingSizeG && fdcServingSizeG > 0
-      ? fdcServingSizeG
-      : 150;
+        ? fdcServingSizeG
+        : 150;
 
     // Мягкие пределы: минимум 10 г, максимум 800 г
     let portion = originalEstimate;
@@ -584,14 +584,14 @@ export class AnalyzeService {
     debug: AnalysisDebug,
   ): Promise<AnalyzedItem[]> {
     const items: AnalyzedItem[] = [];
-    
+
     try {
       const {
         name,
         preparation,
         est_portion_g,
       } = component;
-      
+
       // category and volume_ml may not exist in VisionComponent type
       const category = (component as any).category;
       const volume_ml = (component as any).volume_ml;
@@ -607,14 +607,14 @@ export class AnalyzeService {
       if (beverageDetection && beverageDetection.isBeverage) {
         // Создать "канонический" AnalyzedItem без вызова провайдеров
         const volume = beverageDetection.volume_ml ?? volume_ml ?? (est_portion_g && est_portion_g > 0 ? est_portion_g : 250);
-        const portionG = est_portion_g && est_portion_g > 0 
+        const portionG = est_portion_g && est_portion_g > 0
           ? (est_portion_g < 50 ? volume : (est_portion_g > 800 ? 800 : est_portion_g))
           : volume;
 
         // Определяем source в зависимости от типа напитка
         let source: AnalyzedItem['source'];
         let baseNameEn: string;
-        
+
         switch (beverageDetection.kind) {
           case 'water':
             source = 'canonical_water';
@@ -652,8 +652,8 @@ export class AnalyzeService {
             fiber: beverageDetection.fiber_g ?? 0,
             sugars: beverageDetection.sugars_g ?? 0,
             satFat: beverageDetection.satFat_g ?? 0,
-            energyDensity: beverageDetection.calories && portionG > 0 
-              ? (beverageDetection.calories / portionG) * 100 
+            energyDensity: beverageDetection.calories && portionG > 0
+              ? (beverageDetection.calories / portionG) * 100
               : 0,
           },
           source,
@@ -682,14 +682,14 @@ export class AnalyzeService {
         }
         return items; // Переходим к следующему компоненту, провайдеров не трогаем
       }
-      
+
       const query = `${component.name} ${component.preparation || ''}`.trim();
-      
+
       // Detect if component is likely a drink based on name
       const componentNameLower = component.name.toLowerCase();
       const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
       const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
-      
+
       // Build lookup context
       // TODO: Get user region from profile/preferences
       const lookupContext: NutritionLookupContext = {
@@ -697,7 +697,7 @@ export class AnalyzeService {
         region: locale === 'en' ? 'US' : 'EU', // Simple mapping for now
         expectedCategory,
       };
-      
+
       // Try to find nutrition data via orchestrator
       const nutritionStartTime = Date.now();
       const providerResult: NutritionProviderResult | null = await this.nutrition.findNutrition(
@@ -710,8 +710,8 @@ export class AnalyzeService {
       }
 
       if (!providerResult || !providerResult.food) {
-        debug.components.push({ 
-          type: 'no_match', 
+        debug.components.push({
+          type: 'no_match',
           vision: component,
           provider: null,
         });
@@ -744,7 +744,7 @@ export class AnalyzeService {
       if (isMilkCoffee && isDrink) {
         const kcalPer100 = canonicalFood.per100g.calories || 0;
         const kcalPerPortion = nutrients.calories;
-        
+
         // If calories seem too high (> 150 kcal/100ml or > 400 kcal/300ml), use canonical values
         if (kcalPer100 > 150 || (kcalPerPortion > 400 && portionG <= 300)) {
           if (process.env.ANALYSIS_DEBUG === 'true') {
@@ -756,7 +756,7 @@ export class AnalyzeService {
               provider: canonicalFood.providerId,
             });
           }
-          
+
           // Use conservative canonical values for cappuccino/latte
           const canonicalKcalPer250ml = 90; // Average: 60-120 kcal
           const scale = portionG / 250;
@@ -768,7 +768,7 @@ export class AnalyzeService {
           nutrients.sugars = this.round(8 * scale, 1); // ~8g per 250ml
           nutrients.satFat = this.round(2.5 * scale, 1); // ~2.5g per 250ml
           nutrients.energyDensity = this.round((nutrients.calories / portionG) * 100, 1);
-          
+
           // Update source to indicate canonical fallback
           const item = await this.createAnalyzedItemFromCanonical(
             component,
@@ -778,7 +778,7 @@ export class AnalyzeService {
             locale,
             'canonical_milk_coffee_fallback',
           );
-          
+
           items.push(item);
           debug.components.push({
             type: 'matched',
@@ -826,9 +826,9 @@ export class AnalyzeService {
       item.cookingMethodHints = this.extractCookingMethodHints(component);
 
       items.push(item);
-      debug.components.push({ 
-        type: 'matched', 
-        vision: component, 
+      debug.components.push({
+        type: 'matched',
+        vision: component,
         provider: canonicalFood.providerId,
         providerId: canonicalFood.providerFoodId,
         foodName: canonicalFood.displayName,
@@ -846,7 +846,7 @@ export class AnalyzeService {
         await this.addVisionFallback(component, items, debug, locale);
       }
     }
-    
+
     return items;
   }
 
@@ -857,7 +857,7 @@ export class AnalyzeService {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | undefined) || 'en';
     const mode = params.mode || 'default';
-    
+
     // Check cache (skip for review mode to ensure fresh analysis)
     if (mode !== 'review') {
       const imageHash = this.hashImage(params);
@@ -891,16 +891,16 @@ export class AnalyzeService {
         imageUrl: params.imageUrl ? (params.imageUrl.startsWith('/') ? 'relative' : params.imageUrl.substring(0, 50)) : 'none',
         hasBase64: Boolean(params.imageBase64),
       });
-      
+
       // Transform into a controlled error that can be handled by FoodProcessor
       if (error?.status === 400 || error?.message?.includes('Failed to download image') || error?.message?.includes('Image URL is invalid')) {
         throw new BadRequestException('Failed to process image. Please ensure the image is valid and accessible.');
       }
-      
+
       // Re-throw other errors
       throw error;
     }
-    
+
     // Initialize debug object
     const debug: AnalysisDebug = {
       componentsRaw: visionComponents,
@@ -921,11 +921,11 @@ export class AnalyzeService {
     // Analyze each component in parallel
     const items: AnalyzedItem[] = [];
 
-    const componentPromises = uniqueComponents.map(component => 
+    const componentPromises = uniqueComponents.map(component =>
       this.processComponentAsync(component, locale, debug)
     );
     const processedItemsArrays = await Promise.all(componentPromises);
-    
+
     // Flatten the results
     for (const processedItems of processedItemsArrays) {
       items.push(...processedItems);
@@ -935,7 +935,7 @@ export class AnalyzeService {
     // Extract hidden items from Vision response if available
     const globalHiddenFromVision: HiddenIngredientEstimate[] = [];
     // TODO: Extract hidden items from Vision response when available
-    
+
     // Apply heuristics to each item
     const itemsWithHidden = this.hiddenIngredients.applyHiddenIngredientsToItems(
       items,
@@ -1055,7 +1055,7 @@ export class AnalyzeService {
     if (debug) {
       debug.sanity = sanity;
     }
-    
+
     // Q3: Mark suspicious analyses
     const hasSeriousIssues = sanity.some(
       (i) => i.type === 'macro_kcal_mismatch' || i.type === 'suspicious_energy_density',
@@ -1065,7 +1065,7 @@ export class AnalyzeService {
     // Q4: Check for all-zero macros (needsReview flag)
     const allMacrosZero = total.calories === 0 && total.protein === 0 && total.carbs === 0 && total.fat === 0;
     const hasItemsButNoData = items.length > 0 && allMacrosZero;
-    
+
     // Check for any item with weight > 0 but all macros zero
     const anyItemHasWeightAndZeroMacros = items.some(item =>
       item.portion_g > 0 &&
@@ -1074,7 +1074,7 @@ export class AnalyzeService {
       item.nutrients.carbs === 0 &&
       item.nutrients.fat === 0
     );
-    
+
     let needsReview = hasItemsButNoData || anyItemHasWeightAndZeroMacros;
 
     // Log sanity issues in debug mode
@@ -1140,7 +1140,7 @@ export class AnalyzeService {
           confidence: c.confidence,
         })),
       });
-      
+
       // Mark as needsReview if all items have zero calories
       needsReview = true;
     }
@@ -1216,7 +1216,7 @@ export class AnalyzeService {
     // Normalize locale
     const normalizedLocale: 'en' | 'ru' | 'kk' =
       (locale as any) || 'en';
-    
+
     // Simple parsing: split by commas, newlines, etc.
     const components: VisionComponent[] = text
       .split(/[,;\n]/)
@@ -1238,11 +1238,11 @@ export class AnalyzeService {
 
     // Use the same processing logic as analyzeImage for consistency
     const items: AnalyzedItem[] = [];
-    const componentPromises = components.map(component => 
+    const componentPromises = components.map(component =>
       this.processComponentAsync(component, normalizedLocale, debug)
     );
     const processedItemsArrays = await Promise.all(componentPromises);
-    
+
     // Flatten the results
     for (const processedItems of processedItemsArrays) {
       items.push(...processedItems);
@@ -1252,7 +1252,7 @@ export class AnalyzeService {
     // Extract hidden items from Vision response if available
     const globalHiddenFromVision: HiddenIngredientEstimate[] = [];
     // TODO: Extract hidden items from Vision response when available
-    
+
     // Apply heuristics to each item
     const itemsWithHidden = this.hiddenIngredients.applyHiddenIngredientsToItems(
       items,
@@ -1371,7 +1371,7 @@ export class AnalyzeService {
     if (debug) {
       debug.sanity = sanity;
     }
-    
+
     // Q3: Mark suspicious analyses
     const hasSeriousIssues = sanity.some(
       (i) => i.type === 'macro_kcal_mismatch' || i.type === 'suspicious_energy_density',
@@ -1381,7 +1381,7 @@ export class AnalyzeService {
     // Q4: Check for all-zero macros (needsReview flag)
     const allMacrosZero = total.calories === 0 && total.protein === 0 && total.carbs === 0 && total.fat === 0;
     const hasItemsButNoData = items.length > 0 && allMacrosZero;
-    
+
     // Check for any item with weight > 0 but all macros zero
     const anyItemHasWeightAndZeroMacros = items.some(item =>
       item.portion_g > 0 &&
@@ -1390,7 +1390,7 @@ export class AnalyzeService {
       item.nutrients.carbs === 0 &&
       item.nutrients.fat === 0
     );
-    
+
     const needsReview = hasItemsButNoData || anyItemHasWeightAndZeroMacros;
 
     // Log sanity issues in debug mode
@@ -1426,9 +1426,9 @@ export class AnalyzeService {
     portionG: number,
   ): Nutrients {
     const scale = portionG / 100;
-    
+
     let calculatedCalories = Math.round((canonical.calories || 0) * scale);
-    
+
     // Fallback: if calories is 0 but macros exist, calculate from macros
     if (!calculatedCalories && (canonical.protein || canonical.carbs || canonical.fat)) {
       const protein = (canonical.protein || 0) * scale;
@@ -1525,12 +1525,12 @@ export class AnalyzeService {
       const plainCoffeeTea = this.detectPlainCoffeeOrTeaLegacy(component.name);
       if (plainCoffeeTea.isPlain) {
         // Should have been handled earlier, but if we're here, use canonical values
-        const portionG = component.est_portion_g && component.est_portion_g > 0 
-          ? component.est_portion_g 
+        const portionG = component.est_portion_g && component.est_portion_g > 0
+          ? component.est_portion_g
           : 200;
         const clampedPortion = portionG < 50 ? 200 : (portionG > 800 ? 800 : portionG);
         const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
-        
+
         const coffeeTeaItem: AnalyzedItem = {
           name: localizedName || originalNameEn,
           originalName: originalNameEn,
@@ -1541,7 +1541,7 @@ export class AnalyzeService {
           locale,
           hasNutrition: true,
         };
-        
+
         items.push(coffeeTeaItem);
         debug.components.push({
           type: 'vision_fallback',
@@ -1553,24 +1553,24 @@ export class AnalyzeService {
       }
 
       // For unknown beverages, use very conservative fallback
-      const fallbackPortion = component.est_portion_g && component.est_portion_g > 0 
-        ? component.est_portion_g 
+      const fallbackPortion = component.est_portion_g && component.est_portion_g > 0
+        ? component.est_portion_g
         : 250;
       const clampedPortion = fallbackPortion < 50 ? 250 : (fallbackPortion > 800 ? 800 : fallbackPortion);
-      
+
       // Detect if it's a sweetened drink (cola, juice, lemonade, etc.)
       const sweetDrinkKeywords = [
         'cola', 'soda', 'juice', 'сок', 'лимонад', 'sweet', 'sweetened',
         'sugar', 'сахар', 'подслащ', 'газировка',
       ];
       const isSweetDrink = sweetDrinkKeywords.some(kw => nameLower.includes(kw));
-      
+
       // Very conservative estimates:
       // - Sweet drinks: 80-120 kcal per 250ml (use 100 as average)
       // - Unknown drinks: 0-20 kcal per 250ml
       const kcalPer250ml = isSweetDrink ? 100 : 20;
       const calories = Math.round((clampedPortion / 250) * kcalPer250ml);
-      
+
       const fallbackNutrients: Nutrients = {
         calories,
         protein: 0,
@@ -1607,17 +1607,51 @@ export class AnalyzeService {
     // Only use fallback for solid foods
     const fallbackPortion = this.estimatePortionInGrams(component, null, debug);
 
-    // Default fallback nutrients for solid foods only
-    const fallbackNutrients: Nutrients = {
-      calories: Math.round(fallbackPortion * 1.2), // условно 1.2 ккал/г — "средне"
-      protein: this.round(fallbackPortion * 0.04, 1), // ~4 г белка на 100г
-      carbs: this.round(fallbackPortion * 0.15, 1), // ~15 г углеводов на 100г
-      fat: this.round(fallbackPortion * 0.06, 1), // ~6 г жиров на 100г
-      fiber: 0,
-      sugars: 0,
-      satFat: 0,
-      energyDensity: 120, // 120 ккал/100г
-    };
+    // Check if GPT Vision provided estimated nutrients
+    const gptEstimate = (component as any).estimated_nutrients;
+    let fallbackNutrients: Nutrients;
+    let fallbackSource: string = 'vision_fallback';
+
+    if (gptEstimate && (gptEstimate.calories || gptEstimate.protein_g || gptEstimate.carbs_g || gptEstimate.fat_g)) {
+      // Use GPT-estimated nutrients (already for the estimated portion)
+      const gptPortion = component.est_portion_g || 100;
+      const portionScale = fallbackPortion / gptPortion;
+
+      fallbackNutrients = {
+        calories: Math.round((gptEstimate.calories || 0) * portionScale),
+        protein: this.round((gptEstimate.protein_g || 0) * portionScale, 1),
+        carbs: this.round((gptEstimate.carbs_g || 0) * portionScale, 1),
+        fat: this.round((gptEstimate.fat_g || 0) * portionScale, 1),
+        fiber: this.round((gptEstimate.fiber_g || 0) * portionScale, 1),
+        sugars: 0,
+        satFat: 0,
+        energyDensity: (gptEstimate.calories || 0) > 0 && gptPortion > 0
+          ? this.round((gptEstimate.calories / gptPortion) * 100, 1)
+          : 0,
+      };
+      fallbackSource = 'gpt_vision_estimate';
+
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.debug('[AnalyzeService] Using GPT Vision estimated nutrients for fallback', {
+          componentName: component.name,
+          gptEstimate,
+          portionScale,
+          finalNutrients: fallbackNutrients,
+        });
+      }
+    } else {
+      // Default fallback nutrients for solid foods when GPT doesn't provide estimates
+      fallbackNutrients = {
+        calories: Math.round(fallbackPortion * 1.2), // условно 1.2 ккал/г — "средне"
+        protein: this.round(fallbackPortion * 0.04, 1), // ~4 г белка на 100г
+        carbs: this.round(fallbackPortion * 0.15, 1), // ~15 г углеводов на 100г
+        fat: this.round(fallbackPortion * 0.06, 1), // ~6 г жиров на 100г
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 120, // 120 ккал/100г
+      };
+    }
 
     // Sanity check: ensure calories per gram is reasonable (0.1-7 kcal/g)
     const kcalPerGram = fallbackNutrients.calories / fallbackPortion;
@@ -1626,14 +1660,14 @@ export class AnalyzeService {
       const clampedKcalPerGram = Math.max(0.1, Math.min(7, kcalPerGram));
       const maxKcal = Math.round(fallbackPortion * clampedKcalPerGram);
       const scale = maxKcal / fallbackNutrients.calories;
-      
+
       if (process.env.ANALYSIS_DEBUG === 'true') {
         this.logger.warn(
           `[AnalyzeService] Clamping fallback energy density: ${kcalPerGram.toFixed(2)} → ${clampedKcalPerGram.toFixed(2)} kcal/g`,
           { componentName: component.name, originalKcal: fallbackNutrients.calories, clampedKcal: maxKcal },
         );
       }
-      
+
       fallbackNutrients.calories = maxKcal;
       fallbackNutrients.protein = this.round(fallbackNutrients.protein * scale, 1);
       fallbackNutrients.carbs = this.round(fallbackNutrients.carbs * scale, 1);
@@ -1649,7 +1683,7 @@ export class AnalyzeService {
       label: component.name,
       portion_g: fallbackPortion,
       nutrients: fallbackNutrients,
-      source: 'vision_fallback',
+      source: fallbackSource as AnalyzedItem['source'],
       locale,
       hasNutrition: true, // Fallback always has estimated nutrition
     };
@@ -1659,10 +1693,12 @@ export class AnalyzeService {
     debug.components.push({
       type: 'vision_fallback',
       vision: component,
-      message: 'Added fallback item due to provider match failure (solid food only)',
-      provider: null,
+      message: `Added fallback item (${fallbackSource}) due to provider match failure`,
+      provider: fallbackSource,
+      usedGptEstimate: fallbackSource === 'gpt_vision_estimate',
     });
   }
+
 
   /**
    * Q1: Run sanity check on analysis data
@@ -1737,11 +1773,11 @@ export class AnalyzeService {
 
       // 4) Нулевая калорийность при ненулевой порции (skip for canonical water/coffee/tea)
       const source = item.source as string;
-      const isCanonicalZeroCalorie = 
+      const isCanonicalZeroCalorie =
         source === 'canonical_water' ||
         source === 'canonical_plain_coffee' ||
         source === 'canonical_plain_tea';
-      
+
       if (portion_g > 0 && calories === 0 && !isCanonicalZeroCalorie) {
         issues.push({
           type: 'zero_calories_nonzero_portion',
@@ -1792,6 +1828,7 @@ export class AnalyzeService {
   /**
    * Build a concise English dish name from analyzed items (using baseName when available).
    * Picks 1-3 main items (ignoring small portions like sauces).
+   * Generates descriptive names like "Chicken breast with rice and vegetables"
    * Public method for re-analysis use cases
    */
   public buildDishNameEn(items: AnalyzedItem[]): string {
@@ -1810,10 +1847,20 @@ export class AnalyzeService {
     if (!names.length) return 'Meal';
 
     const unique = Array.from(new Set(names));
+
+    // Single item - just return it
     if (unique.length === 1) return unique[0];
-    if (unique.length === 2) return `${unique[0]} + ${unique[1]}`;
-    // For 3+, show first two + "and more"
-    return `${unique[0]} + ${unique[1]} and more`;
+
+    // Two items - use "with" connector
+    if (unique.length === 2) return `${unique[0]} with ${unique[1]}`;
+
+    // Three items - use "with X and Y" format
+    if (unique.length === 3) return `${unique[0]} with ${unique[1]} and ${unique[2]}`;
+
+    // Four or more items - list first three and add "and more"
+    // Truncate to avoid overly long names
+    const truncated = `${unique[0]} with ${unique[1]}, ${unique[2]} and more`;
+    return truncated.length > 60 ? `${unique[0]} with ${unique[1]} and more` : truncated;
   }
 
   private hashImage(params: { imageUrl?: string; imageBase64?: string }): string {
@@ -1825,10 +1872,10 @@ export class AnalyzeService {
    * Check if analysis represents a drink based on item names
    */
   private isDrinkAnalysis(items: AnalyzedItem[]): boolean {
-    const itemNames = items.map(item => 
+    const itemNames = items.map(item =>
       (item.name || item.originalName || item.label || '').toLowerCase()
     ).join(' ');
-    
+
     return this.DRINK_KEYWORDS.some(keyword => itemNames.includes(keyword));
   }
 
@@ -1866,11 +1913,11 @@ export class AnalyzeService {
     ) || 250; // fallback to 250g if no portion data
 
     // Saturated fats and sugars - use actual values if available, otherwise estimate
-    const saturatedFat_g = totals.satFat > 0 
-      ? totals.satFat 
+    const saturatedFat_g = totals.satFat > 0
+      ? totals.satFat
       : (fat_g > 0 ? fat_g * 0.4 : 0); // ~40% of fats are saturated
-    const sugars_g = totals.sugars > 0 
-      ? totals.sugars 
+    const sugars_g = totals.sugars > 0
+      ? totals.sugars
       : (carbs_g > 0 ? carbs_g * 0.5 : 0); // ~50% of carbs are sugars
 
     const safeCalories = calories > 0 ? calories : 1;
@@ -2398,7 +2445,7 @@ export class AnalyzeService {
         if (isWater) {
           const waterNameEn = 'Water';
           const waterNameLocalized = await this.foodLocalization.localizeName(waterNameEn, locale);
-          
+
           const waterItem: AnalyzedItem = {
             name: waterNameLocalized || waterNameEn,
             originalName: waterNameEn,
@@ -2421,7 +2468,7 @@ export class AnalyzeService {
             userEditedPortionG: portionG,
             wasManuallyEdited: true,
           };
-          
+
           items.push(waterItem);
           debug.components.push({
             type: 'matched',
@@ -2439,9 +2486,9 @@ export class AnalyzeService {
           const baseName = this.buildBaseFoodName(name);
           const originalNameEn = normalizeFoodName(baseName);
           const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
-          
+
           const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
-          
+
           const coffeeTeaItem: AnalyzedItem = {
             name: localizedName || originalNameEn,
             originalName: originalNameEn,
@@ -2455,7 +2502,7 @@ export class AnalyzeService {
             userEditedPortionG: portionG,
             wasManuallyEdited: true,
           };
-          
+
           items.push(coffeeTeaItem);
           debug.components.push({
             type: 'matched',
@@ -2479,14 +2526,14 @@ export class AnalyzeService {
         if (beverageDetection && beverageDetection.isBeverage) {
           // Создать "канонический" AnalyzedItem без вызова провайдеров
           const volume = beverageDetection.volume_ml ?? (portionG && portionG > 0 ? portionG : 250);
-          const finalPortionG = portionG && portionG > 0 
+          const finalPortionG = portionG && portionG > 0
             ? (portionG < 50 ? volume : (portionG > 800 ? 800 : portionG))
             : volume;
 
           // Определяем source в зависимости от типа напитка
           let source: AnalyzedItem['source'];
           let baseNameEn: string;
-          
+
           switch (beverageDetection.kind) {
             case 'water':
               source = 'canonical_water';
@@ -2524,8 +2571,8 @@ export class AnalyzeService {
               fiber: beverageDetection.fiber_g ?? 0,
               sugars: beverageDetection.sugars_g ?? 0,
               satFat: beverageDetection.satFat_g ?? 0,
-              energyDensity: beverageDetection.calories && finalPortionG > 0 
-                ? (beverageDetection.calories / finalPortionG) * 100 
+              energyDensity: beverageDetection.calories && finalPortionG > 0
+                ? (beverageDetection.calories / finalPortionG) * 100
                 : 0,
             },
             source,
@@ -2566,7 +2613,7 @@ export class AnalyzeService {
             const isSweetDrink = sweetDrinkKeywords.some(kw => nameLower.includes(kw));
             const kcalPer250ml = isSweetDrink ? 100 : 20;
             const calories = Math.round((portionG / 250) * kcalPer250ml);
-            
+
             const fallbackNutrients: Nutrients = {
               calories,
               protein: 0,
@@ -2656,7 +2703,7 @@ export class AnalyzeService {
         if (isMilkCoffee && isDrink) {
           const kcalPer100 = canonicalFood.per100g.calories || 0;
           const kcalPerPortion = nutrients.calories;
-          
+
           if (kcalPer100 > 150 || (kcalPerPortion > 400 && portionG <= 300)) {
             // Use canonical fallback
             const canonicalKcalPer250ml = 90;
@@ -2669,7 +2716,7 @@ export class AnalyzeService {
             nutrients.sugars = this.round(8 * scale, 1);
             nutrients.satFat = this.round(2.5 * scale, 1);
             nutrients.energyDensity = this.round((nutrients.calories / portionG) * 100, 1);
-            
+
             const item = await this.createAnalyzedItemFromCanonical(
               { name, preparation: 'unknown', est_portion_g: portionG, confidence: 0.8 },
               canonicalFood,
@@ -2678,11 +2725,11 @@ export class AnalyzeService {
               locale,
               'canonical_milk_coffee_fallback',
             );
-            
+
             item.userEditedName = name;
             item.userEditedPortionG = portionG;
             item.wasManuallyEdited = true;
-            
+
             items.push(item);
             debug.components.push({
               type: 'matched',

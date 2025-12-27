@@ -80,7 +80,7 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
         fat_g: item?.fat || item?.nutrients?.fat,
       },
     };
-    
+
     if (onSave && typeof onSave === 'function') {
       onSave(updatedItem, index);
     }
@@ -94,8 +94,8 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
     const numericValue = value.replace(/[^0-9.]/g, '');
     // Ensure only one decimal point
     const parts = numericValue.split('.');
-    const cleanedValue = parts.length > 2 
-      ? parts[0] + '.' + parts.slice(1).join('') 
+    const cleanedValue = parts.length > 2
+      ? parts[0] + '.' + parts.slice(1).join('')
       : numericValue;
     setEditedItem({ ...editedItem, [field]: cleanedValue });
   };
@@ -115,10 +115,10 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
       visible={visible}
       onClose={onClose}
       swipeDirection="down"
-      enableSwipe={true}
-      enableBackdropClose={true}
+      enableSwipe={false}
+      enableBackdropClose={false}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle="fullScreen"
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -132,20 +132,20 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
                 <Text style={[styles.title, { color: colors.text }]}>{t('editFood.title')}</Text>
                 <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('editFood.subtitle')}</Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => {
                   if (onClose && typeof onClose === 'function') {
                     onClose();
                   }
-                }} 
+                }}
                 style={styles.closeButton}
               >
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView 
-              style={styles.content} 
+            <ScrollView
+              style={styles.content}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: 16 }}
@@ -245,7 +245,7 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
               {/* Macros Section */}
               <View style={styles.macrosSection}>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('editFood.macronutrients')}</Text>
-                
+
                 <View style={styles.macrosGrid}>
                   <View style={[styles.macroCard, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
                     <View style={[styles.macroIcon, { backgroundColor: '#FF3B3015' }]}>
@@ -327,17 +327,7 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
             </ScrollView>
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom }]}>
-              <TouchableOpacity 
-                style={[styles.cancelButton, { borderColor: colors.border, backgroundColor: colors.surface }]} 
-                onPress={() => {
-                  if (onClose && typeof onClose === 'function') {
-                    onClose();
-                  }
-                }}
-              >
-                <Text style={[styles.cancelButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={handleSave}>
+              <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary, flex: 1 }]} onPress={handleSave}>
                 <Ionicons name="checkmark" size={20} color={colors.onPrimary || '#FFFFFF'} />
                 <Text style={[styles.saveButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>{t('common.save')}</Text>
               </TouchableOpacity>
@@ -422,26 +412,26 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
                           // Fallback to the food object we already have
                         }
                       }
-                      
+
                       // Apply selected food
                       const description = foodDetails.description || food.description || food.brandOwner || '';
                       const nutrients = foodDetails.foodNutrients || food.foodNutrients || [];
-                      
+
                       // Extract nutrition values (USDA format)
                       const getNutrient = (nutrientId) => {
-                        const nutrient = nutrients.find(n => 
+                        const nutrient = nutrients.find(n =>
                           (n.nutrientId === nutrientId || n.nutrient?.id === nutrientId) ||
                           (n.nutrient && n.nutrient.id === nutrientId)
                         );
                         return nutrient?.value || nutrient?.amount || 0;
                       };
-                      
+
                       // USDA nutrient IDs: 1008=Energy, 1003=Protein, 1005=Carbohydrate, 1004=Total lipid
                       const calories = getNutrient(1008); // Energy (kcal)
                       const protein = getNutrient(1003); // Protein (g)
                       const carbs = getNutrient(1005); // Carbs (g)
                       const fat = getNutrient(1004); // Fat (g)
-                      
+
                       setEditedItem({
                         name: description,
                         calories: Math.round(calories).toString(),

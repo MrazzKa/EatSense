@@ -21,7 +21,7 @@ interface CacheSetRequest {
 @ApiTags('cache')
 @Controller('cache')
 export class CacheController {
-  constructor(private readonly cacheService: CacheService) {}
+  constructor(private readonly cacheService: CacheService) { }
 
   @Get(':key')
   @ApiOperation({ summary: 'Get cached value by key' })
@@ -30,25 +30,27 @@ export class CacheController {
   @ApiResponse({ status: 404, description: 'Cache key not found' })
   async get(@Param('key') key: string) {
     const value = await this.cacheService.get(decodeURIComponent(key));
-    
+
     if (value === null) {
       throw new NotFoundException('Cache key not found');
     }
-    
+
     return { value };
   }
 
   @Put(':key')
   @ApiOperation({ summary: 'Set cached value' })
   @ApiParam({ name: 'key', description: 'Cache key' })
-  @ApiBody({ description: 'Cache value and TTL', schema: {
-    type: 'object',
-    properties: {
-      value: { description: 'Value to cache' },
-      ttl: { type: 'number', description: 'Time to live in seconds' }
-    },
-    required: ['value']
-  }})
+  @ApiBody({
+    description: 'Cache value and TTL', schema: {
+      type: 'object',
+      properties: {
+        value: { description: 'Value to cache' },
+        ttl: { type: 'number', description: 'Time to live in seconds' }
+      },
+      required: ['value']
+    }
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   async set(@Param('key') key: string, @Body() body: CacheSetRequest) {
     await this.cacheService.set(
@@ -74,10 +76,18 @@ export class CacheController {
   @ApiResponse({ status: 404, description: 'Cache key not found' })
   async has(@Param('key') key: string) {
     const exists = await this.cacheService.exists(decodeURIComponent(key));
-    
+
     if (!exists) {
       throw new NotFoundException('Cache key not found');
     }
+  }
+
+  @Delete('namespace/:namespace')
+  @ApiOperation({ summary: 'Clear cache entries by namespace' })
+  @ApiParam({ name: 'namespace', description: 'Cache namespace (vision, analysis, nutrition:lookup, etc.)' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async clearNamespace(@Param('namespace') namespace: string) {
+    await this.cacheService.clear(namespace as any);
   }
 
   @Delete()
@@ -92,7 +102,7 @@ export class CacheController {
   @ApiResponse({ status: 200, description: 'Cache health status' })
   async healthCheck() {
     const isHealthy = await this.cacheService.healthCheck();
-    
+
     return {
       status: isHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),

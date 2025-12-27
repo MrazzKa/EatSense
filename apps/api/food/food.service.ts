@@ -21,7 +21,7 @@ export class FoodService {
     @InjectQueue('food-analysis') private readonly analysisQueue: Queue,
     private readonly redisService: RedisService,
     private readonly analyzeService: AnalyzeService,
-  ) {}
+  ) { }
 
   async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk', foodDescription?: string) {
     try {
@@ -134,14 +134,14 @@ export class FoodService {
     try {
       const today = new Date().toISOString().split('T')[0];
       const key = `daily:${resource}:${userId}:${today}`;
-      
+
       const currentCountStr = await this.redisService.get(key);
       const currentCount = currentCountStr ? parseInt(currentCountStr) : 0;
-      
+
       const resetTime = new Date();
       resetTime.setHours(24, 0, 0, 0);
       const ttl = Math.floor((resetTime.getTime() - Date.now()) / 1000);
-      
+
       await this.redisService.set(key, (currentCount + 1).toString(), ttl > 0 ? ttl : 86400);
     } catch (error) {
       console.error('Error incrementing daily limit:', error);
@@ -179,7 +179,7 @@ export class FoodService {
         type: 'TEXT',
         status: 'PENDING',
         metadata: {
-          description: description.trim(),
+          textQuery: description.trim(), // Use textQuery for reanalyze compatibility
           locale: effectiveLocale,
         },
       },
@@ -295,7 +295,7 @@ export class FoodService {
 
     // Map AnalysisData to frontend format if result exists
     const mapped = resultData ? this.mapAnalysisResult(resultData) : null;
-    
+
     // Include imageUrl from analysis result if available
     if (hasResults && mapped) {
       const rawData = analysis.results[0].data as any;
@@ -303,7 +303,7 @@ export class FoodService {
         (mapped as any).imageUrl = rawData.imageUrl;
       }
     }
-    
+
     // Return status-aware response
     return {
       status: analysis.status,
@@ -627,7 +627,7 @@ export class FoodService {
 
     // 8. Build dish name (reuse logic from AnalyzeService)
     const originalDishName = this.analyzeService.buildDishNameEn(items);
-    
+
     // Localize dish name if needed
     let dishNameLocalized = originalDishName;
     if (locale !== 'en') {
@@ -918,8 +918,8 @@ export class FoodService {
           fiber: original.nutrients.fiber * factor,
           sugars: original.nutrients.sugars * factor,
           satFat: original.nutrients.satFat * factor,
-          energyDensity: incoming.calories && newPortion > 0 
-            ? (incoming.calories / newPortion) * 100 
+          energyDensity: incoming.calories && newPortion > 0
+            ? (incoming.calories / newPortion) * 100
             : (original.nutrients.energyDensity || 0),
         },
         source: 'manual' as AnalyzedItem['source'],
@@ -1103,7 +1103,7 @@ export class FoodService {
       // Try to find meal by userId and recent date (within last 24 hours)
       const recentDate = new Date();
       recentDate.setHours(recentDate.getHours() - 24);
-      
+
       const meal = await this.prisma.meal.findFirst({
         where: {
           userId: analysis.userId,

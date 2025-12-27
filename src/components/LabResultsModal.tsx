@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
@@ -78,15 +79,23 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
   const handlePickImage = async () => {
     try {
       setError(null);
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
         allowsEditing: false,
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!pickerResult.canceled && pickerResult.assets[0]) {
+        // Convert to JPEG to avoid HEIF/HEIC format issues on backend
+        // This handles iOS photos that are often in HEIF format
+        const manipulated = await ImageManipulator.manipulateAsync(
+          pickerResult.assets[0].uri,
+          [], // No transformations needed, just format conversion
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
         setImageFile({
-          uri: result.assets[0].uri,
+          uri: manipulated.uri,
           name: `lab-photo-${Date.now()}.jpg`,
           type: 'image/jpeg',
         });
@@ -122,24 +131,89 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
 
     try {
       const locale = language === 'ru' ? 'ru' : language === 'kk' ? 'kk' : 'en';
-      const payload: any = {
-        inputType: mode,
-        locale,
-      };
+      let response;
 
       if (mode === 'text') {
-        payload.text = text.trim();
-      }
+        // Text mode: send JSON payload
+        const payload = {
+          inputType: 'text',
+          text: text.trim(),
+          locale,
+        };
+        response = await ApiService.analyzeLabResults(payload);
+      } else if (mode === 'file') {
+        // File mode: first upload file, then send fileId
+        let fileId: string | undefined;
+        let fileName: string | undefined;
+        let mimeType: string | undefined;
 
-      // For file mode, we would need to upload the file first and get fileId
-      // For now, we'll show an error that file mode is not yet implemented
-      if (mode === 'file') {
-        setError(t('aiAssistant.lab.errors.fileNotSupported'));
+        if (imageFile) {
+          // Photo upload - upload to media service first
+          try {
+            const uploadResult = await ApiService.uploadImage(imageFile.uri);
+            if (uploadResult?.id) {
+              fileId = uploadResult.id;
+              fileName = imageFile.name;
+              mimeType = imageFile.type;
+            } else {
+              throw new Error('Failed to upload file');
+            }
+          } catch (uploadError: any) {
+            console.error('LabResultsModal: file upload error', uploadError);
+            setError(t('aiAssistant.lab.errors.fileUploadFailed') || 'Failed to upload file. Please try again.');
+            setLoading(false);
+            return;
+          }
+        } else if (file && file.assets && file.assets.length > 0) {
+          // PDF upload - upload to media service first
+          try {
+            console.log('[LabResultsModal] PDF picker result:', file);
+            const asset = file.assets[0];
+
+            console.log('[LabResultsModal] Uploading PDF:', asset.name);
+
+            const uploadResult = await ApiService.uploadImage(asset.uri);
+            if (uploadResult?.id) {
+              fileId = uploadResult.id;
+              fileName = asset.name || `lab-report-${Date.now()}.pdf`;
+              mimeType = asset.mimeType || 'application/pdf';
+
+              console.log('[LabResultsModal] PDF uploaded, fileId:', fileId);
+            } else {
+              throw new Error('Failed to upload PDF file');
+            }
+          } catch (uploadError: any) {
+            console.error('[LabResultsModal] PDF upload error:', uploadError);
+            setError(t('aiAssistant.lab.errors.fileUploadFailed') || 'Failed to upload PDF. Please try again.');
+            setLoading(false);
+            return;
+          }
+        } else {
+          setError(t('aiAssistant.lab.errors.noFile'));
+          setLoading(false);
+          return;
+        }
+
+        // Now send analysis request with fileId
+        if (fileId) {
+          const payload = {
+            inputType: 'file' as const,
+            fileId,
+            fileName,
+            mimeType,
+            locale,
+          };
+          response = await ApiService.analyzeLabResults(payload);
+        } else {
+          setError(t('aiAssistant.lab.errors.noFile'));
+          setLoading(false);
+          return;
+        }
+      } else {
+        setError(t('aiAssistant.lab.errors.generic'));
         setLoading(false);
         return;
       }
-
-      const response = await ApiService.analyzeLabResults(payload);
 
       if (response?.summary) {
         setResult(response.summary);
@@ -170,9 +244,9 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
     <SwipeClosableModal
       visible={visible}
       onClose={handleClose}
-      presentationStyle="pageSheet"
+      presentationStyle="fullScreen"
       enableSwipe={false}
-      enableBackdropClose={true}
+      enableBackdropClose={false}
     >
       <View style={[styles.container, { paddingBottom: insets.bottom + 16, backgroundColor: colors.background }]}>
         {/* Header with close button */}
@@ -253,7 +327,7 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
               >
                 <Ionicons name="document-text" size={20} color={colors.primary} style={{ marginRight: 8 }} />
                 <Text style={[styles.fileButtonText, { color: colors.primary }]}>
-                  {file?.assets?.[0]?.name || t('aiAssistant.lab.attachPdf')}
+                  {t('aiAssistant.lab.attachPdf')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -263,20 +337,29 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
               >
                 <Ionicons name="image" size={20} color={colors.primary} style={{ marginRight: 8 }} />
                 <Text style={[styles.fileButtonText, { color: colors.primary }]}>
-                  {imageFile?.name || t('aiAssistant.lab.attachPhoto')}
+                  {t('aiAssistant.lab.attachPhoto')}
                 </Text>
               </TouchableOpacity>
             </View>
             {(file || imageFile) && (
-              <View style={styles.selectedFileInfo}>
-                <Ionicons 
-                  name={file ? "document-text" : "image"} 
-                  size={16} 
-                  color={colors.textSecondary} 
+              <View style={[styles.selectedFileInfo, { backgroundColor: colors.success + '15' }]}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={18}
+                  color={colors.success || '#10B981'}
                 />
-                <Text style={[styles.selectedFileText, { color: colors.textSecondary }]}>
-                  {file?.assets?.[0]?.name || imageFile?.name}
+                <Text style={[styles.selectedFileText, { color: colors.success || '#10B981', flex: 1 }]}>
+                  {file ? t('aiAssistant.lab.pdfAttached') || 'PDF прикреплен' : t('aiAssistant.lab.photoAttached') || 'Фото прикреплено'}
                 </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setFile(null);
+                    setImageFile(null);
+                  }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="close-circle" size={20} color={colors.textTertiary || '#9CA3AF'} />
+                </TouchableOpacity>
               </View>
             )}
             <Text style={[styles.helperText, { color: colors.textTertiary || colors.textSecondary }]}>

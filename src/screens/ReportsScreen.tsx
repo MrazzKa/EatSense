@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,32 +7,57 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
 // import { API_BASE_URL } from '../config/env'; // Unused
 
+const REPORTS_HISTORY_KEY = 'reports:history';
+
+interface ReportHistoryItem {
+  year: number;
+  month: number;
+  locale: string;
+  fileUri: string;
+  createdAt: string;
+}
+
 export default function ReportsScreen() {
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
+  const [history, setHistory] = useState<ReportHistoryItem[]>([]);
 
   const handleDownloadCurrentMonth = async () => {
     try {
       console.log('[ReportsScreen] Downloading monthly report');
       setLoading(true);
       setNoData(false);
-      
+
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
       const locale = language || 'en';
+
+      // Check directory availability first
+      let directory = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+      if (!directory && !(await Sharing.isAvailableAsync())) {
+        Alert.alert(
+          t('common.info') || 'Info',
+          t('reports.error.noDirectory') || 'Download not available in Expo Go. Please use a development build.',
+        );
+        setLoading(false);
+        return;
+      }
 
       const response = await ApiService.getMonthlyReport({ year, month, locale });
 
@@ -54,11 +79,11 @@ export default function ReportsScreen() {
       // Convert arrayBuffer/blob to base64 FIRST (before checking directories)
       const monthString = `${year}-${String(month).padStart(2, '0')}`;
       let base64Data: string;
-      
+
       // Handle ArrayBuffer (preferred)
       if (response.data instanceof ArrayBuffer) {
         const uint8Array = new Uint8Array(response.data);
-        
+
         // Convert to base64 manually (btoa not available in React Native)
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
         let base64 = '';
@@ -67,9 +92,9 @@ export default function ReportsScreen() {
           const a = uint8Array[i++];
           const b = i < uint8Array.length ? uint8Array[i++] : 0;
           const c = i < uint8Array.length ? uint8Array[i++] : 0;
-          
+
           const bitmap = (a << 16) | (b << 8) | c;
-          
+
           base64 += chars.charAt((bitmap >> 18) & 63);
           base64 += chars.charAt((bitmap >> 12) & 63);
           base64 += i - 2 < uint8Array.length ? chars.charAt((bitmap >> 6) & 63) : '=';
@@ -81,7 +106,7 @@ export default function ReportsScreen() {
         try {
           const arrayBuffer = await response.data.arrayBuffer();
           const uint8Array = new Uint8Array(arrayBuffer);
-          
+
           const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
           let base64 = '';
           let i = 0;
@@ -89,9 +114,9 @@ export default function ReportsScreen() {
             const a = uint8Array[i++];
             const b = i < uint8Array.length ? uint8Array[i++] : 0;
             const c = i < uint8Array.length ? uint8Array[i++] : 0;
-            
+
             const bitmap = (a << 16) | (b << 8) | c;
-            
+
             base64 += chars.charAt((bitmap >> 18) & 63);
             base64 += chars.charAt((bitmap >> 12) & 63);
             base64 += i - 2 < uint8Array.length ? chars.charAt((bitmap >> 6) & 63) : '=';
@@ -104,8 +129,8 @@ export default function ReportsScreen() {
         }
       } else if (typeof response.data === 'string') {
         // Already base64 string
-        base64Data = response.data.includes('data:') 
-          ? response.data.split(',')[1] 
+        base64Data = response.data.includes('data:')
+          ? response.data.split(',')[1]
           : response.data;
       } else {
         console.error('[ReportsScreen] Invalid response data format:', typeof response.data, response.data);
@@ -114,24 +139,15 @@ export default function ReportsScreen() {
 
       // Now check if we can save to file system
       const documentDir = FileSystem.documentDirectory || FileSystem.cacheDirectory;
-      
-      // If both are null (e.g., in Expo Go), share directly via data URI
+
+      // If both are null (e.g., in Expo Go), try using cacheDirectory explicitly
       if (!documentDir) {
-        if (__DEV__) {
-          console.warn('[ReportsScreen] Both documentDirectory and cacheDirectory are null, sharing directly via data URI');
-        }
-        
-        // Share directly via data URI
-        const dataUri = `data:application/pdf;base64,${base64Data}`;
-        const canShare = await Sharing.isAvailableAsync();
-        if (canShare) {
-          await Sharing.shareAsync(dataUri, {
-            mimeType: 'application/pdf',
-            dialogTitle: `EatSense Monthly Report ${monthString}`,
-          });
-          setLoading(false);
-          return;
-        } else {
+        // In rare cases where neither directory is available, try cacheDirectory as last resort
+        const fallbackDir = FileSystem.cacheDirectory;
+        if (!fallbackDir) {
+          if (__DEV__) {
+            console.warn('[ReportsScreen] No file system directory available');
+          }
           Alert.alert(
             t('common.error'),
             t('reports.error.noDirectory') || 'Cannot save or share report. File system not available.',
@@ -140,25 +156,34 @@ export default function ReportsScreen() {
           return;
         }
       }
-      
-      // Save to file system
-      const cleanDocDir = documentDir.endsWith('/') ? documentDir : `${documentDir}/`;
+
+      // Save to file system - at this point documentDir is guaranteed to be non-null
+      const cleanDocDir = documentDir!.endsWith('/') ? documentDir : `${documentDir}/`;
       const fileUri = `${cleanDocDir}eatsense-monthly-report-${monthString}.pdf`;
-      
+
       if (__DEV__) {
         console.log('[ReportsScreen] Using directory:', documentDir === FileSystem.documentDirectory ? 'documentDirectory' : 'cacheDirectory');
         console.log('[ReportsScreen] File path:', fileUri);
         console.log('[ReportsScreen] Writing file with base64 data, length:', base64Data?.length || 0);
       }
 
-      // Use legacy API directly (cacheDirectory is writable)
-      const { writeAsStringAsync } = await import('expo-file-system/legacy');
-      
-      await writeAsStringAsync(fileUri, base64Data, {
-        encoding: 'base64', // Use string literal instead of enum
+      // Write file using FileSystem from legacy import
+      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
       });
 
       console.log('[ReportsScreen] PDF saved to:', fileUri);
+
+      // Save to history
+      const historyItem: ReportHistoryItem = {
+        year,
+        month,
+        locale,
+        fileUri,
+        createdAt: new Date().toISOString(),
+      };
+      await saveReportToHistory(historyItem);
+      await loadReportHistory();
 
       // Share the file
       const canShare = await Sharing.isAvailableAsync();
@@ -172,7 +197,7 @@ export default function ReportsScreen() {
       }
     } catch (error: any) {
       console.error('[ReportsScreen] Failed to download monthly report:', error);
-      
+
       // Check if it's a network error
       if (error?.message?.includes('Network') || error?.message?.includes('fetch')) {
         Alert.alert(
@@ -188,6 +213,102 @@ export default function ReportsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Load report history from AsyncStorage
+  const loadReportHistory = useCallback(async () => {
+    try {
+      const historyJson = await AsyncStorage.getItem(REPORTS_HISTORY_KEY);
+      if (historyJson) {
+        const parsed = JSON.parse(historyJson);
+        // Sort by createdAt descending
+        const sorted = Array.isArray(parsed)
+          ? parsed.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          : [];
+        setHistory(sorted);
+      }
+    } catch (error) {
+      console.error('[ReportsScreen] Error loading history:', error);
+      setHistory([]);
+    }
+  }, []);
+
+  // Save report to history (each download creates new entry, with retention limit)
+  const saveReportToHistory = async (item: ReportHistoryItem) => {
+    try {
+      const historyJson = await AsyncStorage.getItem(REPORTS_HISTORY_KEY);
+      const existing = historyJson ? JSON.parse(historyJson) : [];
+
+      // Add new item at the beginning (allow duplicates - each download = new entry)
+      // Retention: keep last 30 entries to prevent unlimited growth
+      const updated = [item, ...existing].slice(0, 30);
+      await AsyncStorage.setItem(REPORTS_HISTORY_KEY, JSON.stringify(updated));
+      setHistory(updated); // Update state immediately
+    } catch (error) {
+      console.error('[ReportsScreen] Error saving to history:', error);
+    }
+  };
+
+  // Load history on mount
+  useEffect(() => {
+    loadReportHistory();
+  }, [loadReportHistory]);
+
+  // Handle open report from history
+  const handleOpenReport = async (item: ReportHistoryItem) => {
+    try {
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(item.fileUri);
+      } else {
+        Alert.alert(
+          t('common.info') || 'Info',
+          t('reports.fileSaved') || `Report saved at: ${item.fileUri}`,
+        );
+      }
+    } catch (error) {
+      console.error('[ReportsScreen] Error opening report:', error);
+      Alert.alert(
+        t('common.error'),
+        t('reports.error.openFailed') || 'Failed to open report file.',
+      );
+    }
+  };
+
+  // Handle delete report from history
+  const handleDeleteReport = async (item: ReportHistoryItem) => {
+    Alert.alert(
+      t('common.confirm') || 'Confirm',
+      t('reports.deleteConfirm') || 'Delete this report from history?',
+      [
+        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+        {
+          text: t('common.delete') || 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const historyJson = await AsyncStorage.getItem(REPORTS_HISTORY_KEY);
+              const existing = historyJson ? JSON.parse(historyJson) : [];
+              const filtered = existing.filter((h: ReportHistoryItem) =>
+                !(h.year === item.year && h.month === item.month && h.locale === item.locale && h.createdAt === item.createdAt)
+              );
+              await AsyncStorage.setItem(REPORTS_HISTORY_KEY, JSON.stringify(filtered));
+              await loadReportHistory();
+            } catch (error) {
+              console.error('[ReportsScreen] Error deleting report:', error);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const formatMonthYear = (year: number, month: number, locale: string) => {
+    const date = new Date(year, month - 1, 1);
+    return date.toLocaleDateString(locale === 'ru' ? 'ru-RU' : locale === 'kk' ? 'kk-KZ' : 'en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
   const styles = useMemo(() => createStyles(tokens), [tokens]);
@@ -245,10 +366,10 @@ export default function ReportsScreen() {
 
           {noData && (
             <View style={styles.noDataContainer}>
-              <Ionicons 
-                name="information-circle-outline" 
-                size={20} 
-                color={colors.textSecondary || colors.textTertiary} 
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color={colors.textSecondary || colors.textTertiary}
                 style={styles.noDataIcon}
               />
               <Text style={[styles.noDataText, { color: colors.textSecondary || colors.textTertiary }]}>
@@ -257,6 +378,60 @@ export default function ReportsScreen() {
             </View>
           )}
         </View>
+
+        {/* Reports History */}
+        {history.length > 0 && (
+          <View style={[styles.card, { backgroundColor: colors.surface || colors.card, borderColor: colors.border || colors.borderMuted, marginTop: tokens.spacing.lg || 16 }]}>
+            <View style={styles.cardHeader}>
+              <View style={[styles.cardIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
+                <Ionicons name="time-outline" size={24} color={colors.primary || '#007AFF'} />
+              </View>
+              <View style={styles.cardTextContainer}>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('reports.history.title') || 'Recent Reports'}
+                </Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  {t('reports.history.subtitle') || 'Previously downloaded reports'}
+                </Text>
+              </View>
+            </View>
+
+            <FlatList
+              data={history}
+              keyExtractor={(item, index) => `${item.year}-${item.month}-${item.locale}-${index}`}
+              renderItem={({ item }) => (
+                <View style={[styles.historyItem, { borderColor: colors.border || colors.borderMuted }]}>
+                  <View style={styles.historyItemContent}>
+                    <Ionicons name="document-text" size={20} color={colors.primary || '#007AFF'} />
+                    <View style={styles.historyItemText}>
+                      <Text style={[styles.historyItemTitle, { color: colors.textPrimary || colors.text }]}>
+                        {formatMonthYear(item.year, item.month, item.locale)}
+                      </Text>
+                      <Text style={[styles.historyItemDate, { color: colors.textSecondary }]}>
+                        {new Date(item.createdAt).toLocaleDateString(language || 'en')}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.historyItemActions}>
+                    <TouchableOpacity
+                      onPress={() => handleOpenReport(item)}
+                      style={styles.historyActionButton}
+                    >
+                      <Ionicons name="share-outline" size={18} color={colors.primary || '#007AFF'} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteReport(item)}
+                      style={styles.historyActionButton}
+                    >
+                      <Ionicons name="trash-outline" size={18} color={colors.error || '#EF4444'} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              scrollEnabled={false}
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -346,6 +521,38 @@ const createStyles = (tokens: any) =>
       flex: 1,
       fontSize: tokens.typography.body?.fontSize || 14,
       lineHeight: tokens.typography.body?.lineHeight || 20,
+    },
+    historyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: tokens.spacing.md || 12,
+      paddingHorizontal: tokens.spacing.md || 12,
+      borderBottomWidth: 1,
+    },
+    historyItemContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    historyItemText: {
+      marginLeft: tokens.spacing.md || 12,
+      flex: 1,
+    },
+    historyItemTitle: {
+      fontSize: tokens.typography.bodyStrong?.fontSize || 16,
+      fontWeight: tokens.typography.bodyStrong?.fontWeight || '600',
+      marginBottom: tokens.spacing.xs || 4,
+    },
+    historyItemDate: {
+      fontSize: tokens.typography.body?.fontSize || 14,
+    },
+    historyItemActions: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm || 8,
+    },
+    historyActionButton: {
+      padding: tokens.spacing.sm || 8,
     },
   });
 
