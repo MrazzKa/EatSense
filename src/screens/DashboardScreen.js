@@ -8,7 +8,6 @@ import {
   Animated,
   Alert,
   Image,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -118,7 +117,13 @@ export default function DashboardScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [stats.totalCalories]); // Re-animate when calories change
+  }, [
+    stats.totalCalories,
+    cardAnimations.calories,
+    cardAnimations.stats,
+    cardAnimations.recent,
+    cardAnimations.suggested
+  ]);
 
   // Определяем функции ПЕРЕД их использованием в хуках
   const loadStats = React.useCallback(async () => {
@@ -238,39 +243,18 @@ export default function DashboardScreen() {
   const loadSuggestedFoodSummary = React.useCallback(async () => {
     try {
       const currentLocale = language || 'ru';
-      const suggestions = await ApiService.getSuggestedFoods(currentLocale);
-      if (Array.isArray(suggestions) && suggestions.length > 0) {
-        // Analyze suggestions to create user-friendly summary messages
-        const categoryMessages = {
-          protein: t('dashboard.suggestedFood.messages.lowProtein') || 'В последнее время вы потребляете мало белка',
-          fiber: t('dashboard.suggestedFood.messages.lowFiber') || 'Вам не хватает клетчатки',
-          carbs: t('dashboard.suggestedFood.messages.lowCarbs') || 'Вы потребляете мало углеводов',
-          healthy_fat: t('dashboard.suggestedFood.messages.lowHealthyFat') || 'Вам не хватает полезных жиров',
-          general: t('dashboard.suggestedFood.messages.general') || 'Персональные рекомендации по питанию',
-        };
+      // Use V2 API for real personalized summary
+      const response = await ApiService.getSuggestedFoodsV2(currentLocale);
 
-        // Group suggestions by category to find most common issue
-        const categoryCounts = {};
-        suggestions.forEach(suggestion => {
-          const cat = suggestion.category || 'general';
-          categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-        });
-
-        // Find most common category
-        const mostCommonCategory = Object.keys(categoryCounts).reduce((a, b) =>
-          categoryCounts[a] > categoryCounts[b] ? a : b, 'general'
-        );
-
-        // Create summary message
-        const summaryMessage = categoryMessages[mostCommonCategory] ||
-          suggestions[0]?.reason ||
-          suggestions[0]?.tip ||
-          t('dashboard.suggestedFood.messages.general') || 'Персональные рекомендации по питанию';
-
+      if (response.status === 'ok' || response.status === 'insufficient_data') {
+        // Use summary directly from backend (already personalized with real numbers)
         setSuggestedFoodSummary({
-          reason: summaryMessage,
-          category: mostCommonCategory,
-          count: suggestions.length,
+          reason: response.summary,
+          category: response.sections?.[0]?.category || 'general',
+          count: response.sections?.length || 0,
+          healthLevel: response.health?.level || 'average',
+          healthScore: response.health?.score || 50,
+          status: response.status,
         });
       } else {
         setSuggestedFoodSummary(null);
@@ -279,7 +263,7 @@ export default function DashboardScreen() {
       console.error('[DashboardScreen] Error loading suggested food summary:', error);
       setSuggestedFoodSummary(null);
     }
-  }, [language, t]);
+  }, [language]);
 
   // Load data on mount and when date changes
   useEffect(() => {
@@ -290,13 +274,7 @@ export default function DashboardScreen() {
   }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
   // Теперь используем функции в хуках ПОСЛЕ их определения
-  useEffect(() => {
-    const timer = setInterval(() => {
-      // Removed setCurrentTime call
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  // Removed unused timer effect
 
   // Removed unused time update effect
 
@@ -317,29 +295,74 @@ export default function DashboardScreen() {
   }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
-  const prevPendingCountRef = React.useRef(pendingAnalyses.length);
-  useEffect(() => {
-    const currentCount = pendingAnalyses.length;
-    const prevCount = prevPendingCountRef.current;
+  // Auto-refresh when pending analyses change (e.g., when an analysis completes)
+  const prevPendingAnalysesRef = React.useRef(pendingAnalyses);
+  const [justCompletedItems, setJustCompletedItems] = useState([]);
 
-    // When an analysis gets removed from pending (completed), reload data
-    if (prevCount > 0 && currentCount < prevCount) {
-      // Analysis completed - wait a moment for DB to settle then reload
-      // This fix ensures the new meal is actually retrievable
-      const timer = setTimeout(() => {
-        loadStats();
-        loadRecentItems();
-      }, 2000);
-      return () => clearTimeout(timer);
+  useEffect(() => {
+    // Detect items that were pending but are now gone (completed)
+    const prevItems = prevPendingAnalysesRef.current;
+
+    // Optimization: If lengths and IDs are identical, do nothing (skip filtering)
+    // This relies on useMemo in Context ensuring stable references for same content
+    if (prevItems === pendingAnalyses) return;
+
+    const currentIds = new Set(pendingAnalyses.map(a => a.analysisId));
+
+    // Find items that disappeared
+    const completed = prevItems.filter(a => !currentIds.has(a.analysisId));
+
+    if (completed.length > 0) {
+      // Logic: If disappeared and NOT failed (assuming success if just disappeared from list without error flag in context?)
+      // Context usually handles 'failed' by keeping it or alerting. 
+      // Let's assume disappearance means success or user dismissal. 
+      // If regular success flow, we want to show it.
+
+      const actuallyCompleted = completed.filter(c => c.status !== 'failed');
+
+      if (actuallyCompleted.length > 0) {
+        // Add to justCompleted with deduplication to prevent duplicate keys
+        setJustCompletedItems(prev => {
+          const existingIds = new Set(prev.map(p => p.analysisId));
+          const newItems = actuallyCompleted
+            .filter(c => !existingIds.has(c.analysisId))
+            .map(c => ({ ...c, status: 'completed' }));
+
+          if (newItems.length === 0) return prev;
+
+          return [...prev, ...newItems];
+        });
+
+        // Trigger reload
+        const timer = setTimeout(() => {
+          loadStats();
+          loadRecentItems();
+        }, 2000); // Wait for DB (existing logic)
+
+        // Remove from "just completed" visual list after reload should have happened (plus buffer)
+        const cleanupTimer = setTimeout(() => {
+          // Use functional update to avoid dependency on state
+          setJustCompletedItems(prev => {
+            const completedIds = new Set(actuallyCompleted.map(c => c.analysisId));
+            const filtered = prev.filter(p => !completedIds.has(p.analysisId));
+            return filtered.length === prev.length ? prev : filtered;
+          });
+        }, 3500);
+
+        return () => {
+          clearTimeout(timer);
+          clearTimeout(cleanupTimer);
+        };
+      }
     }
 
-    prevPendingCountRef.current = currentCount;
-  }, [pendingAnalyses.length, loadStats, loadRecentItems]);
+    prevPendingAnalysesRef.current = pendingAnalyses;
+  }, [pendingAnalyses, loadStats, loadRecentItems]);
 
   // Removed unused formatTime and formatDate functions
 
   // Check if daily limit reached - TEMPORARILY DISABLED
-  const hasReachedDailyLimit = (stats) => {
+  const hasReachedDailyLimit = (_stats) => {
     // Temporarily disabled for testing
     return false;
     // return stats && stats.todayPhotosAnalyzed >= stats.dailyLimit;
@@ -596,45 +619,90 @@ export default function DashboardScreen() {
             ))
           )}
 
-          {/* Completed meals */}
-          {recentItems && recentItems.length > 0 ? (
-            (recentItems || []).slice(0, 3).map((item) => (
+          {/* Just Completed Items - Bridge the gap before server refresh */}
+          {justCompletedItems && justCompletedItems.length > 0 && (
+            justCompletedItems.map((item) => (
               <TouchableOpacity
-                key={item.id}
-                style={styles.articleRow}
+                key={`completed-${item.analysisId}`}
+                style={[styles.articleRow, { borderColor: colors.success || '#34C759', borderWidth: 1 }]}
                 onPress={() => {
                   if (navigation && typeof navigation.navigate === 'function') {
-                    navigation.navigate('AnalysisResults', { analysisResult: item, readOnly: true });
+                    navigation.navigate('AnalysisResults', {
+                      analysisId: item.analysisId,
+                      status: 'completed',
+                      localPreviewUri: item.localPreviewUri,
+                    });
                   }
                 }}
               >
-                {getItemImageUrl(item) ? (
+                {item.localPreviewUri || item.imageUrl ? (
                   <Image
-                    source={{ uri: getItemImageUrl(item) }}
+                    source={{ uri: item.localPreviewUri || item.imageUrl }}
                     style={styles.recentItemImage}
                     resizeMode="cover"
                   />
                 ) : (
                   <View style={styles.recentItemImagePlaceholder}>
-                    <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+                    <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
                   </View>
                 )}
                 <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
-                  <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
-                  <Text numberOfLines={1} style={styles.articleRowExcerpt}>
-                    {formatCalories(item.totalCalories ?? item.calories ?? 0)} · {t('analysis.proteinShort') || 'P'} {formatMacro(item.totalProtein ?? item.protein ?? 0)} · {t('analysis.carbsShort') || 'C'} {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · {t('analysis.fatShort') || 'F'} {formatMacro(item.totalFat ?? item.fat ?? 0)}
+                  <Text numberOfLines={1} style={styles.articleRowTitle}>
+                    {item.dishName || t('analysis.analysisComplete', 'Analysis Complete')}
+                  </Text>
+                  <Text numberOfLines={1} style={[styles.articleRowExcerpt, { color: colors.success || '#34C759' }]}>
+                    {t('analysis.tapToView', 'Tap to view results')}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             ))
-          ) : !pendingAnalyses || pendingAnalyses.length === 0 ? (
-            <View style={styles.recentEmpty}>
-              <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
-              <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
-              <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
-            </View>
-          ) : null}
+          )}
+
+          {/* Completed meals - filter out items that are in justCompletedItems to avoid duplicate keys */}
+          {(() => {
+            const justCompletedIds = new Set((justCompletedItems || []).map(a => a.analysisId));
+            const filteredItems = (recentItems || []).filter(item => !justCompletedIds.has(item.analysisId || item.id));
+            return filteredItems.length > 0 ? (
+              filteredItems.slice(0, 3).map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.articleRow}
+                  onPress={() => {
+                    if (navigation && typeof navigation.navigate === 'function') {
+                      // Note: removed readOnly: true to enable ingredient editing
+                      navigation.navigate('AnalysisResults', { analysisResult: item });
+                    }
+                  }}
+                >
+                  {getItemImageUrl(item) ? (
+                    <Image
+                      source={{ uri: getItemImageUrl(item) }}
+                      style={styles.recentItemImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.recentItemImagePlaceholder}>
+                      <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+                    </View>
+                  )}
+                  <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
+                    <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
+                    <Text numberOfLines={1} style={styles.articleRowExcerpt}>
+                      {formatCalories(item.totalCalories ?? item.calories ?? 0)} · {t('analysis.proteinShort') || 'P'} {formatMacro(item.totalProtein ?? item.protein ?? 0)} · {t('analysis.carbsShort') || 'C'} {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · {t('analysis.fatShort') || 'F'} {formatMacro(item.totalFat ?? item.fat ?? 0)}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                </TouchableOpacity>
+              ))
+            ) : !pendingAnalyses || pendingAnalyses.length === 0 ? (
+              <View style={styles.recentEmpty}>
+                <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
+                <Text style={styles.recentEmptyText}>{t('dashboard.recentEmptyTitle')}</Text>
+                <Text style={styles.recentEmptySubtext}>{t('dashboard.recentEmptySubtitle')}</Text>
+              </View>
+            ) : null;
+          })()}
         </Animated.View>
 
         {/* PART A: Section 3 - Smart Recommendations Cards */}

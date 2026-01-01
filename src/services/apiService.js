@@ -543,7 +543,7 @@ class ApiService {
         // We need to read it as arrayBuffer instead
         try {
           data = await response.arrayBuffer();
-        } catch (e) {
+        } catch {
           // Fallback to blob if arrayBuffer fails
           try {
             const blob = await response.blob();
@@ -716,6 +716,28 @@ class ApiService {
       console.error('[ApiService] getSuggestedFoods error:', error);
       // Re-throw so screen can handle fallback gracefully
       throw error;
+    }
+  }
+
+  /**
+   * Get personalized food suggestions V2 (structured response)
+   * @param {string} locale - User's locale ('en' | 'ru' | 'kk')
+   * @returns {Promise<Object>} Structured response with status, summary, health, stats, sections
+   */
+  async getSuggestedFoodsV2(locale) {
+    try {
+      const params = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+      const response = await this.request(`/suggestions/foods/v2${params}`);
+      return response || { status: 'error', summary: '', sections: [] };
+    } catch (error) {
+      console.error('[ApiService] getSuggestedFoodsV2 error:', error);
+      return {
+        status: 'error',
+        summary: locale === 'ru' ? 'Ошибка загрузки рекомендаций' : 'Failed to load suggestions',
+        health: { level: 'average', score: 50, reasons: [] },
+        stats: { daysWithMeals: 0, mealsCount: 0 },
+        sections: [],
+      };
     }
   }
 

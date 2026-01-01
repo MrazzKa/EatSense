@@ -12,19 +12,22 @@ import {
   InteractionManager,
   Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import PropTypes from 'prop-types';
-import Slider from '@react-native-community/slider';
+
+// import Slider from '@react-native-community/slider'; // Unused
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
+import { useI18n } from '../../app/i18n/hooks';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const createStyles = (tokens, colors) => {
   const onPrimary = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
@@ -570,7 +573,7 @@ const createStyles = (tokens, colors) => {
     genderLabel: {
       fontSize: tokens.typography?.bodyStrong?.fontSize ?? 18,
       fontWeight: tokens.typography?.bodyStrong?.fontWeight ?? '600',
-      color: colors.primary,
+      color: colors.text, // Better contrast for unselected state
       marginTop: tokens.spacing?.sm ?? 8,
     },
     genderLabelSelected: {
@@ -618,10 +621,23 @@ const createStyles = (tokens, colors) => {
       color: textSecondary,
       marginBottom: tokens.spacing?.sm ?? 8,
     },
+    // New styles for Input inputs
+    otherInput: {
+      backgroundColor: surface,
+      borderWidth: 1,
+      borderColor: colors.borderMuted || '#333',
+      borderRadius: tokens.radii?.md ?? 12,
+      padding: 16,
+      color: colors.text,
+      fontSize: 16,
+      minHeight: 50,
+      width: '100%',
+    },
   });
 };
 
 const OnboardingScreen = () => {
+
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
   const { setUser, refreshUser } = useAuth();
@@ -649,42 +665,48 @@ const OnboardingScreen = () => {
     firstMeasurements: 7, // Days until first measurements
     selectedPlan: 'free',
     planBillingCycle: 'lifetime',
+    dietOther: '', // Added for diet 'other' input
+    healthConditionOther: '', // Added for health 'other' input
   });
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
   const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
-  const [planData, setPlanData] = useState(null); // Calculated plan data
+  // Calculated plan data
+  const [planData, setPlanData] = useState(null);
+  const { t } = useI18n(); // Added useI18n hook
+
 
   const scrollViewRef = useRef(null);
 
   // Expanded steps order according to requirements
-  const steps = [
-    { id: 'welcome', title: 'Welcome to EatSense' },
-    { id: 'goals', title: 'What are your goals?' }, // Goals selection
-    { id: 'support', title: 'We care about you' }, // Support message
-    { id: 'gender', title: 'What\'s your gender?' }, // Gender selection
-    { id: 'age', title: 'How old are you?' }, // Age with vertical scroll
-    { id: 'height', title: 'What\'s your height?' }, // Height with vertical scroll
-    { id: 'weight', title: 'What\'s your weight?' }, // Weight with horizontal scroll
-    { id: 'activity', title: 'How active are you?' }, // Activity level
-    { id: 'walking', title: 'How much do you walk?' }, // Walking time
-    { id: 'breath', title: 'Do you get shortness of breath?' }, // Shortness of breath after stairs
-    { id: 'steps', title: 'Daily step goal' }, // Step goal with scroll
-    { id: 'obstacles', title: 'What prevents you from reaching your goal?' }, // Obstacles
-    { id: 'diet', title: 'Are you following any diet?' }, // Diet selection
-    { id: 'health', title: 'What should we know about you?' }, // Health conditions
-    { id: 'care', title: 'We care about you' }, // Care message with disclaimer
-    { id: 'targetWeight', title: 'What weight do you want?' }, // Target weight
-    { id: 'weightRate', title: 'Weight change rate' }, // Rate of weight change
-    { id: 'trust', title: 'Thank you for trusting us' }, // Trust message
-    { id: 'healthKit', title: 'Connect Apple Health' }, // Apple Health connection
-    { id: 'notifications', title: 'Enable notifications' }, // Notifications permission
-    { id: 'firstMeasurements', title: 'First measurements' }, // Days until first measurements
-    { id: 'loading', title: 'Creating your plan' }, // Loading animation with plan
-    { id: 'almostReady', title: 'Almost ready' }, // Account creation
-    { id: 'summary', title: 'Your choices' }, // Summary of choices
-    { id: 'rating', title: 'Rate us' }, // App rating
-    { id: 'plan', title: 'Choose Your Plan' }, // Plan selection
-  ];
+  // Expanded steps order according to requirements
+  const steps = useMemo(() => [
+    { id: 'welcome', title: t('onboarding.welcome', 'Welcome to EatSense') },
+    { id: 'goals', title: t('onboarding.goals', 'What are your goals?') }, // Goals selection
+    { id: 'support', title: t('onboarding.support', 'We care about you') }, // Support message
+    { id: 'gender', title: t('onboarding.gender', 'What\'s your gender?') }, // Gender selection
+    { id: 'age', title: t('onboarding.age', 'How old are you?') }, // Age with vertical scroll
+    { id: 'height', title: t('onboarding.height', 'What\'s your height?') }, // Height with vertical scroll
+    { id: 'weight', title: t('onboarding.weight', 'What\'s your weight?') }, // Weight with horizontal scroll
+    { id: 'activity', title: t('onboarding.activity', 'How active are you?') }, // Activity level
+    { id: 'walking', title: t('onboarding.walking', 'How much do you walk?') }, // Walking time
+    { id: 'breath', title: t('onboarding.breath', 'Do you get shortness of breath?') }, // Shortness of breath after stairs
+    // { id: 'steps', title: 'Daily step goal' }, // REMOVED
+    { id: 'obstacles', title: t('onboarding.obstacles', 'What prevents you from reaching your goal?') }, // Obstacles
+    { id: 'diet', title: t('onboarding.diet', 'Are you following any diet?') }, // Diet selection
+    { id: 'health', title: t('onboarding.health', 'What should we know about you?') }, // Health conditions
+    { id: 'care', title: t('onboarding.care', 'We care about you') }, // Care message with disclaimer
+    { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') }, // Target weight
+    { id: 'weightRate', title: t('onboarding.weightRate', 'Weight change rate') }, // Rate of weight change
+    { id: 'trust', title: t('onboarding.trust', 'Thank you for trusting us') }, // Trust message
+    // { id: 'healthKit', title: 'Connect Apple Health' }, // REMOVED
+    { id: 'notifications', title: t('onboarding.notifications', 'Enable notifications') }, // Notifications permission
+    // { id: 'firstMeasurements', title: 'First measurements' }, // REMOVED
+    { id: 'loading', title: t('onboarding.loading', 'Creating your plan') }, // Loading animation with plan
+    // { id: 'almostReady', title: 'Almost ready' }, // REMOVED
+    { id: 'summary', title: t('onboarding.summary', 'Your choices') }, // Summary of choices
+    // { id: 'rating', title: 'Rate us' }, // REMOVED
+    { id: 'plan', title: t('onboarding.plan', 'Choose Your Plan') }, // Plan selection
+  ], [t]);
 
   // Removed unused genders array
   // const genders = [
@@ -749,16 +771,17 @@ const OnboardingScreen = () => {
     },
   ];
 
-  const markStepConfirmed = (stepIndex) => {
+  const markStepConfirmed = useCallback((stepIndex) => {
     setConfirmedSteps((prev) => {
+      // clientLog(`Onboarding:stepConfirmed:${stepIndex}`);
       if (prev.has(stepIndex)) return prev;
       const next = new Set(prev);
       next.add(stepIndex);
       return next;
     });
-  };
+  }, []);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     // Get current step ID for validation
     const currentStepId = steps[currentStep]?.id;
 
@@ -788,7 +811,7 @@ const OnboardingScreen = () => {
       setCurrentStep(nextStepIndex);
       scrollViewRef.current?.scrollTo({ x: nextStepIndex * width, animated: true });
     }
-  };
+  }, [currentStep, steps, profileData, markStepConfirmed]);
 
   const prevStep = () => {
     if (currentStep > 0) {
@@ -824,15 +847,47 @@ const OnboardingScreen = () => {
 
       profileDataWithoutPlan.preferences = mergedPreferences;
 
+      // Filter out empty 'other' condition if present and merge 'other' text
+      let finalHealthConditions = [...(profileDataWithoutPlan.healthConditions || [])];
+
+      // Remove 'other' keyword for backend if we're replacing it with text, or keep it + text?
+      // Usually backend expects a list of strings. If 'other' is selected, we should append the text.
+      if (finalHealthConditions.includes('other') && profileData.healthConditionOther) {
+        finalHealthConditions = finalHealthConditions.filter(c => c !== 'other');
+        finalHealthConditions.push(profileData.healthConditionOther);
+      } else if (finalHealthConditions.includes('other') && !profileData.healthConditionOther) {
+        // Should not happen with validation, but safe cleanup
+        finalHealthConditions = finalHealthConditions.filter(c => c !== 'other');
+      }
+
+      // Handle Diet 'Other'
+      let finalDiet = profileDataWithoutPlan.diet;
+      if (finalDiet === 'other' && profileData.dietOther) {
+        finalDiet = profileData.dietOther;
+      }
+
+      const finalPayload = {
+        ...profileDataWithoutPlan,
+        healthConditions: finalHealthConditions,
+        diet: finalDiet,
+        preferences: mergedPreferences,
+      };
+
+      // Logging checks
+      clientLog('Onboarding:profileSave:start', { payload: finalPayload });
+
+
       // Проверяем, есть ли уже профиль
       try {
         await ApiService.getUserProfile();
         // Если профиль существует, обновляем его
-        await ApiService.updateUserProfile(profileDataWithoutPlan);
+        await ApiService.updateUserProfile(finalPayload);
       } catch {
         // Если профиля нет, создаем новый
-        await ApiService.createUserProfile(profileDataWithoutPlan);
+        await ApiService.createUserProfile(finalPayload);
       }
+
+      clientLog('Onboarding:profileSave:success');
 
       const onboardingResult = await ApiService.completeOnboarding();
       console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
@@ -934,405 +989,15 @@ const OnboardingScreen = () => {
   };
 
   // Vertical Scroll Picker Component for Age and Height - Smooth with deceleration
-  const VerticalScrollPicker = ({
-    value,
-    minimumValue,
-    maximumValue,
-    onValueChange,
-    unit,
-    step = 1,
-    enableHaptics = true,
-  }) => {
-    const scrollViewRef = useRef(null);
-    const isScrollingRef = useRef(false);
-    const scrollTimeoutRef = useRef(null);
-    const itemHeight = 60;
-    const visibleItems = 5;
-    const containerHeight = itemHeight * visibleItems;
-    const lastValueRef = useRef(value);
-    const scrollY = useRef(new Animated.Value(0));
+  // Vertical Scroll Picker Component for Age and Height - Smooth with deceleration
 
-    // Initialize scroll position only once
-    const initializedRef = useRef(false);
-    useEffect(() => {
-      if (scrollViewRef.current && !initializedRef.current) {
-        const initialOffset = ((value - minimumValue) / step) * itemHeight;
-        scrollY.current.setValue(initialOffset);
-        scrollViewRef.current.scrollTo({ y: initialOffset, animated: false });
-        lastValueRef.current = value;
-        initializedRef.current = true;
-      }
-    }, []);
-
-    // Sync scroll position when value changes externally
-    useEffect(() => {
-      if (!isScrollingRef.current && scrollViewRef.current && lastValueRef.current !== value) {
-        const newOffset = ((value - minimumValue) / step) * itemHeight;
-        scrollY.current.setValue(newOffset);
-        scrollViewRef.current.scrollTo({ y: newOffset, animated: true });
-        lastValueRef.current = value;
-      }
-    }, [value, minimumValue, step]);
-
-    const handleScroll = Animated.event(
-      [{ nativeEvent: { contentOffset: { y: scrollY.current } } }],
-      {
-        useNativeDriver: false,
-        listener: (event) => {
-          isScrollingRef.current = true;
-          const offsetY = event.nativeEvent.contentOffset.y;
-          const index = Math.round(offsetY / itemHeight);
-          const newValue = Math.max(
-            minimumValue,
-            Math.min(maximumValue, minimumValue + index * step)
-          );
-
-          if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - lastValueRef.current) >= step) {
-            try {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            } catch { }
-          }
-
-          if (newValue !== lastValueRef.current) {
-            lastValueRef.current = newValue;
-            onValueChange(newValue);
-          }
-
-          // Clear existing timeout
-          if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
-          }
-
-          // Set new timeout to detect scroll end
-          scrollTimeoutRef.current = setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 150);
-        },
-      }
-    );
-
-    const handleMomentumScrollEnd = (event) => {
-      isScrollingRef.current = false;
-      const offsetY = event.nativeEvent.contentOffset.y;
-      const index = Math.round(offsetY / itemHeight);
-      const targetOffset = index * itemHeight;
-
-      // Smooth snap to nearest item
-      scrollViewRef.current?.scrollTo({
-        y: targetOffset,
-        animated: true,
-      });
-
-      const snappedValue = Math.max(
-        minimumValue,
-        Math.min(maximumValue, minimumValue + index * step)
-      );
-
-      if (snappedValue !== lastValueRef.current) {
-        lastValueRef.current = snappedValue;
-        onValueChange(snappedValue);
-      }
-    };
-
-    const items = [];
-    for (let i = minimumValue; i <= maximumValue; i += step) {
-      items.push(i);
-    }
-
-    return (
-      <View style={[styles.verticalPickerContainer, { height: containerHeight }]}>
-        <Animated.ScrollView
-          ref={scrollViewRef}
-          showsVerticalScrollIndicator={false}
-          snapToInterval={itemHeight}
-          decelerationRate={0.92} // Smooth deceleration (0.92 = slower, more natural)
-          onScroll={handleScroll}
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          scrollEventThrottle={16}
-          bounces={false}
-          contentContainerStyle={{
-            paddingTop: containerHeight / 2 - itemHeight / 2,
-            paddingBottom: containerHeight / 2 - itemHeight / 2,
-          }}
-        >
-          {items.map((item) => {
-            const isSelected = item === value;
-            return (
-              <View
-                key={item}
-                style={[
-                  styles.verticalPickerItem,
-                  { height: itemHeight },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.verticalPickerItemText,
-                    isSelected && styles.verticalPickerItemTextSelected,
-                  ]}
-                >
-                  {item}{unit}
-                </Text>
-              </View>
-            );
-          })}
-        </Animated.ScrollView>
-      </View>
-    );
-  };
 
   // Horizontal Scroll Picker Component for Weight - Smooth with deceleration
-  const HorizontalScrollPicker = ({
-    value,
-    minimumValue,
-    maximumValue,
-    onValueChange,
-    unit,
-    step = 0.5,
-    enableHaptics = true,
-  }) => {
-    const scrollViewRef = useRef(null);
-    const isScrollingRef = useRef(false);
-    const scrollTimeoutRef = useRef(null);
-    const itemWidth = 80;
-    const visibleItems = 5;
-    const containerWidth = itemWidth * visibleItems;
-    const lastValueRef = useRef(value);
-    const scrollX = useRef(new Animated.Value(0));
+  // Horizontal Scroll Picker Component for Weight - Smooth with deceleration
 
-    // Initialize scroll position only once
-    const initializedRef = useRef(false);
-    useEffect(() => {
-      if (scrollViewRef.current && !initializedRef.current) {
-        const initialOffset = ((value - minimumValue) / step) * itemWidth;
-        scrollX.current.setValue(initialOffset);
-        scrollViewRef.current.scrollTo({ x: initialOffset, animated: false });
-        lastValueRef.current = value;
-        initializedRef.current = true;
-      }
-    }, []);
-
-    // Sync scroll position when value changes externally
-    useEffect(() => {
-      if (!isScrollingRef.current && scrollViewRef.current && lastValueRef.current !== value) {
-        const newOffset = ((value - minimumValue) / step) * itemWidth;
-        scrollX.current.setValue(newOffset);
-        scrollViewRef.current.scrollTo({ x: newOffset, animated: true });
-        lastValueRef.current = value;
-      }
-    }, [value, minimumValue, step]);
-
-    const handleScroll = Animated.event(
-      [{ nativeEvent: { contentOffset: { x: scrollX.current } } }],
-      {
-        useNativeDriver: false,
-        listener: (event) => {
-          isScrollingRef.current = true;
-          const offsetX = event.nativeEvent.contentOffset.x;
-          const index = Math.round(offsetX / itemWidth);
-          const newValue = Math.max(
-            minimumValue,
-            Math.min(maximumValue, minimumValue + index * step)
-          );
-
-          if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - lastValueRef.current) >= step) {
-            try {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            } catch { }
-          }
-
-          if (newValue !== lastValueRef.current) {
-            lastValueRef.current = newValue;
-            onValueChange(newValue);
-          }
-
-          // Clear existing timeout
-          if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
-          }
-
-          // Set new timeout to detect scroll end
-          scrollTimeoutRef.current = setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 150);
-        },
-      }
-    );
-
-    const handleMomentumScrollEnd = (event) => {
-      isScrollingRef.current = false;
-      const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / itemWidth);
-      const targetOffset = index * itemWidth;
-
-      // Smooth snap to nearest item
-      scrollViewRef.current?.scrollTo({
-        x: targetOffset,
-        animated: true,
-      });
-
-      const snappedValue = Math.max(
-        minimumValue,
-        Math.min(maximumValue, minimumValue + index * step)
-      );
-
-      if (snappedValue !== lastValueRef.current) {
-        lastValueRef.current = snappedValue;
-        onValueChange(snappedValue);
-      }
-    };
-
-    const items = [];
-    for (let i = minimumValue; i <= maximumValue; i += step) {
-      items.push(parseFloat(i.toFixed(1)));
-    }
-
-    return (
-      <View style={[styles.horizontalPickerContainer, { width: containerWidth }]}>
-        <Animated.ScrollView
-          ref={scrollViewRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={itemWidth}
-          decelerationRate={0.92} // Smooth deceleration
-          onScroll={handleScroll}
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          scrollEventThrottle={16}
-          bounces={false}
-          contentContainerStyle={{
-            paddingLeft: containerWidth / 2 - itemWidth / 2,
-            paddingRight: containerWidth / 2 - itemWidth / 2,
-          }}
-        >
-          {items.map((item) => {
-            const isSelected = Math.abs(item - value) < step / 2;
-            return (
-              <View
-                key={item}
-                style={[
-                  styles.horizontalPickerItem,
-                  { width: itemWidth },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.horizontalPickerItemText,
-                    isSelected && styles.horizontalPickerItemTextSelected,
-                  ]}
-                >
-                  {item}{unit}
-                </Text>
-              </View>
-            );
-          })}
-        </Animated.ScrollView>
-      </View>
-    );
-  };
 
   // Interactive Slider Component with haptics
-  const InteractiveSlider = ({
-    value,
-    minimumValue,
-    maximumValue,
-    onValueChange,
-    unit,
-    step = 1,
-    sliderKey,
-    enableHaptics = true,
-  }) => {
-    const clampedValue = Math.max(minimumValue, Math.min(maximumValue, value));
-    const [tempValue, setTempValue] = useState(clampedValue);
-    const [isSliding, setIsSliding] = useState(false);
-    const lastHapticValue = useRef(clampedValue);
-    const isInitialized = useRef(false);
 
-    // Initialize tempValue on mount or when sliderKey changes
-    useEffect(() => {
-      const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
-      if (!isInitialized.current || sliderKey) {
-        setTempValue(newValue);
-        lastHapticValue.current = newValue;
-        isInitialized.current = true;
-      }
-    }, [sliderKey, minimumValue, maximumValue]);
-
-    useEffect(() => {
-      if (!isSliding && isInitialized.current) {
-        const newValue = Math.max(minimumValue, Math.min(maximumValue, value));
-        if (Math.abs(newValue - tempValue) > 0.1) {
-          setTempValue(newValue);
-          lastHapticValue.current = newValue;
-        }
-      }
-    }, [value, minimumValue, maximumValue, isSliding, tempValue]);
-
-    const triggerHaptic = () => {
-      if (enableHaptics && Platform.OS === 'ios') {
-        try {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        } catch {
-          // Haptics not available
-        }
-      }
-    };
-
-    return (
-      <View style={styles.interactiveSliderContainer}>
-        <Animated.Text style={styles.sliderValue}>
-          {Math.round(tempValue)}{unit}
-        </Animated.Text>
-
-        <View style={styles.gestureSliderContainer}>
-          <Slider
-            style={styles.slider}
-            minimumValue={minimumValue}
-            maximumValue={maximumValue}
-            value={tempValue}
-            step={step}
-            onValueChange={(v) => {
-              setIsSliding(true);
-              setTempValue(v);
-              // Trigger haptic feedback on step change
-              if (enableHaptics && Math.abs(Math.round(v) - Math.round(lastHapticValue.current)) >= step) {
-                triggerHaptic();
-                lastHapticValue.current = v;
-              }
-            }}
-            onSlidingStart={() => {
-              setIsSliding(true);
-              triggerHaptic();
-            }}
-            onSlidingComplete={(v) => {
-              setIsSliding(false);
-              triggerHaptic();
-              if (onValueChange && typeof onValueChange === 'function') {
-                onValueChange(v);
-              }
-            }}
-            minimumTrackTintColor={colors.primary}
-            maximumTrackTintColor={colors.borderMuted}
-            thumbStyle={styles.sliderThumb}
-          />
-
-          <View style={styles.sliderIndicators}>
-            <Text style={styles.sliderIndicatorText}>{minimumValue}{unit}</Text>
-            <Text style={styles.sliderIndicatorText}>{maximumValue}{unit}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  InteractiveSlider.propTypes = {
-    value: PropTypes.number.isRequired,
-    minimumValue: PropTypes.number.isRequired,
-    maximumValue: PropTypes.number.isRequired,
-    onValueChange: PropTypes.func.isRequired,
-    unit: PropTypes.string.isRequired,
-    step: PropTypes.number,
-    sliderKey: PropTypes.string,
-  };
 
   const renderWelcomeStep = () => (
     <View style={styles.stepContainer}>
@@ -1362,40 +1027,7 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  // Memoize onChange handlers to prevent unnecessary re-renders
-  const handleFirstNameChange = useCallback((text) => {
-    setProfileData((prev) => ({ ...prev, firstName: text }));
-  }, []);
 
-  const handleLastNameChange = useCallback((text) => {
-    setProfileData((prev) => ({ ...prev, lastName: text }));
-  }, []);
-
-  const renderNameStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Tell us about yourself</Text>
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>First Name</Text>
-        <TextInput
-          style={styles.textInput}
-          value={profileData.firstName}
-          onChangeText={handleFirstNameChange}
-          placeholder="Enter your first name"
-          placeholderTextColor={colors.textTertiary}
-        />
-      </View>
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Last Name</Text>
-        <TextInput
-          style={styles.textInput}
-          value={profileData.lastName}
-          onChangeText={handleLastNameChange}
-          placeholder="Enter your last name"
-          placeholderTextColor={colors.textTertiary}
-        />
-      </View>
-    </View>
-  );
 
   const renderAgeStep = () => (
     <View style={styles.stepContainer}>
@@ -1406,6 +1038,7 @@ const OnboardingScreen = () => {
         <Text style={styles.largeValueUnit}>years</Text>
       </View>
       <VerticalScrollPicker
+        styles={styles}
         value={profileData.age}
         minimumValue={16}
         maximumValue={100}
@@ -1439,12 +1072,14 @@ const OnboardingScreen = () => {
                 if (Platform.OS === 'ios') {
                   try {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  } catch { }
+                  } catch {
+                    // Ignore error
+                  }
                 }
                 setProfileData((prev) => ({ ...prev, gender: gender.id }));
               }}
             >
-              <Text style={styles.genderIcon}>{gender.icon}</Text>
+              <Text style={[styles.genderIcon, { color: profileData.gender === gender.id ? onPrimaryColor : colors.text }]}>{gender.icon}</Text>
               <Text
                 style={[
                   styles.genderLabel,
@@ -1489,6 +1124,7 @@ const OnboardingScreen = () => {
                 const feet = Math.floor(heightIn / 12);
                 const inches = Math.round(heightIn % 12);
                 const newHeight = feetInchesToCm(feet, inches);
+                clientLog('Onboarding:unitToggle', { from: 'imperial', to: 'metric', target: 'height' });
                 setProfileData((prev) => ({ ...prev, height: newHeight }));
               }
               setUnitSystem('metric');
@@ -1511,6 +1147,7 @@ const OnboardingScreen = () => {
             onPress={() => {
               if (unitSystem === 'metric') {
                 const heightIn = cmToFeetInches(profileData.height).totalInches;
+                clientLog('Onboarding:unitToggle', { from: 'metric', to: 'imperial', target: 'height' });
                 setProfileData((prev) => ({ ...prev, height: heightIn * 2.54 }));
               }
               setUnitSystem('imperial');
@@ -1531,6 +1168,7 @@ const OnboardingScreen = () => {
           <Text style={styles.largeValueText}>{displayValue}</Text>
         </View>
         <VerticalScrollPicker
+          styles={styles}
           value={heightValue}
           minimumValue={heightMin}
           maximumValue={heightMax}
@@ -1562,7 +1200,7 @@ const OnboardingScreen = () => {
     return (
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>How much do you weigh?</Text>
-        <Text style={styles.stepSubtitle}>Let's set a starting point for progress tracking</Text>
+        <Text style={styles.stepSubtitle}>Let&apos;s set a starting point for progress tracking</Text>
 
         {/* Unit Toggle */}
         <View style={styles.unitToggleContainer}>
@@ -1574,6 +1212,7 @@ const OnboardingScreen = () => {
             onPress={() => {
               if (unitSystem === 'imperial') {
                 const newWeight = lbsToKg(profileData.weight * 2.20462);
+                clientLog('Onboarding:unitToggle', { from: 'imperial', to: 'metric', target: 'weight' });
                 setProfileData((prev) => ({ ...prev, weight: newWeight }));
               }
               setUnitSystem('metric');
@@ -1596,6 +1235,7 @@ const OnboardingScreen = () => {
             onPress={() => {
               if (unitSystem === 'metric') {
                 const weightLbs = kgToLbs(profileData.weight);
+                clientLog('Onboarding:unitToggle', { from: 'metric', to: 'imperial', target: 'weight' });
                 setProfileData((prev) => ({ ...prev, weight: weightLbs / 2.20462 }));
               }
               setUnitSystem('imperial');
@@ -1617,6 +1257,7 @@ const OnboardingScreen = () => {
           <Text style={styles.largeValueUnit}>{unitSystem === 'metric' ? 'kg' : 'lbs'}</Text>
         </View>
         <HorizontalScrollPicker
+          styles={styles}
           value={weightValue}
           minimumValue={weightMin}
           maximumValue={weightMax}
@@ -1693,120 +1334,91 @@ const OnboardingScreen = () => {
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>What&apos;s your goal?</Text>
-        <View style={styles.goalsContainer}>
-          {(goals || []).map((goal) => {
-            const isSelected = profileData.goal === goal.id;
-            return (
-              <TouchableOpacity
-                key={goal.id}
-                style={[
-                  styles.goalButton,
-                  isSelected && styles.goalButtonSelected,
-                ]}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setProfileData({ ...profileData, goal: goal.id });
-                }}
-              >
-                <Ionicons
-                  name={goal.icon}
-                  size={32}
-                  color={isSelected ? onPrimaryColor : colors.primary}
-                />
-                <Text
-                  style={[
-                    styles.goalText,
-                    isSelected && styles.goalTextSelected,
-                  ]}
-                >
-                  {goal.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      {/* Removed duplicate Goals section */}
     </View>
   );
 
   const renderPlanStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Choose your plan</Text>
+      <Text style={[styles.stepTitle, { marginTop: 20 }]}>Choose your plan</Text>
       <View style={styles.planToggle}>
         <Text style={styles.planToggleText}>
           Choose a plan to unlock EatSense
         </Text>
       </View>
-      <View style={styles.plansContainer}>
-        {(plans || []).map((plan) => {
-          const isSelected =
-            profileData.selectedPlan === plan.id ||
-            (plan.id === 'free' &&
-              profileData.selectedPlan === 'free' &&
-              profileData.planBillingCycle === 'lifetime');
+      <ScrollView
+        style={{ flex: 1, width: '100%' }}
+        contentContainerStyle={{ paddingBottom: 150 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.plansContainer}>
+          {(plans || []).map((plan) => {
+            const isSelected =
+              profileData.selectedPlan === plan.id ||
+              (plan.id === 'free' &&
+                profileData.selectedPlan === 'free' &&
+                profileData.planBillingCycle === 'lifetime');
 
-          return (
-            <TouchableOpacity
-              key={plan.id}
-              style={[
-                styles.planButton,
-                plan.popular && styles.planButtonPopular,
-                isSelected && styles.planButtonSelected,
-              ]}
-              activeOpacity={0.9}
-              onPress={() =>
-                setProfileData({
-                  ...profileData,
-                  selectedPlan: plan.id,
-                  planBillingCycle: plan.billingCycle,
-                })
-              }
-            >
-              <View style={styles.planHeader}>
-                <View style={styles.planHeaderText}>
-                  <Text style={styles.planName}>{plan.name}</Text>
-                  <Text style={styles.planHeadline} numberOfLines={2}>{plan.headline}</Text>
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={[
+                  styles.planButton,
+                  plan.popular && styles.planButtonPopular,
+                  isSelected && styles.planButtonSelected,
+                ]}
+                activeOpacity={0.9}
+                onPress={() =>
+                  setProfileData({
+                    ...profileData,
+                    selectedPlan: plan.id,
+                    planBillingCycle: plan.billingCycle,
+                  })
+                }
+              >
+                <View style={styles.planHeader}>
+                  <View style={[styles.planHeaderText, { flex: 1 }]}>
+                    <Text style={[styles.planName, isSelected && { color: onPrimaryColor }]}>{plan.name}</Text>
+                    <Text style={[styles.planHeadline, isSelected && { color: onPrimaryColor + 'CC' }]} numberOfLines={2}>{plan.headline}</Text>
+                  </View>
+                  {plan.badge && (
+                    <View style={styles.popularBadge}>
+                      <Text style={styles.popularText}>{plan.badge}</Text>
+                    </View>
+                  )}
                 </View>
-                {plan.badge && (
-                  <View style={styles.popularBadge}>
-                    <Text style={styles.popularText}>{plan.badge}</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.planPrice}>{plan.price}</Text>
-              <View style={styles.planFeatures}>
-                {(plan.features || []).map((feature, index) => (
-                  <View key={feature + index} style={styles.planFeatureRow}>
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={18}
-                      color={isSelected ? onPrimaryColor : colors.primary}
-                    />
-                    <Text
-                      style={[
-                        styles.planFeature,
-                        isSelected && styles.planFeatureSelected,
-                      ]}
-                    >
-                      {feature}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <View style={styles.planFinePrint}>
-        <Ionicons name="information-circle" size={16} color={colors.textTertiary} />
-        <Text style={styles.planFinePrintText}>
-          You can change plans or cancel anytime from Settings.
-        </Text>
-      </View>
+                <Text style={[styles.planPrice, isSelected && { color: onPrimaryColor }]}>{plan.price}</Text>
+                <View style={styles.planFeatures}>
+                  {(plan.features || []).map((feature, index) => (
+                    <View key={feature + index} style={styles.planFeatureRow}>
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={18}
+                        color={isSelected ? onPrimaryColor : colors.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.planFeature,
+                          isSelected && styles.planFeatureSelected,
+                          isSelected && { color: onPrimaryColor }, // Force white text on selection
+                        ]}
+                      >
+                        {feature}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <View style={styles.planFinePrint}>
+          <Ionicons name="information-circle" size={16} color={colors.textTertiary} />
+          <Text style={styles.planFinePrintText}>
+            You can change plans or cancel anytime from Settings.
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 
@@ -1933,35 +1545,48 @@ const OnboardingScreen = () => {
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>Are you following any diet?</Text>
         <Text style={styles.stepSubtitle}>Select your diet type</Text>
-        <View style={styles.activityContainer}>
-          {diets.map((diet) => {
-            const isSelected = profileData.diet === diet.id;
-            return (
-              <TouchableOpacity
-                key={diet.id}
-                style={[
-                  styles.activityButton,
-                  isSelected && styles.activityButtonSelected,
-                ]}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setProfileData({ ...profileData, diet: diet.id });
-                }}
-              >
-                <Text
+        <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 100 }}>
+          <View style={styles.activityContainer}>
+            {diets.map((diet) => {
+              const isSelected = profileData.diet === diet.id;
+              return (
+                <TouchableOpacity
+                  key={diet.id}
                   style={[
-                    styles.activityLabel,
-                    isSelected && styles.activityLabelSelected,
+                    styles.activityButton,
+                    isSelected && styles.activityButtonSelected,
                   ]}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    setProfileData({ ...profileData, diet: diet.id });
+                  }}
                 >
-                  {diet.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <Text
+                    style={[
+                      styles.activityLabel,
+                      isSelected && styles.activityLabelSelected,
+                    ]}
+                  >
+                    {diet.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {profileData.diet === 'other' && (
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ marginTop: 20 }}>
+              <TextInput
+                style={styles.otherInput}
+                placeholder="Please specify your diet"
+                placeholderTextColor={colors.textTertiary}
+                value={profileData.dietOther}
+                onChangeText={(text) => setProfileData(prev => ({ ...prev, dietOther: text }))}
+              />
+            </KeyboardAvoidingView>
+          )}
+        </ScrollView>
       </View>
     );
   };
@@ -1980,45 +1605,69 @@ const OnboardingScreen = () => {
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>What should we know about you?</Text>
         <Text style={styles.stepSubtitle}>Select your health conditions</Text>
-        <View style={styles.activityContainer}>
-          {conditions.map((condition) => {
-            const isSelected = profileData.healthConditions?.includes(condition.id);
-            return (
-              <TouchableOpacity
-                key={condition.id}
-                style={[
-                  styles.activityButton,
-                  isSelected && styles.activityButtonSelected,
-                ]}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  if (condition.id === 'none') {
-                    setProfileData({ ...profileData, healthConditions: [] });
-                  } else {
-                    setProfileData((prev) => {
-                      const conditions = prev.healthConditions || [];
-                      if (conditions.includes(condition.id)) {
-                        return { ...prev, healthConditions: conditions.filter(id => id !== condition.id) };
-                      }
-                      return { ...prev, healthConditions: [...conditions, condition.id] };
-                    });
-                  }
-                }}
-              >
-                <Text
+        <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 100 }}>
+          <View style={styles.activityContainer}>
+            {conditions.map((condition) => {
+              const isSelected = profileData.healthConditions?.includes(condition.id);
+              return (
+                <TouchableOpacity
+                  key={condition.id}
                   style={[
-                    styles.activityLabel,
-                    isSelected && styles.activityLabelSelected,
+                    styles.activityButton,
+                    isSelected && styles.activityButtonSelected,
                   ]}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    if (condition.id === 'none') {
+                      // Exclusive 'none'
+                      setProfileData({ ...profileData, healthConditions: ['none'] });
+                    } else {
+                      setProfileData((prev) => {
+                        const conditions = prev.healthConditions || [];
+                        // If selecting something else, remove 'none'
+                        let newConditions = conditions.filter(c => c !== 'none');
+
+                        if (newConditions.includes(condition.id)) {
+                          newConditions = newConditions.filter(id => id !== condition.id);
+                        } else {
+                          newConditions = [...newConditions, condition.id];
+                        }
+
+                        // If list becomes empty, should we auto-select none? No, let user decide.
+                        return { ...prev, healthConditions: newConditions };
+                      });
+                    }
+                  }}
                 >
-                  {condition.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <Text
+                      style={[
+                        styles.activityLabel,
+                        isSelected && styles.activityLabelSelected,
+                      ]}
+                    >
+                      {condition.label}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={20} color={onPrimaryColor} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {profileData.healthConditions?.includes('other') && (
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ marginTop: 20 }}>
+              <TextInput
+                style={styles.otherInput}
+                placeholder="Please specify condition"
+                placeholderTextColor={colors.textTertiary}
+                value={profileData.healthConditionOther}
+                onChangeText={(text) => setProfileData(prev => ({ ...prev, healthConditionOther: text }))}
+              />
+            </KeyboardAvoidingView>
+          )}
+        </ScrollView>
       </View>
     );
   };
@@ -2079,6 +1728,7 @@ const OnboardingScreen = () => {
           <Text style={styles.largeValueUnit}>{unitSystem === 'metric' ? 'kg' : 'lbs'}</Text>
         </View>
         <HorizontalScrollPicker
+          styles={styles}
           value={weightValue}
           minimumValue={weightMin}
           maximumValue={weightMax}
@@ -2146,7 +1796,7 @@ const OnboardingScreen = () => {
         <Ionicons name="heart-outline" size={64} color={colors.primary} />
         <Text style={styles.stepTitle}>Thank you for trusting us</Text>
         <Text style={styles.stepSubtitle}>
-          We're committed to helping you achieve your health and nutrition goals.
+          We&apos;re committed to helping you achieve your health and nutrition goals.
         </Text>
       </View>
     </View>
@@ -2264,48 +1914,9 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderStepsStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Daily step goal</Text>
-      <Text style={styles.stepSubtitle}>Set your target number of steps per day</Text>
-      <View style={styles.largeValueContainer}>
-        <Text style={styles.largeValueText}>{profileData.stepGoal.toLocaleString()}</Text>
-        <Text style={styles.largeValueUnit}>steps</Text>
-      </View>
-      <VerticalScrollPicker
-        value={profileData.stepGoal}
-        minimumValue={5000}
-        maximumValue={20000}
-        onValueChange={(value) => setProfileData((prev) => ({ ...prev, stepGoal: Math.round(value / 500) * 500 }))}
-        unit=" steps"
-        step={500}
-        enableHaptics={true}
-      />
-    </View>
-  );
 
-  const renderHealthKitStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="fitness" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>Connect Apple Health</Text>
-        <Text style={styles.stepSubtitle}>
-          Connect your Apple Health data to get more accurate insights and track your progress automatically.
-        </Text>
-        <TouchableOpacity
-          style={[styles.nextButton, { marginTop: 32 }]}
-          onPress={async () => {
-            // Request HealthKit permissions
-            // This would require expo-health or similar library
-            // For now, just proceed
-            nextStep();
-          }}
-        >
-          <Text style={styles.nextButtonText}>Connect</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+
+
 
   const renderNotificationsStep = () => (
     <View style={styles.stepContainer}>
@@ -2318,9 +1929,20 @@ const OnboardingScreen = () => {
         <TouchableOpacity
           style={[styles.nextButton, { marginTop: 32 }]}
           onPress={async () => {
-            // Request notification permissions
-            // This would require expo-notifications
-            // For now, just proceed
+            try {
+              const { status } = await Notifications.requestPermissionsAsync();
+              if (status === 'granted') {
+                // You might want to get the token here if needed
+                // const token = (await Notifications.getExpoPushTokenAsync()).data;
+                // But for now just proceed
+                Alert.alert('Success', 'Notifications enabled!');
+              } else {
+                Alert.alert('Notice', 'Notifications were not enabled.');
+              }
+            } catch (e) {
+              console.warn(e);
+              Alert.alert('Error', 'Could not enable notifications.');
+            }
             nextStep();
           }}
         >
@@ -2330,25 +1952,7 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderFirstMeasurementsStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>First measurements</Text>
-      <Text style={styles.stepSubtitle}>When would you like to take your first measurements?</Text>
-      <View style={styles.largeValueContainer}>
-        <Text style={styles.largeValueText}>{profileData.firstMeasurements}</Text>
-        <Text style={styles.largeValueUnit}>days</Text>
-      </View>
-      <VerticalScrollPicker
-        value={profileData.firstMeasurements}
-        minimumValue={1}
-        maximumValue={30}
-        onValueChange={(value) => setProfileData((prev) => ({ ...prev, firstMeasurements: Math.round(value) }))}
-        unit=" days"
-        step={1}
-        enableHaptics={true}
-      />
-    </View>
-  );
+
 
   // Effect for loading step - calculate plan when on loading step
   useEffect(() => {
@@ -2392,6 +1996,19 @@ const OnboardingScreen = () => {
     }
   }, [currentStep, profileData, steps]);
 
+  // Auto-advance logic after loading
+  useEffect(() => {
+    const currentStepId = steps[currentStep]?.id;
+    // Only auto-advance if we actully HAVE a plan data and are 100% loaded
+    if (currentStepId === 'loading' && loadingProgress >= 100 && planData) {
+      // Delay slightly for user to see 100%
+      const timer = setTimeout(() => {
+        nextStep();
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [loadingProgress, currentStep, planData, steps, nextStep]);
+
   const renderLoadingStep = () => {
 
     return (
@@ -2424,20 +2041,7 @@ const OnboardingScreen = () => {
     );
   };
 
-  const renderAlmostReadyStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="person-add" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>Almost ready</Text>
-        <Text style={styles.stepSubtitle}>
-          Create your account to save your progress and access all features.
-        </Text>
-        <Text style={styles.stepSubtitle}>
-          You can sign in with Apple, Google, or email.
-        </Text>
-      </View>
-    </View>
-  );
+
 
   const renderSummaryStep = () => (
     <View style={styles.stepContainer}>
@@ -2481,84 +2085,32 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderRatingStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="star" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>Rate us</Text>
-        <Text style={styles.stepSubtitle}>
-          We'd love to hear your feedback! Please rate your experience.
-        </Text>
-        <View style={styles.ratingContainer}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <TouchableOpacity key={star} onPress={() => {
-              // Handle rating
-              nextStep();
-            }}>
-              <Ionicons name="star-outline" size={48} color={colors.primary} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    </View>
-  );
+
 
   const renderStep = () => {
     switch (currentStep) {
-      case 0:
-        return renderWelcomeStep();
-      case 1:
-        return renderGoalsStep();
-      case 2:
-        return renderSupportStep();
-      case 3:
-        return renderGenderStep();
-      case 4:
-        return renderAgeStep();
-      case 5:
-        return renderHeightStep();
-      case 6:
-        return renderWeightStep();
-      case 7:
-        return renderActivityStep();
-      case 8:
-        return renderWalkingStep();
-      case 9:
-        return renderBreathStep();
-      case 10:
-        return renderStepsStep();
-      case 11:
-        return renderObstaclesStep();
-      case 12:
-        return renderDietStep();
-      case 13:
-        return renderHealthConditionsStep();
-      case 14:
-        return renderCareStep();
-      case 15:
-        return renderTargetWeightStep();
-      case 16:
-        return renderWeightRateStep();
-      case 17:
-        return renderTrustStep();
-      case 18:
-        return renderHealthKitStep();
-      case 19:
-        return renderNotificationsStep();
-      case 20:
-        return renderFirstMeasurementsStep();
-      case 21:
-        return renderLoadingStep();
-      case 22:
-        return renderAlmostReadyStep();
-      case 23:
-        return renderSummaryStep();
-      case 24:
-        return renderRatingStep();
-      case 25:
-        return renderPlanStep();
-      default:
-        return renderWelcomeStep();
+      case 0: return renderWelcomeStep();
+      case 1: return renderGoalsStep();
+      case 2: return renderSupportStep();
+      case 3: return renderGenderStep();
+      case 4: return renderAgeStep();
+      case 5: return renderHeightStep();
+      case 6: return renderWeightStep();
+      case 7: return renderActivityStep();
+      case 8: return renderWalkingStep();
+      case 9: return renderBreathStep();
+      case 10: return renderObstaclesStep();
+      case 11: return renderDietStep();
+      case 12: return renderHealthConditionsStep();
+      case 13: return renderCareStep();
+      case 14: return renderTargetWeightStep();
+      case 15: return renderWeightRateStep();
+      case 16: return renderTrustStep();
+      case 17: return renderNotificationsStep();
+      case 18: return renderLoadingStep();
+      case 19: return renderSummaryStep();
+      case 20: return renderPlanStep();
+      default: return renderWelcomeStep();
     }
   };
 
@@ -2601,35 +2153,329 @@ const OnboardingScreen = () => {
         })}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <View style={styles.buttonContainer}>
-          {currentStep > 0 && (
-            <TouchableOpacity style={styles.backButton} onPress={prevStep}>
-              <Ionicons name="chevron-back" size={24} color={colors.primary} />
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
-          )}
+      {
+        steps[currentStep]?.id !== 'loading' && (
+          <View style={styles.footer}>
+            <View style={styles.buttonContainer}>
+              {currentStep > 0 ? (
+                <TouchableOpacity style={styles.backButton} onPress={prevStep}>
+                  <Ionicons name="chevron-back" size={24} color={colors.primary} />
+                  <Text style={styles.backButtonText}>Back</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={{ width: 60 }} /> /* Spacer to keep Next button on the right */
+              )}
 
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              currentStep === steps.length - 1 && styles.completeButton,
-            ]}
-            onPress={currentStep === steps.length - 1 ? handleComplete : nextStep}
-          >
-            <Text style={styles.nextButtonText}>
-              {currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}
-            </Text>
-            <Ionicons
-              name={currentStep === steps.length - 1 ? 'checkmark' : 'chevron-forward'}
-              size={24}
-              color={onPrimaryColor}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+              <TouchableOpacity
+                style={[
+                  styles.nextButton,
+                  currentStep === steps.length - 1 && styles.completeButton,
+                ]}
+                onPress={currentStep === steps.length - 1 ? handleComplete : nextStep}
+              >
+                <Text style={styles.nextButtonText}>
+                  {currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}
+                </Text>
+                <Ionicons
+                  name={currentStep === steps.length - 1 ? 'checkmark' : 'chevron-forward'}
+                  size={24}
+                  color={onPrimaryColor}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )
+      }
     </SafeAreaView>
   );
 };
 
 export default OnboardingScreen;
+
+// Vertical Scroll Picker Component for Age and Height - Smooth with deceleration
+const VerticalScrollPicker = ({
+  value,
+  minimumValue,
+  maximumValue,
+  onValueChange,
+  unit,
+  step = 1,
+  enableHaptics = true,
+  styles,
+}) => {
+  const scrollViewRef = useRef(null);
+  const isScrollingRef = useRef(false);
+  const isProgrammaticScroll = useRef(false);
+  const itemHeight = 60;
+  const visibleItems = 5;
+  const containerHeight = itemHeight * visibleItems;
+  const localValueRef = useRef(value); // Tracks the current scroll position value visually
+
+  // Initialize scroll position
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      const initialOffset = ((value - minimumValue) / step) * itemHeight;
+      localValueRef.current = value;
+      // Initial setup doesn't need animation
+      scrollViewRef.current.scrollTo({ y: initialOffset, animated: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync scroll position when value changes externally (e.g. unit toggle)
+  useEffect(() => {
+    // Only sync if we are NOT currently scrolling manually
+    if (!isScrollingRef.current && scrollViewRef.current && Math.abs(localValueRef.current - value) >= step / 2) {
+      const newOffset = ((value - minimumValue) / step) * itemHeight;
+      isProgrammaticScroll.current = true;
+      localValueRef.current = value;
+
+      scrollViewRef.current.scrollTo({ y: newOffset, animated: true });
+
+      // Reset programmatic flag after animation
+      setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 300);
+    }
+  }, [value, minimumValue, step]);
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: new Animated.Value(0) } } }], // Dummy mapped value, we use listener
+    {
+      useNativeDriver: false,
+      listener: (event) => {
+        if (isProgrammaticScroll.current) return;
+
+        isScrollingRef.current = true;
+        const offsetY = event.nativeEvent.contentOffset.y;
+        const index = Math.round(offsetY / itemHeight);
+        const newValue = Math.max(
+          minimumValue,
+          Math.min(maximumValue, minimumValue + index * step)
+        );
+
+        // Haptics only on visual change, NOT on state commit
+        if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - localValueRef.current) >= step) {
+          localValueRef.current = newValue;
+          try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          } catch {
+            // ignore
+          }
+        }
+      },
+    }
+  );
+
+  const handleMomentumScrollEnd = (event) => {
+    isScrollingRef.current = false;
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / itemHeight);
+
+    const snappedValue = Math.max(
+      minimumValue,
+      Math.min(maximumValue, minimumValue + index * step)
+    );
+
+    localValueRef.current = snappedValue;
+
+    // Only commit to source of truth when scroll STOPS
+    if (Math.abs(snappedValue - value) >= step / 2) {
+      // Log for debugging
+      if (unit.includes('years')) {
+        clientLog('Onboarding:ageCommitted', { age: snappedValue });
+      } else {
+        clientLog('Onboarding:heightCommitted', { value: snappedValue, unit: unit.trim() });
+      }
+      onValueChange(snappedValue);
+    }
+  };
+
+  // Also handle drag end to ensure we catch stops without momentum
+
+
+  const items = [];
+  for (let i = minimumValue; i <= maximumValue; i += step) {
+    items.push(i);
+  }
+
+  return (
+    <View style={[styles.verticalPickerContainer, { height: containerHeight }]}>
+      <Animated.ScrollView
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={itemHeight}
+        decelerationRate="fast"
+        onScroll={handleScroll}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        scrollEventThrottle={16}
+        bounces={false}
+        contentContainerStyle={{
+          paddingTop: containerHeight / 2 - itemHeight / 2,
+          paddingBottom: containerHeight / 2 - itemHeight / 2,
+        }}
+      >
+        {items.map((item) => {
+          const isSelected = Math.abs(item - value) < step / 2;
+          return (
+            <View
+              key={item}
+              style={[
+                styles.verticalPickerItem,
+                { height: itemHeight },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.verticalPickerItemText,
+                  isSelected && styles.verticalPickerItemTextSelected,
+                ]}
+              >
+                {Math.round(item)}{unit}
+              </Text>
+            </View>
+          );
+        })}
+      </Animated.ScrollView>
+    </View>
+  );
+};
+
+// Horizontal Scroll Picker Component for Weight - Smooth with deceleration
+const HorizontalScrollPicker = ({
+  value,
+  minimumValue,
+  maximumValue,
+  onValueChange,
+  unit,
+  step = 0.5,
+  enableHaptics = true,
+  styles,
+}) => {
+  const scrollViewRef = useRef(null);
+  const isScrollingRef = useRef(false);
+  const isProgrammaticScroll = useRef(false);
+  const itemWidth = 80;
+  const visibleItems = 5;
+  const containerWidth = itemWidth * visibleItems;
+  const localValueRef = useRef(value);
+
+  // Initialize scroll position
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      const initialOffset = ((value - minimumValue) / step) * itemWidth;
+      localValueRef.current = value;
+      scrollViewRef.current.scrollTo({ x: initialOffset, animated: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync scroll position when value changes externally
+  useEffect(() => {
+    // Only sync if we are NOT currently scrolling manually
+    if (!isScrollingRef.current && scrollViewRef.current && Math.abs(localValueRef.current - value) >= step / 2) {
+      const newOffset = ((value - minimumValue) / step) * itemWidth;
+      isProgrammaticScroll.current = true;
+      localValueRef.current = value;
+
+      scrollViewRef.current.scrollTo({ x: newOffset, animated: true });
+
+      setTimeout(() => {
+        isProgrammaticScroll.current = false;
+      }, 300);
+    }
+  }, [value, minimumValue, step]);
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: new Animated.Value(0) } } }],
+    {
+      useNativeDriver: false,
+      listener: (event) => {
+        if (isProgrammaticScroll.current) return;
+
+        isScrollingRef.current = true;
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const index = Math.round(offsetX / itemWidth);
+        const newValue = Math.max(
+          minimumValue,
+          Math.min(maximumValue, minimumValue + index * step)
+        );
+
+        if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - localValueRef.current) >= step) {
+          localValueRef.current = newValue;
+          try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          } catch {
+            // ignore
+          }
+        }
+      },
+    }
+  );
+
+  const handleMomentumScrollEnd = (event) => {
+    isScrollingRef.current = false;
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / itemWidth);
+
+    const snappedValue = Math.max(
+      minimumValue,
+      Math.min(maximumValue, minimumValue + index * step)
+    );
+
+    localValueRef.current = snappedValue;
+
+    if (Math.abs(snappedValue - value) >= step / 2) {
+      clientLog('Onboarding:weightCommitted', { value: snappedValue, unit: unit.trim() });
+      onValueChange(snappedValue);
+    }
+  };
+
+  const items = [];
+  for (let i = minimumValue; i <= maximumValue; i += step) {
+    items.push(parseFloat(i.toFixed(1)));
+  }
+
+  return (
+    <View style={[styles.horizontalPickerContainer, { width: containerWidth }]}>
+      <Animated.ScrollView
+        ref={scrollViewRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={itemWidth}
+        decelerationRate="fast"
+        onScroll={handleScroll}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        scrollEventThrottle={16}
+        bounces={false}
+        contentContainerStyle={{
+          paddingLeft: containerWidth / 2 - itemWidth / 2,
+          paddingRight: containerWidth / 2 - itemWidth / 2,
+        }}
+      >
+        {items.map((item) => {
+          const isSelected = Math.abs(item - value) < step / 2;
+          return (
+            <View
+              key={item}
+              style={[
+                styles.horizontalPickerItem,
+                { width: itemWidth },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.horizontalPickerItemText,
+                  isSelected && styles.horizontalPickerItemTextSelected,
+                ]}
+              >
+                {item}{unit}
+              </Text>
+            </View>
+          );
+        })}
+      </Animated.ScrollView>
+    </View>
+  );
+};
+

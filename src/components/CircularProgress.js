@@ -8,7 +8,7 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   const { colors } = useTheme();
   const { t } = useI18n();
   const [animatedProgress, setAnimatedProgress] = useState(0);
-  
+
   // Clamp progress between 0 and 5 (0% to 500%), allowing display of values exceeding goal
   // Progress can be > 1 when value exceeds goal (e.g., 1500/1000 = 1.5 = 150%)
   const isOverGoal = progress > 1;
@@ -16,39 +16,39 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   const displayProgress = Math.min(5, Math.max(0, progress)); // Cap at 500% for display, allow > 1
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  
+
   // Animate progress change smoothly
   useEffect(() => {
     const startValue = animatedProgress;
     const endValue = displayProgress;
     const duration = 800;
     const startTime = Date.now();
-    
+
     const animate = () => {
       const now = Date.now();
       const elapsed = now - startTime;
       const progressRatio = Math.min(elapsed / duration, 1);
-      
+
       // Easing function (ease-out)
       const eased = 1 - Math.pow(1 - progressRatio, 3);
       const currentValue = startValue + (endValue - startValue) * eased;
-      
+
       setAnimatedProgress(currentValue);
-      
+
       if (progressRatio < 1) {
         requestAnimationFrame(animate);
       } else {
         setAnimatedProgress(endValue);
       }
     };
-    
+
     if (Math.abs(startValue - endValue) > 0.01) {
       requestAnimationFrame(animate);
     }
-  }, [displayProgress]);
-  
+  }, [displayProgress, animatedProgress]);
+
   const strokeDashoffset = circumference * (1 - animatedProgress);
-  
+
   // Color changes to warning when over goal
   const getProgressColor = () => {
     if (isOverGoal) {
@@ -95,8 +95,8 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
             {goal && (
               <>
                 <Text style={[styles.goal, { color: colors.textTertiary }]}>
-                  {typeof goal === 'number' 
-                    ? `${t('dashboard.ofGoal', { goal: Math.round(goal) })} ${goalUnit || t('dashboard.caloriesUnit')}` 
+                  {typeof goal === 'number'
+                    ? `${t('dashboard.ofGoal', { goal: Math.round(goal) })} ${goalUnit || t('dashboard.caloriesUnit')}`
                     : goal}
                 </Text>
                 {isOverGoal && value != null && goal && (

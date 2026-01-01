@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 interface CameraComponentProps {
   onPhotoTaken: (_uri: string) => void;
@@ -21,6 +22,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   onClose,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [type, setType] = useState<CameraType>('back');
@@ -32,14 +34,14 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
       if (!permission || permission.status !== 'granted') {
         const result = await requestPermission();
         if (!result?.granted) {
-          Alert.alert('No access to camera');
+          Alert.alert(t('permissions.required'), t('permissions.cameraRequired'));
         }
       }
     } catch (error) {
       console.error('[CameraComponent] request permission error:', error);
-      Alert.alert('Error', 'Failed to request camera permission');
+      Alert.alert(t('common.error'), t('errors.cameraPermission'));
     }
-  }, [permission, requestPermission]);
+  }, [permission, requestPermission, t]);
 
   useEffect(() => {
     void ensurePermission();
@@ -54,7 +56,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
     // В новом API у CameraView тоже есть takePictureAsync
     if (typeof cameraRef.current.takePictureAsync !== 'function') {
       console.warn('[CameraComponent] takePictureAsync is not a function');
-      Alert.alert('Error', 'Camera function not available');
+      Alert.alert(t('common.error'), t('errors.cameraNotAvailable'));
       return;
     }
 
@@ -73,7 +75,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
       }
     } catch (error) {
       console.error('[CameraComponent] Error taking picture:', error);
-      Alert.alert('Error', 'Failed to take picture');
+      Alert.alert(t('common.error'), t('errors.takePictureFailed'));
     }
   };
 
@@ -103,18 +105,18 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
         }}
       >
         <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
-          Close
+          {t('common.close')}
         </Text>
       </TouchableOpacity>
     </View>
   );
 
   if (!permission) {
-    return renderPermissionFallback('Requesting camera permission...');
+    return renderPermissionFallback(t('common.loading'));
   }
 
   if (!permission.granted) {
-    return renderPermissionFallback('No access to camera');
+    return renderPermissionFallback(t('permissions.cameraRequired'));
   }
 
   return (
@@ -132,8 +134,8 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
               { paddingTop: insets.top + 12 },
             ]}
           >
-            <TouchableOpacity 
-              style={styles.controlButton} 
+            <TouchableOpacity
+              style={styles.controlButton}
               onPress={() => {
                 if (onClose && typeof onClose === 'function') {
                   onClose();
@@ -148,8 +150,8 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
                   flashMode === 'off'
                     ? 'flash-off'
                     : flashMode === 'on'
-                    ? 'flash'
-                    : 'flash'
+                      ? 'flash'
+                      : 'flash'
                 }
                 size={24}
                 color={colors.onPrimary}

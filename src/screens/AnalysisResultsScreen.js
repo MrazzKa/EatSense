@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,26 +18,17 @@ import ApiService from '../services/apiService';
 import { EditFoodItemModal } from '../components/EditFoodItemModal';
 import { SwipeableIngredientItem } from '../components/SwipeableIngredientItem';
 import { HealthScoreCard } from '../components/HealthScoreCard';
-import FoodCompatibilityCard from '../components/FoodCompatibilityCard';
-import CarcinogenicRiskCard from '../components/CarcinogenicRiskCard';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
-import AppCard from '../components/common/AppCard';
+
 import FullScreenImageModal from '../components/common/FullScreenImageModal';
 import { clientLog } from '../utils/clientLog';
-import { formatMacro, formatCalories } from '../utils/nutritionFormat';
+// import { formatMacro } from '../utils/nutritionFormat';
 import AiAssistant from '../components/AiAssistant';
 // GestureHandlerRootView is now in App.js root
 
-const formatTimestamp = (value) => {
-  if (!value) return '';
-  try {
-    return new Date(value).toLocaleString();
-  } catch {
-    return '';
-  }
-};
+
 
 export default function AnalysisResultsScreen() {
   const navigation = useNavigation();
@@ -47,25 +38,25 @@ export default function AnalysisResultsScreen() {
   const localPreviewUri = routeParams.localPreviewUri ?? null; // From pending analysis
   const initialAnalysisParam = routeParams.analysisResult ?? null;
   const readOnly = Boolean(routeParams.readOnly);
-  const pendingStatus = routeParams.status ?? null; // 'processing', 'failed', 'needs_review', 'completed'
+  // const pendingStatus = routeParams.status ?? null; // 'processing', 'failed', 'needs_review', 'completed' - Unused
   // Task 5: Use imageUrl from result if available, fallback to imageUri or localPreviewUri
   // Resolve relative URLs to absolute URLs
-  const baseImageUri = (() => {
+  // Memoize to prevent recreating normalizeAnalysis on every render
+  const baseImageUri = useMemo(() => {
     const raw = capturedImageUri || localPreviewUri || initialAnalysisParam?.imageUrl || initialAnalysisParam?.imageUri || null;
     if (!raw) return null;
-    // If relative path, resolve it using ApiService
     if (raw.startsWith('/media/') || raw.startsWith('/')) {
       return ApiService.resolveMediaUrl(raw);
     }
     return raw;
-  })();
+  }, [capturedImageUri, localPreviewUri, initialAnalysisParam?.imageUrl, initialAnalysisParam?.imageUri]);
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
 
   const [isAnalyzing, setIsAnalyzing] = useState(false); // Убрали отдельное окно процесса анализа
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [analysisId, setAnalysisId] = useState(routeParams.analysisId || null); // Сохраняем analysisId в состоянии
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const [, setAnalysisId] = useState(routeParams.analysisId || null); // AnalysisId used in state updates
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [editingItem, setEditingItem] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
@@ -74,9 +65,13 @@ export default function AnalysisResultsScreen() {
   const [isAddingItem, setIsAddingItem] = useState(false);
 
   const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const subduedColor = colors.textSecondary || colors.textMuted || '#6B7280';
-  const tertiaryColor = colors.textSubdued || colors.textTertiary || subduedColor;
+
   const allowEditing = !readOnly;
+
+  // DEBUG: Log allowEditing state to help diagnose production issues
+  useEffect(() => {
+    clientLog('Analysis:allowEditing', { allowEditing, readOnly, hasResult: !!analysisResult }).catch(() => { });
+  }, [allowEditing, readOnly, analysisResult]);
 
   const navigateToDashboard = useCallback(() => {
     if (navigation && typeof navigation.reset === 'function') {
@@ -116,9 +111,7 @@ export default function AnalysisResultsScreen() {
   const normalizeAnalysis = useCallback(
     (raw, fallbackImage = undefined) => {
       // Use baseImageUri as fallback only if not explicitly set to null and not text-only analysis
-      const effectiveFallback = fallbackImage !== undefined
-        ? fallbackImage
-        : (routeParams.source !== 'text' ? baseImageUri : null);
+      // const effectiveFallback = fallbackImage !== undefined ? fallbackImage : (routeParams.source !== 'text' ? baseImageUri : null); // Unused
 
       // Log API response only when explicitly debugging
       // console.log('[AnalysisResults] Raw API response:', JSON.stringify(raw, null, 2));
@@ -136,7 +129,7 @@ export default function AnalysisResultsScreen() {
 
       // Поддерживаем как старый формат (ingredients/items на верхнем уровне), так и новый (data.ingredients или data.items)
       const ingredientsSource = raw.data?.ingredients || raw.data?.items || raw.ingredients || raw.items || [];
-      const normalizedIngredients = (Array.isArray(ingredientsSource) ? ingredientsSource : []).map((item) => {
+      const normalizedIngredients = (Array.isArray(ingredientsSource) ? ingredientsSource : []).map((item, index) => {
         // Поддерживаем как старый формат (calories, protein, carbs, fat), так и новый (nutrients)
         const nutrients = item.nutrients || {};
         const caloriesFromApi = Math.max(0, Math.round(toNumber(item.calories ?? item.kcal ?? nutrients.calories ?? 0)));
@@ -152,7 +145,7 @@ export default function AnalysisResultsScreen() {
         }
 
         return {
-          id: item.id || String(Math.random()),
+          id: item.id || `item-${index}`,
           name: item.name || item.label || 'Ingredient',
           calories,
           protein: toMacro(protein),
@@ -209,14 +202,24 @@ export default function AnalysisResultsScreen() {
         id: raw.id || raw.analysisId || null,
         analysisId: raw.analysisId || raw.id || routeParams.analysisId || null,
         dishName: (() => {
-          // Prefer localized dish name, fallback to original, then derived
+          // Prefer localized dish name, fallback to original
           let name = raw.data?.dishNameLocalized || raw.data?.originalDishName ||
-            raw.dishName || raw.name || normalizedIngredients[0]?.name || 'Food Analysis';
+            raw.dishName || raw.name || null;
 
           // Remove "and more" suffix if present (backend adds it for brevity)
-          // Replace with ellipsis if needed for UI consistency
-          if (name.includes(' and more') || name.includes(' и другое') || name.includes(' және басқалары')) {
+          if (name && (name.includes(' and more') || name.includes(' и другое') || name.includes(' және басқалары'))) {
             name = name.replace(/\s+(and more|и другое|және басқалары)$/i, '');
+          }
+
+          // If no specific dish name, use localized fallback
+          const fallbackMealName = t('dashboard.mealFallback') || 'Meal';
+          if (!name || name === 'Food Analysis' || name === 'Meal' || name === 'Блюдо' || name === 'Тағам') {
+            if (normalizedIngredients.length > 0 && normalizedIngredients[0]?.name) {
+              // Use first ingredient name if available
+              name = normalizedIngredients[0].name;
+            } else {
+              name = fallbackMealName;
+            }
           }
 
           return name;
@@ -272,25 +275,43 @@ export default function AnalysisResultsScreen() {
         consumedAt: raw.consumedAt || raw.date || raw.createdAt || null,
       };
     },
-    [baseImageUri, routeParams.analysisId, routeParams.source],
+    [routeParams.analysisId, routeParams.source, t],
   );
 
   const applyResult = useCallback(
     (payload, imageOverride, analysisIdOverride) => {
+      console.log('[AnalysisResultsScreen] applyResult called');
       const normalized = normalizeAnalysis(payload, imageOverride);
       if (!normalized) {
         setIsAnalyzing(false);
         return;
       }
 
-      // Сохраняем analysisId если он есть
-      const idToSave = analysisIdOverride || normalized.analysisId || normalized.id || analysisId;
+      const idToSave = analysisIdOverride || normalized.analysisId || normalized.id;
       if (idToSave) {
-        setAnalysisId(idToSave);
+        setAnalysisId(prevId => {
+          if (prevId === idToSave) return prevId;
+          console.log('[AnalysisResultsScreen] Setting analysisId:', idToSave);
+          return idToSave;
+        });
       }
 
       fadeAnim.setValue(0);
-      setAnalysisResult(normalized);
+
+      setAnalysisResult(prevResult => {
+        // Simple guard: if IDs match and basic structure is same, skip update?
+        // For now, just log.
+        if (prevResult?.analysisId === normalized.analysisId && prevResult?.ingredients?.length === normalized.ingredients?.length) {
+          console.log('[AnalysisResultsScreen] Skipping duplicate result update (ID match)');
+          // Note: This might prevent legitimate updates if content changed but ID didn't. 
+          // Better to rely on deep check or just ID for now to stop the crash.
+          // If we need to force update, we should clear state first.
+          return prevResult;
+        }
+        console.log('[AnalysisResultsScreen] Setting new analysisResult:', normalized.analysisId);
+        return normalized;
+      });
+
       setIsAnalyzing(false);
 
       Animated.timing(fadeAnim, {
@@ -299,21 +320,41 @@ export default function AnalysisResultsScreen() {
         useNativeDriver: true,
       }).start();
     },
-    [fadeAnim, normalizeAnalysis, analysisId, setAnalysisId],
+    [fadeAnim, normalizeAnalysis],
   );
 
+  // Refs to track processed items and prevent loops/duplicate calls
+  const processedRef = useRef({
+    initialParam: false,
+    lastAnalysisId: null,
+    lastImageUri: null,
+    lastDescription: null,
+  });
+
+  // Effect 1: Handle Initial Analysis Param (passed directly)
   useEffect(() => {
-    if (initialAnalysisParam) {
-      const timeoutId = setTimeout(() => {
+    if (initialAnalysisParam && !processedRef.current.initialParam) {
+      processedRef.current.initialParam = true;
+      // Slight delay to ensure layout is ready
+      setTimeout(() => {
         applyResult(initialAnalysisParam, baseImageUri);
       }, 0);
-      return () => clearTimeout(timeoutId);
     }
+  }, [initialAnalysisParam, baseImageUri, applyResult]);
 
-    // Handle analysisId from route params (from DescribeFoodModal or other sources)
+  // Effect 2: Handle Route Analysis ID (Polling for existing/shared analysis)
+  useEffect(() => {
     const analysisIdFromRoute = routeParams.analysisId;
-    if (analysisIdFromRoute) {
+
+    // Only run if ID exists and we haven't just processed it (or it changed)
+    // We use a specific check to avoid constant re-polling if the ID in route is stable
+    if (analysisIdFromRoute && processedRef.current.lastAnalysisId !== analysisIdFromRoute) {
+      processedRef.current.lastAnalysisId = analysisIdFromRoute;
       setIsAnalyzing(true);
+
+      // Sync local state
+      setAnalysisId(analysisIdFromRoute);
+
       let cancelled = false;
 
       const pollForResults = async () => {
@@ -321,7 +362,7 @@ export default function AnalysisResultsScreen() {
 
         try {
           let attempts = 0;
-          const maxAttempts = 60;
+          const maxAttempts = 60; // 3 minutes timeout (60 * 3s)
 
           const poll = async () => {
             if (cancelled) return;
@@ -330,57 +371,53 @@ export default function AnalysisResultsScreen() {
               const status = await ApiService.getAnalysisStatus(analysisIdFromRoute);
               console.log(`[AnalysisResultsScreen] Polling analysis ${analysisIdFromRoute}, status:`, status.status);
 
-              if (status.status === 'COMPLETED' || status.status === 'completed' || status.status === 'NEEDS_REVIEW' || status.status === 'needs_review') {
+              const currentStatus = status.status?.toUpperCase();
+
+              if (currentStatus === 'COMPLETED' || currentStatus === 'NEEDS_REVIEW') {
                 const result = await ApiService.getAnalysisResult(analysisIdFromRoute);
-                console.log(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} completed, result:`, result);
+                console.log(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} completed`);
                 if (!cancelled) {
-                  applyResult(result, null);
+                  applyResult(result, null); // Image handled by result.imageUrl
                 }
-              } else if (status.status === 'FAILED' || status.status === 'failed') {
+              } else if (currentStatus === 'FAILED') {
                 console.error(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} failed`);
                 if (!cancelled) {
                   showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
                 }
-              } else if (status.status === 'PROCESSING' || status.status === 'processing' || status.status === 'PENDING' || status.status === 'pending') {
+              } else if (currentStatus === 'PROCESSING' || currentStatus === 'PENDING') {
                 if (attempts < maxAttempts) {
                   attempts += 1;
-                  setTimeout(poll, 1000);
+                  setTimeout(poll, 3000);
                 } else {
-                  console.error(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} timeout after ${maxAttempts} attempts`);
+                  console.error(`[AnalysisResultsScreen] Timeout after ${maxAttempts} attempts`);
                   if (!cancelled) {
                     showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
                   }
                 }
               } else {
-                console.warn(`[AnalysisResultsScreen] Unknown analysis status: ${status.status}`);
+                // Unknown status, keep polling briefly
                 if (attempts < maxAttempts) {
                   attempts += 1;
-                  setTimeout(poll, 1000);
+                  setTimeout(poll, 3000);
                 } else {
-                  if (!cancelled) {
-                    showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-                  }
+                  if (!cancelled) showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
                 }
               }
             } catch (error) {
-              console.error(`[AnalysisResultsScreen] Polling error for analysis ${analysisIdFromRoute}:`, error);
+              console.error(`[AnalysisResultsScreen] Polling error:`, error);
               if (attempts < maxAttempts) {
                 attempts += 1;
-                setTimeout(poll, 2000); // Longer delay on error
+                setTimeout(poll, 3000);
               } else {
-                if (!cancelled) {
-                  showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-                }
+                if (!cancelled) showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
               }
             }
           };
 
           poll();
         } catch (error) {
-          console.error(`[AnalysisResultsScreen] Failed to start polling for analysis ${analysisIdFromRoute}:`, error);
-          if (!cancelled) {
-            showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-          }
+          console.error(`[AnalysisResultsScreen] Start polling error:`, error);
+          if (!cancelled) showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
         }
       };
 
@@ -390,230 +427,42 @@ export default function AnalysisResultsScreen() {
         cancelled = true;
       };
     }
+  }, [routeParams.analysisId, applyResult, showAnalysisError]);
 
-    // Handle text description analysis (legacy - for backward compatibility)
+  // Effect 3: Handle New Analysis (Image Capture -> Upload -> Analyze -> Poll)
+  // Removed unused effect that depended on capturedImageUri
+
+  // Effect 4: Handle Text Analysis (Legacy/Description)
+  useEffect(() => {
     const description = routeParams.description;
-    if (description) {
+    if (description && !routeParams.analysisId && processedRef.current.lastDescription !== description) {
+      processedRef.current.lastDescription = description;
       setIsAnalyzing(true);
-      const runTextAnalysis = async () => {
+
+      const runText = async () => {
         try {
           const locale = mapLanguageToLocale(language);
-          const analysisResponse = await ApiService.analyzeText(description, locale);
-          console.log('[AnalysisResultsScreen] Text analysis response:', analysisResponse);
+          const response = await ApiService.analyzeText(description, locale);
 
-          if (analysisResponse?.analysisId) {
-            // Navigate with analysisId to use the polling logic above
-            // This will trigger the useEffect again with analysisId
+          if (response?.analysisId) {
+            // Navigate to same screen with analysisId to trigger Effect 2
             if (navigation && typeof navigation.replace === 'function') {
-              navigation.replace('AnalysisResults', {
-                analysisId: analysisResponse.analysisId,
-              });
-            } else {
-              // Fallback: poll directly
-              let attempts = 0;
-              const maxAttempts = 60;
-              const pollForResults = async () => {
-                try {
-                  const status = await ApiService.getAnalysisStatus(analysisResponse.analysisId);
-                  if (status.status === 'completed' || status.status === 'COMPLETED') {
-                    const result = await ApiService.getAnalysisResult(analysisResponse.analysisId);
-                    applyResult(result, null);
-                  } else if (status.status === 'failed' || status.status === 'FAILED') {
-                    showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-                  } else if (attempts < maxAttempts) {
-                    attempts += 1;
-                    setTimeout(pollForResults, 1000);
-                  } else {
-                    showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
-                  }
-                } catch (error) {
-                  console.error('Text analysis polling error:', error);
-                  showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-                }
-              };
-              pollForResults();
+              navigation.replace('AnalysisResults', { analysisId: response.analysisId });
             }
           } else {
-            console.error('[AnalysisResultsScreen] Text analysis response has no analysisId:', analysisResponse);
             showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
           }
-        } catch (error) {
-          console.error('[AnalysisResultsScreen] Text analysis failed:', error);
+        } catch (_e) {
+          console.error('Text Analysis Failed:', _e);
           showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
         }
       };
-      runTextAnalysis();
-      return;
+      runText();
     }
+  }, [routeParams.description, routeParams.analysisId, language, navigation, showAnalysisError]);
 
-    if (!capturedImageUri) {
-      showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-      return;
-    }
-
-    let cancelled = false;
-
-    const finish = (payload) => {
-      if (!cancelled) {
-        applyResult(payload, capturedImageUri);
-      }
-    };
-
-    const run = async () => {
-      try {
-        await clientLog('Analysis:start', { source: routeParams.source || 'unknown' }).catch(() => { });
-
-        try {
-          await ApiService.uploadImage(capturedImageUri);
-          await clientLog('Analysis:imageUploaded').catch(() => { });
-        } catch (uploadError) {
-          console.log('Upload failed, using demo mode:', uploadError);
-          await clientLog('Analysis:uploadFailed', { message: uploadError?.message || String(uploadError) }).catch(() => { });
-        }
-
-        let analysisResponse;
-        try {
-          const locale = mapLanguageToLocale(language);
-
-          // P2.3: Optimistic UI - show loading state immediately
-          setIsAnalyzing(true);
-
-          const foodDescription = routeParams.foodDescription;
-          analysisResponse = await ApiService.analyzeImage(capturedImageUri, locale, foodDescription);
-          await clientLog('Analysis:apiCalled', {
-            hasAnalysisId: !!analysisResponse?.analysisId,
-            hasResult: !!analysisResponse?.items,
-          }).catch(() => { });
-
-          // P2.3: If we have immediate results, show them optimistically
-          if (analysisResponse && analysisResponse.items && analysisResponse.items.length > 0 && !analysisResponse.analysisId) {
-            // Immediate result available - show it right away
-            const optimisticResult = normalizeAnalysis(analysisResponse, capturedImageUri);
-            if (optimisticResult) {
-              fadeAnim.setValue(0);
-              setAnalysisResult(optimisticResult);
-              setIsAnalyzing(false);
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-              }).start();
-              return; // Early return, no polling needed
-            }
-          }
-        } catch (analysisError) {
-          console.error('[AnalysisResultsScreen] Analysis API failed:', analysisError);
-          await clientLog('Analysis:apiFailed', {
-            message: analysisError?.message || String(analysisError),
-            status: analysisError?.status,
-            timeout: analysisError?.message?.includes('timeout'),
-          }).catch(() => { });
-
-          cancelled = true;
-          setIsAnalyzing(false);
-          showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-          return;
-        }
-
-        if (analysisResponse.analysisId) {
-          let attempts = 0;
-          const maxAttempts = 60;
-
-          const pollForResults = async () => {
-            if (cancelled) return;
-            try {
-              // P2.3: Use getAnalysisResult which now returns status-aware response
-              const response = await ApiService.getAnalysisResult(analysisResponse.analysisId);
-
-              // Handle status-aware response
-              const currentStatus = response.status?.toUpperCase() || 'PENDING';
-
-              if (currentStatus === 'COMPLETED') {
-                const result = response.data || response;
-                await clientLog('Analysis:completed', {
-                  hasResult: !!result,
-                  dishName: result?.dishName || 'unknown',
-                  analysisId: analysisIdFromRoute,
-                }).catch(() => { });
-                // Сохраняем analysisId при получении результата
-                if (analysisIdFromRoute) {
-                  setAnalysisId(analysisIdFromRoute);
-                }
-                finish(result);
-              } else if (currentStatus === 'FAILED') {
-                await clientLog('Analysis:statusFailed').catch(() => { });
-                cancelled = true;
-                setIsAnalyzing(false);
-                const errorMessage = response.error || t('analysis.errorMessage');
-                Alert.alert(
-                  t('analysis.errorTitle'),
-                  errorMessage,
-                  [{ text: t('common.ok'), onPress: () => navigateToDashboard() }],
-                  { cancelable: false },
-                );
-              } else if (currentStatus === 'PENDING' || currentStatus === 'PROCESSING') {
-                // Continue polling for PENDING/PROCESSING
-                if (attempts < maxAttempts) {
-                  attempts += 1;
-                  setTimeout(() => {
-                    if (!cancelled) {
-                      pollForResults();
-                    }
-                  }, 3000); // Poll every 3 seconds
-                } else {
-                  await clientLog('Analysis:timeout', { attempts }).catch(() => { });
-                  cancelled = true;
-                  setIsAnalyzing(false);
-                  showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
-                }
-              } else if (attempts < maxAttempts) {
-                // Unknown status, continue polling
-                attempts += 1;
-                setTimeout(() => {
-                  if (!cancelled) {
-                    pollForResults();
-                  }
-                }, 3000);
-              } else {
-                await clientLog('Analysis:timeout', { attempts }).catch(() => { });
-                cancelled = true;
-                showAnalysisError('analysis.timeoutTitle', 'analysis.timeoutMessage');
-              }
-            } catch (error) {
-              console.error('Polling error:', error);
-              if (!cancelled) {
-                await clientLog('Analysis:pollingError', {
-                  message: error?.message || String(error),
-                }).catch(() => { });
-                cancelled = true;
-                showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-              }
-            }
-          };
-
-          pollForResults();
-        } else {
-          finish(analysisResponse);
-        }
-      } catch (error) {
-        console.error('Analysis error:', error);
-        await clientLog('Analysis:unhandledError', {
-          message: error?.message || String(error),
-        }).catch(() => { });
-        cancelled = true;
-        showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
-      }
-    };
-
-    run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [applyResult, baseImageUri, capturedImageUri, initialAnalysisParam, showAnalysisError, fadeAnim, language, navigateToDashboard, normalizeAnalysis, routeParams.description, routeParams.source, routeParams.analysisId, t, navigation, setAnalysisId]);
-
-  const autoSaveInfo = analysisResult?.autoSave || null;
-  const hasAutoSave = Boolean(autoSaveInfo?.mealId);
+  // const autoSaveInfo = analysisResult?.autoSave || null; // Unused
+  // const hasAutoSave = Boolean(autoSaveInfo?.mealId); // Unused
   // Task 5: Use imageUrl from result if available
   // For text-only analysis, don't use baseImageUri as fallback
   // Resolve relative URLs to absolute URLs
@@ -865,91 +714,11 @@ export default function AnalysisResultsScreen() {
     setShowAiAssistant(true);
   }, [analysisResult]);
 
-  const handleFix = useCallback(async () => {
-    // Используем analysisId из состояния, если он есть, иначе из routeParams или результата
-    const currentAnalysisId = analysisId || routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
 
-    if (!currentAnalysisId) {
-      Alert.alert(
-        t('common.error') || 'Ошибка',
-        t('analysis.fixError') || 'Не удалось исправить: ID анализа не найден',
-      );
-      return;
-    }
-
-    Alert.alert(
-      t('analysis.fixTitle') || 'Исправление результата',
-      t('analysis.fixMessage') || 'ИИ снова проанализирует это блюдо более внимательно, чтобы убрать любые несоответствия или ошибки.',
-      [
-        {
-          text: t('common.cancel') || 'Отмена',
-          style: 'cancel',
-        },
-        {
-          text: t('analysis.fixConfirm') || 'Исправить',
-          onPress: async () => {
-            setIsReanalyzing(true);
-            try {
-              // Вызываем reanalyze с mode='review' для более внимательного анализа
-              const fixed = await ApiService.reanalyzeAnalysisWithMode(currentAnalysisId, 'review');
-              console.log('[AnalysisResultsScreen] Fix response:', fixed);
-
-              if (fixed) {
-                const normalized = normalizeAnalysis(fixed, baseImageUri);
-                if (normalized) {
-                  if (normalized.analysisId || normalized.id) {
-                    setAnalysisId(normalized.analysisId || normalized.id);
-                  }
-                  applyResult(normalized, baseImageUri);
-                  Alert.alert(
-                    t('common.success') || 'Успешно',
-                    t('analysis.fixSuccess') || 'Анализ обновлен с более точными результатами',
-                  );
-                } else {
-                  throw new Error('Failed to normalize fixed result');
-                }
-              } else {
-                throw new Error('Empty response from fix API');
-              }
-            } catch (error) {
-              console.error('[AnalysisResultsScreen] Fix failed:', error);
-              const errorMessage =
-                error?.response?.data?.message ||
-                error?.message ||
-                t('analysis.fixError') ||
-                'Не удалось исправить анализ. Попробуйте еще раз.';
-
-              Alert.alert(
-                t('common.error') || 'Ошибка',
-                errorMessage
-              );
-            } finally {
-              setIsReanalyzing(false);
-            }
-          },
-        },
-      ]
-    );
-  }, [analysisId, routeParams.analysisId, analysisResult, baseImageUri, normalizeAnalysis, applyResult, setAnalysisId, t]);
 
   // Removed unused function: handleSave
 
-  const handleViewMeal = () => {
-    if (hasAutoSave && autoSaveInfo?.mealId) {
-      // Navigate to Recently tab where the saved meal is
-      if (navigation && typeof navigation.navigate === 'function') {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs', params: { screen: 'Recently' } }],
-        });
-      }
-    } else {
-      // If no mealId, just navigate to Recently
-      if (navigation && typeof navigation.navigate === 'function') {
-        navigation.navigate('MainTabs', { screen: 'Recently' });
-      }
-    }
-  };
+
 
   const renderImage = (uri, style, showBadge = false) => {
     if (uri) {
@@ -1025,11 +794,14 @@ export default function AnalysisResultsScreen() {
     );
   }
 
-  const totalCaloriesLabel = formatCalories(analysisResult.totalCalories);
-  // formatMacro already includes " g" unit, so we don't need to add another "g"
-  const totalProteinLabel = formatMacro(analysisResult.totalProtein);
-  const totalCarbsLabel = formatMacro(analysisResult.totalCarbs);
-  const totalFatLabel = formatMacro(analysisResult.totalFat);
+  // const totalCaloriesLabel = formatCalories(analysisResult.totalCalories); // Unused
+  // const totalProteinLabel = formatMacro(analysisResult.totalProtein); // Unused
+  // const totalCarbsLabel = formatMacro(analysisResult.totalCarbs); // Unused
+  // const totalFatLabel = formatMacro(analysisResult.totalFat); // Unused
+  // const totalCaloriesLabel = formatCalories(analysisResult.totalCalories); // Unused
+  // const totalProteinLabel = formatMacro(analysisResult.totalProtein); // Unused
+  // const totalCarbsLabel = formatMacro(analysisResult.totalCarbs); // Unused
+  // const totalFatLabel = formatMacro(analysisResult.totalFat); // Unused
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1220,6 +992,15 @@ export default function AnalysisResultsScreen() {
           index={editingIndex}
         />
       )}
+      {/* Re-analyzing Overlay */}
+      {isReanalyzing && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ marginTop: 12, fontSize: 16, fontWeight: '600', color: colors.textPrimary }}>
+            {t('analysis.processing') || 'Processing...'}
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1250,7 +1031,7 @@ const createStyles = (tokens) =>
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 120, // Space for floating bottom bar
+      paddingBottom: 80, // Space for floating bottom bar
     },
     heroContainer: {
       marginBottom: 24,
@@ -1403,5 +1184,12 @@ const createStyles = (tokens) =>
     addIngredientText: {
       fontSize: 16,
       fontWeight: '600',
+    },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
     },
   });

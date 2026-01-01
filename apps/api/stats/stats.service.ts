@@ -5,6 +5,7 @@ import { MealLogMealType } from '@prisma/client';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { Readable } from 'stream';
+import { normalizeFoodLabelForLocale, normalizeMealType } from './food-translations';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PDFDocument = require('pdfkit') as typeof import('pdfkit');
 import type * as PDFKit from 'pdfkit';
@@ -888,9 +889,10 @@ export class StatsService {
       if (topFoodsToShow.length > 0) {
         topFoodsToShow.forEach((food: any, i: number) => {
           font('Roboto').fontSize(8).fillColor(c.text);
-          const foodLabel = food.label || this.t(locale, 'unknownFood');
-          // Increased max length to 35 for better readability
-          const truncatedLabel = truncateWordBoundary(foodLabel, 35);
+          // Normalize food label for locale (translate RU→EN when locale='en')
+          const rawLabel = food.label || this.t(locale, 'unknownFood');
+          const normalizedLabel = normalizeFoodLabelForLocale(rawLabel, locale);
+          const truncatedLabel = truncateWordBoundary(normalizedLabel, 35);
           doc.text(`${i + 1}. ${truncatedLabel}`, rightX, rightY);
 
           // Show: count × kcal (contribution %)
@@ -898,8 +900,7 @@ export class StatsService {
           const count = food.count || 1;
           const sumCals = Math.round(food.totalCalories || 0);
           const contribution = Math.round((sumCals / totalKcal) * 100);
-          const unit = locale === 'ru' ? 'ккал' : locale === 'kk' ? 'ккал' : 'kcal';
-          const infoText = `${count}× · ${sumCals} ${unit} · ${contribution}%`;
+          const infoText = `${count}× · ${sumCals} ${this.t(locale, 'kcal')} · ${contribution}%`;
           doc.text(infoText, rightX + colW - 90, rightY + 1, { width: 85, align: 'right' });
           rightY += 13;
         });
@@ -1203,7 +1204,7 @@ export class StatsService {
 
           // Goal label on right side
           font('Roboto').fontSize(6).fillColor('#DC2626');
-          doc.text(`цель ${goalCalories}`, chartX + chartW + 3, goalY - 4);
+          doc.text(`${this.t(locale, 'chart.goal')} ${goalCalories}`, chartX + chartW + 3, goalY - 4);
         }
 
         // Draw bars - centered in chart area
@@ -1241,26 +1242,18 @@ export class StatsService {
         // Green square (in range)
         doc.rect(leftX, legendY, squareSize, squareSize).fill('#10B981');
         font('Roboto').fontSize(6).fillColor(c.muted);
-        const inRangeText = locale === 'ru' ? 'в диапазоне' : locale === 'kk' ? 'диапазонда' : 'in range';
-        doc.text(inRangeText, leftX + 9, y);
+        doc.text(this.t(locale, 'chart.inRange'), leftX + 9, y);
 
         // Orange square (over)
         doc.rect(leftX + 55, legendY, squareSize, squareSize).fill('#F59E0B');
-        const overText = locale === 'ru' ? 'выше' : locale === 'kk' ? 'жоғары' : 'over';
-        doc.text(overText, leftX + 64, y);
+        doc.text(this.t(locale, 'chart.over'), leftX + 64, y);
 
         // Red square (under)
         doc.rect(leftX + 100, legendY, squareSize, squareSize).fill('#EF4444');
-        const underText = locale === 'ru' ? 'ниже' : locale === 'kk' ? 'төмен' : 'under';
-        doc.text(underText, leftX + 109, y);
+        doc.text(this.t(locale, 'chart.under'), leftX + 109, y);
 
         // Note about data
-        const noteText = locale === 'ru'
-          ? '| Дни с записями питания'
-          : locale === 'kk'
-            ? '| Тамақтану жазбалары бар күндер'
-            : '| Days with nutrition data';
-        doc.text(noteText, leftX + 145, y);
+        doc.text(`| ${this.t(locale, 'chart.daysWithData')}`, leftX + 145, y);
         y += 12;
       }
 
@@ -1293,6 +1286,307 @@ export class StatsService {
       font('Roboto-Light').fontSize(7).fillColor(c.muted);
       doc.text('© EatSense', leftX, actualFooterY + 20, { width: pageW, align: 'center', lineBreak: false });
 
+      // ============ PAGE 2: TRENDS & HABITS ============
+      doc.addPage({ size: 'A4', margin: 40 });
+      let p2y = 40;
+
+      // Page 2 Header
+      font('Roboto-Bold').fontSize(16).fillColor(c.primary);
+      doc.text(this.t(locale, 'page.trends'), leftX, p2y);
+      font('Roboto').fontSize(9).fillColor(c.muted);
+      doc.text(`${this.getMonthName(locale, month)} ${year} — ${this.t(locale, 'page.of')} 2/3`, leftX, p2y, { width: pageW, align: 'right' });
+      p2y += 30;
+
+      doc.moveTo(leftX, p2y).lineTo(leftX + pageW, p2y).strokeColor(c.border).lineWidth(1).stroke();
+      p2y += 16;
+
+      // --- Calorie Trend (Line Chart) ---
+      font('Roboto-Bold').fontSize(12).fillColor(c.text);
+      doc.text(this.t(locale, 'section.caloriesTrend'), leftX, p2y);
+      p2y += 18;
+
+      const dailyDataSorted = [...(summary.dailyBreakdown || [])].sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+      if (dailyDataSorted.length >= 3) {
+        // Draw line chart
+        const chartW = pageW - 40;
+        const chartH = 100;
+        const chartX = leftX + 30;
+        const chartY = p2y;
+
+        const values = dailyDataSorted.map((d: any) => d.calories);
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values, goalCalories * 1.1);
+        const avgVal = values.reduce((a: number, b: number) => a + b, 0) / values.length;
+        const range = maxVal - minVal || 1;
+
+        // Y-axis labels
+        font('Roboto').fontSize(7).fillColor(c.muted);
+        doc.text(String(Math.round(maxVal)), leftX, chartY - 3);
+        doc.text(String(Math.round(minVal)), leftX, chartY + chartH - 3);
+
+        // Grid lines
+        for (let i = 0; i <= 4; i++) {
+          const gridY = chartY + (i / 4) * chartH;
+          doc.moveTo(chartX, gridY).lineTo(chartX + chartW, gridY).strokeColor('#E5E7EB').lineWidth(0.5).stroke();
+        }
+
+        // Goal line (if available)
+        if (goalCalories > 0 && goalCalories >= minVal && goalCalories <= maxVal) {
+          const goalY = chartY + chartH - ((goalCalories - minVal) / range) * chartH;
+          doc.moveTo(chartX, goalY).lineTo(chartX + chartW, goalY).strokeColor('#DC2626').lineWidth(1).dash(4, { space: 3 }).stroke();
+          doc.undash();
+          font('Roboto').fontSize(6).fillColor('#DC2626');
+          doc.text(`${this.t(locale, 'chart.goal')} ${goalCalories}`, chartX + chartW + 3, goalY - 3);
+        }
+
+        // Draw line
+        doc.strokeColor(c.primary).lineWidth(2);
+        const stepX = chartW / (values.length - 1 || 1);
+
+        values.forEach((val: number, i: number) => {
+          const x = chartX + i * stepX;
+          const y = chartY + chartH - ((val - minVal) / range) * chartH;
+          if (i === 0) {
+            doc.moveTo(x, y);
+          } else {
+            doc.lineTo(x, y);
+          }
+        });
+        doc.stroke();
+
+        // Draw dots
+        values.forEach((val: number, i: number) => {
+          const x = chartX + i * stepX;
+          const y = chartY + chartH - ((val - minVal) / range) * chartH;
+          doc.circle(x, y, 3).fill(c.primary);
+        });
+
+        p2y += chartH + 20;
+
+        // Stats below chart
+        font('Roboto').fontSize(9).fillColor(c.text);
+        const statsLine = `${this.t(locale, 'chart.min')}: ${Math.round(minVal)} · ${this.t(locale, 'chart.max')}: ${Math.round(maxVal)} · ${this.t(locale, 'chart.avg')}: ${Math.round(avgVal)} ${this.t(locale, 'kcal')}`;
+        doc.text(statsLine, leftX, p2y);
+        p2y += 24;
+      } else {
+        // Not enough data for chart
+        font('Roboto').fontSize(10).fillColor(c.muted);
+        doc.text(this.t(locale, 'noDataForTrend'), leftX, p2y);
+        p2y += 40;
+      }
+
+      // --- Consistency & Logging Quality ---
+      font('Roboto-Bold').fontSize(12).fillColor(c.text);
+      doc.text(this.t(locale, 'section.consistency'), leftX, p2y);
+      p2y += 18;
+
+      const dq = summary.dataQuality || {};
+      const adh = summary.adherence || {};
+
+      // Consistency metrics in grid
+      font('Roboto').fontSize(10).fillColor(c.text);
+      const consistencyData = [
+        { label: this.t(locale, 'consistency.coverage'), value: `${dq.loggedDays || 0}/${dq.totalDays || 31} ${this.t(locale, 'daysLogged')}` },
+        { label: this.t(locale, 'consistency.entriesPerDay'), value: String(dq.entriesPerDay || 0) },
+        { label: this.t(locale, 'consistency.daysOnTrack'), value: String(adh.daysInRange || 0) },
+        { label: this.t(locale, 'consistency.daysOver'), value: String(adh.daysOver || 0) },
+        { label: this.t(locale, 'consistency.daysUnder'), value: String(adh.daysUnder || 0) },
+      ];
+
+      consistencyData.forEach((item, i) => {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const x = leftX + col * (pageW / 2);
+        const itemY = p2y + row * 20;
+
+        font('Roboto').fontSize(9).fillColor(c.muted);
+        doc.text(item.label + ':', x, itemY);
+        font('Roboto-Bold').fontSize(9).fillColor(c.text);
+        doc.text(item.value, x + 100, itemY);
+      });
+      p2y += 70;
+
+      // --- Meal Distribution (Page 2) ---
+      font('Roboto-Bold').fontSize(12).fillColor(c.text);
+      doc.text(this.t(locale, 'section.mealTiming'), leftX, p2y);
+      p2y += 18;
+
+      const validMealsP2 = (summary.mealTypeDistribution || []).filter((m: any) => m.totalCalories > 0);
+      if (validMealsP2.length > 0) {
+        const mealColors: Record<string, string> = { BREAKFAST: '#F59E0B', LUNCH: '#10B981', DINNER: '#3B82F6', SNACK: '#8B5CF6' };
+
+        validMealsP2.forEach((meal: any) => {
+          const normalizedType = normalizeMealType(meal.mealType);
+          const mealLabel = this.t(locale, `mealType.${normalizedType}`);
+          const pct = Math.round(meal.percentage || 0);
+          const cals = Math.round(meal.totalCalories || 0);
+
+          font('Roboto').fontSize(10).fillColor(c.text);
+          doc.text(mealLabel, leftX, p2y, { width: 80 });
+
+          const barMaxW = 200;
+          const barWidth = Math.max(4, (pct / 100) * barMaxW);
+          doc.rect(leftX + 85, p2y + 2, barWidth, 12).fill(mealColors[normalizedType] || c.primary);
+
+          font('Roboto').fontSize(9).fillColor(c.muted);
+          doc.text(`${pct}% (${cals} ${this.t(locale, 'kcal')})`, leftX + 85 + barWidth + 8, p2y + 2);
+          p2y += 22;
+        });
+      } else {
+        font('Roboto').fontSize(10).fillColor(c.muted);
+        doc.text(this.t(locale, 'noDataForSection'), leftX, p2y);
+        p2y += 30;
+      }
+
+      // Page 2 Footer
+      const p2FooterY = doc.page.height - 45;
+      font('Roboto').fontSize(7).fillColor(c.muted);
+      doc.text('© EatSense', leftX, p2FooterY, { width: pageW, align: 'center', lineBreak: false });
+
+      // ============ PAGE 3: DETAILED DATA ============
+      doc.addPage({ size: 'A4', margin: 40 });
+      let p3y = 40;
+
+      // Page 3 Header
+      font('Roboto-Bold').fontSize(16).fillColor(c.primary);
+      doc.text(this.t(locale, 'page.details'), leftX, p3y);
+      font('Roboto').fontSize(9).fillColor(c.muted);
+      doc.text(`${this.getMonthName(locale, month)} ${year} — ${this.t(locale, 'page.of')} 3/3`, leftX, p3y, { width: pageW, align: 'right' });
+      p3y += 30;
+
+      doc.moveTo(leftX, p3y).lineTo(leftX + pageW, p3y).strokeColor(c.border).lineWidth(1).stroke();
+      p3y += 16;
+
+      // --- Daily Breakdown Table ---
+      font('Roboto-Bold').fontSize(12).fillColor(c.text);
+      doc.text(this.t(locale, 'section.dailyBreakdown'), leftX, p3y);
+      p3y += 18;
+
+      if (dailyDataSorted.length > 0) {
+        // Table header
+        font('Roboto-Bold').fontSize(8).fillColor(c.muted);
+        const colWidths = [70, 60, 50, 50, 50, 80];
+        const headers = [
+          this.t(locale, 'table.date'),
+          this.t(locale, 'table.calories'),
+          this.t(locale, 'table.protein'),
+          this.t(locale, 'table.carbs'),
+          this.t(locale, 'table.fat'),
+          this.t(locale, 'table.status'),
+        ];
+
+        let hx = leftX;
+        headers.forEach((h, i) => {
+          doc.text(h, hx, p3y, { width: colWidths[i] });
+          hx += colWidths[i];
+        });
+        p3y += 14;
+
+        // Header underline
+        doc.moveTo(leftX, p3y).lineTo(leftX + pageW, p3y).strokeColor(c.border).lineWidth(0.5).stroke();
+        p3y += 6;
+
+        // Table rows (show up to 20)
+        const rowsToShow = dailyDataSorted.slice(-20).reverse();
+        const corridorLo = goalCalories * 0.9;
+        const corridorHi = goalCalories * 1.1;
+
+        rowsToShow.forEach((day: any) => {
+          font('Roboto').fontSize(8).fillColor(c.text);
+
+          const dateStr = new Date(day.date).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', { month: 'short', day: 'numeric' });
+          const cals = Math.round(day.calories || 0);
+          const p = Math.round(day.protein || 0);
+          const carb = Math.round(day.carbs || 0);
+          const f = Math.round(day.fat || 0);
+
+          let status = '—';
+          let statusColor = c.muted;
+          if (goalCalories > 0) {
+            if (cals >= corridorLo && cals <= corridorHi) {
+              status = this.t(locale, 'status.onTrack');
+              statusColor = c.success;
+            } else if (cals > corridorHi) {
+              status = this.t(locale, 'status.over');
+              statusColor = c.warning;
+            } else {
+              status = this.t(locale, 'status.under');
+              statusColor = c.danger;
+            }
+          }
+
+          let rx = leftX;
+          doc.text(dateStr, rx, p3y, { width: colWidths[0] }); rx += colWidths[0];
+          doc.text(String(cals), rx, p3y, { width: colWidths[1] }); rx += colWidths[1];
+          doc.text(`${p}g`, rx, p3y, { width: colWidths[2] }); rx += colWidths[2];
+          doc.text(`${carb}g`, rx, p3y, { width: colWidths[3] }); rx += colWidths[3];
+          doc.text(`${f}g`, rx, p3y, { width: colWidths[4] }); rx += colWidths[4];
+          doc.fillColor(statusColor).text(status, rx, p3y, { width: colWidths[5] });
+
+          p3y += 14;
+        });
+        p3y += 10;
+      } else {
+        font('Roboto').fontSize(10).fillColor(c.muted);
+        doc.text(this.t(locale, 'noDataForSection'), leftX, p3y);
+        p3y += 30;
+      }
+
+      // --- Top Foods Detailed (Top 10) ---
+      font('Roboto-Bold').fontSize(12).fillColor(c.text);
+      doc.text(this.t(locale, 'section.topFoodsDetail'), leftX, p3y);
+      p3y += 18;
+
+      const top10Foods = (summary.topFoods || []).slice(0, 10);
+      if (top10Foods.length > 0) {
+        // Table header
+        font('Roboto-Bold').fontSize(8).fillColor(c.muted);
+        const foodColWidths = [180, 50, 70, 70];
+        const foodHeaders = [
+          this.t(locale, 'table.food'),
+          this.t(locale, 'table.count'),
+          this.t(locale, 'table.totalKcal'),
+          this.t(locale, 'table.quantity'),
+        ];
+
+        let fhx = leftX;
+        foodHeaders.forEach((h, i) => {
+          doc.text(h, fhx, p3y, { width: foodColWidths[i] });
+          fhx += foodColWidths[i];
+        });
+        p3y += 14;
+        doc.moveTo(leftX, p3y).lineTo(leftX + pageW, p3y).strokeColor(c.border).lineWidth(0.5).stroke();
+        p3y += 6;
+
+        // Food rows
+        top10Foods.forEach((food: any, idx: number) => {
+          font('Roboto').fontSize(8).fillColor(c.text);
+
+          const rawLabel = food.label || this.t(locale, 'unknownFood');
+          const normalizedLabel = normalizeFoodLabelForLocale(rawLabel, locale);
+          const count = food.count || 1;
+          const totalCal = Math.round(food.totalCalories || 0);
+          const qty = Math.round(food.totalQuantity || 0);
+
+          let frx = leftX;
+          doc.text(`${idx + 1}. ${normalizedLabel.substring(0, 35)}`, frx, p3y, { width: foodColWidths[0] }); frx += foodColWidths[0];
+          doc.text(`${count}×`, frx, p3y, { width: foodColWidths[1] }); frx += foodColWidths[1];
+          doc.text(`${totalCal} ${this.t(locale, 'kcal')}`, frx, p3y, { width: foodColWidths[2] }); frx += foodColWidths[2];
+          doc.text(qty > 0 ? `${qty}g` : '—', frx, p3y, { width: foodColWidths[3] });
+
+          p3y += 14;
+        });
+      } else {
+        font('Roboto').fontSize(10).fillColor(c.muted);
+        doc.text(this.t(locale, 'noDataForSection'), leftX, p3y);
+      }
+
+      // Page 3 Footer
+      const p3FooterY = doc.page.height - 45;
+      font('Roboto').fontSize(7).fillColor(c.muted);
+      doc.text('© EatSense', leftX, p3FooterY, { width: pageW, align: 'center', lineBreak: false });
+
       doc.end();
       return stream;
 
@@ -1319,8 +1613,7 @@ export class StatsService {
 
   private t(locale: string, key: string, params?: Record<string, any>): string {
     const translations: Record<string, Record<string, string>> = {
-      // Header removed - no subheader
-      // Profile
+      // ===== PROFILE =====
       'profile.male': { en: 'Male', ru: 'Мужчина', kk: 'Ер' },
       'profile.female': { en: 'Female', ru: 'Женщина', kk: 'Әйел' },
       'profile.years': { en: 'years', ru: 'лет', kk: 'жас' },
@@ -1330,38 +1623,51 @@ export class StatsService {
       'profile.goal.maintain_weight': { en: 'Maintain', ru: 'Поддержание', kk: 'Сақтау' },
       'profile.goal.gain_muscle': { en: 'Muscle gain', ru: 'Набор массы', kk: 'Бұлшықет жинау' },
       'profile.goal.gain_weight': { en: 'Weight gain', ru: 'Набор веса', kk: 'Салмақ жинау' },
-      // Units
+
+      // ===== UNITS =====
       kcal: { en: 'kcal', ru: 'ккал', kk: 'ккал' },
       g: { en: 'g', ru: 'г', kk: 'г' },
       day: { en: 'day', ru: 'день', kk: 'күн' },
-      // KPI
-      totalCalories: {
-        en: 'Total',
-        ru: 'Всего',
-        kk: 'Барлығы',
-      },
-      avgCalories: {
-        en: 'Daily Avg',
-        ru: 'В среднем',
-        kk: 'Орташа',
-      },
+
+      // ===== KPI =====
+      totalCalories: { en: 'Total', ru: 'Всего', kk: 'Барлығы' },
+      avgCalories: { en: 'Daily Avg', ru: 'В среднем', kk: 'Орташа' },
       protein: { en: 'Protein', ru: 'Белки', kk: 'Ақуыз' },
       carbs: { en: 'Carbs', ru: 'Углеводы', kk: 'Көмірсулар' },
       fat: { en: 'Fat', ru: 'Жиры', kk: 'Май' },
-      adherenceLabel: {
-        en: 'Adherence',
-        ru: 'Соблюдение',
-        kk: 'Сақтау',
-      },
-      // Sections
+      adherenceLabel: { en: 'Adherence', ru: 'Соблюдение', kk: 'Сақтау' },
+
+      // ===== SECTIONS (Page 1) =====
       macros: { en: 'Macronutrients', ru: 'Макронутриенты', kk: 'Макронутриенттер' },
       topFoods: { en: 'Top Foods', ru: 'Популярные продукты', kk: 'Танымал тағамдар' },
-      mealDistribution: {
-        en: 'Meal Distribution',
-        ru: 'Распределение приёмов пищи',
-        kk: 'Тамақтану бөлімі',
-      },
-      // Meal types
+      mealDistribution: { en: 'Meal Distribution', ru: 'Распределение приёмов пищи', kk: 'Тамақтану бөлімі' },
+      goal: { en: 'Goal', ru: 'Цель', kk: 'Мақсат' },
+
+      // ===== SECTIONS (Page 2) =====
+      'page2.title': { en: 'Trends & Analysis', ru: 'Тренды и анализ', kk: 'Трендтер мен талдау' },
+      'section.caloriesTrend': { en: 'Calorie Trend', ru: 'Динамика калорий', kk: 'Калория динамикасы' },
+      'section.macrosTrend': { en: 'Macros Overview', ru: 'Обзор макросов', kk: 'Макростарға шолу' },
+      'section.consistency': { en: 'Logging Consistency', ru: 'Регулярность записей', kk: 'Жазба тұрақтылығы' },
+      'section.mealTiming': { en: 'Meal Timing', ru: 'Время приёмов пищи', kk: 'Тамақтану уақыты' },
+
+      // ===== SECTIONS (Page 3) =====
+      'page3.title': { en: 'Detailed Data', ru: 'Детальные данные', kk: 'Толық деректер' },
+      'section.dailyBreakdown': { en: 'Daily Breakdown', ru: 'Разбивка по дням', kk: 'Күндер бойынша' },
+      'section.topFoodsDetail': { en: 'Top Foods (Detailed)', ru: 'Топ продуктов (детально)', kk: 'Танымал тағамдар (толық)' },
+
+      // ===== TABLE HEADERS =====
+      'table.date': { en: 'Date', ru: 'Дата', kk: 'Күн' },
+      'table.calories': { en: 'Calories', ru: 'Калории', kk: 'Калория' },
+      'table.protein': { en: 'Protein', ru: 'Белок', kk: 'Ақуыз' },
+      'table.carbs': { en: 'Carbs', ru: 'Углеводы', kk: 'Көмірсулар' },
+      'table.fat': { en: 'Fat', ru: 'Жиры', kk: 'Май' },
+      'table.status': { en: 'Status', ru: 'Статус', kk: 'Мәртебе' },
+      'table.food': { en: 'Food', ru: 'Продукт', kk: 'Тағам' },
+      'table.count': { en: 'Count', ru: 'Раз', kk: 'Саны' },
+      'table.totalKcal': { en: 'Total kcal', ru: 'Σ ккал', kk: 'Σ ккал' },
+      'table.quantity': { en: 'Qty (g)', ru: 'Кол-во (г)', kk: 'Мөлшер (г)' },
+
+      // ===== MEAL TYPES =====
       'mealType.breakfast': { en: 'Breakfast', ru: 'Завтрак', kk: 'Таңғы ас' },
       'mealType.lunch': { en: 'Lunch', ru: 'Обед', kk: 'Түскі ас' },
       'mealType.dinner': { en: 'Dinner', ru: 'Ужин', kk: 'Кешкі ас' },
@@ -1370,21 +1676,47 @@ export class StatsService {
       'mealType.LUNCH': { en: 'Lunch', ru: 'Обед', kk: 'Түскі ас' },
       'mealType.DINNER': { en: 'Dinner', ru: 'Ужин', kk: 'Кешкі ас' },
       'mealType.SNACK': { en: 'Snack', ru: 'Перекус', kk: 'Жеңіл тамақ' },
-      // Data
+
+      // ===== DATA QUALITY =====
       unknownFood: { en: 'Unknown food', ru: 'Неизвестный продукт', kk: 'Белгісіз тағам' },
       noData: { en: 'No data', ru: 'Нет данных', kk: 'Деректер жоқ' },
       dataQuality: { en: 'Data quality', ru: 'Качество данных', kk: 'Деректер сапасы' },
       daysLogged: { en: 'days logged', ru: 'дней с записями', kk: 'күн жазылды' },
-      // Goal
-      goal: { en: 'Goal', ru: 'Цель', kk: 'Мақсат' },
-      // Footer
+      'noDataForTrend': { en: 'Not enough data for trend chart', ru: 'Недостаточно данных для графика', kk: 'График үшін деректер жеткіліксіз' },
+      'noDataForSection': { en: 'No data available for this section', ru: 'Нет данных для этого раздела', kk: 'Бұл бөлім үшін деректер жоқ' },
+
+      // ===== CHART LABELS =====
+      'chart.goal': { en: 'goal', ru: 'цель', kk: 'мақсат' },
+      'chart.min': { en: 'min', ru: 'мин', kk: 'мин' },
+      'chart.max': { en: 'max', ru: 'макс', kk: 'макс' },
+      'chart.avg': { en: 'avg', ru: 'сред', kk: 'орт' },
+      'chart.inRange': { en: 'in range', ru: 'в диапазоне', kk: 'диапазонда' },
+      'chart.over': { en: 'over', ru: 'выше', kk: 'жоғары' },
+      'chart.under': { en: 'under', ru: 'ниже', kk: 'төмен' },
+      'chart.onTrack': { en: 'on track', ru: 'в норме', kk: 'қалыпты' },
+      'chart.daysWithData': { en: 'Days with data', ru: 'Дни с данными', kk: 'Деректері бар күндер' },
+
+      // ===== CONSISTENCY METRICS =====
+      'consistency.coverage': { en: 'Coverage', ru: 'Покрытие', kk: 'Қамту' },
+      'consistency.entriesPerDay': { en: 'Entries/day', ru: 'Записей/день', kk: 'Жазба/күн' },
+      'consistency.daysOnTrack': { en: 'Days on track', ru: 'Дней в норме', kk: 'Қалыпты күндер' },
+      'consistency.daysOver': { en: 'Days over', ru: 'Дней выше', kk: 'Жоғары күндер' },
+      'consistency.daysUnder': { en: 'Days under', ru: 'Дней ниже', kk: 'Төмен күндер' },
+
+      // ===== STATUS =====
+      'status.onTrack': { en: '✓ on track', ru: '✓ норма', kk: '✓ қалыпты' },
+      'status.over': { en: '↑ over', ru: '↑ выше', kk: '↑ жоғары' },
+      'status.under': { en: '↓ under', ru: '↓ ниже', kk: '↓ төмен' },
+
+      // ===== FOOTER =====
       disclaimer: {
         en: 'This report is for informational purposes only. Consult a healthcare provider for medical advice.',
         ru: 'Этот отчёт носит информационный характер. За медицинскими рекомендациями обратитесь к врачу.',
         kk: 'Бұл есеп тек ақпараттық мақсатта. Медициналық кеңес алу үшін дәрігерге жүгініңіз.',
       },
       generatedAt: { en: 'Generated', ru: 'Создан', kk: 'Жасалды' },
-      // Conclusions
+
+      // ===== CONCLUSIONS =====
       'conclusions.title': { en: 'Key Insights', ru: 'Ключевые выводы', kk: 'Негізгі қорытындылар' },
       'conclusions.caloriesGood': {
         en: 'Calorie intake is near goal ({percent}% adherence).',
@@ -1416,6 +1748,12 @@ export class StatsService {
         ru: 'Белок высокий (>25%).',
         kk: 'Ақуыз мөлшері жоғары (>25%).',
       },
+
+      // ===== PAGE HEADERS =====
+      'page.summary': { en: 'Monthly Summary', ru: 'Месячный отчёт', kk: 'Айлық есеп' },
+      'page.trends': { en: 'Trends & Habits', ru: 'Тренды и привычки', kk: 'Трендтер мен дағдылар' },
+      'page.details': { en: 'Detailed Log', ru: 'Детальный журнал', kk: 'Толық журнал' },
+      'page.of': { en: 'of', ru: 'из', kk: 'ішінен' },
     };
 
     let text = translations[key]?.[locale] || translations[key]?.['en'] || key;

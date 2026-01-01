@@ -113,6 +113,31 @@ export class AiAssistantService {
     }
   }
 
+  /**
+   * Get localized error message based on language and error type
+   */
+  private getLocalizedErrorMessage(language: string, errorType: 'empty_response' | 'api_error' | 'quota_exceeded'): string {
+    const messages: Record<string, Record<string, string>> = {
+      empty_response: {
+        ru: 'Извините, я не смог обработать ваш вопрос. Пожалуйста, попробуйте переформулировать.',
+        kk: 'Кешіріңіз, сұрағыңызды өңдей алмадым. Қайта тұжырымдап көріңіз.',
+        en: 'Sorry, I could not process your question. Please try rephrasing.',
+      },
+      api_error: {
+        ru: 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.',
+        kk: 'Сұранысты өңдеу кезінде қате орын алды. Кейінірек көріңіз.',
+        en: 'An error occurred while processing your request. Please try again later.',
+      },
+      quota_exceeded: {
+        ru: 'Достигнут лимит запросов к AI. Попробуйте позже или обновите подписку.',
+        kk: 'AI сұраныстарының шегіне жеттік. Кейінірек көріңіз немесе жазылымды жаңартыңыз.',
+        en: 'AI request limit reached. Please try again later or upgrade your subscription.',
+      },
+    };
+
+    return messages[errorType]?.[language] || messages[errorType]?.['en'] || 'An error occurred.';
+  }
+
   private async generateCompletion(
     type: 'nutrition_advice' | 'health_check' | 'general_question',
     userId: string,
@@ -124,11 +149,11 @@ export class AiAssistantService {
     const { systemPrompt, context } = await this.buildSystemPrompt(type, userId, extraContext, language);
 
     try {
-      const model = process.env.OPENAI_MODEL || 'gpt-5.1';
+      const model = process.env.OPENAI_MODEL || 'gpt-4o';
       this.logger.debug(`[AiAssistantService] Using model: ${model} for type: ${type}`);
 
       const response = await this.openai.chat.completions.create({
-        // Use configurable GPT model (default gpt-5.1)
+        // Use configurable GPT model (default gpt-4.1)
         model,
         messages: [
           { role: 'system', content: systemPrompt },
@@ -142,8 +167,9 @@ export class AiAssistantService {
           presence_penalty: 0.2,
         }),
       });
-
-      const answer = response.choices[0]?.message?.content || 'Sorry, I could not process your question.';
+      // Localized fallback message when OpenAI doesn't return content
+      const fallbackMessage = this.getLocalizedErrorMessage(language || 'en', 'empty_response');
+      const answer = response.choices[0]?.message?.content || fallbackMessage;
       const usage = response.usage;
 
       // Save history - non-critical, don't fail the request if this fails
@@ -202,7 +228,7 @@ export class AiAssistantService {
         status: error?.status,
         responseStatus: error?.response?.status,
         responseData: error?.response?.data,
-        model: process.env.OPENAI_MODEL || 'gpt-5.1',
+        model: process.env.OPENAI_MODEL || 'gpt-4.1',
         type,
         userId,
       });

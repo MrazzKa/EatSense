@@ -150,23 +150,9 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: 16 }}
             >
-              {/* Food Name with Search */}
+              {/* Food Name */}
               <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={[styles.label, { color: colors.text }]}>{t('editFood.name')}</Text>
-                  <TouchableOpacity
-                    onPress={async () => {
-                      // Show search modal
-                      setShowSearch(true);
-                    }}
-                    style={styles.searchButton}
-                  >
-                    <Ionicons name="search-outline" size={18} color={colors.primary} />
-                    <Text style={[styles.searchButtonText, { color: colors.primary }]}>
-                      {t('editFood.searchUSDA') || 'Search USDA'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <Text style={[styles.label, { color: colors.text }]}>{t('editFood.name')}</Text>
                 <TextInput
                   style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.input, borderColor: colors.border }]}
                   value={editedItem.name}
@@ -328,7 +314,6 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom }]}>
               <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary, flex: 1 }]} onPress={handleSave}>
-                <Ionicons name="checkmark" size={20} color={colors.onPrimary || '#FFFFFF'} />
                 <Text style={[styles.saveButtonText, { color: colors.onPrimary || '#FFFFFF' }]}>{t('common.save')}</Text>
               </TouchableOpacity>
             </View>

@@ -11,13 +11,16 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { localNotificationService, NotificationCategories } from '../services/localNotificationService';
 
 type MedicationDose = {
   id?: string;
@@ -57,6 +60,11 @@ const MedicationScheduleScreen: React.FC = () => {
   const [formEndDate, setFormEndDate] = useState('');
   const [formTimezone, setFormTimezone] = useState('');
   const [formDoses, setFormDoses] = useState<MedicationDose[]>([]);
+
+  // TimePicker state
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [activeDoseIndex, setActiveDoseIndex] = useState<number | null>(null);
 
   const loadMedications = useCallback(async () => {
     try {
@@ -100,10 +108,10 @@ const MedicationScheduleScreen: React.FC = () => {
     setFormDoses(
       med.doses && med.doses.length
         ? med.doses.map((d) => ({
-            timeOfDay: d.timeOfDay,
-            beforeMeal: d.beforeMeal,
-            afterMeal: d.afterMeal,
-          }))
+          timeOfDay: d.timeOfDay,
+          beforeMeal: d.beforeMeal,
+          afterMeal: d.afterMeal,
+        }))
         : [{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }],
     );
     setModalVisible(true);
@@ -128,6 +136,51 @@ const MedicationScheduleScreen: React.FC = () => {
 
   const removeDoseRow = (index: number) => {
     setFormDoses((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Time Picker Logic
+  const parseTime = (timeStr: string) => {
+    const d = new Date();
+    const [h, m] = timeStr.split(':').map(Number);
+    d.setHours(h || 0);
+    d.setMinutes(m || 0);
+    d.setSeconds(0);
+    return d;
+  };
+
+  const handleTimeVerify = (index: number) => {
+    const dose = formDoses[index];
+    const date = parseTime(dose.timeOfDay);
+    setTempDate(date);
+    setActiveDoseIndex(index);
+    setShowTimePicker(true);
+  };
+
+  const onTimeChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+      if (event.type === 'set' && selectedDate && activeDoseIndex !== null) {
+        const hours = selectedDate.getHours().toString().padStart(2, '0');
+        const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
+        updateDoseField(activeDoseIndex, { timeOfDay: `${hours}:${minutes}` });
+        setActiveDoseIndex(null);
+      }
+    } else {
+      // iOS
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
+    }
+  };
+
+  const confirmIosTime = () => {
+    if (activeDoseIndex !== null) {
+      const hours = tempDate.getHours().toString().padStart(2, '0');
+      const minutes = tempDate.getMinutes().toString().padStart(2, '0');
+      updateDoseField(activeDoseIndex, { timeOfDay: `${hours}:${minutes}` });
+    }
+    setShowTimePicker(false);
+    setActiveDoseIndex(null);
   };
 
   const handleSave = async () => {
@@ -155,11 +208,33 @@ const MedicationScheduleScreen: React.FC = () => {
 
     try {
       setLoading(true);
+      let savedMedId: string;
       if (editingMed) {
         await ApiService.updateMedication(editingMed.id, payload);
+        savedMedId = editingMed.id;
+        // Cancel old notifications for this medication
+        await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
       } else {
-        await ApiService.createMedication(payload);
+        const created = await ApiService.createMedication(payload);
+        savedMedId = created?.id || '';
       }
+
+      // Schedule notifications for each dose time
+      if (savedMedId && payload.doses.length > 0) {
+        const hasPermission = await localNotificationService.checkPermissions();
+        if (hasPermission) {
+          for (const dose of payload.doses) {
+            const [hour, minute] = dose.timeOfDay.split(':').map(Number);
+            await localNotificationService.scheduleMedicationReminder(
+              payload.name,
+              hour,
+              minute,
+              savedMedId
+            );
+          }
+        }
+      }
+
       await loadMedications();
       setModalVisible(false);
       setError(null);
@@ -322,6 +397,7 @@ const MedicationScheduleScreen: React.FC = () => {
       borderRadius: 16,
       maxHeight: '90%',
       padding: 16,
+      overflow: 'hidden', // Added to ensure border radius clips content
     },
     modalHeader: {
       flexDirection: 'row',
@@ -371,6 +447,7 @@ const MedicationScheduleScreen: React.FC = () => {
       paddingVertical: Platform.OS === 'ios' ? 8 : 6,
       marginRight: 6,
       fontSize: 14,
+      justifyContent: 'center', // Align text vertically
     },
     doseToggle: {
       paddingHorizontal: 8,
@@ -452,190 +529,229 @@ const MedicationScheduleScreen: React.FC = () => {
         />
       )}
 
-      <Modal 
-        visible={isModalVisible} 
-        animationType="slide" 
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
         transparent={true}
         onRequestClose={closeModal}
       >
-        <View style={[styles.modalBackdrop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card || colors.surface }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.textPrimary || colors.text }]}>
-                {editingMed
-                  ? t('medications.edit') || 'Edit medication'
-                  : t('medications.add') || 'Add medication'}
-              </Text>
-              <TouchableOpacity 
-                onPress={closeModal}
-                style={styles.modalCloseButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.name') || 'Name'} *
-              </Text>
-              <TextInput
-                style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                value={formName}
-                onChangeText={setFormName}
-                placeholder={t('medications.placeholders.name') || 'Metformin'}
-                placeholderTextColor={colors.textTertiary || '#8E8E93'}
-              />
-
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.dosage') || 'Dosage'}
-              </Text>
-              <TextInput
-                style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                value={formDosage}
-                onChangeText={setFormDosage}
-                placeholder={t('medications.placeholders.dosage') || '500 mg'}
-                placeholderTextColor={colors.textTertiary || '#8E8E93'}
-              />
-
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.instructions') || 'Instructions'}
-              </Text>
-              <TextInput
-                style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                value={formInstructions}
-                onChangeText={setFormInstructions}
-                placeholder={t('medications.placeholders.instructions') || 'Before dinner, with water'}
-                placeholderTextColor={colors.textTertiary || '#8E8E93'}
-              />
-
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.startDate') || 'Start date (YYYY-MM-DD)'}
-              </Text>
-              <TextInput
-                style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                value={formStartDate}
-                onChangeText={setFormStartDate}
-                placeholder="2025-01-01"
-                placeholderTextColor={colors.textTertiary || '#8E8E93'}
-              />
-
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.endDate') || 'End date (optional)'}
-              </Text>
-              <TextInput
-                style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                value={formEndDate}
-                onChangeText={setFormEndDate}
-                placeholder="2025-12-31"
-                placeholderTextColor={colors.textTertiary || '#8E8E93'}
-              />
-
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.timezone') || 'Timezone'}
-              </Text>
-              <TextInput
-                style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                value={formTimezone}
-                onChangeText={setFormTimezone}
-                placeholder="Asia/Almaty"
-                placeholderTextColor={colors.textTertiary || '#8E8E93'}
-              />
-
-              <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                {t('medications.fields.doses') || 'Dose times'}
-              </Text>
-
-              {formDoses.map((dose, index) => (
-                <View key={index} style={styles.doseRow}>
-                  <TextInput
-                    style={[
-                      styles.doseInput,
-                      { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background },
-                    ]}
-                    value={dose.timeOfDay}
-                    onChangeText={(value) =>
-                      updateDoseField(index, { timeOfDay: value })
-                    }
-                    placeholder="09:00"
-                    placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                  />
-                  <TouchableOpacity
-                    style={[styles.doseToggle, { borderColor: dose.beforeMeal ? colors.primary : colors.border || '#E5E5EA', backgroundColor: dose.beforeMeal ? colors.primary + '20' : 'transparent' }]}
-                    onPress={() =>
-                      updateDoseField(index, {
-                        beforeMeal: !dose.beforeMeal,
-                        afterMeal: false,
-                      })
-                    }
-                  >
-                    <Text
-                      style={[
-                        styles.doseToggleText,
-                        {
-                          color: dose.beforeMeal ? colors.primary : colors.textSecondary,
-                        },
-                      ]}
-                    >
-                      {t('medications.beforeMeal') || 'Before'}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.doseToggle, { borderColor: dose.afterMeal ? colors.primary : colors.border || '#E5E5EA', backgroundColor: dose.afterMeal ? colors.primary + '20' : 'transparent' }]}
-                    onPress={() =>
-                      updateDoseField(index, {
-                        afterMeal: !dose.afterMeal,
-                        beforeMeal: false,
-                      })
-                    }
-                  >
-                    <Text
-                      style={[
-                        styles.doseToggleText,
-                        {
-                          color: dose.afterMeal ? colors.primary : colors.textSecondary,
-                        },
-                      ]}
-                    >
-                      {t('medications.afterMeal') || 'After'}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={() => removeDoseRow(index)}>
-                    <Ionicons name="remove-circle-outline" size={20} color={colors.error || '#FF3B30'} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-
-              <TouchableOpacity style={styles.addDoseBtn} onPress={addDoseRow}>
-                <Text style={[styles.addDoseText, { color: colors.primary }]}>
-                  + {t('medications.addDose') || 'Add time'}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <View style={[styles.modalBackdrop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+            <View style={[styles.modalContent, { backgroundColor: colors.card || colors.surface }]}>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary || colors.text }]}>
+                  {editingMed
+                    ? t('medications.edit') || 'Edit medication'
+                    : t('medications.add') || 'Add medication'}
                 </Text>
-              </TouchableOpacity>
-            </ScrollView>
+                <TouchableOpacity
+                  onPress={closeModal}
+                  style={styles.modalCloseButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
+                </TouchableOpacity>
+              </View>
 
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: colors.primary }]}
-                onPress={handleSave}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.saveButtonText, { color: colors.onPrimary || '#fff' }]}>
-                    {t('common.save') || 'Save'}
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.name') || 'Name'} *
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formName}
+                  onChangeText={setFormName}
+                  placeholder={t('medications.placeholders.name') || 'Metformin'}
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.dosage') || 'Dosage'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formDosage}
+                  onChangeText={setFormDosage}
+                  placeholder={t('medications.placeholders.dosage') || '500 mg'}
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.instructions') || 'Instructions'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formInstructions}
+                  onChangeText={setFormInstructions}
+                  placeholder={t('medications.placeholders.instructions') || 'Before dinner, with water'}
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.startDate') || 'Start date (YYYY-MM-DD)'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formStartDate}
+                  onChangeText={setFormStartDate}
+                  placeholder="2025-01-01"
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.endDate') || 'End date (optional)'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formEndDate}
+                  onChangeText={setFormEndDate}
+                  placeholder="2025-12-31"
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.timezone') || 'Timezone'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formTimezone}
+                  onChangeText={setFormTimezone}
+                  placeholder="Asia/Almaty"
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.doses') || 'Dose times'}
+                </Text>
+
+                {formDoses.map((dose, index) => (
+                  <View key={index} style={styles.doseRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.doseInput,
+                        { borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background, justifyContent: 'center' },
+                      ]}
+                      onPress={() => handleTimeVerify(index)}
+                    >
+                      <Text style={{ color: colors.textPrimary || colors.text }}>
+                        {dose.timeOfDay}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.doseToggle, { borderColor: dose.beforeMeal ? colors.primary : colors.border || '#E5E5EA', backgroundColor: dose.beforeMeal ? colors.primary + '20' : 'transparent' }]}
+                      onPress={() =>
+                        updateDoseField(index, {
+                          beforeMeal: !dose.beforeMeal,
+                          afterMeal: false,
+                        })
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.doseToggleText,
+                          {
+                            color: dose.beforeMeal ? colors.primary : colors.textSecondary,
+                          },
+                        ]}
+                      >
+                        {t('medications.beforeMeal') || 'Before'}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.doseToggle, { borderColor: dose.afterMeal ? colors.primary : colors.border || '#E5E5EA', backgroundColor: dose.afterMeal ? colors.primary + '20' : 'transparent' }]}
+                      onPress={() =>
+                        updateDoseField(index, {
+                          afterMeal: !dose.afterMeal,
+                          beforeMeal: false,
+                        })
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.doseToggleText,
+                          {
+                            color: dose.afterMeal ? colors.primary : colors.textSecondary,
+                          },
+                        ]}
+                      >
+                        {t('medications.afterMeal') || 'After'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => removeDoseRow(index)}>
+                      <Ionicons name="remove-circle-outline" size={20} color={colors.error || '#FF3B30'} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                <TouchableOpacity style={styles.addDoseBtn} onPress={addDoseRow}>
+                  <Text style={[styles.addDoseText, { color: colors.primary }]}>
+                    + {t('medications.addDose') || 'Add time'}
                   </Text>
-                )}
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </ScrollView>
+
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: colors.primary }]}
+                  onPress={handleSave}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={[styles.saveButtonText, { color: colors.onPrimary || '#fff' }]}>
+                      {t('common.save') || 'Save'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
+
+      {/* Date Picker (iOS Modal / Android Inline) */}
+      {showTimePicker && (
+        Platform.OS === 'ios' ? (
+          <Modal transparent animationType="fade" visible={showTimePicker}>
+            <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+              <View style={{ backgroundColor: colors.surface || 'white', padding: 16 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={{ color: colors.primary || 'blue', fontSize: 17 }}>{t('common.cancel') || 'Cancel'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={confirmIosTime}>
+                    <Text style={{ color: colors.primary || 'blue', fontWeight: '600', fontSize: 17 }}>{t('common.done') || 'Done'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="time"
+                  display="spinner"
+                  onChange={onTimeChange}
+                  textColor={colors.textPrimary}
+                />
+              </View>
+            </View>
+          </Modal>
+        ) : (
+          <DateTimePicker
+            value={tempDate}
+            mode="time"
+            display="default"
+            onChange={onTimeChange}
+          />
+        )
+      )}
     </SafeAreaView>
   );
 };
 
 export default MedicationScheduleScreen;
-

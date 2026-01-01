@@ -19,6 +19,9 @@ module.exports = [
       '**/node_modules/**',
       '**/dist/**',
       '**/build/**',
+      '_import/**',
+      '_import/**/*',
+      '**/_import/**',
     ],
   },
   js.configs.recommended,
@@ -40,8 +43,8 @@ module.exports = [
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { 
-          argsIgnorePattern: '^_', 
+        {
+          argsIgnorePattern: '^_',
           varsIgnorePattern: '^(_|[A-Z_]+)$', // Allow variables starting with _ or all caps (enum-like)
           ignoreRestSiblings: true,
         },

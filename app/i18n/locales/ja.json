@@ -1,871 +1,1098 @@
 {
-  "common": {
-    "save": "保存",
-    "cancel": "キャンセル",
-    "delete": "削除",
-    "edit": "編集",
-    "close": "閉じる",
-    "back": "戻る",
-    "next": "次へ",
-    "skip": "スキップ",
-    "done": "完了",
-    "loading": "読み込み中...",
-    "error": "エラー",
-    "success": "成功",
-    "retry": "再試行",
-    "search": "検索",
-    "viewAll": "すべて表示",
-    "ok": "OK",
-    "yes": "Yes",
-    "no": "No"
-  },
-  "dashboard": {
-    "title": "ダッシュボード",
-    "calories": "カロリー",
-    "ofGoal": "目標 {{goal}} の",
-    "protein": "タンパク質",
-    "carbs": "炭水化物",
-    "fat": "脂肪",
-    "quickStats": "クイック統計",
-    "articles": "記事",
-    "aiAssistant": "AIアシスタント",
-    "aiAssistantSubtitle": "個別の栄養アドバイスを取得",
-    "healthScoreTitle": "{{meal}} のヘルススコア",
-    "healthScoreSubtitle": "カードをタップすると「最近」から詳しい分析を開けます。",
-    "recent": "最近",
-    "recentEmptyTitle": "最近のアイテムはありません",
-    "recentEmptySubtitle": "食事の写真を撮って分析を始めましょう",
-    "mealFallback": "食事",
-    "recentMacroSummary": "{{calories}} kcal • たんぱく質 {{protein}} • 炭水化物 {{carbs}} • 脂質 {{fat}}",
-    "monthlyStats": {
-      "title": "月間ハイライト",
-      "loading": "データを集計しています...",
-      "empty": "まだ食事が記録されていません。記録すると傾向が表示されます。",
-      "topFoods": "よく食べる食品",
-      "foodMeta": "{{count}}件 • 合計 {{calories}} kcal",
-      "mealDistribution": "食事タイプの内訳",
-      "mealMeta": "{{count}}回 • {{calories}} kcal",
-      "viewFullInsights": "View full insights"
-    },
-    "mealTypes": {
-      "breakfast": "朝食",
-      "lunch": "昼食",
-      "dinner": "夕食"
-    },
-    "addFood": {
-      "title": "食事を追加",
-      "subtitle": "食事を追加する方法を選択してください",
-      "camera": {
-        "title": "写真を撮る",
-        "description": "カメラで食事を撮影しましょう"
-      },
-      "gallery": {
-        "title": "ギャラリーから選択",
-        "description": "ギャラリーから写真を選びましょう"
-      },
-      "manual": {
-        "title": "Enter manually",
-        "description": "Add a meal without a photo or upload lab results"
-      }
-    },
-    "caloriesUnit": "kcal",
-    "overGoal": "over goal",
-    "manualAnalysis": {
-      "title": "Insert your own analysis",
-      "subtitle": "Manually enter meal data or upload lab results"
-    },
-    "analysisCounter": {
-      "today": "Today",
-      "total": "Total"
-    },
-    "specialists": {
-      "title": "Talk to a real nutrition expert (coming soon)",
-      "shortDescription": "Talk to a real nutrition expert (coming soon)",
-      "description": "In the future, you'll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.",
-      "gotIt": "Got it"
-    },
-    "suggestedFood": {
-      "title": "Smart food suggestions",
-      "subtitle": "Here are simple ideas to better match your goal for the next few days.",
-      "shortDescription": "Get simple ideas of what to eat today",
-      "description": "Personalized food suggestions based on your goals, preferences, and nutritional needs.",
-      "gotIt": "Got it",
-      "loading": "Loading suggestions...",
-      "empty": "We don't have suggestions right now. Try adding a few meals first.",
-      "error": {
-        "generic": "We couldn't load suggestions. We'll show some basic ideas instead."
-      },
-      "sections": {
-        "protein": {
-          "title": "Protein sources",
-          "subtitle": "You're slightly under your protein target. Try adding 1–2 of these options daily.",
-          "items": {
-            "cottageCheese": {
-              "title": "Low-fat cottage cheese",
-              "description": "200 g of cottage cheese for breakfast or dinner is a simple and budget-friendly way to boost protein."
-            },
-            "chickenBreast": {
-              "title": "Chicken breast",
-              "description": "Baked or boiled chicken breast works well with any side — rice, buckwheat, or vegetables."
-            },
-            "eggs": {
-              "title": "Eggs",
-              "description": "2–3 eggs for breakfast, omelet or boiled, give a quick portion of protein and keep you full longer."
-            }
-          }
-        },
-        "fiber": {
-          "title": "Fiber and slow carbs",
-          "subtitle": "A bit more fiber will help with satiety and digestion.",
-          "items": {
-            "oats": {
-              "title": "Oatmeal",
-              "description": "Oatmeal with a little fruit or berries is a simple breakfast that gives long-lasting energy."
-            },
-            "vegetables": {
-              "title": "Vegetable side dishes",
-              "description": "Add fresh or cooked vegetables to lunch and dinner — start with 100–150 g per meal."
-            }
-          }
-        }
-      }
-    }
-  },
-  "articles": {
-    "title": "記事",
-    "searchPlaceholder": "記事を検索...",
-    "featured": "注目",
-    "allArticles": "すべての記事",
-    "searching": "検索中...",
-    "found": "検索結果: {{count}}",
-    "noArticles": "該当する記事が見つかりません",
-    "comingSoon": "近日中に新しい記事が追加されます",
-    "errorLoading": "記事を読み込めませんでした。もう一度お試しください。",
-    "retry": "再試行",
-    "quickRead": "サクッと読む",
-    "readingTime": "読了時間 約{{minutes}}分",
-    "updatedRecently": "最近更新されました",
-    "featuredBadge": "注目",
-    "browseByTag": "タグで探す",
-    "clearTag": "クリア",
-    "loadingTag": "「{{tag}}」の記事を読み込み中...",
-    "tagResultCount": "「{{tag}}」の記事 {{count}} 件",
-    "searchResultCount": "{{count}} 件ヒット",
-    "article": "記事",
-    "openSource": "元の記事を見る",
-    "loading": "記事を読み込み中..."
-  },
-  "analysis": {
-    "title": "分析完了",
-    "analyzing": "料理を分析中...",
-    "subtitle": "AIが食材とカロリーを識別しています",
-    "uploaded": "アップロード済み",
-    "analyzingStep": "分析中",
-    "calculating": "計算中",
-    "totalNutrition": "総栄養",
-    "calories": "カロリー",
-    "ingredients": "食材",
-    "share": "共有",
-    "saveToJournal": "ジャーナルに保存",
-    "autoSavedTitle": "ジャーナルに自動保存しました",
-    "autoSavedDescription": "この食事を最近のエントリーに保存しました。いつでも確認・編集できます。",
-    "viewMeal": "食事を表示",
-    "saveAsNewEntry": "新しいエントリーとして保存",
-    "analyzingSubtitle": "This may take a few seconds",
-    "processing": "Processing your meal...",
-    "processingSubtitle": "Identifying ingredients and matching nutrition data...",
-    "fixButton": "Fix",
-    "reanalyze": "Re-analyze",
-    "shareButton": "Share",
-    "reanalyzedSuccess": "Analysis recalculated successfully",
-    "reanalyzeError": "Failed to recalculate analysis. Please try again.",
-    "noAnalysisId": "Analysis ID not found",
-    "errorTitle": "Analysis Error",
-    "errorMessage": "We couldn't analyze your meal. Please try again.",
-    "timeoutTitle": "Analysis Timeout",
-    "timeoutMessage": "The analysis is taking longer than expected. Please try again.",
-    "savedTitle": "Saved",
-    "savedMessage": "Meal saved to your journal",
-    "saveError": "Failed to save meal. Please try again.",
-    "noDataToSave": "No analysis data to save",
-    "needsReviewTitle": "Review Required",
-    "needsReviewMessage": "We're not fully confident about this analysis. Please double-check and edit the values.",
-    "noNutritionData": "No nutrition data",
-    "warning": {
-      "suspiciousTitle": "Analysis may be inaccurate",
-      "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
-      "needsReview": "Nutrition data unavailable"
-    },
-    "reanalyzeConfirmTitle": "Re-analyze dish?",
-    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ."
-  },
-  "healthScore": {
-    "title": "ヘルススコア",
-    "qualityFactors": "品質指標",
-    "macroBalance": "マクロバランス",
-    "proteinQuality": "たんぱく質の質",
-    "feedback": "フィードバック",
-    "factors": {
-      "protein": "たんぱく質",
-      "fiber": "食物繊維",
-      "satFat": "飽和脂肪",
-      "sugar": "糖質",
-      "energyDensity": "エネルギー密度",
-      "macroBalance": "マクロバランス",
-      "calorieDensity": "カロリー密度",
-      "proteinQuality": "たんぱく質の質",
-      "processingLevel": "加工レベル",
-      "saturatedFat": "Saturated fat",
-      "sugars": "Free sugars"
-    },
-    "feedbackMessages": {
-      "celebrate": "素晴らしいです！この食事はバランスが取れています。",
-      "increase": "{{factor}}を増やしてスコアを改善しましょう。",
-      "reduce": "{{factor}}を減らしてスコアを改善しましょう。",
-      "monitor": "{{factor}}に注意を払いましょう。"
-    },
-    "subtitle": "We estimate how balanced this meal is based on macros and energy density.",
-    "level": {
-      "poor": "Needs improvement",
-      "average": "Okay, but could be better",
-      "good": "Good choice",
-      "excellent": "Excellent choice"
-    },
-    "factorLevel": {
-      "good": "Good",
-      "ok": "Okay",
-      "bad": "Needs attention"
-    }
-  },
-  "profile": {
-    "title": "プロフィール",
-    "welcomeBack": "お帰りなさい",
-    "defaultName": "ゲスト",
-    "editProfile": "プロフィールを編集",
-    "details": "プロフィール詳細",
-    "firstName": "名",
-    "lastName": "姓",
-    "email": "メールアドレス",
-    "height": "身長 (cm)",
-    "weight": "体重 (kg)",
-    "age": "年齢",
-    "dailyCalories": "1日のカロリー",
-    "metricWeight": "体重",
-    "metricHeight": "身長",
-    "metricAge": "年齢",
-    "metricCalories": "カロリー/日",
-    "preferences": "設定",
-    "language": "言語",
-    "theme": "テーマ",
-    "lightMode": "ライトテーマ",
-    "darkModeSubtitle": "ダークテーマ",
-    "systemTheme": "システムに合わせる",
-    "notifications": "通知",
-    "notificationsInfo": "通知設定は近日追加予定です。",
-    "notificationsDailyTitle": "毎日のリマインダー",
-    "notificationsDailyDescription": "毎日{{time}}にお知らせします。",
-    "notificationsDailyDisabled": "リマインダーを有効にして記録を忘れないようにしましょう。",
-    "notificationsChangeTime": "時間を変更（現在 {{time}}）",
-    "notificationsErrorTitle": "更新に失敗しました",
-    "notificationsErrorMessage": "通知設定を更新できませんでした。もう一度お試しください。",
-    "savedTitle": "プロフィールを保存しました",
-    "savedMessage": "プロフィールが正常に更新されました。",
-    "errorTitle": "エラー",
-    "errorMessage": "プロフィールを更新できませんでした。後でもう一度お試しください。",
-    "errors": {
-      "invalidEmail": "Please enter a valid email address.",
-      "updateFailed": "Could not update profile. Please try again."
-    },
-    "deleteAccount": "Delete Account",
-    "deleteAccountTitle": "Delete Account",
-    "deleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
-    "deleteAccountConfirm": "Delete",
-    "deleteAccountCancel": "Cancel",
-    "deleteAccountSuccess": "Account deleted successfully",
-    "deleteAccountError": "Failed to delete account. Please try again.",
-    "monthlyReportTitle": "Monthly nutrition report",
-    "monthlyReportSubtitle": "Download a detailed report about your eating habits for the last month",
-    "monthlyReportDownloaded": "Report downloaded successfully",
-    "monthlyReportError": "Failed to download monthly report. Please try again later.",
-    "goalsTitle": "Goals & diet",
-    "goalLabel": "Goal",
-    "goalLoseWeight": "Lose weight",
-    "goalMaintainWeight": "Maintain weight",
-    "goalGainMuscle": "Gain muscle",
-    "dietLabel": "Diet type",
-    "dietBalanced": "Balanced",
-    "dietHighProtein": "High protein",
-    "dietLowCarb": "Low carb",
-    "dietMediterranean": "Mediterranean",
-    "dietPlantBased": "Plant-based",
-    "choosePlan": "Choose a plan",
-    "selectPlan": "Select Plan",
-    "subscriptionTitle": "Subscription",
-    "changePlan": "Change plan",
-    "billingAnnual": "Billed annually",
-    "billingMonthly": "Billed monthly",
-    "billingFree": "Free forever",
-    "planFreeName": "EatSense Free",
-    "planProName": "EatSense Pro",
-    "planFreePrice": "Free",
-    "planMonthlyPrice": "{{price}} / month",
-    "planAnnualPrice": "{{price}} / year",
-    "planFreeDescription": "Start tracking meals with essential features.",
-    "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
-    "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
-    "planFeatures": {
-      "limitedAnalyses": "Up to 3 AI analyses per day",
-      "calorieTracking": "Calorie tracking",
-      "basicStats": "Basic statistics",
-      "unlimitedAnalyses": "Unlimited AI food analysis",
-      "advancedInsights": "Advanced nutrition insights",
-      "coachingTips": "Personalized coaching tips",
-      "everythingInProMonthly": "Everything in Pro Monthly",
-      "annualWebinars": "Exclusive annual webinars",
-      "earlyAccess": "Early access to new features"
-    },
-    "planBadges": {
-      "included": "Included",
-      "mostPopular": "Most popular",
-      "save33": "Save 33%"
-    },
-    "currentPlan": "Current plan",
-    "policy": "Privacy Policy",
-    "politics": "Data Processing Policy",
-    "termsOfService": "Terms of Service",
-    "advanced": "Advanced Health Parameters",
-    "noData": "No data",
-    "policyError": "Failed to open policy",
-    "termsError": "Failed to open terms",
-    "health": {
-      "metabolic": "Metabolic Parameters",
-      "sleep": "Sleep & Circadian Rhythms",
-      "eatingBehavior": "Eating Behavior",
-      "glp1Module": "GLP-1 Module",
-      "healthFocus": "Health Focus Areas",
-      "bodyFatPercent": "Body Fat %",
-      "waistCm": "Waist Circumference",
-      "hipCm": "Hip Circumference",
-      "whr": "WHR (Waist / Hip)",
-      "auto": "auto",
-      "fatDistributionType": "Fat Distribution Type",
-      "fatDistribution": {
-        "visceral": "Visceral",
-        "gynoid": "Gynoid",
-        "mixed": "Mixed"
-      },
-      "mealsPerDay": "Meals per Day",
-      "snackingTendency": "Snacking Tendency",
-      "snacking": {
-        "low": "Low",
-        "medium": "Medium",
-        "high": "High"
-      },
-      "eveningAppetite": "Evening Appetite",
-      "sleepHours": "Sleep (hours)",
-      "chronotype": "Chronotype",
-      "chronotypeOptions": {
-        "early": "Early",
-        "mid": "Mid",
-        "late": "Late"
-      },
-      "isGlp1User": "GLP-1 User",
-      "drugType": "Drug Type",
-      "therapyGoal": "Therapy Goal",
-      "therapyGoalOptions": {
-        "preserve_muscle": "Preserve Muscle",
-        "appetite_control": "Appetite Control",
-        "weight_maintenance": "Weight Maintenance",
-        "slow_weight_loss": "Slow Weight Loss"
-      },
-      "focus": {
-        "sugarControl": "Sugar Control",
-        "cholesterol": "Cholesterol",
-        "inflammation": "Inflammation",
-        "iron": "Iron",
-        "microbiome": "Microbiome",
-        "hormonalBalance": "Hormonal Balance"
-      }
-    }
-  },
-  "gallery": {
-    "title": "写真を選択",
-    "loadingGallery": "ギャラリーを読み込み中...",
-    "permissionRequired": "ギャラリーへのアクセスが必要です",
-    "permissionText": "食事の写真を選択するには、デバイスの設定でフォトライブラリへのアクセスを有効にしてください。",
-    "goBack": "戻る",
-    "requestingPermission": "ギャラリーの権限をリクエスト中...",
-    "accessDenied": "ギャラリーアクセス",
-    "accessDeniedText": "写真を選択するには、ギャラリーへのアクセスを許可する必要があります。設定を開き、写真へのアクセスを許可してください。",
-    "settings": "設定",
-    "error": "画像の読み込みに失敗しました。もう一度お試しください。"
-  },
-  "camera": {
-    "requestingPermission": "カメラの許可をリクエストしています...",
-    "accessTitle": "カメラへのアクセスが必要です",
-    "accessBody": "設定でカメラアクセスを有効にして食事を撮影してください。",
-    "requestPermission": "アクセスを許可",
-    "takePhoto": "食事を撮影",
-    "flashModeOff": "フラッシュオフ",
-    "flashModeOn": "フラッシュオン",
-    "flashModeAuto": "フラッシュ自動",
-    "switchCamera": "カメラを切り替え",
-    "zoomLabel": "ズーム {{value}}倍",
-    "captureError": "写真を撮影できませんでした。もう一度お試しください。",
-    "typeInstead": "Type instead"
-  },
-  "editFood": {
-    "title": "食材を編集",
-    "subtitle": "変更を加えて保存",
-    "name": "名前",
-    "namePlaceholder": "製品名",
-    "weight": "重量（g）",
-    "weightHint": "分量",
-    "macronutrients": "マクロ栄養素",
-    "protein": "タンパク質",
-    "carbs": "炭水化物",
-    "fat": "脂肪",
-    "calories": "カロリー（kcal）",
-    "calculate": "計算: {{value}}",
-    "calculatedAuto": "マクロ栄養素から自動計算"
-  },
-  "auth": {
-    "email": "メールアドレス",
-    "emailPlaceholder": "メールアドレスを入力",
-    "otpCode": "確認コード",
-    "otpPlaceholder": "6桁のコードを入力",
-    "requestOtp": "コードをリクエスト",
-    "verify": "確認",
-    "magicLink": "マジックリンクを送信",
-    "signIn": "ログイン",
-    "signUp": "登録",
-    "welcomeTitle": "EatSenseへようこそ",
-    "welcomeSubtitle": "ログインして栄養を記録し、目標を達成しましょう。",
-    "emailLabel": "メールアドレス",
-    "signInWithOtp": "メールコードでログイン",
-    "signInWithMagicLink": "マジックリンクでログイン",
-    "otpScreenTitle": "確認コードを入力",
-    "otpScreenSubtitle": "6桁のコードを {{email}} に送信しました",
-    "verifyCode": "コードを確認",
-    "resendCode": "新しいコードを送信",
-    "magicLinkTitle": "メールを確認してください",
-    "magicLinkSubtitle": "次の宛先にリンクを送りました",
-    "magicLinkDescription": "メールのリンクを開くとログインできます。リンクは15分間有効です。",
-    "magicLinkResend": "リンクを再送",
-    "sendCode": "コードを送信",
-    "changeEmail": "別のメールアドレスを使う",
-    "resendIn": "{{seconds}}秒後に再送",
-    "codeExpiresIn": "コードは{{seconds}}秒後に失効します",
-    "messages": {
-      "codeSent": "{{email}}で6桁のコードを確認してください。",
-      "codeResent": "{{email}}に新しいコードを送信しました。",
-      "signedIn": "ログインしました。"
-    },
-    "errors": {
-      "invalidEmail": "有効なメールアドレスを入力してください。",
-      "sendFailed": "コードを送信できませんでした。もう一度お試しください。",
-      "resendFailed": "コードを再送できませんでした。しばらくしてからお試しください。",
-      "verifyFailed": "コードを確認できませんでした。もう一度お試しください。",
-      "invalidCode": "コードが正しくありません。",
-      "expiredCode": "コードの有効期限が切れました。新しいコードを取得してください。",
-      "rateLimited": "試行回数が多すぎます。{{seconds}}秒後に再度お試しください。",
-      "codeLength": "メールで受け取った6桁のコードを入力してください。"
-    },
-    "signInWithApple": "Sign Up With Apple",
-    "continueWithGoogle": "Continue With Google",
-    "signUpWithEmail": "Sign Up With E-mail",
-    "termsAcceptance": "By continuing, I accept the Terms and Conditions."
-  },
-  "onboarding": {
-    "welcome": "EatSenseへようこそ",
-    "getStarted": "始める",
-    "personalInfo": "個人情報",
-    "physicalInfo": "身体情報",
-    "activityLevel": "活動レベル",
-    "goals": "目標",
-    "plan": "プランを選択"
-  },
-  "tabs": {
-    "dashboard": "ホーム",
-    "articles": "記事",
-    "recently": "最近",
-    "profile": "プロフィール",
-    "experts": "Experts",
-    "reports": "Reports",
-    "medications": "Medications"
-  },
-  "terms": {
-    "title": "利用規約",
-    "lastUpdated": "最終更新",
-    "intro": "EatSenseを使用する前に、これらの利用規約を注意深くお読みください。",
-    "sections": {
-      "acceptance": {
-        "title": "1. 規約の受諾",
-        "content": "EatSenseを使用することで、これらの利用規約に同意したものとみなされます。これらの規約に同意しない場合は、アプリケーションを使用しないでください。"
-      },
-      "description": {
-        "title": "2. サービスの説明",
-        "content": "EatSenseは、人工知能を使用した栄養追跡、食品分析、および個別化された栄養推奨のためのツールを提供します。"
-      },
-      "registration": {
-        "title": "3. 登録とアカウント",
-        "content": "アカウントの認証情報の機密性を維持する責任があります。アカウントの不正使用を即座に通知することに同意します。"
-      },
-      "userContent": {
-        "title": "4. ユーザーコンテンツ",
-        "content": "アップロードするコンテンツの所有権を保持します。コンテンツをアップロードすることで、サービスを提供し、アプリケーションを改善するために使用するライセンスを付与します。"
-      },
-      "prohibited": {
-        "title": "5. 禁止される使用",
-        "content": "サービスを違法な目的、他者への危害、または法律や規制の違反に使用することはできません。"
-      },
-      "intellectual": {
-        "title": "6. 知的財産",
-        "content": "EatSenseのすべてのコンテンツ、機能、機能性は当社の所有物であり、著作権法およびその他の知的財産法によって保護されています。"
-      },
-      "limitation": {
-        "title": "7. 責任の制限",
-        "content": "EatSenseは「現状のまま」保証なしで提供されます。アプリケーションの使用に起因する損害について責任を負いません。"
-      },
-      "changes": {
-        "title": "8. 規約の変更",
-        "content": "これらの規約をいつでも変更する権利を留保します。変更後のアプリケーションの継続使用は、新しい規約の受諾を意味します。"
-      },
-      "contact": {
-        "title": "9. お問い合わせ",
-        "content": "これらの利用規約に関する質問については、以下にお問い合わせください：legal@eatsense.ch"
-      }
-    }
-  },
-  "privacy": {
-    "title": "プライバシーポリシー",
-    "lastUpdated": "最終更新",
-    "intro": "EatSenseはお客様のプライバシーを大切にしています。このポリシーは、お客様の情報をどのように収集、使用、保護するかを説明しています。",
-    "sections": {
-      "collection": {
-        "title": "1. 情報の収集",
-        "content": "登録時およびアプリ使用時に提供される情報を収集します。これには個人データ、栄養情報、食品写真が含まれます。"
-      },
-      "usage": {
-        "title": "2. 情報の使用",
-        "content": "お客様の情報は、個別化された栄養推奨、食品分析、およびアプリケーションの改善を提供するために使用されます。"
-      },
-      "protection": {
-        "title": "3. データ保護",
-        "content": "最新の暗号化および安全なデータ保存方法を使用して、お客様の個人情報を保護します。"
-      },
-      "sharing": {
-        "title": "4. データの共有",
-        "content": "お客様の個人情報を販売することはありません。サービスを改善するために、匿名化されたデータをパートナーと共有する場合があります。"
-      },
-      "changes": {
-        "title": "5. この方針の変更",
-        "content": "本プライバシーポリシーに重要な変更がある場合は、施行前にアプリやメールで事前にお知らせします。"
-      },
-      "cookies": {
-        "title": "6. クッキーとトラッキング",
-        "content": "設定の記憶、パフォーマンス測定、体験向上のためにクッキーなどの技術を使用します。クッキーは端末の設定で管理できます。"
-      },
-      "children": {
-        "title": "7. 子どものプライバシー",
-        "content": "EatSenseは13歳未満のお子様を対象としていません。お子様のデータを意図的に収集せず、保有が判明した場合は速やかに削除します。"
-      },
-      "rights": {
-        "title": "8. お客様の権利",
-        "content": "地域によって、データへのアクセス、更新、削除、処理制限を要求する権利があります。これらの権利を行使するにはご連絡ください。"
-      },
-      "choices": {
-        "title": "9. 選択肢",
-        "content": "アプリの設定でプライバシー設定を管理できます。いつでもデータのコピーや削除をリクエストできます。"
-      },
-      "contact": {
-        "title": "10. お問い合わせ",
-        "content": "プライバシーに関するお問い合わせ: privacy@eatsense.ch"
-      }
-    }
-  },
-  "analysisFlow": {
-    "uploadPhoto": "写真をアップロード",
-    "takePhoto": "写真を撮る",
-    "describeMeal": "食事を説明する",
-    "describeMealPlaceholder": "食材や分量などの詳細を追加してください",
-    "analyze": "分析する",
-    "recentResults": "最近の結果",
-    "viewDetails": "詳細を見る"
-  },
   "aiAssistant": {
-    "title": "AI栄養アシスタント",
-    "subtitle": "栄養や食事、ウェルネスについて質問してください",
-    "placeholder": "質問を入力してください...",
-    "send": "送信",
-    "stop": "停止",
-    "typing": "アシスタントが入力しています...",
-    "welcome": "こんにちは！私はあなたのAI栄養アシスタントです。今日はどのようにお手伝いできますか？",
+    "attach": {
+      "error": "Failed to pick file",
+      "file": "Choose File (PDF)",
+      "photo": "Choose Photo",
+      "title": "Attach File"
+    },
     "emptyState": "AIアシスタントとの会話を始めましょう",
     "error": "申し訳ございませんが、エラーが発生しました。後でもう一度お試しください。",
-    "quickActions": "クイックアクション",
-    "unavailable": "AIアシスタントは一時的に利用できません",
-    "unavailableDescription": "アプリの最初のバージョンをテストしています。アシスタント機能は一時的に無効になっていますが、他のすべては機能しています。",
-    "suggestions": {
-      "mealIdeas": "健康的な食事アイデア",
-      "dietPlan": "食事プランを立てる",
-      "calorieAdvice": "カロリーのアドバイス"
+    "healthAnalysis": {
+      "addPhoto": "Add Photo",
+      "analyzing": "Analyzing photo...",
+      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
+      "empty": "Paste your health information or lab results below to analyze",
+      "error": "Failed to analyze photo. Please try again.",
+      "keyFindings": "Key Findings",
+      "metrics": "Metrics",
+      "photoResultTitle": "Analyzed: {{dish}}",
+      "placeholder": "Paste your health information or lab results here...",
+      "recommendation": "Recommendations",
+      "selectPhoto": "Select a photo to analyze",
+      "summary": "Summary"
     },
     "inputPlaceholder": "Type your question...",
-    "quotaExceeded": "AI Assistant quota exceeded. The service is temporarily unavailable. Please try again later.",
-    "attach": {
-      "title": "Attach File",
-      "photo": "Choose Photo",
-      "file": "Choose File (PDF)",
-      "error": "Failed to pick file"
-    },
     "lab": {
-      "title": "Lab Results Analysis",
-      "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
-      "mode": {
-        "text": "Text",
-        "file": "PDF file"
-      },
-      "textLabel": "Lab results (text)",
-      "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
-      "fileLabel": "PDF report",
-      "attachPdf": "Attach PDF",
-      "fileHint": "Attach a PDF file with your lab report.",
       "analyzeButton": "Analyze",
-      "resultTitle": "AI Interpretation",
+      "attachPdf": "Attach PDF",
+      "attachPhoto": "Attach Photo",
+      "disclaimer": "This is not a medical diagnosis. Consult a healthcare professional for medical decisions.",
+      "emptyError": "Please enter lab results or attach a file",
+      "error": "Failed to send results. Please try again.",
       "errors": {
         "emptyText": "Please enter lab results text first.",
-        "noFile": "Please attach a PDF file first.",
-        "filePickFailed": "Failed to pick a file.",
         "fileNotSupported": "File-based analysis is not yet configured. Please use text mode.",
+        "filePickFailed": "Failed to pick a file.",
         "generic": "Failed to analyze lab results. Please try again.",
+        "noFile": "Please attach a PDF file first.",
         "noSummary": "The AI did not return a summary. Please try again."
       },
-      "typeTitle": "Type of analysis",
-      "type": {
-        "auto": "Auto-detect",
-        "cbc": "Complete Blood Count (CBC)",
-        "biochemistry": "Blood Biochemistry",
-        "lipid": "Lipid Profile",
-        "glycemic": "Glycemic Profile",
-        "vitamins": "Vitamins and Trace Elements",
-        "hormones": "Hormonal Profile",
-        "hormonal": "Hormonal Profile",
-        "inflammation": "Inflammation Markers",
-        "other": "Other"
-      },
-      "attachPhoto": "Attach Photo",
-      "manualTitle": "Manual Entry",
+      "fileHint": "Attach a PDF file with your lab report.",
+      "fileLabel": "PDF report",
       "manualPlaceholder": "Enter your lab results here...",
+      "manualTitle": "Manual Entry",
+      "mode": {
+        "file": "PDF file",
+        "text": "Text"
+      },
+      "pdfAttached": "PDF attached",
+      "photoAttached": "Photo attached",
+      "resultTitle": "AI Interpretation",
       "submit": "Submit",
       "submitted": "Lab results submitted successfully",
+      "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
       "success": "Lab results analyzed successfully",
-      "error": "Failed to send results. Please try again.",
-      "emptyError": "Please enter lab results or attach a file"
+      "textLabel": "Lab results (text)",
+      "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
+      "title": "Lab Results Analysis",
+      "type": {
+        "auto": "Auto-detect",
+        "biochemistry": "Blood Biochemistry",
+        "cbc": "Complete Blood Count (CBC)",
+        "glycemic": "Glycemic Profile",
+        "hormonal": "Hormonal Profile",
+        "hormones": "Hormonal Profile",
+        "inflammation": "Inflammation Markers",
+        "lipid": "Lipid Profile",
+        "other": "Other",
+        "vitamins": "Vitamins and Trace Elements"
+      },
+      "typeTitle": "Type of analysis"
+    },
+    "placeholder": "質問を入力してください...",
+    "quickActions": "クイックアクション",
+    "quotaExceeded": "AI Assistant quota exceeded. The service is temporarily unavailable. Please try again later.",
+    "send": "送信",
+    "stop": "停止",
+    "subtitle": "栄養や食事、ウェルネスについて質問してください",
+    "suggestions": {
+      "calorieAdvice": "カロリーのアドバイス",
+      "dietPlan": "食事プランを立てる",
+      "mealIdeas": "健康的な食事アイデア"
     },
     "tabs": {
       "chat": "Chat",
       "healthAnalysis": "Health Analysis"
     },
-    "healthAnalysis": {
-      "empty": "Paste your health information or lab results below to analyze",
-      "summary": "Summary",
-      "keyFindings": "Key Findings",
-      "metrics": "Metrics",
-      "recommendation": "Recommendations",
-      "placeholder": "Paste your health information or lab results here...",
-      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
-      "addPhoto": "Add Photo",
-      "selectPhoto": "Select a photo to analyze",
-      "analyzing": "Analyzing photo...",
-      "photoResultTitle": "Analyzed: {{dish}}",
-      "error": "Failed to analyze photo. Please try again."
+    "title": "AI栄養アシスタント",
+    "typing": "アシスタントが入力しています...",
+    "unavailable": "AIアシスタントは一時的に利用できません",
+    "unavailableDescription": "アプリの最初のバージョンをテストしています。アシスタント機能は一時的に無効になっていますが、他のすべては機能しています。",
+    "welcome": "こんにちは！私はあなたのAI栄養アシスタントです。今日はどのようにお手伝いできますか？"
+  },
+  "analysis": {
+    "addIngredient": "Add ingredient",
+    "analyzing": "料理を分析中...",
+    "analyzingStep": "分析中",
+    "analyzingSubtitle": "This may take a few seconds",
+    "askAi": "Ask AI",
+    "askButton": "Ask AI",
+    "autoSavedDescription": "この食事を最近のエントリーに保存しました。いつでも確認・編集できます。",
+    "autoSavedTitle": "ジャーナルに自動保存しました",
+    "calculating": "計算中",
+    "calories": "カロリー",
+    "carbsShort": "C",
+    "errorMessage": "We couldn't analyze your meal. Please try again.",
+    "errorTitle": "Analysis Error",
+    "fatShort": "F",
+    "fix": "Fix",
+    "fixButton": "Fix",
+    "fixConfirm": "Fix",
+    "fixError": "Failed to fix analysis. Please try again.",
+    "fixMessage": "AI will analyze this dish again more carefully to remove any discrepancies or errors.",
+    "fixSuccess": "Analysis updated with more accurate results",
+    "fixTitle": "Fix Result",
+    "fixWithAi": "Fix with AI",
+    "fixWithAiHint": "Tap to ask AI to fix or improve this analysis",
+    "grams": "g",
+    "healthScore": "Health Score",
+    "ingredients": "食材",
+    "kcal": "kcal",
+    "needsReviewMessage": "We're not fully confident about this analysis. Please double-check and edit the values.",
+    "needsReviewTitle": "Review Required",
+    "noAnalysisId": "Analysis ID not found",
+    "noDataToSave": "No analysis data to save",
+    "noIngredients": "No ingredients recognized",
+    "noNutritionData": "No nutrition data",
+    "processing": "Processing your meal...",
+    "processingSubtitle": "Identifying ingredients and matching nutrition data...",
+    "proteinShort": "P",
+    "reanalyze": "Re-analyze",
+    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ.",
+    "reanalyzeConfirmTitle": "Re-analyze dish?",
+    "reanalyzeError": "Failed to recalculate analysis. Please try again.",
+    "reanalyzedSuccess": "Analysis recalculated successfully",
+    "saveAsNewEntry": "新しいエントリーとして保存",
+    "saveError": "Failed to save meal. Please try again.",
+    "saveToJournal": "ジャーナルに保存",
+    "savedMessage": "Meal saved to your journal",
+    "savedTitle": "Saved",
+    "share": "共有",
+    "shareButton": "Share",
+    "subtitle": "AIが食材とカロリーを識別しています",
+    "timeoutMessage": "The analysis is taking longer than expected. Please try again.",
+    "timeoutTitle": "Analysis Timeout",
+    "title": "分析完了",
+    "totalNutrition": "総栄養",
+    "uploaded": "アップロード済み",
+    "viewMeal": "食事を表示",
+    "warning": {
+      "needsReview": "Nutrition data unavailable",
+      "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
+      "suspiciousTitle": "Analysis may be inaccurate"
     }
   },
+  "analysisFlow": {
+    "analyze": "分析する",
+    "describeMeal": "食事を説明する",
+    "describeMealPlaceholder": "食材や分量などの詳細を追加してください",
+    "recentResults": "最近の結果",
+    "takePhoto": "写真を撮る",
+    "uploadPhoto": "写真をアップロード",
+    "viewDetails": "詳細を見る"
+  },
+  "articles": {
+    "allArticles": "すべての記事",
+    "article": "記事",
+    "browseByTag": "タグで探す",
+    "clearTag": "クリア",
+    "comingSoon": "近日中に新しい記事が追加されます",
+    "errorLoading": "記事を読み込めませんでした。もう一度お試しください。",
+    "featured": "注目",
+    "featuredBadge": "注目",
+    "found": "検索結果: {{count}}",
+    "loading": "記事を読み込み中...",
+    "loadingTag": "「{{tag}}」の記事を読み込み中...",
+    "noArticles": "該当する記事が見つかりません",
+    "openSource": "元の記事を見る",
+    "quickRead": "サクッと読む",
+    "readingTime": "読了時間 約{{minutes}}分",
+    "retry": "再試行",
+    "searchPlaceholder": "記事を検索...",
+    "searchResultCount": "{{count}} 件ヒット",
+    "searching": "検索中...",
+    "tagResultCount": "「{{tag}}」の記事 {{count}} 件",
+    "title": "記事",
+    "updatedRecently": "最近更新されました"
+  },
   "assistant": {
-    "title": "AIコーチ",
+    "cancel": "キャンセル",
     "chooseFlow": "フローを選択",
-    "recentAdvice": "最近の提案",
+    "done": "完了",
+    "flow": {
+      "hydration": {
+        "desc": "日々の水分摂取を見直してプランを作成。",
+        "title": "水分チェック"
+      },
+      "injury": {
+        "desc": "症状を整理して次のステップを確認。",
+        "title": "ケガのトリアージ"
+      },
+      "nutrition": {
+        "desc": "目標・課題・リソースを明確に。",
+        "title": "栄養目標セットアップ"
+      }
+    },
     "historyEmpty": "保存された提案はまだありません。",
     "inputPlaceholder": "回答を入力してください...",
     "next": "次へ",
-    "cancel": "キャンセル",
+    "recentAdvice": "最近の提案",
     "summaryTitle": "パーソナルプラン",
+    "title": "AIコーチ"
+  },
+  "auth": {
+    "changeEmail": "別のメールアドレスを使う",
+    "codeExpiresIn": "コードは{{seconds}}秒後に失効します",
+    "continueWithGoogle": "Continue With Google",
+    "email": "メールアドレス",
+    "emailLabel": "メールアドレス",
+    "emailPlaceholder": "メールアドレスを入力",
+    "errors": {
+      "codeLength": "メールで受け取った6桁のコードを入力してください。",
+      "expiredCode": "コードの有効期限が切れました。新しいコードを取得してください。",
+      "invalidCode": "コードが正しくありません。",
+      "invalidEmail": "有効なメールアドレスを入力してください。",
+      "rateLimited": "試行回数が多すぎます。{{seconds}}秒後に再度お試しください。",
+      "resendFailed": "コードを再送できませんでした。しばらくしてからお試しください。",
+      "sendFailed": "コードを送信できませんでした。もう一度お試しください。",
+      "verifyFailed": "コードを確認できませんでした。もう一度お試しください。"
+    },
+    "magicLink": "マジックリンクを送信",
+    "magicLinkDescription": "メールのリンクを開くとログインできます。リンクは15分間有効です。",
+    "magicLinkResend": "リンクを再送",
+    "magicLinkSubtitle": "次の宛先にリンクを送りました",
+    "magicLinkTitle": "メールを確認してください",
+    "messages": {
+      "codeResent": "{{email}}に新しいコードを送信しました。",
+      "codeSent": "{{email}}で6桁のコードを確認してください。",
+      "signedIn": "ログインしました。"
+    },
+    "otpCode": "確認コード",
+    "otpPlaceholder": "6桁のコードを入力",
+    "otpScreenSubtitle": "6桁のコードを {{email}} に送信しました",
+    "otpScreenTitle": "確認コードを入力",
+    "requestOtp": "コードをリクエスト",
+    "resendCode": "新しいコードを送信",
+    "resendIn": "{{seconds}}秒後に再送",
+    "sendCode": "コードを送信",
+    "signIn": "ログイン",
+    "signInWithApple": "Sign Up With Apple",
+    "signInWithMagicLink": "マジックリンクでログイン",
+    "signInWithOtp": "メールコードでログイン",
+    "signUp": "登録",
+    "signUpWithEmail": "Sign Up With E-mail",
+    "termsAcceptance": "By continuing, I accept the Terms and Conditions.",
+    "verify": "確認",
+    "verifyCode": "コードを確認",
+    "welcomeSubtitle": "ログインして栄養を記録し、目標を達成しましょう。",
+    "welcomeTitle": "EatSenseへようこそ"
+  },
+  "camera": {
+    "accessBody": "設定でカメラアクセスを有効にして食事を撮影してください。",
+    "accessTitle": "カメラへのアクセスが必要です",
+    "captureError": "写真を撮影できませんでした。もう一度お試しください。",
+    "flashModeAuto": "フラッシュ自動",
+    "flashModeOff": "フラッシュオフ",
+    "flashModeOn": "フラッシュオン",
+    "requestPermission": "アクセスを許可",
+    "requestingPermission": "カメラの許可をリクエストしています...",
+    "switchCamera": "カメラを切り替え",
+    "takePhoto": "食事を撮影",
+    "typeInstead": "Type instead",
+    "zoomLabel": "ズーム {{value}}倍"
+  },
+  "carcinogenicRisk": {
+    "highRiskItems": "Items to keep in moderation",
+    "level": {
+      "high": "Elevated",
+      "low": "Low",
+      "moderate": "Moderate",
+      "none": "No significant factors"
+    },
+    "title": "Long-term risk factors"
+  },
+  "chat": {
+    "daysRemaining": "days remaining",
+    "consultationEnded": "Consultation ended",
+    "shareMeals": "Share Meals",
+    "shareMealsConfirm": "Share your meals from the last 7 days?",
+    "startConversation": "Start the conversation!",
+    "typePlaceholder": "Type a message..."
+  },
+  "common": {
+    "all": "All",
+    "back": "戻る",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "confirm": "Confirm",
+    "days": "days",
+    "delete": "削除",
     "done": "完了",
-    "flow": {
-      "injury": {
-        "title": "ケガのトリアージ",
-        "desc": "症状を整理して次のステップを確認。"
-      },
-      "nutrition": {
-        "title": "栄養目標セットアップ",
-        "desc": "目標・課題・リソースを明確に。"
-      },
-      "hydration": {
-        "title": "水分チェック",
-        "desc": "日々の水分摂取を見直してプランを作成。"
-      }
-    }
+    "edit": "編集",
+    "error": "エラー",
+    "info": "Info",
+    "loading": "読み込み中...",
+    "next": "次へ",
+    "no": "No",
+    "of": "of",
+    "ok": "OK",
+    "rerun": "Rerun",
+    "retry": "再試行",
+    "save": "保存",
+    "search": "検索",
+    "skip": "スキップ",
+    "success": "成功",
+    "viewAll": "すべて表示",
+    "yes": "Yes"
   },
-  "recently": {
-    "title": "最近",
-    "subtitle": "最近の食事と分析",
-    "noItems": "最近のアイテムはありません。食事の分析から始めましょう！",
-    "today": "今日",
-    "yesterday": "昨日",
-    "daysAgo_one": "{{count}}日前",
-    "daysAgo_other": "{{count}}日前",
-    "empty": {
-      "title": "最近のアイテムはありません",
-      "subtitle": "最初の食事を分析してみましょう",
-      "cta": "食事を分析する"
+  "dashboard": {
+    "addFood": {
+      "camera": {
+        "description": "カメラで食事を撮影しましょう",
+        "title": "写真を撮る"
+      },
+      "gallery": {
+        "description": "ギャラリーから写真を選びましょう",
+        "title": "ギャラリーから選択"
+      },
+      "manual": {
+        "description": "Add a meal without a photo or upload lab results",
+        "title": "Enter manually"
+      },
+      "subtitle": "食事を追加する方法を選択してください",
+      "title": "食事を追加"
     },
-    "nutrition": {
-      "calories": "カロリー",
-      "protein": "たんぱく質",
-      "carbs": "炭水化物",
-      "fat": "脂質"
+    "aiAssistant": "AIアシスタント",
+    "aiAssistantSubtitle": "個別の栄養アドバイスを取得",
+    "analysisCounter": {
+      "today": "Today",
+      "total": "Total"
     },
-    "healthScoreLabel": "スコア {{score}}"
-  },
-  "meals": {
-    "title": "食事",
-    "empty": "記録された食事はまだありません。",
-    "addMeal": "食事を追加",
-    "mealDetails": "食事の詳細"
+    "articles": "記事",
+    "calories": "カロリー",
+    "caloriesUnit": "kcal",
+    "carbs": "炭水化物",
+    "diary": {
+      "analyzing": "Analyzing...",
+      "analyzingHint": "This may take 10-30 seconds",
+      "failed": "Analysis failed",
+      "failedHint": "Tap to retry",
+      "needsReview": "Needs review",
+      "needsReviewHint": "Could not calculate nutrition"
+    },
+    "fat": "脂肪",
+    "healthScoreSubtitle": "カードをタップすると「最近」から詳しい分析を開けます。",
+    "healthScoreTitle": "{{meal}} のヘルススコア",
+    "manualAnalysis": {
+      "subtitle": "Manually enter meal data or upload lab results",
+      "title": "Insert your own analysis"
+    },
+    "mealFallback": "食事",
+    "mealTypes": {
+      "breakfast": "朝食",
+      "dinner": "夕食",
+      "lunch": "昼食"
+    },
+    "monthlyStats": {
+      "empty": "まだ食事が記録されていません。記録すると傾向が表示されます。",
+      "foodMeta": "{{count}}件 • 合計 {{calories}} kcal",
+      "loading": "データを集計しています...",
+      "mealDistribution": "食事タイプの内訳",
+      "mealMeta": "{{count}}回 • {{calories}} kcal",
+      "title": "月間ハイライト",
+      "topFoods": "よく食べる食品",
+      "viewFullInsights": "View full insights"
+    },
+    "ofGoal": "目標 {{goal}} の",
+    "overGoal": "over goal",
+    "protein": "タンパク質",
+    "quickStats": "クイック統計",
+    "recent": "最近",
+    "recentEmptySubtitle": "食事の写真を撮って分析を始めましょう",
+    "recentEmptyTitle": "最近のアイテムはありません",
+    "recentMacroSummary": "{{calories}} kcal • たんぱく質 {{protein}} • 炭水化物 {{carbs}} • 脂質 {{fat}}",
+    "specialists": {
+      "description": "In the future, you'll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.",
+      "gotIt": "Got it",
+      "shortDescription": "Talk to a real nutrition expert (coming soon)",
+      "title": "Talk to a real nutrition expert (coming soon)"
+    },
+    "suggestedFood": {
+      "addMeal": "Add Meal",
+      "description": "Personalized food suggestions based on your goals, preferences, and nutritional needs.",
+      "empty": "We don't have suggestions right now. Try adding a few meals first.",
+      "error": {
+        "generic": "We couldn't load suggestions. We'll show some basic ideas instead."
+      },
+      "gotIt": "Got it",
+      "insufficientData": {
+        "title": "Not Enough Data",
+        "message": "Add a few more meals to get personalized recommendations"
+      },
+      "loading": "Loading suggestions...",
+      "retry": "Retry",
+      "sections": {
+        "fiber": {
+          "items": {
+            "oats": {
+              "description": "Oatmeal with a little fruit or berries is a simple breakfast that gives long-lasting energy.",
+              "title": "Oatmeal"
+            },
+            "vegetables": {
+              "description": "Add fresh or cooked vegetables to lunch and dinner — start with 100–150 g per meal.",
+              "title": "Vegetable side dishes"
+            }
+          },
+          "subtitle": "A bit more fiber will help with satiety and digestion.",
+          "title": "Fiber and slow carbs"
+        },
+        "protein": {
+          "items": {
+            "chickenBreast": {
+              "description": "Baked or boiled chicken breast works well with any side — rice, buckwheat, or vegetables.",
+              "title": "Chicken breast"
+            },
+            "cottageCheese": {
+              "description": "200 g of cottage cheese for breakfast or dinner is a simple and budget-friendly way to boost protein.",
+              "title": "Low-fat cottage cheese"
+            },
+            "eggs": {
+              "description": "2–3 eggs for breakfast, omelet or boiled, give a quick portion of protein and keep you full longer.",
+              "title": "Eggs"
+            }
+          },
+          "subtitle": "You're slightly under your protein target. Try adding 1–2 of these options daily.",
+          "title": "Protein sources"
+        }
+      },
+      "shortDescription": "Get simple ideas of what to eat today",
+      "subtitle": "Here are simple ideas to better match your goal for the next few days.",
+      "summary": {
+        "title": "Personal recommendation"
+      },
+      "title": "Smart food suggestions"
+    },
+    "title": "ダッシュボード"
   },
   "describeFood": {
-    "title": "Describe your meal",
-    "subtitle": "Describe what you ate in free text. The AI will estimate calories and macros.",
-    "label": "Meal description",
-    "placeholder": "Example: Omelet from 3 eggs with cheese and tomatoes, 2 slices of toast with butter, a cup of cappuccino...",
     "analyzeButton": "Analyze",
     "errors": {
       "emptyText": "Please describe your meal first.",
-      "noAnalysisId": "Analysis created but no ID was returned. Please try again.",
+      "generic": "Failed to analyze the meal. Please try again.",
       "navigationFailed": "Failed to navigate to results. Please try again.",
-      "generic": "Failed to analyze the meal. Please try again."
+      "noAnalysisId": "Analysis created but no ID was returned. Please try again."
+    },
+    "label": "Meal description",
+    "placeholder": "Example: Omelet from 3 eggs with cheese and tomatoes, 2 slices of toast with butter, a cup of cappuccino...",
+    "subtitle": "Describe what you ate in free text. The AI will estimate calories and macros.",
+    "title": "Describe your meal"
+  },
+  "dietPrograms": {
+    "title": "Diet Programs",
+    "empty": "No programs available",
+    "about": "About",
+    "previewDay1": "Day 1 Preview",
+    "startProgram": "Start Program",
+    "startConfirm": "Start",
+    "day": "Day",
+    "completeDay": "Complete Day",
+    "finishProgram": "Finish Program",
+    "completed": "Congratulations!",
+    "completedMessage": "You completed the program!",
+    "kcalDay": "kcal/day",
+    "level": "Level",
+    "notFound": "Progress not found",
+    "categories": {
+      "all": "All",
+      "hollywood": "Hollywood",
+      "athletes": "Athletes",
+      "historical": "Historical"
     }
+  },
+  "editFood": {
+    "calculate": "計算: {{value}}",
+    "calculatedAuto": "マクロ栄養素から自動計算",
+    "calories": "カロリー（kcal）",
+    "carbs": "炭水化物",
+    "fat": "脂肪",
+    "macronutrients": "マクロ栄養素",
+    "name": "名前",
+    "namePlaceholder": "製品名",
+    "protein": "タンパク質",
+    "searchUSDA": "Search USDA Database",
+    "subtitle": "変更を加えて保存",
+    "title": "食材を編集",
+    "weight": "重量（g）",
+    "weightHint": "分量"
+  },
+  "errors": {
+    "photoFailed": "Failed to take photo",
+    "selectFailed": "Failed to select image",
+    "loadFailed": "Failed to load images from gallery",
+    "cameraPermission": "Failed to request camera permission",
+    "cameraNotAvailable": "Camera function not available",
+    "takePictureFailed": "Failed to take picture",
+    "startConsultation": "Failed to start consultation",
+    "sendMessage": "Failed to send message",
+    "shareMeals": "Failed to share meals",
+    "startProgram": "Failed to start program",
+    "completeDay": "Failed to complete day",
+    "navNotAvailable": "Navigation not available. Please restart the app."
   },
   "experts": {
-    "title": "Experts",
-    "subtitle": "The team that helps you work with nutrition",
+    "about": "About",
+    "credentials": "Credentials",
     "dietitian": {
-      "title": "Dietitian",
-      "subtitle": "Medical approach to metabolism and analysis"
+      "subtitle": "Medical approach to metabolism and analysis",
+      "title": "Dietitian"
     },
+    "findSpecialist": "Find a Specialist",
+    "languages": "Languages",
+    "myConsultations": "My Consultations",
+    "noSpecialists": "No specialists available",
     "nutritionist": {
-      "title": "Nutritionist",
-      "subtitle": "Meal planning and habits tailored to your goals"
-    }
-  },
-  "subscription": {
-    "title": "Subscription",
-    "plan": {
-      "free": "EatSense Free",
-      "pro": "EatSense Pro",
-      "premium": "EatSense Premium"
+      "subtitle": "Meal planning and habits tailored to your goals",
+      "title": "Nutritionist"
     },
-    "features": {
-      "analyses": "AI analyses per day",
-      "tracking": "Calorie tracking",
-      "stats": "Advanced statistics"
+    "profile": "Profile",
+    "recentReviews": "Recent Reviews",
+    "reviews": "reviews",
+    "startConsultation": "Start Consultation",
+    "subtitle": "The team that helps you work with nutrition",
+    "title": "Experts",
+    "verified": "Verified",
+    "viewAll": "View All Specialists",
+    "viewChats": "View your active chats"
+  },
+  "feedbackScreen": {
+    "title": "Send Feedback",
+    "ratingQuestion": "How would you rate your experience?",
+    "category": "Category",
+    "yourFeedback": "Your Feedback",
+    "placeholder": "Tell us what you think...",
+    "submitting": "Submitting...",
+    "submit": "Submit Feedback",
+    "categories": {
+      "bug": "Bug Report",
+      "feature": "Feature Request",
+      "ui": "UI/UX Issue",
+      "performance": "Performance",
+      "other": "Other"
     },
-    "billing": {
-      "perMonth": "per month",
-      "perYear": "per year",
-      "free": "Free forever",
-      "currency": {
-        "ru": "₽",
-        "kk": "₸",
-        "default": "$"
-      }
+    "alerts": {
+      "emptyFeedback": "Please enter your feedback",
+      "noCategory": "Please select a category",
+      "success": "Your feedback has been submitted successfully",
+      "thankYou": "Thank you!",
+      "error": "Failed to submit feedback. Please try again."
     }
-  },
-  "limits": {
-    "title": "Daily Limit Reached",
-    "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow."
-  },
-  "statistics": {
-    "title": "Statistics",
-    "today": "Today",
-    "empty": "No statistics available yet",
-    "times": "times"
-  },
-  "reports": {
-    "title": "Reports",
-    "subtitle": "Track your monthly progress",
-    "monthly": {
-      "title": "Monthly nutrition report",
-      "subtitle": "Detailed PDF about your month: calories, macros, top foods.",
-      "downloadCurrent": "Download current month"
-    },
-    "downloaded": "Report downloaded successfully",
-    "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
-    "error": {
-      "generic": "Failed to generate monthly report. Please try again later.",
-      "network": "Network error. Please check your connection and try again."
-    }
-  },
-  "legal": {
-    "privacyTitle": "Privacy Policy",
-    "termsTitle": "Terms of Use",
-    "privacyLink": "Privacy Policy",
-    "termsLink": "Terms of Use"
   },
   "foodCompatibility": {
-    "title": "Food compatibility",
-    "positives": "What works well",
     "issues": "What could be improved",
+    "positives": "What works well",
     "scoreLabel": {
       "excellent": "Excellent",
       "good": "Good",
       "moderate": "Mixed",
       "problematic": "Needs improvement"
+    },
+    "title": "Food compatibility"
+  },
+  "foodDescriptionPrompt": {
+    "title": "What did you eat?",
+    "subtitle": "This will help us better analyze your meal",
+    "placeholder": "For example: khachapuri, borscht, salad...",
+    "skip": "Skip",
+    "confirm": "Continue"
+  },
+  "gallery": {
+    "accessDenied": "ギャラリーアクセス",
+    "accessDeniedText": "写真を選択するには、ギャラリーへのアクセスを許可する必要があります。設定を開き、写真へのアクセスを許可してください。",
+    "error": "画像の読み込みに失敗しました。もう一度お試しください。",
+    "goBack": "戻る",
+    "loadingGallery": "ギャラリーを読み込み中...",
+    "permissionRequired": "ギャラリーへのアクセスが必要です",
+    "permissionText": "食事の写真を選択するには、デバイスの設定でフォトライブラリへのアクセスを有効にしてください。",
+    "requestingPermission": "ギャラリーの権限をリクエスト中...",
+    "settings": "設定",
+    "title": "写真を選択"
+  },
+  "healthScore": {
+    "factorLevel": {
+      "bad": "Needs attention",
+      "good": "Good",
+      "ok": "Okay"
+    },
+    "factors": {
+      "calorieDensity": "カロリー密度",
+      "energyDensity": "エネルギー密度",
+      "fiber": "食物繊維",
+      "macroBalance": "マクロバランス",
+      "processingLevel": "加工レベル",
+      "protein": "たんぱく質",
+      "proteinQuality": "たんぱく質の質",
+      "satFat": "飽和脂肪",
+      "saturatedFat": "Saturated fat",
+      "sugar": "糖質",
+      "sugars": "Free sugars"
+    },
+    "feedback": "フィードバック",
+    "feedbackMessages": {
+      "celebrate": "素晴らしいです！この食事はバランスが取れています。",
+      "increase": "{{factor}}を増やしてスコアを改善しましょう。",
+      "monitor": "{{factor}}に注意を払いましょう。",
+      "reduce": "{{factor}}を減らしてスコアを改善しましょう。"
+    },
+    "level": {
+      "average": "Okay, but could be better",
+      "excellent": "Excellent choice",
+      "good": "Good choice",
+      "poor": "Needs improvement"
+    },
+    "macroBalance": "マクロバランス",
+    "proteinQuality": "たんぱく質の質",
+    "qualityFactors": "品質指標",
+    "subtitle": "We estimate how balanced this meal is based on macros and energy density.",
+    "title": "ヘルススコア"
+  },
+  "help": {
+    "title": "Help & Support",
+    "faqTitle": "Frequently Asked Questions",
+    "contactTitle": "Contact Us",
+    "feedbackTitle": "Feedback",
+    "feedbackSubtitle": "Share your ideas",
+    "feedbackAlert": "Thank you for your interest! The feedback feature is coming soon.",
+    "faq": {
+      "howToUse": {
+        "question": "How to use the app?",
+        "answer": "Take a photo of your food or choose one from your gallery. Our AI will analyze the dish and show you calories and nutrients."
+      },
+      "photoLimit": {
+        "question": "How many photos can I analyze?",
+        "answer": "Free users can analyze up to 5 photos per day. Subscribers have unlimited access."
+      },
+      "saveMeal": {
+        "question": "How do I save a meal?",
+        "answer": "After analysis, tap \"Save to Journal\" to add the meal to your food diary."
+      },
+      "editResults": {
+        "question": "Can I edit analysis results?",
+        "answer": "Yes, you can tap on any ingredient to manually adjust its values."
+      },
+      "aiAssistant": {
+        "question": "How does AI Assistant work?",
+        "answer": "AI Assistant provides personalized nutrition advice based on your profile and eating habits."
+      }
     }
   },
-  "carcinogenicRisk": {
-    "title": "Long-term risk factors",
-    "highRiskItems": "Items to keep in moderation",
-    "level": {
-      "none": "No significant factors",
-      "low": "Low",
-      "moderate": "Moderate",
-      "high": "Elevated"
-    }
+  "legal": {
+    "privacyLink": "Privacy Policy",
+    "privacyTitle": "Privacy Policy",
+    "termsLink": "Terms of Use",
+    "termsTitle": "Terms of Use"
+  },
+  "limits": {
+    "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow.",
+    "title": "Daily Limit Reached"
+  },
+  "meals": {
+    "addMeal": "食事を追加",
+    "empty": "記録された食事はまだありません。",
+    "mealDetails": "食事の詳細",
+    "title": "食事"
   },
   "medications": {
-    "title": "Medication schedule",
-    "tabTitle": "Medications",
-    "error": {
-      "load": "Failed to load medications",
-      "save": "Failed to save medication",
-      "delete": "Failed to delete medication",
-      "nameRequired": "Medication name is required"
-    },
-    "empty": "No medications yet. Add your first one.",
-    "noDoses": "No times specified",
-    "edit": "Edit medication",
     "add": "Add medication",
+    "addDose": "Add time",
+    "afterMeal": "After",
+    "beforeMeal": "Before",
     "deleteConfirm": "Delete medication",
     "deleteMessage": "Are you sure you want to delete this medication?",
+    "edit": "Edit medication",
+    "empty": "No medications yet. Add your first one.",
+    "error": {
+      "delete": "Failed to delete medication",
+      "load": "Failed to load medications",
+      "nameRequired": "Medication name is required",
+      "save": "Failed to save medication"
+    },
     "fields": {
-      "name": "Name",
       "dosage": "Dosage",
-      "instructions": "Instructions",
-      "startDate": "Start date (YYYY-MM-DD)",
+      "doses": "Dose times",
       "endDate": "End date (optional)",
-      "timezone": "Timezone",
-      "doses": "Dose times"
+      "instructions": "Instructions",
+      "name": "Name",
+      "startDate": "Start date (YYYY-MM-DD)",
+      "timezone": "Timezone"
     },
+    "noDoses": "No times specified",
     "placeholders": {
-      "name": "Metformin",
       "dosage": "500 mg",
-      "instructions": "Before dinner, with water"
+      "instructions": "Before dinner, with water",
+      "name": "Metformin"
     },
+    "tabTitle": "Medications",
     "times": "Times",
-    "beforeMeal": "Before",
-    "afterMeal": "After",
-    "addDose": "Add time"
+    "title": "Medication schedule"
+  },
+  "notifications": {
+    "enabled": "Notifications enabled!",
+    "notEnabled": "Notifications were not enabled.",
+    "enableFailed": "Could not enable notifications."
+  },
+  "onboarding": {
+    "activity": "How active are you?",
+    "age": "How old are you?",
+    "breath": "Do you get shortness of breath?",
+    "care": "We care about you",
+    "diet": "Are you following any diet?",
+    "gender": "What's your gender?",
+    "goals": "目標",
+    "health": "What should we know about you?",
+    "height": "What's your height?",
+    "loading": "Creating your plan",
+    "notifications": "Enable notifications",
+    "obstacles": "What prevents you from reaching your goal?",
+    "plan": "プランを選択",
+    "summary": "Your choices",
+    "support": "We care about you",
+    "targetWeight": "What weight do you want?",
+    "trust": "Thank you for trusting us",
+    "walking": "How much do you walk?",
+    "weight": "What's your weight?",
+    "weightRate": "Weight change rate",
+    "welcome": "EatSenseへようこそ"
+  },
+  "permissions": {
+    "cameraRequired": "Camera permission is required to take photos",
+    "mediaRequired": "Media library permission is required to select photos",
+    "required": "Permission required",
+    "grantAccess": "Please grant access to your photo library"
+  },
+  "privacy": {
+    "intro": "EatSenseはお客様のプライバシーを大切にしています。このポリシーは、お客様の情報をどのように収集、使用、保護するかを説明しています。",
+    "lastUpdated": "最終更新",
+    "sections": {
+      "changes": {
+        "content": "本プライバシーポリシーに重要な変更がある場合は、施行前にアプリやメールで事前にお知らせします。",
+        "title": "5. この方針の変更"
+      },
+      "children": {
+        "content": "EatSenseは13歳未満のお子様を対象としていません。お子様のデータを意図的に収集せず、保有が判明した場合は速やかに削除します。",
+        "title": "7. 子どものプライバシー"
+      },
+      "choices": {
+        "content": "アプリの設定でプライバシー設定を管理できます。いつでもデータのコピーや削除をリクエストできます。",
+        "title": "9. 選択肢"
+      },
+      "collection": {
+        "content": "登録時およびアプリ使用時に提供される情報を収集します。これには個人データ、栄養情報、食品写真が含まれます。",
+        "title": "1. 情報の収集"
+      },
+      "contact": {
+        "content": "プライバシーに関するお問い合わせ: privacy@eatsense.ch",
+        "title": "10. お問い合わせ"
+      },
+      "cookies": {
+        "content": "設定の記憶、パフォーマンス測定、体験向上のためにクッキーなどの技術を使用します。クッキーは端末の設定で管理できます。",
+        "title": "6. クッキーとトラッキング"
+      },
+      "protection": {
+        "content": "最新の暗号化および安全なデータ保存方法を使用して、お客様の個人情報を保護します。",
+        "title": "3. データ保護"
+      },
+      "rights": {
+        "content": "地域によって、データへのアクセス、更新、削除、処理制限を要求する権利があります。これらの権利を行使するにはご連絡ください。",
+        "title": "8. お客様の権利"
+      },
+      "sharing": {
+        "content": "お客様の個人情報を販売することはありません。サービスを改善するために、匿名化されたデータをパートナーと共有する場合があります。",
+        "title": "4. データの共有"
+      },
+      "usage": {
+        "content": "お客様の情報は、個別化された栄養推奨、食品分析、およびアプリケーションの改善を提供するために使用されます。",
+        "title": "2. 情報の使用"
+      }
+    },
+    "title": "プライバシーポリシー"
+  },
+  "profile": {
+    "advanced": "Advanced Health Parameters",
+    "age": "年齢",
+    "billingAnnual": "Billed annually",
+    "billingFree": "Free forever",
+    "billingMonthly": "Billed monthly",
+    "changePlan": "Change plan",
+    "choosePlan": "Choose a plan",
+    "currentPlan": "Current plan",
+    "dailyCalories": "1日のカロリー",
+    "darkModeSubtitle": "ダークテーマ",
+    "defaultName": "ゲスト",
+    "deleteAccount": "Delete Account",
+    "deleteAccountCancel": "Cancel",
+    "deleteAccountConfirm": "Delete",
+    "deleteAccountDisclaimer": "This action is permanent. All your data will be erased.",
+    "deleteAccountError": "Failed to delete account. Please try again.",
+    "deleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
+    "deleteAccountSuccess": "Account deleted successfully",
+    "deleteAccountTitle": "Delete Account",
+    "details": "プロフィール詳細",
+    "dietBalanced": "Balanced",
+    "dietHighProtein": "High protein",
+    "dietLabel": "Diet type",
+    "dietLowCarb": "Low carb",
+    "dietMediterranean": "Mediterranean",
+    "dietPlantBased": "Plant-based",
+    "editProfile": "プロフィールを編集",
+    "email": "メールアドレス",
+    "errorMessage": "プロフィールを更新できませんでした。後でもう一度お試しください。",
+    "errorTitle": "エラー",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "updateFailed": "Could not update profile. Please try again."
+    },
+    "firstName": "名",
+    "goalGainMuscle": "Gain muscle",
+    "goalLabel": "Goal",
+    "goalLoseWeight": "Lose weight",
+    "goalMaintainWeight": "Maintain weight",
+    "goalsTitle": "Goals & diet",
+    "health": {
+      "auto": "auto",
+      "bodyFatPercent": "Body Fat %",
+      "chronotype": "Chronotype",
+      "chronotypeOptions": {
+        "early": "Early",
+        "late": "Late",
+        "mid": "Mid"
+      },
+      "drugType": "Drug Type",
+      "eatingBehavior": "Eating Behavior",
+      "eveningAppetite": "Evening Appetite",
+      "fatDistribution": {
+        "gynoid": "Gynoid",
+        "mixed": "Mixed",
+        "visceral": "Visceral"
+      },
+      "fatDistributionType": "Fat Distribution Type",
+      "focus": {
+        "cholesterol": "Cholesterol",
+        "hormonalBalance": "Hormonal Balance",
+        "inflammation": "Inflammation",
+        "iron": "Iron",
+        "microbiome": "Microbiome",
+        "sugarControl": "Sugar Control"
+      },
+      "glp1Module": "GLP-1 Module",
+      "healthFocus": "Health Focus Areas",
+      "hipCm": "Hip Circumference",
+      "isGlp1User": "GLP-1 User",
+      "mealsPerDay": "Meals per Day",
+      "metabolic": "Metabolic Parameters",
+      "sleep": "Sleep & Circadian Rhythms",
+      "sleepHours": "Sleep (hours)",
+      "snacking": {
+        "high": "High",
+        "low": "Low",
+        "medium": "Medium"
+      },
+      "snackingTendency": "Snacking Tendency",
+      "therapyGoal": "Therapy Goal",
+      "therapyGoalOptions": {
+        "appetite_control": "Appetite Control",
+        "preserve_muscle": "Preserve Muscle",
+        "slow_weight_loss": "Slow Weight Loss",
+        "weight_maintenance": "Weight Maintenance"
+      },
+      "waistCm": "Waist Circumference",
+      "whr": "WHR (Waist / Hip)"
+    },
+    "height": "身長 (cm)",
+    "language": "言語",
+    "lastName": "姓",
+    "lightMode": "ライトテーマ",
+    "metricAge": "年齢",
+    "metricCalories": "カロリー/日",
+    "metricHeight": "身長",
+    "metricWeight": "体重",
+    "monthlyReportDownloaded": "Report downloaded successfully",
+    "monthlyReportError": "Failed to download monthly report. Please try again later.",
+    "monthlyReportSubtitle": "Download a detailed report about your eating habits for the last month",
+    "monthlyReportTitle": "Monthly nutrition report",
+    "noData": "No data",
+    "notifications": "通知",
+    "notificationsChangeTime": "時間を変更（現在 {{time}}）",
+    "notificationsDailyDescription": "毎日{{time}}にお知らせします。",
+    "notificationsDailyDisabled": "リマインダーを有効にして記録を忘れないようにしましょう。",
+    "notificationsDailyTitle": "毎日のリマインダー",
+    "notificationsErrorMessage": "通知設定を更新できませんでした。もう一度お試しください。",
+    "notificationsErrorTitle": "更新に失敗しました",
+    "notificationsInfo": "通知設定は近日追加予定です。",
+    "planAnnualPrice": "{{price}} / year",
+    "planBadges": {
+      "included": "Included",
+      "mostPopular": "Most popular",
+      "save33": "Save 33%"
+    },
+    "planFeatures": {
+      "advancedInsights": "Advanced nutrition insights",
+      "annualWebinars": "Exclusive annual webinars",
+      "basicStats": "Basic statistics",
+      "calorieTracking": "Calorie tracking",
+      "coachingTips": "Personalized coaching tips",
+      "earlyAccess": "Early access to new features",
+      "everythingInProMonthly": "Everything in Pro Monthly",
+      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "unlimitedAnalyses": "Unlimited AI food analysis"
+    },
+    "planFreeDescription": "Start tracking meals with essential features.",
+    "planFreeName": "EatSense Free",
+    "planFreePrice": "Free",
+    "planMonthlyPrice": "{{price}} / month",
+    "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
+    "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planProName": "EatSense Pro",
+    "policy": "Privacy Policy",
+    "policyError": "Failed to open policy",
+    "politics": "Data Processing Policy",
+    "preferences": "設定",
+    "savedMessage": "プロフィールが正常に更新されました。",
+    "savedTitle": "プロフィールを保存しました",
+    "selectPlan": "Select Plan",
+    "subscriptionTitle": "Subscription",
+    "systemTheme": "システムに合わせる",
+    "termsError": "Failed to open terms",
+    "termsOfService": "Terms of Service",
+    "theme": "テーマ",
+    "title": "プロフィール",
+    "weight": "体重 (kg)",
+    "welcomeBack": "お帰りなさい"
+  },
+  "recently": {
+    "analyzing": "Analyzing...",
+    "analyzingStatus": "Identifying ingredients...",
+    "daysAgo_one": "{{count}}日前",
+    "daysAgo_other": "{{count}}日前",
+    "empty": {
+      "cta": "食事を分析する",
+      "subtitle": "最初の食事を分析してみましょう",
+      "title": "最近のアイテムはありません"
+    },
+    "healthScoreLabel": "スコア {{score}}",
+    "noItems": "最近のアイテムはありません。食事の分析から始めましょう！",
+    "nutrition": {
+      "calories": "カロリー",
+      "carbs": "炭水化物",
+      "fat": "脂質",
+      "protein": "たんぱく質"
+    },
+    "pending": "Pending...",
+    "pendingStatus": "Waiting for analysis to start...",
+    "subtitle": "最近の食事と分析",
+    "title": "最近",
+    "today": "今日",
+    "yesterday": "昨日"
+  },
+  "referral": {
+    "title": "Invite Friends",
+    "heroTitle": "Give 7 days, Get 7 days",
+    "heroSubtitle": "Invite friends and both of you get 7 days of PRO free!",
+    "yourCode": "Your referral code",
+    "share": "Share with friends",
+    "invited": "Friends invited",
+    "earnedDays": "Days earned",
+    "history": "Recent invites",
+    "howItWorks": "How it works",
+    "step1": "Share your code with friends",
+    "step2": "They sign up with your code",
+    "step3": "You both get 7 days PRO free!"
+  },
+  "reports": {
+    "deleteConfirm": "Delete this report from history?",
+    "downloaded": "Report downloaded successfully",
+    "error": {
+      "generic": "Failed to generate monthly report. Please try again later.",
+      "network": "Network error. Please check your connection and try again.",
+      "openFailed": "Failed to open report file."
+    },
+    "fileSaved": "Report saved",
+    "history": {
+      "title": "Recent Reports",
+      "subtitle": "Previously downloaded reports"
+    },
+    "monthly": {
+      "downloadCurrent": "Download current month",
+      "subtitle": "Detailed PDF about your month: calories, macros, top foods.",
+      "title": "Monthly nutrition report"
+    },
+    "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
+    "subtitle": "Track your monthly progress",
+    "title": "Reports"
+  },
+  "statistics": {
+    "adherence": "Goal Adherence",
+    "conclusions": "Conclusions",
+    "empty": "No statistics available yet",
+    "noDataToday": "No data for today yet",
+    "onTrack": "On Track",
+    "over": "Over Goal",
+    "period": "Period",
+    "times": "times",
+    "title": "Statistics",
+    "today": "Today",
+    "under": "Under Goal",
+    "unnamedProduct": "Unnamed Product"
+  },
+  "subscription": {
+    "billing": {
+      "currency": {
+        "default": "$",
+        "kk": "₸",
+        "ru": "₽"
+      },
+      "free": "Free forever",
+      "perMonth": "per month",
+      "perYear": "per year"
+    },
+    "features": {
+      "analyses": "AI analyses per day",
+      "stats": "Advanced statistics",
+      "tracking": "Calorie tracking"
+    },
+    "plan": {
+      "free": "EatSense Free",
+      "premium": "EatSense Premium",
+      "pro": "EatSense Pro"
+    },
+    "title": "Subscription"
+  },
+  "tabs": {
+    "articles": "記事",
+    "dashboard": "ホーム",
+    "experts": "Experts",
+    "medications": "Medications",
+    "profile": "プロフィール",
+    "recently": "最近",
+    "reports": "Reports"
+  },
+  "terms": {
+    "intro": "EatSenseを使用する前に、これらの利用規約を注意深くお読みください。",
+    "lastUpdated": "最終更新",
+    "sections": {
+      "acceptance": {
+        "content": "EatSenseを使用することで、これらの利用規約に同意したものとみなされます。これらの規約に同意しない場合は、アプリケーションを使用しないでください。",
+        "title": "1. 規約の受諾"
+      },
+      "changes": {
+        "content": "これらの規約をいつでも変更する権利を留保します。変更後のアプリケーションの継続使用は、新しい規約の受諾を意味します。",
+        "title": "8. 規約の変更"
+      },
+      "contact": {
+        "content": "これらの利用規約に関する質問については、以下にお問い合わせください：legal@eatsense.ch",
+        "title": "9. お問い合わせ"
+      },
+      "description": {
+        "content": "EatSenseは、人工知能を使用した栄養追跡、食品分析、および個別化された栄養推奨のためのツールを提供します。",
+        "title": "2. サービスの説明"
+      },
+      "intellectual": {
+        "content": "EatSenseのすべてのコンテンツ、機能、機能性は当社の所有物であり、著作権法およびその他の知的財産法によって保護されています。",
+        "title": "6. 知的財産"
+      },
+      "limitation": {
+        "content": "EatSenseは「現状のまま」保証なしで提供されます。アプリケーションの使用に起因する損害について責任を負いません。",
+        "title": "7. 責任の制限"
+      },
+      "prohibited": {
+        "content": "サービスを違法な目的、他者への危害、または法律や規制の違反に使用することはできません。",
+        "title": "5. 禁止される使用"
+      },
+      "registration": {
+        "content": "アカウントの認証情報の機密性を維持する責任があります。アカウントの不正使用を即座に通知することに同意します。",
+        "title": "3. 登録とアカウント"
+      },
+      "userContent": {
+        "content": "アップロードするコンテンツの所有権を保持します。コンテンツをアップロードすることで、サービスを提供し、アプリケーションを改善するために使用するライセンスを付与します。",
+        "title": "4. ユーザーコンテンツ"
+      }
+    },
+    "title": "利用規約"
+  },
+  "validation": {
+    "requiredField": "Required Field",
+    "selectGoal": "Please select your goal.",
+    "selectGender": "Please select your gender.",
+    "selectActivity": "Please select your activity level."
   }
 }

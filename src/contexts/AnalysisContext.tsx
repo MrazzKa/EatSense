@@ -33,11 +33,11 @@ export interface PendingAnalysis {
  */
 interface AnalysisContextType {
     pendingAnalyses: Map<string, PendingAnalysis>;
-    addPendingAnalysis: (analysisId: string, localPreviewUri?: string) => void;
-    updateAnalysis: (analysisId: string, updates: Partial<PendingAnalysis>) => void;
-    removePendingAnalysis: (analysisId: string) => void;
-    retryAnalysis: (analysisId: string) => Promise<void>;
-    getAnalysisById: (analysisId: string) => PendingAnalysis | undefined;
+    addPendingAnalysis: (_analysisId: string, _localPreviewUri?: string) => void;
+    updateAnalysis: (_analysisId: string, _updates: Partial<PendingAnalysis>) => void;
+    removePendingAnalysis: (_analysisId: string) => void;
+    retryAnalysis: (_analysisId: string) => Promise<void>;
+    getAnalysisById: (_analysisId: string) => PendingAnalysis | undefined;
     isPolling: boolean;
 }
 
@@ -47,38 +47,7 @@ const MAX_POLL_ATTEMPTS = 30;
 const POLL_INTERVAL_MS = 3000;
 const POLL_BACKOFF_MULTIPLIER = 1.2;
 
-/**
- * Derive status from analysis data
- */
-function deriveStatus(data: any): AnalysisStatus {
-    if (!data) return 'processing';
-
-    // Check for explicit error
-    if (data.error || data.errorMessage) {
-        return 'failed';
-    }
-
-    // Check if explicitly marked as processing
-    if (data.status === 'processing' || data.status === 'pending') {
-        return 'processing';
-    }
-
-    // Check for valid nutrition data
-    const calories = data.totalCalories ?? data.calories ?? 0;
-    const hasValidNutrition = calories > 0;
-
-    // If no valid nutrition and no dish name, still processing
-    if (!hasValidNutrition && !data.dishName && !data.name) {
-        return 'processing';
-    }
-
-    // If has dish name but zero calories, needs review
-    if (!hasValidNutrition && (data.dishName || data.name)) {
-        return 'needs_review';
-    }
-
-    return 'completed';
-}
+// deriveStatus removed
 
 /**
  * Extract analysis data from API response
@@ -133,8 +102,16 @@ function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const [pendingAnalyses, setPendingAnalyses] = useState<Map<string, PendingAnalysis>>(new Map());
     const [isPolling, setIsPolling] = useState(false);
-    const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pollRecursionRef = useRef<() => (void | Promise<void>) | undefined>(undefined); // Ref to hold the poll function for safe recursion
     const isMountedRef = useRef(true);
+    // Ref to keep track of latest pending analyses for polling without stale closures
+    const pendingAnalysesRef = useRef(pendingAnalyses);
+
+    // Sync ref with state
+    useEffect(() => {
+        pendingAnalysesRef.current = pendingAnalyses;
+    }, [pendingAnalyses]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -147,29 +124,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    /**
-     * Add a new pending analysis
-     */
-    const addPendingAnalysis = useCallback((analysisId: string, localPreviewUri?: string) => {
-        const newAnalysis: PendingAnalysis = {
-            id: analysisId,
-            analysisId,
-            status: 'processing',
-            localPreviewUri,
-            startedAt: Date.now(),
-            updatedAt: Date.now(),
-            pollAttempts: 0,
-        };
 
-        setPendingAnalyses(prev => {
-            const next = new Map(prev);
-            next.set(analysisId, newAnalysis);
-            return next;
-        });
-
-        // Start polling if not already
-        startPolling();
-    }, []);
 
     /**
      * Update an existing analysis
@@ -193,7 +148,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
      * Remove a pending analysis
      */
     const removePendingAnalysis = useCallback((analysisId: string) => {
+        console.log(`[AnalysisContext] removePendingAnalysis called for ${analysisId}`);
         setPendingAnalyses(prev => {
+            if (!prev.has(analysisId)) return prev; // Optimization
             const next = new Map(prev);
             next.delete(analysisId);
             return next;
@@ -213,11 +170,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const pollAnalyses = useCallback(async () => {
         if (!isMountedRef.current) return;
 
-        const processingAnalyses = Array.from(pendingAnalyses.values()).filter(
+        // Use Ref to get latest state, avoiding stale closures in setTimeout
+        const currentPendingMap = pendingAnalysesRef.current;
+        const processingAnalyses = Array.from(currentPendingMap.values()).filter(
             a => a.status === 'processing'
         );
 
         if (processingAnalyses.length === 0) {
+            console.log('[AnalysisContext] No processing analyses, stopping poll.');
             setIsPolling(false);
             return;
         }
@@ -226,6 +186,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
         for (const analysis of processingAnalyses) {
             if (!isMountedRef.current) break;
+
+            // Double check if it's still in the map (it might have been removed while we were waiting)
+            if (!pendingAnalysesRef.current.has(analysis.analysisId)) {
+                continue;
+            }
 
             try {
                 // Increment poll attempts
@@ -242,20 +207,25 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 // Fetch latest status
+                console.log(`[AnalysisContext] Polling status for ${analysis.analysisId}...`);
                 const result = await ApiService.getAnalysisStatus(analysis.analysisId);
+                console.log(`[AnalysisContext] Got status for ${analysis.analysisId}:`, result?.status);
 
                 if (!isMountedRef.current) break;
 
                 // Extract and apply updates
                 const updates = extractAnalysisData(result);
+                console.log(`[AnalysisContext] Applying updates for ${analysis.analysisId}:`, updates.status);
 
                 // For terminal statuses, remove from pending immediately
                 // User can still view full results by tapping the saved meal card
                 if (['completed', 'failed', 'needs_review'].includes(updates.status || '')) {
                     // Remove immediately - no delay needed
+                    console.log(`[AnalysisContext] Removing terminal analysis ${analysis.analysisId}`);
                     removePendingAnalysis(analysis.analysisId);
                 } else {
                     // Only update if still processing
+                    console.log(`[AnalysisContext] Updating processing analysis ${analysis.analysisId}`);
                     updateAnalysis(analysis.analysisId, {
                         ...updates,
                         pollAttempts: newAttempts,
@@ -282,7 +252,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
         // Schedule next poll with backoff
         if (isMountedRef.current) {
-            const stillProcessing = Array.from(pendingAnalyses.values()).some(
+            // Check Ref again for latest status
+            const currentMapAfterPoll = pendingAnalysesRef.current;
+            const stillProcessing = Array.from(currentMapAfterPoll.values()).some(
                 a => a.status === 'processing'
             );
 
@@ -291,12 +263,20 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
                     POLL_INTERVAL_MS * Math.pow(POLL_BACKOFF_MULTIPLIER, processingAnalyses[0]?.pollAttempts || 0),
                     10000 // Max 10 seconds
                 );
-                pollTimerRef.current = setTimeout(pollAnalyses, backoffInterval);
+                // Use ref for recursion to avoid processing before definition
+                if (pollRecursionRef.current) {
+                    pollTimerRef.current = setTimeout(pollRecursionRef.current, backoffInterval);
+                }
             } else {
                 setIsPolling(false);
             }
         }
-    }, [pendingAnalyses, updateAnalysis]);
+    }, [updateAnalysis, removePendingAnalysis]);
+
+    // Update recursion ref whenever pollAnalyses changes
+    useEffect(() => {
+        pollRecursionRef.current = pollAnalyses;
+    }, [pollAnalyses]);
 
     /**
      * Start polling if needed
@@ -308,6 +288,30 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         // Start polling after a short delay
         pollTimerRef.current = setTimeout(pollAnalyses, POLL_INTERVAL_MS);
     }, [pollAnalyses]);
+
+    /**
+     * Add a new pending analysis
+     */
+    const addPendingAnalysis = useCallback((analysisId: string, localPreviewUri?: string) => {
+        const newAnalysis: PendingAnalysis = {
+            id: analysisId,
+            analysisId,
+            status: 'processing',
+            localPreviewUri,
+            startedAt: Date.now(),
+            updatedAt: Date.now(),
+            pollAttempts: 0,
+        };
+
+        setPendingAnalyses(prev => {
+            const next = new Map(prev);
+            next.set(analysisId, newAnalysis);
+            return next;
+        });
+
+        // Start polling if not already
+        startPolling();
+    }, [startPolling]);
 
     /**
      * Retry a failed analysis
@@ -326,7 +330,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
         // Start polling
         startPolling();
-    }, [pendingAnalyses, updateAnalysis, startPolling]);
+    }, [pendingAnalyses, updateAnalysis, startPolling]); // Keep pendingAnalyses here as it's just reading once
 
     // Effect to check for processing analyses and start polling
     useEffect(() => {
@@ -339,7 +343,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         }
     }, [pendingAnalyses, isPolling, startPolling]);
 
-    const value: AnalysisContextType = {
+    const value = React.useMemo<AnalysisContextType>(() => ({
         pendingAnalyses,
         addPendingAnalysis,
         updateAnalysis,
@@ -347,7 +351,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         retryAnalysis,
         getAnalysisById,
         isPolling,
-    };
+    }), [
+        pendingAnalyses,
+        addPendingAnalysis,
+        updateAnalysis,
+        removePendingAnalysis,
+        retryAnalysis,
+        getAnalysisById,
+        isPolling,
+    ]);
 
     return (
         <AnalysisContext.Provider value={value}>
@@ -372,7 +384,7 @@ export function useAnalysis() {
  */
 export function usePendingAnalyses() {
     const { pendingAnalyses } = useAnalysis();
-    return Array.from(pendingAnalyses.values()).sort(
+    return React.useMemo(() => Array.from(pendingAnalyses.values()).sort(
         (a, b) => b.startedAt - a.startedAt
-    );
+    ), [pendingAnalyses]);
 }

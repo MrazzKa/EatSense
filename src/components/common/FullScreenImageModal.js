@@ -1,12 +1,12 @@
 import React from 'react';
 import { Modal, View, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../contexts/ThemeContext';
+// import { useTheme } from '../../contexts/ThemeContext'; // Unused
 
 const { width, height } = Dimensions.get('window');
 
 const FullScreenImageModal = ({ visible, imageUri, onClose }) => {
-    const { colors } = useTheme();
+    // const { colors } = useTheme(); // Unused
 
     if (!visible || !imageUri) return null;
 

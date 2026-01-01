@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -129,9 +128,9 @@ export default function ReportsScreen() {
         }
       } else if (typeof response.data === 'string') {
         // Already base64 string
-        base64Data = response.data.includes('data:')
-          ? response.data.split(',')[1]
-          : response.data;
+        base64Data = (response.data as string).includes('data:')
+          ? (response.data as string).split(',')[1]
+          : (response.data as string);
       } else {
         console.error('[ReportsScreen] Invalid response data format:', typeof response.data, response.data);
         throw new Error('Invalid response data format: expected ArrayBuffer, Blob or string');

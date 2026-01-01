@@ -35,7 +35,8 @@
     "**/*.test.tsx",
     "**/*.spec.ts",
     "**/*.spec.tsx",
-    "apps/**"
+    "apps/**",
+    "_import"
   ],
   "extends": "expo/tsconfig.base"
 }

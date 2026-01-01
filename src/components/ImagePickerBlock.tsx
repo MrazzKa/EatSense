@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 interface ImagePickerBlockProps {
   onImageSelected: (_imageUri: string) => void;
@@ -12,30 +13,31 @@ interface ImagePickerBlockProps {
 export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
   onImageSelected,
   selectedImage,
-  placeholder = 'Select an image',
+  placeholder,
 }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const requestPermissions = async (): Promise<boolean> => {
     const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
     const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (cameraPermission.status !== 'granted') {
-      Alert.alert('Permission required', 'Camera permission is required to take photos');
+      Alert.alert(t('permissions.required'), t('permissions.cameraRequired'));
       return false;
     }
-    
+
     if (mediaPermission.status !== 'granted') {
-      Alert.alert('Permission required', 'Media library permission is required to select photos');
+      Alert.alert(t('permissions.required'), t('permissions.mediaRequired'));
       return false;
     }
-    
+
     return true;
   };
 
   const takePhoto = async () => {
     if (!(await requestPermissions())) return;
-    
+
     setIsLoading(true);
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -51,7 +53,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo');
+      Alert.alert(t('common.error'), t('errors.photoFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +61,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
 
   const selectFromLibrary = async () => {
     if (!(await requestPermissions())) return;
-    
+
     setIsLoading(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -75,7 +77,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
       }
     } catch (error) {
       console.error('Error selecting image:', error);
-      Alert.alert('Error', 'Failed to select image');
+      Alert.alert(t('common.error'), t('errors.selectFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -83,12 +85,12 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
 
   const showImageOptions = () => {
     Alert.alert(
-      'Select Image',
-      'Choose how you want to add an image',
+      t('dashboard.addFood.title'),
+      t('dashboard.addFood.subtitle'),
       [
-        { text: 'Camera', onPress: takePhoto },
-        { text: 'Gallery', onPress: selectFromLibrary },
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('dashboard.addFood.camera.title'), onPress: takePhoto },
+        { text: t('dashboard.addFood.gallery.title'), onPress: selectFromLibrary },
+        { text: t('common.cancel'), style: 'cancel' },
       ]
     );
   };
@@ -104,7 +106,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
             disabled={isLoading}
           >
             <Ionicons name="camera" size={16} color="white" />
-            <Text style={styles.changeButtonText}>Change</Text>
+            <Text style={styles.changeButtonText}>{t('common.edit')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -114,7 +116,7 @@ export const ImagePickerBlock: React.FC<ImagePickerBlockProps> = ({
           disabled={isLoading}
         >
           <Ionicons name="camera" size={32} color="#BDC3C7" />
-          <Text style={styles.placeholderText}>{placeholder}</Text>
+          <Text style={styles.placeholderText}>{placeholder || t('dashboard.addFood.title')}</Text>
           {isLoading && (
             <View style={styles.loadingOverlay}>
               <Ionicons name="hourglass" size={20} color="#3498DB" />

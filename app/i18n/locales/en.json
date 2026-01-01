@@ -20,7 +20,63 @@
     "yes": "Yes",
     "no": "No",
     "confirm": "Confirm",
-    "info": "Info"
+    "info": "Info",
+    "days": "days",
+    "of": "of",
+    "all": "All"
+  },
+  "help": {
+    "title": "Help & Support",
+    "faqTitle": "Frequently Asked Questions",
+    "contactTitle": "Contact Us",
+    "feedbackTitle": "Feedback",
+    "feedbackSubtitle": "Share your ideas",
+    "feedbackAlert": "Thank you for your interest! The feedback feature is coming soon.",
+    "faq": {
+      "howToUse": {
+        "question": "How to use the app?",
+        "answer": "Take a photo of your food or choose one from your gallery. Our AI will analyze the dish and show you calories and nutrients."
+      },
+      "photoLimit": {
+        "question": "How many photos can I analyze?",
+        "answer": "Free users can analyze up to 5 photos per day. Subscribers have unlimited access."
+      },
+      "saveMeal": {
+        "question": "How do I save a meal?",
+        "answer": "After analysis, tap \"Save to Journal\" to add the meal to your food diary."
+      },
+      "editResults": {
+        "question": "Can I edit analysis results?",
+        "answer": "Yes, you can tap on any ingredient to manually adjust its values."
+      },
+      "aiAssistant": {
+        "question": "How does AI Assistant work?",
+        "answer": "AI Assistant provides personalized nutrition advice based on your profile and eating habits."
+      }
+    }
+  },
+  "onboarding": {
+    "welcome": "Welcome to EatSense",
+    "goals": "What are your goals?",
+    "support": "We care about you",
+    "gender": "What's your gender?",
+    "age": "How old are you?",
+    "height": "What's your height?",
+    "weight": "What's your weight?",
+    "activity": "How active are you?",
+    "walking": "How much do you walk?",
+    "breath": "Do you get shortness of breath?",
+    "obstacles": "What prevents you from reaching your goal?",
+    "diet": "Are you following any diet?",
+    "health": "What should we know about you?",
+    "care": "We care about you",
+    "targetWeight": "What weight do you want?",
+    "weightRate": "Weight change rate",
+    "trust": "Thank you for trusting us",
+    "notifications": "Enable notifications",
+    "loading": "Creating your plan",
+    "summary": "Your choices",
+    "plan": "Choose Your Plan"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -98,6 +154,12 @@
       "gotIt": "Got it",
       "loading": "Loading suggestions...",
       "empty": "We don't have suggestions right now. Try adding a few meals first.",
+      "insufficientData": {
+        "title": "Not Enough Data",
+        "message": "Add a few more meals to get personalized recommendations"
+      },
+      "addMeal": "Add Meal",
+      "retry": "Retry",
       "error": {
         "generic": "We couldn't load suggestions. We'll show some basic ideas instead."
       },
@@ -328,6 +390,7 @@
     "deleteAccountCancel": "Cancel",
     "deleteAccountSuccess": "Account deleted successfully",
     "deleteAccountError": "Failed to delete account. Please try again.",
+    "deleteAccountDisclaimer": "This action is permanent. All your data will be erased.",
     "monthlyReportTitle": "Monthly nutrition report",
     "monthlyReportSubtitle": "Download a detailed report about your eating habits for the last month",
     "monthlyReportDownloaded": "Report downloaded successfully",
@@ -522,15 +585,6 @@
       "codeLength": "Enter the 6-digit code from your email."
     }
   },
-  "onboarding": {
-    "welcome": "Welcome to EatSense",
-    "getStarted": "Get Started",
-    "personalInfo": "Personal Information",
-    "physicalInfo": "Physical Information",
-    "activityLevel": "Activity Level",
-    "goals": "Goals",
-    "plan": "Choose your plan"
-  },
   "tabs": {
     "dashboard": "Home",
     "articles": "Articles",
@@ -541,16 +595,73 @@
     "medications": "Medications"
   },
   "experts": {
-    "title": "Experts",
-    "subtitle": "The team that helps you work with nutrition",
+    "title": "Specialists",
+    "subtitle": "Get personalized help from nutrition experts",
+    "myConsultations": "My Consultations",
+    "viewChats": "View your active chats",
+    "findSpecialist": "Find a Specialist",
+    "viewAll": "View All Specialists",
     "dietitian": {
       "title": "Dietitian",
-      "subtitle": "Medical approach to metabolism and analysis"
+      "subtitle": "Clinical guidance based on your medical history and goals."
     },
     "nutritionist": {
       "title": "Nutritionist",
-      "subtitle": "Meal planning and habits tailored to your goals"
+      "subtitle": "Practical advice on meals, habits, and daily routines."
+    },
+    "noSpecialists": "No specialists available",
+    "profile": "Profile",
+    "verified": "Verified",
+    "about": "About",
+    "credentials": "Credentials",
+    "languages": "Languages",
+    "recentReviews": "Recent Reviews",
+    "reviews": "reviews",
+    "startConsultation": "Start Consultation"
+  },
+  "chat": {
+    "daysRemaining": "days remaining",
+    "consultationEnded": "Consultation ended",
+    "shareMeals": "Share Meals",
+    "shareMealsConfirm": "Share your meals from the last 7 days?",
+    "startConversation": "Start the conversation!",
+    "typePlaceholder": "Type a message..."
+  },
+  "dietPrograms": {
+    "title": "Diet Programs",
+    "empty": "No programs available",
+    "about": "About",
+    "previewDay1": "Day 1 Preview",
+    "startProgram": "Start Program",
+    "startConfirm": "Start",
+    "day": "Day",
+    "completeDay": "Complete Day",
+    "finishProgram": "Finish Program",
+    "completed": "Congratulations!",
+    "completedMessage": "You completed the program!",
+    "kcalDay": "kcal/day",
+    "level": "Level",
+    "notFound": "Progress not found",
+    "categories": {
+      "all": "All",
+      "hollywood": "Hollywood",
+      "athletes": "Athletes",
+      "historical": "Historical"
     }
+  },
+  "referral": {
+    "title": "Invite Friends",
+    "heroTitle": "Give 7 days, Get 7 days",
+    "heroSubtitle": "Invite friends and both of you get 7 days of PRO free!",
+    "yourCode": "Your referral code",
+    "share": "Share with friends",
+    "invited": "Friends invited",
+    "earnedDays": "Days earned",
+    "history": "Recent invites",
+    "howItWorks": "How it works",
+    "step1": "Share your code with friends",
+    "step2": "They sign up with your code",
+    "step3": "You both get 7 days PRO free!"
   },
   "terms": {
     "title": "Terms of Service",
@@ -671,7 +782,7 @@
       "error": "Failed to pick file"
     },
     "lab": {
-      "title": "Lab Results Analysis",
+      "title": "Document Analysis",
       "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
       "mode": {
         "text": "Text",
@@ -929,5 +1040,59 @@
     "placeholder": "For example: khachapuri, borscht, salad...",
     "skip": "Skip",
     "confirm": "Continue"
+  },
+  "feedbackScreen": {
+    "title": "Send Feedback",
+    "ratingQuestion": "How would you rate your experience?",
+    "category": "Category",
+    "yourFeedback": "Your Feedback",
+    "placeholder": "Tell us what you think...",
+    "submitting": "Submitting...",
+    "submit": "Submit Feedback",
+    "categories": {
+      "bug": "Bug Report",
+      "feature": "Feature Request",
+      "ui": "UI/UX Issue",
+      "performance": "Performance",
+      "other": "Other"
+    },
+    "alerts": {
+      "emptyFeedback": "Please enter your feedback",
+      "noCategory": "Please select a category",
+      "success": "Your feedback has been submitted successfully",
+      "thankYou": "Thank you!",
+      "error": "Failed to submit feedback. Please try again."
+    }
+  },
+  "permissions": {
+    "cameraRequired": "Camera permission is required to take photos",
+    "mediaRequired": "Media library permission is required to select photos",
+    "required": "Permission required",
+    "grantAccess": "Please grant access to your photo library"
+  },
+  "errors": {
+    "photoFailed": "Failed to take photo",
+    "selectFailed": "Failed to select image",
+    "loadFailed": "Failed to load images from gallery",
+    "cameraPermission": "Failed to request camera permission",
+    "cameraNotAvailable": "Camera function not available",
+    "takePictureFailed": "Failed to take picture",
+    "startConsultation": "Failed to start consultation",
+    "sendMessage": "Failed to send message",
+    "shareMeals": "Failed to share meals",
+    "startProgram": "Failed to start program",
+    "completeDay": "Failed to complete day",
+    "navNotAvailable": "Navigation not available. Please restart the app."
+  },
+  "validation": {
+    "requiredField": "Required Field",
+    "selectGoal": "Please select your goal.",
+    "selectGender": "Please select your gender.",
+    "selectActivity": "Please select your activity level."
+  },
+  "notifications": {
+    "enabled": "Notifications enabled!",
+    "notEnabled": "Notifications were not enabled.",
+    "enableFailed": "Could not enable notifications."
   }
 }

@@ -1,0 +1,72 @@
+{
+  "experts": {
+    "title": "専門家",
+    "subtitle": "栄養の専門家からパーソナライズされたサポートを受けましょう",
+    "myConsultations": "マイ相談",
+    "viewChats": "アクティブなチャットを見る",
+    "findSpecialist": "専門家を探す",
+    "viewAll": "すべての専門家を見る",
+    "dietitian": {
+      "title": "管理栄養士",
+      "subtitle": "病歴と目標に基づいた臨床的なアドバイス。"
+    },
+    "nutritionist": {
+      "title": "栄養士",
+      "subtitle": "食事、習慣、日常生活についての実践的なアドバイス。"
+    },
+    "noSpecialists": "専門家が見つかりません",
+    "profile": "プロフィール",
+    "verified": "認証済み",
+    "about": "概要",
+    "credentials": "資格",
+    "languages": "言語",
+    "recentReviews": "最近のレビュー",
+    "reviews": "件のレビュー",
+    "startConsultation": "相談を開始"
+  },
+  "chat": {
+    "daysRemaining": "日残り",
+    "consultationEnded": "相談終了",
+    "shareMeals": "食事を共有",
+    "shareMealsConfirm": "過去7日間の食事を共有しますか？"
+  },
+  "dietPrograms": {
+    "title": "ダイエットプログラム",
+    "empty": "利用可能なプログラムがありません",
+    "about": "概要",
+    "previewDay1": "1日目プレビュー",
+    "startProgram": "プログラムを開始",
+    "startConfirm": "開始",
+    "day": "日目",
+    "completeDay": "今日を完了",
+    "finishProgram": "プログラムを完了",
+    "completed": "おめでとうございます！",
+    "completedMessage": "プログラムを完了しました！",
+    "categories": {
+      "all": "すべて",
+      "hollywood": "ハリウッド",
+      "athletes": "アスリート",
+      "historical": "歴史的"
+    }
+  },
+  "referral": {
+    "title": "友達を招待",
+    "heroTitle": "7日間をあげて、7日間をもらおう",
+    "heroSubtitle": "友達を招待すると、お互いに7日間のPROが無料になります！",
+    "yourCode": "あなたの紹介コード",
+    "share": "友達とシェア",
+    "invited": "招待した友達",
+    "earnedDays": "獲得した日数",
+    "history": "最近の招待",
+    "howItWorks": "使い方",
+    "step1": "友達にコードをシェア",
+    "step2": "友達があなたのコードで登録",
+    "step3": "お互いに7日間PRO無料！"
+  },
+  "common": {
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "days": "日",
+    "all": "すべて"
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -15,11 +15,22 @@ export const SwipeableIngredientItem = ({
   index,
   onPress,
   onDelete,
-  allowEditing = true
+  allowEditing = true,
+  swipeRef, // Optional: external ref to control swipeable
+  onSwipeableWillOpen, // Optional: callback when swipe will open (to close other swipes)
 }) => {
   const { colors } = useTheme();
   const { t } = useI18n();
   const swipeableRef = useRef(null);
+
+  // Expose close function via swipeRef if provided
+  React.useImperativeHandle(swipeRef, () => ({
+    close: () => {
+      if (swipeableRef.current) {
+        swipeableRef.current.close();
+      }
+    }
+  }), []);
 
   const closeSwipeable = useCallback(() => {
     if (swipeableRef.current) {
@@ -49,8 +60,8 @@ export const SwipeableIngredientItem = ({
   const renderRightActions = useCallback((progress, dragX) => {
     // Animation for buttons appearance
     const translateX = dragX.interpolate({
-      inputRange: [-150, 0],
-      outputRange: [0, 150],
+      inputRange: [-110, 0],
+      outputRange: [0, 110],
       extrapolate: 'clamp',
     });
 
@@ -83,10 +94,7 @@ export const SwipeableIngredientItem = ({
           onPress={handleEdit}
           activeOpacity={0.7}
         >
-          <Ionicons name="pencil" size={20} color={colors.textPrimary || '#333333'} />
-          <Text style={[styles.actionButtonText, { color: colors.textPrimary || '#333333' }]}>
-            {t('common.edit') || 'Edit'}
-          </Text>
+          <Ionicons name="pencil" size={22} color={colors.textPrimary || '#333333'} />
         </TouchableOpacity>
 
         {/* Delete Button */}
@@ -102,66 +110,15 @@ export const SwipeableIngredientItem = ({
           onPress={handleDelete}
           activeOpacity={0.7}
         >
-          <Ionicons name="trash-outline" size={20} color="#DC2626" />
-          <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>
-            {t('common.delete') || 'Delete'}
-          </Text>
+          <Ionicons name="trash-outline" size={22} color="#DC2626" />
         </TouchableOpacity>
       </Animated.View>
     );
-  }, [colors, t, handleEdit, handleDelete]);
-
-  // Ingredient content component
-  const IngredientContent = () => (
-    <View style={[
-      styles.ingredientCard,
-      { backgroundColor: colors.card || colors.surface || '#FFFFFF' }
-    ]}>
-      <View style={styles.ingredientInfo}>
-        <Text
-          style={[styles.ingredientName, { color: colors.textPrimary || '#1F2937' }]}
-          numberOfLines={2}
-        >
-          {ingredient.name}
-        </Text>
-        <Text style={[styles.ingredientWeight, { color: colors.textSecondary || '#6B7280' }]}>
-          {ingredient.weight || ingredient.portion_g || 0} {t('analysis.grams') || 'г'}
-        </Text>
-      </View>
-
-      <View style={styles.nutritionInfo}>
-        {ingredient.hasNutrition === false ? (
-          <Text style={[styles.noNutritionText, { color: colors.textTertiary || '#9CA3AF' }]}>
-            {t('analysis.noNutritionData') || 'Нет данных'}
-          </Text>
-        ) : (
-          <>
-            <Text style={[styles.caloriesText, { color: colors.textPrimary || '#1F2937' }]}>
-              {Math.round(ingredient.calories || 0)} {t('analysis.kcal') || 'ккал'}
-            </Text>
-            <Text style={[styles.macrosText, { color: colors.textSecondary || '#6B7280' }]}>
-              Б: {formatMacro(ingredient.protein)} · У: {formatMacro(ingredient.carbs)} · Ж: {formatMacro(ingredient.fat)}
-            </Text>
-          </>
-        )}
-      </View>
-
-      {/* Swipe hint indicator */}
-      {allowEditing && (
-        <View style={styles.swipeHint}>
-          <Ionicons
-            name="chevron-back"
-            size={16}
-            color={colors.textTertiary || '#D1D5DB'}
-          />
-        </View>
-      )}
-    </View>
-  );
+  }, [colors, handleEdit, handleDelete]);
 
   // Read-only mode - no swipe
   if (!allowEditing) {
-    return <IngredientContent />;
+    return <IngredientContent ingredient={ingredient} colors={colors} t={t} styles={styles} allowEditing={allowEditing} />;
   }
 
   // Swipeable mode
@@ -175,17 +132,74 @@ export const SwipeableIngredientItem = ({
       useNativeAnimations={true}
       containerStyle={styles.swipeableContainer}
       childrenContainerStyle={styles.swipeableContent}
+      onSwipeableWillOpen={() => {
+        // Notify parent that this swipe is opening (to close others)
+        if (onSwipeableWillOpen && typeof onSwipeableWillOpen === 'function') {
+          onSwipeableWillOpen(index);
+        }
+      }}
     >
       <TouchableOpacity
         onPress={handleEdit}
         activeOpacity={0.8}
         delayPressIn={50}
       >
-        <IngredientContent />
+        <IngredientContent ingredient={ingredient} colors={colors} t={t} styles={styles} allowEditing={allowEditing} />
       </TouchableOpacity>
     </Swipeable>
   );
-};
+}; // End of SwipeableIngredientItem
+
+// Extracted Component
+const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => (
+  <View style={[
+    styles.ingredientCard,
+    { backgroundColor: colors.card || colors.surface || '#FFFFFF' }
+  ]}>
+    <View style={styles.ingredientInfo}>
+      <Text
+        style={[styles.ingredientName, { color: colors.textPrimary || '#1F2937' }]}
+        numberOfLines={2}
+      >
+        {/* Capitalize ingredient name */}
+        {ingredient.name
+          ? ingredient.name.charAt(0).toUpperCase() + ingredient.name.slice(1)
+          : 'Ingredient'}
+      </Text>
+      <Text style={[styles.ingredientWeight, { color: colors.textSecondary || '#6B7280' }]}>
+        {ingredient.weight || ingredient.portion_g || 0} {t('analysis.grams') || 'г'}
+      </Text>
+    </View>
+
+    <View style={styles.nutritionInfo}>
+      {ingredient.hasNutrition === false ? (
+        <Text style={[styles.noNutritionText, { color: colors.textTertiary || '#9CA3AF' }]}>
+          {t('analysis.noNutritionData') || 'Нет данных'}
+        </Text>
+      ) : (
+        <>
+          <Text style={[styles.caloriesText, { color: colors.textPrimary || '#1F2937' }]}>
+            {Math.round(ingredient.calories || 0)} {t('analysis.kcal') || 'ккал'}
+          </Text>
+          <Text style={[styles.macrosText, { color: colors.textSecondary || '#6B7280' }]}>
+            Б: {formatMacro(ingredient.protein)} · У: {formatMacro(ingredient.carbs)} · Ж: {formatMacro(ingredient.fat)}
+          </Text>
+        </>
+      )}
+    </View>
+
+    {/* Swipe hint indicator */}
+    {allowEditing && (
+      <View style={styles.swipeHint}>
+        <Ionicons
+          name="chevron-back"
+          size={16}
+          color={colors.textTertiary || '#D1D5DB'}
+        />
+      </View>
+    )}
+  </View>
+);
 
 const styles = StyleSheet.create({
   swipeableContainer: {
@@ -203,8 +217,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionButton: {
-    width: 68,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -242,6 +256,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 4,
     lineHeight: 22,
+    textTransform: 'capitalize',
   },
   ingredientWeight: {
     fontSize: 13,

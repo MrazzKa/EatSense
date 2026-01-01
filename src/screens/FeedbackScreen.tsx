@@ -1,49 +1,51 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 interface FeedbackScreenProps {
   onClose: () => void;
 }
 
 export const FeedbackScreen: React.FC<FeedbackScreenProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const [feedback, setFeedback] = useState('');
   const [rating, setRating] = useState(0);
   const [category, setCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = [
-    { id: 'bug', label: 'Bug Report', icon: 'bug' },
-    { id: 'feature', label: 'Feature Request', icon: 'bulb' },
-    { id: 'ui', label: 'UI/UX Issue', icon: 'design' },
-    { id: 'performance', label: 'Performance', icon: 'speedometer' },
-    { id: 'other', label: 'Other', icon: 'chatbubble' },
+    { id: 'bug', labelKey: 'feedbackScreen.categories.bug', icon: 'bug' },
+    { id: 'feature', labelKey: 'feedbackScreen.categories.feature', icon: 'bulb' },
+    { id: 'ui', labelKey: 'feedbackScreen.categories.ui', icon: 'design' },
+    { id: 'performance', labelKey: 'feedbackScreen.categories.performance', icon: 'speedometer' },
+    { id: 'other', labelKey: 'feedbackScreen.categories.other', icon: 'chatbubble' },
   ];
 
   const handleSubmit = async () => {
     if (!feedback.trim()) {
-      Alert.alert('Error', 'Please enter your feedback');
+      Alert.alert(t('common.error'), t('feedbackScreen.alerts.emptyFeedback'));
       return;
     }
 
     if (!category) {
-      Alert.alert('Error', 'Please select a category');
+      Alert.alert(t('common.error'), t('feedbackScreen.alerts.noCategory'));
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       Alert.alert(
-        'Thank you!',
-        'Your feedback has been submitted successfully',
-        [{ text: 'OK', onPress: () => onClose && typeof onClose === 'function' ? onClose() : null }]
+        t('feedbackScreen.alerts.thankYou'),
+        t('feedbackScreen.alerts.success'),
+        [{ text: t('common.ok'), onPress: () => onClose && typeof onClose === 'function' ? onClose() : null }]
       );
     } catch {
-      Alert.alert('Error', 'Failed to submit feedback. Please try again.');
+      Alert.alert(t('common.error'), t('feedbackScreen.alerts.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -71,20 +73,20 @@ export const FeedbackScreen: React.FC<FeedbackScreenProps> = ({ onClose }) => {
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Ionicons name="close" size={24} color="#2C3E50" />
         </TouchableOpacity>
-        <Text style={styles.title}>Send Feedback</Text>
+        <Text style={styles.title}>{t('feedbackScreen.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>How would you rate your experience?</Text>
+          <Text style={styles.sectionTitle}>{t('feedbackScreen.ratingQuestion')}</Text>
           <View style={styles.ratingContainer}>
             {renderStars()}
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Category</Text>
+          <Text style={styles.sectionTitle}>{t('feedbackScreen.category')}</Text>
           <View style={styles.categoriesContainer}>
             {(categories || []).map((cat) => (
               <TouchableOpacity
@@ -106,7 +108,7 @@ export const FeedbackScreen: React.FC<FeedbackScreenProps> = ({ onClose }) => {
                     category === cat.id && styles.selectedCategoryText,
                   ]}
                 >
-                  {cat.label}
+                  {t(cat.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -114,10 +116,10 @@ export const FeedbackScreen: React.FC<FeedbackScreenProps> = ({ onClose }) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Feedback</Text>
+          <Text style={styles.sectionTitle}>{t('feedbackScreen.yourFeedback')}</Text>
           <TextInput
             style={styles.textInput}
-            placeholder="Tell us what you think..."
+            placeholder={t('feedbackScreen.placeholder')}
             placeholderTextColor="#BDC3C7"
             value={feedback}
             onChangeText={setFeedback}
@@ -138,7 +140,7 @@ export const FeedbackScreen: React.FC<FeedbackScreenProps> = ({ onClose }) => {
             <Ionicons name="send" size={20} color="white" />
           )}
           <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+            {isSubmitting ? t('feedbackScreen.submitting') : t('feedbackScreen.submit')}
           </Text>
         </TouchableOpacity>
       </ScrollView>

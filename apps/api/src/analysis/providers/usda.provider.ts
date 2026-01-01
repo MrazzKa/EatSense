@@ -14,7 +14,7 @@ export class UsdaNutritionProvider implements INutritionProvider {
   readonly id: NutritionProviderId = 'usda';
   private readonly logger = new Logger(UsdaNutritionProvider.name);
 
-  constructor(private readonly hybrid: HybridService) {}
+  constructor(private readonly hybrid: HybridService) { }
 
   async isAvailable(_context: NutritionLookupContext): Promise<boolean> {
     // USDA доступен глобально
@@ -77,7 +77,7 @@ export class UsdaNutritionProvider implements INutritionProvider {
       const matches = await (this.hybrid as any).findByText(
         trimmed,
         5, // limit
-        0.7, // minScore
+        0.8, // minScore - increased from 0.7 for better accuracy
         expectedCategory,
       );
 
@@ -86,7 +86,7 @@ export class UsdaNutritionProvider implements INutritionProvider {
       }
 
       const bestMatch = matches[0];
-      if (bestMatch.score < 0.7) {
+      if (bestMatch.score < 0.8) {
         return null;
       }
 

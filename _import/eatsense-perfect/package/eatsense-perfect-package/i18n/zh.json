@@ -1,0 +1,72 @@
+{
+  "experts": {
+    "title": "专家",
+    "subtitle": "从营养专家那里获得个性化帮助",
+    "myConsultations": "我的咨询",
+    "viewChats": "查看活跃聊天",
+    "findSpecialist": "寻找专家",
+    "viewAll": "查看所有专家",
+    "dietitian": {
+      "title": "营养师",
+      "subtitle": "基于您的病史和目标的临床指导。"
+    },
+    "nutritionist": {
+      "title": "营养顾问",
+      "subtitle": "关于饮食、习惯和日常生活的实用建议。"
+    },
+    "noSpecialists": "暂无可用专家",
+    "profile": "个人资料",
+    "verified": "已认证",
+    "about": "关于",
+    "credentials": "资质",
+    "languages": "语言",
+    "recentReviews": "最近评价",
+    "reviews": "条评价",
+    "startConsultation": "开始咨询"
+  },
+  "chat": {
+    "daysRemaining": "天剩余",
+    "consultationEnded": "咨询已结束",
+    "shareMeals": "分享餐食",
+    "shareMealsConfirm": "分享过去7天的餐食记录？"
+  },
+  "dietPrograms": {
+    "title": "饮食计划",
+    "empty": "暂无可用计划",
+    "about": "关于",
+    "previewDay1": "第1天预览",
+    "startProgram": "开始计划",
+    "startConfirm": "开始",
+    "day": "第",
+    "completeDay": "完成今天",
+    "finishProgram": "完成计划",
+    "completed": "恭喜！",
+    "completedMessage": "您已完成计划！",
+    "categories": {
+      "all": "全部",
+      "hollywood": "好莱坞",
+      "athletes": "运动员",
+      "historical": "历史名人"
+    }
+  },
+  "referral": {
+    "title": "邀请好友",
+    "heroTitle": "赠送7天，获得7天",
+    "heroSubtitle": "邀请好友，双方都能免费获得7天PRO！",
+    "yourCode": "您的邀请码",
+    "share": "分享给好友",
+    "invited": "已邀请好友",
+    "earnedDays": "获得天数",
+    "history": "最近邀请",
+    "howItWorks": "如何使用",
+    "step1": "将邀请码分享给好友",
+    "step2": "好友使用您的邀请码注册",
+    "step3": "双方都能免费获得7天PRO！"
+  },
+  "common": {
+    "cancel": "取消",
+    "confirm": "确认",
+    "days": "天",
+    "all": "全部"
+  }
+}

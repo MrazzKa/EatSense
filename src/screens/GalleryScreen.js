@@ -165,11 +165,11 @@ export default function GalleryScreen() {
 
       if (__DEV__) console.log('[GalleryScreen] Image selected, compressing...');
 
-      // Compress the image
+      // Compress the image - use higher quality for better AI analysis
       const compressedImage = await ImageManipulator.manipulateAsync(
         asset.uri,
-        [{ resize: { width: 1024 } }],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        [{ resize: { width: 1600 } }],
+        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
       );
 
       if (__DEV__) console.log('[GalleryScreen] Image compressed, starting analysis...');

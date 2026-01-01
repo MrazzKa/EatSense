@@ -58,7 +58,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <TouchableOpacity style={styles.button} onPress={this.handleReset}>
             <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>Это временный экран. Соберём стек — потом уберём.</Text>
+          <Text style={styles.hint}>Debug screen. Collecting stack trace.</Text>
         </View>
       );
     }

@@ -10,13 +10,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import { PendingAnalysis, AnalysisStatus } from '../contexts/AnalysisContext';
+import type { PendingAnalysis } from '../contexts/AnalysisContext';
 
 interface PendingMealCardProps {
     analysis: PendingAnalysis;
     onPress: () => void;
     onRetry?: () => void;
-    onDelete?: () => void;
+
 }
 
 /**
@@ -37,12 +37,12 @@ export function PendingMealCard({
     analysis,
     onPress,
     onRetry,
-    onDelete,
+
 }: PendingMealCardProps) {
-    const { colors, tokens } = useTheme();
+    const { colors } = useTheme();
     const { t } = useI18n();
 
-    const { status, localPreviewUri, imageUrl, dishName, calories, errorMessage } = analysis;
+    const { status, localPreviewUri, imageUrl, errorMessage } = analysis;
 
     // Determine display image (prefer server URL, fallback to local preview)
     const displayImage = imageUrl || localPreviewUri;
@@ -116,13 +116,16 @@ export function PendingMealCard({
 
             case 'completed':
                 return (
-                    <View style={styles.completedContainer}>
-                        <Text style={[styles.dishName, { color: colors.text }]} numberOfLines={1}>
-                            {dishName || t('dashboard.mealFallback') || 'Meal'}
-                        </Text>
-                        <Text style={[styles.macros, { color: colors.textSecondary }]}>
-                            {`${Math.round(calories || 0)} kcal`}
-                        </Text>
+                    <View style={styles.statusContainer}>
+                        <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
+                        <View style={styles.statusTextContainer}>
+                            <Text style={[styles.statusTitle, { color: colors.success || '#34C759' }]}>
+                                {t('common.done') || 'Done!'}
+                            </Text>
+                            <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
+                                {t('dashboard.diary.analysisComplete') || 'Analysis complete'}
+                            </Text>
+                        </View>
                     </View>
                 );
 

@@ -1,0 +1,72 @@
+{
+  "experts": {
+    "title": "Spécialistes",
+    "subtitle": "Obtenez une aide personnalisée d'experts en nutrition",
+    "myConsultations": "Mes consultations",
+    "viewChats": "Voir vos discussions actives",
+    "findSpecialist": "Trouver un spécialiste",
+    "viewAll": "Voir tous les spécialistes",
+    "dietitian": {
+      "title": "Diététicien",
+      "subtitle": "Conseils cliniques basés sur vos antécédents médicaux et vos objectifs."
+    },
+    "nutritionist": {
+      "title": "Nutritionniste",
+      "subtitle": "Conseils pratiques sur les repas, les habitudes et les routines quotidiennes."
+    },
+    "noSpecialists": "Aucun spécialiste disponible",
+    "profile": "Profil",
+    "verified": "Vérifié",
+    "about": "À propos",
+    "credentials": "Qualifications",
+    "languages": "Langues",
+    "recentReviews": "Avis récents",
+    "reviews": "avis",
+    "startConsultation": "Commencer la consultation"
+  },
+  "chat": {
+    "daysRemaining": "jours restants",
+    "consultationEnded": "Consultation terminée",
+    "shareMeals": "Partager les repas",
+    "shareMealsConfirm": "Partager vos repas des 7 derniers jours?"
+  },
+  "dietPrograms": {
+    "title": "Programmes alimentaires",
+    "empty": "Aucun programme disponible",
+    "about": "À propos",
+    "previewDay1": "Aperçu du jour 1",
+    "startProgram": "Démarrer le programme",
+    "startConfirm": "Démarrer",
+    "day": "Jour",
+    "completeDay": "Terminer la journée",
+    "finishProgram": "Terminer le programme",
+    "completed": "Félicitations!",
+    "completedMessage": "Vous avez terminé le programme!",
+    "categories": {
+      "all": "Tous",
+      "hollywood": "Hollywood",
+      "athletes": "Athlètes",
+      "historical": "Historiques"
+    }
+  },
+  "referral": {
+    "title": "Inviter des amis",
+    "heroTitle": "Donnez 7 jours, recevez 7 jours",
+    "heroSubtitle": "Invitez des amis et vous obtenez tous les deux 7 jours PRO gratuits!",
+    "yourCode": "Votre code de parrainage",
+    "share": "Partager avec des amis",
+    "invited": "Amis invités",
+    "earnedDays": "Jours gagnés",
+    "history": "Invitations récentes",
+    "howItWorks": "Comment ça marche",
+    "step1": "Partagez votre code avec des amis",
+    "step2": "Ils s'inscrivent avec votre code",
+    "step3": "Vous obtenez tous les deux 7 jours PRO gratuits!"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "days": "jours",
+    "all": "Tous"
+  }
+}

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
 import ApiService from '../services/apiService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -108,50 +109,54 @@ const ProfileScreen = () => {
     return value && value !== key ? value : fallback;
   }, [t]);
 
-  const handleResetAppData = useCallback(async () => {
+  /* Delete Account Logic */
+  const handleDeleteAccount = useCallback(async () => {
     Alert.alert(
-      safeT('profile.resetAppDataTitle', 'Reset App Data'),
-      safeT('profile.resetAppDataMessage', 'This will clear all app data and log you out. You will need to sign in again and complete onboarding. Continue?'),
+      safeT('profile.deleteAccountTitle', 'Delete Account'),
+      safeT('profile.deleteAccountMessage', 'Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be lost.'),
       [
         {
           text: safeT('common.cancel', 'Cancel'),
           style: 'cancel',
         },
         {
-          text: safeT('profile.resetAppDataConfirm', 'Reset'),
+          text: safeT('profile.deleteAccountConfirm', 'Delete Account'),
           style: 'destructive',
           onPress: async () => {
+            setLoading(true);
             try {
-              // Clear AsyncStorage
+              // Call API to delete user
+              await ApiService.deleteAccount();
+
+              // Clear local data
               await AsyncStorage.clear();
 
               // Clear SecureStore
               try {
                 await SecureStore.deleteItemAsync('auth.refreshToken');
-              } catch (e) {
+              } catch {
                 // Ignore errors
               }
 
               // Clear tokens from ApiService
               await ApiService.setToken(null, null);
 
-              // Sign out - AuthContext will handle navigation via user state change
+              // Sign out
               await signOut();
-
-              // Navigation will be handled automatically by App.js based on user state
-              // No manual navigation needed - App.js listens to user changes
             } catch (error) {
-              console.error('[ProfileScreen] Error resetting app data:', error);
+              console.error('[ProfileScreen] Error deleting account:', error);
               Alert.alert(
                 safeT('common.error', 'Error'),
-                safeT('profile.resetAppDataError', 'Failed to reset app data. Please try again.'),
+                safeT('profile.deleteAccountError', 'Failed to delete account. Please try again.'),
               );
+            } finally {
+              setLoading(false);
             }
           },
         },
       ],
     );
-  }, [safeT, signOut, navigation]);
+  }, [safeT, signOut]);
 
   const [profile, setProfile] = useState({
     firstName: '',
@@ -201,6 +206,8 @@ const ProfileScreen = () => {
     },
   });
   const [planModalVisible, setPlanModalVisible] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
   const [planSaving, setPlanSaving] = useState(false);
   const [pendingPlan, setPendingPlan] = useState('free');
   const deviceTimezone = useMemo(() => {
@@ -498,7 +505,7 @@ const ProfileScreen = () => {
     setEditing(false);
   };
 
-  const reminderOptions = [6, 8, 12, 18, 20];
+
 
   const planOptions = [
     {
@@ -621,19 +628,33 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleNotificationHourChange = async () => {
-    const currentIndex = reminderOptions.indexOf(notificationPreferences.dailyPushHour);
-    const nextHour = reminderOptions[(currentIndex + 1 + reminderOptions.length) % reminderOptions.length];
+  const handleNotificationHourChange = () => {
+    setShowTimePicker(true);
+  };
+
+  const onTimeChange = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        updatePushHour(selectedDate.getHours());
+      }
+    } else {
+      // iOS
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
+    }
+  };
+
+  const updatePushHour = async (hour) => {
     try {
       setNotificationSaving(true);
-      // Ensure all values are properly typed
       const payload = {
         dailyPushEnabled: Boolean(notificationPreferences.dailyPushEnabled),
-        dailyPushHour: Number(nextHour) || 8,
+        dailyPushHour: Number(hour) || 8,
         timezone: (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
       };
 
-      // Validate dailyPushHour is between 0-23
       if (payload.dailyPushHour < 0 || payload.dailyPushHour > 23) {
         payload.dailyPushHour = 8;
       }
@@ -641,7 +662,7 @@ const ProfileScreen = () => {
       const updated = await ApiService.updateNotificationPreferences(payload);
       setNotificationPreferences({
         dailyPushEnabled: Boolean(updated.dailyPushEnabled),
-        dailyPushHour: typeof updated.dailyPushHour === 'number' ? updated.dailyPushHour : nextHour,
+        dailyPushHour: typeof updated.dailyPushHour === 'number' ? updated.dailyPushHour : hour,
         timezone: (updated.timezone || notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
       });
     } catch (error) {
@@ -653,6 +674,11 @@ const ProfileScreen = () => {
     } finally {
       setNotificationSaving(false);
     }
+  };
+
+  const confirmIosTime = () => {
+    setShowTimePicker(false);
+    updatePushHour(tempDate.getHours());
   };
 
   const handlePlanChange = async (planId) => {
@@ -790,29 +816,29 @@ const ProfileScreen = () => {
           <View style={styles.healthSummaryHeader}>
             <View style={styles.healthSummaryContent}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.advanced', 'Расширенные параметры здоровья')}
+                {safeT('profile.health.advanced', 'Advanced Health Parameters')}
               </Text>
               <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
                 {(() => {
                   const parts = [];
-                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% жира`);
-                  if (healthProfile.metabolic?.waistCm) parts.push(`Талия ${healthProfile.metabolic.waistCm} см`);
-                  if (healthProfile.sleep?.sleepHours) parts.push(`Сон ${healthProfile.sleep.sleepHours} ч`);
+                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% fat`);
+                  if (healthProfile.metabolic?.waistCm) parts.push(`Waist ${healthProfile.metabolic.waistCm} cm`);
+                  if (healthProfile.sleep?.sleepHours) parts.push(`Sleep ${healthProfile.sleep.sleepHours} h`);
                   const focusAreas = Object.entries(healthProfile.healthFocus || {})
                     .filter(([, val]) => val === true)
                     .map(([key]) => {
                       const keyMap = {
-                        sugarControl: safeT('profile.health.focus.sugarControl', 'Контроль сахара'),
-                        cholesterol: safeT('profile.health.focus.cholesterol', 'Холестерин'),
-                        inflammation: safeT('profile.health.focus.inflammation', 'Воспаление'),
-                        iron: safeT('profile.health.focus.iron', 'Железо'),
-                        microbiome: safeT('profile.health.focus.microbiome', 'Микробиом'),
-                        hormonalBalance: safeT('profile.health.focus.hormonalBalance', 'Гормоны'),
+                        sugarControl: safeT('profile.health.focus.sugarControl', 'Sugar Control'),
+                        cholesterol: safeT('profile.health.focus.cholesterol', 'Cholesterol'),
+                        inflammation: safeT('profile.health.focus.inflammation', 'Inflammation'),
+                        iron: safeT('profile.health.focus.iron', 'Iron'),
+                        microbiome: safeT('profile.health.focus.microbiome', 'Microbiome'),
+                        hormonalBalance: safeT('profile.health.focus.hormonalBalance', 'Hormones'),
                       };
                       return keyMap[key] || key;
                     });
-                  if (focusAreas.length > 0) parts.push(`${safeT('profile.health.focusAreas', 'Цели')}: ${focusAreas.slice(0, 2).join(', ')}${focusAreas.length > 2 ? '...' : ''}`);
-                  return parts.length > 0 ? parts.join(' • ') : safeT('profile.health.noData', 'Нет данных');
+                  if (focusAreas.length > 0) parts.push(`${safeT('profile.health.focusAreas', 'Focus')}: ${focusAreas.slice(0, 2).join(', ')}${focusAreas.length > 2 ? '...' : ''}`);
+                  return parts.length > 0 ? parts.join(' • ') : safeT('profile.health.noData', 'No data');
                 })()}
               </Text>
             </View>
@@ -834,7 +860,7 @@ const ProfileScreen = () => {
             >
               <View style={styles.editHealthButtonContent}>
                 <Text style={[styles.editHealthButtonText, { color: colors.primary }]}>
-                  {showHealthDetails ? safeT('common.hide', 'Скрыть') : safeT('common.show', 'Показать')}
+                  {showHealthDetails ? safeT('common.hide', 'Hide') : safeT('common.show', 'Show')}
                 </Text>
                 <Animated.View
                   style={{
@@ -861,11 +887,11 @@ const ProfileScreen = () => {
             {__DEV__ && console.log('[ProfileScreen] Rendering health details sections, showHealthDetails:', showHealthDetails)}
             <AppCard style={styles.healthSection}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.metabolic', 'Метаболические параметры')}
+                {safeT('profile.health.metabolic', 'Metabolic Parameters')}
               </Text>
 
               <ProfileNumberRow
-                label={safeT('profile.health.bodyFatPercent', 'Процент жира')}
+                label={safeT('profile.health.bodyFatPercent', 'Body Fat %')}
                 suffix="%"
                 value={healthProfile.metabolic.bodyFatPercent}
                 min={5}
@@ -879,8 +905,8 @@ const ProfileScreen = () => {
               />
 
               <ProfileNumberRow
-                label={safeT('profile.health.waistCm', 'Окружность талии')}
-                suffix="см"
+                label={safeT('profile.health.waistCm', 'Waist Circumference')}
+                suffix="cm"
                 value={healthProfile.metabolic.waistCm}
                 min={50}
                 max={150}
@@ -897,8 +923,8 @@ const ProfileScreen = () => {
               />
 
               <ProfileNumberRow
-                label={safeT('profile.health.hipCm', 'Окружность бёдер')}
-                suffix="см"
+                label={safeT('profile.health.hipCm', 'Hip Circumference')}
+                suffix="cm"
                 value={healthProfile.metabolic.hipCm}
                 min={70}
                 max={160}
@@ -920,18 +946,18 @@ const ProfileScreen = () => {
                 </Text>
                 <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
                   {healthProfile.metabolic.whr != null
-                    ? `${healthProfile.metabolic.whr.toFixed(2)} (${safeT('profile.health.auto', 'авто')})`
-                    : `— (${safeT('profile.health.auto', 'авто')})`}
+                    ? `${healthProfile.metabolic.whr.toFixed(2)} (${safeT('profile.health.auto', 'auto')})`
+                    : `— (${safeT('profile.health.auto', 'auto')})`}
                 </Text>
               </View>
 
               <ProfileSegmentedControl
-                label={safeT('profile.health.fatDistributionType', 'Тип распределения жира')}
+                label={safeT('profile.health.fatDistributionType', 'Fat Distribution Type')}
                 value={healthProfile.metabolic.fatDistributionType || 'visceral'}
                 options={[
-                  { value: 'visceral', label: safeT('profile.health.fatDistribution.visceral', 'Висцеральный') },
-                  { value: 'gynoid', label: safeT('profile.health.fatDistribution.gynoid', 'Гиноидный') },
-                  { value: 'mixed', label: safeT('profile.health.fatDistribution.mixed', 'Смешанный') },
+                  { value: 'visceral', label: safeT('profile.health.fatDistribution.visceral', 'Visceral') },
+                  { value: 'gynoid', label: safeT('profile.health.fatDistribution.gynoid', 'Gynoid') },
+                  { value: 'mixed', label: safeT('profile.health.fatDistribution.mixed', 'Mixed') },
                 ]}
                 onChange={(value) =>
                   setHealthProfile((prev) => ({
@@ -944,11 +970,11 @@ const ProfileScreen = () => {
 
             <AppCard style={styles.healthSection}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.eatingBehavior', 'Пищевое поведение')}
+                {safeT('profile.health.eatingBehavior', 'Eating Behavior')}
               </Text>
 
               <ProfileNumberRow
-                label={safeT('profile.health.mealsPerDay', 'Количество приёмов пищи')}
+                label={safeT('profile.health.mealsPerDay', 'Meals per Day')}
                 value={healthProfile.eatingBehavior.mealsPerDay}
                 min={1}
                 max={8}
@@ -961,12 +987,12 @@ const ProfileScreen = () => {
               />
 
               <ProfileSegmentedControl
-                label={safeT('profile.health.snackingTendency', 'Склонность к перекусам')}
+                label={safeT('profile.health.snackingTendency', 'Snacking Tendency')}
                 value={healthProfile.eatingBehavior.snackingTendency || 'medium'}
                 options={[
-                  { value: 'low', label: safeT('profile.health.snacking.low', 'Низкая') },
-                  { value: 'medium', label: safeT('profile.health.snacking.medium', 'Средняя') },
-                  { value: 'high', label: safeT('profile.health.snacking.high', 'Высокая') },
+                  { value: 'low', label: safeT('profile.health.snacking.low', 'Low') },
+                  { value: 'medium', label: safeT('profile.health.snacking.medium', 'Medium') },
+                  { value: 'high', label: safeT('profile.health.snacking.high', 'High') },
                 ]}
                 onChange={(value) =>
                   setHealthProfile((prev) => ({
@@ -977,11 +1003,11 @@ const ProfileScreen = () => {
               />
 
               <ProfileSegmentedControl
-                label={safeT('profile.health.eveningAppetite', 'Аппетит вечером')}
+                label={safeT('profile.health.eveningAppetite', 'Evening Appetite')}
                 value={healthProfile.eatingBehavior.eveningAppetite ? 'yes' : 'no'}
                 options={[
-                  { value: 'yes', label: safeT('common.yes', 'Да') },
-                  { value: 'no', label: safeT('common.no', 'Нет') },
+                  { value: 'yes', label: safeT('common.yes', 'Yes') },
+                  { value: 'no', label: safeT('common.no', 'No') },
                 ]}
                 onChange={(value) =>
                   setHealthProfile((prev) => ({
@@ -994,11 +1020,11 @@ const ProfileScreen = () => {
 
             <AppCard style={styles.healthSection}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.sleep', 'Сон и циркадные ритмы')}
+                {safeT('profile.health.sleep', 'Sleep & Circadian Rhythms')}
               </Text>
 
               <ProfileNumberRow
-                label={safeT('profile.health.sleepHours', 'Сон (часы)')}
+                label={safeT('profile.health.sleepHours', 'Sleep (hours)')}
                 value={healthProfile.sleep.sleepHours}
                 min={3}
                 max={12}
@@ -1012,12 +1038,12 @@ const ProfileScreen = () => {
               />
 
               <ProfileSegmentedControl
-                label={safeT('profile.health.chronotype', 'Хронотип')}
+                label={safeT('profile.health.chronotype', 'Chronotype')}
                 value={healthProfile.sleep.chronotype || 'late'}
                 options={[
-                  { value: 'early', label: safeT('profile.health.chronotypeOptions.early', safeT('profile.health.chronotype.early', 'Ранний')) },
-                  { value: 'mid', label: safeT('profile.health.chronotypeOptions.mid', safeT('profile.health.chronotype.mid', 'Средний')) },
-                  { value: 'late', label: safeT('profile.health.chronotypeOptions.late', safeT('profile.health.chronotype.late', 'Поздний')) },
+                  { value: 'early', label: safeT('profile.health.chronotypeOptions.early', safeT('profile.health.chronotype.early', 'Early')) },
+                  { value: 'mid', label: safeT('profile.health.chronotypeOptions.mid', safeT('profile.health.chronotype.mid', 'Mid')) },
+                  { value: 'late', label: safeT('profile.health.chronotypeOptions.late', safeT('profile.health.chronotype.late', 'Late')) },
                 ]}
                 onChange={(value) =>
                   setHealthProfile((prev) => ({
@@ -1030,15 +1056,15 @@ const ProfileScreen = () => {
 
             <AppCard style={styles.healthSection}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.glp1Module', 'GLP-1 модуль')}
+                {safeT('profile.health.glp1Module', 'GLP-1 Module')}
               </Text>
 
               <ProfileSegmentedControl
-                label={safeT('profile.health.isGlp1User', 'GLP-1 пользователь')}
+                label={safeT('profile.health.isGlp1User', 'GLP-1 User')}
                 value={healthProfile.glp1Module.isGlp1User ? 'yes' : 'no'}
                 options={[
-                  { value: 'yes', label: safeT('common.yes', 'Да') },
-                  { value: 'no', label: safeT('common.no', 'Нет') },
+                  { value: 'yes', label: safeT('common.yes', 'Yes') },
+                  { value: 'no', label: safeT('common.no', 'No') },
                 ]}
                 onChange={(value) =>
                   setHealthProfile((prev) => ({
@@ -1051,7 +1077,7 @@ const ProfileScreen = () => {
               {healthProfile.glp1Module.isGlp1User && (
                 <>
                   <ProfileSegmentedControl
-                    label={safeT('profile.health.drugType', 'Тип препарата')}
+                    label={safeT('profile.health.drugType', 'Drug Type')}
                     value={healthProfile.glp1Module.drugType || 'semaglutide'}
                     options={[
                       { value: 'semaglutide', label: safeT('profile.health.drugType.semaglutide', 'Semaglutide') },
@@ -1067,13 +1093,13 @@ const ProfileScreen = () => {
                   />
 
                   <ProfileSegmentedControl
-                    label={safeT('profile.health.therapyGoal', 'Цель терапии')}
+                    label={safeT('profile.health.therapyGoal', 'Therapy Goal')}
                     value={healthProfile.glp1Module.therapyGoal || 'preserve_muscle'}
                     options={[
-                      { value: 'preserve_muscle', label: safeT('profile.health.therapyGoalOptions.preserve_muscle', 'Сохранить мышцы') },
-                      { value: 'appetite_control', label: safeT('profile.health.therapyGoalOptions.appetite_control', 'Контроль аппетита') },
-                      { value: 'weight_maintenance', label: safeT('profile.health.therapyGoalOptions.weight_maintenance', 'Поддерживать вес') },
-                      { value: 'slow_weight_loss', label: safeT('profile.health.therapyGoalOptions.slow_weight_loss', 'Плавное снижение веса') },
+                      { value: 'preserve_muscle', label: safeT('profile.health.therapyGoalOptions.preserve_muscle', 'Preserve Muscle') },
+                      { value: 'appetite_control', label: safeT('profile.health.therapyGoalOptions.appetite_control', 'Appetite Control') },
+                      { value: 'weight_maintenance', label: safeT('profile.health.therapyGoalOptions.weight_maintenance', 'Weight Maintenance') },
+                      { value: 'slow_weight_loss', label: safeT('profile.health.therapyGoalOptions.slow_weight_loss', 'Slow Weight Loss') },
                     ]}
                     onChange={(value) =>
                       setHealthProfile((prev) => ({
@@ -1088,11 +1114,11 @@ const ProfileScreen = () => {
 
             <AppCard style={styles.healthSection}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.healthFocus', 'Области фокуса здоровья')}
+                {safeT('profile.health.healthFocus', 'Health Focus Areas')}
               </Text>
 
               <ProfileToggleRow
-                label={safeT('profile.health.focus.sugarControl', 'Контроль сахара')}
+                label={safeT('profile.health.focus.sugarControl', 'Sugar Control')}
                 value={healthProfile.healthFocus.sugarControl}
                 onChange={(val) =>
                   setHealthProfile((prev) => ({
@@ -1103,7 +1129,7 @@ const ProfileScreen = () => {
               />
 
               <ProfileToggleRow
-                label={safeT('profile.health.focus.cholesterol', 'Холестерин')}
+                label={safeT('profile.health.focus.cholesterol', 'Cholesterol')}
                 value={healthProfile.healthFocus.cholesterol}
                 onChange={(val) =>
                   setHealthProfile((prev) => ({
@@ -1114,7 +1140,7 @@ const ProfileScreen = () => {
               />
 
               <ProfileToggleRow
-                label={safeT('profile.health.focus.inflammation', 'Воспаление')}
+                label={safeT('profile.health.focus.inflammation', 'Inflammation')}
                 value={healthProfile.healthFocus.inflammation}
                 onChange={(val) =>
                   setHealthProfile((prev) => ({
@@ -1125,7 +1151,7 @@ const ProfileScreen = () => {
               />
 
               <ProfileToggleRow
-                label={safeT('profile.health.focus.iron', 'Железо')}
+                label={safeT('profile.health.focus.iron', 'Iron')}
                 value={healthProfile.healthFocus.iron}
                 onChange={(val) =>
                   setHealthProfile((prev) => ({
@@ -1136,7 +1162,7 @@ const ProfileScreen = () => {
               />
 
               <ProfileToggleRow
-                label={safeT('profile.health.focus.microbiome', 'Микробиом')}
+                label={safeT('profile.health.focus.microbiome', 'Microbiome')}
                 value={healthProfile.healthFocus.microbiome}
                 onChange={(val) =>
                   setHealthProfile((prev) => ({
@@ -1147,7 +1173,7 @@ const ProfileScreen = () => {
               />
 
               <ProfileToggleRow
-                label={safeT('profile.health.focus.hormonalBalance', 'Гормональный баланс')}
+                label={safeT('profile.health.focus.hormonalBalance', 'Hormonal Balance')}
                 value={healthProfile.healthFocus.hormonalBalance}
                 onChange={(val) =>
                   setHealthProfile((prev) => ({
@@ -1172,51 +1198,29 @@ const ProfileScreen = () => {
           </>
         )}
 
-        <AppCard style={styles.planCard}>
-          <View style={styles.planHeader}>
-            <Text style={styles.sectionTitle}>
-              {safeT('profile.subscriptionTitle', 'Subscription')}
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                setPendingPlan(subscription.planId);
-                setPlanModalVisible(true);
-              }}
-            >
-              <Text style={styles.planChangeText}>
-                {safeT('profile.changePlan', 'Change plan')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.planSummary}>
-            <View style={styles.planSummaryText}>
-              <Text style={styles.planSummaryName}>
-                {getPlanDetails(subscription.planId).name}
-              </Text>
-              <Text style={styles.planSummaryPrice}>
-                {getPlanDetails(subscription.planId).priceText}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.planSummaryFeatures}>
-            {(getPlanDetails(subscription.planId).features || []).slice(0, 3).map((feature) => (
-              <View key={feature} style={styles.planFeatureRow}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color={tokens.colors?.success ?? '#34C759'}
-                />
-                <Text style={styles.planFeatureText}>{feature}</Text>
+        {/* Medications Section */}
+        <AppCard style={styles.medicationsCard}>
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation && typeof navigation.navigate === 'function') {
+                navigation.navigate('MedicationSchedule');
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardContent}>
+              <Ionicons name="medkit-outline" size={24} color={colors.primary} />
+              <View style={styles.cardTextContainer}>
+                <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                  {safeT('medications.title', safeT('profile.medications', 'Medications'))}
+                </Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  {safeT('medications.subtitle', safeT('profile.medicationsSubtitle', 'Manage your medication schedule'))}
+                </Text>
               </View>
-            ))}
-          </View>
-          <Text style={styles.planMeta}>
-            {subscription.billingCycle === 'annual'
-              ? safeT('profile.billingAnnual', 'Billed annually')
-              : subscription.billingCycle === 'monthly'
-                ? safeT('profile.billingMonthly', 'Billed monthly')
-                : safeT('profile.billingFree', 'Free forever')}
-          </Text>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </View>
+          </TouchableOpacity>
         </AppCard>
 
         <Modal
@@ -1230,14 +1234,23 @@ const ProfileScreen = () => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
           >
-            <SafeAreaView style={[styles.editModalContainer, { backgroundColor: tokens.colors.background }]} edges={['top', 'bottom']}>
-              <View style={[styles.editModalHeader, { borderBottomColor: tokens.colors.border }]}>
+            <SafeAreaView style={[styles.editModalContainer, { backgroundColor: tokens.colors.background }]} edges={['right', 'bottom', 'left']}>
+              <View
+                style={[
+                  styles.editModalHeader,
+                  {
+                    borderBottomColor: tokens.colors.border,
+                    marginTop: Platform.OS === 'android' ? (Constants.statusBarHeight || 24) : 0,
+                    paddingTop: Platform.OS === 'ios' ? 10 : 20, // Add more padding for better hit area
+                  }
+                ]}
+              >
                 <TouchableOpacity
                   onPress={handleCancel}
                   style={styles.editModalCloseButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 >
-                  <Ionicons name="close" size={24} color={tokens.colors.textPrimary || tokens.colors.text} />
+                  <Ionicons name="close" size={32} color={tokens.colors.textPrimary || tokens.colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.editModalTitle, { color: tokens.colors.textPrimary }]}>
                   {t('profile.editProfile') || 'Edit Profile'}
@@ -1421,27 +1434,47 @@ const ProfileScreen = () => {
                   }
                 }}
               >
-                <Ionicons name="partly-sunny" size={18} color={themeMode === 'light' ? tokens.colors.onPrimary : tokens.colors.textPrimary} />
+                <View style={[styles.themeColorDot, { backgroundColor: '#2563EB' }]} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeChip, themeMode === 'dark' && styles.themeChipActive]}
+                style={[styles.themeChip, themeMode === 'dark' && styles.themeChipActive, themeMode === 'dark' && { backgroundColor: '#020617' }]}
                 onPress={() => {
                   if (typeof toggleTheme === 'function') {
                     toggleTheme('dark');
                   }
                 }}
               >
-                <Ionicons name="moon" size={18} color={themeMode === 'dark' ? tokens.colors.onPrimary : tokens.colors.textPrimary} />
+                <View style={[styles.themeColorDot, { backgroundColor: '#3B82F6', borderWidth: themeMode === 'dark' ? 1 : 0, borderColor: '#3B82F6' }]} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeChip, themeMode === 'monochrome' && styles.themeChipActive]}
+                style={[styles.themeChip, themeMode === 'monochrome' && styles.themeChipActive, themeMode === 'monochrome' && { backgroundColor: '#000000' }]}
                 onPress={() => {
                   if (typeof toggleTheme === 'function') {
                     toggleTheme('monochrome');
                   }
                 }}
               >
-                <Ionicons name="contrast" size={18} color={themeMode === 'monochrome' ? tokens.colors.onPrimary : tokens.colors.textPrimary} />
+                <View style={[styles.themeColorDot, { backgroundColor: themeMode === 'monochrome' ? '#FFFFFF' : '#000000' }]} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeChip, themeMode === 'rose' && styles.themeChipActive, themeMode === 'rose' && { backgroundColor: '#EC4899' }]}
+                onPress={() => {
+                  if (typeof toggleTheme === 'function') {
+                    toggleTheme('rose');
+                  }
+                }}
+              >
+                <View style={[styles.themeColorDot, { backgroundColor: themeMode === 'rose' ? '#FFFFFF' : '#EC4899' }]} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeChip, themeMode === 'beige' && styles.themeChipActive, themeMode === 'beige' && { backgroundColor: '#A16207' }]}
+                onPress={() => {
+                  if (typeof toggleTheme === 'function') {
+                    toggleTheme('beige');
+                  }
+                }}
+              >
+                <View style={[styles.themeColorDot, { backgroundColor: themeMode === 'beige' ? '#FFFFFF' : '#A16207' }]} />
               </TouchableOpacity>
             </View>
           </View>
@@ -1481,45 +1514,68 @@ const ProfileScreen = () => {
           </View>
         </AppCard>
 
-        {/* Medications Section */}
-        <AppCard style={styles.medicationsCard}>
-          <TouchableOpacity
-            onPress={() => {
-              if (navigation && typeof navigation.navigate === 'function') {
-                navigation.navigate('MedicationSchedule');
-              }
-            }}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardContent}>
-              <Ionicons name="medkit-outline" size={24} color={colors.primary} />
-              <View style={styles.cardTextContainer}>
-                <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-                  {safeT('medications.title', safeT('profile.medications', 'Medications'))}
-                </Text>
-                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                  {safeT('medications.subtitle', safeT('profile.medicationsSubtitle', 'Manage your medication schedule'))}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-            </View>
-          </TouchableOpacity>
-        </AppCard>
-
-        {/* Reset App Data Button - for testing */}
-        {__DEV__ && (
-          <AppCard style={styles.resetCard}>
+        <AppCard style={styles.planCard}>
+          <View style={styles.planHeader}>
+            <Text style={styles.sectionTitle}>
+              {safeT('profile.subscriptionTitle', 'Subscription')}
+            </Text>
             <TouchableOpacity
-              onPress={handleResetAppData}
-              style={[styles.resetButton, { backgroundColor: colors.error || '#FF3B30' }]}
+              onPress={() => {
+                setPendingPlan(subscription.planId);
+                setPlanModalVisible(true);
+              }}
             >
-              <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.resetButtonText}>
-                {safeT('profile.resetAppData', 'Reset App Data')}
+              <Text style={styles.planChangeText}>
+                {safeT('profile.changePlan', 'Change plan')}
               </Text>
             </TouchableOpacity>
-          </AppCard>
-        )}
+          </View>
+          <View style={styles.planSummary}>
+            <View style={styles.planSummaryText}>
+              <Text style={styles.planSummaryName}>
+                {getPlanDetails(subscription.planId).name}
+              </Text>
+              <Text style={styles.planSummaryPrice}>
+                {getPlanDetails(subscription.planId).priceText}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.planSummaryFeatures}>
+            {(getPlanDetails(subscription.planId).features || []).slice(0, 3).map((feature) => (
+              <View key={feature} style={styles.planFeatureRow}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={16}
+                  color={tokens.colors?.success ?? '#34C759'}
+                />
+                <Text style={styles.planFeatureText}>{feature}</Text>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.planMeta}>
+            {subscription.billingCycle === 'annual'
+              ? safeT('profile.billingAnnual', 'Billed annually')
+              : subscription.billingCycle === 'monthly'
+                ? safeT('profile.billingMonthly', 'Billed monthly')
+                : safeT('profile.billingFree', 'Free forever')}
+          </Text>
+        </AppCard>
+
+        {/* Delete Account Button - Always Visible */}
+        <AppCard style={styles.resetCard}>
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            style={[styles.resetButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.error || '#FF3B30' }]}
+          >
+            <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
+            <Text style={[styles.resetButtonText, { color: colors.error || '#FF3B30' }]}>
+              {safeT('profile.deleteAccount', 'Delete Account')}
+            </Text>
+          </TouchableOpacity>
+          <Text style={{ textAlign: 'center', marginTop: 8, color: colors.textTertiary, fontSize: 12 }}>
+            {safeT('profile.deleteAccountDisclaimer', 'This creates a fresh start. All data will be wiped.')}
+          </Text>
+        </AppCard>
 
         {/* Footer links: Privacy Policy / Terms of Use */}
         <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border }]}>
@@ -1540,112 +1596,147 @@ const ProfileScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Build Info for debugging */}
+        <View style={styles.buildInfoContainer}>
+          <Text style={[styles.buildInfoText, { color: colors.textTertiary }]}>
+            Build {Constants.expoConfig?.version || '?'}.{Constants.expoConfig?.ios?.buildNumber || Constants.expoConfig?.android?.versionCode || '?'}
+          </Text>
+        </View>
       </ScrollView>
 
       <Modal
         visible={planModalVisible}
-        transparent
         animationType="slide"
+        presentationStyle="fullScreen"
         onRequestClose={() => !planSaving && setPlanModalVisible(false)}
       >
-        <View style={[styles.modalBackdrop, { backgroundColor: colors.scrim || 'rgba(0, 0, 0, 0.6)' }]}>
-          <TouchableOpacity
-            style={{ flex: 1 }}
-            activeOpacity={1}
-            onPress={() => !planSaving && setPlanModalVisible(false)}
-          />
-          <SafeAreaView edges={['bottom']} style={{ justifyContent: 'flex-end' }}>
-            <View style={[styles.modalContent, { backgroundColor: tokens.colors.surface || colors.card }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: tokens.colors.textPrimary || tokens.colors.text }]}>
-                  {safeT('profile.choosePlan', 'Choose a plan')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => !planSaving && setPlanModalVisible(false)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <Ionicons name="close" size={24} color={tokens.colors.textPrimary || tokens.colors.text} />
-                </TouchableOpacity>
-              </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.background }}>
+          <View style={[styles.editModalHeader, { borderBottomWidth: 0 }]}>
+            <TouchableOpacity
+              onPress={() => !planSaving && setPlanModalVisible(false)}
+              style={styles.editModalCloseButton}
+            >
+              <Ionicons name="close" size={28} color={tokens.colors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.editModalTitle}>
+              {safeT('profile.choosePlan', 'Choose a plan')}
+            </Text>
+            <View style={styles.editModalCloseButton} />
+          </View>
 
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {(planOptions || []).map((plan) => {
-                  const isSelected = pendingPlan === plan.id;
-                  const isCurrentPlan = subscription.planId === plan.id;
-                  const planDetails = getPlanDetails(plan.id);
-                  return (
-                    <TouchableOpacity
-                      key={plan.id}
-                      style={[
-                        styles.modalPlanCard,
-                        isSelected && styles.modalPlanCardSelected,
-                        isCurrentPlan && styles.modalPlanCardCurrent,
-                      ]}
-                      activeOpacity={0.9}
-                      onPress={() => !planSaving && !isCurrentPlan && setPendingPlan(plan.id)}
-                      disabled={isCurrentPlan}
-                    >
-                      <View style={styles.modalPlanHeader}>
-                        <View>
-                          <Text style={styles.modalPlanName}>{planDetails.name}</Text>
-                          <Text style={styles.modalPlanPrice}>{planDetails.priceText}</Text>
-                        </View>
-                        {planDetails.badge && (
-                          <View style={styles.modalPlanBadge}>
-                            <Text style={styles.modalPlanBadgeText}>
-                              {planDetails.badge}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.modalPlanDescription}>
-                        {planDetails.description}
-                      </Text>
-                      <View style={styles.modalPlanFeatures}>
-                        {(planDetails.features || []).map((feature, index) => (
-                          <View key={`${plan.id}-feature-${index}`} style={styles.planFeatureRow}>
-                            <Ionicons
-                              name="checkmark-circle"
-                              size={18}
-                              color={
-                                isSelected ? tokens.states.primary.on : colors.primary
-                              }
-                            />
-                            <Text
-                              style={[
-                                styles.planFeatureText,
-                                isSelected && styles.planFeatureSelectedText,
-                              ]}
-                            >
-                              {feature}
-                            </Text>
-                          </View>
-                        ))}
-                      </View>
-                      {isCurrentPlan && (
-                        <Text style={[styles.currentPlanLabel, { color: tokens.colors.primary }]}>
-                          {safeT('profile.currentPlan', 'Current plan')}
+          <View style={{ flex: 1, paddingHorizontal: 20 }}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
+            >
+              {(planOptions || []).map((plan) => {
+                const isSelected = pendingPlan === plan.id;
+                const isCurrentPlan = subscription.planId === plan.id;
+                const planDetails = getPlanDetails(plan.id);
+
+                return (
+                  <TouchableOpacity
+                    key={plan.id}
+                    style={[
+                      styles.modalPlanCard,
+                      { padding: 16, minHeight: 100 }, // Compact height
+                      isSelected && styles.modalPlanCardSelected,
+                      isCurrentPlan && styles.modalPlanCardCurrent,
+                    ]}
+                    activeOpacity={0.9}
+                    onPress={() => !planSaving && !isCurrentPlan && setPendingPlan(plan.id)}
+                    disabled={isCurrentPlan}
+                  >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.modalPlanName, { fontSize: 18 }]}>{planDetails.name}</Text>
+                        <Text style={[styles.modalPlanPrice, { fontSize: 20, marginTop: 4 }]}>{planDetails.priceText}</Text>
+                        <Text style={[styles.modalPlanDescription, { marginTop: 4, fontSize: 13 }]} numberOfLines={2}>
+                          {planDetails.description}
                         </Text>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+                      </View>
 
+                      {planDetails.badge && (
+                        <View style={[styles.modalPlanBadge, { alignSelf: 'flex-start' }]}>
+                          <Text style={styles.modalPlanBadgeText}>
+                            {planDetails.badge}
+                          </Text>
+                        </View>
+                      )}
+
+                      {isSelected && !planDetails.badge && (
+                        <Ionicons name="checkmark-circle" size={24} color={tokens.states.primary.on} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            <View style={{ paddingVertical: 20, borderTopWidth: 1, borderTopColor: tokens.colors.borderMuted }}>
               <PrimaryButton
                 title={
                   planSaving
                     ? safeT('profile.savingButton', 'Saving...')
-                    : safeT('profile.applyPlan', 'Apply plan')
+                    : safeT('profile.applyPlan', 'Apply Plan')
                 }
                 onPress={() => handlePlanChange(pendingPlan)}
                 loading={planSaving}
-                style={styles.modalApplyButton}
               />
             </View>
-          </SafeAreaView>
-        </View>
+          </View>
+        </SafeAreaView>
       </Modal>
+
+      {/* Time Picker */}
+      {showTimePicker && (
+        <>
+          {Platform.OS === 'ios' ? (
+            <Modal transparent animationType="fade" visible={showTimePicker}>
+              <View style={styles.modalBackdrop}>
+                <View style={[styles.modalContent, { paddingBottom: 20 }]}>
+                  <View style={styles.modalHeader}>
+                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                      <Text style={{ fontSize: 16, color: tokens.colors.textSecondary }}>
+                        {safeT('common.cancel', 'Cancel')}
+                      </Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { fontSize: 16 }]}>
+                      {safeT('profile.selectTime', 'Select Time')}
+                    </Text>
+                    <TouchableOpacity onPress={confirmIosTime}>
+                      <Text style={{ fontSize: 16, color: tokens.colors.primary, fontWeight: '600' }}>
+                        {safeT('common.done', 'Done')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="time"
+                    display="spinner"
+                    onChange={onTimeChange}
+                    textColor={tokens.colors.textPrimary}
+                  />
+                </View>
+              </View>
+            </Modal>
+          ) : (
+            <DateTimePicker
+              value={(() => {
+                const d = new Date();
+                d.setHours(notificationPreferences.dailyPushHour || 8);
+                d.setMinutes(0);
+                return d;
+              })()}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={onTimeChange}
+            />
+          )}
+        </>
+      )}
     </SafeAreaView>
   );
 };
@@ -2061,6 +2152,11 @@ const createStyles = (tokens) =>
       backgroundColor: tokens.states.primary.base,
       borderColor: tokens.states.primary.border || tokens.states.primary.base,
     },
+    themeColorDot: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+    },
     notificationDescription: {
       fontSize: 13,
       color: tokens.colors.textSecondary,
@@ -2167,6 +2263,15 @@ const createStyles = (tokens) =>
     footerLinkText: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    buildInfoContainer: {
+      alignItems: 'center',
+      paddingVertical: tokens.spacing.md,
+      paddingBottom: tokens.spacing.xl,
+    },
+    buildInfoText: {
+      fontSize: 12,
+      opacity: 0.5,
     },
     resetCard: {
       marginTop: tokens.spacing.lg,

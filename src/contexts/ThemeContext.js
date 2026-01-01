@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { AccessibilityInfo, useColorScheme } from 'react-native';
+import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokens as baseTokens, palettes } from '../design/tokens';
 
@@ -29,7 +29,7 @@ export const useDesignTokens = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const systemColorScheme = useColorScheme();
+  // const systemColorScheme = useColorScheme(); // Unused
   const [themeMode, setThemeMode] = useState('light'); // 'light', 'dark', 'monochrome'
   const [isDark, setIsDark] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -97,6 +97,9 @@ export const ThemeProvider = ({ children }) => {
     if (themeMode === 'rose') {
       return palettes?.rose || palettes?.light || {};
     }
+    if (themeMode === 'beige') {
+      return palettes?.beige || palettes?.light || {};
+    }
     return isDark ? (palettes?.dark || palettes?.light || {}) : (palettes?.light || {});
   }, [isDark, themeMode]);
   const themeTokens = useMemo(() => {
@@ -108,6 +111,8 @@ export const ThemeProvider = ({ children }) => {
           resolvedStates = stateTokens.monochrome || {};
         } else if (themeMode === 'rose') {
           resolvedStates = stateTokens.rose || {};
+        } else if (themeMode === 'beige') {
+          resolvedStates = stateTokens.beige || {};
         } else {
           resolvedStates = isDark ? stateTokens.dark : stateTokens.light;
         }
