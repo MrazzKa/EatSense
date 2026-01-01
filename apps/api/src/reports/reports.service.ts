@@ -92,7 +92,7 @@ export class ReportsService {
                 doc.fontSize(12).font('Helvetica-Bold').text(`${dateStr}`);
 
                 meal.items.forEach(item => {
-                    const itemName = (locale === 'ru' && item.nameLocal) ? item.nameLocal : item.name;
+                    const itemName = item.name;
                     doc.fontSize(10).font('Helvetica')
                         .text(`- ${itemName}: ${item.calories} kcal (P:${item.protein}g F:${item.fat}g C:${item.carbs}g)`);
                 });
