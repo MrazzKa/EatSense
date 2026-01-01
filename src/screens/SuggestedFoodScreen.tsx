@@ -16,24 +16,41 @@ import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
 import AppCard from '../components/common/AppCard';
 
-type SuggestedFoodItem = {
+// V2 API response types
+type SuggestionStatus = 'ok' | 'insufficient_data' | 'error';
+type HealthLevel = 'poor' | 'average' | 'good' | 'excellent';
+
+type SuggestedFoodItemV2 = {
   id: string;
   title: string;
   description: string;
+  tags?: string[];
 };
 
 type SuggestedFoodSection = {
   id: string;
   title: string;
   subtitle?: string;
-  items: SuggestedFoodItem[];
+  category?: string;
+  items: SuggestedFoodItemV2[];
 };
 
-// Backend may return items directly or sections
-type BackendResponse =
-  | SuggestedFoodItem[]
-  | { sections: SuggestedFoodSection[] }
-  | SuggestedFoodSection[];
+type HealthInfo = {
+  level: HealthLevel;
+  score: number;
+  reasons: string[];
+};
+
+type StatsInfo = {
+  daysWithMeals: number;
+  mealsCount: number;
+  avgCalories: number;
+  avgProteinG: number;
+  avgFatG: number;
+  avgCarbsG: number;
+  avgFiberG: number;
+  macroPercents: { protein: number; fat: number; carbs: number };
+};
 
 export const SuggestedFoodScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -43,106 +60,74 @@ export const SuggestedFoodScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [status, setStatus] = useState<SuggestionStatus>('ok');
 
-  // Helper function to get display name for category
-  const getCategoryDisplayName = useCallback((category: string): string => {
-    const categoryNames: Record<string, string> = {
-      protein: t('dashboard.suggestedFood.sections.protein.title') || 'Белки',
-      fiber: t('dashboard.suggestedFood.sections.fiber.title') || 'Клетчатка',
-      carbs: t('dashboard.suggestedFood.sections.carbs.title') || 'Углеводы',
-      healthy_fat: t('dashboard.suggestedFood.sections.healthyFat.title') || 'Полезные жиры',
-      general: t('dashboard.suggestedFood.sections.general.title') || 'Общие рекомендации',
-    };
+  const [summary, setSummary] = useState<string>('');
 
-    const localized = categoryNames[category];
-    // Check if localization worked (not a key itself)
-    if (localized && !localized.includes('dashboard.suggestedFood.sections')) {
-      return localized;
-    }
 
-    // Fallback to human-readable name
-    return category.charAt(0).toUpperCase() + category.slice(1).replace(/_/g, ' ');
-  }, [t]);
 
-  const normalizeBackendData = useCallback((data: BackendResponse): SuggestedFoodSection[] => {
-    if (!data) return [];
+  // V2 API response type for proper typing
+  type V2Response = {
+    status?: SuggestionStatus;
+    summary?: string;
+    health?: HealthInfo;
+    stats?: StatsInfo;
+    sections?: Array<{
+      id: string;
+      title: string;
+      subtitle?: string;
+      category?: string;
+      items: Array<{
+        id: string;
+        title: string;
+        description: string;
+        tags?: string[];
+      }>;
+    }>;
+  };
 
-    // If array of sections
-    if (Array.isArray(data) && data.length > 0) {
-      // Check if it's array of sections or items
-      if ('items' in data[0] || 'title' in data[0]) {
-        // It's sections
-        return data as SuggestedFoodSection[];
-      }
-
-      // Backend returns SuggestedFoodItem[] with name, reason, tip, category
-      // Convert to SuggestedFoodSection[] format expected by UI
-      const backendItems = data as any[];
-      const sectionsMap = new Map<string, SuggestedFoodSection>();
-
-      backendItems.forEach((item) => {
-        const category = item.category || 'general';
-        if (!sectionsMap.has(category)) {
-          // Get localized title with proper fallback
-          const title = getCategoryDisplayName(category);
-
-          sectionsMap.set(category, {
-            id: category,
-            title,
-            subtitle: item.reason || undefined,
-            items: [],
-          });
-        }
-
-        const section = sectionsMap.get(category)!;
-        // Check if item.name is a localization key and provide fallback
-        let itemTitle = item.name || 'Food item';
-        if (itemTitle.includes('.') && itemTitle.length > 3 && itemTitle.split('.').length >= 2) {
-          // Looks like a localization key, use fallback
-          const parts = itemTitle.split('.');
-          itemTitle = parts[parts.length - 1].charAt(0).toUpperCase() + parts[parts.length - 1].slice(1).replace(/_/g, ' ');
-        }
-        section.items.push({
-          id: item.id || `item-${section.items.length}`,
-          title: itemTitle,
-          description: item.tip || '',
-        });
-      });
-
-      return Array.from(sectionsMap.values());
-    }
-
-    // If object with sections
-    if (typeof data === 'object' && 'sections' in data && Array.isArray(data.sections)) {
-      return data.sections;
-    }
-
-    return [];
-  }, [t, getCategoryDisplayName]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Try to get personalized suggestions from backend
-      const data = await ApiService.getSuggestedFoods(language);
-      const normalizedSections = normalizeBackendData(data as BackendResponse);
+      // Use V2 API - no static fallbacks
+      const response = (await ApiService.getSuggestedFoodsV2(language)) as V2Response;
 
-      if (normalizedSections.length > 0) {
-        setSections(normalizedSections);
+      setStatus(response.status || 'error');
+      setSummary(response.summary || '');
+
+
+      if (response.status === 'ok' && (response.sections?.length ?? 0) > 0) {
+        // Map backend sections to UI format
+        const uiSections: SuggestedFoodSection[] = response.sections!.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          subtitle: s.subtitle,
+          category: s.category,
+          items: (s.items || []).map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            tags: item.tags,
+          })),
+        }));
+        setSections(uiSections);
+      } else if (response.status === 'insufficient_data') {
+        setSections([]);
       } else {
-        // 2. Fallback to static localized sections
-        setSections(getStaticFallbackSections(t));
+        setError(response.summary || t('dashboard.suggestedFood.error.generic'));
+        setSections([]);
       }
     } catch (e) {
-      console.warn('[SuggestedFoodScreen] API failed, using fallback', e);
+      console.error('[SuggestedFoodScreen] API failed:', e);
       setError(t('dashboard.suggestedFood.error.generic'));
-      // 3. Always show fallback on error
-      setSections(getStaticFallbackSections(t));
+      setStatus('error');
+      setSections([]);
     } finally {
       setLoading(false);
     }
-  }, [language, t, normalizeBackendData]);
+  }, [language, t]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -215,11 +200,39 @@ export const SuggestedFoodScreen: React.FC = () => {
           </View>
         )}
 
-        {sections.length === 0 && !loading ? (
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {t('dashboard.suggestedFood.empty')}
+        {status === 'insufficient_data' && sections.length === 0 && !loading ? (
+          <View style={styles.insufficientDataContainer}>
+            <Ionicons name="nutrition-outline" size={64} color={colors.primary} />
+            <Text style={[styles.insufficientDataTitle, { color: colors.textPrimary || colors.text }]}>
+              {t('dashboard.suggestedFood.insufficientData.title')}
             </Text>
+            <Text style={[styles.insufficientDataText, { color: colors.textSecondary }]}>
+              {summary || t('dashboard.suggestedFood.insufficientData.message')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.addMealButton, { backgroundColor: colors.primary }]}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="add-circle-outline" size={20} color="#fff" />
+              <Text style={styles.addMealButtonText}>
+                {t('dashboard.suggestedFood.addMeal')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : status === 'error' || (sections.length === 0 && !loading) ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="warning-outline" size={48} color={colors.textSecondary} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              {error || t('dashboard.suggestedFood.error.generic')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.retryButton, { borderColor: colors.primary }]}
+              onPress={onRefresh}
+            >
+              <Text style={[styles.retryButtonText, { color: colors.primary }]}>
+                {t('dashboard.suggestedFood.retry')}
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           sections.map((section) => {
@@ -299,104 +312,7 @@ function getSectionColor(sectionId: string, colors: any): string {
   return colorMap[sectionId] || colors.primary || '#2563EB';
 }
 
-// Fallback data - fully localized via i18n
-function getStaticFallbackSections(t: (_key: string) => string): SuggestedFoodSection[] {
-  return [
-    {
-      id: 'protein',
-      title: t('dashboard.suggestedFood.sections.protein.title') || 'Protein Sources',
-      subtitle: t('dashboard.suggestedFood.sections.protein.subtitle') || 'High-quality protein for muscle maintenance',
-      items: [
-        {
-          id: 'protein-1',
-          title: t('dashboard.suggestedFood.sections.protein.items.cottageCheese.title') || 'Cottage Cheese',
-          description: t('dashboard.suggestedFood.sections.protein.items.cottageCheese.description') || 'Low-fat, high-protein option. Great for breakfast or snacks.',
-        },
-        {
-          id: 'protein-2',
-          title: t('dashboard.suggestedFood.sections.protein.items.chickenBreast.title') || 'Chicken Breast',
-          description: t('dashboard.suggestedFood.sections.protein.items.chickenBreast.description') || 'Lean protein source. Perfect for lunch or dinner.',
-        },
-        {
-          id: 'protein-3',
-          title: t('dashboard.suggestedFood.sections.protein.items.eggs.title') || 'Eggs',
-          description: t('dashboard.suggestedFood.sections.protein.items.eggs.description') || 'Complete protein with essential amino acids. Versatile and nutritious.',
-        },
-        {
-          id: 'protein-4',
-          title: t('dashboard.suggestedFood.sections.protein.items.fish.title') || 'Fish (Salmon, Tuna)',
-          description: t('dashboard.suggestedFood.sections.protein.items.fish.description') || 'Rich in omega-3 fatty acids. Supports heart and brain health.',
-        },
-      ],
-    },
-    {
-      id: 'carbs',
-      title: t('dashboard.suggestedFood.sections.carbs.title') || 'Complex Carbohydrates',
-      subtitle: t('dashboard.suggestedFood.sections.carbs.subtitle') || 'Sustained energy from whole grains',
-      items: [
-        {
-          id: 'carbs-1',
-          title: t('dashboard.suggestedFood.sections.carbs.items.brownRice.title') || 'Brown Rice',
-          description: t('dashboard.suggestedFood.sections.carbs.items.brownRice.description') || 'Whole grain with fiber. Better than white rice for blood sugar control.',
-        },
-        {
-          id: 'carbs-2',
-          title: t('dashboard.suggestedFood.sections.carbs.items.quinoa.title') || 'Quinoa',
-          description: t('dashboard.suggestedFood.sections.carbs.items.quinoa.description') || 'Complete protein and complex carbs. Gluten-free option.',
-        },
-        {
-          id: 'carbs-3',
-          title: t('dashboard.suggestedFood.sections.carbs.items.sweetPotato.title') || 'Sweet Potato',
-          description: t('dashboard.suggestedFood.sections.carbs.items.sweetPotato.description') || 'Rich in beta-carotene and fiber. Natural sweetness without added sugar.',
-        },
-      ],
-    },
-    {
-      id: 'fiber',
-      title: t('dashboard.suggestedFood.sections.fiber.title') || 'Fiber-Rich Foods',
-      subtitle: t('dashboard.suggestedFood.sections.fiber.subtitle') || 'Support digestive health and satiety',
-      items: [
-        {
-          id: 'fiber-1',
-          title: t('dashboard.suggestedFood.sections.fiber.items.oats.title') || 'Oats',
-          description: t('dashboard.suggestedFood.sections.fiber.items.oats.description') || 'Soluble fiber helps lower cholesterol. Great for breakfast.',
-        },
-        {
-          id: 'fiber-2',
-          title: t('dashboard.suggestedFood.sections.fiber.items.vegetables.title') || 'Leafy Greens & Vegetables',
-          description: t('dashboard.suggestedFood.sections.fiber.items.vegetables.description') || 'Low calories, high volume. Add to every meal for fullness.',
-        },
-        {
-          id: 'fiber-3',
-          title: t('dashboard.suggestedFood.sections.fiber.items.legumes.title') || 'Legumes (Beans, Lentils)',
-          description: t('dashboard.suggestedFood.sections.fiber.items.legumes.description') || 'Plant-based protein and fiber. Budget-friendly and nutritious.',
-        },
-      ],
-    },
-    {
-      id: 'healthy_fat',
-      title: t('dashboard.suggestedFood.sections.healthyFat.title') || 'Healthy Fats',
-      subtitle: t('dashboard.suggestedFood.sections.healthyFat.subtitle') || 'Essential for hormone production and nutrient absorption',
-      items: [
-        {
-          id: 'fat-1',
-          title: t('dashboard.suggestedFood.sections.healthyFat.items.avocado.title') || 'Avocado',
-          description: t('dashboard.suggestedFood.sections.healthyFat.items.avocado.description') || 'Monounsaturated fats. Supports heart health and satiety.',
-        },
-        {
-          id: 'fat-2',
-          title: t('dashboard.suggestedFood.sections.healthyFat.items.nuts.title') || 'Nuts & Seeds',
-          description: t('dashboard.suggestedFood.sections.healthyFat.items.nuts.description') || 'Omega-3 and omega-6 fatty acids. Great for snacks in moderation.',
-        },
-        {
-          id: 'fat-3',
-          title: t('dashboard.suggestedFood.sections.healthyFat.items.oliveOil.title') || 'Olive Oil',
-          description: t('dashboard.suggestedFood.sections.healthyFat.items.oliveOil.description') || 'Extra virgin olive oil for cooking and dressings. Mediterranean diet staple.',
-        },
-      ],
-    },
-  ];
-}
+
 
 const styles = StyleSheet.create({
   container: {
@@ -466,6 +382,49 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  insufficientDataContainer: {
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  insufficientDataTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  insufficientDataText: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  addMealButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  addMealButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   sectionCard: {
     marginBottom: 16,

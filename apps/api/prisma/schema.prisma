@@ -32,6 +32,20 @@ model User {
   medicationsNew         Medication[]            @relation("UserMedications")
   analysisCorrections    AnalysisCorrection[]
 
+  // Marketplace
+  specialist          Specialist?
+  clientConsultations Consultation[] @relation("ClientConsultations")
+  sentMessages        Message[]
+  reviews             Review[]
+
+  // Diet Programs
+  userDietPrograms    UserDietProgram[]
+
+  // Referral System
+  referralCode        ReferralCode?  @relation("UserReferralCode")
+  referralsMade       Referral[]     @relation("ReferrerUser")
+  referredBy          Referral?      @relation("ReferredUser")
+
   @@map("users")
 }
 
@@ -103,7 +117,7 @@ model Meal {
 }
 
 model MealItem {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   mealId   String
   name     String
   calories Float
@@ -111,7 +125,10 @@ model MealItem {
   fat      Float
   carbs    Float
   weight   Float?
-  meal     Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  fiber    Float?
+  sugars   Float?
+  satFat   Float?  @map("sat_fat")
+  meal     Meal    @relation(fields: [mealId], references: [id], onDelete: Cascade)
 
   @@map("meal_items")
 }
@@ -546,4 +563,209 @@ model LocalFood {
   @@index([popularity])
   @@index([category])
   @@map("local_foods")
+}
+
+// ==================== MARKETPLACE ====================
+
+model Specialist {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  type            String   // "dietitian" | "nutritionist"
+  displayName     String   @map("display_name")
+  bio             String?
+  avatarUrl       String?  @map("avatar_url")
+  credentials     String?
+  languages       String[] @default(["en"])
+  pricePerWeek    Float    @map("price_per_week")
+  currency        String   @default("CHF")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  isActive        Boolean  @default(true) @map("is_active")
+  rating          Float    @default(0)
+  reviewCount     Int      @default(0) @map("review_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consultations   Consultation[]
+  reviews         Review[]
+
+  @@index([type, isActive])
+  @@index([isVerified, isActive])
+  @@map("specialists")
+}
+
+model Consultation {
+  id              String   @id @default(cuid())
+  clientId        String   @map("client_id")
+  specialistId    String   @map("specialist_id")
+  status          String   @default("active") // "active" | "completed" | "cancelled"
+  startsAt        DateTime @default(now()) @map("starts_at")
+  endsAt          DateTime @map("ends_at")
+  price           Float
+  currency        String   @default("CHF")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  client          User       @relation("ClientConsultations", fields: [clientId], references: [id], onDelete: Cascade)
+  specialist      Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  messages        Message[]
+  review          Review?
+
+  @@index([clientId, status])
+  @@index([specialistId, status])
+  @@map("consultations")
+}
+
+model Message {
+  id              String   @id @default(cuid())
+  consultationId  String   @map("consultation_id")
+  senderId        String   @map("sender_id")
+  type            String   @default("text") // "text" | "meal_share" | "lab_share"
+  content         String
+  metadata        Json?
+  isRead          Boolean  @default(false) @map("is_read")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  consultation    Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([consultationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  consultationId  String   @unique @map("consultation_id")
+  clientId        String   @map("client_id")
+  specialistId    String   @map("specialist_id")
+  rating          Int      // 1-5
+  comment         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  consultation    Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  client          User         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  specialist      Specialist   @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@index([specialistId])
+  @@index([clientId])
+  @@map("reviews")
+}
+
+// ==================== DIET PROGRAMS ====================
+
+model DietProgram {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  subtitle        String?
+  description     String?
+  imageUrl        String?  @map("image_url")
+  category        String   // "hollywood" | "athletes" | "historical" | "modern"
+  duration        Int      // дней
+  dailyCalories   Int?     @map("daily_calories")
+  difficulty      String?  // "easy" | "medium" | "hard"
+  tags            String[]
+  isActive        Boolean  @default(true) @map("is_active")
+  isFeatured      Boolean  @default(false) @map("is_featured")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  days            DietProgramDay[]
+  userPrograms    UserDietProgram[]
+
+  @@index([category, isActive])
+  @@index([isFeatured, isActive])
+  @@map("diet_programs")
+}
+
+model DietProgramDay {
+  id              String   @id @default(cuid())
+  programId       String   @map("program_id")
+  dayNumber       Int      @map("day_number")
+  title           String?
+  description     String?
+  totalCalories   Int?     @map("total_calories")
+  totalProtein    Float?   @map("total_protein")
+  totalCarbs      Float?   @map("total_carbs")
+  totalFat        Float?   @map("total_fat")
+
+  program         DietProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  meals           DietProgramMeal[]
+
+  @@unique([programId, dayNumber])
+  @@index([programId])
+  @@map("diet_program_days")
+}
+
+model DietProgramMeal {
+  id              String   @id @default(cuid())
+  dayId           String   @map("day_id")
+  mealType        String   @map("meal_type") // "breakfast" | "lunch" | "dinner" | "snack"
+  name            String
+  description     String?
+  calories        Int?
+  protein         Float?
+  carbs           Float?
+  fat             Float?
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  day             DietProgramDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@index([dayId])
+  @@map("diet_program_meals")
+}
+
+model UserDietProgram {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  programId       String    @map("program_id")
+  startedAt       DateTime  @default(now()) @map("started_at")
+  currentDay      Int       @default(1) @map("current_day")
+  status          String    @default("active") // "active" | "completed" | "paused" | "abandoned"
+  completedAt     DateTime? @map("completed_at")
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program         DietProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, programId])
+  @@index([userId, status])
+  @@map("user_diet_programs")
+}
+
+// ==================== REFERRAL SYSTEM ====================
+
+model ReferralCode {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  code            String   @unique // "ALEX1234"
+  usageCount      Int      @default(0) @map("usage_count")
+  totalBonusDays  Int      @default(0) @map("total_bonus_days")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user            User     @relation("UserReferralCode", fields: [userId], references: [id], onDelete: Cascade)
+  referrals       Referral[]
+
+  @@index([code])
+  @@map("referral_codes")
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  referralCodeId  String   @map("referral_code_id")
+  referrerId      String   @map("referrer_id")
+  referredId      String   @unique @map("referred_id")
+  status          String   @default("completed")
+  referrerBonus   Int      @default(7) @map("referrer_bonus")
+  referredBonus   Int      @default(7) @map("referred_bonus")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  referralCode    ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  referrer        User         @relation("ReferrerUser", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred        User         @relation("ReferredUser", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@index([referredId])
+  @@map("referrals")
 }

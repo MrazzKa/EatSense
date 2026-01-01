@@ -301,6 +301,20 @@
     }
   },
   "aiAssistant": {
+    "title": "AI Assistant",
+    "welcome": "Hello! I'm your nutrition assistant. How can I help you today?",
+    "placeholder": "Ask me about nutrition...",
+    "inputPlaceholder": "Type your question...",
+    "typing": "Typing...",
+    "emptyState": "Start a conversation with your AI nutrition assistant",
+    "error": "Sorry, I couldn't process your request. Please try again.",
+    "quotaExceeded": "AI request limit reached. Please try again later.",
+    "attach": {
+      "title": "Attach File",
+      "photo": "Choose Photo",
+      "file": "Choose File (PDF)",
+      "error": "Failed to attach file"
+    },
     "lab": {
       "title": "Lab test type",
       "typeTitle": "Lab Results Analysis",
@@ -325,6 +339,29 @@
       }
     }
   },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Download your nutrition reports",
+    "downloaded": "Report downloaded successfully",
+    "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
+    "monthly": {
+      "title": "Monthly Report",
+      "subtitle": "Detailed nutrition summary for the current month",
+      "downloadCurrent": "Download Current Month"
+    },
+    "history": {
+      "title": "Recent Reports",
+      "subtitle": "Previously downloaded reports"
+    },
+    "deleteConfirm": "Delete this report from history?",
+    "fileSaved": "Report saved successfully",
+    "error": {
+      "generic": "Failed to generate report. Please try again.",
+      "network": "Network error. Please check your connection.",
+      "openFailed": "Failed to open report file.",
+      "noDirectory": "Download not available. Please use a development build."
+    }
+  },
   "statistics": {
     "title": "Statistics",
     "today": "Today",
@@ -336,5 +373,3 @@
     "times": "times"
   }
 }
-
-

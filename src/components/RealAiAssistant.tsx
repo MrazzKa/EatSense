@@ -127,7 +127,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
     };
 
     loadHistory();
-  }, [user?.id, t]);
+  }, [user?.id, t, mealContext]);
 
   // Add meal context as initial message if provided - this takes priority over history
   useEffect(() => {
@@ -353,7 +353,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
 
 
 
-  const sendMessageToApi = async (text: string, attachment: any) => {
+  const sendMessageToApi = useCallback(async (text: string, attachment: any) => {
     setIsLoading(true);
     try {
       await clientLog('AiAssistant:messageSent', {
@@ -448,7 +448,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mealContext, language, t, user?.id]);
 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputText.trim();
@@ -469,7 +469,8 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
     setSelectedAttachment(null);
 
     await sendMessageToApi(trimmedInput, attachment);
-  }, [inputText, selectedAttachment, isLoading, user?.id, language, t, mealContext]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputText, selectedAttachment, isLoading, user?.id, t]);
 
   const handleRetry = useCallback(async () => {
     if (isLoading) return;
@@ -498,7 +499,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
 
       await sendMessageToApi(lastUserMsg.content, lastUserMsg.attachment);
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, sendMessageToApi]);
 
   const renderMessage = ({ item: message }: { item: Message }) => {
     const isUser = message.role === 'user';

@@ -1,0 +1,72 @@
+{
+  "experts": {
+    "title": "전문가",
+    "subtitle": "영양 전문가로부터 맞춤형 도움을 받으세요",
+    "myConsultations": "내 상담",
+    "viewChats": "활성 채팅 보기",
+    "findSpecialist": "전문가 찾기",
+    "viewAll": "모든 전문가 보기",
+    "dietitian": {
+      "title": "영양사",
+      "subtitle": "의료 기록과 목표에 기반한 임상 지침."
+    },
+    "nutritionist": {
+      "title": "영양 컨설턴트",
+      "subtitle": "식사, 습관 및 일상에 대한 실용적인 조언."
+    },
+    "noSpecialists": "이용 가능한 전문가가 없습니다",
+    "profile": "프로필",
+    "verified": "인증됨",
+    "about": "소개",
+    "credentials": "자격증",
+    "languages": "언어",
+    "recentReviews": "최근 리뷰",
+    "reviews": "리뷰",
+    "startConsultation": "상담 시작"
+  },
+  "chat": {
+    "daysRemaining": "일 남음",
+    "consultationEnded": "상담 종료됨",
+    "shareMeals": "식사 공유",
+    "shareMealsConfirm": "지난 7일간의 식사를 공유하시겠습니까?"
+  },
+  "dietPrograms": {
+    "title": "다이어트 프로그램",
+    "empty": "이용 가능한 프로그램이 없습니다",
+    "about": "소개",
+    "previewDay1": "1일차 미리보기",
+    "startProgram": "프로그램 시작",
+    "startConfirm": "시작",
+    "day": "일차",
+    "completeDay": "오늘 완료",
+    "finishProgram": "프로그램 완료",
+    "completed": "축하합니다!",
+    "completedMessage": "프로그램을 완료했습니다!",
+    "categories": {
+      "all": "전체",
+      "hollywood": "할리우드",
+      "athletes": "운동선수",
+      "historical": "역사적"
+    }
+  },
+  "referral": {
+    "title": "친구 초대",
+    "heroTitle": "7일을 주고, 7일을 받으세요",
+    "heroSubtitle": "친구를 초대하면 둘 다 7일 PRO를 무료로 받습니다!",
+    "yourCode": "내 추천 코드",
+    "share": "친구와 공유",
+    "invited": "초대한 친구",
+    "earnedDays": "획득한 일수",
+    "history": "최근 초대",
+    "howItWorks": "이용 방법",
+    "step1": "친구에게 코드를 공유하세요",
+    "step2": "친구가 코드로 가입합니다",
+    "step3": "둘 다 7일 PRO를 무료로 받습니다!"
+  },
+  "common": {
+    "cancel": "취소",
+    "confirm": "확인",
+    "days": "일",
+    "all": "전체"
+  }
+}

@@ -7,28 +7,28 @@ export default function SmokeTestScreen() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    clientLog('SmokeTest:mounted').catch(() => {});
+    clientLog('SmokeTest:mounted').catch(() => { });
   }, []);
 
   const handlePing = async () => {
-    await clientLog('App:pingButtonPressed').catch(() => {});
+    await clientLog('App:pingButtonPressed').catch(() => { });
     try {
       const res = await fetch('https://caloriecam-production.up.railway.app/.well-known/health');
       const text = await res.text();
       await clientLog('App:pingSuccess', {
         status: res.status,
         body: text.slice(0, 200),
-      }).catch(() => {});
+      }).catch(() => { });
     } catch (e) {
       await clientLog('App:pingError', {
         message: e?.message || String(e),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
   const handleOpenApp = async () => {
-    await clientLog('SmokeTest:openAppPressed').catch(() => {});
-    
+    await clientLog('SmokeTest:openAppPressed').catch(() => { });
+
     try {
       // Переход в реальное приложение - на AuthScreen (начало флоу)
       // Используем navigate для мягкого перехода (reset может быть слишком агрессивным)
@@ -42,13 +42,13 @@ export default function SmokeTestScreen() {
       } else {
         await clientLog('SmokeTest:openAppError', {
           message: 'Navigation not available or reset not a function',
-        }).catch(() => {});
+        }).catch(() => { });
       }
     } catch (error) {
       await clientLog('SmokeTest:openAppError', {
         message: error?.message || String(error),
         stack: String(error?.stack || '').substring(0, 500),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
@@ -56,17 +56,17 @@ export default function SmokeTestScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>EatSense Smoke Test</Text>
       <Text style={styles.subtitle}>
-        Если вы видите этот экран — JS дерево смонтировалось.
+        If you see this screen — JS tree mounted successfully.
       </Text>
-      
+
       <TouchableOpacity style={styles.button} onPress={handlePing}>
         <Text style={styles.buttonText}>Ping API</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleOpenApp}>
-        <Text style={[styles.buttonText, styles.primaryButtonText]}>Перейти в приложение</Text>
+        <Text style={[styles.buttonText, styles.primaryButtonText]}>Open App</Text>
       </TouchableOpacity>
-      
+
       <Text style={styles.buildInfo}>
         Build: {process.env.EXPO_PUBLIC_ENV || 'n/a'}
       </Text>

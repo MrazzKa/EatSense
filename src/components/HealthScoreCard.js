@@ -33,7 +33,9 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   // Support both new format (total, level, factors) and legacy format (score, grade, factors)
   // Ensure total is a valid number between 0 and 100
   const rawTotal = healthScore.total ?? healthScore.score ?? 0;
-  const total = Math.max(0, Math.min(100, Math.round(rawTotal))); // Clamp and round to 0-100
+  const parsedTotal = Number(rawTotal);
+  const safeTotal = Number.isFinite(parsedTotal) ? parsedTotal : 0;
+  const total = Math.max(0, Math.min(100, Math.round(safeTotal))); // Clamp and round to 0-100
   const level = healthScore.level || (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
   const grade = healthScore.grade || (total >= 90 ? 'A' : total >= 80 ? 'B' : total >= 70 ? 'C' : total >= 60 ? 'D' : 'F');
   const factors = healthScore.factors || {};

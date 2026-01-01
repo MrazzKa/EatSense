@@ -20,19 +20,19 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
   const requestPermissions = useCallback(async (): Promise<boolean> => {
     const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
     const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (cameraPermission.status !== 'granted') {
       setError('Camera permission is required');
       setStep('error');
       return false;
     }
-    
+
     if (mediaPermission.status !== 'granted') {
       setError('Media library permission is required');
       setStep('error');
       return false;
     }
-    
+
     return true;
   }, []);
 
@@ -56,13 +56,13 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
       onClose();
       return;
     }
-    
+
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.9,
         exif: false
       });
 
@@ -85,13 +85,13 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
       onClose();
       return;
     }
-    
+
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: 'images' as any,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.9,
         exif: false
       });
 
@@ -148,7 +148,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
           </View>
         </View>
       )}
-      
+
       <View style={styles.analysisSteps}>
         <View style={styles.analysisStep}>
           <View style={[styles.stepIcon, { backgroundColor: '#2ECC71' }]}>
@@ -156,14 +156,14 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
           </View>
           <Text style={styles.stepText}>Uploaded</Text>
         </View>
-        
+
         <View style={styles.analysisStep}>
           <View style={[styles.stepIcon, { backgroundColor: '#3498DB' }]}>
             <ActivityIndicator size="small" color="white" />
           </View>
           <Text style={styles.stepText}>Analyzing</Text>
         </View>
-        
+
         <View style={styles.analysisStep}>
           <View style={[styles.stepIcon, { backgroundColor: '#BDC3C7' }]}>
             <Ionicons name="calculator" size={20} color="white" />
@@ -186,7 +186,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
           </View>
         </View>
       )}
-      
+
       <View style={styles.completeInfo}>
         <Text style={styles.completeTitle}>Done!</Text>
         <Text style={styles.completeSubtitle}>
@@ -230,7 +230,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
 
       <View style={styles.content}>
         <Text style={styles.subtitle}>{getStepSubtitle()}</Text>
-        
+
         {step === 'analyzing' && renderAnalyzingStep()}
         {step === 'complete' && renderCompleteStep()}
         {step === 'error' && renderErrorStep()}

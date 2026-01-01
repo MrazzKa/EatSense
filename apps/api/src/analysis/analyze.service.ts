@@ -86,7 +86,8 @@ interface BeverageDetectionResult {
 export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
   // Versioned cache key to avoid conflicts with legacy cached shapes
-  private readonly ANALYSIS_CACHE_VERSION = 'v5';
+  // v6: Added validation ranges for salmon/avocado/quinoa/sesame/nori, increased USDA minScore
+  private readonly ANALYSIS_CACHE_VERSION = 'v6';
 
   // Keywords to detect drinks in food names
   private readonly DRINK_KEYWORDS = [
@@ -535,7 +536,12 @@ export class AnalyzeService {
   /**
    * Helper: Estimate portion in grams
    * Priority: Vision > FDC serving > default 150g
-   * Clamps to reasonable range: 10g - 800g
+   * Enhanced with category-based clamping:
+   * - Minor items (seeds, toppings): 1-15g
+   * - Proteins: 30-500g  
+   * - Grains: 50-400g
+   * - Vegetables: 20-400g
+   * - Default: 10-800g
    */
   private estimatePortionInGrams(
     component: VisionComponent,
@@ -548,10 +554,51 @@ export class AnalyzeService {
         ? fdcServingSizeG
         : 150;
 
-    // Мягкие пределы: минимум 10 г, максимум 800 г
+    // Determine min/max based on category and is_minor flag
+    let minPortion = 10;
+    let maxPortion = 800;
+
+    const isMinor = (component as any).is_minor === true;
+    const category = ((component as any).category_hint as string) || '';
+    const nameLower = (component.name || '').toLowerCase();
+
+    // Minor items: seeds, sesame, nori, sprinkles
+    if (isMinor || nameLower.includes('sesame') || nameLower.includes('кунжут') ||
+      nameLower.includes('nori') || nameLower.includes('нори') ||
+      nameLower.includes('seed') || nameLower.includes('семен')) {
+      minPortion = 1;
+      maxPortion = 15;
+    }
+    // Proteins
+    else if (category === 'protein' || nameLower.includes('chicken') || nameLower.includes('курица') ||
+      nameLower.includes('salmon') || nameLower.includes('лосось') ||
+      nameLower.includes('beef') || nameLower.includes('говядина') ||
+      nameLower.includes('fish') || nameLower.includes('рыба') ||
+      nameLower.includes('meat') || nameLower.includes('мясо')) {
+      minPortion = 30;
+      maxPortion = 500;
+    }
+    // Grains
+    else if (category === 'grain' || nameLower.includes('rice') || nameLower.includes('рис') ||
+      nameLower.includes('buckwheat') || nameLower.includes('гречк') ||
+      nameLower.includes('quinoa') || nameLower.includes('киноа') ||
+      nameLower.includes('pasta') || nameLower.includes('макарон')) {
+      minPortion = 50;
+      maxPortion = 400;
+    }
+    // Vegetables
+    else if (category === 'veg' || nameLower.includes('salad') || nameLower.includes('салат') ||
+      nameLower.includes('vegetable') || nameLower.includes('овощ') ||
+      nameLower.includes('cucumber') || nameLower.includes('огурец') ||
+      nameLower.includes('tomato') || nameLower.includes('помидор')) {
+      minPortion = 20;
+      maxPortion = 400;
+    }
+
+    // Apply clamping
     let portion = originalEstimate;
-    if (portion < 10) portion = 10;
-    if (portion > 800) portion = 800;
+    if (portion < minPortion) portion = minPortion;
+    if (portion > maxPortion) portion = maxPortion;
 
     // Log clamping in debug mode
     if (process.env.ANALYSIS_DEBUG === 'true' && debug && portion !== originalEstimate) {
@@ -561,6 +608,9 @@ export class AnalyzeService {
         componentName: component.name,
         originalPortionG: originalEstimate,
         finalPortionG: portion,
+        category: category || (isMinor ? 'minor' : 'default'),
+        minPortion,
+        maxPortion,
       });
     }
 
@@ -737,7 +787,26 @@ export class AnalyzeService {
       );
 
       // Calculate nutrients for portion (provider data is per 100g/ml)
-      const nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
+      let nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
+
+      // CORRECTION: If provider returns 0/low calories but we have Vision estimates, use Vision
+      // This fixes the "0/0/0" bug for foods found in DB but with missing data
+      if (nutrients.calories < 5 && component.estimated_nutrients && !isDrink) {
+        const est = component.estimated_nutrients;
+        if (est.calories && est.calories > 10) {
+          this.logger.warn(`[AnalyzeService] Provider returned ~0 kcal for "${component.name}", falling back to Vision estimates`);
+          nutrients = {
+            calories: est.calories,
+            protein: est.protein_g || 0,
+            fat: est.fat_g || 0,
+            carbs: est.carbs_g || 0,
+            fiber: est.fiber_g || 0,
+            sugars: 0,
+            satFat: 0,
+            energyDensity: (est.calories / portionG) * 100
+          };
+        }
+      }
 
       // Special handling for milk coffee drinks: sanity check and fallback
       const isMilkCoffee = this.detectMilkCoffeeDrink(component.name, (component as any).category, (component as any).volume_ml) !== null;
@@ -874,13 +943,14 @@ export class AnalyzeService {
     let visionComponents: VisionComponent[];
     const visionStartTime = Date.now();
     try {
-      visionComponents = await this.vision.getOrExtractComponents({
+      const visionResult = await this.vision.getOrExtractComponents({
         imageUrl: params.imageUrl,
         imageBase64: params.imageBase64,
         locale,
         mode,
         foodDescription: params.foodDescription,
       });
+      visionComponents = visionResult.components;
       const visionDuration = Date.now() - visionStartTime;
       this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms`);
     } catch (error: any) {
@@ -906,7 +976,7 @@ export class AnalyzeService {
       componentsRaw: visionComponents,
       components: [],
       timestamp: new Date().toISOString(),
-      model: process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-5.1',
+      model: process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o',
     };
 
     // Дедупликация: объединяем похожие продукты
@@ -1832,20 +1902,32 @@ export class AnalyzeService {
    * Public method for re-analysis use cases
    */
   public buildDishNameEn(items: AnalyzedItem[]): string {
-    // Filter out very small items (likely sauces, dressings) - threshold: < 20g
-    const mainItems = items.filter(item => item.portion_g >= 20);
-    const itemsToUse = mainItems.length > 0 ? mainItems : items;
+    // Sort by calorie contribution (descending) for deterministic, nutritionally-meaningful naming
+    const sortedByCalories = [...items]
+      .filter(item => item.portion_g > 0)
+      .sort((a, b) => {
+        const aCal = a.nutrients?.calories ?? 0;
+        const bCal = b.nutrients?.calories ?? 0;
+        return bCal - aCal;
+      });
 
-    const names = itemsToUse
-      .map(i => {
-        // Use baseName if available (from buildBaseFoodName), otherwise originalName or name
-        return (i as any).baseName || i.originalName || i.name || '';
-      })
+    if (sortedByCalories.length === 0) return 'Meal';
+
+    // Use display_name (from Vision) if available, otherwise baseName/originalName
+    const getName = (item: AnalyzedItem): string => {
+      const displayName = (item as any).display_name;
+      if (displayName && typeof displayName === 'string') return displayName;
+      return (item as any).baseName || item.originalName || item.name || '';
+    };
+
+    const names = sortedByCalories
+      .map(getName)
       .map(n => n.trim())
       .filter(Boolean);
 
-    if (!names.length) return 'Meal';
+    if (names.length === 0) return 'Meal';
 
+    // Remove duplicates while preserving order (calorie-sorted)
     const unique = Array.from(new Set(names));
 
     // Single item - just return it
@@ -1854,13 +1936,8 @@ export class AnalyzeService {
     // Two items - use "with" connector
     if (unique.length === 2) return `${unique[0]} with ${unique[1]}`;
 
-    // Three items - use "with X and Y" format
-    if (unique.length === 3) return `${unique[0]} with ${unique[1]} and ${unique[2]}`;
-
-    // Four or more items - list first three and add "and more"
-    // Truncate to avoid overly long names
-    const truncated = `${unique[0]} with ${unique[1]}, ${unique[2]} and more`;
-    return truncated.length > 60 ? `${unique[0]} with ${unique[1]} and more` : truncated;
+    // Three or more items - use top-2 by calories + "and more"
+    return `${unique[0]} with ${unique[1]} and more`;
   }
 
   private hashImage(params: { imageUrl?: string; imageBase64?: string }): string {

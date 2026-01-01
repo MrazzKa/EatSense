@@ -1,63 +1,61 @@
-#!/usr/bin/env node
-
 const fs = require('fs');
 const path = require('path');
 
-const LOCALES_DIR = path.join(__dirname, '..', 'app', 'i18n', 'locales');
+const LOCALES_DIR = path.join(__dirname, '../app/i18n/locales');
+const EN_PATH = path.join(LOCALES_DIR, 'en.json');
 
-const deepMerge = (target, source) => {
-  for (const key in source) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      if (!target[key]) {
-        target[key] = {};
-      }
-      deepMerge(target[key], source[key]);
-    } else if (!Object.prototype.hasOwnProperty.call(target, key)) {
-      target[key] = source[key];
-    }
-  }
-  return target;
-};
-
-const removeExtraKeys = (target, source) => {
+const syncStructure = (target, source) => {
   const result = {};
-  for (const key in target) {
-    if (Object.prototype.hasOwnProperty.call(source, key)) {
-      if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key]) &&
-          source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-        result[key] = removeExtraKeys(target[key], source[key]);
+  // Sort keys to maintain order
+  const sourceKeys = Object.keys(source).sort();
+
+  sourceKeys.forEach(key => {
+    const sourceValue = source[key];
+    const targetValue = target[key];
+
+    if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+      // Nested object
+      if (targetValue && typeof targetValue === 'object' && !Array.isArray(targetValue)) {
+        result[key] = syncStructure(targetValue, sourceValue);
       } else {
-        result[key] = target[key];
+        // Missing or type mismatch, copy source structure
+        result[key] = JSON.parse(JSON.stringify(sourceValue));
+      }
+    } else {
+      // Primitive value (string, number, boolean, array)
+      if (targetValue !== undefined) {
+        result[key] = targetValue;
+      } else {
+        result[key] = sourceValue;
       }
     }
-  }
+  });
   return result;
 };
 
 const main = () => {
-  const enPath = path.join(LOCALES_DIR, 'en.json');
-  const enContent = JSON.parse(fs.readFileSync(enPath, 'utf8'));
-
-  const entries = fs.readdirSync(LOCALES_DIR).filter((file) => file.endsWith('.json') && file !== 'en.json');
-
-  for (const file of entries) {
-    const localePath = path.join(LOCALES_DIR, file);
-    const locale = path.basename(file, '.json');
-    const localeContent = JSON.parse(fs.readFileSync(localePath, 'utf8'));
-
-    // Merge missing keys from en.json
-    const merged = deepMerge(JSON.parse(JSON.stringify(localeContent)), enContent);
-    
-    // Remove extra keys not in en.json
-    const cleaned = removeExtraKeys(merged, enContent);
-
-    // Write back
-    fs.writeFileSync(localePath, JSON.stringify(cleaned, null, 2) + '\n', 'utf8');
-    console.log(`✓ Synced ${locale}.json`);
+  if (!fs.existsSync(EN_PATH)) {
+    console.error('en.json not found!');
+    process.exit(1);
   }
 
-  console.log('All locales synced with en.json');
+  const en = JSON.parse(fs.readFileSync(EN_PATH, 'utf8'));
+  const files = fs.readdirSync(LOCALES_DIR).filter(f => f.endsWith('.json') && f !== 'en.json');
+
+  console.log(`Found ${files.length} locale files to sync with en.json...`);
+
+  files.forEach(file => {
+    const filePath = path.join(LOCALES_DIR, file);
+    try {
+      const localeData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      const synced = syncStructure(localeData, en);
+
+      fs.writeFileSync(filePath, JSON.stringify(synced, null, 2));
+      console.log(`✅ Synced ${file}`);
+    } catch (e) {
+      console.error(`❌ Failed to sync ${file}:`, e.message);
+    }
+  });
 };
 
 main();
-

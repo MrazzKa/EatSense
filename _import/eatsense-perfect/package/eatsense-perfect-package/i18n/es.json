@@ -1,0 +1,72 @@
+{
+  "experts": {
+    "title": "Especialistas",
+    "subtitle": "Obtén ayuda personalizada de expertos en nutrición",
+    "myConsultations": "Mis consultas",
+    "viewChats": "Ver tus chats activos",
+    "findSpecialist": "Encontrar especialista",
+    "viewAll": "Ver todos los especialistas",
+    "dietitian": {
+      "title": "Dietista",
+      "subtitle": "Orientación clínica basada en tu historial médico y objetivos."
+    },
+    "nutritionist": {
+      "title": "Nutricionista",
+      "subtitle": "Consejos prácticos sobre comidas, hábitos y rutinas diarias."
+    },
+    "noSpecialists": "No hay especialistas disponibles",
+    "profile": "Perfil",
+    "verified": "Verificado",
+    "about": "Acerca de",
+    "credentials": "Credenciales",
+    "languages": "Idiomas",
+    "recentReviews": "Reseñas recientes",
+    "reviews": "reseñas",
+    "startConsultation": "Iniciar consulta"
+  },
+  "chat": {
+    "daysRemaining": "días restantes",
+    "consultationEnded": "Consulta finalizada",
+    "shareMeals": "Compartir comidas",
+    "shareMealsConfirm": "¿Compartir tus comidas de los últimos 7 días?"
+  },
+  "dietPrograms": {
+    "title": "Programas de dieta",
+    "empty": "No hay programas disponibles",
+    "about": "Acerca de",
+    "previewDay1": "Vista previa del día 1",
+    "startProgram": "Iniciar programa",
+    "startConfirm": "Iniciar",
+    "day": "Día",
+    "completeDay": "Completar día",
+    "finishProgram": "Finalizar programa",
+    "completed": "¡Felicitaciones!",
+    "completedMessage": "¡Completaste el programa!",
+    "categories": {
+      "all": "Todos",
+      "hollywood": "Hollywood",
+      "athletes": "Atletas",
+      "historical": "Históricos"
+    }
+  },
+  "referral": {
+    "title": "Invitar amigos",
+    "heroTitle": "Da 7 días, recibe 7 días",
+    "heroSubtitle": "¡Invita amigos y ambos obtienen 7 días de PRO gratis!",
+    "yourCode": "Tu código de referido",
+    "share": "Compartir con amigos",
+    "invited": "Amigos invitados",
+    "earnedDays": "Días ganados",
+    "history": "Invitaciones recientes",
+    "howItWorks": "Cómo funciona",
+    "step1": "Comparte tu código con amigos",
+    "step2": "Ellos se registran con tu código",
+    "step3": "¡Ambos obtienen 7 días PRO gratis!"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "days": "días",
+    "all": "Todos"
+  }
+}

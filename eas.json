@@ -36,7 +36,7 @@
       "credentialsSource": "local",
       "ios": {
         "image": "macos-sequoia-15.3-xcode-16.2",
-        "resourceClass": "large",
+        "resourceClass": "m-medium",
         "cocoapods": "1.15.2",
         "cache": {
           "disabled": false

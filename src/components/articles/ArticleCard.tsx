@@ -83,7 +83,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         </View>
 
         <Text style={[styles.title, { color: colors.textPrimary || colors.text }]} numberOfLines={2}>
-          {article.title || article.name || 'Article'}
+          {article.title || (article as any).name || 'Article'}
         </Text>
 
         {(article.excerpt || article.subtitle) ? (

@@ -11,39 +11,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { PADDING, SPACING, BORDER_RADIUS, SHADOW } from '../utils/designConstants';
 
 export default function HelpSupportScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const faqItems = [
-    {
-      id: 1,
-      question: 'Как использовать приложение?',
-      answer: 'Сделайте фото еды или выберите из галереи. Наш AI проанализирует блюдо и покажет калорийность и питательные вещества.',
-    },
-    {
-      id: 2,
-      question: 'Сколько фото я могу проанализировать?',
-      answer: 'Бесплатные пользователи могут анализировать до 5 фото в день. Подписчики имеют неограниченный доступ.',
-    },
-    {
-      id: 3,
-      question: 'Как сохранить прием пищи?',
-      answer: 'После анализа нажмите "Save to Journal" чтобы добавить прием пищи в ваш журнал.',
-    },
-    {
-      id: 4,
-      question: 'Можно ли редактировать результаты анализа?',
-      answer: 'Да, вы можете нажать на любой ингредиент и вручную скорректировать его значения.',
-    },
-    {
-      id: 5,
-      question: 'Как работает AI Assistant?',
-      answer: 'AI Assistant предоставляет персональные советы по питанию на основе вашего профиля и пищевых привычек.',
-    },
+    { id: 1, key: 'howToUse' },
+    { id: 2, key: 'photoLimit' },
+    { id: 3, key: 'saveMeal' },
+    { id: 4, key: 'editResults' },
+    { id: 5, key: 'aiAssistant' },
   ];
 
   const contactOptions = [
@@ -57,13 +39,12 @@ export default function HelpSupportScreen() {
     },
     {
       id: 2,
-      title: 'Feedback',
-      subtitle: 'Поделитесь своими идеями',
+      title: t('help.feedbackTitle'),
+      subtitle: t('help.feedbackSubtitle'),
       icon: 'chatbubble-outline',
       color: '#34C759',
       onPress: () => {
-        // Can add Feedback screen navigation here if needed
-        Alert.alert('Feedback', 'Спасибо за интерес! Функция обратной связи скоро появится.');
+        Alert.alert(t('help.feedbackTitle'), t('help.feedbackAlert'));
       },
     },
   ];
@@ -74,20 +55,20 @@ export default function HelpSupportScreen() {
         <TouchableOpacity onPress={() => navigation && typeof navigation.goBack === 'function' ? navigation.goBack() : null}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Help & Support</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('help.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* FAQ Section */}
         <View>
-            <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Часто задаваемые вопросы</Text>
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('help.faqTitle')}</Text>
             {(faqItems || []).map((item) => (
               <View key={item.id}>
                 <View style={[styles.faqCard, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.faqQuestion, { color: colors.text }]}>{item.question}</Text>
-                  <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>{item.answer}</Text>
+                  <Text style={[styles.faqQuestion, { color: colors.text }]}>{t(`help.faq.${item.key}.question`)}</Text>
+                  <Text style={[styles.faqAnswer, { color: colors.textSecondary }]}>{t(`help.faq.${item.key}.answer`)}</Text>
                 </View>
               </View>
             ))}
@@ -96,8 +77,8 @@ export default function HelpSupportScreen() {
 
         {/* Contact Section */}
         <View>
-            <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Свяжитесь с нами</Text>
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('help.contactTitle')}</Text>
             {(contactOptions || []).map((option) => (
               <View key={option.id}>
                 <TouchableOpacity

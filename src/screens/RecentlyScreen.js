@@ -23,24 +23,24 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 const formatDateLabel = (date, t, language) => {
   if (!date) return '';
-  
+
   // Ensure date is a Date object
   const dateObj = date instanceof Date ? date : new Date(date);
   if (isNaN(dateObj.getTime())) return '';
-  
+
   const now = new Date();
   const dayDiff = Math.floor((now.getTime() - dateObj.getTime()) / MS_PER_DAY);
 
   if (dayDiff <= 0) {
-    return t('recently.today') || 'Сегодня';
+    return t('recently.today') || 'Today';
   }
   if (dayDiff === 1) {
-    return t('recently.yesterday') || 'Вчера';
+    return t('recently.yesterday') || 'Yesterday';
   }
   if (dayDiff <= 6) {
     // Use i18next pluralization if available, otherwise fallback
     const key = dayDiff === 1 ? 'recently.daysAgo_one' : 'recently.daysAgo_other';
-    return t(key, { count: dayDiff }) || t('recently.daysAgo', { count: dayDiff }) || `${dayDiff} дн. назад`;
+    return t(key, { count: dayDiff }) || t('recently.daysAgo', { count: dayDiff }) || `${dayDiff} days ago`;
   }
 
   try {
@@ -92,21 +92,21 @@ const normalizeMeal = (meal) => {
   const healthGrade = meal.healthGrade || healthScore?.grade || null;
 
   const imageUri = (() => {
-    const rawUri = meal.imageUrl || 
-                meal.imageUri || 
-                meal.coverUrl || 
-                meal.analysisImageUrl ||
-                meal.image?.url ||
-                meal.data?.imageUrl ||
-                null;
-    
+    const rawUri = meal.imageUrl ||
+      meal.imageUri ||
+      meal.coverUrl ||
+      meal.analysisImageUrl ||
+      meal.image?.url ||
+      meal.data?.imageUrl ||
+      null;
+
     // Resolve relative URLs to absolute URLs
     const uri = rawUri ? (
       rawUri.startsWith('/media/') || rawUri.startsWith('/')
         ? ApiService.resolveMediaUrl(rawUri)
         : rawUri
     ) : null;
-    
+
     if (__DEV__ && uri) {
       console.log('[RecentlyScreen] Meal image:', {
         mealId: meal.id,
@@ -118,7 +118,7 @@ const normalizeMeal = (meal) => {
         finalUri: uri,
       });
     }
-    
+
     return uri;
   })();
 
@@ -143,9 +143,9 @@ const normalizeMeal = (meal) => {
       healthScore,
       autoSave: meal.id
         ? {
-            mealId: meal.id,
-            savedAt: meal.createdAt,
-          }
+          mealId: meal.id,
+          savedAt: meal.createdAt,
+        }
         : null,
       imageUri,
     },
@@ -181,7 +181,7 @@ export default function RecentlyScreen() {
       setRecentItems(normalized);
       const analysesArray = Array.isArray(activeAnalysesData) ? activeAnalysesData : [];
       setActiveAnalyses(analysesArray);
-      
+
       if (__DEV__) {
         console.log('[RecentlyScreen] Loaded items:', {
           mealsCount: normalized.length,
@@ -293,8 +293,8 @@ export default function RecentlyScreen() {
     return (
       <View style={[styles.recentItem, { backgroundColor: colors.card, borderColor: colors.borderMuted }]}>
         {item.imageUri ? (
-          <Image 
-            source={{ uri: item.imageUri }} 
+          <Image
+            source={{ uri: item.imageUri }}
             style={styles.itemImage}
             resizeMode="cover"
           />
@@ -318,7 +318,7 @@ export default function RecentlyScreen() {
           <View style={styles.itemHeader}>
             <Animated.View style={{ opacity }}>
               <Text style={[styles.itemName, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
-                {isProcessing ? t('recently.analyzing') || 'Анализируем...' : t('recently.pending') || 'Ожидание...'}
+                {isProcessing ? t('recently.analyzing') || 'Analyzing...' : t('recently.pending') || 'Pending...'}
               </Text>
             </Animated.View>
             <Text style={[styles.itemDate, { color: colors.textSecondary }]}>{dateLabel}</Text>
@@ -362,11 +362,11 @@ export default function RecentlyScreen() {
           {/* Task 11: Use imageUrl or imageUri, show placeholder if none */}
           {(() => {
             const imageUri = item.imageUrl || item.imageUri || null;
-            
+
             if (imageUri) {
               return (
-                <Image 
-                  source={{ uri: imageUri }} 
+                <Image
+                  source={{ uri: imageUri }}
                   style={styles.itemImage}
                   resizeMode="cover"
                   onError={(error) => {
@@ -375,7 +375,7 @@ export default function RecentlyScreen() {
                 />
               );
             }
-            
+
             return (
               <View style={styles.itemPlaceholder}>
                 <Ionicons name="fast-food" size={24} color={colors.textTertiary || colors.textSecondary} />
@@ -486,12 +486,12 @@ export default function RecentlyScreen() {
             ...activeAnalyses.map((analysis) => ({ ...analysis, isActiveAnalysis: true })),
             ...recentItems,
           ]}
-          renderItem={({ item }) => 
+          renderItem={({ item }) =>
             item.isActiveAnalysis ? renderActiveAnalysis({ item }) : renderRecentItem({ item })
           }
-          keyExtractor={(item, index) => 
-            item.isActiveAnalysis 
-              ? `analysis-${item.analysisId}` 
+          keyExtractor={(item, index) =>
+            item.isActiveAnalysis
+              ? `analysis-${item.analysisId}`
               : item.id || `item-${index}`
           }
           contentContainerStyle={[styles.listContainer, { backgroundColor: colors.background }]}

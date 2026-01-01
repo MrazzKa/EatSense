@@ -34,6 +34,13 @@ import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
 import { OpenFoodFactsModule } from './src/openfoodfacts/openfoodfacts.module';
 import { MedicationsModule } from './src/medications/medications.module';
+import { SpecialistsModule } from './src/specialists/specialists.module';
+import { ConsultationsModule } from './src/consultations/consultations.module';
+import { MessagesModule } from './src/messages/messages.module';
+import { ReviewsModule } from './src/reviews/reviews.module';
+import { DietProgramsModule } from './src/diet-programs/diet-programs.module';
+import { ReferralsModule } from './src/referrals/referrals.module';
+import { ReportsModule } from './src/reports/reports.module';
 
 @Module({
   imports: [
@@ -101,7 +108,14 @@ import { MedicationsModule } from './src/medications/medications.module';
     SuggestionsModule,
     OpenFoodFactsModule,
     MedicationsModule,
+    SpecialistsModule,
+    ConsultationsModule,
+    MessagesModule,
+    ReviewsModule,
+    DietProgramsModule,
+    ReferralsModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })
-export class AppModule {}
+export class AppModule { }

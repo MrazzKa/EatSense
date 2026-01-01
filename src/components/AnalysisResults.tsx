@@ -141,14 +141,14 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 
         <View style={styles.ingredientsCard}>
           <Text style={styles.ingredientsTitle}>Ingredients</Text>
-          
+
           {(result?.items && Array.isArray(result.items) ? result.items : []).map((item: any, index: number) => {
             // Helper to check if string looks like a localization key
             const isLocalizationKey = (str: string): boolean => {
               if (!str || typeof str !== 'string') return false;
               return str.includes('.') && str.length > 3 && str.split('.').length >= 2;
             };
-            
+
             // Helper to safely get label, avoiding localization keys
             const getItemLabel = (label: string | undefined | null): string => {
               if (!label) return 'Ingredient';
@@ -159,25 +159,26 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
               }
               return label;
             };
-            
+
             return (
-            <View key={index} style={styles.ingredientItem}>
-              <View style={styles.ingredientInfo}>
-                <Text style={styles.ingredientName}>{getItemLabel(item.label || item.name)}</Text>
-                <Text style={styles.ingredientWeight}>
-                  {item.gramsMean ? `${Math.round(item.gramsMean)}g per portion` : 'Weight not determined'}
-                </Text>
-                <View style={styles.ingredientMacros}>
-                  <Text style={styles.ingredientMacroText}>
-                    P {item.protein || 0} F {item.fat || 0} C {item.carbs || 0}
+              <View key={index} style={styles.ingredientItem}>
+                <View style={styles.ingredientInfo}>
+                  <Text style={styles.ingredientName}>{getItemLabel(item.label || item.name)}</Text>
+                  <Text style={styles.ingredientWeight}>
+                    {item.gramsMean ? `${Math.round(item.gramsMean)}g per portion` : 'Weight not determined'}
                   </Text>
+                  <View style={styles.ingredientMacros}>
+                    <Text style={styles.ingredientMacroText}>
+                      P {item.protein || 0} F {item.fat || 0} C {item.carbs || 0}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.ingredientCalories}>
+                  {Math.round(item.kcal || 0)} kcal
+                </Text>
               </View>
-              <Text style={styles.ingredientCalories}>
-                {Math.round(item.kcal || 0)} kcal
-              </Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         <View style={styles.actionButtons}>
@@ -185,7 +186,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             <Ionicons name="share-outline" size={20} color="#3498DB" />
             <Text style={styles.shareButtonText}>Share</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.editButton} onPress={onEdit}>
             <Ionicons name="sparkles" size={20} color="white" />
             <Text style={styles.editButtonText}>Correct</Text>

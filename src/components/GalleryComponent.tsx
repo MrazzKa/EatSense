@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
+import { useTranslation } from 'react-i18next';
 
 interface GalleryComponentProps {
   onImageSelect: (_imageUri: string) => void;
@@ -12,6 +13,7 @@ export const GalleryComponent: React.FC<GalleryComponentProps> = ({
   onImageSelect,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [images, setImages] = useState<MediaLibrary.Asset[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,13 +22,13 @@ export const GalleryComponent: React.FC<GalleryComponentProps> = ({
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission required', 'Please grant access to your photo library');
+        Alert.alert(t('permissions.required'), t('permissions.grantAccess'));
         return;
       }
 
       const albums = await MediaLibrary.getAlbumsAsync();
       const cameraRoll = albums.find(album => album.title === 'Camera Roll');
-      
+
       if (cameraRoll) {
         const assets = await MediaLibrary.getAssetsAsync({
           album: cameraRoll,
@@ -38,11 +40,11 @@ export const GalleryComponent: React.FC<GalleryComponentProps> = ({
       }
     } catch (error) {
       console.error('Error loading images:', error);
-      Alert.alert('Error', 'Failed to load images from gallery');
+      Alert.alert(t('common.error'), t('errors.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void loadImages();
@@ -70,7 +72,7 @@ export const GalleryComponent: React.FC<GalleryComponentProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading gallery...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -81,7 +83,7 @@ export const GalleryComponent: React.FC<GalleryComponentProps> = ({
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Ionicons name="close" size={24} color="#2C3E50" />
         </TouchableOpacity>
-        <Text style={styles.title}>Select Photo</Text>
+        <Text style={styles.title}>{t('dashboard.addFood.gallery.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 

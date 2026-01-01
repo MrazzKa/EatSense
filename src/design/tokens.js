@@ -199,43 +199,85 @@ export const palettes = {
     neutrals: neutralPaletteLight,
   },
   rose: {
-    background: '#FFF5F5',
+    // Soft pastel pink theme - gentle and pleasant
+    background: '#FDF2F8',      // Pink-50
     surface: '#FFFFFF',
-    surfaceMuted: '#FFF0F0',
-    surfaceContrast: '#881337',
+    surfaceMuted: '#FCE7F3',     // Pink-100
+    surfaceContrast: '#831843',  // Pink-900
     surfaceElevated: '#FFFFFF',
-    overlay: '#FFF5F5',
-    primary: '#E11D48', // Rose 600
-    primaryTint: '#FFE4E6',
+    overlay: '#FDF2F8',
+    primary: '#EC4899',          // Pink-500 (softer than Rose)
+    primaryTint: '#FBCFE8',      // Pink-200
     onPrimary: '#FFFFFF',
-    secondary: '#D97706', // Amber 600
-    secondaryTint: '#FEF3C7',
-    text: '#881337', // Rose 900
-    textPrimary: '#881337',
-    textSecondary: '#9F1239', // Rose 800
-    textTertiary: '#BE123C', // Rose 700
-    textMuted: '#FDA4AF',
-    textSubdued: '#FECDD3',
-    textDisabled: 'rgba(136, 19, 55, 0.4)',
-    inverseText: '#FFF1F2',
-    border: '#FECDD3', // Rose 200
-    borderMuted: '#FFE4E6',
-    borderStrong: '#FDA4AF',
-    success: '#059669',
+    secondary: '#F472B6',        // Pink-400
+    secondaryTint: '#FCE7F3',
+    text: '#831843',             // Pink-900
+    textPrimary: '#9D174D',      // Pink-800
+    textSecondary: '#BE185D',    // Pink-700
+    textTertiary: '#DB2777',     // Pink-600
+    textMuted: '#F9A8D4',        // Pink-300
+    textSubdued: '#FBCFE8',      // Pink-200
+    textDisabled: 'rgba(131, 24, 67, 0.4)',
+    inverseText: '#FDF2F8',
+    border: '#FBCFE8',           // Pink-200
+    borderMuted: '#FCE7F3',      // Pink-100
+    borderStrong: '#F9A8D4',     // Pink-300
+    success: '#10B981',
     successTint: '#D1FAE5',
-    warning: '#D97706',
+    warning: '#F59E0B',
     warningTint: '#FEF3C7',
+    error: '#EF4444',
+    errorTint: '#FEE2E2',
+    info: '#0EA5E9',
+    infoTint: '#E0F2FE',
+    card: '#FFFFFF',
+    inputBackground: '#FDF2F8',
+    icon: '#DB2777',             // Pink-600
+    iconMuted: '#F472B6',        // Pink-400
+    overlayTint: 'rgba(131, 24, 67, 0.06)',
+    scrim: 'rgba(131, 24, 67, 0.45)',
+    focusRing: 'rgba(236, 72, 153, 0.35)',
+    neutrals: neutralPaletteLight,
+  },
+  beige: {
+    // Warm beige/cream theme - cozy and natural
+    background: '#FEFBF6',       // Warm cream white
+    surface: '#FFFFFF',
+    surfaceMuted: '#FAF5EF',     // Light beige
+    surfaceContrast: '#44403C',  // Stone-700
+    surfaceElevated: '#FFFFFF',
+    overlay: '#FEFBF6',
+    primary: '#A16207',          // Amber-700 (warm brown-gold)
+    primaryTint: '#FEF3C7',      // Amber-100
+    onPrimary: '#FFFFFF',
+    secondary: '#CA8A04',        // Yellow-600
+    secondaryTint: '#FEF9C3',
+    text: '#44403C',             // Stone-700
+    textPrimary: '#57534E',      // Stone-600
+    textSecondary: '#78716C',    // Stone-500
+    textTertiary: '#A8A29E',     // Stone-400
+    textMuted: '#D6D3D1',        // Stone-300
+    textSubdued: '#E7E5E4',      // Stone-200
+    textDisabled: 'rgba(68, 64, 60, 0.4)',
+    inverseText: '#FAFAF9',
+    border: '#E7E5E4',           // Stone-200
+    borderMuted: '#F5F5F4',      // Stone-100
+    borderStrong: '#D6D3D1',     // Stone-300
+    success: '#16A34A',
+    successTint: '#DCFCE7',
+    warning: '#CA8A04',
+    warningTint: '#FEF9C3',
     error: '#DC2626',
     errorTint: '#FEE2E2',
     info: '#0284C7',
     infoTint: '#E0F2FE',
     card: '#FFFFFF',
-    inputBackground: '#FFF1F2',
-    icon: '#BE123C',
-    iconMuted: '#FB7185',
-    overlayTint: 'rgba(136, 19, 55, 0.08)',
-    scrim: 'rgba(136, 19, 55, 0.55)',
-    focusRing: 'rgba(225, 29, 72, 0.35)',
+    inputBackground: '#FAF5EF',
+    icon: '#78716C',             // Stone-500
+    iconMuted: '#A8A29E',        // Stone-400
+    overlayTint: 'rgba(68, 64, 60, 0.06)',
+    scrim: 'rgba(68, 64, 60, 0.45)',
+    focusRing: 'rgba(161, 98, 7, 0.35)',
     neutrals: neutralPaletteLight,
   },
   dark: {
@@ -312,28 +354,29 @@ export const states = {
     },
   },
   rose: {
-    focusRing: 'rgba(225, 29, 72, 0.35)',
-    overlay: 'rgba(136, 19, 55, 0.08)',
-    scrim: 'rgba(136, 19, 55, 0.55)',
+    // Updated to match pastel pink palette
+    focusRing: 'rgba(236, 72, 153, 0.35)',
+    overlay: 'rgba(131, 24, 67, 0.06)',
+    scrim: 'rgba(131, 24, 67, 0.45)',
     primary: {
-      base: '#E11D48',
-      hover: '#BE123C',
-      pressed: '#9F1239',
-      disabled: '#FECDD3',
-      border: '#BE123C',
+      base: '#EC4899',
+      hover: '#DB2777',
+      pressed: '#BE185D',
+      disabled: '#FBCFE8',
+      border: '#DB2777',
       on: '#FFFFFF',
-      disabledText: '#FFF1F2',
-      disabledBorder: '#FFE4E6',
+      disabledText: '#FDF2F8',
+      disabledBorder: '#FCE7F3',
     },
     surface: {
       base: '#FFFFFF',
       elevated: '#FFFFFF',
-      hovered: '#FFF1F2',
-      pressed: '#FFE4E6',
-      border: '#FFE4E6',
+      hovered: '#FDF2F8',
+      pressed: '#FCE7F3',
+      border: '#FCE7F3',
     },
     cardShadow: {
-      shadowColor: 'rgba(136, 19, 55, 0.12)',
+      shadowColor: 'rgba(131, 24, 67, 0.10)',
       shadowOpacity: 1,
       shadowOffset: { width: 0, height: 10 },
       shadowRadius: 20,
@@ -392,6 +435,36 @@ export const states = {
     },
     cardShadow: {
       shadowColor: 'rgba(0, 0, 0, 0.12)',
+      shadowOpacity: 1,
+      shadowOffset: { width: 0, height: 10 },
+      shadowRadius: 20,
+      elevation: 6,
+    },
+  },
+  beige: {
+    // Warm beige/Stone theme states
+    focusRing: 'rgba(161, 98, 7, 0.35)',
+    overlay: 'rgba(68, 64, 60, 0.06)',
+    scrim: 'rgba(68, 64, 60, 0.45)',
+    primary: {
+      base: '#A16207',
+      hover: '#92400E',
+      pressed: '#78350F',
+      disabled: '#FEF3C7',
+      border: '#92400E',
+      on: '#FFFFFF',
+      disabledText: '#FEFBF6',
+      disabledBorder: '#FEF3C7',
+    },
+    surface: {
+      base: '#FFFFFF',
+      elevated: '#FFFFFF',
+      hovered: '#FEFBF6',
+      pressed: '#FAF5EF',
+      border: '#E7E5E4',
+    },
+    cardShadow: {
+      shadowColor: 'rgba(68, 64, 60, 0.10)',
       shadowOpacity: 1,
       shadowOffset: { width: 0, height: 10 },
       shadowRadius: 20,

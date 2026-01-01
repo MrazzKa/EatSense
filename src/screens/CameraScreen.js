@@ -29,7 +29,7 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
-  const [capturedImageUri, setCapturedImageUri] = useState(null);
+  // const [capturedImageUri, setCapturedImageUri] = useState(null); // Unused
 
   // Safe requestPermission wrapper
   const handleRequestPermission = async () => {
@@ -201,7 +201,7 @@ export default function CameraScreen() {
         navigation.navigate('MainTabs', { screen: 'Dashboard' });
       }
     } finally {
-      setCapturedImageUri(null);
+      // setCapturedImageUri(null); // State removed
     }
   }, [language, navigation, addPendingAnalysis]);
 

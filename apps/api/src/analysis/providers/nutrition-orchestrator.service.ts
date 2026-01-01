@@ -10,6 +10,9 @@ import { LocalFoodService } from './local-food.service';
 
 export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 
+// Version for cache key - increment when validation logic or providers change
+const NUTRITION_CACHE_VERSION = 'v4_2025-12-31';
+
 export interface NutritionCacheKeyInput {
   normalizedName: string;
   locale: string;
@@ -25,7 +28,7 @@ export class NutritionOrchestrator {
     private readonly providers: INutritionProvider[],
     private readonly cacheService: CacheService,
     private readonly localFoodService: LocalFoodService,
-  ) {}
+  ) { }
 
   /**
    * Determine region from locale if not provided in context
@@ -45,18 +48,18 @@ export class NutritionOrchestrator {
     // Map locale to region
     // TODO: Get from user profile preferences
     const locale = context.locale || 'en';
-    
+
     // Swiss locales: de-CH, fr-CH, it-CH → CH
     // For now, we only have 'en', 'ru', 'kk' in context.locale
     // In future, if we have full locale strings like 'de-CH', parse them:
     // if (locale.includes('-CH')) return 'CH';
-    
+
     // US locale: en-US → US
     // For now, simple mapping: en -> US (default)
     if (locale === 'en') {
       return 'US';
     }
-    
+
     // Default: EU
     return 'EU';
   }
@@ -258,14 +261,27 @@ export class NutritionOrchestrator {
   }
 
   /**
-   * Build cache key for nutrition lookup
+   * Build cache key for nutrition lookup - includes version for invalidation
    */
   private buildNutritionCacheKey(input: NutritionCacheKeyInput): string {
     const { normalizedName, locale, portionGrams } = input;
     const namespace = 'nutrition:lookup';
     const base = normalizedName.trim().toLowerCase();
     const portionPart = portionGrams ? `:${Math.round(portionGrams)}` : '';
-    return `${namespace}:${base}:${locale}${portionPart}`;
+    return `${namespace}:${NUTRITION_CACHE_VERSION}:${base}:${locale}${portionPart}`;
+  }
+
+  /**
+   * Get default confidence score for a provider when not provided
+   */
+  private getDefaultConfidence(providerId: string): number {
+    const defaults: Record<string, number> = {
+      'usda': 0.78,
+      'swiss-food': 0.80,
+      'openfoodfacts': 0.60,
+      'local': 0.95,
+    };
+    return defaults[providerId] ?? 0.65;
   }
 
   /**
@@ -349,16 +365,16 @@ export class NutritionOrchestrator {
       this.logger.debug(
         `[NutritionOrchestrator] Found in local database: "${normalizedName}"`,
       );
-      
+
       const result: NutritionProviderResult = {
         food: localFood,
         confidence: 0.95, // High confidence for local foods
         isSuspicious: false,
       };
-      
+
       // Cache the result
       await this.cacheService.set(cacheKey, result, 'nutrition:lookup');
-      
+
       return result;
     }
 
@@ -373,10 +389,10 @@ export class NutritionOrchestrator {
 
     // P2: Launch all provider queries in parallel with timeouts
     const NUTRITION_PROVIDER_TIMEOUT_MS = parseInt(process.env.NUTRITION_PROVIDER_TIMEOUT_MS || '3000', 10); // 3 seconds default (reduced from 10s for faster response)
-    
+
     const tasks = sorted.map((provider) => {
       const providerCall = this.wrapProviderCall(provider, () => provider.findByText(trimmed, contextWithRegion));
-      
+
       // Add timeout for each provider call
       const timeoutPromise = new Promise<{ providerId: string; result: null; error: string }>((resolve) => {
         setTimeout(() => {
@@ -387,13 +403,13 @@ export class NutritionOrchestrator {
           });
         }, NUTRITION_PROVIDER_TIMEOUT_MS);
       });
-      
+
       return Promise.race([providerCall, timeoutPromise]);
     });
 
     // Wait for all providers to complete (or fail or timeout)
     const responses = await Promise.allSettled(tasks);
-    
+
     // Extract valid results
     const validResults: Array<{
       providerId: string;
@@ -409,10 +425,10 @@ export class NutritionOrchestrator {
         );
         continue;
       }
-      
+
       if (response.status === 'fulfilled' && response.value.result && response.value.result.food) {
         const validation = this.validateResult(response.value.result, contextWithRegion);
-        
+
         if (validation.isValid) {
           validResults.push({
             providerId: response.value.providerId,
@@ -439,76 +455,56 @@ export class NutritionOrchestrator {
       return null;
     }
 
-    // Separate good and suspicious results
-    const goodResults = validResults.filter((r) => !r.validation.isSuspicious && (r.result.confidence ?? 0) >= 0.7);
-    const suspiciousResults = validResults.filter((r) => r.validation.isSuspicious);
+    // Calculate effective confidence for each result (use provider default if undefined)
+    const scoredResults = validResults.map(r => ({
+      ...r,
+      effectiveConfidence: r.result.confidence ?? this.getDefaultConfidence(r.providerId),
+    }));
 
-    // Prioritize good results
-    if (goodResults.length > 0) {
-      // Sort by confidence (descending), then by provider priority
-      goodResults.sort((a, b) => {
-        const confidenceDiff = (b.result.confidence ?? 0) - (a.result.confidence ?? 0);
-        if (Math.abs(confidenceDiff) > 0.01) {
-          return confidenceDiff;
-        }
-        // If confidence is similar, prefer higher priority provider (earlier in sorted array)
-        const aIndex = sorted.findIndex((p) => p.id === a.providerId);
-        const bIndex = sorted.findIndex((p) => p.id === b.providerId);
-        return aIndex - bIndex;
-      });
+    // Sort by non-suspicious first, then by effective confidence, then by provider priority
+    scoredResults.sort((a, b) => {
+      // Non-suspicious results first
+      if (a.validation.isSuspicious !== b.validation.isSuspicious) {
+        return a.validation.isSuspicious ? 1 : -1;
+      }
+      // Then by confidence
+      const confDiff = b.effectiveConfidence - a.effectiveConfidence;
+      if (Math.abs(confDiff) > 0.05) {
+        return confDiff;
+      }
+      // Tie-breaker: provider priority
+      const aIndex = sorted.findIndex((p) => p.id === a.providerId);
+      const bIndex = sorted.findIndex((p) => p.id === b.providerId);
+      return aIndex - bIndex;
+    });
 
-      const best = goodResults[0];
-      const finalResult = {
-        ...best.result,
-        debug: {
-          ...best.result.debug,
-          providerId: best.providerId,
-          kcalPer100: best.result.food.per100g.calories ?? 0,
-          parallelResults: goodResults.length,
-          totalProviders: sorted.length,
-        },
-      };
+    const best = scoredResults[0];
+    const finalResult = {
+      ...best.result,
+      confidence: best.effectiveConfidence,
+      isSuspicious: best.validation.isSuspicious,
+      debug: {
+        ...best.result.debug,
+        providerId: best.providerId,
+        kcalPer100: best.result.food.per100g.calories ?? 0,
+        effectiveConfidence: best.effectiveConfidence,
+        totalCandidates: scoredResults.length,
+        totalProviders: sorted.length,
+        validationReason: best.validation.reason,
+      },
+    };
 
-      // Cache successful result (30 days default via CacheService)
+    // Cache non-suspicious results
+    if (!best.validation.isSuspicious) {
       await this.cacheService.set(cacheKey, finalResult, 'nutrition:lookup').catch((err) => {
         this.logger.warn(`[NutritionOrchestrator] Failed to cache result: ${err.message}`);
       });
-
-      this.logger.log(
-        `[Orchestrator] Found by text in provider=${best.providerId} id=${best.result.food.providerFoodId} name=${best.result.food.displayName} confidence=${best.result.confidence} (parallel, ${goodResults.length} good results, cached)`,
-      );
-      return finalResult;
     }
 
-    // Fallback to best suspicious result if no good results
-    if (suspiciousResults.length > 0) {
-      suspiciousResults.sort((a, b) => {
-        const confidenceDiff = (b.result.confidence ?? 0) - (a.result.confidence ?? 0);
-        if (Math.abs(confidenceDiff) > 0.01) {
-          return confidenceDiff;
-        }
-        const aIndex = sorted.findIndex((p) => p.id === a.providerId);
-        const bIndex = sorted.findIndex((p) => p.id === b.providerId);
-        return aIndex - bIndex;
-      });
-
-      const best = suspiciousResults[0];
-      this.logger.warn(
-        `[Orchestrator] Only suspicious results found, using best from provider=${best.providerId}: ${best.validation.reason}`,
-      );
-      return {
-        ...best.result,
-        debug: {
-          ...best.result.debug,
-          providerId: best.providerId,
-          kcalPer100: best.result.food.per100g.calories ?? 0,
-          parallelResults: suspiciousResults.length,
-          totalProviders: sorted.length,
-        },
-      };
-    }
-
-    return null;
+    this.logger.log(
+      `[Orchestrator] Best match: provider=${best.providerId}, name="${best.result.food.displayName}", conf=${best.effectiveConfidence.toFixed(2)}, suspicious=${best.validation.isSuspicious}`,
+    );
+    return finalResult;
   }
 
   /**
@@ -527,7 +523,7 @@ export class NutritionOrchestrator {
     };
 
     const sorted = await this.sortProviders(contextWithRegion);
-    
+
     // Filter providers that support barcode lookup
     const barcodeProviders = sorted.filter((p) => p.getByBarcode);
     if (barcodeProviders.length === 0) {
@@ -572,10 +568,10 @@ export class NutritionOrchestrator {
         );
         continue;
       }
-      
+
       if (response.status === 'fulfilled' && response.value.result && response.value.result.food) {
         const validation = this.validateResult(response.value.result, contextWithRegion);
-        
+
         if (validation.isValid && !validation.isSuspicious && (response.value.result.confidence ?? 0) >= 0.7) {
           validResults.push({
             providerId: response.value.providerId,

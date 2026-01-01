@@ -160,7 +160,7 @@ export default function AuthScreen({ onAuthSuccess }) {
           ...(credential.email && credential.email.trim() ? { email: credential.email.trim().toLowerCase() } : {}),
           ...(filteredFullName && (filteredFullName.givenName || filteredFullName.familyName) ? { fullName: filteredFullName } : {}),
         };
-        
+
         const response = await ApiService.request('/auth/apple', {
           method: 'POST',
           body: JSON.stringify(applePayload),
@@ -169,25 +169,25 @@ export default function AuthScreen({ onAuthSuccess }) {
         if (response?.accessToken) {
           await ApiService.setToken(response.accessToken, response.refreshToken);
           setStatusMessage(t('auth.messages.signedIn'));
-          
+
           // Update AuthContext - load user profile (same as Google/OTP flow)
           let profile = null;
           try {
-            await clientLog('Auth:appleSignInRefreshUser').catch(() => {});
+            await clientLog('Auth:appleSignInRefreshUser').catch(() => { });
             profile = await ApiService.getUserProfile();
             if (profile) {
               setUser(profile);
               await clientLog('Auth:appleSignInUserSet', {
                 userId: profile?.id || 'unknown',
                 hasOnboardingCompleted: !!profile?.isOnboardingCompleted,
-              }).catch(() => {});
+              }).catch(() => { });
             } else {
               // Profile doesn't exist yet - create a minimal user object to trigger onboarding
               // This ensures user is considered authenticated even without profile
               setUser({ id: response.user?.id, email: response.user?.email, isOnboardingCompleted: false });
               await clientLog('Auth:appleSignInNoProfile', {
                 userId: response.user?.id || 'unknown',
-              }).catch(() => {});
+              }).catch(() => { });
             }
           } catch (profileError) {
             console.warn('[AuthScreen] Error loading user profile after Apple Sign In:', profileError);
@@ -197,19 +197,19 @@ export default function AuthScreen({ onAuthSuccess }) {
               setUser({ id: response.user.id, email: response.user.email, isOnboardingCompleted: false });
             }
           }
-          
+
           // Call onAuthSuccess if provided (for backward compatibility)
           if (onAuthSuccess && typeof onAuthSuccess === 'function') {
             console.log('[AuthScreen] Calling onAuthSuccess for Apple Sign In');
             await onAuthSuccess();
             console.log('[AuthScreen] onAuthSuccess completed for Apple Sign In');
           }
-          
+
           // DO NOT navigate here - let RootNavigator handle navigation based on isAuthenticated state
           await clientLog('Auth:appleSignInSuccessComplete', {
             hasProfile: !!profile,
             needsOnboarding: !profile?.isOnboardingCompleted,
-          }).catch(() => {});
+          }).catch(() => { });
         } else {
           throw new Error('No access token received from server');
         }
@@ -233,7 +233,7 @@ export default function AuthScreen({ onAuthSuccess }) {
     androidClientId: Constants.expoConfig?.extra?.googleAndroidClientId || safeEnv.googleAndroidClientId || '',
     webClientId: Constants.expoConfig?.extra?.googleWebClientId || safeEnv.googleWebClientId || safeEnv.googleClientId || '',
   };
-  
+
   // Create safe config where NO field is undefined - prevents crashes
   const safeGoogleConfig = {
     expoClientId: googleIds.expoClientId || 'DISABLED_EXPO_CLIENT_ID',
@@ -241,14 +241,14 @@ export default function AuthScreen({ onAuthSuccess }) {
     androidClientId: googleIds.androidClientId || 'DISABLED_ANDROID_CLIENT_ID',
     webClientId: googleIds.webClientId || 'DISABLED_WEB_CLIENT_ID',
   };
-  
+
   // Determine if Google Sign-In is configured for current platform
   const isGoogleConfigured = Platform.OS === 'ios'
     ? !!googleIds.iosClientId
     : Platform.OS === 'android'
-    ? !!googleIds.androidClientId
-    : !!googleIds.webClientId;
-  
+      ? !!googleIds.androidClientId
+      : !!googleIds.webClientId;
+
   // Log warning once if iOS Client ID is missing
   const warnedRef = useRef(false);
   useEffect(() => {
@@ -257,21 +257,21 @@ export default function AuthScreen({ onAuthSuccess }) {
       warnedRef.current = true;
     }
   }, [googleIds.iosClientId]);
-  
+
   // Create redirect URI for Google OAuth
   // For Expo Go: use useProxy: true to use Expo's proxy server (works with webClientId)
   // For standalone builds: use native scheme (works with iOS/Android Client IDs)
   // For web: use full domain URL
   // Detect Expo Go: executionEnvironment === 'storeClient' or appOwnership === 'expo'
   // For local development/testing in Expo Go, always use proxy
-  const isExpoGo = 
-    Constants.executionEnvironment === 'storeClient' || 
+  const isExpoGo =
+    Constants.executionEnvironment === 'storeClient' ||
     Constants.appOwnership === 'expo' ||
     (Constants.executionEnvironment === undefined && __DEV__);
-  
+
   // For Expo Go and local dev, always use proxy
   const shouldUseProxy = isExpoGo || __DEV__;
-  
+
   const redirectUri = Platform.select({
     web: 'https://eatsense.app/auth/google/callback',
     default: makeRedirectUri({
@@ -281,7 +281,7 @@ export default function AuthScreen({ onAuthSuccess }) {
       useProxy: shouldUseProxy,
     }),
   });
-  
+
   // Build platform-specific config for useAuthRequest
   // Always use safeGoogleConfig to prevent undefined values
   let googleClientIds;
@@ -290,7 +290,7 @@ export default function AuthScreen({ onAuthSuccess }) {
   } else if (Platform.OS === 'ios') {
     if (isExpoGo && googleIds.webClientId) {
       // Expo Go: use both iosClientId and webClientId with proxy
-      googleClientIds = { 
+      googleClientIds = {
         iosClientId: safeGoogleConfig.iosClientId,
         webClientId: safeGoogleConfig.webClientId,
       };
@@ -314,10 +314,10 @@ export default function AuthScreen({ onAuthSuccess }) {
       webClientId: safeGoogleConfig.webClientId,
     };
   }
-  
+
   // Only create auth request if Google is properly configured for current platform
-  const shouldCreateGoogleAuth = isGoogleConfigured;
-  
+  // const shouldCreateGoogleAuth = isGoogleConfigured; // Unused
+
   // Always use safeGoogleConfig to prevent undefined values in useAuthRequest
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
     ...googleClientIds,
@@ -325,7 +325,7 @@ export default function AuthScreen({ onAuthSuccess }) {
     redirectUri,
     useProxy: shouldUseProxy,
   });
-  
+
   // Log Google request state
   useEffect(() => {
     if (googleRequest) {
@@ -344,7 +344,7 @@ export default function AuthScreen({ onAuthSuccess }) {
       // Better error handling for Google OAuth errors
       const errorMsg = googleResponse.error?.message || googleResponse.error?.code || 'Google sign in failed';
       console.error('[AuthScreen] Google OAuth error:', googleResponse.error);
-      
+
       // Handle specific OAuth errors
       if (errorMsg.includes('invalid_request') || errorMsg.includes('redirect_uri')) {
         setErrorMessage('OAuth configuration error. Please contact support.');
@@ -372,11 +372,11 @@ export default function AuthScreen({ onAuthSuccess }) {
       const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
         headers: { Authorization: `Bearer ${authentication.accessToken}` },
       });
-      
+
       if (!userInfoResponse.ok) {
         throw new Error(`Failed to fetch user info: ${userInfoResponse.status}`);
       }
-      
+
       const userInfo = await userInfoResponse.json();
 
       if (!userInfo.email) {
@@ -395,25 +395,25 @@ export default function AuthScreen({ onAuthSuccess }) {
       if (response?.accessToken) {
         await ApiService.setToken(response.accessToken, response.refreshToken);
         setStatusMessage(t('auth.messages.signedIn'));
-        
+
         // Update AuthContext - load user profile (same as OTP flow)
         let profile = null;
         try {
-          await clientLog('Auth:googleSignInRefreshUser').catch(() => {});
+          await clientLog('Auth:googleSignInRefreshUser').catch(() => { });
           profile = await ApiService.getUserProfile();
           if (profile) {
             setUser(profile);
             await clientLog('Auth:googleSignInUserSet', {
               userId: profile?.id || 'unknown',
               hasOnboardingCompleted: !!profile?.isOnboardingCompleted,
-            }).catch(() => {});
+            }).catch(() => { });
           } else {
             // Profile doesn't exist yet - create a minimal user object to trigger onboarding
             // This ensures user is considered authenticated even without profile
             setUser({ id: response.user?.id, email: response.user?.email, isOnboardingCompleted: false });
             await clientLog('Auth:googleSignInNoProfile', {
               userId: response.user?.id || 'unknown',
-            }).catch(() => {});
+            }).catch(() => { });
           }
         } catch (profileError) {
           console.warn('[AuthScreen] Error loading user profile after Google Sign In:', profileError);
@@ -423,19 +423,19 @@ export default function AuthScreen({ onAuthSuccess }) {
             setUser({ id: response.user.id, email: response.user.email, isOnboardingCompleted: false });
           }
         }
-        
+
         // Call onAuthSuccess if provided (for backward compatibility)
         if (onAuthSuccess && typeof onAuthSuccess === 'function') {
           console.log('[AuthScreen] Calling onAuthSuccess for Google Sign In');
           await onAuthSuccess();
           console.log('[AuthScreen] onAuthSuccess completed for Google Sign In');
         }
-        
+
         // DO NOT navigate here - let RootNavigator handle navigation based on isAuthenticated state
         await clientLog('Auth:googleSignInSuccessComplete', {
           hasProfile: !!profile,
           needsOnboarding: !profile?.isOnboardingCompleted,
-        }).catch(() => {});
+        }).catch(() => { });
       } else {
         throw new Error('No access token received from server');
       }
@@ -454,14 +454,14 @@ export default function AuthScreen({ onAuthSuccess }) {
       // Check if Google auth is properly configured for current platform
       if (!isGoogleConfigured) {
         const platformMessage = Platform.OS === 'ios'
-          ? t('auth.errors.googleIosClientIdMissing') || 
-            'Google Sign-In is not configured for iOS. Please contact support or configure EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in your environment.'
+          ? t('auth.errors.googleIosClientIdMissing') ||
+          'Google Sign-In is not configured for iOS. Please contact support or configure EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in your environment.'
           : Platform.OS === 'android'
-          ? t('auth.errors.googleAndroidClientIdMissing') || 
+            ? t('auth.errors.googleAndroidClientIdMissing') ||
             'Google Sign-In is not configured for Android. Please contact support or configure EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in your environment.'
-          : t('auth.errors.googleNotConfiguredMessage') || 
+            : t('auth.errors.googleNotConfiguredMessage') ||
             'Google Sign-In is not properly configured.';
-        
+
         Alert.alert(
           t('auth.errors.googleNotConfigured') || 'Google Sign-In Not Available',
           platformMessage,
@@ -485,7 +485,7 @@ export default function AuthScreen({ onAuthSuccess }) {
       console.log('[AuthScreen] Starting Google OAuth flow...');
       console.log('[AuthScreen] Request URL:', googleRequest.url);
       console.log('[AuthScreen] Redirect URI:', googleRequest.redirectUri);
-      
+
       await googlePromptAsync();
     } catch (error) {
       console.error('[AuthScreen] Google OAuth prompt error:', error);
@@ -533,7 +533,7 @@ export default function AuthScreen({ onAuthSuccess }) {
       console.error('[AuthScreen] Error message:', error.message);
       console.error('[AuthScreen] Error status:', error.status);
       console.error('[AuthScreen] Error payload:', error.payload);
-      
+
       if (error?.payload?.retryAfter) {
         setResendCooldown(error.payload.retryAfter);
       }
@@ -559,7 +559,7 @@ export default function AuthScreen({ onAuthSuccess }) {
 
     await clientLog('Auth:otpVerifyPressed', {
       email: email ? email.substring(0, 10) + '***' : 'unknown',
-    }).catch(() => {});
+    }).catch(() => { });
 
     setIsSubmitting(true);
     resetFeedback();
@@ -567,54 +567,54 @@ export default function AuthScreen({ onAuthSuccess }) {
     try {
       console.log('[AuthScreen] Verifying OTP code...');
       const response = await ApiService.verifyOtp(email.trim().toLowerCase(), sanitizedCode);
-      console.log('[AuthScreen] OTP verification response:', { 
+      console.log('[AuthScreen] OTP verification response:', {
         hasToken: !!response?.accessToken,
         hasRefreshToken: !!response?.refreshToken,
         responseKeys: response ? Object.keys(response) : [],
         fullResponse: response,
       });
-      
+
       if (response?.accessToken) {
         await clientLog('Auth:otpVerifySuccess', {
           hasTokens: true,
           hasAccessToken: !!response.accessToken,
-        }).catch(() => {});
-        
+        }).catch(() => { });
+
         console.log('[AuthScreen] Access token found, saving tokens...');
         await ApiService.setToken(response.accessToken, response.refreshToken);
         console.log('[AuthScreen] Token saved');
-        
+
         // Update AuthContext - load user profile
         let profile = null;
         try {
-          await clientLog('Auth:authContextRefreshUser').catch(() => {});
+          await clientLog('Auth:authContextRefreshUser').catch(() => { });
           profile = await ApiService.getUserProfile();
           if (profile) {
             setUser(profile);
             await clientLog('Auth:authContextUserSet', {
               userId: profile?.id || 'unknown',
-            }).catch(() => {});
+            }).catch(() => { });
           }
         } catch (profileError) {
           console.warn('[AuthScreen] Error loading user profile:', profileError);
           // Continue anyway - user is authenticated, will try again later
         }
-        
+
         setStatusMessage(t('auth.messages.signedIn'));
-        
+
         // Call onAuthSuccess if provided (for backward compatibility)
         if (onAuthSuccess && typeof onAuthSuccess === 'function') {
           console.log('[AuthScreen] Calling onAuthSuccess for Email OTP');
           await onAuthSuccess();
           console.log('[AuthScreen] onAuthSuccess completed for Email OTP');
         }
-        
+
         // DO NOT navigate here - let RootNavigator handle navigation based on isAuthenticated state
         // RootNavigator will automatically switch to MainTabs/Onboarding when user state changes
         await clientLog('Auth:otpSuccessComplete', {
           hasProfile: !!profile,
           needsOnboarding: !profile?.isOnboardingCompleted,
-        }).catch(() => {});
+        }).catch(() => { });
       } else {
         console.error('[AuthScreen] No access token in response:', response);
         throw new Error('No access token received from server');
@@ -624,8 +624,8 @@ export default function AuthScreen({ onAuthSuccess }) {
         message: error?.message || String(error),
         code: error?.payload?.code || 'unknown',
         stack: String(error?.stack || '').substring(0, 500),
-      }).catch(() => {});
-      
+      }).catch(() => { });
+
       setErrorMessage(getErrorMessage(error, 'auth.errors.verifyFailed'));
       if (error?.payload?.code === 'OTP_EXPIRED') {
         setStep('email');
@@ -683,8 +683,8 @@ export default function AuthScreen({ onAuthSuccess }) {
 
         <TouchableOpacity
           style={[
-            styles.oauthButton, 
-            styles.googleButton, 
+            styles.oauthButton,
+            styles.googleButton,
             (isSubmitting || !isGoogleConfigured) && styles.disabledButton
           ]}
           onPress={handleGoogleSignIn}
