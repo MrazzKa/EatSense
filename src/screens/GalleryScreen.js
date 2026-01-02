@@ -187,17 +187,36 @@ export default function GalleryScreen() {
     }
   }, [navigation, startAnalysis]);
 
-  // On mount: just check permissions, don't auto-open (was causing issues on iOS)
+  // On mount: check permissions and auto-open gallery in production
+  // In dev mode, show button for easier debugging; in production, open directly
   useEffect(() => {
-    const checkPermissions = async () => {
+    const checkAndOpenGallery = async () => {
       try {
-        const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+        // Check current permission status
+        let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
 
-        if (permission.granted ||
+        // If permission not granted and we can ask, request it first
+        if (!permission.granted && permission.canAskAgain) {
+          permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        }
+
+        const hasPermission = permission.granted ||
           (Platform.OS === 'ios' && permission.accessPrivileges === 'all') ||
-          permission.status === 'limited') {
-          // Permission granted - show the button to open gallery
-          setState(STATE.READY);
+          permission.status === 'limited';
+
+        if (hasPermission) {
+          // In production: auto-open gallery immediately
+          // In dev: show button for easier debugging (can be changed to auto-open if needed)
+          if (__DEV__) {
+            setState(STATE.READY);
+          } else {
+            // Production: open gallery immediately
+            setState(STATE.OPENING);
+            // Small delay to ensure screen is mounted
+            setTimeout(() => {
+              pickImage();
+            }, 100);
+          }
         } else if (permission.canAskAgain) {
           // Will ask for permission when user taps the button
           setState(STATE.READY);
@@ -211,8 +230,8 @@ export default function GalleryScreen() {
       }
     };
 
-    checkPermissions();
-  }, []); // Empty dependency array - run only once on mount
+    checkAndOpenGallery();
+  }, [pickImage]); // Add pickImage as dependency
 
   // Cleanup timeout on unmount
   useEffect(() => {

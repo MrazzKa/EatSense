@@ -19,7 +19,7 @@ const VisionComponentSchema = z.object({
 
   // Category and state hints for better nutrition lookup
   category_hint: z.enum(['protein', 'grain', 'veg', 'fruit', 'fat', 'seeds', 'spice', 'sauce', 'drink', 'other']).optional(),
-  state_hint: z.enum(['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'unknown']).optional(),
+  state_hint: z.enum(['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown']).optional(),
 
   // Existing fields
   preparation: z.string().optional(),
@@ -42,7 +42,7 @@ const VisionComponentSchema = z.object({
 
 const VisionHiddenItemSchema = z.object({
   name: z.string(),
-  category: z.enum(['cooking_oil', 'butter_or_cream', 'sauce_or_dressing', 'added_sugar', 'breaded_or_batter', 'processed_meat_fillers', 'other']),
+  category: z.enum(['cooking_oil', 'butter_or_cream', 'sauce_or_dressing', 'added_sugar', 'breaded_or_batter', 'processed_meat_fillers', 'seasoning', 'spice', 'other']),
   reason: z.string(),
   confidence: z.number().min(0).max(1),
   estimated_grams: z.number().optional(),
@@ -595,20 +595,98 @@ No markdown, no additional keys, no text before or after JSON.`;
         throw new Error('No response from OpenAI Vision');
       }
 
-      // Parse JSON - super robust parsing
+      // Parse JSON - super robust parsing with normalization
       let parsed: z.infer<typeof VisionFlexibleSchema>;
+      let rawJson: any;
       try {
-        const json = JSON.parse(content);
-        parsed = VisionFlexibleSchema.parse(json);
+        rawJson = JSON.parse(content);
+
+        // Pre-validation normalization: fix common enum mismatches from GPT
+        const normalizeEnums = (obj: any): any => {
+          if (Array.isArray(obj)) {
+            return obj.map(normalizeEnums);
+          }
+          if (obj && typeof obj === 'object') {
+            const normalized: any = {};
+            for (const [key, value] of Object.entries(obj)) {
+              if (key === 'state_hint' && typeof value === 'string') {
+                // Map unknown state_hint values to valid ones
+                const stateMap: Record<string, string> = {
+                  'roasted': 'roasted', // now valid
+                  'sauteed': 'sauteed', // now valid
+                  'pan-fried': 'fried',
+                  'deep-fried': 'fried',
+                  'broiled': 'grilled',
+                  'smoked': 'cooked',
+                  'braised': 'cooked',
+                  'poached': 'boiled',
+                  'microwaved': 'cooked',
+                  'blanched': 'boiled',
+                  'marinated': 'raw',
+                  'cured': 'raw',
+                  'fermented': 'raw',
+                  'dehydrated': 'dried',
+                };
+                normalized[key] = stateMap[value.toLowerCase()] ||
+                  (['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown'].includes(value.toLowerCase()) ? value.toLowerCase() : 'cooked');
+              } else if (key === 'category' && typeof value === 'string' && obj.reason) {
+                // This is hidden_item category
+                const catMap: Record<string, string> = {
+                  'seasoning': 'seasoning', // now valid
+                  'spice': 'spice', // now valid
+                  'herbs': 'seasoning',
+                  'salt': 'seasoning',
+                  'pepper': 'seasoning',
+                  'oil': 'cooking_oil',
+                  'butter': 'butter_or_cream',
+                  'cream': 'butter_or_cream',
+                  'dressing': 'sauce_or_dressing',
+                  'sauce': 'sauce_or_dressing',
+                  'sugar': 'added_sugar',
+                  'breading': 'breaded_or_batter',
+                  'batter': 'breaded_or_batter',
+                };
+                const validCats = ['cooking_oil', 'butter_or_cream', 'sauce_or_dressing', 'added_sugar', 'breaded_or_batter', 'processed_meat_fillers', 'seasoning', 'spice', 'other'];
+                normalized[key] = catMap[value.toLowerCase()] || (validCats.includes(value.toLowerCase()) ? value.toLowerCase() : 'other');
+              } else {
+                normalized[key] = normalizeEnums(value);
+              }
+            }
+            return normalized;
+          }
+          return obj;
+        };
+
+        const normalizedJson = normalizeEnums(rawJson);
+        parsed = VisionFlexibleSchema.parse(normalizedJson);
       } catch (err: any) {
-        // Log snippet of content for debugging
-        const contentSnippet = content.slice(0, 500);
-        this.logger.error('[VisionService] Failed to parse components JSON', {
-          contentSnippet,
+        // Schema validation failed - try to salvage data by extracting arrays directly
+        this.logger.warn('[VisionService] Schema validation failed, attempting fallback extraction', {
           error: err instanceof Error ? err.message : String(err),
-          errorName: err?.name,
         });
-        return { components: [], hiddenItems: [] };
+
+        // Fallback: try to extract visible_items or components directly without strict validation
+        if (rawJson) {
+          const items = rawJson.visible_items || rawJson.components || rawJson.items || rawJson.food_items || rawJson.foods || rawJson.detected_items;
+          if (Array.isArray(items) && items.length > 0) {
+            this.logger.debug(`[VisionService] Fallback extraction found ${items.length} items`);
+            // Return partially valid components (will be validated individually later)
+            const hiddenItems = Array.isArray(rawJson.hidden_items) ? rawJson.hidden_items : [];
+            // Create a fake parsed object for the extraction logic below
+            parsed = { visible_items: items, hidden_items: hiddenItems } as any;
+          } else {
+            // Log snippet of content for debugging
+            const contentSnippet = content.slice(0, 500);
+            this.logger.error('[VisionService] Failed to parse components JSON', {
+              contentSnippet,
+              error: err instanceof Error ? err.message : String(err),
+              errorName: err?.name,
+            });
+            return { components: [], hiddenItems: [] };
+          }
+        } else {
+          return { components: [], hiddenItems: [] };
+        }
       }
 
       // Extract components array from flexible structure

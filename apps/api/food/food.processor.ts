@@ -240,11 +240,23 @@ export class FoodProcessor {
         },
       });
 
-      // Update status to completed
+      // Update status based on whether we got valid items
+      // If no items were extracted or all were filtered, mark as NEEDS_REVIEW so user can retry
+      const hasValidItems = (analysisResult.items || []).length > 0;
+      const finalStatus = hasValidItems ? 'COMPLETED' : 'NEEDS_REVIEW';
+
       await this.prisma.analysis.update({
         where: { id: analysisId },
-        data: { status: 'COMPLETED' },
+        data: {
+          status: finalStatus,
+          // Add error message if no items were extracted
+          ...((!hasValidItems) && { error: 'No food items could be identified in this image. Please try again with a clearer photo.' }),
+        },
       });
+
+      if (!hasValidItems) {
+        this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no items extracted from image`);
+      }
 
       // Increment user stats for photo analysis
       if (userId && userId !== 'test-user' && userId !== 'temp-user') {
