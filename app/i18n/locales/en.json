@@ -56,27 +56,156 @@
     }
   },
   "onboarding": {
-    "welcome": "Welcome to EatSense",
-    "goals": "What are your goals?",
-    "support": "We care about you",
-    "gender": "What's your gender?",
-    "age": "How old are you?",
-    "height": "What's your height?",
-    "weight": "What's your weight?",
     "activity": "How active are you?",
-    "walking": "How much do you walk?",
+    "activitySubtitle": "This helps us calculate your calorie needs",
+    "activityLevels": {
+      "sedentary": "Sedentary",
+      "sedentaryDesc": "Little to no exercise",
+      "lightlyActive": "Lightly Active",
+      "lightlyActiveDesc": "Light exercise 1-3 days/week",
+      "moderatelyActive": "Moderately Active",
+      "moderatelyActiveDesc": "Moderate exercise 3-5 days/week",
+      "veryActive": "Very Active",
+      "veryActiveDesc": "Heavy exercise 6-7 days/week",
+      "extremelyActive": "Extremely Active",
+      "extremelyActiveDesc": "Very heavy exercise, physical job"
+    },
+    "age": "How old are you?",
+    "ageSubtitle": "Age helps personalize your nutrition plan",
     "breath": "Do you get shortness of breath?",
-    "obstacles": "What prevents you from reaching your goal?",
-    "diet": "Are you following any diet?",
-    "health": "What should we know about you?",
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "complete": "Complete Setup",
+      "getStarted": "Get Started",
+      "skip": "Skip"
+    },
     "care": "We care about you",
-    "targetWeight": "What weight do you want?",
-    "weightRate": "Weight change rate",
-    "trust": "Thank you for trusting us",
-    "notifications": "Enable notifications",
+    "diet": "Are you following any diet?",
+    "dietSubtitle": "Choose a diet type that suits you",
+    "dietTypes": {
+      "balanced": "Balanced",
+      "balancedDesc": "Varied diet without restrictions",
+      "lowCarb": "Low Carb",
+      "lowCarbDesc": "Less carbs, more protein and fat",
+      "highProtein": "High Protein",
+      "highProteinDesc": "Focus on protein for muscles",
+      "vegetarian": "Vegetarian",
+      "vegetarianDesc": "No meat, fish and dairy allowed",
+      "vegan": "Vegan",
+      "veganDesc": "Plant-based foods only",
+      "keto": "Keto",
+      "ketoDesc": "Very low carbs, high fat",
+      "mediterranean": "Mediterranean",
+      "mediterraneanDesc": "Fish, vegetables, olive oil"
+    },
+    "features": {
+      "analysis": "AI Food Analysis",
+      "analysisDesc": "Instant dish recognition and calories",
+      "tracking": "Smart Tracking",
+      "trackingDesc": "Simple food journal with history",
+      "insights": "Health Insights",
+      "insightsDesc": "Personalized AI recommendations"
+    },
+    "gender": "What's your gender?",
+    "genderSubtitle": "Needed for accurate calorie calculation",
+    "genders": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "goals": "What are your goals?",
+    "goalsSubtitle": "Choose what you want to achieve",
+    "goalTypes": {
+      "loseWeight": "Lose Weight",
+      "maintainWeight": "Maintain Weight",
+      "gainWeight": "Gain Weight"
+    },
+    "health": "What should we know about you?",
+    "healthSubtitle": "Select if any apply to you",
+    "healthConditions": {
+      "diabetes": "Diabetes",
+      "hypertension": "Hypertension",
+      "heartDisease": "Heart Disease",
+      "allergies": "Allergies",
+      "none": "None of the above"
+    },
+    "height": "What's your height?",
+    "heightSubtitle": "Needed for ideal weight calculation",
     "loading": "Creating your plan",
+    "loadingSubtitle": "Analyzing your data...",
+    "notifications": "Enable notifications",
+    "notificationsSubtitle": "Reminders help you achieve your goals",
+    "obstacles": "What prevents you from reaching your goal?",
+    "obstaclesSubtitle": "Select all that apply",
+    "obstacleTypes": {
+      "time": "Lack of time",
+      "motivation": "Lack of motivation",
+      "knowledge": "Don't know where to start",
+      "budget": "Limited budget",
+      "habits": "Bad habits",
+      "stress": "Stress"
+    },
+    "plan": "Choose Your Plan",
+    "planSubtitle": "Select a plan that works for you",
+    "plans": {
+      "free": {
+        "name": "EatSense Free",
+        "price": "$0 forever",
+        "headline": "Get started with the essentials",
+        "features": [
+          "AI food analysis (3/day)",
+          "Daily calorie tracking",
+          "Basic statistics"
+        ],
+        "badge": "Included"
+      },
+      "proMonthly": {
+        "name": "EatSense Pro",
+        "price": "$9.99 / month",
+        "headline": "Unlock everything with flexible billing",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Personalized coaching tips",
+          "Priority support"
+        ],
+        "badge": "Most Popular"
+      },
+      "proAnnual": {
+        "name": "EatSense Pro",
+        "price": "$79.99 / year",
+        "headline": "Best value — save 33%",
+        "features": [
+          "Everything in Pro Monthly",
+          "Exclusive annual webinars",
+          "Early access to new features"
+        ],
+        "badge": "Save 33%"
+      },
+      "finePrint": "You can change plans or cancel anytime from Settings."
+    },
     "summary": "Your choices",
-    "plan": "Choose Your Plan"
+    "summarySubtitle": "Review your information",
+    "support": "We care about you",
+    "targetWeight": "What weight do you want?",
+    "targetWeightSubtitle": "What weight are you aiming for?",
+    "trust": "Thank you for trusting us",
+    "trustSubtitle": "We'll help you achieve your goals",
+    "units": {
+      "years": "years",
+      "cm": "cm",
+      "kg": "kg",
+      "ft": "ft",
+      "in": "in",
+      "lbs": "lbs"
+    },
+    "walking": "How much do you walk?",
+    "weight": "What's your weight?",
+    "weightSubtitle": "Current weight is needed for calorie calculation",
+    "weightRate": "Weight change rate",
+    "welcome": "Welcome to EatSense",
+    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!"
   },
   "dashboard": {
     "title": "Dashboard",

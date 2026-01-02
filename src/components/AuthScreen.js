@@ -14,19 +14,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import ApiService from '../services/apiService';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
-const safeEnv = require('../utils/env').default;
-
-// Complete web browser auth session for Google
-WebBrowser.maybeCompleteAuthSession();
 
 function maskEmail(email) {
   if (!email) {
@@ -225,226 +223,31 @@ export default function AuthScreen({ onAuthSuccess }) {
     }
   };
 
-  // Google OAuth configuration with separate Client IDs for iOS/Android/Web
-  // Use safeEnv helper to prevent "undefined is not a function" errors
-  const googleIds = {
-    expoClientId: Constants.expoConfig?.extra?.googleExpoClientId || process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID || '',
-    iosClientId: Constants.expoConfig?.extra?.googleIosClientId || safeEnv.googleIosClientId || '',
-    androidClientId: Constants.expoConfig?.extra?.googleAndroidClientId || safeEnv.googleAndroidClientId || '',
-    webClientId: Constants.expoConfig?.extra?.googleWebClientId || safeEnv.googleWebClientId || safeEnv.googleClientId || '',
-  };
+  // Configure Google Sign-In on mount
+  const googleConfiguredRef = useRef(false);
+  useEffect(() => {
+    if (googleConfiguredRef.current) return;
+    googleConfiguredRef.current = true;
 
-  // Create safe config where NO field is undefined - prevents crashes
-  const safeGoogleConfig = {
-    expoClientId: googleIds.expoClientId || 'DISABLED_EXPO_CLIENT_ID',
-    iosClientId: googleIds.iosClientId || 'DISABLED_IOS_CLIENT_ID',
-    androidClientId: googleIds.androidClientId || 'DISABLED_ANDROID_CLIENT_ID',
-    webClientId: googleIds.webClientId || 'DISABLED_WEB_CLIENT_ID',
-  };
+    const iosClientId = Constants.expoConfig?.extra?.googleIosClientId || '';
+    const webClientId = Constants.expoConfig?.extra?.googleWebClientId || '';
 
-  // Determine if Google Sign-In is configured for current platform
+    if (Platform.OS !== 'web') {
+      GoogleSignin.configure({
+        iosClientId: iosClientId || undefined,
+        webClientId: webClientId || undefined, // Required for idToken
+        offlineAccess: true,
+      });
+      console.log('[AuthScreen] Google Sign-In configured:', { iosClientId: !!iosClientId, webClientId: !!webClientId });
+    }
+  }, []);
+
+  // Check if Google Sign-In is configured
   const isGoogleConfigured = Platform.OS === 'ios'
-    ? !!googleIds.iosClientId
+    ? !!Constants.expoConfig?.extra?.googleIosClientId
     : Platform.OS === 'android'
-      ? !!googleIds.androidClientId
-      : !!googleIds.webClientId;
-
-  // Log warning once if iOS Client ID is missing
-  const warnedRef = useRef(false);
-  useEffect(() => {
-    if (Platform.OS === 'ios' && !googleIds.iosClientId && !warnedRef.current) {
-      console.warn('[AuthScreen] Missing EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID');
-      warnedRef.current = true;
-    }
-  }, [googleIds.iosClientId]);
-
-  // Create redirect URI for Google OAuth
-  // For Expo Go: use useProxy: true to use Expo's proxy server (works with webClientId)
-  // For standalone builds: use native scheme (works with iOS/Android Client IDs)
-  // For web: use full domain URL
-  // Detect Expo Go: executionEnvironment === 'storeClient' or appOwnership === 'expo'
-  // For local development/testing in Expo Go, always use proxy
-  const isExpoGo =
-    Constants.executionEnvironment === 'storeClient' ||
-    Constants.appOwnership === 'expo' ||
-    (Constants.executionEnvironment === undefined && __DEV__);
-
-  // For Expo Go and local dev, always use proxy
-  const shouldUseProxy = isExpoGo || __DEV__;
-
-  const redirectUri = Platform.select({
-    web: 'https://eatsense.app/auth/google/callback',
-    default: makeRedirectUri({
-      scheme: 'eatsense',
-      usePath: false,
-      // Use proxy for Expo Go and local dev to handle redirects properly
-      useProxy: shouldUseProxy,
-    }),
-  });
-
-  // Build platform-specific config for useAuthRequest
-  // Always use safeGoogleConfig to prevent undefined values
-  let googleClientIds;
-  if (Platform.OS === 'web') {
-    googleClientIds = { webClientId: safeGoogleConfig.webClientId };
-  } else if (Platform.OS === 'ios') {
-    if (isExpoGo && googleIds.webClientId) {
-      // Expo Go: use both iosClientId and webClientId with proxy
-      googleClientIds = {
-        iosClientId: safeGoogleConfig.iosClientId,
-        webClientId: safeGoogleConfig.webClientId,
-      };
-    } else {
-      // Standalone build: use iOS Client ID only
-      googleClientIds = { iosClientId: safeGoogleConfig.iosClientId };
-    }
-  } else if (Platform.OS === 'android') {
-    if (isExpoGo && googleIds.webClientId) {
-      // Expo Go: use webClientId with proxy
-      googleClientIds = { webClientId: safeGoogleConfig.webClientId };
-    } else {
-      // Standalone build: use Android Client ID
-      googleClientIds = { androidClientId: safeGoogleConfig.androidClientId };
-    }
-  } else {
-    // Default fallback - use all IDs from safe config
-    googleClientIds = {
-      iosClientId: safeGoogleConfig.iosClientId,
-      androidClientId: safeGoogleConfig.androidClientId,
-      webClientId: safeGoogleConfig.webClientId,
-    };
-  }
-
-  // Only create auth request if Google is properly configured for current platform
-  // const shouldCreateGoogleAuth = isGoogleConfigured; // Unused
-
-  // Always use safeGoogleConfig to prevent undefined values in useAuthRequest
-  const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
-    ...googleClientIds,
-    scopes: ['openid', 'profile', 'email'],
-    redirectUri,
-    useProxy: shouldUseProxy,
-  });
-
-  // Log Google request state
-  useEffect(() => {
-    if (googleRequest) {
-      console.log('[AuthScreen] Google OAuth request created:', {
-        url: googleRequest.url,
-        redirectUri: googleRequest.redirectUri,
-      });
-    }
-  }, [googleRequest]);
-
-  // Handle Google OAuth response
-  useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      handleGoogleSignInSuccess(googleResponse.authentication);
-    } else if (googleResponse?.type === 'error') {
-      // Better error handling for Google OAuth errors
-      const errorMsg = googleResponse.error?.message || googleResponse.error?.code || 'Google sign in failed';
-      console.error('[AuthScreen] Google OAuth error:', googleResponse.error);
-
-      // Handle specific OAuth errors
-      if (errorMsg.includes('invalid_request') || errorMsg.includes('redirect_uri')) {
-        setErrorMessage('OAuth configuration error. Please contact support.');
-      } else if (errorMsg.includes('access_denied') || errorMsg.includes('cancelled')) {
-        setErrorMessage('Sign in was cancelled.');
-      } else if (errorMsg.includes('blocked') || errorMsg.includes("doesn't comply")) {
-        setErrorMessage('This app needs to be verified by Google. Please contact support or try again later.');
-      } else {
-        setErrorMessage(getErrorMessage({ message: errorMsg }, 'auth.errors.verifyFailed'));
-      }
-      setIsSubmitting(false);
-    } else if (googleResponse?.type === 'cancel') {
-      // User cancelled, don't show error
-      setIsSubmitting(false);
-    }
-  }, [googleResponse, handleGoogleSignInSuccess, getErrorMessage]);
-
-  const handleGoogleSignInSuccess = useCallback(async (authentication) => {
-    try {
-      if (!authentication?.accessToken) {
-        throw new Error('No access token from Google');
-      }
-
-      // Get user info from Google
-      const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-        headers: { Authorization: `Bearer ${authentication.accessToken}` },
-      });
-
-      if (!userInfoResponse.ok) {
-        throw new Error(`Failed to fetch user info: ${userInfoResponse.status}`);
-      }
-
-      const userInfo = await userInfoResponse.json();
-
-      if (!userInfo.email) {
-        throw new Error('Could not get email from Google profile');
-      }
-
-      // Send to backend for verification
-      const response = await ApiService.signInWithGoogle({
-        accessToken: authentication.accessToken,
-        idToken: authentication.idToken,
-        email: userInfo.email,
-        name: userInfo.name || undefined,
-        picture: userInfo.picture || undefined,
-      });
-
-      if (response?.accessToken) {
-        await ApiService.setToken(response.accessToken, response.refreshToken);
-        setStatusMessage(t('auth.messages.signedIn'));
-
-        // Update AuthContext - load user profile (same as OTP flow)
-        let profile = null;
-        try {
-          await clientLog('Auth:googleSignInRefreshUser').catch(() => { });
-          profile = await ApiService.getUserProfile();
-          if (profile) {
-            setUser(profile);
-            await clientLog('Auth:googleSignInUserSet', {
-              userId: profile?.id || 'unknown',
-              hasOnboardingCompleted: !!profile?.isOnboardingCompleted,
-            }).catch(() => { });
-          } else {
-            // Profile doesn't exist yet - create a minimal user object to trigger onboarding
-            // This ensures user is considered authenticated even without profile
-            setUser({ id: response.user?.id, email: response.user?.email, isOnboardingCompleted: false });
-            await clientLog('Auth:googleSignInNoProfile', {
-              userId: response.user?.id || 'unknown',
-            }).catch(() => { });
-          }
-        } catch (profileError) {
-          console.warn('[AuthScreen] Error loading user profile after Google Sign In:', profileError);
-          // User is authenticated but profile fetch failed - create minimal user object
-          // This ensures onboarding is shown instead of login screen
-          if (response.user?.id) {
-            setUser({ id: response.user.id, email: response.user.email, isOnboardingCompleted: false });
-          }
-        }
-
-        // Call onAuthSuccess if provided (for backward compatibility)
-        if (onAuthSuccess && typeof onAuthSuccess === 'function') {
-          console.log('[AuthScreen] Calling onAuthSuccess for Google Sign In');
-          await onAuthSuccess();
-          console.log('[AuthScreen] onAuthSuccess completed for Google Sign In');
-        }
-
-        // DO NOT navigate here - let RootNavigator handle navigation based on isAuthenticated state
-        await clientLog('Auth:googleSignInSuccessComplete', {
-          hasProfile: !!profile,
-          needsOnboarding: !profile?.isOnboardingCompleted,
-        }).catch(() => { });
-      } else {
-        throw new Error('No access token received from server');
-      }
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error, 'auth.errors.verifyFailed'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [t, onAuthSuccess, getErrorMessage, setUser]);
+      ? !!Constants.expoConfig?.extra?.googleAndroidClientId
+      : !!Constants.expoConfig?.extra?.googleWebClientId;
 
   const handleGoogleSignIn = async () => {
     try {
@@ -455,10 +258,10 @@ export default function AuthScreen({ onAuthSuccess }) {
       if (!isGoogleConfigured) {
         const platformMessage = Platform.OS === 'ios'
           ? t('auth.errors.googleIosClientIdMissing') ||
-          'Google Sign-In is not configured for iOS. Please contact support or configure EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in your environment.'
+          'Google Sign-In is not configured for iOS. Please contact support.'
           : Platform.OS === 'android'
             ? t('auth.errors.googleAndroidClientIdMissing') ||
-            'Google Sign-In is not configured for Android. Please contact support or configure EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in your environment.'
+            'Google Sign-In is not configured for Android. Please contact support.'
             : t('auth.errors.googleNotConfiguredMessage') ||
             'Google Sign-In is not properly configured.';
 
@@ -471,25 +274,95 @@ export default function AuthScreen({ onAuthSuccess }) {
         return;
       }
 
-      if (!googleRequest) {
-        console.error('[AuthScreen] Google OAuth request not available');
-        Alert.alert(
-          t('auth.errors.googleNotConfigured') || 'Google Sign-In Not Available',
-          t('auth.errors.googleNotConfiguredMessage') || 'Google Sign-In is not properly configured.',
-          [{ text: t('common.ok') || 'OK' }]
-        );
-        setIsSubmitting(false);
-        return;
+      console.log('[AuthScreen] Starting native Google Sign-In...');
+
+      // Check if Google Play Services are available (Android)
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       }
 
-      console.log('[AuthScreen] Starting Google OAuth flow...');
-      console.log('[AuthScreen] Request URL:', googleRequest.url);
-      console.log('[AuthScreen] Redirect URI:', googleRequest.redirectUri);
+      // Perform native Google Sign-In
+      const signInResult = await GoogleSignin.signIn();
+      console.log('[AuthScreen] Google Sign-In result:', {
+        hasIdToken: !!signInResult.data?.idToken,
+        email: signInResult.data?.user?.email
+      });
 
-      await googlePromptAsync();
+      if (!signInResult.data?.idToken) {
+        throw new Error('No ID token received from Google');
+      }
+
+      const { idToken, user: googleUser } = signInResult.data;
+
+      // Send idToken to backend for verification
+      const response = await ApiService.signInWithGoogle({
+        idToken,
+        email: googleUser.email,
+        name: googleUser.name || undefined,
+        picture: googleUser.photo || undefined,
+      });
+
+      if (response?.accessToken) {
+        await ApiService.setToken(response.accessToken, response.refreshToken);
+        setStatusMessage(t('auth.messages.signedIn'));
+
+        // Update AuthContext - load user profile
+        let profile = null;
+        try {
+          await clientLog('Auth:googleSignInRefreshUser').catch(() => { });
+          profile = await ApiService.getUserProfile();
+          if (profile) {
+            setUser(profile);
+            await clientLog('Auth:googleSignInUserSet', {
+              userId: profile?.id || 'unknown',
+              hasOnboardingCompleted: !!profile?.isOnboardingCompleted,
+            }).catch(() => { });
+          } else {
+            setUser({ id: response.user?.id, email: response.user?.email, isOnboardingCompleted: false });
+            await clientLog('Auth:googleSignInNoProfile', {
+              userId: response.user?.id || 'unknown',
+            }).catch(() => { });
+          }
+        } catch (profileError) {
+          console.warn('[AuthScreen] Error loading user profile after Google Sign In:', profileError);
+          if (response.user?.id) {
+            setUser({ id: response.user.id, email: response.user.email, isOnboardingCompleted: false });
+          }
+        }
+
+        // Call onAuthSuccess if provided
+        if (onAuthSuccess && typeof onAuthSuccess === 'function') {
+          console.log('[AuthScreen] Calling onAuthSuccess for Google Sign In');
+          await onAuthSuccess();
+        }
+
+        await clientLog('Auth:googleSignInSuccessComplete', {
+          hasProfile: !!profile,
+          needsOnboarding: !profile?.isOnboardingCompleted,
+        }).catch(() => { });
+      } else {
+        throw new Error('No access token received from server');
+      }
     } catch (error) {
-      console.error('[AuthScreen] Google OAuth prompt error:', error);
-      setErrorMessage(getErrorMessage(error, 'auth.errors.verifyFailed'));
+      console.error('[AuthScreen] Google Sign-In error:', error);
+
+      // Handle specific Google Sign-In errors
+      if (isErrorWithCode(error)) {
+        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+          // User cancelled - don't show error
+          setIsSubmitting(false);
+          return;
+        } else if (error.code === statusCodes.IN_PROGRESS) {
+          setErrorMessage('Sign in is already in progress');
+        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          setErrorMessage('Google Play Services not available');
+        } else {
+          setErrorMessage(getErrorMessage(error, 'auth.errors.verifyFailed'));
+        }
+      } else {
+        setErrorMessage(getErrorMessage(error, 'auth.errors.verifyFailed'));
+      }
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -688,7 +561,7 @@ export default function AuthScreen({ onAuthSuccess }) {
             (isSubmitting || !isGoogleConfigured) && styles.disabledButton
           ]}
           onPress={handleGoogleSignIn}
-          disabled={!isGoogleConfigured || !googleRequest || isSubmitting}
+          disabled={!isGoogleConfigured || isSubmitting}
         >
           <View style={styles.googleIconContainer}>
             <View style={styles.googleIcon}>
