@@ -279,12 +279,12 @@ const createStyles = (tokens, colors) => {
     planButton: {
       backgroundColor: surface,
       borderRadius: tokens.radii?.xl ?? 16,
-      padding: tokens.spacing?.lg ?? 16,
+      padding: tokens.spacing?.md ?? 12,
+      paddingVertical: tokens.spacing?.sm ?? 10,
       borderWidth: 2,
       borderColor: borderMuted,
       position: 'relative',
-      // Removed flex: 1 to allow cards to size based on content
-      minHeight: 130,
+      minHeight: 100,
     },
     planButtonPopular: {
       borderColor: colors.primary,
@@ -340,11 +340,13 @@ const createStyles = (tokens, colors) => {
     },
     planButtonSelected: {
       borderColor: colors.primary,
+      borderWidth: 3,
+      backgroundColor: isDark ? `${colors.primary}25` : `${colors.primary}10`,
       shadowColor: colors.primary,
-      shadowOffset: { width: 0, height: 8 },
+      shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 6,
+      shadowRadius: 8,
+      elevation: 4,
     },
     planHeader: {
       flexDirection: 'row',
@@ -716,17 +718,17 @@ const OnboardingScreen = () => {
   // ];
 
   const activityLevels = [
-    { id: 'sedentary', label: 'Sedentary', description: 'Little to no exercise' },
-    { id: 'lightly_active', label: 'Lightly Active', description: 'Light exercise 1-3 days/week' },
-    { id: 'moderately_active', label: 'Moderately Active', description: 'Moderate exercise 3-5 days/week' },
-    { id: 'very_active', label: 'Very Active', description: 'Heavy exercise 6-7 days/week' },
-    { id: 'extremely_active', label: 'Extremely Active', description: 'Very heavy exercise, physical job' },
+    { id: 'sedentary', label: t('onboarding.activityLevels.sedentary'), description: t('onboarding.activityLevels.sedentaryDesc') },
+    { id: 'lightly_active', label: t('onboarding.activityLevels.lightlyActive'), description: t('onboarding.activityLevels.lightlyActiveDesc') },
+    { id: 'moderately_active', label: t('onboarding.activityLevels.moderatelyActive'), description: t('onboarding.activityLevels.moderatelyActiveDesc') },
+    { id: 'very_active', label: t('onboarding.activityLevels.veryActive'), description: t('onboarding.activityLevels.veryActiveDesc') },
+    { id: 'extremely_active', label: t('onboarding.activityLevels.extremelyActive'), description: t('onboarding.activityLevels.extremelyActiveDesc') },
   ];
 
   const goals = [
-    { id: 'lose_weight', label: 'Lose Weight', icon: 'trending-down' },
-    { id: 'maintain_weight', label: 'Maintain Weight', icon: 'remove' },
-    { id: 'gain_weight', label: 'Gain Weight', icon: 'trending-up' },
+    { id: 'lose_weight', label: t('onboarding.goalTypes.loseWeight'), icon: 'trending-down' },
+    { id: 'maintain_weight', label: t('onboarding.goalTypes.maintainWeight'), icon: 'remove' },
+    { id: 'gain_weight', label: t('onboarding.goalTypes.gainWeight'), icon: 'trending-up' },
   ];
 
   const plans = [
@@ -1005,22 +1007,22 @@ const OnboardingScreen = () => {
         <View style={styles.logoContainer}>
           <Ionicons name="camera" size={80} color={colors.primary} />
         </View>
-        <Text style={styles.welcomeTitle}>Welcome to EatSense</Text>
+        <Text style={styles.welcomeTitle}>{t('onboarding.welcome')}</Text>
         <Text style={styles.welcomeSubtitle}>
-          Your AI-powered nutrition companion. Let&apos;s personalize your experience!
+          {t('onboarding.welcomeSubtitle')}
         </Text>
         <View style={styles.featuresList}>
           <View style={styles.featureItem}>
             <Ionicons name="camera" size={24} color={colors.primary} />
-            <Text style={styles.featureText}>AI Food Analysis</Text>
+            <Text style={styles.featureText}>{t('onboarding.features.analysis')}</Text>
           </View>
           <View style={styles.featureItem}>
             <Ionicons name="analytics" size={24} color={colors.primary} />
-            <Text style={styles.featureText}>Smart Tracking</Text>
+            <Text style={styles.featureText}>{t('onboarding.features.tracking')}</Text>
           </View>
           <View style={styles.featureItem}>
             <Ionicons name="heart" size={24} color={colors.primary} />
-            <Text style={styles.featureText}>Health Insights</Text>
+            <Text style={styles.featureText}>{t('onboarding.features.insights')}</Text>
           </View>
         </View>
       </View>
@@ -1031,11 +1033,11 @@ const OnboardingScreen = () => {
 
   const renderAgeStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>How old are you?</Text>
-      <Text style={styles.stepSubtitle}>Age helps us personalize your experience</Text>
+      <Text style={styles.stepTitle}>{t('onboarding.age')}</Text>
+      <Text style={styles.stepSubtitle}>{t('onboarding.ageSubtitle')}</Text>
       <View style={styles.largeValueContainer}>
         <Text style={styles.largeValueText}>{profileData.age}</Text>
-        <Text style={styles.largeValueUnit}>years</Text>
+        <Text style={styles.largeValueUnit}>{t('onboarding.units.years')}</Text>
       </View>
       <VerticalScrollPicker
         styles={styles}
@@ -1043,7 +1045,7 @@ const OnboardingScreen = () => {
         minimumValue={16}
         maximumValue={100}
         onValueChange={(value) => setProfileData((prev) => ({ ...prev, age: Math.round(value) }))}
-        unit=" years"
+        unit={` ${t('onboarding.units.years')}`}
         step={1}
         enableHaptics={true}
       />
@@ -1052,14 +1054,14 @@ const OnboardingScreen = () => {
 
   const renderGenderStep = () => {
     const genders = [
-      { id: 'male', label: 'Male', icon: '♂' },
-      { id: 'female', label: 'Female', icon: '♀' },
+      { id: 'male', label: t('onboarding.genders.male'), icon: '♂' },
+      { id: 'female', label: t('onboarding.genders.female'), icon: '♀' },
     ];
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>Indicate your gender</Text>
-        <Text style={styles.stepSubtitle}>Metabolism depends on gender</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.gender')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.genderSubtitle')}</Text>
         <View style={styles.genderContainer}>
           {genders.map((gender) => (
             <TouchableOpacity
@@ -1108,8 +1110,8 @@ const OnboardingScreen = () => {
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>What is your height?</Text>
-        <Text style={styles.stepSubtitle}>Height will help determine body proportions</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.height')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.heightSubtitle')}</Text>
 
         {/* Unit Toggle */}
         <View style={styles.unitToggleContainer}>
@@ -1199,8 +1201,8 @@ const OnboardingScreen = () => {
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>How much do you weigh?</Text>
-        <Text style={styles.stepSubtitle}>Let&apos;s set a starting point for progress tracking</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.weight')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.weightSubtitle')}</Text>
 
         {/* Unit Toggle */}
         <View style={styles.unitToggleContainer}>
@@ -1294,10 +1296,10 @@ const OnboardingScreen = () => {
   // Combined Activity & Goals step
   const renderActivityStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Activity & Goals</Text>
+      <Text style={styles.stepTitle}>{t('onboarding.activity')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>How active are you?</Text>
+        <Text style={styles.inputLabel}>{t('onboarding.activitySubtitle')}</Text>
         <View style={styles.activityContainer}>
           {(activityLevels || []).map((level) => (
             <TouchableOpacity
@@ -1340,10 +1342,10 @@ const OnboardingScreen = () => {
 
   const renderPlanStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={[styles.stepTitle, { marginTop: 20 }]}>Choose your plan</Text>
+      <Text style={[styles.stepTitle, { marginTop: 20 }]}>{t('onboarding.plan')}</Text>
       <View style={styles.planToggle}>
         <Text style={styles.planToggleText}>
-          Choose a plan to unlock EatSense
+          {t('onboarding.planSubtitle')}
         </Text>
       </View>
       <ScrollView
@@ -1378,8 +1380,8 @@ const OnboardingScreen = () => {
               >
                 <View style={styles.planHeader}>
                   <View style={[styles.planHeaderText, { flex: 1 }]}>
-                    <Text style={[styles.planName, isSelected && { color: onPrimaryColor }]}>{plan.name}</Text>
-                    <Text style={[styles.planHeadline, isSelected && { color: onPrimaryColor + 'CC' }]} numberOfLines={2}>{plan.headline}</Text>
+                    <Text style={styles.planName}>{plan.name}</Text>
+                    <Text style={styles.planHeadline} numberOfLines={2}>{plan.headline}</Text>
                   </View>
                   {plan.badge && (
                     <View style={styles.popularBadge}>
@@ -1387,22 +1389,16 @@ const OnboardingScreen = () => {
                     </View>
                   )}
                 </View>
-                <Text style={[styles.planPrice, isSelected && { color: onPrimaryColor }]}>{plan.price}</Text>
+                <Text style={styles.planPrice}>{plan.price}</Text>
                 <View style={styles.planFeatures}>
                   {(plan.features || []).map((feature, index) => (
                     <View key={feature + index} style={styles.planFeatureRow}>
                       <Ionicons
                         name="checkmark-circle"
                         size={18}
-                        color={isSelected ? onPrimaryColor : colors.primary}
+                        color={colors.primary}
                       />
-                      <Text
-                        style={[
-                          styles.planFeature,
-                          isSelected && styles.planFeatureSelected,
-                          isSelected && { color: onPrimaryColor }, // Force white text on selection
-                        ]}
-                      >
+                      <Text style={styles.planFeature}>
                         {feature}
                       </Text>
                     </View>
@@ -1415,7 +1411,7 @@ const OnboardingScreen = () => {
         <View style={styles.planFinePrint}>
           <Ionicons name="information-circle" size={16} color={colors.textTertiary} />
           <Text style={styles.planFinePrintText}>
-            You can change plans or cancel anytime from Settings.
+            {t('onboarding.plans.finePrint')}
           </Text>
         </View>
       </ScrollView>
@@ -1425,8 +1421,8 @@ const OnboardingScreen = () => {
   // New render functions for additional steps
   const renderGoalsStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>What are your goals?</Text>
-      <Text style={styles.stepSubtitle}>Choose what you want to achieve</Text>
+      <Text style={styles.stepTitle}>{t('onboarding.goals')}</Text>
+      <Text style={styles.stepSubtitle}>{t('onboarding.goalsSubtitle')}</Text>
       <View style={styles.goalsContainer}>
         {goals.map((goal) => {
           const isSelected = profileData.goal === goal.id;
@@ -1468,9 +1464,9 @@ const OnboardingScreen = () => {
     <View style={styles.stepContainer}>
       <View style={styles.welcomeContent}>
         <Ionicons name="heart" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>We care about you</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.support')}</Text>
         <Text style={styles.stepSubtitle}>
-          EatSense is here to support you on your journey to better health and nutrition.
+          {t('onboarding.trustSubtitle')}
         </Text>
       </View>
     </View>
@@ -1478,18 +1474,18 @@ const OnboardingScreen = () => {
 
   const renderObstaclesStep = () => {
     const obstacles = [
-      { id: 'time', label: 'Lack of time' },
-      { id: 'motivation', label: 'Lack of motivation' },
-      { id: 'knowledge', label: 'Lack of knowledge' },
-      { id: 'support', label: 'Lack of support' },
-      { id: 'habits', label: 'Bad habits' },
-      { id: 'stress', label: 'Stress' },
+      { id: 'time', label: t('onboarding.obstacleTypes.time') },
+      { id: 'motivation', label: t('onboarding.obstacleTypes.motivation') },
+      { id: 'knowledge', label: t('onboarding.obstacleTypes.knowledge') },
+      { id: 'support', label: t('onboarding.obstacleTypes.budget') },
+      { id: 'habits', label: t('onboarding.obstacleTypes.habits') },
+      { id: 'stress', label: t('onboarding.obstacleTypes.stress') },
     ];
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>What prevents you from reaching your goal?</Text>
-        <Text style={styles.stepSubtitle}>Select all that apply</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.obstacles')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.obstaclesSubtitle')}</Text>
         <View style={styles.activityContainer}>
           {obstacles.map((obstacle) => {
             const isSelected = profileData.obstacles?.includes(obstacle.id);
@@ -1531,20 +1527,20 @@ const OnboardingScreen = () => {
 
   const renderDietStep = () => {
     const diets = [
-      { id: 'none', label: 'No diet' },
-      { id: 'keto', label: 'Keto' },
+      { id: 'none', label: t('onboarding.dietTypes.balanced') },
+      { id: 'keto', label: t('onboarding.dietTypes.keto') },
       { id: 'paleo', label: 'Paleo' },
-      { id: 'vegan', label: 'Vegan' },
-      { id: 'vegetarian', label: 'Vegetarian' },
-      { id: 'mediterranean', label: 'Mediterranean' },
-      { id: 'low_carb', label: 'Low Carb' },
-      { id: 'other', label: 'Other' },
+      { id: 'vegan', label: t('onboarding.dietTypes.vegan') },
+      { id: 'vegetarian', label: t('onboarding.dietTypes.vegetarian') },
+      { id: 'mediterranean', label: t('onboarding.dietTypes.mediterranean') },
+      { id: 'low_carb', label: t('onboarding.dietTypes.lowCarb') },
+      { id: 'other', label: t('common.other', 'Other') },
     ];
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>Are you following any diet?</Text>
-        <Text style={styles.stepSubtitle}>Select your diet type</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.diet')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.dietSubtitle')}</Text>
         <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 100 }}>
           <View style={styles.activityContainer}>
             {diets.map((diet) => {
@@ -2160,7 +2156,7 @@ const OnboardingScreen = () => {
               {currentStep > 0 ? (
                 <TouchableOpacity style={styles.backButton} onPress={prevStep}>
                   <Ionicons name="chevron-back" size={24} color={colors.primary} />
-                  <Text style={styles.backButtonText}>Back</Text>
+                  <Text style={styles.backButtonText}>{t('onboarding.buttons.back')}</Text>
                 </TouchableOpacity>
               ) : (
                 <View style={{ width: 60 }} /> /* Spacer to keep Next button on the right */
@@ -2174,7 +2170,7 @@ const OnboardingScreen = () => {
                 onPress={currentStep === steps.length - 1 ? handleComplete : nextStep}
               >
                 <Text style={styles.nextButtonText}>
-                  {currentStep === steps.length - 1 ? 'Complete Setup' : 'Next'}
+                  {currentStep === steps.length - 1 ? t('onboarding.buttons.complete') : t('onboarding.buttons.next')}
                 </Text>
                 <Ionicons
                   name={currentStep === steps.length - 1 ? 'checkmark' : 'chevron-forward'}
@@ -2254,13 +2250,18 @@ const VerticalScrollPicker = ({
           Math.min(maximumValue, minimumValue + index * step)
         );
 
-        // Haptics only on visual change, NOT on state commit
-        if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - localValueRef.current) >= step) {
+        // Update parent state immediately during scroll for real-time feedback
+        if (Math.abs(newValue - localValueRef.current) >= step / 2) {
           localValueRef.current = newValue;
-          try {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          } catch {
-            // ignore
+          onValueChange(newValue); // Real-time update
+
+          // Haptics on value change
+          if (enableHaptics && Platform.OS === 'ios') {
+            try {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch {
+              // ignore
+            }
           }
         }
       },
@@ -2401,12 +2402,18 @@ const HorizontalScrollPicker = ({
           Math.min(maximumValue, minimumValue + index * step)
         );
 
-        if (enableHaptics && Platform.OS === 'ios' && Math.abs(newValue - localValueRef.current) >= step) {
+        // Update parent state immediately during scroll for real-time feedback
+        if (Math.abs(newValue - localValueRef.current) >= step / 2) {
           localValueRef.current = newValue;
-          try {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          } catch {
-            // ignore
+          onValueChange(newValue); // Real-time update
+
+          // Haptics on value change
+          if (enableHaptics && Platform.OS === 'ios') {
+            try {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            } catch {
+              // ignore
+            }
           }
         }
       },

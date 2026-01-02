@@ -105,7 +105,13 @@ export default {
           "appleTeamId": "73T7PB4F99"
         }
       ],
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": `com.googleusercontent.apps.${(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '').split('-')[0]}`
+        }
+      ]
     ]
   }
 };
