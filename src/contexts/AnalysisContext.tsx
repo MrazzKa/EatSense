@@ -51,32 +51,38 @@ const POLL_BACKOFF_MULTIPLIER = 1.2;
 
 /**
  * Extract analysis data from API response
+ * PHASE 1/3: Enhanced error handling for Vision errors and parse failures
  */
 function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
     if (!apiResponse) return {};
 
     // Check explicit API status first - this determines if polling should stop
-    const apiStatus = (apiResponse?.status || '').toLowerCase();
-    const isCompleted = apiStatus === 'completed';
-    const isFailed = apiStatus === 'failed';
+    const apiStatus = (apiResponse?.status || '').toUpperCase();
+    const isCompleted = apiStatus === 'COMPLETED' || apiStatus === 'SUCCESS';
+    const isFailed = apiStatus === 'FAILED' || apiStatus === 'ERROR';
+    const isNeedsReview = apiStatus === 'NEEDS_REVIEW';
 
     const data = apiResponse.data || apiResponse;
 
-    // Check for explicit error
-    const hasError = !!(data.error || data.errorMessage);
+    // PHASE 1: Check for explicit error including new analysisError field
+    const analysisError = data.analysisError;
+    const hasError = !!(data.error || data.errorMessage || analysisError);
 
     // Get flags from API response
     const flags = data.analysisFlags || {};
     const needsReview = flags.needsReview || data.needsReview || false;
 
-    // Derive final status
+    // Derive final status based on API status and error presence
     let status: AnalysisStatus;
-    if (isFailed || hasError) {
+    if (isFailed || (hasError && analysisError?.status === 'api_error')) {
         status = 'failed';
+    } else if (isNeedsReview || (hasError && analysisError?.status === 'no_food_detected')) {
+        status = 'needs_review';
     } else if (isCompleted) {
-        // Check if needs review based on zero calories
-        const calories = data.totalCalories ?? data.calories ?? 0;
-        if (calories === 0 || needsReview) {
+        // Check if needs review based on zero calories (all items failed nutrition lookup)
+        const calories = data.totalCalories ?? data.calories ?? data.total?.calories ?? 0;
+        const hasItems = (data.items?.length ?? data.ingredients?.length ?? 0) > 0;
+        if ((calories === 0 && hasItems) || needsReview) {
             status = 'needs_review';
         } else {
             status = 'completed';
@@ -85,16 +91,26 @@ function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
         status = 'processing';
     }
 
+    // Build error message from various sources
+    let errorMessage = null;
+    if (analysisError?.message) {
+        errorMessage = analysisError.message;
+    } else if (data.error) {
+        errorMessage = typeof data.error === 'string' ? data.error : data.error.message;
+    } else if (data.errorMessage) {
+        errorMessage = data.errorMessage;
+    }
+
     return {
-        dishName: data.dishName || data.name || null,
+        dishName: data.dishName || data.dishNameLocalized || data.name || null,
         imageUrl: data.imageUrl || data.imageUri || data.mediaUrl || data.coverUrl || null,
-        calories: data.totalCalories ?? data.calories ?? null,
-        protein: data.totalProtein ?? data.protein ?? null,
-        carbs: data.totalCarbs ?? data.carbs ?? null,
-        fat: data.totalFat ?? data.fat ?? null,
-        healthScore: data.healthScore?.score ?? data.healthInsights?.score ?? null,
+        calories: data.totalCalories ?? data.calories ?? data.total?.calories ?? null,
+        protein: data.totalProtein ?? data.protein ?? data.total?.protein ?? null,
+        carbs: data.totalCarbs ?? data.carbs ?? data.total?.carbs ?? null,
+        fat: data.totalFat ?? data.fat ?? data.total?.fat ?? null,
+        healthScore: data.healthScore?.total ?? data.healthScore?.score ?? data.healthInsights?.score ?? null,
         ingredients: data.ingredients || data.components || data.items || [],
-        errorMessage: data.error || data.errorMessage || null,
+        errorMessage,
         status,
     };
 }

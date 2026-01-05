@@ -626,6 +626,189 @@ export class AnalyzeService {
   }
 
   /**
+   * Helper: Create empty totals object for error/empty states
+   */
+  private createEmptyTotals(): AnalysisTotals {
+    return {
+      portion_g: 0,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      fiber: 0,
+      sugars: 0,
+      satFat: 0,
+      energyDensity: 0,
+    };
+  }
+
+  /**
+   * PHASE 2: Calculate totals from items with numerical invariant enforcement
+   *
+   * Invariants enforced:
+   * 1. totals = Σ item.nutrients (for all macro fields)
+   * 2. calories correlate with macros via 4/4/9 rule (within 15% tolerance)
+   * 3. No negative values
+   * 4. Consistent rounding (1 decimal for macros, 0 for calories/portion)
+   *
+   * @param items - Array of AnalyzedItem with nutrients
+   * @returns AnalysisTotals with enforced invariants
+   */
+  private calculateTotalsWithInvariants(items: AnalyzedItem[]): AnalysisTotals {
+    if (!items || items.length === 0) {
+      return this.createEmptyTotals();
+    }
+
+    // Step 1: Sum all item nutrients
+    const rawTotals = items.reduce(
+      (acc, item) => {
+        const n = item.nutrients;
+        acc.portion_g += item.portion_g || 0;
+        acc.calories += n.calories || 0;
+        acc.protein += n.protein || 0;
+        acc.carbs += n.carbs || 0;
+        acc.fat += n.fat || 0;
+        acc.fiber += n.fiber || 0;
+        acc.sugars += n.sugars || 0;
+        acc.satFat += n.satFat || 0;
+        return acc;
+      },
+      {
+        portion_g: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 0,
+      },
+    );
+
+    // Step 2: Apply consistent rounding
+    const totals: AnalysisTotals = {
+      portion_g: Math.round(rawTotals.portion_g),
+      calories: Math.round(rawTotals.calories),
+      protein: this.round(rawTotals.protein, 1),
+      carbs: this.round(rawTotals.carbs, 1),
+      fat: this.round(rawTotals.fat, 1),
+      fiber: this.round(rawTotals.fiber, 1),
+      sugars: this.round(rawTotals.sugars, 1),
+      satFat: this.round(rawTotals.satFat, 1),
+      energyDensity: 0,
+    };
+
+    // Step 3: Enforce no negative values
+    for (const key of Object.keys(totals) as Array<keyof AnalysisTotals>) {
+      const val = totals[key];
+      if (typeof val === 'number' && val < 0) {
+        (totals as any)[key] = 0;
+      }
+    }
+
+    // Step 4: Calculate expected calories from macros (4/4/9 rule)
+    // protein: 4 kcal/g, carbs: 4 kcal/g, fat: 9 kcal/g
+    // fiber: 2 kcal/g (often not absorbed), alcohol: 7 kcal/g (not tracked here)
+    const calculatedCalories = Math.round(
+      totals.protein * 4 + totals.carbs * 4 + totals.fat * 9,
+    );
+
+    // Step 5: Check calorie-macro correlation
+    const reportedCalories = totals.calories;
+    const tolerance = Math.max(30, reportedCalories * 0.15); // 15% or 30 kcal
+
+    if (reportedCalories > 0 && Math.abs(calculatedCalories - reportedCalories) > tolerance) {
+      // Log the mismatch for debugging
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.warn('[AnalyzeService] Calorie-macro mismatch detected', {
+          reportedCalories,
+          calculatedCalories,
+          diff: Math.abs(calculatedCalories - reportedCalories),
+          tolerance,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+        });
+      }
+
+      // Use calculated calories if more reliable (within reasonable range)
+      // Only adjust if calculated is within realistic bounds (not zero when reported isn't)
+      if (calculatedCalories > 0 || reportedCalories === 0) {
+        totals.calories = calculatedCalories;
+      }
+    }
+
+    // Step 6: Calculate energy density (kcal per 100g)
+    if (totals.portion_g > 0) {
+      totals.energyDensity = this.round((totals.calories / totals.portion_g) * 100, 1);
+    }
+
+    return totals;
+  }
+
+  /**
+   * PHASE 2: Enforce item-level macro-calorie consistency
+   *
+   * For each item, ensures:
+   * 1. Calories correlate with P*4 + C*4 + F*9 (within tolerance)
+   * 2. No negative nutrient values
+   * 3. Consistent rounding
+   *
+   * @param item - AnalyzedItem to validate/correct
+   * @returns Corrected AnalyzedItem
+   */
+  private enforceItemMacroConsistency(item: AnalyzedItem): AnalyzedItem {
+    const n = item.nutrients;
+
+    // Round all values consistently
+    const protein = this.round(Math.max(0, n.protein || 0), 1);
+    const carbs = this.round(Math.max(0, n.carbs || 0), 1);
+    const fat = this.round(Math.max(0, n.fat || 0), 1);
+    const fiber = this.round(Math.max(0, n.fiber || 0), 1);
+    const sugars = this.round(Math.max(0, n.sugars || 0), 1);
+    const satFat = this.round(Math.max(0, n.satFat || 0), 1);
+
+    // Calculate expected calories from macros
+    const calculatedCalories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+    const reportedCalories = Math.round(Math.max(0, n.calories || 0));
+
+    // Check correlation (15% tolerance or 20 kcal minimum)
+    const tolerance = Math.max(20, reportedCalories * 0.15);
+    let finalCalories = reportedCalories;
+
+    if (reportedCalories > 0 && Math.abs(calculatedCalories - reportedCalories) > tolerance) {
+      // Use calculated calories if reasonable
+      if (calculatedCalories > 0) {
+        finalCalories = calculatedCalories;
+      }
+    } else if (reportedCalories === 0 && calculatedCalories > 0) {
+      // If reported is 0 but we can calculate from macros, use calculated
+      finalCalories = calculatedCalories;
+    }
+
+    // Calculate energy density
+    const portion_g = Math.max(0, item.portion_g || 0);
+    const energyDensity = portion_g > 0 ? this.round((finalCalories / portion_g) * 100, 1) : 0;
+
+    return {
+      ...item,
+      portion_g: Math.round(portion_g),
+      nutrients: {
+        ...n,
+        calories: finalCalories,
+        protein,
+        carbs,
+        fat,
+        fiber,
+        sugars,
+        satFat,
+        energyDensity,
+      },
+    };
+  }
+
+  /**
    * Process a single component asynchronously
    */
   private async processComponentAsync(
@@ -941,34 +1124,124 @@ export class AnalyzeService {
     // Extract components via Vision (with caching)
     // Use getOrExtractComponents for better cache support with Buffer
     let visionComponents: VisionComponent[];
+    let visionHiddenItems: any[] = [];
+    let visionExtractionStatus: string = 'success';
+    let visionError: { code: string; message: string; details?: any } | undefined;
     const visionStartTime = Date.now();
-    try {
-      const visionResult = await this.vision.getOrExtractComponents({
-        imageUrl: params.imageUrl,
-        imageBase64: params.imageBase64,
-        locale,
-        mode,
-        foodDescription: params.foodDescription,
-      });
-      visionComponents = visionResult.components;
-      const visionDuration = Date.now() - visionStartTime;
-      this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms`);
-    } catch (error: any) {
-      // Handle Vision API errors gracefully
-      this.logger.error('[AnalyzeService] Vision extraction failed', {
-        error: error.message,
-        status: error?.status,
+
+    const visionResult = await this.vision.getOrExtractComponents({
+      imageUrl: params.imageUrl,
+      imageBase64: params.imageBase64,
+      locale,
+      mode,
+      foodDescription: params.foodDescription,
+    });
+
+    const visionDuration = Date.now() - visionStartTime;
+    this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms, status: ${visionResult.status}`);
+
+    visionComponents = visionResult.components;
+    visionHiddenItems = visionResult.hiddenItems || [];
+    visionExtractionStatus = visionResult.status;
+    visionError = visionResult.error;
+
+    // Handle different Vision extraction statuses
+    if (visionResult.status === 'api_error') {
+      this.logger.error('[AnalyzeService] Vision API error', {
+        error: visionResult.error,
         imageUrl: params.imageUrl ? (params.imageUrl.startsWith('/') ? 'relative' : params.imageUrl.substring(0, 50)) : 'none',
         hasBase64: Boolean(params.imageBase64),
       });
 
-      // Transform into a controlled error that can be handled by FoodProcessor
-      if (error?.status === 400 || error?.message?.includes('Failed to download image') || error?.message?.includes('Image URL is invalid')) {
-        throw new BadRequestException('Failed to process image. Please ensure the image is valid and accessible.');
-      }
+      // Return a failed analysis result with error info (don't throw - let processor handle)
+      const errorResult: AnalysisData = {
+        items: [],
+        total: this.createEmptyTotals(),
+        healthScore: null,
+        isSuspicious: true,
+        needsReview: true,
+        locale,
+        originalDishName: 'Analysis Failed',
+        dishNameLocalized: locale === 'ru' ? 'Ошибка анализа' : 'Analysis Failed',
+        debug: {
+          timestamp: new Date().toISOString(),
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
+          components: [],
+          sanity: [{
+            type: 'zero_calories_nonzero_portion',
+            level: 'error',
+            message: visionResult.error?.message || 'Vision API error',
+          }],
+        },
+      };
+      // Store error info in debug for client access
+      (errorResult.debug as any).visionError = visionResult.error;
+      (errorResult.debug as any).visionStatus = visionResult.status;
+      return errorResult;
+    }
 
-      // Re-throw other errors
-      throw error;
+    if (visionResult.status === 'parse_error') {
+      this.logger.warn('[AnalyzeService] Vision parse error', {
+        error: visionResult.error,
+        meta: visionResult.meta,
+      });
+
+      // Return a partial result marking it needs review
+      const parseErrorResult: AnalysisData = {
+        items: [],
+        total: this.createEmptyTotals(),
+        healthScore: null,
+        isSuspicious: true,
+        needsReview: true,
+        locale,
+        originalDishName: 'Parse Error',
+        dishNameLocalized: locale === 'ru' ? 'Ошибка распознавания' : 'Parse Error',
+        debug: {
+          timestamp: new Date().toISOString(),
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
+          components: [],
+          sanity: [{
+            type: 'zero_calories_nonzero_portion',
+            level: 'error',
+            message: visionResult.error?.message || 'Failed to parse Vision response',
+          }],
+        },
+      };
+      (parseErrorResult.debug as any).visionError = visionResult.error;
+      (parseErrorResult.debug as any).visionStatus = visionResult.status;
+      (parseErrorResult.debug as any).parseWarnings = visionResult.meta?.parseWarnings;
+      return parseErrorResult;
+    }
+
+    if (visionResult.status === 'no_food_detected') {
+      this.logger.warn('[AnalyzeService] No food detected in image', {
+        meta: visionResult.meta,
+      });
+
+      // Return result indicating no food found (not an error, just empty)
+      const noFoodResult: AnalysisData = {
+        items: [],
+        total: this.createEmptyTotals(),
+        healthScore: null,
+        isSuspicious: false,
+        needsReview: true,
+        locale,
+        originalDishName: 'No Food Detected',
+        dishNameLocalized: locale === 'ru' ? 'Еда не обнаружена' : 'No Food Detected',
+        debug: {
+          timestamp: new Date().toISOString(),
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
+          components: [],
+          sanity: [{
+            type: 'zero_calories_nonzero_portion',
+            level: 'warning',
+            message: 'No food items could be identified in this image',
+          }],
+        },
+      };
+      (noFoodResult.debug as any).visionStatus = visionResult.status;
+      (noFoodResult.debug as any).visionMeta = visionResult.meta;
+      return noFoodResult;
     }
 
     // Initialize debug object
@@ -1034,36 +1307,26 @@ export class AnalyzeService {
       }
     }
 
-    // Calculate totals (including hidden ingredients integrated into items)
-    const total: AnalysisTotals = items.reduce(
-      (acc, item) => {
-        acc.portion_g += item.portion_g;
-        acc.calories += item.nutrients.calories;
-        acc.protein += item.nutrients.protein;
-        acc.carbs += item.nutrients.carbs;
-        acc.fat += item.nutrients.fat;
-        acc.fiber += item.nutrients.fiber;
-        acc.sugars += item.nutrients.sugars;
-        acc.satFat += item.nutrients.satFat;
-        acc.energyDensity += item.nutrients.energyDensity;
-        return acc;
-      },
-      {
-        portion_g: 0,
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugars: 0,
-        satFat: 0,
-        energyDensity: 0,
-      },
-    );
+    // PHASE 2: Enforce macro-calorie consistency at item level
+    // This ensures each item's calories match P*4 + C*4 + F*9 within tolerance
+    for (let i = 0; i < items.length; i++) {
+      items[i] = this.enforceItemMacroConsistency(items[i]);
+    }
 
-    // Recalculate energyDensity as calories per 100g
-    if (total.portion_g > 0) {
-      total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
+    // PHASE 2: Calculate totals with numerical invariants
+    // This ensures totals = Σ items and calories correlate with macros
+    const total = this.calculateTotalsWithInvariants(items);
+
+    // Add debug info about macro consistency
+    if (debug) {
+      const calculatedTotalCal = Math.round(total.protein * 4 + total.carbs * 4 + total.fat * 9);
+      (debug as any).macroConsistency = {
+        reportedCalories: total.calories,
+        calculatedFromMacros: calculatedTotalCal,
+        diff: Math.abs(total.calories - calculatedTotalCal),
+        itemCount: items.length,
+        totalPortionG: total.portion_g,
+      };
     }
 
     // STEP 1: Check for plain water before computing health score
@@ -1351,36 +1614,13 @@ export class AnalyzeService {
       }
     }
 
-    // Calculate totals (including hidden ingredients integrated into items)
-    const total: AnalysisTotals = items.reduce(
-      (acc, item) => {
-        acc.portion_g += item.portion_g;
-        acc.calories += item.nutrients.calories;
-        acc.protein += item.nutrients.protein;
-        acc.carbs += item.nutrients.carbs;
-        acc.fat += item.nutrients.fat;
-        acc.fiber += item.nutrients.fiber;
-        acc.sugars += item.nutrients.sugars;
-        acc.satFat += item.nutrients.satFat;
-        acc.energyDensity += item.nutrients.energyDensity;
-        return acc;
-      },
-      {
-        portion_g: 0,
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugars: 0,
-        satFat: 0,
-        energyDensity: 0,
-      },
-    );
-
-    if (total.portion_g > 0) {
-      total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
+    // PHASE 2: Enforce macro-calorie consistency at item level (same as analyzeImage)
+    for (let i = 0; i < items.length; i++) {
+      items[i] = this.enforceItemMacroConsistency(items[i]);
     }
+
+    // PHASE 2: Calculate totals with numerical invariants (same as analyzeImage)
+    const total = this.calculateTotalsWithInvariants(items);
 
     // STEP 1: Check for plain water before computing health score
     const isDrink = (total as any).isDrink ?? items.some((i) => (i as any).isDrink === true);

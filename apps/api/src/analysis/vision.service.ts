@@ -78,6 +78,28 @@ const VisionFlexibleSchema = z.union([
 export type VisionComponent = z.infer<typeof VisionComponentSchema>;
 export type VisionHiddenItem = z.infer<typeof VisionHiddenItemSchema>;
 
+// Vision extraction result with explicit success/error states
+export type VisionExtractionStatus = 'success' | 'partial' | 'no_food_detected' | 'parse_error' | 'api_error';
+
+export interface VisionExtractionResult {
+  status: VisionExtractionStatus;
+  components: VisionComponent[];
+  hiddenItems: VisionHiddenItem[];
+  // Error details for debugging and user feedback
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+  // Metadata about the extraction
+  meta?: {
+    rawComponentCount?: number;
+    validatedComponentCount?: number;
+    filteredOutCount?: number;
+    parseWarnings?: string[];
+  };
+}
+
 @Injectable()
 export class VisionService {
   private readonly logger = new Logger(VisionService.name);
@@ -124,6 +146,13 @@ export class VisionService {
   /**
    * Get or extract components with caching
    * This is the ONLY entry point for Vision API - handles all caching
+   *
+   * Returns VisionExtractionResult with explicit status:
+   * - 'success': Components extracted successfully
+   * - 'partial': Some components extracted but with warnings
+   * - 'no_food_detected': Image analyzed but no food found
+   * - 'parse_error': Failed to parse Vision API response
+   * - 'api_error': Vision API call failed
    */
   async getOrExtractComponents(params: {
     imageBuffer?: Buffer;
@@ -132,11 +161,19 @@ export class VisionService {
     locale?: string;
     mode?: 'default' | 'review';
     foodDescription?: string;
-  }): Promise<{ components: VisionComponent[]; hiddenItems: VisionHiddenItem[] }> {
+  }): Promise<VisionExtractionResult> {
     const { imageBuffer, imageUrl, imageBase64, locale = 'en', mode = 'default', foodDescription } = params;
 
     if (!imageBuffer && !imageUrl && !imageBase64) {
-      throw new Error('Either imageBuffer, imageUrl, or imageBase64 must be provided');
+      return {
+        status: 'api_error',
+        components: [],
+        hiddenItems: [],
+        error: {
+          code: 'NO_IMAGE_INPUT',
+          message: 'Either imageBuffer, imageUrl, or imageBase64 must be provided',
+        },
+      };
     }
 
     // Build cache key with version
@@ -148,17 +185,22 @@ export class VisionService {
 
     // Try cache first - components
     const cached = await this.cache.get<VisionComponent[]>(cacheKey, 'vision');
-    if (cached) {
+    if (cached && cached.length > 0) {
       this.logger.debug(`[VisionService] Cache hit for vision analysis (key: ${cacheKey.substring(0, 50)}...)`);
       // Also try to get cached hidden items
       const cachedHidden = await this.cache.get<VisionHiddenItem[]>(`${cacheKey}:hidden`, 'vision');
-      return { components: cached, hiddenItems: cachedHidden || [] };
+      return {
+        status: 'success',
+        components: cached,
+        hiddenItems: cachedHidden || [],
+        meta: { validatedComponentCount: cached.length },
+      };
     }
 
     this.logger.debug(`[VisionService] Cache miss, calling OpenAI Vision API (key: ${cacheKey.substring(0, 50)}...)`);
 
     // Call actual extractComponents (no internal caching)
-    const { components, hiddenItems } = await this.extractComponentsInternal({
+    const result = await this.extractComponentsInternal({
       imageUrl,
       imageBase64: imageBase64 || (imageBuffer ? imageBuffer.toString('base64') : undefined),
       mode,
@@ -166,31 +208,41 @@ export class VisionService {
     });
 
     // Cache successful results with correct key (including version)
-    if (components.length > 0) {
-      await this.cache.set(cacheKey, components, 'vision').catch((err) => {
+    if (result.status === 'success' && result.components.length > 0) {
+      await this.cache.set(cacheKey, result.components, 'vision').catch((err) => {
         this.logger.warn(`[VisionService] Failed to cache vision result: ${err.message}`);
       });
     }
 
     // Cache hidden items with same key prefix + :hidden
-    if (hiddenItems.length > 0) {
-      await this.cache.set(`${cacheKey}:hidden`, hiddenItems, 'vision').catch((err) => {
+    if (result.hiddenItems.length > 0) {
+      await this.cache.set(`${cacheKey}:hidden`, result.hiddenItems, 'vision').catch((err) => {
         this.logger.warn(`[VisionService] Failed to cache hidden items: ${err.message}`);
       });
     }
 
-    return { components, hiddenItems };
+    return result;
   }
 
   /**
    * Internal method - extract food components from image using OpenAI Vision
    * Called only by getOrExtractComponents - NO INTERNAL CACHING
+   *
+   * Returns VisionExtractionResult with explicit status for all outcomes
    */
-  private async extractComponentsInternal(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review'; foodDescription?: string }): Promise<{ components: VisionComponent[]; hiddenItems: VisionHiddenItem[] }> {
+  private async extractComponentsInternal(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review'; foodDescription?: string }): Promise<VisionExtractionResult> {
     const { imageUrl, imageBase64, mode = 'default', foodDescription } = params;
 
     if (!imageUrl && !imageBase64) {
-      throw new Error('Either imageUrl or imageBase64 must be provided');
+      return {
+        status: 'api_error',
+        components: [],
+        hiddenItems: [],
+        error: {
+          code: 'NO_IMAGE_SOURCE',
+          message: 'Either imageUrl or imageBase64 must be provided',
+        },
+      };
     }
     // Convert relative URLs to absolute URLs for OpenAI Vision API
     // CRITICAL: OpenAI Vision API requires absolute URLs, not relative paths
@@ -615,20 +667,76 @@ No markdown, no additional keys, no text before or after JSON.`;
                   'roasted': 'roasted', // now valid
                   'sauteed': 'sauteed', // now valid
                   'pan-fried': 'fried',
+                  'pan_fried': 'fried',
+                  'panfried': 'fried',
                   'deep-fried': 'fried',
+                  'deep_fried': 'fried',
+                  'deepfried': 'fried',
+                  'stir-fried': 'fried',
+                  'stir_fried': 'fried',
+                  'stirfried': 'fried',
                   'broiled': 'grilled',
+                  'charred': 'grilled',
+                  'char-grilled': 'grilled',
+                  'barbecued': 'grilled',
+                  'bbq': 'grilled',
                   'smoked': 'cooked',
                   'braised': 'cooked',
+                  'stewed': 'cooked',
+                  'simmered': 'cooked',
+                  'caramelized': 'cooked',
+                  'glazed': 'cooked',
+                  'toasted': 'baked',
                   'poached': 'boiled',
                   'microwaved': 'cooked',
                   'blanched': 'boiled',
+                  'parboiled': 'boiled',
                   'marinated': 'raw',
                   'cured': 'raw',
                   'fermented': 'raw',
                   'dehydrated': 'dried',
+                  'fresh': 'raw',
+                  'uncooked': 'raw',
+                  'prepared': 'cooked',
+                  'processed': 'cooked',
                 };
-                normalized[key] = stateMap[value.toLowerCase()] ||
-                  (['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown'].includes(value.toLowerCase()) ? value.toLowerCase() : 'cooked');
+                const validStates = ['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown'];
+                const normalizedValue = stateMap[value.toLowerCase()] ||
+                  (validStates.includes(value.toLowerCase()) ? value.toLowerCase() : 'cooked');
+                // Log unmapped values for future improvement (only in debug mode)
+                if (!stateMap[value.toLowerCase()] && !validStates.includes(value.toLowerCase()) && process.env.ANALYSIS_DEBUG === 'true') {
+                  console.warn(`[VisionService] Unknown state_hint "${value}" mapped to "cooked"`);
+                }
+                normalized[key] = normalizedValue;
+              } else if (key === 'category_hint' && typeof value === 'string') {
+                // Normalize visible_items category_hint - map non-standard values to valid enum
+                const catHintMap: Record<string, string> = {
+                  'seasoning': 'spice',
+                  'vegetable': 'veg',
+                  'vegetables': 'veg',
+                  'carb': 'grain',
+                  'carbs': 'grain',
+                  'carbohydrate': 'grain',
+                  'meat': 'protein',
+                  'fish': 'protein',
+                  'seafood': 'protein',
+                  'dairy': 'protein',
+                  'egg': 'protein',
+                  'eggs': 'protein',
+                  'beverage': 'drink',
+                  'oil': 'fat',
+                  'nuts': 'fat',
+                  'nut': 'fat',
+                  'dressing': 'sauce',
+                  'condiment': 'sauce',
+                  'herb': 'spice',
+                  'herbs': 'spice',
+                  'topping': 'other',
+                  'garnish': 'other',
+                };
+                const validCatHints = ['protein', 'grain', 'veg', 'fruit', 'fat', 'seeds', 'spice', 'sauce', 'drink', 'other'];
+                normalized[key] = catHintMap[value.toLowerCase()] ||
+                  (validCatHints.includes(value.toLowerCase()) ? value.toLowerCase() : 'other');
               } else if (key === 'category' && typeof value === 'string' && obj.reason) {
                 // This is hidden_item category
                 const catMap: Record<string, string> = {
@@ -648,6 +756,42 @@ No markdown, no additional keys, no text before or after JSON.`;
                 };
                 const validCats = ['cooking_oil', 'butter_or_cream', 'sauce_or_dressing', 'added_sugar', 'breaded_or_batter', 'processed_meat_fillers', 'seasoning', 'spice', 'other'];
                 normalized[key] = catMap[value.toLowerCase()] || (validCats.includes(value.toLowerCase()) ? value.toLowerCase() : 'other');
+              } else if (key === 'cooking_method' && typeof value === 'string') {
+                // Normalize cooking_method enum values
+                const cookingMethodMap: Record<string, string> = {
+                  'pan-fried': 'fried',
+                  'pan_fried': 'fried',
+                  'panfried': 'fried',
+                  'stir-fried': 'fried',
+                  'stir_fried': 'fried',
+                  'stirfried': 'fried',
+                  'deep-fried': 'deep_fried',
+                  'deepfried': 'deep_fried',
+                  'bbq': 'grilled',
+                  'barbecued': 'grilled',
+                  'char-grilled': 'grilled',
+                  'chargrilled': 'grilled',
+                  'broiled': 'grilled',
+                  'poached': 'boiled',
+                  'blanched': 'boiled',
+                  'parboiled': 'boiled',
+                  'stewed': 'mixed',
+                  'braised': 'mixed',
+                  'simmered': 'mixed',
+                  'toasted': 'baked',
+                  'smoked': 'mixed',
+                  'microwaved': 'mixed',
+                  'fresh': 'raw',
+                  'uncooked': 'raw',
+                };
+                const validMethods = ['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed', 'roasted', 'sauteed'];
+                const normalizedMethod = cookingMethodMap[value.toLowerCase()] ||
+                  (validMethods.includes(value.toLowerCase()) ? value.toLowerCase() : 'mixed');
+                // Log unmapped values for future improvement (only in debug mode)
+                if (!cookingMethodMap[value.toLowerCase()] && !validMethods.includes(value.toLowerCase()) && process.env.ANALYSIS_DEBUG === 'true') {
+                  console.warn(`[VisionService] Unknown cooking_method "${value}" mapped to "mixed"`);
+                }
+                normalized[key] = normalizedMethod;
               } else {
                 normalized[key] = normalizeEnums(value);
               }
@@ -661,6 +805,9 @@ No markdown, no additional keys, no text before or after JSON.`;
         parsed = VisionFlexibleSchema.parse(normalizedJson);
       } catch (err: any) {
         // Schema validation failed - try to salvage data by extracting arrays directly
+        const parseWarnings: string[] = [];
+        parseWarnings.push(`Schema validation failed: ${err instanceof Error ? err.message : String(err)}`);
+
         this.logger.warn('[VisionService] Schema validation failed, attempting fallback extraction', {
           error: err instanceof Error ? err.message : String(err),
         });
@@ -673,7 +820,9 @@ No markdown, no additional keys, no text before or after JSON.`;
             // Return partially valid components (will be validated individually later)
             const hiddenItems = Array.isArray(rawJson.hidden_items) ? rawJson.hidden_items : [];
             // Create a fake parsed object for the extraction logic below
-            parsed = { visible_items: items, hidden_items: hiddenItems } as any;
+            // Mark as partial since we used fallback
+            parseWarnings.push(`Used fallback extraction: ${items.length} items`);
+            parsed = { visible_items: items, hidden_items: hiddenItems, _parseWarnings: parseWarnings } as any;
           } else {
             // Log snippet of content for debugging
             const contentSnippet = content.slice(0, 500);
@@ -682,10 +831,34 @@ No markdown, no additional keys, no text before or after JSON.`;
               error: err instanceof Error ? err.message : String(err),
               errorName: err?.name,
             });
-            return { components: [], hiddenItems: [] };
+            // Return explicit parse_error status instead of silent empty array
+            return {
+              status: 'parse_error',
+              components: [],
+              hiddenItems: [],
+              error: {
+                code: 'VISION_PARSE_FAILED',
+                message: 'Failed to parse food components from Vision API response',
+                details: {
+                  parseError: err instanceof Error ? err.message : String(err),
+                  contentSnippet,
+                },
+              },
+              meta: { parseWarnings },
+            };
           }
         } else {
-          return { components: [], hiddenItems: [] };
+          // No rawJson at all - critical parse failure
+          return {
+            status: 'parse_error',
+            components: [],
+            hiddenItems: [],
+            error: {
+              code: 'VISION_NO_JSON',
+              message: 'Vision API returned no parseable JSON content',
+            },
+            meta: { parseWarnings },
+          };
         }
       }
 
@@ -757,8 +930,47 @@ No markdown, no additional keys, no text before or after JSON.`;
         }
       }
 
-      // Return both components and hidden items (caching is done by caller)
-      return { components: validated, hiddenItems };
+      // Build metadata about extraction
+      const parseWarnings = (parsed as any)?._parseWarnings || [];
+      const rawCount = components.length;
+      const filteredCount = rawCount - validated.length;
+
+      // Determine status based on results
+      let status: VisionExtractionStatus;
+      if (validated.length === 0) {
+        // No food items found after validation
+        status = 'no_food_detected';
+        this.logger.warn('[VisionService] No food components detected after validation', {
+          rawComponentCount: rawCount,
+          filteredOutCount: filteredCount,
+        });
+      } else if (parseWarnings.length > 0 || filteredCount > rawCount * 0.5) {
+        // Had warnings or lost more than half the items during validation
+        status = 'partial';
+      } else {
+        status = 'success';
+      }
+
+      // Return structured result with explicit status
+      return {
+        status,
+        components: validated,
+        hiddenItems,
+        meta: {
+          rawComponentCount: rawCount,
+          validatedComponentCount: validated.length,
+          filteredOutCount: filteredCount,
+          parseWarnings: parseWarnings.length > 0 ? parseWarnings : undefined,
+        },
+        // Include error info for no_food_detected status
+        ...(status === 'no_food_detected' && {
+          error: {
+            code: 'NO_FOOD_DETECTED',
+            message: 'No food items could be identified in this image',
+            details: { rawComponentCount: rawCount, filteredOutCount: filteredCount },
+          },
+        }),
+      };
     } catch (error: any) {
       // Check if it's a timeout error
       if (error?.message?.includes('timed out') || error?.message?.includes('timeout')) {
@@ -768,7 +980,16 @@ No markdown, no additional keys, no text before or after JSON.`;
           hasBase64: Boolean(imageBase64),
           imageUrl: imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl,
         });
-        throw new Error(`Vision API call timed out after ${timeoutMs}ms. The image may be too large or the network is slow.`);
+        return {
+          status: 'api_error',
+          components: [],
+          hiddenItems: [],
+          error: {
+            code: 'VISION_TIMEOUT',
+            message: `Vision API call timed out after ${timeoutMs}ms. The image may be too large or the network is slow.`,
+            details: { timeoutMs, model },
+          },
+        };
       }
 
       this.logger.error('[VisionService] Vision extraction error', {
@@ -784,7 +1005,15 @@ No markdown, no additional keys, no text before or after JSON.`;
       });
 
       if (error?.status === 429 || error?.response?.status === 429) {
-        throw new Error('OpenAI rate limit exceeded. Please try again later.');
+        return {
+          status: 'api_error',
+          components: [],
+          hiddenItems: [],
+          error: {
+            code: 'VISION_RATE_LIMITED',
+            message: 'OpenAI rate limit exceeded. Please try again later.',
+          },
+        };
       }
 
       // If URL-based and error, suggest using base64
@@ -792,7 +1021,20 @@ No markdown, no additional keys, no text before or after JSON.`;
         this.logger.warn('[VisionService] Vision API error with URL, consider using base64 for better reliability');
       }
 
-      throw error;
+      // Return structured error instead of throwing
+      return {
+        status: 'api_error',
+        components: [],
+        hiddenItems: [],
+        error: {
+          code: 'VISION_API_ERROR',
+          message: error?.message || 'Unknown Vision API error',
+          details: {
+            errorName: error?.name,
+            status: error?.status || error?.response?.status,
+          },
+        },
+      };
     }
   }
 }

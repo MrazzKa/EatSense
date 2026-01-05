@@ -124,6 +124,12 @@ export class FoodProcessor {
         foodDescription: foodDescription || undefined, // Pass food description if provided
       });
 
+      // Check if analysis returned an error state (api_error, parse_error, no_food_detected)
+      const visionStatus = (analysisResult.debug as any)?.visionStatus;
+      const visionError = (analysisResult.debug as any)?.visionError;
+      const isVisionError = visionStatus === 'api_error' || visionStatus === 'parse_error';
+      const isNoFoodDetected = visionStatus === 'no_food_detected';
+
       // Transform to old format for compatibility
       const result: any = {
         items: (analysisResult.items && Array.isArray(analysisResult.items) ? analysisResult.items : []).map(item => ({
@@ -136,6 +142,9 @@ export class FoodProcessor {
         })),
         total: analysisResult.total,
         healthScore: analysisResult.healthScore,
+        // Include vision status info for debugging/display
+        visionStatus: visionStatus || 'success',
+        visionError: visionError || null,
       };
 
       // Automatically save to meals (Recently)
@@ -229,9 +238,16 @@ export class FoodProcessor {
 
       // Save results (with optional auto-save metadata)
       // Include imageUrl in result data for future reanalysis
+      // CRITICAL: ALWAYS save an AnalysisResult, even for failed/empty analyses
       const resultDataWithImage = {
         ...result,
         imageUrl: imageUrl || null,
+        // Include error info for client display
+        analysisError: isVisionError ? {
+          code: visionError?.code || 'UNKNOWN_ERROR',
+          message: visionError?.message || 'Analysis failed',
+          status: visionStatus,
+        } : null,
       };
       await this.prisma.analysisResult.create({
         data: {
@@ -240,23 +256,43 @@ export class FoodProcessor {
         },
       });
 
-      // Update status based on whether we got valid items
-      // If no items were extracted or all were filtered, mark as NEEDS_REVIEW so user can retry
-      const hasValidItems = (analysisResult.items || []).length > 0;
-      const finalStatus = hasValidItems ? 'COMPLETED' : 'NEEDS_REVIEW';
+      // Determine final status based on vision result and items
+      // Priority: api_error → FAILED, parse_error → FAILED, no_food → NEEDS_REVIEW, no items → NEEDS_REVIEW, else → COMPLETED
+      let finalStatus: string;
+      let errorMessage: string | null = null;
+
+      if (isVisionError) {
+        // Vision API or parsing failed - mark as FAILED
+        finalStatus = 'FAILED';
+        errorMessage = visionError?.message || 'Failed to analyze image. Please try again.';
+        this.logger.error(`[FoodProcessor] Analysis ${analysisId} marked as FAILED: ${visionStatus}`, {
+          visionError,
+          analysisId,
+        });
+      } else if (isNoFoodDetected) {
+        // Vision worked but no food detected - mark as NEEDS_REVIEW (user can retry with different image)
+        finalStatus = 'NEEDS_REVIEW';
+        errorMessage = 'No food items could be identified in this image. Please try with a clearer photo.';
+        this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no food detected`);
+      } else {
+        // Normal case: check if we have valid items
+        const hasValidItems = (analysisResult.items || []).length > 0;
+        if (hasValidItems) {
+          finalStatus = 'COMPLETED';
+        } else {
+          finalStatus = 'NEEDS_REVIEW';
+          errorMessage = 'No food items could be identified in this image. Please try again with a clearer photo.';
+          this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no items after processing`);
+        }
+      }
 
       await this.prisma.analysis.update({
         where: { id: analysisId },
         data: {
           status: finalStatus,
-          // Add error message if no items were extracted
-          ...((!hasValidItems) && { error: 'No food items could be identified in this image. Please try again with a clearer photo.' }),
+          error: errorMessage,
         },
       });
-
-      if (!hasValidItems) {
-        this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no items extracted from image`);
-      }
 
       // Increment user stats for photo analysis
       if (userId && userId !== 'test-user' && userId !== 'temp-user') {
