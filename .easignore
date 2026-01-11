@@ -10,7 +10,7 @@ apps/api
 **/*.7z
 **/*.rar
 **/backups/**
-**/data/**
+# **/data/** - removed, was blocking src/features/lifestyles/data
 **/.github/**
 node_modules/.cache
 **/*.log

@@ -270,7 +270,7 @@ export default function DashboardScreen() {
 
   // Load active diet for dashboard widget from store
   const { activeProgram, refreshProgress } = useProgramProgress();
-  
+
   React.useEffect(() => {
     if (activeProgram && activeProgram.type === 'diet') {
       setActiveDiet({
@@ -291,7 +291,7 @@ export default function DashboardScreen() {
       setActiveDiet(null);
     }
   }, [activeProgram]);
-  
+
   // Refresh progress on focus
   useRefreshProgressOnFocus();
 
@@ -423,8 +423,8 @@ export default function DashboardScreen() {
       }).start();
     });
 
-    // Open gallery directly
-    await handleGalleryPress();
+    // Show modal with options instead of opening gallery directly
+    setShowModal(true);
   };
 
   const [showModal, setShowModal] = useState(false);
