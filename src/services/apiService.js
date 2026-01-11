@@ -288,6 +288,37 @@ class ApiService {
     return error;
   }
 
+  // Generic HTTP methods for services
+  async get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
+  }
+
+  async post(endpoint, body = null) {
+    const options = { method: 'POST' };
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+    return options.body ? this.request(endpoint, options) : this.request(endpoint, { method: 'POST' });
+  }
+
+  async put(endpoint, body) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async patch(endpoint, body) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' });
+  }
+
   // Authentication
   async register(email) {
     return this.request('/auth/register', {
@@ -1136,6 +1167,249 @@ class ApiService {
     return this.request(`/medications/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  // ========== Subscription Methods ==========
+
+  /**
+   * Get subscription plans with prices in user's currency
+   */
+  async getSubscriptionPlans() {
+    return this.request('/subscriptions/plans');
+  }
+
+  /**
+   * Get current user's subscription
+   */
+  async getCurrentSubscription() {
+    return this.request('/subscriptions/current');
+  }
+
+  /**
+   * Verify purchase after IAP
+   */
+  async verifyPurchase(data) {
+    return this.request('/subscriptions/verify-purchase', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Cancel subscription
+   */
+  async cancelSubscription(subscriptionId) {
+    return this.request('/subscriptions/cancel', {
+      method: 'POST',
+      body: JSON.stringify({ subscriptionId }),
+    });
+  }
+
+  // ========== Specialists/Experts Methods ==========
+
+  /**
+   * Get specialists list with filters
+   */
+  async getSpecialists(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.type) params.append('type', filters.type);
+    if (filters.language) params.append('language', filters.language);
+    if (filters.minRating) params.append('minRating', filters.minRating);
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+    if (filters.isFree) params.append('isFree', 'true');
+    if (filters.limit) params.append('limit', filters.limit);
+    if (filters.offset) params.append('offset', filters.offset);
+
+    const query = params.toString();
+    return this.request(`/specialists${query ? `?${query}` : ''}`);
+  }
+
+  /**
+   * Get specialist by ID
+   */
+  async getSpecialist(specialistId) {
+    return this.request(`/specialists/${specialistId}`);
+  }
+
+  /**
+   * Register as specialist
+   */
+  async registerAsSpecialist(data) {
+    return this.request('/specialists/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ========== Consultations Methods ==========
+
+  /**
+   * Get my consultations (as client)
+   */
+  async getMyConsultations() {
+    return this.request('/consultations');
+  }
+
+  /**
+   * Get consultation by ID
+   */
+  async getConsultation(consultationId) {
+    return this.request(`/consultations/${consultationId}`);
+  }
+
+  /**
+   * Request consultation with specialist
+   */
+  async requestConsultation(specialistId, message) {
+    return this.request('/consultations', {
+      method: 'POST',
+      body: JSON.stringify({ specialistId, message }),
+    });
+  }
+
+  /**
+   * Get messages for consultation
+   */
+  async getMessages(consultationId, limit = 50, before = null) {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (before) params.append('before', before);
+    return this.request(`/consultations/${consultationId}/messages?${params.toString()}`);
+  }
+
+  /**
+   * Send message in consultation
+   */
+  async sendMessage(consultationId, content, type = 'text') {
+    return this.request(`/consultations/${consultationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content, type }),
+    });
+  }
+
+  /**
+   * Mark messages as read
+   */
+  async markAsRead(consultationId) {
+    return this.request(`/consultations/${consultationId}/read`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Get unread messages count
+   */
+  async getUnreadMessagesCount() {
+    return this.request('/consultations/unread');
+  }
+
+  // ========== Diets/Diet Programs Methods ==========
+
+  /**
+   * Get diet programs with filters
+   */
+  async getDiets(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.type) params.append('type', filters.type);
+    if (filters.difficulty) params.append('difficulty', filters.difficulty);
+    if (filters.category) params.append('category', filters.category);
+    if (filters.suitableFor) params.append('suitableFor', filters.suitableFor);
+    if (filters.featured) params.append('featured', 'true');
+    if (filters.search) params.append('search', filters.search);
+    if (filters.limit) params.append('limit', String(filters.limit));
+    if (filters.offset) params.append('offset', String(filters.offset));
+
+    const query = params.toString();
+    return this.request(`/diets${query ? `?${query}` : ''}`);
+  }
+
+  /**
+   * Get featured diets
+   */
+  async getFeaturedDiets() {
+    return this.request('/diets/featured');
+  }
+
+  /**
+   * Get AI diet recommendations
+   */
+  async getDietRecommendations() {
+    return this.request('/diets/recommendations');
+  }
+
+  /**
+   * Get diet by ID or slug
+   */
+  async getDiet(idOrSlug) {
+    return this.request(`/diets/${idOrSlug}`);
+  }
+
+  /**
+   * Get full meal plan for diet
+   */
+  async getDietMealPlan(dietId) {
+    return this.request(`/diets/${dietId}/meal-plan`);
+  }
+
+  /**
+   * Get active user diet
+   */
+  async getActiveDiet() {
+    return this.request('/diets/active');
+  }
+
+  /**
+   * Get today's meal plan
+   */
+  async getTodayPlan() {
+    return this.request('/diets/today');
+  }
+
+  /**
+   * Start a diet program
+   */
+  async startDiet(dietId, options = {}) {
+    return this.request(`/diets/${dietId}/start`, {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
+  }
+
+  /**
+   * Log a meal completed
+   */
+  async logDietMeal(mealType) {
+    return this.request('/diets/log-meal', {
+      method: 'POST',
+      body: JSON.stringify({ mealType }),
+    });
+  }
+
+  /**
+   * Pause active diet
+   */
+  async pauseDiet() {
+    return this.request('/diets/pause', { method: 'POST' });
+  }
+
+  /**
+   * Resume paused diet
+   */
+  async resumeDiet() {
+    return this.request('/diets/resume', { method: 'POST' });
+  }
+
+  /**
+   * Abandon diet
+   */
+  async abandonDiet() {
+    return this.request('/diets/abandon', { method: 'POST' });
+  }
+
+  /**
+   * Get diet history
+   */
+  async getDietHistory() {
+    return this.request('/diets/history');
   }
 }
 

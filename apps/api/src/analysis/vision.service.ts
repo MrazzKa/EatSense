@@ -5,14 +5,45 @@ import { CacheService } from '../cache/cache.service';
 import * as crypto from 'crypto';
 
 // Version for cache key - increment when prompt or schema changes
-const VISION_PROMPT_VERSION = 'v5_2025-12-31';
+const VISION_PROMPT_VERSION = 'omega_v3.3_2026-01-09_nutrition_fix';
+
+// Dish-level identification (NEW - for proper dish naming)
+const VisionDishSchema = z.object({
+  dish_name: z.string().nullable(), // Canonical dish name or null if no recognizable dish
+  dish_name_local: z.string().nullable().optional(), // Localized dish name (e.g., "Борщ")
+  dish_name_confidence: z.number().min(0).max(1), // Confidence in dish identification
+  dish_name_reasoning: z.string().optional(), // Brief justification for the dish name
+  dish_type: z.enum(['main', 'side', 'dessert', 'snack', 'drink', 'breakfast', 'salad', 'soup', 'appetizer', 'mixed_plate']).optional(),
+  dish_family: z.string().optional(), // OMEGA v3.2: dish family (e.g., "pasta_family", "curry_family")
+  cuisine: z.string().nullable().optional(), // e.g., "russian", "italian", "asian", "unknown"
+});
 
 const VisionComponentSchema = z.object({
   // Core identification
   name: z.string(), // Base name in English, lowercase (e.g., "salmon", "quinoa")
-  name_local: z.string().optional(), // Base name in local language (e.g., "лосось")
-  display_name: z.string().optional(), // Short display name EN, Title Case, 1-2 words (e.g., "Salmon")
-  display_name_local: z.string().optional(), // Short display name RU, 1-2 words (e.g., "Лосось")
+  name_local: z.string().nullable().optional(), // Base name in local language (e.g., "лосось") - nullable for GPT compatibility
+  display_name: z.string().nullable().optional(), // Short display name EN, Title Case, 1-2 words (e.g., "Salmon")
+  display_name_local: z.string().nullable().optional(), // Short display name RU, 1-2 words (e.g., "Лосось") - nullable for GPT compatibility
+
+  // OMEGA v3.2 fields
+  // NOTE: Vision sometimes returns non-standard itemType values. We normalize them:
+  // 'composite' or 'dish' → 'composite_dish', 'sauce' → 'ingredient'
+  id: z.string().optional(), // Stable ID (A, B, C...)
+  itemType: z.enum(['ingredient', 'composite_dish', 'composite', 'dish', 'sauce', 'drink']).optional().transform(val => {
+    if (val === 'composite' || val === 'dish') return 'composite_dish';
+    if (val === 'sauce') return 'ingredient';
+    return val;
+  }),
+  portionMode: z.enum(['coverage', 'unit', 'package', 'drink']).optional(),
+  visualConfidence: z.number().min(0).max(1).optional(),
+  labelConfidence: z.number().min(0).max(1).optional(),
+  nutritionConfidence: z.number().min(0).max(1).optional(),
+  nutritionSource: z.string().optional(), // e.g., "generic_estimate"
+  edibleGrams: z.number().optional(), // Only if bones/shell/peel visible
+  volumeMl: z.number().optional(), // Only for drinks
+  unitCount: z.number().optional(), // Only for countable items
+  drinkType: z.enum(['water', 'coffee', 'tea', 'soda', 'juice', 'alcohol', 'smoothie', 'milk', 'shake', 'unknown']).optional(),
+  ingredientBreakdownAvailable: z.boolean().optional(),
 
   // Minor item flag (for toppings like sesame, nori, herbs)
   is_minor: z.boolean().optional(),
@@ -50,8 +81,46 @@ const VisionHiddenItemSchema = z.object({
 
 const VisionArraySchema = z.array(VisionComponentSchema);
 
+// Totals schema for OMEGA v3.2
+const VisionTotalsSchema = z.object({
+  kcal: z.number().optional(),
+  protein: z.number().optional(),
+  fat: z.number().optional(),
+  carbs: z.number().optional(),
+  fiber: z.number().optional(),
+});
+
+// NEW: Complete response schema with dish-level identification + OMEGA v3.2 fields
+const VisionCompleteResponseSchema = z.object({
+  // OMEGA v3.2 context fields
+  imageQuality: z.enum(['good', 'medium', 'poor']).optional(),
+  containerType: z.enum(['plate', 'bowl', 'cup', 'mug', 'glass', 'bento', 'wrapper', 'package', 'jar', 'bottle', 'basket', 'skewer', 'hand', 'takeaway_box']).optional(),
+  servingContext: z.enum(['home', 'restaurant', 'fast_food', 'street_food', 'packaged', 'cafe', 'buffet']).optional(),
+
+  // Dish-level identification (REQUIRED for proper naming)
+  dish: VisionDishSchema.optional(),
+  // Alternative flat fields for dish (backward compat)
+  dish_name: z.string().nullable().optional(),
+  dish_name_local: z.string().nullable().optional(),
+  dish_name_confidence: z.number().min(0).max(1).optional(),
+  dish_name_reasoning: z.string().optional(),
+  dish_type: z.enum(['main', 'side', 'dessert', 'snack', 'drink', 'breakfast', 'salad', 'soup', 'appetizer', 'mixed_plate']).optional(),
+  dish_family: z.string().optional(), // OMEGA v3.2: dish family (e.g., "pasta_family")
+  cuisine: z.string().nullable().optional(),
+
+  // Ingredients
+  visible_items: VisionArraySchema,
+  hidden_items: z.array(VisionHiddenItemSchema).optional(),
+
+  // OMEGA v3.2 totals and metadata
+  totals: VisionTotalsSchema.optional(),
+  assumptions: z.array(z.string()).optional(),
+  warnings: z.array(z.string()).optional(),
+});
+
 // Flexible schema: accepts array, { components: [...] }, { items: [...] }, { food_items: [...] }, etc.
 const VisionFlexibleSchema = z.union([
+  VisionCompleteResponseSchema, // NEW: Full response with dish identification
   VisionArraySchema,
   z.object({
     components: VisionArraySchema,
@@ -74,9 +143,34 @@ const VisionFlexibleSchema = z.union([
   }),
 ]);
 
-// Export type for use in AnalyzeService
+// Export types for use in AnalyzeService
 export type VisionComponent = z.infer<typeof VisionComponentSchema>;
 export type VisionHiddenItem = z.infer<typeof VisionHiddenItemSchema>;
+export type VisionDish = z.infer<typeof VisionDishSchema>;
+
+// Vision extraction result with explicit success/error states
+export type VisionExtractionStatus = 'success' | 'partial' | 'no_food_detected' | 'parse_error' | 'api_error';
+
+export interface VisionExtractionResult {
+  status: VisionExtractionStatus;
+  components: VisionComponent[];
+  hiddenItems: VisionHiddenItem[];
+  // NEW: Dish-level identification from Vision
+  dish?: VisionDish;
+  // Error details for debugging and user feedback
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+  // Metadata about the extraction
+  meta?: {
+    rawComponentCount?: number;
+    validatedComponentCount?: number;
+    filteredOutCount?: number;
+    parseWarnings?: string[];
+  };
+}
 
 @Injectable()
 export class VisionService {
@@ -124,6 +218,13 @@ export class VisionService {
   /**
    * Get or extract components with caching
    * This is the ONLY entry point for Vision API - handles all caching
+   *
+   * Returns VisionExtractionResult with explicit status:
+   * - 'success': Components extracted successfully
+   * - 'partial': Some components extracted but with warnings
+   * - 'no_food_detected': Image analyzed but no food found
+   * - 'parse_error': Failed to parse Vision API response
+   * - 'api_error': Vision API call failed
    */
   async getOrExtractComponents(params: {
     imageBuffer?: Buffer;
@@ -132,11 +233,20 @@ export class VisionService {
     locale?: string;
     mode?: 'default' | 'review';
     foodDescription?: string;
-  }): Promise<{ components: VisionComponent[]; hiddenItems: VisionHiddenItem[] }> {
-    const { imageBuffer, imageUrl, imageBase64, locale = 'en', mode = 'default', foodDescription } = params;
+    skipCache?: boolean;
+  }): Promise<VisionExtractionResult> {
+    const { imageBuffer, imageUrl, imageBase64, locale = 'en', mode = 'default', foodDescription, skipCache = false } = params;
 
     if (!imageBuffer && !imageUrl && !imageBase64) {
-      throw new Error('Either imageBuffer, imageUrl, or imageBase64 must be provided');
+      return {
+        status: 'api_error',
+        components: [],
+        hiddenItems: [],
+        error: {
+          code: 'NO_IMAGE_INPUT',
+          message: 'Either imageBuffer, imageUrl, or imageBase64 must be provided',
+        },
+      };
     }
 
     // Build cache key with version
@@ -146,51 +256,70 @@ export class VisionService {
       mode,
     );
 
-    // Try cache first - components
-    const cached = await this.cache.get<VisionComponent[]>(cacheKey, 'vision');
-    if (cached) {
-      this.logger.debug(`[VisionService] Cache hit for vision analysis (key: ${cacheKey.substring(0, 50)}...)`);
-      // Also try to get cached hidden items
-      const cachedHidden = await this.cache.get<VisionHiddenItem[]>(`${cacheKey}:hidden`, 'vision');
-      return { components: cached, hiddenItems: cachedHidden || [] };
+    // Try cache first - components (skip if skipCache is true)
+    if (!skipCache) {
+      const cached = await this.cache.get<VisionComponent[]>(cacheKey, 'vision');
+      if (cached && cached.length > 0) {
+        this.logger.debug(`[VisionService] Cache hit for vision analysis (key: ${cacheKey.substring(0, 50)}...)`);
+        // Also try to get cached hidden items
+        const cachedHidden = await this.cache.get<VisionHiddenItem[]>(`${cacheKey}:hidden`, 'vision');
+        return {
+          status: 'success',
+          components: cached,
+          hiddenItems: cachedHidden || [],
+          meta: { validatedComponentCount: cached.length },
+        };
+      }
+    } else {
+      this.logger.warn(`[VisionService] Skip-cache mode - bypassing vision cache`);
     }
 
     this.logger.debug(`[VisionService] Cache miss, calling OpenAI Vision API (key: ${cacheKey.substring(0, 50)}...)`);
 
     // Call actual extractComponents (no internal caching)
-    const { components, hiddenItems } = await this.extractComponentsInternal({
+    const result = await this.extractComponentsInternal({
       imageUrl,
       imageBase64: imageBase64 || (imageBuffer ? imageBuffer.toString('base64') : undefined),
       mode,
       foodDescription,
     });
 
-    // Cache successful results with correct key (including version)
-    if (components.length > 0) {
-      await this.cache.set(cacheKey, components, 'vision').catch((err) => {
+    // Cache successful results with correct key (including version) - even if skipCache was used for read
+    if (result.status === 'success' && result.components.length > 0) {
+      await this.cache.set(cacheKey, result.components, 'vision').catch((err) => {
         this.logger.warn(`[VisionService] Failed to cache vision result: ${err.message}`);
       });
     }
 
     // Cache hidden items with same key prefix + :hidden
-    if (hiddenItems.length > 0) {
-      await this.cache.set(`${cacheKey}:hidden`, hiddenItems, 'vision').catch((err) => {
+    if (result.hiddenItems.length > 0) {
+      await this.cache.set(`${cacheKey}:hidden`, result.hiddenItems, 'vision').catch((err) => {
         this.logger.warn(`[VisionService] Failed to cache hidden items: ${err.message}`);
       });
     }
 
-    return { components, hiddenItems };
+    return result;
   }
 
   /**
    * Internal method - extract food components from image using OpenAI Vision
    * Called only by getOrExtractComponents - NO INTERNAL CACHING
+   *
+   * Returns VisionExtractionResult with explicit status for all outcomes
    */
-  private async extractComponentsInternal(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review'; foodDescription?: string }): Promise<{ components: VisionComponent[]; hiddenItems: VisionHiddenItem[] }> {
+  private async extractComponentsInternal(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review'; foodDescription?: string }): Promise<VisionExtractionResult> {
     const { imageUrl, imageBase64, mode = 'default', foodDescription } = params;
 
     if (!imageUrl && !imageBase64) {
-      throw new Error('Either imageUrl or imageBase64 must be provided');
+      return {
+        status: 'api_error',
+        components: [],
+        hiddenItems: [],
+        error: {
+          code: 'NO_IMAGE_SOURCE',
+          message: 'Either imageUrl or imageBase64 must be provided',
+        },
+      };
     }
     // Convert relative URLs to absolute URLs for OpenAI Vision API
     // CRITICAL: OpenAI Vision API requires absolute URLs, not relative paths
@@ -227,264 +356,257 @@ export class VisionService {
       `[VisionService] Calling OpenAI Vision with base64=${Boolean(imageBase64)}, url=${imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl}`,
     );
 
-    // Enhanced system prompt based on world-class nutritionist approach
-    let systemPrompt = `You are a world-class food nutritionist with 25 years of clinical experience analyzing meals for patients with diabetes, heart disease, and obesity. Your analyses directly impact patient health outcomes. Accuracy is CRITICAL.
+    // Enhanced system prompt - EatSense OMEGA v3.2 production-grade food recognition
+    let systemPrompt = `You are EatSense OMEGA v3.2, a production-grade food recognition system.
 
-## YOUR ANALYSIS PROCESS
+## CORE RULES
+1. Stable ID tracking (A, B, C...) across all passes
+2. Dual confidence: confidence = min(visualConfidence, labelConfidence)
+3. Apply imageQuality confidenceCap to ALL confidence fields
+4. Context-aware: containerType + servingContext affect estimates
+5. Composite dishes: don't separate inseparable ingredients
+6. Dish families for global coverage
+7. Unit-based portions for countable items, volumeMl for drinks
+8. ALL nutrition = estimates, mark with nutritionSource: "generic_estimate"
+9. WARNINGS over hallucinated invisible ingredients
+10. edibleGrams for items with VISIBLE bones/shells/peels only
+11. macroSanity check on TOTALS: 4P + 9F + 4C ≈ kcal (±12%)
 
-For each image, follow this EXACT mental process:
+═══════════════════════════════════════════════════════════════
+PASS 0: IMAGE & CONTEXT
+═══════════════════════════════════════════════════════════════
 
-### STEP 1: SCENE SCAN
-First, identify what IS and IS NOT food:
-- ✅ FOOD: Anything edible that will be consumed
-- ❌ NOT FOOD: Plates, bowls, cups, cutlery, napkins, packaging, containers, hands, background items
+imageQuality:
+- "good": clear → confidenceCap 1.0, grams round to 10g
+- "medium": some blur → confidenceCap 0.85, grams round to 20g
+- "poor": very dark/blurry → confidenceCap 0.75, grams round to 50g
 
-### STEP 2: FOOD IDENTIFICATION (for each food item)
+IMPORTANT: confidenceCap applies to ALL confidence fields:
+- dish confidence
+- visualConfidence, labelConfidence, confidence
+- nutritionConfidence
 
-Ask yourself these questions IN ORDER:
+containerType: plate | bowl | cup | mug | glass | bento | wrapper | package | jar | bottle | basket | skewer | hand | takeaway_box
 
-**A) SHAPE ANALYSIS:**
-- Is it ROUND/FLAT? → Likely: cutlet, patty, pancake, cookie
-- Is it CYLINDRICAL/LONG? → Likely: sausage, hot dog, carrot, banana
-- Is it IRREGULAR/CHUNKY? → Likely: meat piece, vegetable chunk, stew
-- Is it LAYERED? → Likely: sandwich, lasagna, cake
-- Is it PILED/MOUNDED? → Likely: rice, mashed potato, salad
+servingContext: home | restaurant | fast_food | street_food | packaged | cafe | buffet
 
-**B) COLOR ANALYSIS:**
-- WHITE/CREAM: rice, potato, chicken breast, fish, dairy
-- BROWN/GOLDEN: cooked meat, bread, fried foods
-- RED/PINK: raw meat, tomato, beets, berries
-- GREEN: vegetables, salad, herbs
-- ORANGE: carrot, sweet potato, salmon, orange
-- DARK BROWN/BLACK: chocolate, burnt, soy sauce
+═══════════════════════════════════════════════════════════════
+PASS 1: RAW VISUAL EXTRACTION (NO FOOD NAMES)
+═══════════════════════════════════════════════════════════════
 
-**C) TEXTURE ANALYSIS:**
-- SMOOTH: puree, sauce, cream, soup
-- FIBROUS: meat, fish, celery
-- GRAINY: rice, couscous, quinoa
-- FLAKY: fish, pastry, pie crust
-- CRISPY/CRUNCHY: fried coating, chips, crackers
-- GLOSSY/SHINY: sauce, dressing, oil, glaze
+Assign stable IDs (A, B, C...).
 
-**D) COOKING METHOD EVIDENCE:**
-- CHAR MARKS/GRILL LINES → Grilled
-- GOLDEN CRISPY COATING → Fried or baked
-- PALE/SOFT → Boiled or steamed
-- DARK SEAR → Pan-fried or roasted
-- RAW COLOR/TEXTURE → Raw/uncooked
+**STAGE 6 FIX: CRITICAL - List ALL visible items including:**
+- Small toppings (egg, fried egg, poached egg, soft-boiled egg)
+- Sauces, dressings, condiments (even small amounts)
+- Garnishes (herbs, seeds, nuts, cheese, onion slices)
+- Side items (pickles, kimchi, salad portions)
+Do NOT skip items just because they are small or partially hidden.
+If uncertain, add with lower confidence rather than omitting.
 
-### STEP 3: PORTION ESTIMATION
+For SEPARABLE items:
+- shape, color, texture, size, position, surface
+- note if bones/shells/peels VISIBLY present
 
-Use these VISUAL REFERENCES:
-- Your PALM (without fingers) = 100g cooked meat/fish
-- Your FIST = 150g cooked rice/pasta/potato
-- Your THUMB = 15g butter/cheese/sauce
-- Your CUPPED HAND = 40g nuts/snacks
-- TENNIS BALL = 130g fruit
-- GOLF BALL = 30g dense food (meatball, falafel)
-- DECK OF CARDS = 85g meat
+For COMPOSITE items (soup, curry, stew, smoothie, casserole, sauce):
+- compositeType, dominantColors, visibleElements, texture, size
+- DO NOT force-separate ingredients
 
-**CRITICAL MINIMUMS** (visible food is NEVER smaller than):
-- Any piece of meat: 40g minimum
-- Any fish portion: 50g minimum
-- Vegetables on plate: 25g minimum
-- Rice/pasta/potato serving: 40g minimum
-- Sauce (if visible): 10g minimum
-- Bread slice: 25g minimum
+═══════════════════════════════════════════════════════════════
+PASS 2: IDENTIFICATION WITH DUAL CONFIDENCE
+═══════════════════════════════════════════════════════════════
 
-### STEP 4: COMPOUND FOOD DETECTION
+For each ID:
+- visualConfidence (0-1): How clearly visible?
+- labelConfidence (0-1): How certain is identification?
+- confidence = min(visual, label)
+- Apply confidenceCap from imageQuality
 
-If food has ANY of these, include them in the name:
-- Coating → "breaded chicken" not just "chicken"
-- Sauce → "pasta with tomato sauce" not just "pasta"
-- Glaze → "glazed donut" not just "donut"
-- Topping → "pizza with pepperoni" not just "pizza"
-- Dressing → "salad with ranch dressing" not just "salad"
-- Chocolate → "chocolate-covered strawberry" not just "strawberry"
-- Cheese → "cheeseburger" not just "burger"
-- Cream → "coffee with cream" not just "coffee"
+Downgrade if confidence < 0.7:
+- Specific → General (e.g., "Salmon" 0.6 → "Fish fillet" 0.8)
 
-### STEP 5: CALORIE SANITY CHECK
+COMPOSITE items → identify as SINGLE food item.
 
-Before outputting, verify calories make sense:
+### Unknown/Rare Foods:
+Find closest comparable by cooking method + macro profile:
+- Deep-fried dough → donut/churro (NOT bread)
+- Starchy root mash → mashed potatoes (NOT rice)
+- Grilled meat skewer → kebab/satay
 
-| Food Type | kcal per 100g | If outside range → FLAG |
-|-----------|---------------|-------------------------|
-| Vegetables | 15-50 | Suspicious |
-| Fruits | 30-90 | Suspicious |
-| Cooked grains | 100-150 | Suspicious |
-| Lean meat | 100-180 | Suspicious |
-| Fatty meat | 200-350 | Suspicious |
-| Fish | 80-200 | Suspicious |
-| Bread | 240-300 | Suspicious |
-| Cheese | 250-450 | Suspicious |
-| Fried foods | 200-400 | Suspicious |
-| Sweets/desserts | 300-550 | Suspicious |
-| Drinks (non-alcohol) | 0-60 | Suspicious |
-| Water/black coffee/tea | 0-5 | Must be near 0 |
+Add assumption: "Nutrition estimated based on comparable: [name]"
 
-### STEP 6: CRITICAL GRAIN IDENTIFICATION
+═══════════════════════════════════════════════════════════════
+PASS 3: DISH RECOGNITION WITH FAMILIES
+═══════════════════════════════════════════════════════════════
 
-RICE vs RICE PRODUCTS - VERY IMPORTANT:
-| Visual Appearance | Correct English Name | Correct Russian Name | WRONG Name | kcal/100g |
-|-------------------|---------------------|----------------------|------------|-----------|
-| White fluffy separate grains | "boiled rice" | "рис отварной" | "rice flour" / "рисовая мука" | 130 |
-| White powder, fine texture | "rice flour" | "рисовая мука" | "boiled rice" | 350 |
-| Sticky clumped grains | "steamed rice" | "рис на пару" | "rice flour" | 130 |
-| Fried with vegetables | "fried rice" | "жареный рис" | "rice flour" | 160 |
-| Brown/tan grains | "brown rice" | "бурый рис" | "rice flour" | 111 |
+Hierarchy:
+1. Specific name (≥80% match of VISIBLE elements) → use dish name
+2. Dish family + description (50-79%) → use family
+3. Generic description (<50%)
 
-**CRITICAL**: NEVER call visible rice grains "rice flour" (рисовая мука) - flour is a POWDER used for baking, not a cooked side dish!
-If you see individual grains on a plate → it is COOKED RICE (рис отварной), NOT flour!
+CRITICAL: Match% computed ONLY from confirmed visible or structurally required elements. Never count assumed seasonings/spices.
 
-### STEP 7: DISH NAMING
+### DISH FAMILIES:
 
-When creating dish names, use this format:
-- For plates with multiple components: "Plate with [main protein], [side], and [vegetables]"
-- Russian: "Тарелка с [белок], [гарнир] и [овощи]"
-- Examples:
-  - "Plate with chicken breast, rice and vegetables" / "Тарелка с куриной грудкой, рисом и овощами"
-  - "Grilled salmon with quinoa and broccoli" / "Лосось на гриле с киноа и брокколи"
-  - "Balanced plate with beef, potatoes and salad" / "Сбалансированная тарелка с говядиной, картофелем и салатом"
+**Asian:**
+- sushi_family: nigiri, maki, sashimi, temaki, chirashi, onigiri
+- ramen_noodle_family: ramen, pho, udon, soba (soup-based noodles)
+- stir_fry_family: pad thai, chow mein, yakisoba (dry noodles)
+- curry_family: tikka masala, thai green/red/yellow, japanese curry, korma, vindaloo
+- dumpling_family: gyoza, jiaozi, wonton, momo, mandu, dim sum
+- rice_bowl_family: donburi, bibimbap, poke bowl
 
-For balanced/healthy plates you may use: "ПП тарелка" (Russian) or "Healthy plate" (English)
+**European:**
+- pasta_family: spaghetti, penne, lasagna, ravioli, carbonara, bolognese
+- stew_family: goulash, beef stew, ragout, cassoulet, irish stew, chili
+- flatbread_family: pizza, focaccia, lahmacun, pide, naan, manakish
+- soup_family: borscht, solyanka, minestrone, chowder, bisque
 
-## COMMON MISTAKES TO AVOID
+**Russian/Slavic:**
+- pelmeni_family: pelmeni, vareniki, khinkali
+- russian_soup_family: borscht, shchi, ukha, solyanka, rassolnik
 
-### Shape Confusion:
-| WRONG | RIGHT | How to tell |
-|-------|-------|-------------|
-| "sausage" for a cutlet | "beef cutlet" | Cutlets are FLAT and ROUND, sausages are CYLINDRICAL |
-| "meatball" for a cutlet | "chicken cutlet" | Meatballs are SPHERICAL, cutlets are FLAT |
-| "bread" for a pancake | "pancake" | Pancakes are thinner, often stacked, softer |
+**Mexican/Latin:**
+- tortilla_family: taco, burrito, quesadilla, fajita, enchilada, tostada
+- burrito_bowl_family: burrito bowl, taco bowl
 
-### Grain Confusion (CRITICAL):
-| WRONG | RIGHT | How to tell |
-|-------|-------|-------------|
-| "rice flour" for cooked rice | "boiled rice" / "рис отварной" | Flour is POWDER, rice is visible GRAINS |
-| "рисовая мука" for рис | "рис отварной" | Мука - порошок для выпечки, рис - зёрна |
-| "wheat flour" for pasta | "pasta" / "макароны" | Pasta is shaped, flour is powder |
+**Middle Eastern:**
+- kebab_family: shashlik, kebab, kofte, souvlaki, satay, yakitori
+- wrap_family: shawarma, falafel wrap, gyro, doner
 
-### Calorie Confusion:
-| WRONG | RIGHT |
-|-------|-------|
-| Mashed potato 350 kcal/100g | Mashed potato 90-110 kcal/100g (even with butter) |
-| Boiled rice 350 kcal/100g | Boiled rice 130 kcal/100g |
-| Rice flour dish 130 kcal/100g | Rice flour 350 kcal/100g (but flour is rarely served as-is) |
-| Water 50 kcal | Water 0 kcal |
-| Black coffee 100 kcal | Black coffee 2 kcal |
-| Fresh strawberry 150 kcal/100g | Fresh strawberry 32 kcal/100g |
-| Chocolate strawberry 32 kcal/100g | Chocolate strawberry 200-250 kcal/100g |
+**Western:**
+- sandwich_family: burger, club, BLT, sub, panini, banh mi
+- salad_family: caesar, greek, cobb, nicoise, waldorf
+- breakfast_family: pancakes, eggs & bacon, omelette, french toast, waffles
 
-### Non-Food Inclusion:
-| NEVER INCLUDE |
-|---------------|
-| "plastic container" - has no calories, is not food |
-| "paper napkin" - is not food |
-| "ceramic plate" - is not food |
-| "metal fork" - is not food |
-| "cardboard box" - is not food |
+### dishes vs items:
+- dishes: top-level names for UI display
+- items: what gets summed into totals
+- totals calculated ONLY from items
 
-## OUTPUT FORMAT
+═══════════════════════════════════════════════════════════════
+PASS 4: PORTION ESTIMATION
+═══════════════════════════════════════════════════════════════
 
-Return ONLY this JSON structure. No markdown, no explanations outside JSON:
+### Gram Rounding by Image Quality:
+- good: round to nearest 10g
+- medium: round to nearest 20g
+- poor: round to nearest 50g
 
-{
-  "visible_items": [
-    {
-      "name": "salmon",
-      "name_local": "лосось",
-      "display_name": "Salmon",
-      "display_name_local": "Лосось",
-      "is_minor": false,
-      "category_hint": "protein",
-      "state_hint": "grilled",
-      "est_portion_g": 150,
-      "confidence": 0.92,
-      "preparation": "grilled",
-      "cooking_method": "grilled",
-      "tags": ["lean_protein"],
-      "notes": "fillet with skin",
-      "estimated_nutrients": {
-        "calories": 280,
-        "protein_g": 35.0,
-        "carbs_g": 0,
-        "fat_g": 15.0,
-        "fiber_g": 0
-      }
-    },
-    {
-      "name": "sesame seeds",
-      "name_local": "кунжут",
-      "display_name": "Sesame",
-      "display_name_local": "Кунжут",
-      "is_minor": true,
-      "category_hint": "seeds",
-      "state_hint": "dried",
-      "est_portion_g": 5,
-      "confidence": 0.85,
-      "notes": "sprinkled on top"
-    }
-  ],
-  "hidden_items": [
-    {
-      "name": "cooking oil",
-      "category": "cooking_oil",
-      "reason": "Grilled fish typically brushed with oil",
-      "estimated_grams": 10,
-      "confidence": 0.70
-    }
-  ]
-}
+### portionMode types:
+- coverage: plated meals, estimate by plate fraction
+- unit: countable items (sushi, dumplings, cookies)
+- package: packaged foods with visible size
+- drink: beverages (use volumeMl)
 
-CRITICAL NAMING RULES:
-1. "name" = base ingredient in English, lowercase, NO cooking method (e.g., "salmon", NOT "grilled salmon fillet")
-2. "name_local" = same but in Russian if locale=ru (e.g., "лосось", NOT "лосось на гриле")
-3. "display_name" = 1-2 words, English, Title Case for UI (e.g., "Salmon", "Cherry Tomato")
-4. "display_name_local" = 1-2 words, Russian, Title Case (e.g., "Лосось", "Помидор черри")
-5. Put cooking info in "preparation" or "state_hint", NOT in name fields
+### MODE A — Coverage:
+| Container | Full capacity |
+|-----------|---------------|
+| Dinner plate 26cm | 450-600g |
+| Side plate 20cm | 200-350g |
+| Deep bowl | 400-600g |
+| Small bowl | 200-350g |
 
-MINOR ITEMS (is_minor=true):
-- Sesame seeds: 2-8g (NOT 50g!)
-- Nori seaweed: 1-3g (NOT 25g!)
-- Fresh herbs/greens: 2-10g
-- Spices/seasonings: 0-3g
-- These items NEVER get the standard 40-50g minimum
+### MODE B — Unit:
+| Item | Weight each |
+|------|-------------|
+| Sushi piece | 25-35g |
+| Dumpling | 20-40g |
+| Cookie | 15-30g |
+| Meatball | 25-40g |
+| Chicken wing | 60-90g |
+| Pizza slice | 80-120g |
+| Taco | 80-120g |
+| Burger | 180-280g total |
 
-CATEGORY HINTS:
-- protein: meat, fish, eggs, tofu
-- grain: rice, quinoa, pasta, bread
-- veg: vegetables
-- fruit: fruits
-- fat: avocado, nuts, butter
-- seeds: sesame, chia, flax
-- spice: herbs, seasonings
-- sauce: dressings, condiments
-- drink: beverages
-- other: unknown
+### MODE C — Package:
+Read visible size or estimate standard packaging.
 
-STATE HINTS:
-- raw: uncooked
-- cooked: general cooked (default for most hot dishes)
-- boiled: boiled in water
-- steamed: steamed
-- grilled: char-grilled
-- fried: pan-fried or deep-fried
-- dried: dehydrated (for nori, dried herbs)
+### MODE D — Drink:
+Use volumeMl for beverages:
+| Container | Typical volume |
+|-----------|----------------|
+| Espresso cup | 30ml |
+| Coffee cup | 150-250ml |
+| Mug | 300-400ml |
+| Small glass | 200ml |
+| Large glass | 350-500ml |
+| Can | 330ml |
+| Bottle | read label or estimate |
 
-PORTION RULES:
-1. Use realistic portions based on visual size
-2. Protein (meat/fish): typical 100-180g
-3. Grains (cooked): typical 100-150g
-4. Vegetables: typical 50-100g
-5. Fats (avocado): typical 50-80g
-6. Seeds/toppings: 2-8g (very small!)
-7. Nori: 1-3g (one sheet is ~2.5g)
+For drinks: provide both volumeMl and grams (for most liquids 1ml ≈ 1g).
 
-HIDDEN INGREDIENTS - same as before, identify likely hidden calories:
-- Cooking oil for frying/grilling
-- Dressings if salad looks glossy
-- DO NOT double count with visible items`;
+### edibleGrams Rule:
+- Include edibleGrams ONLY if bones/shell/peel are VISIBLY present
+- If "possibly has bones but not visible" → do NOT add edibleGrams, add warning instead
+
+| Item | grams | edibleGrams | Reason |
+|------|-------|-------------|--------|
+| Chicken leg (bone visible) | 180g | 125g | ~30% bone |
+| Whole shrimp (shell on) | 100g | 55g | ~45% shell |
+| Banana (peel visible) | 150g | 100g | ~33% peel |
+| Fish fillet (no bones visible) | 150g | — | no edibleGrams field |
+
+═══════════════════════════════════════════════════════════════
+PASS 5: NUTRITION ESTIMATION
+═══════════════════════════════════════════════════════════════
+
+Calculate nutrition from edibleGrams if present, else from grams.
+
+nutritionConfidence (apply confidenceCap):
+- Simple foods: 0.85-0.95
+- Standard dishes: 0.70-0.85
+- Restaurant dishes: 0.60-0.75
+- Complex ethnic: 0.50-0.70
+- Unknown items: 0.40-0.55
+
+### Drinks:
+Add drinkType:
+water | coffee | tea | soda | juice | alcohol | smoothie | milk | shake | unknown
+
+If sweetened/alcohol uncertain → add warning.
+
+### ingredientBreakdownAvailable:
+- true: separable items where components can be identified (rice, grilled chicken, salad)
+- false: composite items that cannot be separated (curry, soup, smoothie, sauce)
+
+Rule: true only for visibly separable items; composite typically false.
+
+### Macro Sanity Check (on TOTALS):
+calculatedKcal = (totals.protein × 4) + (totals.fat × 9) + (totals.carbs × 4)
+tolerance = totals.kcal × 0.12  // 12% for restaurant/composite variance
+if abs(totals.kcal - calculatedKcal) > tolerance:
+add warning: "Macro/kcal variance detected — generic estimate"
+
+For alcohol: add (alcohol_g × 7) to formula.
+
+═══════════════════════════════════════════════════════════════
+FAILURE MODES — PREVENT THESE
+═══════════════════════════════════════════════════════════════
+
+❌ Confidence above cap: poor image → 0.92 confidence
+✓ Apply cap: poor → max 0.75
+
+❌ edibleGrams for invisible bones: "fish might have bones" → edibleGrams
+✓ Only if visible; else warning
+
+❌ grams for drinks: "coffee 250g"
+✓ Use volumeMl: 250, grams: 250
+
+❌ Wrong family: quesadilla → flatbread_family
+✓ Correct: tortilla_family
+
+❌ Wrong family: goulash → curry_family
+✓ Correct: stew_family
+
+❌ 80% match counting spices: "carbonara needs pepper"
+✓ Only count visible structural elements
+
+❌ Macro mismatch ignored: P10 F10 C50 but kcal 500
+✓ Check totals, add warning
+
+❌ Forced separation: Curry → chicken + sauce
+✓ Composite: "Chicken curry", ingredientBreakdownAvailable: false`;
 
     // Add review mode instructions
     if (mode === 'review') {
@@ -499,54 +621,171 @@ REVIEW MODE - This is a re-analysis. Be extra careful:
 
     systemPrompt += `
 
-REQUIRED OUTPUT FORMAT - Return ONLY valid JSON with this exact structure:
+## OUTPUT FORMAT (REQUIRED)
 
-PREFERRED FORMAT (with hidden ingredients):
+Return ONLY valid JSON with this EXACT structure. No markdown, no text before or after.
+
 {
+  "imageQuality": "good",
+  "containerType": "plate",
+  "servingContext": "home",
+
+  "dish_name": "Caesar Salad",
+  "dish_name_local": "Салат Цезарь",
+  "dish_name_confidence": 0.82,
+  "dish_name_reasoning": "Classic presentation with romaine, croutons, parmesan visible",
+  "dish_type": "salad",
+  "dish_family": "salad_family",
+  "cuisine": "italian",
+
   "visible_items": [
     {
-      "name": "grilled chicken breast",
-      "preparation": "grilled",
-      "est_portion_g": 180,
-      "confidence": 0.87,
-      "cooking_method": "grilled",
-      "tags": ["lean_protein"],
-      "notes": "boneless skinless chicken"
+      "id": "A",
+      "name": "romaine lettuce",
+      "name_local": "салат романо",
+      "display_name": "Romaine Lettuce",
+      "display_name_local": "Салат Романо",
+      "itemType": "ingredient",
+      "is_minor": false,
+      "category_hint": "veg",
+      "state_hint": "raw",
+      "est_portion_g": 100,
+      "portionMode": "coverage",
+      "visualConfidence": 0.95,
+      "labelConfidence": 0.90,
+      "confidence": 0.90,
+      "preparation": "raw",
+      "cooking_method": "raw",
+      "nutritionConfidence": 0.85,
+      "nutritionSource": "generic_estimate",
+      "estimated_nutrients": {
+        "calories": 17,
+        "protein_g": 1.2,
+        "carbs_g": 3.3,
+        "fat_g": 0.3,
+        "fiber_g": 2.1
+      }
     },
     {
-      "name": "green salad",
-      "preparation": "raw",
-      "est_portion_g": 100,
+      "id": "B",
+      "name": "croutons",
+      "name_local": "крутоны",
+      "display_name": "Croutons",
+      "display_name_local": "Крутоны",
+      "itemType": "ingredient",
+      "is_minor": false,
+      "category_hint": "grain",
+      "state_hint": "baked",
+      "est_portion_g": 30,
+      "unitCount": 8,
+      "portionMode": "unit",
+      "visualConfidence": 0.90,
+      "labelConfidence": 0.85,
       "confidence": 0.85,
-      "cooking_method": "raw",
-      "tags": ["salad_with_dressing"],
-      "notes": "glossy look suggests dressing"
+      "preparation": "baked",
+      "nutritionConfidence": 0.80,
+      "nutritionSource": "generic_estimate",
+      "estimated_nutrients": {
+        "calories": 122,
+        "protein_g": 3.6,
+        "carbs_g": 22,
+        "fat_g": 2,
+        "fiber_g": 1.5
+      }
+    },
+    {
+      "id": "C",
+      "name": "parmesan cheese",
+      "name_local": "пармезан",
+      "display_name": "Parmesan",
+      "display_name_local": "Пармезан",
+      "itemType": "ingredient",
+      "is_minor": true,
+      "category_hint": "protein",
+      "state_hint": "raw",
+      "est_portion_g": 15,
+      "portionMode": "coverage",
+      "visualConfidence": 0.85,
+      "labelConfidence": 0.80,
+      "confidence": 0.80,
+      "preparation": "shaved",
+      "nutritionConfidence": 0.75,
+      "nutritionSource": "generic_estimate",
+      "estimated_nutrients": {
+        "calories": 59,
+        "protein_g": 5.4,
+        "carbs_g": 0.5,
+        "fat_g": 3.9,
+        "fiber_g": 0
+      }
     }
   ],
+
   "hidden_items": [
     {
-      "name": "olive oil for salad dressing",
+      "name": "caesar dressing",
       "category": "sauce_or_dressing",
-      "reason": "green salad with glossy look and no visible low-fat dressing",
-      "confidence": 0.8,
-      "estimated_grams": 10
+      "reason": "Caesar salad typically has creamy dressing, glossy appearance on lettuce",
+      "confidence": 0.85,
+      "estimated_grams": 30
     }
-  ]
+  ],
+
+  "totals": {
+    "kcal": 228,
+    "protein": 10.2,
+    "fat": 6.6,
+    "carbs": 25.8,
+    "fiber": 3.6
+  },
+
+  "assumptions": [],
+  "warnings": []
 }
 
-LEGACY FORMAT (backward compatible):
-[{"name": "grilled chicken breast", "preparation": "grilled", "est_portion_g": 180, "confidence": 0.87}]
+## Field Inclusion Rules:
+- edibleGrams: ONLY if bones/shell/peel VISIBLY present
+- volumeMl: ONLY for drinks (portionMode: drink)
+- unitCount: ONLY for countable items (portionMode: unit)
+- drinkType: ONLY for beverages
+- ingredientBreakdownAvailable: ONLY for composite_dish items
+- All confidence fields: apply imageQuality confidenceCap
 
-OR:
-{"components": [{"name": "grilled chicken breast", "preparation": "grilled", "est_portion_g": 180, "confidence": 0.87}]}
+## DISH NAME RULES:
 
-No markdown, no additional keys, no text before or after JSON.`;
+1. If recognizable dish (≥80% match): use canonical name
+   - dish_name: "Borscht", dish_name_local: "Борщ", confidence: 0.8+
+
+2. If dish family match (50-79%): use family + description
+   - dish_name: "Pasta dish with creamy sauce"
+   - dish_family: "pasta_family"
+   - confidence: 0.6-0.8
+
+3. If multiple components but no dish: use descriptive name
+   - dish_name: "Grilled chicken with rice and vegetables"
+   - dish_name_local: "Курица гриль с рисом и овощами"
+
+4. If single ingredient only: dish_name = null
+   - Just use visible_items[0].display_name for UI
+
+5. If unrecognizable mix: dish_name = "Mixed plate" / "Смешанная тарелка"
+   - confidence: 0.5-0.6
+
+## DISH TYPES:
+main, side, dessert, snack, drink, breakfast, salad, soup, appetizer, mixed_plate
+
+## CUISINE OPTIONS:
+russian, italian, asian, japanese, chinese, korean, mexican, american, french, mediterranean, indian, middle_eastern, unknown
+
+Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON structure.`;
+
 
     const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
-    // Configure timeout for Vision API call (default 60 seconds, configurable via env)
-    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '60000', 10);
+    // Configure timeout for Vision API call (default 120 seconds, configurable via env)
+    // Increased from 60s to 120s to handle complex images and network latency
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '120000', 10);
 
     try {
       // Create timeout promise
@@ -615,20 +854,76 @@ No markdown, no additional keys, no text before or after JSON.`;
                   'roasted': 'roasted', // now valid
                   'sauteed': 'sauteed', // now valid
                   'pan-fried': 'fried',
+                  'pan_fried': 'fried',
+                  'panfried': 'fried',
                   'deep-fried': 'fried',
+                  'deep_fried': 'fried',
+                  'deepfried': 'fried',
+                  'stir-fried': 'fried',
+                  'stir_fried': 'fried',
+                  'stirfried': 'fried',
                   'broiled': 'grilled',
+                  'charred': 'grilled',
+                  'char-grilled': 'grilled',
+                  'barbecued': 'grilled',
+                  'bbq': 'grilled',
                   'smoked': 'cooked',
                   'braised': 'cooked',
+                  'stewed': 'cooked',
+                  'simmered': 'cooked',
+                  'caramelized': 'cooked',
+                  'glazed': 'cooked',
+                  'toasted': 'baked',
                   'poached': 'boiled',
                   'microwaved': 'cooked',
                   'blanched': 'boiled',
+                  'parboiled': 'boiled',
                   'marinated': 'raw',
                   'cured': 'raw',
                   'fermented': 'raw',
                   'dehydrated': 'dried',
+                  'fresh': 'raw',
+                  'uncooked': 'raw',
+                  'prepared': 'cooked',
+                  'processed': 'cooked',
                 };
-                normalized[key] = stateMap[value.toLowerCase()] ||
-                  (['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown'].includes(value.toLowerCase()) ? value.toLowerCase() : 'cooked');
+                const validStates = ['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown'];
+                const normalizedValue = stateMap[value.toLowerCase()] ||
+                  (validStates.includes(value.toLowerCase()) ? value.toLowerCase() : 'cooked');
+                // Log unmapped values for future improvement (only in debug mode)
+                if (!stateMap[value.toLowerCase()] && !validStates.includes(value.toLowerCase()) && process.env.ANALYSIS_DEBUG === 'true') {
+                  console.warn(`[VisionService] Unknown state_hint "${value}" mapped to "cooked"`);
+                }
+                normalized[key] = normalizedValue;
+              } else if (key === 'category_hint' && typeof value === 'string') {
+                // Normalize visible_items category_hint - map non-standard values to valid enum
+                const catHintMap: Record<string, string> = {
+                  'seasoning': 'spice',
+                  'vegetable': 'veg',
+                  'vegetables': 'veg',
+                  'carb': 'grain',
+                  'carbs': 'grain',
+                  'carbohydrate': 'grain',
+                  'meat': 'protein',
+                  'fish': 'protein',
+                  'seafood': 'protein',
+                  'dairy': 'protein',
+                  'egg': 'protein',
+                  'eggs': 'protein',
+                  'beverage': 'drink',
+                  'oil': 'fat',
+                  'nuts': 'fat',
+                  'nut': 'fat',
+                  'dressing': 'sauce',
+                  'condiment': 'sauce',
+                  'herb': 'spice',
+                  'herbs': 'spice',
+                  'topping': 'other',
+                  'garnish': 'other',
+                };
+                const validCatHints = ['protein', 'grain', 'veg', 'fruit', 'fat', 'seeds', 'spice', 'sauce', 'drink', 'other'];
+                normalized[key] = catHintMap[value.toLowerCase()] ||
+                  (validCatHints.includes(value.toLowerCase()) ? value.toLowerCase() : 'other');
               } else if (key === 'category' && typeof value === 'string' && obj.reason) {
                 // This is hidden_item category
                 const catMap: Record<string, string> = {
@@ -648,6 +943,42 @@ No markdown, no additional keys, no text before or after JSON.`;
                 };
                 const validCats = ['cooking_oil', 'butter_or_cream', 'sauce_or_dressing', 'added_sugar', 'breaded_or_batter', 'processed_meat_fillers', 'seasoning', 'spice', 'other'];
                 normalized[key] = catMap[value.toLowerCase()] || (validCats.includes(value.toLowerCase()) ? value.toLowerCase() : 'other');
+              } else if (key === 'cooking_method' && typeof value === 'string') {
+                // Normalize cooking_method enum values
+                const cookingMethodMap: Record<string, string> = {
+                  'pan-fried': 'fried',
+                  'pan_fried': 'fried',
+                  'panfried': 'fried',
+                  'stir-fried': 'fried',
+                  'stir_fried': 'fried',
+                  'stirfried': 'fried',
+                  'deep-fried': 'deep_fried',
+                  'deepfried': 'deep_fried',
+                  'bbq': 'grilled',
+                  'barbecued': 'grilled',
+                  'char-grilled': 'grilled',
+                  'chargrilled': 'grilled',
+                  'broiled': 'grilled',
+                  'poached': 'boiled',
+                  'blanched': 'boiled',
+                  'parboiled': 'boiled',
+                  'stewed': 'mixed',
+                  'braised': 'mixed',
+                  'simmered': 'mixed',
+                  'toasted': 'baked',
+                  'smoked': 'mixed',
+                  'microwaved': 'mixed',
+                  'fresh': 'raw',
+                  'uncooked': 'raw',
+                };
+                const validMethods = ['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed', 'roasted', 'sauteed'];
+                const normalizedMethod = cookingMethodMap[value.toLowerCase()] ||
+                  (validMethods.includes(value.toLowerCase()) ? value.toLowerCase() : 'mixed');
+                // Log unmapped values for future improvement (only in debug mode)
+                if (!cookingMethodMap[value.toLowerCase()] && !validMethods.includes(value.toLowerCase()) && process.env.ANALYSIS_DEBUG === 'true') {
+                  console.warn(`[VisionService] Unknown cooking_method "${value}" mapped to "mixed"`);
+                }
+                normalized[key] = normalizedMethod;
               } else {
                 normalized[key] = normalizeEnums(value);
               }
@@ -661,6 +992,9 @@ No markdown, no additional keys, no text before or after JSON.`;
         parsed = VisionFlexibleSchema.parse(normalizedJson);
       } catch (err: any) {
         // Schema validation failed - try to salvage data by extracting arrays directly
+        const parseWarnings: string[] = [];
+        parseWarnings.push(`Schema validation failed: ${err instanceof Error ? err.message : String(err)}`);
+
         this.logger.warn('[VisionService] Schema validation failed, attempting fallback extraction', {
           error: err instanceof Error ? err.message : String(err),
         });
@@ -673,7 +1007,9 @@ No markdown, no additional keys, no text before or after JSON.`;
             // Return partially valid components (will be validated individually later)
             const hiddenItems = Array.isArray(rawJson.hidden_items) ? rawJson.hidden_items : [];
             // Create a fake parsed object for the extraction logic below
-            parsed = { visible_items: items, hidden_items: hiddenItems } as any;
+            // Mark as partial since we used fallback
+            parseWarnings.push(`Used fallback extraction: ${items.length} items`);
+            parsed = { visible_items: items, hidden_items: hiddenItems, _parseWarnings: parseWarnings } as any;
           } else {
             // Log snippet of content for debugging
             const contentSnippet = content.slice(0, 500);
@@ -682,24 +1018,63 @@ No markdown, no additional keys, no text before or after JSON.`;
               error: err instanceof Error ? err.message : String(err),
               errorName: err?.name,
             });
-            return { components: [], hiddenItems: [] };
+            // Return explicit parse_error status instead of silent empty array
+            return {
+              status: 'parse_error',
+              components: [],
+              hiddenItems: [],
+              error: {
+                code: 'VISION_PARSE_FAILED',
+                message: 'Failed to parse food components from Vision API response',
+                details: {
+                  parseError: err instanceof Error ? err.message : String(err),
+                  contentSnippet,
+                },
+              },
+              meta: { parseWarnings },
+            };
           }
         } else {
-          return { components: [], hiddenItems: [] };
+          // No rawJson at all - critical parse failure
+          return {
+            status: 'parse_error',
+            components: [],
+            hiddenItems: [],
+            error: {
+              code: 'VISION_NO_JSON',
+              message: 'Vision API returned no parseable JSON content',
+            },
+            meta: { parseWarnings },
+          };
         }
       }
 
       // Extract components array from flexible structure
       let components: any[] = [];
       let hiddenItems: VisionHiddenItem[] = [];
+      let dish: VisionDish | undefined;
 
       if (Array.isArray(parsed)) {
         // Legacy format: array of components
         components = parsed;
       } else if ((parsed as any).visible_items) {
-        // New format: { visible_items, hidden_items }
+        // New format: { visible_items, hidden_items, dish_name, ... }
         components = (parsed as any).visible_items || [];
         hiddenItems = (parsed as any).hidden_items || [];
+
+        // Extract dish-level identification (NEW)
+        const p = parsed as any;
+        if (p.dish_name !== undefined || p.dish) {
+          dish = {
+            dish_name: p.dish?.dish_name ?? p.dish_name ?? null,
+            dish_name_local: p.dish?.dish_name_local ?? p.dish_name_local ?? null,
+            dish_name_confidence: p.dish?.dish_name_confidence ?? p.dish_name_confidence ?? 0,
+            dish_name_reasoning: p.dish?.dish_name_reasoning ?? p.dish_name_reasoning,
+            dish_type: p.dish?.dish_type ?? p.dish_type,
+            cuisine: p.dish?.cuisine ?? p.cuisine ?? null,
+          };
+          this.logger.debug(`[VisionService] Extracted dish identification: ${dish.dish_name} (confidence: ${dish.dish_name_confidence})`);
+        }
       } else if ((parsed as any).food_items) {
         // Alternative format from GPT: { food_items: [...] }
         components = (parsed as any).food_items || [];
@@ -718,24 +1093,49 @@ No markdown, no additional keys, no text before or after JSON.`;
       const validated: VisionComponent[] = [];
       for (const comp of components) {
         try {
+          // =====================================================
+          // PRE-VALIDATION: Normalize itemType BEFORE Zod parse
+          // Fixes: no_food_detected caused by Vision returning 'dish', 'sauce', 'composite'
+          // which are not in the enum and cause Zod validation to fail
+          // =====================================================
+          const rawItemType = (comp.itemType || '').toString().toLowerCase().trim();
+          if (rawItemType === 'dish' || rawItemType === 'composite') {
+            comp.itemType = 'composite_dish';
+          } else if (rawItemType === 'sauce' || rawItemType === 'dressing' || rawItemType === 'condiment') {
+            comp.itemType = 'ingredient';
+            // Preserve sauce category for downstream processing
+            if (!comp.category_hint) {
+              comp.category_hint = 'sauce';
+            }
+          } else if (rawItemType && !['ingredient', 'composite_dish', 'drink', ''].includes(rawItemType)) {
+            // Unknown itemType - default to ingredient
+            this.logger.debug(`[VisionService] Normalizing unknown itemType "${rawItemType}" to "ingredient"`);
+            comp.itemType = 'ingredient';
+          }
+
           // Normalize portion field (GPT might use portion_grams instead of est_portion_g)
           // Note: Keep undefined to let AnalyzeService apply category-based defaults
           const normalizedComp = {
             ...comp,
             est_portion_g: comp.est_portion_g ?? comp.portion_grams ?? comp.portion_g ?? comp.grams,
+            // CRITICAL FIX: Fallback for null localized fields (GPT sometimes returns null instead of omitting)
+            name_local: comp.name_local ?? comp.name,
+            display_name: comp.display_name ?? comp.name,
+            display_name_local: comp.display_name_local ?? comp.name_local ?? comp.name,
           };
           // Validate individual component with relaxed schema
           const validatedComp = VisionComponentSchema.parse(normalizedComp);
           // Apply defaults for optional fields (but NOT est_portion_g - let AnalyzeService handle it)
+          // IMPORTANT: Preserve ALL validated fields including localized names for downstream use
           const finalComp: VisionComponent = {
+            ...validatedComp, // Preserve all validated fields from schema
             name: validatedComp.name || 'Unknown',
+            name_local: validatedComp.name_local || validatedComp.name || 'Unknown',
+            display_name: validatedComp.display_name || validatedComp.name || 'Unknown',
+            display_name_local: validatedComp.display_name_local || validatedComp.name_local || validatedComp.name || 'Unknown',
             preparation: validatedComp.preparation || 'unknown',
             est_portion_g: validatedComp.est_portion_g, // Keep undefined if not set
             confidence: validatedComp.confidence ?? 0.7,
-            cooking_method: validatedComp.cooking_method,
-            tags: validatedComp.tags,
-            notes: validatedComp.notes,
-            estimated_nutrients: validatedComp.estimated_nutrients,
           };
 
           // Filter low confidence items
@@ -757,8 +1157,85 @@ No markdown, no additional keys, no text before or after JSON.`;
         }
       }
 
-      // Return both components and hidden items (caching is done by caller)
-      return { components: validated, hiddenItems };
+      // =====================================================
+      // OBSERVABILITY: Structured log of Vision extraction result
+      // =====================================================
+      this.logger.log(JSON.stringify({
+        stage: 'vision_extraction',
+        input: {
+          model,
+          hasBase64: Boolean(imageBase64),
+          hasUrl: Boolean(imageUrl),
+          timeoutMs,
+        },
+        output: {
+          status: validated.length === 0 ? 'no_food_detected' : 'success',
+          dish: dish ? {
+            name: dish.dish_name,
+            nameLocal: dish.dish_name_local,
+            confidence: dish.dish_name_confidence,
+            type: dish.dish_type,
+            reasoning: dish.dish_name_reasoning,
+          } : null,
+          rawCount: components.length,
+          validatedCount: validated.length,
+          filteredCount: components.length - validated.length,
+          hiddenCount: hiddenItems.length,
+        },
+        items: validated.slice(0, 10).map(c => ({
+          rawName: c.name,
+          localName: c.name_local,
+          displayName: c.display_name_local,
+          itemType: c.itemType,
+          categoryHint: c.category_hint,
+          confidence: c.confidence,
+          portionG: c.est_portion_g,
+          preparation: c.preparation,
+        })),
+      }));
+
+      // Build metadata about extraction
+      const parseWarnings = (parsed as any)?._parseWarnings || [];
+      const rawCount = components.length;
+      const filteredCount = rawCount - validated.length;
+
+      // Determine status based on results
+      let status: VisionExtractionStatus;
+      if (validated.length === 0) {
+        // No food items found after validation
+        status = 'no_food_detected';
+        this.logger.warn('[VisionService] No food components detected after validation', {
+          rawComponentCount: rawCount,
+          filteredOutCount: filteredCount,
+        });
+      } else if (parseWarnings.length > 0 || filteredCount > rawCount * 0.5) {
+        // Had warnings or lost more than half the items during validation
+        status = 'partial';
+      } else {
+        status = 'success';
+      }
+
+      // Return structured result with explicit status
+      return {
+        status,
+        components: validated,
+        hiddenItems,
+        dish, // NEW: Dish-level identification from Vision
+        meta: {
+          rawComponentCount: rawCount,
+          validatedComponentCount: validated.length,
+          filteredOutCount: filteredCount,
+          parseWarnings: parseWarnings.length > 0 ? parseWarnings : undefined,
+        },
+        // Include error info for no_food_detected status
+        ...(status === 'no_food_detected' && {
+          error: {
+            code: 'NO_FOOD_DETECTED',
+            message: 'No food items could be identified in this image',
+            details: { rawComponentCount: rawCount, filteredOutCount: filteredCount },
+          },
+        }),
+      };
     } catch (error: any) {
       // Check if it's a timeout error
       if (error?.message?.includes('timed out') || error?.message?.includes('timeout')) {
@@ -768,7 +1245,16 @@ No markdown, no additional keys, no text before or after JSON.`;
           hasBase64: Boolean(imageBase64),
           imageUrl: imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl,
         });
-        throw new Error(`Vision API call timed out after ${timeoutMs}ms. The image may be too large or the network is slow.`);
+        return {
+          status: 'api_error',
+          components: [],
+          hiddenItems: [],
+          error: {
+            code: 'VISION_TIMEOUT',
+            message: `Vision API call timed out after ${timeoutMs}ms. The image may be too large or the network is slow.`,
+            details: { timeoutMs, model },
+          },
+        };
       }
 
       this.logger.error('[VisionService] Vision extraction error', {
@@ -784,7 +1270,15 @@ No markdown, no additional keys, no text before or after JSON.`;
       });
 
       if (error?.status === 429 || error?.response?.status === 429) {
-        throw new Error('OpenAI rate limit exceeded. Please try again later.');
+        return {
+          status: 'api_error',
+          components: [],
+          hiddenItems: [],
+          error: {
+            code: 'VISION_RATE_LIMITED',
+            message: 'OpenAI rate limit exceeded. Please try again later.',
+          },
+        };
       }
 
       // If URL-based and error, suggest using base64
@@ -792,7 +1286,20 @@ No markdown, no additional keys, no text before or after JSON.`;
         this.logger.warn('[VisionService] Vision API error with URL, consider using base64 for better reliability');
       }
 
-      throw error;
+      // Return structured error instead of throwing
+      return {
+        status: 'api_error',
+        components: [],
+        hiddenItems: [],
+        error: {
+          code: 'VISION_API_ERROR',
+          message: error?.message || 'Unknown Vision API error',
+          details: {
+            errorName: error?.name,
+            status: error?.status || error?.response?.status,
+          },
+        },
+      };
     }
   }
 }

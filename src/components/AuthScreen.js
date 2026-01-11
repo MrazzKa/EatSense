@@ -14,12 +14,24 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import {
-  GoogleSignin,
-  isErrorWithCode,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
+
+// Google Sign-In - conditional import for Expo Go compatibility
+let GoogleSignin = null;
+let isErrorWithCode = null;
+let statusCodes = null;
+let isGoogleSignInAvailable = false;
+
+try {
+  const googleModule = require('@react-native-google-signin/google-signin');
+  GoogleSignin = googleModule.GoogleSignin;
+  isErrorWithCode = googleModule.isErrorWithCode;
+  statusCodes = googleModule.statusCodes;
+  isGoogleSignInAvailable = true;
+} catch {
+  console.log('[AuthScreen] Google Sign-In not available (Expo Go mode)');
+  isGoogleSignInAvailable = false;
+}
 import ApiService from '../services/apiService';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
@@ -227,6 +239,7 @@ export default function AuthScreen({ onAuthSuccess }) {
   const googleConfiguredRef = useRef(false);
   useEffect(() => {
     if (googleConfiguredRef.current) return;
+    if (!isGoogleSignInAvailable || !GoogleSignin) return;
     googleConfiguredRef.current = true;
 
     const iosClientId = Constants.expoConfig?.extra?.googleIosClientId || '';
@@ -242,17 +255,28 @@ export default function AuthScreen({ onAuthSuccess }) {
     }
   }, []);
 
-  // Check if Google Sign-In is configured
-  const isGoogleConfigured = Platform.OS === 'ios'
+  // Check if Google Sign-In is configured and available
+  const isGoogleConfigured = isGoogleSignInAvailable && (Platform.OS === 'ios'
     ? !!Constants.expoConfig?.extra?.googleIosClientId
     : Platform.OS === 'android'
       ? !!Constants.expoConfig?.extra?.googleAndroidClientId
-      : !!Constants.expoConfig?.extra?.googleWebClientId;
+      : !!Constants.expoConfig?.extra?.googleWebClientId);
 
   const handleGoogleSignIn = async () => {
     try {
       setIsSubmitting(true);
       resetFeedback();
+
+      // Check if Google Sign-In native module is available
+      if (!GoogleSignin) {
+        Alert.alert(
+          t('auth.errors.googleNotConfigured') || 'Google Sign-In Not Available',
+          t('auth.errors.googleNotAvailableExpoGo') || 'Google Sign-In requires a development build. Please use email sign-in in Expo Go.',
+          [{ text: t('common.ok') || 'OK' }]
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
       // Check if Google auth is properly configured for current platform
       if (!isGoogleConfigured) {
@@ -347,7 +371,7 @@ export default function AuthScreen({ onAuthSuccess }) {
       console.error('[AuthScreen] Google Sign-In error:', error);
 
       // Handle specific Google Sign-In errors
-      if (isErrorWithCode(error)) {
+      if (isErrorWithCode && statusCodes && isErrorWithCode(error)) {
         if (error.code === statusCodes.SIGN_IN_CANCELLED) {
           // User cancelled - don't show error
           setIsSubmitting(false);

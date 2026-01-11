@@ -51,32 +51,38 @@ const POLL_BACKOFF_MULTIPLIER = 1.2;
 
 /**
  * Extract analysis data from API response
+ * PHASE 1/3: Enhanced error handling for Vision errors and parse failures
  */
 function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
     if (!apiResponse) return {};
 
     // Check explicit API status first - this determines if polling should stop
-    const apiStatus = (apiResponse?.status || '').toLowerCase();
-    const isCompleted = apiStatus === 'completed';
-    const isFailed = apiStatus === 'failed';
+    const apiStatus = (apiResponse?.status || '').toUpperCase();
+    const isCompleted = apiStatus === 'COMPLETED' || apiStatus === 'SUCCESS';
+    const isFailed = apiStatus === 'FAILED' || apiStatus === 'ERROR';
+    const isNeedsReview = apiStatus === 'NEEDS_REVIEW';
 
     const data = apiResponse.data || apiResponse;
 
-    // Check for explicit error
-    const hasError = !!(data.error || data.errorMessage);
+    // PHASE 1: Check for explicit error including new analysisError field
+    const analysisError = data.analysisError;
+    const hasError = !!(data.error || data.errorMessage || analysisError);
 
     // Get flags from API response
     const flags = data.analysisFlags || {};
     const needsReview = flags.needsReview || data.needsReview || false;
 
-    // Derive final status
+    // Derive final status based on API status and error presence
     let status: AnalysisStatus;
-    if (isFailed || hasError) {
+    if (isFailed || (hasError && analysisError?.status === 'api_error')) {
         status = 'failed';
+    } else if (isNeedsReview || (hasError && analysisError?.status === 'no_food_detected')) {
+        status = 'needs_review';
     } else if (isCompleted) {
-        // Check if needs review based on zero calories
-        const calories = data.totalCalories ?? data.calories ?? 0;
-        if (calories === 0 || needsReview) {
+        // Check if needs review based on zero calories (all items failed nutrition lookup)
+        const calories = data.totalCalories ?? data.calories ?? data.total?.calories ?? 0;
+        const hasItems = (data.items?.length ?? data.ingredients?.length ?? 0) > 0;
+        if ((calories === 0 && hasItems) || needsReview) {
             status = 'needs_review';
         } else {
             status = 'completed';
@@ -85,19 +91,34 @@ function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
         status = 'processing';
     }
 
+    // Build error message from various sources
+    let errorMessage = null;
+    if (analysisError?.message) {
+        errorMessage = analysisError.message;
+    } else if (data.error) {
+        errorMessage = typeof data.error === 'string' ? data.error : data.error.message;
+    } else if (data.errorMessage) {
+        errorMessage = data.errorMessage;
+    }
+
     return {
-        dishName: data.dishName || data.name || null,
+        // STEP 2 FIX: Prioritize displayName from backend, NOT first ingredient
+        // Priority: displayName > dishNameLocalized > originalDishName > dishName > name
+        dishName: data.displayName || data.dishNameLocalized || data.dishName || data.originalDishName || data.name || null,
         imageUrl: data.imageUrl || data.imageUri || data.mediaUrl || data.coverUrl || null,
-        calories: data.totalCalories ?? data.calories ?? null,
-        protein: data.totalProtein ?? data.protein ?? null,
-        carbs: data.totalCarbs ?? data.carbs ?? null,
-        fat: data.totalFat ?? data.fat ?? null,
-        healthScore: data.healthScore?.score ?? data.healthInsights?.score ?? null,
+        calories: data.totalCalories ?? data.calories ?? data.total?.calories ?? null,
+        protein: data.totalProtein ?? data.protein ?? data.total?.protein ?? null,
+        carbs: data.totalCarbs ?? data.carbs ?? data.total?.carbs ?? null,
+        fat: data.totalFat ?? data.fat ?? data.total?.fat ?? null,
+        healthScore: data.healthScore?.total ?? data.healthScore?.score ?? data.healthInsights?.score ?? null,
         ingredients: data.ingredients || data.components || data.items || [],
-        errorMessage: data.error || data.errorMessage || null,
+        errorMessage,
         status,
     };
 }
+
+// STEP 5: Minimum interval between poll cycles to prevent spam
+const MIN_POLL_INTERVAL_MS = 2000;
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const [pendingAnalyses, setPendingAnalyses] = useState<Map<string, PendingAnalysis>>(new Map());
@@ -107,6 +128,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const isMountedRef = useRef(true);
     // Ref to keep track of latest pending analyses for polling without stale closures
     const pendingAnalysesRef = useRef(pendingAnalyses);
+    // STEP 5: Track last poll time to prevent duplicate polls
+    const lastPollTimeRef = useRef<number>(0);
+    const isPollingInProgressRef = useRef<boolean>(false);
 
     // Sync ref with state
     useEffect(() => {
@@ -166,9 +190,21 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     /**
      * Poll for analysis updates
+     * STEP 5: Added debounce guard to prevent duplicate polls
      */
     const pollAnalyses = useCallback(async () => {
         if (!isMountedRef.current) return;
+
+        // STEP 5: Debounce guard - prevent polling if too soon or already in progress
+        const now = Date.now();
+        if (now - lastPollTimeRef.current < MIN_POLL_INTERVAL_MS) {
+            console.log('[AnalysisContext] Poll skipped - too soon since last poll');
+            return;
+        }
+        if (isPollingInProgressRef.current) {
+            console.log('[AnalysisContext] Poll skipped - already in progress');
+            return;
+        }
 
         // Use Ref to get latest state, avoiding stale closures in setTimeout
         const currentPendingMap = pendingAnalysesRef.current;
@@ -182,6 +218,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
+        // STEP 5: Mark polling in progress
+        lastPollTimeRef.current = now;
+        isPollingInProgressRef.current = true;
         setIsPolling(true);
 
         for (const analysis of processingAnalyses) {
@@ -217,10 +256,30 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
                 const updates = extractAnalysisData(result);
                 console.log(`[AnalysisContext] Applying updates for ${analysis.analysisId}:`, updates.status);
 
-                // For terminal statuses, remove from pending immediately
-                // User can still view full results by tapping the saved meal card
+                // For terminal statuses, fetch full result then remove from pending
                 if (['completed', 'failed', 'needs_review'].includes(updates.status || '')) {
-                    // Remove immediately - no delay needed
+                    console.log(`[AnalysisContext] Terminal status for ${analysis.analysisId}, fetching full result...`);
+
+                    // STAGE 1 FIX: Fetch full result before removing
+                    // This ensures UI gets proper dishNameLocalized and all data
+                    try {
+                        const fullResult = await ApiService.getAnalysisResult(analysis.analysisId);
+                        if (fullResult?.data) {
+                            const fullUpdates = extractAnalysisData(fullResult);
+                            // Update with complete data including dishNameLocalized
+                            updateAnalysis(analysis.analysisId, {
+                                ...fullUpdates,
+                                status: updates.status,
+                            });
+                            console.log(`[AnalysisContext] Full result fetched, dishName: "${fullUpdates.dishName}"`);
+                        }
+                    } catch (err: any) {
+                        console.error(`[AnalysisContext] Failed to fetch full result:`, err?.message);
+                        // Still update with status data even if result fetch fails
+                        updateAnalysis(analysis.analysisId, updates);
+                    }
+
+                    // Remove from pending after update
                     console.log(`[AnalysisContext] Removing terminal analysis ${analysis.analysisId}`);
                     removePendingAnalysis(analysis.analysisId);
                 } else {
@@ -249,6 +308,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
                 }
             }
         }
+
+        // STEP 5: Mark polling as no longer in progress
+        isPollingInProgressRef.current = false;
 
         // Schedule next poll with backoff
         if (isMountedRef.current) {

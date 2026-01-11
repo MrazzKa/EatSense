@@ -1,0 +1,14 @@
+---
+description: Release safety for TestFlight/Railway — no breaking changes, measurable checks
+globs: "**/*"
+---
+
+RELEASE SAFETY:
+- Any "release blocker" flow (auth, onboarding completion, food analysis, subscriptions) must have:
+  - explicit error UI
+  - telemetry log events (client + server)
+  - manual QA checklist steps
+- If changing auth or subscriptions:
+  - preserve backward compatibility for existing users
+  - add migration steps if needed
+- Provide rollback plan (what to revert, env toggles/flags if available).

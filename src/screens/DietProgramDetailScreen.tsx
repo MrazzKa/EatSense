@@ -5,37 +5,65 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import DietProgramsService from '../services/dietProgramsService';
+import { useProgramProgress } from '../stores/ProgramProgressStore';
 
 interface DietProgramDetailScreenProps {
     navigation: any;
     route: any;
 }
 
+// Helper to extract localized string from object or return string directly
+const getLocalizedText = (value: any, lang: string): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+        return value[lang] || value['en'] || value[Object.keys(value)[0]] || '';
+    }
+    return String(value);
+};
+
 export default function DietProgramDetailScreen({ navigation, route }: DietProgramDetailScreenProps) {
     const { colors } = useTheme();
-    const { t } = useI18n();
+    const { t, language } = useI18n();
+    const { activeProgram } = useProgramProgress();
     const [program, setProgram] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     const loadProgram = useCallback(async () => {
         try {
-            const data = await DietProgramsService.getProgram(route.params.id);
+            // Support both 'id' and 'dietId' parameter names
+            const programId = route.params?.dietId || route.params?.id;
+            if (!programId) {
+                console.error('No program ID provided');
+                setLoading(false);
+                return;
+            }
+            const data = await DietProgramsService.getProgram(programId);
             setProgram(data);
         } catch (error) {
             console.error('Failed to load program:', error);
         } finally {
             setLoading(false);
         }
-    }, [route.params.id]);
+    }, [route.params?.dietId, route.params?.id]);
 
     useEffect(() => {
         loadProgram();
     }, [loadProgram]);
 
+    // Check if this program is currently active
+    const isActive = activeProgram?.programId === program?.id;
+
+    const handleContinue = () => {
+        if (program?.id) {
+            navigation.navigate('DietProgramProgress', { id: program.id });
+        }
+    };
+
     const handleStart = () => {
         Alert.alert(
             t('dietPrograms.startProgram'),
-            `Start "${program.name}" (${program.duration} ${t('common.days')})?`,
+            `Start "${getLocalizedText(program.name, language)}" (${program.duration} ${t('common.days')})?`,
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
@@ -90,14 +118,33 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
     const day1 = program.days?.[0];
 
+    // Parse howItWorks and notFor fields
+    const howItWorks = program.howItWorks ? (Array.isArray(program.howItWorks) ? program.howItWorks : []) : [];
+    const notFor = program.notFor ? (Array.isArray(program.notFor) ? program.notFor : []) : [];
+    const dailyTracker = program.dailyTracker ? (Array.isArray(program.dailyTracker) ? program.dailyTracker : []) : [];
+    const showDisclaimer = program.disclaimerKey === 'DISCLAIMER_HISTORICAL' || program.disclaimerKey === 'DISCLAIMER_MEDICAL';
+    const isHistorical = program.uiGroup === 'Historical';
+    const isMedical = program.uiGroup === 'Medical' || program.disclaimerKey === 'DISCLAIMER_MEDICAL';
+
+    // Get evidence level badge color
+    const getEvidenceBadge = (level: string) => {
+        switch (level) {
+            case 'high': return { color: '#4CAF50', icon: 'shield-checkmark' };
+            case 'medium': return { color: '#FF9800', icon: 'shield-half' };
+            case 'low': return { color: '#9E9E9E', icon: 'shield' };
+            default: return null;
+        }
+    };
+    const evidenceBadge = program.evidenceLevel ? getEvidenceBadge(program.evidenceLevel) : null;
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             <ScrollView>
                 {program.imageUrl ? (
                     <Image source={{ uri: program.imageUrl }} style={styles.headerImage} />
                 ) : (
-                    <View style={[styles.headerImagePlaceholder, { backgroundColor: colors.primary + '20' }]}>
-                        <Ionicons name="restaurant" size={48} color={colors.primary} />
+                    <View style={[styles.headerImagePlaceholder, { backgroundColor: isHistorical ? '#F5F0E6' : colors.primary + '20' }]}>
+                        <Ionicons name={isHistorical ? 'time' : 'restaurant'} size={48} color={isHistorical ? '#795548' : colors.primary} />
                     </View>
                 )}
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -105,9 +152,42 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                 </TouchableOpacity>
 
                 <View style={styles.content}>
-                    <Text style={[styles.programName, { color: colors.textPrimary }]}>{program.name}</Text>
+                    {/* Disclaimer Banner */}
+                    {showDisclaimer && (
+                        <View style={[
+                            styles.disclaimerBanner,
+                            { backgroundColor: isHistorical ? '#F5F0E6' : '#FFF3E0' }
+                        ]}>
+                            <Ionicons
+                                name={isHistorical ? 'information-circle' : 'warning'}
+                                size={20}
+                                color={isHistorical ? '#795548' : '#E65100'}
+                            />
+                            <Text style={[
+                                styles.disclaimerText,
+                                { color: isHistorical ? '#795548' : '#E65100' }
+                            ]}>
+                                {isHistorical
+                                    ? t('diets.disclaimers.historical')
+                                    : t('diets.disclaimers.medical')
+                                }
+                            </Text>
+                        </View>
+                    )}
+
+                    <Text style={[styles.programName, { color: colors.textPrimary }]}>{getLocalizedText(program.name, language)}</Text>
                     {program.subtitle && (
-                        <Text style={[styles.programSubtitle, { color: colors.textSecondary }]}>{program.subtitle}</Text>
+                        <Text style={[styles.programSubtitle, { color: colors.textSecondary }]}>{getLocalizedText(program.subtitle, language)}</Text>
+                    )}
+
+                    {/* Evidence Badge */}
+                    {evidenceBadge && (
+                        <View style={[styles.evidenceBadge, { backgroundColor: evidenceBadge.color + '15' }]}>
+                            <Ionicons name={evidenceBadge.icon as any} size={14} color={evidenceBadge.color} />
+                            <Text style={[styles.evidenceText, { color: evidenceBadge.color }]}>
+                                {t(`diets.evidence.${program.evidenceLevel}`)}
+                            </Text>
+                        </View>
                     )}
 
                     <View style={styles.statsRow}>
@@ -127,7 +207,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                                 <Ionicons name="fitness-outline" size={20} color={colors.primary} />
                                 <Text style={[styles.statValue, { color: colors.textPrimary, textTransform: 'capitalize' }]}>
-                                    {program.difficulty}
+                                    {t(`diets.difficulty.${program.difficulty.toLowerCase()}`) || program.difficulty}
                                 </Text>
                                 <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('dietPrograms.level')}</Text>
                             </View>
@@ -137,7 +217,85 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                     {program.description && (
                         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('dietPrograms.about')}</Text>
-                            <Text style={[styles.description, { color: colors.textSecondary }]}>{program.description}</Text>
+                            <Text style={[styles.description, { color: colors.textSecondary }]}>{getLocalizedText(program.description, language)}</Text>
+                        </View>
+                    )}
+
+                    {/* How It Works Section */}
+                    {howItWorks.length > 0 && (
+                        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={styles.sectionHeaderRow}>
+                                <Ionicons name="list" size={18} color={colors.primary} />
+                                <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginLeft: 8, marginBottom: 0 }]}>
+                                    {t('diets.how_it_works')}
+                                </Text>
+                            </View>
+                            {howItWorks.map((item: any, index: number) => (
+                                <View key={index} style={styles.howItWorksItem}>
+                                    <View style={[styles.bulletPoint, { backgroundColor: colors.primary }]} />
+                                    <Text style={[styles.howItWorksText, { color: colors.textSecondary }]}>
+                                        {getLocalizedText(item, language)}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Daily Tracker Preview */}
+                    {dailyTracker.length > 0 && (
+                        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={styles.sectionHeaderRow}>
+                                <Ionicons name="checkbox" size={18} color={colors.primary} />
+                                <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginLeft: 8, marginBottom: 0 }]}>
+                                    {t('diets.daily_tracker_preview')}
+                                </Text>
+                            </View>
+                            <Text style={[styles.trackerPreviewHint, { color: colors.textTertiary }]}>
+                                {t('diets.tracker_preview_hint')}
+                            </Text>
+                            {dailyTracker.slice(0, 4).map((item: any, index: number) => (
+                                <View key={index} style={styles.trackerPreviewItem}>
+                                    <View style={[styles.checkboxPreview, { borderColor: colors.border }]} />
+                                    <Text style={[styles.trackerPreviewText, { color: colors.textSecondary }]}>
+                                        {getLocalizedText(item.label, language)}
+                                    </Text>
+                                </View>
+                            ))}
+                            {dailyTracker.length > 4 && (
+                                <Text style={[styles.moreItems, { color: colors.textTertiary }]}>
+                                    +{dailyTracker.length - 4} {t('diets.more_items')}
+                                </Text>
+                            )}
+                        </View>
+                    )}
+
+                    {/* Not For Section (Contraindications) */}
+                    {notFor.length > 0 && (
+                        <View style={[styles.section, { backgroundColor: '#FFF3E0', borderColor: '#FFE0B2' }]}>
+                            <View style={styles.sectionHeaderRow}>
+                                <Ionicons name="warning" size={18} color="#E65100" />
+                                <Text style={[styles.sectionTitle, { color: '#E65100', marginLeft: 8, marginBottom: 0 }]}>
+                                    {t('diets.not_for')}
+                                </Text>
+                            </View>
+                            {notFor.map((item: any, index: number) => (
+                                <View key={index} style={styles.howItWorksItem}>
+                                    <Ionicons name="close-circle" size={14} color="#E65100" style={{ marginRight: 8 }} />
+                                    <Text style={[styles.howItWorksText, { color: '#BF360C' }]}>
+                                        {getLocalizedText(item, language)}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Symptoms Note for Medical diets */}
+                    {isMedical && (
+                        <View style={[styles.medicalNote, { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9' }]}>
+                            <Ionicons name="medical" size={18} color="#2E7D32" />
+                            <Text style={[styles.medicalNoteText, { color: '#2E7D32' }]}>
+                                {t('diets.medical_note')}
+                            </Text>
                         </View>
                     )}
 
@@ -151,7 +309,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                     </View>
                                     <View style={styles.mealInfo}>
                                         <Text style={[styles.mealType, { color: colors.textSecondary }]}>{meal.mealType}</Text>
-                                        <Text style={[styles.mealName, { color: colors.textPrimary }]}>{meal.name}</Text>
+                                        <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language)}</Text>
                                     </View>
                                     {meal.calories && (
                                         <Text style={[styles.mealCalories, { color: colors.textSecondary }]}>{meal.calories} kcal</Text>
@@ -174,8 +332,13 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
             </ScrollView>
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-                <TouchableOpacity style={[styles.startButton, { backgroundColor: colors.primary }]} onPress={handleStart}>
-                    <Text style={styles.startButtonText}>{t('dietPrograms.startProgram')}</Text>
+                <TouchableOpacity
+                    style={[styles.startButton, { backgroundColor: colors.primary }]}
+                    onPress={isActive ? handleContinue : handleStart}
+                >
+                    <Text style={styles.startButtonText}>
+                        {isActive ? (t('common.continue') || t('dietPrograms.continueProgram') || 'Continue') : t('dietPrograms.startProgram')}
+                    </Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -317,5 +480,97 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: '600',
+    },
+    // Disclaimer Banner
+    disclaimerBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 10,
+        marginBottom: 12,
+        gap: 10,
+    },
+    disclaimerText: {
+        flex: 1,
+        fontSize: 13,
+        lineHeight: 18,
+    },
+    // Evidence Badge
+    evidenceBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        marginTop: 8,
+        gap: 4,
+    },
+    evidenceText: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    // How It Works
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    howItWorksItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 8,
+    },
+    bulletPoint: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginTop: 6,
+        marginRight: 10,
+    },
+    howItWorksText: {
+        flex: 1,
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    // Daily Tracker Preview
+    trackerPreviewHint: {
+        fontSize: 12,
+        marginBottom: 10,
+        fontStyle: 'italic',
+    },
+    trackerPreviewItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    checkboxPreview: {
+        width: 18,
+        height: 18,
+        borderRadius: 4,
+        borderWidth: 2,
+        marginRight: 10,
+    },
+    trackerPreviewText: {
+        fontSize: 14,
+    },
+    moreItems: {
+        fontSize: 12,
+        marginTop: 4,
+    },
+    // Medical Note
+    medicalNote: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 10,
+        marginTop: 12,
+        borderWidth: 1,
+        gap: 10,
+    },
+    medicalNoteText: {
+        flex: 1,
+        fontSize: 13,
+        lineHeight: 18,
     },
 });

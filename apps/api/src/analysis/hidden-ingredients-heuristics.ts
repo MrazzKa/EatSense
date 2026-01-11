@@ -6,6 +6,15 @@ import { HiddenIngredientEstimate, HiddenIngredientCategory } from './analysis.t
 import { AnalyzedItem } from './analysis.types';
 
 export const CANONICAL_HIDDEN_INGREDIENTS = {
+  // STEP 5: Added 5g oil for grilled items (configurable via GRILLED_OIL_GRAMS env)
+  cooking_oil_5g: {
+    name: 'Cooking oil (approx. 5 g)',
+    category: 'cooking_oil' as HiddenIngredientCategory,
+    calories: 45, // 9 kcal * ~5g
+    protein: 0,
+    carbs: 0,
+    fat: 5,
+  },
   cooking_oil_10g: {
     name: 'Cooking oil (approx. 10 g)',
     category: 'cooking_oil' as HiddenIngredientCategory,
@@ -60,7 +69,7 @@ export function applyHiddenIngredientsHeuristics(
   const hints = item.cookingMethodHints || {};
   const tags: string[] = (item as any).tags || [];
 
-  // 1) ЖАРЕНАЯ ЕДА
+  // 1) ЖАРЕНАЯ ЕДА (fried, deep_fried)
   if (
     hints.method === 'fried' ||
     hints.method === 'deep_fried' ||
@@ -85,6 +94,31 @@ export function applyHiddenIngredientsHeuristics(
       carbs: canonical.carbs,
       fat: canonical.fat,
     });
+  }
+
+  // STEP 5: GRILLED items get small amount of oil (5g default, configurable)
+  if (
+    hints.method === 'grilled' ||
+    tags.includes('grilled') ||
+    tags.includes('bbq')
+  ) {
+    // Use env variable or default 5g
+    const grilledOilGrams = parseInt(process.env.GRILLED_OIL_GRAMS || '5', 10);
+    const canonical = CANONICAL_HIDDEN_INGREDIENTS.cooking_oil_5g;
+    const scale = grilledOilGrams / 5; // scale to env setting
+
+    hidden.push({
+      name: `Cooking oil (approx. ${grilledOilGrams} g)`,
+      category: canonical.category,
+      reason: 'grilled',
+      confidence: 0.6, // Lower confidence than fried
+      estimated_grams: grilledOilGrams,
+      calories: canonical.calories * scale,
+      protein: 0,
+      carbs: 0,
+      fat: canonical.fat * scale,
+      isHiddenIngredient: true,
+    } as HiddenIngredientEstimate);
   }
 
   // 2) САЛАТ С ЗАПРАВКОЙ / СОУСОМ
@@ -152,12 +186,12 @@ export function applyHiddenIngredientsHeuristics(
       h.category === 'cooking_oil'
         ? 'cooking_oil_10g'
         : h.category === 'sauce_or_dressing'
-        ? 'salad_dressing_10g'
-        : h.category === 'added_sugar'
-        ? 'added_sugar_10g'
-        : h.category === 'butter_or_cream'
-        ? 'cream_or_butter_10g'
-        : null;
+          ? 'salad_dressing_10g'
+          : h.category === 'added_sugar'
+            ? 'added_sugar_10g'
+            : h.category === 'butter_or_cream'
+              ? 'cream_or_butter_10g'
+              : null;
 
     if (!canonicalKey) {
       continue;

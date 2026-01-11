@@ -90,7 +90,10 @@ export class MediaService {
       );
     }
 
-    if (this.s3Enabled && this.s3Client && this.s3Bucket) {
+    // STEP 6: Check S3_ENABLED environment variable for explicit control
+    const s3ExplicitlyDisabled = process.env.S3_ENABLED === 'false';
+    
+    if (!s3ExplicitlyDisabled && this.s3Enabled && this.s3Client && this.s3Bucket) {
       try {
         const key = this.buildObjectKey(userId, file.originalname);
         await this.s3Client.send(
@@ -127,8 +130,17 @@ export class MediaService {
           storageProvider: 's3',
         };
       } catch (error) {
-        this.logger.error(`S3 upload failed, falling back to database storage: ${(error as Error).message}`);
+        // STEP 6: Use debug level in dev, warn in production
+        const errorMsg = `S3 upload failed, falling back to database storage: ${(error as Error).message}`;
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev') {
+          this.logger.debug(errorMsg);
+        } else {
+          this.logger.warn(errorMsg);
+        }
       }
+    } else if (s3ExplicitlyDisabled) {
+      // STEP 6: Log at debug level when S3 is explicitly disabled
+      this.logger.debug('[MediaService] S3 disabled via S3_ENABLED=false, using database storage');
     }
 
     const media = await this.prisma.media.create({

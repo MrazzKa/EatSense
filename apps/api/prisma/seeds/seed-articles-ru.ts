@@ -25,7 +25,7 @@ const RU_ARTICLES: SeedArticle[] = [
     subtitle: 'Простой визуальный принцип вместо подсчёта каждой калории',
     excerpt:
       'Вместо бесконечного подсчёта калорий попробуйте смотреть на тарелку как на схему: половина — овощи и фрукты, четверть — цельные злаки, четверть — источник белка и немного полезных жиров.',
-    heroImageUrl: 'https://cdn.eatsense.app/articles/balanced-plate.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800',
     tags: ['основы питания', 'тарелка', 'здоровые привычки'],
     readingMinutes: 8,
     isFeatured: true,
@@ -125,7 +125,7 @@ const RU_ARTICLES: SeedArticle[] = [
     subtitle: 'Как получать достаточно белка без большого количества мяса',
     excerpt:
       'Бобовые, тофу, темпе, орехи и цельные злаки помогают набрать норму белка, уменьшить насыщенные жиры и добавить клетчатку. Главное — знать, что именно класть на тарелку.',
-    heroImageUrl: 'https://cdn.eatsense.app/articles/plant-protein.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800',
     tags: ['белок', 'растительное питание', 'основы питания'],
     readingMinutes: 7,
     isFeatured: true,
@@ -213,7 +213,7 @@ const RU_ARTICLES: SeedArticle[] = [
     subtitle: 'Как не переедать, даже если у тебя нет ни весов, ни мерных стаканов',
     excerpt:
       'Вместо того чтобы взвешивать каждый кусочек, можно использовать простые ориентиры: ладонь, кулак и другие "подсказки" тела. Это помогает держать порции под контролем в повседневной жизни.',
-    heroImageUrl: 'https://cdn.eatsense.app/articles/portion-sizes.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800',
     tags: ['порции', 'контроль веса', 'основы питания'],
     readingMinutes: 6,
     isFeatured: false,
@@ -271,7 +271,7 @@ const RU_ARTICLES: SeedArticle[] = [
     subtitle: 'Почему овощи, фрукты и цельные злаки важнее, чем кажется',
     excerpt:
       'Клетчатка помогает работе кишечника, снижает риск хронических заболеваний и поддерживает полезные бактерии. Её не так сложно добрать, если знать, куда смотреть.',
-    heroImageUrl: 'https://cdn.eatsense.app/articles/fiber-gut.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800',
     tags: ['клетчатка', 'здоровье кишечника', 'основы питания'],
     readingMinutes: 7,
     isFeatured: false,
@@ -337,7 +337,7 @@ const RU_ARTICLES: SeedArticle[] = [
     subtitle: 'Почему хуже не только газировка, но и "честные" соки',
     excerpt:
       'Сладкие напитки дают много калорий и почти не насыщают. Это один из самых незаметных источников лишнего сахара в рационе.',
-    heroImageUrl: 'https://cdn.eatsense.app/articles/sugary-drinks.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800',
     tags: ['сахар', 'напитки', 'контроль веса'],
     readingMinutes: 6,
     isFeatured: false,
@@ -391,7 +391,7 @@ const RU_ARTICLES: SeedArticle[] = [
     subtitle: 'На что смотреть в первую очередь и как не запутаться в цифрах',
     excerpt:
       'Этикетка — это не страшный набор таблиц, а подсказка: сколько энергии, сахара, жира и соли ты получаешь из порции. Достаточно знать несколько простых правил.',
-    heroImageUrl: 'https://cdn.eatsense.app/articles/nutrition-labels.jpg',
+    heroImageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800',
     tags: ['этикетки', 'сахар', 'соль'],
     readingMinutes: 8,
     isFeatured: false,

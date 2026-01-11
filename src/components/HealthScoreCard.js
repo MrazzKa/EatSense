@@ -37,7 +37,6 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   const safeTotal = Number.isFinite(parsedTotal) ? parsedTotal : 0;
   const total = Math.max(0, Math.min(100, Math.round(safeTotal))); // Clamp and round to 0-100
   const level = healthScore.level || (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
-  const grade = healthScore.grade || (total >= 90 ? 'A' : total >= 80 ? 'B' : total >= 70 ? 'C' : total >= 60 ? 'D' : 'F');
   const factors = healthScore.factors || {};
   const feedback = healthScore.feedback || healthScore.feedbackLegacy || [];
 
@@ -74,27 +73,17 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
   const factorEntries = Object.entries(factors).map(([key, value]) => normalizeFactor(key, value));
 
   const getGradeColor = () => {
+    // Use theme primary color for good scores, warning/error for others
     // Для напитков смягчаем нижнюю границу
     if (isDrink) {
       if (total < 30) return colors.error || '#EF4444';
       if (total < 70) return colors.warning || '#F59E0B';
-      return colors.success || colors.primary || '#10B981';
+      return colors.primary || '#C6A052'; // Use primary color (gold/amber) instead of green
     } else {
       // Для обычной еды
       if (total < 40) return colors.error || '#EF4444';
       if (total < 70) return colors.warning || '#F59E0B';
-      return colors.success || colors.primary || '#10B981';
-    }
-  };
-
-  const getGradeIcon = () => {
-    switch (grade) {
-      case 'A': return 'checkmark-circle';
-      case 'B': return 'checkmark-circle-outline';
-      case 'C': return 'information-circle-outline';
-      case 'D': return 'warning-outline';
-      case 'F': return 'close-circle-outline';
-      default: return 'help-circle-outline';
+      return colors.primary || '#C6A052'; // Use primary color (gold/amber) instead of green
     }
   };
 
@@ -182,9 +171,6 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
           value={total}
         >
           <View style={{ alignItems: 'center', gap: 2 }}>
-            {grade === 'A' || grade === 'B' ? (
-              <Ionicons name={getGradeIcon()} size={20} color={gradeColor} style={{ marginBottom: -2 }} />
-            ) : null}
             <Text style={[styles.scoreText, { color: gradeColor, fontSize: 32, lineHeight: 36 }]}>{total}</Text>
           </View>
         </CircularProgress>
@@ -217,7 +203,7 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
                     {entry.scorePercent}%
                   </Text>
                 </View>
-                <View style={[styles.factorBar, { backgroundColor: colors.inputBackground }]}>
+                <View style={[styles.factorBar, { backgroundColor: colors.inputBackground || colors.surfaceMuted || '#F3F4F6' }]}>
                   <View
                     style={[
                       styles.factorFill,
@@ -227,7 +213,7 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
                           ? (colors.error || '#EF4444')
                           : isNegativeFactor && entry.scorePercent < 80
                             ? (colors.warning || '#F59E0B')
-                            : (colors.primary || colors.success || '#10B981')
+                            : (colors.primary || '#C6A052') // Use primary color instead of green
                       },
                     ]}
                   />

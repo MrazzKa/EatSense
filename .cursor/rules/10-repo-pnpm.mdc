@@ -1,0 +1,27 @@
+---
+description: Monorepo + pnpm discipline (no dependency chaos)
+globs: "**/*"
+---
+
+REPO STRUCTURE:
+- pnpm workspace monorepo (pnpm-workspace.yaml + pnpm-lock.yaml)
+- apps/api = NestJS backend (deployed to Railway)
+- root src/ = Expo mobile app (deployed via EAS)
+- Prisma migrations: apps/api/prisma
+
+PACKAGE MANAGER:
+- Use pnpm ONLY (never npm/yarn)
+- Lockfile: pnpm-lock.yaml (do NOT create package-lock.json or yarn.lock)
+- Install: `pnpm install`
+- Run scripts: `pnpm run <script>` or `pnpm <script>`
+- Add dep to root: `pnpm add <pkg>`
+- Add dep to api: `pnpm --filter eatsense-api add <pkg>`
+
+RULES:
+- Prefer editing the smallest number of files.
+- Do not add new dependencies unless necessary; if adding, justify and list alternatives.
+- When adding env vars: update example env docs (or the existing env template file).
+- When touching Prisma:
+  - update schema + migration strategy (deploy-safe)
+  - never "reset" production DB
+  - prefer additive migrations

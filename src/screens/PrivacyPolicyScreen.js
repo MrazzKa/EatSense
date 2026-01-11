@@ -16,13 +16,13 @@ const PRIVACY_POLICY_TEXT = `PRIVACY POLICY
 EatSense Mobile Application and Services
 Effective Date: December 13, 2025
 
-This Privacy Policy ("Policy") describes how EatSense SA, a company incorporated under the laws of Switzerland with its registered office in Geneva ("EatSense," "we," "us," or "our"), collects, uses, discloses, and otherwise processes personal data when you use our mobile application ("App"), website, and related services (collectively, the "Services").
+This Privacy Policy ("Policy") describes how TEMONAN Geneva Holdings Sàrl, a company incorporated under the laws of Switzerland with its registered office in Avully ("EatSense," "we," "us," or "our"), collects, uses, discloses, and otherwise processes personal data when you use our mobile application ("App"), website, and related services (collectively, the "Services").
 
 We comply with the Swiss Federal Act on Data Protection ("FADP"), the General Data Protection Regulation (EU) 2016/679 ("GDPR"), and other applicable data protection laws.
 
 1. DATA CONTROLLER AND ROLES
 
-1.1 Data Controller. EatSense SA is the data controller responsible for your personal data collected through the Services. As data controller, we determine the purposes and means of processing your personal data.
+1.1 Data Controller. TEMONAN Geneva Holdings Sàrl is the data controller responsible for your personal data collected through the Services. As data controller, we determine the purposes and means of processing your personal data.
 
 1.2 Data Processors. We engage third-party service providers who process personal data on our behalf and under our instructions ("Processors"). Our Processors include:
 • Cloud hosting and infrastructure providers
@@ -203,15 +203,15 @@ We may update this Policy periodically. We will notify you of material changes b
 15. CONTACT INFORMATION
 
 For questions or to exercise your rights:
-EatSense SA
+TEMONAN Geneva Holdings Sàrl
 Attn: Privacy Contact
-Geneva, Switzerland
-Email: privacy@eatsense.ch
+Avully, Switzerland
+Email: info@eatsense.ch
 
 For complaints, you may contact the Swiss Federal Data Protection and Information Commissioner (FDPIC) or your local supervisory authority.
 
 * * *
-EatSense SA — Smart Nutrition, Swiss Precision`;
+TEMONAN Geneva Holdings Sàrl — EatSense: Smart Nutrition, Swiss Precision`;
 
 export default function PrivacyPolicyScreen() {
   const navigation = useNavigation();
@@ -223,7 +223,7 @@ export default function PrivacyPolicyScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.closeButton}
           onPress={() => navigation && typeof navigation.goBack === 'function' ? navigation.goBack() : null}
         >
@@ -235,8 +235,8 @@ export default function PrivacyPolicyScreen() {
         <View style={styles.closeButton} />
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator
       >

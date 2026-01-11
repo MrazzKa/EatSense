@@ -1,0 +1,14 @@
+---
+description: Backend rules (NestJS/Prisma) — validation, logging, contracts
+globs: "apps/api/**/*.{ts,js,json,prisma}"
+---
+
+BACKEND PRINCIPLES:
+- Validate all incoming DTOs (class-validator / zod) and return structured errors (do not hide reasons behind plain 400).
+- When returning 400/422, include machine-readable details for the client.
+- Add logs for: auth, onboarding save, analysis pipeline stages, and all parsing failures.
+- Never silently "skip save" without also creating a failure record the client can show.
+
+PRISMA:
+- Additive migrations only.
+- If seeding content (articles/diets), make it idempotent AND updatable (update existing rows when fields change, e.g., imageUrl).

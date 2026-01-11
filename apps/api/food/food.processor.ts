@@ -2,7 +2,8 @@ import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { PrismaService } from '../prisma.service';
-import { FoodAnalyzerService } from './food-analyzer/food-analyzer.service';
+// NOTE: FoodAnalyzerService removed - was dead code (injected but never called)
+// All food analysis now uses AnalyzeService (with VisionService + NutritionOrchestrator)
 import { AnalyzeService } from '../src/analysis/analyze.service';
 import { MealsService } from '../meals/meals.service';
 import { MediaService } from '../media/media.service';
@@ -14,7 +15,7 @@ export class FoodProcessor {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly foodAnalyzer: FoodAnalyzerService,
+    // FoodAnalyzerService removed - dead code
     private readonly analyzeService: AnalyzeService,
     private readonly mealsService: MealsService,
     private readonly mediaService: MediaService,
@@ -22,7 +23,7 @@ export class FoodProcessor {
 
   @Process('analyze-image')
   async handleImageAnalysis(job: Job) {
-    const { analysisId, imageBufferBase64, userId: jobUserId, locale, foodDescription } = job.data;
+    const { analysisId, imageBufferBase64, userId: jobUserId, locale, foodDescription, skipCache } = job.data;
 
     // Получаем userId из анализа, так как он точно правильный
     const analysis = await this.prisma.analysis.findUnique({
@@ -122,7 +123,14 @@ export class FoodProcessor {
         imageUrl, // Pass imageUrl if available for better cache key generation
         locale,
         foodDescription: foodDescription || undefined, // Pass food description if provided
+        skipCache: skipCache || false, // Pass skip-cache flag for debugging
       });
+
+      // Check if analysis returned an error state (api_error, parse_error, no_food_detected)
+      const visionStatus = (analysisResult.debug as any)?.visionStatus;
+      const visionError = (analysisResult.debug as any)?.visionError;
+      const isVisionError = visionStatus === 'api_error' || visionStatus === 'parse_error';
+      const isNoFoodDetected = visionStatus === 'no_food_detected';
 
       // Transform to old format for compatibility
       const result: any = {
@@ -136,6 +144,9 @@ export class FoodProcessor {
         })),
         total: analysisResult.total,
         healthScore: analysisResult.healthScore,
+        // Include vision status info for debugging/display
+        visionStatus: visionStatus || 'success',
+        visionError: visionError || null,
       };
 
       // Automatically save to meals (Recently)
@@ -145,7 +156,17 @@ export class FoodProcessor {
           // Проверяем, существует ли пользователь
           const user = await this.prisma.user.findUnique({ where: { id: userId } });
           if (user) {
-            const dishName = items[0]?.name || 'Analyzed Meal';
+            // STAGE 1 FIX: Use dishNameLocalized for meal name, NOT first ingredient
+            // Priority: dishNameLocalized > originalDishName > first item name > fallback
+            const dishName = analysisResult.dishNameLocalized ||
+              analysisResult.originalDishName ||
+              items[0]?.name ||
+              'Analyzed Meal';
+
+            console.log(`[FoodProcessor] Autosave meal name: "${dishName}" (source: ${analysisResult.dishNameLocalized ? 'dishNameLocalized' :
+                analysisResult.originalDishName ? 'originalDishName' :
+                  items[0]?.name ? 'firstItem' : 'fallback'
+              })`);
             // Фильтруем и валидируем items перед сохранением
             // Relaxed validation: accept items with any nutrition data or reasonable portion
             const validItems = items
@@ -171,7 +192,26 @@ export class FoodProcessor {
                 const hasNutrition = item.calories > 0 || item.protein > 0 || item.fat > 0 || item.carbs > 0;
                 const hasReasonablePortion = item.weight >= 10; // At least 10g
 
-                return hasValidName && (hasNutrition || hasReasonablePortion);
+                const accepted = hasValidName && (hasNutrition || hasReasonablePortion);
+
+                // FIX #7: Log why specific items are rejected
+                if (!accepted) {
+                  this.logger.debug('[FoodProcessor] Item rejected from autosave:', {
+                    name: item.name,
+                    reason: !hasValidName
+                      ? 'invalid_name'
+                      : !hasNutrition && !hasReasonablePortion
+                        ? 'no_nutrition_and_tiny_portion'
+                        : 'unknown',
+                    calories: item.calories,
+                    protein: item.protein,
+                    fat: item.fat,
+                    carbs: item.carbs,
+                    weight: item.weight,
+                  });
+                }
+
+                return accepted;
               });
 
             // Task 14: Log WARN when auto-save filtering removes all items
@@ -208,6 +248,32 @@ export class FoodProcessor {
                 imageUri: imageUrl || null, // Include imageUrl when auto-saving meal
               });
               this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id})`);
+
+              // =====================================================
+              // OBSERVABILITY: Structured log of autosave mapping
+              // =====================================================
+              this.logger.log(JSON.stringify({
+                stage: 'autosave',
+                analysisId,
+                userId,
+                mealId: meal.id,
+                mealName: dishName,
+                dishNameLocalized: analysisResult.dishNameLocalized,
+                originalDishName: analysisResult.originalDishName,
+                dishNameSource: (analysisResult as any).dishNameSource,
+                itemCount: validItems.length,
+                filteredOut: items.length - validItems.length,
+                items: validItems.slice(0, 10).map(i => ({
+                  name: i.name,
+                  kcal: i.calories,
+                  protein: i.protein,
+                  carbs: i.carbs,
+                  fat: i.fat,
+                  weight: i.weight,
+                })),
+                imageUrl: imageUrl || null,
+              }));
+
               result.autoSave = {
                 mealId: meal.id,
                 savedAt: new Date().toISOString(),
@@ -229,9 +295,16 @@ export class FoodProcessor {
 
       // Save results (with optional auto-save metadata)
       // Include imageUrl in result data for future reanalysis
+      // CRITICAL: ALWAYS save an AnalysisResult, even for failed/empty analyses
       const resultDataWithImage = {
         ...result,
         imageUrl: imageUrl || null,
+        // Include error info for client display
+        analysisError: isVisionError ? {
+          code: visionError?.code || 'UNKNOWN_ERROR',
+          message: visionError?.message || 'Analysis failed',
+          status: visionStatus,
+        } : null,
       };
       await this.prisma.analysisResult.create({
         data: {
@@ -240,23 +313,43 @@ export class FoodProcessor {
         },
       });
 
-      // Update status based on whether we got valid items
-      // If no items were extracted or all were filtered, mark as NEEDS_REVIEW so user can retry
-      const hasValidItems = (analysisResult.items || []).length > 0;
-      const finalStatus = hasValidItems ? 'COMPLETED' : 'NEEDS_REVIEW';
+      // Determine final status based on vision result and items
+      // Priority: api_error → FAILED, parse_error → FAILED, no_food → NEEDS_REVIEW, no items → NEEDS_REVIEW, else → COMPLETED
+      let finalStatus: string;
+      let errorMessage: string | null = null;
+
+      if (isVisionError) {
+        // Vision API or parsing failed - mark as FAILED
+        finalStatus = 'FAILED';
+        errorMessage = visionError?.message || 'Failed to analyze image. Please try again.';
+        this.logger.error(`[FoodProcessor] Analysis ${analysisId} marked as FAILED: ${visionStatus}`, {
+          visionError,
+          analysisId,
+        });
+      } else if (isNoFoodDetected) {
+        // Vision worked but no food detected - mark as NEEDS_REVIEW (user can retry with different image)
+        finalStatus = 'NEEDS_REVIEW';
+        errorMessage = 'No food items could be identified in this image. Please try with a clearer photo.';
+        this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no food detected`);
+      } else {
+        // Normal case: check if we have valid items
+        const hasValidItems = (analysisResult.items || []).length > 0;
+        if (hasValidItems) {
+          finalStatus = 'COMPLETED';
+        } else {
+          finalStatus = 'NEEDS_REVIEW';
+          errorMessage = 'No food items could be identified in this image. Please try again with a clearer photo.';
+          this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no items after processing`);
+        }
+      }
 
       await this.prisma.analysis.update({
         where: { id: analysisId },
         data: {
           status: finalStatus,
-          // Add error message if no items were extracted
-          ...((!hasValidItems) && { error: 'No food items could be identified in this image. Please try again with a clearer photo.' }),
+          error: errorMessage,
         },
       });
-
-      if (!hasValidItems) {
-        this.logger.warn(`[FoodProcessor] Analysis ${analysisId} marked as NEEDS_REVIEW: no items extracted from image`);
-      }
 
       // Increment user stats for photo analysis
       if (userId && userId !== 'test-user' && userId !== 'temp-user') {
@@ -327,7 +420,7 @@ export class FoodProcessor {
 
   @Process('analyze-text')
   async handleTextAnalysis(job: Job) {
-    const { analysisId, description, userId, locale } = job.data;
+    const { analysisId, description, userId, locale, skipCache } = job.data;
 
     if (!analysisId) {
       this.logger.error('[FoodProcessor] handleTextAnalysis: missing analysisId in job data');
@@ -358,7 +451,7 @@ export class FoodProcessor {
       this.logger.debug(`[FoodProcessor] Text analysis ${analysisId} status updated to PROCESSING`);
 
       // Use new AnalyzeService for text analysis
-      const analysisResult = await this.analyzeService.analyzeText(description, locale);
+      const analysisResult = await this.analyzeService.analyzeText(description, locale, skipCache);
 
       this.logger.log(`[FoodProcessor] Text analysis ${analysisId} completed, items count: ${analysisResult.items?.length || 0}`);
 

@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { ArticleDetailDto, ArticleSummaryDto } from './dto/article.dto';
 
 // Derive the Article type from Prisma to avoid issues when the client type is regenerated
-type Article = Prisma.ArticleGetPayload<{}>;
+type Article = Prisma.ArticleGetPayload<Record<string, never>>;
 
 export const mapArticleToSummary = (article: Partial<Article>): ArticleSummaryDto => ({
   id: article.id!,

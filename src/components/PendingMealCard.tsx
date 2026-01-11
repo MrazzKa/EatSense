@@ -47,6 +47,41 @@ export function PendingMealCard({
     // Determine display image (prefer server URL, fallback to local preview)
     const displayImage = imageUrl || localPreviewUri;
 
+    // Rotating analysis phrases - moved from inside switch to component level
+    const PHRASE_INTERVAL_MS = 6000;
+    const phrases = React.useMemo(() => [
+        t('analysis.loading.analyzingPhoto') || 'Analyzing photo...',
+        t('analysis.loading.detectingFood') || 'Detecting food...',
+        t('analysis.loading.identifyingIngredients') || 'Identifying ingredients...',
+        t('analysis.loading.measuringPortions') || 'Measuring portions...',
+        t('analysis.loading.calculatingCalories') || 'Calculating calories...',
+        t('analysis.loading.analyzingProteins') || 'Analyzing proteins...',
+        t('analysis.loading.analyzingFats') || 'Analyzing fats...',
+        t('analysis.loading.analyzingCarbs') || 'Analyzing carbs...',
+        t('analysis.loading.checkingNutrients') || 'Checking nutrients...',
+        t('analysis.loading.consultingDatabase') || 'Consulting database...',
+        t('analysis.loading.verifyingData') || 'Verifying data...',
+        t('analysis.loading.preparingResults') || 'Preparing results...',
+        t('analysis.loading.almostDone') || 'Almost done...',
+        t('analysis.loading.finishingUp') || 'Finishing up...',
+        t('analysis.loading.justAMoment') || 'Just a moment...',
+    ], [t]);
+
+    const [phraseIndex, setPhraseIndex] = React.useState(0);
+
+    React.useEffect(() => {
+        if (status !== 'processing') return;
+        const interval = setInterval(() => {
+            setPhraseIndex(prev => {
+                if (prev >= phrases.length - 1) {
+                    return phrases.length - 3;
+                }
+                return prev + 1;
+            });
+        }, PHRASE_INTERVAL_MS);
+        return () => clearInterval(interval);
+    }, [status, phrases.length]);
+
     // Status-specific rendering
     const renderStatusContent = () => {
         switch (status) {
@@ -55,10 +90,10 @@ export function PendingMealCard({
                     <View style={styles.statusContainer}>
                         <View style={styles.statusTextContainer}>
                             <Text style={[styles.statusTitle, { color: colors.text }]}>
-                                {t('dashboard.diary.analyzing') || 'Analyzing...'}
+                                {phrases[phraseIndex]}
                             </Text>
                             <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
-                                {t('dashboard.diary.analyzingHint') || 'This may take 10-30 seconds'}
+                                {t('dashboard.diary.analyzingHint') || 'This may take up to 2 minutes'}
                             </Text>
                         </View>
                     </View>

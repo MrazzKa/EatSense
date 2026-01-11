@@ -40,6 +40,7 @@ export class NotificationsService {
     return {
       dailyPushEnabled: prefs.dailyPushEnabled,
       dailyPushHour: prefs.dailyPushHour,
+      dailyPushMinute: prefs.dailyPushMinute ?? 0,
       timezone: prefs.timezone,
       lastPushSentAt: prefs.lastPushSentAt,
     };
@@ -47,11 +48,11 @@ export class NotificationsService {
 
   async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
     this.logger.log(`[NotificationsService] updatePreferences() called for userId=${userId}`);
-    
+
     try {
       // Normalize and validate input data
       const updateData: any = {};
-      
+
       // Handle dailyPushEnabled
       if (dto.dailyPushEnabled !== undefined) {
         // Ensure it's a boolean
@@ -60,20 +61,20 @@ export class NotificationsService {
           updateData.lastPushSentAt = null;
         }
       }
-      
+
       // Handle dailyPushHour - ensure it's a valid integer between 0-23
       if (dto.dailyPushHour !== undefined) {
-        const hour = typeof dto.dailyPushHour === 'string' 
-          ? parseInt(dto.dailyPushHour, 10) 
+        const hour = typeof dto.dailyPushHour === 'string'
+          ? parseInt(dto.dailyPushHour, 10)
           : Number(dto.dailyPushHour);
-        
+
         if (Number.isNaN(hour) || hour < 0 || hour > 23) {
           throw new BadRequestException('dailyPushHour must be an integer between 0 and 23');
         }
         updateData.dailyPushHour = hour;
         updateData.lastPushSentAt = null;
       }
-      
+
       // Handle timezone
       if (dto.timezone !== undefined) {
         const zone = dto.timezone?.trim() || 'UTC';
@@ -82,6 +83,19 @@ export class NotificationsService {
           throw new BadRequestException(`Invalid timezone provided: ${zone}`);
         }
         updateData.timezone = zone;
+      }
+
+      // Handle dailyPushMinute - ensure it's a valid integer between 0-59
+      if (dto.dailyPushMinute !== undefined) {
+        const minute = typeof dto.dailyPushMinute === 'string'
+          ? parseInt(dto.dailyPushMinute, 10)
+          : Number(dto.dailyPushMinute);
+
+        if (Number.isNaN(minute) || minute < 0 || minute > 59) {
+          throw new BadRequestException('dailyPushMinute must be an integer between 0 and 59');
+        }
+        updateData.dailyPushMinute = minute;
+        updateData.lastPushSentAt = null;
       }
 
       // Get existing preferences for defaults
@@ -96,6 +110,7 @@ export class NotificationsService {
           userId,
           dailyPushEnabled: updateData.dailyPushEnabled ?? false,
           dailyPushHour: updateData.dailyPushHour ?? (Number.isNaN(this.defaultHour) ? 8 : this.defaultHour),
+          dailyPushMinute: updateData.dailyPushMinute ?? 0,
           timezone: updateData.timezone ?? 'UTC',
           lastPushSentAt: null,
         },
@@ -109,6 +124,7 @@ export class NotificationsService {
       return {
         dailyPushEnabled: prefs.dailyPushEnabled,
         dailyPushHour: prefs.dailyPushHour,
+        dailyPushMinute: prefs.dailyPushMinute ?? 0,
         timezone: prefs.timezone,
         lastPushSentAt: prefs.lastPushSentAt,
       };

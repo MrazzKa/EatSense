@@ -21,8 +21,10 @@ export default function SpecialistListScreen({ navigation, route }: SpecialistLi
     const loadSpecialists = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await MarketplaceService.getSpecialists(filter ? { type: filter } : {});
-            setSpecialists(Array.isArray(data) ? data : []);
+            const response = await MarketplaceService.getExperts(filter ? { type: filter } : {});
+            // Handle both old array format and new { experts, total } format
+            const data = response?.experts || (Array.isArray(response) ? response : []);
+            setSpecialists(data);
         } catch (error) {
             console.error('Failed to load specialists:', error);
             setSpecialists([]);
@@ -56,51 +58,63 @@ export default function SpecialistListScreen({ navigation, route }: SpecialistLi
         { id: 'nutritionist', labelKey: 'experts.nutritionist.title' },
     ];
 
-    const renderSpecialist = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => navigation.navigate('SpecialistProfile', { id: item.id })}
-        >
-            <View style={styles.cardHeader}>
-                {item.avatarUrl ? (
-                    <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
-                ) : (
-                    <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + '20' }]}>
-                        <Ionicons name="person" size={24} color={colors.primary} />
+    const renderSpecialist = ({ item }: { item: any }) => {
+        // Get first published offer for price display
+        const firstOffer = item.offers?.[0];
+        const priceDisplay = firstOffer
+            ? (firstOffer.priceType === 'FREE' ? t('common.free', 'Free') : `${firstOffer.currency || '$'} ${firstOffer.priceAmount || 0}`)
+            : t('common.free', 'Free');
+
+        return (
+            <TouchableOpacity
+                style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={() => navigation.navigate('ExpertProfile', { id: item.id })}
+            >
+                <View style={styles.cardHeader}>
+                    {item.avatarUrl ? (
+                        <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
+                    ) : (
+                        <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + '20' }]}>
+                            <Ionicons name="person" size={24} color={colors.primary} />
+                        </View>
+                    )}
+                    <View style={styles.cardInfo}>
+                        <View style={styles.nameRow}>
+                            <Text style={[styles.name, { color: colors.textPrimary }]}>{item.displayName}</Text>
+                            {item.isVerified && <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />}
+                        </View>
+                        <Text style={[styles.type, { color: colors.textSecondary }]}>
+                            {item.type === 'dietitian' ? t('experts.dietitian.title') : t('experts.nutritionist.title')}
+                        </Text>
+                        <View style={styles.ratingRow}>
+                            {renderStars(Math.round(item.rating || 0))}
+                            <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({item.reviewCount || 0})</Text>
+                        </View>
                     </View>
-                )}
-                <View style={styles.cardInfo}>
-                    <View style={styles.nameRow}>
-                        <Text style={[styles.name, { color: colors.textPrimary }]}>{item.displayName}</Text>
-                        {item.isVerified && <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />}
+                    <View style={styles.priceContainer}>
+                        <Text style={[styles.price, { color: colors.primary }]}>{priceDisplay}</Text>
+                        {firstOffer && firstOffer.priceType !== 'FREE' && (
+                            <Text style={[styles.pricePeriod, { color: colors.textSecondary }]}>
+                                {firstOffer.durationDays ? `/ ${firstOffer.durationDays} ${t('common.days')}` : ''}
+                            </Text>
+                        )}
                     </View>
-                    <Text style={[styles.type, { color: colors.textSecondary }]}>
-                        {item.type === 'dietitian' ? t('experts.dietitian.title') : t('experts.nutritionist.title')}
+                </View>
+                {item.bio && (
+                    <Text style={[styles.bio, { color: colors.textSecondary }]} numberOfLines={2}>
+                        {item.bio}
                     </Text>
-                    <View style={styles.ratingRow}>
-                        {renderStars(Math.round(item.rating))}
-                        <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({item.reviewCount})</Text>
-                    </View>
+                )}
+                <View style={styles.languages}>
+                    {item.languages?.map((lang: string) => (
+                        <View key={lang} style={[styles.langBadge, { backgroundColor: colors.primary + '15' }]}>
+                            <Text style={[styles.langText, { color: colors.primary }]}>{lang.toUpperCase()}</Text>
+                        </View>
+                    ))}
                 </View>
-                <View style={styles.priceContainer}>
-                    <Text style={[styles.price, { color: colors.primary }]}>{item.currency} {item.pricePerWeek}</Text>
-                    <Text style={[styles.pricePeriod, { color: colors.textSecondary }]}>/ 7 {t('common.days')}</Text>
-                </View>
-            </View>
-            {item.bio && (
-                <Text style={[styles.bio, { color: colors.textSecondary }]} numberOfLines={2}>
-                    {item.bio}
-                </Text>
-            )}
-            <View style={styles.languages}>
-                {item.languages?.map((lang: string) => (
-                    <View key={lang} style={[styles.langBadge, { backgroundColor: colors.primary + '15' }]}>
-                        <Text style={[styles.langText, { color: colors.primary }]}>{lang.toUpperCase()}</Text>
-                    </View>
-                ))}
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
 
     if (loading) {
         return (

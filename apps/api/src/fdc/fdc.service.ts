@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma.service';
 import { FtsService } from './fts/fts.service';
@@ -29,7 +30,7 @@ export class FdcService {
     private readonly fts: FtsService,
     private readonly cache: CacheService,
   ) {
-    this.requestTimeoutMs = parseInt(process.env.FDC_TIMEOUT_MS || '10000', 10);
+    this.requestTimeoutMs = parseInt(process.env.FDC_TIMEOUT_MS || '5000', 10);
     this.maxRetries = parseInt(process.env.FDC_MAX_RETRIES || '3', 10);
   }
 
@@ -140,8 +141,8 @@ export class FdcService {
     if (opts?.nutrients?.length) body.nutrients = opts.nutrients;
 
     try {
-      const { data } = await firstValueFrom(
-        this.http.post('/v1/foods', body),
+      const { data } = await firstValueFrom<AxiosResponse<any>>(
+        this.http.post('/v1/foods', body) as any,
       );
 
       return data;
@@ -162,16 +163,15 @@ export class FdcService {
     sortOrder?: 'asc' | 'desc';
   }) {
     try {
-      const { data } = await firstValueFrom(
-        this.http.post('/v1/foods/list', body),
-      );
+      // Use requestWithRetry which adds api_key as query parameter
+      const { data } = await this.requestWithRetry('post', '/v1/foods/list', { body });
 
       return data;
     } catch (error: any) {
       if (error.response?.status === 429) {
         throw new HttpException('USDA API rate limit exceeded', HttpStatus.TOO_MANY_REQUESTS);
       }
-      console.error('[FDC] List foods error:', error.message);
+      this.logger.error(`[FDC] List foods error: ${error.message}`);
       throw new HttpException(`USDA API error: ${error.message}`, error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -209,17 +209,17 @@ export class FdcService {
         } else if (nutrientId === 1008 && calories === 0) {
           calories = value;
         }
-        
+
         // Protein (ID 1003)
         if (nutrientId === 1003) {
           protein = value;
         }
-        
+
         // Fat (ID 1004)
         if (nutrientId === 1004) {
           fat = value;
         }
-        
+
         // Carbs (ID 1005)
         if (nutrientId === 1005) {
           carbs = value;
@@ -239,18 +239,27 @@ export class FdcService {
     const isRetryable = (status?: number) => !status || status >= 500 || status === 429 || status === 408;
     let lastError: any;
 
+    // USDA FDC API requires api_key as query parameter, not header
+    const apiKey = process.env.FDC_API_KEY || process.env.USDA_API_KEY;
+    const paramsWithKey = {
+      ...(options.params || {}),
+      ...(apiKey ? { api_key: apiKey } : {}),
+    };
+
     while (attempt <= this.maxRetries) {
       try {
         if (method === 'get') {
-          const resp = await firstValueFrom(
-            this.http.get(url, { params: options.params, timeout: this.requestTimeoutMs }),
+          const resp = await firstValueFrom<AxiosResponse<any>>(
+            this.http.get(url, { params: paramsWithKey, timeout: this.requestTimeoutMs }) as any,
           );
-          return resp as any;
+          return resp;
         } else {
-          const resp = await firstValueFrom(
-            this.http.post(url, options.body, { timeout: this.requestTimeoutMs }),
+          // For POST requests, add api_key to URL as query param
+          const urlWithKey = apiKey ? `${url}${url.includes('?') ? '&' : '?'}api_key=${apiKey}` : url;
+          const resp = await firstValueFrom<AxiosResponse<any>>(
+            this.http.post(urlWithKey, options.body, { timeout: this.requestTimeoutMs }) as any,
           );
-          return resp as any;
+          return resp;
         }
       } catch (err: any) {
         lastError = err;
@@ -387,16 +396,16 @@ export class FdcService {
         label: label ? { create: label } : undefined,
         portions: food.foodPortions?.length
           ? {
-              createMany: {
-                skipDuplicates: true,
-                data: food.foodPortions.map((p: any) => ({
-                  gramWeight: p.gramWeight || 0,
-                  measureUnit: p.measureUnit?.abbreviation || p.measureUnit || 'g',
-                  modifier: p.modifier || null,
-                  amount: p.amount ?? null,
-                })),
-              },
-            }
+            createMany: {
+              skipDuplicates: true,
+              data: food.foodPortions.map((p: any) => ({
+                gramWeight: p.gramWeight || 0,
+                measureUnit: p.measureUnit?.abbreviation || p.measureUnit || 'g',
+                modifier: p.modifier || null,
+                amount: p.amount ?? null,
+              })),
+            },
+          }
           : undefined,
       },
       update: {
@@ -407,11 +416,11 @@ export class FdcService {
         source: 'USDA_API',
         label: label
           ? {
-              upsert: {
-                create: label,
-                update: label,
-              },
-            }
+            upsert: {
+              create: label,
+              update: label,
+            },
+          }
           : undefined,
       },
       include: { label: true },

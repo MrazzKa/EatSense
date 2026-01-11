@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { FoodProcessor } from '../food/food.processor';
 import { PrismaModule } from '../prisma.module';
-import { FoodAnalyzerModule } from '../food/food-analyzer/food-analyzer.module';
+// NOTE: FoodAnalyzerModule removed - was dead code (injected but never called)
+// All food analysis now uses AnalysisModule (AnalyzeService + VisionService)
 import { AnalysisModule } from '../src/analysis/analysis.module';
 import { MealsModule } from '../meals/meals.module';
 import { MediaModule } from '../media/media.module';
@@ -10,7 +11,7 @@ import { MediaModule } from '../media/media.module';
 @Module({
   imports: [
     PrismaModule,
-    FoodAnalyzerModule,
+    // FoodAnalyzerModule removed - dead code, replaced by AnalysisModule
     AnalysisModule,
     MealsModule,
     MediaModule,

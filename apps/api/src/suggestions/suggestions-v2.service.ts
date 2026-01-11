@@ -117,6 +117,26 @@ export class SuggestionsV2Service {
                 this.logger.debug(`[SuggestionsV2] healthScore=${healthScore}, sections=${sections.length}`);
             }
 
+            // STEP 4: Structured observability log for suggestions pipeline
+            this.logger.log(JSON.stringify({
+                stage: 'suggestions_v2',
+                userId,
+                locale,
+                goal,
+                mealsAnalyzed: stats.mealsCount,
+                daysWithMeals: stats.daysWithMeals,
+                severities: {
+                    protein: severities.protein,
+                    fiber: severities.fiber,
+                    fat: severities.fat,
+                    carbs: severities.carbs,
+                },
+                healthScore,
+                healthLevel,
+                sectionsCount: sections.length,
+                sectionTypes: sections.map(s => s.id),
+            }));
+
             return {
                 status: 'ok',
                 locale,

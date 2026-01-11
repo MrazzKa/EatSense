@@ -9,6 +9,7 @@ import {
 } from './nutrition-provider.interface';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 type SwissName = { id: number; term: string };
 type SwissSynonym = { id: number; term: string };
@@ -59,7 +60,7 @@ export class SwissFoodProvider implements INutritionProvider {
   private componentMap: { [code: string]: number } = {};
   private componentsLoaded = false;
 
-  constructor(private readonly http: HttpService) {}
+  constructor(private readonly http: HttpService) { }
 
   async isAvailable(context: NutritionLookupContext): Promise<boolean> {
     if (process.env.SWISS_FOOD_ENABLED === 'false') {
@@ -84,8 +85,8 @@ export class SwissFoodProvider implements INutritionProvider {
 
     try {
       const url = `${this.baseUrl}/webresources/BLV-api/components`;
-      const resp = await firstValueFrom(
-        this.http.get<SwissComponent[]>(url, { params: { lang: 'en' } }),
+      const resp = await firstValueFrom<AxiosResponse<SwissComponent[]>>(
+        this.http.get<SwissComponent[]>(url, { params: { lang: 'en' } }) as any,
       );
 
       const components = resp.data || [];
@@ -139,7 +140,7 @@ export class SwissFoodProvider implements INutritionProvider {
     // Ensure component map is loaded
     if (!this.componentsLoaded) {
       // Synchronous fallback - will be loaded async next time
-      this.loadComponentMap().catch(() => {});
+      this.loadComponentMap().catch(() => { });
     }
 
     for (const v of food.values) {
@@ -230,7 +231,7 @@ export class SwissFoodProvider implements INutritionProvider {
   ): Promise<NutritionProviderResult | null> {
     const excelPath =
       process.env.SWISS_FOOD_XLSX_PATH || 'data/swiss_food_composition.xlsx';
-    
+
     // Check if file exists (would need fs access)
     // For now, return null - implement when Excel file is available
     this.logger.debug(
@@ -246,80 +247,117 @@ export class SwissFoodProvider implements INutritionProvider {
     const trimmed = query?.trim().toLowerCase();
     if (!trimmed) return null;
 
+    // Import matching utils
+    const {
+      buildQueryVariants,
+      nameMatchScore,
+      getLookupMode,
+      MATCH_THRESHOLDS,
+    } = await import('../utils/name-match');
+
+    const mode = getLookupMode(context);
+    const queryVariants = buildQueryVariants(trimmed);
+
     // Load component map if needed
     await this.loadComponentMap();
 
     try {
-      // Step 1: Search for foods
-      const searchUrl = `${this.baseUrl}/webresources/BLV-api/foods`;
-      const searchResp = await firstValueFrom(
-        this.http.get<SwissFoodWithNames[]>(searchUrl, {
-          params: {
-            search: trimmed,
-            type: true, // generic foods
-            lang: 'en',
-            limit: 5,
-          },
-        }),
-      );
+      let bestMatch: SwissFoodWithNames | null = null;
+      let bestMatchScore = 0;
+      let bestVariant = trimmed;
+      let allFoods: SwissFoodWithNames[] = [];
 
-      const foods = searchResp.data || [];
-      if (foods.length === 0) {
-        return null;
-      }
+      // Try each query variant (max 2 API calls to stay fast)
+      const variantsToTry = queryVariants.slice(0, 2);
 
-      // Step 2: Find best match (prioritize exact name match)
-      let bestMatch = foods[0];
-      const queryLower = trimmed.toLowerCase();
+      for (const variant of variantsToTry) {
+        const searchUrl = `${this.baseUrl}/webresources/BLV-api/foods`;
+        const searchResp = await firstValueFrom<AxiosResponse<SwissFoodWithNames[]>>(
+          this.http.get<SwissFoodWithNames[]>(searchUrl, {
+            params: {
+              search: variant,
+              type: true, // generic foods
+              lang: context.locale === 'ru' ? 'en' : (context.locale || 'en'),
+              limit: 10,
+            },
+          }) as any,
+        );
 
-      for (const food of foods) {
-        const primaryName = food.names?.[0]?.term?.toLowerCase() || '';
-        if (primaryName.includes(queryLower) || queryLower.includes(primaryName)) {
-          bestMatch = food;
+        const foods = searchResp.data || [];
+        allFoods = allFoods.concat(foods);
+
+        // Score each candidate
+        for (const food of foods) {
+          // Build candidate name from first few name terms
+          const nameTerms = (food.names || []).slice(0, 3).map(n => n.term).join(' ');
+          const candidateName = nameTerms || `Food ${food.id}`;
+
+          // Calculate match score against all query variants
+          let maxScore = 0;
+          for (const qv of queryVariants) {
+            const score = nameMatchScore(qv, candidateName);
+            if (score > maxScore) maxScore = score;
+          }
+
+          if (maxScore > bestMatchScore) {
+            bestMatchScore = maxScore;
+            bestMatch = food;
+            bestVariant = variant;
+          }
+        }
+
+        // Early return if good match found (avoid second API call)
+        if (bestMatchScore >= 0.85) {
           break;
         }
       }
 
-      // Step 3: Get DBID from foodId
+      // No results at all
+      if (!bestMatch || allFoods.length === 0) {
+        return null;
+      }
+
+      // Hard reject in ingredient mode if match is too weak
+      if (mode === 'ingredient' && bestMatchScore < MATCH_THRESHOLDS.HARD_REJECT) {
+        this.logger.debug(`[Swiss] Rejecting weak match for "${trimmed}": score=${bestMatchScore.toFixed(2)}`);
+        return null;
+      }
+
+      // Get DBID from foodId
       let dbid: number;
       try {
         const dbidUrl = `${this.baseUrl}/webresources/BLV-api/fooddbid/${bestMatch.id}`;
-        const dbidResp = await firstValueFrom(
-          this.http.get<SwissFoodDbIdResponse>(dbidUrl),
+        const dbidResp = await firstValueFrom<AxiosResponse<SwissFoodDbIdResponse>>(
+          this.http.get<SwissFoodDbIdResponse>(dbidUrl) as any,
         );
         dbid = dbidResp.data?.dbid || bestMatch.id;
       } catch (error: any) {
-        // Fallback: use foodId as DBID
         this.logger.debug(
           `[SwissFoodProvider] Could not get DBID for foodId=${bestMatch.id}, using foodId as DBID`,
         );
         dbid = bestMatch.id;
       }
 
-      // Step 4: Get full food data
+      // Get full food data
       const foodUrl = `${this.baseUrl}/webresources/BLV-api/food/${dbid}`;
-      const foodResp = await firstValueFrom(
-        this.http.get<SwissFood>(foodUrl, { params: { lang: 'en' } }),
+      const foodResp = await firstValueFrom<AxiosResponse<SwissFood>>(
+        this.http.get<SwissFood>(foodUrl, { params: { lang: 'en' } }) as any,
       );
 
       const food = foodResp.data;
       if (!food) return null;
 
-      // Step 5: Map nutrients
+      // Map nutrients
       const nutrients = this.mapSwissNutrients(food);
 
-      // Step 6: Determine category
+      // Determine category
       const category = this.detectCategory(query, food.name);
 
-      // Step 7: Calculate confidence
-      let confidence = 0.8;
-      const primaryName = bestMatch.names?.[0]?.term || '';
-      const primaryNameLower = primaryName.toLowerCase();
-      if (primaryNameLower.includes(queryLower) || queryLower.includes(primaryNameLower)) {
-        confidence = 0.9;
-      }
+      // Confidence based on match score
+      const confidence = Math.min(1, Math.max(0, 0.45 + 0.55 * bestMatchScore));
 
-      // Step 8: Build CanonicalFood
+      // Build CanonicalFood
+      const primaryName = bestMatch.names?.[0]?.term || '';
       const canonicalFood: CanonicalFood = {
         providerId: this.id,
         providerFoodId: String(dbid),
@@ -337,36 +375,41 @@ export class SwissFoodProvider implements INutritionProvider {
         },
       };
 
+      this.logger.debug(`[Swiss] Best match for "${trimmed}": "${canonicalFood.displayName}" (score=${bestMatchScore.toFixed(2)}, conf=${confidence.toFixed(2)}, variant="${bestVariant}")`);
+
       return {
         food: canonicalFood,
         confidence,
+        isSuspicious: bestMatchScore < MATCH_THRESHOLDS.SUSPICIOUS,
         debug: {
           foodId: bestMatch.id,
           dbid,
           primaryName,
+          matchScore: bestMatchScore,
+          queryVariant: bestVariant,
+          candidatesEvaluated: allFoods.length,
         },
       };
     } catch (error: any) {
       this.logger.warn(
         `[SwissFoodProvider] Error searching for "${trimmed}": ${error.message}`,
       );
-      
+
       // Fallback to Excel if API consistently fails
-      // Check if error is network-related (ECONNREFUSED, ETIMEDOUT, etc.)
       const isNetworkError =
         error.code === 'ECONNREFUSED' ||
         error.code === 'ETIMEDOUT' ||
         error.code === 'ENOTFOUND' ||
         error.message?.includes('timeout') ||
         error.message?.includes('ECONNREFUSED');
-      
+
       if (isNetworkError) {
         this.logger.debug(
           `[SwissFoodProvider] Network error detected, attempting Excel fallback`,
         );
         return await this.findByTextExcelFallback(trimmed, context);
       }
-      
+
       return null;
     }
   }

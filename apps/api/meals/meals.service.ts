@@ -88,6 +88,10 @@ export class MealsService {
       return {
         ...meal,
         imageUrl: meal.imageUri || null, // Use imageUri as imageUrl for frontend
+        // STAGE 2 FIX: Add displayName = dishNameLocalized || name for UI
+        displayName: (meal as any).dishNameLocalized || meal.name,
+        dishNameLocalized: (meal as any).dishNameLocalized || null,
+        originalDishName: (meal as any).originalDishName || null,
         // B: Add totals for frontend Recent items display
         totalCalories: totals.calories,
         totalProtein: totals.protein,

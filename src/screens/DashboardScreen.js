@@ -26,6 +26,8 @@ import LabResultsModal from '../components/LabResultsModal';
 import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
+import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
 
 
 // Helper function to get image URL from item (handles various field names and resolves relative URLs)
@@ -69,6 +71,7 @@ export default function DashboardScreen() {
     dailyLimit: 3,
   });
   const [suggestedFoodSummary, setSuggestedFoodSummary] = useState(null);
+  const [activeDiet, setActiveDiet] = useState(null);
   const [cardAnimations] = useState(() => ({
     calories: new Animated.Value(0),
     stats: new Animated.Value(0),
@@ -265,12 +268,40 @@ export default function DashboardScreen() {
     }
   }, [language]);
 
+  // Load active diet for dashboard widget from store
+  const { activeProgram, refreshProgress } = useProgramProgress();
+  
+  React.useEffect(() => {
+    if (activeProgram && activeProgram.type === 'diet') {
+      setActiveDiet({
+        diet: {
+          id: activeProgram.programId,
+          name: activeProgram.programName || 'Diet',
+          color: '#4CAF50', // TODO: Get from program details
+        },
+        streak: activeProgram.streak?.current || 0,
+        todayProgress: {
+          completed: activeProgram.todayLog?.completedCount || 0,
+          total: activeProgram.todayLog?.totalCount || 0,
+        },
+        currentDay: activeProgram.currentDayIndex,
+        totalDays: activeProgram.durationDays,
+      });
+    } else {
+      setActiveDiet(null);
+    }
+  }, [activeProgram]);
+  
+  // Refresh progress on focus
+  useRefreshProgressOnFocus();
+
   // Load data on mount and when date changes
   useEffect(() => {
     loadStats();
     loadUserStats();
     loadSuggestedFoodSummary();
     loadRecentItems();
+    // loadActiveDiet is now handled by useProgramProgress
   }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
   // Теперь используем функции в хуках ПОСЛЕ их определения
@@ -284,15 +315,9 @@ export default function DashboardScreen() {
       loadUserStats();
       loadSuggestedFoodSummary();
       loadRecentItems();
+      // loadActiveDiet is now handled by useProgramProgress
     }, [loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems])
   );
-
-  useEffect(() => {
-    loadStats();
-    loadUserStats();
-    loadSuggestedFoodSummary();
-    loadRecentItems();
-  }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
 
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
@@ -368,11 +393,11 @@ export default function DashboardScreen() {
     // return stats && stats.todayPhotosAnalyzed >= stats.dailyLimit;
   };
 
-  const handlePlusPress = () => {
+  const handlePlusPress = async () => {
     if (__DEV__) {
-      console.log('[Dashboard] FAB plus button pressed');
+      console.log('[Dashboard] FAB plus button pressed - opening gallery directly');
     }
-    // Check limit before opening modal
+    // Check limit before opening gallery
     if (hasReachedDailyLimit(userStats)) {
       if (__DEV__) {
         console.log('[Dashboard] Daily limit reached, showing alert');
@@ -398,11 +423,8 @@ export default function DashboardScreen() {
       }).start();
     });
 
-    // Show modal with options
-    if (__DEV__) {
-      console.log('[Dashboard] Opening FAB modal');
-    }
-    setShowModal(true);
+    // Open gallery directly
+    await handleGalleryPress();
   };
 
   const [showModal, setShowModal] = useState(false);
@@ -584,6 +606,21 @@ export default function DashboardScreen() {
             <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
           </View>
         </Animated.View>
+
+        {/* Active Diet Widget */}
+        <ActiveDietWidget
+          activeDiet={activeDiet}
+          onOpenTracker={() => {
+            if (navigation && typeof navigation.navigate === 'function' && activeDiet?.diet?.id) {
+              navigation.navigate('DietProgramProgress', { id: activeDiet.diet.id });
+            }
+          }}
+          onBrowseDiets={() => {
+            if (navigation && typeof navigation.navigate === 'function') {
+              navigation.navigate('Diets');
+            }
+          }}
+        />
 
         {/* PART A: Section 2 - Recent meals (short list) */}
         <Animated.View

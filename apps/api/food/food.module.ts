@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { FoodController } from './food.controller';
 import { FoodService } from './food.service';
-import { FoodAnalyzerModule } from './food-analyzer/food-analyzer.module';
+// NOTE: FoodAnalyzerModule removed - was dead code (injected but never called)
+// All food analysis now uses AnalysisModule (AnalyzeService + VisionService)
 import { AnalysisModule } from '../src/analysis/analysis.module';
 import { PrismaModule } from '../prisma.module';
 import { RedisModule } from '../redis/redis.module';
@@ -16,7 +17,7 @@ import { MediaModule } from '../media/media.module';
     BullModule.registerQueue({
       name: 'food-analysis',
     }),
-    FoodAnalyzerModule,
+    // FoodAnalyzerModule removed - dead code, replaced by AnalysisModule
     AnalysisModule,
     RedisModule,
     LimitsModule,

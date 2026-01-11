@@ -283,8 +283,8 @@
     "title": "Long-term risk factors"
   },
   "chat": {
-    "daysRemaining": "days remaining",
     "consultationEnded": "Consultation ended",
+    "daysRemaining": "days remaining",
     "shareMeals": "Share Meals",
     "shareMealsConfirm": "Share your meals from the last 7 days?",
     "startConversation": "Start the conversation!",
@@ -397,8 +397,8 @@
       },
       "gotIt": "Got it",
       "insufficientData": {
-        "title": "Not Enough Data",
-        "message": "Add a few more meals to get personalized recommendations"
+        "message": "Add a few more meals to get personalized recommendations",
+        "title": "Not Enough Data"
       },
       "loading": "Loading suggestions...",
       "retry": "Retry",
@@ -459,26 +459,26 @@
     "title": "Describe your meal"
   },
   "dietPrograms": {
-    "title": "Diet Programs",
-    "empty": "No programs available",
     "about": "About",
-    "previewDay1": "Day 1 Preview",
-    "startProgram": "Start Program",
-    "startConfirm": "Start",
-    "day": "Day",
+    "categories": {
+      "all": "All",
+      "athletes": "Athletes",
+      "historical": "Historical",
+      "hollywood": "Hollywood"
+    },
     "completeDay": "Complete Day",
-    "finishProgram": "Finish Program",
     "completed": "Congratulations!",
     "completedMessage": "You completed the program!",
+    "day": "Day",
+    "empty": "No programs available",
+    "finishProgram": "Finish Program",
     "kcalDay": "kcal/day",
     "level": "Level",
     "notFound": "Progress not found",
-    "categories": {
-      "all": "All",
-      "hollywood": "Hollywood",
-      "athletes": "Athletes",
-      "historical": "Historical"
-    }
+    "previewDay1": "Day 1 Preview",
+    "startConfirm": "Start",
+    "startProgram": "Start Program",
+    "title": "Diet Programs"
   },
   "editFood": {
     "calculate": "计算: {{value}}",
@@ -497,18 +497,18 @@
     "weightHint": "份量"
   },
   "errors": {
+    "cameraNotAvailable": "Camera function not available",
+    "cameraPermission": "Failed to request camera permission",
+    "completeDay": "Failed to complete day",
+    "loadFailed": "Failed to load images from gallery",
+    "navNotAvailable": "Navigation not available. Please restart the app.",
     "photoFailed": "Failed to take photo",
     "selectFailed": "Failed to select image",
-    "loadFailed": "Failed to load images from gallery",
-    "cameraPermission": "Failed to request camera permission",
-    "cameraNotAvailable": "Camera function not available",
-    "takePictureFailed": "Failed to take picture",
-    "startConsultation": "Failed to start consultation",
     "sendMessage": "Failed to send message",
     "shareMeals": "Failed to share meals",
+    "startConsultation": "Failed to start consultation",
     "startProgram": "Failed to start program",
-    "completeDay": "Failed to complete day",
-    "navNotAvailable": "Navigation not available. Please restart the app."
+    "takePictureFailed": "Failed to take picture"
   },
   "experts": {
     "about": "About",
@@ -536,27 +536,27 @@
     "viewChats": "View your active chats"
   },
   "feedbackScreen": {
-    "title": "Send Feedback",
-    "ratingQuestion": "How would you rate your experience?",
-    "category": "Category",
-    "yourFeedback": "Your Feedback",
-    "placeholder": "Tell us what you think...",
-    "submitting": "Submitting...",
-    "submit": "Submit Feedback",
+    "alerts": {
+      "emptyFeedback": "Please enter your feedback",
+      "error": "Failed to submit feedback. Please try again.",
+      "noCategory": "Please select a category",
+      "success": "Your feedback has been submitted successfully",
+      "thankYou": "Thank you!"
+    },
     "categories": {
       "bug": "Bug Report",
       "feature": "Feature Request",
-      "ui": "UI/UX Issue",
+      "other": "Other",
       "performance": "Performance",
-      "other": "Other"
+      "ui": "UI/UX Issue"
     },
-    "alerts": {
-      "emptyFeedback": "Please enter your feedback",
-      "noCategory": "Please select a category",
-      "success": "Your feedback has been submitted successfully",
-      "thankYou": "Thank you!",
-      "error": "Failed to submit feedback. Please try again."
-    }
+    "category": "Category",
+    "placeholder": "Tell us what you think...",
+    "ratingQuestion": "How would you rate your experience?",
+    "submit": "Submit Feedback",
+    "submitting": "Submitting...",
+    "title": "Send Feedback",
+    "yourFeedback": "Your Feedback"
   },
   "foodCompatibility": {
     "issues": "What could be improved",
@@ -570,11 +570,11 @@
     "title": "Food compatibility"
   },
   "foodDescriptionPrompt": {
-    "title": "What did you eat?",
-    "subtitle": "This will help us better analyze your meal",
+    "confirm": "Continue",
     "placeholder": "For example: khachapuri, borscht, salad...",
     "skip": "Skip",
-    "confirm": "Continue"
+    "subtitle": "This will help us better analyze your meal",
+    "title": "What did you eat?"
   },
   "gallery": {
     "accessDenied": "图库访问",
@@ -627,34 +627,34 @@
     "title": "健康评分"
   },
   "help": {
-    "title": "Help & Support",
-    "faqTitle": "Frequently Asked Questions",
     "contactTitle": "Contact Us",
-    "feedbackTitle": "Feedback",
-    "feedbackSubtitle": "Share your ideas",
-    "feedbackAlert": "Thank you for your interest! The feedback feature is coming soon.",
     "faq": {
-      "howToUse": {
-        "question": "How to use the app?",
-        "answer": "Take a photo of your food or choose one from your gallery. Our AI will analyze the dish and show you calories and nutrients."
-      },
-      "photoLimit": {
-        "question": "How many photos can I analyze?",
-        "answer": "Free users can analyze up to 5 photos per day. Subscribers have unlimited access."
-      },
-      "saveMeal": {
-        "question": "How do I save a meal?",
-        "answer": "After analysis, tap \"Save to Journal\" to add the meal to your food diary."
+      "aiAssistant": {
+        "answer": "AI Assistant provides personalized nutrition advice based on your profile and eating habits.",
+        "question": "How does AI Assistant work?"
       },
       "editResults": {
-        "question": "Can I edit analysis results?",
-        "answer": "Yes, you can tap on any ingredient to manually adjust its values."
+        "answer": "Yes, you can tap on any ingredient to manually adjust its values.",
+        "question": "Can I edit analysis results?"
       },
-      "aiAssistant": {
-        "question": "How does AI Assistant work?",
-        "answer": "AI Assistant provides personalized nutrition advice based on your profile and eating habits."
+      "howToUse": {
+        "answer": "Take a photo of your food or choose one from your gallery. Our AI will analyze the dish and show you calories and nutrients.",
+        "question": "How to use the app?"
+      },
+      "photoLimit": {
+        "answer": "Free users can analyze up to 5 photos per day. Subscribers have unlimited access.",
+        "question": "How many photos can I analyze?"
+      },
+      "saveMeal": {
+        "answer": "After analysis, tap \"Save to Journal\" to add the meal to your food diary.",
+        "question": "How do I save a meal?"
       }
-    }
+    },
+    "faqTitle": "Frequently Asked Questions",
+    "feedbackAlert": "Thank you for your interest! The feedback feature is coming soon.",
+    "feedbackSubtitle": "Share your ideas",
+    "feedbackTitle": "Feedback",
+    "title": "Help & Support"
   },
   "legal": {
     "privacyLink": "Privacy Policy",
@@ -707,38 +707,167 @@
     "title": "Medication schedule"
   },
   "notifications": {
+    "enableFailed": "Could not enable notifications.",
     "enabled": "Notifications enabled!",
-    "notEnabled": "Notifications were not enabled.",
-    "enableFailed": "Could not enable notifications."
+    "notEnabled": "Notifications were not enabled."
   },
   "onboarding": {
     "activity": "How active are you?",
+    "activityLevels": {
+      "extremelyActive": "Extremely Active",
+      "extremelyActiveDesc": "Very heavy exercise, physical job",
+      "lightlyActive": "Lightly Active",
+      "lightlyActiveDesc": "Light exercise 1-3 days/week",
+      "moderatelyActive": "Moderately Active",
+      "moderatelyActiveDesc": "Moderate exercise 3-5 days/week",
+      "sedentary": "Sedentary",
+      "sedentaryDesc": "Little to no exercise",
+      "veryActive": "Very Active",
+      "veryActiveDesc": "Heavy exercise 6-7 days/week"
+    },
+    "activitySubtitle": "This helps us calculate your calorie needs",
     "age": "How old are you?",
+    "ageSubtitle": "Age helps personalize your nutrition plan",
     "breath": "Do you get shortness of breath?",
+    "buttons": {
+      "back": "Back",
+      "complete": "Complete Setup",
+      "getStarted": "Get Started",
+      "next": "Next",
+      "skip": "Skip"
+    },
     "care": "We care about you",
     "diet": "Are you following any diet?",
+    "dietSubtitle": "Choose a diet type that suits you",
+    "dietTypes": {
+      "balanced": "Balanced",
+      "balancedDesc": "Varied diet without restrictions",
+      "highProtein": "High Protein",
+      "highProteinDesc": "Focus on protein for muscles",
+      "keto": "Keto",
+      "ketoDesc": "Very low carbs, high fat",
+      "lowCarb": "Low Carb",
+      "lowCarbDesc": "Less carbs, more protein and fat",
+      "mediterranean": "Mediterranean",
+      "mediterraneanDesc": "Fish, vegetables, olive oil",
+      "vegan": "Vegan",
+      "veganDesc": "Plant-based foods only",
+      "vegetarian": "Vegetarian",
+      "vegetarianDesc": "No meat, fish and dairy allowed"
+    },
+    "features": {
+      "analysis": "AI Food Analysis",
+      "analysisDesc": "Instant dish recognition and calories",
+      "insights": "Health Insights",
+      "insightsDesc": "Personalized AI recommendations",
+      "tracking": "Smart Tracking",
+      "trackingDesc": "Simple food journal with history"
+    },
     "gender": "What's your gender?",
+    "genderSubtitle": "Needed for accurate calorie calculation",
+    "genders": {
+      "female": "Female",
+      "male": "Male",
+      "other": "Other"
+    },
+    "goalTypes": {
+      "gainWeight": "Gain Weight",
+      "loseWeight": "Lose Weight",
+      "maintainWeight": "Maintain Weight"
+    },
     "goals": "目标",
+    "goalsSubtitle": "Choose what you want to achieve",
     "health": "What should we know about you?",
+    "healthConditions": {
+      "allergies": "Allergies",
+      "diabetes": "Diabetes",
+      "heartDisease": "Heart Disease",
+      "hypertension": "Hypertension",
+      "none": "None of the above"
+    },
+    "healthSubtitle": "Select if any apply to you",
     "height": "What's your height?",
+    "heightSubtitle": "Needed for ideal weight calculation",
     "loading": "Creating your plan",
+    "loadingSubtitle": "Analyzing your data...",
     "notifications": "Enable notifications",
+    "notificationsSubtitle": "Reminders help you achieve your goals",
+    "obstacleTypes": {
+      "budget": "Limited budget",
+      "habits": "Bad habits",
+      "knowledge": "Don't know where to start",
+      "motivation": "Lack of motivation",
+      "stress": "Stress",
+      "time": "Lack of time"
+    },
     "obstacles": "What prevents you from reaching your goal?",
+    "obstaclesSubtitle": "Select all that apply",
     "plan": "选择您的计划",
+    "planSubtitle": "Select a plan that works for you",
+    "plans": {
+      "finePrint": "You can change plans or cancel anytime from Settings.",
+      "free": {
+        "badge": "Included",
+        "features": [
+          "AI food analysis (3/day)",
+          "Daily calorie tracking",
+          "Basic statistics"
+        ],
+        "headline": "Get started with the essentials",
+        "name": "EatSense Free",
+        "price": "$0 forever"
+      },
+      "proAnnual": {
+        "badge": "Save 33%",
+        "features": [
+          "Everything in Pro Monthly",
+          "Exclusive annual webinars",
+          "Early access to new features"
+        ],
+        "headline": "Best value — save 33%",
+        "name": "EatSense Pro",
+        "price": "$79.99 / year"
+      },
+      "proMonthly": {
+        "badge": "Most Popular",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Personalized coaching tips",
+          "Priority support"
+        ],
+        "headline": "Unlock everything with flexible billing",
+        "name": "EatSense Pro",
+        "price": "$9.99 / month"
+      }
+    },
     "summary": "Your choices",
+    "summarySubtitle": "Review your information",
     "support": "We care about you",
     "targetWeight": "What weight do you want?",
+    "targetWeightSubtitle": "What weight are you aiming for?",
     "trust": "Thank you for trusting us",
+    "trustSubtitle": "We'll help you achieve your goals",
+    "units": {
+      "cm": "cm",
+      "ft": "ft",
+      "in": "in",
+      "kg": "kg",
+      "lbs": "lbs",
+      "years": "years"
+    },
     "walking": "How much do you walk?",
     "weight": "What's your weight?",
     "weightRate": "Weight change rate",
-    "welcome": "欢迎使用EatSense"
+    "weightSubtitle": "Current weight is needed for calorie calculation",
+    "welcome": "欢迎使用EatSense",
+    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!"
   },
   "permissions": {
     "cameraRequired": "Camera permission is required to take photos",
+    "grantAccess": "Please grant access to your photo library",
     "mediaRequired": "Media library permission is required to select photos",
-    "required": "Permission required",
-    "grantAccess": "Please grant access to your photo library"
+    "required": "Permission required"
   },
   "privacy": {
     "intro": "EatSense重视您的隐私。本政策描述了我们如何收集、使用和保护您的信息。",
@@ -965,18 +1094,18 @@
     "yesterday": "昨天"
   },
   "referral": {
-    "title": "Invite Friends",
-    "heroTitle": "Give 7 days, Get 7 days",
-    "heroSubtitle": "Invite friends and both of you get 7 days of PRO free!",
-    "yourCode": "Your referral code",
-    "share": "Share with friends",
-    "invited": "Friends invited",
     "earnedDays": "Days earned",
+    "heroSubtitle": "Invite friends and both of you get 7 days of PRO free!",
+    "heroTitle": "Give 7 days, Get 7 days",
     "history": "Recent invites",
     "howItWorks": "How it works",
+    "invited": "Friends invited",
+    "share": "Share with friends",
     "step1": "Share your code with friends",
     "step2": "They sign up with your code",
-    "step3": "You both get 7 days PRO free!"
+    "step3": "You both get 7 days PRO free!",
+    "title": "Invite Friends",
+    "yourCode": "Your referral code"
   },
   "reports": {
     "deleteConfirm": "Delete this report from history?",
@@ -988,8 +1117,8 @@
     },
     "fileSaved": "Report saved",
     "history": {
-      "title": "Recent Reports",
-      "subtitle": "Previously downloaded reports"
+      "subtitle": "Previously downloaded reports",
+      "title": "Recent Reports"
     },
     "monthly": {
       "downloadCurrent": "Download current month",
@@ -1091,8 +1220,8 @@
   },
   "validation": {
     "requiredField": "Required Field",
-    "selectGoal": "Please select your goal.",
+    "selectActivity": "Please select your activity level.",
     "selectGender": "Please select your gender.",
-    "selectActivity": "Please select your activity level."
+    "selectGoal": "Please select your goal."
   }
 }

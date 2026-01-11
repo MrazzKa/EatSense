@@ -12,6 +12,7 @@ import { PrismaModule } from '../../prisma.module';
 import { CacheModule } from '../cache/cache.module';
 import { NutritionModule } from './providers/nutrition.module';
 import { AnalysisValidatorService } from './validation/analysis-validator.service';
+import { HealthFeedbackAiService } from './health-feedback-ai.service';
 
 @Module({
   imports: [HybridModule, PrismaModule, CacheModule, NutritionModule],
@@ -23,6 +24,7 @@ import { AnalysisValidatorService } from './validation/analysis-validator.servic
     FoodCompatibilityService,
     CarcinogenicRiskService,
     AnalysisValidatorService,
+    HealthFeedbackAiService, // STEP 3: AI-powered health feedback
     AnalyzeService,
     LocalFoodService,
   ],

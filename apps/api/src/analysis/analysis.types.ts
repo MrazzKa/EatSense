@@ -44,7 +44,8 @@ export interface HiddenIngredientEstimate {
 }
 
 export interface AnalyzedItem {
-  id?: string;
+  /** Stable unique ID (uuid) - persists through entire pipeline */
+  id: string;
   // Localized display name for UI (short, in user's locale)
   name: string;
   // Normalized English base name (for FDC / internal logic)
@@ -53,7 +54,7 @@ export interface AnalyzedItem {
   label?: string;
   portion_g: number;   // фактический вес порции в граммах
   nutrients: Nutrients;
-  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir' | 'reanalysis' | 'canonical_beverage' | 'hidden_ingredient';
+  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir' | 'reanalysis' | 'canonical_beverage' | 'hidden_ingredient' | 'gpt_trusted';
   fdcId?: string | number;
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)
@@ -61,6 +62,27 @@ export interface AnalyzedItem {
   locale?: 'en' | 'ru' | 'kk';
   // Flag indicating if nutrition data is available (false = no data, show "No nutrition data")
   hasNutrition?: boolean;
+  /** Food category from Vision or provider */
+  category?: 'protein' | 'grain' | 'veg' | 'fruit' | 'fat' | 'seeds' | 'spice' | 'sauce' | 'drink' | 'dairy' | 'other';
+  /** Confidence score from Vision/provider (0-1) */
+  confidence?: number;
+  /** Provider that supplied nutrition data */
+  provider?: 'usda' | 'openfoodfacts' | 'swiss' | 'vision' | 'hybrid' | 'gpt' | 'unknown';
+  /** Flag if this item has suspicious/implausible nutrition values */
+  isSuspicious?: boolean;
+  /** Flag if Vision fallback was used (provider match rejected) */
+  isFallback?: boolean;
+  /** Detailed source information for transparency */
+  sourceInfo?: {
+    /** Where the display name came from */
+    name: 'vision' | 'provider';
+    /** Where the nutrients came from */
+    nutrients: 'vision' | 'provider' | 'derived';
+    /** Provider ID if from provider */
+    providerId?: string;
+    /** Reason for fallback if isFallback=true */
+    fallbackReason?: string;
+  };
   // Manual edits by user:
   userEditedName?: string;      // If user renamed component (e.g., "рис" → "рыба хе")
   userEditedPortionG?: number;  // If user changed portion
@@ -157,13 +179,14 @@ export interface AnalysisSanityIssue {
 
 export interface AnalysisDebugComponentEntry {
   type:
-    | 'matched'
-    | 'no_match'
-    | 'low_score'
-    | 'no_overlap'
-    | 'food_not_found'
-    | 'vision_fallback'
-    | 'portion_clamped';
+  | 'matched'
+  | 'no_match'
+  | 'low_score'
+  | 'no_overlap'
+  | 'food_not_found'
+  | 'vision_fallback'
+  | 'portion_clamped'
+  | 'weight_provenance'; // STEP 3: Added for weight tracking
   vision?: any;
   bestMatch?: any;
   score?: number;
@@ -198,14 +221,14 @@ export type FoodCompatibilityScoreLabel =
 export interface FoodCompatibilityIssue {
   /** Машинный код правила: нужен для отладки и локализации на фронте */
   code:
-    | 'sugar_plus_saturated_fat'
-    | 'very_high_energy_density'
-    | 'low_fiber_high_carbs'
-    | 'low_protein_meal'
-    | 'heavy_evening_meal'
-    | 'too_many_processed_meats'
-    | 'too_many_refined_carbs'
-    | 'other';
+  | 'sugar_plus_saturated_fat'
+  | 'very_high_energy_density'
+  | 'low_fiber_high_carbs'
+  | 'low_protein_meal'
+  | 'heavy_evening_meal'
+  | 'too_many_processed_meats'
+  | 'too_many_refined_carbs'
+  | 'other';
   severity: FoodCompatibilitySeverity;
   /** Краткий заголовок на английском. На фронте можно локализовать по code. */
   title: string;
@@ -219,13 +242,13 @@ export interface FoodCompatibilityIssue {
 
 export interface FoodCompatibilityPositiveHighlight {
   code:
-    | 'good_protein_fiber_balance'
-    | 'moderate_energy_density'
-    | 'low_sugar'
-    | 'whole_grains'
-    | 'good_veggie_portion'
-    | 'balanced_macros'
-    | 'other';
+  | 'good_protein_fiber_balance'
+  | 'moderate_energy_density'
+  | 'low_sugar'
+  | 'whole_grains'
+  | 'good_veggie_portion'
+  | 'balanced_macros'
+  | 'other';
   title: string;
   description: string;
   relatedItems?: string[];
@@ -288,10 +311,22 @@ export interface AnalysisData {
   needsReview?: boolean; // флаг: все макросы нулевые или анализ не уверен
   // Preferred locale used during analysis / localization
   locale?: 'en' | 'ru' | 'kk';
-  // Localized dish name for UI (short, in user's locale)
+  
+  // =====================================================
+  // DISH NAME FIELDS (STEP 2: Stabilized naming)
+  // =====================================================
+  // displayName: Ready-to-use localized name for UI (PREFERRED)
+  // Frontend should use this field directly without additional processing
+  displayName?: string;
+  // Localized dish name for UI (short, in user's locale) - alias for displayName
   dishNameLocalized?: string;
   // Normalized English dish name base (for internal use)
   originalDishName?: string;
+  // Source of the dish name: 'vision' (from OpenAI), 'generated' (from items), 'neutral' (fallback)
+  dishNameSource?: 'vision' | 'generated' | 'neutral';
+  // Confidence score for the dish name (0-1)
+  dishNameConfidence?: number;
+  
   // Image URL for display (absolute URL or data URI)
   imageUrl?: string;
   // Image URI for backward compatibility

@@ -31,7 +31,10 @@ import ConsultationsListScreen from './src/screens/ConsultationsListScreen';
 import DietProgramsListScreen from './src/screens/DietProgramsListScreen';
 import DietProgramDetailScreen from './src/screens/DietProgramDetailScreen';
 import DietProgramProgressScreen from './src/screens/DietProgramProgressScreen';
+import LifestyleDetailScreen from './src/screens/LifestyleDetailScreen';
 import ReferralScreen from './src/screens/ReferralScreen';
+import ExpertProfileScreen from './src/screens/ExpertProfileScreen';
+import ConsultationChatScreen from './src/screens/ConsultationChatScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 import { clientLog } from './src/utils/clientLog';
 
@@ -229,8 +232,23 @@ function AppContent() {
               options={{ presentation: 'card' }}
             />
             <Stack.Screen
+              name="LifestyleDetail"
+              component={LifestyleDetailScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
               name="Referral"
               component={ReferralScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="ExpertProfile"
+              component={ExpertProfileScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="ConsultationChat"
+              component={ConsultationChatScreen}
               options={{ presentation: 'card' }}
             />
           </Stack.Navigator>

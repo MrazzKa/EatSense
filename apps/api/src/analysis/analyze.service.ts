@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
-import { VisionService, VisionComponent } from './vision.service';
+import { VisionService, VisionComponent, VisionDish } from './vision.service';
 import { PortionService } from './portion.service';
 import { CacheService } from '../cache/cache.service';
 import { normalizeFoodName } from './text-utils';
@@ -39,6 +39,7 @@ import { FoodCompatibilityService } from './food-compatibility.service';
 import { CarcinogenicRiskService } from './carcinogenic-risk.service';
 import { HiddenIngredientEstimate } from './analysis.types';
 import { AnalysisValidatorService } from './validation/analysis-validator.service';
+import { HealthFeedbackAiService } from './health-feedback-ai.service';
 // Import types - interfaces are exported from nutrition-provider.interface.ts
 // Note: If TypeScript shows import errors, restart TS server or check that file is saved
 import type {
@@ -101,6 +102,43 @@ export class AnalyzeService {
     'beer', 'wine', 'cocktail', 'drink', 'beverage',
     'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко',
   ];
+
+  // Generic dish names that should NOT be used - trigger neutral fallback instead
+  // These are names that Vision might return but don't describe the actual dish
+  private readonly GENERIC_DISH_NAMES = new Set([
+    // English
+    'mixed plate', 'meal', 'lunch', 'food', 'dish', 'plate',
+    'breakfast', 'dinner', 'snack', 'main course', 'side dish',
+    'food analysis', 'analyzed meal', 'unknown food', 'unknown dish',
+    // Russian
+    'тарелка', 'блюдо', 'еда', 'обед', 'ужин', 'завтрак', 'перекус',
+    'смешанная тарелка', 'приём пищи', 'основное блюдо',
+    // Kazakh
+    'тағам', 'тамақ', 'түскі ас', 'кешкі ас', 'таңғы ас',
+  ]);
+
+  // Common well-known foods that can safely use GPT estimates (skip slow provider queries)
+  private readonly SIMPLE_PRODUCTS = [
+    // English
+    'chicken', 'egg', 'rice', 'tomato', 'potato', 'bread', 'apple', 'banana',
+    'milk', 'cheese', 'carrot', 'corn', 'broccoli', 'cucumber', 'lettuce',
+    'salmon', 'tuna', 'beef', 'pork', 'pasta', 'oatmeal', 'yogurt', 'butter',
+    'avocado', 'onion', 'garlic', 'pepper', 'spinach', 'beans', 'lentils',
+    // Russian
+    'курица', 'яйцо', 'рис', 'помидор', 'картофель', 'хлеб', 'яблоко', 'банан',
+    'молоко', 'сыр', 'морковь', 'кукуруза', 'брокколи', 'огурец', 'салат',
+    'лосось', 'тунец', 'говядина', 'свинина', 'макароны', 'овсянка', 'йогурт',
+    'авокадо', 'лук', 'чеснок', 'перец', 'шпинат', 'фасоль', 'чечевица',
+  ];
+
+  /**
+   * Check if a product is a simple, well-known food item.
+   * Used for GPT fast path - skip provider queries for common foods with high-confidence GPT estimates.
+   */
+  private isSimpleWellKnownProduct(name: string): boolean {
+    const nameLower = name.toLowerCase();
+    return this.SIMPLE_PRODUCTS.some(p => nameLower.includes(p));
+  }
 
   private readonly FOOD_SYNONYMS: Map<string, string> = new Map([
     // Яйца
@@ -531,6 +569,7 @@ export class AnalyzeService {
     private readonly foodCompatibility: FoodCompatibilityService,
     private readonly carcinogenicRisk: CarcinogenicRiskService,
     private readonly validator: AnalysisValidatorService,
+    private readonly healthFeedbackAi: HealthFeedbackAiService, // STEP 3: AI feedback
   ) { }
 
   /**
@@ -548,11 +587,20 @@ export class AnalyzeService {
     fdcServingSizeG: number | null,
     debug?: AnalysisDebug,
   ): number {
-    const originalEstimate = component.est_portion_g && component.est_portion_g > 0
-      ? component.est_portion_g
-      : fdcServingSizeG && fdcServingSizeG > 0
-        ? fdcServingSizeG
-        : 150;
+    // STEP 3 FIX: Track weight provenance (source of portion estimate)
+    let weightSource: 'vision' | 'provider' | 'default' = 'default';
+    let originalEstimate: number;
+
+    if (component.est_portion_g && component.est_portion_g > 0) {
+      originalEstimate = component.est_portion_g;
+      weightSource = 'vision';
+    } else if (fdcServingSizeG && fdcServingSizeG > 0) {
+      originalEstimate = fdcServingSizeG;
+      weightSource = 'provider';
+    } else {
+      originalEstimate = 150;
+      weightSource = 'default';
+    }
 
     // Determine min/max based on category and is_minor flag
     let minPortion = 10;
@@ -597,21 +645,42 @@ export class AnalyzeService {
 
     // Apply clamping
     let portion = originalEstimate;
-    if (portion < minPortion) portion = minPortion;
-    if (portion > maxPortion) portion = maxPortion;
+    let wasClamped = false;
+    let clampReason = '';
 
-    // Log clamping in debug mode
-    if (process.env.ANALYSIS_DEBUG === 'true' && debug && portion !== originalEstimate) {
+    if (portion < minPortion) {
+      portion = minPortion;
+      wasClamped = true;
+      clampReason = `below_min_${minPortion}g`;
+    }
+    if (portion > maxPortion) {
+      portion = maxPortion;
+      wasClamped = true;
+      clampReason = `above_max_${maxPortion}g`;
+    }
+
+    // STEP 3 FIX: Always log weight provenance (not just when clamped)
+    if (debug) {
       debug.components = debug.components || [];
       debug.components.push({
-        type: 'portion_clamped',
+        type: 'weight_provenance',
         componentName: component.name,
-        originalPortionG: originalEstimate,
+        visionEstimateG: component.est_portion_g || null,
+        providerServingG: fdcServingSizeG,
+        originalEstimateG: originalEstimate,
         finalPortionG: portion,
+        weightSource,
+        wasClamped,
+        clampReason: clampReason || null,
         category: category || (isMinor ? 'minor' : 'default'),
         minPortion,
         maxPortion,
       });
+    }
+
+    // Log explicit warning if vision weight was overridden significantly
+    if (weightSource === 'vision' && wasClamped && Math.abs(portion - originalEstimate) > 20) {
+      this.logger.warn(`[AnalyzeService] STEP 3: Vision weight ${originalEstimate}g was clamped to ${portion}g for "${component.name}" (${clampReason})`);
     }
 
     return portion;
@@ -623,6 +692,189 @@ export class AnalyzeService {
   private round(value: number, decimals: number = 1): number {
     const factor = Math.pow(10, decimals);
     return Math.round(value * factor) / factor;
+  }
+
+  /**
+   * Helper: Create empty totals object for error/empty states
+   */
+  private createEmptyTotals(): AnalysisTotals {
+    return {
+      portion_g: 0,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      fiber: 0,
+      sugars: 0,
+      satFat: 0,
+      energyDensity: 0,
+    };
+  }
+
+  /**
+   * PHASE 2: Calculate totals from items with numerical invariant enforcement
+   *
+   * Invariants enforced:
+   * 1. totals = Σ item.nutrients (for all macro fields)
+   * 2. calories correlate with macros via 4/4/9 rule (within 15% tolerance)
+   * 3. No negative values
+   * 4. Consistent rounding (1 decimal for macros, 0 for calories/portion)
+   *
+   * @param items - Array of AnalyzedItem with nutrients
+   * @returns AnalysisTotals with enforced invariants
+   */
+  private calculateTotalsWithInvariants(items: AnalyzedItem[]): AnalysisTotals {
+    if (!items || items.length === 0) {
+      return this.createEmptyTotals();
+    }
+
+    // Step 1: Sum all item nutrients
+    const rawTotals = items.reduce(
+      (acc, item) => {
+        const n = item.nutrients;
+        acc.portion_g += item.portion_g || 0;
+        acc.calories += n.calories || 0;
+        acc.protein += n.protein || 0;
+        acc.carbs += n.carbs || 0;
+        acc.fat += n.fat || 0;
+        acc.fiber += n.fiber || 0;
+        acc.sugars += n.sugars || 0;
+        acc.satFat += n.satFat || 0;
+        return acc;
+      },
+      {
+        portion_g: 0,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugars: 0,
+        satFat: 0,
+        energyDensity: 0,
+      },
+    );
+
+    // Step 2: Apply consistent rounding
+    const totals: AnalysisTotals = {
+      portion_g: Math.round(rawTotals.portion_g),
+      calories: Math.round(rawTotals.calories),
+      protein: this.round(rawTotals.protein, 1),
+      carbs: this.round(rawTotals.carbs, 1),
+      fat: this.round(rawTotals.fat, 1),
+      fiber: this.round(rawTotals.fiber, 1),
+      sugars: this.round(rawTotals.sugars, 1),
+      satFat: this.round(rawTotals.satFat, 1),
+      energyDensity: 0,
+    };
+
+    // Step 3: Enforce no negative values
+    for (const key of Object.keys(totals) as Array<keyof AnalysisTotals>) {
+      const val = totals[key];
+      if (typeof val === 'number' && val < 0) {
+        (totals as any)[key] = 0;
+      }
+    }
+
+    // Step 4: Calculate expected calories from macros (4/4/9 rule)
+    // protein: 4 kcal/g, carbs: 4 kcal/g, fat: 9 kcal/g
+    // fiber: 2 kcal/g (often not absorbed), alcohol: 7 kcal/g (not tracked here)
+    const calculatedCalories = Math.round(
+      totals.protein * 4 + totals.carbs * 4 + totals.fat * 9,
+    );
+
+    // Step 5: Check calorie-macro correlation
+    const reportedCalories = totals.calories;
+    const tolerance = Math.max(30, reportedCalories * 0.15); // 15% or 30 kcal
+
+    if (reportedCalories > 0 && Math.abs(calculatedCalories - reportedCalories) > tolerance) {
+      // Log the mismatch for debugging
+      if (process.env.ANALYSIS_DEBUG === 'true') {
+        this.logger.warn('[AnalyzeService] Calorie-macro mismatch detected', {
+          reportedCalories,
+          calculatedCalories,
+          diff: Math.abs(calculatedCalories - reportedCalories),
+          tolerance,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+        });
+      }
+
+      // Use calculated calories if more reliable (within reasonable range)
+      // Only adjust if calculated is within realistic bounds (not zero when reported isn't)
+      if (calculatedCalories > 0 || reportedCalories === 0) {
+        totals.calories = calculatedCalories;
+      }
+    }
+
+    // Step 6: Calculate energy density (kcal per 100g)
+    if (totals.portion_g > 0) {
+      totals.energyDensity = this.round((totals.calories / totals.portion_g) * 100, 1);
+    }
+
+    return totals;
+  }
+
+  /**
+   * PHASE 2: Enforce item-level macro-calorie consistency
+   *
+   * For each item, ensures:
+   * 1. Calories correlate with P*4 + C*4 + F*9 (within tolerance)
+   * 2. No negative nutrient values
+   * 3. Consistent rounding
+   *
+   * @param item - AnalyzedItem to validate/correct
+   * @returns Corrected AnalyzedItem
+   */
+  private enforceItemMacroConsistency(item: AnalyzedItem): AnalyzedItem {
+    const n = item.nutrients;
+
+    // Round all values consistently
+    const protein = this.round(Math.max(0, n.protein || 0), 1);
+    const carbs = this.round(Math.max(0, n.carbs || 0), 1);
+    const fat = this.round(Math.max(0, n.fat || 0), 1);
+    const fiber = this.round(Math.max(0, n.fiber || 0), 1);
+    const sugars = this.round(Math.max(0, n.sugars || 0), 1);
+    const satFat = this.round(Math.max(0, n.satFat || 0), 1);
+
+    // Calculate expected calories from macros
+    const calculatedCalories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+    const reportedCalories = Math.round(Math.max(0, n.calories || 0));
+
+    // Check correlation (15% tolerance or 20 kcal minimum)
+    const tolerance = Math.max(20, reportedCalories * 0.15);
+    let finalCalories = reportedCalories;
+
+    if (reportedCalories > 0 && Math.abs(calculatedCalories - reportedCalories) > tolerance) {
+      // Use calculated calories if reasonable
+      if (calculatedCalories > 0) {
+        finalCalories = calculatedCalories;
+      }
+    } else if (reportedCalories === 0 && calculatedCalories > 0) {
+      // If reported is 0 but we can calculate from macros, use calculated
+      finalCalories = calculatedCalories;
+    }
+
+    // Calculate energy density
+    const portion_g = Math.max(0, item.portion_g || 0);
+    const energyDensity = portion_g > 0 ? this.round((finalCalories / portion_g) * 100, 1) : 0;
+
+    return {
+      ...item,
+      portion_g: Math.round(portion_g),
+      nutrients: {
+        ...n,
+        calories: finalCalories,
+        protein,
+        carbs,
+        fat,
+        fiber,
+        sugars,
+        satFat,
+        energyDensity,
+      },
+    };
   }
 
   /**
@@ -645,6 +897,57 @@ export class AnalyzeService {
       // category and volume_ml may not exist in VisionComponent type
       const category = (component as any).category;
       const volume_ml = (component as any).volume_ml;
+
+      // FAST PATH: For simple well-known products with high-confidence GPT estimates,
+      // skip provider queries entirely. This significantly speeds up analysis.
+      const useGptFastPath = process.env.USE_GPT_FAST_PATH !== 'false'; // Enabled by default
+      if (useGptFastPath) {
+        const isSimple = this.isSimpleWellKnownProduct(name);
+        const estNutrients = (component as any).estimated_nutrients;
+        const nutritionConfidence = (component as any).nutritionConfidence ?? 0;
+        const hasGoodEstimate = estNutrients?.calories > 0 && nutritionConfidence >= 0.80;
+
+        if (isSimple && hasGoodEstimate) {
+          const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
+          const localizedName = await this.foodLocalization.localizeName(name, locale);
+
+          const fastPathItem: AnalyzedItem = {
+            id: crypto.randomUUID(),
+            name: localizedName || name,
+            originalName: name,
+            label: name,
+            portion_g: portionG,
+            nutrients: {
+              calories: estNutrients.calories,
+              protein: estNutrients.protein_g || 0,
+              carbs: estNutrients.carbs_g || 0,
+              fat: estNutrients.fat_g || 0,
+              fiber: estNutrients.fiber_g || 0,
+              sugars: estNutrients.sugars_g || 0,
+              satFat: estNutrients.satFat_g || 0,
+              energyDensity: portionG > 0 ? (estNutrients.calories / portionG) * 100 : 0,
+            },
+            source: 'gpt_trusted',
+            locale,
+            hasNutrition: true,
+            provider: 'gpt',
+            cookingMethodHints: this.extractCookingMethodHints(component),
+          };
+
+          items.push(fastPathItem);
+          debug.components.push({
+            type: 'matched',
+            vision: component,
+            provider: 'gpt_fast_path',
+            confidence: nutritionConfidence,
+            skippedProvider: true,
+            reason: 'simple_product_with_high_confidence_gpt_estimate',
+          });
+
+          this.logger.debug(`[AnalyzeService] GPT fast path for "${name}" (conf: ${nutritionConfidence.toFixed(2)})`);
+          return items;
+        }
+      }
 
       // 1) Проверяем напиток ПЕРЕД вызовом провайдеров
       const beverageDetection = this.detectBeverageForItem({
@@ -690,6 +993,7 @@ export class AnalyzeService {
         const localizedName = await this.foodLocalization.localizeName(baseNameEn, locale);
 
         const beverageItem: AnalyzedItem = {
+          id: crypto.randomUUID(),
           name: localizedName || baseNameEn,
           originalName: baseNameEn,
           label: name,
@@ -709,6 +1013,7 @@ export class AnalyzeService {
           source,
           locale,
           hasNutrition: beverageDetection.kind !== 'water',
+          category: 'drink',
           cookingMethodHints: this.extractCookingMethodHints(component),
         };
 
@@ -740,12 +1045,25 @@ export class AnalyzeService {
       const isDrinkComponent = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
       const expectedCategory: 'drink' | 'solid' | 'unknown' = isDrinkComponent ? 'drink' : 'unknown';
 
-      // Build lookup context
-      // TODO: Get user region from profile/preferences
+      // Build lookup context with mode for name-match validation
+      // Map Vision category_hint to NutritionLookupContext categoryHint
+      const visionCategoryHint = (component as any).category_hint;
+      const categoryHint = visionCategoryHint === 'protein' ? 'protein'
+        : visionCategoryHint === 'grain' ? 'grain'
+        : visionCategoryHint === 'veg' ? 'veg'
+        : visionCategoryHint === 'fruit' ? 'fruit'
+        : visionCategoryHint === 'fat' ? 'fat'
+        : visionCategoryHint === 'seeds' ? 'other'
+        : visionCategoryHint === 'drink' ? 'other'
+        : undefined;
+      
       const lookupContext: NutritionLookupContext = {
         locale,
         region: locale === 'en' ? 'US' : 'EU', // Simple mapping for now
         expectedCategory,
+        mode: 'ingredient', // Image analysis = ingredient mode (not packaged food)
+        originalQuery: component.name, // For name-match validation
+        categoryHint, // From Vision for category-based filtering (fixes corn→oil)
       };
 
       // Try to find nutrition data via orchestrator
@@ -789,12 +1107,20 @@ export class AnalyzeService {
       // Calculate nutrients for portion (provider data is per 100g/ml)
       let nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
 
-      // CORRECTION: If provider returns 0/low calories but we have Vision estimates, use Vision
-      // This fixes the "0/0/0" bug for foods found in DB but with missing data
-      if (nutrients.calories < 5 && component.estimated_nutrients && !isDrink) {
-        const est = component.estimated_nutrients;
-        if (est.calories && est.calories > 10) {
-          this.logger.warn(`[AnalyzeService] Provider returned ~0 kcal for "${component.name}", falling back to Vision estimates`);
+      // STAGE 4 FIX: Relaxed calorie threshold to prevent false fallback on low-cal foods
+      // Changed from 15 kcal/100g to 5 kcal/100g - vegetables like cucumber, lettuce ARE ~10-15 kcal/100g
+      // Only fallback to Vision if:
+      // 1. Provider returns truly suspicious low (<5 kcal/100g) AND
+      // 2. Vision estimates are significantly higher (2x) AND
+      // 3. It's not a drink (water/tea can be ~0-2 kcal)
+      const minExpectedKcal = (5 * portionG) / 100; // 5 kcal per 100g minimum (was 15)
+      const visionKcal = component.estimated_nutrients?.calories || 0;
+
+      if (nutrients.calories < minExpectedKcal && !isDrink) {
+        // Only fallback if Vision has plausible higher value (at least 2x)
+        if (visionKcal > nutrients.calories * 2 && visionKcal > minExpectedKcal) {
+          const est = component.estimated_nutrients;
+          this.logger.warn(`[AnalyzeService] Provider returned very low calories for "${component.name}": ${nutrients.calories} kcal for ${portionG}g, Vision has ${visionKcal}. Falling back.`);
           nutrients = {
             calories: est.calories,
             protein: est.protein_g || 0,
@@ -805,6 +1131,9 @@ export class AnalyzeService {
             satFat: 0,
             energyDensity: (est.calories / portionG) * 100
           };
+        } else {
+          // Log but don't fallback - provider data is likely fine for low-cal foods
+          this.logger.debug(`[AnalyzeService] Low calories for "${component.name}" (${nutrients.calories} kcal for ${portionG}g) but Vision not significantly higher. Keeping provider data.`);
         }
       }
 
@@ -881,6 +1210,40 @@ export class AnalyzeService {
         });
       }
 
+      // POST-VALIDATION: Apply nutrition data validation to catch bad provider data
+      // This validates and corrects: min calories, vegetable range, macro formula
+      if (!isDrink) {
+        const validationResult = this.validator.validateNutritionData({
+          name: component.name,
+          portion_g: portionG,
+          calories: nutrients.calories,
+          protein: nutrients.protein,
+          carbs: nutrients.carbs,
+          fat: nutrients.fat,
+          fiber: nutrients.fiber,
+          category: (component as any).category_hint,
+        });
+
+        if (validationResult.wasModified) {
+          nutrients.calories = validationResult.calories;
+          nutrients.protein = validationResult.protein;
+          nutrients.carbs = validationResult.carbs;
+          nutrients.fat = validationResult.fat;
+          if (validationResult.fiber !== undefined) {
+            nutrients.fiber = validationResult.fiber;
+          }
+          // Recalculate energy density after correction
+          nutrients.energyDensity = portionG > 0 ? (nutrients.calories / portionG) * 100 : 0;
+
+          // Add validation info to debug (use any to bypass strict type)
+          (debug as any).nutritionValidation = (debug as any).nutritionValidation || [];
+          (debug as any).nutritionValidation.push({
+            componentName: component.name,
+            corrections: validationResult.corrections,
+          });
+        }
+      }
+
       // Create AnalyzedItem from canonical food
       const item = await this.createAnalyzedItemFromCanonical(
         component,
@@ -922,61 +1285,184 @@ export class AnalyzeService {
   /**
    * Analyze image and return normalized nutrition data
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | undefined) || 'en';
     const mode = params.mode || 'default';
+    const skipCache = params.skipCache || false;
 
-    // Check cache (skip for review mode to ensure fresh analysis)
-    if (mode !== 'review') {
+    // Check cache (skip for review mode or explicit skipCache to ensure fresh analysis)
+    if (mode !== 'review' && !skipCache) {
       const imageHash = this.hashImage(params);
       const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
       const cached = await this.cache.get<AnalysisData>(cacheKey, 'analysis');
       if (cached) {
         this.logger.debug('Cache hit for image analysis');
+        // Add pipeline tracing info to cached result
+        if (cached.debug) {
+          (cached.debug as any).pipeline = {
+            name: 'AnalyzeService',
+            visionPromptVersion: 'omega_v3.3_2026-01-09_nutrition_fix',
+            analysisCacheVersion: this.ANALYSIS_CACHE_VERSION,
+            analysisCacheHit: true,
+            cacheKey: cacheKey.substring(0, 50) + '...',
+          };
+        }
         return cached;
       }
+    }
+
+    if (skipCache && isDebugMode) {
+      this.logger.warn('[AnalyzeService] Skip-cache mode enabled - bypassing all caches');
     }
 
     // Extract components via Vision (with caching)
     // Use getOrExtractComponents for better cache support with Buffer
     let visionComponents: VisionComponent[];
+    let visionHiddenItems: any[] = [];
+    let visionExtractionStatus: string = 'success';
+    let visionError: { code: string; message: string; details?: any } | undefined;
+    let visionDish: VisionDish | undefined; // NEW: Dish-level identification from Vision
     const visionStartTime = Date.now();
-    try {
-      const visionResult = await this.vision.getOrExtractComponents({
-        imageUrl: params.imageUrl,
-        imageBase64: params.imageBase64,
-        locale,
-        mode,
-        foodDescription: params.foodDescription,
-      });
-      visionComponents = visionResult.components;
-      const visionDuration = Date.now() - visionStartTime;
-      this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms`);
-    } catch (error: any) {
-      // Handle Vision API errors gracefully
-      this.logger.error('[AnalyzeService] Vision extraction failed', {
-        error: error.message,
-        status: error?.status,
+
+    const visionResult = await this.vision.getOrExtractComponents({
+      imageUrl: params.imageUrl,
+      imageBase64: params.imageBase64,
+      locale,
+      mode,
+      foodDescription: params.foodDescription,
+      skipCache, // Pass through to skip Vision cache
+    });
+
+    const visionDuration = Date.now() - visionStartTime;
+    this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms, status: ${visionResult.status}`);
+
+    visionComponents = visionResult.components;
+    visionHiddenItems = visionResult.hiddenItems || [];
+    visionExtractionStatus = visionResult.status;
+    visionError = visionResult.error;
+    // NEW: Extract dish-level identification from Vision
+    visionDish = visionResult.dish;
+    if (visionDish?.dish_name) {
+      this.logger.debug(`[AnalyzeService] Vision identified dish: "${visionDish.dish_name}" (confidence: ${visionDish.dish_name_confidence})`);
+    }
+
+    // Handle different Vision extraction statuses
+    if (visionResult.status === 'api_error') {
+      this.logger.error('[AnalyzeService] Vision API error', {
+        error: visionResult.error,
         imageUrl: params.imageUrl ? (params.imageUrl.startsWith('/') ? 'relative' : params.imageUrl.substring(0, 50)) : 'none',
         hasBase64: Boolean(params.imageBase64),
       });
 
-      // Transform into a controlled error that can be handled by FoodProcessor
-      if (error?.status === 400 || error?.message?.includes('Failed to download image') || error?.message?.includes('Image URL is invalid')) {
-        throw new BadRequestException('Failed to process image. Please ensure the image is valid and accessible.');
-      }
-
-      // Re-throw other errors
-      throw error;
+      // Return a failed analysis result with error info (don't throw - let processor handle)
+      const errorResult: AnalysisData = {
+        items: [],
+        total: this.createEmptyTotals(),
+        healthScore: null,
+        isSuspicious: true,
+        needsReview: true,
+        locale,
+        originalDishName: 'Analysis Failed',
+        dishNameLocalized: locale === 'ru' ? 'Ошибка анализа' : 'Analysis Failed',
+        debug: {
+          timestamp: new Date().toISOString(),
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
+          components: [],
+          sanity: [{
+            type: 'zero_calories_nonzero_portion',
+            level: 'error',
+            message: visionResult.error?.message || 'Vision API error',
+          }],
+        },
+      };
+      // Store error info in debug for client access
+      (errorResult.debug as any).visionError = visionResult.error;
+      (errorResult.debug as any).visionStatus = visionResult.status;
+      return errorResult;
     }
 
-    // Initialize debug object
+    if (visionResult.status === 'parse_error') {
+      this.logger.warn('[AnalyzeService] Vision parse error', {
+        error: visionResult.error,
+        meta: visionResult.meta,
+      });
+
+      // Return a partial result marking it needs review
+      const parseErrorResult: AnalysisData = {
+        items: [],
+        total: this.createEmptyTotals(),
+        healthScore: null,
+        isSuspicious: true,
+        needsReview: true,
+        locale,
+        originalDishName: 'Parse Error',
+        dishNameLocalized: locale === 'ru' ? 'Ошибка распознавания' : 'Parse Error',
+        debug: {
+          timestamp: new Date().toISOString(),
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
+          components: [],
+          sanity: [{
+            type: 'zero_calories_nonzero_portion',
+            level: 'error',
+            message: visionResult.error?.message || 'Failed to parse Vision response',
+          }],
+        },
+      };
+      (parseErrorResult.debug as any).visionError = visionResult.error;
+      (parseErrorResult.debug as any).visionStatus = visionResult.status;
+      (parseErrorResult.debug as any).parseWarnings = visionResult.meta?.parseWarnings;
+      return parseErrorResult;
+    }
+
+    if (visionResult.status === 'no_food_detected') {
+      this.logger.warn('[AnalyzeService] No food detected in image', {
+        meta: visionResult.meta,
+      });
+
+      // Return result indicating no food found (not an error, just empty)
+      const noFoodResult: AnalysisData = {
+        items: [],
+        total: this.createEmptyTotals(),
+        healthScore: null,
+        isSuspicious: false,
+        needsReview: true,
+        locale,
+        originalDishName: 'No Food Detected',
+        dishNameLocalized: locale === 'ru' ? 'Еда не обнаружена' : 'No Food Detected',
+        debug: {
+          timestamp: new Date().toISOString(),
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
+          components: [],
+          sanity: [{
+            type: 'zero_calories_nonzero_portion',
+            level: 'warning',
+            message: 'No food items could be identified in this image',
+          }],
+        },
+      };
+      (noFoodResult.debug as any).visionStatus = visionResult.status;
+      (noFoodResult.debug as any).visionMeta = visionResult.meta;
+      return noFoodResult;
+    }
+
+    // Initialize debug object with pipeline tracing info
     const debug: AnalysisDebug = {
       componentsRaw: visionComponents,
       components: [],
       timestamp: new Date().toISOString(),
       model: process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o',
+    };
+
+    // Add pipeline tracing info (always included for debugging)
+    (debug as any).pipeline = {
+      name: 'AnalyzeService',
+      visionPromptVersion: 'omega_v3.3_2026-01-09_nutrition_fix',
+      analysisCacheVersion: this.ANALYSIS_CACHE_VERSION,
+      skipCache,
+      visionCacheHit: false, // Updated later if cache was hit
+      analysisCacheHit: false, // Updated later if cache was hit
+      visionDurationMs: visionDuration,
     };
 
     // Дедупликация: объединяем похожие продукты
@@ -1034,43 +1520,33 @@ export class AnalyzeService {
       }
     }
 
-    // Calculate totals (including hidden ingredients integrated into items)
-    const total: AnalysisTotals = items.reduce(
-      (acc, item) => {
-        acc.portion_g += item.portion_g;
-        acc.calories += item.nutrients.calories;
-        acc.protein += item.nutrients.protein;
-        acc.carbs += item.nutrients.carbs;
-        acc.fat += item.nutrients.fat;
-        acc.fiber += item.nutrients.fiber;
-        acc.sugars += item.nutrients.sugars;
-        acc.satFat += item.nutrients.satFat;
-        acc.energyDensity += item.nutrients.energyDensity;
-        return acc;
-      },
-      {
-        portion_g: 0,
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugars: 0,
-        satFat: 0,
-        energyDensity: 0,
-      },
-    );
+    // PHASE 2: Enforce macro-calorie consistency at item level
+    // This ensures each item's calories match P*4 + C*4 + F*9 within tolerance
+    for (let i = 0; i < items.length; i++) {
+      items[i] = this.enforceItemMacroConsistency(items[i]);
+    }
 
-    // Recalculate energyDensity as calories per 100g
-    if (total.portion_g > 0) {
-      total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
+    // PHASE 2: Calculate totals with numerical invariants
+    // This ensures totals = Σ items and calories correlate with macros
+    const total = this.calculateTotalsWithInvariants(items);
+
+    // Add debug info about macro consistency
+    if (debug) {
+      const calculatedTotalCal = Math.round(total.protein * 4 + total.carbs * 4 + total.fat * 9);
+      (debug as any).macroConsistency = {
+        reportedCalories: total.calories,
+        calculatedFromMacros: calculatedTotalCal,
+        diff: Math.abs(total.calories - calculatedTotalCal),
+        itemCount: items.length,
+        totalPortionG: total.portion_g,
+      };
     }
 
     // STEP 1: Check for plain water before computing health score
     const isDrink = (total as any).isDrink ?? items.some((i) => (i as any).isDrink === true);
     const dishNameForWaterCheck = this.buildDishNameEn(items);
-    const displayName = dishNameForWaterCheck;
-    const looksLikePlainWater = this.isLikelyPlainWater(displayName, isDrink);
+    const displayNameForWaterCheck = dishNameForWaterCheck;
+    const looksLikePlainWater = this.isLikelyPlainWater(displayNameForWaterCheck, isDrink);
 
     let healthScore: HealthScore;
     if (looksLikePlainWater) {
@@ -1231,18 +1707,88 @@ export class AnalyzeService {
       });
     }
 
-    // Build English base dish name from items and localize it
-    const originalDishName = this.buildDishNameEn(items);
-    const dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
+    // Build dish name: prefer Vision-identified name (if confidence >= 0.75 and not generic), fallback to generated name
+    let originalDishName: string;
+    let dishNameLocalized: string;
+    let dishNameSource: 'vision' | 'generated' | 'neutral' = 'generated';
+    let dishNameConfidence: number = 0;
 
+    // Check if Vision provided a dish name
+    // FIX: Increased threshold to 0.75 and added generic name banlist check
+    const hasVisionDishName = visionDish?.dish_name && visionDish.dish_name_confidence;
+    const visionDishNameLower = (visionDish?.dish_name || '').toLowerCase().trim();
+    const isGenericName = this.GENERIC_DISH_NAMES.has(visionDishNameLower);
+    const meetsConfidenceThreshold = visionDish?.dish_name_confidence >= 0.75;
+    // Lower threshold acceptable for multi-ingredient dishes (3+) to avoid "carrot" for soup
+    const multiIngredientThreshold = items.length >= 3 && visionDish?.dish_name_confidence >= 0.60;
+
+    if (hasVisionDishName && !isGenericName && (meetsConfidenceThreshold || multiIngredientThreshold)) {
+      originalDishName = visionDish.dish_name;
+      dishNameSource = 'vision';
+      dishNameConfidence = visionDish.dish_name_confidence;
+      // Use Vision's localized name if available, otherwise localize the English name
+      if ((locale === 'ru' || locale === 'kk') && visionDish.dish_name_local) {
+        dishNameLocalized = visionDish.dish_name_local;
+      } else {
+        dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
+      }
+      this.logger.debug(`[AnalyzeService] Using Vision dish name: "${originalDishName}" -> "${dishNameLocalized}" (conf=${visionDish.dish_name_confidence}, items=${items.length})`);
+    } else {
+      // Fallback to generated name from items
+      originalDishName = this.buildDishNameEn(items);
+
+      // Check if generated name is also generic - if so, use neutral fallback
+      const generatedLower = originalDishName.toLowerCase().trim();
+      if (this.GENERIC_DISH_NAMES.has(generatedLower) || generatedLower === 'meal') {
+        // Use localized neutral name
+        dishNameSource = 'neutral';
+        dishNameConfidence = 0.5;
+        switch (locale) {
+          case 'ru':
+            dishNameLocalized = 'Приём пищи';
+            originalDishName = 'Meal';
+            break;
+          case 'kk':
+            dishNameLocalized = 'Тамақтану';
+            originalDishName = 'Meal';
+            break;
+          default:
+            dishNameLocalized = 'Meal';
+            originalDishName = 'Meal';
+        }
+        this.logger.debug(`[AnalyzeService] Using neutral dish name (generated was generic: "${generatedLower}")`);
+      } else {
+        dishNameSource = 'generated';
+        dishNameConfidence = Math.min(...items.map(i => i.confidence || 0.7)) || 0.7;
+        dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
+        this.logger.debug(`[AnalyzeService] Using generated dish name: "${originalDishName}" -> "${dishNameLocalized}"`);
+      }
+    }
+
+    // STEP 2 FIX: Set displayName as the single source of truth for UI
+    const displayName = dishNameLocalized || originalDishName || 'Meal';
+    
+    // STEP 3: Enrich health score with AI-generated feedback (if enabled)
+    const enrichedHealthScore = await this.enrichHealthScoreWithAiFeedback(
+      healthScore,
+      displayName,
+      items,
+      total,
+      locale,
+    );
+    
     const result: AnalysisData = {
       items,
       total,
-      healthScore,
+      healthScore: enrichedHealthScore,
       debug: isDebugMode ? debug : undefined,
       locale,
-      dishNameLocalized: dishNameLocalized || originalDishName,
+      // STEP 2: displayName is the preferred field for UI
+      displayName,
+      dishNameLocalized: displayName, // Keep for backward compatibility
       originalDishName,
+      dishNameSource,
+      dishNameConfidence,
       isSuspicious,
       needsReview,
       imageUrl: params.imageUrl,
@@ -1275,17 +1821,70 @@ export class AnalyzeService {
       await this.cache.set(cacheKey, result, 'analysis');
     }
 
+    // =====================================================
+    // OBSERVABILITY: Structured log of final analysis result
+    // =====================================================
+    const sumKcal = items.reduce((sum, i) => sum + (i.nutrients?.calories || 0), 0);
+    const sumProtein = items.reduce((sum, i) => sum + (i.nutrients?.protein || 0), 0);
+    const sumCarbs = items.reduce((sum, i) => sum + (i.nutrients?.carbs || 0), 0);
+    const sumFat = items.reduce((sum, i) => sum + (i.nutrients?.fat || 0), 0);
+
+    this.logger.log(JSON.stringify({
+      stage: 'analysis_final',
+      locale,
+      dishName: {
+        localized: dishNameLocalized,
+        original: originalDishName,
+        source: dishNameSource,
+        confidence: dishNameConfidence,
+      },
+      totals: {
+        calories: total.calories,
+        protein: total.protein,
+        carbs: total.carbs,
+        fat: total.fat,
+        portion_g: total.portion_g,
+      },
+      sumCheck: {
+        itemsKcalSum: Math.round(sumKcal),
+        itemsProteinSum: Math.round(sumProtein * 10) / 10,
+        itemsCarbsSum: Math.round(sumCarbs * 10) / 10,
+        itemsFatSum: Math.round(sumFat * 10) / 10,
+        kcalDiff: Math.abs(Math.round(sumKcal) - total.calories),
+      },
+      itemCount: items.length,
+      items: items.slice(0, 10).map(i => ({
+        name: i.name,
+        originalName: i.originalName,
+        source: i.source,
+        provider: i.provider,
+        portionG: i.portion_g,
+        kcal: i.nutrients?.calories,
+        protein: i.nutrients?.protein,
+        carbs: i.nutrients?.carbs,
+        fat: i.nutrients?.fat,
+        isFallback: i.isFallback,
+        isSuspicious: i.isSuspicious,
+      })),
+      flags: { isSuspicious, needsReview },
+    }));
+
     return result;
   }
 
   /**
    * Analyze text description
    */
-  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk'): Promise<AnalysisData> {
+  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk', skipCache?: boolean): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     // Normalize locale
     const normalizedLocale: 'en' | 'ru' | 'kk' =
       (locale as any) || 'en';
+
+    // Log skip-cache mode if enabled
+    if (skipCache && isDebugMode) {
+      this.logger.warn('[AnalyzeService] Skip-cache mode enabled for text analysis');
+    }
 
     // Simple parsing: split by commas, newlines, etc.
     const components: VisionComponent[] = text
@@ -1351,42 +1950,19 @@ export class AnalyzeService {
       }
     }
 
-    // Calculate totals (including hidden ingredients integrated into items)
-    const total: AnalysisTotals = items.reduce(
-      (acc, item) => {
-        acc.portion_g += item.portion_g;
-        acc.calories += item.nutrients.calories;
-        acc.protein += item.nutrients.protein;
-        acc.carbs += item.nutrients.carbs;
-        acc.fat += item.nutrients.fat;
-        acc.fiber += item.nutrients.fiber;
-        acc.sugars += item.nutrients.sugars;
-        acc.satFat += item.nutrients.satFat;
-        acc.energyDensity += item.nutrients.energyDensity;
-        return acc;
-      },
-      {
-        portion_g: 0,
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugars: 0,
-        satFat: 0,
-        energyDensity: 0,
-      },
-    );
-
-    if (total.portion_g > 0) {
-      total.energyDensity = this.round((total.calories / total.portion_g) * 100, 1);
+    // PHASE 2: Enforce macro-calorie consistency at item level (same as analyzeImage)
+    for (let i = 0; i < items.length; i++) {
+      items[i] = this.enforceItemMacroConsistency(items[i]);
     }
+
+    // PHASE 2: Calculate totals with numerical invariants (same as analyzeImage)
+    const total = this.calculateTotalsWithInvariants(items);
 
     // STEP 1: Check for plain water before computing health score
     const isDrink = (total as any).isDrink ?? items.some((i) => (i as any).isDrink === true);
     const dishNameForWaterCheck = this.buildDishNameEn(items);
-    const displayName = dishNameForWaterCheck;
-    const looksLikePlainWater = this.isLikelyPlainWater(displayName, isDrink);
+    const displayNameForWaterCheck = dishNameForWaterCheck;
+    const looksLikePlainWater = this.isLikelyPlainWater(displayNameForWaterCheck, isDrink);
 
     let healthScore: HealthScore;
     if (looksLikePlainWater) {
@@ -1530,14 +2106,36 @@ export class AnalyzeService {
     nutrients: Nutrients,
     locale: 'en' | 'ru' | 'kk',
     source: string,
+    usedVisionFallback: boolean = false,
   ): Promise<AnalyzedItem & { baseName?: string; displayNameLocalized?: string; providerId?: string }> {
-    const baseName = this.buildBaseFoodName(component.name, canonicalFood.displayName);
+    // When Vision fallback is used, prefer component.name over canonicalFood.displayName
+    // This prevents "Bacon" name when edamame nutrients are used
+    const baseName = usedVisionFallback
+      ? normalizeFoodName(component.display_name || component.name)
+      : this.buildBaseFoodName(component.name, canonicalFood.displayName);
     const originalNameEn = normalizeFoodName(baseName);
     const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
     const hasNutrition = nutrients.calories > 0 || nutrients.protein > 0 || nutrients.carbs > 0 || nutrients.fat > 0;
 
+    // Suspicious if portion > 0 but no nutrition data at all
+    const isSuspicious = portionG > 0 && nutrients.calories === 0 &&
+      nutrients.protein === 0 && nutrients.carbs === 0 && nutrients.fat === 0;
+
+    // Map provider id to provider type
+    const providerMap: Record<string, AnalyzedItem['provider']> = {
+      'usda': 'usda',
+      'openfoodfacts': 'openfoodfacts',
+      'swiss': 'swiss',
+      'swiss-food': 'swiss',
+      'local_food': 'hybrid',
+    };
+
+    // Determine final source - override to vision_fallback if used
+    const finalSource = usedVisionFallback ? 'vision_fallback' : source;
+
     return {
+      id: crypto.randomUUID(),
       name: localizedName || originalNameEn,
       originalName: originalNameEn,
       baseName: baseName,
@@ -1545,10 +2143,21 @@ export class AnalyzeService {
       label: component.name,
       portion_g: portionG,
       nutrients,
-      source: source as any,
+      source: finalSource as any,
       locale,
       hasNutrition,
       providerId: canonicalFood.providerId,
+      category: (component as any).category_hint as AnalyzedItem['category'],
+      confidence: component.confidence,
+      provider: usedVisionFallback ? 'vision' : (providerMap[canonicalFood.providerId] || 'unknown'),
+      isSuspicious,
+      isFallback: usedVisionFallback,
+      sourceInfo: {
+        name: usedVisionFallback ? 'vision' : 'provider',
+        nutrients: usedVisionFallback ? 'vision' : 'provider',
+        providerId: canonicalFood.providerId,
+        fallbackReason: usedVisionFallback ? 'provider_match_rejected' : undefined,
+      },
     };
   }
 
@@ -1602,6 +2211,7 @@ export class AnalyzeService {
         const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
 
         const coffeeTeaItem: AnalyzedItem = {
+          id: crypto.randomUUID(),
           name: localizedName || originalNameEn,
           originalName: originalNameEn,
           label: component.name,
@@ -1610,6 +2220,7 @@ export class AnalyzeService {
           source: sourceType,
           locale,
           hasNutrition: true,
+          category: 'drink',
         };
 
         items.push(coffeeTeaItem);
@@ -1653,6 +2264,7 @@ export class AnalyzeService {
       };
 
       const fallbackItem: AnalyzedItem = {
+        id: crypto.randomUUID(),
         name: localizedName || originalNameEn,
         originalName: originalNameEn,
         label: component.name,
@@ -1661,6 +2273,7 @@ export class AnalyzeService {
         source: 'unknown_drink_low_calorie_fallback' as AnalyzedItem['source'],
         locale,
         hasNutrition: true,
+        category: 'drink',
       };
 
       items.push(fallbackItem);
@@ -1723,6 +2336,41 @@ export class AnalyzeService {
       };
     }
 
+    // POST-VALIDATION: Apply same validation as provider path to catch bad GPT estimates
+    // This fixes bugs like "broccoli 2 kcal" when GPT returns unrealistic values
+    if (!isBeverage) {
+      const validationResult = this.validator.validateNutritionData({
+        name: component.name,
+        portion_g: fallbackPortion,
+        calories: fallbackNutrients.calories,
+        protein: fallbackNutrients.protein,
+        carbs: fallbackNutrients.carbs,
+        fat: fallbackNutrients.fat,
+        fiber: fallbackNutrients.fiber,
+        category: (component as any).category_hint,
+      });
+      if (validationResult.wasModified) {
+        fallbackNutrients.calories = validationResult.calories;
+        fallbackNutrients.protein = validationResult.protein;
+        fallbackNutrients.carbs = validationResult.carbs;
+        fallbackNutrients.fat = validationResult.fat;
+        if (validationResult.fiber !== undefined) {
+          fallbackNutrients.fiber = validationResult.fiber;
+        }
+        // Recalculate energy density
+        fallbackNutrients.energyDensity = fallbackPortion > 0
+          ? this.round((fallbackNutrients.calories / fallbackPortion) * 100, 1)
+          : 0;
+
+        if (process.env.ANALYSIS_DEBUG === 'true') {
+          this.logger.warn('[AnalyzeService] Fallback nutrition corrected by validator', {
+            componentName: component.name,
+            corrections: validationResult.corrections,
+          });
+        }
+      }
+    }
+
     // Sanity check: ensure calories per gram is reasonable (0.1-7 kcal/g)
     const kcalPerGram = fallbackNutrients.calories / fallbackPortion;
     if (kcalPerGram < 0.1 || kcalPerGram > 7) {
@@ -1746,6 +2394,7 @@ export class AnalyzeService {
     }
 
     const fallbackItem: AnalyzedItem & { baseName?: string; displayNameLocalized?: string } = {
+      id: crypto.randomUUID(),
       name: localizedName || originalNameEn,
       originalName: originalNameEn,
       baseName: baseName,
@@ -1897,8 +2546,12 @@ export class AnalyzeService {
 
   /**
    * Build a concise English dish name from analyzed items (using baseName when available).
-   * Picks 1-3 main items (ignoring small portions like sauces).
-   * Generates descriptive names like "Chicken breast with rice and vegetables"
+   * Picks 1-2 main items and generates descriptive names like "Chicken with rice"
+   * For 3+ items, generates structured name like "Pasta with vegetables" or "Main with sides"
+   * 
+   * STEP 2 FIX: Don't return comma-separated ingredient lists like "Farfalle, Spinach, Chickpeas"
+   * Instead, generate proper dish names or return neutral fallback
+   * 
    * Public method for re-analysis use cases
    */
   public buildDishNameEn(items: AnalyzedItem[]): string {
@@ -1919,25 +2572,102 @@ export class AnalyzeService {
       if (displayName && typeof displayName === 'string') return displayName;
       return (item as any).baseName || item.originalName || item.name || '';
     };
+    
+    // Get category hint for smarter naming
+    const getCategory = (item: AnalyzedItem): string | undefined => {
+      return (item as any).category_hint || (item as any).category;
+    };
 
-    const names = sortedByCalories
-      .map(getName)
-      .map(n => n.trim())
-      .filter(Boolean);
+    const itemsWithNames = sortedByCalories.map(item => ({
+      name: getName(item).trim(),
+      category: getCategory(item),
+      calories: item.nutrients?.calories ?? 0,
+    })).filter(i => i.name);
 
-    if (names.length === 0) return 'Meal';
+    if (itemsWithNames.length === 0) return 'Meal';
 
     // Remove duplicates while preserving order (calorie-sorted)
-    const unique = Array.from(new Set(names));
+    const seen = new Set<string>();
+    const unique = itemsWithNames.filter(item => {
+      const lower = item.name.toLowerCase();
+      if (seen.has(lower)) return false;
+      seen.add(lower);
+      return true;
+    });
 
     // Single item - just return it
-    if (unique.length === 1) return unique[0];
+    if (unique.length === 1) return unique[0].name;
 
     // Two items - use "with" connector
-    if (unique.length === 2) return `${unique[0]} with ${unique[1]}`;
+    if (unique.length === 2) return `${unique[0].name} with ${unique[1].name}`;
 
-    // Three or more items - use top-2 by calories + "and more"
-    return `${unique[0]} with ${unique[1]} and more`;
+    // STEP 2 FIX: For 3+ items, generate a proper dish name, NOT comma-separated list
+    // Strategy: Find the main component (highest calories) and describe what's with it
+    const main = unique[0];
+    const mainLower = main.name.toLowerCase();
+    
+    // Detect dish type from main ingredient
+    const isPasta = mainLower.includes('pasta') || mainLower.includes('spaghetti') || 
+      mainLower.includes('penne') || mainLower.includes('farfalle') || mainLower.includes('noodle') ||
+      mainLower.includes('макарон') || mainLower.includes('паста') || mainLower.includes('лапша');
+    
+    const isRice = mainLower.includes('rice') || mainLower.includes('рис') || mainLower.includes('risotto');
+    
+    const isProtein = main.category === 'protein' || 
+      mainLower.includes('chicken') || mainLower.includes('beef') || mainLower.includes('pork') ||
+      mainLower.includes('fish') || mainLower.includes('salmon') || mainLower.includes('meat') ||
+      mainLower.includes('курица') || mainLower.includes('говядина') || mainLower.includes('рыба');
+    
+    const isSalad = mainLower.includes('salad') || mainLower.includes('салат');
+    
+    const isSoup = mainLower.includes('soup') || mainLower.includes('суп') || mainLower.includes('борщ');
+
+    // Count vegetable components
+    const vegCount = unique.filter(i => 
+      i.category === 'veg' || i.category === 'vegetable' ||
+      i.name.toLowerCase().includes('vegetable') || i.name.toLowerCase().includes('овощ')
+    ).length;
+    
+    // Generate appropriate name
+    if (isPasta) {
+      // "Pasta with vegetables" or "Pasta with [second item]"
+      if (vegCount >= 2) {
+        return `${main.name} with vegetables`;
+      }
+      return `${main.name} with ${unique[1].name}`;
+    }
+    
+    if (isRice) {
+      if (vegCount >= 2) {
+        return `${main.name} with vegetables`;
+      }
+      return `${main.name} with ${unique[1].name}`;
+    }
+    
+    if (isProtein) {
+      // "Chicken with rice and vegetables" or "Chicken with [side]"
+      const hasGrain = unique.some(i => 
+        i.category === 'grain' || 
+        i.name.toLowerCase().includes('rice') || i.name.toLowerCase().includes('pasta') ||
+        i.name.toLowerCase().includes('рис')
+      );
+      
+      if (hasGrain && vegCount >= 1) {
+        return `${main.name} with sides`;
+      }
+      return `${main.name} with ${unique[1].name}`;
+    }
+    
+    if (isSalad) {
+      return main.name; // Salads are usually named already
+    }
+    
+    if (isSoup) {
+      return main.name; // Soups are usually named already
+    }
+
+    // Default: "Main with second" (not comma list!)
+    return `${main.name} with ${unique[1].name}`;
   }
 
   private hashImage(params: { imageUrl?: string; imageBase64?: string }): string {
@@ -1989,13 +2719,15 @@ export class AnalyzeService {
       0,
     ) || 250; // fallback to 250g if no portion data
 
-    // Saturated fats and sugars - use actual values if available, otherwise estimate
+    // Saturated fats - use actual values if available, otherwise estimate from fat
     const saturatedFat_g = totals.satFat > 0
       ? totals.satFat
       : (fat_g > 0 ? fat_g * 0.4 : 0); // ~40% of fats are saturated
-    const sugars_g = totals.sugars > 0
-      ? totals.sugars
-      : (carbs_g > 0 ? carbs_g * 0.5 : 0); // ~50% of carbs are sugars
+
+    // Sugars - use actual values if available, DO NOT estimate from carbs
+    // Unknown sugars should not penalize score (will get neutral score)
+    const sugarsKnown = totals.sugars !== null && totals.sugars !== undefined && totals.sugars > 0;
+    const sugars_g = sugarsKnown ? totals.sugars : 0;
 
     const safeCalories = calories > 0 ? calories : 1;
     const safePortion = portion_g > 0 ? portion_g : 1;
@@ -2003,7 +2735,9 @@ export class AnalyzeService {
 
     // 1) Плотность питательных веществ (g / 1000 kcal)
     const proteinPer1000kcal = (protein_g * 1000) / safeCalories;
-    const fiberPer1000kcal = (fiber_g * 1000) / safeCalories;
+    // Cap fiberPer1000kcal at 25 to prevent absurd scores on low-calorie items
+    const rawFiberPer1000kcal = (fiber_g * 1000) / safeCalories;
+    const fiberPer1000kcal = Math.min(rawFiberPer1000kcal, 25);
 
     // 2) Доли "рисковых" факторов
     // saturated fat share (доля сат. жиров в общем жире)
@@ -2015,34 +2749,48 @@ export class AnalyzeService {
     // 3) Энергетическая плотность (kcal / g)
     const energyDensityKcalPerGram = calories / safePortion;
 
+    // STEP 4 FIX: Track unknown/estimated status for each factor
+    const sugarsIsUnknown = !sugarsKnown;
+    // Estimate satFat from fat if not provided (fat * 0.35 is typical average)
+    const satFatIsEstimated = saturatedFat_g === 0 && fat_g > 0;
+
     // Нормализация по факторам (0–100)
     // Протеин: 0–15 г/1000ккал => 0–100 (выше 15 уже считаем 100)
     const proteinScore = this.mapToScore(proteinPer1000kcal, 0, 15, false);
     // Клетчатка: 0–14 г/1000ккал => 0–100
     const fiberScore = this.mapToScore(fiberPer1000kcal, 0, 14, false);
+    // Фибра тоже может быть неизвестна
+    const fiberIsUnknown = fiber_g === 0;
     // Сатурированные жиры: 0–40% => 100–0 (чем больше доля, тем хуже)
     const satFatScore = this.mapToScore(satFatShare, 0, 0.4, true);
-    // Сахара: 0–25% ккал => 100–0
-    const sugarsScore = this.mapToScore(sugarsShare, 0, 0.25, true);
+    // STEP 4 FIX: Don't use hardcoded 50 - calculate but mark as unknown
+    // If sugars unknown, estimate as ~10% of carbs (typical average) but mark isUnknown
+    const estimatedSugarsShare = sugarsKnown ? sugarsShare : (carbs_g * 0.3 * 4) / safeCalories;
+    const sugarsScore = this.mapToScore(estimatedSugarsShare, 0, 0.25, true);
     // Энерго-плотность: 0.5–3.0 ккал/г => 100–0
     const energyDensityScore = this.mapToScore(energyDensityKcalPerGram, 0.5, 3.0, true);
 
-    // Веса факторов (сумма ≈ 1.0)
-    const weights = {
-      protein: 0.25,
-      fiber: 0.20,
-      saturatedFat: 0.20,
-      sugars: 0.15,
-      energyDensity: 0.20,
+    // STEP 4 FIX: Build factors with isUnknown/isEstimated metadata
+    const factorsDetailed = {
+      protein: { value: Math.round(proteinScore), weight: 0.25, isUnknown: false, isEstimated: false },
+      fiber: { value: Math.round(fiberScore), weight: 0.20, isUnknown: fiberIsUnknown, isEstimated: false },
+      saturatedFat: { value: Math.round(satFatScore), weight: 0.20, isUnknown: false, isEstimated: satFatIsEstimated },
+      sugars: { value: Math.round(sugarsScore), weight: 0.15, isUnknown: sugarsIsUnknown, isEstimated: false },
+      energyDensity: { value: Math.round(energyDensityScore), weight: 0.20, isUnknown: false, isEstimated: false },
     };
 
-    const totalRaw =
-      proteinScore * weights.protein +
-      fiberScore * weights.fiber +
-      satFatScore * weights.saturatedFat +
-      sugarsScore * weights.sugars +
-      energyDensityScore * weights.energyDensity;
+    // STEP 4 FIX: Calculate total with normalized weights (exclude unknown factors)
+    let totalWeight = 0;
+    let weightedSum = 0;
+    for (const [key, factor] of Object.entries(factorsDetailed)) {
+      if (!factor.isUnknown) {
+        totalWeight += factor.weight;
+        weightedSum += factor.value * factor.weight;
+      }
+    }
 
+    // Normalize to 0-100
+    const totalRaw = totalWeight > 0 ? weightedSum / totalWeight : 50;
     const total = this.clamp(Math.round(totalRaw), 0, 100);
 
     let level: 'poor' | 'average' | 'good' | 'excellent';
@@ -2056,6 +2804,7 @@ export class AnalyzeService {
       level = 'excellent';
     }
 
+    // Legacy simple factors for backward compatibility
     const factors: HealthScoreFactors = {
       protein: Math.round(proteinScore),
       fiber: Math.round(fiberScore),
@@ -2070,6 +2819,7 @@ export class AnalyzeService {
       level: level as HealthScoreLevel,
       grade: this.deriveGrade(total),
       factors,
+      factorsDetailed, // STEP 4: New detailed factors with isUnknown/isEstimated
       feedback: [], // will be filled by buildHealthFeedback
     } as HealthScore;
   }
@@ -2102,6 +2852,55 @@ export class AnalyzeService {
       feedback,
       feedbackLegacy, // backward compatibility
     } as any as HealthScore & { feedbackLegacy?: string[] };
+  }
+
+  /**
+   * STEP 3: Enrich health score with AI-generated feedback.
+   * Falls back to deterministic feedback if AI is disabled or fails.
+   * 
+   * @param healthScore - Base health score from computeHealthScore
+   * @param dishName - Name of the dish for AI context
+   * @param items - Analyzed items for AI context
+   * @param totals - Nutrition totals for AI context
+   * @param locale - User's locale
+   * @param analysisId - Optional analysis ID for caching
+   */
+  public async enrichHealthScoreWithAiFeedback(
+    healthScore: HealthScore,
+    dishName: string,
+    items: AnalyzedItem[],
+    totals: AnalysisTotals,
+    locale: 'en' | 'ru' | 'kk' = 'en',
+    analysisId?: string,
+  ): Promise<HealthScore> {
+    // Check if AI is enabled
+    if (!this.healthFeedbackAi.isEnabled()) {
+      return healthScore; // Return as-is with deterministic feedback
+    }
+
+    try {
+      const aiFeedback = await this.healthFeedbackAi.generateFeedback({
+        dishName,
+        items,
+        totals,
+        healthScore,
+        locale,
+        analysisId,
+      });
+
+      if (aiFeedback.length > 0) {
+        this.logger.debug(`[HealthScore] AI generated ${aiFeedback.length} feedback items`);
+        return {
+          ...healthScore,
+          feedback: aiFeedback,
+          feedbackLegacy: aiFeedback.map(item => item.message),
+        };
+      }
+    } catch (error: any) {
+      this.logger.warn(`[HealthScore] AI feedback failed, using deterministic: ${error.message}`);
+    }
+
+    return healthScore; // Return with deterministic feedback
   }
 
   private getHealthWeights(): HealthWeights {
@@ -2524,6 +3323,7 @@ export class AnalyzeService {
           const waterNameLocalized = await this.foodLocalization.localizeName(waterNameEn, locale);
 
           const waterItem: AnalyzedItem = {
+            id: crypto.randomUUID(),
             name: waterNameLocalized || waterNameEn,
             originalName: waterNameEn,
             label: name,
@@ -2567,6 +3367,7 @@ export class AnalyzeService {
           const sourceType = (plainCoffeeTea.type === 'coffee' ? 'canonical_plain_coffee' : 'canonical_plain_tea') as AnalyzedItem['source'];
 
           const coffeeTeaItem: AnalyzedItem = {
+            id: crypto.randomUUID(),
             name: localizedName || originalNameEn,
             originalName: originalNameEn,
             label: name,
@@ -2636,6 +3437,7 @@ export class AnalyzeService {
           const localizedName = await this.foodLocalization.localizeName(baseNameEn, locale);
 
           const beverageItem: AnalyzedItem = {
+            id: crypto.randomUUID(),
             name: localizedName || baseNameEn,
             originalName: baseNameEn,
             label: name,
@@ -2707,6 +3509,7 @@ export class AnalyzeService {
             const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
             const fallbackItem: AnalyzedItem = {
+              id: crypto.randomUUID(),
               name: localizedName || originalNameEn,
               originalName: originalNameEn,
               label: name,
@@ -2745,6 +3548,7 @@ export class AnalyzeService {
             const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
             const fallbackItem: AnalyzedItem = {
+              id: crypto.randomUUID(),
               name: localizedName || originalNameEn,
               originalName: originalNameEn,
               label: name,

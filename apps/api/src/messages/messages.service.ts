@@ -1,38 +1,47 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+
+interface CreateMessageDto {
+    conversationId: string;
+    senderId: string;
+    type: string;
+    content: string;
+    metadata?: any;
+}
 
 @Injectable()
 export class MessagesService {
+    private readonly logger = new Logger(MessagesService.name);
+
     constructor(private prisma: PrismaService) { }
 
-    private async checkAccess(consultationId: string, userId: string) {
-        if (!(this.prisma as any).consultation) {
-            throw new ForbiddenException('Feature not available');
-        }
-
-        const consultation = await (this.prisma as any).consultation.findUnique({
-            where: { id: consultationId },
-            include: { specialist: { select: { userId: true } } },
+    private async checkAccess(conversationId: string, userId: string) {
+        const conversation = await this.prisma.conversation.findUnique({
+            where: { id: conversationId },
+            include: {
+                expert: { select: { userId: true } },
+            },
         });
 
-        if (!consultation) throw new ForbiddenException('Consultation not found');
-
-        const isClient = consultation.clientId === userId;
-        const isSpecialist = consultation.specialist.userId === userId;
-        if (!isClient && !isSpecialist) throw new ForbiddenException('Access denied');
-
-        return consultation;
-    }
-
-    async findByConsultationId(consultationId: string, userId: string) {
-        if (!(this.prisma as any).message) {
-            return [];
+        if (!conversation) {
+            throw new ForbiddenException('Conversation not found');
         }
 
-        await this.checkAccess(consultationId, userId);
+        const isClient = conversation.clientId === userId;
+        const isExpert = conversation.expert.userId === userId;
 
-        return (this.prisma as any).message.findMany({
-            where: { consultationId },
+        if (!isClient && !isExpert) {
+            throw new ForbiddenException('Access denied');
+        }
+
+        return { conversation, isClient, isExpert };
+    }
+
+    async findByConversationId(conversationId: string, userId: string) {
+        await this.checkAccess(conversationId, userId);
+
+        return this.prisma.message.findMany({
+            where: { conversationId },
             orderBy: { createdAt: 'asc' },
             include: {
                 sender: {
@@ -45,22 +54,12 @@ export class MessagesService {
         });
     }
 
-    async create(data: {
-        consultationId: string;
-        senderId: string;
-        type: string;
-        content: string;
-        metadata?: any;
-    }) {
-        if (!(this.prisma as any).message) {
-            throw new ForbiddenException('Feature not available');
-        }
+    async create(data: CreateMessageDto) {
+        const { conversation } = await this.checkAccess(data.conversationId, data.senderId);
 
-        await this.checkAccess(data.consultationId, data.senderId);
-
-        return (this.prisma as any).message.create({
+        const message = await this.prisma.message.create({
             data: {
-                consultationId: data.consultationId,
+                conversationId: data.conversationId,
                 senderId: data.senderId,
                 type: data.type,
                 content: data.content,
@@ -75,18 +74,24 @@ export class MessagesService {
                 },
             },
         });
+
+        // Update lastMessageAt on conversation
+        await this.prisma.conversation.update({
+            where: { id: data.conversationId },
+            data: { lastMessageAt: new Date() },
+        });
+
+        this.logger.log(`Message sent: conversation=${data.conversationId}, sender=${data.senderId}`);
+
+        return message;
     }
 
-    async markAsRead(consultationId: string, userId: string) {
-        if (!(this.prisma as any).message) {
-            return { success: true };
-        }
+    async markAsRead(conversationId: string, userId: string) {
+        await this.checkAccess(conversationId, userId);
 
-        await this.checkAccess(consultationId, userId);
-
-        await (this.prisma as any).message.updateMany({
+        await this.prisma.message.updateMany({
             where: {
-                consultationId,
+                conversationId,
                 senderId: { not: userId },
                 isRead: false,
             },
@@ -97,55 +102,69 @@ export class MessagesService {
     }
 
     async getUnreadCount(userId: string) {
-        if (!(this.prisma as any).consultation || !(this.prisma as any).message) {
-            return 0;
-        }
+        // Get expert profile if exists
+        const expertProfile = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+        });
 
-        try {
-            const clientConsultations = await (this.prisma as any).consultation.findMany({
-                where: { clientId: userId },
-                select: { id: true },
-            });
+        // Count unread as client
+        const unreadAsClient = await this.prisma.message.count({
+            where: {
+                conversation: { clientId: userId },
+                senderId: { not: userId },
+                isRead: false,
+            },
+        });
 
-            const allConsultationIds = clientConsultations.map((c) => c.id);
-
-            if (allConsultationIds.length === 0) return 0;
-
-            return (this.prisma as any).message.count({
+        // Count unread as expert
+        let unreadAsExpert = 0;
+        if (expertProfile) {
+            unreadAsExpert = await this.prisma.message.count({
                 where: {
-                    consultationId: { in: allConsultationIds },
+                    conversation: { expertId: expertProfile.id },
                     senderId: { not: userId },
                     isRead: false,
                 },
             });
-        } catch {
-            return 0;
         }
+
+        return {
+            count: unreadAsClient + unreadAsExpert,
+            asClient: unreadAsClient,
+            asExpert: unreadAsExpert,
+        };
     }
 
-    async shareMeals(data: {
-        consultationId: string;
-        senderId: string;
-        fromDate: Date;
-        toDate: Date;
-    }) {
-        await this.checkAccess(data.consultationId, data.senderId);
+    async shareMeals(conversationId: string, senderId: string, fromDate: Date, toDate: Date) {
+        await this.checkAccess(conversationId, senderId);
 
         const meals = await this.prisma.meal.findMany({
             where: {
-                userId: data.senderId,
-                createdAt: { gte: data.fromDate, lte: data.toDate },
+                userId: senderId,
+                createdAt: { gte: fromDate, lte: toDate },
             },
             include: { items: true },
             orderBy: { createdAt: 'desc' },
         });
 
         return this.create({
-            consultationId: data.consultationId,
-            senderId: data.senderId,
+            conversationId,
+            senderId,
             type: 'meal_share',
             content: `Shared ${meals.length} meals`,
-            metadata: { meals, fromDate: data.fromDate, toDate: data.toDate },
+            metadata: { meals, fromDate, toDate },
+        });
+    }
+
+    async shareReport(conversationId: string, senderId: string, reportData: any) {
+        await this.checkAccess(conversationId, senderId);
+
+        return this.create({
+            conversationId,
+            senderId,
+            type: 'report_share',
+            content: 'Shared nutrition report',
+            metadata: reportData,
         });
     }
 }

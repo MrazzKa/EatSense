@@ -4,7 +4,7 @@ import ApiService from '../services/apiService';
 // Type definition for Node.js Timer
 type Timer = ReturnType<typeof setInterval>;
 
-type AnalysisStatus = 'idle' | 'pending' | 'completed' | 'failed';
+type AnalysisStatus = 'idle' | 'pending' | 'completed' | 'failed' | 'needs_review';
 
 interface AnalysisState {
   status: AnalysisStatus;
@@ -45,10 +45,10 @@ export function useAnalysis(options: UseAnalysisOptions = {}): {
   const pollResult = useCallback(async (analysisId: string) => {
     try {
       const res = await ApiService.getAnalysisResult(analysisId);
-      
+
       // Подстрой под реальную структуру ответа API
       // Предполагаем, что API возвращает { status, data, ... }
-      const status = res.status || res.data?.status || 'PENDING';
+      const status = (res.status || res.data?.status || 'PENDING').toUpperCase();
       const data = res.data || res;
 
       if (status === 'COMPLETED' || status === 'SUCCESS') {
@@ -63,7 +63,16 @@ export function useAnalysis(options: UseAnalysisOptions = {}): {
         setState((prev) => ({
           ...prev,
           status: 'failed',
-          error: data?.error || 'Analysis failed',
+          error: data?.error || data?.analysisError?.message || 'Analysis failed',
+        }));
+      } else if (status === 'NEEDS_REVIEW') {
+        // Analysis completed but needs user attention (no food detected, etc.)
+        clearPolling();
+        setState((prev) => ({
+          ...prev,
+          status: 'needs_review',
+          result: data, // Still include data for potential partial results
+          error: data?.error || data?.analysisError?.message || 'No food items could be identified',
         }));
       }
       // Если статус PENDING или PROCESSING - продолжаем polling
