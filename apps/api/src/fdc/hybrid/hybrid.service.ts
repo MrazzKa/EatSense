@@ -14,7 +14,7 @@ export class HybridService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fdcApi: FdcApiService,
-  ) {}
+  ) { }
 
   /**
    * Find foods by text query using Postgres FTS + API fallback
@@ -125,8 +125,8 @@ export class HybridService {
   private isLikelyPlainCoffeeOrTea(desc: string): boolean {
     const d = desc.toLowerCase();
     return (
-      (d.includes('coffee') || d.includes('espresso') || d.includes('cappuccino') || 
-       d.includes('latte') || d.includes('tea') || d.includes('chai') || d.includes('matcha')) &&
+      (d.includes('coffee') || d.includes('espresso') || d.includes('cappuccino') ||
+        d.includes('latte') || d.includes('tea') || d.includes('chai') || d.includes('matcha')) &&
       !this.isClearlyDessertOrYogurt(desc)
     );
   }
@@ -141,22 +141,22 @@ export class HybridService {
     };
 
     const queryLower = query.toLowerCase();
-    const isDrinkQuery = expectedCategory === 'drink' || 
-      ['coffee', 'latte', 'cappuccino', 'espresso', 'mocha', 'tea', 'chai', 'matcha', 
-       'juice', 'smoothie', 'shake', 'soda', 'cola', 'milk', 'drink', 'beverage',
-       'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко'].some(k => queryLower.includes(k));
+    const isDrinkQuery = expectedCategory === 'drink' ||
+      ['coffee', 'latte', 'cappuccino', 'espresso', 'mocha', 'tea', 'chai', 'matcha',
+        'juice', 'smoothie', 'shake', 'soda', 'cola', 'milk', 'drink', 'beverage',
+        'кофе', 'чай', 'сок', 'газировка', 'напиток', 'молоко'].some(k => queryLower.includes(k));
 
     return results
       .map(r => {
         const desc = (r.description || '').toLowerCase();
         let penalty = 0;
-        
+
         // Penalize dessert/yogurt matches for drink queries
         if (isDrinkQuery) {
           if (this.isClearlyDessertOrYogurt(desc)) {
             penalty += 2; // Strong penalty
-          } else if (!this.isLikelyPlainCoffeeOrTea(desc) && 
-                     (desc.includes('yogurt') || desc.includes('ice cream'))) {
+          } else if (!this.isLikelyPlainCoffeeOrTea(desc) &&
+            (desc.includes('yogurt') || desc.includes('ice cream'))) {
             penalty += 1; // Moderate penalty
           }
         }
@@ -207,7 +207,12 @@ export class HybridService {
         source: 'USDA_API',
       }));
     } catch (error: any) {
-      this.logger.error(`API fallback error: ${error.message}`);
+      // Not all errors are critical - timeouts are expected
+      if (error.message?.includes('timeout') || error.code === 'ECONNABORTED') {
+        this.logger.debug(`[HybridService] API fallback timeout for "${query}"`);
+      } else {
+        this.logger.warn(`[HybridService] API fallback error for "${query}": ${error.message}`);
+      }
       return [];
     }
   }
@@ -255,7 +260,7 @@ export class HybridService {
             // Use abbreviation if available, otherwise name
             measureUnitStr = p.measureUnit.abbreviation || p.measureUnit.name || '';
           }
-          
+
           return {
             foodId: food.id,
             gramWeight: p.gramWeight || 0,
@@ -303,10 +308,45 @@ export class HybridService {
             select: { id: true },
           });
           const existingIds = new Set(existing.map((n) => n.id));
+
+          // CRITICAL FIX: Create missing core nutrients before saving FoodNutrient
+          // Core nutrient IDs that must exist for proper calorie tracking
+          const coreNutrientIds = [1003, 1004, 1005, 1008, 1079, 2000, 1093, 1258, 2047];
+          const missingCoreIds = coreNutrientIds.filter(id => uniqueIds.includes(id) && !existingIds.has(id));
+
+          if (missingCoreIds.length > 0) {
+            this.logger.warn('[HybridService] Creating missing core nutrients in DB', { missingCoreIds });
+
+            // Create missing core nutrients with minimal info
+            const nutrientDefaults: Record<number, { name: string; unitName: string; number: string }> = {
+              1003: { name: 'Protein', unitName: 'G', number: '203' },
+              1004: { name: 'Total lipid (fat)', unitName: 'G', number: '204' },
+              1005: { name: 'Carbohydrate, by difference', unitName: 'G', number: '205' },
+              1008: { name: 'Energy', unitName: 'KCAL', number: '208' },
+              1079: { name: 'Fiber, total dietary', unitName: 'G', number: '291' },
+              2000: { name: 'Sugars, total including NLEA', unitName: 'G', number: '269' },
+              1093: { name: 'Sodium, Na', unitName: 'MG', number: '307' },
+              1258: { name: 'Fatty acids, total saturated', unitName: 'G', number: '606' },
+              2047: { name: 'Energy (Atwater General Factors)', unitName: 'KCAL', number: '957' },
+            };
+
+            for (const id of missingCoreIds) {
+              const def = nutrientDefaults[id];
+              if (def) {
+                await this.prisma.nutrient.upsert({
+                  where: { id },
+                  update: {},
+                  create: { id, name: def.name, unitName: def.unitName, number: def.number },
+                });
+                existingIds.add(id);
+              }
+            }
+          }
+
           const safeNutrients = mapped.filter((n) => existingIds.has(n.nutrientId));
 
           if (!safeNutrients.length) {
-            this.logger.warn(
+            this.logger.debug(
               '[HybridService] No matching nutrients in DB for mapped food nutrients, skipping save',
               {
                 fdcId: food.fdcId,
@@ -397,7 +437,7 @@ export class HybridService {
     // Fallback to API
     const apiFood = await this.fdcApi.getFood(fdcId);
     const savedFood = await this.saveFoodFromApi(apiFood);
-    
+
     return this.normalizeFood(savedFood);
   }
 
@@ -406,9 +446,9 @@ export class HybridService {
     const dbNutrients =
       food.nutrients && Array.isArray(food.nutrients)
         ? food.nutrients.map((n: any) => ({
-            nutrientId: n.nutrientId || n.nutrient?.id,
-            amount: n.amount || 0,
-          }))
+          nutrientId: n.nutrientId || n.nutrient?.id,
+          amount: n.amount || 0,
+        }))
         : undefined;
 
     const nutrients = this.extractNutrients(food, dbNutrients);
@@ -457,19 +497,52 @@ export class HybridService {
       return 0;
     };
 
+    /**
+     * USDA nutrient.number → nutrientId mapping
+     * nutrient.number is NOT the same as nutrientId!
+     * Example: Energy (kcal) has number=208 but nutrientId=1008
+     */
+    const NUTRIENT_NUMBER_TO_ID: Record<string, number> = {
+      '208': 1008,  // Energy (kcal)
+      '268': 2047,  // Energy (kJ)
+      '203': 1003,  // Protein
+      '204': 1004,  // Total lipid (fat)
+      '205': 1005,  // Carbohydrate, by difference
+      '291': 1079,  // Fiber, total dietary
+      '269': 2000,  // Sugars, Total
+      '307': 1093,  // Sodium, Na
+      '606': 1258,  // Fatty acids, total saturated
+    };
+
     const resolveNutrientId = (fn: any): number | null => {
       if (!fn) return null;
 
-      // Possible shapes:
-      // - fn.nutrient.id
-      // - fn.nutrientId
-      // - fn.nutrient.number (string like '1008' → calories)
+      // Priority 1: fn.nutrient.id (this IS the nutrientId)
       if (fn.nutrient?.id) return Number(fn.nutrient.id);
+
+      // Priority 2: fn.nutrientId (this IS the nutrientId)
       if (fn.nutrientId) return Number(fn.nutrientId);
+
+      // Priority 3: fn.nutrient.number (this is NOT nutrientId - must map!)
       if (fn.nutrient?.number) {
-        const n = Number(fn.nutrient.number);
-        if (Number.isFinite(n)) return n;
+        const numStr = String(fn.nutrient.number);
+
+        // If number >= 1000, it's probably already a nutrientId (rare but possible)
+        const numVal = Number(numStr);
+        if (numVal >= 1000 && Number.isFinite(numVal)) {
+          return numVal;
+        }
+
+        // Map known numbers to nutrientIds
+        const mappedId = NUTRIENT_NUMBER_TO_ID[numStr];
+        if (mappedId) {
+          return mappedId;
+        }
+
+        // Unknown number - return null (better to lose nutrient than corrupt data)
+        return null;
       }
+
       return null;
     };
 
@@ -560,7 +633,16 @@ export class HybridService {
 
     const get = (id: number): number => byId.get(id) ?? 0;
 
-    const calories = get(1008); // Energy (kcal)
+    let calories = get(1008); // Energy (kcal)
+
+    // Fallback 1: if kcal not available but kJ is, convert kJ → kcal
+    if (calories === 0) {
+      const energyKJ = get(2047); // Energy (kJ)
+      if (energyKJ > 0) {
+        calories = Math.round(energyKJ / 4.184);
+      }
+    }
+
     const protein = get(1003);
     const fat = get(1004);
     const carbs = get(1005);
@@ -568,6 +650,18 @@ export class HybridService {
     const sugars = get(2000);
     const sodium = get(1093);
     const satFat = get(1258); // Fatty acids, total saturated
+
+    // Fallback 2: if still no calories but macros exist, derive from macros
+    // kcal = protein*4 + carbs*4 + fat*9
+    if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+      const derivedCal = Math.round(protein * 4 + carbs * 4 + fat * 9);
+      if (derivedCal > 0) {
+        calories = derivedCal;
+        if (process.env.ANALYSIS_DEBUG === 'true') {
+          console.log(`[HybridService] Derived calories from macros: ${derivedCal} (P:${protein} C:${carbs} F:${fat})`);
+        }
+      }
+    }
 
     return {
       calories,

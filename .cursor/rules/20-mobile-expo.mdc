@@ -1,0 +1,23 @@
+---
+description: Mobile rules (Expo/RN) — UI correctness, safe areas, i18n, permissions
+globs: "{app,src,apps/mobile}/**/*.{ts,tsx,js,jsx}"
+---
+
+MOBILE PRINCIPLES:
+- Do not break existing navigation. Minimal changes.
+- Always respect SafeArea + KeyboardAvoiding + ScrollView where needed (especially modals/forms).
+- i18n:
+  - Never hardcode user-facing strings.
+  - All text must come from translation keys.
+  - If a translation key is missing, add it to all supported locales (at least ru/en/kk).
+- Permissions:
+  - Use system permission prompts (iOS/Android) through Expo modules where possible.
+  - Do not create extra intermediate screens for picking photos in production unless required.
+
+QUALITY BAR:
+- Any screen state must be resilient: loading, success, empty, error, retry.
+- Never hide/lose user data on refresh; keep stable "records" that change status.
+
+WHEN YOU ARE NOT SURE:
+- Ask which navigation library/router is used (expo-router vs react-navigation),
+  and where i18n is initialized, BEFORE rewriting flows.

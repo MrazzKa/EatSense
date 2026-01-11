@@ -7,22 +7,22 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 export class MessagesController {
     constructor(private messagesService: MessagesService) { }
 
-    @Get('consultation/:consultationId')
-    async findByConsultation(
-        @Request() req,
-        @Param('consultationId') consultationId: string,
+    @Get('conversation/:conversationId')
+    async findByConversation(
+        @Request() req: any,
+        @Param('conversationId') conversationId: string,
     ) {
-        return this.messagesService.findByConsultationId(consultationId, req.user.id);
+        return this.messagesService.findByConversationId(conversationId, req.user.id);
     }
 
-    @Post('consultation/:consultationId')
+    @Post('conversation/:conversationId')
     async create(
-        @Request() req,
-        @Param('consultationId') consultationId: string,
+        @Request() req: any,
+        @Param('conversationId') conversationId: string,
         @Body() body: { type?: string; content: string; metadata?: any },
     ) {
         return this.messagesService.create({
-            consultationId,
+            conversationId,
             senderId: req.user.id,
             type: body.type || 'text',
             content: body.content,
@@ -30,31 +30,39 @@ export class MessagesController {
         });
     }
 
-    @Post('consultation/:consultationId/read')
+    @Post('conversation/:conversationId/read')
     async markAsRead(
-        @Request() req,
-        @Param('consultationId') consultationId: string,
+        @Request() req: any,
+        @Param('conversationId') conversationId: string,
     ) {
-        return this.messagesService.markAsRead(consultationId, req.user.id);
+        return this.messagesService.markAsRead(conversationId, req.user.id);
     }
 
     @Get('unread-count')
-    async getUnreadCount(@Request() req) {
-        const count = await this.messagesService.getUnreadCount(req.user.id);
-        return { count };
+    async getUnreadCount(@Request() req: any) {
+        return this.messagesService.getUnreadCount(req.user.id);
     }
 
-    @Post('consultation/:consultationId/share-meals')
+    @Post('conversation/:conversationId/share-meals')
     async shareMeals(
-        @Request() req,
-        @Param('consultationId') consultationId: string,
+        @Request() req: any,
+        @Param('conversationId') conversationId: string,
         @Body() body: { fromDate: string; toDate: string },
     ) {
-        return this.messagesService.shareMeals({
-            consultationId,
-            senderId: req.user.id,
-            fromDate: new Date(body.fromDate),
-            toDate: new Date(body.toDate),
-        });
+        return this.messagesService.shareMeals(
+            conversationId,
+            req.user.id,
+            new Date(body.fromDate),
+            new Date(body.toDate),
+        );
+    }
+
+    @Post('conversation/:conversationId/share-report')
+    async shareReport(
+        @Request() req: any,
+        @Param('conversationId') conversationId: string,
+        @Body() body: { reportData: any },
+    ) {
+        return this.messagesService.shareReport(conversationId, req.user.id, body.reportData);
     }
 }

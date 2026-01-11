@@ -7,11 +7,23 @@ import {
 } from './nutrition-provider.interface';
 import { CacheService } from '../../cache/cache.service';
 import { LocalFoodService } from './local-food.service';
+import { nameMatchScore, MATCH_THRESHOLDS, validateMatch } from '../utils/name-match';
 
 export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 
 // Version for cache key - increment when validation logic or providers change
-const NUTRITION_CACHE_VERSION = 'v4_2025-12-31';
+const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
+
+// Per-provider timeout configuration (ms)
+// Increased timeouts for medical analysis reliability
+const PROVIDER_TIMEOUTS: Record<string, number> = {
+  'local': 500,          // Local DB - instant
+  'swiss-food': 2000,    // Swiss Food - fast API
+  'openfoodfacts': 8000, // OFF - increased for medical analysis
+  'usda': 10000,         // USDA - increased for medical analysis (10s)
+  'rag': 8000,           // RAG - increased for medical analysis (8s)
+};
+const DEFAULT_PROVIDER_TIMEOUT = 10000; // Increased for medical analysis (10s)
 
 export interface NutritionCacheKeyInput {
   normalizedName: string;
@@ -88,7 +100,7 @@ export class NutritionOrchestrator {
 
   /**
    * Validate nutrition result for suspicious values
-   * Enhanced with product-specific validation ranges
+   * Enhanced with product-specific validation ranges and category-based filtering
    */
   private validateResult(
     result: NutritionProviderResult,
@@ -102,6 +114,50 @@ export class NutritionOrchestrator {
     const calories = per100g.calories ?? 0;
     const kcalPer100 = calories;
     const nameLower = (displayName || '').toLowerCase();
+    const queryLower = (context.originalQuery || '').toLowerCase();
+
+    // =====================================================
+    // CATEGORY-BASED FILTERING: Reject obvious mismatches
+    // Fixes: "corn cooked" → "Oil, corn" bug
+    // =====================================================
+    if (context.categoryHint) {
+      const isOilResult = nameLower.includes('oil') || nameLower.includes('масло') ||
+        nameLower.startsWith('oil,') || nameLower.includes(' oil,');
+      const isVegCategory = context.categoryHint === 'veg' || context.categoryHint === 'vegetable';
+      const isGrainCategory = context.categoryHint === 'grain';
+      const isLegumeCategory = context.categoryHint === 'legume';
+      
+      // If query is for vegetable/grain/legume but result is oil - reject
+      if ((isVegCategory || isGrainCategory || isLegumeCategory) && isOilResult) {
+        // Only reject if query doesn't explicitly mention oil
+        if (!queryLower.includes('oil') && !queryLower.includes('масло')) {
+          this.logger.warn(
+            `[Orchestrator] Rejected oil match for ${context.categoryHint} query: "${context.originalQuery}" → "${displayName}"`,
+          );
+          return {
+            isValid: false,
+            isSuspicious: true,
+            reason: `category_mismatch: oil result for ${context.categoryHint} query`,
+          };
+        }
+      }
+
+      // If query is for vegetable but result is clearly a prepared meal - reject
+      const isMealResult = nameLower.includes('meal') || nameLower.includes('dinner') ||
+        nameLower.includes('lunch') || nameLower.includes('breakfast') ||
+        nameLower.includes('frozen') || nameLower.includes('ready');
+      
+      if (isVegCategory && isMealResult && !queryLower.includes('meal')) {
+        this.logger.warn(
+          `[Orchestrator] Rejected meal match for vegetable query: "${context.originalQuery}" → "${displayName}"`,
+        );
+        return {
+          isValid: false,
+          isSuspicious: true,
+          reason: `category_mismatch: meal result for vegetable query`,
+        };
+      }
+    }
 
     // Product-specific validation for common foods with known calorie ranges
     const productValidation = this.validateProductSpecificCalories(nameLower, kcalPer100);
@@ -149,6 +205,28 @@ export class NutritionOrchestrator {
           isValid: true,
           isSuspicious: true,
           reason: `macro_kcal_mismatch: calculated=${calculatedKcal}, reported=${calories}`,
+        };
+      }
+    }
+
+    // Name-match validation for ingredient mode (with must-tokens)
+    const originalQuery = context.originalQuery;
+    if (originalQuery && context.mode === 'ingredient') {
+      const validation = validateMatch(originalQuery, displayName, 'ingredient');
+
+      if (!validation.isValid) {
+        return {
+          isValid: false,
+          isSuspicious: true,
+          reason: `name_mismatch: ${validation.reason || 'validation failed'}`,
+        };
+      }
+
+      if (validation.isSuspicious) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `weak_name_match: score=${validation.matchScore.toFixed(2)}, mustTokens=${validation.mustTokensHit}`,
         };
       }
     }
@@ -215,7 +293,95 @@ export class NutritionOrchestrator {
       }
     }
 
-    // Fruits
+    // Брокколи: 28-35 ккал/100г
+    if (nameLower.includes('брокколи') || nameLower.includes('broccoli')) {
+      if (kcalPer100 < 20 || kcalPer100 > 50) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `broccoli_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 28-35)`,
+        };
+      }
+    }
+
+    // Цветная капуста: 25-30 ккал/100г
+    if (nameLower.includes('цветная капуста') || nameLower.includes('cauliflower')) {
+      if (kcalPer100 < 15 || kcalPer100 > 45) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `cauliflower_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 25-30)`,
+        };
+      }
+    }
+
+    // Кабачок: 17-25 ккал/100г
+    if (nameLower.includes('кабачок') || nameLower.includes('zucchini') || nameLower.includes('courgette')) {
+      if (kcalPer100 < 10 || kcalPer100 > 40) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `zucchini_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 17-25)`,
+        };
+      }
+    }
+
+    // Шпинат: 20-25 ккал/100г
+    if (nameLower.includes('шпинат') || nameLower.includes('spinach')) {
+      if (kcalPer100 < 15 || kcalPer100 > 35) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `spinach_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 20-25)`,
+        };
+      }
+    }
+
+    // Стручковая фасоль: 30-35 ккал/100г
+    if (nameLower.includes('стручковая фасоль') || nameLower.includes('green beans') || nameLower.includes('string beans')) {
+      if (kcalPer100 < 20 || kcalPer100 > 50) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `green_beans_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 30-35)`,
+        };
+      }
+    }
+
+    // Горошек зелёный: 70-85 ккал/100г
+    if (nameLower.includes('горошек') || nameLower.includes('горох') || nameLower.includes('peas') || nameLower.includes('green peas')) {
+      if (kcalPer100 < 50 || kcalPer100 > 100) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `peas_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 70-85)`,
+        };
+      }
+    }
+
+    // Баклажан: 24-28 ккал/100г
+    if (nameLower.includes('баклажан') || nameLower.includes('eggplant') || nameLower.includes('aubergine')) {
+      if (kcalPer100 < 15 || kcalPer100 > 40) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `eggplant_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 24-28)`,
+        };
+      }
+    }
+
+    // Перец болгарский: 26-32 ккал/100г
+    if (nameLower.includes('перец') || nameLower.includes('pepper') || nameLower.includes('bell pepper')) {
+      if (kcalPer100 < 15 || kcalPer100 > 45) {
+        return {
+          isValid: true,
+          isSuspicious: true,
+          reason: `pepper_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 26-32)`,
+        };
+      }
+    }
+
+
     if (nameLower.includes('яблок') || nameLower.includes('apple')) {
       if (kcalPer100 < 45 || kcalPer100 > 60) {
         return {
@@ -254,6 +420,43 @@ export class NutritionOrchestrator {
           isSuspicious: true,
           reason: `buckwheat_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 343)`,
         };
+      }
+    }
+
+    // =====================================================
+    // OILS/FATS SANITY CHECK: Must be 700-950 kcal/100g
+    // Fixes: "масло 15г = 5 ккал" bug
+    // =====================================================
+    const isOil = nameLower.includes('oil') || nameLower.includes('масло') ||
+      nameLower.includes('butter') || nameLower.includes('сливочное') ||
+      nameLower.includes('margarine') || nameLower.includes('маргарин') ||
+      nameLower.includes('lard') || nameLower.includes('сало') ||
+      nameLower.includes('ghee') || nameLower.includes('топлёное');
+    
+    if (isOil) {
+      // Pure oils: 800-900 kcal/100g, butter: ~717 kcal/100g, allow 650-950 range
+      if (kcalPer100 < 650 || kcalPer100 > 950) {
+        return {
+          isValid: false,
+          isSuspicious: true,
+          reason: `oil_fat_kcal_invalid: ${kcalPer100} kcal/100g (expected 650-950 for oils/fats)`,
+        };
+      }
+    }
+
+    // Corn validation - but NOT if it's oil
+    // Cooked corn: 86-100 kcal/100g, NOT oil (800+ kcal)
+    if ((nameLower.includes('corn') || nameLower.includes('кукуруз')) && !isOil) {
+      // Cooked corn / canned corn
+      if (nameLower.includes('cooked') || nameLower.includes('варён') || 
+          nameLower.includes('canned') || nameLower.includes('консерв')) {
+        if (kcalPer100 < 70 || kcalPer100 > 130) {
+          return {
+            isValid: true,
+            isSuspicious: true,
+            reason: `cooked_corn_kcal_out_of_range: ${kcalPer100} kcal/100g (expected 86-100)`,
+          };
+        }
       }
     }
 
@@ -387,10 +590,14 @@ export class NutritionOrchestrator {
       return null;
     }
 
-    // P2: Launch all provider queries in parallel with timeouts
-    const NUTRITION_PROVIDER_TIMEOUT_MS = parseInt(process.env.NUTRITION_PROVIDER_TIMEOUT_MS || '3000', 10); // 3 seconds default (reduced from 10s for faster response)
+    // P2: Launch all provider queries in parallel with per-provider timeouts
+    // Use Promise.allSettled but check for early return when a good result arrives
+    const getProviderTimeout = (providerId: string): number => {
+      return PROVIDER_TIMEOUTS[providerId] || DEFAULT_PROVIDER_TIMEOUT;
+    };
 
     const tasks = sorted.map((provider) => {
+      const providerTimeout = getProviderTimeout(provider.id);
       const providerCall = this.wrapProviderCall(provider, () => provider.findByText(trimmed, contextWithRegion));
 
       // Add timeout for each provider call
@@ -399,9 +606,9 @@ export class NutritionOrchestrator {
           resolve({
             providerId: provider.id,
             result: null,
-            error: `Provider ${provider.id} timed out after ${NUTRITION_PROVIDER_TIMEOUT_MS}ms`,
+            error: `Provider ${provider.id} timed out after ${providerTimeout}ms`,
           });
-        }, NUTRITION_PROVIDER_TIMEOUT_MS);
+        }, providerTimeout);
       });
 
       return Promise.race([providerCall, timeoutPromise]);
@@ -500,6 +707,45 @@ export class NutritionOrchestrator {
         this.logger.warn(`[NutritionOrchestrator] Failed to cache result: ${err.message}`);
       });
     }
+
+    // =====================================================
+    // OBSERVABILITY: Structured log of nutrition lookup
+    // =====================================================
+    const candidatesLog = scoredResults.slice(0, 3).map(r => ({
+      providerId: r.providerId,
+      name: r.result.food.displayName,
+      kcalPer100: r.result.food.per100g.calories,
+      protein: r.result.food.per100g.protein,
+      carbs: r.result.food.per100g.carbs,
+      fat: r.result.food.per100g.fat,
+      confidence: r.effectiveConfidence,
+      suspicious: r.validation.isSuspicious,
+      reason: r.validation.reason,
+    }));
+
+    this.logger.log(JSON.stringify({
+      stage: 'nutrition_lookup',
+      query: trimmed,
+      locale: context.locale,
+      region: contextWithRegion.region,
+      cacheHit: false, // Set to true above if cache hit
+      localDbHit: false, // Set to true above if local DB hit
+      providersQueried: sorted.length,
+      candidatesFound: validResults.length,
+      candidates: candidatesLog,
+      selected: {
+        providerId: best.providerId,
+        name: best.result.food.displayName,
+        providerFoodId: best.result.food.providerFoodId,
+        kcalPer100: best.result.food.per100g.calories,
+        protein: best.result.food.per100g.protein,
+        carbs: best.result.food.per100g.carbs,
+        fat: best.result.food.per100g.fat,
+        confidence: best.effectiveConfidence,
+        suspicious: best.validation.isSuspicious,
+        selectionReason: best.validation.reason || 'highest_confidence',
+      },
+    }));
 
     this.logger.log(
       `[Orchestrator] Best match: provider=${best.providerId}, name="${best.result.food.displayName}", conf=${best.effectiveConfidence.toFixed(2)}, suspicious=${best.validation.isSuspicious}`,

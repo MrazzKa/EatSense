@@ -519,12 +519,12 @@ Food labels reveal nutrient density and ingredient quality. Knowing how to inter
 
 async function main() {
   console.log('🌱 Starting articles seed...');
-  
+
   // Run Russian articles seed first
   await seedArticlesRu();
-  
+
   console.log('🌱 Seeding legacy articles...');
-  
+
   const now = new Date();
 
   for (let index = 0; index < articles.length; index++) {
@@ -548,6 +548,15 @@ async function main() {
     const whereClause = { slug_locale: { slug, locale: 'en' } };
 
     try {
+      // CLEANUP: Delete any existing article with this slug but in 'ru' locale
+      // This fixes the issue where legacy English articles were seeded as 'ru'
+      await prisma.article.deleteMany({
+        where: {
+          slug,
+          locale: 'ru',
+        },
+      });
+
       await prisma.article.upsert({
         where: whereClause,
         update: {
@@ -592,7 +601,7 @@ async function main() {
       // Continue with next article instead of failing completely
     }
   }
-  
+
   console.log(`✅ Seeded ${articles.length} legacy articles`);
 }
 

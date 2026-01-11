@@ -1,0 +1,36 @@
+---
+description: AI food analysis pipeline — structured outputs, schema tolerance, accurate nutrition
+globs: "{apps/api,workers}/**/*.{ts,js,md}"
+---
+
+GOAL:
+Fix and harden the meal analysis pipeline so it produces:
+- correct dish title (localized),
+- correct ingredients list (with portions),
+- accurate macros (kcal/protein/fat/carbs) per ingredient and total,
+- stable persistence and UX (records never disappear).
+
+NON-NEGOTIABLE BEHAVIOR:
+1) Use STRICT structured output from the LLM (JSON schema / tool/function calling when available).
+2) Parsing must be tolerant:
+   - If LLM outputs an unexpected enum/value, map it (e.g., roasted -> baked/cooked, seasoning -> other).
+   - If parsing fails, store status=failed + error detail, do NOT return fake zeros as "success".
+3) Always create an analysis record EARLY:
+   - status=queued/processing immediately on upload
+   - update to complete/failed later
+   - client UI must bind to this record so cards never vanish
+
+ACCURACY STRATEGY (no placeholders):
+- Ingredient detection -> normalized ingredient entities
+- Portion estimation with confidence + user override
+- Nutrition lookup via real DB/source (USDA/FDC etc.) with caching
+- Total macros = sum(ingredients) with rounding rules documented
+
+PROMPT RULES (to reduce hallucinations):
+- Force model to output only allowed fields and allowed enums (or emit free-text fields separately).
+- Require “uncertainty/confidence” per ingredient.
+- Require explicit unit handling (g/ml/piece) and conversions.
+
+TESTING:
+- Add test fixtures with known meals (at least 10) and expected macro ranges.
+- Add parser tests for malformed JSON / truncated output / invalid enums.

@@ -1,0 +1,91 @@
+{
+  "description": "Chicken with rice and vegetables - test fixture",
+  "visionInput": {
+    "dish": {
+      "dish_name": "Chicken with rice and vegetables",
+      "dish_name_local": "Курица с рисом и овощами",
+      "dish_name_confidence": 0.9
+    },
+    "visible_items": [
+      {
+        "name": "chicken breast grilled",
+        "name_local": "куриная грудка на гриле",
+        "category_hint": "protein",
+        "est_portion_g": 150,
+        "confidence": 0.92
+      },
+      {
+        "name": "white rice cooked",
+        "name_local": "белый рис варёный",
+        "category_hint": "grain",
+        "est_portion_g": 180,
+        "confidence": 0.88
+      },
+      {
+        "name": "mixed vegetables",
+        "name_local": "овощная смесь",
+        "category_hint": "veg",
+        "est_portion_g": 100,
+        "confidence": 0.75
+      }
+    ]
+  },
+  "expectedResult": {
+    "displayName": "Курица с рисом и овощами",
+    "originalDishName": "Chicken with rice and vegetables",
+    "dishNameSource": "vision",
+    "items": [
+      {
+        "name": "куриная грудка на гриле",
+        "portion_g": 150,
+        "nutrients": {
+          "calories": 248,
+          "protein": 46.5,
+          "carbs": 0,
+          "fat": 5.4
+        },
+        "category": "protein"
+      },
+      {
+        "name": "белый рис варёный",
+        "portion_g": 180,
+        "nutrients": {
+          "calories": 234,
+          "protein": 4.3,
+          "carbs": 51.5,
+          "fat": 0.5
+        },
+        "category": "grain"
+      },
+      {
+        "name": "овощная смесь",
+        "portion_g": 100,
+        "nutrients": {
+          "calories": 45,
+          "protein": 2.5,
+          "carbs": 8,
+          "fat": 0.3
+        },
+        "category": "veg"
+      }
+    ],
+    "totals": {
+      "calories": 527,
+      "protein": 53.3,
+      "carbs": 59.5,
+      "fat": 6.2,
+      "portion_g": 430
+    },
+    "healthScore": {
+      "expectedRange": [60, 80],
+      "expectedLevel": "good",
+      "highProteinExpected": true
+    }
+  },
+  "validationRules": {
+    "dishNameStable": "displayName should be consistent across all screens",
+    "chickenNotPlant": "chicken breast should NOT match plant-based products",
+    "riceCaloriesCooked": "rice should have ~130 kcal/100g when cooked (not 360 dry)",
+    "highProteinScore": "health score protein factor should be high (80+)"
+  }
+}

@@ -1,60 +1,151 @@
-import { Injectable, ForbiddenException, ConflictException } from '@nestjs/common';
+import { Injectable, ForbiddenException, ConflictException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import { ExpertsService } from '../experts/experts.service';
+
+interface CreateReviewDto {
+    expertId: string;
+    clientId: string;
+    rating: number;
+    comment?: string;
+    conversationId?: string;
+}
+
+interface UpdateReviewDto {
+    rating?: number;
+    comment?: string;
+}
 
 @Injectable()
 export class ReviewsService {
-    constructor(private prisma: PrismaService) { }
+    private readonly logger = new Logger(ReviewsService.name);
 
-    async create(data: {
-        consultationId: string;
-        clientId: string;
-        rating: number;
-        comment?: string;
-    }) {
-        if (!this.prisma.consultation || !this.prisma.review) {
-            throw new ForbiddenException('Feature not available');
-        }
+    constructor(
+        private prisma: PrismaService,
+        private expertsService: ExpertsService,
+    ) { }
 
-        const consultation = await this.prisma.consultation.findUnique({
-            where: { id: data.consultationId },
-            include: { review: true },
+    async findByExpertId(expertId: string) {
+        return this.prisma.review.findMany({
+            where: { expertId, isVisible: true },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        userProfile: { select: { firstName: true, avatarUrl: true } },
+                    },
+                },
+            },
+        });
+    }
+
+    async create(data: CreateReviewDto) {
+        // Check if review already exists for this client-expert pair
+        const existing = await this.prisma.review.findUnique({
+            where: {
+                clientId_expertId: {
+                    clientId: data.clientId,
+                    expertId: data.expertId,
+                },
+            },
         });
 
-        if (!consultation) throw new ForbiddenException('Consultation not found');
-        if (consultation.clientId !== data.clientId) throw new ForbiddenException('Access denied');
-        if (consultation.review) throw new ConflictException('Review already exists');
+        if (existing) {
+            // Update existing review
+            const updated = await this.prisma.review.update({
+                where: { id: existing.id },
+                data: {
+                    rating: data.rating,
+                    comment: data.comment,
+                },
+            });
+
+            await this.expertsService.updateRating(data.expertId);
+            return updated;
+        }
+
+        // Validate conversation if provided
+        if (data.conversationId) {
+            const conversation = await this.prisma.conversation.findUnique({
+                where: { id: data.conversationId },
+            });
+
+            if (!conversation) {
+                throw new NotFoundException('Conversation not found');
+            }
+
+            if (conversation.clientId !== data.clientId || conversation.expertId !== data.expertId) {
+                throw new ForbiddenException('Invalid conversation for this review');
+            }
+        }
 
         const review = await this.prisma.review.create({
             data: {
-                consultationId: data.consultationId,
+                expertId: data.expertId,
                 clientId: data.clientId,
-                specialistId: consultation.specialistId,
+                conversationId: data.conversationId,
                 rating: data.rating,
                 comment: data.comment,
             },
         });
 
-        // Update specialist rating
-        await this.updateSpecialistRating(consultation.specialistId);
+        // Update expert rating
+        await this.expertsService.updateRating(data.expertId);
+
+        this.logger.log(`Review created: expert=${data.expertId}, client=${data.clientId}, rating=${data.rating}`);
 
         return review;
     }
 
-    private async updateSpecialistRating(specialistId: string) {
-        if (!this.prisma.specialist) return;
-
-        const stats = await this.prisma.review.aggregate({
-            where: { specialistId },
-            _avg: { rating: true },
-            _count: { rating: true },
+    async update(reviewId: string, clientId: string, dto: UpdateReviewDto) {
+        const review = await this.prisma.review.findUnique({
+            where: { id: reviewId },
         });
 
-        await this.prisma.specialist.update({
-            where: { id: specialistId },
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        }
+
+        if (review.clientId !== clientId) {
+            throw new ForbiddenException('Not allowed to update this review');
+        }
+
+        const updated = await this.prisma.review.update({
+            where: { id: reviewId },
             data: {
-                rating: stats._avg.rating || 0,
-                reviewCount: stats._count.rating,
+                rating: dto.rating,
+                comment: dto.comment,
             },
         });
+
+        // Update expert rating
+        await this.expertsService.updateRating(review.expertId);
+
+        return updated;
+    }
+
+    async delete(reviewId: string, clientId: string) {
+        const review = await this.prisma.review.findUnique({
+            where: { id: reviewId },
+        });
+
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        }
+
+        if (review.clientId !== clientId) {
+            throw new ForbiddenException('Not allowed to delete this review');
+        }
+
+        const expertId = review.expertId;
+
+        await this.prisma.review.delete({
+            where: { id: reviewId },
+        });
+
+        // Update expert rating
+        await this.expertsService.updateRating(expertId);
+
+        return { success: true };
     }
 }

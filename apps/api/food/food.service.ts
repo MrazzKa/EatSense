@@ -2,7 +2,8 @@ import { Injectable, BadRequestException, Logger, InternalServerErrorException, 
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { PrismaService } from '../prisma.service';
-import { FoodAnalyzerService } from './food-analyzer/food-analyzer.service';
+// NOTE: FoodAnalyzerService removed - was dead code (injected but never called)
+// All food analysis now uses AnalyzeService (with VisionService + NutritionOrchestrator)
 import { RedisService } from '../redis/redis.service';
 import { calculateHealthScore } from './food-health-score.util';
 import { normalizeFoodName } from '../src/analysis/text-utils';
@@ -17,13 +18,13 @@ export class FoodService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly foodAnalyzer: FoodAnalyzerService,
+    // FoodAnalyzerService removed - dead code
     @InjectQueue('food-analysis') private readonly analysisQueue: Queue,
     private readonly redisService: RedisService,
     private readonly analyzeService: AnalyzeService,
   ) { }
 
-  async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk', foodDescription?: string) {
+  async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk', foodDescription?: string, skipCache?: boolean) {
     try {
       if (!file) {
         throw new BadRequestException('No image file provided');
@@ -100,6 +101,7 @@ export class FoodService {
         userId,
         locale: effectiveLocale,
         foodDescription: foodDescription || undefined, // Pass food description to processor
+        skipCache: skipCache || false, // Pass skip-cache flag to processor
       });
 
       // Increment daily limit counter after successful analysis creation
@@ -149,7 +151,7 @@ export class FoodService {
     }
   }
 
-  async analyzeText(description: string, userId: string, locale?: 'en' | 'ru' | 'kk') {
+  async analyzeText(description: string, userId: string, locale?: 'en' | 'ru' | 'kk', skipCache?: boolean) {
     if (!description || description.trim().length === 0) {
       throw new BadRequestException('Description cannot be empty');
     }
@@ -191,6 +193,7 @@ export class FoodService {
       description: description.trim(),
       userId,
       locale: effectiveLocale,
+      skipCache: skipCache || false, // Pass skip-cache flag to processor
     });
 
     // Increment daily limit counter after successful analysis creation
@@ -331,7 +334,10 @@ export class FoodService {
       const fat = item?.fat ?? 0;
       const weight = item?.gramsMean ?? item?.weight ?? 100;
 
+      // Generate id for legacy items
+      const crypto = require('crypto');
       return {
+        id: item?.id || crypto.randomUUID(),
         name: normalizeFoodName(item?.label || item?.name || 'Unknown Food'),
         label: item?.label,
         portion_g: weight,
@@ -346,7 +352,7 @@ export class FoodService {
           energyDensity: 0,
         },
         source: 'fdc',
-      };
+      } as AnalyzedItem;
     });
 
     const ingredients = items.map((item: AnalyzedItem) => {
@@ -365,6 +371,22 @@ export class FoodService {
         satFat: n.satFat ?? 0,
         weight: item.portion_g ?? 100,
         hasNutrition: item.hasNutrition !== false, // Default to true if not set
+        // New additive fields for transparency
+        category: item.category,
+        source: item.sourceInfo || {
+          name: item.isFallback ? 'vision' : 'provider',
+          nutrients: item.isFallback ? 'vision' : 'provider',
+          providerId: item.provider,
+        },
+        confidence: {
+          vision: item.confidence,
+          provider: item.fdcScore,
+        },
+        flags: {
+          isSuspicious: item.isSuspicious || false,
+          isFallback: item.isFallback || false,
+          needsReview: item.isSuspicious || false,
+        },
       };
     });
 
@@ -440,11 +462,13 @@ export class FoodService {
           const first = names[0];
           return first.length > 60 ? first.slice(0, 57) + '…' : first;
         }
+        // STEP 1 FIX: No "and more" - use comma-joined top 3
         if (names.length === 2) {
-          const combined = `${names[0]} with ${names[1]}`;
-          return combined.length > 60 ? `${names[0]} and more` : combined;
+          const combined = `${names[0]} ${withWord} ${names[1]}`;
+          return combined.length > 60 ? names.slice(0, 2).join(', ') : combined;
         }
-        return `${names[0]} and more`;
+        // 3+ items: comma-joined top 3
+        return names.slice(0, 3).join(', ');
       })();
 
     const result: any = {

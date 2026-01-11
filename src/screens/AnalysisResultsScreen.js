@@ -63,8 +63,39 @@ export default function AnalysisResultsScreen() {
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [isAddingItem, setIsAddingItem] = useState(false);
+  const [analysisPhraseIndex, setAnalysisPhraseIndex] = useState(0);
 
   const styles = useMemo(() => createStyles(tokens), [tokens]);
+
+  // Rotating analysis phrases for better UX during loading
+  const analysisPhrases = useMemo(() => [
+    t('analysis.phrases.analyzing') || 'Analyzing photo...',
+    t('analysis.phrases.recognizing') || 'Recognizing ingredients...',
+    t('analysis.phrases.counting') || 'Counting calories...',
+    t('analysis.phrases.portions') || 'Estimating portions...',
+    t('analysis.phrases.nutrients') || 'Checking nutrients...',
+    t('analysis.phrases.almostDone') || 'Almost done...',
+    t('analysis.phrases.formatting') || 'Formatting results...',
+  ], [t]);
+
+  // Rotate phrases during analysis
+  useEffect(() => {
+    if (isAnalyzing) {
+      const interval = setInterval(() => {
+        setAnalysisPhraseIndex(prev => {
+          // After last phrase, stay on "Almost done..."
+          if (prev >= analysisPhrases.length - 2) {
+            return analysisPhrases.length - 2;
+          }
+          return prev + 1;
+        });
+      }, 3000); // Rotate every 3 seconds
+      return () => clearInterval(interval);
+    } else {
+      // Reset index when not analyzing
+      setAnalysisPhraseIndex(0);
+    }
+  }, [isAnalyzing, analysisPhrases.length]);
 
   const allowEditing = !readOnly;
 
@@ -118,6 +149,30 @@ export default function AnalysisResultsScreen() {
 
       if (!raw) {
         return null;
+      }
+
+      // =====================================================
+      // OBSERVABILITY: CLIENT_LOG for pipeline debugging
+      // =====================================================
+      if (__DEV__) {
+        console.log('[CLIENT_LOG] normalizeAnalysis input:', {
+          stage: 'frontend_normalize',
+          topLevelKeys: Object.keys(raw),
+          dataKeys: raw.data ? Object.keys(raw.data) : [],
+          analysisId: raw.id || raw.analysisId,
+          mealId: raw.mealId,
+          dishNameFields: {
+            'data.dishNameLocalized': raw.data?.dishNameLocalized || null,
+            'data.originalDishName': raw.data?.originalDishName || null,
+            'data.dishNameSource': raw.data?.dishNameSource || null,
+            'data.dishNameConfidence': raw.data?.dishNameConfidence || null,
+            'data.dishName': raw.data?.dishName || null,
+            'raw.dishName': raw.dishName || null,
+            'raw.name': raw.name || null,
+          },
+          itemCount: (raw.data?.items || raw.items)?.length || 0,
+          totals: raw.data?.total || null,
+        });
       }
 
       const toNumber = (value) => {
@@ -202,11 +257,25 @@ export default function AnalysisResultsScreen() {
         id: raw.id || raw.analysisId || null,
         analysisId: raw.analysisId || raw.id || routeParams.analysisId || null,
         dishName: (() => {
-          // Prefer localized dish name, fallback to original
-          let name = raw.data?.dishNameLocalized || raw.data?.originalDishName ||
+          // STEP 2 FIX: Use displayName as the single source of truth
+          // Priority: displayName > dishNameLocalized > originalDishName > dishName > name
+          if (__DEV__) {
+            console.log('[normalizeAnalysis] dishName candidates:', {
+              'raw.data?.displayName': raw.data?.displayName,
+              'raw.data?.dishNameLocalized': raw.data?.dishNameLocalized,
+              'raw.data?.originalDishName': raw.data?.originalDishName,
+              'raw.data?.dishName': raw.data?.dishName,
+              'raw.dishName': raw.dishName,
+              'raw.name': raw.name,
+            });
+          }
+
+          // STEP 2: displayName is the preferred field (set by backend)
+          let name = raw.data?.displayName || raw.data?.dishNameLocalized || 
+            raw.data?.originalDishName || raw.data?.dishName || 
             raw.dishName || raw.name || null;
 
-          // Remove "and more" suffix if present (backend adds it for brevity)
+          // Remove "and more" suffix if present (legacy backend behavior)
           if (name && (name.includes(' and more') || name.includes(' и другое') || name.includes(' және басқалары'))) {
             name = name.replace(/\s+(and more|и другое|және басқалары)$/i, '');
           }
@@ -214,10 +283,14 @@ export default function AnalysisResultsScreen() {
           // If no specific dish name, use localized fallback
           const fallbackMealName = t('dashboard.mealFallback') || 'Meal';
           if (!name || name === 'Food Analysis' || name === 'Meal' || name === 'Блюдо' || name === 'Тағам') {
-            if (normalizedIngredients.length > 0 && normalizedIngredients[0]?.name) {
-              // Use first ingredient name if available
+            // FIX: Only use first ingredient as name if there's EXACTLY 1 ingredient
+            // For multi-ingredient meals, use the generic meal name (not first ingredient)
+            if (normalizedIngredients.length === 1 && normalizedIngredients[0]?.name) {
+              // Single ingredient - use its name
               name = normalizedIngredients[0].name;
             } else {
+              // Multiple ingredients OR no ingredients - use generic meal name
+              // DON'T use first ingredient to avoid "Овощной суп" → "морковь"
               name = fallbackMealName;
             }
           }
@@ -387,7 +460,9 @@ export default function AnalysisResultsScreen() {
               } else if (currentStatus === 'PROCESSING' || currentStatus === 'PENDING') {
                 if (attempts < maxAttempts) {
                   attempts += 1;
-                  setTimeout(poll, 3000);
+                  // STEP 7: Progressive polling interval (2.5s base, up to 4s after many attempts)
+                  const pollInterval = Math.min(2500 + attempts * 50, 4000);
+                  setTimeout(poll, pollInterval);
                 } else {
                   console.error(`[AnalysisResultsScreen] Timeout after ${maxAttempts} attempts`);
                   if (!cancelled) {
@@ -407,7 +482,9 @@ export default function AnalysisResultsScreen() {
               console.error(`[AnalysisResultsScreen] Polling error:`, error);
               if (attempts < maxAttempts) {
                 attempts += 1;
-                setTimeout(poll, 3000);
+                // STEP 7: Exponential backoff on errors (3s, 4s, 5s, up to 8s)
+                const errorBackoff = Math.min(3000 + attempts * 500, 8000);
+                setTimeout(poll, errorBackoff);
               } else {
                 if (!cancelled) showAnalysisError('analysis.errorTitle', 'analysis.errorMessage');
               }
@@ -779,11 +856,11 @@ export default function AnalysisResultsScreen() {
             </View>
           )}
 
-          {/* Pending state with better UX */}
+          {/* Pending state with rotating phrases for better UX */}
           <View style={styles.emptyState}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.emptyText, { color: colors.textPrimary, marginTop: 16, fontSize: 18, fontWeight: '600' }]}>
-              {t('analysis.analyzing') || 'Analyzing your meal...'}
+              {analysisPhrases[analysisPhraseIndex]}
             </Text>
             <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 8, fontSize: 14 }]}>
               {t('analysis.analyzingSubtitle') || 'This may take a few seconds'}

@@ -34,13 +34,15 @@ import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
 import { OpenFoodFactsModule } from './src/openfoodfacts/openfoodfacts.module';
 import { MedicationsModule } from './src/medications/medications.module';
-import { SpecialistsModule } from './src/specialists/specialists.module';
-import { ConsultationsModule } from './src/consultations/consultations.module';
+import { ExpertsModule } from './src/experts/experts.module';
+import { ConversationsModule } from './src/conversations/conversations.module';
 import { MessagesModule } from './src/messages/messages.module';
 import { ReviewsModule } from './src/reviews/reviews.module';
 import { DietProgramsModule } from './src/diet-programs/diet-programs.module';
+import { DietsModule } from './src/diets/diets.module';
 import { ReferralsModule } from './src/referrals/referrals.module';
 import { ReportsModule } from './src/reports/reports.module';
+import { SafetyModule } from './src/safety/safety.module';
 
 @Module({
   imports: [
@@ -108,13 +110,15 @@ import { ReportsModule } from './src/reports/reports.module';
     SuggestionsModule,
     OpenFoodFactsModule,
     MedicationsModule,
-    SpecialistsModule,
-    ConsultationsModule,
+    ExpertsModule,
+    ConversationsModule,
     MessagesModule,
     ReviewsModule,
     DietProgramsModule,
+    DietsModule,
     ReferralsModule,
     ReportsModule,
+    SafetyModule,
   ],
   controllers: [HealthController],
 })

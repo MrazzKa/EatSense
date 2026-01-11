@@ -18,7 +18,7 @@ Effective Date: December 13, 2025
 
 PLEASE READ CAREFULLY. By accessing or using the Services, you agree to these Terms and our Privacy Policy. If you do not agree, do not use the Services.
 
-These Terms of Service ("Terms") constitute a legally binding agreement between you and EatSense SA, a Swiss company based in Geneva ("EatSense," "we," "us"), governing your use of our mobile application and related services (the "Services").
+These Terms of Service ("Terms") constitute a legally binding agreement between you and TEMONAN Geneva Holdings Sàrl, a Swiss company based in Avully ("EatSense," "we," "us"), governing your use of our mobile application and related services (the "Services").
 
 1. ELIGIBILITY
 
@@ -185,17 +185,17 @@ You agree to indemnify and hold harmless EatSense from claims arising from your 
 
 16. CONTACT INFORMATION
 
-EatSense SA
+TEMONAN Geneva Holdings Sàrl
 Attn: Legal Department
-Geneva, Switzerland
-Email: legal@eatsense.ch
+Avully, Switzerland
+Email: info@eatsense.ch
 
 17. ACKNOWLEDGMENT
 
 BY USING THE SERVICES, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS.
 
 * * *
-EatSense SA — Smart Nutrition, Swiss Precision`;
+TEMONAN Geneva Holdings Sàrl — EatSense: Smart Nutrition, Swiss Precision`;
 
 export default function TermsOfServiceScreen() {
   const navigation = useNavigation();
@@ -207,7 +207,7 @@ export default function TermsOfServiceScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.closeButton}
           onPress={() => navigation && typeof navigation.goBack === 'function' ? navigation.goBack() : null}
         >
@@ -219,8 +219,8 @@ export default function TermsOfServiceScreen() {
         <View style={styles.closeButton} />
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator
       >

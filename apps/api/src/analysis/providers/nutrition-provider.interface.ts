@@ -41,6 +41,18 @@ export interface NutritionLookupContext {
   locale: 'en' | 'ru' | 'kk';
   region?: 'US' | 'CH' | 'EU' | 'OTHER';
   expectedCategory?: NutritionCategory;
+  /** 'ingredient' for image analysis, 'packaged' for barcode scanning */
+  mode?: 'ingredient' | 'packaged';
+  /** Original query string for name matching validation */
+  originalQuery?: string;
+  /** True when looking up a barcode (packaged food) */
+  isBarcode?: boolean;
+  /** 
+   * Category hint from Vision for filtering mismatches.
+   * E.g., 'veg' for vegetables, 'protein' for meat/fish, 'fat' for oils/butter, etc.
+   * Used to reject obviously wrong matches (corn→Oil,corn when categoryHint='veg')
+   */
+  categoryHint?: 'veg' | 'vegetable' | 'protein' | 'grain' | 'fat' | 'dairy' | 'fruit' | 'legume' | 'other';
 }
 
 export interface NutritionProviderResult {

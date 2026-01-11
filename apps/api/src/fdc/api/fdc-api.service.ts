@@ -1,6 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 import * as crypto from 'crypto';
 import { CacheService } from '../../cache/cache.service';
 
@@ -11,7 +12,7 @@ export class FdcApiService {
   constructor(
     private readonly httpService: HttpService,
     private readonly cache: CacheService,
-  ) {}
+  ) { }
 
   async searchFoods(body: any): Promise<any> {
     const cacheKey = `api:${this.hashBody(body)}`;
@@ -22,9 +23,13 @@ export class FdcApiService {
     }
     this.logger.debug(`provider=usda cache=miss namespace=usda:search key=${cacheKey}`);
 
+    // USDA FDC API requires api_key as query parameter
+    const apiKey = process.env.FDC_API_KEY || process.env.USDA_API_KEY;
+    const url = apiKey ? `/v1/foods/search?api_key=${apiKey}` : '/v1/foods/search';
+
     try {
-      const response = await firstValueFrom(
-        this.httpService.post('/v1/foods/search', body),
+      const response = await firstValueFrom<AxiosResponse<any>>(
+        this.httpService.post(url, body) as any,
       );
 
       // Log rate limit headers
@@ -39,15 +44,26 @@ export class FdcApiService {
 
       return response.data;
     } catch (error: any) {
-      this.logger.error(`USDA search error: ${error.message}`);
-      
+      // Log at warn/debug level - USDA failures are expected and handled by fallback providers
+      const errorDetails = {
+        status: error.response?.status,
+        code: error.code,
+        message: error.message,
+      };
+
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        this.logger.debug(`[FdcApiService] USDA API timeout`, errorDetails);
+      } else {
+        this.logger.warn(`[FdcApiService] USDA search error`, errorDetails);
+      }
+
       if (error.response?.status === 429) {
         throw new HttpException(
           'Rate limit exceeded. Please try again later.',
           HttpStatus.TOO_MANY_REQUESTS,
         );
       }
-      
+
       if (error.response?.status >= 500) {
         throw new HttpException(
           'USDA API server error',
@@ -75,21 +91,30 @@ export class FdcApiService {
     }
     this.logger.debug(`provider=usda cache=miss namespace=usda:detail key=${cacheKey}`);
 
+    // USDA FDC API requires api_key as query parameter
+    const apiKey = process.env.FDC_API_KEY || process.env.USDA_API_KEY;
+    const url = apiKey ? `/v1/food/${fdcId}?api_key=${apiKey}` : `/v1/food/${fdcId}`;
+
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`/v1/food/${fdcId}`),
+      const response = await firstValueFrom<AxiosResponse<any>>(
+        this.httpService.get(url) as any,
       );
 
       await this.cache.set(cacheKey, response.data, 'usda:detail');
 
       return response.data;
     } catch (error: any) {
-      this.logger.error(`USDA getFood error for ${fdcId}: ${error.message}`);
-      
+      // Log at warn level - failures are handled by fallback
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+        this.logger.debug(`[FdcApiService] USDA getFood timeout for ${fdcId}`);
+      } else {
+        this.logger.warn(`[FdcApiService] USDA getFood error for ${fdcId}: ${error.message}`);
+      }
+
       if (error.response?.status === 404) {
         throw new HttpException('Food not found', HttpStatus.NOT_FOUND);
       }
-      
+
       if (error.response?.status === 429) {
         throw new HttpException(
           'Rate limit exceeded. Please try again later.',
@@ -108,14 +133,18 @@ export class FdcApiService {
    * Get multiple foods by FDC IDs
    */
   async getFoods(fdcIds: number[]): Promise<any> {
+    // USDA FDC API requires api_key as query parameter
+    const apiKey = process.env.FDC_API_KEY || process.env.USDA_API_KEY;
+    const url = apiKey ? `/v1/foods?api_key=${apiKey}` : '/v1/foods';
+
     try {
-      const response = await firstValueFrom(
-        this.httpService.post('/v1/foods', { fdcIds }),
+      const response = await firstValueFrom<AxiosResponse<any>>(
+        this.httpService.post(url, { fdcIds }) as any,
       );
 
       return response.data;
     } catch (error: any) {
-      this.logger.error('USDA getFoods error:', error.message);
+      this.logger.warn('[FdcApiService] USDA getFoods error:', error.message);
       throw new HttpException(
         error.response?.data?.message || 'Failed to get foods',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -127,14 +156,18 @@ export class FdcApiService {
    * List foods with pagination
    */
   async listFoods(body: any): Promise<any> {
+    // USDA FDC API requires api_key as query parameter
+    const apiKey = process.env.FDC_API_KEY || process.env.USDA_API_KEY;
+    const url = apiKey ? `/v1/foods/list?api_key=${apiKey}` : '/v1/foods/list';
+
     try {
-      const response = await firstValueFrom(
-        this.httpService.post('/v1/foods/list', body),
+      const response = await firstValueFrom<AxiosResponse<any>>(
+        this.httpService.post(url, body) as any,
       );
 
       return response.data;
     } catch (error: any) {
-      this.logger.error('USDA listFoods error:', error.message);
+      this.logger.warn('[FdcApiService] USDA listFoods error:', error.message);
       throw new HttpException(
         error.response?.data?.message || 'Failed to list foods',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,

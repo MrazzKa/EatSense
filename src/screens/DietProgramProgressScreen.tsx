@@ -1,41 +1,50 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import DietProgramsService from '../services/dietProgramsService';
+import DailyDietTracker from '../components/DailyDietTracker';
+import CelebrationModal from '../components/CelebrationModal';
 
 interface DietProgramProgressScreenProps {
     navigation: any;
     route: any;
 }
 
+// Helper to extract localized string from object or return string directly
+const getLocalizedText = (value: any, lang: string): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+        // Try current language, then 'en', then first available
+        return value[lang] || value['en'] || value[Object.keys(value)[0]] || '';
+    }
+    return String(value);
+};
+
 export default function DietProgramProgressScreen({ navigation, route }: DietProgramProgressScreenProps) {
     const { colors } = useTheme();
-    const { t } = useI18n();
-    const [progress, setProgress] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const { t, language } = useI18n();
+    const { activeProgram, loading: storeLoading, completeDay: completeDayStore, refreshProgress, markCelebrationShown } = useProgramProgress();
+    const [showCelebration, setShowCelebration] = useState(false);
 
-    const loadProgress = useCallback(async () => {
-        try {
-            const data = await DietProgramsService.getProgress(route.params.id);
-            setProgress(data);
-        } catch (error) {
-            console.error('Failed to load progress:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [route.params.id]);
+    // Refresh on focus
+    useRefreshProgressOnFocus();
 
+    // Show celebration when day is completed
     useEffect(() => {
-        loadProgress();
-    }, [loadProgress]);
+        if (activeProgram?.todayLog?.completed && !activeProgram.todayLog.celebrationShown) {
+            setShowCelebration(true);
+        }
+    }, [activeProgram?.todayLog?.completed, activeProgram?.todayLog?.celebrationShown]);
 
     const handleCompleteDay = async () => {
-        if (!progress) return;
+        if (!activeProgram || activeProgram.type !== 'diet') return;
 
-        if (progress.currentDay >= progress.program.duration) {
+        if (activeProgram.currentDayIndex >= activeProgram.durationDays) {
             Alert.alert(t('dietPrograms.completed'), t('dietPrograms.completedMessage'), [
                 { text: 'OK', onPress: () => navigation.goBack() },
             ]);
@@ -43,10 +52,15 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         }
 
         try {
-            await DietProgramsService.completeDay(route.params.id, progress.currentDay);
-            loadProgress();
-        } catch {
-            Alert.alert(t('common.error'), t('errors.completeDay'));
+            const wasCompleted = activeProgram.todayLog?.completed || false;
+            await completeDayStore();
+            await refreshProgress();
+            // Show celebration if day was just completed (wasn't completed before)
+            if (!wasCompleted) {
+                setShowCelebration(true);
+            }
+        } catch (error: any) {
+            Alert.alert(t('common.error'), error.message || t('errors.completeDay'));
         }
     };
 
@@ -65,7 +79,25 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         }
     };
 
-    if (loading) {
+    // Load program details if not in store
+    const [programDetails, setProgramDetails] = useState<any>(null);
+    const [loadingDetails, setLoadingDetails] = useState(true);
+
+    useEffect(() => {
+        const loadDetails = async () => {
+            try {
+                const data = await DietProgramsService.getProgram(route.params.id);
+                setProgramDetails(data);
+            } catch (error) {
+                console.error('Failed to load program details:', error);
+            } finally {
+                setLoadingDetails(false);
+            }
+        };
+        loadDetails();
+    }, [route.params.id]);
+
+    if (storeLoading || loadingDetails) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.loadingContainer}>
@@ -75,7 +107,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         );
     }
 
-    if (!progress) {
+    if (!activeProgram || activeProgram.type !== 'diet' || !programDetails) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.loadingContainer}>
@@ -85,42 +117,68 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         );
     }
 
-    const currentDay = progress.program?.days?.find((d: any) => d.dayNumber === progress.currentDay);
-    const progressPercent = Math.round((progress.currentDay / progress.program.duration) * 100);
+    const currentDay = programDetails.days?.find((d: any) => d.dayNumber === activeProgram.currentDayIndex);
+    const progressPercent = Math.round((activeProgram.currentDayIndex / activeProgram.durationDays) * 100);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+            <CelebrationModal
+                visible={showCelebration}
+                completionRate={activeProgram.todayLog?.completionRate || 0}
+                onClose={async () => {
+                    setShowCelebration(false);
+                    // Mark celebration as shown in database
+                    await markCelebrationShown();
+                }}
+            />
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.textPrimary }]}>{progress.program.name}</Text>
+                <Text style={[styles.title, { color: colors.textPrimary }]}>{getLocalizedText(programDetails.name, language)}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Progress Card */}
                 <View style={[styles.progressCard, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.progressDayLabel}>
-                        {t('dietPrograms.day')} {progress.currentDay}
-                    </Text>
-                    <Text style={styles.progressOfTotal}>
-                        {t('common.of')} {progress.program.duration}
-                    </Text>
+                    <View style={styles.progressHeader}>
+                        <View>
+                            <Text style={styles.progressDayLabel}>
+                                {t('dietPrograms.day')} {activeProgram.currentDayIndex}
+                            </Text>
+                            <Text style={styles.progressOfTotal}>
+                                {t('common.of')} {activeProgram.durationDays}
+                            </Text>
+                        </View>
+                        {/* Streak Badge */}
+                        {activeProgram.streak?.current > 0 && (
+                            <View style={styles.streakBadge}>
+                                <Ionicons name="flame" size={16} color="#FFB300" />
+                                <Text style={styles.streakText}>
+                                    {activeProgram.streak?.current || 0} {t('diets.tracker.days')}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                     <View style={styles.progressBarContainer}>
                         <View style={[styles.progressBar, { width: `${progressPercent}%` }]} />
                     </View>
                     <Text style={styles.progressPercent}>{progressPercent}%</Text>
                 </View>
 
+                {/* Daily Diet Tracker */}
+                <DailyDietTracker onUpdate={refreshProgress} />
+
                 {/* Today's Meals */}
                 {currentDay?.meals?.length > 0 && (
                     <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                            {t('dietPrograms.day')} {progress.currentDay}
+                            {t('dietPrograms.mealsForDay')} {activeProgram.currentDayIndex}
                         </Text>
                         {currentDay.title && (
-                            <Text style={[styles.dayTitle, { color: colors.textSecondary }]}>{currentDay.title}</Text>
+                            <Text style={[styles.dayTitle, { color: colors.textSecondary }]}>{getLocalizedText(currentDay.title, language)}</Text>
                         )}
                         {currentDay.meals.map((meal: any, index: number) => (
                             <View key={index} style={styles.mealItem}>
@@ -129,10 +187,10 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                 </View>
                                 <View style={styles.mealInfo}>
                                     <Text style={[styles.mealType, { color: colors.textSecondary }]}>{meal.mealType}</Text>
-                                    <Text style={[styles.mealName, { color: colors.textPrimary }]}>{meal.name}</Text>
+                                    <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language)}</Text>
                                     {meal.description && (
                                         <Text style={[styles.mealDescription, { color: colors.textSecondary }]} numberOfLines={2}>
-                                            {meal.description}
+                                            {getLocalizedText(meal.description, language)}
                                         </Text>
                                     )}
                                 </View>
@@ -146,31 +204,101 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
 
                 {/* Day Progress Dots */}
                 <View style={styles.daysRow}>
-                    {Array.from({ length: Math.min(progress.program.duration, 14) }, (_, i) => i + 1).map((day) => (
+                    {Array.from({ length: Math.min(activeProgram.durationDays, 14) }, (_, i) => i + 1).map((day) => (
                         <View
                             key={day}
                             style={[
                                 styles.dayDot,
                                 {
                                     backgroundColor:
-                                        day < progress.currentDay
+                                        day < activeProgram.currentDayIndex
                                             ? colors.primary
-                                            : day === progress.currentDay
+                                            : day === activeProgram.currentDayIndex
                                                 ? colors.primary + '50'
                                                 : colors.border,
                                 },
                             ]}
                         >
-                            {day < progress.currentDay && <Ionicons name="checkmark" size={10} color="#fff" />}
+                            {day < activeProgram.currentDayIndex && <Ionicons name="checkmark" size={10} color="#fff" />}
                         </View>
                     ))}
                 </View>
+
+                {/* Pause/Resume Button */}
+                <TouchableOpacity
+                    style={[styles.pauseButton, { borderColor: colors.warning || '#FF9800', backgroundColor: (colors.warning || '#FF9800') + '10' }]}
+                    onPress={() => {
+                        const isPaused = activeProgram?.status === 'paused';
+                        Alert.alert(
+                            isPaused ? t('dietPrograms.resumeProgram') : t('dietPrograms.pauseProgram'),
+                            isPaused ? t('dietPrograms.resumeProgramConfirm') : t('dietPrograms.pauseProgramConfirm'),
+                            [
+                                { text: t('common.cancel'), style: 'cancel' },
+                                {
+                                    text: isPaused ? t('dietPrograms.resume') : t('dietPrograms.pause'),
+                                    onPress: async () => {
+                                        try {
+                                            if (isPaused) {
+                                                await DietProgramsService.resumeProgram();
+                                            } else {
+                                                await DietProgramsService.pauseProgram();
+                                            }
+                                            await refreshProgress();
+                                        } catch {
+                                            Alert.alert(t('common.error'), t('errors.pauseProgram'));
+                                        }
+                                    },
+                                },
+                            ]
+                        );
+                    }}
+                >
+                    <Ionicons
+                        name={activeProgram?.status === 'paused' ? 'play-circle-outline' : 'pause-circle-outline'}
+                        size={18}
+                        color={colors.warning || '#FF9800'}
+                    />
+                    <Text style={[styles.pauseButtonText, { color: colors.warning || '#FF9800' }]}>
+                        {activeProgram?.status === 'paused' ? t('dietPrograms.resumeProgram') : t('dietPrograms.pauseProgram')}
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Stop Program Button */}
+                <TouchableOpacity
+                    style={[styles.stopButton, { borderColor: colors.error }]}
+                    onPress={() => {
+                        Alert.alert(
+                            t('dietPrograms.stopProgram'),
+                            t('dietPrograms.stopProgramConfirm'),
+                            [
+                                { text: t('common.cancel'), style: 'cancel' },
+                                {
+                                    text: t('common.stop'),
+                                    style: 'destructive',
+                                    onPress: async () => {
+                                        try {
+                                            await DietProgramsService.stopProgram(route.params.id);
+                                            navigation.goBack();
+                                        } catch {
+                                            Alert.alert(t('common.error'), t('errors.stopProgram'));
+                                        }
+                                    },
+                                },
+                            ]
+                        );
+                    }}
+                >
+                    <Ionicons name="stop-circle-outline" size={18} color={colors.error} />
+                    <Text style={[styles.stopButtonText, { color: colors.error }]}>
+                        {t('dietPrograms.stopProgram')}
+                    </Text>
+                </TouchableOpacity>
             </ScrollView>
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <TouchableOpacity style={[styles.completeButton, { backgroundColor: colors.primary }]} onPress={handleCompleteDay}>
                     <Text style={styles.completeButtonText}>
-                        {progress.currentDay >= progress.program.duration
+                        {activeProgram.currentDayIndex >= activeProgram.durationDays
                             ? t('dietPrograms.finishProgram')
                             : t('dietPrograms.completeDay')}
                     </Text>
@@ -206,8 +334,14 @@ const styles = StyleSheet.create({
     progressCard: {
         borderRadius: 16,
         padding: 20,
-        alignItems: 'center',
         marginBottom: 16,
+    },
+    progressHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        width: '100%',
+        marginBottom: 8,
     },
     progressDayLabel: {
         color: '#fff',
@@ -218,6 +352,20 @@ const styles = StyleSheet.create({
         color: 'rgba(255,255,255,0.8)',
         fontSize: 14,
         marginTop: 4,
+    },
+    streakBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 12,
+        gap: 4,
+    },
+    streakText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
     },
     progressBarContainer: {
         width: '100%',
@@ -315,5 +463,33 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: '600',
+    },
+    pauseButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginTop: 16,
+        gap: 8,
+    },
+    pauseButtonText: {
+        fontSize: 15,
+        fontWeight: '500',
+    },
+    stopButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginTop: 12,
+        gap: 8,
+    },
+    stopButtonText: {
+        fontSize: 15,
+        fontWeight: '500',
     },
 });

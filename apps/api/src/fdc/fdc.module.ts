@@ -10,10 +10,9 @@ import { CacheModule } from '../cache/cache.module';
   imports: [
     HttpModule.register({
       baseURL: process.env.FDC_API_BASE || 'https://api.nal.usda.gov/fdc',
-      timeout: 10000,
-      headers: {
-        'X-Api-Key': process.env.FDC_API_KEY || '',
-      },
+      timeout: parseInt(process.env.FDC_TIMEOUT_MS || '10000', 10),
+      // Note: USDA FDC API uses api_key as query parameter, not header
+      // API key is added in service methods via requestWithRetry
     }),
     PrismaModule,
     CacheModule,
@@ -22,5 +21,5 @@ import { CacheModule } from '../cache/cache.module';
   controllers: [FdcController],
   exports: [FdcService],
 })
-export class FdcModule {}
+export class FdcModule { }
 

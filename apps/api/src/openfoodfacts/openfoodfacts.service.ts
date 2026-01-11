@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 /**
  * Service for querying OpenFoodFacts API.
@@ -36,8 +37,8 @@ export class OpenFoodFactsService {
       
       this.logger.debug(`[OpenFoodFactsService] Fetching product for barcode: ${barcode}`);
       
-      const response = await firstValueFrom(
-        this.httpService.get(url, { timeout: 5000 })
+      const response = await firstValueFrom<AxiosResponse<any>>(
+        this.httpService.get(url, { timeout: 5000 }) as any
       );
 
       if (response.data && response.data.status === 1 && response.data.product) {

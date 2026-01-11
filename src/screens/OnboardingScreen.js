@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
+import * as Localization from 'expo-localization';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 
 // import Slider from '@react-native-community/slider'; // Unused
@@ -26,10 +27,11 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
 import { useI18n } from '../../app/i18n/hooks';
+import { legalDocuments } from '../legal/legalContent';
 
 const { width } = Dimensions.get('window');
 
-const createStyles = (tokens, colors) => {
+const createStyles = (tokens, colors, _isDark = false) => {
   const onPrimary = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const surface = colors.surface ?? '#FFFFFF';
   const surfaceMuted = colors.surfaceMuted ?? colors.background;
@@ -245,29 +247,33 @@ const createStyles = (tokens, colors) => {
       color: onPrimary,
     },
     goalsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      gap: tokens.spacing?.sm ?? 12,
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      gap: tokens.spacing?.md ?? 12,
     },
     goalButton: {
-      flex: 1,
+      width: '100%',
       backgroundColor: surface,
       borderRadius: tokens.radii?.lg ?? 12,
-      padding: tokens.spacing?.xl ?? 20,
+      padding: tokens.spacing?.lg ?? 16,
       alignItems: 'center',
-      marginHorizontal: 8,
       borderWidth: 2,
       borderColor: borderMuted,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
     },
     goalButtonSelected: {
       backgroundColor: colors.primary,
       borderColor: colors.primary,
     },
     goalText: {
+      flex: 1,
       fontSize: tokens.typography?.bodyStrong?.fontSize ?? 16,
       fontWeight: tokens.typography?.bodyStrong?.fontWeight ?? '600',
       color: colors.primary,
-      marginTop: tokens.spacing?.sm ?? 12,
+      marginLeft: 16,
+      marginTop: 0,
+      textAlign: 'left',
     },
     goalTextSelected: {
       color: onPrimary,
@@ -340,13 +346,93 @@ const createStyles = (tokens, colors) => {
     },
     planButtonSelected: {
       borderColor: colors.primary,
-      borderWidth: 3,
-      backgroundColor: isDark ? `${colors.primary}25` : `${colors.primary}10`,
-      shadowColor: colors.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 4,
+      backgroundColor: Platform.OS === 'ios' ? 'rgba(124, 58, 237, 0.05)' : surface,
+    },
+    // Compact plan styles for 4 plans on screen
+    planButtonCompact: {
+      backgroundColor: surface,
+      borderRadius: tokens.radii?.lg ?? 12,
+      padding: tokens.spacing?.md ?? 12,
+      paddingVertical: tokens.spacing?.sm ?? 10,
+      borderWidth: 2,
+      borderColor: borderMuted,
+      position: 'relative',
+      marginBottom: 8,
+    },
+    planButtonStudent: {
+      borderColor: '#7C3AED',
+    },
+    popularBadgeCompact: {
+      position: 'absolute',
+      top: -10,
+      right: 12,
+      backgroundColor: colors.primary,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 8,
+    },
+    studentBadge: {
+      backgroundColor: '#7C3AED',
+    },
+    popularTextCompact: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#FFFFFF',
+      textTransform: 'uppercase',
+    },
+    planCompactContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    planCompactLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    radioCircle: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: borderMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    radioCircleSelected: {
+      borderColor: colors.primary,
+    },
+    radioCircleInner: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: colors.primary,
+    },
+    planCompactInfo: {
+      flex: 1,
+    },
+    planNameCompact: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    planNameSelected: {
+      color: colors.primary,
+    },
+    planHeadlineCompact: {
+      fontSize: 12,
+      color: textSecondary,
+      marginTop: 2,
+    },
+    planPriceCompact: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      marginLeft: 8,
+    },
+    planPriceSelected: {
+      color: colors.primary,
     },
     planHeader: {
       flexDirection: 'row',
@@ -548,13 +634,13 @@ const createStyles = (tokens, colors) => {
     },
     // Gender Selection Styles
     genderContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
       gap: tokens.spacing?.md ?? 16,
       marginTop: tokens.spacing?.xl ?? 24,
     },
     genderOption: {
-      flex: 1,
+      width: '100%',
       backgroundColor: surface,
       borderRadius: tokens.radii?.xl ?? 16,
       padding: tokens.spacing?.xl ?? 24,
@@ -641,12 +727,12 @@ const createStyles = (tokens, colors) => {
 const OnboardingScreen = () => {
 
   const navigation = useNavigation();
-  const { colors, tokens } = useTheme();
+  const { colors, tokens, isDark } = useTheme();
   const { setUser, refreshUser } = useAuth();
-  const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
+  const styles = useMemo(() => createStyles(tokens, colors, isDark), [tokens, colors, isDark]);
   const onPrimaryColor = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const [currentStep, setCurrentStep] = useState(0);
-  const [confirmedSteps, setConfirmedSteps] = useState(new Set());
+  const [, setConfirmedSteps] = useState(new Set());
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -669,45 +755,40 @@ const OnboardingScreen = () => {
     planBillingCycle: 'lifetime',
     dietOther: '', // Added for diet 'other' input
     healthConditionOther: '', // Added for health 'other' input
+    termsAccepted: false, // Terms and Privacy acceptance
+    privacyAccepted: false,
   });
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
   const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Notifications permission state
   // Calculated plan data
   const [planData, setPlanData] = useState(null);
-  const { t } = useI18n(); // Added useI18n hook
+  const { t, language } = useI18n(); // Added useI18n hook
+
+  // Terms step state
+  const [hasScrolledTerms, setHasScrolledTerms] = useState(false);
+  const [hasScrolledPrivacy, setHasScrolledPrivacy] = useState(false);
+  const [activeTab, setActiveTab] = useState('terms');
 
 
   const scrollViewRef = useRef(null);
 
-  // Expanded steps order according to requirements
-  // Expanded steps order according to requirements
+  // Simplified onboarding - only essential data collection slides
   const steps = useMemo(() => [
     { id: 'welcome', title: t('onboarding.welcome', 'Welcome to EatSense') },
-    { id: 'goals', title: t('onboarding.goals', 'What are your goals?') }, // Goals selection
-    { id: 'support', title: t('onboarding.support', 'We care about you') }, // Support message
-    { id: 'gender', title: t('onboarding.gender', 'What\'s your gender?') }, // Gender selection
-    { id: 'age', title: t('onboarding.age', 'How old are you?') }, // Age with vertical scroll
-    { id: 'height', title: t('onboarding.height', 'What\'s your height?') }, // Height with vertical scroll
-    { id: 'weight', title: t('onboarding.weight', 'What\'s your weight?') }, // Weight with horizontal scroll
-    { id: 'activity', title: t('onboarding.activity', 'How active are you?') }, // Activity level
-    { id: 'walking', title: t('onboarding.walking', 'How much do you walk?') }, // Walking time
-    { id: 'breath', title: t('onboarding.breath', 'Do you get shortness of breath?') }, // Shortness of breath after stairs
-    // { id: 'steps', title: 'Daily step goal' }, // REMOVED
-    { id: 'obstacles', title: t('onboarding.obstacles', 'What prevents you from reaching your goal?') }, // Obstacles
-    { id: 'diet', title: t('onboarding.diet', 'Are you following any diet?') }, // Diet selection
-    { id: 'health', title: t('onboarding.health', 'What should we know about you?') }, // Health conditions
-    { id: 'care', title: t('onboarding.care', 'We care about you') }, // Care message with disclaimer
-    { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') }, // Target weight
-    { id: 'weightRate', title: t('onboarding.weightRate', 'Weight change rate') }, // Rate of weight change
-    { id: 'trust', title: t('onboarding.trust', 'Thank you for trusting us') }, // Trust message
-    // { id: 'healthKit', title: 'Connect Apple Health' }, // REMOVED
-    { id: 'notifications', title: t('onboarding.notifications', 'Enable notifications') }, // Notifications permission
-    // { id: 'firstMeasurements', title: 'First measurements' }, // REMOVED
-    { id: 'loading', title: t('onboarding.loading', 'Creating your plan') }, // Loading animation with plan
-    // { id: 'almostReady', title: 'Almost ready' }, // REMOVED
-    { id: 'summary', title: t('onboarding.summary', 'Your choices') }, // Summary of choices
-    // { id: 'rating', title: 'Rate us' }, // REMOVED
-    { id: 'plan', title: t('onboarding.plan', 'Choose Your Plan') }, // Plan selection
+    { id: 'goals', title: t('onboarding.goals', 'What are your goals?') },
+    { id: 'gender', title: t('onboarding.gender', 'What\'s your gender?') },
+    { id: 'age', title: t('onboarding.age', 'How old are you?') },
+    { id: 'height', title: t('onboarding.height', 'What\'s your height?') },
+    { id: 'weight', title: t('onboarding.weight', 'What\'s your weight?') },
+    { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') },
+    { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
+    { id: 'diet', title: t('onboarding.diet', 'Are you following any diet?') },
+    { id: 'health', title: t('onboarding.health', 'What should we know about you?') },
+    { id: 'notifications', title: t('onboarding.notifications', 'Enable notifications') },
+    { id: 'terms', title: t('onboarding.terms', 'Terms & Privacy') },
+    { id: 'loading', title: t('onboarding.loading', 'Creating your plan') },
+    { id: 'plan', title: t('onboarding.plan', 'Choose Your Plan') },
   ], [t]);
 
   // Removed unused genders array
@@ -731,45 +812,123 @@ const OnboardingScreen = () => {
     { id: 'gain_weight', label: t('onboarding.goalTypes.gainWeight'), icon: 'trending-up' },
   ];
 
+  // Currency based on device region (not just language)
+  const getCurrencyInfo = useCallback(() => {
+    // Get device region from Localization
+    const deviceLocale = Localization.getLocales()?.[0];
+    const region = deviceLocale?.regionCode?.toUpperCase() || '';
+    const languageCode = language?.split('-')[0] || 'en';
+
+    // Currency map by region code (ISO 3166-1 alpha-2)
+    const regionCurrencyMap = {
+      // CIS
+      'RU': { symbol: '₽', code: 'RUB', freePrice: '0 ₽', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽' },
+      'KZ': { symbol: '₸', code: 'KZT', freePrice: '0 ₸', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸' },
+      'BY': { symbol: '₽', code: 'BYN', freePrice: '0 ₽', monthlyPrice: '30 BYN', yearlyPrice: '239 BYN', studentPrice: '159 BYN' },
+      'UA': { symbol: '₴', code: 'UAH', freePrice: '0 ₴', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴' },
+      'UZ': { symbol: "so'm", code: 'UZS', freePrice: "0 so'm", monthlyPrice: "99 000 so'm", yearlyPrice: "799 000 so'm", studentPrice: "499 000 so'm" },
+      // Europe
+      'DE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'FR': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'ES': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'IT': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'NL': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'AT': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'BE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'PT': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+      'PL': { symbol: 'zł', code: 'PLN', freePrice: '0 zł', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł' },
+      'GB': { symbol: '£', code: 'GBP', freePrice: '£0', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99' },
+      // Asia
+      'KR': { symbol: '₩', code: 'KRW', freePrice: '0 ₩', monthlyPrice: '12,900 ₩', yearlyPrice: '99,000 ₩', studentPrice: '64,900 ₩' },
+      'JP': { symbol: '¥', code: 'JPY', freePrice: '0 ¥', monthlyPrice: '1,400 ¥', yearlyPrice: '10,800 ¥', studentPrice: '6,800 ¥' },
+      'CN': { symbol: '¥', code: 'CNY', freePrice: '0 ¥', monthlyPrice: '68 ¥', yearlyPrice: '518 ¥', studentPrice: '328 ¥' },
+      'IN': { symbol: '₹', code: 'INR', freePrice: '₹0', monthlyPrice: '₹799', yearlyPrice: '₹5,999', studentPrice: '₹3,999' },
+      // Americas
+      'US': { symbol: '$', code: 'USD', freePrice: '$0', monthlyPrice: '$9.99', yearlyPrice: '$79.99', studentPrice: '$49.99' },
+      'CA': { symbol: 'C$', code: 'CAD', freePrice: 'C$0', monthlyPrice: 'C$12.99', yearlyPrice: 'C$99.99', studentPrice: 'C$64.99' },
+      'BR': { symbol: 'R$', code: 'BRL', freePrice: 'R$0', monthlyPrice: 'R$49,90', yearlyPrice: 'R$399,90', studentPrice: 'R$249,90' },
+      'MX': { symbol: '$', code: 'MXN', freePrice: '$0', monthlyPrice: '$179', yearlyPrice: '$1,399', studentPrice: '$899' },
+      // Oceania
+      'AU': { symbol: 'A$', code: 'AUD', freePrice: 'A$0', monthlyPrice: 'A$14.99', yearlyPrice: 'A$119.99', studentPrice: 'A$74.99' },
+    };
+
+    // Fallback currency map by language (for when region is not detected)
+    const languageCurrencyMap = {
+      'ru': regionCurrencyMap['RU'],
+      'kk': regionCurrencyMap['KZ'],
+      'de': regionCurrencyMap['DE'],
+      'fr': regionCurrencyMap['FR'],
+      'es': regionCurrencyMap['ES'],
+      'ko': regionCurrencyMap['KR'],
+      'ja': regionCurrencyMap['JP'],
+      'zh': regionCurrencyMap['CN'],
+      'en': regionCurrencyMap['US'],
+    };
+
+    // Try region first, then language, then default to USD
+    return regionCurrencyMap[region] || languageCurrencyMap[languageCode] || regionCurrencyMap['US'];
+  }, [language]);
+
+  const currency = useMemo(() => getCurrencyInfo(), [getCurrencyInfo]);
+
   const plans = [
     {
       id: 'free',
-      name: 'EatSense Free',
-      price: '$0 forever',
+      name: t('onboarding.plans.free.name', 'EatSense Free'),
+      price: t('onboarding.plans.free.price', 'Free Forever'), // Updated to use translation directly
       billingCycle: 'lifetime',
-      headline: 'Get started with the essentials',
-      features: ['AI food analysis (3/day)', 'Daily calorie tracking', 'Basic statistics'],
-      badge: 'Included',
+      headline: t('onboarding.plans.freeHeadline', 'Get started with the essentials'),
+      features: [
+        t('onboarding.plans.features.analysis3', 'AI food analysis (3/day)'),
+        t('onboarding.plans.features.tracking', 'Daily calorie tracking'),
+        t('onboarding.plans.features.basicStats', 'Basic statistics'),
+      ],
+      badge: t('onboarding.plans.included', 'Included'),
       popular: false,
     },
     {
       id: 'pro_monthly',
-      name: 'EatSense Pro',
-      price: '$9.99 / month',
+      name: t('onboarding.plans.monthly', 'Monthly'),
+      price: currency.monthlyPrice + ' / ' + t('onboarding.plans.month', 'mo'),
       billingCycle: 'monthly',
-      headline: 'Unlock everything with flexible billing',
+      headline: t('onboarding.plans.monthlyHeadline', 'Flexible billing'),
       features: [
-        'Unlimited AI analysis',
-        'Advanced nutrition insights',
-        'Personalized coaching tips',
-        'Priority support',
+        t('onboarding.plans.features.unlimited', 'Unlimited AI analysis'),
+        t('onboarding.plans.features.insights', 'Advanced nutrition insights'),
+        t('onboarding.plans.features.coaching', 'Personalized coaching'),
+        t('onboarding.plans.features.support', 'Priority support'),
       ],
-      badge: 'Most Popular',
-      popular: true,
+      badge: t('onboarding.plans.proMonthly.badge', 'Popular'), // Added badge
+      popular: false,
     },
     {
       id: 'pro_annual',
-      name: 'EatSense Pro',
-      price: '$79.99 / year',
+      name: t('onboarding.plans.yearly', 'Yearly'),
+      price: currency.yearlyPrice + ' / ' + t('onboarding.plans.year', 'yr'),
       billingCycle: 'annual',
-      headline: 'Best value — save 33%',
+      headline: t('onboarding.plans.yearlyHeadline', 'Best value — save 33%'),
       features: [
-        'Everything in Pro Monthly',
-        'Exclusive annual webinars',
-        'Early access to new features',
+        t('onboarding.plans.features.everything', 'Everything in Monthly'),
+        t('onboarding.plans.features.webinars', 'Exclusive webinars'),
+        t('onboarding.plans.features.earlyAccess', 'Early access to features'),
       ],
-      badge: 'Save 33%',
+      badge: t('onboarding.plans.bestValue', 'Best Value'),
       popular: true,
+    },
+    {
+      id: 'student',
+      name: t('onboarding.plans.student.name', 'Student'),
+      price: currency.studentPrice + ' / ' + t('onboarding.plans.year', 'yr'),
+      billingCycle: 'annual',
+      headline: t('onboarding.plans.studentHeadline', 'Special student pricing'),
+      features: [
+        t('onboarding.plans.features.unlimited', 'Unlimited AI analysis'),
+        t('onboarding.plans.features.insights', 'Advanced nutrition insights'),
+        t('onboarding.plans.features.verification', 'Student ID required'),
+      ],
+      badge: t('onboarding.plans.studentBadge', 'Student'),
+      popular: false,
+      isStudent: true,
     },
   ];
 
@@ -1342,79 +1501,86 @@ const OnboardingScreen = () => {
 
   const renderPlanStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={[styles.stepTitle, { marginTop: 20 }]}>{t('onboarding.plan')}</Text>
-      <View style={styles.planToggle}>
-        <Text style={styles.planToggleText}>
-          {t('onboarding.planSubtitle')}
+      <Text style={[styles.stepTitle, { marginTop: 8, marginBottom: 4 }]}>{t('onboarding.plan')}</Text>
+      <Text style={[styles.planToggleText, { marginBottom: 12 }]}>
+        {t('onboarding.planSubtitle', 'Choose the plan that works best for you')}
+      </Text>
+      <View style={[styles.plansContainer, { flex: 1 }]}>
+        {(plans || []).map((plan) => {
+          const isSelected =
+            profileData.selectedPlan === plan.id ||
+            (plan.id === 'free' &&
+              profileData.selectedPlan === 'free' &&
+              profileData.planBillingCycle === 'lifetime');
+
+          return (
+            <TouchableOpacity
+              key={plan.id}
+              style={[
+                styles.planButtonCompact,
+                plan.popular && styles.planButtonPopular,
+                isSelected && styles.planButtonSelected,
+                plan.isStudent && styles.planButtonStudent,
+              ]}
+              activeOpacity={0.9}
+              onPress={() =>
+                setProfileData({
+                  ...profileData,
+                  selectedPlan: plan.id,
+                  planBillingCycle: plan.billingCycle,
+                })
+              }
+            >
+              {plan.badge && (
+                <View style={[
+                  styles.popularBadgeCompact,
+                  plan.isStudent && styles.studentBadge,
+                ]}>
+                  <Text style={styles.popularTextCompact}>{plan.badge}</Text>
+                </View>
+              )}
+              <View style={styles.planCompactContent}>
+                <View style={styles.planCompactLeft}>
+                  <View style={[
+                    styles.radioCircle,
+                    isSelected && styles.radioCircleSelected,
+                  ]}>
+                    {isSelected && <View style={styles.radioCircleInner} />}
+                  </View>
+                  <View style={styles.planCompactInfo}>
+                    <Text style={[styles.planNameCompact, isSelected && styles.planNameSelected]}>
+                      {plan.name}
+                    </Text>
+                    <Text style={styles.planHeadlineCompact} numberOfLines={1}>
+                      {plan.headline}
+                    </Text>
+                    {/* Features Preview */}
+                    <View style={{ marginTop: 6 }}>
+                      {plan.features.slice(0, 2).map((feature, idx) => (
+                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                          <Ionicons name="checkmark" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                          <Text style={{ fontSize: 11, color: isSelected ? colors.text : colors.textSecondary }} numberOfLines={1}>
+                            {feature}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+                <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                  {plan.price}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={styles.planFinePrint}>
+        <Ionicons name="information-circle" size={14} color={colors.textTertiary || '#999'} />
+        <Text style={styles.planFinePrintText}>
+          {t('onboarding.plans.finePrint', 'Cancel anytime. Terms apply.')}
         </Text>
       </View>
-      <ScrollView
-        style={{ flex: 1, width: '100%' }}
-        contentContainerStyle={{ paddingBottom: 150 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.plansContainer}>
-          {(plans || []).map((plan) => {
-            const isSelected =
-              profileData.selectedPlan === plan.id ||
-              (plan.id === 'free' &&
-                profileData.selectedPlan === 'free' &&
-                profileData.planBillingCycle === 'lifetime');
-
-            return (
-              <TouchableOpacity
-                key={plan.id}
-                style={[
-                  styles.planButton,
-                  plan.popular && styles.planButtonPopular,
-                  isSelected && styles.planButtonSelected,
-                ]}
-                activeOpacity={0.9}
-                onPress={() =>
-                  setProfileData({
-                    ...profileData,
-                    selectedPlan: plan.id,
-                    planBillingCycle: plan.billingCycle,
-                  })
-                }
-              >
-                <View style={styles.planHeader}>
-                  <View style={[styles.planHeaderText, { flex: 1 }]}>
-                    <Text style={styles.planName}>{plan.name}</Text>
-                    <Text style={styles.planHeadline} numberOfLines={2}>{plan.headline}</Text>
-                  </View>
-                  {plan.badge && (
-                    <View style={styles.popularBadge}>
-                      <Text style={styles.popularText}>{plan.badge}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.planPrice}>{plan.price}</Text>
-                <View style={styles.planFeatures}>
-                  {(plan.features || []).map((feature, index) => (
-                    <View key={feature + index} style={styles.planFeatureRow}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={18}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.planFeature}>
-                        {feature}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <View style={styles.planFinePrint}>
-          <Ionicons name="information-circle" size={16} color={colors.textTertiary} />
-          <Text style={styles.planFinePrintText}>
-            {t('onboarding.plans.finePrint')}
-          </Text>
-        </View>
-      </ScrollView>
     </View>
   );
 
@@ -1460,81 +1626,17 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderSupportStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="heart" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>{t('onboarding.support')}</Text>
-        <Text style={styles.stepSubtitle}>
-          {t('onboarding.trustSubtitle')}
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderObstaclesStep = () => {
-    const obstacles = [
-      { id: 'time', label: t('onboarding.obstacleTypes.time') },
-      { id: 'motivation', label: t('onboarding.obstacleTypes.motivation') },
-      { id: 'knowledge', label: t('onboarding.obstacleTypes.knowledge') },
-      { id: 'support', label: t('onboarding.obstacleTypes.budget') },
-      { id: 'habits', label: t('onboarding.obstacleTypes.habits') },
-      { id: 'stress', label: t('onboarding.obstacleTypes.stress') },
-    ];
-
-    return (
-      <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>{t('onboarding.obstacles')}</Text>
-        <Text style={styles.stepSubtitle}>{t('onboarding.obstaclesSubtitle')}</Text>
-        <View style={styles.activityContainer}>
-          {obstacles.map((obstacle) => {
-            const isSelected = profileData.obstacles?.includes(obstacle.id);
-            return (
-              <TouchableOpacity
-                key={obstacle.id}
-                style={[
-                  styles.activityButton,
-                  isSelected && styles.activityButtonSelected,
-                ]}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setProfileData((prev) => {
-                    const obstacles = prev.obstacles || [];
-                    if (obstacles.includes(obstacle.id)) {
-                      return { ...prev, obstacles: obstacles.filter(id => id !== obstacle.id) };
-                    }
-                    return { ...prev, obstacles: [...obstacles, obstacle.id] };
-                  });
-                }}
-              >
-                <Text
-                  style={[
-                    styles.activityLabel,
-                    isSelected && styles.activityLabelSelected,
-                  ]}
-                >
-                  {obstacle.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
-
   const renderDietStep = () => {
     const diets = [
-      { id: 'none', label: t('onboarding.dietTypes.balanced') },
-      { id: 'keto', label: t('onboarding.dietTypes.keto') },
-      { id: 'paleo', label: 'Paleo' },
-      { id: 'vegan', label: t('onboarding.dietTypes.vegan') },
-      { id: 'vegetarian', label: t('onboarding.dietTypes.vegetarian') },
-      { id: 'mediterranean', label: t('onboarding.dietTypes.mediterranean') },
-      { id: 'low_carb', label: t('onboarding.dietTypes.lowCarb') },
-      { id: 'other', label: t('common.other', 'Other') },
+      { id: 'none', label: t('onboarding.dietTypes.none', 'No diet'), icon: 'remove-circle-outline' },
+      { id: 'balanced', label: t('onboarding.dietTypes.balanced', 'Balanced'), icon: 'nutrition-outline' },
+      { id: 'keto', label: t('onboarding.dietTypes.keto', 'Keto'), icon: 'flame-outline' },
+      { id: 'paleo', label: t('onboarding.dietTypes.paleo', 'Paleo'), icon: 'leaf-outline' },
+      { id: 'vegan', label: t('onboarding.dietTypes.vegan', 'Vegan'), icon: 'flower-outline' },
+      { id: 'vegetarian', label: t('onboarding.dietTypes.vegetarian', 'Vegetarian'), icon: 'leaf-outline' },
+      { id: 'mediterranean', label: t('onboarding.dietTypes.mediterranean', 'Mediterranean'), icon: 'fish-outline' },
+      { id: 'low_carb', label: t('onboarding.dietTypes.lowCarb', 'Low Carb'), icon: 'barbell-outline' },
+      { id: 'other', label: t('common.other', 'Other'), icon: 'ellipsis-horizontal-outline' },
     ];
 
     return (
@@ -1575,7 +1677,7 @@ const OnboardingScreen = () => {
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ marginTop: 20 }}>
               <TextInput
                 style={styles.otherInput}
-                placeholder="Please specify your diet"
+                placeholder={t('onboarding.specifyDiet', 'Please specify your diet')}
                 placeholderTextColor={colors.textTertiary}
                 value={profileData.dietOther}
                 onChangeText={(text) => setProfileData(prev => ({ ...prev, dietOther: text }))}
@@ -1589,18 +1691,18 @@ const OnboardingScreen = () => {
 
   const renderHealthConditionsStep = () => {
     const conditions = [
-      { id: 'gastritis', label: 'Gastritis' },
-      { id: 'high_cholesterol', label: 'High Cholesterol' },
-      { id: 'diabetes', label: 'Diabetes' },
-      { id: 'thyroid', label: 'Thyroid Issues' },
-      { id: 'other', label: 'Not in list, I\'ll write' },
-      { id: 'none', label: 'No health problems' },
+      { id: 'gastritis', label: t('onboarding.healthConditions.gastritis', 'Gastritis') },
+      { id: 'high_cholesterol', label: t('onboarding.healthConditions.highCholesterol', 'High Cholesterol') },
+      { id: 'diabetes', label: t('onboarding.healthConditions.diabetes', 'Diabetes') },
+      { id: 'thyroid', label: t('onboarding.healthConditions.thyroid', 'Thyroid Issues') },
+      { id: 'other', label: t('onboarding.healthConditions.other', 'Not in list, I\'ll write') },
+      { id: 'none', label: t('onboarding.healthConditions.none', 'No health problems') },
     ];
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>What should we know about you?</Text>
-        <Text style={styles.stepSubtitle}>Select your health conditions</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.health', 'What should we know about you?')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.healthSubtitle', 'Select your health conditions')}</Text>
         <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 100 }}>
           <View style={styles.activityContainer}>
             {conditions.map((condition) => {
@@ -1656,7 +1758,7 @@ const OnboardingScreen = () => {
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ marginTop: 20 }}>
               <TextInput
                 style={styles.otherInput}
-                placeholder="Please specify condition"
+                placeholder={t('onboarding.specifyCondition', 'Please specify condition')}
                 placeholderTextColor={colors.textTertiary}
                 value={profileData.healthConditionOther}
                 onChangeText={(text) => setProfileData(prev => ({ ...prev, healthConditionOther: text }))}
@@ -1681,8 +1783,8 @@ const OnboardingScreen = () => {
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>What weight do you want?</Text>
-        <Text style={styles.stepSubtitle}>Set your target weight</Text>
+        <Text style={styles.stepTitle}>{t('onboarding.targetWeight', 'What weight do you want?')}</Text>
+        <Text style={styles.stepSubtitle}>{t('onboarding.targetWeightSubtitle', 'Set your target weight')}</Text>
 
         <View style={styles.unitToggleContainer}>
           <TouchableOpacity
@@ -1698,7 +1800,7 @@ const OnboardingScreen = () => {
                 unitSystem === 'metric' && styles.unitToggleTextActive,
               ]}
             >
-              kg
+              {t('onboarding.units.kg', 'kg')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1714,7 +1816,7 @@ const OnboardingScreen = () => {
                 unitSystem === 'imperial' && styles.unitToggleTextActive,
               ]}
             >
-              pounds
+              {t('onboarding.units.pounds', 'pounds')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1742,211 +1844,86 @@ const OnboardingScreen = () => {
     );
   };
 
-  const renderWeightRateStep = () => {
-    const rates = [
-      { id: 'slow', label: 'Slow (0.25-0.5 kg/week)', value: 'slow' },
-      { id: 'moderate', label: 'Moderate (0.5-1 kg/week)', value: 'moderate' },
-      { id: 'fast', label: 'Fast (1-1.5 kg/week)', value: 'fast' },
-    ];
+
+
+  const renderNotificationsStep = () => {
+    const handleEnableNotifications = async () => {
+      try {
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status === 'granted') {
+          setNotificationsEnabled(true);
+          // Update profile data with notification preference
+          setProfileData(prev => ({
+            ...prev,
+            preferences: {
+              ...prev.preferences,
+              dailyPushEnabled: true,
+              dailyPushHour: 9,
+              dailyPushMinute: 0,
+              timezone: Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC',
+            },
+          }));
+
+          // Schedule automatic meal reminders (2-3 times a day)
+          try {
+            const { localNotificationService } = require('../services/localNotificationService');
+            await localNotificationService.scheduleMealReminders(3); // 3 times: breakfast, lunch, dinner
+            console.log('[Onboarding] Scheduled 3 daily meal reminders');
+          } catch (scheduleError) {
+            console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
+          }
+
+          clientLog('Onboarding:notificationsEnabled');
+        } else {
+          setNotificationsEnabled(false);
+          setProfileData(prev => ({
+            ...prev,
+            preferences: {
+              ...prev.preferences,
+              dailyPushEnabled: false,
+            },
+          }));
+          clientLog('Onboarding:notificationsDenied');
+        }
+      } catch (e) {
+        console.warn('Notifications permission error:', e);
+        clientLog('Onboarding:notificationsError', { error: e.message });
+      }
+    };
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>Weight change rate</Text>
-        <Text style={styles.stepSubtitle}>How quickly do you want to change your weight?</Text>
-        <View style={styles.activityContainer}>
-          {rates.map((rate) => {
-            const isSelected = profileData.weightChangeRate === rate.value;
-            return (
-              <TouchableOpacity
-                key={rate.id}
-                style={[
-                  styles.activityButton,
-                  isSelected && styles.activityButtonSelected,
-                ]}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setProfileData({ ...profileData, weightChangeRate: rate.value });
-                }}
-              >
-                <Text
-                  style={[
-                    styles.activityLabel,
-                    isSelected && styles.activityLabelSelected,
-                  ]}
-                >
-                  {rate.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.welcomeContent}>
+          <Ionicons name="notifications" size={64} color={colors.primary} />
+          <Text style={styles.stepTitle}>{t('onboarding.notifications', 'Enable notifications')}</Text>
+          <Text style={styles.stepSubtitle}>
+            {t('onboarding.notificationsDescription', 'Get reminders about meals, water intake, and your health goals.')}
+          </Text>
+          <TouchableOpacity
+            style={[styles.nextButton, { marginTop: 32 }, notificationsEnabled && { backgroundColor: colors.success || '#34C759' }]}
+            onPress={handleEnableNotifications}
+          >
+            <Ionicons
+              name={notificationsEnabled ? 'checkmark-circle' : 'notifications'}
+              size={20}
+              color={onPrimaryColor}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.nextButtonText}>
+              {notificationsEnabled
+                ? t('onboarding.notificationsEnabled', 'Enabled!')
+                : t('onboarding.enableNotifications', 'Enable')}
+            </Text>
+          </TouchableOpacity>
+          {notificationsEnabled && (
+            <Text style={[styles.stepSubtitle, { marginTop: 16, fontSize: 14, color: colors.success || '#34C759' }]}>
+              {t('onboarding.notificationsSuccess', 'Great! You\'ll receive helpful reminders.')}
+            </Text>
+          )}
         </View>
       </View>
     );
   };
-
-  const renderTrustStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="heart-outline" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>Thank you for trusting us</Text>
-        <Text style={styles.stepSubtitle}>
-          We&apos;re committed to helping you achieve your health and nutrition goals.
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderCareStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="shield-checkmark" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>We care about you</Text>
-        <Text style={styles.stepSubtitle}>
-          Our personalized recommendations are designed to help you reach your goals.
-          {'\n\n'}
-          Please note: This app is not a substitute for professional medical consultation.
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderWalkingStep = () => {
-    const walkingOptions = [
-      { id: 'none', label: 'Less than 30 min/day' },
-      { id: 'low', label: '30-60 min/day' },
-      { id: 'moderate', label: '1-2 hours/day' },
-      { id: 'high', label: 'More than 2 hours/day' },
-    ];
-
-    return (
-      <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>How much time do you spend walking?</Text>
-        <Text style={styles.stepSubtitle}>Select your daily walking time</Text>
-        <View style={styles.activityContainer}>
-          {walkingOptions.map((option) => {
-            const isSelected = profileData.walkingTime === option.id;
-            return (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.activityButton,
-                  isSelected && styles.activityButtonSelected,
-                ]}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setProfileData({ ...profileData, walkingTime: option.id });
-                }}
-              >
-                <Text
-                  style={[
-                    styles.activityLabel,
-                    isSelected && styles.activityLabelSelected,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
-
-  const renderBreathStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Do you get shortness of breath after climbing stairs?</Text>
-      <Text style={styles.stepSubtitle}>This helps us understand your fitness level</Text>
-      <View style={styles.genderContainer}>
-        <TouchableOpacity
-          style={[
-            styles.genderOption,
-            profileData.shortnessOfBreath === true && styles.genderOptionSelected,
-          ]}
-          onPress={() => {
-            if (Platform.OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            }
-            setProfileData((prev) => ({ ...prev, shortnessOfBreath: true }));
-          }}
-        >
-          <Ionicons name="checkmark-circle" size={48} color={profileData.shortnessOfBreath === true ? onPrimaryColor : colors.textSecondary} />
-          <Text
-            style={[
-              styles.genderLabel,
-              profileData.shortnessOfBreath === true && styles.genderLabelSelected,
-            ]}
-          >
-            Yes
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.genderOption,
-            profileData.shortnessOfBreath === false && styles.genderOptionSelected,
-          ]}
-          onPress={() => {
-            if (Platform.OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            }
-            setProfileData((prev) => ({ ...prev, shortnessOfBreath: false }));
-          }}
-        >
-          <Ionicons name="close-circle" size={48} color={profileData.shortnessOfBreath === false ? onPrimaryColor : colors.textSecondary} />
-          <Text
-            style={[
-              styles.genderLabel,
-              profileData.shortnessOfBreath === false && styles.genderLabelSelected,
-            ]}
-          >
-            No
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-
-
-
-
-  const renderNotificationsStep = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.welcomeContent}>
-        <Ionicons name="notifications" size={64} color={colors.primary} />
-        <Text style={styles.stepTitle}>Enable notifications</Text>
-        <Text style={styles.stepSubtitle}>
-          Get reminders about meals, water intake, and your health goals.
-        </Text>
-        <TouchableOpacity
-          style={[styles.nextButton, { marginTop: 32 }]}
-          onPress={async () => {
-            try {
-              const { status } = await Notifications.requestPermissionsAsync();
-              if (status === 'granted') {
-                // You might want to get the token here if needed
-                // const token = (await Notifications.getExpoPushTokenAsync()).data;
-                // But for now just proceed
-                Alert.alert('Success', 'Notifications enabled!');
-              } else {
-                Alert.alert('Notice', 'Notifications were not enabled.');
-              }
-            } catch (e) {
-              console.warn(e);
-              Alert.alert('Error', 'Could not enable notifications.');
-            }
-            nextStep();
-          }}
-        >
-          <Text style={styles.nextButtonText}>Enable</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 
 
 
@@ -1992,44 +1969,202 @@ const OnboardingScreen = () => {
     }
   }, [currentStep, profileData, steps]);
 
-  // Auto-advance logic after loading
-  useEffect(() => {
-    const currentStepId = steps[currentStep]?.id;
-    // Only auto-advance if we actully HAVE a plan data and are 100% loaded
-    if (currentStepId === 'loading' && loadingProgress >= 100 && planData) {
-      // Delay slightly for user to see 100%
-      const timer = setTimeout(() => {
-        nextStep();
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [loadingProgress, currentStep, planData, steps, nextStep]);
+  // Terms and Privacy Policy acceptance step
+  const renderTermsStep = () => {
+    // Hooks moved to top level
+
+    const locale = language?.split('-')[0] || 'en';
+    const validLocale = ['en', 'ru', 'kk'].includes(locale) ? locale : 'en';
+
+    const termsContent = legalDocuments.terms[validLocale] || legalDocuments.terms.en;
+    const privacyContent = legalDocuments.privacy[validLocale] || legalDocuments.privacy.en;
+
+    const handleScroll = (event) => {
+      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+      const paddingToBottom = 50;
+      const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+
+      if (isCloseToBottom) {
+        if (activeTab === 'terms') {
+          setHasScrolledTerms(true);
+        } else {
+          setHasScrolledPrivacy(true);
+        }
+      }
+    };
+
+    const canProceed = profileData.termsAccepted && profileData.privacyAccepted;
+
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={[styles.stepTitle, { marginBottom: 4 }]}>
+          {t('onboarding.terms', 'Terms & Privacy')}
+        </Text>
+        <Text style={[styles.stepSubtitle, { marginBottom: 12 }]}>
+          {t('onboarding.termsSubtitle', 'Please read and accept to continue')}
+        </Text>
+
+        {/* Tabs */}
+        <View style={{ flexDirection: 'row', marginBottom: 12, borderRadius: 8, backgroundColor: colors.surfaceMuted || '#F5F5F5', padding: 4 }}>
+          <TouchableOpacity
+            style={[
+              { flex: 1, paddingVertical: 10, borderRadius: 6, alignItems: 'center' },
+              activeTab === 'terms' && { backgroundColor: colors.primary }
+            ]}
+            onPress={() => setActiveTab('terms')}
+          >
+            <Text style={[{ fontSize: 14, fontWeight: '600' }, activeTab === 'terms' ? { color: onPrimaryColor } : { color: colors.text }]}>
+              {t('onboarding.termsOfService', 'Terms of Service')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              { flex: 1, paddingVertical: 10, borderRadius: 6, alignItems: 'center' },
+              activeTab === 'privacy' && { backgroundColor: colors.primary }
+            ]}
+            onPress={() => setActiveTab('privacy')}
+          >
+            <Text style={[{ fontSize: 14, fontWeight: '600', textAlign: 'center' }, activeTab === 'privacy' ? { color: onPrimaryColor } : { color: colors.text }]}>
+              {t('onboarding.privacyPolicy', 'Privacy Policy')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Document content */}
+        <View style={{ flex: 1, backgroundColor: colors.surface || '#FFF', borderRadius: 12, borderWidth: 1, borderColor: colors.border || '#E5E5E5', marginBottom: 12 }}>
+          <ScrollView
+            style={{ padding: 24 }}
+            onScroll={handleScroll}
+            scrollEventThrottle={400}
+            showsVerticalScrollIndicator={true}
+          >
+            <Text style={{ fontSize: 13, lineHeight: 20, color: colors.text }}>
+              {activeTab === 'terms' ? termsContent : privacyContent}
+            </Text>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
+
+        {/* Acceptance checkboxes */}
+        <View style={{ gap: 12, marginBottom: 16 }}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', opacity: (hasScrolledTerms || profileData.termsAccepted) ? 1 : 0.5 }}
+            onPress={() => {
+              if (hasScrolledTerms || profileData.termsAccepted) {
+                setProfileData(prev => ({ ...prev, termsAccepted: !prev.termsAccepted }));
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              { width: 24, height: 24, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+              profileData.termsAccepted
+                ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                : { borderColor: colors.border || '#C8C8C8' }
+            ]}>
+              {profileData.termsAccepted && <Ionicons name="checkmark" size={16} color={onPrimaryColor} />}
+            </View>
+            <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
+              {t('onboarding.acceptTerms', 'I accept the Terms of Service')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', opacity: (hasScrolledPrivacy || profileData.privacyAccepted) ? 1 : 0.5 }}
+            onPress={() => {
+              if (hasScrolledPrivacy || profileData.privacyAccepted) {
+                setProfileData(prev => ({ ...prev, privacyAccepted: !prev.privacyAccepted }));
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              { width: 24, height: 24, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+              profileData.privacyAccepted
+                ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                : { borderColor: colors.border || '#C8C8C8' }
+            ]}>
+              {profileData.privacyAccepted && <Ionicons name="checkmark" size={16} color={onPrimaryColor} />}
+            </View>
+            <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
+              {t('onboarding.acceptPrivacy', 'I accept the Privacy Policy')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Continue button */}
+        <TouchableOpacity
+          style={[
+            styles.nextButton,
+            { width: '100%', justifyContent: 'center', opacity: canProceed ? 1 : 0.5 }
+          ]}
+          disabled={!canProceed}
+          onPress={() => {
+            clientLog('Onboarding:termsAccepted');
+            nextStep();
+          }}
+        >
+          <Text style={styles.nextButtonText}>{t('onboarding.continueButton', 'Continue')}</Text>
+          <Ionicons name="chevron-forward" size={20} color={onPrimaryColor} style={{ marginLeft: 8 }} />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // Remove auto-advance - user will click Continue button explicitly
+  // This ensures they can review their personalized plan
 
   const renderLoadingStep = () => {
+    const isLoading = loadingProgress < 100;
+    const isReady = loadingProgress >= 100 && planData;
 
     return (
       <View style={styles.stepContainer}>
         <View style={styles.welcomeContent}>
-          {loadingProgress < 100 ? (
+          {isLoading ? (
             <>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.stepTitle}>Creating your plan</Text>
+              <Text style={styles.stepTitle}>{t('onboarding.loading', 'Creating your plan')}</Text>
               <Text style={styles.stepSubtitle}>{Math.round(loadingProgress)}%</Text>
             </>
-          ) : planData ? (
+          ) : isReady ? (
             <>
-              <Ionicons name="checkmark-circle" size={64} color={colors.success} />
-              <Text style={styles.stepTitle}>Your personalized plan</Text>
+              <Ionicons name="checkmark-circle" size={64} color={colors.success || '#34C759'} />
+              <Text style={styles.stepTitle}>{t('onboarding.planReady', 'Your personalized plan')}</Text>
               <View style={styles.planSummary}>
-                <Text style={styles.planSummaryTitle}>Recommended daily intake:</Text>
-                <Text style={styles.planSummaryText}>Calories: {planData.dailyCalories} kcal</Text>
-                <Text style={styles.planSummaryText}>Protein: {planData.dailyProtein} g</Text>
-                <Text style={styles.planSummaryText}>Carbs: {planData.dailyCarbs} g</Text>
-                <Text style={styles.planSummaryText}>Fat: {planData.dailyFat} g</Text>
-                <Text style={[styles.planSummaryText, { marginTop: 16 }]}>
-                  Target weight: {planData.recommendedWeight} kg
-                </Text>
+                <Text style={styles.planSummaryTitle}>{t('onboarding.recommendedIntake', 'Recommended daily intake:')}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={styles.planSummaryText}>{t('onboarding.caloriesLabel', 'Calories')}:</Text>
+                  <Text style={[styles.planSummaryText, { fontWeight: '600', color: colors.primary }]}>{planData.dailyCalories} kcal</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={styles.planSummaryText}>{t('onboarding.proteinLabel', 'Protein')}:</Text>
+                  <Text style={[styles.planSummaryText, { fontWeight: '600' }]}>{planData.dailyProtein} g</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={styles.planSummaryText}>{t('onboarding.carbsLabel', 'Carbs')}:</Text>
+                  <Text style={[styles.planSummaryText, { fontWeight: '600' }]}>{planData.dailyCarbs} g</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={styles.planSummaryText}>{t('onboarding.fatLabel', 'Fat')}:</Text>
+                  <Text style={[styles.planSummaryText, { fontWeight: '600' }]}>{planData.dailyFat} g</Text>
+                </View>
+                <View style={{ borderTopWidth: 1, borderTopColor: colors.border || '#E5E5E5', marginTop: 12, paddingTop: 12 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={styles.planSummaryText}>{t('onboarding.targetWeightLabel', 'Target weight')}:</Text>
+                    <Text style={[styles.planSummaryText, { fontWeight: '600', color: colors.primary }]}>
+                      {planData.recommendedWeight} {unitSystem === 'metric' ? 'kg' : 'lbs'}
+                    </Text>
+                  </View>
+                </View>
               </View>
+              <TouchableOpacity
+                style={[styles.nextButton, { marginTop: 24, width: '100%', justifyContent: 'center' }]}
+                onPress={nextStep}
+              >
+                <Text style={styles.nextButtonText}>{t('onboarding.continueButton', 'Continue')}</Text>
+                <Ionicons name="chevron-forward" size={20} color={onPrimaryColor} style={{ marginLeft: 8 }} />
+              </TouchableOpacity>
             </>
           ) : null}
         </View>
@@ -2038,74 +2173,22 @@ const OnboardingScreen = () => {
   };
 
 
-
-  const renderSummaryStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Your choices</Text>
-      <ScrollView style={{ flex: 1 }}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Goal:</Text>
-          <Text style={styles.summaryValue}>
-            {goals.find(g => g.id === profileData.goal)?.label || 'Not set'}
-          </Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Gender:</Text>
-          <Text style={styles.summaryValue}>
-            {profileData.gender === 'male' ? 'Male' : profileData.gender === 'female' ? 'Female' : 'Not set'}
-          </Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Age:</Text>
-          <Text style={styles.summaryValue}>{profileData.age} years</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Height:</Text>
-          <Text style={styles.summaryValue}>{profileData.height} cm</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Weight:</Text>
-          <Text style={styles.summaryValue}>{profileData.weight} kg</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Activity Level:</Text>
-          <Text style={styles.summaryValue}>
-            {activityLevels.find(a => a.id === profileData.activityLevel)?.label || 'Not set'}
-          </Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Target Weight:</Text>
-          <Text style={styles.summaryValue}>{profileData.targetWeight} kg</Text>
-        </View>
-      </ScrollView>
-    </View>
-  );
-
-
-
   const renderStep = () => {
     switch (currentStep) {
       case 0: return renderWelcomeStep();
       case 1: return renderGoalsStep();
-      case 2: return renderSupportStep();
-      case 3: return renderGenderStep();
-      case 4: return renderAgeStep();
-      case 5: return renderHeightStep();
-      case 6: return renderWeightStep();
+      case 2: return renderGenderStep();
+      case 3: return renderAgeStep();
+      case 4: return renderHeightStep();
+      case 5: return renderWeightStep();
+      case 6: return renderTargetWeightStep();
       case 7: return renderActivityStep();
-      case 8: return renderWalkingStep();
-      case 9: return renderBreathStep();
-      case 10: return renderObstaclesStep();
-      case 11: return renderDietStep();
-      case 12: return renderHealthConditionsStep();
-      case 13: return renderCareStep();
-      case 14: return renderTargetWeightStep();
-      case 15: return renderWeightRateStep();
-      case 16: return renderTrustStep();
-      case 17: return renderNotificationsStep();
-      case 18: return renderLoadingStep();
-      case 19: return renderSummaryStep();
-      case 20: return renderPlanStep();
+      case 8: return renderDietStep();
+      case 9: return renderHealthConditionsStep();
+      case 10: return renderNotificationsStep();
+      case 11: return renderTermsStep();
+      case 12: return renderLoadingStep();
+      case 13: return renderPlanStep();
       default: return renderWelcomeStep();
     }
   };
@@ -2119,14 +2202,13 @@ const OnboardingScreen = () => {
               style={[
                 styles.progressFill,
                 {
-                  width: `${(Math.max(1, confirmedSteps.size || 1) / steps.length) * 100
-                    }%`,
+                  width: `${((currentStep + 1) / steps.length) * 100}%`,
                 },
               ]}
             />
           </View>
           <Text style={styles.progressText}>
-            {Math.max(1, confirmedSteps.size || 1)} of {steps.length}
+            {currentStep + 1} {t('common.of', 'of')} {steps.length}
           </Text>
         </View>
       </View>
@@ -2150,7 +2232,7 @@ const OnboardingScreen = () => {
       </ScrollView>
 
       {
-        steps[currentStep]?.id !== 'loading' && (
+        !['loading', 'terms'].includes(steps[currentStep]?.id) && (
           <View style={styles.footer}>
             <View style={styles.buttonContainer}>
               {currentStep > 0 ? (

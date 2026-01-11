@@ -7,7 +7,7 @@ import { useI18n } from '../../app/i18n/hooks';
 
 // Import screens
 import DashboardScreen from '../screens/DashboardScreen';
-import ArticlesScreen from '../screens/ArticlesScreen';
+import DietsScreen from '../screens/DietsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
 import ReportsScreen from '../screens/ReportsScreen';
@@ -59,12 +59,12 @@ export function MainTabsNavigator() {
         }}
       />
       <Tab.Screen
-        name="Articles"
-        component={ArticlesScreen}
+        name="Diets"
+        component={DietsScreen}
         options={{
-          tabBarLabel: t('tabs.articles') || 'Articles',
+          tabBarLabel: t('tabs.diets') || 'Diets',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="newspaper" size={size || 24} color={color} />
+            <Ionicons name="nutrition" size={size || 24} color={color} />
           ),
         }}
       />

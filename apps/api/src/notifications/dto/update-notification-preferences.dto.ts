@@ -28,6 +28,21 @@ export class UpdateNotificationPreferencesDto {
   @Max(23)
   dailyPushHour?: number;
 
+  @ApiPropertyOptional({ description: 'Minute of hour (0-59) to send reminders', default: 0 })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return Number.isNaN(parsed) ? value : parsed;
+    }
+    return value;
+  })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(59)
+  dailyPushMinute?: number;
+
   @ApiPropertyOptional({ description: 'IANA timezone identifier', default: 'UTC', example: 'Europe/Berlin' })
   @IsOptional()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

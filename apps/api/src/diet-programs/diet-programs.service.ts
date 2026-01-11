@@ -104,17 +104,140 @@ export class DietProgramsService {
 
         if (!progress) throw new NotFoundException('Progress not found');
 
-        const newDay = progress.currentDay + 1;
-        const isCompleted = newDay > progress.program.duration;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        return this.prisma.userDietProgram.update({
+        // Get or create today's log
+        let todayLog = await this.prisma.userDietDailyLog.findFirst({
+            where: { userDietId: progress.id, date: today },
+        });
+
+        if (!todayLog) {
+            // Create today's log if it doesn't exist
+            const dailyTracker = progress.program.dailyTracker as any[] || [];
+            todayLog = await this.prisma.userDietDailyLog.create({
+                data: {
+                    userDietId: progress.id,
+                    date: today,
+                    dayNumber: progress.currentDay,
+                    checklist: {},
+                    completionPercent: 0,
+                    completed: false,
+                    celebrationShown: false,
+                },
+            });
+        }
+
+        // Calculate completion rate
+        const checklist = (todayLog.checklist as Record<string, boolean>) || {};
+        const dailyTracker = progress.program.dailyTracker as any[] || [];
+        const totalItems = dailyTracker.length;
+        const completedItems = Object.values(checklist).filter(Boolean).length;
+        const completionRate = totalItems > 0 ? completedItems / totalItems : 0;
+
+        // Mark today's log as completed
+        await this.prisma.userDietDailyLog.update({
+            where: { id: todayLog.id },
+            data: {
+                completed: true,
+                completionPercent: completionRate,
+            },
+        });
+
+        // Update streak based on completion rate
+        const threshold = progress.program.streakThreshold || 0.6;
+        const meetsThreshold = completionRate >= threshold;
+
+        const lastStreakDate = progress.lastStreakDate;
+        const todayStr = today.toISOString().split('T')[0];
+        const lastStreakStr = lastStreakDate?.toISOString().split('T')[0];
+
+        let newStreak = progress.currentStreak;
+        if (meetsThreshold) {
+            if (lastStreakStr !== todayStr) {
+                // Check if consecutive
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+                const isConsecutive = lastStreakStr === yesterdayStr || !lastStreakDate;
+                newStreak = isConsecutive ? progress.currentStreak + 1 : 1;
+
+                await this.prisma.userDietProgram.update({
+                    where: { id: progress.id },
+                    data: {
+                        currentStreak: newStreak,
+                        longestStreak: Math.max(newStreak, progress.longestStreak),
+                        lastStreakDate: today,
+                    },
+                });
+            }
+        } else {
+            // Reset streak if below threshold (only if we're updating streak today)
+            if (lastStreakStr !== todayStr && progress.currentStreak > 0) {
+                await this.prisma.userDietProgram.update({
+                    where: { id: progress.id },
+                    data: {
+                        currentStreak: 0,
+                    },
+                });
+                newStreak = 0;
+            }
+        }
+
+        // Calculate next day based on calendar dates
+        const startDate = new Date(progress.startedAt);
+        startDate.setHours(0, 0, 0, 0);
+        
+        // Calculate days from start to tomorrow
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const diffTime = tomorrow.getTime() - startDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        // TODO: Subtract paused days when pause functionality is implemented
+        // const pausedDays = progress.pausedDays || [];
+        // const activeDays = diffDays - pausedDays.length;
+        
+        const nextDay = diffDays + 1; // Day 1 is start date
+        const isCompleted = nextDay > progress.program.duration;
+
+        // Create empty log for next day (if not completed)
+        if (!isCompleted) {
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            // Check if tomorrow's log already exists
+            const tomorrowLog = await this.prisma.userDietDailyLog.findFirst({
+                where: { userDietId: progress.id, date: tomorrow },
+            });
+
+            if (!tomorrowLog) {
+                await this.prisma.userDietDailyLog.create({
+                    data: {
+                        userDietId: progress.id,
+                        date: tomorrow,
+                        dayNumber: nextDay,
+                        checklist: {}, // Empty checklist for new day
+                        completionPercent: 0,
+                        completed: false,
+                        celebrationShown: false,
+                    },
+                });
+            }
+        }
+
+        // Update progress
+        const updatedProgress = await this.prisma.userDietProgram.update({
             where: { id: progress.id },
             data: {
-                currentDay: isCompleted ? progress.program.duration : newDay,
+                currentDay: isCompleted ? progress.program.duration : nextDay,
                 status: isCompleted ? 'completed' : 'active',
                 completedAt: isCompleted ? new Date() : null,
+                daysCompleted: isCompleted ? progress.program.duration : progress.daysCompleted + 1,
             },
             include: { program: true },
         });
+
+        return updatedProgress;
     }
 }

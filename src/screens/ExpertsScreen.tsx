@@ -1,98 +1,94 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-// @ts-ignore
-import MarketplaceService from '../services/marketplaceService';
 
-export default function ExpertsScreen({ navigation }: { navigation: any }) {
+/**
+ * ExpertsScreen - "Coming Soon" placeholder
+ * The full marketplace functionality is temporarily disabled for MVP polish.
+ */
+export default function ExpertsScreen({ navigation: _navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const { t } = useI18n();
-  const [unreadCount, setUnreadCount] = useState(0);
 
-  const loadUnreadCount = async () => {
-    try {
-      const result = await MarketplaceService.getUnreadCount();
-      setUnreadCount(result.count || 0);
-    } catch {
-      // Silently ignore - not critical
-    }
+  // Removed Articles button - feature not ready
+  const handleViewArticles = () => {
+    // Navigation to Articles disabled for MVP
   };
-
-  useEffect(() => {
-    loadUnreadCount();
-  }, []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>{t('experts.title')}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('experts.subtitle')}</Text>
+      <View style={styles.content}>
+        {/* Illustration */}
+        <View style={[styles.illustrationContainer, { backgroundColor: colors.primary + '15' }]}>
+          <Ionicons name="people" size={64} color={colors.primary} />
+        </View>
 
-        {/* My Consultations Card */}
-        <TouchableOpacity
-          style={[styles.myConsultationsCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}
-          onPress={() => navigation.navigate('ConsultationsList')}
-        >
-          <View style={styles.myConsultationsContent}>
-            <Ionicons name="chatbubbles" size={24} color={colors.primary} />
-            <View style={styles.myConsultationsText}>
-              <Text style={[styles.myConsultationsTitle, { color: colors.primary }]}>{t('experts.myConsultations')}</Text>
-              <Text style={[styles.myConsultationsSubtitle, { color: colors.textSecondary }]}>{t('experts.viewChats')}</Text>
+        {/* Title */}
+        <Text style={[styles.title, { color: colors.textPrimary || colors.text }]}>
+          {t('experts.comingSoonTitle', 'Expert Consultations')}
+        </Text>
+
+        {/* Description */}
+        <Text style={[styles.description, { color: colors.textSecondary }]}>
+          {t('experts.comingSoonDescription', 'Connect with certified dietitians and nutritionists for personalized consultations. This feature is coming soon!')}
+        </Text>
+
+        {/* Features preview */}
+        <View style={styles.featuresContainer}>
+          <View style={styles.featureRow}>
+            <View style={[styles.featureIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="search" size={20} color={colors.primary} />
             </View>
+            <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+              {t('experts.feature1', 'Find verified specialists')}
+            </Text>
           </View>
-          <View style={styles.myConsultationsRight}>
-            {unreadCount > 0 && (
-              <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                <Text style={styles.badgeText}>{unreadCount}</Text>
-              </View>
-            )}
-            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+          <View style={styles.featureRow}>
+            <View style={[styles.featureIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="chatbubbles" size={20} color={colors.primary} />
+            </View>
+            <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+              {t('experts.feature2', 'Chat & video consultations')}
+            </Text>
           </View>
-        </TouchableOpacity>
+          <View style={styles.featureRow}>
+            <View style={[styles.featureIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="document-text" size={20} color={colors.primary} />
+            </View>
+            <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+              {t('experts.feature3', 'Personalized meal plans')}
+            </Text>
+          </View>
+        </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>{t('experts.findSpecialist')}</Text>
-
-        {/* Dietitian Card */}
+        {/* CTA: View Articles */}
         <TouchableOpacity
-          style={[styles.card, { backgroundColor: colors.surface || colors.card, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('SpecialistList', { type: 'dietitian' })}
+          style={[styles.articlesButton, { backgroundColor: colors.primary }]}
+          onPress={handleViewArticles}
+          activeOpacity={0.8}
         >
-          <View style={[styles.cardIconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="medical" size={24} color={colors.primary} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>{t('experts.dietitian.title')}</Text>
-            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>{t('experts.dietitian.subtitle')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          <Ionicons name="newspaper-outline" size={20} color="#FFF" />
+          <Text style={styles.articlesButtonText}>
+            {t('experts.browseArticles', 'Browse Nutrition Articles')}
+          </Text>
         </TouchableOpacity>
 
-        {/* Nutritionist Card */}
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: colors.surface || colors.card, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('SpecialistList', { type: 'nutritionist' })}
-        >
-          <View style={[styles.cardIconContainer, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="nutrition" size={24} color={colors.primary} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>{t('experts.nutritionist.title')}</Text>
-            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>{t('experts.nutritionist.subtitle')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
-
-        {/* View All Button */}
-        <TouchableOpacity
-          style={[styles.allButton, { borderColor: colors.primary }]}
-          onPress={() => navigation.navigate('SpecialistList')}
-        >
-          <Text style={[styles.allButtonText, { color: colors.primary }]}>{t('experts.viewAll')}</Text>
-        </TouchableOpacity>
-      </ScrollView>
+        {/* Coming soon badge */}
+        <View style={[styles.comingSoonBadge, { backgroundColor: colors.warning + '20' }]}>
+          <Ionicons name="time-outline" size={16} color={colors.warning || '#FF9500'} />
+          <Text style={[styles.comingSoonText, { color: colors.warning || '#FF9500' }]}>
+            {t('common.comingSoon', 'Coming soon')}
+          </Text>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -101,107 +97,78 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    padding: 16,
-    paddingTop: 24,
-    paddingBottom: 32,
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    alignItems: 'center',
+  },
+  illustrationContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  myConsultationsCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-  },
-  myConsultationsContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  myConsultationsText: {
-    marginLeft: 12,
-  },
-  myConsultationsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  myConsultationsSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  myConsultationsRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    textAlign: 'center',
     marginBottom: 12,
   },
-  card: {
+  description: {
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 16,
+  },
+  featuresContainer: {
+    width: '100%',
+    gap: 16,
+    marginBottom: 32,
+  },
+  featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
+    gap: 12,
   },
-  cardIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  featureIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardContent: {
+  featureText: {
+    fontSize: 15,
     flex: 1,
-    marginLeft: 12,
-    marginRight: 8,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+  comingSoonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 6,
   },
-  cardSubtitle: {
+  comingSoonText: {
     fontSize: 14,
-    lineHeight: 20,
+    fontWeight: '600',
   },
-  allButton: {
+  articlesButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 12,
-    borderWidth: 1,
-    marginTop: 8,
+    marginBottom: 24,
+    gap: 8,
   },
-  allButtonText: {
+  articlesButtonText: {
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
   },

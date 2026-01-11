@@ -19,7 +19,7 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
 
     const loadSpecialist = useCallback(async () => {
         try {
-            const data = await MarketplaceService.getSpecialist(route.params.id);
+            const data = await MarketplaceService.getExpert(route.params.id);
             setSpecialist(data);
         } catch (error) {
             console.error('Failed to load specialist:', error);
@@ -32,25 +32,20 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
         loadSpecialist();
     }, [loadSpecialist]);
 
-    const handleStartConsultation = () => {
-        Alert.alert(
-            t('experts.startConsultation'),
-            `${specialist.currency} ${specialist.pricePerWeek} ${t('chat.daysRemaining').replace(/\d+/, '7')}`,
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: t('common.confirm'),
-                    onPress: async () => {
-                        try {
-                            const consultation = await MarketplaceService.startConsultation(specialist.id);
-                            navigation.navigate('Chat', { consultationId: consultation.id });
-                        } catch {
-                            Alert.alert(t('common.error'), t('errors.startConsultation'));
-                        }
-                    },
-                },
-            ]
-        );
+    const handleStartConversation = async (offerId?: string) => {
+        try {
+            const conversation = await MarketplaceService.startConversation(specialist.id, offerId);
+            navigation.navigate('ConversationChat', { conversationId: conversation.id });
+        } catch {
+            Alert.alert(t('common.error'), t('errors.startConsultation', 'Failed to start conversation'));
+        }
+    };
+
+    const getFirstOfferPrice = () => {
+        const offer = specialist.offers?.[0];
+        if (!offer) return t('common.free', 'Free');
+        if (offer.priceType === 'FREE') return t('common.free', 'Free');
+        return `${offer.currency || '$'} ${offer.priceAmount || 0}`;
     };
 
     const renderStars = (rating: number) => {
@@ -127,9 +122,8 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
                     </View>
                     <View style={styles.priceBox}>
                         <Text style={[styles.price, { color: colors.primary }]}>
-                            {specialist.currency} {specialist.pricePerWeek}
+                            {getFirstOfferPrice()}
                         </Text>
-                        <Text style={[styles.pricePeriod, { color: colors.textSecondary }]}>/ 7 {t('common.days')}</Text>
                     </View>
                 </View>
 
@@ -181,9 +175,9 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <TouchableOpacity
                     style={[styles.startButton, { backgroundColor: colors.primary }]}
-                    onPress={handleStartConsultation}
+                    onPress={() => handleStartConversation(specialist.offers?.[0]?.id)}
                 >
-                    <Text style={styles.startButtonText}>{t('experts.startConsultation')}</Text>
+                    <Text style={styles.startButtonText}>{t('experts.startChat', 'Start Chat')}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

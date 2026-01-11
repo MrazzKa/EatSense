@@ -9,7 +9,12 @@ class DietProgramsService {
     }
 
     async getProgram(id) {
-        return ApiService.get(`/diet-programs/${id}`);
+        // Try /diets endpoint first (public), fall back to /diet-programs (auth required)
+        try {
+            return await ApiService.getDiet(id);
+        } catch {
+            return ApiService.get(`/diet-programs/${id}`);
+        }
     }
 
     async startProgram(programId) {
@@ -22,6 +27,18 @@ class DietProgramsService {
 
     async completeDay(programId, dayNumber) {
         return ApiService.post(`/diet-programs/${programId}/complete-day`, { dayNumber });
+    }
+
+    async stopProgram(programId) {
+        return ApiService.post(`/diet-programs/${programId}/stop`);
+    }
+
+    async pauseProgram() {
+        return ApiService.post('/diets/pause');
+    }
+
+    async resumeProgram() {
+        return ApiService.post('/diets/resume');
     }
 }
 

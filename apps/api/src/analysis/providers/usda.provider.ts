@@ -30,11 +30,32 @@ export class UsdaNutritionProvider implements INutritionProvider {
 
   private toNutrients(normalized: any): CanonicalNutrients {
     const base = normalized?.nutrients ?? {};
+    let calories = base.calories ?? 0;
+    const protein = base.protein ?? 0;
+    const carbs = base.carbs ?? 0;
+    const fat = base.fat ?? 0;
+
+    // STAGE 3 FIX: Calorie sanity check against macros
+    // If reported calories are wildly inconsistent with macros, recalculate
+    const derivedCalories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+
+    if (derivedCalories > 5) { // Only check if we have meaningful macros
+      const ratio = calories / derivedCalories;
+
+      // If reported calories are outside 0.6x-1.6x of derived, trust macros instead
+      if (ratio < 0.6 || ratio > 1.6) {
+        this.logger.debug(
+          `[UsdaProvider] Calorie sanity correction: reported=${calories}, derived=${derivedCalories}, ratio=${ratio.toFixed(2)} -> using derived`,
+        );
+        calories = derivedCalories;
+      }
+    }
+
     return {
-      calories: base.calories ?? 0,
-      protein: base.protein ?? 0,
-      carbs: base.carbs ?? 0,
-      fat: base.fat ?? 0,
+      calories,
+      protein,
+      carbs,
+      fat,
       fiber: base.fiber,
       sugars: base.sugars,
       satFat: base.satFat,

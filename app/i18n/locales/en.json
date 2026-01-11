@@ -1,5 +1,5 @@
 {
-  "common": {
+    "common": {
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -23,7 +23,11 @@
     "info": "Info",
     "days": "days",
     "of": "of",
-    "all": "All"
+    "all": "All",
+    "comingSoon": "Coming soon",
+    "continue": "Continue",
+    "show": "Show",
+    "hide": "Hide"
   },
   "help": {
     "title": "Help & Support",
@@ -84,6 +88,10 @@
     "diet": "Are you following any diet?",
     "dietSubtitle": "Choose a diet type that suits you",
     "dietTypes": {
+      "none": "No Specific Diet",
+      "noneDesc": "I don't follow any particular diet",
+      "noDiet": "No Specific Diet",
+      "noDietDesc": "I don't follow any particular diet",
       "balanced": "Balanced",
       "balancedDesc": "Varied diet without restrictions",
       "lowCarb": "Low Carb",
@@ -96,6 +104,8 @@
       "veganDesc": "Plant-based foods only",
       "keto": "Keto",
       "ketoDesc": "Very low carbs, high fat",
+      "paleo": "Paleo",
+      "paleoDesc": "Whole foods, no processed",
       "mediterranean": "Mediterranean",
       "mediterraneanDesc": "Fish, vegetables, olive oil"
     },
@@ -128,8 +138,36 @@
       "hypertension": "Hypertension",
       "heartDisease": "Heart Disease",
       "allergies": "Allergies",
-      "none": "None of the above"
+      "none": "None of the above",
+      "gastritis": "Gastritis",
+      "highCholesterol": "High Cholesterol",
+      "thyroid": "Thyroid Issues",
+      "other": "Not in list, I'll write"
     },
+    "targetWeightSubtitle": "Set your target weight",
+    "enableNotifications": "Enable",
+    "notificationsDescription": "Get reminders about meals, water intake, and your health goals.",
+    "planReady": "Your personalized plan",
+    "recommendedIntake": "Recommended daily intake:",
+    "caloriesLabel": "Calories",
+    "proteinLabel": "Protein",
+    "carbsLabel": "Carbs",
+    "fatLabel": "Fat",
+    "targetWeightLabel": "Target weight",
+    "continueButton": "Continue",
+    "specifyCondition": "Please specify condition",
+    "specifyDiet": "Please specify your diet",
+    "notificationsEnabled": "Enabled!",
+    "notificationsSuccess": "Great! You'll receive helpful reminders.",
+    "terms": "Terms & Privacy",
+    "termsSubtitle": "Please read and accept to continue",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "acceptTerms": "I accept the Terms of Service",
+    "acceptPrivacy": "I accept the Privacy Policy",
+    "pleaseRead": "Please Read",
+    "scrollToAccept": "Please scroll through the Terms of Service to accept.",
+    "scrollToAcceptPrivacy": "Please scroll through the Privacy Policy to accept.",
     "height": "What's your height?",
     "heightSubtitle": "Needed for ideal weight calculation",
     "loading": "Creating your plan",
@@ -183,7 +221,43 @@
         ],
         "badge": "Save 33%"
       },
-      "finePrint": "You can change plans or cancel anytime from Settings."
+      "student": {
+        "name": "Student",
+        "price": "$49 / year",
+        "headline": "Special student pricing",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Student ID required"
+        ],
+        "badge": "Student"
+      },
+      "finePrint": "You can change plans or cancel anytime from Settings.",
+      "forever": "forever",
+      "month": "mo",
+      "year": "yr",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "included": "Included",
+      "bestValue": "Best Value",
+      "studentBadge": "Student",
+      "freeHeadline": "Get started with the essentials",
+      "monthlyHeadline": "Flexible billing",
+      "yearlyHeadline": "Best value — save 33%",
+      "studentHeadline": "Special student pricing",
+      "features": {
+        "analysis3": "AI food analysis (3/day)",
+        "tracking": "Daily calorie tracking",
+        "basicStats": "Basic statistics",
+        "unlimited": "Unlimited AI analysis",
+        "insights": "Advanced nutrition insights",
+        "coaching": "Personalized coaching",
+        "support": "Priority support",
+        "everything": "Everything in Monthly",
+        "webinars": "Exclusive webinars",
+        "earlyAccess": "Early access to features",
+        "verification": "Student ID required"
+      }
     },
     "summary": "Your choices",
     "summarySubtitle": "Review your information",
@@ -217,6 +291,15 @@
     "carbs": "Carbs",
     "fat": "Fat",
     "quickStats": "Quick Stats",
+    "activeDiet": {
+      "title": "Your diet",
+      "streak": "days streak",
+      "progress": "Today's progress",
+      "completed": "completed",
+      "openTracker": "Open tracker",
+      "noDiet": "Choose a diet",
+      "browseDiets": "Browse diets"
+    },
     "articles": "Articles",
     "aiAssistant": "AI Assistant",
     "aiAssistantSubtitle": "Get personalized nutrition advice",
@@ -397,6 +480,15 @@
     "autoSavedTitle": "Auto-saved to your journal",
     "autoSavedDescription": "We saved this meal to your recent entries. You can open or edit it anytime.",
     "viewMeal": "View meal entry",
+    "phrases": {
+      "analyzing": "Analyzing photo...",
+      "recognizing": "Recognizing ingredients...",
+      "counting": "Counting calories...",
+      "portions": "Estimating portions...",
+      "nutrients": "Checking nutrients...",
+      "almostDone": "Almost done...",
+      "formatting": "Formatting results..."
+    },
     "saveAsNewEntry": "Save as new entry",
     "errorTitle": "Analysis Error",
     "errorMessage": "We couldn't analyze your meal. Please try again.",
@@ -420,7 +512,26 @@
     "fixWithAi": "Fix with AI",
     "fixWithAiHint": "Tap to ask AI to fix or improve this analysis",
     "askButton": "Ask AI",
-    "healthScore": "Health Score"
+    "healthScore": "Health Score",
+    "loading": {
+      "analyzingPhoto": "Analyzing photo...",
+      "detectingFood": "Detecting food...",
+      "identifyingIngredients": "Identifying ingredients...",
+      "measuringPortions": "Measuring portions...",
+      "calculatingCalories": "Calculating calories...",
+      "analyzingProteins": "Analyzing proteins...",
+      "analyzingFats": "Analyzing fats...",
+      "analyzingCarbs": "Analyzing carbs...",
+      "checkingNutrients": "Checking nutrients...",
+      "consultingDatabase": "Consulting database...",
+      "verifyingData": "Verifying data...",
+      "preparingResults": "Preparing results...",
+      "almostDone": "Almost done...",
+      "finishingUp": "Finishing up...",
+      "justAMoment": "Just a moment..."
+    },
+    "tapToView": "Tap to view",
+    "analysisComplete": "Analysis complete"
   },
   "describeFood": {
     "title": "Describe your meal",
@@ -575,6 +686,9 @@
     "policyError": "Failed to open policy",
     "termsError": "Failed to open terms",
     "health": {
+      "advanced": "Advanced Settings",
+      "show": "Show",
+      "hide": "Hide",
       "metabolic": "Metabolic Parameters",
       "sleep": "Sleep & Circadian Rhythms",
       "eatingBehavior": "Eating Behavior",
@@ -716,6 +830,7 @@
   },
   "tabs": {
     "dashboard": "Home",
+    "diets": "Diets",
     "articles": "Articles",
     "recently": "Recent",
     "profile": "Profile",
@@ -724,37 +839,179 @@
     "medications": "Medications"
   },
   "experts": {
-    "title": "Specialists",
-    "subtitle": "Get personalized help from nutrition experts",
+    "title": "Expert Consultations",
+    "subtitle": "Connect with certified dietitians and nutritionists for personal consultations. Coming soon!",
+    "comingSoonTitle": "Expert Consultations",
+    "comingSoonDescription": "Connect with certified dietitians and nutritionists for personalized consultations. This feature is coming soon!",
+    "findExperts": "Find verified specialists",
+    "chat": "Chat and video consultations",
+    "mealPlans": "Personal meal plans",
+    "viewArticles": "View nutrition articles",
+    "comingSoon": "Coming soon",
+    "feature1": "Find verified specialists",
+    "feature2": "Chat & video consultations",
+    "feature3": "Personalized meal plans",
+    "browseArticles": "Browse Nutrition Articles",
+    "subtitleExpert": "Manage your expert profile",
     "myConsultations": "My Consultations",
+    "myConversations": "My Chats",
     "viewChats": "View your active chats",
     "findSpecialist": "Find a Specialist",
+    "noConversations": "No active chats",
+    "asClient": "As Client",
+    "asExpert": "As Expert",
+    "expert": "Expert",
+    "client": "Client",
+    "startChat": "Start Chat",
     "viewAll": "View All Specialists",
-    "dietitian": {
-      "title": "Dietitian",
-      "subtitle": "Clinical guidance based on your medical history and goals."
-    },
-    "nutritionist": {
-      "title": "Nutritionist",
-      "subtitle": "Practical advice on meals, habits, and daily routines."
-    },
-    "noSpecialists": "No specialists available",
     "profile": "Profile",
     "verified": "Verified",
+    "reviews": "reviews",
     "about": "About",
     "credentials": "Credentials",
     "languages": "Languages",
     "recentReviews": "Recent Reviews",
-    "reviews": "reviews",
-    "startConsultation": "Start Consultation"
+    "switchRole": "Switch",
+    "dietitian": {
+      "title": "Dietitians",
+      "subtitle": "Licensed nutrition therapy experts"
+    },
+    "nutritionist": {
+      "title": "Nutritionists",
+      "subtitle": "Healthy lifestyle consultants"
+    },
+    "tabs": {
+      "specialists": "Specialists",
+      "articles": "Articles"
+    },
+    "roleSelection": {
+      "title": "What brings you here?",
+      "subtitle": "You can change this later",
+      "userTitle": "I'm looking for a specialist",
+      "userDescription": "Find a dietitian for consultation",
+      "expertTitle": "I'm a certified specialist",
+      "expertDescription": "Create a profile and help clients"
+    },
+    "expert": {
+      "dashboard": "Expert Dashboard",
+      "manageProfile": "Manage your specialist profile",
+      "myProfile": "My Profile",
+      "editProfile": "Edit profile, services and pricing",
+      "clientChats": "Client Chats",
+      "manageConsultations": "Manage consultations",
+      "myOffers": "My Services",
+      "manageOffers": "Manage services and pricing",
+      "myArticles": "My Articles",
+      "writeArticles": "Write and publish articles",
+      "analytics": "Analytics"
+    },
+    "edit": {
+      "createProfile": "Create Profile",
+      "editProfile": "Edit Profile",
+      "saved": "Profile saved",
+      "published": "Published",
+      "unpublished": "Unpublished",
+      "basicInfo": "Basic Information",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "e.g. Anna Smith, RD",
+      "type": "Specialist Type",
+      "title": "Professional Title",
+      "titlePlaceholder": "e.g. Certified Dietitian",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell clients about yourself...",
+      "experience": "Experience",
+      "education": "Education",
+      "educationPlaceholder": "Degrees, certifications...",
+      "experienceYears": "Years of Experience",
+      "specializations": "Specializations",
+      "specializationsPlaceholder": "Weight loss, Diabetes, Sports...",
+      "languages": "Languages",
+      "commaSeparated": "Comma-separated",
+      "contactSection": "Contact Policy",
+      "contactPolicy": "Response Time & Availability",
+      "contactPolicyPlaceholder": "e.g. I reply within 24 hours on weekdays",
+      "nameRequired": "Display name is required"
+    }
+  },
+  "offers": {
+    "noOffers": "No services yet",
+    "createFirst": "Create Your First Service",
+    "create": "Create Service",
+    "edit": "Edit Service",
+    "name": "Name",
+    "namePlaceholder": "e.g. Weekly Consultation",
+    "nameRequired": "Name is required",
+    "description": "Description",
+    "descriptionPlaceholder": "What clients will get...",
+    "format": "Service Type",
+    "freeOffer": "Free Consultation",
+    "published": "Published",
+    "contactForPrice": "Contact for price",
+    "untitled": "Untitled",
+    "deleteConfirm": "Delete this service?",
+    "formatTypes": {
+      "chat": "Chat Consultation",
+      "mealPlan": "Meal Plan",
+      "reportReview": "Report Review",
+      "monthlySupport": "Monthly Support",
+      "custom": "Custom"
+    }
   },
   "chat": {
-    "daysRemaining": "days remaining",
-    "consultationEnded": "Consultation ended",
-    "shareMeals": "Share Meals",
-    "shareMealsConfirm": "Share your meals from the last 7 days?",
+    "active": "Active",
+    "ended": "Ended",
+    "cancelled": "Cancelled",
     "startConversation": "Start the conversation!",
-    "typePlaceholder": "Type a message..."
+    "typeMessage": "Type a message...",
+    "typePlaceholder": "Type a message...",
+    "conversationEnded": "This conversation has ended",
+    "mealShared": "Meal data shared",
+    "reportShared": "Report shared",
+    "consultationEnded": "Consultation ended",
+    "daysRemaining": "days remaining",
+    "shareMeals": "Share Meals",
+    "shareMealsConfirm": "Share your meals from the last 7 days?"
+  },
+  "disclaimer": {
+    "title": "Important Notice",
+    "intro": "Before starting a consultation with an expert, please read and accept the following terms:",
+    "point1": "Information provided by experts is for general guidance only and should not replace professional medical advice.",
+    "point2": "Always consult with your doctor before making significant changes to your diet or health regimen.",
+    "point3": "Your conversations are private. Do not share sensitive personal information beyond what is necessary.",
+    "point4": "If you experience a medical emergency, contact emergency services immediately.",
+    "accept": "I have read and accept these terms"
+  },
+  "report": {
+    "title": "Report User",
+    "subtitle": "Report inappropriate behavior",
+    "selectReason": "Select a reason",
+    "additionalDetails": "Additional details (optional)",
+    "detailsPlaceholder": "Describe what happened...",
+    "submit": "Submit Report",
+    "success": {
+      "title": "Report Submitted",
+      "message": "Thank you for your report. We will review it shortly."
+    },
+    "error": "Failed to submit report",
+    "reason": {
+      "inappropriate": "Inappropriate content",
+      "harassment": "Harassment",
+      "spam": "Spam",
+      "scam": "Scam",
+      "unprofessional": "Unprofessional behavior",
+      "other": "Other"
+    }
+  },
+  "block": {
+    "title": "Block User",
+    "subtitle": "Stop receiving messages",
+    "warning": "Blocking this user will:\n\n• Stop all messages from them\n• Hide your profile from them\n• End any active conversations\n\nYou can unblock users anytime in settings.",
+    "confirm": "Block User",
+    "success": {
+      "title": "User Blocked",
+      "message": "You will no longer receive messages from this user."
+    },
+    "error": "Failed to block user"
   },
   "dietPrograms": {
     "title": "Diet Programs",
@@ -1040,7 +1297,40 @@
     "mealDetails": "Meal Details"
   },
   "subscription": {
-    "title": "Subscription",
+    "title": "Premium",
+    "subtitle": "Unlock all features and enjoy unlimited access",
+    "applyPlan": "Apply plan",
+    "studentToggle": "I'm a student",
+    "studentHint": "Special price for students",
+    "hideStudent": "Hide",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "included": "Included",
+    "popular": "Popular",
+    "bestValue": "Best value",
+    "most_popular": "BEST VALUE",
+    "student": "Student",
+    "freePlan": "Free Plan",
+    "freePlanIncluded": "Currently active",
+    "free": "Free",
+    "freeFeature1": "5 analyses per day",
+    "freeFeature2": "Basic nutrition tracking",
+    "upgradeToPremium": "Upgrade to Premium",
+    "studentToggle": "I am a student",
+    "studentHint": "Show student discount",
+    "month": "mo",
+    "continue": "Continue",
+    "terms_notice": "Cancel anytime. Terms apply.",
+    "features_title": "What you get",
+    "feature_unlimited_analyses": "Unlimited AI food analyses",
+    "feature_detailed_reports": "Detailed nutrition reports",
+    "feature_ai_chat": "AI nutrition assistant",
+    "feature_expert_access": "Access to nutrition experts",
+    "feature_export_data": "Export your data",
+    "plan_weekly": "Weekly",
+    "plan_monthly": "Monthly",
+    "plan_yearly": "Yearly",
+    "plan_student": "Student",
     "plan": {
       "free": "EatSense Free",
       "pro": "EatSense Pro",
@@ -1210,6 +1500,8 @@
     "sendMessage": "Failed to send message",
     "shareMeals": "Failed to share meals",
     "startProgram": "Failed to start program",
+    "stopProgram": "Failed to stop program",
+    "pauseProgram": "Failed to pause diet",
     "completeDay": "Failed to complete day",
     "navNotAvailable": "Navigation not available. Please restart the app."
   },
@@ -1223,5 +1515,185 @@
     "enabled": "Notifications enabled!",
     "notEnabled": "Notifications were not enabled.",
     "enableFailed": "Could not enable notifications."
+  },
+  "diets": {
+    "title": "Diets",
+    "subtitle": "Find the perfect nutrition plan for you",
+    "all": "All",
+    "weight_loss": "Weight Loss",
+    "weight_gain": "Weight Gain",
+    "health": "Health",
+    "sports": "Sports",
+    "lifestyle": "Lifestyle",
+    "medical": "Medical",
+    "recommended": "Recommended for You",
+    "recommended_description": "Based on your profile and eating habits",
+    "featured": "Popular Diets",
+    "browse": "Browse All",
+    "no_diets": "No diets found",
+    "days": "days",
+    "start": "Start Diet",
+    "stop": "End Diet",
+    "active": "Active",
+    "easy": "Easy",
+    "moderate": "Moderate",
+    "hard": "Hard",
+    "difficulty": {
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "hard": "Hard"
+    },
+    "users": "users",
+    "filter_difficulty": "Difficulty",
+    "search_placeholder": "Search diets...",
+    "yourActiveDiet": "Your active diet",
+    "day": "Day",
+    "dayOf": "of",
+    "mealsToday": "Meals today",
+    "daysLeft": "Days left",
+    "viewPlan": "View plan",
+    "progress": "Progress",
+    "streak": "Streak",
+    "bestStreak": "Best streak",
+    "completedTasks": "Completed",
+    "finishDay": "Finish day",
+    "dailyPlan": "Daily plan",
+    "wellbeing": "Wellbeing",
+    "tracker": {
+      "title": "Daily Tracker",
+      "daily_checklist": "Daily Checklist",
+      "weekly_goals": "Weekly Goals",
+      "streak": "Streak",
+      "current_streak": "Current Streak",
+      "longest_streak": "Longest Streak",
+      "days": "days",
+      "complete_to_maintain": "Complete {{threshold}}% to maintain streak",
+      "progress": "Progress",
+      "completed": "Completed"
+    },
+    "celebration": {
+      "perfect": "Perfect! 🎉",
+      "excellent": "Excellent work! 🌟",
+      "great": "Great job! 💪",
+      "good": "Good progress! 👍",
+      "perfectSubtext": "You completed all tasks today!",
+      "greatSubtext": "You're maintaining your streak!",
+      "goodSubtext": "Every step counts!"
+    },
+    "historical_section": {
+      "title": "Historical & Inspired",
+      "subtitle": "Fun diets inspired by history and culture",
+      "disclaimer_banner": "These are approximations for fun, not medical recommendations"
+    },
+    "tabs": {
+      "diets": "Diets",
+      "lifestyle": "Lifestyle"
+    },
+    "categories": {
+      "popular": "Popular",
+      "health": "Health",
+      "weightLoss": "Weight Loss",
+      "performance": "Performance",
+      "medical": "Medical",
+      "seasonal": "Seasonal",
+      "historical": "Historical",
+      "aesthetic": "Aesthetic"
+    },
+    "groups": {
+      "popular": "Popular",
+      "health": "Health",
+      "weight_loss": "Weight Loss",
+      "performance": "Sports & Performance",
+      "medical": "Medical",
+      "historical": "Historical",
+      "seasonal": "Seasonal",
+      "vintage": "Vintage",
+      "old_money": "Old Money",
+      "aesthetic": "Aesthetic"
+    },
+    "comingSoon": "Coming soon",
+    "daily_tracker_preview": "Daily Tracker",
+    "tracker_preview_hint": "Track your daily progress with this checklist",
+    "medical_note": "This diet may have contraindications. Consult a healthcare professional before starting.",
+    "how_it_works": "How It Works",
+    "disclaimers": {
+      "historical": "Historical/inspired reconstruction. Not guaranteed historically accurate.",
+      "historical_short": "Historical",
+      "public_figure": "Public-figure-inspired template. Not an official program.",
+      "public_figure_short": "Inspired",
+      "medical": "This diet may have contraindications. Consult a professional.",
+      "medical_short": "Medical",
+      "general": "This is educational information and not medical advice."
+    },
+    "sample_day": "Sample Day"
+  },
+  "dietPrograms": {
+    "startProgram": "Start Program",
+    "startConfirm": "Start",
+    "kcalDay": "kcal/day",
+    "level": "Level",
+    "about": "About",
+    "previewDay1": "Preview Day 1",
+    "empty": "Program not found",
+    "stopProgram": "Stop Program",
+    "stopProgramConfirm": "Are you sure you want to stop the program? Your progress will be saved.",
+    "pauseProgram": "Pause",
+    "pauseProgramConfirm": "Would you like to pause the diet? You can resume anytime.",
+    "resumeProgram": "Resume",
+    "resumeProgramConfirm": "Continue the diet from where you left off?",
+    "pause": "Pause",
+    "resume": "Resume",
+    "mealsForDay": "Meals for Day"
+  },
+  "lifestyles": {
+    "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
+    "categories": {
+      "all": "All",
+      "TRENDING": "Trending",
+      "GOAL_LOSE_WEIGHT": "Weight Loss",
+      "GOAL_BUILD_MUSCLE": "Build Muscle",
+      "GOAL_CLEAR_SKIN": "Clear Skin",
+      "GOAL_MORE_ENERGY": "More Energy",
+      "DESTINATIONS": "Destinations",
+      "AESTHETICS": "Aesthetics",
+      "WARRIOR_MODE": "Warrior Mode",
+      "SEASONAL": "Seasonal"
+    },
+    "card": {
+      "view": "View"
+    },
+    "detail": {
+      "mantra": "Daily Mantra",
+      "philosophy": "Philosophy",
+      "embrace": "Embrace",
+      "minimize": "Minimize",
+      "dailyInspiration": "Daily Inspiration",
+      "sampleDay": "Sample Day",
+      "morning": "Morning",
+      "midday": "Midday",
+      "evening": "Evening",
+      "vibe": "Vibe",
+      "startProgram": "Start Program",
+      "continueProgram": "Continue"
+    },
+    "search": {
+      "placeholder": "Search lifestyle programs..."
+    },
+    "filters": {
+      "target": {
+        "label": "Target",
+        "male": "Male",
+        "female": "Female",
+        "all": "All"
+      },
+      "age": {
+        "label": "Age",
+        "range1": "18-30",
+        "range2": "30-50",
+        "range3": "50+"
+      }
+    },
+    "trending": "Trending",
+    "empty": "No lifestyle programs found"
   }
 }

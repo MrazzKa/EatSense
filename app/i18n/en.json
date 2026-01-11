@@ -16,7 +16,8 @@
     "search": "Search",
     "viewAll": "View All",
     "select": "Select",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "ok": "OK"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -197,21 +198,134 @@
     "verify": "Verify",
     "magicLink": "Send Magic Link",
     "signIn": "Sign In",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "errors": {
+      "invalidEmail": "Please enter a valid email",
+      "invalidCode": "Invalid verification code",
+      "expiredCode": "Verification code has expired",
+      "rateLimited": "Too many attempts. Please try again in {{seconds}} seconds",
+      "verifyFailed": "Verification failed. Please try again",
+      "googleNotConfigured": "Google Sign-In Not Available",
+      "googleNotAvailableExpoGo": "Google Sign-In requires a development build. Please use email sign-in in Expo Go.",
+      "googleIosClientIdMissing": "Google Sign-In is not configured for iOS",
+      "googleAndroidClientIdMissing": "Google Sign-In is not configured for Android",
+      "googleNotConfiguredMessage": "Google Sign-In is not properly configured"
+    },
+    "messages": {
+      "signedIn": "Successfully signed in",
+      "codeSent": "Verification code sent to your email",
+      "codeResent": "New code sent"
+    }
   },
   "onboarding": {
     "welcome": "Welcome to EatSense",
+    "welcomeSubtitle": "Your AI-powered nutrition companion",
     "getStarted": "Get Started",
     "personalInfo": "Personal Information",
     "physicalInfo": "Physical Information",
     "activityLevel": "Activity Level",
-    "goals": "Goals",
-    "plan": "Choose your plan"
+    "goals": "What are your goals?",
+    "goalsSubtitle": "Choose the goal that best describes you",
+    "gender": "What's your gender?",
+    "genderSubtitle": "This helps us personalize your experience",
+    "age": "How old are you?",
+    "ageSubtitle": "Your age helps us calculate your needs",
+    "height": "What's your height?",
+    "heightSubtitle": "We'll use this to track your progress",
+    "weight": "What's your weight?",
+    "weightSubtitle": "This is your starting point",
+    "targetWeight": "What's your target weight?",
+    "activity": "How active are you?",
+    "activitySubtitle": "Select your activity level",
+    "diet": "Are you following any diet?",
+    "dietSubtitle": "This helps us tailor recommendations",
+    "health": "What should we know about you?",
+    "notifications": "Enable notifications",
+    "loading": "Creating your plan",
+    "plan": "Choose your plan",
+    "planSubtitle": "Choose the plan that works best for you",
+    "genders": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "goalTypes": {
+      "loseWeight": "Lose weight",
+      "maintainWeight": "Maintain weight",
+      "gainWeight": "Gain weight"
+    },
+    "activityLevels": {
+      "sedentary": "Sedentary",
+      "sedentaryDesc": "Little to no exercise",
+      "lightlyActive": "Lightly Active",
+      "lightlyActiveDesc": "Light exercise 1-3 days/week",
+      "moderatelyActive": "Moderately Active",
+      "moderatelyActiveDesc": "Moderate exercise 3-5 days/week",
+      "veryActive": "Very Active",
+      "veryActiveDesc": "Hard exercise 6-7 days/week",
+      "extremelyActive": "Extremely Active",
+      "extremelyActiveDesc": "Very hard exercise daily"
+    },
+    "dietTypes": {
+      "none": "No diet",
+      "balanced": "Balanced",
+      "keto": "Keto",
+      "paleo": "Paleo",
+      "vegan": "Vegan",
+      "vegetarian": "Vegetarian",
+      "mediterranean": "Mediterranean",
+      "lowCarb": "Low Carb"
+    },
+    "units": {
+      "years": "years",
+      "cm": "cm",
+      "kg": "kg"
+    },
+    "features": {
+      "analysis": "AI-powered food analysis",
+      "tracking": "Calorie & macro tracking",
+      "insights": "Personalized health insights"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "complete": "Complete"
+    },
+    "plans": {
+      "free": "Free",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "student": "Student",
+      "forever": "forever",
+      "month": "mo",
+      "year": "yr",
+      "freeHeadline": "Get started with the essentials",
+      "monthlyHeadline": "Flexible billing",
+      "yearlyHeadline": "Best value — save 33%",
+      "studentHeadline": "Special student pricing",
+      "included": "Included",
+      "bestValue": "Best Value",
+      "studentBadge": "Student",
+      "finePrint": "Cancel anytime. Terms apply.",
+      "features": {
+        "analysis3": "AI food analysis (3/day)",
+        "tracking": "Daily calorie tracking",
+        "basicStats": "Basic statistics",
+        "unlimited": "Unlimited AI analysis",
+        "insights": "Advanced nutrition insights",
+        "coaching": "Personalized coaching",
+        "support": "Priority support",
+        "everything": "Everything in Monthly",
+        "webinars": "Exclusive webinars",
+        "earlyAccess": "Early access to features",
+        "verification": "Student ID required"
+      }
+    }
   },
   "tabs": {
     "dashboard": "Home",
-    "articles": "Articles",
-    "recently": "Recent",
+    "diets": "Diets",
+    "experts": "Experts",
+    "reports": "Reports",
     "profile": "Profile"
   },
   "terms": {
@@ -371,5 +485,99 @@
     "noDataToday": "No data for today yet",
     "empty": "No statistics available yet",
     "times": "times"
+  },
+  "experts": {
+    "title": "Experts",
+    "subtitle": "Connect with nutrition professionals",
+    "myConsultations": "My Consultations",
+    "viewChats": "View your chat history",
+    "findSpecialist": "Find a Specialist",
+    "dietitian": {
+      "title": "Dietitians",
+      "subtitle": "Medical nutrition therapy experts"
+    },
+    "nutritionist": {
+      "title": "Nutritionists",
+      "subtitle": "Lifestyle and wellness coaches"
+    },
+    "viewAll": "View All Experts"
+  },
+  "diets": {
+    "title": "Diets",
+    "subtitle": "Find the perfect nutrition plan for you",
+    "all": "All",
+    "weight_loss": "Weight Loss",
+    "health": "Health",
+    "sports": "Sports",
+    "lifestyle": "Lifestyle",
+    "medical": "Medical",
+    "recommended": "Recommended for You",
+    "recommended_description": "Based on your profile and eating habits",
+    "featured": "Popular Diets",
+    "browse": "Browse All",
+    "no_diets": "No diets found",
+    "days": "days",
+    "start": "Start Diet",
+    "stop": "Stop Diet",
+    "active": "Active",
+    "easy": "Easy",
+    "moderate": "Moderate",
+    "hard": "Hard",
+    "users": "users",
+    "search_placeholder": "Search diets...",
+    "filter_difficulty": "Difficulty",
+    "groups": {
+      "popular": "Popular",
+      "health": "Health",
+      "weight_loss": "Weight Loss",
+      "performance": "Performance",
+      "medical": "Medical",
+      "historical": "Historical & Inspired"
+    },
+    "tracker": {
+      "title": "Daily Tracker",
+      "daily_checklist": "Daily Checklist",
+      "weekly_goals": "Weekly Goals",
+      "streak": "Streak",
+      "current_streak": "Current Streak",
+      "longest_streak": "Best Streak",
+      "days": "days",
+      "complete_to_maintain": "Complete {{threshold}}% to maintain streak",
+      "progress": "Progress",
+      "completed": "Completed",
+      "reset_at_midnight": "Resets at midnight"
+    },
+    "symptoms": {
+      "title": "How do you feel?",
+      "energy": "Energy",
+      "digestion": "Digestion",
+      "bloating": "Bloating",
+      "mood": "Mood",
+      "scale_hint": "1 = Poor, 5 = Great"
+    },
+    "detail": {
+      "how_it_works": "How It Works",
+      "daily_tracker_preview": "Daily Tracker",
+      "not_for": "Not Recommended For",
+      "evidence": "Evidence Level",
+      "start_diet": "Start This Diet",
+      "stop_diet": "Stop Diet",
+      "already_active": "You already have an active diet"
+    },
+    "disclaimers": {
+      "general": "Information is for educational purposes only, not medical advice.",
+      "medical": "This diet requires caution. Consult a specialist before starting.",
+      "historical": "Historical/inspired reconstruction. May not reflect actual practices."
+    },
+    "evidence": {
+      "high": "Strong evidence",
+      "medium": "Moderate evidence",
+      "low": "Limited evidence"
+    },
+    "historical_section": {
+      "title": "Historical & Inspired",
+      "subtitle": "Fun diets inspired by history and culture",
+      "disclaimer_banner": "These are approximations for fun, not medical recommendations"
+    }
   }
 }

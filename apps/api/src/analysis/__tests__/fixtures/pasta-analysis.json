@@ -1,0 +1,108 @@
+{
+  "description": "Pasta with spinach sauce and chickpeas - test fixture",
+  "visionInput": {
+    "dish": {
+      "dish_name": "Pasta with spinach sauce",
+      "dish_name_local": "Паста со шпинатным соусом",
+      "dish_name_confidence": 0.85
+    },
+    "visible_items": [
+      {
+        "name": "farfalle pasta",
+        "name_local": "паста фарфалле",
+        "category_hint": "grain",
+        "est_portion_g": 200,
+        "confidence": 0.9
+      },
+      {
+        "name": "spinach",
+        "name_local": "шпинат",
+        "category_hint": "veg",
+        "est_portion_g": 50,
+        "confidence": 0.85
+      },
+      {
+        "name": "chickpeas cooked",
+        "name_local": "нут варёный",
+        "category_hint": "legume",
+        "est_portion_g": 80,
+        "confidence": 0.8
+      },
+      {
+        "name": "olive oil",
+        "name_local": "оливковое масло",
+        "category_hint": "fat",
+        "est_portion_g": 15,
+        "confidence": 0.7
+      }
+    ]
+  },
+  "expectedResult": {
+    "displayName": "Паста со шпинатным соусом",
+    "originalDishName": "Pasta with spinach sauce",
+    "dishNameSource": "vision",
+    "items": [
+      {
+        "name": "паста фарфалле",
+        "portion_g": 200,
+        "nutrients": {
+          "calories": 262,
+          "protein": 9.4,
+          "carbs": 50,
+          "fat": 2.0
+        },
+        "category": "grain"
+      },
+      {
+        "name": "шпинат",
+        "portion_g": 50,
+        "nutrients": {
+          "calories": 12,
+          "protein": 1.4,
+          "carbs": 1.8,
+          "fat": 0.2
+        },
+        "category": "veg"
+      },
+      {
+        "name": "нут варёный",
+        "portion_g": 80,
+        "nutrients": {
+          "calories": 130,
+          "protein": 7.1,
+          "carbs": 22,
+          "fat": 2.1
+        },
+        "category": "legume"
+      },
+      {
+        "name": "оливковое масло",
+        "portion_g": 15,
+        "nutrients": {
+          "calories": 133,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 15
+        },
+        "category": "fat"
+      }
+    ],
+    "totals": {
+      "calories": 537,
+      "protein": 17.9,
+      "carbs": 73.8,
+      "fat": 19.3,
+      "portion_g": 345
+    },
+    "healthScore": {
+      "expectedRange": [45, 65],
+      "expectedLevel": "average"
+    }
+  },
+  "validationRules": {
+    "dishNameNotCommaList": "displayName should NOT be 'Фарфалле, Шпинат, Нут'",
+    "oilCaloriesRealistic": "olive oil 15g should have ~133 kcal (not 5 kcal)",
+    "spinachNotOil": "spinach should NOT match 'Oil, spinach' from USDA",
+    "totalsMatchSum": "total calories should equal sum of item calories (±5%)"
+  }
+}

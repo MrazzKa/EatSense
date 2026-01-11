@@ -8,6 +8,7 @@ import {
   UploadedFile,
   Param,
   Request,
+  Headers,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -21,7 +22,7 @@ import type { Express } from 'express';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class FoodController {
-  constructor(private readonly foodService: FoodService) {}
+  constructor(private readonly foodService: FoodService) { }
 
   @Post('analyze')
   @UseInterceptors(FileInterceptor('image'))
@@ -33,15 +34,22 @@ export class FoodController {
     @UploadedFile() file: any,
     @Body() body: AnalyzeImageDto,
     @Request() req: any,
+    @Headers('x-skip-cache') skipCacheHeader?: string,
   ) {
-    return this.foodService.analyzeImage(file, req.user.id, body.locale, body.foodDescription);
+    const skipCache = skipCacheHeader === 'true' || skipCacheHeader === '1';
+    return this.foodService.analyzeImage(file, req.user.id, body.locale, body.foodDescription, skipCache);
   }
 
   @Post('analyze-text')
   @ApiOperation({ summary: 'Analyze food from text description' })
   @ApiResponse({ status: 201, description: 'Analysis started' })
-  async analyzeText(@Body() body: AnalyzeTextDto, @Request() req: any) {
-    return this.foodService.analyzeText(body.description, req.user.id, body.locale);
+  async analyzeText(
+    @Body() body: AnalyzeTextDto,
+    @Request() req: any,
+    @Headers('x-skip-cache') skipCacheHeader?: string,
+  ) {
+    const skipCache = skipCacheHeader === 'true' || skipCacheHeader === '1';
+    return this.foodService.analyzeText(body.description, req.user.id, body.locale, skipCache);
   }
 
   @Get('analysis/:id/status')
@@ -84,5 +92,50 @@ export class FoodController {
   @ApiResponse({ status: 201, description: 'Correction saved successfully' })
   async saveCorrection(@Request() req: any, @Body() body: any) {
     return this.foodService.saveCorrection(req.user.id, body);
+  }
+
+  // =====================================================
+  // OBSERVABILITY: Debug endpoint for development only
+  // =====================================================
+  @Get('analysis/:id/debug')
+  @ApiOperation({ summary: 'Get analysis debug bundle (dev only)' })
+  @ApiResponse({ status: 200, description: 'Debug bundle with raw vision, nutrition, and final result' })
+  async getAnalysisDebug(@Param('id') id: string, @Request() req: any) {
+    // Only allow in development mode
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'Debug endpoint not available in production' };
+    }
+
+    const result = await this.foodService.getAnalysisResult(id, req.user.id);
+
+    return {
+      analysisId: id,
+      status: result?.status || 'unknown',
+      dishName: {
+        localized: result?.data?.dishNameLocalized,
+        original: result?.data?.originalDishName,
+        source: result?.data?.dishNameSource,
+        confidence: result?.data?.dishNameConfidence,
+      },
+      totals: result?.data?.total,
+      itemCount: result?.data?.items?.length || 0,
+      items: result?.data?.items?.map((i: any) => ({
+        name: i.name,
+        originalName: i.originalName,
+        source: i.source,
+        provider: i.provider,
+        portionG: i.portion_g,
+        nutrients: i.nutrients,
+        isFallback: i.isFallback,
+        sourceInfo: i.sourceInfo,
+      })),
+      visionRaw: result?.data?.debug?.componentsRaw,
+      debug: result?.data?.debug,
+      healthScore: result?.data?.healthScore,
+      flags: {
+        isSuspicious: result?.data?.isSuspicious,
+        needsReview: result?.data?.needsReview,
+      },
+    };
   }
 }
