@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 
 @Injectable()
@@ -48,13 +48,24 @@ export class DietProgramsService {
 
         if (!program) throw new NotFoundException('Program not found');
 
+        // Check for ANY existing active diet (not just this one)
+        const existingActive = await this.prisma.userDietProgram.findFirst({
+            where: { userId, status: 'active' },
+        });
+
+        if (existingActive) {
+            // If trying to start the same diet that's already active, return 409 Conflict
+            if (existingActive.programId === programId) {
+                throw new ConflictException('Already enrolled in this diet program');
+            }
+            // If trying to start a different diet while one is active, return 400 Bad Request
+            throw new BadRequestException('You already have an active diet. Complete or abandon it first.');
+        }
+
+        // Check if user has previous enrollment in this program (completed/abandoned)
         const existing = await this.prisma.userDietProgram.findUnique({
             where: { userId_programId: { userId, programId } },
         });
-
-        if (existing && existing.status === 'active') {
-            throw new ConflictException('Already enrolled in this program');
-        }
 
         if (existing) {
             return this.prisma.userDietProgram.update({
