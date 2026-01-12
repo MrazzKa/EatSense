@@ -93,36 +93,35 @@ export class DietsService {
      * Get diet by ID or slug
      */
     async findOne(idOrSlug: string, locale: string = 'en') {
-        const diet = await this.prisma.dietProgram.findFirst({
-            where: {
-                OR: [{ id: idOrSlug }, { slug: idOrSlug }],
-                isActive: true,
-            },
-            include: {
-                days: {
-                    orderBy: { dayNumber: 'asc' },
-                    include: {
-                        meals: { orderBy: { sortOrder: 'asc' } },
+        try {
+            const diet = await this.prisma.dietProgram.findFirst({
+                where: {
+                    OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+                    isActive: true,
+                },
+                include: {
+                    days: {
+                        orderBy: { dayNumber: 'asc' },
+                        include: {
+                            meals: { orderBy: { sortOrder: 'asc' } },
+                        },
+                    },
+                    // Note: ratings include removed temporarily - table may not exist yet
+                    _count: {
+                        select: { userPrograms: { where: { status: 'active' } } },
                     },
                 },
-                ratings: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 5,
-                    include: {
-                        user: { select: { id: true, profile: true } },
-                    },
-                },
-                _count: {
-                    select: { userPrograms: { where: { status: 'active' } }, ratings: true },
-                },
-            },
-        });
+            });
 
-        if (!diet) {
-            throw new NotFoundException('Diet not found');
+            if (!diet) {
+                throw new NotFoundException('Diet not found');
+            }
+
+            return this.localizeDietFull(diet, locale);
+        } catch (error) {
+            this.logger.error(`[findOne] Error fetching diet ${idOrSlug}:`, error);
+            throw error;
         }
-
-        return this.localizeDietFull(diet, locale);
     }
 
     /**
@@ -236,72 +235,77 @@ export class DietsService {
      * Get user's active diet
      */
     async getActiveDiet(userId: string, locale: string = 'en') {
-        const userDiet = await this.prisma.userDietProgram.findFirst({
-            where: { userId, status: 'active' },
-            include: {
-                program: {
-                    include: {
-                        days: {
-                            orderBy: { dayNumber: 'asc' },
-                            include: { meals: { orderBy: { sortOrder: 'asc' } } },
+        try {
+            const userDiet = await this.prisma.userDietProgram.findFirst({
+                where: { userId, status: 'active' },
+                include: {
+                    program: {
+                        include: {
+                            days: {
+                                orderBy: { dayNumber: 'asc' },
+                                include: { meals: { orderBy: { sortOrder: 'asc' } } },
+                            },
                         },
                     },
+                    dailyLogs: {
+                        orderBy: { date: 'desc' },
+                        take: 7,
+                    },
                 },
-                dailyLogs: {
-                    orderBy: { date: 'desc' },
-                    take: 7,
-                },
-            },
-        });
-
-        if (!userDiet) return null;
-
-        // Calculate current day based on calendar dates
-        const startDate = new Date(userDiet.startedAt);
-        startDate.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const diffTime = today.getTime() - startDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        const calculatedCurrentDay = Math.max(1, diffDays + 1); // Day 1 is start date
-        
-        // Update currentDay in database if it's different (for backward compatibility)
-        if (userDiet.currentDay !== calculatedCurrentDay && calculatedCurrentDay <= userDiet.program.duration) {
-            await this.prisma.userDietProgram.update({
-                where: { id: userDiet.id },
-                data: { currentDay: calculatedCurrentDay },
             });
-            userDiet.currentDay = calculatedCurrentDay;
+
+            if (!userDiet) return null;
+
+            // Calculate current day based on calendar dates
+            const startDate = new Date(userDiet.startedAt);
+            startDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = today.getTime() - startDate.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const calculatedCurrentDay = Math.max(1, diffDays + 1); // Day 1 is start date
+
+            // Update currentDay in database if it's different (for backward compatibility)
+            if (userDiet.currentDay !== calculatedCurrentDay && calculatedCurrentDay <= userDiet.program.duration) {
+                await this.prisma.userDietProgram.update({
+                    where: { id: userDiet.id },
+                    data: { currentDay: calculatedCurrentDay },
+                });
+                userDiet.currentDay = calculatedCurrentDay;
+            }
+
+            // Get today's plan
+            const currentDay = userDiet.program.days.find(d => d.dayNumber === userDiet.currentDay);
+
+            // Get today's log for checklist progress
+            const todayLog = await this.prisma.userDietDailyLog.findFirst({
+                where: { userDietId: userDiet.id, date: today },
+            });
+
+            // Calculate checklist progress from dailyTracker
+            const dailyTracker = userDiet.program.dailyTracker as any[] || [];
+            const checklist = (todayLog?.checklist as Record<string, boolean>) || {};
+            const totalItems = dailyTracker.length;
+            const completedItems = Object.values(checklist).filter(Boolean).length;
+
+            return {
+                ...userDiet,
+                program: this.localizeDiet(userDiet.program, locale),
+                todayPlan: currentDay?.meals || [],
+                progress: {
+                    ...this.calculateProgress(userDiet),
+                    // Add checklist progress for Dashboard widget
+                    completedTasks: completedItems,
+                    totalTasks: totalItems,
+                },
+                // Add explicit streak for Dashboard (was embedded in userDiet before)
+                streak: userDiet.currentStreak || 0,
+            };
+        } catch (error) {
+            this.logger.error(`[getActiveDiet] Error for user ${userId}:`, error);
+            throw error;
         }
-        
-        // Get today's plan
-        const currentDay = userDiet.program.days.find(d => d.dayNumber === userDiet.currentDay);
-
-        // Get today's log for checklist progress
-        const todayLog = await this.prisma.userDietDailyLog.findFirst({
-            where: { userDietId: userDiet.id, date: today },
-        });
-
-        // Calculate checklist progress from dailyTracker
-        const dailyTracker = userDiet.program.dailyTracker as any[] || [];
-        const checklist = (todayLog?.checklist as Record<string, boolean>) || {};
-        const totalItems = dailyTracker.length;
-        const completedItems = Object.values(checklist).filter(Boolean).length;
-
-        return {
-            ...userDiet,
-            program: this.localizeDiet(userDiet.program, locale),
-            todayPlan: currentDay?.meals || [],
-            progress: {
-                ...this.calculateProgress(userDiet),
-                // Add checklist progress for Dashboard widget
-                completedTasks: completedItems,
-                totalTasks: totalItems,
-            },
-            // Add explicit streak for Dashboard (was embedded in userDiet before)
-            streak: userDiet.currentStreak || 0,
-        };
     }
 
     /**
