@@ -230,11 +230,16 @@ class ProgramProgressService {
    */
   async completeDay(type: ProgramType, programId: string): Promise<void> {
     if (type === 'diet') {
-      // Use diet-programs endpoint
-      await ApiService.post(`/diet-programs/${programId}/complete-day`, undefined);
+      // Use correct /diets/ endpoint
+      await ApiService.request('/diets/active/checklist', {
+        method: 'PATCH',
+        body: JSON.stringify({ completed: true }),
+      });
     } else {
       // TODO: Implement lifestyle complete day
-      await ApiService.post(`/lifestyles/${programId}/complete-day`, undefined);
+      await ApiService.request(`/lifestyles/${programId}/complete-day`, {
+        method: 'POST',
+      });
     }
   }
 

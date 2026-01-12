@@ -1,44 +1,45 @@
 import ApiService from './apiService';
 
+/**
+ * DietProgramsService - Legacy wrapper around ApiService diet methods
+ * All diet operations go through /diets/ endpoints
+ */
 class DietProgramsService {
     async getPrograms(filters = {}) {
-        const params = new URLSearchParams();
-        if (filters.category) params.append('category', filters.category);
-        const query = params.toString();
-        return ApiService.get(query ? `/diet-programs?${query}` : '/diet-programs');
+        return ApiService.getDiets(filters);
     }
 
     async getProgram(id) {
-        // Try /diets endpoint first (public), fall back to /diet-programs (auth required)
-        try {
-            return await ApiService.getDiet(id);
-        } catch {
-            return ApiService.get(`/diet-programs/${id}`);
-        }
+        return ApiService.getDiet(id);
     }
 
     async startProgram(programId) {
-        return ApiService.post(`/diet-programs/${programId}/start`);
+        return ApiService.startDiet(programId);
     }
 
     async getProgress(programId) {
-        return ApiService.get(`/diet-programs/${programId}/progress`);
+        // Get active diet includes progress
+        return ApiService.getActiveDiet();
     }
 
     async completeDay(programId, dayNumber) {
-        return ApiService.post(`/diet-programs/${programId}/complete-day`, { dayNumber });
+        // Use today's plan endpoint or checklist
+        return ApiService.request('/diets/active/checklist', {
+            method: 'PATCH',
+            body: JSON.stringify({ dayNumber }),
+        });
     }
 
     async stopProgram(programId) {
-        return ApiService.post(`/diet-programs/${programId}/stop`);
+        return ApiService.abandonDiet();
     }
 
     async pauseProgram() {
-        return ApiService.post('/diets/pause');
+        return ApiService.pauseDiet();
     }
 
     async resumeProgram() {
-        return ApiService.post('/diets/resume');
+        return ApiService.resumeDiet();
     }
 }
 
