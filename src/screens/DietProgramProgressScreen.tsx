@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import DietProgramsService from '../services/dietProgramsService';
 import DailyDietTracker from '../components/DailyDietTracker';
 import CelebrationModal from '../components/CelebrationModal';
+
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1000;
 
 interface DietProgramProgressScreenProps {
     navigation: any;
@@ -28,11 +32,37 @@ const getLocalizedText = (value: any, lang: string): string => {
 export default function DietProgramProgressScreen({ navigation, route }: DietProgramProgressScreenProps) {
     const { colors } = useTheme();
     const { t, language } = useI18n();
-    const { activeProgram, loading: storeLoading, completeDay: completeDayStore, refreshProgress, markCelebrationShown } = useProgramProgress();
+    const { activeProgram, loading: storeLoading, completeDay: completeDayStore, refreshProgress, markCelebrationShown, invalidateCache } = useProgramProgress();
     const [showCelebration, setShowCelebration] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const [isInitializing, setIsInitializing] = useState(true);
+
+    // Force refresh on mount to ensure we have latest data
+    useEffect(() => {
+        const initialize = async () => {
+            setIsInitializing(true);
+            invalidateCache();
+            await refreshProgress();
+            setIsInitializing(false);
+        };
+        initialize();
+    }, []);
 
     // Refresh on focus
     useRefreshProgressOnFocus();
+
+    // Retry logic when activeProgram is null but we expect it to exist
+    useEffect(() => {
+        if (!storeLoading && !isInitializing && !activeProgram && retryCount < MAX_RETRY_ATTEMPTS) {
+            const timer = setTimeout(async () => {
+                console.log(`[DietProgramProgress] Retry ${retryCount + 1}/${MAX_RETRY_ATTEMPTS} - activeProgram not found`);
+                setRetryCount(prev => prev + 1);
+                invalidateCache();
+                await refreshProgress();
+            }, RETRY_DELAY_MS);
+            return () => clearTimeout(timer);
+        }
+    }, [storeLoading, isInitializing, activeProgram, retryCount]);
 
     // Show celebration when day is completed
     useEffect(() => {
@@ -97,11 +127,20 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         loadDetails();
     }, [route.params.id]);
 
-    if (storeLoading || loadingDetails) {
+    // Show loading while initializing, loading, or retrying
+    const isLoading = storeLoading || loadingDetails || isInitializing ||
+        (!activeProgram && retryCount < MAX_RETRY_ATTEMPTS);
+
+    if (isLoading) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
+                    {retryCount > 0 && (
+                        <Text style={{ color: colors.textSecondary, marginTop: 10 }}>
+                            {t('common.loading')}...
+                        </Text>
+                    )}
                 </View>
             </SafeAreaView>
         );
@@ -111,7 +150,22 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.loadingContainer}>
-                    <Text style={{ color: colors.textPrimary }}>{t('dietPrograms.notFound')}</Text>
+                    <Ionicons name="alert-circle-outline" size={48} color={colors.textSecondary} />
+                    <Text style={{ color: colors.textPrimary, marginTop: 16, fontSize: 16 }}>
+                        {t('dietPrograms.notFound')}
+                    </Text>
+                    <TouchableOpacity
+                        style={{
+                            marginTop: 16,
+                            paddingHorizontal: 20,
+                            paddingVertical: 10,
+                            backgroundColor: colors.primary,
+                            borderRadius: 8,
+                        }}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={{ color: '#fff', fontWeight: '600' }}>{t('common.goBack')}</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         );
