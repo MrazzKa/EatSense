@@ -52,12 +52,14 @@ function formatPrice(amount: number, currency: string): string {
     return formatters[currency]?.(amount) || `${amount.toFixed(2)} ${currency}`;
 }
 
-// Subscription plans
+// Subscription plans with daily limits
+// Free: 3, Student: 10, Paid: 9999 (effectively unlimited)
 const plans = [
     {
         name: 'weekly',
         basePriceUsd: 4.99,
         durationDays: 7,
+        dailyLimit: 9999, // Unlimited for paid
         features: [
             'unlimited_analyses',
             'basic_reports',
@@ -70,6 +72,7 @@ const plans = [
         name: 'monthly',
         basePriceUsd: 9.99,
         durationDays: 30,
+        dailyLimit: 9999, // Unlimited for paid
         features: [
             'unlimited_analyses',
             'detailed_reports',
@@ -84,6 +87,7 @@ const plans = [
         name: 'yearly',
         basePriceUsd: 69.99,
         durationDays: 365,
+        dailyLimit: 9999, // Unlimited for paid
         features: [
             'unlimited_analyses',
             'detailed_reports',
@@ -101,8 +105,9 @@ const plans = [
         name: 'student',
         basePriceUsd: 49.00,
         durationDays: 365,
+        dailyLimit: 10, // Student limit: 10/day
         features: [
-            'unlimited_analyses',
+            'limited_analyses', // 10 per day
             'detailed_reports',
             'meal_history',
             'ai_chat',

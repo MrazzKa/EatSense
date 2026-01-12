@@ -1530,26 +1530,9 @@ const ProfileScreen = () => {
               <Text style={styles.preferenceLabel}>{t('profile.notificationsDailyTitle')}</Text>
               <Text style={styles.notificationDescription}>
                 {notificationPreferences.dailyPushEnabled
-                  ? t('profile.notificationsDailyDescription', {
-                    time: formatReminderTime(notificationPreferences.dailyPushHour, notificationPreferences.dailyPushMinute),
-                  })
-                  : t('profile.notificationsDailyDisabled')}
+                  ? t('profile.notificationsDailyEnabled') || 'Напоминания включены'
+                  : t('profile.notificationsDailyDisabled') || 'Напоминания отключены'}
               </Text>
-              {notificationPreferences.dailyPushEnabled && (
-                <TouchableOpacity
-                  style={styles.notificationTimeButton}
-                  onPress={handleNotificationHourChange}
-                  disabled={notificationSaving}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="time" size={16} color={tokens.colors.primary} />
-                  <Text style={styles.notificationTimeText}>
-                    {t('profile.notificationsChangeTime', {
-                      time: formatReminderTime(notificationPreferences.dailyPushHour, notificationPreferences.dailyPushMinute),
-                    })}
-                  </Text>
-                </TouchableOpacity>
-              )}
             </View>
             <Switch
               value={notificationPreferences.dailyPushEnabled}
