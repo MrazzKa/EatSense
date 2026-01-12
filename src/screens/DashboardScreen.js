@@ -386,11 +386,27 @@ export default function DashboardScreen() {
 
   // Removed unused formatTime and formatDate functions
 
-  // Check if daily limit reached - TEMPORARILY DISABLED
-  const hasReachedDailyLimit = (_stats) => {
-    // Temporarily disabled for testing
-    return false;
-    // return stats && stats.todayPhotosAnalyzed >= stats.dailyLimit;
+  // Check if daily limit reached - ENABLED
+  const hasReachedDailyLimit = (stats) => {
+    if (!stats) return false;
+    // Free: 3, Student: 10, Paid: unlimited (9999)
+    const limit = stats.dailyLimit || 3;
+    return stats.todayPhotosAnalyzed >= limit;
+  };
+
+  // Show Free Trial popup when limit is reached
+  const showTrialPopup = () => {
+    Alert.alert(
+      t('limits.title') || 'Лимит исчерпан',
+      t('limits.tryFreeTrialMessage') || 'Попробуйте 7 дней бесплатно без ограничений!',
+      [
+        { text: t('common.later') || 'Позже', style: 'cancel' },
+        {
+          text: t('limits.tryFreeTrial') || 'Попробовать',
+          onPress: () => navigation.navigate('Subscription', { trial: true })
+        }
+      ]
+    );
   };
 
   const handlePlusPress = async () => {
@@ -400,13 +416,9 @@ export default function DashboardScreen() {
     // Check limit before opening gallery
     if (hasReachedDailyLimit(userStats)) {
       if (__DEV__) {
-        console.log('[Dashboard] Daily limit reached, showing alert');
+        console.log('[Dashboard] Daily limit reached, showing trial popup');
       }
-      Alert.alert(
-        t('limits.title') || 'Daily Limit Reached',
-        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) ||
-        `You have reached your daily limit of ${userStats.dailyLimit} photo analyses. Please try again tomorrow.`,
-      );
+      showTrialPopup();
       return;
     }
 
