@@ -5,7 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import DietProgramsService from '../services/dietProgramsService';
-import { useProgramProgress } from '../stores/ProgramProgressStore';
+import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+
+const STARTING_TIMEOUT_MS = 10000; // 10 second timeout for start operation
 
 interface DietProgramDetailScreenProps {
     navigation: any;
@@ -25,7 +27,9 @@ const getLocalizedText = (value: any, lang: string): string => {
 export default function DietProgramDetailScreen({ navigation, route }: DietProgramDetailScreenProps) {
     const { colors } = useTheme();
     const { t, language } = useI18n();
-    const { activeProgram } = useProgramProgress();
+    const { activeProgram, refreshProgress, invalidateCache } = useProgramProgress();
+    const [isStarting, setIsStarting] = useState(false);
+    useRefreshProgressOnFocus(); // Refresh activeProgram when screen is focused
     const [program, setProgram] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -61,6 +65,8 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
     };
 
     const handleStart = () => {
+        if (isStarting) return; // Prevent double-tap
+
         Alert.alert(
             t('dietPrograms.startProgram'),
             `Start "${getLocalizedText(program.name, language)}" (${program.duration} ${t('common.days')})?`,
@@ -69,11 +75,47 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                 {
                     text: t('dietPrograms.startConfirm'),
                     onPress: async () => {
+                        if (isStarting) return;
+                        setIsStarting(true);
+
                         try {
+                            // Invalidate cache before starting to ensure fresh data
+                            invalidateCache();
+
                             await DietProgramsService.startProgram(program.id);
+
+                            // Refresh store to get the new active program
+                            await refreshProgress();
+
                             navigation.navigate('DietProgramProgress', { id: program.id });
-                        } catch {
-                            Alert.alert(t('common.error'), t('errors.startProgram'));
+                        } catch (err: any) {
+                            const status = err?.response?.status || err?.status;
+
+                            // 409 Conflict = already enrolled in THIS diet, refresh and navigate
+                            if (status === 409) {
+                                await refreshProgress();
+                                navigation.navigate('DietProgramProgress', { id: program.id });
+                            }
+                            // 400 Bad Request = already have ANOTHER active diet
+                            else if (status === 400) {
+                                await refreshProgress();
+                                Alert.alert(
+                                    t('dietPrograms.anotherDietActive') || 'Another Diet Active',
+                                    t('dietPrograms.anotherDietActiveMessage') || 'You already have an active diet. Complete or abandon it first.',
+                                    [
+                                        { text: t('common.cancel'), style: 'cancel' },
+                                        {
+                                            text: t('dietPrograms.viewActive') || 'View Active',
+                                            onPress: () => navigation.navigate('DietProgramProgress', { id: program.id }),
+                                        },
+                                    ]
+                                );
+                            } else {
+                                console.error('[DietProgramDetail] Start failed:', err);
+                                Alert.alert(t('common.error'), t('errors.startProgram'));
+                            }
+                        } finally {
+                            setIsStarting(false);
                         }
                     },
                 },
@@ -333,12 +375,17 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <TouchableOpacity
-                    style={[styles.startButton, { backgroundColor: colors.primary }]}
+                    style={[styles.startButton, { backgroundColor: colors.primary, opacity: isStarting ? 0.7 : 1 }]}
                     onPress={isActive ? handleContinue : handleStart}
+                    disabled={isStarting}
                 >
-                    <Text style={styles.startButtonText}>
-                        {isActive ? (t('common.continue') || t('dietPrograms.continueProgram') || 'Continue') : t('dietPrograms.startProgram')}
-                    </Text>
+                    {isStarting ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text style={styles.startButtonText}>
+                            {isActive ? (t('common.continue') || t('dietPrograms.continueProgram') || 'Continue') : t('dietPrograms.startProgram')}
+                        </Text>
+                    )}
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

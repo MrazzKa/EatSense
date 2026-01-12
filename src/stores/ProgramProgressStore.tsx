@@ -54,7 +54,7 @@ interface ProgramProgressContextValue {
 const ProgramProgressContext = createContext<ProgramProgressContextValue | undefined>(undefined);
 
 const CACHE_KEY = 'program_progress';
-const CACHE_TTL = 60000; // 1 minute
+const CACHE_TTL = 5000; // 5 seconds - keep short to prevent stale data issues
 
 export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeProgram, setActiveProgram] = useState<ProgramProgress | null>(null);

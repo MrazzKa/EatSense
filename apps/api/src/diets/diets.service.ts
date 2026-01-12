@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { DietType, DietDifficulty } from '@prisma/client';
 
@@ -195,6 +195,11 @@ export class DietsService {
         });
 
         if (existingActive) {
+            // If trying to start the same diet that's already active, return 409 Conflict
+            if (existingActive.programId === dietId) {
+                throw new ConflictException('Already enrolled in this diet program');
+            }
+            // If trying to start a different diet while one is active, return 400 Bad Request
             throw new BadRequestException('You already have an active diet. Complete or abandon it first.');
         }
 
