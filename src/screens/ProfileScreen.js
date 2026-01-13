@@ -1250,7 +1250,7 @@ const ProfileScreen = () => {
             <KeyboardAvoidingView
               style={{ flex: 1 }}
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 44 : 0}
             >
               <View style={styles.editModalContainer}>
                 <View

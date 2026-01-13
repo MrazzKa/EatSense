@@ -39,8 +39,8 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     const { colors } = useTheme();
     const { activeProgram, loading: storeLoading, updateChecklist, refreshProgress, markCelebrationShown } = useProgramProgress();
 
-    // Refresh on focus
-    useRefreshProgressOnFocus();
+    // NOTE: useRefreshProgressOnFocus removed - parent component handles this
+    // Having it in both parent and child caused double refresh on every focus
 
     const [saving, setSaving] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
@@ -101,8 +101,8 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         setSaving(true);
         try {
             await updateChecklist(newChecklist);
-            await refreshProgress(); // Refresh store
-            await loadTrackerData(); // Refresh tracker data
+            // NOTE: refreshProgress() removed here - updateChecklist already does this internally
+            await loadTrackerData(); // Refresh tracker data from API
             onUpdate?.();
         } catch (error) {
             console.error('[DailyDietTracker] Save checklist failed:', error);

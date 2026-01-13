@@ -82,24 +82,52 @@ export class SubscriptionsService {
 
     /**
      * Create subscription for user
+     * @param userId - User ID
+     * @param planIdOrProductId - Plan ID from database OR Apple productId (e.g. 'eatsense.pro.monthly')
+     * @param currency - Currency code
+     * @param pricePaid - Price paid (0 when using Apple validation)
+     * @param paymentData - Payment transaction data
+     * @param expiresDate - Optional expiration date from Apple (overrides calculated endDate)
+     * @param durationDays - Optional duration in days (fallback if plan not found)
      */
     async createSubscription(
         userId: string,
-        planId: string,
+        planIdOrProductId: string,
         currency: string,
         pricePaid: number,
         paymentData?: {
             appleTransactionId?: string;
             googlePurchaseToken?: string;
         },
+        expiresDate?: Date,
+        durationDays?: number,
     ) {
-        const plan = await this.prisma.subscriptionPlan.findUnique({
-            where: { id: planId },
+        // Try to find plan by ID first, then by productId (Apple SKU)
+        let plan = await this.prisma.subscriptionPlan.findUnique({
+            where: { id: planIdOrProductId },
         });
 
+        // If not found by ID, try to find by name/productId mapping
         if (!plan) {
-            throw new NotFoundException('Plan not found');
+            // Map Apple productId to plan name
+            const productIdToName: Record<string, string> = {
+                'eatsense.pro.monthly': 'monthly',
+                'eatsense.pro.yearly': 'yearly',
+                'eatsense.pro.yearly.student': 'student',
+                'eatsense.founder.pass': 'founders',
+            };
+            const planName = productIdToName[planIdOrProductId];
+            if (planName) {
+                plan = await this.prisma.subscriptionPlan.findFirst({
+                    where: { name: planName },
+                });
+            }
         }
+
+        // If still no plan and we have durationDays, create subscription without plan reference
+        // This handles new products not yet in database
+        const effectivePlanId = plan?.id;
+        const effectiveDuration = plan?.durationDays || durationDays || 30;
 
         // Deactivate current subscription
         await this.prisma.userSubscription.updateMany({
@@ -113,14 +141,19 @@ export class SubscriptionsService {
             },
         });
 
-        // Create new subscription
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + plan.durationDays);
+        // Calculate end date: use Apple's expiresDate if provided, otherwise calculate
+        let endDate: Date;
+        if (expiresDate) {
+            endDate = expiresDate;
+        } else {
+            endDate = new Date();
+            endDate.setDate(endDate.getDate() + effectiveDuration);
+        }
 
         return this.prisma.userSubscription.create({
             data: {
                 userId,
-                planId,
+                planId: effectivePlanId,
                 currency,
                 pricePaid,
                 status: 'ACTIVE',

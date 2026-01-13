@@ -180,8 +180,22 @@ class ProgramProgressService {
     try {
       // Try diet first
       const dietData = await ApiService.getActiveDiet();
+      console.log('[ProgramProgressService] getActiveDiet response:', {
+        hasDietData: !!dietData,
+        hasProgram: !!dietData?.program,
+        programId: dietData?.programId,
+        status: dietData?.status,
+      });
+
       if (dietData && dietData.program) {
-        return transformDietProgress(dietData);
+        const transformed = transformDietProgress(dietData);
+        console.log('[ProgramProgressService] Transformed progress:', {
+          id: transformed.id,
+          programId: transformed.programId,
+          status: transformed.status,
+          currentDayIndex: transformed.currentDayIndex,
+        });
+        return transformed;
       }
 
       // Try lifestyle
@@ -191,8 +205,10 @@ class ProgramProgressService {
       //   return transformLifestyleProgress(lifestyleData);
       // }
 
+      console.log('[ProgramProgressService] No active program found');
       return null;
     } catch (error: any) {
+      console.log('[ProgramProgressService] Error:', error.status || error.message);
       // If 404, no active program
       if (error.status === 404 || error.response?.status === 404) {
         return null;
