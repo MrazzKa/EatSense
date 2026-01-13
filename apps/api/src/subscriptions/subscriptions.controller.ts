@@ -1,14 +1,18 @@
-import { Controller, Get, Post, Body, Req, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards, BadRequestException, Logger } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { SubscriptionsService } from './subscriptions.service';
+import { AppleReceiptService } from './apple-receipt.service';
 import { GeoService } from '../geo/geo.service';
 
 @Controller('subscriptions')
 export class SubscriptionsController {
+    private readonly logger = new Logger(SubscriptionsController.name);
+
     constructor(
         private subscriptionsService: SubscriptionsService,
+        private appleReceiptService: AppleReceiptService,
         private geoService: GeoService,
     ) { }
 
@@ -71,49 +75,72 @@ export class SubscriptionsController {
     async verifyPurchase(
         @CurrentUser() user: any,
         @Body() dto: {
-            planId: string;
+            productId?: string;  // New field from IAP
+            planId?: string;     // Legacy field
             platform: 'ios' | 'android';
             transactionId?: string;
             purchaseToken?: string;
             receipt?: string;
         },
     ) {
-        if (!dto.planId) {
-            throw new BadRequestException('planId is required');
+        const productId = dto.productId || dto.planId;
+        this.logger.log(`Verify purchase for user ${user.id}, product: ${productId}`);
+
+        if (!productId || !dto.receipt) {
+            throw new BadRequestException('productId and receipt are required');
         }
 
-        // TODO: Verify purchase with Apple/Google
-        // This requires integration with App Store Connect and Google Play Console
-        // For now, we'll trust the client and create the subscription
+        if (dto.platform === 'ios') {
+            // Validate with Apple
+            const validation = await this.appleReceiptService.verifyReceipt(dto.receipt);
 
-        // Get price from database
-        const plans = await this.subscriptionsService.getPlansWithPrices('USD');
-        const plan = plans.find(p => p.id === dto.planId);
+            if (!validation.isValid) {
+                this.logger.warn(`Invalid receipt for user ${user.id}: ${validation.status}`);
+                throw new BadRequestException(
+                    `Invalid receipt: ${this.appleReceiptService.getStatusMessage(validation.status || 0)}`
+                );
+            }
 
-        if (!plan) {
-            throw new BadRequestException('Plan not found');
+            // Verify product ID matches
+            if (validation.productId !== productId) {
+                this.logger.warn(`Product mismatch: expected ${productId}, got ${validation.productId}`);
+                throw new BadRequestException('Product ID mismatch');
+            }
+
+            const durationDays = this.getDurationByProductId(productId);
+
+            // Create subscription with validated data
+            const subscription = await this.subscriptionsService.createSubscription(
+                user.id,
+                productId,
+                'USD',
+                0, // Price from Apple, not needed for validation
+                {
+                    appleTransactionId: validation.transactionId,
+                },
+                validation.expiresDate,
+                durationDays,
+            );
+
+            this.logger.log(`Subscription created for user ${user.id}: ${subscription.id}`);
+
+            return {
+                success: true,
+                subscription: {
+                    id: subscription.id,
+                    productId: productId,
+                    expiresDate: subscription.endDate,
+                    isTrial: validation.isTrialPeriod,
+                },
+            };
         }
 
-        // Create subscription
-        const subscription = await this.subscriptionsService.createSubscription(
-            user.id,
-            dto.planId,
-            'USD',
-            plan.price,
-            {
-                appleTransactionId: dto.platform === 'ios' ? dto.transactionId : undefined,
-                googlePurchaseToken: dto.platform === 'android' ? dto.purchaseToken : undefined,
-            },
-        );
+        if (dto.platform === 'android') {
+            // TODO: Implement Google Play validation
+            throw new BadRequestException('Android purchases not yet supported');
+        }
 
-        return {
-            success: true,
-            subscription: {
-                id: subscription.id,
-                plan: subscription.plan.name,
-                endDate: subscription.endDate,
-            },
-        };
+        throw new BadRequestException('Invalid platform');
     }
 
     /**
@@ -151,4 +178,15 @@ export class SubscriptionsController {
         }
         return req.socket?.remoteAddress || '127.0.0.1';
     }
+
+    private getDurationByProductId(productId: string): number {
+        const durations: Record<string, number> = {
+            'eatsense.pro.monthly': 30,
+            'eatsense.pro.yearly': 365,
+            'eatsense.pro.yearly.student': 365,
+            'eatsense.founder.pass': 36500, // ~100 years for lifetime
+        };
+        return durations[productId] || 30;
+    }
 }
+

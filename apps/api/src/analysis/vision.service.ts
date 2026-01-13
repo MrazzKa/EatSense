@@ -177,10 +177,43 @@ export class VisionService {
   private readonly logger = new Logger(VisionService.name);
   private readonly openai: OpenAI;
 
+  // Retry configuration for Vision API calls
+  private readonly MAX_RETRIES = 2;
+  private readonly RETRY_DELAY_MS = 2000;
+
   constructor(private readonly cache: CacheService) {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
+  }
+
+  /**
+   * Delay helper for retry logic with exponential backoff
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Check if error is retryable (timeout, network error, 5xx errors)
+   */
+  private isRetryableError(error: any): boolean {
+    if (!error) return false;
+    const message = error.message?.toLowerCase() || '';
+    const code = error.code?.toLowerCase() || '';
+
+    // Retry on timeout, network errors, and server errors
+    return (
+      message.includes('timeout') ||
+      message.includes('timed out') ||
+      message.includes('no response') ||
+      message.includes('network') ||
+      message.includes('econnreset') ||
+      code.includes('timeout') ||
+      code === 'econnreset' ||
+      code === 'etimedout' ||
+      (error.status >= 500 && error.status < 600)
+    );
   }
 
   /**
@@ -788,45 +821,72 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
     const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '120000', 10);
 
     try {
-      // Create timeout promise
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error(`Vision API call timed out after ${timeoutMs}ms`));
-        }, timeoutMs);
-      });
+      // Retry loop for Vision API call
+      let lastError: any = null;
+      let response: any = null;
 
-      // Create Vision API call promise
-      const visionApiPromise = this.openai.chat.completions.create({
-        // Use global OPENAI_MODEL if provided (e.g. gpt-4o), fallback to VISION_MODEL or default
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
+      for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+        try {
+          if (attempt > 0) {
+            const delayMs = this.RETRY_DELAY_MS * Math.pow(2, attempt - 1); // Exponential backoff
+            this.logger.log(`[VisionService] Retry attempt ${attempt}/${this.MAX_RETRIES} after ${delayMs}ms delay`);
+            await this.delay(delayMs);
+          }
+
+          // Create timeout promise
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => {
+              reject(new Error(`Vision API call timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
+          });
+
+          // Create Vision API call promise
+          const visionApiPromise = this.openai.chat.completions.create({
+            // Use global OPENAI_MODEL if provided (e.g. gpt-4o), fallback to VISION_MODEL or default
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
               {
-                type: 'text',
-                text: foodDescription
-                  ? `Analyze this food image. The user mentioned this is "${foodDescription}". Use this information to help identify the dish and its components more accurately. Extract all components.`
-                  : 'Analyze this food image and extract all components.'
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: foodDescription
+                      ? `Analyze this food image. The user mentioned this is "${foodDescription}". Use this information to help identify the dish and its components more accurately. Extract all components.`
+                      : 'Analyze this food image and extract all components.'
+                  },
+                  imageContent,
+                ],
               },
-              imageContent,
             ],
-          },
-        ],
-        max_completion_tokens: 2000,
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-      }, {
-        timeout: timeoutMs, // Set timeout in request options
-      });
+            max_completion_tokens: 2000,
+            temperature: 0.3,
+            response_format: { type: 'json_object' },
+          }, {
+            timeout: timeoutMs, // Set timeout in request options
+          });
 
-      // Race between API call and timeout
-      const response = await Promise.race([visionApiPromise, timeoutPromise]);
+          // Race between API call and timeout
+          response = await Promise.race([visionApiPromise, timeoutPromise]);
+          break; // Success - exit retry loop
+
+        } catch (retryError: any) {
+          lastError = retryError;
+
+          // Check if error is retryable
+          if (attempt < this.MAX_RETRIES && this.isRetryableError(retryError)) {
+            this.logger.warn(`[VisionService] Retryable error on attempt ${attempt + 1}/${this.MAX_RETRIES + 1}: ${retryError.message}`);
+            continue; // Try again
+          }
+
+          // Non-retryable error or max retries reached
+          throw retryError;
+        }
+      }
 
       // Type guard to check if response is not a timeout error
       if (!response || typeof response !== 'object' || !('choices' in response)) {
-        throw new Error('Vision API call timed out or returned invalid response');
+        throw lastError || new Error('Vision API call timed out or returned invalid response');
       }
 
       const content = response.choices[0]?.message?.content;

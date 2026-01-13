@@ -10,6 +10,8 @@ class ApiService {
     this.refreshTokenValue = DEV_REFRESH_TOKEN || null;
     /** @type {string | null} */
     this.expoPushToken = null;
+    /** @type {Promise<boolean> | null} - Mutex: ongoing refresh request */
+    this._refreshPromise = null;
 
     // Log configuration on init (using safe values) - always log in dev
     if (__DEV__) {
@@ -374,6 +376,24 @@ class ApiService {
       return false;
     }
 
+    // Mutex: if refresh is already in progress, wait for it
+    if (this._refreshPromise) {
+      if (__DEV__) console.log('[ApiService] Refresh already in progress, waiting...');
+      return this._refreshPromise;
+    }
+
+    // Create promise for this refresh attempt
+    this._refreshPromise = this._doRefreshToken();
+
+    try {
+      return await this._refreshPromise;
+    } finally {
+      // Clear mutex after completion
+      this._refreshPromise = null;
+    }
+  }
+
+  async _doRefreshToken() {
     try {
       const refreshUrl = `${this.baseURL}/auth/refresh-token`;
       const refreshRes = await fetch(refreshUrl, {
@@ -386,6 +406,7 @@ class ApiService {
         const tokens = await refreshRes.json();
         if (tokens.accessToken) {
           await this.setToken(tokens.accessToken, tokens.refreshToken || this.refreshTokenValue);
+          if (__DEV__) console.log('[ApiService] Token refreshed successfully');
           return true;
         }
       }

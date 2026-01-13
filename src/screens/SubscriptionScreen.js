@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     Platform,
     Modal,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,9 +16,60 @@ import { useNavigation } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
+import IAPService from '../services/iapService';
+import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
+
+// Plan descriptions for Apple App Store Review compliance
+// Each subscription must clearly state what features are included
+const PLAN_DESCRIPTIONS = {
+    monthly: {
+        title: 'Monthly Premium',
+        subtitle: 'Billed monthly, cancel anytime',
+        features: [
+            'Unlimited food analysis with AI',
+            'Detailed nutrition reports & insights',
+            'Personal AI Nutrition Assistant',
+            'Diet & lifestyle programs',
+            'Priority customer support',
+        ],
+    },
+    yearly: {
+        title: 'Yearly Premium',
+        subtitle: 'Best value - save 50%',
+        features: [
+            'All Monthly features included',
+            'Save 50% compared to monthly',
+            'Early access to new features',
+            'Personalized meal planning',
+            'Advanced health metrics',
+        ],
+    },
+    student: {
+        title: 'Student Plan',
+        subtitle: 'Verified students only',
+        features: [
+            'All Yearly features included',
+            'Special student pricing',
+            'Valid student ID required',
+            'Renews at student rate',
+        ],
+    },
+    founders: {
+        title: 'Founders Pass',
+        subtitle: 'One-time purchase, lifetime access',
+        features: [
+            'Lifetime Premium access',
+            'All current & future features',
+            'Exclusive Founder badge',
+            'No recurring payments ever',
+            'Priority feature requests',
+        ],
+    },
+};
 
 /**
  * SubscriptionScreen - Shows available subscription plans with multi-currency support
+ * Integrated with react-native-iap for Apple/Google purchases
  */
 export default function SubscriptionScreen() {
     const navigation = useNavigation();
@@ -29,64 +81,178 @@ export default function SubscriptionScreen() {
     const [selectedPlanId, setSelectedPlanId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
+    const [restoring, setRestoring] = useState(false);
+    const [iapProducts, setIapProducts] = useState([]);
     // Currency is stored for future use with IAP pricing
     const [, setCurrency] = useState({ code: 'USD', symbol: '$' });
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
 
     useEffect(() => {
-        loadPlans();
+        initIAP();
+        return () => {
+            IAPService.destroy();
+        };
     }, []);
 
-    const loadPlans = async () => {
+    // Initialize IAP and load products with Apple prices
+    const initIAP = async () => {
         try {
-            const response = await ApiService.getSubscriptionPlans();
-            if (response?.plans) {
-                setPlans(response.plans);
-                // Select yearly plan by default (usually best value)
-                const yearlyPlan = response.plans.find(p => p.name === 'yearly');
-                if (yearlyPlan) {
-                    setSelectedPlanId(yearlyPlan.id);
-                } else if (response.plans.length > 0) {
-                    setSelectedPlanId(response.plans[0].id);
-                }
+            setLoading(true);
 
-                if (response.currency) {
-                    setCurrency(response.currency);
-                }
+            // Init IAP connection
+            await IAPService.init();
+
+            // Get products from Apple/Google with localized prices
+            const { all } = await IAPService.getAvailableProducts();
+            setIapProducts(all);
+
+            // Map IAP products to our plan format
+            const mappedPlans = all.map(product => {
+                const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
+                const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
+                const isStudent = product.productId === SUBSCRIPTION_SKUS.STUDENT;
+                const isMonthly = product.productId === SUBSCRIPTION_SKUS.MONTHLY;
+
+                const planType = isFounders ? 'founders' :
+                    isYearly ? 'yearly' :
+                        isStudent ? 'student' : 'monthly';
+
+                const descriptions = PLAN_DESCRIPTIONS[planType] || PLAN_DESCRIPTIONS.monthly;
+
+                return {
+                    id: product.productId,
+                    name: planType,
+                    price: product.localizedPrice,
+                    priceFormatted: product.localizedPrice,
+                    priceNumber: parseFloat(product.price),
+                    currency: product.currency,
+                    title: descriptions.title,
+                    headline: descriptions.subtitle,
+                    features: descriptions.features,
+                    isSubscription: !isFounders,
+                };
+            });
+
+            setPlans(mappedPlans);
+
+            // Select yearly plan by default (best value)
+            const yearlyPlan = mappedPlans.find(p => p.name === 'yearly');
+            if (yearlyPlan) {
+                setSelectedPlanId(yearlyPlan.id);
+            } else if (mappedPlans.length > 0) {
+                setSelectedPlanId(mappedPlans[0].id);
             }
         } catch (error) {
-            console.error('[SubscriptionScreen] Failed to load plans:', error);
+            console.error('[SubscriptionScreen] IAP init error:', error);
+            // Fallback to backend plans if IAP fails
+            loadBackendPlans();
         } finally {
             setLoading(false);
         }
     };
 
+    // Fallback to backend plans when IAP is unavailable (e.g., simulator)
+    const loadBackendPlans = async () => {
+        try {
+            const response = await ApiService.getSubscriptionPlans();
+            if (response?.plans) {
+                // Enhance backend plans with descriptions
+                const enhancedPlans = response.plans.map(plan => ({
+                    ...plan,
+                    features: PLAN_DESCRIPTIONS[plan.name]?.features || plan.features,
+                    headline: PLAN_DESCRIPTIONS[plan.name]?.subtitle || plan.headline,
+                }));
+                setPlans(enhancedPlans);
+                const yearlyPlan = enhancedPlans.find(p => p.name === 'yearly');
+                if (yearlyPlan) {
+                    setSelectedPlanId(yearlyPlan.id);
+                } else if (enhancedPlans.length > 0) {
+                    setSelectedPlanId(enhancedPlans[0].id);
+                }
+                if (response.currency) {
+                    setCurrency(response.currency);
+                }
+            }
+        } catch (error) {
+            console.error('[SubscriptionScreen] Failed to load backend plans:', error);
+        }
+    };
+
+    // Handle purchase via IAPService
     const handlePurchase = async () => {
         if (!selectedPlanId || purchasing) return;
 
+        const plan = plans.find(p => p.id === selectedPlanId);
+        if (!plan) {
+            Alert.alert(t('error.title', 'Error'), t('subscription.planNotFound', 'Plan not found'));
+            return;
+        }
+
         setPurchasing(true);
-        try {
-            const plan = plans.find(p => p.id === selectedPlanId);
-            if (!plan) {
-                throw new Error('Plan not found');
-            }
 
-            // TODO: Integrate with react-native-iap for actual purchases
-            // For now, verify purchase with backend
-            const result = await ApiService.verifyPurchase({
-                planId: selectedPlanId,
-                platform: Platform.OS,
-                // transactionId: from IAP
+        const onSuccess = (productId) => {
+            console.log('[SubscriptionScreen] Purchase success:', productId);
+            setPurchasing(false);
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'MainTabs' }],
             });
+        };
 
-            if (result?.success) {
-                navigation.navigate('MainTabs', { screen: 'Dashboard' });
+        const onError = (error) => {
+            console.error('[SubscriptionScreen] Purchase error:', error);
+            setPurchasing(false);
+            if (error?.code !== 'E_USER_CANCELLED') {
+                Alert.alert(
+                    t('error.title', 'Error'),
+                    t('subscription.purchaseFailed', 'Purchase failed. Please try again.')
+                );
+            }
+        };
+
+        try {
+            if (plan.isSubscription) {
+                await IAPService.purchaseSubscription(selectedPlanId, onSuccess, onError);
+            } else {
+                await IAPService.purchaseProduct(selectedPlanId, onSuccess, onError);
             }
         } catch (error) {
-            console.error('[SubscriptionScreen] Purchase failed:', error);
-        } finally {
+            console.error('[SubscriptionScreen] Purchase initiation error:', error);
             setPurchasing(false);
+        }
+    };
+
+    // Handle restore purchases (required by Apple)
+    const handleRestore = async () => {
+        if (restoring) return;
+
+        setRestoring(true);
+        try {
+            const restored = await IAPService.restorePurchases();
+            if (restored) {
+                Alert.alert(
+                    t('subscription.restored', 'Restored'),
+                    t('subscription.purchasesRestored', 'Your purchases have been restored.')
+                );
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'MainTabs' }],
+                });
+            } else {
+                Alert.alert(
+                    t('subscription.noPurchases', 'No Purchases'),
+                    t('subscription.noPurchasesFound', 'No previous purchases found.')
+                );
+            }
+        } catch (error) {
+            console.error('[SubscriptionScreen] Restore error:', error);
+            Alert.alert(
+                t('error.title', 'Error'),
+                t('subscription.restoreFailed', 'Could not restore purchases.')
+            );
+        } finally {
+            setRestoring(false);
         }
     };
 
@@ -429,6 +595,22 @@ export default function SubscriptionScreen() {
                     )}
                 </View>
 
+                {/* Restore Purchases - Required by Apple */}
+                <TouchableOpacity
+                    style={styles.restoreButton}
+                    onPress={handleRestore}
+                    disabled={restoring || purchasing}
+                    activeOpacity={0.7}
+                >
+                    {restoring ? (
+                        <ActivityIndicator size="small" color={tokens.colors?.primary || '#4CAF50'} />
+                    ) : (
+                        <Text style={[styles.restoreButtonText, { color: tokens.colors?.primary || '#4CAF50' }]}>
+                            {t('subscription.restorePurchases', 'Restore Purchases')}
+                        </Text>
+                    )}
+                </TouchableOpacity>
+
                 {/* Footer Terms */}
                 <Text style={styles.termsText}>
                     {t('subscription.terms_notice') || 'Cancel anytime. Terms apply.'}
@@ -767,6 +949,17 @@ const createStyles = (tokens, colors) => {
         },
         planPriceSelected: {
             color: colors?.primary || tokens.colors?.primary || '#4CAF50',
+        },
+        // Restore Purchases button styles
+        restoreButton: {
+            paddingVertical: 16,
+            paddingHorizontal: 24,
+            alignItems: 'center',
+            marginTop: 8,
+        },
+        restoreButtonText: {
+            fontSize: 14,
+            fontWeight: '500',
         },
     });
 };

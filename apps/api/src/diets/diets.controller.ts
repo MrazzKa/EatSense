@@ -41,9 +41,13 @@ export class DietsController {
     ) {
         const locale = this.parseLocale(acceptLanguage);
 
+        // Normalize enum values to match Prisma enum (uppercase)
+        const normalizedType = type?.toUpperCase() as DietType | undefined;
+        const normalizedDifficulty = difficulty?.toUpperCase() as DietDifficulty | undefined;
+
         return this.dietsService.findAll({
-            type,
-            difficulty,
+            type: normalizedType,
+            difficulty: normalizedDifficulty,
             category,
             uiGroup,
             suitableFor,
