@@ -56,7 +56,15 @@ export default {
         NSFaceIDUsageDescription:
           "Allow EatSense to access your Face ID biometric data."
       },
-      associatedDomains: ["applinks:eatsense.app", "applinks:*.eatsense.app"]
+      associatedDomains: ["applinks:eatsense.app", "applinks:*.eatsense.app"],
+      privacyManifests: {
+        NSPrivacyAccessedAPITypes: [
+          {
+            NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryUserDefaults",
+            NSPrivacyAccessedAPITypeReasons: ["CA92.1"]
+          }
+        ]
+      }
     },
 
     android: {

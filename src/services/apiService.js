@@ -377,23 +377,52 @@ class ApiService {
     }
 
     // Mutex: if refresh is already in progress, wait for it
+    // This prevents concurrent refresh attempts that would cause token rotation issues
     if (this._refreshPromise) {
       if (__DEV__) console.log('[ApiService] Refresh already in progress, waiting...');
-      return this._refreshPromise;
+      try {
+        return await this._refreshPromise;
+      } catch {
+        // If the ongoing refresh failed, don't retry immediately
+        return false;
+      }
     }
 
     // Create promise for this refresh attempt
-    this._refreshPromise = this._doRefreshToken();
+    // Store the promise BEFORE any async operation to ensure proper mutex
+    const refreshPromise = this._doRefreshToken();
+    this._refreshPromise = refreshPromise;
 
     try {
-      return await this._refreshPromise;
+      const result = await refreshPromise;
+      return result;
     } finally {
-      // Clear mutex after completion
-      this._refreshPromise = null;
+      // Only clear mutex if this is still our promise (prevents race conditions)
+      if (this._refreshPromise === refreshPromise) {
+        this._refreshPromise = null;
+      }
     }
   }
 
   async _doRefreshToken() {
+    // Track refresh attempts to prevent infinite loops
+    if (!this._refreshAttempts) this._refreshAttempts = 0;
+    this._refreshAttempts++;
+
+    // Prevent more than 3 refresh attempts in quick succession
+    if (this._refreshAttempts > 3) {
+      console.warn('[ApiService] Too many refresh attempts, logging out');
+      await this.setToken(null, null);
+      this._refreshAttempts = 0;
+      return false;
+    }
+
+    // Reset counter after 10 seconds
+    clearTimeout(this._refreshResetTimer);
+    this._refreshResetTimer = setTimeout(() => {
+      this._refreshAttempts = 0;
+    }, 10000);
+
     try {
       const refreshUrl = `${this.baseURL}/auth/refresh-token`;
       const refreshRes = await fetch(refreshUrl, {
@@ -405,18 +434,29 @@ class ApiService {
       if (refreshRes.ok) {
         const tokens = await refreshRes.json();
         if (tokens.accessToken) {
+          // Update tokens in memory and storage
           await this.setToken(tokens.accessToken, tokens.refreshToken || this.refreshTokenValue);
           if (__DEV__) console.log('[ApiService] Token refreshed successfully');
+          this._refreshAttempts = 0; // Reset on success
           return true;
         }
       }
 
-      // Refresh failed, clear tokens
-      await this.setToken(null, null);
+      // Handle specific error cases
+      if (refreshRes.status === 401) {
+        // Token is invalid/expired, need to re-login
+        console.warn('[ApiService] Refresh token invalid, logging out');
+        await this.setToken(null, null);
+        this._refreshAttempts = 0;
+        return false;
+      }
+
+      // Other errors (network, server) - keep tokens but return false
+      console.warn('[ApiService] Token refresh failed with status:', refreshRes.status);
       return false;
     } catch (error) {
-      console.warn('[ApiService] Token refresh failed', error);
-      await this.setToken(null, null);
+      console.warn('[ApiService] Token refresh network error:', error.message);
+      // On network error, don't clear tokens (might be temporary)
       return false;
     }
   }

@@ -54,8 +54,12 @@ export class MealsService {
       include: {
         items: true,
       },
-      orderBy: { createdAt: 'desc' },
-      take: 20, // B: Limit to last 20 meals for dashboard performance
+      // Order by consumedAt first (for diary), then createdAt as fallback
+      orderBy: [
+        { consumedAt: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      take: 50, // Increased limit for better diary view (was 20)
     });
 
     // B: Map meals with calculated totals from items

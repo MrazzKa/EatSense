@@ -24,56 +24,66 @@ export class DietsService {
      * Get list of diets with filters
      */
     async findAll(filters: DietFilters, locale: string = 'en') {
-        const {
-            type,
-            difficulty,
-            suitableFor,
-            category,
-            uiGroup,
-            isFeatured,
-            search,
-            limit = 20,
-            offset = 0,
-        } = filters;
+        try {
+            const {
+                type,
+                difficulty,
+                suitableFor,
+                category,
+                uiGroup,
+                isFeatured,
+                search,
+                limit = 20,
+                offset = 0,
+            } = filters;
 
-        const where: any = {
-            isActive: true,
-        };
+            const where: any = {
+                isActive: true,
+            };
 
-        if (type) where.type = type;
-        if (difficulty) where.difficulty = difficulty;
-        if (category) where.category = category;
-        if (uiGroup) where.uiGroup = uiGroup;
-        if (suitableFor) where.suitableFor = { has: suitableFor };
-        if (isFeatured !== undefined) where.isFeatured = isFeatured;
-        if (search) where.slug = { contains: search.toLowerCase() };
+            // Only add valid enum values to the filter
+            if (type && ['WEIGHT_LOSS', 'HEALTH', 'LIFESTYLE', 'MEDICAL', 'PERFORMANCE'].includes(type)) {
+                where.type = type;
+            }
+            if (difficulty && ['EASY', 'MODERATE', 'HARD'].includes(difficulty)) {
+                where.difficulty = difficulty;
+            }
+            if (category) where.category = category;
+            if (uiGroup) where.uiGroup = uiGroup;
+            if (suitableFor) where.suitableFor = { has: suitableFor };
+            if (isFeatured === true) where.isFeatured = true;
+            if (search) where.slug = { contains: search.toLowerCase() };
 
-        const diets = await this.prisma.dietProgram.findMany({
-            where,
-            orderBy: [
-                { isFeatured: 'desc' },
-                { popularityScore: 'desc' },
-            ],
-            take: limit,
-            skip: offset,
-            include: {
-                _count: {
-                    select: {
-                        userPrograms: { where: { status: 'active' } },
-                        ratings: true,
+            const diets = await this.prisma.dietProgram.findMany({
+                where,
+                orderBy: [
+                    { isFeatured: 'desc' },
+                    { popularityScore: 'desc' },
+                ],
+                take: limit,
+                skip: offset,
+                include: {
+                    _count: {
+                        select: {
+                            userPrograms: { where: { status: 'active' } },
+                            ratings: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        const total = await this.prisma.dietProgram.count({ where });
+            const total = await this.prisma.dietProgram.count({ where });
 
-        return {
-            diets: diets.map(diet => this.localizeDiet(diet, locale)),
-            total,
-            limit,
-            offset,
-        };
+            return {
+                diets: diets.map(diet => this.localizeDiet(diet, locale)),
+                total,
+                limit,
+                offset,
+            };
+        } catch (error) {
+            this.logger.error(`[findAll] Error fetching diets with filters ${JSON.stringify(filters)}:`, error);
+            throw error;
+        }
     }
 
     /**
@@ -692,28 +702,39 @@ export class DietsService {
     // Helper methods
 
     private localizeDiet(diet: any, locale: string) {
-        return {
-            ...diet,
-            name: this.getLocalizedValue(diet.name, locale),
-            subtitle: this.getLocalizedValue(diet.subtitle, locale),
-            description: this.getLocalizedValue(diet.description, locale),
-            shortDescription: this.getLocalizedValue(diet.shortDescription, locale),
-            tips: diet.tips ? this.getLocalizedValue(diet.tips, locale) : null,
-        };
+        if (!diet) return null;
+        try {
+            return {
+                ...diet,
+                name: this.getLocalizedValue(diet.name, locale),
+                subtitle: this.getLocalizedValue(diet.subtitle, locale),
+                description: this.getLocalizedValue(diet.description, locale),
+                shortDescription: this.getLocalizedValue(diet.shortDescription, locale),
+                tips: diet.tips ? this.getLocalizedValue(diet.tips, locale) : null,
+            };
+        } catch (error) {
+            this.logger.warn(`[localizeDiet] Error localizing diet ${diet?.id}: ${error.message}`);
+            return diet; // Return unlocalized diet as fallback
+        }
     }
 
     private localizeDietFull(diet: any, locale: string) {
+        if (!diet) return null;
         return {
             ...this.localizeDiet(diet, locale),
-            days: diet.days,
+            days: diet.days || [],
         };
     }
 
     private getLocalizedValue(json: any, locale: string): any {
+        if (json === null || json === undefined) return '';
         if (typeof json === 'string') return json;
-        if (!json) return '';
+        if (typeof json === 'number') return json;
         if (Array.isArray(json)) return json;
-        return json[locale] || json['en'] || json['ru'] || Object.values(json)[0] || '';
+        if (typeof json === 'object') {
+            return json[locale] || json['en'] || json['ru'] || Object.values(json)[0] || '';
+        }
+        return '';
     }
 
     private calculateProgress(userDiet: any) {

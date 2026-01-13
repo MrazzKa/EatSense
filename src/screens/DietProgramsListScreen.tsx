@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import DietProgramsService from '../services/dietProgramsService';
+import DisclaimerModal from '../components/common/DisclaimerModal';
 
 interface DietProgramsListScreenProps {
     navigation: any;
@@ -69,7 +70,7 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
             <View style={styles.cardContent}>
                 {item.isFeatured && (
                     <View style={[styles.featuredBadge, { backgroundColor: colors.primary }]}>
-                        <Text style={styles.featuredText}>Featured</Text>
+                        <Text style={styles.featuredText}>{t('dietPrograms.featured') || 'Featured'}</Text>
                     </View>
                 )}
                 <Text style={[styles.programName, { color: colors.textPrimary }]}>{item.name}</Text>
@@ -92,7 +93,7 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
                     {item.difficulty && (
                         <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) + '20' }]}>
                             <Text style={[styles.difficultyText, { color: getDifficultyColor(item.difficulty) }]}>
-                                {item.difficulty}
+                                {t(`dietPrograms.difficulty.${item.difficulty.toLowerCase()}`) || item.difficulty}
                             </Text>
                         </View>
                     )}
@@ -160,6 +161,9 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
                     </View>
                 }
             />
+            {/* Disclaimer Modal */}
+            {/* @ts-ignore */}
+            <DisclaimerModal disclaimerKey="lifestyle_programs" />
         </SafeAreaView>
     );
 }

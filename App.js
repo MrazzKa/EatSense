@@ -22,6 +22,7 @@ import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import LegalDocumentScreen from './src/screens/LegalDocumentScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
+import LegalMenuScreen from './src/screens/LegalMenuScreen';
 import SuggestedFoodScreen from './src/screens/SuggestedFoodScreen';
 import MedicationScheduleScreen from './src/screens/MedicationScheduleScreen';
 import SpecialistListScreen from './src/screens/SpecialistListScreen';
@@ -155,6 +156,14 @@ function AppContent() {
               component={LegalDocumentScreen}
               options={{
                 presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="LegalMenu"
+              component={LegalMenuScreen}
+              options={{
+                presentation: 'card',
+                headerShown: false,
               }}
             />
             <Stack.Screen

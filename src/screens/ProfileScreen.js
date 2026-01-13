@@ -18,6 +18,8 @@ import PrimaryButton from '../components/common/PrimaryButton';
 import { ProfileNumberRow } from '../components/ProfileNumberRow';
 import { ProfileSegmentedControl } from '../components/ProfileSegmentedControl';
 import { ProfileToggleRow } from '../components/ProfileToggleRow';
+import DisclaimerModal from '../components/common/DisclaimerModal';
+import { getDisclaimer, shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import { formatAmount } from '../utils/currency';
@@ -235,6 +237,7 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [showHealthDetails, setShowHealthDetails] = useState(false);
+  const [showBiomarkerDisclaimer, setShowBiomarkerDisclaimer] = useState(false);
   const [chevronRotation] = useState(new Animated.Value(0));
 
   const initials = useMemo(() => {
@@ -861,10 +864,17 @@ const ProfileScreen = () => {
             </View>
             <TouchableOpacity
               style={styles.editHealthButton}
-              onPress={() => {
-                if (__DEV__) {
-                  console.log('[ProfileScreen] Toggling health details, current state:', showHealthDetails);
+              onPress={async () => {
+                // If expanding, check for disclaimer
+                if (!showHealthDetails) {
+                  const show = await shouldShowDisclaimer('biomarkers');
+                  if (show) {
+                    setShowBiomarkerDisclaimer(true);
+                    return;
+                  }
                 }
+
+                // Proceed with expansion/collapse if no disclaimer or already accepted
                 const toValue = showHealthDetails ? 0 : 1;
                 Animated.timing(chevronRotation, {
                   toValue,
@@ -1607,24 +1617,23 @@ const ProfileScreen = () => {
           </Text>
         </AppCard>
 
-        {/* Footer links: Privacy Policy / Terms of Use */}
+        {/* Legal Menu Button */}
         <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border }]}>
           <TouchableOpacity
-            onPress={handleOpenPolicy}
+            onPress={() => navigation.navigate('LegalMenu')}
             style={styles.footerLink}
           >
             <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-              {t('legal.privacyLink') || t('profile.policy') || 'Privacy Policy'}
+              {t('profile.legal') || 'Legal'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleOpenTerms}
-            style={styles.footerLink}
-          >
-            <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-              {t('legal.termsLink') || t('profile.termsOfService') || 'Terms of Use'}
-            </Text>
-          </TouchableOpacity>
+        </View>
+
+        {/* Health Disclaimer Footer */}
+        <View style={{ padding: 16, alignItems: 'center' }}>
+          <Text style={{ textAlign: 'center', fontSize: 11, color: colors.textTertiary }}>
+            {getDisclaimer('health_footer', language)?.content}
+          </Text>
         </View>
 
         {/* Build Info for debugging */}
@@ -1772,6 +1781,22 @@ const ProfileScreen = () => {
           </>
         )
       }
+      <DisclaimerModal
+        disclaimerKey="biomarkers"
+        visible={showBiomarkerDisclaimer}
+        onAccept={() => {
+          setShowBiomarkerDisclaimer(false);
+          // Proceed to expand after acceptance
+          const toValue = 1; // Expanding
+          Animated.timing(chevronRotation, {
+            toValue,
+            duration: 250,
+            useNativeDriver: true,
+          }).start();
+          setShowHealthDetails(true);
+        }}
+        onCancel={() => setShowBiomarkerDisclaimer(false)}
+      />
     </SafeAreaView >
   );
 };

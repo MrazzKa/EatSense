@@ -21,6 +21,7 @@ import { HealthScoreCard } from '../components/HealthScoreCard';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
+import { getDisclaimer } from '../legal/disclaimerUtils';
 
 import FullScreenImageModal from '../components/common/FullScreenImageModal';
 import { clientLog } from '../utils/clientLog';
@@ -120,6 +121,12 @@ export default function AnalysisResultsScreen() {
       navigation.goBack();
     }
   }, [navigation]);
+
+  // Get disclaimer text
+  const disclaimerText = useMemo(() => {
+    const data = getDisclaimer('food_scanning', language);
+    return data ? data.content : '';
+  }, [language]);
 
   const showAnalysisError = useCallback(
     (titleKey = 'analysis.errorTitle', messageKey = 'analysis.errorMessage') => {
@@ -271,8 +278,8 @@ export default function AnalysisResultsScreen() {
           }
 
           // STEP 2: displayName is the preferred field (set by backend)
-          let name = raw.data?.displayName || raw.data?.dishNameLocalized || 
-            raw.data?.originalDishName || raw.data?.dishName || 
+          let name = raw.data?.displayName || raw.data?.dishNameLocalized ||
+            raw.data?.originalDishName || raw.data?.dishName ||
             raw.dishName || raw.name || null;
 
           // Remove "and more" suffix if present (legacy backend behavior)
@@ -948,6 +955,16 @@ export default function AnalysisResultsScreen() {
           })()}
         </View>
 
+        {/* Disclaimer Text */}
+        {disclaimerText ? (
+          <View style={styles.disclaimerContainer}>
+            <Ionicons name="information-circle-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
+              {disclaimerText}
+            </Text>
+          </View>
+        ) : null}
+
         {/* B. Summary Block Uses Chips */}
         <View style={styles.summaryContainer}>
           <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
@@ -1092,9 +1109,21 @@ const createStyles = (tokens) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingTop: 10,
-      paddingBottom: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    disclaimerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      marginBottom: 12,
+      opacity: 0.8,
+    },
+    disclaimerText: {
+      fontSize: 11,
+      textAlign: 'center',
+      lineHeight: 14,
     },
     headerTitle: {
       fontSize: 16,
