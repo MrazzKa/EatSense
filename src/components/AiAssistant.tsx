@@ -10,6 +10,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import RealAiAssistant from './RealAiAssistant';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
+import DisclaimerModal from './common/DisclaimerModal';
 
 interface AiAssistantProps {
   visible: boolean;
@@ -29,22 +30,22 @@ interface AiAssistantProps {
 // Safe fallback component
 const AiAssistantFallback: React.FC<{ onClose: () => void; t: (_key: string) => string }> = ({ onClose, t: _t }) => {
   const { colors } = useTheme();
-  
+
   return (
     <View style={styles.fallbackContent}>
       <View style={styles.iconContainer}>
         <Ionicons name="chatbubbles" size={64} color={colors.primary || '#007AFF'} />
       </View>
-      
+
       <Text style={[styles.mainTitle, { color: colors.textPrimary || colors.text }]}>
         {_t('aiAssistant.unavailable')}
       </Text>
-      
+
       <Text style={[styles.description, { color: colors.textSecondary }]}>
         {_t('aiAssistant.unavailableDescription')}
       </Text>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={[styles.closeButtonLarge, { backgroundColor: colors.primary || '#007AFF' }]}
         onPress={() => {
           if (onClose && typeof onClose === 'function') {
@@ -65,11 +66,21 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, meal
   const { t } = useI18n();
   const { colors } = useTheme();
   const [hasError, setHasError] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+
+  // Check disclaimer status when visible changes to true
+  useEffect(() => {
+    if (visible && !disclaimerChecked) {
+      // Logic handled inside DisclaimerModal, but here we just ensure we render it
+      setShowDisclaimer(true);
+    }
+  }, [visible, disclaimerChecked]);
 
   useEffect(() => {
     if (visible) {
       console.log('[AiAssistant] Modal opened, visible:', visible);
-      clientLog('AiAssistant:opened').catch(() => {});
+      clientLog('AiAssistant:opened').catch(() => { });
       setHasError(false);
     } else {
       console.log('[AiAssistant] Modal closed, visible:', visible);
@@ -77,37 +88,43 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, meal
   }, [visible]);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !showDisclaimer) {
       // Try to initialize AI Assistant
-      clientLog('AiAssistant:initializing').catch(() => {});
-      
+      clientLog('AiAssistant:initializing').catch(() => { });
+
       // Future: Load real AI Assistant implementation here
       // For now, just show fallback
-      
-      clientLog('AiAssistant:ready').catch(() => {});
+
+      clientLog('AiAssistant:ready').catch(() => { });
     }
-  }, [visible]);
+  }, [visible, showDisclaimer]);
 
   if (!visible) {
     return null;
   }
 
   const handleClose = async () => {
-    await clientLog('AiAssistant:closed').catch(() => {});
+    await clientLog('AiAssistant:closed').catch(() => { });
     if (onClose && typeof onClose === 'function') {
-    onClose();
+      onClose();
     }
   };
 
+  const handleDisclaimerAccept = () => {
+    setShowDisclaimer(false);
+    setDisclaimerChecked(true); // Don't check again this session
+  };
+
   return (
-    <SwipeClosableModal
-      visible={visible}
-      onClose={handleClose}
-      enableSwipe={false}
-      enableBackdropClose={true}
-      presentationStyle="fullScreen"
-    >
-      <ErrorBoundary>
+    <>
+      <SwipeClosableModal
+        visible={visible && !showDisclaimer}
+        onClose={handleClose}
+        enableSwipe={false}
+        enableBackdropClose={true}
+        presentationStyle="fullScreen"
+      >
+        <ErrorBoundary>
           {hasError ? (
             <AiAssistantFallback onClose={handleClose} t={t} />
           ) : (
@@ -125,7 +142,18 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, meal
             </Suspense>
           )}
         </ErrorBoundary>
-    </SwipeClosableModal>
+      </SwipeClosableModal>
+
+      {/* Inject Disclaimer Modal */}
+      {visible && (
+        <DisclaimerModal
+          disclaimerKey="ai_assistant"
+          visible={showDisclaimer}
+          onAccept={handleDisclaimerAccept}
+          onCancel={handleClose}
+        />
+      )}
+    </>
   );
 };
 

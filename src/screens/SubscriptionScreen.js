@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
+import { openLegalLink } from '../utils/legal';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import IAPService from '../services/iapService';
@@ -611,11 +612,33 @@ export default function SubscriptionScreen() {
                     )}
                 </TouchableOpacity>
 
-                {/* Footer Terms */}
-                <Text style={styles.termsText}>
-                    {t('subscription.terms_notice') || 'Cancel anytime. Terms apply.'}
-                </Text>
-                <View style={{ height: 40 }} />
+                {/* Footer Terms & Legal Links */}
+                <View style={[styles.legalLinksContainer, { paddingBottom: 40 }]}>
+                    <Text style={styles.termsText}>
+                        {t('subscription.terms_notice') || 'Cancel anytime.'}
+                    </Text>
+                    <View style={styles.legalLinkRow}>
+                        <TouchableOpacity
+                            onPress={() => openLegalLink('terms')}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <Text style={styles.legalLinkText}>
+                                {t('legal.termsLink') || 'Terms of Use'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <Text style={styles.legalSeparator}> • </Text>
+
+                        <TouchableOpacity
+                            onPress={() => openLegalLink('privacy')}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <Text style={styles.legalLinkText}>
+                                {t('legal.privacyLink') || 'Privacy Policy'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </ScrollView>
 
             <StudentModal
@@ -958,8 +981,29 @@ const createStyles = (tokens, colors) => {
             marginTop: 8,
         },
         restoreButtonText: {
-            fontSize: 14,
-            fontWeight: '500',
+            fontSize: 15,
+            fontWeight: '600',
+        },
+        // Legal Footers
+        legalLinksContainer: {
+            alignItems: 'center',
+            marginTop: 10,
+        },
+        legalLinkRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 8,
+        },
+        legalLinkText: {
+            fontSize: 13,
+            color: colors?.textSecondary || '#666',
+            textDecorationLine: 'underline',
+        },
+        legalSeparator: {
+            fontSize: 13,
+            color: colors?.textSecondary || '#666',
+            marginHorizontal: 8,
         },
     });
 };

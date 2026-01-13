@@ -238,74 +238,104 @@ export class AuthService {
     const { refreshToken } = refreshTokenDto;
 
     try {
-      // Check if token is blacklisted in Redis
+      // Check if token is blacklisted in Redis (fast path rejection)
       const blacklistKey = `${process.env.REDIS_BLACKLIST_PREFIX || 'auth:refresh:blacklist:'}${refreshToken}`;
       const isBlacklisted = await this.redisService.exists(blacklistKey);
-      
+
       if (isBlacklisted) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
+      // Verify JWT signature and expiry
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
       });
 
-      // Use jti from payload if available, otherwise fall back to token lookup
       const jti = (payload as any).jti;
-      let tokenRecord;
-      
-      if (jti) {
-        tokenRecord = await this.prisma.refreshToken.findUnique({
-          where: { jti },
-          include: { user: true },
-        });
-      } else {
-        // Fallback for old tokens without jti
-        tokenRecord = await this.prisma.refreshToken.findUnique({
-          where: { token: refreshToken },
-          include: { user: true },
-        });
-      }
+      const tokenLookupKey = jti || refreshToken;
 
-      if (!tokenRecord || tokenRecord.revoked) {
-        // Add to blacklist if token was revoked
-        if (tokenRecord?.revoked) {
-          const ttl = Math.max(0, Math.floor((tokenRecord.expiresAt.getTime() - Date.now()) / 1000));
-          if (ttl > 0) {
-            await this.redisService.set(blacklistKey, '1', ttl);
-          }
+      // Use Redis lock to prevent concurrent refresh for the same token
+      // This prevents race conditions when multiple 401s trigger concurrent refreshes
+      const lockKey = `auth:refresh:lock:${tokenLookupKey}`;
+      const lockAcquired = await this.redisService.setNx(lockKey, '1', 30); // 30 second lock
+
+      if (!lockAcquired) {
+        // Another refresh is in progress for this token
+        // Wait briefly and check if it completed
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Check if the old token is now blacklisted (meaning refresh succeeded)
+        const nowBlacklisted = await this.redisService.exists(blacklistKey);
+        if (nowBlacklisted) {
+          // The concurrent refresh succeeded, this token is no longer valid
+          throw new UnauthorizedException('Token already refreshed');
         }
-        throw new UnauthorizedException('Invalid refresh token');
+
+        // Otherwise, let this request try (the lock may have been released)
       }
 
-      // Atomic token rotation: revoke old token and create new one in a transaction
-      const tokens = await this.prisma.$transaction(async (tx) => {
-        // Revoke old token
-        await tx.refreshToken.update({
-          where: { id: tokenRecord.id },
-          data: { revoked: true },
+      try {
+        // Atomic token rotation: lookup, validate, revoke, and create in one transaction
+        const result = await this.prisma.$transaction(async (tx) => {
+          // Lookup token inside transaction for consistency
+          let tokenRecord;
+          if (jti) {
+            tokenRecord = await tx.refreshToken.findUnique({
+              where: { jti },
+              include: { user: true },
+            });
+          } else {
+            // Fallback for old tokens without jti
+            tokenRecord = await tx.refreshToken.findUnique({
+              where: { token: refreshToken },
+              include: { user: true },
+            });
+          }
+
+          if (!tokenRecord) {
+            throw new UnauthorizedException('Invalid refresh token');
+          }
+
+          // Check if already revoked (by a concurrent request)
+          if (tokenRecord.revoked) {
+            throw new UnauthorizedException('Token already used');
+          }
+
+          // Revoke old token
+          await tx.refreshToken.update({
+            where: { id: tokenRecord.id },
+            data: { revoked: true },
+          });
+
+          // Generate new tokens
+          const newTokens = await this.generateTokensInTransaction(tx, tokenRecord.user.id, tokenRecord.user.email);
+
+          return { tokens: newTokens, user: tokenRecord.user, expiresAt: tokenRecord.expiresAt };
         });
 
-        // Generate new tokens
-        const newTokens = await this.generateTokensInTransaction(tx, tokenRecord.user.id, tokenRecord.user.email);
+        // Add old token to Redis blacklist until it expires
+        const oldTokenTtl = Math.max(0, Math.floor((result.expiresAt.getTime() - Date.now()) / 1000));
+        if (oldTokenTtl > 0) {
+          await this.redisService.set(blacklistKey, '1', oldTokenTtl);
+        }
 
-        return newTokens;
-      });
+        this.logger.log(`[AuthService] Token refreshed for user ${this.maskEmail(result.user.email)}`);
 
-      // Add old token to Redis blacklist until it expires
-      const oldTokenTtl = Math.max(0, Math.floor((tokenRecord.expiresAt.getTime() - Date.now()) / 1000));
-      if (oldTokenTtl > 0) {
-        await this.redisService.set(blacklistKey, '1', oldTokenTtl);
+        return {
+          message: 'Token refreshed successfully',
+          ...result.tokens,
+        };
+      } finally {
+        // Always release the lock
+        await this.redisService.del(lockKey);
       }
-
-      this.logger.log(`[AuthService] Token refreshed for user ${this.maskEmail(tokenRecord.user.email)}`);
-
-      return {
-        message: 'Token refreshed successfully',
-        ...tokens,
-      };
     } catch (error) {
-      this.logger.warn(`[AuthService] Refresh token verification failed: ${error.message || error}`);
+      // Don't log as warning if it's just an expired/invalid token (normal flow)
+      if (error instanceof UnauthorizedException) {
+        this.logger.warn(`[AuthService] Refresh token verification failed: ${error.message}`);
+      } else {
+        this.logger.error(`[AuthService] Refresh token error: ${error.message || error}`);
+      }
       throw new UnauthorizedException('Invalid refresh token');
     }
   }

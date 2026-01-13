@@ -28,6 +28,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
 import { useI18n } from '../../app/i18n/hooks';
 import { legalDocuments } from '../legal/legalContent';
+import { openLegalLink } from '../utils/legal';
 
 const { width } = Dimensions.get('window');
 
@@ -2087,55 +2088,63 @@ const OnboardingScreen = () => {
           {t('onboarding.termsSubtitle', 'Please read and accept to continue')}
         </Text>
 
-        {/* Tabs */}
-        <View style={{ flexDirection: 'row', marginBottom: 12, borderRadius: 8, backgroundColor: colors.surfaceMuted || '#F5F5F5', padding: 4 }}>
+        {/* External Link Buttons */}
+        <View style={{ gap: 12, marginBottom: 24 }}>
           <TouchableOpacity
-            style={[
-              { flex: 1, paddingVertical: 10, borderRadius: 6, alignItems: 'center' },
-              activeTab === 'terms' && { backgroundColor: colors.primary }
-            ]}
-            onPress={() => setActiveTab('terms')}
+            style={{
+              padding: 16,
+              borderRadius: 12,
+              backgroundColor: colors.surface,
+              borderWidth: 1,
+              borderColor: colors.border || '#E5E5E5',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+            onPress={() => openLegalLink('terms')}
           >
-            <Text style={[{ fontSize: 14, fontWeight: '600' }, activeTab === 'terms' ? { color: onPrimaryColor } : { color: colors.text }]}>
-              {t('onboarding.termsOfService', 'Terms of Service')}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                {t('onboarding.termsOfService', 'Terms of Service')}
+              </Text>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 2 }}>
+                {t('onboarding.tapToRead', 'Tap to read full document')}
+              </Text>
+            </View>
+            <Ionicons name="open-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              { flex: 1, paddingVertical: 10, borderRadius: 6, alignItems: 'center' },
-              activeTab === 'privacy' && { backgroundColor: colors.primary }
-            ]}
-            onPress={() => setActiveTab('privacy')}
-          >
-            <Text style={[{ fontSize: 14, fontWeight: '600', textAlign: 'center' }, activeTab === 'privacy' ? { color: onPrimaryColor } : { color: colors.text }]}>
-              {t('onboarding.privacyPolicy', 'Privacy Policy')}
-            </Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Document content */}
-        <View style={{ flex: 1, backgroundColor: colors.surface || '#FFF', borderRadius: 12, borderWidth: 1, borderColor: colors.border || '#E5E5E5', marginBottom: 12 }}>
-          <ScrollView
-            style={{ padding: 24 }}
-            onScroll={handleScroll}
-            scrollEventThrottle={400}
-            showsVerticalScrollIndicator={true}
+          <TouchableOpacity
+            style={{
+              padding: 16,
+              borderRadius: 12,
+              backgroundColor: colors.surface,
+              borderWidth: 1,
+              borderColor: colors.border || '#E5E5E5',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+            onPress={() => openLegalLink('privacy')}
           >
-            <Text style={{ fontSize: 13, lineHeight: 20, color: colors.text }}>
-              {activeTab === 'terms' ? termsContent : privacyContent}
-            </Text>
-            <View style={{ height: 40 }} />
-          </ScrollView>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                {t('onboarding.privacyPolicy', 'Privacy Policy')}
+              </Text>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 2 }}>
+                {t('onboarding.tapToRead', 'Tap to read full document')}
+              </Text>
+            </View>
+            <Ionicons name="open-outline" size={20} color={colors.primary} />
+          </TouchableOpacity>
         </View>
 
         {/* Acceptance checkboxes */}
         <View style={{ gap: 12, marginBottom: 16 }}>
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', opacity: (hasScrolledTerms || profileData.termsAccepted) ? 1 : 0.5 }}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
             onPress={() => {
-              if (hasScrolledTerms || profileData.termsAccepted) {
-                setProfileData(prev => ({ ...prev, termsAccepted: !prev.termsAccepted }));
-              }
+              setProfileData(prev => ({ ...prev, termsAccepted: !prev.termsAccepted }));
             }}
             activeOpacity={0.7}
           >
@@ -2153,11 +2162,9 @@ const OnboardingScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', opacity: (hasScrolledPrivacy || profileData.privacyAccepted) ? 1 : 0.5 }}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
             onPress={() => {
-              if (hasScrolledPrivacy || profileData.privacyAccepted) {
-                setProfileData(prev => ({ ...prev, privacyAccepted: !prev.privacyAccepted }));
-              }
+              setProfileData(prev => ({ ...prev, privacyAccepted: !prev.privacyAccepted }));
             }}
             activeOpacity={0.7}
           >

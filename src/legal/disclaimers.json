@@ -1,0 +1,274 @@
+{
+    "_meta": {
+        "version": "1.0",
+        "updated": "2026-01-13",
+        "languages": [
+            "en",
+            "ru",
+            "de",
+            "fr"
+        ],
+        "usage": "Import into i18n system. Show popups on first use of each feature."
+    },
+    "lifestyle_programs": {
+        "_description": "Show BEFORE user selects any 'Eat Like...' program. Requires checkbox confirmation.",
+        "requires_checkbox": true,
+        "show_once": true,
+        "en": {
+            "title": "Important Notice",
+            "content": "Lifestyle Programs are for INSPIRATION and ENTERTAINMENT purposes only.\n\nThese programs:\n• Are NOT actual diets of celebrities or public figures\n• Are NOT endorsed by any celebrities or their representatives\n• Are NOT personalized medical nutrition plans\n• Do NOT guarantee specific health results\n\nPrograms referencing public figures are creative interpretations based on cultural archetypes and publicly available information.\n\nConsult your healthcare provider before starting any dietary program, especially if you have medical conditions or take medications.",
+            "checkbox": "I understand that these programs are for inspiration only and do not represent actual celebrity diets",
+            "button_accept": "I Understand",
+            "button_cancel": "Go Back"
+        },
+        "ru": {
+            "title": "Важная информация",
+            "content": "Программы питания предназначены ТОЛЬКО для вдохновения и развлечения.\n\nЭти программы:\n• НЕ являются реальными диетами знаменитостей\n• НЕ одобрены знаменитостями или их представителями\n• НЕ являются персонализированными медицинскими планами питания\n• НЕ гарантируют конкретных результатов для здоровья\n\nПрограммы, упоминающие известных людей — это творческие интерпретации, основанные на культурных архетипах и общедоступной информации.\n\nПроконсультируйтесь с врачом перед началом любой диетической программы, особенно если у вас есть заболевания или вы принимаете лекарства.",
+            "checkbox": "Я понимаю, что эти программы предназначены только для вдохновения и не являются реальными диетами знаменитостей",
+            "button_accept": "Я понимаю",
+            "button_cancel": "Назад"
+        },
+        "de": {
+            "title": "Wichtiger Hinweis",
+            "content": "Lifestyle-Programme dienen NUR zur INSPIRATION und UNTERHALTUNG.\n\nDiese Programme:\n• Sind KEINE echten Diäten von Prominenten\n• Sind NICHT von Prominenten oder deren Vertretern genehmigt\n• Sind KEINE personalisierten medizinischen Ernährungspläne\n• Garantieren KEINE spezifischen Gesundheitsergebnisse\n\nProgramme, die auf Prominente verweisen, sind kreative Interpretationen basierend auf kulturellen Archetypen und öffentlich zugänglichen Informationen.\n\nKonsultieren Sie Ihren Arzt, bevor Sie ein Ernährungsprogramm beginnen, insbesondere wenn Sie gesundheitliche Probleme haben oder Medikamente einnehmen.",
+            "checkbox": "Ich verstehe, dass diese Programme nur zur Inspiration dienen und keine echten Promi-Diäten darstellen",
+            "button_accept": "Ich verstehe",
+            "button_cancel": "Zurück"
+        },
+        "fr": {
+            "title": "Avis Important",
+            "content": "Les programmes de style de vie sont UNIQUEMENT destinés à l'INSPIRATION et au DIVERTISSEMENT.\n\nCes programmes:\n• Ne sont PAS les régimes réels de célébrités\n• Ne sont PAS approuvés par des célébrités ou leurs représentants\n• Ne sont PAS des plans nutritionnels médicaux personnalisés\n• Ne garantissent PAS de résultats spécifiques pour la santé\n\nLes programmes faisant référence à des personnalités publiques sont des interprétations créatives basées sur des archétypes culturels et des informations publiques.\n\nConsultez votre médecin avant de commencer tout programme alimentaire, surtout si vous avez des problèmes de santé ou prenez des médicaments.",
+            "checkbox": "Je comprends que ces programmes sont uniquement pour l'inspiration et ne représentent pas les régimes réels des célébrités",
+            "button_accept": "Je comprends",
+            "button_cancel": "Retour"
+        }
+    },
+    "ai_assistant": {
+        "_description": "Show BEFORE first message to AI nutrition assistant. Requires checkbox confirmation.",
+        "requires_checkbox": true,
+        "show_once": true,
+        "en": {
+            "title": "AI Assistant Disclaimer",
+            "content": "The AI Nutrition Assistant provides general information only.\n\nImportant:\n• This is NOT medical advice\n• The AI may make mistakes or provide inaccurate information\n• Always verify important information with qualified professionals\n• Do not use AI responses as a substitute for professional medical advice\n\nFor medical conditions, allergies, or specific dietary needs, consult a healthcare provider or registered dietitian.",
+            "checkbox": "I understand this is not medical advice",
+            "button_accept": "Start Chat",
+            "button_cancel": "Cancel"
+        },
+        "ru": {
+            "title": "Отказ от ответственности",
+            "content": "AI-ассистент по питанию предоставляет только общую информацию.\n\nВажно:\n• Это НЕ медицинская консультация\n• ИИ может ошибаться или предоставлять неточную информацию\n• Всегда проверяйте важную информацию у квалифицированных специалистов\n• Не используйте ответы ИИ вместо профессиональной медицинской консультации\n\nПри наличии заболеваний, аллергии или особых потребностей в питании обратитесь к врачу или диетологу.",
+            "checkbox": "Я понимаю, что это не медицинская консультация",
+            "button_accept": "Начать чат",
+            "button_cancel": "Отмена"
+        },
+        "de": {
+            "title": "KI-Assistent Haftungsausschluss",
+            "content": "Der KI-Ernährungsassistent bietet nur allgemeine Informationen.\n\nWichtig:\n• Dies ist KEINE medizinische Beratung\n• Die KI kann Fehler machen oder ungenaue Informationen liefern\n• Überprüfen Sie wichtige Informationen immer bei Fachleuten\n• Verwenden Sie KI-Antworten nicht als Ersatz für professionelle medizinische Beratung\n\nBei Erkrankungen, Allergien oder speziellen Ernährungsbedürfnissen konsultieren Sie einen Arzt oder Ernährungsberater.",
+            "checkbox": "Ich verstehe, dass dies keine medizinische Beratung ist",
+            "button_accept": "Chat starten",
+            "button_cancel": "Abbrechen"
+        },
+        "fr": {
+            "title": "Avertissement Assistant IA",
+            "content": "L'assistant nutrition IA fournit uniquement des informations générales.\n\nImportant:\n• Ceci n'est PAS un avis médical\n• L'IA peut faire des erreurs ou fournir des informations inexactes\n• Vérifiez toujours les informations importantes auprès de professionnels qualifiés\n• N'utilisez pas les réponses de l'IA comme substitut à un avis médical professionnel\n\nPour les conditions médicales, allergies ou besoins alimentaires spécifiques, consultez un médecin ou un diététicien.",
+            "checkbox": "Je comprends que ceci n'est pas un avis médical",
+            "button_accept": "Démarrer le chat",
+            "button_cancel": "Annuler"
+        }
+    },
+    "food_scanning": {
+        "_description": "Show as small text below camera OR as tooltip on first scan. No checkbox needed.",
+        "requires_checkbox": false,
+        "show_once": false,
+        "en": {
+            "title": "About Food Analysis",
+            "content": "AI analysis provides estimates only. Results may vary based on portion size, preparation method, and image quality. You can edit any analysis manually.",
+            "short_text": "AI estimates only. Tap result to edit."
+        },
+        "ru": {
+            "title": "Об анализе еды",
+            "content": "ИИ-анализ предоставляет только оценочные данные. Результаты могут варьироваться в зависимости от размера порции, способа приготовления и качества изображения. Вы можете отредактировать любой анализ вручную.",
+            "short_text": "Только оценка ИИ. Нажмите для редактирования."
+        },
+        "de": {
+            "title": "Über die Lebensmittelanalyse",
+            "content": "Die KI-Analyse liefert nur Schätzungen. Die Ergebnisse können je nach Portionsgröße, Zubereitungsart und Bildqualität variieren. Sie können jede Analyse manuell bearbeiten.",
+            "short_text": "Nur KI-Schätzung. Tippen zum Bearbeiten."
+        },
+        "fr": {
+            "title": "À propos de l'analyse alimentaire",
+            "content": "L'analyse IA fournit uniquement des estimations. Les résultats peuvent varier selon la taille des portions, la méthode de préparation et la qualité de l'image. Vous pouvez modifier manuellement toute analyse.",
+            "short_text": "Estimation IA uniquement. Appuyez pour modifier."
+        }
+    },
+    "biomarkers": {
+        "_description": "Show BEFORE user uploads first lab result. Requires checkbox confirmation.",
+        "requires_checkbox": true,
+        "show_once": true,
+        "en": {
+            "title": "Biomarker Tracking Disclaimer",
+            "content": "The biomarker tracking feature is for personal record-keeping only.\n\nImportant:\n• This feature does NOT provide medical interpretation of your lab results\n• Correlations and insights shown are for informational purposes only\n• Always consult your healthcare provider to interpret lab results\n• Do not make medical decisions based solely on information from this app\n\nYour lab data is stored securely and is never shared without your explicit consent.",
+            "checkbox": "I understand this is not medical interpretation",
+            "button_accept": "Continue",
+            "button_cancel": "Cancel"
+        },
+        "ru": {
+            "title": "Отказ от ответственности: Биомаркеры",
+            "content": "Функция отслеживания биомаркеров предназначена только для личного учёта.\n\nВажно:\n• Эта функция НЕ предоставляет медицинскую интерпретацию ваших анализов\n• Корреляции и выводы показаны только в информационных целях\n• Всегда консультируйтесь с врачом для интерпретации результатов анализов\n• Не принимайте медицинских решений только на основе информации из приложения\n\nВаши данные анализов хранятся безопасно и никогда не передаются без вашего явного согласия.",
+            "checkbox": "Я понимаю, что это не медицинская интерпретация",
+            "button_accept": "Продолжить",
+            "button_cancel": "Отмена"
+        },
+        "de": {
+            "title": "Biomarker-Tracking Haftungsausschluss",
+            "content": "Die Biomarker-Tracking-Funktion dient nur der persönlichen Aufzeichnung.\n\nWichtig:\n• Diese Funktion bietet KEINE medizinische Interpretation Ihrer Laborergebnisse\n• Gezeigte Korrelationen und Erkenntnisse dienen nur Informationszwecken\n• Konsultieren Sie immer Ihren Arzt zur Interpretation von Laborergebnissen\n• Treffen Sie keine medizinischen Entscheidungen nur auf Basis dieser App\n\nIhre Labordaten werden sicher gespeichert und niemals ohne Ihre ausdrückliche Zustimmung weitergegeben.",
+            "checkbox": "Ich verstehe, dass dies keine medizinische Interpretation ist",
+            "button_accept": "Fortfahren",
+            "button_cancel": "Abbrechen"
+        },
+        "fr": {
+            "title": "Avertissement Suivi des Biomarqueurs",
+            "content": "La fonction de suivi des biomarqueurs est uniquement destinée à un usage personnel.\n\nImportant:\n• Cette fonction NE fournit PAS d'interprétation médicale de vos résultats de laboratoire\n• Les corrélations et informations affichées sont uniquement à titre informatif\n• Consultez toujours votre médecin pour interpréter les résultats de laboratoire\n• Ne prenez pas de décisions médicales basées uniquement sur les informations de cette application\n\nVos données de laboratoire sont stockées en toute sécurité et ne sont jamais partagées sans votre consentement explicite.",
+            "checkbox": "Je comprends que ceci n'est pas une interprétation médicale",
+            "button_accept": "Continuer",
+            "button_cancel": "Annuler"
+        }
+    },
+    "medications": {
+        "_description": "Show BEFORE user adds first medication. Requires checkbox confirmation.",
+        "requires_checkbox": true,
+        "show_once": true,
+        "en": {
+            "title": "Medication Tracking Disclaimer",
+            "content": "The medication tracking feature is a reminder tool only.\n\nImportant:\n• This app does NOT provide medical advice about medications\n• Always follow your healthcare provider's instructions\n• This app does NOT check for drug interactions\n• Do not change your medication regimen based on this app\n\nIf you have questions about your medications, consult your doctor or pharmacist.",
+            "checkbox": "I understand this is a reminder tool only",
+            "button_accept": "Continue",
+            "button_cancel": "Cancel"
+        },
+        "ru": {
+            "title": "Отказ от ответственности: Лекарства",
+            "content": "Функция отслеживания лекарств — это только инструмент напоминания.\n\nВажно:\n• Это приложение НЕ даёт медицинских рекомендаций о лекарствах\n• Всегда следуйте инструкциям вашего врача\n• Приложение НЕ проверяет взаимодействие лекарств\n• Не меняйте режим приёма лекарств на основе этого приложения\n\nЕсли у вас есть вопросы о лекарствах, проконсультируйтесь с врачом или фармацевтом.",
+            "checkbox": "Я понимаю, что это только инструмент напоминания",
+            "button_accept": "Продолжить",
+            "button_cancel": "Отмена"
+        },
+        "de": {
+            "title": "Medikamenten-Tracking Haftungsausschluss",
+            "content": "Die Medikamenten-Tracking-Funktion ist nur ein Erinnerungstool.\n\nWichtig:\n• Diese App gibt KEINE medizinischen Ratschläge zu Medikamenten\n• Befolgen Sie immer die Anweisungen Ihres Arztes\n• Diese App prüft KEINE Wechselwirkungen zwischen Medikamenten\n• Ändern Sie Ihre Medikation nicht basierend auf dieser App\n\nBei Fragen zu Ihren Medikamenten wenden Sie sich an Ihren Arzt oder Apotheker.",
+            "checkbox": "Ich verstehe, dass dies nur ein Erinnerungstool ist",
+            "button_accept": "Fortfahren",
+            "button_cancel": "Abbrechen"
+        },
+        "fr": {
+            "title": "Avertissement Suivi des Médicaments",
+            "content": "La fonction de suivi des médicaments est uniquement un outil de rappel.\n\nImportant:\n• Cette application NE fournit PAS de conseils médicaux sur les médicaments\n• Suivez toujours les instructions de votre médecin\n• Cette application NE vérifie PAS les interactions médicamenteuses\n• Ne modifiez pas votre traitement sur la base de cette application\n\nSi vous avez des questions sur vos médicaments, consultez votre médecin ou pharmacien.",
+            "checkbox": "Je comprends que ceci est uniquement un outil de rappel",
+            "button_accept": "Continuer",
+            "button_cancel": "Annuler"
+        }
+    },
+    "expert_marketplace": {
+        "_description": "Show BEFORE user books first consultation with expert. Requires checkbox confirmation.",
+        "requires_checkbox": true,
+        "show_once": true,
+        "en": {
+            "title": "Expert Marketplace Terms",
+            "content": "Experts on EatSense are independent professionals, not EatSense employees.\n\nPlease note:\n• EatSense verifies expert credentials but does not guarantee service quality\n• Experts set their own prices and terms\n• Consultations are between you and the expert directly\n• Expert advice does not replace medical consultation when needed\n\nReview expert profiles, credentials, and reviews before booking.",
+            "checkbox": "I understand experts are independent professionals",
+            "button_accept": "Continue",
+            "button_cancel": "Cancel"
+        },
+        "ru": {
+            "title": "Условия Маркетплейса Экспертов",
+            "content": "Эксперты на EatSense — независимые специалисты, а не сотрудники EatSense.\n\nОбратите внимание:\n• EatSense проверяет квалификацию экспертов, но не гарантирует качество услуг\n• Эксперты сами устанавливают цены и условия\n• Консультации проходят напрямую между вами и экспертом\n• Советы эксперта не заменяют медицинскую консультацию при необходимости\n\nИзучите профили, квалификацию и отзывы экспертов перед бронированием.",
+            "checkbox": "Я понимаю, что эксперты — независимые специалисты",
+            "button_accept": "Продолжить",
+            "button_cancel": "Отмена"
+        },
+        "de": {
+            "title": "Experten-Marktplatz Bedingungen",
+            "content": "Experten auf EatSense sind unabhängige Fachleute, keine EatSense-Mitarbeiter.\n\nBitte beachten Sie:\n• EatSense überprüft Expertenqualifikationen, garantiert aber nicht die Servicequalität\n• Experten legen ihre eigenen Preise und Bedingungen fest\n• Beratungen finden direkt zwischen Ihnen und dem Experten statt\n• Expertenrat ersetzt bei Bedarf keine ärztliche Beratung\n\nÜberprüfen Sie Expertenprofile, Qualifikationen und Bewertungen vor der Buchung.",
+            "checkbox": "Ich verstehe, dass Experten unabhängige Fachleute sind",
+            "button_accept": "Fortfahren",
+            "button_cancel": "Abbrechen"
+        },
+        "fr": {
+            "title": "Conditions du Marché des Experts",
+            "content": "Les experts sur EatSense sont des professionnels indépendants, pas des employés d'EatSense.\n\nÀ noter:\n• EatSense vérifie les qualifications des experts mais ne garantit pas la qualité du service\n• Les experts fixent leurs propres prix et conditions\n• Les consultations se font directement entre vous et l'expert\n• Les conseils d'experts ne remplacent pas une consultation médicale si nécessaire\n\nConsultez les profils, qualifications et avis des experts avant de réserver.",
+            "checkbox": "Je comprends que les experts sont des professionnels indépendants",
+            "button_accept": "Continuer",
+            "button_cancel": "Annuler"
+        }
+    },
+    "data_sharing_consent": {
+        "_description": "Show when user chooses to share data with an expert. Requires explicit consent each time.",
+        "requires_checkbox": true,
+        "show_once": false,
+        "en": {
+            "title": "Share Your Data?",
+            "content": "You are about to share your nutrition data with this expert.\n\nData that will be shared:\n• Your meal history and food logs\n• Your nutrition statistics\n• Your biomarker data (if enabled)\n• Your health profile information\n\nThe expert will be able to view this data to provide personalized advice. You can revoke access at any time from your conversation settings.",
+            "checkbox": "I consent to sharing my data with this expert",
+            "button_accept": "Share Data",
+            "button_cancel": "Don't Share"
+        },
+        "ru": {
+            "title": "Поделиться данными?",
+            "content": "Вы собираетесь поделиться своими данными о питании с этим экспертом.\n\nДанные, которые будут переданы:\n• История приёмов пищи и логи еды\n• Статистика питания\n• Данные биомаркеров (если включены)\n• Информация профиля здоровья\n\nЭксперт сможет просматривать эти данные для предоставления персонализированных рекомендаций. Вы можете отозвать доступ в любое время в настройках переписки.",
+            "checkbox": "Я согласен поделиться данными с этим экспертом",
+            "button_accept": "Поделиться",
+            "button_cancel": "Не делиться"
+        },
+        "de": {
+            "title": "Daten teilen?",
+            "content": "Sie sind dabei, Ihre Ernährungsdaten mit diesem Experten zu teilen.\n\nDaten, die geteilt werden:\n• Ihre Mahlzeitenhistorie und Essens-Logs\n• Ihre Ernährungsstatistiken\n• Ihre Biomarker-Daten (falls aktiviert)\n• Ihre Gesundheitsprofil-Informationen\n\nDer Experte kann diese Daten einsehen, um personalisierte Beratung zu geben. Sie können den Zugriff jederzeit in Ihren Konversationseinstellungen widerrufen.",
+            "checkbox": "Ich stimme zu, meine Daten mit diesem Experten zu teilen",
+            "button_accept": "Daten teilen",
+            "button_cancel": "Nicht teilen"
+        },
+        "fr": {
+            "title": "Partager vos données?",
+            "content": "Vous êtes sur le point de partager vos données nutritionnelles avec cet expert.\n\nDonnées qui seront partagées:\n• Votre historique de repas et journaux alimentaires\n• Vos statistiques nutritionnelles\n• Vos données de biomarqueurs (si activées)\n• Les informations de votre profil de santé\n\nL'expert pourra consulter ces données pour fournir des conseils personnalisés. Vous pouvez révoquer l'accès à tout moment dans les paramètres de conversation.",
+            "checkbox": "J'accepte de partager mes données avec cet expert",
+            "button_accept": "Partager",
+            "button_cancel": "Ne pas partager"
+        }
+    },
+    "health_footer": {
+        "_description": "Show as small footer text on health-related screens (dashboard, biomarkers, reports).",
+        "requires_checkbox": false,
+        "show_once": false,
+        "en": {
+            "text": "For informational purposes only. Not medical advice. Consult a healthcare provider for medical decisions."
+        },
+        "ru": {
+            "text": "Только в информационных целях. Не является медицинской консультацией. Для медицинских решений обратитесь к врачу."
+        },
+        "de": {
+            "text": "Nur zu Informationszwecken. Keine medizinische Beratung. Konsultieren Sie einen Arzt für medizinische Entscheidungen."
+        },
+        "fr": {
+            "text": "À titre informatif uniquement. Ne constitue pas un avis médical. Consultez un professionnel de santé pour les décisions médicales."
+        }
+    },
+    "general_health_disclaimer": {
+        "_description": "Full health disclaimer for Settings/About page.",
+        "requires_checkbox": false,
+        "show_once": false,
+        "en": {
+            "title": "Health Disclaimer",
+            "content": "EatSense is designed to help you track your nutrition and make informed decisions about your diet. However, EatSense is not a medical device and does not provide medical advice.\n\nThe information provided by EatSense, including AI-generated nutritional analysis, biomarker insights, and AI assistant responses, is for general informational purposes only.\n\nThis information is not intended to be a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.\n\nNever disregard professional medical advice or delay in seeking it because of something you have read or seen in this app.\n\nIf you think you may have a medical emergency, call your doctor or emergency services immediately."
+        },
+        "ru": {
+            "title": "Отказ от ответственности",
+            "content": "EatSense создан, чтобы помочь вам отслеживать питание и принимать обоснованные решения о диете. Однако EatSense не является медицинским устройством и не предоставляет медицинских консультаций.\n\nИнформация, предоставляемая EatSense, включая ИИ-анализ питания, данные о биомаркерах и ответы ИИ-ассистента, предназначена только для общих информационных целей.\n\nЭта информация не предназначена для замены профессиональной медицинской консультации, диагностики или лечения. Всегда обращайтесь к врачу или другому квалифицированному медицинскому специалисту по любым вопросам, связанным с состоянием здоровья.\n\nНикогда не пренебрегайте профессиональной медицинской консультацией и не откладывайте её из-за информации, полученной в этом приложении.\n\nЕсли вы считаете, что у вас неотложная медицинская ситуация, немедленно позвоните врачу или в службу экстренной помощи."
+        },
+        "de": {
+            "title": "Gesundheits-Haftungsausschluss",
+            "content": "EatSense wurde entwickelt, um Ihnen zu helfen, Ihre Ernährung zu verfolgen und fundierte Entscheidungen über Ihre Ernährung zu treffen. EatSense ist jedoch kein Medizinprodukt und bietet keine medizinische Beratung.\n\nDie von EatSense bereitgestellten Informationen, einschließlich KI-generierter Ernährungsanalysen, Biomarker-Einblicke und KI-Assistenten-Antworten, dienen nur allgemeinen Informationszwecken.\n\nDiese Informationen sind nicht als Ersatz für professionelle medizinische Beratung, Diagnose oder Behandlung gedacht. Wenden Sie sich bei Fragen zu Ihrem Gesundheitszustand immer an Ihren Arzt oder einen anderen qualifizierten Gesundheitsdienstleister.\n\nIgnorieren Sie niemals professionellen medizinischen Rat oder zögern Sie nicht, ihn einzuholen, wegen etwas, das Sie in dieser App gelesen oder gesehen haben.\n\nWenn Sie glauben, dass Sie einen medizinischen Notfall haben, rufen Sie sofort Ihren Arzt oder den Notdienst an."
+        },
+        "fr": {
+            "title": "Avertissement Santé",
+            "content": "EatSense est conçu pour vous aider à suivre votre alimentation et à prendre des décisions éclairées concernant votre régime. Cependant, EatSense n'est pas un dispositif médical et ne fournit pas de conseils médicaux.\n\nLes informations fournies par EatSense, y compris l'analyse nutritionnelle générée par l'IA, les aperçus des biomarqueurs et les réponses de l'assistant IA, sont uniquement à des fins d'information générale.\n\nCes informations ne sont pas destinées à remplacer les conseils médicaux professionnels, le diagnostic ou le traitement. Consultez toujours votre médecin ou un autre professionnel de santé qualifié pour toute question concernant une condition médicale.\n\nNe négligez jamais les conseils médicaux professionnels et ne tardez pas à les demander à cause de quelque chose que vous avez lu ou vu dans cette application.\n\nSi vous pensez avoir une urgence médicale, appelez immédiatement votre médecin ou les services d'urgence."
+        }
+    }
+}

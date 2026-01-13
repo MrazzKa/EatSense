@@ -1033,6 +1033,13 @@
       "hollywood": "Hollywood",
       "athletes": "Athletes",
       "historical": "Historical"
+    },
+    "featured": "Featured",
+    "difficulty": {
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "medium": "Medium",
+      "hard": "Hard"
     }
   },
   "referral": {

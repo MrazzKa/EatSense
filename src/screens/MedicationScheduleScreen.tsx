@@ -21,6 +21,7 @@ import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { localNotificationService, NotificationCategories } from '../services/localNotificationService';
+import DisclaimerModal from '../components/common/DisclaimerModal';
 
 type MedicationDose = {
   id?: string;
@@ -750,6 +751,9 @@ const MedicationScheduleScreen: React.FC = () => {
           />
         )
       )}
+      {/* Disclaimer Modal */}
+      {/* @ts-ignore */}
+      <DisclaimerModal disclaimerKey="medications" />
     </SafeAreaView>
   );
 };

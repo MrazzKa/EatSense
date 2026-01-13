@@ -15,6 +15,9 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 
+import DisclaimerModal from '../components/common/DisclaimerModal';
+import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
+
 /**
  * ExpertProfileScreen - Detailed view of a specialist
  */
@@ -27,6 +30,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
     const [specialist, setSpecialist] = useState(null);
     const [loading, setLoading] = useState(true);
     const [requesting, setRequesting] = useState(false);
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
 
     const loadSpecialist = useCallback(async () => {
         try {
@@ -45,6 +49,21 @@ export default function ExpertProfileScreen({ route, navigation }) {
     useEffect(() => {
         loadSpecialist();
     }, [loadSpecialist]);
+
+    const initChatRequest = async () => {
+        // Check if we need to show disclaimer
+        const show = await shouldShowDisclaimer('data_sharing_consent');
+        if (show) {
+            setShowDisclaimer(true);
+        } else {
+            handleRequestConsultation();
+        }
+    };
+
+    const handleDisclaimerAccept = () => {
+        setShowDisclaimer(false);
+        handleRequestConsultation();
+    };
 
     const handleRequestConsultation = async () => {
         setRequesting(true);
@@ -209,7 +228,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
 
                 <TouchableOpacity
                     style={[styles.ctaButton, requesting && styles.ctaButtonDisabled]}
-                    onPress={handleRequestConsultation}
+                    onPress={initChatRequest}
                     disabled={requesting}
                 >
                     {requesting ? (
@@ -224,6 +243,13 @@ export default function ExpertProfileScreen({ route, navigation }) {
                     )}
                 </TouchableOpacity>
             </View>
+            {/* Disclaimer Modal */}
+            <DisclaimerModal
+                disclaimerKey="data_sharing_consent"
+                visible={showDisclaimer}
+                onAccept={handleDisclaimerAccept}
+                onCancel={() => setShowDisclaimer(false)}
+            />
         </SafeAreaView>
     );
 }
