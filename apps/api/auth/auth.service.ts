@@ -47,7 +47,7 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly redisService: RedisService,
     private readonly mailerService: MailerService,
-  ) {}
+  ) { }
 
   private async getApplePublicKeys(): Promise<jose.JWTVerifyGetKey> {
     if (!this.applePublicKeys) {
@@ -122,10 +122,10 @@ export class AuthService {
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto) {
     this.logger.log(`[AuthService] verifyOtp() called for email: ${this.maskEmail(verifyOtpDto.email)}`);
-    
+
     const normalizedEmail = this.normalizeEmail(verifyOtpDto.email);
     this.logger.log(`[AuthService] verifyOtp() - normalized email: ${this.maskEmail(normalizedEmail)}`);
-    
+
     this.logger.log(`[AuthService] verifyOtp() - verifying OTP code...`);
     const status = await this.otpService.verifyOtp(normalizedEmail, verifyOtpDto.code);
     this.logger.log(`[AuthService] verifyOtp() - OTP verification status: ${status}`);
@@ -142,7 +142,7 @@ export class AuthService {
     this.logger.log(`[AuthService] verifyOtp() - OTP valid, calling findOrCreateUser()...`);
     const user = await this.findOrCreateUser(normalizedEmail);
     this.logger.log(`[AuthService] verifyOtp() - user found/created: id=${user.id}, email=${this.maskEmail(user.email)}`);
-    
+
     this.logger.log(`[AuthService] verifyOtp() - calling generateTokens()...`);
     const tokens = await this.generateTokens(user.id, user.email);
     this.logger.log(`[AuthService] verifyOtp() - tokens generated successfully, hasAccessToken=${!!tokens.accessToken}, hasRefreshToken=${!!tokens.refreshToken}`);
@@ -343,7 +343,7 @@ export class AuthService {
   // Helper method for generating tokens within a transaction
   private async generateTokensInTransaction(tx: any, userId: string, email: string) {
     const jti = crypto.randomUUID();
-    
+
     const payload = { sub: userId, email, jti };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -358,7 +358,7 @@ export class AuthService {
     // Use findFirst + create/update to handle race conditions
     // This works even with partial unique indexes (WHERE jti IS NOT NULL)
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    
+
     // Try to find existing token by jti
     const existingToken = await tx.refreshToken.findFirst({
       where: { jti },
@@ -437,7 +437,7 @@ export class AuthService {
       }
 
       const bundleId = process.env.APPLE_BUNDLE_ID || 'ch.eatsense.app';
-      
+
       console.log('[AuthService] Apple Sign In attempt:', {
         hasIdentityToken: !!identityToken,
         tokenLength: identityToken?.length,
@@ -452,19 +452,19 @@ export class AuthService {
         // First, decode the token without verification to see what audience it has
         const decoded = jose.decodeJwt(identityToken);
         const tokenAudience = decoded.aud as string | string[] | undefined;
-        
+
         console.log('[AuthService] Decoded token (before verification):', {
           aud: tokenAudience,
           iss: decoded.iss,
           sub: decoded.sub,
         });
-        
+
         // Apple Sign In tokens can have different audience formats
         // Try to verify with the actual audience from the token, or fallback to bundleId
         const verifyOptions: jose.JWTVerifyOptions = {
           issuer: 'https://appleid.apple.com',
         };
-        
+
         // If token has a specific audience, use it; otherwise use bundleId
         if (tokenAudience) {
           if (typeof tokenAudience === 'string') {
@@ -477,12 +477,12 @@ export class AuthService {
         } else {
           verifyOptions.audience = bundleId;
         }
-        
+
         console.log('[AuthService] Verifying with audience:', verifyOptions.audience);
-        
+
         const { payload: verifiedPayload } = await jose.jwtVerify(identityToken, JWKS, verifyOptions);
         payload = verifiedPayload;
-        
+
         console.log('[AuthService] Apple token verified successfully:', {
           sub: payload.sub,
           email: payload.email,
@@ -496,7 +496,7 @@ export class AuthService {
           tokenAudience: jwtError.audience || 'unknown',
           errorCode: jwtError.code,
         });
-        
+
         // Provide more helpful error message
         if (jwtError.message?.includes('aud')) {
           throw new UnauthorizedException(
@@ -504,7 +504,7 @@ export class AuthService {
             'Please check APPLE_BUNDLE_ID in .env matches your Apple Developer configuration.'
           );
         }
-        
+
         throw new UnauthorizedException('Invalid Apple identity token');
       }
 
@@ -517,7 +517,7 @@ export class AuthService {
         const existingUser = await this.prisma.user.findFirst({
           where: { appleUserId: tokenSub },
         });
-        
+
         if (existingUser) {
           email = existingUser.email;
         } else {
@@ -704,10 +704,10 @@ export class AuthService {
 
   private async generateTokens(userId: string, email: string) {
     this.logger.log(`[AuthService] generateTokens() called for userId=${userId}, email=${this.maskEmail(email)}`);
-    
+
     // Generate unique jti (JWT ID) to ensure token uniqueness even with parallel requests
     const jti = crypto.randomUUID();
-    
+
     const payload = { sub: userId, email, jti };
     this.logger.log(`[AuthService] generateTokens() - payload created with jti=${jti}`);
 
@@ -729,7 +729,7 @@ export class AuthService {
     // This works even with partial unique indexes (WHERE jti IS NOT NULL)
     try {
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      
+
       // Try to find existing token by jti
       const existingToken = await this.prisma.refreshToken.findFirst({
         where: { jti },
@@ -782,7 +782,7 @@ export class AuthService {
 
   private async findOrCreateUser(email: string) {
     this.logger.log(`[AuthService] findOrCreateUser() called for email: ${this.maskEmail(email)}`);
-    
+
     this.logger.log(`[AuthService] findOrCreateUser() - searching for user in database...`);
     let user = await this.prisma.user.findUnique({
       where: { email },
