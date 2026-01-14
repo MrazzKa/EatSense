@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -50,6 +50,12 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         showSymptoms: boolean;
     } | null>(null);
 
+    // Debounce and queue refs for toggle UX
+    const pendingChecklistRef = useRef<Record<string, boolean> | null>(null);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const isRequestInFlightRef = useRef(false);
+    const DEBOUNCE_MS = 300; // Batch rapid toggles
+
     // Load tracker data from API (for dailyTracker items and symptoms)
     const loadTrackerData = useCallback(async () => {
         if (!activeProgram || activeProgram.type !== 'diet') return;
@@ -79,15 +85,45 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         }
     }, [activeProgram?.todayLog?.completed, activeProgram?.todayLog?.celebrationShown]);
 
-    const handleChecklistToggle = async (key: string) => {
-        if (!trackerData || !activeProgram || saving) return;
+    // Debounced sync to backend
+    const syncChecklistToBackend = useCallback(async (checklistToSync: Record<string, boolean>) => {
+        if (isRequestInFlightRef.current) {
+            // Queue for next sync
+            pendingChecklistRef.current = checklistToSync;
+            return;
+        }
 
+        isRequestInFlightRef.current = true;
+        try {
+            await updateChecklist(checklistToSync);
+            // Don't call loadTrackerData or full refresh - just notify parent
+            onUpdate?.();
+
+            // Check if more changes queued while we were saving
+            if (pendingChecklistRef.current) {
+                const pending = pendingChecklistRef.current;
+                pendingChecklistRef.current = null;
+                await syncChecklistToBackend(pending);
+            }
+        } catch (error) {
+            console.error('[DailyDietTracker] Save checklist failed:', error);
+            // Revert on error by reloading
+            await loadTrackerData();
+        } finally {
+            isRequestInFlightRef.current = false;
+        }
+    }, [updateChecklist, loadTrackerData, onUpdate]);
+
+    const handleChecklistToggle = useCallback((key: string) => {
+        if (!trackerData || !activeProgram) return;
+
+        // Build new checklist state
         const newChecklist: Record<string, boolean> = {};
         trackerData.dailyTracker.forEach(item => {
             newChecklist[item.key] = item.key === key ? !item.checked : item.checked;
         });
 
-        // Optimistic update
+        // Optimistic UI update (immediate)
         setTrackerData(prev => {
             if (!prev) return prev;
             return {
@@ -98,20 +134,21 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             };
         });
 
-        setSaving(true);
-        try {
-            await updateChecklist(newChecklist);
-            // NOTE: refreshProgress() removed here - updateChecklist already does this internally
-            await loadTrackerData(); // Refresh tracker data from API
-            onUpdate?.();
-        } catch (error) {
-            console.error('[DailyDietTracker] Save checklist failed:', error);
-            // Revert on error
-            await loadTrackerData();
-        } finally {
-            setSaving(false);
+        // Debounce the backend sync
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
         }
-    };
+
+        pendingChecklistRef.current = newChecklist;
+        debounceTimerRef.current = setTimeout(() => {
+            const checklistToSync = pendingChecklistRef.current;
+            if (checklistToSync) {
+                pendingChecklistRef.current = null;
+                setSaving(true);
+                syncChecklistToBackend(checklistToSync).finally(() => setSaving(false));
+            }
+        }, DEBOUNCE_MS);
+    }, [trackerData, activeProgram, syncChecklistToBackend]);
 
     const handleSymptomChange = async (symptom: string, value: number) => {
         if (!trackerData || saving) return;

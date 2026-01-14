@@ -285,7 +285,20 @@ export class FoodProcessor {
             console.log(`Skipping auto-save: user ${userId} not found`);
           }
         } else {
-          console.log(`Skipping auto-save: invalid userId (${userId}) or no items`);
+          // Improved logging: distinguish between different skip reasons
+          const skipReason = !userId
+            ? 'userId_is_null'
+            : userId === 'test-user' || userId === 'temp-user'
+              ? `test_user_${userId}`
+              : (analysisResult.items || []).length === 0
+                ? 'no_items_from_analysis'
+                : 'unknown';
+          this.logger.debug(`[FoodProcessor] Skipping auto-save for analysis ${analysisId}:`, {
+            reason: skipReason,
+            userId: userId || 'null',
+            itemCount: (analysisResult.items || []).length,
+            visionStatus: (analysisResult.debug as any)?.visionStatus,
+          });
         }
       } catch (mealError: any) {
         this.logger.error(`[FoodProcessor] Failed to auto-save analysis ${analysisId} to meals:`, mealError.message);

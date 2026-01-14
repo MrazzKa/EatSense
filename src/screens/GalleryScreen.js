@@ -187,8 +187,8 @@ export default function GalleryScreen() {
     }
   }, [navigation, startAnalysis]);
 
-  // On mount: check permissions and auto-open gallery in production
-  // In dev mode, show button for easier debugging; in production, open directly
+  // On mount: check permissions and auto-open gallery immediately
+  // No delay, no intermediate screen - open gallery directly
   useEffect(() => {
     const checkAndOpenGallery = async () => {
       try {
@@ -205,18 +205,8 @@ export default function GalleryScreen() {
           permission.status === 'limited';
 
         if (hasPermission) {
-          // In production: auto-open gallery immediately
-          // In dev: show button for easier debugging (can be changed to auto-open if needed)
-          if (__DEV__) {
-            setState(STATE.READY);
-          } else {
-            // Production: open gallery immediately
-            setState(STATE.OPENING);
-            // Small delay to ensure screen is mounted
-            setTimeout(() => {
-              pickImage();
-            }, 100);
-          }
+          // Open gallery immediately - no intermediate screen
+          pickImage();
         } else if (permission.canAskAgain) {
           // Will ask for permission when user taps the button
           setState(STATE.READY);

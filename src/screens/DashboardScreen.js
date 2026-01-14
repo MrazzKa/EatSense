@@ -28,7 +28,10 @@ import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
-
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { mapLanguageToLocale } from '../utils/locale';
+import LimitReachedModal from '../components/LimitReachedModal';
 
 // Helper function to get image URL from item (handles various field names and resolves relative URLs)
 function getItemImageUrl(item) {
@@ -64,7 +67,7 @@ export default function DashboardScreen() {
   });
   const [recentItems, setRecentItems] = useState([]);
   const pendingAnalyses = usePendingAnalyses();
-  const { retryAnalysis, removePendingAnalysis } = useAnalysis();
+  const { retryAnalysis, removePendingAnalysis, addPendingAnalysis } = useAnalysis();
   const [userStats, setUserStats] = useState({
     totalPhotosAnalyzed: 0,
     todayPhotosAnalyzed: 0,
@@ -72,6 +75,7 @@ export default function DashboardScreen() {
   });
   const [suggestedFoodSummary, setSuggestedFoodSummary] = useState(null);
   const [activeDiet, setActiveDiet] = useState(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [cardAnimations] = useState(() => ({
     calories: new Animated.Value(0),
     stats: new Animated.Value(0),
@@ -448,11 +452,7 @@ export default function DashboardScreen() {
     console.log('[Dashboard] Camera option selected');
     // Check limit before opening camera
     if (hasReachedDailyLimit(userStats)) {
-      Alert.alert(
-        t('limits.title') || 'Daily Limit Reached',
-        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) ||
-        `You have reached your daily limit of ${userStats.dailyLimit} photo analyses. Please try again tomorrow.`,
-      );
+      setShowLimitModal(true);
       setShowModal(false);
       return;
     }
@@ -475,24 +475,73 @@ export default function DashboardScreen() {
     }
     // Check limit before opening gallery
     if (hasReachedDailyLimit(userStats)) {
-      Alert.alert(
-        t('limits.title') || 'Daily Limit Reached',
-        t('limits.dailyLimitReached', { count: userStats.dailyLimit }) ||
-        `You have reached your daily limit of ${userStats.dailyLimit} photo analyses. Please try again tomorrow.`,
-      );
+      setShowLimitModal(true);
       setShowModal(false);
       return;
     }
 
     await clientLog('Dashboard:openGalleryPressed').catch(() => { });
     setShowModal(false);
-    if (navigation && typeof navigation.navigate === 'function') {
-      if (__DEV__) {
-        console.log('[Dashboard] Navigating to Gallery screen');
+
+    try {
+      // Check/request permission
+      let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+      if (!permission.granted && permission.canAskAgain) {
+        permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       }
-      navigation.navigate('Gallery');
-    } else {
-      console.warn('[Dashboard] Navigation not available');
+
+      // Open gallery directly - no intermediate screen
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 1,
+        selectionLimit: 1,
+        exif: false,
+      });
+
+      if (result.canceled) {
+        if (__DEV__) console.log('[Dashboard] Gallery selection canceled');
+        return;
+      }
+
+      const asset = result.assets?.[0];
+      if (!asset) {
+        if (__DEV__) console.log('[Dashboard] No asset returned from gallery');
+        return;
+      }
+
+      if (__DEV__) console.log('[Dashboard] Image selected, compressing...');
+
+      // Compress the image for AI analysis
+      const compressedImage = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [{ resize: { width: 1600 } }],
+        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      if (__DEV__) console.log('[Dashboard] Starting analysis...');
+
+      // Start analysis directly
+      const locale = mapLanguageToLocale(language);
+      const response = await ApiService.analyzeImage(compressedImage.uri, locale);
+
+      if (__DEV__) {
+        console.log('[Dashboard] Analysis response:', {
+          hasAnalysisId: !!response?.analysisId,
+          status: response?.status,
+        });
+      }
+
+      // Add to pending analyses for processing card display
+      if (response?.analysisId) {
+        addPendingAnalysis(response.analysisId, compressedImage.uri);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error in gallery flow:', error);
+      Alert.alert(
+        t('errors.title') || 'Error',
+        t('errors.galleryFailed') || 'Failed to open gallery. Please try again.'
+      );
     }
   };
 
@@ -531,6 +580,16 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Limit Reached Upsell Modal */}
+      <LimitReachedModal
+        visible={showLimitModal}
+        limit={userStats.dailyLimit}
+        onUpgrade={() => {
+          setShowLimitModal(false);
+          navigation.navigate('Subscription');
+        }}
+        onClose={() => setShowLimitModal(false)}
+      />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Calendar */}
         <View style={styles.calendarContainer}>

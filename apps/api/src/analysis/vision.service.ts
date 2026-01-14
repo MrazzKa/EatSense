@@ -178,7 +178,8 @@ export class VisionService {
   private readonly openai: OpenAI;
 
   // Retry configuration for Vision API calls
-  private readonly MAX_RETRIES = 2;
+  // Increased from 2 to 3 for better reliability with OpenAI Vision API
+  private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY_MS = 2000;
 
   constructor(private readonly cache: CacheService) {
@@ -868,13 +869,21 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
 
           // Race between API call and timeout
           response = await Promise.race([visionApiPromise, timeoutPromise]);
+
+          // Check if response has valid content (inside retry loop so we can retry on empty)
+          const content = response?.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new Error('OpenAI Vision returned empty content - possible rate limit or content filter');
+          }
+
           break; // Success - exit retry loop
 
         } catch (retryError: any) {
           lastError = retryError;
 
-          // Check if error is retryable
-          if (attempt < this.MAX_RETRIES && this.isRetryableError(retryError)) {
+          // Check if error is retryable (include empty content errors)
+          const isEmptyResponse = retryError.message?.includes('empty content');
+          if (attempt < this.MAX_RETRIES && (this.isRetryableError(retryError) || isEmptyResponse)) {
             this.logger.warn(`[VisionService] Retryable error on attempt ${attempt + 1}/${this.MAX_RETRIES + 1}: ${retryError.message}`);
             continue; // Try again
           }

@@ -1,6 +1,8 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import { CacheService } from '../cache/cache.service';
 import { DietType, DietDifficulty } from '@prisma/client';
+import * as crypto from 'crypto';
 
 interface DietFilters {
     type?: DietType;
@@ -14,16 +16,35 @@ interface DietFilters {
     offset?: number;
 }
 
+// Cache TTL for diets list (5 minutes)
+const DIETS_CACHE_TTL = 300;
+
 @Injectable()
 export class DietsService {
     private readonly logger = new Logger(DietsService.name);
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private cacheService: CacheService,
+    ) { }
+
+    private buildCacheKey(filters: DietFilters, locale: string): string {
+        const data = JSON.stringify({ ...filters, locale });
+        return crypto.createHash('md5').update(data).digest('hex');
+    }
 
     /**
-     * Get list of diets with filters
+     * Get list of diets with filters (with Redis caching)
      */
     async findAll(filters: DietFilters, locale: string = 'en') {
+        const cacheKey = this.buildCacheKey(filters, locale);
+
+        // Check cache first
+        const cached = await this.cacheService.get<any>(cacheKey, 'diets:list');
+        if (cached) {
+            return cached;
+        }
+
         try {
             const {
                 type,
@@ -62,7 +83,23 @@ export class DietsService {
                 ],
                 take: limit,
                 skip: offset,
-                include: {
+                // Select only card fields for list view (performance)
+                select: {
+                    id: true,
+                    slug: true,
+                    name: true,
+                    subtitle: true,
+                    shortDescription: true,
+                    type: true,
+                    difficulty: true,
+                    duration: true,
+                    imageUrl: true,
+                    isFeatured: true,
+                    popularityScore: true,
+                    tags: true,
+                    dailyCalories: true,
+                    category: true,
+                    uiGroup: true,
                     _count: {
                         select: {
                             userPrograms: { where: { status: 'active' } },
@@ -74,12 +111,17 @@ export class DietsService {
 
             const total = await this.prisma.dietProgram.count({ where });
 
-            return {
+            const result = {
                 diets: diets.map(diet => this.localizeDiet(diet, locale)),
                 total,
                 limit,
                 offset,
             };
+
+            // Cache the result
+            await this.cacheService.set(cacheKey, result, 'diets:list', DIETS_CACHE_TTL);
+
+            return result;
         } catch (error) {
             this.logger.error(`[findAll] Error fetching diets with filters ${JSON.stringify(filters)}:`, error);
             throw error;
@@ -551,6 +593,18 @@ export class DietsService {
      * Update today's checklist state
      */
     async updateChecklist(userId: string, checklist: Record<string, boolean>) {
+        // Input validation - prevent 500 errors from undefined/null checklist
+        if (!checklist || typeof checklist !== 'object') {
+            throw new BadRequestException('Invalid checklist: must be an object with boolean values');
+        }
+
+        // Validate all values are booleans
+        for (const [key, value] of Object.entries(checklist)) {
+            if (typeof value !== 'boolean') {
+                throw new BadRequestException(`Invalid checklist value for "${key}": must be a boolean`);
+            }
+        }
+
         const userDiet = await this.prisma.userDietProgram.findFirst({
             where: { userId, status: 'active' },
             include: { program: true },
@@ -653,6 +707,103 @@ export class DietsService {
         });
 
         return { success: true };
+    }
+
+    /**
+     * Complete today and advance to next day
+     * This marks today's log as completed and updates streak
+     */
+    async completeDay(userId: string) {
+        const userDiet = await this.prisma.userDietProgram.findFirst({
+            where: { userId, status: 'active' },
+            include: { program: true },
+        });
+
+        if (!userDiet) {
+            throw new BadRequestException('No active diet');
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Get today's log to check completion
+        const todayLog = await this.prisma.userDietDailyLog.findFirst({
+            where: { userDietId: userDiet.id, date: today },
+        });
+
+        const checklist = (todayLog?.checklist as Record<string, boolean>) || {};
+        const dailyTracker = userDiet.program.dailyTracker as any[] || [];
+        const totalItems = dailyTracker.length;
+        const completedItems = Object.values(checklist).filter(Boolean).length;
+        const completionPercent = totalItems > 0 ? completedItems / totalItems : 0;
+
+        // Mark today as completed
+        await this.prisma.userDietDailyLog.upsert({
+            where: { userDietId_date: { userDietId: userDiet.id, date: today } },
+            create: {
+                userDietId: userDiet.id,
+                date: today,
+                dayNumber: userDiet.currentDay,
+                checklist: checklist,
+                completionPercent,
+                completed: true,
+            },
+            update: {
+                completed: true,
+                completionPercent,
+            },
+        });
+
+        // Update streak
+        const threshold = userDiet.program.streakThreshold || 0.7;
+        const meetsThreshold = completionPercent >= threshold;
+
+        const lastStreakDate = userDiet.lastStreakDate;
+        const todayStr = today.toISOString().split('T')[0];
+        const lastStreakStr = lastStreakDate?.toISOString().split('T')[0];
+
+        let newStreak = userDiet.currentStreak;
+        if (meetsThreshold && lastStreakStr !== todayStr) {
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            const isConsecutive = lastStreakStr === yesterdayStr || !lastStreakDate;
+            newStreak = isConsecutive ? userDiet.currentStreak + 1 : 1;
+        }
+
+        // Update user diet progress
+        await this.prisma.userDietProgram.update({
+            where: { id: userDiet.id },
+            data: {
+                daysCompleted: { increment: 1 },
+                currentStreak: newStreak,
+                longestStreak: Math.max(newStreak, userDiet.longestStreak),
+                lastStreakDate: meetsThreshold ? today : userDiet.lastStreakDate,
+            },
+        });
+
+        // Check if program is complete
+        const isComplete = userDiet.currentDay >= userDiet.program.duration;
+        if (isComplete) {
+            await this.prisma.userDietProgram.update({
+                where: { id: userDiet.id },
+                data: {
+                    status: 'completed',
+                    completedAt: new Date(),
+                },
+            });
+        }
+
+        this.logger.log(`User ${userId} completed day ${userDiet.currentDay}, streak: ${newStreak}, completion: ${Math.round(completionPercent * 100)}%`);
+
+        return {
+            success: true,
+            day: userDiet.currentDay,
+            completionPercent,
+            meetsThreshold,
+            streak: newStreak,
+            isComplete,
+        };
     }
 
     /**

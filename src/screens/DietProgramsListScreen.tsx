@@ -28,8 +28,10 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
     const loadPrograms = useCallback(async () => {
         try {
             setLoading(true);
-            const data = await DietProgramsService.getPrograms(category ? { category } : {});
-            setPrograms(Array.isArray(data) ? data : []);
+            const response = await DietProgramsService.getPrograms(category ? { category } : {});
+            // API returns { diets: [...], total, limit, offset }
+            const diets = response?.diets || response;
+            setPrograms(Array.isArray(diets) ? diets : []);
         } catch (error) {
             console.error('Failed to load programs:', error);
             setPrograms([]);

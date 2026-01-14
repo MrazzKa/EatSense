@@ -132,13 +132,35 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
 
     try {
       await programProgressService.updateChecklist(activeProgram.type, activeProgram.programId, checklist);
-      // Refresh to get updated progress
-      await refreshProgress();
+      // Optimistic update of local state instead of full refresh
+      // This prevents screen flashing and improves UX
+      const completedCount = Object.values(checklist).filter(Boolean).length;
+      const totalCount = Object.keys(checklist).length;
+      const completionRate = totalCount > 0 ? completedCount / totalCount : 0;
+
+      setActiveProgram(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          todayLog: {
+            ...prev.todayLog!,
+            completedCount,
+            totalCount,
+            completionRate,
+            checklist,
+          },
+        };
+      });
+      // Update cache with new data
+      if (activeProgram) {
+        cache.current.delete(CACHE_KEY);
+      }
     } catch (err: any) {
       console.error('[ProgramProgressStore] Update checklist failed:', err);
       setError(err.message || 'Failed to update checklist');
+      throw err; // Re-throw so DailyDietTracker can handle revert
     }
-  }, [activeProgram, refreshProgress]);
+  }, [activeProgram]);
 
   const completeDay = useCallback(async () => {
     if (!activeProgram) return;

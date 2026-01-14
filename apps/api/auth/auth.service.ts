@@ -261,17 +261,47 @@ export class AuthService {
 
       if (!lockAcquired) {
         // Another refresh is in progress for this token
-        // Wait briefly and check if it completed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait briefly for it to complete (with exponential backoff)
+        for (let i = 0; i < 3; i++) {
+          await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
 
-        // Check if the old token is now blacklisted (meaning refresh succeeded)
-        const nowBlacklisted = await this.redisService.exists(blacklistKey);
-        if (nowBlacklisted) {
-          // The concurrent refresh succeeded, this token is no longer valid
-          throw new UnauthorizedException('Token already refreshed');
+          // Check if the old token is now blacklisted (meaning refresh succeeded)
+          const nowBlacklisted = await this.redisService.exists(blacklistKey);
+          if (nowBlacklisted) {
+            // The concurrent refresh succeeded - return the new token
+            // This prevents "Token already refreshed" 401 errors
+            const userId = (payload as any).sub;
+            const latestActiveToken = await this.prisma.refreshToken.findFirst({
+              where: {
+                userId,
+                revoked: false,
+              },
+              orderBy: { createdAt: 'desc' },
+              include: { user: true },
+            });
+
+            if (latestActiveToken) {
+              this.logger.log(`[AuthService] Concurrent refresh handled for user ${this.maskEmail(latestActiveToken.user.email)}`);
+              const accessToken = this.jwtService.sign(
+                { sub: userId, email: latestActiveToken.user.email, jti: latestActiveToken.jti },
+                { expiresIn: '45m' }
+              );
+              return {
+                message: 'Token refreshed successfully',
+                accessToken,
+                refreshToken: latestActiveToken.token,
+              };
+            }
+          }
+
+          // Check if lock is released
+          const lockExists = await this.redisService.exists(lockKey);
+          if (!lockExists) {
+            break; // Lock released, we can try to acquire it
+          }
         }
 
-        // Otherwise, let this request try (the lock may have been released)
+        // After waiting, try to proceed (lock may be released or we'll get it)
       }
 
       try {

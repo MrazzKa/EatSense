@@ -13,7 +13,9 @@ type CacheNamespace =
   | 'stats:monthly'
   | 'assistant:session'
   | 'assistant:active'
-  | 'health_feedback_ai';
+  | 'health_feedback_ai'
+  | 'diets:list'
+  | 'diets:featured';
 
 interface CacheEntry<T> {
   value: T;

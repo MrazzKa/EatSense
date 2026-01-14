@@ -140,6 +140,15 @@ export class DietsController {
     }
 
     /**
+     * Mark today as complete (advances day counter, updates streak)
+     */
+    @Post('active/complete-day')
+    @UseGuards(JwtAuthGuard)
+    async completeDay(@CurrentUser() user: any) {
+        return this.dietsService.completeDay(user.id);
+    }
+
+    /**
      * Get today's plan (legacy, redirects to active/today)
      */
     @Get('today')
