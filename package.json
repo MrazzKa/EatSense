@@ -35,7 +35,8 @@
     "eas:build:ios": "npx eas-cli@latest build -p ios --profile production --non-interactive",
     "eas:build:ios:local": "npx eas-cli@latest build --platform ios --profile production --local",
     "eas:build:android": "npx eas-cli@latest build -p android --profile production --non-interactive",
-    "check:errors": "bash check-errors.sh"
+    "check:errors": "bash check-errors.sh",
+    "postinstall": "node scripts/patch-iap.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.0",

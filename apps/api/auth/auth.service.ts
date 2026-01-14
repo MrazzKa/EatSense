@@ -298,6 +298,34 @@ export class AuthService {
 
           // Check if already revoked (by a concurrent request)
           if (tokenRecord.revoked) {
+            // GRACE PERIOD: Handle "Lost Response" scenario
+            // If client uses revoked token shortly after rotation, return the new token
+            const latestActiveToken = await tx.refreshToken.findFirst({
+              where: {
+                userId: tokenRecord.userId,
+                revoked: false,
+              },
+              orderBy: { createdAt: 'desc' },
+            });
+
+            const GRACE_PERIOD_MS = 45 * 1000; // 45 seconds
+            if (latestActiveToken) {
+              const timeSinceRotation = Date.now() - latestActiveToken.createdAt.getTime();
+              if (timeSinceRotation < GRACE_PERIOD_MS) {
+                this.logger.warn(`[AuthService] Grace recovery for user ${this.maskEmail(tokenRecord.user.email)}`);
+                // Return existing valid token (the one client missed)
+                const accessToken = this.jwtService.sign(
+                  { sub: tokenRecord.userId, email: tokenRecord.user.email, jti: latestActiveToken.jti },
+                  { expiresIn: '45m' }
+                );
+                return {
+                  tokens: { accessToken, refreshToken: latestActiveToken.token },
+                  user: tokenRecord.user,
+                  expiresAt: latestActiveToken.expiresAt,
+                  isGraceRecovery: true,
+                };
+              }
+            }
             throw new UnauthorizedException('Token already used');
           }
 
