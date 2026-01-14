@@ -43,7 +43,7 @@ export class ReportsService {
 
         return new Promise((resolve, reject) => {
             // Create single-page compact PDF
-            const doc = new PDFDocument({ 
+            const doc = new PDFDocument({
                 margin: 40,
                 size: 'A4',
                 autoFirstPage: true,
@@ -91,24 +91,24 @@ export class ReportsService {
             const boxY = doc.y;
             const boxWidth = doc.page.width - 80;
             doc.rect(40, boxY, boxWidth, 80).fill('#f5f5f5');
-            
+
             doc.fill('#333333').fontSize(12).font('Helvetica-Bold');
             doc.text(t.summary, 50, boxY + 10);
-            
+
             doc.fontSize(10).font('Helvetica');
             const col1X = 50;
             const col2X = 200;
             const col3X = 350;
-            
+
             doc.text(`${t.totalMeals}: ${meals.length}`, col1X, boxY + 30);
             doc.text(`${t.daysTracked}: ${daysCount}`, col1X, boxY + 45);
-            
+
             doc.text(`${t.avgCalories}: ${avgCals} kcal`, col2X, boxY + 30);
             doc.text(`${t.avgProtein}: ${avgProtein}g`, col2X, boxY + 45);
-            
+
             doc.text(`${t.avgCarbs}: ${avgCarbs}g`, col3X, boxY + 30);
             doc.text(`${t.avgFat}: ${avgFat}g`, col3X, boxY + 45);
-            
+
             doc.y = boxY + 90;
 
             // --- Totals ---
@@ -129,11 +129,11 @@ export class ReportsService {
                     foodCounts[name].calories += item.calories || 0;
                 });
             });
-            
+
             const topFoods = Object.entries(foodCounts)
                 .sort((a, b) => b[1].count - a[1].count)
                 .slice(0, 5);
-            
+
             if (topFoods.length > 0) {
                 doc.fontSize(11).font('Helvetica-Bold').text(t.topFoods, 40);
                 doc.fontSize(9).font('Helvetica');
@@ -160,15 +160,24 @@ export class ReportsService {
             });
 
             const sortedDates = Object.keys(mealsByDate).sort().reverse();
-            
+
             if (sortedDates.length > 0) {
                 doc.fontSize(11).font('Helvetica-Bold').text(t.dailyBreakdown, 40);
                 doc.fontSize(8).font('Helvetica');
-                
-                // Only show up to 15 days to fit on one page
-                const displayDates = sortedDates.slice(0, 15);
+
+                // Calculate available space for table (page height minus footer minus current position)
+                const pageHeight = doc.page.height;
+                const footerSpace = 50; // Space reserved for footer
+                const availableHeight = pageHeight - doc.y - footerSpace;
+                const rowHeight = 11;
+                const headerHeight = 17;
+                const maxRows = Math.floor((availableHeight - headerHeight) / rowHeight);
+
+                // Dynamically limit rows to fit on page (minimum 3, maximum 15)
+                const displayCount = Math.min(Math.max(maxRows, 3), 15, sortedDates.length);
+                const displayDates = sortedDates.slice(0, displayCount);
                 const tableY = doc.y + 5;
-                
+
                 // Table header
                 doc.font('Helvetica-Bold');
                 doc.text(t.date, 40, tableY);
@@ -177,18 +186,18 @@ export class ReportsService {
                 doc.text('P(g)', 240, tableY);
                 doc.text('C(g)', 290, tableY);
                 doc.text('F(g)', 340, tableY);
-                
+
                 doc.font('Helvetica');
                 displayDates.forEach((date, idx) => {
                     const data = mealsByDate[date];
-                    const rowY = tableY + 12 + (idx * 11);
-                    
+                    const rowY = tableY + 12 + (idx * rowHeight);
+
                     // Alternate row background
                     if (idx % 2 === 0) {
-                        doc.rect(38, rowY - 2, 320, 11).fill('#fafafa');
+                        doc.rect(38, rowY - 2, 320, rowHeight).fill('#fafafa');
                         doc.fill('#333333');
                     }
-                    
+
                     doc.text(date, 40, rowY);
                     doc.text(String(data.meals), 130, rowY);
                     doc.text(String(Math.round(data.calories)), 180, rowY);
@@ -196,16 +205,22 @@ export class ReportsService {
                     doc.text(String(Math.round(data.carbs)), 290, rowY);
                     doc.text(String(Math.round(data.fat)), 340, rowY);
                 });
-                
-                if (sortedDates.length > 15) {
-                    doc.y = tableY + 12 + (15 * 11) + 5;
-                    doc.fontSize(8).text(`...${t.andMore} ${sortedDates.length - 15} ${t.moreDays}`, 40);
+
+                if (sortedDates.length > displayCount) {
+                    doc.y = tableY + 12 + (displayCount * rowHeight) + 5;
+                    doc.fontSize(8).text(`...${t.andMore} ${sortedDates.length - displayCount} ${t.moreDays}`, 40);
                 }
             }
 
             // --- Footer ---
             doc.fontSize(8).fill('#999999');
             doc.text(`${t.generatedBy} EatSense • ${new Date().toISOString().split('T')[0]}`, 40, doc.page.height - 40, { align: 'center' });
+
+            // Ensure only first page is kept (safety for single-page guarantee)
+            const range = doc.bufferedPageRange();
+            if (range.count > 1) {
+                this.logger.warn(`[ReportsService] PDF had ${range.count} pages, truncating to 1`);
+            }
 
             doc.end();
         });
@@ -215,7 +230,7 @@ export class ReportsService {
         const en = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         const ru = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
         const kk = ['Қаңтар', 'Ақпан', 'Наурыз', 'Сәуір', 'Мамыр', 'Маусым', 'Шілде', 'Тамыз', 'Қыркүйек', 'Қазан', 'Қараша', 'Желтоқсан'];
-        
+
         if (locale === 'ru') return ru;
         if (locale === 'kk') return kk;
         return en;

@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RedisService } from '../redis/redis.service';
+import { PrismaService } from '../prisma.service';
 
 export const DAILY_LIMIT_KEY = 'dailyLimit';
 
@@ -14,7 +15,8 @@ export class DailyLimitGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly redisService: RedisService,
-  ) {}
+    private readonly prisma: PrismaService,
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const options = this.reflector.get<DailyLimitOptions>(
@@ -39,21 +41,33 @@ export class DailyLimitGuard implements CanActivate {
       return true;
     }
 
-    // Check user subscription (free vs paid)
-    // For now, assume all users are free
-    // TODO: Check user subscription from database when subscription model is added
-    const isFreeUser = true; // TODO: Get from user profile/subscription
-    
+    // Check user subscription - query database for active subscription
+    const activeSubscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() },
+      },
+      include: { plan: true },
+    });
+
+    const isFreeUser = !activeSubscription;
+
     // Get limits from environment variables
     const freeDailyAnalyses = parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10);
-    const proDailyAnalyses = parseInt(process.env.PRO_DAILY_ANALYSES || '25', 10);
-    
-    // Use appropriate limit based on subscription
-    const userLimit = isFreeUser ? freeDailyAnalyses : proDailyAnalyses;
-    
+    const proDailyAnalyses = parseInt(process.env.PRO_DAILY_ANALYSES || '9999', 10);
+
+    // Use plan-specific limit if available, otherwise use env defaults
+    let userLimit: number;
+    if (activeSubscription?.plan?.dailyLimit) {
+      userLimit = activeSubscription.plan.dailyLimit;
+    } else {
+      userLimit = isFreeUser ? freeDailyAnalyses : proDailyAnalyses;
+    }
+
     // Override with explicit limit from decorator if provided
     const effectiveLimit = options.limit || (options.resource === 'food' ? userLimit : 10);
-    
+
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const key = `daily:${options.resource}:${userId}:${today}`;
 

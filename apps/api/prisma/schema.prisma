@@ -1089,6 +1089,7 @@ model SubscriptionPlan {
   name                 String              @unique // 'weekly', 'monthly', 'yearly', 'student'
   basePriceUsd         Float               @map("base_price_usd")
   durationDays         Int                 @map("duration_days")
+  dailyLimit           Int                 @default(9999) @map("daily_limit") // Daily analysis limit for this plan
   features             Json                // ['feature1', 'feature2', ...]
   requiresVerification Boolean             @default(false) @map("requires_verification")
   displayOrder         Int                 @default(0) @map("display_order")

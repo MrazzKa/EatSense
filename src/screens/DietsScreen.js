@@ -186,7 +186,7 @@ export default function DietsScreen({ navigation }) {
                             placeholder={
                                 activeTab === 'lifestyle'
                                     ? (t('lifestyles.search.placeholder') || 'Search lifestyle programs...')
-                                    : (t('diets.search.diets_placeholder') || t('diets.search_placeholder') || 'Search diets...')
+                                    : (t('diets.search_placeholder') || 'Search diets...')
                             }
                             placeholderTextColor={tokens.colors?.textTertiary || '#999'}
                             value={searchQuery}
