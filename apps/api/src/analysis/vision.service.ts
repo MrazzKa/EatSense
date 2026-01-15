@@ -3,6 +3,14 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import { CacheService } from '../cache/cache.service';
 import * as crypto from 'crypto';
+import * as sharp from 'sharp';
+
+// Maximum base64 size for Vision API (characters)
+// GPT-4o can handle up to 20MB, but we limit to 1MB for speed
+const MAX_BASE64_SIZE = 1_400_000; // ~1MB base64 = ~750KB image
+
+// Target dimensions for image optimization
+const TARGET_MAX_DIMENSION = 1024; // pixels
 
 // Version for cache key - increment when prompt or schema changes
 const VISION_PROMPT_VERSION = 'omega_v3.3_2026-01-09_nutrition_fix';
@@ -29,9 +37,9 @@ const VisionComponentSchema = z.object({
   // NOTE: Vision sometimes returns non-standard itemType values. We normalize them:
   // 'composite' or 'dish' → 'composite_dish', 'sauce' → 'ingredient'
   id: z.string().optional(), // Stable ID (A, B, C...)
-  itemType: z.enum(['ingredient', 'composite_dish', 'composite', 'dish', 'sauce', 'drink']).optional().transform(val => {
-    if (val === 'composite' || val === 'dish') return 'composite_dish';
-    if (val === 'sauce') return 'ingredient';
+  itemType: z.enum(['ingredient', 'composite_dish', 'composite', 'dish', 'sauce', 'drink', 'side', 'garnish', 'condiment', 'topping', 'main']).optional().transform(val => {
+    if (val === 'composite' || val === 'dish' || val === 'main') return 'composite_dish';
+    if (val === 'sauce' || val === 'side' || val === 'garnish' || val === 'condiment' || val === 'topping') return 'ingredient';
     return val;
   }),
   portionMode: z.enum(['coverage', 'unit', 'package', 'drink']).optional(),
@@ -50,13 +58,13 @@ const VisionComponentSchema = z.object({
 
   // Category and state hints for better nutrition lookup
   category_hint: z.enum(['protein', 'grain', 'veg', 'fruit', 'fat', 'seeds', 'spice', 'sauce', 'drink', 'other']).optional(),
-  state_hint: z.enum(['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown']).optional(),
+  state_hint: z.enum(['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'melted', 'braised', 'smoked', 'frozen', 'unknown']).optional(),
 
   // Existing fields
   preparation: z.string().optional(),
   est_portion_g: z.number().optional(),
   confidence: z.number().optional(),
-  cooking_method: z.enum(['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed', 'roasted', 'sauteed']).optional(),
+  cooking_method: z.enum(['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed', 'roasted', 'sauteed', 'braised', 'smoked', 'melted', 'poached']).optional(),
   tags: z.array(z.string()).optional(),
   notes: z.string().optional(),
 
@@ -183,8 +191,14 @@ export class VisionService {
   private readonly RETRY_DELAY_MS = 2000;
 
   constructor(private readonly cache: CacheService) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      this.logger.error('[VisionService] OPENAI_API_KEY is not configured!');
+    }
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey,
+      timeout: 120000, // 2 minute timeout
+      maxRetries: 2, // Built-in retry
     });
   }
 
@@ -193,6 +207,72 @@ export class VisionService {
    */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Optimize base64 image for Vision API
+   * - Resize if too large
+   * - Compress to reduce transfer time
+   * - Returns optimized base64 string
+   */
+  private async optimizeImageBase64(base64: string): Promise<string> {
+    const startTime = Date.now();
+
+    // Check if optimization needed
+    if (base64.length <= MAX_BASE64_SIZE) {
+      this.logger.debug(`[VisionService] Image size OK (${Math.round(base64.length / 1024)}KB), no optimization needed`);
+      return base64;
+    }
+
+    this.logger.log(`[VisionService] Optimizing large image (${Math.round(base64.length / 1024)}KB > ${Math.round(MAX_BASE64_SIZE / 1024)}KB limit)`);
+
+    try {
+      // Decode base64 to buffer
+      const buffer = Buffer.from(base64, 'base64');
+
+      // Get image metadata
+      const metadata = await sharp(buffer).metadata();
+      const { width = 0, height = 0 } = metadata;
+
+      // Calculate resize dimensions
+      let targetWidth = width;
+      let targetHeight = height;
+      const maxDim = Math.max(width, height);
+
+      if (maxDim > TARGET_MAX_DIMENSION) {
+        const scale = TARGET_MAX_DIMENSION / maxDim;
+        targetWidth = Math.round(width * scale);
+        targetHeight = Math.round(height * scale);
+      }
+
+      // Progressive quality reduction until size is acceptable
+      let quality = 85;
+      let optimizedBase64 = base64;
+
+      while (quality >= 40) {
+        const optimizedBuffer = await sharp(buffer)
+          .resize(targetWidth, targetHeight, { fit: 'inside' })
+          .jpeg({ quality, progressive: true })
+          .toBuffer();
+
+        optimizedBase64 = optimizedBuffer.toString('base64');
+
+        if (optimizedBase64.length <= MAX_BASE64_SIZE) {
+          break;
+        }
+
+        quality -= 10;
+      }
+
+      const elapsed = Date.now() - startTime;
+      const reduction = Math.round((1 - optimizedBase64.length / base64.length) * 100);
+      this.logger.log(`[VisionService] Image optimized: ${Math.round(base64.length / 1024)}KB → ${Math.round(optimizedBase64.length / 1024)}KB (${reduction}% reduction, ${elapsed}ms, quality=${quality})`);
+
+      return optimizedBase64;
+    } catch (error: any) {
+      this.logger.warn(`[VisionService] Image optimization failed: ${error.message}, using original`);
+      return base64;
+    }
   }
 
   /**
@@ -376,12 +456,18 @@ export class VisionService {
 
     // CRITICAL: Prefer base64 when available (more reliable for OpenAI Vision API, avoids URL timeout issues)
     // Base64 is embedded in the request, so no network call needed to fetch the image
-    const imageContent: any = imageBase64
-      ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+    // Optimize base64 image if too large (reduces transfer time and API processing)
+    let optimizedBase64 = imageBase64;
+    if (imageBase64) {
+      optimizedBase64 = await this.optimizeImageBase64(imageBase64);
+    }
+
+    const imageContent: any = optimizedBase64
+      ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${optimizedBase64}` } }
       : { type: 'image_url', image_url: { url: finalImageUrl } };
 
     // Validate that we have either base64 or a valid URL
-    if (!imageBase64 && !finalImageUrl) {
+    if (!optimizedBase64 && !finalImageUrl) {
       throw new BadRequestException('Either imageBase64 or valid imageUrl must be provided');
     }
 
@@ -920,8 +1006,14 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
               if (key === 'state_hint' && typeof value === 'string') {
                 // Map unknown state_hint values to valid ones
                 const stateMap: Record<string, string> = {
-                  'roasted': 'roasted', // now valid
-                  'sauteed': 'sauteed', // now valid
+                  'roasted': 'roasted',
+                  'sauteed': 'sauteed',
+                  'sautéed': 'sauteed', // FIX: Accented version
+                  'sauce': 'cooked', // FIX: Vision sometimes returns 'sauce' as state
+                  'melted': 'melted', // FIX: Now valid enum
+                  'braised': 'braised', // FIX: Now valid enum
+                  'smoked': 'smoked', // FIX: Now valid enum
+                  'frozen': 'frozen', // FIX: Now valid enum
                   'pan-fried': 'fried',
                   'pan_fried': 'fried',
                   'panfried': 'fried',
@@ -931,15 +1023,14 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
                   'stir-fried': 'fried',
                   'stir_fried': 'fried',
                   'stirfried': 'fried',
+                  'shallow-fried': 'fried',
                   'broiled': 'grilled',
                   'charred': 'grilled',
                   'char-grilled': 'grilled',
                   'barbecued': 'grilled',
                   'bbq': 'grilled',
-                  'smoked': 'cooked',
-                  'braised': 'cooked',
-                  'stewed': 'cooked',
-                  'simmered': 'cooked',
+                  'stewed': 'braised',
+                  'simmered': 'braised',
                   'caramelized': 'cooked',
                   'glazed': 'cooked',
                   'toasted': 'baked',
@@ -955,12 +1046,17 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
                   'uncooked': 'raw',
                   'prepared': 'cooked',
                   'processed': 'cooked',
+                  'creamy': 'cooked', // FIX: Vision sometimes returns texture as state
+                  'crispy': 'fried',
+                  'soft': 'cooked',
+                  'crunchy': 'fried',
                 };
-                const validStates = ['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'unknown'];
-                const normalizedValue = stateMap[value.toLowerCase()] ||
-                  (validStates.includes(value.toLowerCase()) ? value.toLowerCase() : 'cooked');
+                const validStates = ['raw', 'cooked', 'boiled', 'steamed', 'baked', 'grilled', 'fried', 'dried', 'pickled', 'roasted', 'sauteed', 'melted', 'braised', 'smoked', 'frozen', 'unknown'];
+                const lowerValue = value.toLowerCase().trim();
+                const normalizedValue = stateMap[lowerValue] ||
+                  (validStates.includes(lowerValue) ? lowerValue : 'cooked');
                 // Log unmapped values for future improvement (only in debug mode)
-                if (!stateMap[value.toLowerCase()] && !validStates.includes(value.toLowerCase()) && process.env.ANALYSIS_DEBUG === 'true') {
+                if (!stateMap[lowerValue] && !validStates.includes(lowerValue) && process.env.ANALYSIS_DEBUG === 'true') {
                   console.warn(`[VisionService] Unknown state_hint "${value}" mapped to "cooked"`);
                 }
                 normalized[key] = normalizedValue;
@@ -1015,12 +1111,16 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
               } else if (key === 'cooking_method' && typeof value === 'string') {
                 // Normalize cooking_method enum values
                 const cookingMethodMap: Record<string, string> = {
+                  'sautéed': 'sauteed', // FIX: Accented version
+                  'sauteed': 'sauteed',
                   'pan-fried': 'fried',
                   'pan_fried': 'fried',
                   'panfried': 'fried',
                   'stir-fried': 'fried',
                   'stir_fried': 'fried',
                   'stirfried': 'fried',
+                  'shallow-fried': 'fried',
+                  'air-fried': 'baked',
                   'deep-fried': 'deep_fried',
                   'deepfried': 'deep_fried',
                   'bbq': 'grilled',
@@ -1028,26 +1128,50 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
                   'char-grilled': 'grilled',
                   'chargrilled': 'grilled',
                   'broiled': 'grilled',
-                  'poached': 'boiled',
+                  'poached': 'poached', // FIX: Now valid enum
                   'blanched': 'boiled',
                   'parboiled': 'boiled',
-                  'stewed': 'mixed',
-                  'braised': 'mixed',
-                  'simmered': 'mixed',
+                  'stewed': 'braised', // FIX: Map to braised
+                  'braised': 'braised', // FIX: Now valid enum
+                  'simmered': 'braised',
                   'toasted': 'baked',
-                  'smoked': 'mixed',
+                  'smoked': 'smoked', // FIX: Now valid enum
+                  'melted': 'melted', // FIX: Now valid enum
                   'microwaved': 'mixed',
                   'fresh': 'raw',
                   'uncooked': 'raw',
+                  'none': 'raw',
                 };
-                const validMethods = ['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed', 'roasted', 'sauteed'];
-                const normalizedMethod = cookingMethodMap[value.toLowerCase()] ||
-                  (validMethods.includes(value.toLowerCase()) ? value.toLowerCase() : 'mixed');
+                const validMethods = ['fried', 'deep_fried', 'baked', 'grilled', 'boiled', 'steamed', 'raw', 'mixed', 'roasted', 'sauteed', 'braised', 'smoked', 'melted', 'poached'];
+                const lowerValue = value.toLowerCase().trim();
+                const normalizedMethod = cookingMethodMap[lowerValue] ||
+                  (validMethods.includes(lowerValue) ? lowerValue : 'mixed');
                 // Log unmapped values for future improvement (only in debug mode)
-                if (!cookingMethodMap[value.toLowerCase()] && !validMethods.includes(value.toLowerCase()) && process.env.ANALYSIS_DEBUG === 'true') {
+                if (!cookingMethodMap[lowerValue] && !validMethods.includes(lowerValue) && process.env.ANALYSIS_DEBUG === 'true') {
                   console.warn(`[VisionService] Unknown cooking_method "${value}" mapped to "mixed"`);
                 }
                 normalized[key] = normalizedMethod;
+              } else if (key === 'itemType' && typeof value === 'string') {
+                // Normalize itemType enum values - handle extra values from Vision
+                const itemTypeMap: Record<string, string> = {
+                  'side': 'ingredient',
+                  'garnish': 'ingredient',
+                  'condiment': 'ingredient',
+                  'dressing': 'ingredient',
+                  'topping': 'ingredient',
+                  'accompaniment': 'ingredient',
+                  'composite': 'composite_dish',
+                  'dish': 'composite_dish',
+                  'main': 'composite_dish',
+                  'main_course': 'composite_dish',
+                  'entree': 'composite_dish',
+                  'appetizer': 'ingredient',
+                  'starter': 'ingredient',
+                  'beverage': 'drink',
+                  'liquid': 'drink',
+                };
+                const lowerValue = value.toLowerCase().trim();
+                normalized[key] = itemTypeMap[lowerValue] || value;
               } else {
                 normalized[key] = normalizeEnums(value);
               }

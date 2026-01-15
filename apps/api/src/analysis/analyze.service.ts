@@ -712,6 +712,76 @@ export class AnalyzeService {
   }
 
   /**
+   * Create a fallback AnalyzedItem from food description text
+   * Used when Vision API fails but user provided a food description
+   */
+  private async createFallbackItem(foodDescription: string, locale: string): Promise<AnalyzedItem | null> {
+    try {
+      // Use the nutrition orchestrator to look up the food
+      const lookupResult = await this.nutritionOrchestrator.lookupNutrition({
+        originalQuery: foodDescription,
+        normalizedName: foodDescription.toLowerCase().trim(),
+        locale,
+        region: 'OTHER',
+        expectedCategory: 'solid',
+      });
+
+      if (lookupResult && lookupResult.food) {
+        const { food, confidence } = lookupResult;
+        const portion_g = food.defaultPortionG || 100;
+        const scale = portion_g / 100;
+
+        const nutrients = {
+          calories: Math.round((food.per100g.calories || 0) * scale),
+          protein: this.round((food.per100g.protein || 0) * scale, 1),
+          carbs: this.round((food.per100g.carbs || 0) * scale, 1),
+          fat: this.round((food.per100g.fat || 0) * scale, 1),
+          fiber: this.round((food.per100g.fiber || 0) * scale, 1),
+          sugars: this.round((food.per100g.sugars || 0) * scale, 1),
+          satFat: this.round((food.per100g.satFat || 0) * scale, 1),
+        };
+
+        return {
+          name: food.displayName || foodDescription,
+          displayName: food.displayName || foodDescription,
+          portion_g,
+          nutrients,
+          confidence: confidence || 0.5,
+          source: food.providerId || 'fallback',
+          isFallback: true,
+          needsReview: true,
+          isSuspicious: false,
+        };
+      }
+
+      // If no nutrition found, create a generic item with estimated values
+      this.logger.warn(`[AnalyzeService] No nutrition data for fallback "${foodDescription}", using generic estimates`);
+      return {
+        name: foodDescription,
+        displayName: foodDescription,
+        portion_g: 150, // Default portion
+        nutrients: {
+          calories: 200, // Generic estimate
+          protein: 10,
+          carbs: 20,
+          fat: 8,
+          fiber: 2,
+          sugars: 3,
+          satFat: 2,
+        },
+        confidence: 0.3,
+        source: 'generic_fallback',
+        isFallback: true,
+        needsReview: true,
+        isSuspicious: true,
+      };
+    } catch (error: any) {
+      this.logger.error(`[AnalyzeService] createFallbackItem error: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
    * PHASE 2: Calculate totals from items with numerical invariant enforcement
    *
    * Invariants enforced:
@@ -1050,13 +1120,13 @@ export class AnalyzeService {
       const visionCategoryHint = (component as any).category_hint;
       const categoryHint = visionCategoryHint === 'protein' ? 'protein'
         : visionCategoryHint === 'grain' ? 'grain'
-        : visionCategoryHint === 'veg' ? 'veg'
-        : visionCategoryHint === 'fruit' ? 'fruit'
-        : visionCategoryHint === 'fat' ? 'fat'
-        : visionCategoryHint === 'seeds' ? 'other'
-        : visionCategoryHint === 'drink' ? 'other'
-        : undefined;
-      
+          : visionCategoryHint === 'veg' ? 'veg'
+            : visionCategoryHint === 'fruit' ? 'fruit'
+              : visionCategoryHint === 'fat' ? 'fat'
+                : visionCategoryHint === 'seeds' ? 'other'
+                  : visionCategoryHint === 'drink' ? 'other'
+                    : undefined;
+
       const lookupContext: NutritionLookupContext = {
         locale,
         region: locale === 'en' ? 'US' : 'EU', // Simple mapping for now
@@ -1353,7 +1423,49 @@ export class AnalyzeService {
         error: visionResult.error,
         imageUrl: params.imageUrl ? (params.imageUrl.startsWith('/') ? 'relative' : params.imageUrl.substring(0, 50)) : 'none',
         hasBase64: Boolean(params.imageBase64),
+        hasFoodDescription: Boolean(params.foodDescription),
       });
+
+      // FALLBACK: If user provided foodDescription, try to create a basic item from it
+      // This ensures auto-save works even when Vision API fails
+      if (params.foodDescription && params.foodDescription.trim().length > 0) {
+        this.logger.log(`[AnalyzeService] Vision failed but have foodDescription, attempting fallback: "${params.foodDescription}"`);
+
+        try {
+          // Try to get nutrition for the food description
+          const fallbackItem = await this.createFallbackItem(params.foodDescription, locale);
+
+          if (fallbackItem) {
+            const fallbackTotals = this.calculateTotalsWithInvariants([fallbackItem]);
+            const fallbackResult: AnalysisData = {
+              items: [fallbackItem],
+              total: fallbackTotals,
+              healthScore: this.computeHealthScore(fallbackTotals, fallbackTotals.portion_g, [fallbackItem], locale),
+              isSuspicious: true,
+              needsReview: true,
+              locale,
+              originalDishName: params.foodDescription,
+              dishNameLocalized: params.foodDescription,
+              debug: {
+                timestamp: new Date().toISOString(),
+                model: 'fallback',
+                components: [],
+                sanity: [{
+                  type: 'vision_fallback',
+                  level: 'warning',
+                  message: 'Vision API failed, using text-based fallback',
+                }],
+              },
+            };
+            (fallbackResult.debug as any).visionError = visionResult.error;
+            (fallbackResult.debug as any).visionStatus = 'fallback';
+            this.logger.log(`[AnalyzeService] Fallback successful: created item "${fallbackItem.name}" with ${fallbackItem.nutrients.calories} kcal`);
+            return fallbackResult;
+          }
+        } catch (fallbackError: any) {
+          this.logger.warn(`[AnalyzeService] Fallback failed: ${fallbackError.message}`);
+        }
+      }
 
       // Return a failed analysis result with error info (don't throw - let processor handle)
       const errorResult: AnalysisData = {
@@ -1767,7 +1879,7 @@ export class AnalyzeService {
 
     // STEP 2 FIX: Set displayName as the single source of truth for UI
     const displayName = dishNameLocalized || originalDishName || 'Meal';
-    
+
     // STEP 3: Enrich health score with AI-generated feedback (if enabled)
     const enrichedHealthScore = await this.enrichHealthScoreWithAiFeedback(
       healthScore,
@@ -1776,7 +1888,7 @@ export class AnalyzeService {
       total,
       locale,
     );
-    
+
     const result: AnalysisData = {
       items,
       total,
@@ -2108,11 +2220,15 @@ export class AnalyzeService {
     source: string,
     usedVisionFallback: boolean = false,
   ): Promise<AnalyzedItem & { baseName?: string; displayNameLocalized?: string; providerId?: string }> {
-    // When Vision fallback is used, prefer component.name over canonicalFood.displayName
-    // This prevents "Bacon" name when edamame nutrients are used
-    const baseName = usedVisionFallback
-      ? normalizeFoodName(component.display_name || component.name)
-      : this.buildBaseFoodName(component.name, canonicalFood.displayName);
+    // Always prefer Vision name (display_name or name) over USDA database name
+    // This ensures localized names like "Пельмени" are shown instead of "CHICKEN PELMENI"
+    const baseName = normalizeFoodName(
+      component.display_name ||
+      component.display_name_local ||
+      component.name ||
+      component.name_local ||
+      (usedVisionFallback ? '' : canonicalFood?.displayName)
+    ) || this.buildBaseFoodName(component.name, canonicalFood?.displayName);
     const originalNameEn = normalizeFoodName(baseName);
     const localizedName = await this.foodLocalization.localizeName(originalNameEn, locale);
 
@@ -2527,21 +2643,46 @@ export class AnalyzeService {
    * Build a clean, human-readable base food name from raw vision name and FDC description.
    * Prefers generic, non-branded descriptions when available.
    */
+  /**
+   * Build a clean, human-readable base food name from raw vision name and FDC description.
+   * Prefers generic, non-branded descriptions when available.
+   */
   private buildBaseFoodName(rawName: string, fdcDescription?: string): string {
-    const desc = (fdcDescription || '').toLowerCase();
-    const raw = (rawName || '').toLowerCase();
+    const raw = (rawName || '').trim();
+    const desc = (fdcDescription || '').trim();
 
-    // Prefer generic, non-branded description if it looks clean
-    if (desc && !desc.includes('yogurt') && !desc.includes('yoghurt') && !desc.includes('ice cream')) {
-      // Strip brand stuff like ", company name" if present
-      const cleaned = desc.replace(/\s*,\s*[^,]+$/i, '').trim();
+    // Generic names that should NOT be used - trigger USDA fallback instead
+    const genericNames = new Set([
+      'food', 'meal', 'dish', 'plate', 'lunch', 'dinner', 'breakfast',
+      'snack', 'item', 'ingredient', 'something', 'unknown',
+      'тарелка', 'блюдо', 'еда', 'обед', 'ужин', 'завтрак',
+      'тағам', 'тамақ', // Kazakh
+    ]);
+
+    const rawLower = raw.toLowerCase();
+    const isGenericVisionName = genericNames.has(rawLower) || rawLower.length < 3;
+
+    // PRIORITY 1: Use Vision name if it's specific enough
+    if (raw && !isGenericVisionName) {
+      return raw;
+    }
+
+    // PRIORITY 2: Use USDA description as fallback for generic Vision names
+    if (desc) {
+      // Clean up USDA format: "PELMENI, CHICKEN" -> "Chicken pelmeni"
+      const cleaned = desc
+        .replace(/\s*,\s*[^,]+$/i, '')  // Remove trailing brand/source
+        .replace(/^([A-Z]+),\s*/i, '')   // Remove leading category like "PELMENI,"
+        .trim();
+
       if (cleaned.length > 0 && cleaned.length <= 60) {
-        return cleaned;
+        // Capitalize first letter, lowercase rest (for ALL CAPS USDA names)
+        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
       }
     }
 
-    // Fallback to raw vision name
-    return raw || desc || 'food';
+    // PRIORITY 3: Return Vision name even if generic (better than nothing)
+    return raw || desc || 'Food';
   }
 
   /**
@@ -2572,7 +2713,7 @@ export class AnalyzeService {
       if (displayName && typeof displayName === 'string') return displayName;
       return (item as any).baseName || item.originalName || item.name || '';
     };
-    
+
     // Get category hint for smarter naming
     const getCategory = (item: AnalyzedItem): string | undefined => {
       return (item as any).category_hint || (item as any).category;
@@ -2605,29 +2746,29 @@ export class AnalyzeService {
     // Strategy: Find the main component (highest calories) and describe what's with it
     const main = unique[0];
     const mainLower = main.name.toLowerCase();
-    
+
     // Detect dish type from main ingredient
-    const isPasta = mainLower.includes('pasta') || mainLower.includes('spaghetti') || 
+    const isPasta = mainLower.includes('pasta') || mainLower.includes('spaghetti') ||
       mainLower.includes('penne') || mainLower.includes('farfalle') || mainLower.includes('noodle') ||
       mainLower.includes('макарон') || mainLower.includes('паста') || mainLower.includes('лапша');
-    
+
     const isRice = mainLower.includes('rice') || mainLower.includes('рис') || mainLower.includes('risotto');
-    
-    const isProtein = main.category === 'protein' || 
+
+    const isProtein = main.category === 'protein' ||
       mainLower.includes('chicken') || mainLower.includes('beef') || mainLower.includes('pork') ||
       mainLower.includes('fish') || mainLower.includes('salmon') || mainLower.includes('meat') ||
       mainLower.includes('курица') || mainLower.includes('говядина') || mainLower.includes('рыба');
-    
+
     const isSalad = mainLower.includes('salad') || mainLower.includes('салат');
-    
+
     const isSoup = mainLower.includes('soup') || mainLower.includes('суп') || mainLower.includes('борщ');
 
     // Count vegetable components
-    const vegCount = unique.filter(i => 
+    const vegCount = unique.filter(i =>
       i.category === 'veg' || i.category === 'vegetable' ||
       i.name.toLowerCase().includes('vegetable') || i.name.toLowerCase().includes('овощ')
     ).length;
-    
+
     // Generate appropriate name
     if (isPasta) {
       // "Pasta with vegetables" or "Pasta with [second item]"
@@ -2636,32 +2777,32 @@ export class AnalyzeService {
       }
       return `${main.name} with ${unique[1].name}`;
     }
-    
+
     if (isRice) {
       if (vegCount >= 2) {
         return `${main.name} with vegetables`;
       }
       return `${main.name} with ${unique[1].name}`;
     }
-    
+
     if (isProtein) {
       // "Chicken with rice and vegetables" or "Chicken with [side]"
-      const hasGrain = unique.some(i => 
-        i.category === 'grain' || 
+      const hasGrain = unique.some(i =>
+        i.category === 'grain' ||
         i.name.toLowerCase().includes('rice') || i.name.toLowerCase().includes('pasta') ||
         i.name.toLowerCase().includes('рис')
       );
-      
+
       if (hasGrain && vegCount >= 1) {
         return `${main.name} with sides`;
       }
       return `${main.name} with ${unique[1].name}`;
     }
-    
+
     if (isSalad) {
       return main.name; // Salads are usually named already
     }
-    
+
     if (isSoup) {
       return main.name; // Soups are usually named already
     }

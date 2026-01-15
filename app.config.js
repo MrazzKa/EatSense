@@ -4,8 +4,8 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "1.0.2",
-    orientation: "portrait",
+    version: "1.0.3",
+    orientation: "default",
     // Use Logo.jpeg for app icon (Expo will auto-generate required sizes)
     icon: "./assets/logo/Logo.jpeg",
     userInterfaceStyle: "light",
@@ -30,7 +30,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "77",
+      buildNumber: "78",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {
@@ -69,7 +69,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 61,
+      versionCode: 62,
       adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#FFFFFF" },
       permissions: ["CAMERA", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
       intentFilters: [{

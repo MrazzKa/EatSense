@@ -10,8 +10,8 @@
     "error": "Désolé, quelque chose s'est mal passé. Veuillez réessayer plus tard.",
     "healthAnalysis": {
       "addPhoto": "Add Photo",
-      "analyzing": "Analyzing photo...",
-      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
+      "analyzing": "Analyse de la photo...",
+      "disclaimer": "Ceci n'est pas un diagnostic médical. Veuillez consulter un professionnel de santé pour toute décision médicale.",
       "empty": "Paste your health information or lab results below to analyze",
       "error": "Failed to analyze photo. Please try again.",
       "keyFindings": "Key Findings",
@@ -247,12 +247,12 @@
     "resendIn": "Renvoyer dans {{seconds}} s",
     "sendCode": "Envoyer le code",
     "signIn": "Se connecter",
-    "signInWithApple": "Sign Up With Apple",
+    "signInWithApple": "Se connecter avec Apple",
     "signInWithMagicLink": "Se connecter avec un lien magique",
     "signInWithOtp": "Se connecter avec un code",
     "signUp": "S'inscrire",
-    "signUpWithEmail": "Sign Up With E-mail",
-    "termsAcceptance": "By continuing, I accept the Terms and Conditions.",
+    "signUpWithEmail": "S'inscrire avec un e-mail",
+    "termsAcceptance": "En continuant, j'accepte les conditions d'utilisation.",
     "verify": "Vérifier",
     "verifyCode": "Vérifier le code",
     "welcomeSubtitle": "Connectez-vous pour suivre votre nutrition et atteindre vos objectifs.",
@@ -291,12 +291,12 @@
     "typePlaceholder": "Type a message..."
   },
   "common": {
-    "all": "All",
+    "all": "Tout",
     "back": "Retour",
     "cancel": "Annuler",
     "close": "Fermer",
-    "confirm": "Confirm",
-    "days": "days",
+    "confirm": "Confirmer",
+    "days": "jours",
     "delete": "Supprimer",
     "done": "Terminé",
     "edit": "Modifier",
@@ -304,17 +304,17 @@
     "info": "Info",
     "loading": "Chargement...",
     "next": "Suivant",
-    "no": "No",
-    "of": "of",
+    "no": "Non",
+    "of": "sur",
     "ok": "OK",
-    "rerun": "Rerun",
+    "rerun": "Relancer",
     "retry": "Réessayer",
     "save": "Enregistrer",
     "search": "Rechercher",
     "skip": "Passer",
     "success": "Succès",
     "viewAll": "Voir tout",
-    "yes": "Yes"
+    "yes": "Oui"
   },
   "dashboard": {
     "addFood": {
@@ -336,7 +336,7 @@
     "aiAssistant": "Assistant IA",
     "aiAssistantSubtitle": "Obtenez des conseils nutritionnels personnalisés",
     "analysisCounter": {
-      "today": "Today",
+      "today": "Aujourd'hui",
       "total": "Total"
     },
     "articles": "Articles",
@@ -344,12 +344,12 @@
     "caloriesUnit": "kcal",
     "carbs": "Glucides",
     "diary": {
-      "analyzing": "Analyzing...",
-      "analyzingHint": "This may take 10-30 seconds",
-      "failed": "Analysis failed",
-      "failedHint": "Tap to retry",
-      "needsReview": "Needs review",
-      "needsReviewHint": "Could not calculate nutrition"
+      "analyzing": "Analyse...",
+      "analyzingHint": "Cela peut prendre 10-30 secondes",
+      "failed": "Échec de l'analyse",
+      "failedHint": "Appuyez pour réessayer",
+      "needsReview": "À revoir",
+      "needsReviewHint": "Impossible de calculer la nutrition"
     },
     "fat": "Graisses",
     "healthScoreSubtitle": "Touchez la carte pour ouvrir l'analyse complète dans Récent.",

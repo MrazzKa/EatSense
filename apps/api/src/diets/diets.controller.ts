@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Headers, Logger, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { OptionalAuthGuard } from '../../auth/guards/optional-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -8,15 +8,23 @@ import { DietType, DietDifficulty } from '@prisma/client';
 
 // DTOs for checklist and symptoms
 interface UpdateChecklistDto {
-    checklist: Record<string, boolean>; // { "veggies_5": true, "protein": false }
+    checklist?: Record<string, boolean>; // { "veggies_5": true, "protein": false }
+    [key: string]: any; // Allow flat object format
 }
 
 interface UpdateSymptomsDto {
     symptoms: Record<string, number>; // { "energy": 4, "bloating": 2 } — 1-5 scale
 }
 
+interface StartDietDto {
+    customCalories?: number;
+    targetWeight?: number;
+}
+
 @Controller('diets')
 export class DietsController {
+    private readonly logger = new Logger(DietsController.name);
+
     constructor(
         private dietsService: DietsService,
         private recommendationsService: DietRecommendationsService,
@@ -115,7 +123,40 @@ export class DietsController {
         @CurrentUser() user: any,
         @Body() dto: UpdateChecklistDto,
     ) {
-        return this.dietsService.updateChecklist(user.id, dto.checklist);
+        // Validate user
+        if (!user?.id) {
+            this.logger.error('[updateChecklist] No user ID in request');
+            throw new UnauthorizedException('Invalid user session');
+        }
+
+        // Validate DTO exists
+        if (!dto) {
+            throw new BadRequestException('Request body is required');
+        }
+
+        // Handle both formats: { checklist: {...} } and direct {...}
+        let checklist: Record<string, boolean>;
+
+        if (dto.checklist && typeof dto.checklist === 'object') {
+            checklist = dto.checklist;
+        } else if (typeof dto === 'object') {
+            // Client might be sending flat object - try to use it directly
+            const { checklist: _, ...rest } = dto as any;
+            if (Object.keys(rest).length > 0 && Object.values(rest).every(v => typeof v === 'boolean')) {
+                checklist = rest;
+            } else {
+                throw new BadRequestException('Invalid request: checklist object is required. Expected format: { checklist: { item1: true, item2: false } }');
+            }
+        } else {
+            throw new BadRequestException('Invalid request format');
+        }
+
+        // Validate checklist is not empty
+        if (Object.keys(checklist).length === 0) {
+            throw new BadRequestException('Checklist cannot be empty');
+        }
+
+        return this.dietsService.updateChecklist(user.id, checklist);
     }
 
     /**
@@ -214,14 +255,24 @@ export class DietsController {
     /**
      * Start diet
      */
-    @Post(':id/start')
+    @Post(':idOrSlug/start')
     @UseGuards(JwtAuthGuard)
     async startDiet(
         @CurrentUser() user: any,
-        @Param('id') dietId: string,
-        @Body() dto: { customCalories?: number; targetWeight?: number },
+        @Param('idOrSlug') idOrSlug: string,
+        @Body() dto?: StartDietDto,
     ) {
-        return this.dietsService.startDiet(user.id, dietId, dto);
+        // Validate user
+        if (!user?.id) {
+            throw new UnauthorizedException('Invalid user session');
+        }
+
+        // Validate diet ID/slug
+        if (!idOrSlug || idOrSlug.trim().length === 0) {
+            throw new BadRequestException('Diet ID or slug is required');
+        }
+
+        return this.dietsService.startDiet(user.id, idOrSlug.trim(), dto);
     }
 
     /**

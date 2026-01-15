@@ -25,12 +25,31 @@ export class FoodProcessor {
   async handleImageAnalysis(job: Job) {
     const { analysisId, imageBufferBase64, userId: jobUserId, locale, foodDescription, skipCache } = job.data;
 
+    // Pipeline metrics tracking
+    const metrics = {
+      startTime: Date.now(),
+      decodeTime: 0,
+      sharpTime: 0,
+      mediaUploadTime: 0,
+      analyzeTime: 0,
+      autoSaveTime: 0,
+      totalTime: 0,
+    };
+
     // Получаем userId из анализа, так как он точно правильный
     const analysis = await this.prisma.analysis.findUnique({
       where: { id: analysisId },
       select: { userId: true },
     });
     const userId = analysis?.userId || jobUserId;
+
+    this.logger.log(`[FoodProcessor] Starting analysis ${analysisId}`, {
+      userId,
+      locale,
+      hasFoodDescription: Boolean(foodDescription),
+      skipCache,
+      base64Length: imageBufferBase64?.length || 0,
+    });
 
     try {
       // Update status to processing
@@ -44,12 +63,12 @@ export class FoodProcessor {
         throw new Error('Invalid image buffer: base64 string is missing');
       }
 
-      console.log(`[FoodProcessor] Processing analysis ${analysisId}, base64 length: ${imageBufferBase64.length}`);
-
+      const decodeStart = Date.now();
       let imageBuffer: Buffer;
       try {
         imageBuffer = Buffer.from(imageBufferBase64, 'base64');
-        console.log(`[FoodProcessor] Decoded buffer size: ${imageBuffer.length} bytes`);
+        metrics.decodeTime = Date.now() - decodeStart;
+        this.logger.debug(`[FoodProcessor] Decoded buffer: ${imageBuffer.length} bytes in ${metrics.decodeTime}ms`);
       } catch (decodeError: any) {
         this.logger.error(`[FoodProcessor] Failed to decode base64:`, decodeError);
         throw new Error(`Failed to decode base64 image buffer: ${decodeError.message}`);
@@ -61,6 +80,7 @@ export class FoodProcessor {
 
       // Convert image to JPEG format that OpenAI supports
       // Sharp will handle any input format and convert to JPEG
+      const sharpStart = Date.now();
       let processedBuffer: Buffer;
       try {
         // Process image - convert to JPEG suitable for Vision API
@@ -69,11 +89,15 @@ export class FoodProcessor {
           .jpeg({ quality: 90, mozjpeg: true })
           .toBuffer();
 
+        metrics.sharpTime = Date.now() - sharpStart;
+
         if (!processedBuffer || processedBuffer.length === 0) {
           throw new Error('Image processing resulted in empty buffer');
         }
+        this.logger.debug(`[FoodProcessor] Sharp processing: ${imageBuffer.length} → ${processedBuffer.length} bytes in ${metrics.sharpTime}ms`);
       } catch (sharpError: any) {
         this.logger.error('Image processing error:', sharpError);
+        metrics.sharpTime = Date.now() - sharpStart;
         // If sharp fails, try using original buffer if it's valid
         if (imageBuffer && imageBuffer.length > 0) {
           processedBuffer = imageBuffer;
@@ -83,6 +107,7 @@ export class FoodProcessor {
       }
 
       // Save image to Media and get public URL
+      const mediaStart = Date.now();
       let imageUrl: string | null = null;
       try {
         const mockFile = {
@@ -93,7 +118,8 @@ export class FoodProcessor {
         };
         const mediaResult = await this.mediaService.uploadFile(mockFile, userId);
         imageUrl = mediaResult.url;
-        console.log(`[FoodProcessor] Image saved to media, URL: ${imageUrl}`);
+        metrics.mediaUploadTime = Date.now() - mediaStart;
+        this.logger.debug(`[FoodProcessor] Media upload: ${metrics.mediaUploadTime}ms`);
 
         // Update analysis metadata with imageUrl for future reanalysis
         const existingAnalysis = await this.prisma.analysis.findUnique({ where: { id: analysisId } });
@@ -118,6 +144,7 @@ export class FoodProcessor {
       // Use new AnalyzeService with USDA + RAG
       // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
       // can also accept imageBuffer directly for better caching
+      const analyzeStart = Date.now();
       const analysisResult = await this.analyzeService.analyzeImage({
         imageBase64,
         imageUrl, // Pass imageUrl if available for better cache key generation
@@ -125,6 +152,7 @@ export class FoodProcessor {
         foodDescription: foodDescription || undefined, // Pass food description if provided
         skipCache: skipCache || false, // Pass skip-cache flag for debugging
       });
+      metrics.analyzeTime = Date.now() - analyzeStart;
 
       // Check if analysis returned an error state (api_error, parse_error, no_food_detected)
       const visionStatus = (analysisResult.debug as any)?.visionStatus;
@@ -239,6 +267,7 @@ export class FoodProcessor {
                 needsReview: true,
               };
             } else if (validItems.length > 0) {
+              const autoSaveStart = Date.now();
               const meal = await this.mealsService.createMeal(userId, {
                 name: dishName,
                 type: 'MEAL',
@@ -247,7 +276,8 @@ export class FoodProcessor {
                 healthScore: analysisResult.healthScore,
                 imageUri: imageUrl || null, // Include imageUrl when auto-saving meal
               });
-              this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id})`);
+              metrics.autoSaveTime = Date.now() - autoSaveStart;
+              this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id}, ${metrics.autoSaveTime}ms)`);
 
               // =====================================================
               // OBSERVABILITY: Structured log of autosave mapping
@@ -406,7 +436,25 @@ export class FoodProcessor {
         }
       }
 
-      console.log(`[FoodProcessor] Image analysis completed for analysis ${analysisId}`);
+      // Calculate total time and log metrics
+      metrics.totalTime = Date.now() - metrics.startTime;
+      this.logger.log(`[FoodProcessor] Analysis ${analysisId} completed`, {
+        analysisId,
+        userId,
+        metrics: {
+          totalMs: metrics.totalTime,
+          decodeMs: metrics.decodeTime,
+          sharpMs: metrics.sharpTime,
+          mediaUploadMs: metrics.mediaUploadTime,
+          analyzeMs: metrics.analyzeTime,
+          autoSaveMs: metrics.autoSaveTime,
+        },
+        result: {
+          status: visionStatus || 'success',
+          itemCount: (analysisResult.items || []).length,
+          autoSaved: Boolean(result.autoSave?.mealId),
+        },
+      });
     } catch (error: any) {
       this.logger.error(`[FoodProcessor] Image analysis failed for analysis ${analysisId}:`, {
         message: error.message,

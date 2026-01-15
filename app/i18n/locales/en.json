@@ -165,6 +165,8 @@
     "privacyPolicy": "Privacy Policy",
     "acceptTerms": "I accept the Terms of Service",
     "acceptPrivacy": "I accept the Privacy Policy",
+    "tapToRead": "Tap to read full document",
+    "opened": "✓ Opened",
     "pleaseRead": "Please Read",
     "scrollToAccept": "Please scroll through the Terms of Service to accept.",
     "scrollToAcceptPrivacy": "Please scroll through the Privacy Policy to accept.",

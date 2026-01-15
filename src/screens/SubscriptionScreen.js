@@ -10,7 +10,7 @@ import {
     Modal,
     Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
@@ -77,6 +77,7 @@ export default function SubscriptionScreen() {
     const { t } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
+    const insets = useSafeAreaInsets();
 
     const [plans, setPlans] = useState([]);
     const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -289,7 +290,7 @@ export default function SubscriptionScreen() {
             {/* Scrollable Content */}
             <ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 20) + 40 }]}
                 showsVerticalScrollIndicator={false}
             >
                 <Text style={styles.subtitle}>

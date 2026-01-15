@@ -10,8 +10,8 @@
     "error": "Entschuldigung, etwas ist schief gelaufen. Bitte versuchen Sie es später erneut.",
     "healthAnalysis": {
       "addPhoto": "Add Photo",
-      "analyzing": "Analyzing photo...",
-      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
+      "analyzing": "Foto wird analysiert...",
+      "disclaimer": "Dies ist keine medizinische Diagnose. Bitte konsultieren Sie bei medizinischen Entscheidungen einen Arzt.",
       "empty": "Paste your health information or lab results below to analyze",
       "error": "Failed to analyze photo. Please try again.",
       "keyFindings": "Key Findings",
@@ -247,12 +247,12 @@
     "resendIn": "Erneut senden in {{seconds}} s",
     "sendCode": "Code senden",
     "signIn": "Anmelden",
-    "signInWithApple": "Sign Up With Apple",
+    "signInWithApple": "Mit Apple anmelden",
     "signInWithMagicLink": "Mit Magic Link anmelden",
     "signInWithOtp": "Mit E-Mail-Code anmelden",
     "signUp": "Registrieren",
-    "signUpWithEmail": "Sign Up With E-mail",
-    "termsAcceptance": "By continuing, I accept the Terms and Conditions.",
+    "signUpWithEmail": "Mit E-Mail registrieren",
+    "termsAcceptance": "Durch Fortfahren akzeptiere ich die Nutzungsbedingungen.",
     "verify": "Bestätigen",
     "verifyCode": "Code bestätigen",
     "welcomeSubtitle": "Melde dich an, um deine Ernährung zu tracken und Ziele zu erreichen.",
@@ -291,12 +291,12 @@
     "typePlaceholder": "Type a message..."
   },
   "common": {
-    "all": "All",
+    "all": "Alle",
     "back": "Zurück",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "confirm": "Confirm",
-    "days": "days",
+    "confirm": "Bestätigen",
+    "days": "Tage",
     "delete": "Löschen",
     "done": "Fertig",
     "edit": "Bearbeiten",
@@ -304,17 +304,17 @@
     "info": "Info",
     "loading": "Laden...",
     "next": "Weiter",
-    "no": "No",
-    "of": "of",
+    "no": "Nein",
+    "of": "von",
     "ok": "OK",
-    "rerun": "Rerun",
+    "rerun": "Erneut ausführen",
     "retry": "Wiederholen",
     "save": "Speichern",
     "search": "Suchen",
     "skip": "Überspringen",
     "success": "Erfolg",
     "viewAll": "Alle anzeigen",
-    "yes": "Yes"
+    "yes": "Ja"
   },
   "dashboard": {
     "addFood": {
@@ -336,20 +336,20 @@
     "aiAssistant": "KI-Assistent",
     "aiAssistantSubtitle": "Erhalten Sie personalisierte Ernährungsberatung",
     "analysisCounter": {
-      "today": "Today",
-      "total": "Total"
+      "today": "Heute",
+      "total": "Gesamt"
     },
     "articles": "Artikel",
     "calories": "Kalorien",
     "caloriesUnit": "kcal",
     "carbs": "Kohlenhydrate",
     "diary": {
-      "analyzing": "Analyzing...",
-      "analyzingHint": "This may take 10-30 seconds",
-      "failed": "Analysis failed",
-      "failedHint": "Tap to retry",
-      "needsReview": "Needs review",
-      "needsReviewHint": "Could not calculate nutrition"
+      "analyzing": "Analysieren...",
+      "analyzingHint": "Dies kann 10-30 Sekunden dauern",
+      "failed": "Analyse fehlgeschlagen",
+      "failedHint": "Zum Wiederholen tippen",
+      "needsReview": "Überprüfung erforderlich",
+      "needsReviewHint": "Nährwerte konnten nicht berechnet werden"
     },
     "fat": "Fett",
     "healthScoreSubtitle": "Tippen Sie auf die Karte, um die Analyse unter \"Kürzlich\" zu öffnen.",
