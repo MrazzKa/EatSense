@@ -9,8 +9,9 @@ export class FoodLocalizationService {
   private readonly openai: OpenAI;
 
   constructor(private readonly cache: CacheService) {
+    // Use OPENAI_API_KEY_MINI for fast translations, fallback to main key
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: process.env.OPENAI_API_KEY_MINI || process.env.OPENAI_API_KEY,
     });
   }
 
@@ -23,91 +24,125 @@ export class FoodLocalizationService {
   }
 
   /**
-   * Localize a short English food/dish name into the target locale.
-   * Uses OpenAI via a small translation prompt and caches results in Redis.
+   * Batch translate multiple names in ONE API call
+   * Saves 5+ seconds vs individual calls
    */
+  async localizeNamesBatch(names: string[], locale?: 'en' | 'ru' | 'kk'): Promise<Map<string, string>> {
+    const normalizedLocale = this.normalizeLocale(locale);
+    const results = new Map<string, string>();
+
+    if (normalizedLocale === 'en') {
+      names.forEach(name => results.set(name, this.postProcess(name.trim())));
+      return results;
+    }
+
+    const uniqueNames = [...new Set(names.filter(n => n && n.trim()))];
+    if (uniqueNames.length === 0) return results;
+
+    // Check cache first
+    const uncachedNames: string[] = [];
+    for (const name of uniqueNames) {
+      const cacheKey = this.buildCacheKey(name, normalizedLocale);
+      try {
+        const cached = await this.cache.get<string>(cacheKey, 'analysis');
+        if (cached) {
+          results.set(name, this.postProcess(cached));
+        } else {
+          uncachedNames.push(name);
+        }
+      } catch {
+        uncachedNames.push(name);
+      }
+    }
+
+    if (uncachedNames.length === 0) {
+      this.logger.debug(`[FoodLocalization] All ${uniqueNames.length} names from cache`);
+      return results;
+    }
+
+    this.logger.debug(`[FoodLocalization] Batch translating ${uncachedNames.length} names`);
+
+    try {
+      const translations = await this.batchTranslate(uncachedNames, normalizedLocale);
+
+      for (const [original, translated] of translations.entries()) {
+        const finalName = this.postProcess(translated);
+        results.set(original, finalName);
+        const cacheKey = this.buildCacheKey(original, normalizedLocale);
+        await this.cache.set(cacheKey, finalName, 'analysis', 60 * 60 * 24 * 30).catch(() => { });
+      }
+    } catch (error: any) {
+      this.logger.warn(`[FoodLocalization] Batch failed: ${error.message}`);
+      uncachedNames.forEach(name => results.set(name, this.postProcess(name)));
+    }
+
+    return results;
+  }
+
+  private async batchTranslate(names: string[], locale: 'ru' | 'kk'): Promise<Map<string, string>> {
+    const languageName = locale === 'ru' ? 'Russian' : 'Kazakh';
+    const results = new Map<string, string>();
+    const numberedList = names.map((name, i) => `${i + 1}. ${name}`).join('\n');
+
+    const response = await this.openai.chat.completions.create({
+      model: process.env.OPENAI_FAST_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: `Translate food names to ${languageName}. Output numbered list only.` },
+        { role: 'user', content: numberedList },
+      ],
+      max_tokens: Math.max(100, names.length * 20),
+      temperature: 0.3,
+    });
+
+    const content = response.choices[0]?.message?.content || '';
+    const lines = content.split('\n').filter(line => line.trim());
+
+    for (const line of lines) {
+      const match = line.match(/^(\d+)[.)\s]+(.+)$/);
+      if (match) {
+        const index = parseInt(match[1], 10) - 1;
+        const translation = match[2].trim();
+        if (index >= 0 && index < names.length && translation) {
+          results.set(names[index], translation);
+        }
+      }
+    }
+
+    names.forEach(name => {
+      if (!results.has(name)) results.set(name, name);
+    });
+
+    return results;
+  }
+
+  private buildCacheKey(name: string, locale: string): string {
+    return `food:translation:${locale}:${createHash('sha1').update(name.trim()).digest('hex')}`;
+  }
+
   async localizeName(baseName: string, locale?: 'en' | 'ru' | 'kk'): Promise<string> {
     const normalizedLocale = this.normalizeLocale(locale);
     const trimmed = (baseName || '').trim();
+
     if (!trimmed || normalizedLocale === 'en') {
       return this.postProcess(trimmed);
     }
 
-    const cacheKey = `food:translation:${normalizedLocale}:${createHash('sha1')
-      .update(trimmed)
-      .digest('hex')}`;
-
+    const cacheKey = this.buildCacheKey(trimmed, normalizedLocale);
     try {
       const cached = await this.cache.get<string>(cacheKey, 'analysis');
-      if (cached) {
-        return this.postProcess(cached);
-      }
-    } catch (err) {
-      // Non-critical: log and continue without failing
-      this.logger.warn('[FoodLocalization] Failed to read cache', {
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
+      if (cached) return this.postProcess(cached);
+    } catch { }
 
-    const languageName = normalizedLocale === 'ru' ? 'Russian' : 'Kazakh';
-
-    const systemPrompt = [
-      'You are a food name translator for a nutrition mobile app.',
-      'Input: a SHORT English food or dish name.',
-      `Output: a VERY short natural food name in ${languageName}.`,
-      'Constraints:',
-      '- Return ONLY the translated name, no explanations, no quotes.',
-      '- It must be concise (ideally 2–5 words).',
-    ].join('\n');
-
-    const userPrompt = `LANGUAGE = ${languageName}\nName: "${trimmed}"`;
-
-    let translated = trimmed;
-    try {
-      const model = process.env.OPENAI_MODEL || 'gpt-4o';
-      const response = await this.openai.chat.completions.create({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_completion_tokens: 40,
-        temperature: 0.3,
-      });
-
-      const content = response.choices[0]?.message?.content || '';
-      translated = (content || '').trim() || trimmed;
-    } catch (error: any) {
-      this.logger.warn('[FoodLocalization] Translation failed, falling back to English name', {
-        error: error?.message || String(error),
-      });
-      translated = trimmed;
-    }
-
-    const finalName = this.postProcess(translated);
-
-    try {
-      // Cache for 30 days
-      await this.cache.set(cacheKey, finalName, 'analysis', 60 * 60 * 24 * 30);
-    } catch (err) {
-      this.logger.warn('[FoodLocalization] Failed to write cache', {
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-
-    return finalName;
+    const results = await this.localizeNamesBatch([trimmed], normalizedLocale);
+    return results.get(trimmed) || this.postProcess(trimmed);
   }
 
   private postProcess(name: string): string {
     if (!name) return '';
     const normalized = name.replace(/\s+/g, ' ').trim();
-    const limit = 50;
-    if (normalized.length <= limit) return normalized;
-
-    const cut = normalized.slice(0, limit);
+    if (normalized.length <= 50) return normalized;
+    const cut = normalized.slice(0, 50);
     const lastSpace = cut.lastIndexOf(' ');
     return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim() + '…';
   }
 }
-
-

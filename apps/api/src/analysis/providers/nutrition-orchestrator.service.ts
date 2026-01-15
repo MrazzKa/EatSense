@@ -15,15 +15,15 @@ export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
 
 // Per-provider timeout configuration (ms)
-// Increased timeouts for medical analysis reliability
+// OPTIMIZED: Reduced timeouts for faster analysis
 const PROVIDER_TIMEOUTS: Record<string, number> = {
-  'local': 500,          // Local DB - instant
-  'swiss-food': 2000,    // Swiss Food - fast API
-  'openfoodfacts': 8000, // OFF - increased for medical analysis
-  'usda': 10000,         // USDA - increased for medical analysis (10s)
-  'rag': 8000,           // RAG - increased for medical analysis (8s)
+  'local': 200,          // Local DB - instant
+  'swiss-food': 1000,    // Swiss Food - fast API
+  'openfoodfacts': 2500, // OFF - reduced for speed
+  'usda': 3000,          // USDA - main provider
+  'rag': 2500,           // RAG - backup
 };
-const DEFAULT_PROVIDER_TIMEOUT = 10000; // Increased for medical analysis (10s)
+const DEFAULT_PROVIDER_TIMEOUT = 3000; // Fast fallback
 
 export interface NutritionCacheKeyInput {
   normalizedName: string;
@@ -152,7 +152,7 @@ export class NutritionOrchestrator {
       const isVegCategory = context.categoryHint === 'veg' || context.categoryHint === 'vegetable';
       const isGrainCategory = context.categoryHint === 'grain';
       const isLegumeCategory = context.categoryHint === 'legume';
-      
+
       // If query is for vegetable/grain/legume but result is oil - reject
       if ((isVegCategory || isGrainCategory || isLegumeCategory) && isOilResult) {
         // Only reject if query doesn't explicitly mention oil
@@ -172,7 +172,7 @@ export class NutritionOrchestrator {
       const isMealResult = nameLower.includes('meal') || nameLower.includes('dinner') ||
         nameLower.includes('lunch') || nameLower.includes('breakfast') ||
         nameLower.includes('frozen') || nameLower.includes('ready');
-      
+
       if (isVegCategory && isMealResult && !queryLower.includes('meal')) {
         this.logger.warn(
           `[Orchestrator] Rejected meal match for vegetable query: "${context.originalQuery}" → "${displayName}"`,
@@ -458,7 +458,7 @@ export class NutritionOrchestrator {
       nameLower.includes('margarine') || nameLower.includes('маргарин') ||
       nameLower.includes('lard') || nameLower.includes('сало') ||
       nameLower.includes('ghee') || nameLower.includes('топлёное');
-    
+
     if (isOil) {
       // Pure oils: 800-900 kcal/100g, butter: ~717 kcal/100g, allow 650-950 range
       if (kcalPer100 < 650 || kcalPer100 > 950) {
@@ -474,8 +474,8 @@ export class NutritionOrchestrator {
     // Cooked corn: 86-100 kcal/100g, NOT oil (800+ kcal)
     if ((nameLower.includes('corn') || nameLower.includes('кукуруз')) && !isOil) {
       // Cooked corn / canned corn
-      if (nameLower.includes('cooked') || nameLower.includes('варён') || 
-          nameLower.includes('canned') || nameLower.includes('консерв')) {
+      if (nameLower.includes('cooked') || nameLower.includes('варён') ||
+        nameLower.includes('canned') || nameLower.includes('консерв')) {
         if (kcalPer100 < 70 || kcalPer100 > 130) {
           return {
             isValid: true,
