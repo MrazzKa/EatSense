@@ -7,7 +7,7 @@ import * as sharp from 'sharp';
 
 // Maximum base64 size for Vision API (characters)
 // GPT-4o can handle up to 20MB, but we limit to 1MB for speed
-const MAX_BASE64_SIZE = 1_400_000; // ~1MB base64 = ~750KB image
+const MAX_BASE64_SIZE = 1_000_000; // ~750KB base64 = ~560KB image
 
 // Target dimensions for image optimization
 const TARGET_MAX_DIMENSION = 1024; // pixels
@@ -197,7 +197,7 @@ export class VisionService {
     }
     this.openai = new OpenAI({
       apiKey,
-      timeout: 45000, // 45 second timeout
+      timeout: 30000, // 30 second timeout (reduced from 45s)
       maxRetries: 0, // No built-in retries (we handle retries ourselves)
     });
   }

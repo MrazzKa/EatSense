@@ -978,7 +978,7 @@ export class AnalyzeService {
         const isSimple = this.isSimpleWellKnownProduct(name);
         const estNutrients = (component as any).estimated_nutrients;
         const nutritionConfidence = (component as any).nutritionConfidence ?? 0;
-        const hasGoodEstimate = estNutrients?.calories > 0 && nutritionConfidence >= 0.80;
+        const hasGoodEstimate = estNutrients?.calories > 0 && nutritionConfidence >= 0.75;
 
         if (isSimple && hasGoodEstimate) {
           const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
