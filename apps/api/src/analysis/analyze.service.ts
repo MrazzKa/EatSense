@@ -1482,7 +1482,7 @@ export class AnalyzeService {
         dishNameLocalized: locale === 'ru' ? 'Ошибка анализа' : 'Analysis Failed',
         debug: {
           timestamp: new Date().toISOString(),
-          model: process.env.OPENAI_MODEL || 'gpt-4.1',
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
           components: [],
           sanity: [{
             type: 'zero_calories_nonzero_portion',
@@ -1515,7 +1515,7 @@ export class AnalyzeService {
         dishNameLocalized: locale === 'ru' ? 'Ошибка распознавания' : 'Parse Error',
         debug: {
           timestamp: new Date().toISOString(),
-          model: process.env.OPENAI_MODEL || 'gpt-4.1',
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
           components: [],
           sanity: [{
             type: 'zero_calories_nonzero_portion',
@@ -1547,7 +1547,7 @@ export class AnalyzeService {
         dishNameLocalized: locale === 'ru' ? 'Еда не обнаружена' : 'No Food Detected',
         debug: {
           timestamp: new Date().toISOString(),
-          model: process.env.OPENAI_MODEL || 'gpt-4.1',
+          model: process.env.OPENAI_MODEL || 'gpt-4o',
           components: [],
           sanity: [{
             type: 'zero_calories_nonzero_portion',
@@ -1566,7 +1566,7 @@ export class AnalyzeService {
       componentsRaw: visionComponents,
       components: [],
       timestamp: new Date().toISOString(),
-      model: process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4.1',
+      model: process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o',
     };
 
     // Add pipeline tracing info (always included for debugging)

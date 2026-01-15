@@ -64,7 +64,7 @@ export class FoodLocalizationService {
 
     let translated = trimmed;
     try {
-      const model = process.env.OPENAI_MODEL || 'gpt-4.1';
+      const model = process.env.OPENAI_MODEL || 'gpt-4o';
       const response = await this.openai.chat.completions.create({
         model,
         messages: [
