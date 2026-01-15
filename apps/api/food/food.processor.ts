@@ -78,63 +78,79 @@ export class FoodProcessor {
         throw new Error('Invalid image buffer: decoded buffer is empty');
       }
 
-      // Convert image to JPEG format that OpenAI supports
-      // Sharp will handle any input format and convert to JPEG
+      // Convert image to JPEG format - TWO versions:
+      // 1. displayBuffer - high quality for UI/history (1024px, 80%)
+      // 2. analysisBuffer - compressed for Vision API (512px, 50%)
       const sharpStart = Date.now();
-      let processedBuffer: Buffer;
+      let displayBuffer: Buffer;
+      let analysisBuffer: Buffer;
       try {
-        // Process image - resize and convert to JPEG suitable for Vision API
-        // CRITICAL FIX: Resize large images to prevent Vision API timeout
-        // OpenAI Vision works well with 1024-2048px images
-        // Larger images (4000x3000 from iPhone) cause 45sec+ timeouts
-        const MAX_DIMENSION = 1024; // Aggressive resize for speed
-        const JPEG_QUALITY = 65;    // Lower quality = smaller file = faster upload
+        // DISPLAY: Good quality for saving and showing to user
+        const DISPLAY_MAX_DIM = 1024;
+        const DISPLAY_QUALITY = 80;
 
-        processedBuffer = await sharp(imageBuffer)
-          .resize(MAX_DIMENSION, MAX_DIMENSION, {
-            fit: 'inside',           // Keep aspect ratio
-            withoutEnlargement: true // Don't upscale small images
-          })
-          .jpeg({
-            quality: JPEG_QUALITY,
-            mozjpeg: true
-          })
-          .toBuffer();
+        // ANALYSIS: Aggressively compressed for Vision API speed
+        // GPT-4o doesn't need high resolution to recognize food
+        const ANALYSIS_MAX_DIM = 512;
+        const ANALYSIS_QUALITY = 50;
+
+        // Process both in parallel for speed
+        const [displayResult, analysisResult] = await Promise.all([
+          sharp(imageBuffer)
+            .resize(DISPLAY_MAX_DIM, DISPLAY_MAX_DIM, {
+              fit: 'inside',
+              withoutEnlargement: true
+            })
+            .jpeg({ quality: DISPLAY_QUALITY, mozjpeg: true })
+            .toBuffer(),
+          sharp(imageBuffer)
+            .resize(ANALYSIS_MAX_DIM, ANALYSIS_MAX_DIM, {
+              fit: 'inside',
+              withoutEnlargement: true
+            })
+            .jpeg({ quality: ANALYSIS_QUALITY, mozjpeg: true })
+            .toBuffer(),
+        ]);
+
+        displayBuffer = displayResult;
+        analysisBuffer = analysisResult;
 
         metrics.sharpTime = Date.now() - sharpStart;
 
-        // Log size reduction
-        const reduction = ((1 - processedBuffer.length / imageBuffer.length) * 100).toFixed(1);
-        this.logger.debug(`[FoodProcessor] Image resized: ${(imageBuffer.length / 1024).toFixed(0)}KB → ${(processedBuffer.length / 1024).toFixed(0)}KB (-${reduction}%) in ${metrics.sharpTime}ms`);
+        // Log size reductions
+        this.logger.debug(`[FoodProcessor] Image processed in ${metrics.sharpTime}ms:`, {
+          original: `${(imageBuffer.length / 1024).toFixed(0)}KB`,
+          display: `${(displayBuffer.length / 1024).toFixed(0)}KB (${DISPLAY_MAX_DIM}px)`,
+          analysis: `${(analysisBuffer.length / 1024).toFixed(0)}KB (${ANALYSIS_MAX_DIM}px)`,
+        });
 
-        if (!processedBuffer || processedBuffer.length === 0) {
-          throw new Error('Image processing resulted in empty buffer');
+        if (!displayBuffer || displayBuffer.length === 0) {
+          throw new Error('Display image processing resulted in empty buffer');
         }
-
-        // Warn if still too large
-        if (processedBuffer.length > 500 * 1024) {
-          this.logger.warn(`[FoodProcessor] Image still large: ${(processedBuffer.length / 1024).toFixed(0)}KB`);
+        if (!analysisBuffer || analysisBuffer.length === 0) {
+          throw new Error('Analysis image processing resulted in empty buffer');
         }
       } catch (sharpError: any) {
         this.logger.error('Image processing error:', sharpError);
         metrics.sharpTime = Date.now() - sharpStart;
-        // If sharp fails, try using original buffer if it's valid
+        // If sharp fails, use original for both
         if (imageBuffer && imageBuffer.length > 0) {
-          processedBuffer = imageBuffer;
+          displayBuffer = imageBuffer;
+          analysisBuffer = imageBuffer;
         } else {
           throw new Error(`Image processing failed: ${sharpError.message || 'Unknown error'}`);
         }
       }
 
-      // Save image to Media and get public URL
+      // Save image to Media and get public URL (use displayBuffer - high quality)
       const mediaStart = Date.now();
       let imageUrl: string | null = null;
       try {
         const mockFile = {
-          buffer: processedBuffer,
+          buffer: displayBuffer,  // HIGH QUALITY for storage
           originalname: `analysis-${analysisId}.jpg`,
           mimetype: 'image/jpeg',
-          size: processedBuffer.length,
+          size: displayBuffer.length,
         };
         const mediaResult = await this.mediaService.uploadFile(mockFile, userId);
         imageUrl = mediaResult.url;
@@ -158,8 +174,8 @@ export class FoodProcessor {
         // Continue without imageUrl - analysis can still proceed
       }
 
-      // Convert buffer to base64 for new analysis service
-      const imageBase64 = processedBuffer.toString('base64');
+      // Convert ANALYSIS buffer to base64 (compressed for speed)
+      const imageBase64 = analysisBuffer.toString('base64');
 
       // Use new AnalyzeService with USDA + RAG
       // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
