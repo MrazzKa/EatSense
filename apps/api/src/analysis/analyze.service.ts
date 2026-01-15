@@ -718,13 +718,16 @@ export class AnalyzeService {
   private async createFallbackItem(foodDescription: string, locale: string): Promise<AnalyzedItem | null> {
     try {
       // Use the nutrition orchestrator to look up the food
-      const lookupResult = await this.nutritionOrchestrator.lookupNutrition({
-        originalQuery: foodDescription,
-        normalizedName: foodDescription.toLowerCase().trim(),
-        locale,
-        region: 'OTHER',
-        expectedCategory: 'solid',
-      });
+      // findNutrition takes (query, context)
+      const lookupResult = await this.nutrition.findNutrition(
+        foodDescription.toLowerCase().trim(),
+        {
+          originalQuery: foodDescription,
+          locale: locale as 'en' | 'ru' | 'kk',
+          region: 'OTHER',
+          expectedCategory: 'solid',
+        }
+      );
 
       if (lookupResult && lookupResult.food) {
         const { food, confidence } = lookupResult;
@@ -739,17 +742,17 @@ export class AnalyzeService {
           fiber: this.round((food.per100g.fiber || 0) * scale, 1),
           sugars: this.round((food.per100g.sugars || 0) * scale, 1),
           satFat: this.round((food.per100g.satFat || 0) * scale, 1),
+          energyDensity: food.per100g.calories || 0,
         };
 
         return {
+          id: crypto.randomUUID(), // AnalyzedItem requires an ID
           name: food.displayName || foodDescription,
-          displayName: food.displayName || foodDescription,
           portion_g,
           nutrients,
           confidence: confidence || 0.5,
-          source: food.providerId || 'fallback',
+          source: (food.providerId || 'fallback') as any, // Cast to any to avoid strict check against specific provider IDs vs sources
           isFallback: true,
-          needsReview: true,
           isSuspicious: false,
         };
       }
@@ -768,6 +771,7 @@ export class AnalyzeService {
           fiber: 2,
           sugars: 3,
           satFat: 2,
+          energyDensity: 133, // approx 200kcal / 150g * 100
         },
         confidence: 0.3,
         source: 'generic_fallback',
