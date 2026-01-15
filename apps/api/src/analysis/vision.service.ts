@@ -186,9 +186,9 @@ export class VisionService {
   private readonly openai: OpenAI;
 
   // Retry configuration for Vision API calls
-  // Increased from 2 to 3 for better reliability with OpenAI Vision API
-  private readonly MAX_RETRIES = 3;
-  private readonly RETRY_DELAY_MS = 2000;
+  // OPTIMIZED: Reduced retries and delay for faster failure recovery
+  private readonly MAX_RETRIES = 2;
+  private readonly RETRY_DELAY_MS = 500;
 
   constructor(private readonly cache: CacheService) {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -197,8 +197,8 @@ export class VisionService {
     }
     this.openai = new OpenAI({
       apiKey,
-      timeout: 120000, // 2 minute timeout
-      maxRetries: 2, // Built-in retry
+      timeout: 45000, // 45 second timeout (reduced from 120s)
+      maxRetries: 1, // Built-in retry (reduced from 2)
     });
   }
 
@@ -900,12 +900,12 @@ russian, italian, asian, japanese, chinese, korean, mexican, american, french, m
 Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON structure.`;
 
 
-    const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o';
+    const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4.1';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
-    // Configure timeout for Vision API call (default 120 seconds, configurable via env)
-    // Increased from 60s to 120s to handle complex images and network latency
-    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '120000', 10);
+    // Configure timeout for Vision API call (default 45 seconds, configurable via env)
+    // OPTIMIZED: Reduced from 120s to 45s for faster response
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '45000', 10);
 
     try {
       // Retry loop for Vision API call
