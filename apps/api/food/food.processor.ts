@@ -83,18 +83,38 @@ export class FoodProcessor {
       const sharpStart = Date.now();
       let processedBuffer: Buffer;
       try {
-        // Process image - convert to JPEG suitable for Vision API
-        // Note: Sharp does not preserve EXIF metadata when converting to JPEG by default
+        // Process image - resize and convert to JPEG suitable for Vision API
+        // CRITICAL FIX: Resize large images to prevent Vision API timeout
+        // OpenAI Vision works well with 1024-2048px images
+        // Larger images (4000x3000 from iPhone) cause 45sec+ timeouts
+        const MAX_DIMENSION = 1536; // Good balance: quality vs speed
+        const JPEG_QUALITY = 75;    // Reduced for smaller file size
+
         processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 90, mozjpeg: true })
+          .resize(MAX_DIMENSION, MAX_DIMENSION, {
+            fit: 'inside',           // Keep aspect ratio
+            withoutEnlargement: true // Don't upscale small images
+          })
+          .jpeg({
+            quality: JPEG_QUALITY,
+            mozjpeg: true
+          })
           .toBuffer();
 
         metrics.sharpTime = Date.now() - sharpStart;
 
+        // Log size reduction
+        const reduction = ((1 - processedBuffer.length / imageBuffer.length) * 100).toFixed(1);
+        this.logger.debug(`[FoodProcessor] Image resized: ${(imageBuffer.length / 1024).toFixed(0)}KB → ${(processedBuffer.length / 1024).toFixed(0)}KB (-${reduction}%) in ${metrics.sharpTime}ms`);
+
         if (!processedBuffer || processedBuffer.length === 0) {
           throw new Error('Image processing resulted in empty buffer');
         }
-        this.logger.debug(`[FoodProcessor] Sharp processing: ${imageBuffer.length} → ${processedBuffer.length} bytes in ${metrics.sharpTime}ms`);
+
+        // Warn if still too large
+        if (processedBuffer.length > 500 * 1024) {
+          this.logger.warn(`[FoodProcessor] Image still large: ${(processedBuffer.length / 1024).toFixed(0)}KB`);
+        }
       } catch (sharpError: any) {
         this.logger.error('Image processing error:', sharpError);
         metrics.sharpTime = Date.now() - sharpStart;
@@ -192,8 +212,8 @@ export class FoodProcessor {
               'Analyzed Meal';
 
             console.log(`[FoodProcessor] Autosave meal name: "${dishName}" (source: ${analysisResult.dishNameLocalized ? 'dishNameLocalized' :
-                analysisResult.originalDishName ? 'originalDishName' :
-                  items[0]?.name ? 'firstItem' : 'fallback'
+              analysisResult.originalDishName ? 'originalDishName' :
+                items[0]?.name ? 'firstItem' : 'fallback'
               })`);
             // Фильтруем и валидируем items перед сохранением
             // Relaxed validation: accept items with any nutrition data or reasonable portion
