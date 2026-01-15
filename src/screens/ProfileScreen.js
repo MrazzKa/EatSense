@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -23,9 +23,11 @@ import { getDisclaimer, shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import { formatAmount } from '../utils/currency';
+import HealthDisclaimer from '../components/HealthDisclaimer';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const themeContext = useTheme();
   const { signOut } = useAuth();
@@ -1253,14 +1255,14 @@ const ProfileScreen = () => {
         <Modal
           visible={editing}
           animationType="slide"
-          presentationStyle="fullScreen"
+          presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
           onRequestClose={handleCancel}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.background }} edges={['top']}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.background }} edges={['bottom', 'left', 'right']}>
             <KeyboardAvoidingView
               style={{ flex: 1 }}
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 44 : 0}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
               <View style={styles.editModalContainer}>
                 <View
@@ -1268,8 +1270,8 @@ const ProfileScreen = () => {
                     styles.editModalHeader,
                     {
                       borderBottomColor: tokens.colors.border,
-                      paddingTop: 8,
-                      paddingBottom: 12,
+                      paddingTop: 16, // More padding for visual breathability
+                      paddingBottom: 16,
                     }
                   ]}
                 >
@@ -1278,11 +1280,12 @@ const ProfileScreen = () => {
                     style={styles.editModalCloseButton}
                     hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                   >
-                    <Ionicons name="close" size={32} color={tokens.colors.textPrimary || tokens.colors.text} />
+                    <Ionicons name="close" size={28} color={tokens.colors.textPrimary || tokens.colors.text} />
                   </TouchableOpacity>
                   <Text style={[styles.editModalTitle, { color: tokens.colors.textPrimary }]}>
                     {t('profile.editProfile') || 'Edit Profile'}
                   </Text>
+                  {/* Invisible view to balance the header title centering */}
                   <View style={styles.editModalCloseButton} />
                 </View>
                 <ScrollView
@@ -1617,23 +1620,33 @@ const ProfileScreen = () => {
           </Text>
         </AppCard>
 
-        {/* Legal Menu Button */}
-        <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border }]}>
+        {/* Legal Menu Button & Health Disclaimer Replaced */}
+        <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
+          <Text style={[styles.sectionTitle, { marginLeft: 16, marginTop: 16 }]}>{t('profile.legal') || 'Legal'}</Text>
+
           <TouchableOpacity
-            onPress={() => navigation.navigate('LegalMenu')}
+            onPress={() => Linking.openURL('https://eatsense.app/privacy')}
             style={styles.footerLink}
           >
-            <Text style={[styles.footerLinkText, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-              {t('profile.legal') || 'Legal'}
+            <Text style={[styles.footerLinkText, { color: colors.textPrimary }]}>
+              {safeT('profile.privacyPolicy', 'Privacy Policy')}
             </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
-        </View>
 
-        {/* Health Disclaimer Footer */}
-        <View style={{ padding: 16, alignItems: 'center' }}>
-          <Text style={{ textAlign: 'center', fontSize: 11, color: colors.textTertiary }}>
-            {getDisclaimer('health_footer', language)?.content}
-          </Text>
+          <View style={[styles.divider, { marginHorizontal: 16, height: 1, backgroundColor: colors.borderMuted }]} />
+
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://eatsense.app/terms')}
+            style={styles.footerLink}
+          >
+            <Text style={[styles.footerLinkText, { color: colors.textPrimary }]}>
+              {safeT('profile.termsOfService', 'Terms of Service')}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          <HealthDisclaimer style={{ margin: 16 }} />
         </View>
 
         {/* Build Info for debugging */}

@@ -22,6 +22,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
 import { getDisclaimer } from '../legal/disclaimerUtils';
+import HealthDisclaimer from '../components/HealthDisclaimer';
 
 import FullScreenImageModal from '../components/common/FullScreenImageModal';
 import { clientLog } from '../utils/clientLog';
@@ -1030,6 +1031,7 @@ export default function AnalysisResultsScreen() {
               </Text>
             </TouchableOpacity>
           )}
+          <HealthDisclaimer style={{ marginTop: 24, marginHorizontal: 4 }} />
         </View>
 
         <View style={{ height: 100 }} />

@@ -10,8 +10,25 @@ class ApiService {
     this.refreshTokenValue = DEV_REFRESH_TOKEN || null;
     /** @type {string | null} */
     this.expoPushToken = null;
-    /** @type {Promise<boolean> | null} - Mutex: ongoing refresh request */
+
+    // Mutex for refresh operations
+    /** @type {Promise<boolean> | null} */
     this._refreshPromise = null;
+    /** @type {number} - Current refresh attempt count */
+    this._refreshAttempts = 0;
+    /** @type {number} - Maximum refresh attempts before forcing logout */
+    this._maxRefreshAttempts = 3;
+
+    // Grace period tracking - prevents redundant refresh calls
+    /** @type {number} - Timestamp of last successful refresh */
+    this._lastRefreshTime = 0;
+    /** @type {boolean} - Result of last refresh */
+    this._lastRefreshSuccess = false;
+    /** @type {number} - Grace period in ms: skip refresh if recently succeeded */
+    this._refreshGracePeriodMs = 10000; // 10 seconds (increased from 5)
+
+    // Timer for resetting refresh attempts
+    this._refreshResetTimer = null;
 
     // Log configuration on init (using safe values) - always log in dev
     if (__DEV__) {
@@ -177,8 +194,35 @@ class ApiService {
       if (__DEV__) console.log(`[ApiService] Response status: ${response.status}`);
 
       if (response.status === 401) {
-        const refreshed = await this.refreshToken();
-        if (refreshed) {
+        // Check if we're in grace period after recent successful refresh
+        const timeSinceRefresh = Date.now() - this._lastRefreshTime;
+        const inGracePeriod = this._lastRefreshSuccess && timeSinceRefresh < this._refreshGracePeriodMs;
+
+        if (__DEV__) {
+          console.log(`[ApiService] 401 received for ${endpoint}`, {
+            inGracePeriod,
+            timeSinceRefresh,
+            lastRefreshSuccess: this._lastRefreshSuccess,
+            hasToken: !!this.token,
+          });
+        }
+
+        let shouldRetry = false;
+
+        if (inGracePeriod) {
+          // Recently refreshed successfully - just retry with current token
+          // This handles race condition where request was sent before refresh completed
+          if (__DEV__) {
+            console.log('[ApiService] In grace period, retrying with current token without refresh');
+          }
+          shouldRetry = true;
+        } else {
+          // Not in grace period - attempt refresh
+          const refreshed = await this.refreshToken();
+          shouldRetry = refreshed;
+        }
+
+        if (shouldRetry) {
           // Retry the original request with new token
           config.headers = this.getHeaders();
           // Create new AbortController for retry request
@@ -191,6 +235,29 @@ class ApiService {
           try {
             response = await fetch(url, config);
             clearTimeout(retryTimeoutId);
+
+            // If still 401 after retry and we were in grace period, try actual refresh
+            if (response.status === 401 && inGracePeriod) {
+              if (__DEV__) {
+                console.log('[ApiService] Grace period retry failed, attempting actual refresh');
+              }
+              const refreshed = await this.refreshToken();
+              if (refreshed) {
+                config.headers = this.getHeaders();
+                const retryAbortController2 = new AbortController();
+                const retryTimeoutId2 = setTimeout(() => {
+                  retryAbortController2.abort();
+                }, timeoutMs);
+                config.signal = retryAbortController2.signal;
+                try {
+                  response = await fetch(url, config);
+                  clearTimeout(retryTimeoutId2);
+                } catch (retryError2) {
+                  clearTimeout(retryTimeoutId2);
+                  throw retryError2;
+                }
+              }
+            }
           } catch (retryError) {
             clearTimeout(retryTimeoutId);
             throw retryError;
@@ -366,6 +433,8 @@ class ApiService {
   }
 
   async logout() {
+    // Clear refresh state before logout
+    this._clearRefreshState();
     return this.request('/auth/logout', {
       method: 'POST',
     });
@@ -373,7 +442,20 @@ class ApiService {
 
   async refreshToken() {
     if (!this.refreshTokenValue) {
+      if (__DEV__) console.log('[ApiService] No refresh token available');
       return false;
+    }
+
+    // Check if we recently succeeded - return cached success within grace period
+    const timeSinceRefresh = Date.now() - this._lastRefreshTime;
+    if (this._lastRefreshSuccess && timeSinceRefresh < this._refreshGracePeriodMs) {
+      if (__DEV__) {
+        console.log('[ApiService] Refresh skipped - within grace period', {
+          timeSinceRefresh,
+          gracePeriod: this._refreshGracePeriodMs,
+        });
+      }
+      return true;
     }
 
     // Mutex: if refresh is already in progress, wait for it
@@ -381,7 +463,10 @@ class ApiService {
     if (this._refreshPromise) {
       if (__DEV__) console.log('[ApiService] Refresh already in progress, waiting...');
       try {
-        return await this._refreshPromise;
+        const result = await this._refreshPromise;
+        // After waiting, the refresh has completed - return the result
+        // The _lastRefreshSuccess should be set by the original refresh
+        return result;
       } catch {
         // If the ongoing refresh failed, don't retry immediately
         return false;
@@ -395,11 +480,30 @@ class ApiService {
 
     try {
       const result = await refreshPromise;
+      // Update grace period state
+      if (result) {
+        this._lastRefreshTime = Date.now();
+        this._lastRefreshSuccess = true;
+        if (__DEV__) {
+          console.log('[ApiService] Refresh succeeded, grace period started');
+        }
+      } else {
+        this._lastRefreshSuccess = false;
+      }
       return result;
+    } catch (error) {
+      this._lastRefreshSuccess = false;
+      throw error;
     } finally {
       // Only clear mutex if this is still our promise (prevents race conditions)
+      // Keep mutex a bit longer to prevent thundering herd
       if (this._refreshPromise === refreshPromise) {
-        this._refreshPromise = null;
+        // Clear after short delay to allow concurrent requests to see the result
+        setTimeout(() => {
+          if (this._refreshPromise === refreshPromise) {
+            this._refreshPromise = null;
+          }
+        }, 100);
       }
     }
   }
@@ -409,11 +513,18 @@ class ApiService {
     if (!this._refreshAttempts) this._refreshAttempts = 0;
     this._refreshAttempts++;
 
-    // Prevent more than 3 refresh attempts in quick succession
-    if (this._refreshAttempts > 3) {
-      console.warn('[ApiService] Too many refresh attempts, logging out');
-      await this.setToken(null, null);
-      this._refreshAttempts = 0;
+    if (__DEV__) {
+      console.log('[ApiService] _doRefreshToken starting', {
+        attempt: this._refreshAttempts,
+        hasRefreshToken: !!this.refreshTokenValue,
+        refreshTokenPrefix: this.refreshTokenValue ? this.refreshTokenValue.substring(0, 20) + '...' : 'none',
+      });
+    }
+
+    // Prevent more than max refresh attempts in quick succession
+    if (this._refreshAttempts > this._maxRefreshAttempts) {
+      console.warn(`[ApiService] Too many refresh attempts (${this._refreshAttempts}), forcing logout`);
+      await this._forceLogout();
       return false;
     }
 
@@ -431,12 +542,21 @@ class ApiService {
         body: JSON.stringify({ refreshToken: this.refreshTokenValue }),
       });
 
+      if (__DEV__) {
+        console.log('[ApiService] Refresh response status:', refreshRes.status);
+      }
+
       if (refreshRes.ok) {
         const tokens = await refreshRes.json();
         if (tokens.accessToken) {
           // Update tokens in memory and storage
           await this.setToken(tokens.accessToken, tokens.refreshToken || this.refreshTokenValue);
-          if (__DEV__) console.log('[ApiService] Token refreshed successfully');
+          if (__DEV__) {
+            console.log('[ApiService] Token refreshed successfully', {
+              newTokenPrefix: tokens.accessToken.substring(0, 20) + '...',
+              hasNewRefreshToken: !!tokens.refreshToken,
+            });
+          }
           this._refreshAttempts = 0; // Reset on success
           return true;
         }
@@ -445,9 +565,9 @@ class ApiService {
       // Handle specific error cases
       if (refreshRes.status === 401) {
         // Token is invalid/expired, need to re-login
-        console.warn('[ApiService] Refresh token invalid, logging out');
+        console.warn('[ApiService] Refresh token invalid (401), logging out');
         await this.setToken(null, null);
-        this._refreshAttempts = 0;
+        this._clearRefreshState();
         return false;
       }
 
@@ -459,6 +579,36 @@ class ApiService {
       // On network error, don't clear tokens (might be temporary)
       return false;
     }
+  }
+
+  /**
+   * Clear refresh-related state (used on logout or failed refresh)
+   */
+  _clearRefreshState() {
+    this._refreshAttempts = 0;
+    this._lastRefreshTime = 0;
+    this._lastRefreshSuccess = false;
+    this._refreshPromise = null;
+    if (this._refreshResetTimer) {
+      clearTimeout(this._refreshResetTimer);
+      this._refreshResetTimer = null;
+    }
+  }
+
+  /**
+   * Force logout - clears all tokens and emits logout event
+   * Called when refresh token is definitively invalid
+   */
+  async _forceLogout() {
+    if (__DEV__) {
+      console.log('[ApiService] Forcing logout due to invalid tokens');
+    }
+    await this.setToken(null, null);
+    this._clearRefreshState();
+
+    // Emit event for app to handle (e.g., navigate to login)
+    // React Native uses EventEmitter or global state instead of window events
+    // This is a placeholder - actual implementation depends on app architecture
   }
 
   async signInWithApple(appleData) {

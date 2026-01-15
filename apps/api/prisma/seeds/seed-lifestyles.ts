@@ -2,284 +2,229 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// ============================================================================
-// LIFESTYLE PROGRAMS - Converted from mobile app data
-// These use type: 'LIFESTYLE' in the DietProgram table
-// ============================================================================
-
-const lifestylePrograms = [
-    // 🔥 TRENDING
-    {
-        id: 'that_girl',
-        slug: 'that_girl',
-        name: { en: 'That Girl', ru: 'That Girl', kk: 'That Girl' },
-        subtitle: {
-            en: '5AM, green juice, main character energy',
-            ru: '5 утра, зелёный сок, энергия главного персонажа',
-            kk: 'Таңғы 5, жасыл шырын, басты кейіпкер энергиясы',
-        },
-        description: {
-            en: 'Wellness as aesthetic. Green smoothies, matcha, overnight oats, açaí bowls. Looking good, feeling good, doing good.',
-            ru: 'Здоровье как эстетика. Зелёные смузи, матча, овсянка на ночь, чаши асаи. Выглядеть хорошо, чувствовать себя хорошо.',
-            kk: 'Денсаулық эстетика ретінде. Жасыл смузи, матча, түнде дайындалған суытпа, асаи тағамдары.',
-        },
-        shortDescription: {
-            en: 'Main character energy lifestyle',
-            ru: 'Образ жизни главного героя',
-            kk: 'Басты кейіпкер энергиясы',
-        },
-        category: 'trending',
-        type: 'LIFESTYLE' as const,
-        difficulty: 'EASY' as const,
-        duration: 14,
-        uiGroup: 'Trending',
-        streakThreshold: 0.6,
-        dailyTracker: [
-            { key: 'morning_routine', label: { en: 'Morning routine done', ru: 'Утренняя рутина выполнена', kk: 'Таңғы режим орындалды' } },
-            { key: 'healthy_meal', label: { en: 'Aesthetic healthy meal', ru: 'Эстетичная здоровая еда', kk: 'Эстетикалық сау тамақ' } },
-            { key: 'water', label: { en: 'Water with lemon', ru: 'Вода с лимоном', kk: 'Лимонды су' } },
-            { key: 'no_processed', label: { en: 'No processed foods', ru: 'Без обработанных продуктов', kk: 'Өңделген тамақсыз' } },
-        ],
-        suitableFor: ['wellness', 'aesthetic', 'young_women'],
-        isFeatured: true,
-        popularityScore: 90,
-        tags: ['trending', 'aesthetic', 'wellness'],
-    },
-    {
-        id: 'clean_girl',
-        slug: 'clean_girl',
-        name: { en: 'Clean Girl', ru: 'Clean Girl', kk: 'Clean Girl' },
-        subtitle: {
-            en: 'Minimalist, glow from within, less is more',
-            ru: 'Минимализм, сияние изнутри, меньше — значит больше',
-            kk: 'Минимализм, ішкі жарқырау, аз — көп',
-        },
-        description: {
-            en: 'Natural beauty through clean eating. Focus on whole foods, hydration, and simplicity.',
-            ru: 'Естественная красота через чистое питание. Фокус на цельных продуктах, гидратации и простоте.',
-            kk: 'Таза тамақтану арқылы табиғи сұлулық.',
-        },
-        shortDescription: {
-            en: 'Minimalist clean eating',
-            ru: 'Минималистичное чистое питание',
-            kk: 'Минималистік таза тамақтану',
-        },
-        category: 'trending',
-        type: 'LIFESTYLE' as const,
-        difficulty: 'EASY' as const,
-        duration: 14,
-        uiGroup: 'Trending',
-        streakThreshold: 0.6,
-        dailyTracker: [
-            { key: 'whole_foods', label: { en: 'Whole foods only', ru: 'Только цельные продукты', kk: 'Тек тұтас өнімдер' } },
-            { key: 'hydration', label: { en: 'Stay hydrated', ru: 'Пейте воду', kk: 'Сулану' } },
-            { key: 'no_sugar', label: { en: 'No added sugar', ru: 'Без добавленного сахара', kk: 'Қосылған қантсыз' } },
-        ],
-        suitableFor: ['skin_health', 'minimalist'],
-        isFeatured: true,
-        popularityScore: 88,
-        tags: ['trending', 'clean', 'minimalist'],
-    },
-    {
-        id: 'hot_girl_walk',
-        slug: 'hot_girl_walk',
-        name: { en: 'Hot Girl Walk', ru: 'Hot Girl Walk', kk: 'Hot Girl Walk' },
-        subtitle: {
-            en: 'Walk, hydrate, manifest',
-            ru: 'Ходьба, гидратация, манифестация',
-            kk: 'Жүру, сулану, манифестация',
-        },
-        description: {
-            en: 'Daily walking routine combined with hydration and positive mindset for wellness.',
-            ru: 'Ежедневная рутина ходьбы в сочетании с гидратацией и позитивным настроем.',
-            kk: 'Күнделікті жүру режимі гидратация мен позитивті көзқараспен бірге.',
-        },
-        shortDescription: {
-            en: 'Walking lifestyle',
-            ru: 'Активный образ жизни',
-            kk: 'Белсенді өмір салты',
-        },
-        category: 'trending',
-        type: 'LIFESTYLE' as const,
-        difficulty: 'EASY' as const,
-        duration: 14,
-        uiGroup: 'Trending',
-        streakThreshold: 0.6,
-        dailyTracker: [
-            { key: 'walk', label: { en: '4km walk', ru: '4км прогулка', kk: '4км серуен' } },
-            { key: 'water', label: { en: '8 glasses of water', ru: '8 стаканов воды', kk: '8 стақан су' } },
-            { key: 'light_meal', label: { en: 'Light, energizing meal', ru: 'Лёгкая, энергичная еда', kk: 'Жеңіл, қуатты тамақ' } },
-        ],
-        suitableFor: ['fitness', 'weight_loss'],
-        isFeatured: true,
-        popularityScore: 85,
-        tags: ['trending', 'walking', 'fitness'],
-    },
-    {
-        id: 'soft_life',
-        slug: 'soft_life',
-        name: { en: 'Soft Life', ru: 'Soft Life', kk: 'Soft Life' },
-        subtitle: {
-            en: 'Ease, comfort, nourishment without stress',
-            ru: 'Лёгкость, комфорт, питание без стресса',
-            kk: 'Жеңілдік, жайлылық, стресссіз тамақтану',
-        },
-        description: {
-            en: 'Prioritize ease and enjoyment in eating. No strict rules, just nourishing choices.',
-            ru: 'Приоритет лёгкости и удовольствия в еде. Никаких строгих правил.',
-            kk: 'Тамақтануда жеңілдік пен ләззатқа басымдық. Қатаң ережелер жоқ.',
-        },
-        shortDescription: {
-            en: 'Stress-free lifestyle',
-            ru: 'Образ жизни без стресса',
-            kk: 'Стресссіз өмір салты',
-        },
-        category: 'trending',
-        type: 'LIFESTYLE' as const,
-        difficulty: 'EASY' as const,
-        duration: 14,
-        uiGroup: 'Trending',
-        streakThreshold: 0.5,
-        dailyTracker: [
-            { key: 'enjoyable_meal', label: { en: 'Enjoyable meal', ru: 'Еда в удовольствие', kk: 'Ләззатты тамақ' } },
-            { key: 'no_rush', label: { en: 'No rush eating', ru: 'Не торопитесь', kk: 'Асықпаңыз' } },
-            { key: 'rest', label: { en: 'Proper rest', ru: 'Достаточно отдыха', kk: 'Жеткілікті демалыс' } },
-        ],
-        suitableFor: ['stress_relief', 'mental_health'],
-        isFeatured: false,
-        popularityScore: 82,
-        tags: ['trending', 'soft', 'relaxed'],
-    },
-    // WEIGHT LOSS GOALS
-    {
-        id: 'lazy_girl_weight_loss',
-        slug: 'lazy_girl_weight_loss',
-        name: { en: 'Lazy Girl Weight Loss', ru: 'Похудение для ленивых', kk: 'Жалқау қыздарға арналған салмақ тастау' },
-        subtitle: {
-            en: 'Minimal effort, maximum results',
-            ru: 'Минимум усилий, максимум результата',
-            kk: 'Минималды күш, максималды нәтиже',
-        },
-        description: {
-            en: 'Simple, sustainable weight loss without complicated meal plans or intense exercise.',
-            ru: 'Простое и устойчивое похудение без сложных планов питания.',
-            kk: 'Қарапайым, тұрақты салмақ тастау.',
-        },
-        shortDescription: {
-            en: 'Easy weight loss',
-            ru: 'Лёгкое похудение',
-            kk: 'Оңай салмақ тастау',
-        },
-        category: 'weight_loss',
-        type: 'LIFESTYLE' as const,
-        difficulty: 'EASY' as const,
-        duration: 21,
-        uiGroup: 'Weight Loss',
-        streakThreshold: 0.6,
-        dailyTracker: [
-            { key: 'portion_control', label: { en: 'Portion control', ru: 'Контроль порций', kk: 'Порция бақылау' } },
-            { key: 'no_snacks', label: { en: 'No unnecessary snacks', ru: 'Без лишних перекусов', kk: 'Қажетсіз тамақсыз' } },
-            { key: 'water', label: { en: 'Water before meals', ru: 'Вода перед едой', kk: 'Тамақ алдында су' } },
-        ],
-        suitableFor: ['weight_loss', 'beginners'],
-        isFeatured: true,
-        popularityScore: 87,
-        tags: ['weight_loss', 'easy', 'lazy'],
-    },
-    // ENERGY GOALS
-    {
-        id: 'high_energy',
-        slug: 'high_energy',
-        name: { en: 'High Energy', ru: 'Высокая энергия', kk: 'Жоғары қуат' },
-        subtitle: {
-            en: 'Fuel your day with energy-boosting foods',
-            ru: 'Заряжай день энергией',
-            kk: 'Күніңді қуатпен заряда',
-        },
-        description: {
-            en: 'Focus on foods that provide sustained energy throughout the day.',
-            ru: 'Фокус на продуктах, которые дают стабильную энергию в течение дня.',
-            kk: 'Күні бойы тұрақты қуат беретін тағамдарға назар аударыңыз.',
-        },
-        shortDescription: {
-            en: 'Energy-boosting lifestyle',
-            ru: 'Энергичный образ жизни',
-            kk: 'Қуат беретін өмір салты',
-        },
-        category: 'energy',
-        type: 'LIFESTYLE' as const,
-        difficulty: 'EASY' as const,
-        duration: 14,
-        uiGroup: 'Energy',
-        streakThreshold: 0.6,
-        dailyTracker: [
-            { key: 'breakfast', label: { en: 'Energy breakfast', ru: 'Энергичный завтрак', kk: 'Қуатты таңғы ас' } },
-            { key: 'no_sugar_crash', label: { en: 'Avoid sugar crashes', ru: 'Избегайте скачков сахара', kk: 'Қант құлдырауынан аулақ болыңыз' } },
-            { key: 'balanced_meals', label: { en: 'Balanced meals', ru: 'Сбалансированные приёмы пищи', kk: 'Теңдестірілген тамақ' } },
-        ],
-        suitableFor: ['energy', 'productivity'],
-        isFeatured: false,
-        popularityScore: 80,
-        tags: ['energy', 'productivity'],
-    },
+// All 42 lifestyle program IDs from the mobile app
+const ALL_LIFESTYLE_IDS = [
+    'that_girl', 'clean_girl', 'old_money', 'tomato_girl_summer', 'pilates_princess',
+    'coastal_grandmother', 'soft_life', 'mob_wife', 'summer_shred', 'metabolic_reset',
+    'debloat_detox', 'sustainable_slim', 'lean_bulk', 'strength_athlete', 'athletic_performance',
+    'functional_fitness', 'glass_skin', 'acne_clear', 'anti_aging_glow', 'all_day_energy',
+    'brain_fuel', 'adrenal_recovery', 'amalfi_coast', 'greek_islands', 'okinawa_longevity',
+    'tokyo_energy', 'scandi_hygge', '1950s_bombshell', 'prima_ballerina', 'french_girl',
+    'pin_up_retro', 'minimalist_zen', 'spartan_warrior', 'viking_raider', 'navy_seal',
+    'mma_fighter', 'ceo_warrior', 'stoic_monk', 'summer_beach_body', 'new_year_reset',
+    'wedding_ready', 'holiday_balance'
 ];
 
-async function seedLifestyles() {
-    console.log('🌱 Seeding lifestyle programs...');
+// Category mappings
+const CATEGORY_MAP: Record<string, { category: string; uiGroup: string }> = {
+    that_girl: { category: 'trending', uiGroup: 'Trending' },
+    clean_girl: { category: 'trending', uiGroup: 'Trending' },
+    old_money: { category: 'trending', uiGroup: 'Trending' },
+    tomato_girl_summer: { category: 'trending', uiGroup: 'Trending' },
+    pilates_princess: { category: 'trending', uiGroup: 'Trending' },
+    coastal_grandmother: { category: 'trending', uiGroup: 'Trending' },
+    soft_life: { category: 'trending', uiGroup: 'Trending' },
+    mob_wife: { category: 'trending', uiGroup: 'Trending' },
+    summer_shred: { category: 'weight_loss', uiGroup: 'Weight Loss' },
+    metabolic_reset: { category: 'weight_loss', uiGroup: 'Weight Loss' },
+    debloat_detox: { category: 'weight_loss', uiGroup: 'Weight Loss' },
+    sustainable_slim: { category: 'weight_loss', uiGroup: 'Weight Loss' },
+    lean_bulk: { category: 'muscle', uiGroup: 'Build Muscle' },
+    strength_athlete: { category: 'muscle', uiGroup: 'Build Muscle' },
+    athletic_performance: { category: 'muscle', uiGroup: 'Build Muscle' },
+    functional_fitness: { category: 'muscle', uiGroup: 'Build Muscle' },
+    glass_skin: { category: 'skin', uiGroup: 'Clear Skin' },
+    acne_clear: { category: 'skin', uiGroup: 'Clear Skin' },
+    anti_aging_glow: { category: 'skin', uiGroup: 'Clear Skin' },
+    all_day_energy: { category: 'energy', uiGroup: 'More Energy' },
+    brain_fuel: { category: 'energy', uiGroup: 'More Energy' },
+    adrenal_recovery: { category: 'energy', uiGroup: 'More Energy' },
+    amalfi_coast: { category: 'destinations', uiGroup: 'Destinations' },
+    greek_islands: { category: 'destinations', uiGroup: 'Destinations' },
+    okinawa_longevity: { category: 'destinations', uiGroup: 'Destinations' },
+    tokyo_energy: { category: 'destinations', uiGroup: 'Destinations' },
+    scandi_hygge: { category: 'destinations', uiGroup: 'Destinations' },
+    '1950s_bombshell': { category: 'aesthetics', uiGroup: 'Aesthetics' },
+    prima_ballerina: { category: 'aesthetics', uiGroup: 'Aesthetics' },
+    french_girl: { category: 'aesthetics', uiGroup: 'Aesthetics' },
+    pin_up_retro: { category: 'aesthetics', uiGroup: 'Aesthetics' },
+    minimalist_zen: { category: 'aesthetics', uiGroup: 'Aesthetics' },
+    spartan_warrior: { category: 'warrior', uiGroup: 'Warrior Mode' },
+    viking_raider: { category: 'warrior', uiGroup: 'Warrior Mode' },
+    navy_seal: { category: 'warrior', uiGroup: 'Warrior Mode' },
+    mma_fighter: { category: 'warrior', uiGroup: 'Warrior Mode' },
+    ceo_warrior: { category: 'warrior', uiGroup: 'Warrior Mode' },
+    stoic_monk: { category: 'warrior', uiGroup: 'Warrior Mode' },
+    summer_beach_body: { category: 'seasonal', uiGroup: 'Seasonal' },
+    new_year_reset: { category: 'seasonal', uiGroup: 'Seasonal' },
+    wedding_ready: { category: 'seasonal', uiGroup: 'Seasonal' },
+    holiday_balance: { category: 'seasonal', uiGroup: 'Seasonal' },
+};
 
-    for (const program of lifestylePrograms) {
+// Human-readable names
+const NAMES: Record<string, { en: string; ru: string; kk: string }> = {
+    that_girl: { en: 'That Girl', ru: 'That Girl', kk: 'That Girl' },
+    clean_girl: { en: 'Clean Girl', ru: 'Clean Girl', kk: 'Clean Girl' },
+    old_money: { en: 'Old Money', ru: 'Старые Деньги', kk: 'Ескі Ақша' },
+    tomato_girl_summer: { en: 'Tomato Girl Summer', ru: 'Лето Томатной Девушки', kk: 'Қызанақ Қыз Жаз' },
+    pilates_princess: { en: 'Pilates Princess', ru: 'Принцесса Пилатеса', kk: 'Пилатес Ханшасы' },
+    coastal_grandmother: { en: 'Coastal Grandmother', ru: 'Прибрежная Бабушка', kk: 'Жағалау Әжесі' },
+    soft_life: { en: 'Soft Life', ru: 'Мягкая Жизнь', kk: 'Жұмсақ Өмір' },
+    mob_wife: { en: 'Mob Wife', ru: 'Жена Мафиози', kk: 'Мафия Әйелі' },
+    summer_shred: { en: 'Summer Shred', ru: 'Летняя Сушка', kk: 'Жаздық Сушка' },
+    metabolic_reset: { en: 'Metabolic Reset', ru: 'Метаболический Сброс', kk: 'Метаболизм Қалпына Келтіру' },
+    debloat_detox: { en: 'Debloat Detox', ru: 'Детокс от Вздутия', kk: 'Ісіну Детоксы' },
+    sustainable_slim: { en: 'Sustainable Slim', ru: 'Устойчивая Стройность', kk: 'Тұрақты Арықтық' },
+    lean_bulk: { en: 'Lean Bulk', ru: 'Качественный Набор', kk: 'Сапалы Жинау' },
+    strength_athlete: { en: 'Strength Athlete', ru: 'Силовой Атлет', kk: 'Күш Атлеті' },
+    athletic_performance: { en: 'Athletic Performance', ru: 'Спортивная Форма', kk: 'Спорттық Форма' },
+    functional_fitness: { en: 'Functional Fitness', ru: 'Функциональный Фитнес', kk: 'Функционалды Фитнес' },
+    glass_skin: { en: 'Glass Skin', ru: 'Стеклянная Кожа', kk: 'Шыны Тері' },
+    acne_clear: { en: 'Acne Clear', ru: 'Чистая Кожа', kk: 'Таза Тері' },
+    anti_aging_glow: { en: 'Anti-Aging Glow', ru: 'Антивозрастное Сияние', kk: 'Қартаюға Қарсы Жарқырау' },
+    all_day_energy: { en: 'All-Day Energy', ru: 'Энергия на Весь День', kk: 'Күні Бойы Энергия' },
+    brain_fuel: { en: 'Brain Fuel', ru: 'Топливо для Мозга', kk: 'Ми Отыны' },
+    adrenal_recovery: { en: 'Adrenal Recovery', ru: 'Восстановление Надпочечников', kk: 'Бүйрек Үсті Қалпына Келтіру' },
+    amalfi_coast: { en: 'Amalfi Coast', ru: 'Амальфи', kk: 'Амальфи Жағалауы' },
+    greek_islands: { en: 'Greek Islands', ru: 'Греческие Острова', kk: 'Грек Аралдары' },
+    okinawa_longevity: { en: 'Okinawa Longevity', ru: 'Долголетие Окинавы', kk: 'Окинава Ұзақ Өмір' },
+    tokyo_energy: { en: 'Tokyo Energy', ru: 'Энергия Токио', kk: 'Токио Энергиясы' },
+    scandi_hygge: { en: 'Scandi Hygge', ru: 'Скандинавский Хюгге', kk: 'Скандинавиялық Хюгге' },
+    '1950s_bombshell': { en: '1950s Bombshell', ru: 'Бомба 1950-х', kk: '1950-жылдар Бомбасы' },
+    prima_ballerina: { en: 'Prima Ballerina', ru: 'Прима-Балерина', kk: 'Прима-Балерина' },
+    french_girl: { en: 'French Girl', ru: 'Французская Девушка', kk: 'Француз Қызы' },
+    pin_up_retro: { en: 'Pin-Up Retro', ru: 'Пин-Ап Ретро', kk: 'Пин-Ап Ретро' },
+    minimalist_zen: { en: 'Minimalist Zen', ru: 'Минималист Дзен', kk: 'Минималист Дзен' },
+    spartan_warrior: { en: 'Spartan Warrior', ru: 'Спартанский Воин', kk: 'Спарта Жауынгері' },
+    viking_raider: { en: 'Viking Raider', ru: 'Викинг-Рейдер', kk: 'Викинг-Рейдер' },
+    navy_seal: { en: 'Navy SEAL', ru: 'Морской Котик', kk: 'Теңіз Мысығы' },
+    mma_fighter: { en: 'MMA Fighter', ru: 'Боец MMA', kk: 'MMA Жауынгері' },
+    ceo_warrior: { en: 'CEO Warrior', ru: 'CEO-Воин', kk: 'CEO-Жауынгер' },
+    stoic_monk: { en: 'Stoic Monk', ru: 'Стоик-Монах', kk: 'Стоик-Монах' },
+    summer_beach_body: { en: 'Summer Beach Body', ru: 'Летнее Пляжное Тело', kk: 'Жаздық Пляж Денесі' },
+    new_year_reset: { en: 'New Year Reset', ru: 'Новогодний Сброс', kk: 'Жаңа Жыл Қалпына Келтіру' },
+    wedding_ready: { en: 'Wedding Ready', ru: 'Готова к Свадьбе', kk: 'Тойға Дайын' },
+    holiday_balance: { en: 'Holiday Balance', ru: 'Праздничный Баланс', kk: 'Мерекелік Теңгерім' },
+};
+
+// Generate default daily tracker items
+function getDefaultDailyTracker(id: string): Array<{ key: string; label: Record<string, string> }> {
+    const category = CATEGORY_MAP[id]?.category || 'lifestyle';
+
+    const trackers: Record<string, Array<{ key: string; label: Record<string, string> }>> = {
+        trending: [
+            { key: 'morning_routine', label: { en: 'Morning routine', ru: 'Утренняя рутина', kk: 'Таңғы режим' } },
+            { key: 'healthy_meal', label: { en: 'Healthy meal', ru: 'Здоровая еда', kk: 'Сау тамақ' } },
+            { key: 'hydration', label: { en: 'Stay hydrated', ru: 'Пейте воду', kk: 'Су ішу' } },
+            { key: 'mindful', label: { en: 'Mindful eating', ru: 'Осознанное питание', kk: 'Саналы тамақтану' } },
+        ],
+        weight_loss: [
+            { key: 'portion', label: { en: 'Portion control', ru: 'Контроль порций', kk: 'Порция бақылау' } },
+            { key: 'protein', label: { en: 'Protein at each meal', ru: 'Белок в каждом приёме', kk: 'Әр тамақта белок' } },
+            { key: 'vegetables', label: { en: 'Vegetables', ru: 'Овощи', kk: 'Көкөністер' } },
+            { key: 'no_snacks', label: { en: 'No unnecessary snacks', ru: 'Без лишних перекусов', kk: 'Қажетсіз тамақсыз' } },
+        ],
+        muscle: [
+            { key: 'protein_goal', label: { en: 'Hit protein goal', ru: 'Достичь цели по белку', kk: 'Белок мақсатына жету' } },
+            { key: 'training', label: { en: 'Training nutrition', ru: 'Питание для тренировок', kk: 'Жаттығу тағамы' } },
+            { key: 'recovery', label: { en: 'Recovery meal', ru: 'Восстановительная еда', kk: 'Қалпына келтіру тағамы' } },
+            { key: 'sleep', label: { en: 'Quality sleep', ru: 'Качественный сон', kk: 'Сапалы ұйқы' } },
+        ],
+        skin: [
+            { key: 'water', label: { en: 'Drink enough water', ru: 'Пейте достаточно воды', kk: 'Жеткілікті су ішу' } },
+            { key: 'antioxidants', label: { en: 'Antioxidant-rich foods', ru: 'Продукты с антиоксидантами', kk: 'Антиоксидантқа бай тағамдар' } },
+            { key: 'no_sugar', label: { en: 'Limit sugar', ru: 'Ограничьте сахар', kk: 'Қантты шектеу' } },
+            { key: 'omega3', label: { en: 'Omega-3 foods', ru: 'Продукты с омега-3', kk: 'Омега-3 тағамдар' } },
+        ],
+        energy: [
+            { key: 'breakfast', label: { en: 'Energy breakfast', ru: 'Энергичный завтрак', kk: 'Қуатты таңғы ас' } },
+            { key: 'balanced', label: { en: 'Balanced meals', ru: 'Сбалансированные приёмы', kk: 'Теңгерімді тамақ' } },
+            { key: 'no_crash', label: { en: 'Avoid sugar crashes', ru: 'Избегайте скачков сахара', kk: 'Қант құлдырауынан аулақ болыңыз' } },
+            { key: 'hydration', label: { en: 'Stay hydrated', ru: 'Пейте воду', kk: 'Су ішу' } },
+        ],
+        destinations: [
+            { key: 'local_foods', label: { en: 'Local-inspired foods', ru: 'Местные продукты', kk: 'Жергілікті тағамдар' } },
+            { key: 'mindful', label: { en: 'Mindful eating', ru: 'Осознанное питание', kk: 'Саналы тамақтану' } },
+            { key: 'fresh', label: { en: 'Fresh ingredients', ru: 'Свежие ингредиенты', kk: 'Жаңа ингредиенттер' } },
+            { key: 'balance', label: { en: 'Balance', ru: 'Баланс', kk: 'Теңгерім' } },
+        ],
+        aesthetics: [
+            { key: 'aesthetic_meal', label: { en: 'Aesthetic meal', ru: 'Эстетичная еда', kk: 'Эстетикалық тамақ' } },
+            { key: 'portion', label: { en: 'Mindful portions', ru: 'Осознанные порции', kk: 'Саналы порциялар' } },
+            { key: 'quality', label: { en: 'Quality over quantity', ru: 'Качество важнее количества', kk: 'Сапа сандан маңыздырақ' } },
+            { key: 'treat', label: { en: 'Intentional treats', ru: 'Осознанные сладости', kk: 'Саналы тәттілер' } },
+        ],
+        warrior: [
+            { key: 'discipline', label: { en: 'Disciplined eating', ru: 'Дисциплинированное питание', kk: 'Тәртіпті тамақтану' } },
+            { key: 'protein', label: { en: 'High protein', ru: 'Высокий белок', kk: 'Жоғары белок' } },
+            { key: 'no_junk', label: { en: 'No junk food', ru: 'Без вредной еды', kk: 'Зиянды тамақсыз' } },
+            { key: 'performance', label: { en: 'Performance fuel', ru: 'Топливо для производительности', kk: 'Өнімділік отыны' } },
+        ],
+        seasonal: [
+            { key: 'seasonal_foods', label: { en: 'Seasonal foods', ru: 'Сезонные продукты', kk: 'Маусымдық тағамдар' } },
+            { key: 'balance', label: { en: 'Stay balanced', ru: 'Сохраняйте баланс', kk: 'Теңгерімді болыңыз' } },
+            { key: 'mindful', label: { en: 'Mindful choices', ru: 'Осознанный выбор', kk: 'Саналы таңдау' } },
+            { key: 'enjoy', label: { en: 'Enjoy responsibly', ru: 'Наслаждайтесь ответственно', kk: 'Жауапкершілікпен ләззат алыңыз' } },
+        ],
+    };
+
+    return trackers[category] || trackers.trending;
+}
+
+async function seedLifestyles() {
+    console.log('🌱 Seeding all 42 lifestyle programs...');
+    let created = 0;
+    let updated = 0;
+
+    for (const id of ALL_LIFESTYLE_IDS) {
+        const categoryInfo = CATEGORY_MAP[id] || { category: 'lifestyle', uiGroup: 'Lifestyle' };
+        const name = NAMES[id] || { en: id, ru: id, kk: id };
+
         try {
-            await prisma.dietProgram.upsert({
-                where: { id: program.id },
+            const result = await prisma.dietProgram.upsert({
+                where: { id },
                 update: {
-                    name: program.name,
-                    subtitle: program.subtitle,
-                    description: program.description,
-                    shortDescription: program.shortDescription,
-                    category: program.category,
-                    type: program.type,
-                    difficulty: program.difficulty,
-                    duration: program.duration,
-                    uiGroup: program.uiGroup,
-                    streakThreshold: program.streakThreshold,
-                    dailyTracker: program.dailyTracker,
-                    suitableFor: program.suitableFor,
-                    isFeatured: program.isFeatured,
-                    popularityScore: program.popularityScore,
-                    tags: program.tags,
+                    name,
+                    category: categoryInfo.category,
+                    type: 'LIFESTYLE',
+                    uiGroup: categoryInfo.uiGroup,
+                    dailyTracker: getDefaultDailyTracker(id),
                     isActive: true,
                 },
                 create: {
-                    id: program.id,
-                    slug: program.slug,
-                    name: program.name,
-                    subtitle: program.subtitle,
-                    description: program.description,
-                    shortDescription: program.shortDescription,
-                    category: program.category,
-                    type: program.type,
-                    difficulty: program.difficulty,
-                    duration: program.duration,
-                    uiGroup: program.uiGroup,
-                    streakThreshold: program.streakThreshold,
-                    dailyTracker: program.dailyTracker,
-                    suitableFor: program.suitableFor,
-                    isFeatured: program.isFeatured,
-                    popularityScore: program.popularityScore,
-                    tags: program.tags,
+                    id,
+                    slug: id,
+                    name,
+                    subtitle: { en: '', ru: '', kk: '' },
+                    description: { en: '', ru: '', kk: '' },
+                    shortDescription: { en: '', ru: '', kk: '' },
+                    category: categoryInfo.category,
+                    type: 'LIFESTYLE',
+                    difficulty: 'EASY',
+                    duration: 14,
+                    uiGroup: categoryInfo.uiGroup,
+                    streakThreshold: 0.6,
+                    dailyTracker: getDefaultDailyTracker(id),
+                    suitableFor: [categoryInfo.category],
+                    isFeatured: ['that_girl', 'okinawa_longevity', 'summer_shred'].includes(id),
+                    popularityScore: 80,
+                    tags: [categoryInfo.category, 'lifestyle'],
                     isActive: true,
                 },
             });
-            console.log(`  ✓ ${program.name.en}`);
+
+            if (result) {
+                console.log(`  ✓ ${name.en}`);
+                created++;
+            }
         } catch (error) {
-            console.error(`  ✗ Failed to seed ${program.name.en}:`, error);
+            console.error(`  ✗ Failed to seed ${id}:`, error);
         }
     }
 
-    console.log('✅ Lifestyle programs seeded!');
+    console.log(`\n✅ Lifestyle programs seeded: ${created} total`);
 }
 
-// Run if called directly
 seedLifestyles()
     .catch((e) => {
         console.error(e);

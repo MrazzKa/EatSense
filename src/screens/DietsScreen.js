@@ -18,6 +18,69 @@ import ApiService from '../services/apiService';
 import DietsTabContent from '../components/programs/DietsTabContent';
 import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabContent';
 
+// Skeleton loader for fast perceived loading
+const DietsSkeleton = React.memo(({ colors }) => (
+    <View style={skeletonStyles.container}>
+        {/* Tab skeleton */}
+        <View style={[skeletonStyles.tab, { backgroundColor: colors?.surfaceSecondary || '#F5F5F5' }]} />
+
+        {/* Cards skeleton */}
+        {[1, 2, 3, 4].map((i) => (
+            <View
+                key={i}
+                style={[skeletonStyles.card, { backgroundColor: colors?.surfaceSecondary || '#F5F5F5' }]}
+            >
+                <View style={[skeletonStyles.image, { backgroundColor: colors?.border || '#E0E0E0' }]} />
+                <View style={skeletonStyles.content}>
+                    <View style={[skeletonStyles.title, { backgroundColor: colors?.border || '#E0E0E0' }]} />
+                    <View style={[skeletonStyles.text, { backgroundColor: colors?.border || '#E0E0E0' }]} />
+                </View>
+            </View>
+        ))}
+    </View>
+));
+DietsSkeleton.displayName = 'DietsSkeleton';
+
+// Static skeleton styles
+const skeletonStyles = StyleSheet.create({
+    container: {
+        padding: 16,
+    },
+    tab: {
+        height: 44,
+        borderRadius: 22,
+        marginBottom: 16,
+    },
+    card: {
+        height: 160,
+        borderRadius: 16,
+        marginBottom: 12,
+        flexDirection: 'row',
+        padding: 12,
+    },
+    image: {
+        width: 100,
+        height: '100%',
+        borderRadius: 12,
+    },
+    content: {
+        flex: 1,
+        marginLeft: 12,
+        justifyContent: 'center',
+    },
+    title: {
+        height: 20,
+        borderRadius: 4,
+        marginBottom: 8,
+        width: '70%',
+    },
+    text: {
+        height: 14,
+        borderRadius: 4,
+        width: '90%',
+    },
+});
+
 // Main tabs: "Диеты" and "Стиль жизни"
 const MAIN_TABS = [
     { id: 'diets', labelKey: 'diets.tabs.diets', fallback: 'Diets' },
@@ -48,35 +111,41 @@ export default function DietsScreen({ navigation }) {
     const scrollViewRef = useRef(null);
 
     const loadData = useCallback(async () => {
+        // Show content immediately with optimistic loading
+        setLoading(false);
+
         try {
-            const filters = {};
-            // Only apply filters for diets tab
-            if (activeTab === 'diets') {
-                if (selectedType) filters.type = selectedType;
-                if (selectedDifficulty) filters.difficulty = selectedDifficulty;
-            }
-            // For lifestyle tab, filter by type === 'LIFESTYLE'
+            // For lifestyle tab - data is mostly static, only fetch active diet
             if (activeTab === 'lifestyle') {
-                filters.type = 'LIFESTYLE';
+                // Don't wait - load in background
+                ApiService.getActiveDiet()
+                    .then(res => setActiveDiet(res))
+                    .catch(() => setActiveDiet(null))
+                    .finally(() => setRefreshing(false));
+                return;
             }
+
+            // For diets tab - parallel loading
+            const filters = {};
+            if (selectedType) filters.type = selectedType;
+            if (selectedDifficulty) filters.difficulty = selectedDifficulty;
             if (searchQuery) filters.search = searchQuery;
 
             const [activeRes, recsRes, featuredRes, allRes] = await Promise.all([
                 ApiService.getActiveDiet().catch(() => null),
                 ApiService.getDietRecommendations().catch(() => []),
                 ApiService.getFeaturedDiets().catch(() => []),
-                ApiService.getDiets(filters),
+                ApiService.getDiets(filters).catch(() => ({ diets: [] })),
             ]);
 
-            if (activeRes) setActiveDiet(activeRes);
-            else setActiveDiet(null);
+            setActiveDiet(activeRes || null);
             if (Array.isArray(recsRes)) setRecommendations(recsRes);
             if (Array.isArray(featuredRes)) setFeaturedDiets(featuredRes);
             if (allRes?.diets) setAllDiets(allRes.diets);
+
         } catch (error) {
-            console.error('[DietsScreen] Load failed:', error);
+            console.error('[DietsScreen] Load error:', error);
         } finally {
-            setLoading(false);
             setRefreshing(false);
         }
     }, [selectedType, selectedDifficulty, searchQuery, activeTab]);
@@ -133,11 +202,15 @@ export default function DietsScreen({ navigation }) {
         return createStyles(tokens, colors);
     }, [tokens, themeContext?.colors]);
 
-    if (loading) {
+    // Show skeleton only on initial load when we have no data
+    if (loading && allDiets.length === 0) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={tokens.colors?.primary || '#4CAF50'} />
-            </View>
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>{t('diets.title') || 'Diets'}</Text>
+                </View>
+                <DietsSkeleton colors={themeContext?.colors} />
+            </SafeAreaView>
         );
     }
 

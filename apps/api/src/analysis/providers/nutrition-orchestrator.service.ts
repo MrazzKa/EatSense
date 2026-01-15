@@ -117,6 +117,32 @@ export class NutritionOrchestrator {
     const queryLower = (context.originalQuery || '').toLowerCase();
 
     // =====================================================
+    // NON-FOOD FILTERING: Reject obvious non-food items
+    // Fixes: "olive oil" → "motor oil" bug from USDA branded products
+    // =====================================================
+    const nonFoodKeywords = [
+      'motor oil', 'engine oil', 'synthetic oil', '5w-30', '10w-40', '5w-40',
+      'lubricant', 'grease', 'antifreeze', 'coolant',
+      'soap', 'detergent', 'shampoo', 'conditioner', 'lotion', 'cream',
+      'paint', 'glue', 'adhesive', 'solvent', 'cleaner',
+      'pet food', 'dog food', 'cat food', 'bird seed', 'fish food',
+      'supplement', 'vitamin', 'pill', 'capsule', 'tablet',
+      'fertilizer', 'pesticide', 'herbicide',
+    ];
+
+    const isNonFood = nonFoodKeywords.some(kw => nameLower.includes(kw));
+    if (isNonFood) {
+      this.logger.warn(
+        `[Orchestrator] Rejected non-food item: "${context.originalQuery}" → "${displayName}"`,
+      );
+      return {
+        isValid: false,
+        isSuspicious: true,
+        reason: `non_food_item: result "${displayName}" is not a food item`,
+      };
+    }
+
+    // =====================================================
     // CATEGORY-BASED FILTERING: Reject obvious mismatches
     // Fixes: "corn cooked" → "Oil, corn" bug
     // =====================================================

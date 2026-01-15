@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { DietType, DietDifficulty } from '@prisma/client';
@@ -229,63 +229,96 @@ export class DietsService {
     /**
      * Start a diet program
      */
-    async startDiet(userId: string, dietId: string, options?: {
+    async startDiet(userId: string, dietIdOrSlug: string, options?: {
         customCalories?: number;
         targetWeight?: number;
     }) {
-        const diet = await this.prisma.dietProgram.findUnique({
-            where: { id: dietId },
-        });
+        this.logger.log(`[startDiet] Starting diet for user ${userId}, diet: ${dietIdOrSlug}`);
 
-        if (!diet) {
-            throw new NotFoundException('Diet not found');
-        }
+        try {
+            // Support both ID and slug lookup (fixes 404 for lifestyle programs using slugs)
+            const diet = await this.prisma.dietProgram.findFirst({
+                where: {
+                    OR: [{ id: dietIdOrSlug }, { slug: dietIdOrSlug }],
+                    isActive: true,
+                },
+            });
 
-        // Check for existing active diet
-        const existingActive = await this.prisma.userDietProgram.findFirst({
-            where: { userId, status: 'active' },
-        });
+            if (!diet) {
+                this.logger.warn(`[startDiet] Diet not found: ${dietIdOrSlug}`);
 
-        if (existingActive) {
-            // If trying to start the same diet that's already active, return 409 Conflict
-            if (existingActive.programId === dietId) {
-                throw new ConflictException('Already enrolled in this diet program');
+                // Log available diets for debugging (helpful for 404 issues)
+                const availableDiets = await this.prisma.dietProgram.findMany({
+                    where: { isActive: true },
+                    select: { slug: true, id: true },
+                    take: 20,
+                });
+                this.logger.debug(`[startDiet] Available active diets: ${availableDiets.map(d => d.slug).join(', ')}`);
+
+                throw new NotFoundException(`Diet "${dietIdOrSlug}" not found or not active`);
             }
-            // If trying to start a different diet while one is active, return 400 Bad Request
-            throw new BadRequestException('You already have an active diet. Complete or abandon it first.');
+
+            const dietId = diet.id; // Use actual ID for subsequent operations
+
+            // Check for existing active diet
+            const existingActive = await this.prisma.userDietProgram.findFirst({
+                where: { userId, status: 'active' },
+            });
+
+            if (existingActive) {
+                // If trying to start the same diet that's already active, return 409 Conflict
+                if (existingActive.programId === dietId) {
+                    throw new ConflictException('Already enrolled in this diet program');
+                }
+                // If trying to start a different diet while one is active, pause it
+                this.logger.log(`[startDiet] Pausing existing diet ${existingActive.programId} for user ${userId}`);
+                await this.prisma.userDietProgram.update({
+                    where: { id: existingActive.id },
+                    data: { status: 'paused' },
+                });
+            }
+
+            // Get user profile for weight
+            const userProfile = await this.prisma.userProfile.findUnique({
+                where: { userId },
+            });
+
+            const userDiet = await this.prisma.userDietProgram.create({
+                data: {
+                    userId,
+                    programId: dietId,
+                    status: 'active',
+                    currentDay: 1,
+                    customCalories: options?.customCalories,
+                    targetWeight: options?.targetWeight,
+                    startWeight: userProfile?.weight,
+                    currentWeight: userProfile?.weight,
+                },
+                include: { program: true },
+            });
+
+            // Increment user count
+            await this.prisma.dietProgram.update({
+                where: { id: dietId },
+                data: {
+                    userCount: { increment: 1 },
+                    popularityScore: { increment: 1 },
+                },
+            });
+
+            this.logger.log(`[startDiet] User ${userId} successfully started diet ${diet.slug}`);
+
+            return userDiet;
+        } catch (error: any) {
+            // Re-throw known exceptions
+            if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
+                throw error;
+            }
+
+            // Log and wrap unexpected errors
+            this.logger.error(`[startDiet] Failed to start diet: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('Failed to start diet program. Please try again.');
         }
-
-        // Get user profile for weight
-        const userProfile = await this.prisma.userProfile.findUnique({
-            where: { userId },
-        });
-
-        const userDiet = await this.prisma.userDietProgram.create({
-            data: {
-                userId,
-                programId: dietId,
-                status: 'active',
-                currentDay: 1,
-                customCalories: options?.customCalories,
-                targetWeight: options?.targetWeight,
-                startWeight: userProfile?.weight,
-                currentWeight: userProfile?.weight,
-            },
-            include: { program: true },
-        });
-
-        // Increment user count
-        await this.prisma.dietProgram.update({
-            where: { id: dietId },
-            data: {
-                userCount: { increment: 1 },
-                popularityScore: { increment: 1 },
-            },
-        });
-
-        this.logger.log(`User ${userId} started diet ${dietId}`);
-
-        return userDiet;
     }
 
     /**
@@ -605,77 +638,96 @@ export class DietsService {
             }
         }
 
-        const userDiet = await this.prisma.userDietProgram.findFirst({
-            where: { userId, status: 'active' },
-            include: { program: true },
-        });
-
-        if (!userDiet) {
-            throw new BadRequestException('No active diet');
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Calculate completion percentage
-        const dailyTracker = userDiet.program.dailyTracker as any[] || [];
-        const totalItems = dailyTracker.length;
-        const completedItems = Object.values(checklist).filter(Boolean).length;
-        const completionPercent = totalItems > 0 ? completedItems / totalItems : 0;
-
-        // Update or create today's log
-        const updatedLog = await this.prisma.userDietDailyLog.upsert({
-            where: { userDietId_date: { userDietId: userDiet.id, date: today } },
-            create: {
-                userDietId: userDiet.id,
-                date: today,
-                dayNumber: userDiet.currentDay,
-                checklist: checklist,
-                completionPercent,
-                completed: false,
-                celebrationShown: false,
-            },
-            update: {
-                checklist: checklist,
-                completionPercent,
-            },
-        });
-
-        // Update streak if completion meets threshold
-        const threshold = userDiet.program.streakThreshold || 0.7;
-        const meetsThreshold = completionPercent >= threshold;
-
-        // Check if we need to update streak (only once per day)
-        const lastStreakDate = userDiet.lastStreakDate;
-        const todayStr = today.toISOString().split('T')[0];
-        const lastStreakStr = lastStreakDate?.toISOString().split('T')[0];
-
-        if (meetsThreshold && lastStreakStr !== todayStr) {
-            // Calculate if it's consecutive (yesterday or first day)
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-            const isConsecutive = lastStreakStr === yesterdayStr || !lastStreakDate;
-            const newStreak = isConsecutive ? userDiet.currentStreak + 1 : 1;
-
-            await this.prisma.userDietProgram.update({
-                where: { id: userDiet.id },
-                data: {
-                    currentStreak: newStreak,
-                    longestStreak: Math.max(newStreak, userDiet.longestStreak),
-                    lastStreakDate: today,
-                },
+        try {
+            const userDiet = await this.prisma.userDietProgram.findFirst({
+                where: { userId, status: 'active' },
+                include: { program: true },
             });
+
+            if (!userDiet) {
+                throw new BadRequestException('No active diet');
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Calculate completion percentage - handle null/undefined dailyTracker
+            const dailyTracker = (userDiet.program?.dailyTracker as any[]) || [];
+            const totalItems = dailyTracker.length || Object.keys(checklist).length || 1;
+            const completedItems = Object.values(checklist).filter(Boolean).length;
+            const completionPercent = totalItems > 0 ? completedItems / totalItems : 0;
+
+            // Update or create today's log with transaction for atomicity
+            const updatedLog = await this.prisma.$transaction(async (tx) => {
+                return tx.userDietDailyLog.upsert({
+                    where: { userDietId_date: { userDietId: userDiet.id, date: today } },
+                    create: {
+                        userDietId: userDiet.id,
+                        date: today,
+                        dayNumber: userDiet.currentDay,
+                        checklist: checklist,
+                        completionPercent,
+                        completed: false,
+                        celebrationShown: false,
+                    },
+                    update: {
+                        checklist: checklist,
+                        completionPercent,
+                    },
+                });
+            });
+
+            // Update streak if completion meets threshold
+            const threshold = userDiet.program?.streakThreshold || 0.7;
+            const meetsThreshold = completionPercent >= threshold;
+
+            // Check if we need to update streak (only once per day)
+            const lastStreakDate = userDiet.lastStreakDate;
+            const todayStr = today.toISOString().split('T')[0];
+            const lastStreakStr = lastStreakDate?.toISOString().split('T')[0];
+
+            if (meetsThreshold && lastStreakStr !== todayStr) {
+                // Calculate if it's consecutive (yesterday or first day)
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                const isConsecutive = lastStreakStr === yesterdayStr || !lastStreakDate;
+                const newStreak = isConsecutive ? userDiet.currentStreak + 1 : 1;
+
+                await this.prisma.userDietProgram.update({
+                    where: { id: userDiet.id },
+                    data: {
+                        currentStreak: newStreak,
+                        longestStreak: Math.max(newStreak, userDiet.longestStreak),
+                        lastStreakDate: today,
+                    },
+                });
+            }
+
+            this.logger.log(`User ${userId} updated checklist: ${completedItems}/${totalItems} (${Math.round(completionPercent * 100)}%)`);
+
+            return {
+                success: true,
+                completionPercent,
+                meetsThreshold,
+                checklist: updatedLog.checklist,
+            };
+        } catch (error: any) {
+            this.logger.error(`[updateChecklist] Error for user ${userId}:`, {
+                message: error.message,
+                code: error.code,
+                stack: error.stack?.split('\n').slice(0, 3),
+            });
+
+            // Re-throw known exceptions
+            if (error instanceof BadRequestException || error instanceof NotFoundException) {
+                throw error;
+            }
+
+            // Wrap unknown errors with InternalServerErrorException
+            throw new InternalServerErrorException(`Failed to update checklist: ${error.message || 'Unknown error'}`);
         }
-
-        this.logger.log(`User ${userId} updated checklist: ${completedItems}/${totalItems} (${Math.round(completionPercent * 100)}%)`);
-
-        return {
-            success: true,
-            completionPercent,
-            meetsThreshold,
-        };
     }
 
     /**

@@ -237,19 +237,43 @@ export class AuthService {
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     const { refreshToken } = refreshTokenDto;
 
+    // Early validation - empty token check
+    if (!refreshToken || typeof refreshToken !== 'string' || refreshToken.trim() === '') {
+      this.logger.warn('[AuthService] Refresh token is empty or invalid type');
+      throw new UnauthorizedException('Refresh token required');
+    }
+
+    const tokenPrefix = refreshToken.substring(0, 20) + '...';
+    this.logger.debug(`[AuthService] refreshToken() called`, { tokenPrefix });
+
     try {
-      // Check if token is blacklisted in Redis (fast path rejection)
+      // 1. Check if token is blacklisted in Redis (fast path rejection)
       const blacklistKey = `${process.env.REDIS_BLACKLIST_PREFIX || 'auth:refresh:blacklist:'}${refreshToken}`;
       const isBlacklisted = await this.redisService.exists(blacklistKey);
 
       if (isBlacklisted) {
-        throw new UnauthorizedException('Invalid refresh token');
+        this.logger.warn(`[AuthService] Token is blacklisted (already rotated)`, { tokenPrefix });
+        throw new UnauthorizedException('Token has been revoked');
       }
 
-      // Verify JWT signature and expiry
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
-      });
+      // 2. Verify JWT signature and expiry with detailed error handling
+      let payload: any;
+      try {
+        payload = this.jwtService.verify(refreshToken, {
+          secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
+        });
+      } catch (jwtError: any) {
+        if (jwtError.name === 'TokenExpiredError') {
+          this.logger.warn('[AuthService] Refresh token expired', { tokenPrefix });
+          throw new UnauthorizedException('Refresh token expired');
+        }
+        if (jwtError.name === 'JsonWebTokenError') {
+          this.logger.warn('[AuthService] Invalid JWT signature', { tokenPrefix, error: jwtError.message });
+          throw new UnauthorizedException('Invalid refresh token signature');
+        }
+        this.logger.warn('[AuthService] JWT verification failed', { tokenPrefix, error: jwtError.message });
+        throw new UnauthorizedException('Invalid refresh token');
+      }
 
       const jti = (payload as any).jti;
       const tokenLookupKey = jti || refreshToken;
@@ -323,7 +347,8 @@ export class AuthService {
           }
 
           if (!tokenRecord) {
-            throw new UnauthorizedException('Invalid refresh token');
+            this.logger.warn('[AuthService] Token not found in database', { tokenPrefix });
+            throw new UnauthorizedException('Token not found');
           }
 
           // Check if already revoked (by a concurrent request)
@@ -388,13 +413,13 @@ export class AuthService {
         await this.redisService.del(lockKey);
       }
     } catch (error) {
-      // Don't log as warning if it's just an expired/invalid token (normal flow)
+      // Re-throw UnauthorizedException as-is (already properly formatted)
       if (error instanceof UnauthorizedException) {
-        this.logger.warn(`[AuthService] Refresh token verification failed: ${error.message}`);
-      } else {
-        this.logger.error(`[AuthService] Refresh token error: ${error.message || error}`);
+        this.logger.warn(`[AuthService] Refresh failed: ${error.message}`, { tokenPrefix: refreshToken?.substring?.(0, 20) || 'none' });
+        throw error;
       }
-      throw new UnauthorizedException('Invalid refresh token');
+      this.logger.error(`[AuthService] Unexpected refresh error: ${error.message || error}`);
+      throw new UnauthorizedException('Token refresh failed');
     }
   }
 
@@ -982,5 +1007,32 @@ export class AuthService {
     }
     const visibleLocal = local.slice(0, Math.min(2, local.length));
     return `${visibleLocal}***@${domain}`;
+  }
+
+  /**
+   * Cleanup expired and old revoked refresh tokens.
+   * Should be called periodically via cron (e.g., daily).
+   */
+  async cleanupExpiredTokens(): Promise<{ deleted: number }> {
+    try {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+      const result = await this.prisma.refreshToken.deleteMany({
+        where: {
+          OR: [
+            // Delete tokens that have expired
+            { expiresAt: { lt: new Date() } },
+            // Delete revoked tokens older than 7 days
+            { revoked: true, createdAt: { lt: sevenDaysAgo } },
+          ],
+        },
+      });
+
+      this.logger.log(`[AuthService] Cleaned up ${result.count} expired/revoked tokens`);
+      return { deleted: result.count };
+    } catch (error: any) {
+      this.logger.error(`[AuthService] Token cleanup failed: ${error.message}`);
+      return { deleted: 0 };
+    }
   }
 }

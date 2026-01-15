@@ -222,8 +222,8 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                     <Text style={styles.progressPercent}>{progressPercent}%</Text>
                 </View>
 
-                {/* Daily Diet Tracker */}
-                <DailyDietTracker onUpdate={refreshProgress} />
+                {/* Daily Diet Tracker - uses optimistic updates, no need for onUpdate refresh */}
+                <DailyDietTracker />
 
                 {/* Today's Meals */}
                 {currentDay?.meals?.length > 0 && (
