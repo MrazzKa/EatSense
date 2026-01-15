@@ -63,7 +63,7 @@ export class HealthFeedbackAiService {
 
     try {
       const feedback = await this.callOpenAI(params);
-      
+
       // Cache the result
       if (analysisId && feedback.length > 0) {
         const cacheKey = this.buildCacheKey(analysisId, locale);
@@ -112,7 +112,7 @@ export class HealthFeedbackAiService {
     });
 
     const response = await this.openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -132,7 +132,7 @@ export class HealthFeedbackAiService {
 
   private buildSystemPrompt(locale: 'en' | 'ru' | 'kk'): string {
     const langName = locale === 'ru' ? 'Russian' : locale === 'kk' ? 'Kazakh' : 'English';
-    
+
     return `You are a nutrition expert assistant. Your task is to provide personalized, actionable feedback about a meal's nutritional quality.
 
 RULES:
@@ -160,10 +160,10 @@ CODES TO USE:
     locale: 'en' | 'ru' | 'kk';
   }): string {
     const { dishName, ingredientsList, totals, healthScore, factorsDesc, userGoal, locale } = params;
-    
-    const langHint = locale === 'ru' ? 'Respond in Russian.' : 
-                     locale === 'kk' ? 'Respond in Kazakh.' : 
-                     'Respond in English.';
+
+    const langHint = locale === 'ru' ? 'Respond in Russian.' :
+      locale === 'kk' ? 'Respond in Kazakh.' :
+        'Respond in English.';
 
     return `Analyze this meal and provide personalized feedback.
 

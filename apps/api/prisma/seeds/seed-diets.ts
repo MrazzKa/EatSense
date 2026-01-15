@@ -1264,6 +1264,78 @@ const diets = [
         tags: ['historical', 'plant_based', 'cultural'],
     },
 
+    // 18.5) Okinawa Longevity (OKINAWA_LONGEVITY)
+    {
+        slug: 'okinawa_longevity',
+        name: { en: 'Okinawa Longevity', ru: 'Окинавская (долголетие)', kk: 'Окинава (ұзақ өмір)' },
+        subtitle: {
+            en: 'Traditional Okinawan diet for longevity',
+            ru: 'Традиционная окинавская диета для долголетия',
+            kk: 'Ұзақ өмір сүру үшін дәстүрлі Окинава диетасы',
+        },
+        description: {
+            en: 'Based on the traditional diet of Okinawa, Japan, known for the long lifespan of its inhabitants. Emphasizes plant-based foods, fish, sweet potatoes, and moderate calorie restriction.',
+            ru: 'Основана на традиционной диете жителей Окинавы, Япония, известных своим долголетием. Акцент на растительных продуктах, рыбе, сладком картофеле и умеренном ограничении калорий.',
+            kk: 'Жапонияның Окинава тұрғындарының ұзақ өмір сүруімен танымал дәстүрлі диетасына негізделген. Өсімдік тағамдары, балық, тәтті картоп және қалыпты калория шектеуіне баса назар аударылады.',
+        },
+        shortDescription: {
+            en: 'Japanese longevity diet from Okinawa',
+            ru: 'Японская диета долголетия из Окинавы',
+            kk: 'Окинавадан жапондық ұзақ өмір диетасы',
+        },
+        category: 'cultural',
+        type: 'LIFESTYLE',
+        difficulty: 'MODERATE',
+        duration: 30,
+        uiGroup: 'Historical',
+        evidenceLevel: 'medium',
+        disclaimerKey: 'DISCLAIMER_HISTORICAL',
+        streakThreshold: 0.7,
+        howItWorks: {
+            en: [
+                'Base: sweet potatoes, vegetables, tofu, seaweed',
+                'Protein: fish 2-3 times a week, small portions of pork',
+                'Practice "Hara hachi bu" — eat until 80% full',
+                'Minimal sugar and processed foods',
+            ],
+            ru: [
+                'Основа: сладкий картофель, овощи, тофу, водоросли',
+                'Белок: рыба 2-3 раза в неделю, небольшие порции свинины',
+                'Практика "Хара хачи бу" — есть до 80% насыщения',
+                'Минимум сахара и обработанных продуктов',
+            ],
+            kk: [
+                'Негіз: тәтті картоп, көкөністер, тофу, теңіз балдырлары',
+                'Ақуыз: аптасына 2-3 рет балық, аз шошқа еті',
+                '"Хара хачи бу" практикасы — 80% тойғанға дейін жеу',
+                'Аз қант және өңделген тағамдар',
+            ],
+        },
+        dailyTracker: [
+            { key: 'vegetables_5', label: { en: 'Vegetables 5+ servings', ru: 'Овощи 5+ порций', kk: 'Көкөністер 5+ порция' } },
+            { key: 'sweet_potato', label: { en: 'Sweet potato or whole grains', ru: 'Сладкий картофель или цельные злаки', kk: 'Тәтті картоп немесе тұтас дәндер' } },
+            { key: 'tofu_legumes', label: { en: 'Tofu/legumes for protein', ru: 'Тофу/бобовые для белка', kk: 'Ақуыз үшін тофу/бұршақ' } },
+            { key: 'hara_hachi_bu', label: { en: 'Stopped eating at 80% full', ru: 'Остановился на 80% насыщения', kk: '80% тойғанда тоқтадым' } },
+            { key: 'minimal_processed', label: { en: 'Avoided processed foods', ru: 'Избегал обработанных продуктов', kk: 'Өңделген тағамдардан аулақ болдым' } },
+        ],
+        notFor: null,
+        suitableFor: ['longevity', 'heart_health', 'weight_management', 'plant_based'],
+        notSuitableFor: [],
+        allowedFoods: ['sweet_potatoes', 'vegetables', 'tofu', 'seaweed', 'fish', 'fruits', 'green_tea'],
+        restrictedFoods: ['processed_foods', 'excessive_sugar', 'red_meat', 'dairy'],
+        macroSplit: { protein: 15, carbs: 60, fat: 25 },
+        tips: {
+            en: ['Try purple sweet potatoes', 'Drink green tea daily', 'Practice mindful eating'],
+            ru: ['Попробуйте фиолетовый сладкий картофель', 'Пейте зелёный чай ежедневно', 'Практикуйте осознанное питание'],
+            kk: ['Күлгін тәтті картопты қолданып көріңіз', 'Күн сайын жасыл шай ішіңіз', 'Саналы тамақтануды практикалаңыз'],
+        },
+        imageUrl: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800',
+        color: '#7B1FA2',
+        isFeatured: true,
+        popularityScore: 85,
+        tags: ['longevity', 'japanese', 'plant_based', 'cultural'],
+    },
+
     // ==================== EXTRA DIETS (from DIETS_CATALOG.md) ====================
 
     // 19) Paleo (PALEO)
