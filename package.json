@@ -35,6 +35,10 @@
     "eas:build:ios": "npx eas-cli@latest build -p ios --profile production --non-interactive",
     "eas:build:ios:local": "npx eas-cli@latest build --platform ios --profile production --local",
     "eas:build:android": "npx eas-cli@latest build -p android --profile production --non-interactive",
+    "eas:submit:ios": "npx eas-cli@latest submit -p ios --profile production --latest --non-interactive",
+    "eas:submit:android": "npx eas-cli@latest submit -p android --profile production --latest --non-interactive",
+    "eas:build:submit:ios": "pnpm run eas:build:ios && pnpm run eas:submit:ios",
+    "eas:build:submit:android": "pnpm run eas:build:android && pnpm run eas:submit:android",
     "check:errors": "bash check-errors.sh",
     "postinstall": "node scripts/patch-iap.js"
   },

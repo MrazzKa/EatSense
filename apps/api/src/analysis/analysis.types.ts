@@ -54,7 +54,7 @@ export interface AnalyzedItem {
   label?: string;
   portion_g: number;   // фактический вес порции в граммах
   nutrients: Nutrients;
-  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir' | 'reanalysis' | 'canonical_beverage' | 'hidden_ingredient' | 'gpt_trusted';
+  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir' | 'reanalysis' | 'canonical_beverage' | 'hidden_ingredient' | 'gpt_trusted' | 'generic_fallback' | 'fao_who_ref' | 'local' | 'fallback';
   fdcId?: string | number;
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)
@@ -165,7 +165,8 @@ export type AnalysisSanityIssueType =
   | 'calories_per_gram_out_of_range'
   | 'macro_kcal_mismatch'
   | 'zero_calories_nonzero_portion'
-  | 'suspicious_energy_density';
+  | 'suspicious_energy_density'
+  | 'vision_fallback';
 
 export type AnalysisSanityLevel = 'warning' | 'error';
 
@@ -311,7 +312,7 @@ export interface AnalysisData {
   needsReview?: boolean; // флаг: все макросы нулевые или анализ не уверен
   // Preferred locale used during analysis / localization
   locale?: 'en' | 'ru' | 'kk';
-  
+
   // =====================================================
   // DISH NAME FIELDS (STEP 2: Stabilized naming)
   // =====================================================
@@ -326,7 +327,7 @@ export interface AnalysisData {
   dishNameSource?: 'vision' | 'generated' | 'neutral';
   // Confidence score for the dish name (0-1)
   dishNameConfidence?: number;
-  
+
   // Image URL for display (absolute URL or data URI)
   imageUrl?: string;
   // Image URI for backward compatibility
