@@ -87,8 +87,8 @@ export class FoodProcessor {
         // CRITICAL FIX: Resize large images to prevent Vision API timeout
         // OpenAI Vision works well with 1024-2048px images
         // Larger images (4000x3000 from iPhone) cause 45sec+ timeouts
-        const MAX_DIMENSION = 1536; // Good balance: quality vs speed
-        const JPEG_QUALITY = 75;    // Reduced for smaller file size
+        const MAX_DIMENSION = 1024; // Aggressive resize for speed
+        const JPEG_QUALITY = 65;    // Lower quality = smaller file = faster upload
 
         processedBuffer = await sharp(imageBuffer)
           .resize(MAX_DIMENSION, MAX_DIMENSION, {
