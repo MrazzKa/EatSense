@@ -903,9 +903,9 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
     const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
-    // Configure timeout for Vision API call (default 45 seconds, configurable via env)
-    // OPTIMIZED: Reduced from 120s to 45s for faster response
-    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '45000', 10);
+    // Configure timeout for Vision API call (default 30 seconds, configurable via env)
+    // OPTIMIZED: Reduced from 45s to 30s for faster fail-fast
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '30000', 10);
 
     try {
       // Retry loop for Vision API call
