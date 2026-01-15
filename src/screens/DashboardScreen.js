@@ -273,7 +273,7 @@ export default function DashboardScreen() {
   }, [language]);
 
   // Load active diet for dashboard widget from store
-  const { activeProgram, refreshProgress } = useProgramProgress();
+  const { activeProgram } = useProgramProgress();
 
   React.useEffect(() => {
     if (activeProgram && activeProgram.type === 'diet') {

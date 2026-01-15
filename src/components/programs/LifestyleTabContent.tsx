@@ -4,11 +4,11 @@ import {
     Text,
     FlatList,
     StyleSheet,
-    ListRenderItemInfo,
+    type ListRenderItemInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../app/i18n/hooks';
-import { useTheme, useDesignTokens } from '../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import DietCard from '../DietCard';
 import ActiveDietWidget from '../ActiveDietWidget';
 import CategoryChips from './CategoryChips';
@@ -103,7 +103,7 @@ export default function LifestyleTabContent({
 }: LifestyleTabContentProps) {
     const { t, language } = useI18n();
     const { colors } = useTheme();
-    const tokens = useDesignTokens();
+    // const tokens = useDesignTokens();
 
     // Filter lifestyle programs (type === 'LIFESTYLE' or uiGroup in lifestyle groups)
     const lifestylePrograms = useMemo(() => {

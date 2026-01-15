@@ -18,12 +18,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  ListRenderItem,
+  type ListRenderItem,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { LifestyleProgram, LifestyleTarget } from '../types';
+import type { LifestyleTarget } from '../types';
 import { LIFESTYLE_PROGRAMS, getTrendingPrograms, getProgramsByCategory } from '../data/lifestylePrograms';
 import { LIFESTYLE_CATEGORIES } from '../constants';
 import LifestyleCard from './LifestyleCard';
@@ -250,10 +250,10 @@ export default function LifestyleTabContent({
 interface FiltersSectionProps {
   selectedTarget: LifestyleTarget | null;
   selectedAgeRange: string | null;
-  onTargetSelect: (target: LifestyleTarget | null) => void;
-  onAgeRangeSelect: (range: string | null) => void;
+  onTargetSelect: (_target: LifestyleTarget | null) => void;
+  onAgeRangeSelect: (_range: string | null) => void;
   colors: any;
-  t: (key: string) => string;
+  t: (_key: string) => string;
 }
 
 const FiltersSection = React.memo(function FiltersSection({

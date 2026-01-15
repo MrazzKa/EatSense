@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
@@ -46,7 +45,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
             setIsInitializing(false);
         };
         initialize();
-    }, []);
+    }, [refreshProgress, invalidateCache]);
 
     // Refresh on focus
     useRefreshProgressOnFocus();
@@ -62,7 +61,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
             }, RETRY_DELAY_MS);
             return () => clearTimeout(timer);
         }
-    }, [storeLoading, isInitializing, activeProgram, retryCount]);
+    }, [storeLoading, isInitializing, activeProgram, retryCount, refreshProgress, invalidateCache]);
 
     // Show celebration when day is completed
     useEffect(() => {

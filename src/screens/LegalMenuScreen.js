@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text, SafeAreaView } from 'react-native'; // Removed SafeAreaView import causing conflict if already imported or similar
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native'; // Removed SafeAreaView import causing conflict if already imported or similar
 import { SafeAreaView as SafeAreaContext } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -80,7 +80,7 @@ export default function LegalMenuScreen() {
     );
 }
 
-const createStyles = (tokens, colors) =>
+const createStyles = (_tokens, _colors) =>
     StyleSheet.create({
         container: {
             flex: 1,

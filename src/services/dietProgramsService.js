@@ -17,12 +17,12 @@ class DietProgramsService {
         return ApiService.startDiet(programId);
     }
 
-    async getProgress(programId) {
+    async getProgress(_programId) {
         // Get active diet includes progress
         return ApiService.getActiveDiet();
     }
 
-    async completeDay(programId, dayNumber) {
+    async completeDay(_programId, dayNumber) {
         // Use today's plan endpoint or checklist
         return ApiService.request('/diets/active/checklist', {
             method: 'PATCH',
@@ -30,7 +30,7 @@ class DietProgramsService {
         });
     }
 
-    async stopProgram(programId) {
+    async stopProgram(_programId) {
         return ApiService.abandonDiet();
     }
 

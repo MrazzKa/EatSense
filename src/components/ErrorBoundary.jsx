@@ -19,7 +19,7 @@ export class ErrorBoundary extends React.Component {
     handleRestart = async () => {
         try {
             await Updates.reloadAsync();
-        } catch (e) {
+        } catch {
             // Fallback - just reset state if reload fails (though reloadAsync usually works in Expo Go/Builds)
             this.setState({ hasError: false, error: null });
         }

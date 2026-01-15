@@ -760,8 +760,8 @@ export class AnalyzeService {
       // If no nutrition found, create a generic item with estimated values
       this.logger.warn(`[AnalyzeService] No nutrition data for fallback "${foodDescription}", using generic estimates`);
       return {
+        id: crypto.randomUUID(),
         name: foodDescription,
-        displayName: foodDescription,
         portion_g: 150, // Default portion
         nutrients: {
           calories: 200, // Generic estimate
@@ -776,7 +776,6 @@ export class AnalyzeService {
         confidence: 0.3,
         source: 'generic_fallback',
         isFallback: true,
-        needsReview: true,
         isSuspicious: true,
       };
     } catch (error: any) {

@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     ActivityIndicator,
-    Platform,
+    // Platform,
     Modal,
     Alert,
 } from 'react-native';
@@ -84,21 +84,16 @@ export default function SubscriptionScreen() {
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
     const [restoring, setRestoring] = useState(false);
-    const [iapProducts, setIapProducts] = useState([]);
+    const [, setIapProducts] = useState([]);
     // Currency is stored for future use with IAP pricing
     const [, setCurrency] = useState({ code: 'USD', symbol: '$' });
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
 
-    useEffect(() => {
-        initIAP();
-        return () => {
-            IAPService.destroy();
-        };
-    }, []);
+
 
     // Initialize IAP and load products with Apple prices
-    const initIAP = async () => {
+    const initIAP = React.useCallback(async () => {
         try {
             setLoading(true);
 
@@ -114,7 +109,7 @@ export default function SubscriptionScreen() {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
                 const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
                 const isStudent = product.productId === SUBSCRIPTION_SKUS.STUDENT;
-                const isMonthly = product.productId === SUBSCRIPTION_SKUS.MONTHLY;
+                // const isMonthly = product.productId === SUBSCRIPTION_SKUS.MONTHLY;
 
                 const planType = isFounders ? 'founders' :
                     isYearly ? 'yearly' :
@@ -152,7 +147,14 @@ export default function SubscriptionScreen() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        initIAP();
+        return () => {
+            IAPService.destroy();
+        };
+    }, [initIAP]);
 
     // Fallback to backend plans when IAP is unavailable (e.g., simulator)
     const loadBackendPlans = async () => {

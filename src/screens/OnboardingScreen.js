@@ -11,8 +11,8 @@ import {
   TextInput,
   InteractionManager,
   Platform,
-  ActivityIndicator,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
@@ -27,7 +27,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
 import { useI18n } from '../../app/i18n/hooks';
-import { legalDocuments } from '../legal/legalContent';
+// import { legalDocuments } from '../legal/legalContent';
 import { openLegalLink } from '../utils/legal';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 
@@ -768,11 +768,8 @@ const OnboardingScreen = () => {
   const { t, language } = useI18n(); // Added useI18n hook
 
   // Terms step state
-  const [hasScrolledTerms, setHasScrolledTerms] = useState(false);
-  const [hasScrolledPrivacy, setHasScrolledPrivacy] = useState(false);
   const [hasOpenedTerms, setHasOpenedTerms] = useState(false);
   const [hasOpenedPrivacy, setHasOpenedPrivacy] = useState(false);
-  const [activeTab, setActiveTab] = useState('terms');
   const [showStudentPlan, setShowStudentPlan] = useState(false); // Collapsible student plan toggle
 
 
@@ -2061,25 +2058,8 @@ const OnboardingScreen = () => {
   const renderTermsStep = () => {
     // Hooks moved to top level
 
-    const locale = language?.split('-')[0] || 'en';
-    const validLocale = ['en', 'ru', 'kk'].includes(locale) ? locale : 'en';
-
-    const termsContent = legalDocuments.terms[validLocale] || legalDocuments.terms.en;
-    const privacyContent = legalDocuments.privacy[validLocale] || legalDocuments.privacy.en;
-
-    const handleScroll = (event) => {
-      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-      const paddingToBottom = 50;
-      const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
-
-      if (isCloseToBottom) {
-        if (activeTab === 'terms') {
-          setHasScrolledTerms(true);
-        } else {
-          setHasScrolledPrivacy(true);
-        }
-      }
-    };
+    // const locale = language?.split('-')[0] || 'en';
+    // const validLocale = ['en', 'ru', 'kk'].includes(locale) ? locale : 'en';
 
     const canProceed = profileData.termsAccepted && profileData.privacyAccepted;
 

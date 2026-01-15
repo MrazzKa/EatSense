@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const glob = require('glob'); // pnpm might not have glob installed by default in root, so we use simpler method or check if installed
 
 const iapPath = path.join(__dirname, '..', 'node_modules', 'react-native-iap', 'nitrogen', 'generated', 'ios', 'swift');
 

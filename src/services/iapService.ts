@@ -25,8 +25,8 @@ class IAPService {
     private purchaseUpdateSubscription: any = null;
     private purchaseErrorSubscription: any = null;
     private isInitialized = false;
-    private onPurchaseSuccess: ((productId: string) => void) | null = null;
-    private onPurchaseError: ((error: any) => void) | null = null;
+    private onPurchaseSuccess: ((_productId: string) => void) | null = null;
+    private onPurchaseError: ((_error: any) => void) | null = null;
 
     async init(): Promise<boolean> {
         if (this.isInitialized) {
@@ -131,8 +131,8 @@ class IAPService {
 
     async purchaseSubscription(
         sku: string,
-        onSuccess?: (productId: string) => void,
-        onError?: (error: any) => void
+        onSuccess?: (_productId: string) => void,
+        onError?: (_error: any) => void
     ) {
         this.onPurchaseSuccess = onSuccess || null;
         this.onPurchaseError = onError || null;
@@ -154,8 +154,8 @@ class IAPService {
 
     async purchaseProduct(
         sku: string,
-        onSuccess?: (productId: string) => void,
-        onError?: (error: any) => void
+        onSuccess?: (_productId: string) => void,
+        onError?: (_error: any) => void
     ) {
         this.onPurchaseSuccess = onSuccess || null;
         this.onPurchaseError = onError || null;
