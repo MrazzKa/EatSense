@@ -9,7 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
-import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+import { useProgramProgress } from '../stores/ProgramProgressStore';
 import ApiService from '../services/apiService';
 import CircularProgressRing from './CircularProgressRing';
 import CelebrationModal from './CelebrationModal';
@@ -37,7 +37,7 @@ interface DailyDietTrackerProps {
 export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     const { t } = useI18n();
     const { colors } = useTheme();
-    const { activeProgram, loading: storeLoading, updateChecklist, refreshProgress, markCelebrationShown } = useProgramProgress();
+    const { activeProgram, loading: storeLoading, updateChecklist, markCelebrationShown } = useProgramProgress();
 
     // NOTE: useRefreshProgressOnFocus removed - parent component handles this
     // Having it in both parent and child caused double refresh on every focus
@@ -52,7 +52,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
     // Debounce and queue refs for toggle UX
     const pendingChecklistRef = useRef<Record<string, boolean> | null>(null);
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isRequestInFlightRef = useRef(false);
     const DEBOUNCE_MS = 300; // Batch rapid toggles
 

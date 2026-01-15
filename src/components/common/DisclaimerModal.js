@@ -5,8 +5,7 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    ScrollView,
-    Platform
+    ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -19,7 +18,7 @@ const DisclaimerModal = ({
     onCancel,
     visible: propVisible // Control visibility externally if needed
 }) => {
-    const { colors, tokens } = useTheme();
+    const { colors } = useTheme();
     const { language } = useI18n();
     const [internalVisible, setInternalVisible] = useState(false);
     const [content, setContent] = useState(null);
@@ -51,7 +50,7 @@ const DisclaimerModal = ({
         if (propVisible !== false) { // Only run if not explicitly hidden
             checkStatus();
         }
-    }, [disclaimerKey, language, propVisible]);
+    }, [disclaimerKey, language, propVisible, onAccept]);
 
     const handleAccept = async () => {
         if (content?._meta?.requires_checkbox && !checked) return;

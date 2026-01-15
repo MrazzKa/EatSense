@@ -30,7 +30,7 @@ export default function LifestyleDetailScreen() {
         if (activeDiet && activeDiet.program?.id === programId) {
           setIsActive(true);
         }
-      } catch (error) {
+      } catch {
         // Not active or error - ignore
       }
     };

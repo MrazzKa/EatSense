@@ -232,7 +232,7 @@ class ProgramProgressService {
   /**
    * Update checklist
    */
-  async updateChecklist(type: ProgramType, programId: string, checklist: Record<string, boolean>): Promise<void> {
+  async updateChecklist(type: ProgramType, _programId: string, checklist: Record<string, boolean>): Promise<void> {
     if (type === 'diet') {
       await ApiService.patch('/diets/active/checklist', { checklist });
     } else {
@@ -244,7 +244,7 @@ class ProgramProgressService {
   /**
    * Complete current day
    */
-  async completeDay(type: ProgramType, programId: string): Promise<void> {
+  async completeDay(type: ProgramType, _programId: string): Promise<void> {
     if (type === 'diet') {
       // Use dedicated complete-day endpoint
       await ApiService.request('/diets/active/complete-day', {

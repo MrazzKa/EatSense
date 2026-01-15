@@ -5,7 +5,6 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    ActivityIndicator,
     RefreshControl,
     TextInput,
 } from 'react-native';

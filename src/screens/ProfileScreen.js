@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -19,7 +19,7 @@ import { ProfileNumberRow } from '../components/ProfileNumberRow';
 import { ProfileSegmentedControl } from '../components/ProfileSegmentedControl';
 import { ProfileToggleRow } from '../components/ProfileToggleRow';
 import DisclaimerModal from '../components/common/DisclaimerModal';
-import { getDisclaimer, shouldShowDisclaimer } from '../legal/disclaimerUtils';
+import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import { formatAmount } from '../utils/currency';
@@ -27,7 +27,7 @@ import HealthDisclaimer from '../components/HealthDisclaimer';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
   const { t, language, changeLanguage, availableLanguages } = useI18n();
   const themeContext = useTheme();
   const { signOut } = useAuth();
@@ -599,14 +599,14 @@ const ProfileScreen = () => {
     };
   };
 
-  const formatReminderTime = (hour, minute) => {
-    const date = new Date();
-    date.setHours(hour, minute ?? 0, 0, 0);
-    return date.toLocaleTimeString(language || 'en', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  // const formatReminderTime = (hour, minute) => {
+  //   const date = new Date();
+  //   date.setHours(hour, minute ?? 0, 0, 0);
+  //   return date.toLocaleTimeString(language || 'en', {
+  //     hour: '2-digit',
+  //     minute: '2-digit',
+  //   });
+  // };
 
   const handleNotificationToggle = async (value) => {
     try {
@@ -640,14 +640,14 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleNotificationHourChange = () => {
-    // Initialize tempDate with current notification time
-    const d = new Date();
-    d.setHours(notificationPreferences.dailyPushHour || 8);
-    d.setMinutes(notificationPreferences.dailyPushMinute || 0);
-    setTempDate(d);
-    setShowTimePicker(true);
-  };
+  // const handleNotificationHourChange = () => {
+  //   // Initialize tempDate with current notification time
+  //   const d = new Date();
+  //   d.setHours(notificationPreferences.dailyPushHour || 8);
+  //   d.setMinutes(notificationPreferences.dailyPushMinute || 0);
+  //   setTempDate(d);
+  //   setShowTimePicker(true);
+  // };
 
   const onTimeChange = (event, selectedDate) => {
     if (Platform.OS === 'android') {
@@ -764,17 +764,17 @@ const ProfileScreen = () => {
     });
   };
 
-  const handleOpenPolicy = () => {
-    if (navigation && typeof navigation.navigate === 'function') {
-      navigation.navigate('PrivacyPolicy');
-    }
-  };
+  // const handleOpenPolicy = () => {
+  //   if (navigation && typeof navigation.navigate === 'function') {
+  //     navigation.navigate('PrivacyPolicy');
+  //   }
+  // };
 
-  const handleOpenTerms = () => {
-    if (navigation && typeof navigation.navigate === 'function') {
-      navigation.navigate('TermsOfService');
-    }
-  };
+  // const handleOpenTerms = () => {
+  //   if (navigation && typeof navigation.navigate === 'function') {
+  //     navigation.navigate('TermsOfService');
+  //   }
+  // };
 
   const metrics = [
     { label: t('profile.metricWeight'), value: `${profile.weight || '--'} kg`, icon: 'barbell' },
