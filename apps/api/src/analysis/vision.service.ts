@@ -186,8 +186,8 @@ export class VisionService {
   private readonly openai: OpenAI;
 
   // Retry configuration for Vision API calls
-  // OPTIMIZED: Only 1 retry to fail fast (2 total attempts max)
-  private readonly MAX_RETRIES = 1;
+  // DISABLED: No retries - just use longer timeout
+  private readonly MAX_RETRIES = 0;
   private readonly RETRY_DELAY_MS = 500;
 
   constructor(private readonly cache: CacheService) {
@@ -197,8 +197,8 @@ export class VisionService {
     }
     this.openai = new OpenAI({
       apiKey,
-      timeout: 30000, // 30 second timeout (reduced from 45s)
-      maxRetries: 0, // No built-in retries (we handle retries ourselves)
+      timeout: 90000, // 90 second timeout (increased for reliability)
+      maxRetries: 0, // No built-in retries
     });
   }
 
@@ -436,38 +436,31 @@ export class VisionService {
       };
     }
     // Convert relative URLs to absolute URLs for OpenAI Vision API
-    // CRITICAL: OpenAI Vision API requires absolute URLs, not relative paths
-    // If base64 is available, prefer it over URL (more reliable and faster, avoids network issues)
+    // ALWAYS convert, regardless of base64 presence
     let finalImageUrl = imageUrl;
-    if (imageUrl && !imageBase64) {
-      // Only process URL if we don't have base64 (base64 is preferred)
+    if (imageUrl) {
       if (imageUrl.startsWith('/')) {
-        // Relative URL - convert to absolute using API_BASE_URL or API_PUBLIC_URL
-        const apiBaseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const apiBaseUrl = process.env.API_PUBLIC_URL || process.env.API_BASE_URL || 'https://caloriecam-production.up.railway.app';
         finalImageUrl = `${apiBaseUrl}${imageUrl}`;
         this.logger.debug(`[VisionService] Converted relative URL to absolute: ${finalImageUrl}`);
       } else if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://') && !imageUrl.startsWith('data:')) {
-        // URL doesn't start with http/https/data - might be a relative path without leading slash
-        const apiBaseUrl = process.env.API_BASE_URL || process.env.API_PUBLIC_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const apiBaseUrl = process.env.API_PUBLIC_URL || process.env.API_BASE_URL || 'https://caloriecam-production.up.railway.app';
         finalImageUrl = `${apiBaseUrl}/${imageUrl}`;
-        this.logger.debug(`[VisionService] Converted non-absolute URL to absolute: ${finalImageUrl}`);
       }
     }
 
-    // CRITICAL: Prefer base64 when available (more reliable for OpenAI Vision API, avoids URL timeout issues)
-    // Base64 is embedded in the request, so no network call needed to fetch the image
-    // Optimize base64 image if too large (reduces transfer time and API processing)
-    let optimizedBase64 = imageBase64;
-    if (imageBase64) {
-      optimizedBase64 = await this.optimizeImageBase64(imageBase64);
-    }
+    // PREFER URL over base64 (smaller request = faster, no timeout)
+    // OpenAI will fetch the image directly from our server
+    let imageContent: any;
 
-    const imageContent: any = optimizedBase64
-      ? { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${optimizedBase64}` } }
-      : { type: 'image_url', image_url: { url: finalImageUrl } };
-
-    // Validate that we have either base64 or a valid URL
-    if (!optimizedBase64 && !finalImageUrl) {
+    if (finalImageUrl && finalImageUrl.startsWith('https://')) {
+      this.logger.debug(`[VisionService] Using URL for Vision API: ${finalImageUrl}`);
+      imageContent = { type: 'image_url', image_url: { url: finalImageUrl } };
+    } else if (imageBase64) {
+      const optimizedBase64 = await this.optimizeImageBase64(imageBase64);
+      this.logger.debug(`[VisionService] Using base64 for Vision API (${Math.round(optimizedBase64.length / 1024)}KB)`);
+      imageContent = { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${optimizedBase64}` } };
+    } else {
       throw new BadRequestException('Either imageBase64 or valid imageUrl must be provided');
     }
 
@@ -903,9 +896,9 @@ Remember: Output ONLY valid JSON. No markdown, no explanations outside JSON stru
     const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
-    // Configure timeout for Vision API call (default 30 seconds, configurable via env)
-    // OPTIMIZED: Reduced from 45s to 30s for faster fail-fast
-    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '30000', 10);
+    // Configure timeout for Vision API call (default 90 seconds, configurable via env)
+    // UPDATED: Increased to 90s for reliability with URL-based requests
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '90000', 10);
 
     try {
       // Retry loop for Vision API call
