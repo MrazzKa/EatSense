@@ -876,7 +876,6 @@ export class DietsService {
             },
             update: {
                 completed: true,
-                completedAt: new Date(),
                 completionPercent: completionRate,
             },
             create: {
@@ -885,7 +884,6 @@ export class DietsService {
                 dayNumber: userDiet.currentDay,
                 checklist: checklist,
                 completed: true,
-                completedAt: new Date(),
                 completionPercent: completionRate,
             },
         });
