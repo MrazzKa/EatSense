@@ -129,6 +129,46 @@ export class DietsService {
     }
 
     /**
+     * PATCH 04: Get diets by specific slugs (for lazy loading optimization)
+     */
+    async findBySlugs(slugs: string[], locale: string = 'en') {
+        try {
+            const diets = await this.prisma.dietProgram.findMany({
+                where: {
+                    slug: { in: slugs },
+                    isActive: true,
+                },
+                orderBy: { popularityScore: 'desc' },
+                select: {
+                    id: true,
+                    slug: true,
+                    name: true,
+                    subtitle: true,
+                    shortDescription: true,
+                    type: true,
+                    difficulty: true,
+                    duration: true,
+                    imageUrl: true,
+                    isFeatured: true,
+                    popularityScore: true,
+                    tags: true,
+                    dailyCalories: true,
+                    category: true,
+                    uiGroup: true,
+                },
+            });
+
+            return {
+                diets: diets.map(diet => this.localizeDiet(diet, locale)),
+                total: diets.length,
+            };
+        } catch (error) {
+            this.logger.error(`[findBySlugs] Error fetching diets by slugs:`, error);
+            throw error;
+        }
+    }
+
+    /**
      * Get featured diets
      */
     async getFeatured(locale: string = 'en') {
@@ -765,96 +805,132 @@ export class DietsService {
      * Complete today and advance to next day
      * This marks today's log as completed and updates streak
      */
-    async completeDay(userId: string) {
+    /**
+     * Complete today and advance to next day
+     * PATCH 03: Fixed day not being saved, counter staying at 1
+     */
+    async completeDay(userId: string): Promise<{
+        success: boolean;
+        alreadyCompleted?: boolean;
+        currentDay: number;
+        daysCompleted: number;
+        streak: number;
+        isComplete: boolean;
+        completionRate: number;
+    }> {
         const userDiet = await this.prisma.userDietProgram.findFirst({
             where: { userId, status: 'active' },
             include: { program: true },
         });
 
         if (!userDiet) {
-            throw new BadRequestException('No active diet');
+            throw new NotFoundException('No active diet found');
         }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Get today's log to check completion
-        const todayLog = await this.prisma.userDietDailyLog.findFirst({
-            where: { userDietId: userDiet.id, date: today },
+        // Check if already completed today
+        const existingLog = await this.prisma.userDietDailyLog.findFirst({
+            where: {
+                userDietId: userDiet.id,
+                date: today,
+            },
         });
 
-        const checklist = (todayLog?.checklist as Record<string, boolean>) || {};
+        // CRITICAL FIX: Check if already marked as completed
+        if (existingLog?.completed) {
+            this.logger.log(`[completeDay] Day already completed for user ${userId}`);
+            return {
+                success: true,
+                alreadyCompleted: true,
+                currentDay: userDiet.currentDay,
+                daysCompleted: userDiet.daysCompleted,
+                streak: userDiet.currentStreak,
+                isComplete: userDiet.currentDay >= userDiet.program.duration,
+                completionRate: existingLog.completionPercent || 1,
+            };
+        }
+
+        // Calculate completion rate from checklist
+        const checklist = (existingLog?.checklist as Record<string, boolean>) || {};
         const dailyTracker = userDiet.program.dailyTracker as any[] || [];
         const totalItems = dailyTracker.length;
         const completedItems = Object.values(checklist).filter(Boolean).length;
-        const completionPercent = totalItems > 0 ? completedItems / totalItems : 0;
+        const completionRate = totalItems > 0 ? completedItems / totalItems : 1;
 
-        // Mark today as completed
+        this.logger.log(`[completeDay] Completing day for user ${userId}:`, {
+            currentDay: userDiet.currentDay,
+            totalItems,
+            completedItems,
+            completionRate,
+        });
+
+        // Update or create daily log
         await this.prisma.userDietDailyLog.upsert({
-            where: { userDietId_date: { userDietId: userDiet.id, date: today } },
+            where: {
+                userDietId_date: {
+                    userDietId: userDiet.id,
+                    date: today,
+                },
+            },
+            update: {
+                completed: true,
+                completedAt: new Date(),
+                completionPercent: completionRate,
+            },
             create: {
                 userDietId: userDiet.id,
                 date: today,
                 dayNumber: userDiet.currentDay,
                 checklist: checklist,
-                completionPercent,
                 completed: true,
-            },
-            update: {
-                completed: true,
-                completionPercent,
+                completedAt: new Date(),
+                completionPercent: completionRate,
             },
         });
 
-        // Update streak
-        const threshold = userDiet.program.streakThreshold || 0.7;
-        const meetsThreshold = completionPercent >= threshold;
+        // Calculate new streak
+        const streakThreshold = userDiet.program.streakThreshold || 0.6;
+        const maintainsStreak = completionRate >= streakThreshold;
+        const newStreak = maintainsStreak ? userDiet.currentStreak + 1 : 0;
+        const bestStreak = Math.max(userDiet.longestStreak, newStreak);
 
-        const lastStreakDate = userDiet.lastStreakDate;
-        const todayStr = today.toISOString().split('T')[0];
-        const lastStreakStr = lastStreakDate?.toISOString().split('T')[0];
+        // CRITICAL FIX: Calculate next day correctly
+        const nextDay = userDiet.currentDay + 1;
+        const isComplete = nextDay > userDiet.program.duration;
+        const finalCurrentDay = isComplete ? userDiet.program.duration : nextDay;
 
-        let newStreak = userDiet.currentStreak;
-        if (meetsThreshold && lastStreakStr !== todayStr) {
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
-            const isConsecutive = lastStreakStr === yesterdayStr || !lastStreakDate;
-            newStreak = isConsecutive ? userDiet.currentStreak + 1 : 1;
-        }
+        this.logger.log(`[completeDay] Updating progress:`, {
+            nextDay,
+            isComplete,
+            finalCurrentDay,
+            newStreak,
+            newDaysCompleted: userDiet.daysCompleted + 1,
+        });
 
-        // Update user diet progress
+        // CRITICAL FIX: Update UserDiet with incremented values
         await this.prisma.userDietProgram.update({
             where: { id: userDiet.id },
             data: {
-                daysCompleted: { increment: 1 },
+                currentDay: finalCurrentDay,
+                daysCompleted: { increment: 1 }, // CRITICAL: Use atomic increment
                 currentStreak: newStreak,
-                longestStreak: Math.max(newStreak, userDiet.longestStreak),
-                lastStreakDate: meetsThreshold ? today : userDiet.lastStreakDate,
+                longestStreak: bestStreak,
+                lastStreakDate: maintainsStreak ? today : userDiet.lastStreakDate,
+                status: isComplete ? 'completed' : 'active',
+                completedAt: isComplete ? new Date() : null,
             },
         });
 
-        // Check if program is complete
-        const isComplete = userDiet.currentDay >= userDiet.program.duration;
-        if (isComplete) {
-            await this.prisma.userDietProgram.update({
-                where: { id: userDiet.id },
-                data: {
-                    status: 'completed',
-                    completedAt: new Date(),
-                },
-            });
-        }
-
-        this.logger.log(`User ${userId} completed day ${userDiet.currentDay}, streak: ${newStreak}, completion: ${Math.round(completionPercent * 100)}%`);
-
         return {
             success: true,
-            day: userDiet.currentDay,
-            completionPercent,
-            meetsThreshold,
+            alreadyCompleted: false,
+            currentDay: finalCurrentDay,
+            daysCompleted: userDiet.daysCompleted + 1,
             streak: newStreak,
             isComplete,
+            completionRate,
         };
     }
 

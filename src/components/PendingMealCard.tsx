@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Image,
+    Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -41,6 +42,20 @@ export function PendingMealCard({
 }: PendingMealCardProps) {
     const { colors } = useTheme();
     const { t } = useI18n();
+
+    // Fade-out animation for completing analyses
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        if (analysis.isCompletingAnimation) {
+            // Start fade-out animation
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 600,
+                useNativeDriver: true,
+            }).start();
+        }
+    }, [analysis.isCompletingAnimation, fadeAnim]);
 
     const { status, localPreviewUri, imageUrl, errorMessage } = analysis;
 
@@ -170,65 +185,67 @@ export function PendingMealCard({
     };
 
     return (
-        <TouchableOpacity
-            style={[
-                styles.container,
-                {
-                    backgroundColor: colors.surface || colors.card,
-                    borderColor: status === 'failed' ? (colors.error || '#FF3B30') :
-                        status === 'needs_review' ? (colors.warning || '#FF9500') :
-                            (colors.border || colors.borderMuted),
-                },
-            ]}
-            onPress={onPress}
-            activeOpacity={0.7}
-        >
-            {/* Image section */}
-            <View style={styles.imageContainer}>
-                {displayImage ? (
-                    <Image
-                        source={{ uri: displayImage }}
-                        style={styles.image}
-                        resizeMode="cover"
-                    />
-                ) : (
-                    <View style={[styles.imagePlaceholder, { backgroundColor: colors.backgroundMuted }]}>
-                        {status === 'processing' ? (
-                            <ActivityIndicator size="small" color={colors.primary} />
-                        ) : (
-                            <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
-                        )}
-                    </View>
-                )}
+        <Animated.View style={{ opacity: fadeAnim }}>
+            <TouchableOpacity
+                style={[
+                    styles.container,
+                    {
+                        backgroundColor: colors.surface || colors.card,
+                        borderColor: status === 'failed' ? (colors.error || '#FF3B30') :
+                            status === 'needs_review' ? (colors.warning || '#FF9500') :
+                                (colors.border || colors.borderMuted),
+                    },
+                ]}
+                onPress={onPress}
+                activeOpacity={0.7}
+            >
+                {/* Image section */}
+                <View style={styles.imageContainer}>
+                    {displayImage ? (
+                        <Image
+                            source={{ uri: displayImage }}
+                            style={styles.image}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <View style={[styles.imagePlaceholder, { backgroundColor: colors.backgroundMuted }]}>
+                            {status === 'processing' ? (
+                                <ActivityIndicator size="small" color={colors.primary} />
+                            ) : (
+                                <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+                            )}
+                        </View>
+                    )}
 
-                {/* Processing overlay */}
-                {status === 'processing' && displayImage && (
-                    <View style={styles.imageOverlay}>
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                    </View>
-                )}
+                    {/* Processing overlay */}
+                    {status === 'processing' && displayImage && (
+                        <View style={styles.imageOverlay}>
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                        </View>
+                    )}
 
-                {/* Elapsed time badge */}
-                {status === 'processing' && (
-                    <View style={[styles.timeBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
-                        <Text style={styles.timeBadgeText}>{getElapsedTime(analysis.startedAt)}</Text>
-                    </View>
-                )}
-            </View>
+                    {/* Elapsed time badge */}
+                    {status === 'processing' && (
+                        <View style={[styles.timeBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+                            <Text style={styles.timeBadgeText}>{getElapsedTime(analysis.startedAt)}</Text>
+                        </View>
+                    )}
+                </View>
 
-            {/* Content section */}
-            <View style={styles.content}>
-                {renderStatusContent()}
-            </View>
+                {/* Content section */}
+                <View style={styles.content}>
+                    {renderStatusContent()}
+                </View>
 
-            {/* Chevron for navigation */}
-            <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textTertiary}
-                style={styles.chevron}
-            />
-        </TouchableOpacity>
+                {/* Chevron for navigation */}
+                <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.textTertiary}
+                    style={styles.chevron}
+                />
+            </TouchableOpacity>
+        </Animated.View>
     );
 }
 
