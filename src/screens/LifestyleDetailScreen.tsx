@@ -1,59 +1,92 @@
 /**
  * LifestyleDetailScreen - Detail screen for Lifestyle Programs
- * Wrapper around the LifestyleDetailScreen component
+ * Fetches program data from API
  */
 
 import React, { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import LifestyleDetailScreenComponent from '../features/lifestyles/components/LifestyleDetailScreen';
-import { LIFESTYLE_PROGRAMS } from '../features/lifestyles/data/lifestylePrograms';
 import ApiService from '../services/apiService';
-import type { LifestyleProgram } from '../features/lifestyles/types';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const params = route.params as { id?: string; programId?: string } | undefined;
   const programId = params?.id || params?.programId;
 
+  const [program, setProgram] = useState<any>(null);
   const [isActive, setIsActive] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const program = LIFESTYLE_PROGRAMS.find((p: LifestyleProgram) => p.id === programId);
+  const [loading, setLoading] = useState(true);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
-    // Check if user already has this program active
-    const checkActiveStatus = async () => {
+    const loadData = async () => {
+      if (!programId) {
+        navigation.goBack();
+        return;
+      }
+
       try {
-        const activeDiet = await ApiService.getActiveDiet();
-        if (activeDiet && activeDiet.program?.id === programId) {
+        // Load program details and active status in parallel
+        const [programRes, activeDietRes] = await Promise.all([
+          ApiService.getDiet(programId).catch(() => null),
+          ApiService.getActiveDiet().catch(() => null),
+        ]);
+
+        if (programRes) {
+          setProgram(programRes);
+        } else {
+          Alert.alert('Ошибка', 'Программа не найдена');
+          navigation.goBack();
+          return;
+        }
+
+        // Check if this program is active
+        if (activeDietRes && activeDietRes.program?.id === programId) {
           setIsActive(true);
         }
-      } catch {
-        // Not active or error - ignore
+      } catch (error) {
+        console.error('[LifestyleDetail] Load error:', error);
+        Alert.alert('Ошибка', 'Не удалось загрузить программу');
+        navigation.goBack();
+      } finally {
+        setLoading(false);
       }
     };
-    checkActiveStatus();
-  }, [programId]);
+
+    loadData();
+  }, [programId, navigation]);
+
+  if (loading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background || '#FFF' }]}>
+        <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary || '#666' }]}>
+          Загрузка программы...
+        </Text>
+      </View>
+    );
+  }
 
   if (!program) {
-    navigation.goBack();
     return null;
   }
 
   const handleStartProgram = async () => {
-    if (loading) return;
-    setLoading(true);
+    if (starting) return;
+    setStarting(true);
 
     try {
       // Use the diet API to start the lifestyle program (they share the same backend)
-      await ApiService.startDiet(program.id);
+      await ApiService.startDiet(program.id || program.slug);
       setIsActive(true);
 
       Alert.alert(
         'Программа запущена!',
-        `Вы начали "${program.name.ru || program.name.en}". Отслеживайте прогресс на главном экране.`,
+        `Вы начали "${program.name?.ru || program.name?.en || program.name}". Отслеживайте прогресс на главном экране.`,
         [
           {
             text: 'Перейти',
@@ -66,7 +99,7 @@ export default function LifestyleDetailScreen() {
       const message = error?.response?.data?.message || 'Не удалось запустить программу. Попробуйте позже.';
       Alert.alert('Ошибка', message);
     } finally {
-      setLoading(false);
+      setStarting(false);
     }
   };
 
@@ -89,3 +122,15 @@ export default function LifestyleDetailScreen() {
     />
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+});

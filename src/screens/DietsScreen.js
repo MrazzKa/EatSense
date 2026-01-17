@@ -7,6 +7,7 @@ import {
     StyleSheet,
     RefreshControl,
     TextInput,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -86,6 +87,15 @@ const MAIN_TABS = [
     { id: 'lifestyle', labelKey: 'diets.tabs.lifestyle', fallback: 'Lifestyle' },
 ];
 
+// Featured diets to load first for instant display (lazy loading)
+const FEATURED_DIET_SLUGS = [
+    'mediterranean',
+    'keto',
+    'if-16-8',
+    'plate-method',
+    'low-carb',
+];
+
 
 /**
  * DietsScreen - Main screen for diet programs and meal plans
@@ -98,6 +108,7 @@ export default function DietsScreen({ navigation }) {
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // PATCH 04: Two-stage loading
     const [activeDiet, setActiveDiet] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
     const [featuredDiets, setFeaturedDiets] = useState([]);
@@ -109,44 +120,99 @@ export default function DietsScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('diets'); // New: main tab state
     const scrollViewRef = useRef(null);
 
+    // Lifestyle state - now from API instead of local file
+    const [lifestylePrograms, setLifestylePrograms] = useState([]);
+    const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
+    const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
+
     const loadData = useCallback(async () => {
+        // PATCH 04: Two-stage lazy loading for instant perceived speed
+        let isMounted = true;
+
         // Show content immediately with optimistic loading
         setLoading(false);
 
         try {
-            // For lifestyle tab - data is mostly static, only fetch active diet
+            // For lifestyle tab - load from API (unified with diets)
             if (activeTab === 'lifestyle') {
-                // Don't wait - load in background
-                ApiService.getActiveDiet()
-                    .then(res => setActiveDiet(res))
-                    .catch(() => setActiveDiet(null))
-                    .finally(() => setRefreshing(false));
+                setIsLoadingLifestyles(true);
+
+                // STAGE 1: Load featured lifestyles FAST for instant display
+                const [activeRes, featuredRes] = await Promise.all([
+                    ApiService.getActiveDiet().catch(() => null),
+                    ApiService.getDiets({ type: 'LIFESTYLE', featured: true, limit: 8 }).catch(() => ({ diets: [] })),
+                ]);
+
+                if (isMounted) {
+                    setActiveDiet(activeRes || null);
+                    if (featuredRes?.diets) setFeaturedLifestyles(featuredRes.diets);
+                    setRefreshing(false);
+                }
+
+                // STAGE 2: Load all lifestyles in background
+                setTimeout(async () => {
+                    if (!isMounted) return;
+                    try {
+                        const allRes = await ApiService.getDiets({ type: 'LIFESTYLE', limit: 50 }).catch(() => ({ diets: [] }));
+                        if (isMounted && allRes?.diets) {
+                            setLifestylePrograms(allRes.diets);
+                        }
+                    } catch (error) {
+                        console.error('[DietsScreen] Load lifestyles error:', error);
+                    } finally {
+                        if (isMounted) setIsLoadingLifestyles(false);
+                    }
+                }, 100);
                 return;
             }
 
-            // For diets tab - parallel loading
-            const filters = {};
-            if (selectedType) filters.type = selectedType;
-            if (selectedDifficulty) filters.difficulty = selectedDifficulty;
-            if (searchQuery) filters.search = searchQuery;
-
-            const [activeRes, recsRes, featuredRes, allRes] = await Promise.all([
+            // STAGE 1: Load featured diets FAST for instant display
+            const [activeRes, recsRes, featuredRes] = await Promise.all([
                 ApiService.getActiveDiet().catch(() => null),
                 ApiService.getDietRecommendations().catch(() => []),
                 ApiService.getFeaturedDiets().catch(() => []),
-                ApiService.getDiets(filters).catch(() => ({ diets: [] })),
             ]);
 
-            setActiveDiet(activeRes || null);
-            if (Array.isArray(recsRes)) setRecommendations(recsRes);
-            if (Array.isArray(featuredRes)) setFeaturedDiets(featuredRes);
-            if (allRes?.diets) setAllDiets(allRes.diets);
+            if (isMounted) {
+                setActiveDiet(activeRes || null);
+                if (Array.isArray(recsRes)) setRecommendations(recsRes);
+                if (Array.isArray(featuredRes)) setFeaturedDiets(featuredRes);
+                setRefreshing(false);
+            }
+
+            // STAGE 2: Load all diets in background (with small delay to let UI render)
+            setIsLoadingMore(true);
+
+            setTimeout(async () => {
+                if (!isMounted) return;
+
+                try {
+                    const filters = {};
+                    if (selectedType) filters.type = selectedType;
+                    if (selectedDifficulty) filters.difficulty = selectedDifficulty;
+                    if (searchQuery) filters.search = searchQuery;
+
+                    const allRes = await ApiService.getDiets(filters).catch(() => ({ diets: [] }));
+
+                    if (isMounted && allRes?.diets) {
+                        setAllDiets(allRes.diets);
+                    }
+                } catch (error) {
+                    console.error('[DietsScreen] Load more error:', error);
+                } finally {
+                    if (isMounted) setIsLoadingMore(false);
+                }
+            }, 100); // 100ms delay to let UI render featured first
 
         } catch (error) {
             console.error('[DietsScreen] Load error:', error);
-        } finally {
             setRefreshing(false);
+            setIsLoadingMore(false);
         }
+
+        return () => {
+            isMounted = false;
+        };
     }, [selectedType, selectedDifficulty, searchQuery, activeTab]);
 
     useFocusEffect(
@@ -295,7 +361,22 @@ export default function DietsScreen({ navigation }) {
                         searchQuery={searchQuery}
                         onSearchChange={onSearchChange}
                         onProgramPress={handleProgramPress}
+                        programs={lifestylePrograms}
+                        featuredPrograms={featuredLifestyles}
+                        isLoading={isLoadingLifestyles}
                     />
+                )}
+
+                {/* PATCH 04: Loading indicator for additional diets/lifestyles */}
+                {((isLoadingMore && activeTab === 'diets') || (isLoadingLifestyles && activeTab === 'lifestyle')) && (
+                    <View style={styles.loadingMoreContainer}>
+                        <ActivityIndicator size="small" color={tokens.colors?.primary || '#4CAF50'} />
+                        <Text style={[styles.loadingMoreText, { color: tokens.colors?.textSecondary }]}>
+                            {activeTab === 'lifestyle'
+                                ? (t('lifestyles.loading_more') || 'Loading more programs...')
+                                : (t('diets.loading_more') || 'Loading more diets...')}
+                        </Text>
+                    </View>
                 )}
 
                 <View style={{ height: 40 }} />
@@ -314,6 +395,17 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: tokens.colors?.background || '#FAFAFA',
+    },
+    // PATCH 04: Loading more indicator
+    loadingMoreContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        gap: 8,
+    },
+    loadingMoreText: {
+        fontSize: 14,
     },
     header: {
         paddingHorizontal: 16,

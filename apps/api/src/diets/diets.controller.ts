@@ -43,11 +43,20 @@ export class DietsController {
         @Query('suitableFor') suitableFor?: string,
         @Query('featured') featured?: string,
         @Query('search') search?: string,
+        @Query('slugs') slugs?: string, // PATCH 04: Optional slugs filter for lazy loading
         @Query('limit') limit?: string,
         @Query('offset') offset?: string,
         @Headers('accept-language') acceptLanguage?: string,
     ) {
         const locale = this.parseLocale(acceptLanguage);
+
+        // PATCH 04: If slugs provided, fetch only those specific diets
+        if (slugs) {
+            const slugArray = slugs.split(',').map(s => s.trim()).filter(Boolean);
+            if (slugArray.length > 0) {
+                return this.dietsService.findBySlugs(slugArray, locale);
+            }
+        }
 
         // Normalize enum values to match Prisma enum (uppercase)
         const normalizedType = type?.toUpperCase() as DietType | undefined;

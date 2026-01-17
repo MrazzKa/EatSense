@@ -26,6 +26,8 @@ export interface PendingAnalysis {
     startedAt: number;
     updatedAt: number;
     pollAttempts: number;
+    // Flag for fade-out animation before removal
+    isCompletingAnimation?: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ const AnalysisContext = createContext<AnalysisContextType | null>(null);
 const MAX_POLL_ATTEMPTS = 30;
 const POLL_INTERVAL_MS = 3000;
 const POLL_BACKOFF_MULTIPLIER = 1.2;
+const COMPLETION_ANIMATION_DELAY_MS = 800; // Delay before removing completed analysis for smooth fade-out
 
 // deriveStatus removed
 
@@ -266,22 +269,30 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
                         const fullResult = await ApiService.getAnalysisResult(analysis.analysisId);
                         if (fullResult?.data) {
                             const fullUpdates = extractAnalysisData(fullResult);
-                            // Update with complete data including dishNameLocalized
+                            // Mark as completing animation FIRST to trigger fade-out
                             updateAnalysis(analysis.analysisId, {
                                 ...fullUpdates,
                                 status: updates.status,
+                                isCompletingAnimation: true, // Trigger fade-out animation
                             });
                             console.log(`[AnalysisContext] Full result fetched, dishName: "${fullUpdates.dishName}"`);
                         }
                     } catch (err: any) {
                         console.error(`[AnalysisContext] Failed to fetch full result:`, err?.message);
                         // Still update with status data even if result fetch fails
-                        updateAnalysis(analysis.analysisId, updates);
+                        updateAnalysis(analysis.analysisId, {
+                            ...updates,
+                            isCompletingAnimation: true,
+                        });
                     }
 
-                    // Remove from pending after update
-                    console.log(`[AnalysisContext] Removing terminal analysis ${analysis.analysisId}`);
-                    removePendingAnalysis(analysis.analysisId);
+                    // DELAY removal to allow UI to show completed state with animation
+                    console.log(`[AnalysisContext] Scheduling removal of ${analysis.analysisId} in ${COMPLETION_ANIMATION_DELAY_MS}ms`);
+                    setTimeout(() => {
+                        if (isMountedRef.current) {
+                            removePendingAnalysis(analysis.analysisId);
+                        }
+                    }, COMPLETION_ANIMATION_DELAY_MS);
                 } else {
                     // Only update if still processing
                     console.log(`[AnalysisContext] Updating processing analysis ${analysis.analysisId}`);

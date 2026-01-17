@@ -244,18 +244,34 @@ class ProgramProgressService {
   /**
    * Complete current day
    */
-  async completeDay(type: ProgramType, _programId: string): Promise<void> {
-    if (type === 'diet') {
-      // Use dedicated complete-day endpoint
-      await ApiService.request('/diets/active/complete-day', {
-        method: 'POST',
-      });
-    } else {
-      // Lifestyle uses same endpoint pattern
-      await ApiService.request('/diets/active/complete-day', {
-        method: 'POST',
-      });
-    }
+  /**
+   * Complete current day
+   * Returns the result so UI can react to updated values
+   */
+  async completeDay(type: ProgramType, _programId: string): Promise<{
+    success: boolean;
+    alreadyCompleted?: boolean;
+    currentDay: number;
+    daysCompleted: number;
+    streak: number;
+    isComplete: boolean;
+    completionRate: number;
+  }> {
+    // Use dedicated complete-day endpoint
+    const result = await ApiService.request('/diets/active/complete-day', {
+      method: 'POST',
+    });
+
+    // Return the result so UI can react
+    return {
+      success: result.success,
+      alreadyCompleted: result.alreadyCompleted,
+      currentDay: result.currentDay,
+      daysCompleted: result.daysCompleted,
+      streak: result.streak,
+      isComplete: result.isComplete,
+      completionRate: result.completionRate,
+    };
   }
 
   /**

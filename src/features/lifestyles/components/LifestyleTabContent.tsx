@@ -1,14 +1,11 @@
 /**
- * LifestyleTabContent - OPTIMIZED VERSION with FlatList virtualization
+ * LifestyleTabContent - UNIFIED VERSION using API data
  * 
  * CHANGES FROM ORIGINAL:
- * 1. Replaced ScrollView + map() with FlatList
- * 2. Added getItemLayout for fixed-height items
- * 3. Added windowSize, initialNumToRender, maxToRenderPerBatch for performance
- * 4. Used React.memo for LifestyleCard
- * 5. Memoized filter and group operations
- * 
- * Expected improvement: ~800ms to <200ms initial render
+ * 1. Removed local LIFESTYLE_PROGRAMS import
+ * 2. Uses programs from props (loaded from API in DietsScreen)
+ * 3. Uses featuredPrograms for TrendingCarousel
+ * 4. Shows loading skeleton when isLoading
  */
 
 import React, { useMemo, useState, useCallback } from 'react';
@@ -18,13 +15,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
   type ListRenderItem,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { LifestyleTarget } from '../types';
-import { LIFESTYLE_PROGRAMS, getTrendingPrograms, getProgramsByCategory } from '../data/lifestylePrograms';
 import { LIFESTYLE_CATEGORIES } from '../constants';
 import LifestyleCard from './LifestyleCard';
 import CategoryChips from './CategoryChips';
@@ -34,25 +31,60 @@ import DisclaimerBanner from './DisclaimerBanner';
 // Card height for getItemLayout optimization
 const CARD_HEIGHT = 180;
 const CARD_MARGIN = 12;
-const ITEM_HEIGHT = CARD_HEIGHT + CARD_MARGIN;
+
+interface LifestyleProgram {
+  id: string;
+  slug: string;
+  name: { en: string; ru?: string; kk?: string };
+  subtitle?: { en: string; ru?: string; kk?: string };
+  tagline?: { en: string; ru?: string; kk?: string };
+  category?: string;
+  uiGroup?: string;
+  target?: string;
+  ageRange?: string;
+  type?: string;
+  [key: string]: any;
+}
 
 interface LifestyleTabContentProps {
   searchQuery: string;
   onSearchChange: (_query: string) => void;
   onProgramPress: (_programId: string) => void;
+  programs?: LifestyleProgram[];
+  featuredPrograms?: LifestyleProgram[];
+  isLoading?: boolean;
 }
 
 // Section data type for grouped rendering
 interface SectionData {
-  type: 'header' | 'trending' | 'chips' | 'disclaimer' | 'filters' | 'category-header' | 'program' | 'empty';
+  type: 'header' | 'trending' | 'chips' | 'disclaimer' | 'filters' | 'category-header' | 'program' | 'empty' | 'loading';
   data?: any;
   categoryId?: string;
+}
+
+// Map API uiGroup to LIFESTYLE_CATEGORIES id
+function mapUiGroupToCategoryId(uiGroup: string): string {
+  const mapping: Record<string, string> = {
+    'Trending': 'TRENDING',
+    'Weight Loss': 'GOAL_LOSE_WEIGHT',
+    'Build Muscle': 'GOAL_BUILD_MUSCLE',
+    'Clear Skin': 'GOAL_CLEAR_SKIN',
+    'More Energy': 'GOAL_MORE_ENERGY',
+    'Destinations': 'DESTINATIONS',
+    'Aesthetics': 'AESTHETICS',
+    'Warrior Mode': 'WARRIOR_MODE',
+    'Seasonal': 'SEASONAL',
+  };
+  return mapping[uiGroup] || uiGroup;
 }
 
 export default function LifestyleTabContent({
   searchQuery,
   onSearchChange: _onSearchChange,
   onProgramPress,
+  programs = [],
+  featuredPrograms = [],
+  isLoading = false,
 }: LifestyleTabContentProps) {
   const { t, language } = useI18n();
   const { colors } = useTheme();
@@ -61,25 +93,28 @@ export default function LifestyleTabContent({
   const [selectedTarget, setSelectedTarget] = useState<LifestyleTarget | null>(null);
   const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
 
-  // Memoized trending programs
+  // Memoized trending programs from featured
   const trendingPrograms = useMemo(() => {
-    return getTrendingPrograms().slice(0, 8);
-  }, []);
+    return featuredPrograms.slice(0, 8);
+  }, [featuredPrograms]);
 
   // Memoized filtered programs
   const filteredPrograms = useMemo(() => {
-    let programs = LIFESTYLE_PROGRAMS;
+    let result = programs;
 
     if (selectedCategory) {
-      programs = getProgramsByCategory(selectedCategory);
+      result = result.filter(p => {
+        const categoryId = mapUiGroupToCategoryId(p.uiGroup || '');
+        return categoryId === selectedCategory || p.category === selectedCategory;
+      });
     }
 
     if (selectedTarget) {
-      programs = programs.filter(p => p.target === selectedTarget);
+      result = result.filter(p => p.target === selectedTarget);
     }
 
     if (selectedAgeRange) {
-      programs = programs.filter(p => {
+      result = result.filter(p => {
         const programAge = p.ageRange || '18-50';
         return programAge.includes(selectedAgeRange) || !selectedAgeRange;
       });
@@ -87,22 +122,28 @@ export default function LifestyleTabContent({
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      programs = programs.filter(program => {
-        const name = (program.name[language as keyof typeof program.name] || program.name.en || '').toLowerCase();
-        const tagline = (program.tagline[language as keyof typeof program.tagline] || program.tagline.en || '').toLowerCase();
-        const vibe = program.vibe.toLowerCase();
-        return name.includes(query) || tagline.includes(query) || vibe.includes(query);
+      result = result.filter(program => {
+        const name = (program.name?.[language as keyof typeof program.name] || program.name?.en || '').toLowerCase();
+        const tagline = (program.tagline?.[language as keyof typeof program.tagline] || program.tagline?.en || '').toLowerCase();
+        const subtitle = (program.subtitle?.[language as keyof typeof program.subtitle] || program.subtitle?.en || '').toLowerCase();
+        return name.includes(query) || tagline.includes(query) || subtitle.includes(query);
       });
     }
 
-    return programs;
-  }, [selectedCategory, selectedTarget, selectedAgeRange, searchQuery, language]);
+    return result;
+  }, [programs, selectedCategory, selectedTarget, selectedAgeRange, searchQuery, language]);
 
   // Build flat list data with sections
   const listData = useMemo((): SectionData[] => {
     const data: SectionData[] = [];
 
-    // Trending section (only if not searching)
+    // Loading state
+    if (isLoading && programs.length === 0) {
+      data.push({ type: 'loading' });
+      return data;
+    }
+
+    // Trending section (only if not searching and have featured)
     if (!searchQuery && trendingPrograms.length > 0) {
       data.push({ type: 'trending', data: trendingPrograms });
     }
@@ -134,29 +175,40 @@ export default function LifestyleTabContent({
     } else {
       // Show all programs grouped by category
       LIFESTYLE_CATEGORIES.forEach(category => {
-        const categoryPrograms = filteredPrograms.filter(p => p.categoryId === category.id);
-        if (categoryPrograms.length > 0 || searchQuery) {
-          if (categoryPrograms.length > 0) {
-            data.push({ type: 'category-header', categoryId: category.id, data: { count: categoryPrograms.length, emoji: category.emoji } });
-            categoryPrograms.forEach(program => {
-              data.push({ type: 'program', data: program });
-            });
-          }
+        const categoryPrograms = filteredPrograms.filter(p => {
+          const catId = mapUiGroupToCategoryId(p.uiGroup || '');
+          return catId === category.id || p.category === category.id.toLowerCase();
+        });
+        if (categoryPrograms.length > 0) {
+          data.push({ type: 'category-header', categoryId: category.id, data: { count: categoryPrograms.length, emoji: category.emoji } });
+          categoryPrograms.forEach(program => {
+            data.push({ type: 'program', data: program });
+          });
         }
       });
     }
 
     // Empty state
-    if (filteredPrograms.length === 0) {
+    if (filteredPrograms.length === 0 && !isLoading) {
       data.push({ type: 'empty' });
     }
 
     return data;
-  }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms]);
+  }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, programs.length]);
 
   // Memoized render item
   const renderItem: ListRenderItem<SectionData> = useCallback(({ item }) => {
     switch (item.type) {
+      case 'loading':
+        return (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary || '#666' }]}>
+              {t('lifestyles.loading') || 'Loading lifestyle programs...'}
+            </Text>
+          </View>
+        );
+
       case 'trending':
         return <TrendingCarousel programs={item.data} onProgramPress={onProgramPress} />;
 
@@ -202,7 +254,7 @@ export default function LifestyleTabContent({
         return (
           <LifestyleCard
             program={item.data}
-            onPress={() => onProgramPress(item.data.id)}
+            onPress={() => onProgramPress(item.data.id || item.data.slug)}
           />
         );
 
@@ -226,7 +278,7 @@ export default function LifestyleTabContent({
   // Key extractor
   const keyExtractor = useCallback((item: SectionData, index: number) => {
     if (item.type === 'program') {
-      return `program-${item.data.id}`;
+      return `program-${item.data.id || item.data.slug}`;
     }
     return `${item.type}-${index}`;
   }, []);
@@ -352,6 +404,15 @@ const FiltersSection = React.memo(function FiltersSection({
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 24,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
   },
   filtersContainer: {
     paddingHorizontal: 16,

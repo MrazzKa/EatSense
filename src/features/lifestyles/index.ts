@@ -5,4 +5,4 @@
 
 export * from './types';
 export * from './constants';
-export { LIFESTYLE_PROGRAMS, getProgramsByCategory, getTrendingPrograms } from './data/lifestylePrograms';
+// Note: LIFESTYLE_PROGRAMS removed - data now comes from API
