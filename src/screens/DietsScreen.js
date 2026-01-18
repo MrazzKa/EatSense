@@ -284,10 +284,21 @@ export default function DietsScreen({ navigation }) {
         }, [loadData])
     );
 
-    const onRefresh = () => {
+    const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        loadData();
-    };
+
+        // Clear cache on manual refresh to force fresh data
+        try {
+            await AsyncStorage.removeItem(DIETS_CACHE_KEY);
+            await AsyncStorage.removeItem(LIFESTYLES_CACHE_KEY);
+        } catch (e) {
+            console.warn('[DietsScreen] Failed to clear cache:', e);
+        }
+
+        // loadData uses loadFromCache inside, so clearing it first ensures API hit
+        await loadData();
+        // Note: loadData handles setRefreshing(false) internally
+    }, [loadData]);
 
     const onTypeChange = async (type) => {
         setSelectedType(type);

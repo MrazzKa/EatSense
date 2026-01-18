@@ -140,6 +140,57 @@ export class AnalyzeService {
     return this.SIMPLE_PRODUCTS.some(p => nameLower.includes(p));
   }
 
+  // FIX 5: Canonical nutrition values for common items (per 100g)
+  // Used to override suspicious provider results or fill missing data
+  private readonly CANONICAL_NUTRITION: Record<string, { calories: number; protein: number; carbs: number; fat: number }> = {
+    // Vegetables
+    'cauliflower': { calories: 25, protein: 1.9, carbs: 5, fat: 0.3 },
+    'broccoli': { calories: 34, protein: 2.8, carbs: 7, fat: 0.4 },
+    'cucumber': { calories: 15, protein: 0.7, carbs: 3.6, fat: 0.1 },
+    'tomato': { calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+    'cherry tomatoes': { calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+    'spinach': { calories: 23, protein: 2.9, carbs: 3.6, fat: 0.4 },
+    'lettuce': { calories: 15, protein: 1.4, carbs: 2.9, fat: 0.2 },
+    'cabbage': { calories: 25, protein: 1.3, carbs: 5.8, fat: 0.1 },
+    'carrot': { calories: 41, protein: 0.9, carbs: 9.6, fat: 0.2 },
+    // Fruits
+    'avocado': { calories: 160, protein: 2, carbs: 8.5, fat: 14.7 },
+    'apple': { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
+    'banana': { calories: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
+    'orange': { calories: 47, protein: 0.9, carbs: 11.8, fat: 0.1 },
+    // Grains (cooked)
+    'quinoa': { calories: 120, protein: 4.4, carbs: 21.3, fat: 1.9 },
+    'rice': { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+    'white rice': { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+    'brown rice': { calories: 112, protein: 2.6, carbs: 23.5, fat: 0.9 },
+    'buckwheat': { calories: 92, protein: 3.4, carbs: 20, fat: 0.6 },
+    'oatmeal': { calories: 71, protein: 2.5, carbs: 12, fat: 1.5 },
+    // Proteins
+    'egg': { calories: 143, protein: 12.6, carbs: 0.7, fat: 9.5 },
+    'boiled egg': { calories: 155, protein: 12.6, carbs: 1.1, fat: 10.6 },
+    'chicken breast': { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+    // Russian translations
+    'цветная капуста': { calories: 25, protein: 1.9, carbs: 5, fat: 0.3 },
+    'брокколи': { calories: 34, protein: 2.8, carbs: 7, fat: 0.4 },
+    'огурец': { calories: 15, protein: 0.7, carbs: 3.6, fat: 0.1 },
+    'помидор': { calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+    'шпинат': { calories: 23, protein: 2.9, carbs: 3.6, fat: 0.4 },
+    'авокадо': { calories: 160, protein: 2, carbs: 8.5, fat: 14.7 },
+    'киноа': { calories: 120, protein: 4.4, carbs: 21.3, fat: 1.9 },
+    'рис': { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+    'гречка': { calories: 92, protein: 3.4, carbs: 20, fat: 0.6 },
+    'яйцо': { calories: 143, protein: 12.6, carbs: 0.7, fat: 9.5 },
+    'куриная грудка': { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+  };
+
+  /**
+   * Check and use canonical value if available
+   */
+  private getCanonicalNutrition(name: string): { calories: number; protein: number; carbs: number; fat: number } | null {
+    const nameLower = name.toLowerCase().trim();
+    return this.CANONICAL_NUTRITION[nameLower] || null;
+  }
+
   private readonly FOOD_SYNONYMS: Map<string, string> = new Map([
     // Яйца
     ['egg', 'egg'], ['яйц', 'egg'], ['желток', 'egg'], ['белок яйц', 'egg'],
@@ -980,9 +1031,48 @@ export class AnalyzeService {
         const nutritionConfidence = (component as any).nutritionConfidence ?? 0;
         const hasGoodEstimate = estNutrients?.calories > 0 && nutritionConfidence >= 0.75;
 
-        if (isSimple && hasGoodEstimate) {
+        // FIX 3: Check canonical data first
+        const canonical = this.getCanonicalNutrition(name);
+
+        if (isSimple && (hasGoodEstimate || canonical)) {
           const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
           const localizedName = await this.foodLocalization.localizeName(name, locale);
+
+          // Use canonical if available, otherwise GPT estimate
+          const nutrients = canonical
+            ? {
+              calories: canonical.calories,
+              protein: canonical.protein,
+              carbs: canonical.carbs,
+              fat: canonical.fat,
+              fiber: 0,
+              sugars: 0,
+              satFat: 0,
+              energyDensity: canonical.calories, // per 100g
+            }
+            : {
+              calories: estNutrients?.calories || 0,
+              protein: estNutrients?.protein_g || 0,
+              carbs: estNutrients?.carbs_g || 0,
+              fat: estNutrients?.fat_g || 0,
+              fiber: estNutrients?.fiber_g || 0,
+              sugars: estNutrients?.sugars_g || 0,
+              satFat: estNutrients?.satFat_g || 0,
+              energyDensity: estNutrients?.calories || 0, // per 100g
+            };
+
+          // Scale to portion
+          const scale = portionG / 100;
+          const finalNutrients = {
+            calories: Math.round(nutrients.calories * scale),
+            protein: this.round(nutrients.protein * scale, 1),
+            carbs: this.round(nutrients.carbs * scale, 1),
+            fat: this.round(nutrients.fat * scale, 1),
+            fiber: this.round(nutrients.fiber * scale, 1),
+            sugars: this.round(nutrients.sugars * scale, 1),
+            satFat: this.round(nutrients.satFat * scale, 1),
+            energyDensity: nutrients.energyDensity,
+          };
 
           const fastPathItem: AnalyzedItem = {
             id: crypto.randomUUID(),
@@ -990,20 +1080,11 @@ export class AnalyzeService {
             originalName: name,
             label: name,
             portion_g: portionG,
-            nutrients: {
-              calories: estNutrients.calories,
-              protein: estNutrients.protein_g || 0,
-              carbs: estNutrients.carbs_g || 0,
-              fat: estNutrients.fat_g || 0,
-              fiber: estNutrients.fiber_g || 0,
-              sugars: estNutrients.sugars_g || 0,
-              satFat: estNutrients.satFat_g || 0,
-              energyDensity: portionG > 0 ? (estNutrients.calories / portionG) * 100 : 0,
-            },
-            source: 'gpt_trusted',
+            nutrients: finalNutrients,
+            source: (canonical ? 'canonical_fast_path' : 'gpt_trusted') as any,
             locale,
             hasNutrition: true,
-            provider: 'gpt',
+            provider: (canonical ? 'canonical' : 'gpt') as any,
             cookingMethodHints: this.extractCookingMethodHints(component),
           };
 
@@ -1011,13 +1092,13 @@ export class AnalyzeService {
           debug.components.push({
             type: 'matched',
             vision: component,
-            provider: 'gpt_fast_path',
-            confidence: nutritionConfidence,
+            provider: (canonical ? 'canonical_fast_path' : 'gpt_fast_path') as any,
+            confidence: canonical ? 1.0 : nutritionConfidence,
             skippedProvider: true,
-            reason: 'simple_product_with_high_confidence_gpt_estimate',
+            reason: canonical ? 'simple_product_canonical_match' : 'simple_product_with_high_confidence_gpt_estimate',
           });
 
-          this.logger.debug(`[AnalyzeService] GPT fast path for "${name}" (conf: ${nutritionConfidence.toFixed(2)})`);
+          this.logger.debug(`[AnalyzeService] Fast path for "${name}" (canonical=${!!canonical}, gpt=${hasGoodEstimate})`);
           return items;
         }
       }
@@ -1111,13 +1192,17 @@ export class AnalyzeService {
         return items; // Переходим к следующему компоненту, провайдеров не трогаем
       }
 
+      // FIX: Use display_name if available for more specific query
+      // This prevents "Chicken" -> 1000 USDA results timeout, prefer specific "Grilled Chicken Breast"
+      const baseName = (component as any).display_name || component.name;
+
       // FIX: Don't include unhelpful preparation values in query  
       const prep = (component.preparation || '').toLowerCase();
       const usefulPreps = ['fried', 'grilled', 'baked', 'boiled', 'steamed', 'roasted', 'sauteed', 'braised', 'smoked', 'raw'];
       const shouldIncludePrep = prep && usefulPreps.includes(prep) && prep !== 'unknown';
       const query = shouldIncludePrep
-        ? `${component.name} ${prep}`.trim()
-        : component.name.trim();
+        ? `${baseName} ${prep}`.trim()
+        : baseName.trim();
 
       // Detect if component is likely a drink based on name
       const componentNameLower = component.name.toLowerCase();
@@ -1185,6 +1270,35 @@ export class AnalyzeService {
 
       // Calculate nutrients for portion (provider data is per 100g/ml)
       let nutrients = this.calculateNutrientsFromCanonical(canonicalFood.per100g, portionG);
+
+      // FIX 5: Override provider results with canonical values if huge discrepancy
+      // This catches cases like "cooked cauliflower" being matched to "fried cauliflower" 
+      const canonicalOverride = this.getCanonicalNutrition(component.name);
+      if (canonicalOverride) {
+        const providerKcal = nutrients.calories;
+        const canonicalKcal = canonicalOverride.calories * (portionG / 100);
+
+        // If difference > 50% and canonical is significantly different (>20kcal)
+        // e.g. Cauliflower: Provider 180 (fried) vs Canonical 25 (boiled) -> Override
+        if (Math.abs(providerKcal - canonicalKcal) > canonicalKcal * 0.5 && Math.abs(providerKcal - canonicalKcal) > 20) {
+          const scale = portionG / 100;
+          this.logger.warn(`[AnalyzeService] Provider value differs from canonical for ${component.name} (${providerKcal} vs ${canonicalKcal}), using canonical`);
+
+          nutrients = {
+            calories: Math.round(canonicalOverride.calories * scale),
+            protein: this.round(canonicalOverride.protein * scale, 1),
+            carbs: this.round(canonicalOverride.carbs * scale, 1),
+            fat: this.round(canonicalOverride.fat * scale, 1),
+            fiber: 0,
+            sugars: 0,
+            satFat: 0,
+            energyDensity: canonicalOverride.calories,
+          };
+
+          // Mark as canonical override in source (hacky but effective)
+          (canonicalFood as any).providerId = 'canonical_override';
+        }
+      }
 
       // STAGE 4 FIX: Relaxed calorie threshold to prevent false fallback on low-cal foods
       // Changed from 15 kcal/100g to 5 kcal/100g - vegetables like cucumber, lettuce ARE ~10-15 kcal/100g

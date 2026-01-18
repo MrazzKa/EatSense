@@ -107,10 +107,12 @@ export default function AnalysisResultsScreen() {
   }, [allowEditing, readOnly, analysisResult]);
 
   const navigateToDashboard = useCallback(() => {
-    if (navigation && typeof navigation.reset === 'function') {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }],
+    if (navigation && typeof navigation.navigate === 'function') {
+      // FIX 2: Use navigate instead of reset to prevent empty diary glitch
+      // Reset causes full remount, while navigate just focuses existing tab
+      navigation.navigate('MainTabs', {
+        screen: 'Dashboard',
+        params: { refresh: Date.now() }
       });
       return;
     }
@@ -890,25 +892,19 @@ export default function AnalysisResultsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            if (navigation && typeof navigation.reset === 'function') {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'MainTabs', params: { screen: 'Dashboard' } }],
-              });
-            } else if (navigation && typeof navigation.navigate === 'function') {
-              navigation.navigate('MainTabs', { screen: 'Dashboard' });
-            }
-          }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{/* Empty */}</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      {/* FIX 1: Hide header when image modal is open to prevent overlapping close button */}
+      {!showImageModal && (
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={navigateToDashboard}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{/* Empty */}</Text>
+          <View style={{ width: 24 }} />
+        </View>
+      )}
 
       <ScrollView
         style={styles.scrollView}

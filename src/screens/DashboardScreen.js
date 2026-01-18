@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import AiAssistant from '../components/AiAssistant';
 import { useTheme } from '../contexts/ThemeContext';
@@ -52,6 +52,7 @@ function getItemImageUrl(item) {
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
   // Removed unused currentTime and now state variables
@@ -307,6 +308,16 @@ export default function DashboardScreen() {
     loadRecentItems();
     // loadActiveDiet is now handled by useProgramProgress
   }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
+
+  // Handle refresh param from other screens (e.g. AnalysisResults)
+  useEffect(() => {
+    if (route.params?.refresh) {
+      if (__DEV__) console.log('[DashboardScreen] Refresh requested via params');
+      loadStats();
+      loadRecentItems();
+      loadUserStats();
+    }
+  }, [route.params?.refresh, loadStats, loadRecentItems, loadUserStats]);
 
   // Теперь используем функции в хуках ПОСЛЕ их определения
   // Removed unused timer effect
@@ -772,37 +783,52 @@ export default function DashboardScreen() {
             const justCompletedIds = new Set((justCompletedItems || []).map(a => a.analysisId));
             const filteredItems = (recentItems || []).filter(item => !justCompletedIds.has(item.analysisId || item.id));
             return filteredItems.length > 0 ? (
-              filteredItems.slice(0, 3).map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.articleRow}
-                  onPress={() => {
-                    if (navigation && typeof navigation.navigate === 'function') {
-                      // Note: removed readOnly: true to enable ingredient editing
-                      navigation.navigate('AnalysisResults', { analysisResult: item });
-                    }
-                  }}
-                >
-                  {getItemImageUrl(item) ? (
-                    <Image
-                      source={{ uri: getItemImageUrl(item) }}
-                      style={styles.recentItemImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={styles.recentItemImagePlaceholder}>
-                      <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+              <>
+                {filteredItems.slice(0, 3).map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.articleRow}
+                    onPress={() => {
+                      if (navigation && typeof navigation.navigate === 'function') {
+                        // Note: removed readOnly: true to enable ingredient editing
+                        navigation.navigate('AnalysisResults', { analysisResult: item });
+                      }
+                    }}
+                  >
+                    {getItemImageUrl(item) ? (
+                      <Image
+                        source={{ uri: getItemImageUrl(item) }}
+                        style={styles.recentItemImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.recentItemImagePlaceholder}>
+                        <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
+                      <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
+                      <Text numberOfLines={1} style={styles.articleRowExcerpt}>
+                        {formatCalories(item.totalCalories ?? item.calories ?? 0)} · {t('analysis.proteinShort') || 'P'} {formatMacro(item.totalProtein ?? item.protein ?? 0)} · {t('analysis.carbsShort') || 'C'} {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · {t('analysis.fatShort') || 'F'} {formatMacro(item.totalFat ?? item.fat ?? 0)}
+                      </Text>
                     </View>
-                  )}
-                  <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
-                    <Text numberOfLines={1} style={styles.articleRowTitle}>{item.name || item.dishName || t('dashboard.mealFallback')}</Text>
-                    <Text numberOfLines={1} style={styles.articleRowExcerpt}>
-                      {formatCalories(item.totalCalories ?? item.calories ?? 0)} · {t('analysis.proteinShort') || 'P'} {formatMacro(item.totalProtein ?? item.protein ?? 0)} · {t('analysis.carbsShort') || 'C'} {formatMacro(item.totalCarbs ?? item.carbs ?? 0)} · {t('analysis.fatShort') || 'F'} {formatMacro(item.totalFat ?? item.fat ?? 0)}
+                    <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                  </TouchableOpacity>
+                ))}
+
+                {/* FIX 3: Show "View All" button if > 3 items */}
+                {filteredItems.length > 3 && (
+                  <TouchableOpacity
+                    style={styles.showAllButton}
+                    onPress={() => navigation.navigate('MealHistory', { date: selectedDate.toISOString() })}
+                  >
+                    <Text style={styles.showAllText}>
+                      {t('dashboard.showAllMeals', { count: filteredItems.length }) || `Show all (${filteredItems.length})`}
                     </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-                </TouchableOpacity>
-              ))
+                    <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+                  </TouchableOpacity>
+                )}
+              </>
             ) : !pendingAnalyses || pendingAnalyses.length === 0 ? (
               <View style={styles.recentEmpty}>
                 <Ionicons name="restaurant" size={48} color={colors.textTertiary} />
@@ -1755,6 +1781,19 @@ const createStyles = (tokens) =>
       fontWeight: '600',
     },
     // Add Food Modal styles
+    showAllButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      marginTop: 8,
+    },
+    showAllText: {
+      color: tokens.colors.primary,
+      fontSize: 14,
+      fontWeight: '500',
+      marginRight: 4,
+    },
     addFoodModalContent: {
       paddingHorizontal: tokens.spacing.xl,
       paddingTop: tokens.spacing.lg,
