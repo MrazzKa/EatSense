@@ -67,14 +67,19 @@ export class SwissFoodProvider implements INutritionProvider {
       return false;
     }
     const region = context.region || 'OTHER';
-    return region === 'CH' || region === 'EU';
+    // FIX 1: Only available for CH and EU regions - skip completely for others
+    if (region !== 'CH' && region !== 'EU') {
+      return false;
+    }
+    return true;
   }
 
   getPriority(context: NutritionLookupContext): number {
     const region = context.region || 'OTHER';
     if (region === 'CH') return 130; // Highest priority for CH
     if (region === 'EU') return 100;
-    return 60; // Lower for other regions
+    // FIX 1: Return negative priority for non-CH/EU to ensure it's never used
+    return -100;
   }
 
   /**

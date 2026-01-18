@@ -15,15 +15,15 @@ export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
 
 // Per-provider timeout configuration (ms)
-// FIX v2: Further increased timeouts for reliability on cold starts
+// FIX 2: Reduced timeouts for speed optimization (2026-01-18)
 const PROVIDER_TIMEOUTS: Record<string, number> = {
-  'local': 500,           // Was 300 - embeddings need buffer
-  'swiss-food': 3000,     // Was 2000
-  'openfoodfacts': 6000,  // Was 5000 - OFF очень медленный
-  'usda': 8000,           // Was 6000 - USDA needs 2-3 sec on cold start
-  'rag': 4000,            // Was 3000
+  'local': 500,           // Local embeddings - fast
+  'swiss-food': 2000,     // Swiss API - reduced from 3000
+  'openfoodfacts': 4000,  // OFF - reduced from 6000
+  'usda': 3000,           // USDA - reduced from 5000 (Opt: DB search should be fast)
+  'rag': 3000,            // RAG - reduced from 4000
 };
-const DEFAULT_PROVIDER_TIMEOUT = 6000; // Was 5000
+const DEFAULT_PROVIDER_TIMEOUT = 4000; // Reduced from 6000
 
 export interface NutritionCacheKeyInput {
   normalizedName: string;
@@ -140,6 +140,66 @@ export class NutritionOrchestrator {
         isSuspicious: true,
         reason: `non_food_item: result "${displayName}" is not a food item`,
       };
+    }
+    // =====================================================
+    // CATEGORY-BASED CALORIE VALIDATION (FIX 4)
+    // Fixes: Cauliflower (25kcal) -> Roasted/Fried (180kcal) issues
+    // =====================================================
+    const expectedCategory = context.categoryHint;
+
+    // Vegetables: 10-80 kcal/100g (raw), max 150 for roasted/cooked
+    if (expectedCategory === 'veg' || expectedCategory === 'vegetable') {
+      if (kcalPer100 > 150) {
+        return {
+          isValid: false,
+          isSuspicious: true, // Treat as suspicious to trigger fallback
+          reason: `vegetable_kcal_too_high: ${kcalPer100} kcal/100g (max 150 for veg)`,
+        };
+      }
+    }
+
+    // Fruits: 20-100 kcal/100g (most), max 250 for dried/avocado
+    if (expectedCategory === 'fruit') {
+      // Avocado is special - high fat fruit
+      const isAvocado = nameLower.includes('avocado') || nameLower.includes('авокадо');
+
+      if (isAvocado) {
+        // Avocado: 160-180 kcal/100g. If < 140 or > 220, likely wrong
+        if (kcalPer100 < 130 || kcalPer100 > 230) {
+          return {
+            isValid: false,
+            isSuspicious: true,
+            reason: `avocado_kcal_invalid: ${kcalPer100} kcal/100g (expected ~160)`,
+          };
+        }
+      } else {
+        // Normal fruit
+        if (kcalPer100 > 150 && !nameLower.includes('dried') && !nameLower.includes('dry') && !nameLower.includes('сушен')) {
+          return {
+            isValid: false,
+            isSuspicious: true,
+            reason: `fruit_kcal_too_high: ${kcalPer100} kcal/100g (max 150 for fresh fruit)`,
+          };
+        }
+      }
+    }
+
+    // Cooked grains (quinoa, rice): 100-150 kcal/100g (water absorbed)
+    // Rejects raw grain vales (350+ kcal) when we want cooked
+    if (expectedCategory === 'grain') {
+      const isCookedQuery = queryLower.includes('cooked') || queryLower.includes('варён') ||
+        queryLower.includes('boiled') || queryLower.includes('отварн');
+      const isSpecificGrain = nameLower.includes('quinoa') || nameLower.includes('киноа') ||
+        nameLower.includes('rice') || nameLower.includes('рис') ||
+        nameLower.includes('buckwheat') || nameLower.includes('греч');
+
+      if ((isCookedQuery || isSpecificGrain) && kcalPer100 > 250) {
+        return {
+          isValid: false,
+          isSuspicious: true,
+          reason: `cooked_grain_kcal_too_high: ${kcalPer100} kcal/100g (expected <250 for cooked)`,
+        };
+      }
     }
 
     // =====================================================
@@ -638,7 +698,7 @@ export class NutritionOrchestrator {
 
     // 4. Promise.any - returns FIRST successful result
     try {
-      const firstValid = await Promise.any(providerPromises);
+      const firstValid = await (Promise as any).any(providerPromises);
       const totalDuration = Date.now() - startTime;
 
       this.logger.log(`[Orchestrator] Fast path: got result in ${totalDuration}ms`);
