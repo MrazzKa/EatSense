@@ -14,7 +14,8 @@ const MAX_BASE64_SIZE = 500_000; // ~375KB base64 = ~280KB image
 const TARGET_MAX_DIMENSION = 768; // pixels
 
 // Vision API timeout (for speed optimization)
-const VISION_TIMEOUT_MS = 25000; // 25 second target (was 20)
+// GPT_ONLY_MODE uses 120s to let GPT fully complete without time pressure
+const VISION_TIMEOUT_MS = process.env.GPT_ONLY_MODE === 'true' ? 120000 : 25000;
 
 // Version for cache key - increment when prompt or schema changes
 const VISION_PROMPT_VERSION = 'omega_v4.0_2026-01-17_speed_fix';
@@ -560,8 +561,9 @@ REVIEW MODE - Be extra careful:
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
     // Configure timeout for Vision API call (default 90 seconds, configurable via env)
-    // UPDATED: Increased to 90s for reliability with URL-based requests
-    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '90000', 10);
+    // GPT_ONLY_MODE: use 120s to give GPT more time without interruptions
+    const defaultTimeout = process.env.GPT_ONLY_MODE === 'true' ? '120000' : '90000';
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || defaultTimeout, 10);
 
     try {
       // Retry loop for Vision API call
