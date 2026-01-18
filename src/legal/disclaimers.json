@@ -270,5 +270,22 @@
             "title": "Avertissement Santé",
             "content": "EatSense est conçu pour vous aider à suivre votre alimentation et à prendre des décisions éclairées concernant votre régime. Cependant, EatSense n'est pas un dispositif médical et ne fournit pas de conseils médicaux.\n\nLes informations fournies par EatSense, y compris l'analyse nutritionnelle générée par l'IA, les aperçus des biomarqueurs et les réponses de l'assistant IA, sont uniquement à des fins d'information générale.\n\nCes informations ne sont pas destinées à remplacer les conseils médicaux professionnels, le diagnostic ou le traitement. Consultez toujours votre médecin ou un autre professionnel de santé qualifié pour toute question concernant une condition médicale.\n\nNe négligez jamais les conseils médicaux professionnels et ne tardez pas à les demander à cause de quelque chose que vous avez lu ou vu dans cette application.\n\nSi vous pensez avoir une urgence médicale, appelez immédiatement votre médecin ou les services d'urgence."
         }
+    },
+    "analysis_results_footer": {
+        "_description": "Shown at the bottom of Analysis Results screen in a yellow box.",
+        "requires_checkbox": false,
+        "show_once": false,
+        "en": {
+            "text": "⚠️ EatSense provides nutritional information for educational purposes only. This app is not a medical device and does not substitute for professional medical advice. Always consult a healthcare professional before making significant changes to your diet."
+        },
+        "ru": {
+            "text": "⚠️ EatSense предоставляет информацию о пищевой ценности исключительно в образовательных целях. Это приложение не является медицинским устройством и не заменяет профессиональную медицинскую консультацию. Всегда консультируйтесь с врачом перед внесением значительных изменений в свой рацион."
+        },
+        "de": {
+            "text": "⚠️ EatSense stellt Nährwertinformationen nur zu Bildungszwecken zur Verfügung. Diese App ist kein Medizinprodukt und ersetzt keine professionelle medizinische Beratung. Konsultieren Sie immer einen Arzt, bevor Sie wesentliche Änderungen an Ihrer Ernährung vornehmen."
+        },
+        "fr": {
+            "text": "⚠️ EatSense fournit des informations nutritionnelles à des fins éducatives uniquement. Cette application n'est pas un dispositif médical et ne remplace pas un avis médical professionnel. Consultez toujours un professionnel de santé avant d'apporter des changements importants à votre régime alimentaire."
+        }
     }
 }

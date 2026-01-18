@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useI18n } from '../../app/i18n/hooks';
+import { getDisclaimer } from '../legal/disclaimerUtils';
 
 export default function HealthDisclaimer({ style }) {
+    const { language } = useI18n();
+
+    const disclaimerText = useMemo(() => {
+        const data = getDisclaimer('analysis_results_footer', language);
+        return data?.text || data?.content || '';
+    }, [language]);
+
+    if (!disclaimerText) return null;
+
     return (
         <View style={[styles.container, style]}>
             <Text style={styles.text}>
-                ⚠️ EatSense provides nutritional information for educational purposes only.
-                This app is not a medical device and does not substitute for professional medical advice.
-                Always consult a healthcare professional before making significant changes to your diet.
+                {disclaimerText}
             </Text>
         </View>
     );
