@@ -26,6 +26,8 @@ const PLAN_DESCRIPTIONS = {
     monthly: {
         title: 'Monthly Premium',
         subtitle: 'Billed monthly, cancel anytime',
+        // Original prices for strike-through display (promotional pricing)
+        originalPrice: { USD: 14.99, EUR: 12.99, CHF: 15.00 },
         features: [
             'Unlimited food analysis with AI',
             'Detailed nutrition reports & insights',
@@ -37,6 +39,7 @@ const PLAN_DESCRIPTIONS = {
     yearly: {
         title: 'Yearly Premium',
         subtitle: 'Best value - save 50%',
+        originalPrice: { USD: 119.99, EUR: 99.99, CHF: 120.00 },
         features: [
             'All Monthly features included',
             'Save 50% compared to monthly',
@@ -48,6 +51,7 @@ const PLAN_DESCRIPTIONS = {
     student: {
         title: 'Student Plan',
         subtitle: 'Verified students only',
+        originalPrice: { USD: 59.99, EUR: 49.99, CHF: 60.00 },
         features: [
             'All Yearly features included',
             'Special student pricing',
@@ -58,6 +62,9 @@ const PLAN_DESCRIPTIONS = {
     founders: {
         title: 'Founders Pass',
         subtitle: 'One-time purchase, lifetime access',
+        originalPrice: null, // No discount for founders
+        badge: 'LIFETIME',
+        badgeColor: '#FFD700',
         features: [
             'Lifetime Premium access',
             'All current & future features',
@@ -128,6 +135,10 @@ export default function SubscriptionScreen() {
                     headline: descriptions.subtitle,
                     features: descriptions.features,
                     isSubscription: !isFounders,
+                    // Strike-through pricing support
+                    originalPrice: descriptions.originalPrice,
+                    badge: descriptions.badge,
+                    badgeColor: descriptions.badgeColor,
                 };
             });
 
@@ -447,14 +458,25 @@ export default function SubscriptionScreen() {
                                         </View>
                                     </View>
 
-                                    {/* Price */}
-                                    <Text style={[
-                                        styles.planPriceCompact,
-                                        isSelected && styles.planPriceSelected,
-                                        { color: tokens.colors?.textPrimary || '#212121' }
-                                    ]}>
-                                        {plan.priceFormatted}
-                                    </Text>
+                                    {/* Price with optional strike-through */}
+                                    <View style={styles.priceRow}>
+                                        {plan.originalPrice && plan.originalPrice[plan.currency] && (
+                                            <Text style={[
+                                                styles.originalPrice,
+                                                { color: tokens.colors?.textSecondary || '#999' }
+                                            ]}>
+                                                {plan.currency === 'USD' ? '$' : plan.currency === 'EUR' ? '€' : 'CHF '}
+                                                {plan.originalPrice[plan.currency]}
+                                            </Text>
+                                        )}
+                                        <Text style={[
+                                            styles.planPriceCompact,
+                                            isSelected && styles.planPriceSelected,
+                                            { color: tokens.colors?.textPrimary || '#212121' }
+                                        ]}>
+                                            {plan.priceFormatted}
+                                        </Text>
+                                    </View>
                                 </View>
                             </TouchableOpacity>
                         );
@@ -797,7 +819,7 @@ const createStyles = (tokens, colors) => {
         freePlanCard: {
             backgroundColor: tokens.colors?.surface || '#FFF',
             borderRadius: 12,
-            padding: 14,
+            padding: 12,
             borderWidth: 1,
         },
         freePlanHeader: {
@@ -975,6 +997,16 @@ const createStyles = (tokens, colors) => {
         },
         planPriceSelected: {
             color: colors?.primary || tokens.colors?.primary || '#4CAF50',
+        },
+        // Strike-through pricing styles
+        priceRow: {
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+        },
+        originalPrice: {
+            fontSize: 12,
+            textDecorationLine: 'line-through',
+            marginBottom: 2,
         },
         // Restore Purchases button styles
         restoreButton: {

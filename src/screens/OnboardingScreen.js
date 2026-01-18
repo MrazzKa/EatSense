@@ -30,6 +30,7 @@ import { useI18n } from '../../app/i18n/hooks';
 // import { legalDocuments } from '../legal/legalContent';
 import { openLegalLink } from '../utils/legal';
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import LegalDocumentView from '../components/LegalDocumentView';
 
 const { width } = Dimensions.get('window');
 
@@ -1934,9 +1935,32 @@ const OnboardingScreen = () => {
   const renderNotificationsStep = () => {
     const handleEnableNotifications = async () => {
       try {
+        // Android: Create notification channel first
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#4CAF50',
+          });
+        }
+
         const { status } = await Notifications.requestPermissionsAsync();
         if (status === 'granted') {
           setNotificationsEnabled(true);
+
+          // Get push token for remote notifications
+          let pushToken = null;
+          try {
+            const tokenData = await Notifications.getExpoPushTokenAsync({
+              projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-expo-project-id',
+            });
+            pushToken = tokenData.data;
+            console.log('[Onboarding] Push token:', pushToken);
+          } catch (tokenError) {
+            console.warn('[Onboarding] Failed to get push token:', tokenError);
+          }
+
           // Update profile data with notification preference
           setProfileData(prev => ({
             ...prev,
@@ -1949,6 +1973,16 @@ const OnboardingScreen = () => {
             },
           }));
 
+          // Save push token to server
+          if (pushToken) {
+            try {
+              await ApiService.put('/user-profiles', { pushToken });
+              console.log('[Onboarding] Push token saved to server');
+            } catch (saveError) {
+              console.warn('[Onboarding] Failed to save push token:', saveError);
+            }
+          }
+
           // Schedule automatic meal reminders (2-3 times a day)
           try {
             const { localNotificationService } = require('../services/localNotificationService');
@@ -1958,7 +1992,7 @@ const OnboardingScreen = () => {
             console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
           }
 
-          clientLog('Onboarding:notificationsEnabled');
+          clientLog('Onboarding:notificationsEnabled', { hasPushToken: !!pushToken });
         } else {
           setNotificationsEnabled(false);
           setProfileData(prev => ({
@@ -2072,107 +2106,64 @@ const OnboardingScreen = () => {
           {t('onboarding.termsSubtitle', 'Please read and accept to continue')}
         </Text>
 
-        {/* External Link Buttons */}
-        <View style={{ gap: 12, marginBottom: 24 }}>
-          <TouchableOpacity
-            style={{
-              padding: 16,
-              borderRadius: 12,
-              backgroundColor: hasOpenedTerms ? colors.primary + '10' : colors.surface,
-              borderWidth: 1,
-              borderColor: hasOpenedTerms ? colors.primary : (colors.border || '#E5E5E5'),
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-            onPress={() => {
-              setHasOpenedTerms(true);
-              openLegalLink('terms');
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
-                {t('onboarding.termsOfService', 'Terms of Service')}
-              </Text>
-              <Text style={{ fontSize: 13, color: hasOpenedTerms ? colors.primary : colors.textSecondary, marginTop: 2 }}>
-                {hasOpenedTerms ? t('onboarding.opened', '✓ Opened') : t('onboarding.tapToRead', 'Tap to read full document')}
-              </Text>
-            </View>
-            <Ionicons name={hasOpenedTerms ? 'checkmark-circle' : 'open-outline'} size={20} color={colors.primary} />
-          </TouchableOpacity>
+        {/* Inline Legal Documents - Scrollable */}
+        <ScrollView
+          style={{ flex: 1, marginBottom: 12 }}
+          contentContainerStyle={{ gap: 16 }}
+          nestedScrollEnabled={true}
+          showsVerticalScrollIndicator={true}
+        >
+          {/* Terms of Service */}
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
+              {t('onboarding.termsOfService', 'Terms of Service')}
+            </Text>
+            <LegalDocumentView type="terms" maxHeight={200} />
+          </View>
 
-          <TouchableOpacity
-            style={{
-              padding: 16,
-              borderRadius: 12,
-              backgroundColor: hasOpenedPrivacy ? colors.primary + '10' : colors.surface,
-              borderWidth: 1,
-              borderColor: hasOpenedPrivacy ? colors.primary : (colors.border || '#E5E5E5'),
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-            onPress={() => {
-              setHasOpenedPrivacy(true);
-              openLegalLink('privacy');
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
-                {t('onboarding.privacyPolicy', 'Privacy Policy')}
-              </Text>
-              <Text style={{ fontSize: 13, color: hasOpenedPrivacy ? colors.primary : colors.textSecondary, marginTop: 2 }}>
-                {hasOpenedPrivacy ? t('onboarding.opened', '✓ Opened') : t('onboarding.tapToRead', 'Tap to read full document')}
-              </Text>
-            </View>
-            <Ionicons name={hasOpenedPrivacy ? 'checkmark-circle' : 'open-outline'} size={20} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
+          {/* Privacy Policy */}
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
+              {t('onboarding.privacyPolicy', 'Privacy Policy')}
+            </Text>
+            <LegalDocumentView type="privacy" maxHeight={200} />
+          </View>
+        </ScrollView>
 
         {/* Acceptance checkboxes */}
         <View style={{ gap: 12, marginBottom: 16 }}>
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', opacity: hasOpenedTerms ? 1 : 0.5 }}
-            onPress={() => {
-              if (hasOpenedTerms) {
-                setProfileData(prev => ({ ...prev, termsAccepted: !prev.termsAccepted }));
-              }
-            }}
-            activeOpacity={hasOpenedTerms ? 0.7 : 1}
-            disabled={!hasOpenedTerms}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setProfileData(prev => ({ ...prev, termsAccepted: !prev.termsAccepted }))}
+            activeOpacity={0.7}
           >
             <View style={[
               { width: 24, height: 24, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
               profileData.termsAccepted
                 ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                : { borderColor: hasOpenedTerms ? (colors.border || '#C8C8C8') : '#E0E0E0' }
+                : { borderColor: colors.border || '#C8C8C8' }
             ]}>
               {profileData.termsAccepted && <Ionicons name="checkmark" size={16} color={onPrimaryColor} />}
             </View>
-            <Text style={{ fontSize: 14, color: hasOpenedTerms ? colors.text : colors.textSecondary, flex: 1 }}>
+            <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
               {t('onboarding.acceptTerms', 'I accept the Terms of Service')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', opacity: hasOpenedPrivacy ? 1 : 0.5 }}
-            onPress={() => {
-              if (hasOpenedPrivacy) {
-                setProfileData(prev => ({ ...prev, privacyAccepted: !prev.privacyAccepted }));
-              }
-            }}
-            activeOpacity={hasOpenedPrivacy ? 0.7 : 1}
-            disabled={!hasOpenedPrivacy}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setProfileData(prev => ({ ...prev, privacyAccepted: !prev.privacyAccepted }))}
+            activeOpacity={0.7}
           >
             <View style={[
               { width: 24, height: 24, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
               profileData.privacyAccepted
                 ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                : { borderColor: hasOpenedPrivacy ? (colors.border || '#C8C8C8') : '#E0E0E0' }
+                : { borderColor: colors.border || '#C8C8C8' }
             ]}>
               {profileData.privacyAccepted && <Ionicons name="checkmark" size={16} color={onPrimaryColor} />}
             </View>
-            <Text style={{ fontSize: 14, color: hasOpenedPrivacy ? colors.text : colors.textSecondary, flex: 1 }}>
+            <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
               {t('onboarding.acceptPrivacy', 'I accept the Privacy Policy')}
             </Text>
           </TouchableOpacity>

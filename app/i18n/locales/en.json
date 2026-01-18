@@ -27,7 +27,9 @@
     "comingSoon": "Coming soon",
     "continue": "Continue",
     "show": "Show",
-    "hide": "Hide"
+    "hide": "Hide",
+    "cm": "cm",
+    "hoursShort": "h"
   },
   "help": {
     "title": "Help & Support",
@@ -738,7 +740,13 @@
         "iron": "Iron",
         "microbiome": "Microbiome",
         "hormonalBalance": "Hormonal Balance"
-      }
+      },
+      "fatLabel": "fat",
+      "sleepLabel": "Sleep",
+      "waistLabel": "Waist",
+      "noData": "No data",
+      "focusAreas": "Focus",
+      "clearData": "Clear Health Data"
     }
   },
   "gallery": {

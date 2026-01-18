@@ -346,7 +346,9 @@
     "comingSoon": "Скоро",
     "continue": "Продолжить",
     "show": "Показать",
-    "hide": "Скрыть"
+    "hide": "Скрыть",
+    "cm": "см",
+    "hoursShort": "ч"
   },
   "dashboard": {
     "addFood": {
@@ -1321,7 +1323,7 @@
       "sleep": "Сон и циркадные ритмы",
       "sleepHours": "Сон (часов)",
       "sleepLabel": "Сон",
-      "fat": "жира",
+      "fatLabel": "жира",
       "waistLabel": "Талия",
       "snacking": {
         "high": "Высокая",

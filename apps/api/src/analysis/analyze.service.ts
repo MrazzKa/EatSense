@@ -1111,7 +1111,13 @@ export class AnalyzeService {
         return items; // Переходим к следующему компоненту, провайдеров не трогаем
       }
 
-      const query = `${component.name} ${component.preparation || ''}`.trim();
+      // FIX: Don't include unhelpful preparation values in query  
+      const prep = (component.preparation || '').toLowerCase();
+      const usefulPreps = ['fried', 'grilled', 'baked', 'boiled', 'steamed', 'roasted', 'sauteed', 'braised', 'smoked', 'raw'];
+      const shouldIncludePrep = prep && usefulPreps.includes(prep) && prep !== 'unknown';
+      const query = shouldIncludePrep
+        ? `${component.name} ${prep}`.trim()
+        : component.name.trim();
 
       // Detect if component is likely a drink based on name
       const componentNameLower = component.name.toLowerCase();

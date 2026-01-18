@@ -12,11 +12,44 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import DietsTabContent from '../components/programs/DietsTabContent';
 import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabContent';
+
+// Cache configuration
+const DIETS_CACHE_KEY = 'diets_cache_v2';
+const LIFESTYLES_CACHE_KEY = 'lifestyles_cache_v2';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Helper functions for caching
+const loadFromCache = async (key) => {
+    try {
+        const cached = await AsyncStorage.getItem(key);
+        if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp < CACHE_TTL) {
+                return data;
+            }
+        }
+    } catch (e) {
+        console.warn('Cache read error:', e);
+    }
+    return null;
+};
+
+const saveToCache = async (key, data) => {
+    try {
+        await AsyncStorage.setItem(key, JSON.stringify({
+            data,
+            timestamp: Date.now(),
+        }));
+    } catch (e) {
+        console.warn('Cache write error:', e);
+    }
+};
 
 // Skeleton loader for fast perceived loading
 const DietsSkeleton = React.memo(({ colors }) => (
@@ -127,7 +160,25 @@ export default function DietsScreen({ navigation }) {
 
     const loadData = useCallback(async () => {
         // PATCH 04: Two-stage lazy loading for instant perceived speed
+        // PATCH 05: Cache-first loading with stale-while-revalidate
         let isMounted = true;
+
+        // INSTANT: Show cached data immediately
+        if (activeTab === 'lifestyle') {
+            const cachedLifestyles = await loadFromCache(LIFESTYLES_CACHE_KEY);
+            if (cachedLifestyles) {
+                setLifestylePrograms(cachedLifestyles.all || []);
+                setFeaturedLifestyles(cachedLifestyles.featured || []);
+                setLoading(false);
+            }
+        } else {
+            const cachedDiets = await loadFromCache(DIETS_CACHE_KEY);
+            if (cachedDiets) {
+                setAllDiets(cachedDiets.all || []);
+                setFeaturedDiets(cachedDiets.featured || []);
+                setLoading(false);
+            }
+        }
 
         // Show content immediately with optimistic loading
         setLoading(false);
@@ -156,6 +207,11 @@ export default function DietsScreen({ navigation }) {
                         const allRes = await ApiService.getDiets({ type: 'LIFESTYLE', limit: 50 }).catch(() => ({ diets: [] }));
                         if (isMounted && allRes?.diets) {
                             setLifestylePrograms(allRes.diets);
+                            // Save to cache for next visit
+                            saveToCache(LIFESTYLES_CACHE_KEY, {
+                                all: allRes.diets,
+                                featured: featuredRes?.diets || [],
+                            });
                         }
                     } catch (error) {
                         console.error('[DietsScreen] Load lifestyles error:', error);
@@ -196,6 +252,13 @@ export default function DietsScreen({ navigation }) {
 
                     if (isMounted && allRes?.diets) {
                         setAllDiets(allRes.diets);
+                        // Save to cache for next visit (only if no filters)
+                        if (!selectedType && !selectedDifficulty && !searchQuery) {
+                            saveToCache(DIETS_CACHE_KEY, {
+                                all: allRes.diets,
+                                featured: featuredRes || [],
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error('[DietsScreen] Load more error:', error);

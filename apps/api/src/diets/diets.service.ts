@@ -1023,4 +1023,70 @@ export class DietsService {
             adherenceScore: userDiet.adherenceScore,
         };
     }
+
+    // ==================== PROGRAM SUGGESTIONS ====================
+
+    async createSuggestion(
+        userId: string,
+        dto: { name: string; description?: string; type: 'diet' | 'lifestyle' },
+    ) {
+        // Check for duplicates (case-insensitive)
+        const existing = await this.prisma.programSuggestion.findFirst({
+            where: {
+                name: { equals: dto.name, mode: 'insensitive' },
+                status: 'pending',
+            },
+        });
+
+        if (existing) {
+            // Check if user already voted
+            if (existing.voters.includes(userId)) {
+                return { success: true, alreadyVoted: true, suggestion: existing };
+            }
+
+            // Increment vote
+            const updated = await this.prisma.programSuggestion.update({
+                where: { id: existing.id },
+                data: {
+                    votes: { increment: 1 },
+                    voters: { push: userId },
+                },
+            });
+
+            return { success: true, voted: true, suggestion: updated };
+        }
+
+        // Create new suggestion
+        const suggestion = await this.prisma.programSuggestion.create({
+            data: {
+                name: dto.name,
+                description: dto.description,
+                type: dto.type,
+                votes: 1,
+                voters: [userId],
+                createdBy: userId,
+            },
+        });
+
+        return { success: true, created: true, suggestion };
+    }
+
+    async getSuggestions(type?: 'diet' | 'lifestyle', limit = 20) {
+        return this.prisma.programSuggestion.findMany({
+            where: {
+                status: 'pending',
+                ...(type ? { type } : {}),
+            },
+            orderBy: { votes: 'desc' },
+            take: Math.min(limit, 50),
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                type: true,
+                votes: true,
+                createdAt: true,
+            },
+        });
+    }
 }

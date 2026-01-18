@@ -6,15 +6,15 @@ import * as crypto from 'crypto';
 import * as sharp from 'sharp';
 
 // Maximum base64 size for Vision API (characters)
-// OMEGA v4: Reduced for faster processing
-const MAX_BASE64_SIZE = 800_000; // ~600KB base64 = ~450KB image
+// FIX v2: Further reduced for faster processing
+const MAX_BASE64_SIZE = 500_000; // ~375KB base64 = ~280KB image
 
 // Target dimensions for image optimization
 // OMEGA v4: Reduced for faster processing
 const TARGET_MAX_DIMENSION = 768; // pixels
 
 // Vision API timeout (for speed optimization)
-const VISION_TIMEOUT_MS = 20000; // 20 second target
+const VISION_TIMEOUT_MS = 25000; // 25 second target (was 20)
 
 // Version for cache key - increment when prompt or schema changes
 const VISION_PROMPT_VERSION = 'omega_v4.0_2026-01-17_speed_fix';
@@ -201,7 +201,7 @@ export class VisionService {
     }
     this.openai = new OpenAI({
       apiKey,
-      timeout: 90000, // 90 second timeout (increased for reliability)
+      timeout: VISION_TIMEOUT_MS, // Use constant (25s) instead of hardcoded 90s
       maxRetries: 0, // No built-in retries
     });
   }

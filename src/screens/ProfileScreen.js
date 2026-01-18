@@ -843,9 +843,9 @@ const ProfileScreen = () => {
               <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
                 {(() => {
                   const parts = [];
-                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% ${safeT('profile.health.fat', 'жира')}`);
-                  if (healthProfile.metabolic?.waistCm) parts.push(`${safeT('profile.health.waistLabel', 'Талия')} ${healthProfile.metabolic.waistCm} см`);
-                  if (healthProfile.sleep?.sleepHours) parts.push(`${safeT('profile.health.sleepLabel', 'Сон')} ${healthProfile.sleep.sleepHours} ч`);
+                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% ${safeT('profile.health.fatLabel', 'fat')}`);
+                  if (healthProfile.metabolic?.waistCm) parts.push(`${safeT('profile.health.waistLabel', 'Waist')} ${healthProfile.metabolic.waistCm} ${safeT('common.cm', 'cm')}`);
+                  if (healthProfile.sleep?.sleepHours) parts.push(`${safeT('profile.health.sleepLabel', 'Sleep')} ${healthProfile.sleep.sleepHours} ${safeT('common.hoursShort', 'h')}`);
                   const focusAreas = Object.entries(healthProfile.healthFocus || {})
                     .filter(([, val]) => val === true)
                     .map(([key]) => {
