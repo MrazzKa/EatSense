@@ -647,9 +647,25 @@ export class SuggestionsV2Service {
         locale: SupportedLocale,
         stats: ReturnType<typeof this.calculateStats>,
     ): SuggestedFoodV2Response {
-        const summary = locale === 'ru' || locale === 'kk'
-            ? `Добавь ещё ${Math.max(0, 5 - stats.mealsCount)} приёмов пищи для точных рекомендаций`
-            : `Add ${Math.max(0, 5 - stats.mealsCount)} more meals for accurate recommendations`;
+        // FIX: Don't show "Add 0 more meals" when mealsCount >= 5
+        const neededMeals = Math.max(0, 5 - stats.mealsCount);
+        let summary: string;
+
+        if (neededMeals === 0 && stats.daysWithMeals < 2) {
+            // Has enough meals but not enough days
+            summary = locale === 'ru' || locale === 'kk'
+                ? 'Добавь блюда ещё за 1 день для точных рекомендаций'
+                : 'Add meals for 1 more day for accurate recommendations';
+        } else if (neededMeals > 0) {
+            summary = locale === 'ru' || locale === 'kk'
+                ? `Добавь ещё ${neededMeals} приёмов пищи для точных рекомендаций`
+                : `Add ${neededMeals} more meals for accurate recommendations`;
+        } else {
+            // Fallback - shouldn't happen but just in case
+            summary = locale === 'ru' || locale === 'kk'
+                ? 'Продолжай добавлять блюда для точных рекомендаций'
+                : 'Keep adding meals for accurate recommendations';
+        }
 
         return {
             status: 'insufficient_data',
