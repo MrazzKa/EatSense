@@ -1622,6 +1622,29 @@ class ApiService {
   async getDietHistory() {
     return this.request('/diets/history');
   }
+
+  // ==================== PROGRAM SUGGESTIONS ====================
+
+  /**
+   * Suggest a new program or vote for existing
+   */
+  async suggestProgram(name, description, type = 'lifestyle') {
+    return this.request('/diets/suggest', {
+      method: 'POST',
+      body: JSON.stringify({ name, description, type }),
+    });
+  }
+
+  /**
+   * Get top suggestions
+   */
+  async getSuggestions(type, limit = 20) {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    if (limit) params.append('limit', String(limit));
+    const query = params.toString();
+    return this.request(`/diets/suggestions${query ? `?${query}` : ''}`);
+  }
 }
 
 export default new ApiService();

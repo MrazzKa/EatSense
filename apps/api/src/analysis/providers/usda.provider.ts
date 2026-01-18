@@ -95,10 +95,11 @@ export class UsdaNutritionProvider implements INutritionProvider {
       const expectedCategory = context.expectedCategory || 'unknown';
 
       // Use existing HybridService search
+      // FIX: Lowered minScore from 0.8 to 0.6 for better recall
       const matches = await (this.hybrid as any).findByText(
         trimmed,
         5, // limit
-        0.8, // minScore - increased from 0.7 for better accuracy
+        0.6, // minScore - lowered from 0.8 for better recall
         expectedCategory,
       );
 
@@ -107,7 +108,8 @@ export class UsdaNutritionProvider implements INutritionProvider {
       }
 
       const bestMatch = matches[0];
-      if (bestMatch.score < 0.8) {
+      // Accept matches with score >= 0.6
+      if (bestMatch.score < 0.6) {
         return null;
       }
 

@@ -15,15 +15,15 @@ export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
 
 // Per-provider timeout configuration (ms)
-// OPTIMIZED: Aggressive timeouts for fast analysis
+// FIX v2: Further increased timeouts for reliability on cold starts
 const PROVIDER_TIMEOUTS: Record<string, number> = {
-  'local': 100,          // Local DB - instant
-  'swiss-food': 1000,    // Swiss Food - reduced
-  'openfoodfacts': 1500, // OFF - reduced
-  'usda': 2000,          // USDA - main provider
-  'rag': 1500,           // RAG - backup
+  'local': 500,           // Was 300 - embeddings need buffer
+  'swiss-food': 3000,     // Was 2000
+  'openfoodfacts': 6000,  // Was 5000 - OFF очень медленный
+  'usda': 8000,           // Was 6000 - USDA needs 2-3 sec on cold start
+  'rag': 4000,            // Was 3000
 };
-const DEFAULT_PROVIDER_TIMEOUT = 2000;
+const DEFAULT_PROVIDER_TIMEOUT = 6000; // Was 5000
 
 export interface NutritionCacheKeyInput {
   normalizedName: string;

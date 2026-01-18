@@ -143,7 +143,12 @@ export class SubscriptionsService {
 
         // Calculate end date: use Apple's expiresDate if provided, otherwise calculate
         let endDate: Date;
-        if (expiresDate) {
+        const planName = plan?.name;
+
+        // Special handling for Founders Pass: lifetime access
+        if (planName === 'founders' || planIdOrProductId === 'eatsense.founder.pass') {
+            endDate = new Date('2099-12-31');
+        } else if (expiresDate) {
             endDate = expiresDate;
         } else {
             endDate = new Date();

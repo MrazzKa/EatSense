@@ -27,6 +27,7 @@ import LifestyleCard from './LifestyleCard';
 import CategoryChips from './CategoryChips';
 import TrendingCarousel from './TrendingCarousel';
 import DisclaimerBanner from './DisclaimerBanner';
+import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
 
 // Card height for getItemLayout optimization
 const CARD_HEIGHT = 180;
@@ -57,7 +58,7 @@ interface LifestyleTabContentProps {
 
 // Section data type for grouped rendering
 interface SectionData {
-  type: 'header' | 'trending' | 'chips' | 'disclaimer' | 'filters' | 'category-header' | 'program' | 'empty' | 'loading';
+  type: 'header' | 'trending' | 'chips' | 'disclaimer' | 'filters' | 'category-header' | 'program' | 'empty' | 'loading' | 'suggest';
   data?: any;
   categoryId?: string;
 }
@@ -193,6 +194,11 @@ export default function LifestyleTabContent({
       data.push({ type: 'empty' });
     }
 
+    // Suggest program card at the end
+    if (!searchQuery && programs.length > 0) {
+      data.push({ type: 'suggest' });
+    }
+
     return data;
   }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, programs.length]);
 
@@ -269,6 +275,9 @@ export default function LifestyleTabContent({
             </Text>
           </View>
         );
+
+      case 'suggest':
+        return <SuggestProgramCard type="lifestyle" />;
 
       default:
         return null;

@@ -30,7 +30,8 @@ export class FdcService {
     private readonly fts: FtsService,
     private readonly cache: CacheService,
   ) {
-    this.requestTimeoutMs = parseInt(process.env.FDC_TIMEOUT_MS || '5000', 10);
+    // FIX: Increased default timeout to 10000ms for USDA reliability
+    this.requestTimeoutMs = parseInt(process.env.FDC_TIMEOUT_MS || '10000', 10);
     this.maxRetries = parseInt(process.env.FDC_MAX_RETRIES || '3', 10);
   }
 

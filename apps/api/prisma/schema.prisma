@@ -1157,3 +1157,21 @@ enum SubscriptionStatus {
   EXPIRED
   PAUSED
 }
+
+// ==================== PROGRAM SUGGESTIONS ====================
+
+model ProgramSuggestion {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String   // 'diet' | 'lifestyle'
+  votes       Int      @default(1)
+  voters      String[] // Array of userIds who voted
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  status      String   @default("pending") // pending, approved, rejected
+  
+  @@index([status, votes])
+  @@index([type, status])
+  @@map("program_suggestions")
+}

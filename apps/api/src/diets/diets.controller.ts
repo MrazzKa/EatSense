@@ -323,6 +323,38 @@ export class DietsController {
         return this.dietsService.abandonDiet(user.id);
     }
 
+    // ==================== PROGRAM SUGGESTIONS ====================
+
+    /**
+     * Suggest a new program (or vote for existing)
+     */
+    @Post('suggest')
+    @UseGuards(JwtAuthGuard)
+    async suggestProgram(
+        @CurrentUser() user: any,
+        @Body() dto: { name: string; description?: string; type: 'diet' | 'lifestyle' },
+    ) {
+        if (!dto.name?.trim()) {
+            throw new BadRequestException('Name is required');
+        }
+        return this.dietsService.createSuggestion(user.id, {
+            name: dto.name.trim(),
+            description: dto.description?.trim(),
+            type: dto.type || 'lifestyle',
+        });
+    }
+
+    /**
+     * Get top suggestions (public)
+     */
+    @Get('suggestions')
+    async getSuggestions(
+        @Query('type') type?: 'diet' | 'lifestyle',
+        @Query('limit') limit?: string,
+    ) {
+        return this.dietsService.getSuggestions(type, parseInt(limit || '20', 10));
+    }
+
     private parseLocale(acceptLanguage?: string): string {
         if (!acceptLanguage) return 'en';
         const primary = acceptLanguage.split(',')[0]?.split('-')[0]?.toLowerCase();
