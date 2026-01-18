@@ -1022,74 +1022,16 @@ export class AnalyzeService {
       const category = (component as any).category;
       const volume_ml = (component as any).volume_ml;
 
-      // ===============================================================
-      // GPT_ONLY_MODE: Use ONLY GPT estimated_nutrients, skip all providers
-      // This is for testing purposes - to evaluate GPT accuracy in isolation
-      // Set GPT_ONLY_MODE=true in .env to enable
-      // ===============================================================
-      if (process.env.GPT_ONLY_MODE === 'true') {
-        const estNutrients = (component as any).estimated_nutrients;
-        const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
-        const localizedName = await this.foodLocalization.localizeName(name, locale);
-        
-        // Use GPT estimate directly, or zeros if not available
-        const nutrients = {
-          calories: estNutrients?.calories || 0,
-          protein: estNutrients?.protein_g || 0,
-          carbs: estNutrients?.carbs_g || 0,
-          fat: estNutrients?.fat_g || 0,
-          fiber: estNutrients?.fiber_g || 0,
-          sugars: estNutrients?.sugars_g || 0,
-          satFat: estNutrients?.satFat_g || 0,
-          energyDensity: estNutrients?.calories || 0, // per 100g
-        };
-
-        // Scale to portion
-        const scale = portionG / 100;
-        const finalNutrients = {
-          calories: Math.round(nutrients.calories * scale),
-          protein: this.round(nutrients.protein * scale, 1),
-          carbs: this.round(nutrients.carbs * scale, 1),
-          fat: this.round(nutrients.fat * scale, 1),
-          fiber: this.round(nutrients.fiber * scale, 1),
-          sugars: this.round(nutrients.sugars * scale, 1),
-          satFat: this.round(nutrients.satFat * scale, 1),
-          energyDensity: nutrients.energyDensity,
-        };
-
-        const gptOnlyItem: AnalyzedItem = {
-          id: crypto.randomUUID(),
-          name: localizedName || name,
-          originalName: name,
-          label: name,
-          portion_g: portionG,
-          nutrients: finalNutrients,
-          source: 'gpt_only_test' as any,
-          locale,
-          hasNutrition: true,
-          provider: 'gpt_only' as any,
-          cookingMethodHints: this.extractCookingMethodHints(component),
-        };
-
-        items.push(gptOnlyItem);
-        debug.components.push({
-          type: 'matched',
-          vision: component,
-          provider: 'gpt_only_test' as any,
-          confidence: (component as any).nutritionConfidence ?? (component as any).confidence ?? 0.8,
-          skippedProvider: true,
-          reason: 'GPT_ONLY_MODE enabled - using only GPT estimated_nutrients',
-          gptEstimate: estNutrients,
-        });
-
-        this.logger.log(`[AnalyzeService] GPT_ONLY_MODE: "${name}" -> ${finalNutrients.calories} kcal (portion: ${portionG}g)`);
-        return items;
-      }
-
       // FAST PATH: For simple well-known products with high-confidence GPT estimates,
       // skip provider queries entirely. This significantly speeds up analysis.
       const useGptFastPath = process.env.USE_GPT_FAST_PATH !== 'false'; // Enabled by default
-      if (useGptFastPath) {
+
+      // FIX: Get category_hint for veg/fruit exclusion
+      const categoryHint = (component as any).category_hint || category;
+      const isVegOrFruit = categoryHint === 'veg' || categoryHint === 'fruit' || categoryHint === 'vegetable';
+
+      // FIX 2026-01-19: Skip fast path for vegetables/fruit - always use providers for accurate KBJU
+      if (useGptFastPath && !isVegOrFruit) {
         const isSimple = this.isSimpleWellKnownProduct(name);
         const estNutrients = (component as any).estimated_nutrients;
         const nutritionConfidence = (component as any).nutritionConfidence ?? 0;
@@ -1276,7 +1218,7 @@ export class AnalyzeService {
       // Build lookup context with mode for name-match validation
       // Map Vision category_hint to NutritionLookupContext categoryHint
       const visionCategoryHint = (component as any).category_hint;
-      const categoryHint = visionCategoryHint === 'protein' ? 'protein'
+      const lookupCategoryHint = visionCategoryHint === 'protein' ? 'protein'
         : visionCategoryHint === 'grain' ? 'grain'
           : visionCategoryHint === 'veg' ? 'veg'
             : visionCategoryHint === 'fruit' ? 'fruit'
@@ -1291,7 +1233,7 @@ export class AnalyzeService {
         expectedCategory,
         mode: 'ingredient', // Image analysis = ingredient mode (not packaged food)
         originalQuery: component.name, // For name-match validation
-        categoryHint, // From Vision for category-based filtering (fixes corn→oil)
+        categoryHint: lookupCategoryHint, // From Vision for category-based filtering (fixes corn→oil)
       };
 
       // Try to find nutrition data via orchestrator

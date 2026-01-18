@@ -10,15 +10,14 @@ import * as sharp from 'sharp';
 const MAX_BASE64_SIZE = 500_000; // ~375KB base64 = ~280KB image
 
 // Target dimensions for image optimization
-// OMEGA v4: Reduced for faster processing
-const TARGET_MAX_DIMENSION = 768; // pixels
+// OMEGA v5: Reduced to 512px for faster processing (was 768)
+const TARGET_MAX_DIMENSION = 512; // pixels
 
 // Vision API timeout (for speed optimization)
-// GPT_ONLY_MODE uses 120s to let GPT fully complete without time pressure
-const VISION_TIMEOUT_MS = process.env.GPT_ONLY_MODE === 'true' ? 120000 : 25000;
+const VISION_TIMEOUT_MS = 25000; // 25 second target (was 20)
 
 // Version for cache key - increment when prompt or schema changes
-const VISION_PROMPT_VERSION = 'omega_v4.0_2026-01-17_speed_fix';
+const VISION_PROMPT_VERSION = 'omega_v5.0_2026-01-19_calorie_ref';
 
 // Dish-level identification (NEW - for proper dish naming)
 const VisionDishSchema = z.object({
@@ -478,7 +477,7 @@ export class VisionService {
     // Locale is passed from getOrExtractComponents params
     const locale = params.imageUrl ? 'ru' : 'en'; // Default, actual locale should be passed through
 
-    let systemPrompt = `You are EatSense OMEGA v4.0 — fast, accurate food recognition.
+    let systemPrompt = `You are EatSense OMEGA v5.0 — fast, accurate food recognition.
 
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
@@ -511,9 +510,28 @@ Return ONLY valid JSON:
   "totals": { "kcal": 0, "protein": 0, "fat": 0, "carbs": 0 }
 }
 
+## CALORIE REFERENCE (per 100g) - USE THESE VALUES!
+Vegetables (raw/steamed):
+- Bell pepper: 26 kcal, 1g protein, 6g carbs, 0g fat
+- Broccoli: 34 kcal, 3g protein, 7g carbs, 0g fat
+- Tomato: 18 kcal, 1g protein, 4g carbs, 0g fat
+- Cucumber: 15 kcal, 1g protein, 3g carbs, 0g fat
+- Onion: 40 kcal, 1g protein, 9g carbs, 0g fat
+- Carrot: 41 kcal, 1g protein, 10g carbs, 0g fat
+- Zucchini: 17 kcal, 1g protein, 3g carbs, 0g fat
+- Basil/herbs: 23 kcal, 3g protein, 3g carbs, 0g fat
+- Olives: 115 kcal, 1g protein, 6g carbs, 11g fat
+- Capers: 23 kcal, 2g protein, 5g carbs, 0g fat
+
+Proteins:
+- Chicken breast: 165 kcal, 31g protein, 0g carbs, 4g fat
+- Beef: 250 kcal, 26g protein, 0g carbs, 15g fat
+- Salmon: 208 kcal, 20g protein, 0g carbs, 13g fat
+- Egg: 155 kcal, 13g protein, 1g carbs, 11g fat
+
 ## RULES
 1. Identify ALL visible food items
-2. Use lowercase English for "name", Title Case for "display_name"
+2. Use CALORIE REFERENCE values above for vegetables!
 3. confidence < 0.7 → use generic name ("fish" not "salmon")
 4. DO NOT hallucinate invisible ingredients
 5. Composite dishes (soup, curry) = SINGLE item with itemType: "composite_dish"
@@ -561,9 +579,8 @@ REVIEW MODE - Be extra careful:
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
     // Configure timeout for Vision API call (default 90 seconds, configurable via env)
-    // GPT_ONLY_MODE: use 120s to give GPT more time without interruptions
-    const defaultTimeout = process.env.GPT_ONLY_MODE === 'true' ? '120000' : '90000';
-    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || defaultTimeout, 10);
+    // UPDATED: Increased to 90s for reliability with URL-based requests
+    const timeoutMs = parseInt(process.env.VISION_API_TIMEOUT_MS || '90000', 10);
 
     try {
       // Retry loop for Vision API call
