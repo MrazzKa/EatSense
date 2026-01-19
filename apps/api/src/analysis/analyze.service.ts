@@ -1236,6 +1236,79 @@ export class AnalyzeService {
         categoryHint: lookupCategoryHint, // From Vision for category-based filtering (fixes corn→oil)
       };
 
+      // GPT-ONLY MODE: Skip slow nutrition lookup, use Vision API estimates directly
+      // Enabled via GPT_ONLY_NUTRITION=true env variable for faster analysis (~15s instead of ~27s)
+      const useGptOnlyNutrition = process.env.GPT_ONLY_NUTRITION === 'true';
+      const gptEstimates = (component as any).estimated_nutrients;
+      const hasGptEstimates = gptEstimates &&
+        (gptEstimates.calories > 0 || gptEstimates.protein_g > 0 || gptEstimates.carbs_g > 0 || gptEstimates.fat_g > 0);
+
+      if (useGptOnlyNutrition && hasGptEstimates) {
+        // Use GPT Vision estimates directly without calling nutrition providers
+        const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
+        const gptPortion = component.est_portion_g || 100;
+        const portionScale = portionG / gptPortion;
+
+        const gptNutrients: Nutrients = {
+          calories: Math.round((gptEstimates.calories || 0) * portionScale),
+          protein: this.round((gptEstimates.protein_g || 0) * portionScale, 1),
+          carbs: this.round((gptEstimates.carbs_g || 0) * portionScale, 1),
+          fat: this.round((gptEstimates.fat_g || 0) * portionScale, 1),
+          fiber: this.round((gptEstimates.fiber_g || 0) * portionScale, 1),
+          sugars: 0,
+          satFat: 0,
+          energyDensity: gptEstimates.calories > 0 ? this.round((gptEstimates.calories / gptPortion) * 100, 1) : 0,
+        };
+
+        // Validate GPT estimates to catch obvious errors
+        const validationResult = this.validator.validateNutritionData({
+          name: component.name,
+          portion_g: portionG,
+          calories: gptNutrients.calories,
+          protein: gptNutrients.protein,
+          carbs: gptNutrients.carbs,
+          fat: gptNutrients.fat,
+          fiber: gptNutrients.fiber,
+          category: (component as any).category_hint,
+        });
+
+        if (validationResult.wasModified) {
+          gptNutrients.calories = validationResult.calories;
+          gptNutrients.protein = validationResult.protein;
+          gptNutrients.carbs = validationResult.carbs;
+          gptNutrients.fat = validationResult.fat;
+        }
+
+        const localizedName = await this.foodLocalization.localizeName(component.name, locale);
+
+        const gptItem: AnalyzedItem = {
+          id: crypto.randomUUID(),
+          name: localizedName || component.name,
+          originalName: component.name,
+          label: component.name,
+          portion_g: portionG,
+          nutrients: gptNutrients,
+          source: 'gpt_vision_direct' as any,
+          locale,
+          hasNutrition: true,
+          provider: 'gpt_vision' as any,
+          cookingMethodHints: this.extractCookingMethodHints(component),
+        };
+
+        items.push(gptItem);
+        debug.components.push({
+          type: 'matched',
+          vision: component,
+          provider: 'gpt_vision_direct' as any,
+          confidence: (component as any).nutritionConfidence ?? 0.85,
+          skippedProvider: true,
+          reason: 'gpt_only_mode_enabled',
+        });
+
+        this.logger.debug(`[AnalyzeService] GPT-only mode: using Vision estimates for "${component.name}" (${gptNutrients.calories} kcal)`);
+        return items;
+      }
+
       // Try to find nutrition data via orchestrator
       const nutritionStartTime = Date.now();
       const providerResult: NutritionProviderResult | null = await this.nutrition.findNutrition(
