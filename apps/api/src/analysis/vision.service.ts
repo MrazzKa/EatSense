@@ -17,7 +17,7 @@ const TARGET_MAX_DIMENSION = 512; // pixels
 const VISION_TIMEOUT_MS = 25000; // 25 second target (was 20)
 
 // Version for cache key - increment when prompt or schema changes
-const VISION_PROMPT_VERSION = 'omega_v5.1_2026-01-19_speed_opt';
+const VISION_PROMPT_VERSION = 'omega_v5.2_2026-01-19_quality_balance';
 
 // Dish-level identification (NEW - for proper dish naming)
 const VisionDishSchema = z.object({
@@ -622,7 +622,7 @@ REVIEW MODE - Be extra careful:
                 ],
               },
             ],
-            max_completion_tokens: 1000, // OMEGA v5: Reduced from 1500 for speed
+            max_completion_tokens: 1200, // OMEGA v5.2: Balanced for quality (was 1000)
             temperature: 0.1, // OMEGA v4: Lower for consistency
             response_format: { type: 'json_object' },
           }, {

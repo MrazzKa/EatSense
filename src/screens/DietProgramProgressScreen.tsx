@@ -331,6 +331,9 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                     onPress: async () => {
                                         try {
                                             await DietProgramsService.stopProgram(route.params.id);
+                                            // FIX 2026-01-19: Clear cache so Dashboard immediately hides the tracker
+                                            invalidateCache();
+                                            await refreshProgress();
                                             navigation.goBack();
                                         } catch {
                                             Alert.alert(t('common.error'), t('errors.stopProgram'));

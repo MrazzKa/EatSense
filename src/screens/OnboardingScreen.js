@@ -23,6 +23,7 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/apiService';
+import IAPService from '../services/iapService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
@@ -815,64 +816,87 @@ const OnboardingScreen = () => {
     { id: 'gain_weight', label: t('onboarding.goalTypes.gainWeight'), icon: 'trending-up' },
   ];
 
-  // Currency based on device region (not just language)
-  const getCurrencyInfo = useCallback(() => {
-    // Get device region from Localization
-    const deviceLocale = Localization.getLocales()?.[0];
-    const region = deviceLocale?.regionCode?.toUpperCase() || '';
-    const languageCode = language?.split('-')[0] || 'en';
+  // FIX 2026-01-19: Currency from IAP (Apple/Google) with region fallback
+  // This ensures we show the exact price the user will pay
+  const [currency, setCurrency] = useState({
+    symbol: '$',
+    code: 'USD',
+    freePrice: '$0',
+    monthlyPrice: '$9.99',
+    yearlyPrice: '$79.99',
+    studentPrice: '$49.99',
+    founderPrice: '$199.99',
+  });
 
-    // Currency map by region code (ISO 3166-1 alpha-2)
-    const regionCurrencyMap = {
-      // CIS
-      'RU': { symbol: '₽', code: 'RUB', freePrice: '0 ₽', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽' },
-      'KZ': { symbol: '₸', code: 'KZT', freePrice: '0 ₸', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸' },
-      'BY': { symbol: '₽', code: 'BYN', freePrice: '0 ₽', monthlyPrice: '30 BYN', yearlyPrice: '239 BYN', studentPrice: '159 BYN' },
-      'UA': { symbol: '₴', code: 'UAH', freePrice: '0 ₴', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴' },
-      'UZ': { symbol: "so'm", code: 'UZS', freePrice: "0 so'm", monthlyPrice: "99 000 so'm", yearlyPrice: "799 000 so'm", studentPrice: "499 000 so'm" },
-      // Europe
-      'DE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'FR': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'ES': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'IT': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'NL': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'AT': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'BE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'PT': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-      'PL': { symbol: 'zł', code: 'PLN', freePrice: '0 zł', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł' },
-      'GB': { symbol: '£', code: 'GBP', freePrice: '£0', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99' },
-      // Asia
-      'KR': { symbol: '₩', code: 'KRW', freePrice: '0 ₩', monthlyPrice: '12,900 ₩', yearlyPrice: '99,000 ₩', studentPrice: '64,900 ₩' },
-      'JP': { symbol: '¥', code: 'JPY', freePrice: '0 ¥', monthlyPrice: '1,400 ¥', yearlyPrice: '10,800 ¥', studentPrice: '6,800 ¥' },
-      'CN': { symbol: '¥', code: 'CNY', freePrice: '0 ¥', monthlyPrice: '68 ¥', yearlyPrice: '518 ¥', studentPrice: '328 ¥' },
-      'IN': { symbol: '₹', code: 'INR', freePrice: '₹0', monthlyPrice: '₹799', yearlyPrice: '₹5,999', studentPrice: '₹3,999' },
-      // Americas
-      'US': { symbol: '$', code: 'USD', freePrice: '$0', monthlyPrice: '$9.99', yearlyPrice: '$79.99', studentPrice: '$49.99' },
-      'CA': { symbol: 'C$', code: 'CAD', freePrice: 'C$0', monthlyPrice: 'C$12.99', yearlyPrice: 'C$99.99', studentPrice: 'C$64.99' },
-      'BR': { symbol: 'R$', code: 'BRL', freePrice: 'R$0', monthlyPrice: 'R$49,90', yearlyPrice: 'R$399,90', studentPrice: 'R$249,90' },
-      'MX': { symbol: '$', code: 'MXN', freePrice: '$0', monthlyPrice: '$179', yearlyPrice: '$1,399', studentPrice: '$899' },
-      // Oceania
-      'AU': { symbol: 'A$', code: 'AUD', freePrice: 'A$0', monthlyPrice: 'A$14.99', yearlyPrice: 'A$119.99', studentPrice: 'A$74.99' },
+  // Load currency from IAP on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCurrency = async () => {
+      // STEP 1: Try IAP (Apple/Google real prices)
+      try {
+        const initResult = await IAPService.init();
+        if (initResult) {
+          const result = await IAPService.getAvailableProducts();
+          const allProducts = [...(result?.subscriptions || []), ...(result?.products || [])];
+
+          if (allProducts.length > 0 && allProducts[0]?.currency) {
+            const currencyCode = allProducts[0].currency;
+            const monthly = allProducts.find(p => p.productId?.includes('monthly'));
+            const yearly = allProducts.find(p => p.productId?.includes('yearly') && !p.productId?.includes('student'));
+            const student = allProducts.find(p => p.productId?.includes('student'));
+
+            if (isMounted && (monthly || yearly)) {
+              const symbols = { USD: '$', EUR: '€', GBP: '£', CHF: 'CHF', RUB: '₽', KZT: '₸', UAH: '₴', PLN: 'zł' };
+              const symbol = symbols[currencyCode] || currencyCode;
+              const isAfter = ['EUR', 'RUB', 'KZT', 'UAH', 'PLN', 'CZK'].includes(currencyCode);
+
+              setCurrency({
+                symbol,
+                code: currencyCode,
+                freePrice: isAfter ? `0 ${symbol}` : `${symbol}0`,
+                monthlyPrice: monthly?.localizedPrice || `${symbol}9.99`,
+                yearlyPrice: yearly?.localizedPrice || `${symbol}79.99`,
+                studentPrice: student?.localizedPrice || `${symbol}49.99`,
+                founderPrice: allProducts.find(p => p.productId === 'eatsense.founder.pass')?.localizedPrice || `${symbol}199.99`,
+              });
+              console.log('[Onboarding] Currency from IAP:', currencyCode);
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        console.log('[Onboarding] IAP unavailable:', e?.message);
+      }
+
+      // STEP 2: Fallback to device region
+      if (!isMounted) return;
+      const deviceLocale = Localization.getLocales()?.[0];
+      const region = deviceLocale?.regionCode?.toUpperCase();
+
+      const regionMap = {
+        'CH': { symbol: 'CHF', code: 'CHF', freePrice: 'CHF 0', monthlyPrice: 'CHF 9.90', yearlyPrice: 'CHF 79.00', studentPrice: 'CHF 49.00' },
+        'RU': { symbol: '₽', code: 'RUB', freePrice: '0 ₽', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽' },
+        'KZ': { symbol: '₸', code: 'KZT', freePrice: '0 ₸', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸' },
+        'DE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+        'FR': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
+        'GB': { symbol: '£', code: 'GBP', freePrice: '£0', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99' },
+        'US': { symbol: '$', code: 'USD', freePrice: '$0', monthlyPrice: '$9.99', yearlyPrice: '$79.99', studentPrice: '$49.99' },
+        'UA': { symbol: '₴', code: 'UAH', freePrice: '0 ₴', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴' },
+        'PL': { symbol: 'zł', code: 'PLN', freePrice: '0 zł', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł' },
+        'AU': { symbol: 'A$', code: 'AUD', freePrice: 'A$0', monthlyPrice: 'A$14.99', yearlyPrice: 'A$119.99', studentPrice: 'A$74.99' },
+        'CA': { symbol: 'C$', code: 'CAD', freePrice: 'C$0', monthlyPrice: 'C$12.99', yearlyPrice: 'C$99.99', studentPrice: 'C$64.99' },
+      };
+
+      if (region && regionMap[region]) {
+        setCurrency(regionMap[region]);
+        console.log('[Onboarding] Currency from region:', region);
+      }
     };
 
-    // Fallback currency map by language (for when region is not detected)
-    const languageCurrencyMap = {
-      'ru': regionCurrencyMap['RU'],
-      'kk': regionCurrencyMap['KZ'],
-      'de': regionCurrencyMap['DE'],
-      'fr': regionCurrencyMap['FR'],
-      'es': regionCurrencyMap['ES'],
-      'ko': regionCurrencyMap['KR'],
-      'ja': regionCurrencyMap['JP'],
-      'zh': regionCurrencyMap['CN'],
-      'en': regionCurrencyMap['US'],
-    };
-
-    // Try region first, then language, then default to USD
-    return regionCurrencyMap[region] || languageCurrencyMap[languageCode] || regionCurrencyMap['US'];
-  }, [language]);
-
-  const currency = useMemo(() => getCurrencyInfo(), [getCurrencyInfo]);
+    loadCurrency();
+    return () => { isMounted = false; };
+  }, []);
 
   const plans = [
     {
@@ -932,6 +956,21 @@ const OnboardingScreen = () => {
       badge: t('onboarding.plans.studentBadge', 'Student'),
       popular: false,
       isStudent: true,
+    },
+    {
+      id: 'founders',
+      name: t('onboarding.plans.founder.name', 'Founder'),
+      price: currency.founderPrice,
+      billingCycle: 'lifetime',
+      headline: t('onboarding.plans.founderHeadline', 'Lifetime access + Exclusive badge'),
+      features: [
+        t('onboarding.plans.features.lifetime', 'One-time payment, forever access'),
+        t('onboarding.plans.features.badge', 'Exclusive Founder Badge'),
+        t('onboarding.plans.features.priority', 'Direct developer access'),
+      ],
+      badge: t('onboarding.plans.founderBadge', 'Limited'),
+      popular: false,
+      isFounder: true,
     },
   ];
 
@@ -1053,29 +1092,27 @@ const OnboardingScreen = () => {
 
       clientLog('Onboarding:profileSave:success');
 
+      // FIX 2026-01-19: If plan is NOT free, navigate to SubscriptionScreen for payment
+      if (selectedPlan && selectedPlan !== 'free') {
+        console.log('[OnboardingScreen] Paid plan selected, navigating to SubscriptionScreen');
+        navigation.navigate('Subscription', { selectedPlanId: selectedPlan });
+        return;
+      }
+
       const onboardingResult = await ApiService.completeOnboarding();
       console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
 
       await clientLog('Onboarding:completed').catch(() => { });
 
-      // Update user profile in context to mark onboarding as completed
-      try {
-        const updatedProfile = await ApiService.getUserProfile();
-        if (updatedProfile && setUser) {
-          setUser({ ...updatedProfile, isOnboardingCompleted: true });
-          console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
-        }
-      } catch (updateError) {
-        console.warn('[OnboardingScreen] Failed to update user context:', updateError);
-        // Try to refresh user anyway
-        if (refreshUser && typeof refreshUser === 'function') {
-          refreshUser().catch(() => { });
-        }
+      // Update user context with isOnboardingCompleted (no need to refetch profile)
+      if (setUser) {
+        setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
+        console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
       }
 
-      // Используем InteractionManager для безопасного вызова navigation после завершения всех анимаций
+      // Navigate immediately without extra delays
+      // FIX 2026-01-19: Reduced delay from 100ms to 50ms and removed redundant getUserProfile call
       InteractionManager.runAfterInteractions(() => {
-        // Дополнительная задержка для гарантии готовности navigation
         setTimeout(() => {
           try {
             if (navigation && navigation.isReady && navigation.isReady()) {
@@ -1103,7 +1140,7 @@ const OnboardingScreen = () => {
             console.error('[OnboardingScreen] Navigation reset error:', navError);
             Alert.alert('Error', `Navigation error: ${navError.message}. Please restart the app.`);
           }
-        }, 100);
+        }, 50); // Reduced from 100ms to 50ms
       });
     } catch (err) {
       console.error('Onboarding error:', err);
@@ -1600,8 +1637,8 @@ const OnboardingScreen = () => {
           </Text>
         </TouchableOpacity>
 
-        {/* Student Plan (shown when expanded) */}
-        {showStudentPlan && (plans || []).filter(plan => plan.isStudent).map((plan) => {
+        {/* Student & Founder Plans (shown when expanded) */}
+        {showStudentPlan && (plans || []).filter(plan => plan.isStudent || plan.isFounder).map((plan) => {
           const isSelected = profileData.selectedPlan === plan.id;
           return (
             <TouchableOpacity
@@ -1947,6 +1984,8 @@ const OnboardingScreen = () => {
 
         const { status } = await Notifications.requestPermissionsAsync();
         if (status === 'granted') {
+          // FIX 2026-01-19: Prevent re-triggering if already enabled
+          if (notificationsEnabled) return;
           setNotificationsEnabled(true);
 
           // Get push token for remote notifications
@@ -2019,7 +2058,12 @@ const OnboardingScreen = () => {
             {t('onboarding.notificationsDescription', 'Get reminders about meals, water intake, and your health goals.')}
           </Text>
           <TouchableOpacity
-            style={[styles.nextButton, { marginTop: 32 }, notificationsEnabled && { backgroundColor: colors.success || '#34C759' }]}
+            style={[
+              styles.nextButton,
+              { marginTop: 32 },
+              notificationsEnabled && { backgroundColor: colors.success || '#34C759', opacity: 0.8 }
+            ]}
+            disabled={notificationsEnabled}
             onPress={handleEnableNotifications}
           >
             <Ionicons

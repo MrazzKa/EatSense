@@ -38,14 +38,17 @@ export default function ActiveDietWidget({ activeDiet, onOpenTracker, onBrowseDi
         );
     }
 
-    // Has active diet - show progress widget
-    const { diet, streak, todayProgress } = activeDiet;
+    // Has active diet/lifestyle - show progress widget
+    // FIX 2026-01-19: Support both diet and lifestyle types with appropriate UI
+    const { diet, type, streak, todayProgress } = activeDiet;
+    const isLifestyle = type === 'lifestyle';
+
     // Helper to extract localized name
     const getLocalizedName = (name) => {
-        if (!name) return 'Diet';
+        if (!name) return isLifestyle ? 'Lifestyle' : 'Diet';
         if (typeof name === 'string') return name;
         if (typeof name === 'object') {
-            return name[language] || name['en'] || name['ru'] || name[Object.keys(name)[0]] || 'Diet';
+            return name[language] || name['en'] || name['ru'] || name[Object.keys(name)[0]] || (isLifestyle ? 'Lifestyle' : 'Diet');
         }
         return String(name);
     };
@@ -71,7 +74,7 @@ export default function ActiveDietWidget({ activeDiet, onOpenTracker, onBrowseDi
                     {dietName}
                 </Text>
                 <View style={[styles.streakBadge, { backgroundColor: (diet?.color || colors.primary) + '20' }]}>
-                    <Ionicons name="flame" size={14} color={diet?.color || colors.primary || '#4CAF50'} />
+                    <Ionicons name={isLifestyle ? 'leaf' : 'flame'} size={14} color={diet?.color || colors.primary || '#4CAF50'} />
                     <Text style={[styles.streakText, { color: diet?.color || colors.primary || '#4CAF50' }]}>
                         {streak || 0} {t('dashboard.activeDiet.streak') || 'days streak'}
                     </Text>

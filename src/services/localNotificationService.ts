@@ -141,6 +141,9 @@ class LocalNotificationService {
      * Schedule meal reminder (1/2/3 times a day)
      */
     async scheduleMealReminders(frequency: 1 | 2 | 3): Promise<string[]> {
+        // FIX 2026-01-19: Cancel existing meal reminders first to avoid duplicates
+        await this.cancelNotificationsByCategory(NotificationCategories.MEAL_REMINDER);
+
         const locale = i18n.language || 'en';
 
         const titles: Record<string, string> = {

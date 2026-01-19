@@ -1293,7 +1293,6 @@ const ProfileScreen = () => {
                   contentContainerStyle={styles.editModalContentInner}
                   keyboardShouldPersistTaps="handled"
                   showsVerticalScrollIndicator={false}
-                  automaticallyAdjustKeyboardInsets={true}
                   keyboardDismissMode="on-drag"
                 >
                   <AppCard style={styles.formCard}>
@@ -1564,8 +1563,8 @@ const ProfileScreen = () => {
             </Text>
             <TouchableOpacity
               onPress={() => {
-                setPendingPlan(subscription.planId);
-                setPlanModalVisible(true);
+                // FIX 2026-01-19: Navigate to SubscriptionScreen for real IAP purchase
+                navigation.navigate('Subscription');
               }}
             >
               <Text style={styles.planChangeText}>

@@ -145,11 +145,15 @@ export default function SubscriptionScreen() {
             setPlans(mappedPlans);
 
             // Select yearly plan by default (best value)
-            const yearlyPlan = mappedPlans.find(p => p.name === 'yearly');
-            if (yearlyPlan) {
-                setSelectedPlanId(yearlyPlan.id);
-            } else if (mappedPlans.length > 0) {
-                setSelectedPlanId(mappedPlans[0].id);
+            if (route.params?.selectedPlanId) {
+                setSelectedPlanId(route.params.selectedPlanId);
+            } else {
+                const yearlyPlan = mappedPlans.find(p => p.name === 'yearly');
+                if (yearlyPlan) {
+                    setSelectedPlanId(yearlyPlan.id);
+                } else if (mappedPlans.length > 0) {
+                    setSelectedPlanId(mappedPlans[0].id);
+                }
             }
         } catch (error) {
             console.error('[SubscriptionScreen] IAP init error:', error);
@@ -195,10 +199,12 @@ export default function SubscriptionScreen() {
     };
 
     // Handle purchase via IAPService
-    const handlePurchase = async () => {
-        if (!selectedPlanId || purchasing) return;
+    // FIX 2026-01-19: Accept planId directly to avoid race condition with async setState
+    const handlePurchase = async (planId = null) => {
+        const targetPlanId = planId || selectedPlanId;
+        if (!targetPlanId || purchasing) return;
 
-        const plan = plans.find(p => p.id === selectedPlanId);
+        const plan = plans.find(p => p.id === targetPlanId);
         if (!plan) {
             Alert.alert(t('error.title', 'Error'), t('subscription.planNotFound', 'Plan not found'));
             return;
@@ -228,9 +234,9 @@ export default function SubscriptionScreen() {
 
         try {
             if (plan.isSubscription) {
-                await IAPService.purchaseSubscription(selectedPlanId, onSuccess, onError);
+                await IAPService.purchaseSubscription(targetPlanId, onSuccess, onError);
             } else {
-                await IAPService.purchaseProduct(selectedPlanId, onSuccess, onError);
+                await IAPService.purchaseProduct(targetPlanId, onSuccess, onError);
             }
         } catch (error) {
             console.error('[SubscriptionScreen] Purchase initiation error:', error);
@@ -386,7 +392,7 @@ export default function SubscriptionScreen() {
                                         setShowStudentModal(true);
                                     } else {
                                         setSelectedPlanId(plan.id);
-                                        handlePurchase();
+                                        handlePurchase(plan.id); // FIX: pass planId directly
                                     }
                                 }}
                                 disabled={purchasing}
@@ -533,7 +539,7 @@ export default function SubscriptionScreen() {
                                                 setShowStudentModal(true);
                                             } else {
                                                 setSelectedPlanId(plan.id);
-                                                handlePurchase();
+                                                handlePurchase(plan.id); // FIX: pass planId directly
                                             }
                                         }}
                                         disabled={purchasing}

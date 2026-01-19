@@ -277,13 +277,16 @@ export default function DashboardScreen() {
   const { activeProgram } = useProgramProgress();
 
   React.useEffect(() => {
-    if (activeProgram && activeProgram.type === 'diet') {
+    // FIX 2026-01-19: Support both diet and lifestyle programs
+    // Previously only 'diet' was shown, lifestyle programs were ignored
+    if (activeProgram && (activeProgram.type === 'diet' || activeProgram.type === 'lifestyle')) {
       setActiveDiet({
         diet: {
           id: activeProgram.programId,
-          name: activeProgram.programName || 'Diet',
-          color: '#4CAF50', // TODO: Get from program details
+          name: activeProgram.programName || (activeProgram.type === 'lifestyle' ? 'Lifestyle' : 'Diet'),
+          color: activeProgram.type === 'lifestyle' ? '#9C27B0' : '#4CAF50',
         },
+        type: activeProgram.type, // Pass type for categorization in widget
         streak: activeProgram.streak?.current || 0,
         todayProgress: {
           completed: activeProgram.todayLog?.completedCount || 0,

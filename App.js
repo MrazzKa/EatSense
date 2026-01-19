@@ -36,6 +36,7 @@ import LifestyleDetailScreen from './src/screens/LifestyleDetailScreen';
 import ReferralScreen from './src/screens/ReferralScreen';
 import ExpertProfileScreen from './src/screens/ExpertProfileScreen';
 import ConsultationChatScreen from './src/screens/ConsultationChatScreen';
+import SubscriptionScreen from './src/screens/SubscriptionScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 import { clientLog } from './src/utils/clientLog';
 
@@ -258,6 +259,11 @@ function AppContent() {
             <Stack.Screen
               name="ConsultationChat"
               component={ConsultationChatScreen}
+              options={{ presentation: 'card' }}
+            />
+            <Stack.Screen
+              name="Subscription"
+              component={SubscriptionScreen}
               options={{ presentation: 'card' }}
             />
           </Stack.Navigator>

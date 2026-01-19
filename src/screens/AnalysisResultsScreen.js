@@ -107,21 +107,14 @@ export default function AnalysisResultsScreen() {
   }, [allowEditing, readOnly, analysisResult]);
 
   const navigateToDashboard = useCallback(() => {
-    if (navigation && typeof navigation.navigate === 'function') {
-      // FIX 2: Use navigate instead of reset to prevent empty diary glitch
-      // Reset causes full remount, while navigate just focuses existing tab
+    // FIX 2026-01-20: Optimized for instant exit.
+    // Use navigate first for speed. Only use reset if absolutely necessary to clear stack.
+    if (navigation) {
+      // Prefer standard navigate for transition speed
       navigation.navigate('MainTabs', {
         screen: 'Dashboard',
-        params: { refresh: Date.now() }
+        params: { refresh: Date.now() } // Triggers refresh in Dashboard
       });
-      return;
-    }
-    if (navigation && typeof navigation.navigate === 'function') {
-      navigation.navigate('MainTabs', { screen: 'Dashboard' });
-      return;
-    }
-    if (navigation && typeof navigation.goBack === 'function') {
-      navigation.goBack();
     }
   }, [navigation]);
 
