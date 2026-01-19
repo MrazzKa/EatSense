@@ -87,8 +87,8 @@ interface BeverageDetectionResult {
 export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
   // Versioned cache key to avoid conflicts with legacy cached shapes
-  // v7: Speed optimizations - smaller images, expanded canonical cache
-  private readonly ANALYSIS_CACHE_VERSION = 'v7';
+  // v8: Quality balance - restored 512px, 45% JPEG, 1200 tokens
+  private readonly ANALYSIS_CACHE_VERSION = 'v8';
 
   // Keywords to detect drinks in food names
   private readonly DRINK_KEYWORDS = [
@@ -201,6 +201,14 @@ export class AnalyzeService {
     'shrimp': { calories: 99, protein: 24, carbs: 0.2, fat: 0.3 },
     'meatball': { calories: 250, protein: 17, carbs: 10, fat: 16 },
     'meatballs': { calories: 250, protein: 17, carbs: 10, fat: 16 },
+    'sausage': { calories: 301, protein: 12, carbs: 2, fat: 27 },
+    'bacon': { calories: 541, protein: 37, carbs: 1.4, fat: 42 },
+    'ham': { calories: 145, protein: 21, carbs: 1.5, fat: 6 },
+    'turkey': { calories: 189, protein: 29, carbs: 0, fat: 7 },
+    'lamb': { calories: 294, protein: 25, carbs: 0, fat: 21 },
+    'fish': { calories: 136, protein: 26, carbs: 0, fat: 3 },
+    'cod': { calories: 82, protein: 18, carbs: 0, fat: 0.7 },
+    'trout': { calories: 148, protein: 21, carbs: 0, fat: 6.6 },
     // Dairy
     'cheese': { calories: 402, protein: 25, carbs: 1.3, fat: 33 },
     'milk': { calories: 42, protein: 3.4, carbs: 5, fat: 1 },
@@ -235,6 +243,17 @@ export class AnalyzeService {
     'сыр': { calories: 402, protein: 25, carbs: 1.3, fat: 33 },
     'молоко': { calories: 42, protein: 3.4, carbs: 5, fat: 1 },
     'хлеб': { calories: 265, protein: 9, carbs: 49, fat: 3.2 },
+    'колбаса': { calories: 301, protein: 12, carbs: 2, fat: 27 },
+    'сосиска': { calories: 301, protein: 12, carbs: 2, fat: 27 },
+    'сосиски': { calories: 301, protein: 12, carbs: 2, fat: 27 },
+    'бекон': { calories: 541, protein: 37, carbs: 1.4, fat: 42 },
+    'ветчина': { calories: 145, protein: 21, carbs: 1.5, fat: 6 },
+    'индейка': { calories: 189, protein: 29, carbs: 0, fat: 7 },
+    'баранина': { calories: 294, protein: 25, carbs: 0, fat: 21 },
+    'рыба': { calories: 136, protein: 26, carbs: 0, fat: 3 },
+    'треска': { calories: 82, protein: 18, carbs: 0, fat: 0.7 },
+    'форель': { calories: 148, protein: 21, carbs: 0, fat: 6.6 },
+    'спагетти': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
   };
 
   /**

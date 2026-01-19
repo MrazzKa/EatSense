@@ -16,6 +16,7 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
     const { t } = useI18n();
     const [programs, setPrograms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [category, setCategory] = useState<string | null>(null);
 
     const categories = [
@@ -25,11 +26,13 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
         { id: 'historical', labelKey: 'dietPrograms.categories.historical' },
     ];
 
-    const loadPrograms = useCallback(async () => {
+    // Load all programs (used for filtered views and full refresh)
+    const loadAllPrograms = useCallback(async (showSpinner = true) => {
         try {
-            setLoading(true);
-            const response = await DietProgramsService.getPrograms(category ? { category } : {});
-            // API returns { diets: [...], total, limit, offset }
+            if (showSpinner) setLoading(true);
+            else setIsRefreshing(true);
+
+            const response = await DietProgramsService.getPrograms(category ? { category } : {}) as any;
             const diets = response?.diets || response;
             setPrograms(Array.isArray(diets) ? diets : []);
         } catch (error) {
@@ -37,12 +40,54 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
             setPrograms([]);
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     }, [category]);
 
+    // Progressive loading: first 5 instantly, then load all in background
     useEffect(() => {
-        loadPrograms();
-    }, [loadPrograms]);
+        const loadProgressively = async () => {
+            // For filtered views, use normal loading
+            if (category) {
+                loadAllPrograms(true);
+                return;
+            }
+
+            // Step 1: Try to show cached data immediately (from memory or AsyncStorage)
+            const cached = DietProgramsService.getCachedPrograms() as any;
+            if (cached) {
+                const diets = cached?.diets || cached;
+                if (Array.isArray(diets) && diets.length > 0) {
+                    setPrograms(diets);
+                    setLoading(false);
+                    // Refresh in background
+                    loadAllPrograms(false);
+                    return;
+                }
+            }
+
+            // Step 2: Load first 5 quickly for immediate display
+            try {
+                const initial = await DietProgramsService.getInitialPrograms(5) as any;
+                const initialDiets = initial?.diets || initial;
+                if (Array.isArray(initialDiets) && initialDiets.length > 0) {
+                    setPrograms(initialDiets);
+                    setLoading(false);
+
+                    // Step 3: Load all remaining in background
+                    loadAllPrograms(false);
+                    return;
+                }
+            } catch (e) {
+                console.error('Failed to load initial programs:', e);
+            }
+
+            // Fallback: load all normally
+            loadAllPrograms(true);
+        };
+
+        loadProgressively();
+    }, [category, loadAllPrograms]);
 
     const getDifficultyColor = (difficulty: string) => {
         switch (difficulty) {

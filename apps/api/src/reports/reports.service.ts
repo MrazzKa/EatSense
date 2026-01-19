@@ -233,6 +233,7 @@ export class ReportsService {
 
         if (locale === 'ru') return ru;
         if (locale === 'kk') return kk;
+        if (locale === 'fr') return ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
         return en;
     }
 
@@ -311,6 +312,29 @@ export class ReportsService {
 
         if (locale === 'ru') return ru;
         if (locale === 'kk') return kk;
+        if (locale === 'fr') return {
+            reportTitle: 'Rapport nutritionnel mensuel',
+            summary: 'Résumé',
+            avgCalories: 'Calories moy.',
+            avgProtein: 'Protéines moy.',
+            avgCarbs: 'Glucides moy.',
+            avgFat: 'Lipides moy.',
+            totalMeals: 'Total repas',
+            daysTracked: 'Jours suivis',
+            monthlyTotals: 'Totaux mensuels',
+            totalCalories: 'Total calories',
+            protein: 'Protéines',
+            carbs: 'Glucides',
+            fat: 'Lipides',
+            topFoods: 'Aliments fréquents',
+            total: 'total',
+            dailyBreakdown: 'Détail quotidien',
+            date: 'Date',
+            mealsLabel: 'Repas',
+            andMore: 'et',
+            moreDays: 'autres jours',
+            generatedBy: 'Généré par',
+        };
         return en;
     }
 }

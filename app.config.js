@@ -6,6 +6,13 @@ export default {
     owner: "eatsense",
     version: "1.0.3",
     orientation: "default",
+    // EAS Update configuration
+    updates: {
+      url: "https://u.expo.dev/cb87892c-d49d-4ac9-81d6-855083eaf0c3"
+    },
+    runtimeVersion: {
+      policy: "appVersion"
+    },
     // Use Logo.jpeg for app icon (Expo will auto-generate required sizes)
     icon: "./assets/logo/Logo.jpeg",
     userInterfaceStyle: "light",
@@ -30,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "78",
+      buildNumber: "79",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {

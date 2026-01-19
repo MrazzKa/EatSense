@@ -29,7 +29,9 @@
     "show": "Show",
     "hide": "Hide",
     "cm": "cm",
-    "hoursShort": "h"
+    "hoursShort": "h",
+    "stop": "Stop",
+    "goBack": "Go back"
   },
   "help": {
     "title": "Help & Support",
@@ -146,7 +148,6 @@
       "thyroid": "Thyroid Issues",
       "other": "Not in list, I'll write"
     },
-    "targetWeightSubtitle": "Set your target weight",
     "enableNotifications": "Enable",
     "notificationsDescription": "Get reminders about meals, water intake, and your health goals.",
     "planReady": "Your personalized plan",
@@ -235,6 +236,17 @@
           "Student ID required"
         ],
         "badge": "Student"
+      },
+      "founder": {
+        "name": "Founder",
+        "price": "$199.99 / once",
+        "headline": "Lifetime access + Exclusive badge",
+        "features": [
+          "One-time payment, forever access",
+          "Exclusive Founder Badge",
+          "Direct developer access"
+        ],
+        "badge": "Limited"
       },
       "finePrint": "You can change plans or cancel anytime from Settings.",
       "forever": "forever",
@@ -870,8 +882,8 @@
     "noConversations": "No active chats",
     "asClient": "As Client",
     "asExpert": "As Expert",
-    "expert": "Expert",
-    "client": "Client",
+    "expertRole": "Expert",
+    "clientRole": "Client",
     "startChat": "Start Chat",
     "viewAll": "View All Specialists",
     "profile": "Profile",

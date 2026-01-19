@@ -187,7 +187,9 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
     const completedCount = trackerData.dailyTracker.filter(i => i.checked).length;
     const totalCount = trackerData.dailyTracker.length;
-    const progressPercent = Math.round((activeProgram.todayLog?.completionRate || 0) * 100);
+    // FIX 2026-01-19: Use local state for instant progress updates instead of store's todayLog
+    // This ensures the progress ring updates immediately when checkboxes are toggled
+    const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
     const thresholdPercent = Math.round((activeProgram.streak?.threshold || 0.6) * 100);
 
     return (

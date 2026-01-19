@@ -310,14 +310,6 @@
     },
     "title": "Ұзақ мерзімді тәуекел факторлары"
   },
-  "chat": {
-    "consultationEnded": "Кеңес аяқталды",
-    "daysRemaining": "күн қалды",
-    "shareMeals": "Тамақты бөлісу",
-    "shareMealsConfirm": "Соңғы 7 күндегі тамақпен бөлісесіз бе?",
-    "startConversation": "Әңгімені бастаңыз!",
-    "typePlaceholder": "Хабарлама жазыңыз..."
-  },
   "common": {
     "all": "Барлығы",
     "back": "Артқа",
@@ -348,7 +340,9 @@
     "show": "Көрсету",
     "hide": "Жасыру",
     "cm": "см",
-    "hoursShort": "сағ"
+    "hoursShort": "сағ",
+    "stop": "Тоқтату",
+    "goBack": "Артқа қайту"
   },
   "dashboard": {
     "addFood": {
@@ -389,8 +383,8 @@
     "healthScoreSubtitle": "Толық талдауды ашу үшін «Жуырда» бөлімін басыңыз.",
     "healthScoreTitle": "{{meal}} қысқаша шолу",
     "manualAnalysis": {
-      "subtitle": "Тағам деректерін қолмен енгізіңіз немесе зертхана нәтижелерін жүктеңіз",
-      "title": "Өз талдауыңызды енгізіңіз"
+      "subtitle": "AI талдауы үшін зертхана нәтижелерін жүктеңіз",
+      "title": "Медициналық зерттеу нәтижелері"
     },
     "mealFallback": "Тағам",
     "mealTypes": {
@@ -530,7 +524,14 @@
     "pause": "Үзіліс",
     "resume": "Жалғастыру",
     "title": "Тамақтану бағдарламалары",
-    "mealsForDay": "Күндегі тағамдар"
+    "mealsForDay": "Күндегі тағамдар",
+    "featured": "Ұсынылған",
+    "difficulty": {
+      "easy": "Жеңіл",
+      "moderate": "Орташа",
+      "medium": "Орташа",
+      "hard": "Қиын"
+    }
   },
   "editFood": {
     "calculate": "Есептеу: {{value}}",
@@ -586,8 +587,8 @@
     "noConversations": "Белсенді чаттар жоқ",
     "asClient": "Клиент ретінде",
     "asExpert": "Маман ретінде",
-    "expert": "Маман",
-    "client": "Клиент",
+    "expertRole": "Маман",
+    "clientRole": "Клиент",
     "startChat": "Чат бастау",
     "viewAll": "Барлық мамандар",
     "profile": "Профиль",
@@ -913,156 +914,213 @@
     "notEnabled": "Хабарландырулар қосылмады."
   },
   "onboarding": {
-    "activity": "How active are you?",
+    "activity": "Сіздің белсенділігіңіз қандай?",
     "activityLevels": {
-      "extremelyActive": "Extremely Active",
-      "extremelyActiveDesc": "Very heavy exercise, physical job",
-      "lightlyActive": "Lightly Active",
-      "lightlyActiveDesc": "Light exercise 1-3 days/week",
-      "moderatelyActive": "Moderately Active",
-      "moderatelyActiveDesc": "Moderate exercise 3-5 days/week",
-      "sedentary": "Sedentary",
-      "sedentaryDesc": "Little to no exercise",
-      "veryActive": "Very Active",
-      "veryActiveDesc": "Heavy exercise 6-7 days/week"
+      "extremelyActive": "Өте белсенді",
+      "extremelyActiveDesc": "Өте ауыр жаттығулар, дене еңбегі",
+      "lightlyActive": "Аздап белсенді",
+      "lightlyActiveDesc": "Жеңіл жаттығулар аптасына 1-3 күн",
+      "moderatelyActive": "Орташа белсенді",
+      "moderatelyActiveDesc": "Орташа жаттығулар аптасына 3-5 күн",
+      "sedentary": "Белсенді емес",
+      "sedentaryDesc": "Жаттығу аз немесе жоқ",
+      "veryActive": "Өте белсенді",
+      "veryActiveDesc": "Қарқынды жаттығулар аптасына 6-7 күн"
     },
-    "activitySubtitle": "This helps us calculate your calorie needs",
-    "age": "How old are you?",
-    "ageSubtitle": "Age helps personalize your nutrition plan",
-    "breath": "Do you get shortness of breath?",
+    "activitySubtitle": "Бұл калория қажеттілігін есептеуге көмектеседі",
+    "age": "Жасыңыз неше?",
+    "ageSubtitle": "Жасыңыз тамақтану жоспарын жекелендіруге көмектеседі",
+    "breath": "Тыныс қысылуы бола ма?",
     "buttons": {
-      "back": "Back",
-      "complete": "Complete Setup",
-      "getStarted": "Get Started",
-      "next": "Next",
-      "skip": "Skip"
+      "back": "Артқа",
+      "complete": "Орнатуды аяқтау",
+      "getStarted": "Бастау",
+      "next": "Келесі",
+      "skip": "Өткізіп жіберу"
     },
-    "care": "We care about you",
-    "diet": "Are you following any diet?",
-    "dietSubtitle": "Choose a diet type that suits you",
+    "care": "Біз сіз туралы қамқорланамыз",
+    "diet": "Диета ұстанасыз ба?",
+    "dietSubtitle": "Өзіңізге сәйкес тамақтану түрін таңдаңыз",
     "dietTypes": {
-      "balanced": "Balanced",
-      "balancedDesc": "Varied diet without restrictions",
-      "highProtein": "High Protein",
-      "highProteinDesc": "Focus on protein for muscles",
-      "keto": "Keto",
-      "ketoDesc": "Very low carbs, high fat",
-      "lowCarb": "Low Carb",
-      "lowCarbDesc": "Less carbs, more protein and fat",
-      "mediterranean": "Mediterranean",
-      "mediterraneanDesc": "Fish, vegetables, olive oil",
-      "vegan": "Vegan",
-      "veganDesc": "Plant-based foods only",
-      "vegetarian": "Vegetarian",
-      "vegetarianDesc": "No meat, fish and dairy allowed"
+      "none": "Арнайы диета жоқ",
+      "noneDesc": "Мен ешқандай диета ұстанбаймын",
+      "noDiet": "Арнайы диета жоқ",
+      "noDietDesc": "Мен ешқандай диета ұстанбаймын",
+      "balanced": "Теңгерімді",
+      "balancedDesc": "Шектеусіз әртүрлі тамақтану",
+      "highProtein": "Жоғары ақуызды",
+      "highProteinDesc": "Бұлшықет үшін ақуызға назар аудару",
+      "keto": "Кето",
+      "ketoDesc": "Өте аз көмірсу, көп май",
+      "lowCarb": "Аз көмірсулы",
+      "lowCarbDesc": "Аз көмірсу, көп ақуыз және май",
+      "mediterranean": "Жерорта теңізі",
+      "mediterraneanDesc": "Балық, көкөністер, зәйтүн майы",
+      "vegan": "Веган",
+      "veganDesc": "Тек өсімдік тағамдары",
+      "vegetarian": "Вегетариандық",
+      "vegetarianDesc": "Етсіз, балық пен сүт өнімдеріне рұқсат",
+      "paleo": "Палео",
+      "paleoDesc": "Табиғи тағамдар, өңделмеген"
     },
     "features": {
-      "analysis": "AI Food Analysis",
-      "analysisDesc": "Instant dish recognition and calories",
-      "insights": "Health Insights",
-      "insightsDesc": "Personalized AI recommendations",
-      "tracking": "Smart Tracking",
-      "trackingDesc": "Simple food journal with history"
+      "analysis": "AI тағам талдауы",
+      "analysisDesc": "Лезде тағамды тану және калориялар",
+      "insights": "Денсаулық түсініктері",
+      "insightsDesc": "AI-дан жеке ұсыныстар",
+      "tracking": "Ақылды бақылау",
+      "trackingDesc": "Тарихы бар қарапайым тағам күнделігі"
     },
-    "gender": "What's your gender?",
-    "genderSubtitle": "Needed for accurate calorie calculation",
+    "gender": "Жынысыңыз қандай?",
+    "genderSubtitle": "Калорияны дұрыс есептеу үшін қажет",
     "genders": {
-      "female": "Female",
-      "male": "Male",
-      "other": "Other"
+      "female": "Әйел",
+      "male": "Ер",
+      "other": "Басқа"
     },
     "goalTypes": {
-      "gainWeight": "Gain Weight",
-      "loseWeight": "Lose Weight",
-      "maintainWeight": "Maintain Weight"
+      "gainWeight": "Салмақ қосу",
+      "loseWeight": "Арықтау",
+      "maintainWeight": "Салмақты сақтау"
     },
-    "goals": "Мақсаттар",
-    "goalsSubtitle": "Choose what you want to achieve",
-    "health": "What should we know about you?",
+    "goals": "Мақсаттарыңыз қандай?",
+    "goalsSubtitle": "Не қол жеткізгіңіз келетінін таңдаңыз",
+    "health": "Біз сіз туралы не білуіміз керек?",
     "healthConditions": {
-      "allergies": "Allergies",
-      "diabetes": "Diabetes",
-      "heartDisease": "Heart Disease",
-      "hypertension": "Hypertension",
-      "none": "None of the above"
+      "allergies": "Аллергия",
+      "diabetes": "Қант диабеті",
+      "heartDisease": "Жүрек ауруы",
+      "hypertension": "Гипертония",
+      "none": "Жоғарыдағылардың ешқайсысы",
+      "gastritis": "Гастрит",
+      "highCholesterol": "Жоғары холестерин",
+      "thyroid": "Қалқанша безі мәселелері",
+      "other": "Тізімде жоқ, өзім жазамын"
     },
-    "healthSubtitle": "Select if any apply to you",
-    "height": "What's your height?",
-    "heightSubtitle": "Needed for ideal weight calculation",
-    "loading": "Creating your plan",
-    "loadingSubtitle": "Analyzing your data...",
-    "notifications": "Enable notifications",
-    "notificationsSubtitle": "Reminders help you achieve your goals",
+    "healthSubtitle": "Сізге қатысты болса таңдаңыз",
+    "height": "Бойыңыз қандай?",
+    "heightSubtitle": "Идеалды салмақты есептеу үшін қажет",
+    "loading": "Жоспарыңыз жасалуда",
+    "loadingSubtitle": "Деректеріңіз талдануда...",
+    "notifications": "Хабарландыруларды қосу",
+    "notificationsSubtitle": "Еске салулар мақсаттарыңызға жетуге көмектеседі",
     "obstacleTypes": {
-      "budget": "Limited budget",
-      "habits": "Bad habits",
-      "knowledge": "Don't know where to start",
-      "motivation": "Lack of motivation",
-      "stress": "Stress",
-      "time": "Lack of time"
+      "budget": "Шектеулі бюджет",
+      "habits": "Жаман әдеттер",
+      "knowledge": "Неден бастау керегін білмеймін",
+      "motivation": "Мотивация жетіспеушілігі",
+      "stress": "Стресс",
+      "time": "Уақыт жетіспеушілігі"
     },
-    "obstacles": "What prevents you from reaching your goal?",
-    "obstaclesSubtitle": "Select all that apply",
+    "obstacles": "Мақсатыңызға жетуге не кедергі?",
+    "obstaclesSubtitle": "Қолданылатындардың барлығын таңдаңыз",
     "plan": "Жоспарыңызды таңдаңыз",
-    "planSubtitle": "Select a plan that works for you",
+    "planSubtitle": "Өзіңізге сәйкес жоспар таңдаңыз",
     "plans": {
-      "finePrint": "You can change plans or cancel anytime from Settings.",
+      "finePrint": "Жоспарды Параметрлерден кез келген уақытта өзгертуге немесе бас тартуға болады.",
       "free": {
-        "badge": "Included",
+        "badge": "Қосылған",
         "features": [
-          "AI food analysis (3/day)",
-          "Daily calorie tracking",
-          "Basic statistics"
+          "AI тағам талдауы (күніне 3)",
+          "Күнделікті калория бақылауы",
+          "Негізгі статистика"
         ],
-        "headline": "Get started with the essentials",
+        "headline": "Негізгілерден бастаңыз",
         "name": "EatSense Free",
-        "price": "$0 forever"
+        "price": "Мәңгі тегін"
       },
       "proAnnual": {
-        "badge": "Save 33%",
+        "badge": "33% үнемдеңіз",
         "features": [
-          "Everything in Pro Monthly",
-          "Exclusive annual webinars",
-          "Early access to new features"
+          "Pro Monthly-дегі барлығы",
+          "Эксклюзивті жылдық вебинарлар",
+          "Жаңа мүмкіндіктерге ерте қол жетімділік"
         ],
-        "headline": "Best value — save 33%",
+        "headline": "Ең жақсы баға — 33% үнемдеу",
         "name": "EatSense Pro",
-        "price": "$79.99 / year"
+        "price": "$79.99 / жыл"
       },
       "proMonthly": {
-        "badge": "Most Popular",
+        "badge": "Ең танымал",
         "features": [
-          "Unlimited AI analysis",
-          "Advanced nutrition insights",
-          "Personalized coaching tips",
-          "Priority support"
+          "Шексіз AI талдау",
+          "Кеңейтілген тамақтану түсініктері",
+          "Жеке коучинг кеңестері",
+          "Басымдықты қолдау"
         ],
-        "headline": "Unlock everything with flexible billing",
+        "headline": "Барлығын икемді төлеммен ашыңыз",
         "name": "EatSense Pro",
-        "price": "$9.99 / month"
+        "price": "$9.99 / ай"
+      },
+      "student": {
+        "name": "Студент",
+        "price": "$49 / жыл",
+        "headline": "Студенттерге арнайы баға",
+        "features": [
+          "Шексіз AI талдау",
+          "Кеңейтілген тамақтану түсініктері",
+          "Студенттік билет қажет"
+        ],
+        "badge": "Студент"
+      },
+      "founder": {
+        "name": "Founder",
+        "price": "$199.99 / бір рет",
+        "headline": "Өмір бойғы қолжетімділік + Арнайы белгі",
+        "features": [
+          "Бір реттік төлем, мәңгілік қолжетімділік",
+          "Эксклюзивті Founder белгісі",
+          "Әзірлеушімен тікелей байланыс"
+        ],
+        "badge": "Шектеулі"
+      },
+      "forever": "мәңгі",
+      "month": "ай",
+      "year": "жыл",
+      "monthly": "Айлық",
+      "yearly": "Жылдық",
+      "included": "Қосылған",
+      "bestValue": "Ең жақсы баға",
+      "studentBadge": "Студент",
+      "freeHeadline": "Негізгілерден бастаңыз",
+      "monthlyHeadline": "Икемді төлем",
+      "yearlyHeadline": "Ең жақсы баға — 33% үнемдеу",
+      "studentHeadline": "Студенттерге арнайы баға",
+      "features": {
+        "analysis3": "AI тағам талдауы (күніне 3)",
+        "tracking": "Күнделікті калория бақылауы",
+        "basicStats": "Негізгі статистика",
+        "unlimited": "Шексіз AI талдау",
+        "insights": "Кеңейтілген түсініктер",
+        "coaching": "Жеке кеңестер",
+        "support": "Басымдықты қолдау",
+        "everything": "Айлық жоспардағы барлығы",
+        "webinars": "Эксклюзивті вебинарлар",
+        "earlyAccess": "Жаңалықтарға ерте қол жеткізу",
+        "verification": "Студенттік билет қажет"
       }
     },
-    "summary": "Your choices",
-    "summarySubtitle": "Review your information",
-    "support": "We care about you",
-    "targetWeight": "What weight do you want?",
-    "targetWeightSubtitle": "What weight are you aiming for?",
-    "trust": "Thank you for trusting us",
-    "trustSubtitle": "We'll help you achieve your goals",
+    "summary": "Сіздің таңдауларыңыз",
+    "summarySubtitle": "Ақпаратыңызды тексеріңіз",
+    "support": "Біз сіз туралы қамқорланамыз",
+    "targetWeight": "Қандай салмақ қалайсыз?",
+    "targetWeightSubtitle": "Қандай салмаққа ұмтыласыз?",
+    "trust": "Сеніміңіз үшін рахмет",
+    "trustSubtitle": "Мақсаттарыңызға жетуге көмектесеміз",
     "units": {
-      "cm": "cm",
-      "ft": "ft",
-      "in": "in",
-      "kg": "kg",
-      "lbs": "lbs",
-      "years": "years"
+      "cm": "см",
+      "ft": "фут",
+      "in": "дюйм",
+      "kg": "кг",
+      "lbs": "фунт",
+      "years": "жас"
     },
-    "walking": "How much do you walk?",
-    "weight": "What's your weight?",
-    "weightRate": "Weight change rate",
-    "weightSubtitle": "Current weight is needed for calorie calculation",
+    "walking": "Қанша жүресіз?",
+    "weight": "Салмағыңыз қандай?",
+    "weightRate": "Салмақ өзгеру жылдамдығы",
+    "weightSubtitle": "Ағымдағы салмақ калорияны есептеу үшін қажет",
     "welcome": "EatSense-ке қош келдіңіз",
-    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
+    "welcomeSubtitle": "AI-мен жұмыс істейтін тамақтану серіктесіңіз. Тәжірибеңізді жекелендірейік!",
     "terms": "Шарттар мен құпиялылық",
     "termsSubtitle": "Жалғастыру үшін оқып, қабылдаңыз",
     "termsOfService": "Қолдану шарттары",
@@ -1071,17 +1129,24 @@
     "acceptPrivacy": "Құпиялылық саясатын қабылдаймын",
     "tapToRead": "Құжатты оқу үшін басыңыз",
     "opened": "✓ Ашылды",
+    "pleaseRead": "Оқыңыз",
+    "scrollToAccept": "Қабылдау үшін Қолдану шарттарын соңына дейін айналдырыңыз.",
+    "scrollToAcceptPrivacy": "Қабылдау үшін Құпиялылық саясатын соңына дейін айналдырыңыз.",
     "continueButton": "Жалғастыру",
     "notificationsEnabled": "Қосылды!",
     "notificationsSuccess": "Тамаша! Сіз пайдалы еске салуларды аласыз.",
     "enableNotifications": "Қосу",
+    "notificationsDescription": "Тамақтану, су ішу және мақсаттарыңыз туралы еске салулар алыңыз.",
     "planReady": "Сіздің жеке жоспарыңыз",
     "recommendedIntake": "Ұсынылған күнделікті мөлшер:",
     "caloriesLabel": "Калориялар",
     "proteinLabel": "Ақуыз",
     "carbsLabel": "Көмірсулар",
     "fatLabel": "Май",
-    "targetWeightLabel": "Мақсатты салмақ"
+    "targetWeightLabel": "Мақсатты салмақ",
+    "specifyCondition": "Жағдайды көрсетіңіз",
+    "specifyDiet": "Диетаңызды көрсетіңіз",
+    "additionalPlans": "Қосымша"
   },
   "permissions": {
     "cameraRequired": "Фото түсіру үшін камераға рұқсат қажет",
@@ -1261,7 +1326,8 @@
     "planBadges": {
       "included": "Қамтылған",
       "mostPopular": "Ең танымал",
-      "save33": "33% үнемдеу"
+      "save33": "33% үнемдеу",
+      "studentDiscount": "Студенттерге"
     },
     "planFeatures": {
       "advancedInsights": "Тамақтану бойынша кеңейтілген аналитика",
@@ -1272,7 +1338,8 @@
       "earlyAccess": "Жаңа функцияларға ерте қол жеткізу",
       "everythingInProMonthly": "Pro Monthly жоспарындағының бәрі",
       "limitedAnalyses": "Күніне 3 AI‑талдауға дейін",
-      "unlimitedAnalyses": "Шексіз AI тағам талдауы"
+      "unlimitedAnalyses": "Шексіз AI тағам талдауы",
+      "studentDiscount": "Студенттерге 50% жеңілдік"
     },
     "planFreeDescription": "Негізгі мүмкіндіктермен тамақ қабылдауларын қадағалауды бастаңыз.",
     "planFreeName": "EatSense Free",
@@ -1295,7 +1362,9 @@
     "theme": "Тақырып",
     "title": "Профиль",
     "weight": "Салмақ (кг)",
-    "welcomeBack": "Қайта қош келдіңіз"
+    "welcomeBack": "Қайта қош келдіңіз",
+    "applyPlan": "Жоспарды қолдану",
+    "medicationsSubtitle": "Дәрі кестесін басқарыңыз"
   },
   "recently": {
     "analyzing": "Талдауда...",
@@ -1373,7 +1442,6 @@
     "unnamedProduct": "Атаусыз өнім"
   },
   "subscription": {
-    "title": "Премиум",
     "subtitle": "Барлық мүмкіндіктерді ашыңыз және шексіз қол жеткізіңіз",
     "applyPlan": "Жоспарды қолдану",
     "studentToggle": "Мен студентпін",
@@ -1391,8 +1459,6 @@
     "freeFeature1": "Күніне 5 талдау",
     "freeFeature2": "Негізгі тағамдану трекингі",
     "upgradeToPremium": "Премиумға көшу",
-    "studentToggle": "Мен студентпін",
-    "studentHint": "Студент жеңілдігін көрсету",
     "billing": {
       "currency": {
         "default": "$",

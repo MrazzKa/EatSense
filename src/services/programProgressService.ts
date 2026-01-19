@@ -41,8 +41,12 @@ function transformDietProgress(apiData: any): ProgramProgress {
   const pausedDays: string[] = []; // TODO: Get from API if available
   const today = new Date().toISOString().split('T')[0];
 
-  const currentDayIndex = calculateCurrentDayIndex(startDate, pausedDays, today);
-  const daysLeft = calculateDaysLeft(currentDayIndex, apiData.program?.duration || 30);
+  // FIX 2026-01-19: Use server's currentDay if available, otherwise calculate locally
+  // This fixes the bug where completing a day shows "0 meals" and "0 days" because
+  // the frontend was recalculating instead of using the server's updated value
+  const currentDayIndex = apiData.currentDay || calculateCurrentDayIndex(startDate, pausedDays, today);
+  const durationDays = apiData.program?.duration || 30;
+  const daysLeft = calculateDaysLeft(currentDayIndex, durationDays);
 
   // Build logs from dailyLogs
   const logs: Record<string, DailyLog> = {};
