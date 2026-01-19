@@ -15,15 +15,15 @@ export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
 
 // Per-provider timeout configuration (ms)
-// FIX 3: Further reduced timeouts for speed (2026-01-19)
+// FIX 4: Increased USDA timeout (2026-01-19) - was timing out at 2000ms
 const PROVIDER_TIMEOUTS: Record<string, number> = {
   'local': 500,           // Local embeddings - fast
-  'swiss-food': 1500,     // Swiss API - reduced from 2000
-  'openfoodfacts': 3000,  // OFF - reduced from 4000
-  'usda': 2000,           // USDA - reduced from 3000
-  'rag': 2000,            // RAG - reduced from 3000
+  'swiss-food': 1500,     // Swiss API
+  'openfoodfacts': 3000,  // OFF
+  'usda': 2500,           // USDA - increased from 2000 (was timing out)
+  'rag': 2000,            // RAG
 };
-const DEFAULT_PROVIDER_TIMEOUT = 3000; // Reduced from 4000
+const DEFAULT_PROVIDER_TIMEOUT = 3000;
 
 export interface NutritionCacheKeyInput {
   normalizedName: string;
