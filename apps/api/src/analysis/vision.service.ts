@@ -574,8 +574,9 @@ REVIEW MODE - Be extra careful:
 - Be honest about uncertainty`;
     }
 
-
-    const model = process.env.OPENAI_MODEL || process.env.VISION_MODEL || 'gpt-4o';
+    // FIX 2026-01-19: Use gpt-4o-mini by default for faster responses (~8-10s vs 15-20s)
+    // Can be overridden via VISION_MODEL env var to 'gpt-4o' if quality issues arise
+    const model = process.env.VISION_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
     this.logger.debug(`[VisionService] Using model: ${model} for component extraction`);
 
     // Configure timeout for Vision API call (default 90 seconds, configurable via env)

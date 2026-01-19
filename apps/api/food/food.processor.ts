@@ -213,164 +213,177 @@ export class FoodProcessor {
         visionError: visionError || null,
       };
 
-      // Automatically save to meals (Recently)
-      try {
-        const items = analysisResult.items || [];
-        if (items.length > 0 && userId && userId !== 'test-user' && userId !== 'temp-user') {
-          // Проверяем, существует ли пользователь
-          const user = await this.prisma.user.findUnique({ where: { id: userId } });
-          if (user) {
-            // STAGE 1 FIX: Use dishNameLocalized for meal name, NOT first ingredient
-            // Priority: dishNameLocalized > originalDishName > first item name > fallback
-            const dishName = analysisResult.dishNameLocalized ||
-              analysisResult.originalDishName ||
-              items[0]?.name ||
-              'Analyzed Meal';
+      // Automatically save to meals (Recently) - ASYNC, non-blocking for speed
+      // FIX 2026-01-19: Don't block analysis completion on meal save
+      const autoSavePromise = (async () => {
+        try {
+          const items = analysisResult.items || [];
+          if (items.length > 0 && userId && userId !== 'test-user' && userId !== 'temp-user') {
+            // Проверяем, существует ли пользователь
+            const user = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (user) {
+              // STAGE 1 FIX: Use dishNameLocalized for meal name, NOT first ingredient
+              // Priority: dishNameLocalized > originalDishName > first item name > fallback
+              const dishName = analysisResult.dishNameLocalized ||
+                analysisResult.originalDishName ||
+                items[0]?.name ||
+                'Analyzed Meal';
 
-            console.log(`[FoodProcessor] Autosave meal name: "${dishName}" (source: ${analysisResult.dishNameLocalized ? 'dishNameLocalized' :
-              analysisResult.originalDishName ? 'originalDishName' :
-                items[0]?.name ? 'firstItem' : 'fallback'
-              })`);
-            // Фильтруем и валидируем items перед сохранением
-            // Relaxed validation: accept items with any nutrition data or reasonable portion
-            const validItems = items
-              .map(item => {
-                const calories = item.nutrients?.calories ?? 0;
-                const protein = item.nutrients?.protein ?? 0;
-                const fat = item.nutrients?.fat ?? 0;
-                const carbs = item.nutrients?.carbs ?? 0;
-                const weight = item.portion_g ?? 100;
+              console.log(`[FoodProcessor] Autosave meal name: "${dishName}" (source: ${analysisResult.dishNameLocalized ? 'dishNameLocalized' :
+                analysisResult.originalDishName ? 'originalDishName' :
+                  items[0]?.name ? 'firstItem' : 'fallback'
+                })`);
+              // Фильтруем и валидируем items перед сохранением
+              // Relaxed validation: accept items with any nutrition data or reasonable portion
+              const validItems = items
+                .map(item => {
+                  const calories = item.nutrients?.calories ?? 0;
+                  const protein = item.nutrients?.protein ?? 0;
+                  const fat = item.nutrients?.fat ?? 0;
+                  const carbs = item.nutrients?.carbs ?? 0;
+                  const weight = item.portion_g ?? 100;
+
+                  return {
+                    name: item.name || 'Unknown Food',
+                    calories: Math.max(0, Math.round(calories)),
+                    protein: Math.max(0, Math.round(protein * 10) / 10),
+                    fat: Math.max(0, Math.round(fat * 10) / 10),
+                    carbs: Math.max(0, Math.round(carbs * 10) / 10),
+                    weight: Math.max(1, Math.round(weight)),
+                  };
+                })
+                .filter(item => {
+                  // Accept if: has valid name AND (has calories OR has macros OR has reasonable portion)
+                  const hasValidName = item.name && item.name !== 'Unknown Food';
+                  const hasNutrition = item.calories > 0 || item.protein > 0 || item.fat > 0 || item.carbs > 0;
+                  const hasReasonablePortion = item.weight >= 10; // At least 10g
+
+                  const accepted = hasValidName && (hasNutrition || hasReasonablePortion);
+
+                  // FIX #7: Log why specific items are rejected
+                  if (!accepted) {
+                    this.logger.debug('[FoodProcessor] Item rejected from autosave:', {
+                      name: item.name,
+                      reason: !hasValidName
+                        ? 'invalid_name'
+                        : !hasNutrition && !hasReasonablePortion
+                          ? 'no_nutrition_and_tiny_portion'
+                          : 'unknown',
+                      calories: item.calories,
+                      protein: item.protein,
+                      fat: item.fat,
+                      carbs: item.carbs,
+                      weight: item.weight,
+                    });
+                  }
+
+                  return accepted;
+                });
+
+              // Task 14: Log WARN when auto-save filtering removes all items
+              if (validItems.length === 0 && items.length > 0) {
+                this.logger.warn('[FoodProcessor] Auto-save skipped: all items filtered out during validation', {
+                  analysisId,
+                  userId,
+                  originalItemCount: items.length,
+                  originalItems: items.map(item => ({
+                    name: item.name,
+                    calories: item.nutrients?.calories,
+                    protein: item.nutrients?.protein,
+                    fat: item.nutrients?.fat,
+                    carbs: item.nutrients?.carbs,
+                    portion_g: item.portion_g,
+                    source: item.source,
+                  })),
+                  reason: 'Items did not pass validation (missing name, no nutrition data, or portion < 10g)',
+                  needsReview: true,
+                });
 
                 return {
-                  name: item.name || 'Unknown Food',
-                  calories: Math.max(0, Math.round(calories)),
-                  protein: Math.max(0, Math.round(protein * 10) / 10),
-                  fat: Math.max(0, Math.round(fat * 10) / 10),
-                  carbs: Math.max(0, Math.round(carbs * 10) / 10),
-                  weight: Math.max(1, Math.round(weight)),
+                  skipped: true,
+                  reason: 'no_valid_items',
+                  needsReview: true,
                 };
-              })
-              .filter(item => {
-                // Accept if: has valid name AND (has calories OR has macros OR has reasonable portion)
-                const hasValidName = item.name && item.name !== 'Unknown Food';
-                const hasNutrition = item.calories > 0 || item.protein > 0 || item.fat > 0 || item.carbs > 0;
-                const hasReasonablePortion = item.weight >= 10; // At least 10g
+              } else if (validItems.length > 0) {
+                const autoSaveStart = Date.now();
+                const meal = await this.mealsService.createMeal(userId, {
+                  name: dishName,
+                  type: 'MEAL',
+                  consumedAt: new Date().toISOString(), // Set current date/time for the meal
+                  items: validItems,
+                  healthScore: analysisResult.healthScore,
+                  imageUri: imageUrl || null, // Include imageUrl when auto-saving meal
+                });
+                metrics.autoSaveTime = Date.now() - autoSaveStart;
+                this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id}, ${metrics.autoSaveTime}ms)`);
 
-                const accepted = hasValidName && (hasNutrition || hasReasonablePortion);
+                // =====================================================
+                // OBSERVABILITY: Structured log of autosave mapping
+                // =====================================================
+                this.logger.log(JSON.stringify({
+                  stage: 'autosave',
+                  analysisId,
+                  userId,
+                  mealId: meal.id,
+                  mealName: dishName,
+                  dishNameLocalized: analysisResult.dishNameLocalized,
+                  originalDishName: analysisResult.originalDishName,
+                  dishNameSource: (analysisResult as any).dishNameSource,
+                  itemCount: validItems.length,
+                  filteredOut: items.length - validItems.length,
+                  items: validItems.slice(0, 10).map(i => ({
+                    name: i.name,
+                    kcal: i.calories,
+                    protein: i.protein,
+                    carbs: i.carbs,
+                    fat: i.fat,
+                    weight: i.weight,
+                  })),
+                  imageUrl: imageUrl || null,
+                }));
 
-                // FIX #7: Log why specific items are rejected
-                if (!accepted) {
-                  this.logger.debug('[FoodProcessor] Item rejected from autosave:', {
-                    name: item.name,
-                    reason: !hasValidName
-                      ? 'invalid_name'
-                      : !hasNutrition && !hasReasonablePortion
-                        ? 'no_nutrition_and_tiny_portion'
-                        : 'unknown',
-                    calories: item.calories,
-                    protein: item.protein,
-                    fat: item.fat,
-                    carbs: item.carbs,
-                    weight: item.weight,
-                  });
-                }
-
-                return accepted;
-              });
-
-            // Task 14: Log WARN when auto-save filtering removes all items
-            if (validItems.length === 0 && items.length > 0) {
-              this.logger.warn('[FoodProcessor] Auto-save skipped: all items filtered out during validation', {
-                analysisId,
-                userId,
-                originalItemCount: items.length,
-                originalItems: items.map(item => ({
-                  name: item.name,
-                  calories: item.nutrients?.calories,
-                  protein: item.nutrients?.protein,
-                  fat: item.nutrients?.fat,
-                  carbs: item.nutrients?.carbs,
-                  portion_g: item.portion_g,
-                  source: item.source,
-                })),
-                reason: 'Items did not pass validation (missing name, no nutrition data, or portion < 10g)',
-                needsReview: true,
-              });
-
-              result.autoSave = {
-                skipped: true,
-                reason: 'no_valid_items',
-                needsReview: true,
-              };
-            } else if (validItems.length > 0) {
-              const autoSaveStart = Date.now();
-              const meal = await this.mealsService.createMeal(userId, {
-                name: dishName,
-                type: 'MEAL',
-                consumedAt: new Date().toISOString(), // Set current date/time for the meal
-                items: validItems,
-                healthScore: analysisResult.healthScore,
-                imageUri: imageUrl || null, // Include imageUrl when auto-saving meal
-              });
-              metrics.autoSaveTime = Date.now() - autoSaveStart;
-              this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id}, ${metrics.autoSaveTime}ms)`);
-
-              // =====================================================
-              // OBSERVABILITY: Structured log of autosave mapping
-              // =====================================================
-              this.logger.log(JSON.stringify({
-                stage: 'autosave',
-                analysisId,
-                userId,
-                mealId: meal.id,
-                mealName: dishName,
-                dishNameLocalized: analysisResult.dishNameLocalized,
-                originalDishName: analysisResult.originalDishName,
-                dishNameSource: (analysisResult as any).dishNameSource,
-                itemCount: validItems.length,
-                filteredOut: items.length - validItems.length,
-                items: validItems.slice(0, 10).map(i => ({
-                  name: i.name,
-                  kcal: i.calories,
-                  protein: i.protein,
-                  carbs: i.carbs,
-                  fat: i.fat,
-                  weight: i.weight,
-                })),
-                imageUrl: imageUrl || null,
-              }));
-
-              result.autoSave = {
-                mealId: meal.id,
-                savedAt: new Date().toISOString(),
-              };
+                return {
+                  mealId: meal.id,
+                  savedAt: new Date().toISOString(),
+                };
+              } else {
+                this.logger.debug(`[FoodProcessor] Skipping auto-save: no items to save for analysis ${analysisId}`);
+                return null;
+              }
             } else {
-              this.logger.debug(`[FoodProcessor] Skipping auto-save: no items to save for analysis ${analysisId}`);
+              console.log(`Skipping auto-save: user ${userId} not found`);
+              return null;
             }
           } else {
-            console.log(`Skipping auto-save: user ${userId} not found`);
+            // Improved logging: distinguish between different skip reasons
+            const skipReason = !userId
+              ? 'userId_is_null'
+              : userId === 'test-user' || userId === 'temp-user'
+                ? `test_user_${userId}`
+                : (analysisResult.items || []).length === 0
+                  ? 'no_items_from_analysis'
+                  : 'unknown';
+            this.logger.debug(`[FoodProcessor] Skipping auto-save for analysis ${analysisId}:`, {
+              reason: skipReason,
+              userId: userId || 'null',
+              itemCount: (analysisResult.items || []).length,
+              visionStatus: (analysisResult.debug as any)?.visionStatus,
+            });
+            return null;
           }
-        } else {
-          // Improved logging: distinguish between different skip reasons
-          const skipReason = !userId
-            ? 'userId_is_null'
-            : userId === 'test-user' || userId === 'temp-user'
-              ? `test_user_${userId}`
-              : (analysisResult.items || []).length === 0
-                ? 'no_items_from_analysis'
-                : 'unknown';
-          this.logger.debug(`[FoodProcessor] Skipping auto-save for analysis ${analysisId}:`, {
-            reason: skipReason,
-            userId: userId || 'null',
-            itemCount: (analysisResult.items || []).length,
-            visionStatus: (analysisResult.debug as any)?.visionStatus,
-          });
+        } catch (mealError: any) {
+          this.logger.error(`[FoodProcessor] Failed to auto-save analysis ${analysisId} to meals:`, mealError.message);
+          this.logger.error(`[FoodProcessor] Error stack:`, mealError.stack);
+          return null;
         }
-      } catch (mealError: any) {
-        this.logger.error(`[FoodProcessor] Failed to auto-save analysis ${analysisId} to meals:`, mealError.message);
-        this.logger.error(`[FoodProcessor] Error stack:`, mealError.stack);
-        // Don't fail the analysis if meal save fails
-      }
+      })();
+
+      // FIX 2026-01-19: Fire-and-forget - don't block on meal save
+      // Meal will be saved in background, dashboard will update on next refresh
+      autoSavePromise.catch(err => {
+        this.logger.error(`[FoodProcessor] Background autosave failed:`, err.message);
+      });
+
 
       // Save results (with optional auto-save metadata)
       // Include imageUrl in result data for future reanalysis
