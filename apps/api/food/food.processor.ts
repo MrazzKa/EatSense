@@ -90,9 +90,10 @@ export class FoodProcessor {
         const DISPLAY_QUALITY = 80;
 
         // ANALYSIS: Aggressively compressed for Vision API speed
-        // GPT-4o doesn't need high resolution to recognize food
-        const ANALYSIS_MAX_DIM = 512;
-        const ANALYSIS_QUALITY = 50;
+        // FIX 2026-01-19: Further reduced for faster upload/processing
+        // GPT-4o-mini doesn't need high resolution to recognize food
+        const ANALYSIS_MAX_DIM = 384; // Was 512 - reduced for speed
+        const ANALYSIS_QUALITY = 35;  // Was 50 - more compression for speed
 
         // Process both in parallel for speed
         const [displayResult, analysisResult] = await Promise.all([

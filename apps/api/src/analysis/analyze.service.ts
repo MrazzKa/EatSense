@@ -87,8 +87,8 @@ interface BeverageDetectionResult {
 export class AnalyzeService {
   private readonly logger = new Logger(AnalyzeService.name);
   // Versioned cache key to avoid conflicts with legacy cached shapes
-  // v6: Added validation ranges for salmon/avocado/quinoa/sesame/nori, increased USDA minScore
-  private readonly ANALYSIS_CACHE_VERSION = 'v6';
+  // v7: Speed optimizations - smaller images, expanded canonical cache
+  private readonly ANALYSIS_CACHE_VERSION = 'v7';
 
   // Keywords to detect drinks in food names
   private readonly DRINK_KEYWORDS = [
@@ -142,6 +142,7 @@ export class AnalyzeService {
 
   // FIX 5: Canonical nutrition values for common items (per 100g)
   // Used to override suspicious provider results or fill missing data
+  // FIX 2026-01-19: Expanded for speed optimization - skip provider lookups for common items
   private readonly CANONICAL_NUTRITION: Record<string, { calories: number; protein: number; carbs: number; fat: number }> = {
     // Vegetables
     'cauliflower': { calories: 25, protein: 1.9, carbs: 5, fat: 0.3 },
@@ -153,22 +154,59 @@ export class AnalyzeService {
     'lettuce': { calories: 15, protein: 1.4, carbs: 2.9, fat: 0.2 },
     'cabbage': { calories: 25, protein: 1.3, carbs: 5.8, fat: 0.1 },
     'carrot': { calories: 41, protein: 0.9, carbs: 9.6, fat: 0.2 },
+    'bell pepper': { calories: 26, protein: 1, carbs: 6, fat: 0.2 },
+    'onion': { calories: 40, protein: 1.1, carbs: 9.3, fat: 0.1 },
+    'garlic': { calories: 149, protein: 6.4, carbs: 33, fat: 0.5 },
+    'potato': { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
+    'zucchini': { calories: 17, protein: 1.2, carbs: 3.1, fat: 0.3 },
+    'eggplant': { calories: 25, protein: 1, carbs: 6, fat: 0.2 },
+    'corn': { calories: 86, protein: 3.2, carbs: 19, fat: 1.2 },
+    'peas': { calories: 81, protein: 5.4, carbs: 14.5, fat: 0.4 },
+    'green beans': { calories: 31, protein: 1.8, carbs: 7, fat: 0.1 },
+    'mushrooms': { calories: 22, protein: 3.1, carbs: 3.3, fat: 0.3 },
+    'parsley': { calories: 36, protein: 3, carbs: 6.3, fat: 0.8 },
+    'cilantro': { calories: 23, protein: 2.1, carbs: 3.7, fat: 0.5 },
+    'basil': { calories: 23, protein: 3.2, carbs: 2.7, fat: 0.6 },
     // Fruits
     'avocado': { calories: 160, protein: 2, carbs: 8.5, fat: 14.7 },
     'apple': { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
     'banana': { calories: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
     'orange': { calories: 47, protein: 0.9, carbs: 11.8, fat: 0.1 },
+    'lemon': { calories: 29, protein: 1.1, carbs: 9.3, fat: 0.3 },
+    'strawberry': { calories: 32, protein: 0.7, carbs: 7.7, fat: 0.3 },
+    'blueberry': { calories: 57, protein: 0.7, carbs: 14.5, fat: 0.3 },
+    'grape': { calories: 67, protein: 0.6, carbs: 17, fat: 0.4 },
     // Grains (cooked)
+    'pasta': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
+    'spaghetti': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
+    'noodles': { calories: 138, protein: 4.5, carbs: 25, fat: 2.1 },
     'quinoa': { calories: 120, protein: 4.4, carbs: 21.3, fat: 1.9 },
     'rice': { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
     'white rice': { calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
     'brown rice': { calories: 112, protein: 2.6, carbs: 23.5, fat: 0.9 },
     'buckwheat': { calories: 92, protein: 3.4, carbs: 20, fat: 0.6 },
     'oatmeal': { calories: 71, protein: 2.5, carbs: 12, fat: 1.5 },
+    'bread': { calories: 265, protein: 9, carbs: 49, fat: 3.2 },
+    'white bread': { calories: 265, protein: 9, carbs: 49, fat: 3.2 },
     // Proteins
     'egg': { calories: 143, protein: 12.6, carbs: 0.7, fat: 9.5 },
     'boiled egg': { calories: 155, protein: 12.6, carbs: 1.1, fat: 10.6 },
+    'fried egg': { calories: 196, protein: 13.6, carbs: 0.8, fat: 15 },
     'chicken breast': { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+    'chicken': { calories: 239, protein: 27, carbs: 0, fat: 14 },
+    'beef': { calories: 250, protein: 26, carbs: 0, fat: 15 },
+    'pork': { calories: 242, protein: 27, carbs: 0, fat: 14 },
+    'salmon': { calories: 208, protein: 20, carbs: 0, fat: 13 },
+    'tuna': { calories: 132, protein: 28, carbs: 0, fat: 1 },
+    'shrimp': { calories: 99, protein: 24, carbs: 0.2, fat: 0.3 },
+    'meatball': { calories: 250, protein: 17, carbs: 10, fat: 16 },
+    'meatballs': { calories: 250, protein: 17, carbs: 10, fat: 16 },
+    // Dairy
+    'cheese': { calories: 402, protein: 25, carbs: 1.3, fat: 33 },
+    'milk': { calories: 42, protein: 3.4, carbs: 5, fat: 1 },
+    'yogurt': { calories: 59, protein: 10, carbs: 3.6, fat: 0.4 },
+    'butter': { calories: 717, protein: 0.9, carbs: 0.1, fat: 81 },
+    'cream': { calories: 340, protein: 2, carbs: 3, fat: 36 },
     // Russian translations
     'цветная капуста': { calories: 25, protein: 1.9, carbs: 5, fat: 0.3 },
     'брокколи': { calories: 34, protein: 2.8, carbs: 7, fat: 0.4 },
@@ -181,6 +219,22 @@ export class AnalyzeService {
     'гречка': { calories: 92, protein: 3.4, carbs: 20, fat: 0.6 },
     'яйцо': { calories: 143, protein: 12.6, carbs: 0.7, fat: 9.5 },
     'куриная грудка': { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+    'курица': { calories: 239, protein: 27, carbs: 0, fat: 14 },
+    'говядина': { calories: 250, protein: 26, carbs: 0, fat: 15 },
+    'свинина': { calories: 242, protein: 27, carbs: 0, fat: 14 },
+    'лосось': { calories: 208, protein: 20, carbs: 0, fat: 13 },
+    'тунец': { calories: 132, protein: 28, carbs: 0, fat: 1 },
+    'креветки': { calories: 99, protein: 24, carbs: 0.2, fat: 0.3 },
+    'паста': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
+    'макароны': { calories: 131, protein: 5, carbs: 25, fat: 1.1 },
+    'лук': { calories: 40, protein: 1.1, carbs: 9.3, fat: 0.1 },
+    'чеснок': { calories: 149, protein: 6.4, carbs: 33, fat: 0.5 },
+    'картофель': { calories: 77, protein: 2, carbs: 17, fat: 0.1 },
+    'болгарский перец': { calories: 26, protein: 1, carbs: 6, fat: 0.2 },
+    'петрушка': { calories: 36, protein: 3, carbs: 6.3, fat: 0.8 },
+    'сыр': { calories: 402, protein: 25, carbs: 1.3, fat: 33 },
+    'молоко': { calories: 42, protein: 3.4, carbs: 5, fat: 1 },
+    'хлеб': { calories: 265, protein: 9, carbs: 49, fat: 3.2 },
   };
 
   /**
