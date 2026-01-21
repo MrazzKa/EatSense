@@ -4,7 +4,6 @@ import {
   Text,
   Modal,
   StyleSheet,
-  TouchableOpacity,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,7 +28,7 @@ export default function CelebrationModal({
   visible,
   completionRate,
   onClose,
-  onContinue,
+
 }: CelebrationModalProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -40,18 +39,20 @@ export default function CelebrationModal({
     onClose();
   }, [onClose]);
 
-  const handleContinue = React.useCallback(() => {
-    handleClose();
-    onContinue?.();
-  }, [handleClose, onContinue]);
+  // handleContinue removed as there is no button to trigger it
+  // If onContinue is needed later, restore handleContinue
+  // const handleContinue = React.useCallback(() => {
+  //   handleClose();
+  //   onContinue?.();
+  // }, [handleClose, onContinue]);
 
   useEffect(() => {
     if (visible) {
       setShowConfetti(true);
-      // Auto-close after 2 seconds
+      // Auto-close after 4 seconds for better passive experience
       const timer = setTimeout(() => {
         handleClose();
-      }, 2000);
+      }, 4000);
       return () => clearTimeout(timer);
     } else {
       setShowConfetti(false);
@@ -110,16 +111,6 @@ export default function CelebrationModal({
           <Text style={[styles.subtext, { color: colors.textSecondary }]}>
             {getSubtext()}
           </Text>
-
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={handleContinue}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonText}>
-              {t('common.continue') || 'Continue'}
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -162,19 +153,8 @@ const styles = StyleSheet.create({
   subtext: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 0, // Reduced bottom margin since button is gone
     lineHeight: 22,
   },
-  button: {
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
-    minWidth: 120,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
+  // Button styles removed
 });

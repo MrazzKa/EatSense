@@ -261,29 +261,39 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
                 // For terminal statuses, fetch full result then remove from pending
                 if (['completed', 'failed', 'needs_review'].includes(updates.status || '')) {
-                    console.log(`[AnalysisContext] Terminal status for ${analysis.analysisId}, fetching full result...`);
+                    console.log(`[AnalysisContext] Terminal status for ${analysis.analysisId}`);
 
-                    // STAGE 1 FIX: Fetch full result before removing
-                    // This ensures UI gets proper dishNameLocalized and all data
-                    try {
-                        const fullResult = await ApiService.getAnalysisResult(analysis.analysisId);
-                        if (fullResult?.data) {
-                            const fullUpdates = extractAnalysisData(fullResult);
-                            // Mark as completing animation FIRST to trigger fade-out
-                            updateAnalysis(analysis.analysisId, {
-                                ...fullUpdates,
-                                status: updates.status,
-                                isCompletingAnimation: true, // Trigger fade-out animation
-                            });
-                            console.log(`[AnalysisContext] Full result fetched, dishName: "${fullUpdates.dishName}"`);
-                        }
-                    } catch (err: any) {
-                        console.error(`[AnalysisContext] Failed to fetch full result:`, err?.message);
-                        // Still update with status data even if result fetch fails
+                    // OPTIMIZATION: Check if status response already has full data (Backend optimization)
+                    // If we have ingredients or explicit calories, we assume we have the full result
+                    const hasData = (updates.ingredients?.length ?? 0) > 0 || (updates.calories !== null && updates.calories !== undefined);
+
+                    if (hasData) {
+                        console.log(`[AnalysisContext] Data present in status response, skipping extra fetch.`);
                         updateAnalysis(analysis.analysisId, {
                             ...updates,
                             isCompletingAnimation: true,
                         });
+                    } else {
+                        console.log(`[AnalysisContext] Data missing, fetching full result...`);
+                        // Legacy fallback: Fetch full result
+                        try {
+                            const fullResult = await ApiService.getAnalysisResult(analysis.analysisId);
+                            if (fullResult?.data) {
+                                const fullUpdates = extractAnalysisData(fullResult);
+                                updateAnalysis(analysis.analysisId, {
+                                    ...fullUpdates,
+                                    status: updates.status,
+                                    isCompletingAnimation: true,
+                                });
+                                console.log(`[AnalysisContext] Full result fetched, dishName: "${fullUpdates.dishName}"`);
+                            }
+                        } catch (err: any) {
+                            console.error(`[AnalysisContext] Failed to fetch full result:`, err?.message);
+                            updateAnalysis(analysis.analysisId, {
+                                ...updates,
+                                isCompletingAnimation: true,
+                            });
+                        }
                     }
 
                     // DELAY removal to allow UI to show completed state with animation
@@ -358,8 +368,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         if (pollTimerRef.current) {
             clearTimeout(pollTimerRef.current);
         }
-        // Start polling after a short delay
-        pollTimerRef.current = setTimeout(pollAnalyses, POLL_INTERVAL_MS);
+        // Start polling immediately (first poll), then with interval
+        // This eliminates the 3-second delay before first status check
+        pollTimerRef.current = setTimeout(pollAnalyses, 500); // 500ms initial delay for UI to settle
     }, [pollAnalyses]);
 
     /**

@@ -31,7 +31,14 @@
     "cm": "cm",
     "hoursShort": "h",
     "stop": "Stop",
-    "goBack": "Go back"
+    "goBack": "Go back",
+    "daysAgo": "Days Ago",
+    "errorGeneric": "Error Generic",
+    "free": "Free",
+    "gotIt": "Got It",
+    "later": "Later",
+    "other": "Other",
+    "yesterday": "Yesterday"
   },
   "help": {
     "title": "Help & Support",
@@ -261,6 +268,8 @@
       "monthlyHeadline": "Flexible billing",
       "yearlyHeadline": "Best value — save 33%",
       "studentHeadline": "Special student pricing",
+      "founderHeadline": "Lifetime access + Exclusive badge",
+      "founderBadge": "Limited",
       "features": {
         "analysis3": "AI food analysis (3/day)",
         "tracking": "Daily calorie tracking",
@@ -272,7 +281,10 @@
         "everything": "Everything in Monthly",
         "webinars": "Exclusive webinars",
         "earlyAccess": "Early access to features",
-        "verification": "Student ID required"
+        "verification": "Student ID required",
+        "lifetime": "One-time payment, forever access",
+        "badge": "Exclusive Founder Badge",
+        "priority": "Direct developer access"
       }
     },
     "summary": "Your choices",
@@ -288,14 +300,16 @@
       "kg": "kg",
       "ft": "ft",
       "in": "in",
-      "lbs": "lbs"
+      "lbs": "lbs",
+      "pounds": "Pounds"
     },
     "walking": "How much do you walk?",
     "weight": "What's your weight?",
     "weightSubtitle": "Current weight is needed for calorie calculation",
     "weightRate": "Weight change rate",
     "welcome": "Welcome to EatSense",
-    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!"
+    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
+    "additionalPlans": "Additional Plans"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -428,12 +442,21 @@
     },
     "diary": {
       "analyzing": "Analyzing...",
-      "analyzingHint": "This may take 10-30 seconds",
+      "analyzingHint": "This may take up to a minute",
       "failed": "Analysis failed",
       "failedHint": "Tap to retry",
       "needsReview": "Needs review",
-      "needsReviewHint": "Could not calculate nutrition"
-    }
+      "needsReviewHint": "Could not calculate nutrition",
+      "analysisComplete": "Analysis Complete"
+    },
+    "bottomSheet": {
+      "describeFood": "Describe Food",
+      "fromGallery": "From Gallery",
+      "labResults": "Lab Results",
+      "takePhoto": "Take Photo",
+      "title": "Title"
+    },
+    "showAllMeals": "Show All Meals"
   },
   "articles": {
     "title": "Articles",
@@ -547,7 +570,8 @@
       "justAMoment": "Just a moment..."
     },
     "tapToView": "Tap to view",
-    "analysisComplete": "Analysis complete"
+    "analysisComplete": "Analysis complete",
+    "deleteError": "Delete Error"
   },
   "describeFood": {
     "title": "Describe your meal",
@@ -694,6 +718,8 @@
       "save33": "Save 33%"
     },
     "currentPlan": "Current plan",
+    "legal": "Legal",
+    "privacyPolicy": "Privacy Policy",
     "policy": "Privacy Policy",
     "politics": "Data Processing Policy",
     "termsOfService": "Terms of Service",
@@ -759,7 +785,8 @@
       "noData": "No data",
       "focusAreas": "Focus",
       "clearData": "Clear Health Data"
-    }
+    },
+    "notificationsDailyEnabled": "Notifications Daily Enabled"
   },
   "gallery": {
     "title": "Select Photo",
@@ -785,7 +812,8 @@
     "flashModeAuto": "Flash auto",
     "switchCamera": "Flip camera",
     "zoomLabel": "Zoom {{value}}x",
-    "captureError": "We couldn’t capture the photo. Please try again."
+    "captureError": "We couldn’t capture the photo. Please try again.",
+    "permissionError": "Permission Error"
   },
   "editFood": {
     "title": "Edit Ingredient",
@@ -801,7 +829,9 @@
     "calories": "Calories (kcal)",
     "calculate": "Calculate: {{value}}",
     "calculatedAuto": "Calculated automatically from macronutrients",
-    "searchUSDA": "Search USDA Database"
+    "searchUSDA": "Search USDA Database",
+    "noResults": "No Results",
+    "searchPlaceholder": "Search Placeholder"
   },
   "auth": {
     "email": "Email",
@@ -847,7 +877,13 @@
       "invalidCode": "The code you entered is incorrect.",
       "expiredCode": "This code has expired. Request a new one.",
       "rateLimited": "Too many attempts. Try again in {{seconds}}s.",
-      "codeLength": "Enter the 6-digit code from your email."
+      "codeLength": "Enter the 6-digit code from your email.",
+      "googleAndroidClientIdMissing": "Google Android Client Id Missing",
+      "googleIosClientIdMissing": "Google Ios Client Id Missing",
+      "googleNotAvailableExpoGo": "Google Not Available Expo Go",
+      "googleNotConfigured": "Google Not Configured",
+      "googleNotConfiguredMessage": "Google Not Configured Message",
+      "networkError": "Network Error"
     }
   },
   "tabs": {
@@ -894,14 +930,8 @@
     "languages": "Languages",
     "recentReviews": "Recent Reviews",
     "switchRole": "Switch",
-    "dietitian": {
-      "title": "Dietitians",
-      "subtitle": "Licensed nutrition therapy experts"
-    },
-    "nutritionist": {
-      "title": "Nutritionists",
-      "subtitle": "Healthy lifestyle consultants"
-    },
+    "dietitian": "Dietitian",
+    "nutritionist": "Nutritionist",
     "tabs": {
       "specialists": "Specialists",
       "articles": "Articles"
@@ -914,19 +944,7 @@
       "expertTitle": "I'm a certified specialist",
       "expertDescription": "Create a profile and help clients"
     },
-    "expert": {
-      "dashboard": "Expert Dashboard",
-      "manageProfile": "Manage your specialist profile",
-      "myProfile": "My Profile",
-      "editProfile": "Edit profile, services and pricing",
-      "clientChats": "Client Chats",
-      "manageConsultations": "Manage consultations",
-      "myOffers": "My Services",
-      "manageOffers": "Manage services and pricing",
-      "myArticles": "My Articles",
-      "writeArticles": "Write and publish articles",
-      "analytics": "Analytics"
-    },
+    "expert": "Expert",
     "edit": {
       "createProfile": "Create Profile",
       "editProfile": "Edit Profile",
@@ -953,7 +971,24 @@
       "contactPolicy": "Response Time & Availability",
       "contactPolicyPlaceholder": "e.g. I reply within 24 hours on weekdays",
       "nameRequired": "Display name is required"
-    }
+    },
+    "client": "Client",
+    "consultation": "Consultation",
+    "filter_all": "Filter_all",
+    "find_expert": "Find_expert",
+    "free": "Free",
+    "free_consultation": "Free_consultation",
+    "load_error": "Load_error",
+    "noSpecialists": "No Specialists",
+    "no_consultations": "No_consultations",
+    "no_experts_found": "No_experts_found",
+    "not_found": "Not_found",
+    "request_error": "Request_error",
+    "specialist": "Specialist",
+    "start_chat": "Start_chat",
+    "tab_my_chats": "Tab_my_chats",
+    "tab_specialists": "Tab_specialists",
+    "week": "Week"
   },
   "offers": {
     "noOffers": "No services yet",
@@ -1036,33 +1071,34 @@
     "error": "Failed to block user"
   },
   "dietPrograms": {
-    "title": "Diet Programs",
-    "empty": "No programs available",
-    "about": "About",
-    "previewDay1": "Day 1 Preview",
     "startProgram": "Start Program",
     "startConfirm": "Start",
-    "day": "Day",
-    "completeDay": "Complete Day",
-    "finishProgram": "Finish Program",
-    "completed": "Congratulations!",
-    "completedMessage": "You completed the program!",
     "kcalDay": "kcal/day",
     "level": "Level",
-    "notFound": "Progress not found",
-    "categories": {
-      "all": "All",
-      "hollywood": "Hollywood",
-      "athletes": "Athletes",
-      "historical": "Historical"
-    },
+    "about": "About",
+    "previewDay1": "Preview Day 1",
+    "empty": "Program not found",
+    "stopProgram": "Stop Program",
+    "stopProgramConfirm": "Are you sure you want to stop the program? Your progress will be saved.",
+    "pauseProgram": "Pause",
+    "pauseProgramConfirm": "Would you like to pause the diet? You can resume anytime.",
+    "resumeProgram": "Resume",
+    "resumeProgramConfirm": "Continue the diet from where you left off?",
+    "pause": "Pause",
+    "resume": "Resume",
+    "mealsForDay": "Meals for Day",
+    "anotherDietActive": "Another Diet Active",
+    "anotherDietActiveMessage": "Another Diet Active Message",
+    "completeDay": "Complete Day",
+    "completed": "Completed",
+    "completedMessage": "Completed Message",
+    "continueProgram": "Continue Program",
+    "day": "Day",
     "featured": "Featured",
-    "difficulty": {
-      "easy": "Easy",
-      "moderate": "Moderate",
-      "medium": "Medium",
-      "hard": "Hard"
-    }
+    "finishProgram": "Finish Program",
+    "notFound": "Not Found",
+    "title": "Title",
+    "viewActive": "View Active"
   },
   "referral": {
     "title": "Invite Friends",
@@ -1076,7 +1112,8 @@
     "howItWorks": "How it works",
     "step1": "Share your code with friends",
     "step2": "They sign up with your code",
-    "step3": "You both get 7 days PRO free!"
+    "step3": "You both get 7 days PRO free!",
+    "shareMessage": "Share Message"
   },
   "terms": {
     "title": "Terms of Service",
@@ -1216,7 +1253,8 @@
         "filePickFailed": "Failed to pick a file.",
         "fileNotSupported": "File-based analysis is not yet configured. Please use text mode.",
         "generic": "Failed to analyze lab results. Please try again.",
-        "noSummary": "The AI did not return a summary. Please try again."
+        "noSummary": "The AI did not return a summary. Please try again.",
+        "fileUploadFailed": "File Upload Failed"
       },
       "typeTitle": "Type of analysis",
       "type": {
@@ -1317,7 +1355,9 @@
       "carbs": "carbs",
       "fat": "fat"
     },
-    "healthScoreLabel": "Score {{score}}"
+    "healthScoreLabel": "Score {{score}}",
+    "analyzingSubtitle": "Analyzing Subtitle",
+    "daysAgo": "Days Ago"
   },
   "meals": {
     "title": "Meals",
@@ -1329,8 +1369,8 @@
     "title": "Premium",
     "subtitle": "Unlock all features and enjoy unlimited access",
     "applyPlan": "Apply plan",
-    "studentToggle": "I'm a student",
-    "studentHint": "Special price for students",
+    "studentToggle": "I am a student",
+    "studentHint": "Show student discount",
     "hideStudent": "Hide",
     "perMonth": "per month",
     "perYear": "per year",
@@ -1345,8 +1385,6 @@
     "freeFeature1": "5 analyses per day",
     "freeFeature2": "Basic nutrition tracking",
     "upgradeToPremium": "Upgrade to Premium",
-    "studentToggle": "I am a student",
-    "studentHint": "Show student discount",
     "month": "mo",
     "continue": "Continue",
     "terms_notice": "Cancel anytime. Terms apply.",
@@ -1379,11 +1417,28 @@
         "kk": "₸",
         "default": "$"
       }
-    }
+    },
+    "lifetime": "Lifetime",
+    "noPurchases": "No Purchases",
+    "noPurchasesFound": "No Purchases Found",
+    "planNotFound": "Plan Not Found",
+    "purchaseFailed": "Purchase Failed",
+    "purchasesRestored": "Purchases Restored",
+    "restoreFailed": "Restore Failed",
+    "restorePurchases": "Restore Purchases",
+    "restored": "Restored",
+    "studentVerificationDescription": "Student Verification Description",
+    "studentVerificationTitle": "Student Verification Title"
   },
   "limits": {
     "title": "Daily Limit Reached",
-    "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow."
+    "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow.",
+    "description": "Description",
+    "resetsAt": "Resets At",
+    "tryFreeTrial": "Try Free Trial",
+    "tryFreeTrialMessage": "Try Free Trial Message",
+    "unlimitedBenefit": "Unlimited Benefit",
+    "upgradeToPremium": "Upgrade To Premium"
   },
   "statistics": {
     "title": "Statistics",
@@ -1397,7 +1452,8 @@
     "conclusions": "Conclusions",
     "onTrack": "On Track",
     "over": "Over Goal",
-    "under": "Under Goal"
+    "under": "Under Goal",
+    "mealDistribution": "Meal Distribution"
   },
   "reports": {
     "title": "Reports",
@@ -1416,9 +1472,7 @@
     "deleteConfirm": "Delete this report from history?",
     "fileSaved": "Report saved",
     "error": {
-      "generic": "Failed to generate monthly report. Please try again later.",
-      "network": "Network error. Please check your connection and try again.",
-      "openFailed": "Failed to open report file."
+      "noDirectory": "No Directory"
     }
   },
   "legal": {
@@ -1534,7 +1588,9 @@
     "stopProgram": "Failed to stop program",
     "pauseProgram": "Failed to pause diet",
     "completeDay": "Failed to complete day",
-    "navNotAvailable": "Navigation not available. Please restart the app."
+    "navNotAvailable": "Navigation not available. Please restart the app.",
+    "galleryFailed": "Gallery Failed",
+    "title": "Title"
   },
   "validation": {
     "requiredField": "Required Field",
@@ -1555,7 +1611,10 @@
     "weight_gain": "Weight Gain",
     "health": "Health",
     "sports": "Sports",
-    "lifestyle": "Lifestyle",
+    "lifestyle": {
+      "disclaimer": "Disclaimer",
+      "trending": "Trending"
+    },
     "medical": "Medical",
     "recommended": "Recommended for You",
     "recommended_description": "Based on your profile and eating habits",
@@ -1656,25 +1715,17 @@
       "medical_short": "Medical",
       "general": "This is educational information and not medical advice."
     },
-    "sample_day": "Sample Day"
-  },
-  "dietPrograms": {
-    "startProgram": "Start Program",
-    "startConfirm": "Start",
-    "kcalDay": "kcal/day",
-    "level": "Level",
-    "about": "About",
-    "previewDay1": "Preview Day 1",
-    "empty": "Program not found",
-    "stopProgram": "Stop Program",
-    "stopProgramConfirm": "Are you sure you want to stop the program? Your progress will be saved.",
-    "pauseProgram": "Pause",
-    "pauseProgramConfirm": "Would you like to pause the diet? You can resume anytime.",
-    "resumeProgram": "Resume",
-    "resumeProgramConfirm": "Continue the diet from where you left off?",
-    "pause": "Pause",
-    "resume": "Resume",
-    "mealsForDay": "Meals for Day"
+    "sample_day": "Sample Day",
+    "active_program": "Active_program",
+    "loading_more": "Loading_more",
+    "more_items": "More_items",
+    "no_programs": "No_programs",
+    "no_programs_search": "No_programs_search",
+    "not_for": "Not_for",
+    "symptoms": {
+      "scale_hint": "Scale_hint",
+      "title": "Title"
+    }
   },
   "lifestyles": {
     "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
@@ -1711,20 +1762,36 @@
       "placeholder": "Search lifestyle programs..."
     },
     "filters": {
-      "target": {
-        "label": "Target",
-        "male": "Male",
-        "female": "Female",
-        "all": "All"
-      },
-      "age": {
-        "label": "Age",
-        "range1": "18-30",
-        "range2": "30-50",
-        "range3": "50+"
-      }
+      "target": "Target",
+      "age": "Age"
     },
     "trending": "Trending",
-    "empty": "No lifestyle programs found"
+    "empty": "No lifestyle programs found",
+    "loading": "Loading",
+    "loading_more": "Loading_more"
+  },
+  "consultations": {
+    "no_messages": "No_messages",
+    "start_conversation": "Start_conversation",
+    "status_active": "Status_active",
+    "status_cancelled": "Status_cancelled",
+    "status_completed": "Status_completed",
+    "type_message": "Type_message"
+  },
+  "error": {
+    "title": "Title"
+  },
+  "suggest": {
+    "already_voted": "Already_voted",
+    "description_placeholder": "Description_placeholder",
+    "error": "Error",
+    "modal_title": "Modal_title",
+    "name_placeholder": "Name_placeholder",
+    "name_required": "Name_required",
+    "submit": "Submit",
+    "subtitle": "Subtitle",
+    "success": "Success",
+    "title": "Title",
+    "voted": "Voted"
   }
 }

@@ -104,8 +104,18 @@ export class FoodService {
         skipCache: skipCache || false, // Pass skip-cache flag to processor
       });
 
-      // Increment daily limit counter after successful analysis creation
-      await this.incrementDailyLimit(userId, 'food');
+      // Add to queue for processing
+      await this.analysisQueue.add('analyze-image', {
+        analysisId: analysis.id,
+        imageBufferBase64: imageBufferBase64,
+        userId,
+        locale: effectiveLocale,
+        foodDescription: foodDescription || undefined, // Pass food description to processor
+        skipCache: skipCache || false, // Pass skip-cache flag to processor
+      });
+
+      // Daily limit is now incremented in the processor after successful analysis
+      // await this.incrementDailyLimit(userId, 'food');
 
       return {
         analysisId: analysis.id,
@@ -196,8 +206,17 @@ export class FoodService {
       skipCache: skipCache || false, // Pass skip-cache flag to processor
     });
 
-    // Increment daily limit counter after successful analysis creation
-    await this.incrementDailyLimit(userId, 'food');
+    // Add to queue for processing
+    await this.analysisQueue.add('analyze-text', {
+      analysisId: analysis.id,
+      description: description.trim(),
+      userId,
+      locale: effectiveLocale,
+      skipCache: skipCache || false, // Pass skip-cache flag to processor
+    });
+
+    // Daily limit is now incremented in the processor after successful analysis
+    // await this.incrementDailyLimit(userId, 'food');
 
     return {
       analysisId: analysis.id,
@@ -236,8 +255,14 @@ export class FoodService {
       throw new BadRequestException('Analysis not found');
     }
 
+    const status = analysis.status.toLowerCase();
+
+    if (status === 'completed' || status === 'success') { // Handle 'completed' or legacy 'success'
+      return this.getAnalysisResult(analysisId, userId);
+    }
+
     return {
-      status: analysis.status.toLowerCase(),
+      status,
       analysisId: analysis.id,
     };
   }

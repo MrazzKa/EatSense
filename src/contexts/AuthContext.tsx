@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const result = await ApiService.getUserProfile();
       // Backend returns { profile: null } if profile doesn't exist, or the profile object if it exists
       const profile = result?.profile !== undefined ? result.profile : result;
-      
+
       if (profile && profile.id) {
         // Profile exists - use it directly
         setUser(profile);
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const isUnauthorized = status === 401;
       const isNotFound = status === 404;
       const isServerError = status >= 500;
-      
+
       if (isUnauthorized) {
         // Token expired or invalid - clear user
         console.log('[AuthContext] Unauthorized - clearing user:', error?.message || 'Unknown error');
@@ -109,13 +109,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         // Load tokens from storage
         await ApiService.loadTokens();
-        
+
         // Try to refresh token if we have one
         if (ApiService.refreshTokenValue) {
           try {
-            const refreshSuccess = await ApiService.refreshToken();
-            if (refreshSuccess) {
-              // refreshToken() already sets the token internally, just load user profile
+            const refreshResult = await ApiService.refreshToken();
+            if (refreshResult) {
+              // refreshToken() already sets the token internally
+
+              // Optimization: Use profile from refresh response if available
+              if (refreshResult.profile) {
+                if (__DEV__) console.log('[AuthContext] Using profile from refresh token response');
+                setUser(refreshResult.profile);
+                setLoading(false);
+                return;
+              }
+
               await refreshUser();
               return;
             }
@@ -125,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             await ApiService.setToken(null, null);
           }
         }
-        
+
         // If no refresh token or refresh failed, try to load user with existing token
         if (ApiService.token) {
           await refreshUser();

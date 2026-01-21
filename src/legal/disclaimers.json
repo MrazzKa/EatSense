@@ -132,6 +132,13 @@
             "checkbox": "Je comprends que ceci n'est pas une interprétation médicale",
             "button_accept": "Continuer",
             "button_cancel": "Annuler"
+        },
+        "kk": {
+            "title": "Биомаркерлерді бақылау ескертуі",
+            "content": "Биомаркерлерді бақылау функциясы тек жеке есепке алуға арналған.\n\nМаңызды:\n• Бұл функция зертханалық нәтижелеріңіздің медициналық түсіндірмесін БЕРМЕЙДІ\n• Көрсетілген корреляциялар мен түсініктер тек ақпараттық мақсатта\n• Зертханалық нәтижелерді түсіндіру үшін әрқашан дәрігеріңізбен кеңесіңіз\n• Тек осы қолданбадағы ақпаратқа сүйеніп медициналық шешімдер қабылдамаңыз\n\nЗертханалық деректеріңіз қауіпсіз сақталады және сіздің нақты келісіміңізсіз ешқашан бөлісілмейді.",
+            "checkbox": "Бұл медициналық түсіндірме емес екенін түсінемін",
+            "button_accept": "Жалғастыру",
+            "button_cancel": "Бас тарту"
         }
     },
     "medications": {
@@ -286,6 +293,9 @@
         },
         "fr": {
             "text": "⚠️ EatSense fournit des informations nutritionnelles à des fins éducatives uniquement. Cette application n'est pas un dispositif médical et ne remplace pas un avis médical professionnel. Consultez toujours un professionnel de santé avant d'apporter des changements importants à votre régime alimentaire."
+        },
+        "kk": {
+            "text": "⚠️ EatSense тағамдық ақпаратты тек білім беру мақсатында ұсынады. Бұл қолданба медициналық құрылғы болып табылмайды және кәсіби медициналық кеңесті алмастырмайды. Диетаңызға айтарлықтай өзгерістер енгізбес бұрын әрқашан денсаулық сақтау маманымен кеңесіңіз."
         }
     }
 }

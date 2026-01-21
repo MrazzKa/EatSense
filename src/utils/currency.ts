@@ -133,16 +133,24 @@ export type PlanId = 'monthly' | 'yearly' | 'student';
  */
 export function getCurrencyCode(): string {
   try {
-    // 1. Try device region first (most accurate)
-    const region = Localization.region; // e.g., 'CH', 'US', 'KZ'
+    const locales = Localization.getLocales();
+    const primaryLocale = locales[0];
+
+    // 0. Use currency code directly if available (new API)
+    if (primaryLocale?.currencyCode && PRICING[primaryLocale.currencyCode]) {
+      return primaryLocale.currencyCode;
+    }
+
+    // 1. Try device region (most accurate)
+    const region = primaryLocale?.regionCode; // e.g., 'CH', 'US', 'KZ'
     if (region && REGION_TO_CURRENCY[region.toUpperCase()]) {
       return REGION_TO_CURRENCY[region.toUpperCase()];
     }
 
-    // 2. Try to extract region from locale (e.g., 'en-CH' -> 'CH')
-    const locale = Localization.locale; // e.g., 'en-CH', 'ru-KZ', 'de-CH'
-    if (locale) {
-      const localeParts = locale.split('-');
+    // 2. Try to extract region from languageTag (e.g., 'en-CH' -> 'CH')
+    const languageTag = primaryLocale?.languageTag; // e.g., 'en-CH'
+    if (languageTag) {
+      const localeParts = languageTag.split('-');
       if (localeParts.length > 1) {
         const regionFromLocale = localeParts[1].toUpperCase();
         if (REGION_TO_CURRENCY[regionFromLocale]) {
@@ -150,7 +158,7 @@ export function getCurrencyCode(): string {
         }
       }
 
-      // 3. Language-based fallback (only for specific languages like Kazakh)
+      // 3. Language-based fallback
       const language = localeParts[0].toLowerCase();
       if (LANGUAGE_TO_CURRENCY[language]) {
         return LANGUAGE_TO_CURRENCY[language];
@@ -237,9 +245,10 @@ export function formatAmount(amount: number): string {
  * Get detected region for debugging
  */
 export function getDetectedRegion(): { region: string | null; locale: string; currencyCode: string } {
+  const primaryLocale = Localization.getLocales()[0];
   return {
-    region: Localization.region,
-    locale: Localization.locale,
+    region: primaryLocale?.regionCode || null,
+    locale: primaryLocale?.languageTag || 'en-US',
     currencyCode: getCurrencyCode(),
   };
 }

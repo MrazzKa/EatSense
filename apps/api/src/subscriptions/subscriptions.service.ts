@@ -124,6 +124,17 @@ export class SubscriptionsService {
             }
         }
 
+        // Prevent duplicate processing of the same transaction
+        if (paymentData?.appleTransactionId) {
+            const existing = await this.prisma.userSubscription.findFirst({
+                where: { appleTransactionId: paymentData.appleTransactionId }
+            });
+            if (existing) {
+                this.logger.log(`Subscription with transaction ${paymentData.appleTransactionId} already exists`);
+                return existing;
+            }
+        }
+
         // If still no plan and we have durationDays, create subscription without plan reference
         // This handles new products not yet in database
         const effectivePlanId = plan?.id;

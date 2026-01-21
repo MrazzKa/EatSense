@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma.service';
 import { AnalyzeService } from '../src/analysis/analyze.service';
 import { MealsService } from '../meals/meals.service';
 import { MediaService } from '../media/media.service';
+import { RedisService } from '../redis/redis.service';
 import * as sharp from 'sharp';
 
 @Processor('food-analysis')
@@ -19,7 +20,10 @@ export class FoodProcessor {
     private readonly analyzeService: AnalyzeService,
     private readonly mealsService: MealsService,
     private readonly mediaService: MediaService,
+    private readonly redisService: RedisService,
   ) { }
+
+
 
   @Process('analyze-image')
   async handleImageAnalysis(job: Job) {
@@ -444,9 +448,16 @@ export class FoodProcessor {
         },
       });
 
+      // Increment daily limit here (only on successful analysis or valid review)
+      if (finalStatus === 'COMPLETED' || finalStatus === 'NEEDS_REVIEW') {
+        await this.incrementDailyLimit(userId, 'food');
+      }
+
       // Increment user stats for photo analysis
       if (userId && userId !== 'test-user' && userId !== 'temp-user') {
         try {
+
+
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const todayStr = today.toISOString().split('T')[0];
@@ -645,6 +656,9 @@ export class FoodProcessor {
         },
       });
 
+      // Increment daily limit for text analysis
+      await this.incrementDailyLimit(userId, 'food');
+
       // Update status to completed
       await this.prisma.analysis.update({
         where: { id: analysisId },
@@ -663,6 +677,26 @@ export class FoodProcessor {
           error: error.message,
         },
       });
+    }
+  }
+
+  private async incrementDailyLimit(userId: string, resource: 'food' | 'chat') {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `daily:${resource}:${userId}:${today}`;
+
+      const currentCountStr = await this.redisService.get(key);
+      const currentCount = currentCountStr ? parseInt(currentCountStr) : 0;
+
+      const resetTime = new Date();
+      resetTime.setHours(24, 0, 0, 0);
+      const ttl = Math.floor((resetTime.getTime() - Date.now()) / 1000);
+
+      await this.redisService.set(key, (currentCount + 1).toString(), ttl > 0 ? ttl : 86400);
+      this.logger.debug(`[FoodProcessor] Incremented daily limit for ${userId} (resource: ${resource}, count: ${currentCount + 1})`);
+    } catch (error) {
+      this.logger.error(`[FoodProcessor] Error incrementing daily limit for ${userId}:`, error);
+      // Don't throw - limit increment failure shouldn't block analysis result
     }
   }
 }

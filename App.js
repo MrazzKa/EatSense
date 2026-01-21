@@ -102,6 +102,11 @@ function AppContent() {
             }}
           >
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen
+              name="Subscription"
+              component={SubscriptionScreen}
+              options={{ presentation: 'card' }}
+            />
           </Stack.Navigator>
         ) : (
           // Authenticated and onboarding complete - show main app

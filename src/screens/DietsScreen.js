@@ -181,7 +181,7 @@ export default function DietsScreen({ navigation }) {
         }
 
         // Show content immediately with optimistic loading
-        setLoading(false);
+        // setLoading(false); // REMOVED: Premature loading state change causing empty flash
 
         try {
             // For lifestyle tab - load from API (unified with diets)
@@ -207,6 +207,7 @@ export default function DietsScreen({ navigation }) {
                         const allRes = await ApiService.getDiets({ type: 'LIFESTYLE', limit: 50 }).catch(() => ({ diets: [] }));
                         if (isMounted && allRes?.diets) {
                             setLifestylePrograms(allRes.diets);
+                            setLoading(false); // Move loading completion here
                             // Save to cache for next visit
                             saveToCache(LIFESTYLES_CACHE_KEY, {
                                 all: allRes.diets,
@@ -438,6 +439,7 @@ export default function DietsScreen({ navigation }) {
                         programs={lifestylePrograms}
                         featuredPrograms={featuredLifestyles}
                         isLoading={isLoadingLifestyles}
+                        activeProgram={activeDiet}
                     />
                 )}
 

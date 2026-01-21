@@ -55,6 +55,9 @@ export default function DashboardScreen() {
   const route = useRoute();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
+  // Load active diet for dashboard widget from store
+  const { activeProgram, setProgram } = useProgramProgress();
+
   // Removed unused currentTime and now state variables
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [plusScale] = useState(new Animated.Value(1));
@@ -133,72 +136,63 @@ export default function DashboardScreen() {
     cardAnimations.suggested
   ]);
 
-  // Определяем функции ПЕРЕД их использованием в хуках
-  const loadStats = React.useCallback(async () => {
+  // Consolidated data loading
+  const loadDashboardData = React.useCallback(async () => {
     try {
-      // Используем selectedDate для загрузки статистики по выбранной дате
-      const statsData = await ApiService.getStats(selectedDate);
-      // Map API (/stats/dashboard) shape to UI state
-      if (statsData && statsData.today && statsData.goals) {
+      if (__DEV__) console.log('[DashboardScreen] Loading dashboard data...');
+      const currentLocale = language || 'en';
+      const data = await ApiService.getDashboardData(selectedDate, currentLocale);
+
+      if (!data) return;
+
+      // 1. Stats
+      if (data.stats && data.stats.today) {
         setStats({
-          totalCalories: statsData.today.calories || 0,
-          totalProtein: statsData.today.protein || 0,
-          totalCarbs: statsData.today.carbs || 0,
-          totalFat: statsData.today.fat || 0,
-          goal: (statsData.goals && statsData.goals.calories) || 2000,
-        });
-      } else {
-        setStats({
-          totalCalories: 0,
-          totalProtein: 0,
-          totalCarbs: 0,
-          totalFat: 0,
-          goal: 2000,
+          totalCalories: data.stats.today.calories || 0,
+          totalProtein: data.stats.today.protein || 0,
+          totalCarbs: data.stats.today.carbs || 0,
+          totalFat: data.stats.today.fat || 0,
+          goal: (data.stats.goals && data.stats.goals.calories) || 2000,
         });
       }
-    } catch (error) {
-      console.error('Error loading stats:', error);
-      // Use fallback data when API is not available
-      setStats({
-        totalCalories: 0,
-        totalProtein: 0,
-        totalCarbs: 0,
-        totalFat: 0,
-        goal: 2000,
-      });
-    }
-  }, [selectedDate]);
 
-  // Load recent meals for dashboard display
-  const loadRecentItems = React.useCallback(async () => {
-    try {
-      const meals = await ApiService.getMeals();
-      if (Array.isArray(meals)) {
-        // Normalize meals similar to RecentlyScreen
-        const normalized = meals.slice(0, 3).map((meal) => {
+      // 2. Recent Items (Meals)
+      if (Array.isArray(data.meals)) {
+        const normalizedMeals = data.meals.slice(0, 3).map((meal) => {
           if (!meal) return null;
           const items = Array.isArray(meal.items) ? meal.items : [];
-          const toNumber = (value) => {
-            const parsed = Number(value);
-            return Number.isFinite(parsed) ? parsed : 0;
+          // Pre-calculated totals from backend service if available, else derive
+          const toNumber = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
+
+          // Helper to get total either from meal root (aggregated by backend) or sum items
+          const getVal = (key) => {
+            // Backend MealsService.getMeals now aggregates totals into root object
+            if (meal[`total${key.charAt(0).toUpperCase() + key.slice(1)}`] !== undefined) {
+              return meal[`total${key.charAt(0).toUpperCase() + key.slice(1)}`];
+            }
+            return items.reduce((sum, item) => sum + toNumber(item[key]), 0);
           };
-          const sumMacro = (key) => items.reduce((sum, item) => sum + toNumber(item[key]), 0);
+
+          const totalCalories = Math.round(getVal('calories'));
+          const totalProtein = Math.round(getVal('protein'));
+          const totalCarbs = Math.round(getVal('carbs'));
+          const totalFat = Math.round(getVal('fat'));
+
           return {
             id: meal.id,
             name: meal.name || 'Meal',
             dishName: meal.name || 'Meal',
-            totalCalories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
-            totalProtein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
-            totalCarbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
-            totalFat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
-            calories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
-            protein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
-            carbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
-            fat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
+            totalCalories,
+            totalProtein,
+            totalCarbs,
+            totalFat,
+            calories: totalCalories,
+            protein: totalProtein,
+            carbs: totalCarbs,
+            fat: totalFat,
             imageUrl: ApiService.resolveMediaUrl(
               meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || meal.mediaUrl || null
             ),
-            // Include ingredients from items or meal.ingredients
             ingredients: meal.ingredients || items.map(item => ({
               id: item.id || String(Math.random()),
               name: item.name || 'Ingredient',
@@ -209,72 +203,57 @@ export default function DashboardScreen() {
               weight: toNumber(item.weight),
               hasNutrition: true,
             })),
-            // Include health score data
             healthScore: meal.healthScore || meal.healthInsights || null,
             analysisResult: {
               dishName: meal.name || 'Meal',
-              totalCalories: items.length ? Math.round(sumMacro('calories')) : Math.round(meal.totalCalories ?? 0),
-              totalProtein: items.length ? Math.round(sumMacro('protein')) : Math.round(meal.totalProtein ?? 0),
-              totalCarbs: items.length ? Math.round(sumMacro('carbs')) : Math.round(meal.totalCarbs ?? 0),
-              totalFat: items.length ? Math.round(sumMacro('fat')) : Math.round(meal.totalFat ?? 0),
+              totalCalories,
+              totalProtein,
+              totalCarbs,
+              totalFat,
             },
           };
         }).filter(Boolean);
-        setRecentItems(normalized);
-      } else {
-        setRecentItems([]);
+        setRecentItems(normalizedMeals);
       }
-    } catch (error) {
-      console.error('[DashboardScreen] Error loading recent items:', error);
-      setRecentItems([]);
-    }
-  }, []);
 
-  // Removed unused functions: loadMonthlyStats, loadArticles
-  // These functions used removed state setters (setMonthlyLoading, setMonthlyStats, setFeaturedArticles, setFeedArticles, setHighlightMeal)
-
-  const loadUserStats = React.useCallback(async () => {
-    try {
-      const stats = await ApiService.getUserStats();
-      if (stats) {
+      // 3. User Stats
+      if (data.userStats) {
         setUserStats({
-          totalPhotosAnalyzed: stats.totalPhotosAnalyzed || 0,
-          todayPhotosAnalyzed: stats.todayPhotosAnalyzed || 0,
-          dailyLimit: stats.dailyLimit || 3,
+          totalPhotosAnalyzed: data.userStats.totalPhotosAnalyzed || 0,
+          todayPhotosAnalyzed: data.userStats.todayPhotosAnalyzed || 0,
+          dailyLimit: data.userStats.dailyLimit || 3,
         });
       }
-    } catch (error) {
-      console.error('[DashboardScreen] Error loading user stats:', error);
-    }
-  }, []);
 
-  const loadSuggestedFoodSummary = React.useCallback(async () => {
-    try {
-      const currentLocale = language || 'ru';
-      // Use V2 API for real personalized summary
-      const response = await ApiService.getSuggestedFoodsV2(currentLocale);
-
-      if (response.status === 'ok' || response.status === 'insufficient_data') {
-        // Use summary directly from backend (already personalized with real numbers)
-        setSuggestedFoodSummary({
-          reason: response.summary,
-          category: response.sections?.[0]?.category || 'general',
-          count: response.sections?.length || 0,
-          healthLevel: response.health?.level || 'average',
-          healthScore: response.health?.score || 50,
-          status: response.status,
-        });
-      } else {
-        setSuggestedFoodSummary(null);
+      // 4. Suggestions
+      if (data.suggestions) {
+        const s = data.suggestions;
+        if (s.status === 'ok' || s.status === 'insufficient_data') {
+          setSuggestedFoodSummary({
+            reason: s.summary,
+            category: s.sections?.[0]?.category || 'general',
+            count: s.sections?.length || 0,
+            healthLevel: s.health?.level || 'average',
+            healthScore: s.health?.score || 50,
+            status: s.status,
+          });
+        } else {
+          setSuggestedFoodSummary(null);
+        }
       }
-    } catch (error) {
-      console.error('[DashboardScreen] Error loading suggested food summary:', error);
-      setSuggestedFoodSummary(null);
-    }
-  }, [language]);
 
-  // Load active diet for dashboard widget from store
-  const { activeProgram } = useProgramProgress();
+      // 5. Active Diet - Hydrate Store
+      // Call setProgram from context (exposed in Step 3399/3400)
+      if (setProgram) {
+        setProgram(data.activeDiet || null);
+      }
+
+    } catch (error) {
+      console.error('[DashboardScreen] Error loading dashboard data:', error);
+    }
+  }, [selectedDate, language, setProgram]);
+
+
 
   React.useEffect(() => {
     // FIX 2026-01-19: Support both diet and lifestyle programs
@@ -305,22 +284,16 @@ export default function DashboardScreen() {
 
   // Load data on mount and when date changes
   useEffect(() => {
-    loadStats();
-    loadUserStats();
-    loadSuggestedFoodSummary();
-    loadRecentItems();
-    // loadActiveDiet is now handled by useProgramProgress
-  }, [selectedDate, loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems]);
+    loadDashboardData();
+  }, [selectedDate, loadDashboardData]);
 
   // Handle refresh param from other screens (e.g. AnalysisResults)
   useEffect(() => {
     if (route.params?.refresh) {
       if (__DEV__) console.log('[DashboardScreen] Refresh requested via params');
-      loadStats();
-      loadRecentItems();
-      loadUserStats();
+      loadDashboardData();
     }
-  }, [route.params?.refresh, loadStats, loadRecentItems, loadUserStats]);
+  }, [route.params?.refresh, loadDashboardData]);
 
   // Теперь используем функции в хуках ПОСЛЕ их определения
   // Removed unused timer effect
@@ -329,12 +302,8 @@ export default function DashboardScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      loadStats();
-      loadUserStats();
-      loadSuggestedFoodSummary();
-      loadRecentItems();
-      // loadActiveDiet is now handled by useProgramProgress
-    }, [loadStats, loadUserStats, loadSuggestedFoodSummary, loadRecentItems])
+      loadDashboardData();
+    }, [loadDashboardData])
   );
 
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
@@ -357,8 +326,8 @@ export default function DashboardScreen() {
 
     if (completed.length > 0) {
       // Logic: If disappeared and NOT failed (assuming success if just disappeared from list without error flag in context?)
-      // Context usually handles 'failed' by keeping it or alerting. 
-      // Let's assume disappearance means success or user dismissal. 
+      // Context usually handles 'failed' by keeping it or alerting.
+      // Let's assume disappearance means success or user dismissal.
       // If regular success flow, we want to show it.
 
       const actuallyCompleted = completed.filter(c => c.status !== 'failed');
@@ -376,13 +345,14 @@ export default function DashboardScreen() {
           return [...prev, ...newItems];
         });
 
-        // Trigger reload
+        // FIX: Reload data immediately (was 2000ms delay)
+        // Server auto-saves analysis result synchronously before marking complete
         const timer = setTimeout(() => {
-          loadStats();
-          loadRecentItems();
-        }, 2000); // Wait for DB (existing logic)
+          loadDashboardData();
+        }, 300); // Reduced delay - just enough for UI transition
 
-        // Remove from "just completed" visual list after reload should have happened (plus buffer)
+        // FIX: Keep justCompleted items visible longer for smooth transition
+        // Remove only after data reload should be complete
         const cleanupTimer = setTimeout(() => {
           // Use functional update to avoid dependency on state
           setJustCompletedItems(prev => {
@@ -390,7 +360,7 @@ export default function DashboardScreen() {
             const filtered = prev.filter(p => !completedIds.has(p.analysisId));
             return filtered.length === prev.length ? prev : filtered;
           });
-        }, 3500);
+        }, 2000); // Extended to 2s (was 3.5s total, but reload now at 300ms)
 
         return () => {
           clearTimeout(timer);
@@ -400,7 +370,7 @@ export default function DashboardScreen() {
     }
 
     prevPendingAnalysesRef.current = pendingAnalyses;
-  }, [pendingAnalyses, loadStats, loadRecentItems]);
+  }, [pendingAnalyses, loadDashboardData]);
 
   // Removed unused formatTime and formatDate functions
 

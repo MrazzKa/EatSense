@@ -49,6 +49,7 @@ interface ProgramProgressContextValue {
   updateChecklist: (_checklist: Record<string, boolean>) => Promise<void>;
   completeDay: () => Promise<void>;
   markCelebrationShown: () => Promise<void>;
+  setProgram: (_program: ProgramProgress | null) => void;
 }
 
 const ProgramProgressContext = createContext<ProgramProgressContextValue | undefined>(undefined);
@@ -204,6 +205,14 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
     updateChecklist,
     completeDay,
     markCelebrationShown,
+    setProgram: useCallback((program: ProgramProgress | null) => {
+      setActiveProgram(program);
+      if (program) {
+        cache.current.set(CACHE_KEY, program);
+      } else {
+        cache.current.delete(CACHE_KEY);
+      }
+    }, []),
   };
 
   return (

@@ -81,13 +81,18 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         }
 
         try {
-            const wasCompleted = activeProgram.todayLog?.completed || false;
             await completeDayStore();
             await refreshProgress();
-            // Show celebration if day was just completed (wasn't completed before)
+
+            // Show celebration always to provide feedback, even if re-completing
+            // But especially if day was just completed
+            setShowCelebration(true);
+
+            /* Old logic:
             if (!wasCompleted) {
                 setShowCelebration(true);
             }
+            */
         } catch (error: any) {
             Alert.alert(t('common.error'), error.message || t('errors.completeDay'));
         }

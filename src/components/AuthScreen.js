@@ -181,10 +181,12 @@ export default function AuthScreen({ onAuthSuccess }) {
           setStatusMessage(t('auth.messages.signedIn'));
 
           // Update AuthContext - load user profile (same as Google/OTP flow)
-          let profile = null;
+          let profile = response.profile; // Optimization: Use profile from response
           try {
-            await clientLog('Auth:appleSignInRefreshUser').catch(() => { });
-            profile = await ApiService.getUserProfile();
+            if (!profile) {
+              await clientLog('Auth:appleSignInRefreshUser').catch(() => { });
+              profile = await ApiService.getUserProfile();
+            }
             if (profile) {
               setUser(profile);
               await clientLog('Auth:appleSignInUserSet', {
@@ -331,10 +333,12 @@ export default function AuthScreen({ onAuthSuccess }) {
         setStatusMessage(t('auth.messages.signedIn'));
 
         // Update AuthContext - load user profile
-        let profile = null;
+        let profile = response.profile; // Optimization: Use profile from response
         try {
-          await clientLog('Auth:googleSignInRefreshUser').catch(() => { });
-          profile = await ApiService.getUserProfile();
+          if (!profile) {
+            await clientLog('Auth:googleSignInRefreshUser').catch(() => { });
+            profile = await ApiService.getUserProfile();
+          }
           if (profile) {
             setUser(profile);
             await clientLog('Auth:googleSignInUserSet', {
@@ -482,10 +486,12 @@ export default function AuthScreen({ onAuthSuccess }) {
         console.log('[AuthScreen] Token saved');
 
         // Update AuthContext - load user profile
-        let profile = null;
+        let profile = response.profile; // Optimization: Use profile from response
         try {
-          await clientLog('Auth:authContextRefreshUser').catch(() => { });
-          profile = await ApiService.getUserProfile();
+          if (!profile) {
+            await clientLog('Auth:authContextRefreshUser').catch(() => { });
+            profile = await ApiService.getUserProfile();
+          }
           if (profile) {
             setUser(profile);
             await clientLog('Auth:authContextUserSet', {

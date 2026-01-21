@@ -252,7 +252,7 @@ class ProgramProgressService {
    * Complete current day
    * Returns the result so UI can react to updated values
    */
-  async completeDay(type: ProgramType, _programId: string): Promise<{
+  async completeDay(_type: ProgramType, _programId: string): Promise<{
     success: boolean;
     alreadyCompleted?: boolean;
     currentDay: number;
