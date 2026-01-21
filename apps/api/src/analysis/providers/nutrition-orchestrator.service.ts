@@ -141,6 +141,56 @@ export class NutritionOrchestrator {
         reason: `non_food_item: result "${displayName}" is not a food item`,
       };
     }
+
+    // =====================================================
+    // BRANDED COMPOUND PRODUCT FILTERING
+    // Fixes: "dill" → "Philadelphia Räucherlachs mit Dill" bug
+    // When query is a simple ingredient but result is a branded product
+    // containing that ingredient, reject it.
+    // =====================================================
+    const knownBrands = [
+      'philadelphia', 'kraft', 'heinz', 'nestle', 'danone', 'kellogg',
+      'mccain', 'birds eye', 'dr. oetker', 'knorr', 'maggi', 'barilla',
+      'hellmann', 'unilever', 'pringles', 'lay', 'doritos', 'ruffles',
+      'oreo', 'chips ahoy', 'ritz', 'triscuit', 'wheat thins',
+    ];
+
+    const isSimpleIngredientQuery = queryLower.split(/\s+/).length <= 2 &&
+      !knownBrands.some(brand => queryLower.includes(brand));
+
+    const resultHasBrand = knownBrands.some(brand => nameLower.includes(brand));
+    const resultIsCompound = nameLower.includes(' with ') ||
+      nameLower.includes(' und ') ||
+      nameLower.includes(' mit ') ||
+      nameLower.includes(' and ') ||
+      nameLower.includes(' cream ') ||
+      nameLower.includes(' sauce') ||
+      nameLower.includes(' dip') ||
+      nameLower.includes(' spread');
+
+    if (isSimpleIngredientQuery && (resultHasBrand || resultIsCompound)) {
+      // Check if query word appears but is NOT the primary food
+      const queryTokens = queryLower.split(/\s+/).filter(t => t.length > 2);
+      const resultTokens = nameLower.split(/\s+/).filter(t => t.length > 2);
+
+      // If query is a single token and result starts with a different word, it's likely wrong
+      if (queryTokens.length === 1 && resultTokens.length > 0) {
+        const queryToken = queryTokens[0];
+        const firstResultToken = resultTokens[0];
+
+        // If result doesn't start with query token, and result has brand/compound, reject
+        if (firstResultToken !== queryToken && (resultHasBrand || resultIsCompound)) {
+          this.logger.warn(
+            `[Orchestrator] Rejected branded/compound product: "${context.originalQuery}" → "${displayName}"`,
+          );
+          return {
+            isValid: false,
+            isSuspicious: true,
+            reason: `branded_compound_mismatch: simple ingredient "${queryLower}" matched compound product "${displayName}"`,
+          };
+        }
+      }
+    }
     // =====================================================
     // CATEGORY-BASED CALORIE VALIDATION (FIX 4)
     // Fixes: Cauliflower (25kcal) -> Roasted/Fried (180kcal) issues

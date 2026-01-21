@@ -43,6 +43,7 @@ import { DietsModule } from './src/diets/diets.module';
 import { ReferralsModule } from './src/referrals/referrals.module';
 import { ReportsModule } from './src/reports/reports.module';
 import { SafetyModule } from './src/safety/safety.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -119,6 +120,7 @@ import { SafetyModule } from './src/safety/safety.module';
     ReferralsModule,
     ReportsModule,
     SafetyModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
 })

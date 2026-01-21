@@ -54,6 +54,7 @@ interface LifestyleTabContentProps {
   programs?: LifestyleProgram[];
   featuredPrograms?: LifestyleProgram[];
   isLoading?: boolean;
+  activeProgram?: any;
 }
 
 // Section data type for grouped rendering
@@ -79,14 +80,14 @@ function mapUiGroupToCategoryId(uiGroup: string): string {
   return mapping[uiGroup] || uiGroup;
 }
 
-export default function LifestyleTabContent({
-  searchQuery,
-  onSearchChange: _onSearchChange,
-  onProgramPress,
-  programs = [],
-  featuredPrograms = [],
-  isLoading = false,
-}: LifestyleTabContentProps) {
+export default function LifestyleTabContent(props: LifestyleTabContentProps) {
+  const {
+    searchQuery,
+    onProgramPress,
+    programs = [],
+    featuredPrograms = [],
+    isLoading = false,
+  } = props;
   const { t, language } = useI18n();
   const { colors } = useTheme();
 
@@ -142,6 +143,25 @@ export default function LifestyleTabContent({
     if (isLoading && programs.length === 0) {
       data.push({ type: 'loading' });
       return data;
+    }
+
+    // Active Program Section (New)
+    // Only show if we have an active program
+    // And either it's explicitly a lifestyle or we are in Lifestyle tab (implied)
+    // We check type or category to filter out Diet programs if needed, 
+    // but typically the activeProgram passed here is the user's single active program.
+    // If it's a diet, maybe we shouldn't show it here? 
+    // Let's assume for now we show it if it's 'LIFESTYLE' type or has a matching category.
+    // However, if the user has ANY active program, it's usually valuable to see it.
+    // Let's filter to show only if it seems to be a lifestyle program or generic.
+    if (props.activeProgram) {
+      // Simple check: if it has a 'category' that maps to lifestyle or type is lifestyle
+      // const isLifestyle = props.activeProgram.type === 'LIFESTYLE' ||
+      // (props.activeProgram.id && programs.some(p => p.id === props.activeProgram.id));
+
+      // Force show for now as requested "display your active lifestyle program"
+      data.push({ type: 'header', data: { title: t('diets.active_program') || 'Active Program' } });
+      data.push({ type: 'program', data: { ...props.activeProgram, isActive: true } });
     }
 
     // Trending section (only if not searching and have featured)
@@ -200,7 +220,7 @@ export default function LifestyleTabContent({
     }
 
     return data;
-  }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, programs.length]);
+  }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, programs, props.activeProgram, t]);
 
   // Memoized render item
   const renderItem: ListRenderItem<SectionData> = useCallback(({ item }) => {
@@ -211,6 +231,15 @@ export default function LifestyleTabContent({
             <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
             <Text style={[styles.loadingText, { color: colors.textSecondary || '#666' }]}>
               {t('lifestyles.loading') || 'Loading lifestyle programs...'}
+            </Text>
+          </View>
+        );
+
+      case 'header':
+        return (
+          <View style={{ paddingHorizontal: 16, marginTop: 16, marginBottom: 8 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.textPrimary }}>
+              {item.data?.title}
             </Text>
           </View>
         );

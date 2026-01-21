@@ -1619,33 +1619,41 @@ const ProfileScreen = () => {
           </Text>
         </AppCard>
 
-        {/* Legal Menu Button & Health Disclaimer Replaced */}
+        {/* Legal Section */}
         <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
-          <Text style={[styles.sectionTitle, { marginLeft: 16, marginTop: 16 }]}>{t('profile.legal') || 'Legal'}</Text>
+          <Text style={[styles.sectionTitle, { marginLeft: 16, marginTop: 16, marginBottom: 8 }]}>{t('profile.legal') || 'Legal'}</Text>
 
-          <TouchableOpacity
-            onPress={() => Linking.openURL('https://eatsense.app/privacy')}
-            style={styles.footerLink}
-          >
-            <Text style={[styles.footerLinkText, { color: colors.textPrimary }]}>
-              {safeT('profile.privacyPolicy', 'Privacy Policy')}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
+          <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://eatsense.app/privacy')}
+              style={styles.legalRow}
+            >
+              <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
+              </View>
+              <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                {safeT('profile.privacyPolicy', 'Privacy Policy')}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+            </TouchableOpacity>
 
-          <View style={[styles.divider, { marginHorizontal: 16, height: 1, backgroundColor: colors.borderMuted }]} />
+            <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
-          <TouchableOpacity
-            onPress={() => Linking.openURL('https://eatsense.app/terms')}
-            style={styles.footerLink}
-          >
-            <Text style={[styles.footerLinkText, { color: colors.textPrimary }]}>
-              {safeT('profile.termsOfService', 'Terms of Service')}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://eatsense.app/terms')}
+              style={styles.legalRow}
+            >
+              <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+              </View>
+              <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                {safeT('profile.termsOfService', 'Terms of Service')}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </View>
 
-          <HealthDisclaimer style={{ margin: 16 }} />
+          <HealthDisclaimer style={{ marginTop: 16, marginHorizontal: 16 }} />
         </View>
 
         {/* Build Info for debugging */}
@@ -2338,6 +2346,35 @@ const createStyles = (tokens) =>
     footerLinkText: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    legalCard: {
+      marginHorizontal: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    legalRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+    },
+    legalIconContainer: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    legalRowText: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    legalDivider: {
+      height: StyleSheet.hairlineWidth,
+      marginLeft: 60,
     },
     buildInfoContainer: {
       alignItems: 'center',

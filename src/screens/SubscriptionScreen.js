@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { openLegalLink } from '../utils/legal';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -81,6 +81,7 @@ const PLAN_DESCRIPTIONS = {
  */
 export default function SubscriptionScreen() {
     const navigation = useNavigation();
+    const route = useRoute();
     const { t } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
@@ -162,7 +163,7 @@ export default function SubscriptionScreen() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [route.params?.selectedPlanId]);
 
     useEffect(() => {
         initIAP();
@@ -364,6 +365,7 @@ export default function SubscriptionScreen() {
                     {plans.filter(plan => plan.name !== 'student').map((plan) => {
                         const isStudent = plan.name === 'student';
                         const isPopular = plan.name === 'yearly';
+                        const isFounders = plan.name === 'founders';
                         const isSelected = selectedPlanId === plan.id;
                         // Use plan specific features if available, otherwise generic ones for recurring plans
                         const features = plan.features || [
@@ -372,10 +374,12 @@ export default function SubscriptionScreen() {
                             t('subscription.feature_ai_chat') || 'AI Nutrition Assistant'
                         ];
 
-                        // Get badge text
-                        const badgeText = isPopular
-                            ? (t('subscription.most_popular') || 'BEST VALUE')
-                            : null;
+                        // Get badge text - show for popular, founders, or custom badges
+                        const badgeText = isFounders
+                            ? (plan.badge || t('subscription.lifetime') || 'LIFETIME')
+                            : isPopular
+                                ? (t('subscription.most_popular') || 'BEST VALUE')
+                                : plan.badge || null;
 
                         return (
                             <TouchableOpacity
@@ -383,6 +387,7 @@ export default function SubscriptionScreen() {
                                 style={[
                                     styles.planButtonCompact,
                                     isPopular && styles.planButtonPopular,
+                                    isFounders && styles.planButtonFounders,
                                     isSelected && styles.planButtonSelected,
                                     isStudent && styles.planButtonStudent,
                                 ]}
@@ -402,7 +407,9 @@ export default function SubscriptionScreen() {
                                     <View style={[
                                         styles.popularBadgeCompact,
                                         isStudent && styles.studentBadge,
+                                        isFounders && styles.foundersBadge,
                                     ]}>
+                                        {isFounders && <Ionicons name="star" size={10} color="#FFF" style={{ marginRight: 4 }} />}
                                         <Text style={styles.popularTextCompact}>{badgeText}</Text>
                                     </View>
                                 )}
@@ -933,6 +940,10 @@ const createStyles = (tokens, colors) => {
         planButtonStudent: {
             borderColor: '#7C3AED',
         },
+        planButtonFounders: {
+            borderColor: '#FFD700',
+            backgroundColor: '#FFF8E1',
+        },
         popularBadgeCompact: {
             position: 'absolute',
             top: -10,
@@ -946,6 +957,9 @@ const createStyles = (tokens, colors) => {
         },
         studentBadge: {
             backgroundColor: '#7C3AED',
+        },
+        foundersBadge: {
+            backgroundColor: '#FFD700',
         },
         popularTextCompact: {
             fontSize: 10,

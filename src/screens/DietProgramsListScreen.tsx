@@ -16,7 +16,7 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
     const { t } = useI18n();
     const [programs, setPrograms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [, setIsRefreshing] = useState(false);
     const [category, setCategory] = useState<string | null>(null);
 
     const categories = [
@@ -40,7 +40,7 @@ export default function DietProgramsListScreen({ navigation }: DietProgramsListS
             setPrograms([]);
         } finally {
             setLoading(false);
-            setIsRefreshing(false);
+            // setIsRefreshing(false);
         }
     }, [category]);
 

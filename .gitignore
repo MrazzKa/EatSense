@@ -301,3 +301,5 @@ ios/
 
 
 *.p8
+jwt_rsa_private.b64
+jwt_rsa_public.b64

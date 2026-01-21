@@ -36,7 +36,8 @@
         "filePickFailed": "Failed to pick a file.",
         "generic": "Failed to analyze lab results. Please try again.",
         "noFile": "Please attach a PDF file first.",
-        "noSummary": "The AI did not return a summary. Please try again."
+        "noSummary": "The AI did not return a summary. Please try again.",
+        "fileUploadFailed": "[MISSING] File Upload Failed"
       },
       "fileHint": "Attach a PDF file with your lab report.",
       "fileLabel": "PDF report",
@@ -151,7 +152,36 @@
       "needsReview": "Nutrition data unavailable",
       "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
       "suspiciousTitle": "Analysis may be inaccurate"
-    }
+    },
+    "phrases": {
+      "analyzing": "[MISSING] Analyzing photo...",
+      "recognizing": "[MISSING] Recognizing ingredients...",
+      "counting": "[MISSING] Counting calories...",
+      "portions": "[MISSING] Estimating portions...",
+      "nutrients": "[MISSING] Checking nutrients...",
+      "almostDone": "[MISSING] Almost done...",
+      "formatting": "[MISSING] Formatting results..."
+    },
+    "loading": {
+      "analyzingPhoto": "[MISSING] Analyzing photo...",
+      "detectingFood": "[MISSING] Detecting food...",
+      "identifyingIngredients": "[MISSING] Identifying ingredients...",
+      "measuringPortions": "[MISSING] Measuring portions...",
+      "calculatingCalories": "[MISSING] Calculating calories...",
+      "analyzingProteins": "[MISSING] Analyzing proteins...",
+      "analyzingFats": "[MISSING] Analyzing fats...",
+      "analyzingCarbs": "[MISSING] Analyzing carbs...",
+      "checkingNutrients": "[MISSING] Checking nutrients...",
+      "consultingDatabase": "[MISSING] Consulting database...",
+      "verifyingData": "[MISSING] Verifying data...",
+      "preparingResults": "[MISSING] Preparing results...",
+      "almostDone": "[MISSING] Almost done...",
+      "finishingUp": "[MISSING] Finishing up...",
+      "justAMoment": "[MISSING] Just a moment..."
+    },
+    "tapToView": "[MISSING] Tap to view",
+    "analysisComplete": "[MISSING] Analysis complete",
+    "deleteError": "[MISSING] Delete Error"
   },
   "analysisFlow": {
     "analyze": "Analysieren",
@@ -226,7 +256,13 @@
       "rateLimited": "Zu viele Versuche. Erneut versuchen in {{seconds}} s.",
       "resendFailed": "Der Code konnte nicht erneut gesendet werden. Bitte später erneut versuchen.",
       "sendFailed": "Der Code konnte nicht gesendet werden. Versuche es erneut.",
-      "verifyFailed": "Der Code konnte nicht überprüft werden. Versuche es erneut."
+      "verifyFailed": "Der Code konnte nicht überprüft werden. Versuche es erneut.",
+      "googleAndroidClientIdMissing": "[MISSING] Google Android Client Id Missing",
+      "googleIosClientIdMissing": "[MISSING] Google Ios Client Id Missing",
+      "googleNotAvailableExpoGo": "[MISSING] Google Not Available Expo Go",
+      "googleNotConfigured": "[MISSING] Google Not Configured",
+      "googleNotConfiguredMessage": "[MISSING] Google Not Configured Message",
+      "networkError": "[MISSING] Network Error"
     },
     "magicLink": "Magic Link senden",
     "magicLinkDescription": "Öffne den Link in deiner E-Mail, um dich anzumelden. Der Link ist 15 Minuten gültig.",
@@ -270,7 +306,8 @@
     "switchCamera": "Kamera wechseln",
     "takePhoto": "Mahlzeit aufnehmen",
     "typeInstead": "Type instead",
-    "zoomLabel": "Zoom {{value}}x"
+    "zoomLabel": "Zoom {{value}}x",
+    "permissionError": "[MISSING] Permission Error"
   },
   "carcinogenicRisk": {
     "highRiskItems": "Items to keep in moderation",
@@ -288,7 +325,14 @@
     "shareMeals": "Share Meals",
     "shareMealsConfirm": "Share your meals from the last 7 days?",
     "startConversation": "Start the conversation!",
-    "typePlaceholder": "Type a message..."
+    "typePlaceholder": "Type a message...",
+    "active": "[MISSING] Active",
+    "ended": "[MISSING] Ended",
+    "cancelled": "[MISSING] Cancelled",
+    "typeMessage": "[MISSING] Type a message...",
+    "conversationEnded": "[MISSING] This conversation has ended",
+    "mealShared": "[MISSING] Meal data shared",
+    "reportShared": "[MISSING] Report shared"
   },
   "common": {
     "all": "Alle",
@@ -314,7 +358,22 @@
     "skip": "Überspringen",
     "success": "Erfolg",
     "viewAll": "Alle anzeigen",
-    "yes": "Ja"
+    "yes": "Ja",
+    "comingSoon": "[MISSING] Coming soon",
+    "continue": "[MISSING] Continue",
+    "show": "[MISSING] Show",
+    "hide": "[MISSING] Hide",
+    "cm": "[MISSING] cm",
+    "hoursShort": "[MISSING] h",
+    "stop": "[MISSING] Stop",
+    "goBack": "[MISSING] Go back",
+    "daysAgo": "[MISSING] Days Ago",
+    "errorGeneric": "[MISSING] Error Generic",
+    "free": "[MISSING] Free",
+    "gotIt": "[MISSING] Got It",
+    "later": "[MISSING] Later",
+    "other": "[MISSING] Other",
+    "yesterday": "[MISSING] Yesterday"
   },
   "dashboard": {
     "addFood": {
@@ -345,11 +404,12 @@
     "carbs": "Kohlenhydrate",
     "diary": {
       "analyzing": "Analysieren...",
-      "analyzingHint": "Dies kann 10-30 Sekunden dauern",
+      "analyzingHint": "Dies kann bis zu einer Minute dauern",
       "failed": "Analyse fehlgeschlagen",
       "failedHint": "Zum Wiederholen tippen",
       "needsReview": "Überprüfung erforderlich",
-      "needsReviewHint": "Nährwerte konnten nicht berechnet werden"
+      "needsReviewHint": "Nährwerte konnten nicht berechnet werden",
+      "analysisComplete": "[MISSING] Analysis Complete"
     },
     "fat": "Fett",
     "healthScoreSubtitle": "Tippen Sie auf die Karte, um die Analyse unter \"Kürzlich\" zu öffnen.",
@@ -443,7 +503,24 @@
       },
       "title": "Smart food suggestions"
     },
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "activeDiet": {
+      "title": "[MISSING] Your diet",
+      "streak": "[MISSING] days streak",
+      "progress": "[MISSING] Today's progress",
+      "completed": "[MISSING] completed",
+      "openTracker": "[MISSING] Open tracker",
+      "noDiet": "[MISSING] Choose a diet",
+      "browseDiets": "[MISSING] Browse diets"
+    },
+    "bottomSheet": {
+      "describeFood": "[MISSING] Describe Food",
+      "fromGallery": "[MISSING] From Gallery",
+      "labResults": "[MISSING] Lab Results",
+      "takePhoto": "[MISSING] Take Photo",
+      "title": "[MISSING] Title"
+    },
+    "showAllMeals": "[MISSING] Show All Meals"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -460,12 +537,7 @@
   },
   "dietPrograms": {
     "about": "About",
-    "categories": {
-      "all": "All",
-      "athletes": "Athletes",
-      "historical": "Historical",
-      "hollywood": "Hollywood"
-    },
+    "categories": {},
     "completeDay": "Complete Day",
     "completed": "Congratulations!",
     "completedMessage": "You completed the program!",
@@ -478,7 +550,21 @@
     "previewDay1": "Day 1 Preview",
     "startConfirm": "Start",
     "startProgram": "Start Program",
-    "title": "Diet Programs"
+    "title": "Diet Programs",
+    "stopProgram": "[MISSING] Stop Program",
+    "stopProgramConfirm": "[MISSING] Are you sure you want to stop the program? Your progress will be saved.",
+    "pauseProgram": "[MISSING] Pause",
+    "pauseProgramConfirm": "[MISSING] Would you like to pause the diet? You can resume anytime.",
+    "resumeProgram": "[MISSING] Resume",
+    "resumeProgramConfirm": "[MISSING] Continue the diet from where you left off?",
+    "pause": "[MISSING] Pause",
+    "resume": "[MISSING] Resume",
+    "mealsForDay": "[MISSING] Meals for Day",
+    "anotherDietActive": "[MISSING] Another Diet Active",
+    "anotherDietActiveMessage": "[MISSING] Another Diet Active Message",
+    "continueProgram": "[MISSING] Continue Program",
+    "featured": "[MISSING] Featured",
+    "viewActive": "[MISSING] View Active"
   },
   "editFood": {
     "calculate": "Berechnen: {{value}}",
@@ -494,7 +580,9 @@
     "subtitle": "Änderungen vornehmen und speichern",
     "title": "Zutat bearbeiten",
     "weight": "Gewicht (g)",
-    "weightHint": "Portionsmasse"
+    "weightHint": "Portionsmasse",
+    "noResults": "[MISSING] No Results",
+    "searchPlaceholder": "[MISSING] Search Placeholder"
   },
   "errors": {
     "cameraNotAvailable": "Camera function not available",
@@ -508,32 +596,105 @@
     "shareMeals": "Failed to share meals",
     "startConsultation": "Failed to start consultation",
     "startProgram": "Failed to start program",
-    "takePictureFailed": "Failed to take picture"
+    "takePictureFailed": "Failed to take picture",
+    "stopProgram": "[MISSING] Failed to stop program",
+    "pauseProgram": "[MISSING] Failed to pause diet",
+    "galleryFailed": "[MISSING] Gallery Failed",
+    "title": "[MISSING] Title"
   },
   "experts": {
     "about": "About",
     "credentials": "Credentials",
-    "dietitian": {
-      "subtitle": "Medical approach to metabolism and analysis",
-      "title": "Dietitian"
-    },
     "findSpecialist": "Find a Specialist",
     "languages": "Languages",
     "myConsultations": "My Consultations",
     "noSpecialists": "No specialists available",
-    "nutritionist": {
-      "subtitle": "Meal planning and habits tailored to your goals",
-      "title": "Nutritionist"
-    },
     "profile": "Profile",
     "recentReviews": "Recent Reviews",
     "reviews": "reviews",
-    "startConsultation": "Start Consultation",
     "subtitle": "The team that helps you work with nutrition",
     "title": "Experts",
     "verified": "Verified",
     "viewAll": "View All Specialists",
-    "viewChats": "View your active chats"
+    "viewChats": "View your active chats",
+    "comingSoonTitle": "[MISSING] Expert Consultations",
+    "comingSoonDescription": "[MISSING] Connect with certified dietitians and nutritionists for personalized consultations. This feature is coming soon!",
+    "findExperts": "[MISSING] Find verified specialists",
+    "chat": "[MISSING] Chat and video consultations",
+    "mealPlans": "[MISSING] Personal meal plans",
+    "viewArticles": "[MISSING] View nutrition articles",
+    "comingSoon": "[MISSING] Coming soon",
+    "feature1": "[MISSING] Find verified specialists",
+    "feature2": "[MISSING] Chat & video consultations",
+    "feature3": "[MISSING] Personalized meal plans",
+    "browseArticles": "[MISSING] Browse Nutrition Articles",
+    "subtitleExpert": "[MISSING] Manage your expert profile",
+    "myConversations": "[MISSING] My Chats",
+    "noConversations": "[MISSING] No active chats",
+    "asClient": "[MISSING] As Client",
+    "asExpert": "[MISSING] As Expert",
+    "expertRole": "[MISSING] Expert",
+    "clientRole": "[MISSING] Client",
+    "startChat": "[MISSING] Start Chat",
+    "switchRole": "[MISSING] Switch",
+    "tabs": {
+      "specialists": "[MISSING] Specialists",
+      "articles": "[MISSING] Articles"
+    },
+    "roleSelection": {
+      "title": "[MISSING] What brings you here?",
+      "subtitle": "[MISSING] You can change this later",
+      "userTitle": "[MISSING] I'm looking for a specialist",
+      "userDescription": "[MISSING] Find a dietitian for consultation",
+      "expertTitle": "[MISSING] I'm a certified specialist",
+      "expertDescription": "[MISSING] Create a profile and help clients"
+    },
+    "expert": "[MISSING] Expert",
+    "edit": {
+      "createProfile": "[MISSING] Create Profile",
+      "editProfile": "[MISSING] Edit Profile",
+      "saved": "[MISSING] Profile saved",
+      "published": "[MISSING] Published",
+      "unpublished": "[MISSING] Unpublished",
+      "basicInfo": "[MISSING] Basic Information",
+      "displayName": "[MISSING] Display Name",
+      "displayNamePlaceholder": "[MISSING] e.g. Anna Smith, RD",
+      "type": "[MISSING] Specialist Type",
+      "title": "[MISSING] Professional Title",
+      "titlePlaceholder": "[MISSING] e.g. Certified Dietitian",
+      "bio": "[MISSING] Bio",
+      "bioPlaceholder": "[MISSING] Tell clients about yourself...",
+      "experience": "[MISSING] Experience",
+      "education": "[MISSING] Education",
+      "educationPlaceholder": "[MISSING] Degrees, certifications...",
+      "experienceYears": "[MISSING] Years of Experience",
+      "specializations": "[MISSING] Specializations",
+      "specializationsPlaceholder": "[MISSING] Weight loss, Diabetes, Sports...",
+      "languages": "[MISSING] Languages",
+      "commaSeparated": "[MISSING] Comma-separated",
+      "contactSection": "[MISSING] Contact Policy",
+      "contactPolicy": "[MISSING] Response Time & Availability",
+      "contactPolicyPlaceholder": "[MISSING] e.g. I reply within 24 hours on weekdays",
+      "nameRequired": "[MISSING] Display name is required"
+    },
+    "client": "[MISSING] Client",
+    "consultation": "[MISSING] Consultation",
+    "filter_all": "[MISSING] Filter_all",
+    "find_expert": "[MISSING] Find_expert",
+    "free": "[MISSING] Free",
+    "free_consultation": "[MISSING] Free_consultation",
+    "load_error": "[MISSING] Load_error",
+    "no_consultations": "[MISSING] No_consultations",
+    "no_experts_found": "[MISSING] No_experts_found",
+    "not_found": "[MISSING] Not_found",
+    "request_error": "[MISSING] Request_error",
+    "specialist": "[MISSING] Specialist",
+    "start_chat": "[MISSING] Start_chat",
+    "tab_my_chats": "[MISSING] Tab_my_chats",
+    "tab_specialists": "[MISSING] Tab_specialists",
+    "week": "[MISSING] Week",
+    "dietitian": "[MISSING] Dietitian",
+    "nutritionist": "[MISSING] Nutritionist"
   },
   "feedbackScreen": {
     "alerts": {
@@ -660,11 +821,19 @@
     "privacyLink": "Privacy Policy",
     "privacyTitle": "Privacy Policy",
     "termsLink": "Terms of Use",
-    "termsTitle": "Terms of Use"
+    "termsTitle": "Terms of Use",
+    "title": "[MISSING] Legal & Policies",
+    "supportLink": "[MISSING] Support"
   },
   "limits": {
     "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow.",
-    "title": "Daily Limit Reached"
+    "title": "Daily Limit Reached",
+    "description": "[MISSING] Description",
+    "resetsAt": "[MISSING] Resets At",
+    "tryFreeTrial": "[MISSING] Try Free Trial",
+    "tryFreeTrialMessage": "[MISSING] Try Free Trial Message",
+    "unlimitedBenefit": "[MISSING] Unlimited Benefit",
+    "upgradeToPremium": "[MISSING] Upgrade To Premium"
   },
   "meals": {
     "addMeal": "Mahlzeit hinzufügen",
@@ -753,7 +922,13 @@
       "vegan": "Vegan",
       "veganDesc": "Plant-based foods only",
       "vegetarian": "Vegetarian",
-      "vegetarianDesc": "No meat, fish and dairy allowed"
+      "vegetarianDesc": "No meat, fish and dairy allowed",
+      "none": "[MISSING] No Specific Diet",
+      "noneDesc": "[MISSING] I don't follow any particular diet",
+      "noDiet": "[MISSING] No Specific Diet",
+      "noDietDesc": "[MISSING] I don't follow any particular diet",
+      "paleo": "[MISSING] Paleo",
+      "paleoDesc": "[MISSING] Whole foods, no processed"
     },
     "features": {
       "analysis": "AI Food Analysis",
@@ -783,7 +958,11 @@
       "diabetes": "Diabetes",
       "heartDisease": "Heart Disease",
       "hypertension": "Hypertension",
-      "none": "None of the above"
+      "none": "None of the above",
+      "gastritis": "[MISSING] Gastritis",
+      "highCholesterol": "[MISSING] High Cholesterol",
+      "thyroid": "[MISSING] Thyroid Issues",
+      "other": "[MISSING] Not in list, I'll write"
     },
     "healthSubtitle": "Select if any apply to you",
     "height": "What's your height?",
@@ -839,6 +1018,50 @@
         "headline": "Unlock everything with flexible billing",
         "name": "EatSense Pro",
         "price": "$9.99 / month"
+      },
+      "student": {
+        "name": "[MISSING] Student",
+        "price": "[MISSING] $49 / year",
+        "headline": "[MISSING] Special student pricing",
+        "features": "[MISSING] Unlimited AI analysis,Advanced nutrition insights,Student ID required",
+        "badge": "[MISSING] Student"
+      },
+      "founder": {
+        "name": "[MISSING] Founder",
+        "price": "[MISSING] $199.99 / once",
+        "headline": "[MISSING] Lifetime access + Exclusive badge",
+        "features": "[MISSING] One-time payment, forever access,Exclusive Founder Badge,Direct developer access",
+        "badge": "[MISSING] Limited"
+      },
+      "forever": "[MISSING] forever",
+      "month": "[MISSING] mo",
+      "year": "[MISSING] yr",
+      "monthly": "[MISSING] Monthly",
+      "yearly": "[MISSING] Yearly",
+      "included": "[MISSING] Included",
+      "bestValue": "[MISSING] Best Value",
+      "studentBadge": "[MISSING] Student",
+      "freeHeadline": "[MISSING] Get started with the essentials",
+      "monthlyHeadline": "[MISSING] Flexible billing",
+      "yearlyHeadline": "[MISSING] Best value — save 33%",
+      "studentHeadline": "[MISSING] Special student pricing",
+      "founderHeadline": "[MISSING] Lifetime access + Exclusive badge",
+      "founderBadge": "[MISSING] Limited",
+      "features": {
+        "analysis3": "[MISSING] AI food analysis (3/day)",
+        "tracking": "[MISSING] Daily calorie tracking",
+        "basicStats": "[MISSING] Basic statistics",
+        "unlimited": "[MISSING] Unlimited AI analysis",
+        "insights": "[MISSING] Advanced nutrition insights",
+        "coaching": "[MISSING] Personalized coaching",
+        "support": "[MISSING] Priority support",
+        "everything": "[MISSING] Everything in Monthly",
+        "webinars": "[MISSING] Exclusive webinars",
+        "earlyAccess": "[MISSING] Early access to features",
+        "verification": "[MISSING] Student ID required",
+        "lifetime": "[MISSING] One-time payment, forever access",
+        "badge": "[MISSING] Exclusive Founder Badge",
+        "priority": "[MISSING] Direct developer access"
       }
     },
     "summary": "Your choices",
@@ -854,14 +1077,41 @@
       "in": "in",
       "kg": "kg",
       "lbs": "lbs",
-      "years": "years"
+      "years": "years",
+      "pounds": "[MISSING] Pounds"
     },
     "walking": "How much do you walk?",
     "weight": "What's your weight?",
     "weightRate": "Weight change rate",
     "weightSubtitle": "Current weight is needed for calorie calculation",
     "welcome": "Willkommen bei EatSense",
-    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!"
+    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
+    "enableNotifications": "[MISSING] Enable",
+    "notificationsDescription": "[MISSING] Get reminders about meals, water intake, and your health goals.",
+    "planReady": "[MISSING] Your personalized plan",
+    "recommendedIntake": "[MISSING] Recommended daily intake:",
+    "caloriesLabel": "[MISSING] Calories",
+    "proteinLabel": "[MISSING] Protein",
+    "carbsLabel": "[MISSING] Carbs",
+    "fatLabel": "[MISSING] Fat",
+    "targetWeightLabel": "[MISSING] Target weight",
+    "continueButton": "[MISSING] Continue",
+    "specifyCondition": "[MISSING] Please specify condition",
+    "specifyDiet": "[MISSING] Please specify your diet",
+    "notificationsEnabled": "[MISSING] Enabled!",
+    "notificationsSuccess": "[MISSING] Great! You'll receive helpful reminders.",
+    "terms": "[MISSING] Terms & Privacy",
+    "termsSubtitle": "[MISSING] Please read and accept to continue",
+    "termsOfService": "[MISSING] Terms of Service",
+    "privacyPolicy": "[MISSING] Privacy Policy",
+    "acceptTerms": "[MISSING] I accept the Terms of Service",
+    "acceptPrivacy": "[MISSING] I accept the Privacy Policy",
+    "tapToRead": "[MISSING] Tap to read full document",
+    "opened": "[MISSING] ✓ Opened",
+    "pleaseRead": "[MISSING] Please Read",
+    "scrollToAccept": "[MISSING] Please scroll through the Terms of Service to accept.",
+    "scrollToAcceptPrivacy": "[MISSING] Please scroll through the Privacy Policy to accept.",
+    "additionalPlans": "[MISSING] Additional Plans"
   },
   "permissions": {
     "cameraRequired": "Camera permission is required to take photos",
@@ -1005,11 +1255,21 @@
         "weight_maintenance": "Weight Maintenance"
       },
       "waistCm": "Waist Circumference",
-      "whr": "WHR (Waist / Hip)"
+      "whr": "WHR (Waist / Hip)",
+      "advanced": "[MISSING] Advanced Settings",
+      "show": "[MISSING] Show",
+      "hide": "[MISSING] Hide",
+      "fatLabel": "[MISSING] fat",
+      "sleepLabel": "[MISSING] Sleep",
+      "waistLabel": "[MISSING] Waist",
+      "noData": "[MISSING] No data",
+      "focusAreas": "[MISSING] Focus",
+      "clearData": "[MISSING] Clear Health Data"
     },
     "height": "Körpergröße (cm)",
     "language": "Sprache",
     "lastName": "Nachname",
+    "legal": "Rechtliches",
     "lightMode": "Helles Design",
     "metricAge": "Alter",
     "metricCalories": "Kalorien/Tag",
@@ -1052,9 +1312,10 @@
     "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
     "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
     "planProName": "EatSense Pro",
-    "policy": "Privacy Policy",
-    "policyError": "Failed to open policy",
-    "politics": "Data Processing Policy",
+    "policy": "Datenschutzrichtlinie",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "policyError": "Richtlinie konnte nicht geöffnet werden",
+    "politics": "Datenverarbeitungsrichtlinie",
     "preferences": "Einstellungen",
     "savedMessage": "Dein Profil wurde erfolgreich aktualisiert.",
     "savedTitle": "Profil gespeichert",
@@ -1066,7 +1327,8 @@
     "theme": "Design",
     "title": "Profil",
     "weight": "Gewicht (kg)",
-    "welcomeBack": "Willkommen zurück"
+    "welcomeBack": "Willkommen zurück",
+    "notificationsDailyEnabled": "[MISSING] Notifications Daily Enabled"
   },
   "recently": {
     "analyzing": "Analyzing...",
@@ -1091,7 +1353,9 @@
     "subtitle": "Ihre neuesten Mahlzeiten und Analysen",
     "title": "Kürzlich",
     "today": "Heute",
-    "yesterday": "Gestern"
+    "yesterday": "Gestern",
+    "analyzingSubtitle": "[MISSING] Analyzing Subtitle",
+    "daysAgo": "[MISSING] Days Ago"
   },
   "referral": {
     "earnedDays": "Days earned",
@@ -1105,16 +1369,12 @@
     "step2": "They sign up with your code",
     "step3": "You both get 7 days PRO free!",
     "title": "Invite Friends",
-    "yourCode": "Your referral code"
+    "yourCode": "Your referral code",
+    "shareMessage": "[MISSING] Share Message"
   },
   "reports": {
     "deleteConfirm": "Delete this report from history?",
     "downloaded": "Report downloaded successfully",
-    "error": {
-      "generic": "Failed to generate monthly report. Please try again later.",
-      "network": "Network error. Please check your connection and try again.",
-      "openFailed": "Failed to open report file."
-    },
     "fileSaved": "Report saved",
     "history": {
       "subtitle": "Previously downloaded reports",
@@ -1127,7 +1387,10 @@
     },
     "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
     "subtitle": "Track your monthly progress",
-    "title": "Reports"
+    "title": "Reports",
+    "error": {
+      "noDirectory": "[MISSING] No Directory"
+    }
   },
   "statistics": {
     "adherence": "Goal Adherence",
@@ -1141,7 +1404,8 @@
     "title": "Statistics",
     "today": "Today",
     "under": "Under Goal",
-    "unnamedProduct": "Unnamed Product"
+    "unnamedProduct": "Unnamed Product",
+    "mealDistribution": "[MISSING] Meal Distribution"
   },
   "subscription": {
     "billing": {
@@ -1164,7 +1428,49 @@
       "premium": "EatSense Premium",
       "pro": "EatSense Pro"
     },
-    "title": "Subscription"
+    "title": "Subscription",
+    "subtitle": "[MISSING] Unlock all features and enjoy unlimited access",
+    "applyPlan": "[MISSING] Apply plan",
+    "studentToggle": "[MISSING] I am a student",
+    "studentHint": "[MISSING] Show student discount",
+    "hideStudent": "[MISSING] Hide",
+    "perMonth": "[MISSING] per month",
+    "perYear": "[MISSING] per year",
+    "included": "[MISSING] Included",
+    "popular": "[MISSING] Popular",
+    "bestValue": "[MISSING] Best value",
+    "most_popular": "[MISSING] BEST VALUE",
+    "student": "[MISSING] Student",
+    "freePlan": "[MISSING] Free Plan",
+    "freePlanIncluded": "[MISSING] Currently active",
+    "free": "[MISSING] Free",
+    "freeFeature1": "[MISSING] 5 analyses per day",
+    "freeFeature2": "[MISSING] Basic nutrition tracking",
+    "upgradeToPremium": "[MISSING] Upgrade to Premium",
+    "month": "[MISSING] mo",
+    "continue": "[MISSING] Continue",
+    "terms_notice": "[MISSING] Cancel anytime. Terms apply.",
+    "features_title": "[MISSING] What you get",
+    "feature_unlimited_analyses": "[MISSING] Unlimited AI food analyses",
+    "feature_detailed_reports": "[MISSING] Detailed nutrition reports",
+    "feature_ai_chat": "[MISSING] AI nutrition assistant",
+    "feature_expert_access": "[MISSING] Access to nutrition experts",
+    "feature_export_data": "[MISSING] Export your data",
+    "plan_weekly": "[MISSING] Weekly",
+    "plan_monthly": "[MISSING] Monthly",
+    "plan_yearly": "[MISSING] Yearly",
+    "plan_student": "[MISSING] Student",
+    "lifetime": "[MISSING] Lifetime",
+    "noPurchases": "[MISSING] No Purchases",
+    "noPurchasesFound": "[MISSING] No Purchases Found",
+    "planNotFound": "[MISSING] Plan Not Found",
+    "purchaseFailed": "[MISSING] Purchase Failed",
+    "purchasesRestored": "[MISSING] Purchases Restored",
+    "restoreFailed": "[MISSING] Restore Failed",
+    "restorePurchases": "[MISSING] Restore Purchases",
+    "restored": "[MISSING] Restored",
+    "studentVerificationDescription": "[MISSING] Student Verification Description",
+    "studentVerificationTitle": "[MISSING] Student Verification Title"
   },
   "tabs": {
     "articles": "Artikel",
@@ -1173,7 +1479,8 @@
     "medications": "Medications",
     "profile": "Profil",
     "recently": "Kürzlich",
-    "reports": "Reports"
+    "reports": "Reports",
+    "diets": "[MISSING] Diets"
   },
   "terms": {
     "intro": "Bitte lesen Sie diese Nutzungsbedingungen sorgfältig, bevor Sie EatSense verwenden.",
@@ -1223,5 +1530,261 @@
     "selectActivity": "Please select your activity level.",
     "selectGender": "Please select your gender.",
     "selectGoal": "Please select your goal."
+  },
+  "offers": {
+    "noOffers": "[MISSING] No services yet",
+    "createFirst": "[MISSING] Create Your First Service",
+    "create": "[MISSING] Create Service",
+    "edit": "[MISSING] Edit Service",
+    "name": "[MISSING] Name",
+    "namePlaceholder": "[MISSING] e.g. Weekly Consultation",
+    "nameRequired": "[MISSING] Name is required",
+    "description": "[MISSING] Description",
+    "descriptionPlaceholder": "[MISSING] What clients will get...",
+    "format": "[MISSING] Service Type",
+    "freeOffer": "[MISSING] Free Consultation",
+    "published": "[MISSING] Published",
+    "contactForPrice": "[MISSING] Contact for price",
+    "untitled": "[MISSING] Untitled",
+    "deleteConfirm": "[MISSING] Delete this service?",
+    "formatTypes": {
+      "chat": "[MISSING] Chat Consultation",
+      "mealPlan": "[MISSING] Meal Plan",
+      "reportReview": "[MISSING] Report Review",
+      "monthlySupport": "[MISSING] Monthly Support",
+      "custom": "[MISSING] Custom"
+    }
+  },
+  "disclaimer": {
+    "title": "[MISSING] Important Notice",
+    "intro": "[MISSING] Before starting a consultation with an expert, please read and accept the following terms:",
+    "point1": "[MISSING] Information provided by experts is for general guidance only and should not replace professional medical advice.",
+    "point2": "[MISSING] Always consult with your doctor before making significant changes to your diet or health regimen.",
+    "point3": "[MISSING] Your conversations are private. Do not share sensitive personal information beyond what is necessary.",
+    "point4": "[MISSING] If you experience a medical emergency, contact emergency services immediately.",
+    "accept": "[MISSING] I have read and accept these terms"
+  },
+  "report": {
+    "title": "[MISSING] Report User",
+    "subtitle": "[MISSING] Report inappropriate behavior",
+    "selectReason": "[MISSING] Select a reason",
+    "additionalDetails": "[MISSING] Additional details (optional)",
+    "detailsPlaceholder": "[MISSING] Describe what happened...",
+    "submit": "[MISSING] Submit Report",
+    "success": {
+      "title": "[MISSING] Report Submitted",
+      "message": "[MISSING] Thank you for your report. We will review it shortly."
+    },
+    "error": "[MISSING] Failed to submit report",
+    "reason": {
+      "inappropriate": "[MISSING] Inappropriate content",
+      "harassment": "[MISSING] Harassment",
+      "spam": "[MISSING] Spam",
+      "scam": "[MISSING] Scam",
+      "unprofessional": "[MISSING] Unprofessional behavior",
+      "other": "[MISSING] Other"
+    }
+  },
+  "block": {
+    "title": "[MISSING] Block User",
+    "subtitle": "[MISSING] Stop receiving messages",
+    "warning": "[MISSING] Blocking this user will:\n\n• Stop all messages from them\n• Hide your profile from them\n• End any active conversations\n\nYou can unblock users anytime in settings.",
+    "confirm": "[MISSING] Block User",
+    "success": {
+      "title": "[MISSING] User Blocked",
+      "message": "[MISSING] You will no longer receive messages from this user."
+    },
+    "error": "[MISSING] Failed to block user"
+  },
+  "diets": {
+    "title": "[MISSING] Diets",
+    "subtitle": "[MISSING] Find the perfect nutrition plan for you",
+    "all": "[MISSING] All",
+    "weight_loss": "[MISSING] Weight Loss",
+    "weight_gain": "[MISSING] Weight Gain",
+    "health": "[MISSING] Health",
+    "sports": "[MISSING] Sports",
+    "lifestyle": {
+      "disclaimer": "[MISSING] Disclaimer",
+      "trending": "[MISSING] Trending"
+    },
+    "medical": "[MISSING] Medical",
+    "recommended": "[MISSING] Recommended for You",
+    "recommended_description": "[MISSING] Based on your profile and eating habits",
+    "featured": "[MISSING] Popular Diets",
+    "browse": "[MISSING] Browse All",
+    "no_diets": "[MISSING] No diets found",
+    "days": "[MISSING] days",
+    "start": "[MISSING] Start Diet",
+    "stop": "[MISSING] End Diet",
+    "active": "[MISSING] Active",
+    "easy": "[MISSING] Easy",
+    "moderate": "[MISSING] Moderate",
+    "hard": "[MISSING] Hard",
+    "difficulty": {
+      "easy": "[MISSING] Easy",
+      "moderate": "[MISSING] Moderate",
+      "hard": "[MISSING] Hard"
+    },
+    "users": "[MISSING] users",
+    "filter_difficulty": "[MISSING] Difficulty",
+    "search_placeholder": "[MISSING] Search diets...",
+    "yourActiveDiet": "[MISSING] Your active diet",
+    "day": "[MISSING] Day",
+    "dayOf": "[MISSING] of",
+    "mealsToday": "[MISSING] Meals today",
+    "daysLeft": "[MISSING] Days left",
+    "viewPlan": "[MISSING] View plan",
+    "progress": "[MISSING] Progress",
+    "streak": "[MISSING] Streak",
+    "bestStreak": "[MISSING] Best streak",
+    "completedTasks": "[MISSING] Completed",
+    "finishDay": "[MISSING] Finish day",
+    "dailyPlan": "[MISSING] Daily plan",
+    "wellbeing": "[MISSING] Wellbeing",
+    "tracker": {
+      "title": "[MISSING] Daily Tracker",
+      "daily_checklist": "[MISSING] Daily Checklist",
+      "weekly_goals": "[MISSING] Weekly Goals",
+      "streak": "[MISSING] Streak",
+      "current_streak": "[MISSING] Current Streak",
+      "longest_streak": "[MISSING] Longest Streak",
+      "days": "[MISSING] days",
+      "complete_to_maintain": "[MISSING] Complete {{threshold}}% to maintain streak",
+      "progress": "[MISSING] Progress",
+      "completed": "[MISSING] Completed"
+    },
+    "celebration": {
+      "perfect": "[MISSING] Perfect! 🎉",
+      "excellent": "[MISSING] Excellent work! 🌟",
+      "great": "[MISSING] Great job! 💪",
+      "good": "[MISSING] Good progress! 👍",
+      "perfectSubtext": "[MISSING] You completed all tasks today!",
+      "greatSubtext": "[MISSING] You're maintaining your streak!",
+      "goodSubtext": "[MISSING] Every step counts!"
+    },
+    "historical_section": {
+      "title": "[MISSING] Historical & Inspired",
+      "subtitle": "[MISSING] Fun diets inspired by history and culture",
+      "disclaimer_banner": "[MISSING] These are approximations for fun, not medical recommendations"
+    },
+    "tabs": {
+      "diets": "[MISSING] Diets",
+      "lifestyle": "[MISSING] Lifestyle"
+    },
+    "categories": {
+      "popular": "[MISSING] Popular",
+      "health": "[MISSING] Health",
+      "weightLoss": "[MISSING] Weight Loss",
+      "performance": "[MISSING] Performance",
+      "medical": "[MISSING] Medical",
+      "seasonal": "[MISSING] Seasonal",
+      "historical": "[MISSING] Historical",
+      "aesthetic": "[MISSING] Aesthetic"
+    },
+    "groups": {
+      "popular": "[MISSING] Popular",
+      "health": "[MISSING] Health",
+      "weight_loss": "[MISSING] Weight Loss",
+      "performance": "[MISSING] Sports & Performance",
+      "medical": "[MISSING] Medical",
+      "historical": "[MISSING] Historical",
+      "seasonal": "[MISSING] Seasonal",
+      "vintage": "[MISSING] Vintage",
+      "old_money": "[MISSING] Old Money",
+      "aesthetic": "[MISSING] Aesthetic"
+    },
+    "comingSoon": "[MISSING] Coming soon",
+    "daily_tracker_preview": "[MISSING] Daily Tracker",
+    "tracker_preview_hint": "[MISSING] Track your daily progress with this checklist",
+    "medical_note": "[MISSING] This diet may have contraindications. Consult a healthcare professional before starting.",
+    "how_it_works": "[MISSING] How It Works",
+    "disclaimers": {
+      "historical": "[MISSING] Historical/inspired reconstruction. Not guaranteed historically accurate.",
+      "historical_short": "[MISSING] Historical",
+      "public_figure": "[MISSING] Public-figure-inspired template. Not an official program.",
+      "public_figure_short": "[MISSING] Inspired",
+      "medical": "[MISSING] This diet may have contraindications. Consult a professional.",
+      "medical_short": "[MISSING] Medical",
+      "general": "[MISSING] This is educational information and not medical advice."
+    },
+    "sample_day": "[MISSING] Sample Day",
+    "active_program": "[MISSING] Active_program",
+    "loading_more": "[MISSING] Loading_more",
+    "more_items": "[MISSING] More_items",
+    "no_programs": "[MISSING] No_programs",
+    "no_programs_search": "[MISSING] No_programs_search",
+    "not_for": "[MISSING] Not_for",
+    "symptoms": {
+      "scale_hint": "[MISSING] Scale_hint",
+      "title": "[MISSING] Title"
+    }
+  },
+  "lifestyles": {
+    "disclaimer": "[MISSING] This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
+    "categories": {
+      "all": "[MISSING] All",
+      "TRENDING": "[MISSING] Trending",
+      "GOAL_LOSE_WEIGHT": "[MISSING] Weight Loss",
+      "GOAL_BUILD_MUSCLE": "[MISSING] Build Muscle",
+      "GOAL_CLEAR_SKIN": "[MISSING] Clear Skin",
+      "GOAL_MORE_ENERGY": "[MISSING] More Energy",
+      "DESTINATIONS": "[MISSING] Destinations",
+      "AESTHETICS": "[MISSING] Aesthetics",
+      "WARRIOR_MODE": "[MISSING] Warrior Mode",
+      "SEASONAL": "[MISSING] Seasonal"
+    },
+    "card": {
+      "view": "[MISSING] View"
+    },
+    "detail": {
+      "mantra": "[MISSING] Daily Mantra",
+      "philosophy": "[MISSING] Philosophy",
+      "embrace": "[MISSING] Embrace",
+      "minimize": "[MISSING] Minimize",
+      "dailyInspiration": "[MISSING] Daily Inspiration",
+      "sampleDay": "[MISSING] Sample Day",
+      "morning": "[MISSING] Morning",
+      "midday": "[MISSING] Midday",
+      "evening": "[MISSING] Evening",
+      "vibe": "[MISSING] Vibe",
+      "startProgram": "[MISSING] Start Program",
+      "continueProgram": "[MISSING] Continue"
+    },
+    "search": {
+      "placeholder": "[MISSING] Search lifestyle programs..."
+    },
+    "filters": {
+      "target": "[MISSING] Target",
+      "age": "[MISSING] Age"
+    },
+    "trending": "[MISSING] Trending",
+    "empty": "[MISSING] No lifestyle programs found",
+    "loading": "[MISSING] Loading",
+    "loading_more": "[MISSING] Loading_more"
+  },
+  "consultations": {
+    "no_messages": "[MISSING] No_messages",
+    "start_conversation": "[MISSING] Start_conversation",
+    "status_active": "[MISSING] Status_active",
+    "status_cancelled": "[MISSING] Status_cancelled",
+    "status_completed": "[MISSING] Status_completed",
+    "type_message": "[MISSING] Type_message"
+  },
+  "error": {
+    "title": "[MISSING] Title"
+  },
+  "suggest": {
+    "already_voted": "[MISSING] Already_voted",
+    "description_placeholder": "[MISSING] Description_placeholder",
+    "error": "[MISSING] Error",
+    "modal_title": "[MISSING] Modal_title",
+    "name_placeholder": "[MISSING] Name_placeholder",
+    "name_required": "[MISSING] Name_required",
+    "submit": "[MISSING] Submit",
+    "subtitle": "[MISSING] Subtitle",
+    "success": "[MISSING] Success",
+    "title": "[MISSING] Title",
+    "voted": "[MISSING] Voted"
   }
 }

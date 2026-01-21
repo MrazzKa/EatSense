@@ -152,7 +152,7 @@ class DietProgramsService {
         dietsCacheTime = 0;
         try {
             await AsyncStorage.removeItem(DIETS_CACHE_KEY);
-        } catch (e) {
+        } catch {
             // Ignore
         }
         console.log('[DietProgramsService] Cache invalidated');

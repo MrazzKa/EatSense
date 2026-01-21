@@ -555,10 +555,11 @@ class ApiService {
             console.log('[ApiService] Token refreshed successfully', {
               newTokenPrefix: tokens.accessToken.substring(0, 20) + '...',
               hasNewRefreshToken: !!tokens.refreshToken,
+              hasProfile: !!tokens.profile,
             });
           }
           this._refreshAttempts = 0; // Reset on success
-          return true;
+          return tokens; // Return full payload including profile
         }
       }
 
@@ -905,6 +906,26 @@ class ApiService {
     } catch (error) {
       console.error('[ApiService] getStats error:', error);
       return { today: {}, goals: {} };
+    }
+  }
+
+  /**
+   * Get aggregated dashboard data (performance optimization)
+   */
+  async getDashboardData(date, locale) {
+    try {
+      const params = new URLSearchParams();
+      if (date) {
+        params.append('date', date.toISOString());
+      }
+      if (locale) {
+        params.append('locale', locale);
+      }
+      const query = params.toString() ? `?${params.toString()}` : '';
+      return this.request(`/dashboard${query}`);
+    } catch (error) {
+      console.error('[ApiService] getDashboardData error:', error);
+      return null;
     }
   }
 

@@ -29,9 +29,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { clientLog } from '../utils/clientLog';
 import { useI18n } from '../../app/i18n/hooks';
 // import { legalDocuments } from '../legal/legalContent';
-import { openLegalLink } from '../utils/legal';
+
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
+import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 
 const { width } = Dimensions.get('window');
 
@@ -366,6 +367,10 @@ const createStyles = (tokens, colors, _isDark = false) => {
     planButtonStudent: {
       borderColor: '#7C3AED',
     },
+    planButtonFounder: {
+      borderColor: '#FFD700',
+      backgroundColor: '#FFF8E1',
+    },
     popularBadgeCompact: {
       position: 'absolute',
       top: -10,
@@ -378,6 +383,9 @@ const createStyles = (tokens, colors, _isDark = false) => {
     studentBadge: {
       backgroundColor: '#7C3AED',
     },
+    foundersBadge: {
+      backgroundColor: '#FFD700',
+    },
     popularTextCompact: {
       fontSize: 10,
       fontWeight: '700',
@@ -386,7 +394,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
     },
     planCompactContent: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start', // FIX: Align price to top, not center, to prevent overlap with features
       justifyContent: 'space-between',
     },
     planCompactLeft: {
@@ -732,7 +740,7 @@ const OnboardingScreen = () => {
 
   const navigation = useNavigation();
   const { colors, tokens, isDark } = useTheme();
-  const { setUser, refreshUser } = useAuth();
+  const { setUser } = useAuth();
   const styles = useMemo(() => createStyles(tokens, colors, isDark), [tokens, colors, isDark]);
   const onPrimaryColor = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const [currentStep, setCurrentStep] = useState(0);
@@ -767,11 +775,11 @@ const OnboardingScreen = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Notifications permission state
   // Calculated plan data
   const [planData, setPlanData] = useState(null);
-  const { t, language } = useI18n(); // Added useI18n hook
+  const { t } = useI18n(); // Added useI18n hook
 
   // Terms step state
-  const [hasOpenedTerms, setHasOpenedTerms] = useState(false);
-  const [hasOpenedPrivacy, setHasOpenedPrivacy] = useState(false);
+  // const [hasOpenedTerms, setHasOpenedTerms] = useState(false);
+  // const [hasOpenedPrivacy, setHasOpenedPrivacy] = useState(false);
   const [showStudentPlan, setShowStudentPlan] = useState(false); // Collapsible student plan toggle
 
 
@@ -898,11 +906,13 @@ const OnboardingScreen = () => {
     return () => { isMounted = false; };
   }, []);
 
+
+
   const plans = [
     {
       id: 'free',
       name: t('onboarding.plans.free.name', 'EatSense Free'),
-      price: t('onboarding.plans.free.price', 'Free Forever'), // Updated to use translation directly
+      price: t('onboarding.plans.free.price', 'Free Forever'),
       billingCycle: 'lifetime',
       headline: t('onboarding.plans.freeHeadline', 'Get started with the essentials'),
       features: [
@@ -914,7 +924,7 @@ const OnboardingScreen = () => {
       popular: false,
     },
     {
-      id: 'pro_monthly',
+      id: SUBSCRIPTION_SKUS.MONTHLY,
       name: t('onboarding.plans.monthly', 'Monthly'),
       price: currency.monthlyPrice + ' / ' + t('onboarding.plans.month', 'mo'),
       billingCycle: 'monthly',
@@ -925,11 +935,11 @@ const OnboardingScreen = () => {
         t('onboarding.plans.features.coaching', 'Personalized coaching'),
         t('onboarding.plans.features.support', 'Priority support'),
       ],
-      badge: t('onboarding.plans.proMonthly.badge', 'Popular'), // Added badge
+      badge: t('onboarding.plans.proMonthly.badge', 'Popular'),
       popular: false,
     },
     {
-      id: 'pro_annual',
+      id: SUBSCRIPTION_SKUS.YEARLY,
       name: t('onboarding.plans.yearly', 'Yearly'),
       price: currency.yearlyPrice + ' / ' + t('onboarding.plans.year', 'yr'),
       billingCycle: 'annual',
@@ -943,7 +953,7 @@ const OnboardingScreen = () => {
       popular: true,
     },
     {
-      id: 'student',
+      id: SUBSCRIPTION_SKUS.STUDENT,
       name: t('onboarding.plans.student.name', 'Student'),
       price: currency.studentPrice + ' / ' + t('onboarding.plans.year', 'yr'),
       billingCycle: 'annual',
@@ -958,7 +968,7 @@ const OnboardingScreen = () => {
       isStudent: true,
     },
     {
-      id: 'founders',
+      id: NON_CONSUMABLE_SKUS.FOUNDERS,
       name: t('onboarding.plans.founder.name', 'Founder'),
       price: currency.founderPrice,
       billingCycle: 'lifetime',
@@ -1545,164 +1555,177 @@ const OnboardingScreen = () => {
       <Text style={[styles.planToggleText, { marginBottom: 12 }]}>
         {t('onboarding.planSubtitle', 'Choose the plan that works best for you')}
       </Text>
-      <View style={[styles.plansContainer, { flex: 1 }]}>
-        {/* Main plans (excluding student) */}
-        {(plans || []).filter(plan => !plan.isStudent).map((plan) => {
-          const isSelected =
-            profileData.selectedPlan === plan.id ||
-            (plan.id === 'free' &&
-              profileData.selectedPlan === 'free' &&
-              profileData.planBillingCycle === 'lifetime');
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
+        <View style={styles.plansContainer}>
+          {/* Main plans (excluding student) */}
+          {(plans || []).filter(plan => !plan.isStudent && !plan.isFounder).map((plan) => {
+            const isSelected =
+              profileData.selectedPlan === plan.id ||
+              (plan.id === 'free' &&
+                profileData.selectedPlan === 'free' &&
+                profileData.planBillingCycle === 'lifetime');
 
-          return (
-            <TouchableOpacity
-              key={plan.id}
-              style={[
-                styles.planButtonCompact,
-                plan.popular && styles.planButtonPopular,
-                isSelected && styles.planButtonSelected,
-              ]}
-              activeOpacity={0.9}
-              onPress={() =>
-                setProfileData({
-                  ...profileData,
-                  selectedPlan: plan.id,
-                  planBillingCycle: plan.billingCycle,
-                })
-              }
-            >
-              {plan.badge && (
-                <View style={styles.popularBadgeCompact}>
-                  <Text style={styles.popularTextCompact}>{plan.badge}</Text>
-                </View>
-              )}
-              <View style={styles.planCompactContent}>
-                <View style={styles.planCompactLeft}>
-                  <View style={[
-                    styles.radioCircle,
-                    isSelected && styles.radioCircleSelected,
-                  ]}>
-                    {isSelected && <View style={styles.radioCircleInner} />}
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={[
+                  styles.planButtonCompact,
+                  plan.popular && styles.planButtonPopular,
+                  isSelected && styles.planButtonSelected,
+                ]}
+                activeOpacity={0.9}
+                onPress={() =>
+                  setProfileData({
+                    ...profileData,
+                    selectedPlan: plan.id,
+                    planBillingCycle: plan.billingCycle,
+                  })
+                }
+              >
+                {plan.badge && (
+                  <View style={styles.popularBadgeCompact}>
+                    <Text style={styles.popularTextCompact}>{plan.badge}</Text>
                   </View>
-                  <View style={styles.planCompactInfo}>
-                    <Text style={[styles.planNameCompact, isSelected && styles.planNameSelected]}>
-                      {plan.name}
-                    </Text>
-                    <Text style={styles.planHeadlineCompact} numberOfLines={1}>
-                      {plan.headline}
-                    </Text>
-                    {/* Features Preview */}
-                    <View style={{ marginTop: 6 }}>
-                      {plan.features.slice(0, 2).map((feature, idx) => (
-                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                          <Ionicons name="checkmark" size={12} color={colors.success || '#34C759'} />
-                          <Text style={[styles.planFeatureCompact, { marginLeft: 4 }]} numberOfLines={1}>
-                            {feature}
-                          </Text>
-                        </View>
-                      ))}
+                )}
+                <View style={styles.planCompactContent}>
+                  <View style={styles.planCompactLeft}>
+                    <View style={[
+                      styles.radioCircle,
+                      isSelected && styles.radioCircleSelected,
+                    ]}>
+                      {isSelected && <View style={styles.radioCircleInner} />}
+                    </View>
+                    <View style={styles.planCompactInfo}>
+                      <Text style={[styles.planNameCompact, isSelected && styles.planNameSelected]}>
+                        {plan.name}
+                      </Text>
+                      <Text style={styles.planHeadlineCompact} numberOfLines={1}>
+                        {plan.headline}
+                      </Text>
+                      {/* Features Preview */}
+                      <View style={{ marginTop: 6 }}>
+                        {plan.features.slice(0, 2).map((feature, idx) => (
+                          <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                            <Ionicons name="checkmark" size={12} color={colors.success || '#34C759'} />
+                            <Text style={[styles.planFeatureCompact, { marginLeft: 4 }]} numberOfLines={1}>
+                              {feature}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
                     </View>
                   </View>
+                  <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                    {plan.price}
+                  </Text>
                 </View>
-                <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
-                  {plan.price}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+              </TouchableOpacity>
+            );
+          })}
 
-        {/* Collapsible Student Plan Section */}
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 12,
-            marginTop: 8,
-          }}
-          onPress={() => setShowStudentPlan(!showStudentPlan)}
-        >
-          <Ionicons
-            name={showStudentPlan ? 'chevron-up' : 'chevron-down'}
-            size={18}
-            color={colors.textSecondary || '#666'}
-          />
-          <Text style={{
-            marginLeft: 6,
-            color: colors.textSecondary || '#666',
-            fontSize: 14,
-          }}>
-            {t('onboarding.additionalPlans', 'Дополнительно')}
+          {/* Collapsible Student Plan Section */}
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 12,
+              marginTop: 8,
+            }}
+            onPress={() => setShowStudentPlan(!showStudentPlan)}
+          >
+            <Ionicons
+              name={showStudentPlan ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={colors.textSecondary || '#666'}
+            />
+            <Text style={{
+              marginLeft: 6,
+              color: colors.textSecondary || '#666',
+              fontSize: 14,
+            }}>
+              {t('onboarding.additionalPlans', 'Дополнительно')}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Student & Founder Plans (shown when expanded) */}
+          {showStudentPlan && (plans || []).filter(plan => plan.isStudent || plan.isFounder).map((plan) => {
+            const isSelected = profileData.selectedPlan === plan.id;
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={[
+                  styles.planButtonCompact,
+                  plan.isStudent && styles.planButtonStudent,
+                  plan.isFounder && styles.planButtonFounder,
+                  isSelected && styles.planButtonSelected,
+                ]}
+                activeOpacity={0.9}
+                onPress={() =>
+                  setProfileData({
+                    ...profileData,
+                    selectedPlan: plan.id,
+                    planBillingCycle: plan.billingCycle,
+                  })
+                }
+              >
+                {plan.badge && (
+                  <View style={[
+                    styles.popularBadgeCompact,
+                    plan.isStudent && styles.studentBadge,
+                    plan.isFounder && styles.foundersBadge
+                  ]}>
+                    {plan.isFounder && <Ionicons name="star" size={10} color="#FFF" style={{ marginRight: 4 }} />}
+                    <Text style={styles.popularTextCompact}>{plan.badge}</Text>
+                  </View>
+                )}
+                <View style={styles.planCompactContent}>
+                  <View style={styles.planCompactLeft}>
+                    <View style={[
+                      styles.radioCircle,
+                      isSelected && styles.radioCircleSelected,
+                    ]}>
+                      {isSelected && <View style={styles.radioCircleInner} />}
+                    </View>
+                    <View style={styles.planCompactInfo}>
+                      <Text style={[styles.planNameCompact, isSelected && styles.planNameSelected]}>
+                        {plan.name}
+                      </Text>
+                      <Text style={styles.planHeadlineCompact} numberOfLines={1}>
+                        {plan.headline}
+                      </Text>
+                      <View style={{ marginTop: 6 }}>
+                        {plan.features.slice(0, 2).map((feature, idx) => (
+                          <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                            <Ionicons name="checkmark" size={12} color={colors.success || '#34C759'} />
+                            <Text style={[styles.planFeatureCompact, { marginLeft: 4 }]} numberOfLines={1}>
+                              {feature}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                    {plan.price}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <View style={[styles.planFinePrint, { marginTop: 16 }]}>
+          <Ionicons name="information-circle" size={14} color={colors.textTertiary || '#999'} />
+          <Text style={styles.planFinePrintText}>
+            {t('onboarding.plans.finePrint', 'Cancel anytime. Terms apply.')}
           </Text>
-        </TouchableOpacity>
-
-        {/* Student & Founder Plans (shown when expanded) */}
-        {showStudentPlan && (plans || []).filter(plan => plan.isStudent || plan.isFounder).map((plan) => {
-          const isSelected = profileData.selectedPlan === plan.id;
-          return (
-            <TouchableOpacity
-              key={plan.id}
-              style={[
-                styles.planButtonCompact,
-                styles.planButtonStudent,
-                isSelected && styles.planButtonSelected,
-              ]}
-              activeOpacity={0.9}
-              onPress={() =>
-                setProfileData({
-                  ...profileData,
-                  selectedPlan: plan.id,
-                  planBillingCycle: plan.billingCycle,
-                })
-              }
-            >
-              {plan.badge && (
-                <View style={[styles.popularBadgeCompact, styles.studentBadge]}>
-                  <Text style={styles.popularTextCompact}>{plan.badge}</Text>
-                </View>
-              )}
-              <View style={styles.planCompactContent}>
-                <View style={styles.planCompactLeft}>
-                  <View style={[
-                    styles.radioCircle,
-                    isSelected && styles.radioCircleSelected,
-                  ]}>
-                    {isSelected && <View style={styles.radioCircleInner} />}
-                  </View>
-                  <View style={styles.planCompactInfo}>
-                    <Text style={[styles.planNameCompact, isSelected && styles.planNameSelected]}>
-                      {plan.name}
-                    </Text>
-                    <Text style={styles.planHeadlineCompact} numberOfLines={1}>
-                      {plan.headline}
-                    </Text>
-                    <View style={{ marginTop: 6 }}>
-                      {plan.features.slice(0, 2).map((feature, idx) => (
-                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                          <Ionicons name="checkmark" size={12} color={colors.success || '#34C759'} />
-                          <Text style={[styles.planFeatureCompact, { marginLeft: 4 }]} numberOfLines={1}>
-                            {feature}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </View>
-                <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
-                  {plan.price}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <View style={styles.planFinePrint}>
-        <Ionicons name="information-circle" size={14} color={colors.textTertiary || '#999'} />
-        <Text style={styles.planFinePrintText}>
-          {t('onboarding.plans.finePrint', 'Cancel anytime. Terms apply.')}
-        </Text>
-      </View>
+        </View>
+      </ScrollView>
     </View>
   );
 
@@ -2022,10 +2045,10 @@ const OnboardingScreen = () => {
             }
           }
 
-          // Schedule automatic meal reminders (2-3 times a day)
+          // Schedule automatic meal reminders (3 times a day)
           try {
             const { localNotificationService } = require('../services/localNotificationService');
-            await localNotificationService.scheduleMealReminders(3); // 3 times: breakfast, lunch, dinner
+            await localNotificationService.scheduleMealReminders(3); // 09:00, 13:00, 19:00
             console.log('[Onboarding] Scheduled 3 daily meal reminders');
           } catch (scheduleError) {
             console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);

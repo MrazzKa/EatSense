@@ -147,6 +147,11 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email);
     this.logger.log(`[AuthService] verifyOtp() - tokens generated successfully, hasAccessToken=${!!tokens.accessToken}, hasRefreshToken=${!!tokens.refreshToken}`);
 
+    // Fetch full profile to return with auth response
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId: user.id },
+    });
+
     this.logger.log(`[AuthService] OTP verified for ${this.maskEmail(normalizedEmail)}`);
 
     const response = {
@@ -155,6 +160,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
       },
+      profile, // optimizations: return profile directly
       ...tokens,
     };
     this.logger.log(`[AuthService] verifyOtp() - returning response with tokens`);
@@ -222,6 +228,11 @@ export class AuthService {
 
     const tokens = await this.generateTokens(magicLink.user.id, magicLink.user.email);
 
+    // Fetch full profile
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId: magicLink.user.id },
+    });
+
     this.logger.log(`[AuthService] Magic link consumed for ${this.maskEmail(magicLink.user.email)}`);
 
     return {
@@ -230,6 +241,7 @@ export class AuthService {
         id: magicLink.user.id,
         email: magicLink.user.email,
       },
+      profile,
       ...tokens,
     };
   }
@@ -402,11 +414,21 @@ export class AuthService {
           await this.redisService.set(blacklistKey, '1', oldTokenTtl);
         }
 
+        // Fetch full profile
+        const profile = await this.prisma.userProfile.findUnique({
+          where: { userId: result.user.id },
+        });
+
         this.logger.log(`[AuthService] Token refreshed for user ${this.maskEmail(result.user.email)}`);
 
         return {
           message: 'Token refreshed successfully',
           ...result.tokens,
+          user: {
+            id: result.user.id,
+            email: result.user.email,
+          },
+          profile,
         };
       } finally {
         // Always release the lock
@@ -648,6 +670,11 @@ export class AuthService {
 
       const tokens = await this.generateTokens(user_.id, user_.email);
 
+      // Fetch full profile
+      const profile = await this.prisma.userProfile.findUnique({
+        where: { userId: user_.id },
+      });
+
       this.logger.log(`[AuthService] Apple Sign In successful for ${this.maskEmail(normalizedEmail)}`);
 
       return {
@@ -656,6 +683,7 @@ export class AuthService {
           id: user_.id,
           email: user_.email,
         },
+        profile,
         ...tokens,
       };
     } catch (error) {
@@ -766,6 +794,11 @@ export class AuthService {
 
       const tokens = await this.generateTokens(user.id, user.email);
 
+      // Fetch full profile
+      const profile = await this.prisma.userProfile.findUnique({
+        where: { userId: user.id },
+      });
+
       this.logger.log(`[AuthService] Google Sign In successful for ${this.maskEmail(normalizedEmail)}`);
 
       return {
@@ -774,6 +807,7 @@ export class AuthService {
           id: user.id,
           email: user.email,
         },
+        profile,
         ...tokens,
       };
     } catch (error) {
