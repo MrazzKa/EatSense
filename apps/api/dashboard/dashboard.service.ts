@@ -57,7 +57,7 @@ export class DashboardService {
 
                 // 3. User Stats (Photos analyzed count etc - mainly for limits)
                 // Ensure UsersService has getStats or similar
-                this.usersService.getStats(userId).catch(e => {
+                this.usersService.getUserStats(userId).catch(e => {
                     this.logger.error(`Failed to get user stats: ${e.message}`);
                     return { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 };
                 }),
