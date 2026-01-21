@@ -7,6 +7,7 @@ import { PrismaModule } from '../prisma.module';
 import { AnalysisModule } from '../src/analysis/analysis.module';
 import { MealsModule } from '../meals/meals.module';
 import { MediaModule } from '../media/media.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { MediaModule } from '../media/media.module';
     AnalysisModule,
     MealsModule,
     MediaModule,
+    RedisModule,
     BullModule.registerQueue({
       name: 'food-analysis',
     }),
@@ -22,4 +24,4 @@ import { MediaModule } from '../media/media.module';
   providers: [FoodProcessor],
   exports: [BullModule],
 })
-export class QueuesModule {}
+export class QueuesModule { }
