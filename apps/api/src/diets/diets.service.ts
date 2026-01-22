@@ -175,7 +175,7 @@ export class DietsService {
         const cacheKey = `featured:${locale}`;
 
         // Try cache first
-        const cached = await this.cacheService.get<any[]>('diets:featured', cacheKey);
+        const cached = await this.cacheService.get<any[]>(cacheKey, 'diets:featured');
         if (cached) {
             return cached;
         }
@@ -189,7 +189,7 @@ export class DietsService {
         const result = diets.map(diet => this.localizeDiet(diet, locale));
 
         // Cache for 5 minutes
-        await this.cacheService.set('diets:featured', cacheKey, result, DIETS_CACHE_TTL);
+        await this.cacheService.set(cacheKey, result, 'diets:featured', DIETS_CACHE_TTL);
 
         return result;
     }
@@ -201,7 +201,7 @@ export class DietsService {
         const cacheKey = `${idOrSlug}:${locale}`;
 
         // Try cache first
-        const cached = await this.cacheService.get<any>('diets:detail', cacheKey);
+        const cached = await this.cacheService.get<any>(cacheKey, 'diets:detail');
         if (cached) {
             return cached;
         }
@@ -233,7 +233,7 @@ export class DietsService {
             const result = this.localizeDietFull(diet, locale);
 
             // Cache for 5 minutes
-            await this.cacheService.set('diets:detail', cacheKey, result, DIETS_CACHE_TTL);
+            await this.cacheService.set(cacheKey, result, 'diets:detail', DIETS_CACHE_TTL);
 
             return result;
         } catch (error) {

@@ -15,7 +15,9 @@ type CacheNamespace =
   | 'assistant:active'
   | 'health_feedback_ai'
   | 'diets:list'
-  | 'diets:featured';
+  | 'diets:featured'
+  | 'diets:recommendations'
+  | 'diets:detail';
 
 interface CacheEntry<T> {
   value: T;
@@ -36,7 +38,7 @@ export class CacheService {
   private readonly articlesFeedTtl = parseInt(process.env.ARTICLES_FEED_CACHE_TTL_SEC || '900', 10);
   private readonly articlesDetailTtl = parseInt(process.env.ARTICLES_DETAIL_CACHE_TTL_SEC || '86400', 10);
 
-  constructor(private readonly redis: RedisService) {}
+  constructor(private readonly redis: RedisService) { }
 
   private resolveTtl(namespace: CacheNamespace, customTtl?: number): number {
     if (customTtl) {

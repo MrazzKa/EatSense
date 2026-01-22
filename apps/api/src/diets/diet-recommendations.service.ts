@@ -29,7 +29,7 @@ export class DietRecommendationsService {
         const cacheKey = `${userId}:${locale}`;
 
         // Try cache first (personalized per user)
-        const cached = await this.cacheService.get<any[]>('diets:recommendations', cacheKey);
+        const cached = await this.cacheService.get<any[]>(cacheKey, 'diets:recommendations');
         if (cached) {
             this.logger.log(`Recommendations cache hit for user ${userId}`);
             return cached;
@@ -71,7 +71,7 @@ export class DietRecommendationsService {
         }).filter(Boolean);
 
         // Cache for 10 minutes
-        await this.cacheService.set('diets:recommendations', cacheKey, result, RECOMMENDATIONS_CACHE_TTL);
+        await this.cacheService.set(cacheKey, result, 'diets:recommendations', RECOMMENDATIONS_CACHE_TTL);
 
         return result;
     }
