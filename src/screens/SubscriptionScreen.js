@@ -112,6 +112,13 @@ export default function SubscriptionScreen() {
             const { all } = await IAPService.getAvailableProducts();
             setIapProducts(all);
 
+            // FIX 2026-01-21: If IAP returns 0 products, fallback to backend
+            if (all.length === 0) {
+                console.log('[SubscriptionScreen] IAP returned 0 products, falling back to backend');
+                await loadBackendPlans();
+                return;
+            }
+
             // Map IAP products to our plan format
             const mappedPlans = all.map(product => {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
@@ -159,7 +166,7 @@ export default function SubscriptionScreen() {
         } catch (error) {
             console.error('[SubscriptionScreen] IAP init error:', error);
             // Fallback to backend plans if IAP fails
-            loadBackendPlans();
+            await loadBackendPlans();
         } finally {
             setLoading(false);
         }

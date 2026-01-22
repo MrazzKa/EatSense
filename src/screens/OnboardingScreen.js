@@ -1993,119 +1993,152 @@ const OnboardingScreen = () => {
 
 
   const renderNotificationsStep = () => {
-    const handleEnableNotifications = async () => {
-      try {
-        // Android: Create notification channel first
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#4CAF50',
-          });
-        }
-
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status === 'granted') {
-          // FIX 2026-01-19: Prevent re-triggering if already enabled
-          if (notificationsEnabled) return;
-          setNotificationsEnabled(true);
-
-          // Get push token for remote notifications
-          let pushToken = null;
-          try {
-            const tokenData = await Notifications.getExpoPushTokenAsync({
-              projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-expo-project-id',
+    // Auto-request notifications when this slide mounts
+    useEffect(() => {
+      const requestNotifications = async () => {
+        try {
+          // Android: Create notification channel first
+          if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync('default', {
+              name: 'default',
+              importance: Notifications.AndroidImportance.MAX,
+              vibrationPattern: [0, 250, 250, 250],
+              lightColor: '#4CAF50',
             });
-            pushToken = tokenData.data;
-            console.log('[Onboarding] Push token:', pushToken);
-          } catch (tokenError) {
-            console.warn('[Onboarding] Failed to get push token:', tokenError);
           }
 
-          // Update profile data with notification preference
-          setProfileData(prev => ({
-            ...prev,
-            preferences: {
-              ...prev.preferences,
-              dailyPushEnabled: true,
-              dailyPushHour: 9,
-              dailyPushMinute: 0,
-              timezone: Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC',
-            },
-          }));
+          const { status } = await Notifications.requestPermissionsAsync();
+          if (status === 'granted') {
+            if (notificationsEnabled) return;
+            setNotificationsEnabled(true);
 
-          // Save push token to server
-          if (pushToken) {
+            // Get push token for remote notifications
+            let pushToken = null;
             try {
-              await ApiService.put('/user-profiles', { pushToken });
-              console.log('[Onboarding] Push token saved to server');
-            } catch (saveError) {
-              console.warn('[Onboarding] Failed to save push token:', saveError);
+              const tokenData = await Notifications.getExpoPushTokenAsync({
+                projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-expo-project-id',
+              });
+              pushToken = tokenData.data;
+              console.log('[Onboarding] Push token:', pushToken);
+            } catch (tokenError) {
+              console.warn('[Onboarding] Failed to get push token:', tokenError);
             }
-          }
 
-          // Schedule automatic meal reminders (3 times a day)
-          try {
-            const { localNotificationService } = require('../services/localNotificationService');
-            await localNotificationService.scheduleMealReminders(3); // 09:00, 13:00, 19:00
-            console.log('[Onboarding] Scheduled 3 daily meal reminders');
-          } catch (scheduleError) {
-            console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
-          }
+            // Update profile data with notification preference
+            setProfileData(prev => ({
+              ...prev,
+              preferences: {
+                ...prev.preferences,
+                dailyPushEnabled: true,
+                dailyPushHour: 9,
+                dailyPushMinute: 0,
+                timezone: Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC',
+              },
+            }));
 
-          clientLog('Onboarding:notificationsEnabled', { hasPushToken: !!pushToken });
-        } else {
-          setNotificationsEnabled(false);
-          setProfileData(prev => ({
-            ...prev,
-            preferences: {
-              ...prev.preferences,
-              dailyPushEnabled: false,
-            },
-          }));
-          clientLog('Onboarding:notificationsDenied');
+            // Save push token to server
+            if (pushToken) {
+              try {
+                await ApiService.put('/user-profiles', { pushToken });
+                console.log('[Onboarding] Push token saved to server');
+              } catch (saveError) {
+                console.warn('[Onboarding] Failed to save push token:', saveError);
+              }
+            }
+
+            // Schedule automatic meal reminders (3 times a day)
+            try {
+              const { localNotificationService } = require('../services/localNotificationService');
+              await localNotificationService.scheduleMealReminders(3);
+              console.log('[Onboarding] Scheduled 3 daily meal reminders');
+            } catch (scheduleError) {
+              console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
+            }
+
+            clientLog('Onboarding:notificationsEnabled', { hasPushToken: !!pushToken });
+          } else {
+            setNotificationsEnabled(false);
+            setProfileData(prev => ({
+              ...prev,
+              preferences: {
+                ...prev.preferences,
+                dailyPushEnabled: false,
+              },
+            }));
+            clientLog('Onboarding:notificationsDenied');
+          }
+        } catch (e) {
+          console.warn('Notifications permission error:', e);
+          clientLog('Onboarding:notificationsError', { error: e.message });
         }
-      } catch (e) {
-        console.warn('Notifications permission error:', e);
-        clientLog('Onboarding:notificationsError', { error: e.message });
-      }
-    };
+      };
+
+      // Small delay to ensure slide is visible before showing system dialog
+      const timer = setTimeout(requestNotifications, 500);
+      return () => clearTimeout(timer);
+    }, []);
 
     return (
       <View style={styles.stepContainer}>
         <View style={styles.welcomeContent}>
-          <Ionicons name="notifications" size={64} color={colors.primary} />
-          <Text style={styles.stepTitle}>{t('onboarding.notifications', 'Enable notifications')}</Text>
-          <Text style={styles.stepSubtitle}>
-            {t('onboarding.notificationsDescription', 'Get reminders about meals, water intake, and your health goals.')}
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              { marginTop: 32 },
-              notificationsEnabled && { backgroundColor: colors.success || '#34C759', opacity: 0.8 }
-            ]}
-            disabled={notificationsEnabled}
-            onPress={handleEnableNotifications}
-          >
+          <View style={{
+            width: 100,
+            height: 100,
+            borderRadius: 50,
+            backgroundColor: (colors.primary || '#4CAF50') + '15',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: 24,
+          }}>
             <Ionicons
-              name={notificationsEnabled ? 'checkmark-circle' : 'notifications'}
-              size={20}
-              color={onPrimaryColor}
-              style={{ marginRight: 8 }}
+              name={notificationsEnabled ? 'notifications' : 'notifications-outline'}
+              size={48}
+              color={notificationsEnabled ? (colors.success || '#34C759') : colors.primary}
             />
-            <Text style={styles.nextButtonText}>
-              {notificationsEnabled
-                ? t('onboarding.notificationsEnabled', 'Enabled!')
-                : t('onboarding.enableNotifications', 'Enable')}
-            </Text>
-          </TouchableOpacity>
+          </View>
+
+          <Text style={styles.stepTitle}>
+            {notificationsEnabled
+              ? t('onboarding.notificationsEnabledTitle', 'Уведомления включены!')
+              : t('onboarding.notifications', 'Уведомления')}
+          </Text>
+
+          <Text style={[styles.stepSubtitle, { textAlign: 'center', lineHeight: 22 }]}>
+            {notificationsEnabled
+              ? t('onboarding.notificationsEnabledDescription', 'Мы будем отправлять напоминания о приёмах пищи и полезные советы. Вы можете изменить настройки в любое время.')
+              : t('onboarding.notificationsDescription', 'Мы отправляем напоминания о приёмах пищи и полезные советы для достижения ваших целей.')}
+          </Text>
+
           {notificationsEnabled && (
-            <Text style={[styles.stepSubtitle, { marginTop: 16, fontSize: 14, color: colors.success || '#34C759' }]}>
-              {t('onboarding.notificationsSuccess', 'Great! You\'ll receive helpful reminders.')}
-            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 24,
+              paddingHorizontal: 20,
+              paddingVertical: 12,
+              backgroundColor: (colors.success || '#34C759') + '15',
+              borderRadius: 12,
+            }}>
+              <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
+              <Text style={{
+                marginLeft: 10,
+                color: colors.success || '#34C759',
+                fontSize: 15,
+                fontWeight: '600'
+              }}>
+                {t('onboarding.notificationsReady', 'Готово!')}
+              </Text>
+            </View>
           )}
+
+          <Text style={[styles.stepSubtitle, {
+            marginTop: 32,
+            fontSize: 13,
+            color: colors.textTertiary || '#999',
+            textAlign: 'center',
+          }]}>
+            {t('onboarding.notificationsHint', 'Вы можете отключить уведомления в настройках приложения или системных настройках iOS.')}
+          </Text>
         </View>
       </View>
     );

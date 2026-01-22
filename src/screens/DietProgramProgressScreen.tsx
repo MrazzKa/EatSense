@@ -82,17 +82,11 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
 
         try {
             await completeDayStore();
-            await refreshProgress();
+            // NOTE: Removed refreshProgress() here - the store already updates state internally
+            // This prevents the unnecessary full screen reload after completing the day
 
-            // Show celebration always to provide feedback, even if re-completing
-            // But especially if day was just completed
+            // Show celebration always to provide feedback
             setShowCelebration(true);
-
-            /* Old logic:
-            if (!wasCompleted) {
-                setShowCelebration(true);
-            }
-            */
         } catch (error: any) {
             Alert.alert(t('common.error'), error.message || t('errors.completeDay'));
         }
@@ -244,7 +238,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                     <Ionicons name={getMealIcon(meal.mealType)} size={18} color={colors.primary} />
                                 </View>
                                 <View style={styles.mealInfo}>
-                                    <Text style={[styles.mealType, { color: colors.textSecondary }]}>{meal.mealType}</Text>
+                                    <Text style={[styles.mealType, { color: colors.textSecondary }]}>{t(`dietPrograms.mealTypes.${meal.mealType}`) || meal.mealType}</Text>
                                     <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language)}</Text>
                                     {meal.description && (
                                         <Text style={[styles.mealDescription, { color: colors.textSecondary }]} numberOfLines={2}>

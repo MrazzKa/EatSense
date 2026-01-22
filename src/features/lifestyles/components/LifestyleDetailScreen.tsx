@@ -48,11 +48,19 @@ export default function LifestyleDetailScreen({
   const { t, language } = useI18n();
   const { colors } = useTheme();
 
-  const getLocalizedText = (text: { en: string; ru: string; kk: string }) => {
+  const getLocalizedText = (
+    text: { en?: string; ru?: string; kk?: string } | undefined | null
+  ): string => {
+    if (!text) return '';
+    if (typeof text === 'string') return text;
     return text[language as keyof typeof text] || text.en || '';
   };
 
-  const getLocalizedTextArray = (text: { en: string[]; ru: string[]; kk: string[] }): string[] => {
+  const getLocalizedTextArray = (
+    text: { en?: string[]; ru?: string[]; kk?: string[] } | undefined | null
+  ): string[] => {
+    if (!text) return [];
+    if (Array.isArray(text)) return text;
     return text[language as keyof typeof text] || text.en || [];
   };
 

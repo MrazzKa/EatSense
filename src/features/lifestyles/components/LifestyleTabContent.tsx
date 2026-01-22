@@ -139,11 +139,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
   const listData = useMemo((): SectionData[] => {
     const data: SectionData[] = [];
 
-    // Loading state
-    if (isLoading && programs.length === 0) {
-      data.push({ type: 'loading' });
-      return data;
-    }
+    // Loading state handled by parent DietsScreen - removed to prevent double spinner
+    // If parent is loading and we have no cached data, show nothing (parent shows skeleton)
 
     // Active Program Section (New)
     // Only show if we have an active program
