@@ -724,6 +724,44 @@ async function main() {
     for (const program of lifestylePrograms) {
         const id = program.slug;
 
+        // Helper to generate content if missing
+        const getMantra = (p: LifestyleProgram) => ({
+            en: p.tags.includes('warrior') ? "Discipline equals freedom" : "Be your best self today",
+            ru: p.tags.includes('warrior') ? "Дисциплина - это свобода" : "Будь лучшей версией себя",
+            kk: p.tags.includes('warrior') ? "Тәртіп - бұл еркіндік" : "Бүгін ең жақсы бол"
+        });
+
+        const getPhilosophy = (p: LifestyleProgram) => ({
+            en: p.description.en || "Wellness is a journey, not a destination.",
+            ru: p.description.ru || "Здоровье - это путь, а не цель.",
+            kk: p.description.kk || "Денсаулық - бұл мақсат емес, жол."
+        });
+
+        const getDailyInspiration = (p: LifestyleProgram) => ({
+            en: ["Visualise your success", "Drink water first thing", "Move your body with joy"],
+            ru: ["Визуализируйте успех", "Пейте воду с утра", "Двигайтесь с радостью"],
+            kk: ["Жетістігіңізді елестетіңіз", "Таңертең су ішіңіз", "Қуанышпен қозғалыңыз"]
+        });
+
+        const getVibe = (p: LifestyleProgram) => p.tags.join(', ');
+
+        const getSampleDay = (p: LifestyleProgram) => ({
+            morning: { en: "Lemon water & light movement", ru: "Лимонная вода и лёгкая разминка", kk: "Лимон суы және жеңіл жаттығу" },
+            midday: { en: "Nutrient dense bowl", ru: "Питательный боул", kk: "Құнарлы тағам" },
+            evening: { en: "Relaxing tea & disconnect", ru: "Расслабляющий чай и отдых", kk: "Демалу шайы" }
+        });
+
+        // Construct rules object with all the lifestyle fields
+        const rules = {
+            mantra: (program as any).mantra || getMantra(program),
+            philosophy: (program as any).philosophy || getPhilosophy(program),
+            embrace: program.embrace, // Also keep in rules for easy access
+            minimize: program.minimize,
+            dailyInspiration: (program as any).dailyInspiration || getDailyInspiration(program),
+            sampleDay: (program as any).sampleDay || getSampleDay(program),
+            vibe: (program as any).vibe || getVibe(program)
+        };
+
         await prisma.dietProgram.upsert({
             where: { id },
             update: {
@@ -747,6 +785,7 @@ async function main() {
                 tags: program.tags,
                 imageUrl: program.imageUrl,
                 color: program.color,
+                rules: rules, // Save lifestyle content here
             },
             create: {
                 id,
@@ -770,6 +809,7 @@ async function main() {
                 tags: program.tags,
                 imageUrl: program.imageUrl,
                 color: program.color,
+                rules: rules, // Save lifestyle content here
             },
         });
 

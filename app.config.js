@@ -13,8 +13,8 @@ export default {
     runtimeVersion: {
       policy: "appVersion"
     },
-    // Use Logo.jpeg for app icon (Expo will auto-generate required sizes)
-    icon: "./assets/logo/logo.jpg",
+    // Use generated icon.png (standard Expo requirement is PNG 1024x1024)
+    icon: "./assets/icon.png",
     userInterfaceStyle: "light",
 
     extra: {

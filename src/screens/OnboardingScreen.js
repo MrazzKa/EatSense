@@ -1681,8 +1681,8 @@ const OnboardingScreen = () => {
                     plan.isStudent && styles.studentBadge,
                     plan.isFounder && styles.foundersBadge
                   ]}>
-                    {plan.isFounder && <Ionicons name="star" size={10} color="#FFF" style={{ marginRight: 4 }} />}
-                    <Text style={styles.popularTextCompact}>{plan.badge}</Text>
+                    {plan.isFounder && <Ionicons name="star" size={10} color="#5D4037" style={{ marginRight: 4 }} />}
+                    <Text style={[styles.popularTextCompact, plan.isFounder && { color: '#5D4037' }]}>{plan.badge}</Text>
                   </View>
                 )}
                 <View style={styles.planCompactContent}>

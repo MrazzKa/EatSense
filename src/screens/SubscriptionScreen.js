@@ -22,56 +22,33 @@ import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions'
 
 // Plan descriptions for Apple App Store Review compliance
 // Each subscription must clearly state what features are included
-const PLAN_DESCRIPTIONS = {
+// Plan configuration with I18n keys
+const PLAN_CONFIG = {
     monthly: {
-        title: 'Monthly Premium',
-        subtitle: 'Billed monthly, cancel anytime',
-        // Original prices for strike-through display (promotional pricing)
+        titleKey: 'subscription.plans.monthly.title',
+        subtitleKey: 'subscription.plans.monthly.subtitle',
+        featuresKey: 'subscription.plans.monthly.features',
         originalPrice: { USD: 14.99, EUR: 12.99, CHF: 15.00 },
-        features: [
-            'Unlimited food analysis with AI',
-            'Detailed nutrition reports & insights',
-            'Personal AI Nutrition Assistant',
-            'Diet & lifestyle programs',
-            'Priority customer support',
-        ],
     },
     yearly: {
-        title: 'Yearly Premium',
-        subtitle: 'Best value - save 50%',
+        titleKey: 'subscription.plans.yearly.title',
+        subtitleKey: 'subscription.plans.yearly.subtitle',
+        featuresKey: 'subscription.plans.yearly.features',
         originalPrice: { USD: 119.99, EUR: 99.99, CHF: 120.00 },
-        features: [
-            'All Monthly features included',
-            'Save 50% compared to monthly',
-            'Early access to new features',
-            'Personalized meal planning',
-            'Advanced health metrics',
-        ],
     },
     student: {
-        title: 'Student Plan',
-        subtitle: 'Verified students only',
+        titleKey: 'subscription.plans.student.title',
+        subtitleKey: 'subscription.plans.student.subtitle',
+        featuresKey: 'subscription.plans.student.features',
         originalPrice: { USD: 59.99, EUR: 49.99, CHF: 60.00 },
-        features: [
-            'All Yearly features included',
-            'Special student pricing',
-            'Valid student ID required',
-            'Renews at student rate',
-        ],
     },
     founders: {
-        title: 'Founders Pass',
-        subtitle: 'One-time purchase, lifetime access',
-        originalPrice: null, // No discount for founders
-        badge: 'LIFETIME',
+        titleKey: 'subscription.plans.founders.title',
+        subtitleKey: 'subscription.plans.founders.subtitle',
+        featuresKey: 'subscription.plans.founders.features',
+        badgeKey: 'subscription.plans.founders.badge',
         badgeColor: '#FFD700',
-        features: [
-            'Lifetime Premium access',
-            'All current & future features',
-            'Exclusive Founder badge',
-            'No recurring payments ever',
-            'Priority feature requests',
-        ],
+        originalPrice: null,
     },
 };
 
@@ -124,29 +101,57 @@ export default function SubscriptionScreen() {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
                 const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
                 const isStudent = product.productId === SUBSCRIPTION_SKUS.STUDENT;
-                // const isMonthly = product.productId === SUBSCRIPTION_SKUS.MONTHLY;
 
                 const planType = isFounders ? 'founders' :
                     isYearly ? 'yearly' :
                         isStudent ? 'student' : 'monthly';
 
-                const descriptions = PLAN_DESCRIPTIONS[planType] || PLAN_DESCRIPTIONS.monthly;
+                const config = PLAN_CONFIG[planType] || PLAN_CONFIG.monthly;
+
+                // Resolve features using returnObjects: true if supported, or fallback
+                // For safety with potential i18n limitations, we'll try to get an array
+                // If it returns a string (key missing), we fallback to default hardcoded lists (English)
+                let features = t(config.featuresKey, { returnObjects: true });
+                if (!Array.isArray(features)) {
+                    // Fallback features if translation missing
+                    if (planType === 'founders') {
+                        features = [
+                            'Lifetime Premium access',
+                            'All current & future features',
+                            'Exclusive Founder badge',
+                            'No recurring payments',
+                            'Priority support'
+                        ];
+                    } else {
+                        features = [
+                            'Unlimited food analysis',
+                            'Detailed nutrition reports',
+                            'Personal AI Assistant',
+                            'Diet & lifestyle programs'
+                        ];
+                    }
+                }
+
+                // Title and Subtitle
+                // Note: We use the key from config.
+                const title = t(config.titleKey) || (planType === 'founders' ? 'Founders Pass' : 'Premium');
+                const headline = t(config.subtitleKey);
 
                 return {
                     id: product.productId,
                     name: planType,
-                    price: product.localizedPrice,
+                    price: product.localizedPrice, // Use localized price from store
                     priceFormatted: product.localizedPrice,
                     priceNumber: parseFloat(product.price),
                     currency: product.currency,
-                    title: descriptions.title,
-                    headline: descriptions.subtitle,
-                    features: descriptions.features,
+                    title: title,
+                    headline: headline,
+                    features: features,
                     isSubscription: !isFounders,
                     // Strike-through pricing support
-                    originalPrice: descriptions.originalPrice,
-                    badge: descriptions.badge,
-                    badgeColor: descriptions.badgeColor,
+                    originalPrice: config.originalPrice,
+                    badge: config.badgeKey ? t(config.badgeKey) : (config.badge || null),
+                    badgeColor: config.badgeColor,
                 };
             });
 
@@ -184,63 +189,83 @@ export default function SubscriptionScreen() {
         try {
             // Use local plan descriptions as fallback
             // This ensures SubscriptionScreen shows content even without IAP
+            // Use local plan descriptions as fallback
+            const getPlanData = (type) => {
+                const config = PLAN_CONFIG[type];
+                let features = t(config.featuresKey, { returnObjects: true });
+                if (!Array.isArray(features)) features = ['Unlimited analysis', 'AI Assistant', 'Detailed reports']; // Fallback
+                return {
+                    title: t(config.titleKey),
+                    headline: t(config.subtitleKey),
+                    features,
+                    badge: config.badgeKey ? t(config.badgeKey) : null,
+                    badgeColor: config.badgeColor,
+                    originalPrice: config.originalPrice
+                };
+            };
+
+            const monthlyData = getPlanData('monthly');
+            const yearlyData = getPlanData('yearly');
+            const studentData = getPlanData('student');
+            const foundersData = getPlanData('founders');
+
             const fallbackPlans = [
                 {
                     id: SUBSCRIPTION_SKUS.MONTHLY,
                     name: 'monthly',
                     price: '$9.99',
-                    priceFormatted: '$9.99/month',
+                    priceFormatted: '$9.99/' + t('onboarding.plans.month') || 'mo',
                     priceNumber: 9.99,
                     currency: 'USD',
-                    title: PLAN_DESCRIPTIONS.monthly.title,
-                    headline: PLAN_DESCRIPTIONS.monthly.subtitle,
-                    features: PLAN_DESCRIPTIONS.monthly.features,
+                    title: monthlyData.title,
+                    headline: monthlyData.headline,
+                    features: monthlyData.features,
                     isSubscription: true,
-                    badge: PLAN_DESCRIPTIONS.monthly.badge,
-                    badgeColor: PLAN_DESCRIPTIONS.monthly.badgeColor,
+                    badge: null,
+                    badgeColor: null,
                 },
                 {
                     id: SUBSCRIPTION_SKUS.YEARLY,
                     name: 'yearly',
                     price: '$69.99',
-                    priceFormatted: '$69.99/year',
+                    priceFormatted: '$69.99/' + t('onboarding.plans.year') || 'yr',
                     priceNumber: 69.99,
                     currency: 'USD',
-                    title: PLAN_DESCRIPTIONS.yearly.title,
-                    headline: PLAN_DESCRIPTIONS.yearly.subtitle,
-                    features: PLAN_DESCRIPTIONS.yearly.features,
+                    title: yearlyData.title,
+                    headline: yearlyData.headline,
+                    features: yearlyData.features,
                     isSubscription: true,
-                    originalPrice: PLAN_DESCRIPTIONS.yearly.originalPrice,
-                    badge: PLAN_DESCRIPTIONS.yearly.badge,
-                    badgeColor: PLAN_DESCRIPTIONS.yearly.badgeColor,
+                    originalPrice: yearlyData.originalPrice,
+                    badge: yearlyData.badge,
+                    badgeColor: yearlyData.badgeColor,
                 },
                 {
                     id: SUBSCRIPTION_SKUS.STUDENT,
                     name: 'student',
                     price: '$49.00',
-                    priceFormatted: '$49.00/year',
+                    priceFormatted: '$49.00/' + t('onboarding.plans.year') || 'yr',
                     priceNumber: 49.00,
                     currency: 'USD',
-                    title: PLAN_DESCRIPTIONS.student.title,
-                    headline: PLAN_DESCRIPTIONS.student.subtitle,
-                    features: PLAN_DESCRIPTIONS.student.features,
+                    title: studentData.title,
+                    headline: studentData.headline,
+                    features: studentData.features,
                     isSubscription: true,
-                    badge: PLAN_DESCRIPTIONS.student.badge,
-                    badgeColor: PLAN_DESCRIPTIONS.student.badgeColor,
+                    badge: studentData.badge,
+                    badgeColor: studentData.badgeColor,
                 },
                 {
                     id: NON_CONSUMABLE_SKUS.FOUNDERS,
                     name: 'founders',
                     price: '$99.99',
-                    priceFormatted: '$99.99 one-time',
+                    priceFormatted: '$99.99', // One time
                     priceNumber: 99.99,
                     currency: 'USD',
-                    title: PLAN_DESCRIPTIONS.founders.title,
-                    headline: PLAN_DESCRIPTIONS.founders.subtitle,
-                    features: PLAN_DESCRIPTIONS.founders.features,
+                    title: foundersData.title,
+                    headline: foundersData.headline,
+                    features: foundersData.features,
                     isSubscription: false,
-                    badge: PLAN_DESCRIPTIONS.founders.badge,
-                    badgeColor: PLAN_DESCRIPTIONS.founders.badgeColor,
+                    badge: foundersData.badge,
+                    badgeColor: foundersData.badgeColor,
                 },
             ];
 
@@ -397,7 +422,7 @@ export default function SubscriptionScreen() {
                             <View style={styles.freePlanFeatureRow}>
                                 <Ionicons name="checkmark-circle" size={16} color={tokens.colors?.success || '#4CAF50'} />
                                 <Text style={[styles.freePlanFeatureText, { color: tokens.colors?.textSecondary || '#666' }]}>
-                                    {t('subscription.freeFeature1') || '5 analyses per day'}
+                                    {t('subscription.freeFeature1', '3 анализа в день')}
                                 </Text>
                             </View>
                             <View style={styles.freePlanFeatureRow}>
@@ -464,8 +489,8 @@ export default function SubscriptionScreen() {
                                         isStudent && styles.studentBadge,
                                         isFounders && styles.foundersBadge,
                                     ]}>
-                                        {isFounders && <Ionicons name="star" size={10} color="#FFF" style={{ marginRight: 4 }} />}
-                                        <Text style={styles.popularTextCompact}>{badgeText}</Text>
+                                        {isFounders && <Ionicons name="star" size={10} color="#5D4037" style={{ marginRight: 4 }} />}
+                                        <Text style={[styles.popularTextCompact, isFounders && { color: '#5D4037' }]}>{badgeText}</Text>
                                     </View>
                                 )}
 
@@ -983,7 +1008,7 @@ const createStyles = (tokens, colors) => {
             borderWidth: 2,
             borderColor: borderMuted,
             position: 'relative',
-            marginBottom: 8,
+            marginBottom: 16, // Increased to prevent badge overlap (badge is top -10)
         },
         planButtonPopular: {
             borderColor: '#FFA000',

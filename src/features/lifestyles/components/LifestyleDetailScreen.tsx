@@ -112,7 +112,7 @@ export default function LifestyleDetailScreen({
               { color: colors.textSecondary || '#666' },
             ]}
           >
-            {getLocalizedText(program.tagline)}
+            {getLocalizedText(program.tagline || program.subtitle)}
           </Text>
         </View>
 
@@ -132,7 +132,7 @@ export default function LifestyleDetailScreen({
                 { color: colors.textPrimary || '#212121' },
               ]}
             >
-              {getLocalizedText(program.mantra)}
+              {getLocalizedText(program.mantra || (program.rules && program.rules.mantra))}
             </Text>
           </View>
         </View>
@@ -148,7 +148,7 @@ export default function LifestyleDetailScreen({
               { color: colors.textSecondary || '#666' },
             ]}
           >
-            {getLocalizedText(program.philosophy)}
+            {getLocalizedText(program.philosophy || (program.rules && program.rules.philosophy))}
           </Text>
         </View>
 
@@ -158,7 +158,7 @@ export default function LifestyleDetailScreen({
             {t('lifestyles.detail.embrace') || 'Выбирать чаще'}
           </Text>
           <View style={styles.listContainer}>
-            {getLocalizedTextArray(program.embrace).map((item, index) => (
+            {getLocalizedTextArray(program.embrace || (program.rules && program.rules.embrace) || program.allowedFoods).map((item, index) => (
               <View key={index} style={styles.listItem}>
                 <Ionicons name="checkmark-circle" size={20} color={colors.success || '#4CAF50'} />
                 <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
@@ -175,7 +175,7 @@ export default function LifestyleDetailScreen({
             {t('lifestyles.detail.minimize') || 'Уменьшить'}
           </Text>
           <View style={styles.listContainer}>
-            {getLocalizedTextArray(program.minimize).map((item, index) => (
+            {getLocalizedTextArray(program.minimize || (program.rules && program.rules.minimize) || program.restrictedFoods).map((item, index) => (
               <View key={index} style={styles.listItem}>
                 <Ionicons name="remove-circle" size={20} color={colors.error || '#F44336'} />
                 <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
@@ -192,7 +192,7 @@ export default function LifestyleDetailScreen({
             {t('lifestyles.detail.dailyInspiration') || 'Идеи на сегодня'}
           </Text>
           <View style={styles.listContainer}>
-            {getLocalizedTextArray(program.dailyInspiration).map((item, index) => (
+            {getLocalizedTextArray(program.dailyInspiration || (program.rules && program.rules.dailyInspiration)).map((item, index) => (
               <View key={index} style={styles.inspirationItem}>
                 <View style={[styles.inspirationBullet, { backgroundColor: colors.primary || '#4CAF50' }]} />
                 <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
@@ -204,39 +204,39 @@ export default function LifestyleDetailScreen({
         </View>
 
         {/* Sample Day - only render if sampleDay exists */}
-        {program.sampleDay && (
+        {(program.sampleDay || (program.rules && program.rules.sampleDay)) && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
               {t('lifestyles.detail.sampleDay') || 'Пример дня'}
             </Text>
             <View style={styles.sampleDayContainer}>
-              {program.sampleDay.morning && (
+              {(program.sampleDay?.morning || program.rules?.sampleDay?.morning) && (
                 <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
                   <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
                     {t('lifestyles.detail.morning') || 'Утро'}
                   </Text>
                   <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                    {getLocalizedText(program.sampleDay.morning)}
+                    {getLocalizedText(program.sampleDay?.morning || program.rules?.sampleDay?.morning)}
                   </Text>
                 </View>
               )}
-              {program.sampleDay.midday && (
+              {(program.sampleDay?.midday || program.rules?.sampleDay?.midday) && (
                 <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
                   <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
                     {t('lifestyles.detail.midday') || 'День'}
                   </Text>
                   <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                    {getLocalizedText(program.sampleDay.midday)}
+                    {getLocalizedText(program.sampleDay?.midday || program.rules?.sampleDay?.midday)}
                   </Text>
                 </View>
               )}
-              {program.sampleDay.evening && (
+              {(program.sampleDay?.evening || program.rules?.sampleDay?.evening) && (
                 <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
                   <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
                     {t('lifestyles.detail.evening') || 'Вечер'}
                   </Text>
                   <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                    {getLocalizedText(program.sampleDay.evening)}
+                    {getLocalizedText(program.sampleDay?.evening || program.rules?.sampleDay?.evening)}
                   </Text>
                 </View>
               )}
@@ -245,13 +245,13 @@ export default function LifestyleDetailScreen({
         )}
 
         {/* Vibe */}
-        {program.vibe && (
+        {(program.vibe || (program.rules && program.rules.vibe)) && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
               {t('lifestyles.detail.vibe') || 'Вайб'}
             </Text>
             <View style={styles.vibeContainer}>
-              {program.vibe.split(',').map((keyword, index) => (
+              {(program.vibe || program.rules.vibe).split(',').map((keyword: string, index: number) => (
                 <View
                   key={index}
                   style={[

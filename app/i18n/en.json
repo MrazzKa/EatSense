@@ -476,6 +476,77 @@
       "noDirectory": "Download not available. Please use a development build."
     }
   },
+  "subscription": {
+    "title": "Premium",
+    "subtitle": "Unlock all features and enjoy unlimited access",
+    "freePlan": "Free Plan",
+    "freePlanIncluded": "Currently active",
+    "free": "Free",
+    "freeFeature1": "3 analyses per day",
+    "freeFeature2": "Basic nutrition tracking",
+    "upgradeToPremium": "Upgrade to Premium",
+    "restorePurchases": "Restore Purchases",
+    "terms_notice": "Cancel anytime.",
+    "purchasesRestored": "Your purchases have been restored.",
+    "noPurchases": "No Purchases",
+    "noPurchasesFound": "No previous purchases found.",
+    "restoreFailed": "Could not restore purchases.",
+    "planNotFound": "Plan not found",
+    "purchaseFailed": "Purchase failed. Please try again.",
+    "most_popular": "BEST VALUE",
+    "lifetime": "LIFETIME",
+    "student": "STUDENT",
+    "studentToggle": "I am a student",
+    "studentHint": "Show student discount",
+    "studentVerificationTitle": "Student Discount",
+    "studentVerificationDescription": "To activate student subscription, please email us at info@eatsense.ch with a photo of your student ID.",
+    "plans": {
+      "monthly": {
+        "title": "Monthly Premium",
+        "subtitle": "Billed monthly, cancel anytime",
+        "features": [
+          "Unlimited food analysis with AI",
+          "Detailed nutrition reports & insights",
+          "Personal AI Nutrition Assistant",
+          "Diet & lifestyle programs",
+          "Priority customer support"
+        ]
+      },
+      "yearly": {
+        "title": "Yearly Premium",
+        "subtitle": "Best value - save 50%",
+        "features": [
+          "All Monthly features included",
+          "Save 50% compared to monthly",
+          "Early access to new features",
+          "Personalized meal planning",
+          "Advanced health metrics"
+        ]
+      },
+      "student": {
+        "title": "Student Plan",
+        "subtitle": "Verified students only",
+        "features": [
+          "All Yearly features included",
+          "Special student pricing",
+          "Valid student ID required",
+          "Renews at student rate"
+        ]
+      },
+      "founders": {
+        "title": "Founders Pass",
+        "subtitle": "One-time purchase, lifetime access",
+        "badge": "LIFETIME",
+        "features": [
+          "Lifetime Premium access",
+          "All current & future features",
+          "Exclusive Founder badge",
+          "No recurring payments ever",
+          "Priority feature requests"
+        ]
+      }
+    }
+  },
   "statistics": {
     "title": "Statistics",
     "today": "Today",

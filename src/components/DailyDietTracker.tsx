@@ -70,13 +70,13 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         } catch (error) {
             console.error('[DailyDietTracker] Load tracker data failed:', error);
         }
-    }, [activeProgram]);
+    }, [activeProgram?.id, activeProgram?.currentDayIndex]);
 
     useEffect(() => {
         if (activeProgram && activeProgram.type === 'diet') {
             loadTrackerData();
         }
-    }, [activeProgram, loadTrackerData]);
+    }, [activeProgram?.id, activeProgram?.currentDayIndex, loadTrackerData]);
 
     // Show celebration when day is completed
     useEffect(() => {

@@ -9,6 +9,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
@@ -139,119 +140,144 @@ export default function DashboardScreen() {
   // Consolidated data loading
   const loadDashboardData = React.useCallback(async () => {
     try {
-      if (__DEV__) console.log('[DashboardScreen] Loading dashboard data...');
       const currentLocale = language || 'en';
+      const dateKey = selectedDate.toISOString().split('T')[0];
+      const cacheKey = `dashboard_data_${dateKey}_${currentLocale}`;
+
+      // 1. Try Cache First (Fast Render)
+      try {
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+          if (__DEV__) console.log('[Dashboard] Loaded from cache');
+          const data = JSON.parse(cached);
+          updateDashboardState(data);
+        }
+      } catch (e) {
+        console.warn('Cache read error', e);
+      }
+
+      // 2. Fetch Fresh Data (Network)
+      if (__DEV__) console.log('[DashboardScreen] Loading dashboard data from API...');
       const data = await ApiService.getDashboardData(selectedDate, currentLocale);
 
       if (!data) return;
 
-      // 1. Stats
-      if (data.stats && data.stats.today) {
-        setStats({
-          totalCalories: data.stats.today.calories || 0,
-          totalProtein: data.stats.today.protein || 0,
-          totalCarbs: data.stats.today.carbs || 0,
-          totalFat: data.stats.today.fat || 0,
-          goal: (data.stats.goals && data.stats.goals.calories) || 2000,
-        });
-      }
+      // 3. Update Cache & State
+      AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
+      updateDashboardState(data);
 
-      // 2. Recent Items (Meals)
-      if (Array.isArray(data.meals)) {
-        const normalizedMeals = data.meals.slice(0, 3).map((meal) => {
-          if (!meal) return null;
-          const items = Array.isArray(meal.items) ? meal.items : [];
-          // Pre-calculated totals from backend service if available, else derive
-          const toNumber = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
+    } catch (error) {
+      console.error('[DashboardScreen] Error loading dashboard data:', error);
+    }
+  }, [selectedDate, language, setProgram, updateDashboardState]);
 
-          // Helper to get total either from meal root (aggregated by backend) or sum items
-          const getVal = (key) => {
-            // Backend MealsService.getMeals now aggregates totals into root object
-            if (meal[`total${key.charAt(0).toUpperCase() + key.slice(1)}`] !== undefined) {
-              return meal[`total${key.charAt(0).toUpperCase() + key.slice(1)}`];
-            }
-            return items.reduce((sum, item) => sum + toNumber(item[key]), 0);
-          };
+  // Helper to update state from data (used by cache and api)
+  const updateDashboardState = React.useCallback((data) => {
+    if (!data) return;
 
-          const totalCalories = Math.round(getVal('calories'));
-          const totalProtein = Math.round(getVal('protein'));
-          const totalCarbs = Math.round(getVal('carbs'));
-          const totalFat = Math.round(getVal('fat'));
+    // 1. Stats
+    if (data.stats && data.stats.today) {
+      setStats({
+        totalCalories: data.stats.today.calories || 0,
+        totalProtein: data.stats.today.protein || 0,
+        totalCarbs: data.stats.today.carbs || 0,
+        totalFat: data.stats.today.fat || 0,
+        goal: (data.stats.goals && data.stats.goals.calories) || 2000,
+      });
+    }
 
-          return {
-            id: meal.id,
-            name: meal.name || 'Meal',
+    // 2. Recent Items (Meals)
+    if (Array.isArray(data.meals)) {
+      const normalizedMeals = data.meals.slice(0, 3).map((meal) => {
+        if (!meal) return null;
+        const items = Array.isArray(meal.items) ? meal.items : [];
+        // Pre-calculated totals from backend service if available, else derive
+        const toNumber = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
+
+        // Helper to get total either from meal root (aggregated by backend) or sum items
+        const getVal = (key) => {
+          // Backend MealsService.getMeals now aggregates totals into root object
+          if (meal[`total${key.charAt(0).toUpperCase() + key.slice(1)}`] !== undefined) {
+            return meal[`total${key.charAt(0).toUpperCase() + key.slice(1)}`];
+          }
+          return items.reduce((sum, item) => sum + toNumber(item[key]), 0);
+        };
+
+        const totalCalories = Math.round(getVal('calories'));
+        const totalProtein = Math.round(getVal('protein'));
+        const totalCarbs = Math.round(getVal('carbs'));
+        const totalFat = Math.round(getVal('fat'));
+
+        return {
+          id: meal.id,
+          name: meal.name || 'Meal',
+          dishName: meal.name || 'Meal',
+          totalCalories,
+          totalProtein,
+          totalCarbs,
+          totalFat,
+          calories: totalCalories,
+          protein: totalProtein,
+          carbs: totalCarbs,
+          fat: totalFat,
+          imageUrl: ApiService.resolveMediaUrl(
+            meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || meal.mediaUrl || null
+          ),
+          ingredients: meal.ingredients || items.map(item => ({
+            id: item.id || String(Math.random()),
+            name: item.name || 'Ingredient',
+            calories: toNumber(item.calories),
+            protein: toNumber(item.protein),
+            carbs: toNumber(item.carbs),
+            fat: toNumber(item.fat),
+            weight: toNumber(item.weight),
+            hasNutrition: true,
+          })),
+          healthScore: meal.healthScore || meal.healthInsights || null,
+          analysisResult: {
             dishName: meal.name || 'Meal',
             totalCalories,
             totalProtein,
             totalCarbs,
             totalFat,
-            calories: totalCalories,
-            protein: totalProtein,
-            carbs: totalCarbs,
-            fat: totalFat,
-            imageUrl: ApiService.resolveMediaUrl(
-              meal.imageUrl || meal.imageUri || meal.coverUrl || meal.analysisImageUrl || meal.mediaUrl || null
-            ),
-            ingredients: meal.ingredients || items.map(item => ({
-              id: item.id || String(Math.random()),
-              name: item.name || 'Ingredient',
-              calories: toNumber(item.calories),
-              protein: toNumber(item.protein),
-              carbs: toNumber(item.carbs),
-              fat: toNumber(item.fat),
-              weight: toNumber(item.weight),
-              hasNutrition: true,
-            })),
-            healthScore: meal.healthScore || meal.healthInsights || null,
-            analysisResult: {
-              dishName: meal.name || 'Meal',
-              totalCalories,
-              totalProtein,
-              totalCarbs,
-              totalFat,
-            },
-          };
-        }).filter(Boolean);
-        setRecentItems(normalizedMeals);
-      }
-
-      // 3. User Stats
-      if (data.userStats) {
-        setUserStats({
-          totalPhotosAnalyzed: data.userStats.totalPhotosAnalyzed || 0,
-          todayPhotosAnalyzed: data.userStats.todayPhotosAnalyzed || 0,
-          dailyLimit: data.userStats.dailyLimit || 3,
-        });
-      }
-
-      // 4. Suggestions
-      if (data.suggestions) {
-        const s = data.suggestions;
-        if (s.status === 'ok' || s.status === 'insufficient_data') {
-          setSuggestedFoodSummary({
-            reason: s.summary,
-            category: s.sections?.[0]?.category || 'general',
-            count: s.sections?.length || 0,
-            healthLevel: s.health?.level || 'average',
-            healthScore: s.health?.score || 50,
-            status: s.status,
-          });
-        } else {
-          setSuggestedFoodSummary(null);
-        }
-      }
-
-      // 5. Active Diet - Hydrate Store
-      // Call setProgram from context (exposed in Step 3399/3400)
-      if (setProgram) {
-        setProgram(data.activeDiet || null);
-      }
-
-    } catch (error) {
-      console.error('[DashboardScreen] Error loading dashboard data:', error);
+          },
+        };
+      }).filter(Boolean);
+      setRecentItems(normalizedMeals);
     }
-  }, [selectedDate, language, setProgram]);
+
+    // 3. User Stats
+    if (data.userStats) {
+      setUserStats({
+        totalPhotosAnalyzed: data.userStats.totalPhotosAnalyzed || 0,
+        todayPhotosAnalyzed: data.userStats.todayPhotosAnalyzed || 0,
+        dailyLimit: data.userStats.dailyLimit || 3,
+      });
+    }
+
+    // 4. Suggestions
+    if (data.suggestions) {
+      const s = data.suggestions;
+      if (s.status === 'ok' || s.status === 'insufficient_data') {
+        setSuggestedFoodSummary({
+          reason: s.summary,
+          category: s.sections?.[0]?.category || 'general',
+          count: s.sections?.length || 0,
+          healthLevel: s.health?.level || 'average',
+          healthScore: s.health?.score || 50,
+          status: s.status,
+        });
+      } else {
+        setSuggestedFoodSummary(null);
+      }
+    }
+
+    // 5. Active Diet - Hydrate Store
+    // Call setProgram from context (exposed in Step 3399/3400)
+    if (setProgram) {
+      setProgram(data.activeDiet || null);
+    }
+  }, [setProgram]);
 
 
 

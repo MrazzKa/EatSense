@@ -137,7 +137,7 @@ export default function ConversationChatScreen({ route, navigation }: Conversati
     const isClientView = conversation?.clientId === user?.id;
     const otherParty = isClientView ? conversation?.expert : conversation?.client;
     const otherPartyName = isClientView
-        ? (otherParty?.displayName || t('experts.expert', 'Expert'))
+        ? (otherParty?.displayName || t('experts.expertLabel', 'Expert'))
         : `${otherParty?.userProfile?.firstName || ''} ${otherParty?.userProfile?.lastName || ''}`.trim() || t('experts.client', 'Client');
 
     const renderMessage = ({ item }: { item: any }) => {
