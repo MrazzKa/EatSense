@@ -353,7 +353,8 @@
     "mealTypes": {
       "breakfast": "Breakfast",
       "lunch": "Lunch",
-      "dinner": "Dinner"
+      "dinner": "Dinner",
+      "snack": "Snack"
     },
     "addFood": {
       "title": "Add Food",
@@ -692,7 +693,7 @@
     "changePlan": "Change plan",
     "billingAnnual": "Billed annually",
     "billingMonthly": "Billed monthly",
-    "billingFree": "Free forever",
+    "billingFree": "Basic Plan",
     "planFreeName": "EatSense Free",
     "planProName": "EatSense Pro",
     "planFreePrice": "Free",
@@ -1411,7 +1412,7 @@
     "billing": {
       "perMonth": "per month",
       "perYear": "per year",
-      "free": "Free forever",
+      "free": "Basic Plan",
       "currency": {
         "ru": "₽",
         "kk": "₸",

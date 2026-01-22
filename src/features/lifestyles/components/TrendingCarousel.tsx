@@ -26,7 +26,11 @@ export default function TrendingCarousel({
     return null;
   }
 
-  const getLocalizedText = (text: { en: string; ru: string; kk: string }) => {
+  const getLocalizedText = (
+    text: { en?: string; ru?: string; kk?: string } | undefined | null
+  ): string => {
+    if (!text) return '';
+    if (typeof text === 'string') return text;
     return text[language as keyof typeof text] || text.en || '';
   };
 
