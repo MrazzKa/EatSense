@@ -208,10 +208,10 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
                     <Text style={[styles.title, { color: colors.textPrimary }]}>
-                        {t('diets.tracker.daily_checklist')}
+                        {t('diets_tracker_daily_checklist')}
                     </Text>
                     <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                        {t('diets.tracker.completed')}: {completedCount}/{totalCount}
+                        {t('diets_tracker_completed')}: {completedCount}/{totalCount}
                     </Text>
                 </View>
 
@@ -230,11 +230,11 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                 <View style={[styles.streakContainer, { backgroundColor: colors.surfaceSecondary }]}>
                     <Ionicons name="flame" size={18} color={colors.warning} />
                     <Text style={[styles.streakText, { color: colors.textPrimary }]}>
-                        {t('diets.tracker.streak')}: {activeProgram.streak?.current || 0} {t('diets.tracker.days')}
+                        {t('diets_tracker_streak')}: {activeProgram.streak?.current || 0} {t('diets_tracker_days')}
                     </Text>
                     {(activeProgram.streak?.longest || 0) > 0 && (
                         <Text style={[styles.streakBest, { color: colors.textSecondary }]}>
-                            ({t('diets.tracker.longest_streak')}: {activeProgram.streak?.longest || 0})
+                            ({t('diets_tracker_longest_streak')}: {activeProgram.streak?.longest || 0})
                         </Text>
                     )}
                 </View>
@@ -277,10 +277,10 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             {trackerData.showSymptoms && (
                 <View style={styles.symptomsContainer}>
                     <Text style={[styles.symptomsTitle, { color: colors.textPrimary }]}>
-                        {t('diets.symptoms.title')}
+                        {t('diets_symptoms_title')}
                     </Text>
                     <Text style={[styles.symptomsHint, { color: colors.textTertiary }]}>
-                        {t('diets.symptoms.scale_hint')}
+                        {t('diets_symptoms_scale_hint')}
                     </Text>
 
                     {['energy', 'digestion', 'bloating', 'mood'].map((symptom) => (
@@ -323,7 +323,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
             {/* Footer hint */}
             <Text style={[styles.footerHint, { color: colors.textTertiary }]}>
-                {t('diets.tracker.complete_to_maintain', { threshold: thresholdPercent })}
+                {t('diets_tracker_complete_to_maintain', { threshold: thresholdPercent })}
             </Text>
         </View>
     );

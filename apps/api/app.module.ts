@@ -44,6 +44,7 @@ import { ReferralsModule } from './src/referrals/referrals.module';
 import { ReportsModule } from './src/reports/reports.module';
 import { SafetyModule } from './src/safety/safety.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -121,6 +122,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ReportsModule,
     SafetyModule,
     DashboardModule,
+    SubscriptionsModule,
   ],
   controllers: [HealthController],
 })

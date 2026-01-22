@@ -46,7 +46,7 @@ export default function TrendingCarousel({ programs, onProgramPress }: TrendingC
       <View style={styles.header}>
         <Ionicons name="flame" size={20} color={colors.warning || '#FF6B00'} />
         <Text style={[styles.title, { color: colors.textPrimary }]}>
-          {t('diets.lifestyle.trending') || '🔥 Trending'}
+          {t('diets_lifestyle_trending') || '🔥 Trending'}
         </Text>
       </View>
 
@@ -90,7 +90,7 @@ export default function TrendingCarousel({ programs, onProgramPress }: TrendingC
               <View style={styles.durationBadge}>
                 <Ionicons name="calendar-outline" size={12} color="#FFF" />
                 <Text style={styles.durationText}>
-                  {program.duration} {t('diets.days') || 'days'}
+                  {program.duration} {t('diets_days') || 'days'}
                 </Text>
               </View>
             )}

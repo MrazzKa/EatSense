@@ -222,6 +222,16 @@ export class FoodProcessor {
       // FIX 2026-01-19: Don't block analysis completion on meal save
       const autoSavePromise = (async () => {
         try {
+          // FIX 2026-01-22: Idempotency check - prevent duplicate meal saves for same analysisId
+          const autosaveLockKey = `autosave:lock:${analysisId}`;
+          const alreadySaved = await this.redisService.get(autosaveLockKey);
+          if (alreadySaved) {
+            this.logger.debug(`[FoodProcessor] Skipping duplicate autosave for analysis ${analysisId} - already saved`);
+            return { skipped: true, reason: 'already_saved' };
+          }
+          // Set lock immediately to prevent race conditions (24h TTL)
+          await this.redisService.set(autosaveLockKey, 'pending', 86400);
+
           const items = analysisResult.items || [];
           if (items.length > 0 && userId && userId !== 'test-user' && userId !== 'temp-user') {
             // Проверяем, существует ли пользователь

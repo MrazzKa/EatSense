@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } fr
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { analyzeImage as analyzeImageAPI } from '../lib/api';
+import { useI18n } from '../../app/i18n/hooks';
 
 interface AnalysisFlowProps {
   onClose: () => void;
@@ -13,6 +14,7 @@ interface AnalysisFlowProps {
 type AnalysisStep = 'select' | 'analyzing' | 'complete' | 'error';
 
 export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisComplete, source = 'camera' }) => {
+  const { t } = useI18n();
   const [step, setStep] = useState<AnalysisStep>('analyzing');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,13 +24,13 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
     const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (cameraPermission.status !== 'granted') {
-      setError('Camera permission is required');
+      setError(t('camera.permissionError') || 'Camera permission is required');
       setStep('error');
       return false;
     }
 
     if (mediaPermission.status !== 'granted') {
-      setError('Media library permission is required');
+      setError(t('gallery.permissionRequired') || 'Media library permission is required');
       setStep('error');
       return false;
     }
@@ -119,18 +121,18 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
 
   const getStepTitle = () => {
     switch (step) {
-      case 'analyzing': return 'Analyzing your dish...';
-      case 'complete': return 'Analysis complete!';
-      case 'error': return 'Analysis error';
+      case 'analyzing': return t('analysis.analyzing') || 'Analyzing your dish...';
+      case 'complete': return t('analysis.analysisComplete') || 'Analysis complete!';
+      case 'error': return t('analysis.errorTitle') || 'Analysis error';
       default: return '';
     }
   };
 
   const getStepSubtitle = () => {
     switch (step) {
-      case 'analyzing': return 'AI is identifying ingredients and calories';
-      case 'complete': return 'Your dish has been successfully analyzed';
-      case 'error': return 'Try again or select a different photo';
+      case 'analyzing': return t('analysis.subtitle') || 'AI is identifying ingredients and calories';
+      case 'complete': return t('analysis.savedMessage') || 'Your dish has been successfully analyzed';
+      case 'error': return t('analysis.errorMessage') || 'Try again or select a different photo';
       default: return '';
     }
   };
@@ -143,7 +145,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
           <View style={styles.imageOverlay}>
             <View style={styles.progressContainer}>
               <ActivityIndicator size="large" color="#3498DB" />
-              <Text style={styles.progressText}>Analyzing...</Text>
+              <Text style={styles.progressText}>{t('analysis.analyzing') || 'Analyzing...'}</Text>
             </View>
           </View>
         </View>
@@ -154,21 +156,21 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
           <View style={[styles.stepIcon, { backgroundColor: '#2ECC71' }]}>
             <Ionicons name="checkmark" size={20} color="white" />
           </View>
-          <Text style={styles.stepText}>Uploaded</Text>
+          <Text style={styles.stepText}>{t('analysis.uploaded') || 'Uploaded'}</Text>
         </View>
 
         <View style={styles.analysisStep}>
           <View style={[styles.stepIcon, { backgroundColor: '#3498DB' }]}>
             <ActivityIndicator size="small" color="white" />
           </View>
-          <Text style={styles.stepText}>Analyzing</Text>
+          <Text style={styles.stepText}>{t('analysis.analyzingStep') || 'Analyzing'}</Text>
         </View>
 
         <View style={styles.analysisStep}>
           <View style={[styles.stepIcon, { backgroundColor: '#BDC3C7' }]}>
             <Ionicons name="calculator" size={20} color="white" />
           </View>
-          <Text style={styles.stepText}>Calculating calories</Text>
+          <Text style={styles.stepText}>{t('analysis.calculating') || 'Calculating'}</Text>
         </View>
       </View>
     </View>
@@ -188,9 +190,9 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
       )}
 
       <View style={styles.completeInfo}>
-        <Text style={styles.completeTitle}>Done!</Text>
+        <Text style={styles.completeTitle}>{t('common.done') || 'Done!'}</Text>
         <Text style={styles.completeSubtitle}>
-          Your dish has been successfully analyzed and added to your journal
+          {t('analysis.savedMessage') || 'Your dish has been successfully analyzed and added to your journal'}
         </Text>
       </View>
     </View>
@@ -200,7 +202,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
     <View style={styles.stepContent}>
       <View style={styles.errorContainer}>
         <Ionicons name="alert-circle" size={48} color="#E74C3C" />
-        <Text style={styles.errorTitle}>Analysis error</Text>
+        <Text style={styles.errorTitle}>{t('analysis.errorTitle') || 'Analysis error'}</Text>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -212,7 +214,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
             }
           }}
         >
-          <Text style={styles.retryButtonText}>Try again</Text>
+          <Text style={styles.retryButtonText}>{t('common.retry') || 'Try again'}</Text>
         </TouchableOpacity>
       </View>
     </View>

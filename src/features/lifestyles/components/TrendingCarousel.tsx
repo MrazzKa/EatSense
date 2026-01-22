@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -53,11 +53,28 @@ export default function TrendingCarousel({
             key={program.id}
             style={[
               styles.card,
-              { backgroundColor: colors.primary || '#4CAF50' },
+              { backgroundColor: program.imageUrl ? 'transparent' : (colors.primary || '#4CAF50') },
             ]}
             onPress={() => onProgramPress(program.id)}
             activeOpacity={0.85}
           >
+            {/* Background Image */}
+            {program.imageUrl && (
+              <>
+                <Image
+                  source={{ uri: program.imageUrl }}
+                  style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+                  resizeMode="cover"
+                />
+                <View
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 16 },
+                  ]}
+                />
+              </>
+            )}
+
             {/* Emoji */}
             <View style={styles.cardIconContainer}>
               <Text style={styles.emoji}>{program.emoji}</Text>

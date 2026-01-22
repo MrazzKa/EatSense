@@ -43,6 +43,7 @@ interface LifestyleProgram {
   uiGroup?: string;
   target?: string;
   ageRange?: string;
+  imageUrl?: string;
   type?: string;
   [key: string]: any;
 }
@@ -358,7 +359,7 @@ const FiltersSection = React.memo(function FiltersSection({
       {/* Target Filter */}
       <View style={styles.filterSection}>
         <Text style={[styles.filterLabel, { color: colors.textSecondary || '#666' }]}>
-          {t('lifestyles.filters.target.label') || t('lifestyles.filters.target') || 'Target:'}
+          {t('lifestyles.filters_target_label') || 'Target:'}
         </Text>
         <View style={styles.filterChips}>
           {(['all', 'male', 'female'] as LifestyleTarget[]).map((target) => (
@@ -387,7 +388,7 @@ const FiltersSection = React.memo(function FiltersSection({
                   },
                 ]}
               >
-                {t(`lifestyles.filters.target.${target}`) || target}
+                {t(`lifestyles.filters_target_${target}`) || target}
               </Text>
             </TouchableOpacity>
           ))}
@@ -397,7 +398,7 @@ const FiltersSection = React.memo(function FiltersSection({
       {/* Age Range Filter */}
       <View style={styles.filterSection}>
         <Text style={[styles.filterLabel, { color: colors.textSecondary || '#666' }]}>
-          {t('lifestyles.filters.age.label') || t('lifestyles.filters.age') || 'Age:'}
+          {t('lifestyles.filters_age_label') || 'Age:'}
         </Text>
         <View style={styles.filterChips}>
           {ageRanges.map((range) => (

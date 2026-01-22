@@ -171,10 +171,9 @@ class DietProgramsService {
         return ApiService.getActiveDiet();
     }
 
-    async completeDay(_programId, dayNumber) {
-        return ApiService.request('/diets/active/checklist', {
-            method: 'PATCH',
-            body: JSON.stringify({ dayNumber }),
+    async completeDay(_programId, _dayNumber) {
+        return ApiService.request('/diets/active/complete-day', {
+            method: 'POST',
         });
     }
 

@@ -834,7 +834,7 @@ const OnboardingScreen = () => {
     monthlyPrice: '$9.99',
     yearlyPrice: '$79.99',
     studentPrice: '$49.99',
-    founderPrice: '$199.99',
+    founderPrice: '$99.99',
   });
 
   // Load currency from IAP on mount
@@ -867,7 +867,7 @@ const OnboardingScreen = () => {
                 monthlyPrice: monthly?.localizedPrice || `${symbol}9.99`,
                 yearlyPrice: yearly?.localizedPrice || `${symbol}79.99`,
                 studentPrice: student?.localizedPrice || `${symbol}49.99`,
-                founderPrice: allProducts.find(p => p.productId === 'eatsense.founder.pass')?.localizedPrice || `${symbol}199.99`,
+                founderPrice: allProducts.find(p => p.productId === 'eatsense.founder.pass')?.localizedPrice || `${symbol}99.99`,
               });
               console.log('[Onboarding] Currency from IAP:', currencyCode);
               return;
@@ -884,17 +884,17 @@ const OnboardingScreen = () => {
       const region = deviceLocale?.regionCode?.toUpperCase();
 
       const regionMap = {
-        'CH': { symbol: 'CHF', code: 'CHF', freePrice: 'CHF 0', monthlyPrice: 'CHF 9.90', yearlyPrice: 'CHF 79.00', studentPrice: 'CHF 49.00' },
-        'RU': { symbol: '₽', code: 'RUB', freePrice: '0 ₽', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽' },
-        'KZ': { symbol: '₸', code: 'KZT', freePrice: '0 ₸', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸' },
-        'DE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-        'FR': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €' },
-        'GB': { symbol: '£', code: 'GBP', freePrice: '£0', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99' },
-        'US': { symbol: '$', code: 'USD', freePrice: '$0', monthlyPrice: '$9.99', yearlyPrice: '$79.99', studentPrice: '$49.99' },
-        'UA': { symbol: '₴', code: 'UAH', freePrice: '0 ₴', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴' },
-        'PL': { symbol: 'zł', code: 'PLN', freePrice: '0 zł', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł' },
-        'AU': { symbol: 'A$', code: 'AUD', freePrice: 'A$0', monthlyPrice: 'A$14.99', yearlyPrice: 'A$119.99', studentPrice: 'A$74.99' },
-        'CA': { symbol: 'C$', code: 'CAD', freePrice: 'C$0', monthlyPrice: 'C$12.99', yearlyPrice: 'C$99.99', studentPrice: 'C$64.99' },
+        'CH': { symbol: 'CHF', code: 'CHF', freePrice: 'CHF 0', monthlyPrice: 'CHF 9.90', yearlyPrice: 'CHF 79.00', studentPrice: 'CHF 49.00', founderPrice: 'CHF 99.00' },
+        'RU': { symbol: '₽', code: 'RUB', freePrice: '0 ₽', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽', founderPrice: '8 990 ₽' },
+        'KZ': { symbol: '₸', code: 'KZT', freePrice: '0 ₸', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸', founderPrice: '44 990 ₸' },
+        'DE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
+        'FR': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
+        'GB': { symbol: '£', code: 'GBP', freePrice: '£0', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99', founderPrice: '£89.99' },
+        'US': { symbol: '$', code: 'USD', freePrice: '$0', monthlyPrice: '$9.99', yearlyPrice: '$79.99', studentPrice: '$49.99', founderPrice: '$99.99' },
+        'UA': { symbol: '₴', code: 'UAH', freePrice: '0 ₴', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴', founderPrice: '3 999 ₴' },
+        'PL': { symbol: 'zł', code: 'PLN', freePrice: '0 zł', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł', founderPrice: '399,99 zł' },
+        'AU': { symbol: 'A$', code: 'AUD', freePrice: 'A$0', monthlyPrice: 'A$14.99', yearlyPrice: 'A$119.99', studentPrice: 'A$74.99', founderPrice: 'A$149.99' },
+        'CA': { symbol: 'C$', code: 'CAD', freePrice: 'C$0', monthlyPrice: 'C$12.99', yearlyPrice: 'C$99.99', studentPrice: 'C$64.99', founderPrice: 'C$129.99' },
       };
 
       if (region && regionMap[region]) {
@@ -1558,7 +1558,7 @@ const OnboardingScreen = () => {
       </Text>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
+        contentContainerStyle={{ paddingBottom: 24, paddingTop: 24 }}
         showsVerticalScrollIndicator={false}
         bounces={true}
       >
@@ -2239,6 +2239,13 @@ const OnboardingScreen = () => {
               {t('onboarding.privacyPolicy', 'Privacy Policy')}
             </Text>
             <LegalDocumentView type="privacy" maxHeight={200} />
+          </View>
+
+          {/* Company Address */}
+          <View style={{ paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.border || '#E5E5E5' }}>
+            <Text style={{ fontSize: 13, color: colors.textTertiary || '#999', textAlign: 'center', lineHeight: 20 }}>
+              {t('onboarding.address', 'My Company Name\n123 Innovation Dr.\nTech City, TC 94043')}
+            </Text>
           </View>
         </ScrollView>
 

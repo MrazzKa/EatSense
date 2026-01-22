@@ -55,4 +55,5 @@ export interface LifestyleProgram {
   target: LifestyleTarget;
   ageRange: string;
   durationDays?: number; // Default 14 if not specified
+  imageUrl?: string;
 }

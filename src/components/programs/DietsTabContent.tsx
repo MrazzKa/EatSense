@@ -15,12 +15,12 @@ import type { Program, Recommendation, ActiveDiet } from './types';
 import { getLocalizedText } from './types';
 
 const DIETS_UI_GROUPS: Array<{ id: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; labelKey: string }> = [
-    { id: 'Popular', icon: 'star', color: '#FFB300', labelKey: 'diets.groups.popular' },
-    { id: 'Health', icon: 'heart', color: '#4CAF50', labelKey: 'diets.groups.health' },
-    { id: 'Weight loss', icon: 'trending-down', color: '#2196F3', labelKey: 'diets.groups.weight_loss' },
-    { id: 'Performance', icon: 'fitness', color: '#F44336', labelKey: 'diets.groups.performance' },
-    { id: 'Medical', icon: 'medical', color: '#009688', labelKey: 'diets.groups.medical' },
-    { id: 'Seasonal', icon: 'calendar', color: '#FF9800', labelKey: 'diets.categories.seasonal' },
+    { id: 'Popular', icon: 'star', color: '#FFB300', labelKey: 'diets_groups_popular' },
+    { id: 'Health', icon: 'heart', color: '#4CAF50', labelKey: 'diets_groups_health' },
+    { id: 'Weight loss', icon: 'trending-down', color: '#2196F3', labelKey: 'diets_groups_weight_loss' },
+    { id: 'Performance', icon: 'fitness', color: '#F44336', labelKey: 'diets_groups_performance' },
+    { id: 'Medical', icon: 'medical', color: '#009688', labelKey: 'diets_groups_medical' },
+    { id: 'Seasonal', icon: 'calendar', color: '#FF9800', labelKey: 'diets_groups_seasonal' },
 ];
 
 interface DietsTabContentProps {
@@ -62,18 +62,18 @@ export default function DietsTabContent({
     const tokens = useDesignTokens();
 
     const typeFilters: Array<{ id: string | null; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = [
-        { id: null, label: t('diets.all') || 'All', icon: 'apps' },
-        { id: 'WEIGHT_LOSS', label: t('diets.weight_loss') || 'Weight Loss', icon: 'trending-down' },
-        { id: 'HEALTH', label: t('diets.health') || 'Health', icon: 'heart' },
-        { id: 'SPORTS', label: t('diets.sports') || 'Sports', icon: 'fitness' },
-        { id: 'MEDICAL', label: t('diets.medical') || 'Medical', icon: 'medical' },
+        { id: null, label: t('diets_all') || 'All', icon: 'apps' },
+        { id: 'WEIGHT_LOSS', label: t('diets_weight_loss') || 'Weight Loss', icon: 'trending-down' },
+        { id: 'HEALTH', label: t('diets_health') || 'Health', icon: 'heart' },
+        { id: 'SPORTS', label: t('diets_sports') || 'Sports', icon: 'fitness' },
+        { id: 'MEDICAL', label: t('diets_medical') || 'Medical', icon: 'medical' },
     ];
 
     const difficultyFilters = [
-        { id: null, label: t('diets.all') || 'All' },
-        { id: 'EASY', label: t('diets.easy') || 'Easy' },
-        { id: 'MODERATE', label: t('diets.moderate') || 'Moderate' },
-        { id: 'HARD', label: t('diets.hard') || 'Hard' },
+        { id: null, label: t('diets_all') || 'All' },
+        { id: 'EASY', label: t('diets_difficulty_easy') || 'Easy' },
+        { id: 'MODERATE', label: t('diets_difficulty_moderate') || 'Moderate' },
+        { id: 'HARD', label: t('diets_difficulty_hard') || 'Hard' },
     ];
 
     // Filter diets by uiGroup (only diet groups)
@@ -127,11 +127,11 @@ export default function DietsTabContent({
                     <View style={styles.sectionHeader}>
                         <Ionicons name="sparkles" size={18} color={colors.primary || '#4CAF50'} />
                         <Text style={styles.sectionTitle}>
-                            {t('diets.recommended') || 'Recommended for You'}
+                            {t('diets_recommended') || 'Recommended for You'}
                         </Text>
                     </View>
                     <Text style={styles.sectionDescription}>
-                        {t('diets.recommended_description') || 'Based on your profile and eating habits'}
+                        {t('diets_recommended_description') || 'Based on your profile and eating habits'}
                     </Text>
 
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -160,7 +160,7 @@ export default function DietsTabContent({
             {featuredDiets.length > 0 && !searchQuery && (
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>
-                        {t('diets.featured') || 'Popular Diets'}
+                        {t('diets_featured') || 'Popular Diets'}
                     </Text>
 
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -179,7 +179,7 @@ export default function DietsTabContent({
                                 </Text>
                                 <View style={styles.featuredMeta}>
                                     <Text style={styles.featuredMetaText}>
-                                        {diet.duration} {t('diets.days') || 'days'}
+                                        {diet.duration} {t('diets_days') || 'days'}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -190,7 +190,7 @@ export default function DietsTabContent({
 
             {/* Type Filters */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('diets.browse') || 'Browse All'}</Text>
+                <Text style={styles.sectionTitle}>{t('diets_browse') || 'Browse All'}</Text>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersRow}>
                     {typeFilters.map((filter) => (
@@ -220,7 +220,7 @@ export default function DietsTabContent({
                 {/* Difficulty Filters */}
                 <View style={styles.difficultyRow}>
                     <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>
-                        {t('diets.filter_difficulty') || 'Difficulty'}:
+                        {t('diets_filter_difficulty') || 'Difficulty'}:
                     </Text>
                     {difficultyFilters.map((filter) => (
                         <TouchableOpacity
@@ -272,7 +272,7 @@ export default function DietsTabContent({
                 <View style={styles.emptyContainer}>
                     <Ionicons name="search" size={48} color="#CCC" />
                     <Text style={styles.emptyText}>
-                        {t('diets.no_diets') || 'No diets found'}
+                        {t('diets_no_diets') || 'No diets found'}
                     </Text>
                 </View>
             )}

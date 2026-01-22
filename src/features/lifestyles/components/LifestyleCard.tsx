@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -48,7 +48,15 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
       {/* Header: Emoji + Name + Target Badge */}
       <View style={styles.header}>
         <View style={styles.emojiContainer}>
-          <Text style={styles.emoji}>{program.emoji}</Text>
+          {program.imageUrl ? (
+            <Image
+              source={{ uri: program.imageUrl }}
+              style={{ width: '100%', height: '100%', borderRadius: 24 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={styles.emoji}>{program.emoji}</Text>
+          )}
         </View>
 
         <View style={styles.headerContent}>

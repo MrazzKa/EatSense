@@ -90,6 +90,9 @@ export class AnalyzeService {
   // v8: Quality balance - restored 512px, 45% JPEG, 1200 tokens
   private readonly ANALYSIS_CACHE_VERSION = 'v8';
 
+  // Pending requests map for request coalescing (Double Analysis Fix)
+  private pendingRequests = new Map<string, Promise<AnalysisData>>();
+
   // Keywords to detect drinks in food names
   private readonly DRINK_KEYWORDS = [
     'coffee', 'latte', 'cappuccino', 'espresso', 'mocha',
@@ -1628,18 +1631,45 @@ export class AnalyzeService {
   }
 
   /**
-   * Analyze image and return normalized nutrition data
+   * Analyze image and return normalized nutrition data.
+   * Wrapper around internal implementation to handle request coalescing (locking).
    */
   async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+    // Check for pending request to prevent double analysis (Race Condition Fix)
+    // This uses a memory lock so that simultaneous requests for the same image Wait for the first one
+    const imageHash = this.hashImage(params);
+    const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+
+    if (this.pendingRequests.has(cacheKey)) {
+      this.logger.debug(`[AnalyzeService] Joining pending request for ${cacheKey.substring(0, 20)}...`);
+      return this.pendingRequests.get(cacheKey)!;
+    }
+
+    // Execute internal analysis
+    const promise = this.analyzeImageInternal(params);
+
+    // Store promise in lock map
+    this.pendingRequests.set(cacheKey, promise);
+
+    try {
+      return await promise;
+    } finally {
+      this.pendingRequests.delete(cacheKey);
+    }
+  }
+
+  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | undefined) || 'en';
     const mode = params.mode || 'default';
     const skipCache = params.skipCache || false;
 
+    // Calculate cache key for this analysis
+    const imageHash = this.hashImage(params);
+    const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+
     // Check cache (skip for review mode or explicit skipCache to ensure fresh analysis)
     if (mode !== 'review' && !skipCache) {
-      const imageHash = this.hashImage(params);
-      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
       const cached = await this.cache.get<AnalysisData>(cacheKey, 'analysis');
       if (cached) {
         this.logger.debug('Cache hit for image analysis');

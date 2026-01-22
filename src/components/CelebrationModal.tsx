@@ -62,23 +62,23 @@ export default function CelebrationModal({
   // Get praise text based on completion rate
   const getPraiseText = () => {
     if (completionRate >= 1.0) {
-      return t('diets.celebration.perfect') || 'Perfect! 🎉';
+      return t('diets_celebration_perfect') || 'Perfect! 🎉';
     } else if (completionRate >= 0.8) {
-      return t('diets.celebration.excellent') || 'Excellent work! 🌟';
+      return t('diets_celebration_excellent') || 'Excellent work! 🌟';
     } else if (completionRate >= 0.6) {
-      return t('diets.celebration.great') || 'Great job! 💪';
+      return t('diets_celebration_great') || 'Great job! 💪';
     } else {
-      return t('diets.celebration.good') || 'Good progress! 👍';
+      return t('diets_celebration_good') || 'Good progress! 👍';
     }
   };
 
   const getSubtext = () => {
     if (completionRate >= 1.0) {
-      return t('diets.celebration.perfectSubtext') || 'You completed all tasks today!';
+      return t('diets_celebration_perfectSubtext') || 'You completed all tasks today!';
     } else if (completionRate >= 0.6) {
-      return t('diets.celebration.greatSubtext') || 'You\'re maintaining your streak!';
+      return t('diets_celebration_greatSubtext') || 'You\'re maintaining your streak!';
     } else {
-      return t('diets.celebration.goodSubtext') || 'Every step counts!';
+      return t('diets_celebration_goodSubtext') || 'Every step counts!';
     }
   };
 
