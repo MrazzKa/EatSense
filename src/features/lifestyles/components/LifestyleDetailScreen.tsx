@@ -203,38 +203,46 @@ export default function LifestyleDetailScreen({
           </View>
         </View>
 
-        {/* Sample Day */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
-            {t('lifestyles.detail.sampleDay') || 'Пример дня'}
-          </Text>
-          <View style={styles.sampleDayContainer}>
-            <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
-              <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
-                {t('lifestyles.detail.morning') || 'Утро'}
-              </Text>
-              <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                {getLocalizedText(program.sampleDay.morning)}
-              </Text>
-            </View>
-            <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
-              <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
-                {t('lifestyles.detail.midday') || 'День'}
-              </Text>
-              <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                {getLocalizedText(program.sampleDay.midday)}
-              </Text>
-            </View>
-            <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
-              <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
-                {t('lifestyles.detail.evening') || 'Вечер'}
-              </Text>
-              <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                {getLocalizedText(program.sampleDay.evening)}
-              </Text>
+        {/* Sample Day - only render if sampleDay exists */}
+        {program.sampleDay && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
+              {t('lifestyles.detail.sampleDay') || 'Пример дня'}
+            </Text>
+            <View style={styles.sampleDayContainer}>
+              {program.sampleDay.morning && (
+                <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
+                  <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
+                    {t('lifestyles.detail.morning') || 'Утро'}
+                  </Text>
+                  <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
+                    {getLocalizedText(program.sampleDay.morning)}
+                  </Text>
+                </View>
+              )}
+              {program.sampleDay.midday && (
+                <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
+                  <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
+                    {t('lifestyles.detail.midday') || 'День'}
+                  </Text>
+                  <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
+                    {getLocalizedText(program.sampleDay.midday)}
+                  </Text>
+                </View>
+              )}
+              {program.sampleDay.evening && (
+                <View style={[styles.sampleDayItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
+                  <Text style={[styles.sampleDayTime, { color: colors.primary || '#4CAF50' }]}>
+                    {t('lifestyles.detail.evening') || 'Вечер'}
+                  </Text>
+                  <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
+                    {getLocalizedText(program.sampleDay.evening)}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
-        </View>
+        )}
 
         {/* Vibe */}
         {program.vibe && (
