@@ -1645,7 +1645,7 @@
     "freePlan": "Бесплатный план",
     "freePlanIncluded": "Текущий план",
     "free": "Бесплатно",
-    "freeFeature1": "5 анализов в день",
+    "freeFeature1": "3 анализа в день",
     "freeFeature2": "Базовый трекинг питания",
     "upgradeToPremium": "Перейти на Премиум",
     "month": "мес",
@@ -1661,6 +1661,7 @@
     "plan_monthly": "Месяц",
     "plan_yearly": "Год",
     "plan_student": "Студент",
+    "plan_founders": "Пожизненный доступ",
     "billing": {
       "currency": {
         "default": "$",

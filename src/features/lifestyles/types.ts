@@ -56,4 +56,10 @@ export interface LifestyleProgram {
   ageRange: string;
   durationDays?: number; // Default 14 if not specified
   imageUrl?: string;
+  rules?: any; // Helper for storing extra JSON data (mantra, philosophy, etc.)
+
+  // Alternative/DB fields
+  subtitle?: LocalizedText;
+  allowedFoods?: string[];
+  restrictedFoods?: string[];
 }

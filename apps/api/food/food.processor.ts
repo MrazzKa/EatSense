@@ -29,6 +29,14 @@ export class FoodProcessor {
   async handleImageAnalysis(job: Job) {
     const { analysisId, imageBufferBase64, userId: jobUserId, locale, foodDescription, skipCache } = job.data;
 
+    // FIX 2026-01-23: Prevent duplicate processing with Redis lock
+    const processingLockKey = `analysis:processing:${analysisId}`;
+    const lockAcquired = await this.redisService.setNx(processingLockKey, 'processing', 300); // 5 min TTL
+    if (!lockAcquired) {
+      this.logger.warn(`[FoodProcessor] Skipping duplicate processing for analysis ${analysisId} - already in progress`);
+      return;
+    }
+
     // Pipeline metrics tracking
     const metrics = {
       startTime: Date.now(),
@@ -40,11 +48,19 @@ export class FoodProcessor {
       totalTime: 0,
     };
 
-    // Получаем userId из анализа, так как он точно правильный
+    // Получаем userId и status из анализа, так как он точно правильный
     const analysis = await this.prisma.analysis.findUnique({
       where: { id: analysisId },
-      select: { userId: true },
+      select: { userId: true, status: true },
     });
+
+    // FIX 2026-01-23: Skip if analysis is no longer pending (already processed by another worker)
+    if (analysis?.status && analysis.status !== 'PENDING') {
+      this.logger.warn(`[FoodProcessor] Skipping analysis ${analysisId} - status is ${analysis.status}, not PENDING`);
+      await this.redisService.del(processingLockKey);
+      return;
+    }
+
     const userId = analysis?.userId || jobUserId;
 
     this.logger.log(`[FoodProcessor] Starting analysis ${analysisId}`, {
@@ -56,11 +72,18 @@ export class FoodProcessor {
     });
 
     try {
-      // Update status to processing
-      await this.prisma.analysis.update({
-        where: { id: analysisId },
+      // Update status to processing (atomic update with condition)
+      const updated = await this.prisma.analysis.updateMany({
+        where: { id: analysisId, status: 'PENDING' },
         data: { status: 'PROCESSING' },
       });
+
+      // If no rows updated, another process already started this analysis
+      if (updated.count === 0) {
+        this.logger.warn(`[FoodProcessor] Analysis ${analysisId} already being processed by another worker`);
+        await this.redisService.del(processingLockKey);
+        return;
+      }
 
       // Decode base64 back to Buffer
       if (!imageBufferBase64) {
@@ -526,6 +549,9 @@ export class FoodProcessor {
           autoSaved: Boolean(result.autoSave?.mealId),
         },
       });
+
+      // FIX 2026-01-23: Release processing lock on success
+      await this.redisService.del(processingLockKey);
     } catch (error: any) {
       this.logger.error(`[FoodProcessor] Image analysis failed for analysis ${analysisId}:`, {
         message: error.message,
@@ -547,6 +573,9 @@ export class FoodProcessor {
       } catch (updateError: any) {
         this.logger.error(`[FoodProcessor] Failed to update analysis status:`, updateError.message);
       }
+
+      // FIX 2026-01-23: Release processing lock on error
+      await this.redisService.del(processingLockKey);
     }
   }
 
