@@ -1992,92 +1992,8 @@ const OnboardingScreen = () => {
 
 
 
+  // Note: Notifications permission useEffect moved to top level of component (search for "notifications step effect")
   const renderNotificationsStep = () => {
-    // Auto-request notifications when this slide mounts
-    useEffect(() => {
-      const requestNotifications = async () => {
-        try {
-          // Android: Create notification channel first
-          if (Platform.OS === 'android') {
-            await Notifications.setNotificationChannelAsync('default', {
-              name: 'default',
-              importance: Notifications.AndroidImportance.MAX,
-              vibrationPattern: [0, 250, 250, 250],
-              lightColor: '#4CAF50',
-            });
-          }
-
-          const { status } = await Notifications.requestPermissionsAsync();
-          if (status === 'granted') {
-            if (notificationsEnabled) return;
-            setNotificationsEnabled(true);
-
-            // Get push token for remote notifications
-            let pushToken = null;
-            try {
-              const tokenData = await Notifications.getExpoPushTokenAsync({
-                projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-expo-project-id',
-              });
-              pushToken = tokenData.data;
-              console.log('[Onboarding] Push token:', pushToken);
-            } catch (tokenError) {
-              console.warn('[Onboarding] Failed to get push token:', tokenError);
-            }
-
-            // Update profile data with notification preference
-            setProfileData(prev => ({
-              ...prev,
-              preferences: {
-                ...prev.preferences,
-                dailyPushEnabled: true,
-                dailyPushHour: 9,
-                dailyPushMinute: 0,
-                timezone: Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC',
-              },
-            }));
-
-            // Save push token to server
-            if (pushToken) {
-              try {
-                await ApiService.put('/user-profiles', { pushToken });
-                console.log('[Onboarding] Push token saved to server');
-              } catch (saveError) {
-                console.warn('[Onboarding] Failed to save push token:', saveError);
-              }
-            }
-
-            // Schedule automatic meal reminders (3 times a day)
-            try {
-              const { localNotificationService } = require('../services/localNotificationService');
-              await localNotificationService.scheduleMealReminders(3);
-              console.log('[Onboarding] Scheduled 3 daily meal reminders');
-            } catch (scheduleError) {
-              console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
-            }
-
-            clientLog('Onboarding:notificationsEnabled', { hasPushToken: !!pushToken });
-          } else {
-            setNotificationsEnabled(false);
-            setProfileData(prev => ({
-              ...prev,
-              preferences: {
-                ...prev.preferences,
-                dailyPushEnabled: false,
-              },
-            }));
-            clientLog('Onboarding:notificationsDenied');
-          }
-        } catch (e) {
-          console.warn('Notifications permission error:', e);
-          clientLog('Onboarding:notificationsError', { error: e.message });
-        }
-      };
-
-      // Small delay to ensure slide is visible before showing system dialog
-      const timer = setTimeout(requestNotifications, 500);
-      return () => clearTimeout(timer);
-    }, []);
-
     return (
       <View style={styles.stepContainer}>
         <View style={styles.welcomeContent}>
@@ -2187,6 +2103,101 @@ const OnboardingScreen = () => {
       setPlanData(null);
     }
   }, [currentStep, profileData, steps]);
+
+  // Effect for notifications step - request permission when on notifications step
+  useEffect(() => {
+    const currentStepId = steps[currentStep]?.id;
+    if (currentStepId !== 'notifications') return;
+
+    let isMounted = true;
+
+    const requestNotifications = async () => {
+      try {
+        // Android: Create notification channel first
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#4CAF50',
+          });
+        }
+
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (!isMounted) return;
+
+        if (status === 'granted') {
+          if (notificationsEnabled) return;
+          setNotificationsEnabled(true);
+
+          // Get push token for remote notifications
+          let pushToken = null;
+          try {
+            const tokenData = await Notifications.getExpoPushTokenAsync({
+              projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-expo-project-id',
+            });
+            pushToken = tokenData.data;
+            console.log('[Onboarding] Push token:', pushToken);
+          } catch (tokenError) {
+            console.warn('[Onboarding] Failed to get push token:', tokenError);
+          }
+
+          // Update profile data with notification preference
+          setProfileData(prev => ({
+            ...prev,
+            preferences: {
+              ...prev.preferences,
+              dailyPushEnabled: true,
+              dailyPushHour: 9,
+              dailyPushMinute: 0,
+              timezone: Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC',
+            },
+          }));
+
+          // Save push token to server
+          if (pushToken) {
+            try {
+              await ApiService.put('/user-profiles', { pushToken });
+              console.log('[Onboarding] Push token saved to server');
+            } catch (saveError) {
+              console.warn('[Onboarding] Failed to save push token:', saveError);
+            }
+          }
+
+          // Schedule automatic meal reminders (3 times a day)
+          try {
+            const { localNotificationService } = require('../services/localNotificationService');
+            await localNotificationService.scheduleMealReminders(3);
+            console.log('[Onboarding] Scheduled 3 daily meal reminders');
+          } catch (scheduleError) {
+            console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
+          }
+
+          clientLog('Onboarding:notificationsEnabled', { hasPushToken: !!pushToken });
+        } else {
+          setNotificationsEnabled(false);
+          setProfileData(prev => ({
+            ...prev,
+            preferences: {
+              ...prev.preferences,
+              dailyPushEnabled: false,
+            },
+          }));
+          clientLog('Onboarding:notificationsDenied');
+        }
+      } catch (e) {
+        console.warn('Notifications permission error:', e);
+        clientLog('Onboarding:notificationsError', { error: e.message });
+      }
+    };
+
+    // Small delay to ensure slide is visible before showing system dialog
+    const timer = setTimeout(requestNotifications, 500);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [currentStep, steps, notificationsEnabled]);
 
   // Terms and Privacy Policy acceptance step
   const renderTermsStep = () => {
