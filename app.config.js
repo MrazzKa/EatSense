@@ -14,7 +14,7 @@ export default {
       policy: "appVersion"
     },
     // Use Logo.jpeg for app icon (Expo will auto-generate required sizes)
-    icon: "./assets/logo/Logo.jpeg",
+    icon: "./assets/logo/logo.jpg",
     userInterfaceStyle: "light",
 
     extra: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "82",
+      buildNumber: "83",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { DietType, DietDifficulty } from '@prisma/client';
@@ -20,8 +20,26 @@ interface DietFilters {
 const DIETS_CACHE_TTL = 300;
 
 @Injectable()
-export class DietsService {
+export class DietsService implements OnModuleInit {
     private readonly logger = new Logger(DietsService.name);
+
+    async onModuleInit() {
+        // Warm up cache heavily used on app start
+        this.logger.log('Warming up diets cache...');
+        try {
+            await Promise.all([
+                // Warm up featured diets
+                this.getFeatured('en'),
+                this.getFeatured('ru'),
+                // Warm up main catalog (first page)
+                this.findAll({ limit: 20 }, 'en'),
+                this.findAll({ limit: 20 }, 'ru'),
+            ]);
+            this.logger.log('Diets cache warmup completed');
+        } catch (error) {
+            this.logger.error('Failed to warm up diets cache', error);
+        }
+    }
 
     constructor(
         private prisma: PrismaService,

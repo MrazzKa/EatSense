@@ -54,10 +54,10 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.title}>
-                        {t('diets.historical_section.title') || 'Historical & Inspired'}
+                        {t('diets_historical_section_title') || 'Historical & Inspired'}
                     </Text>
                     <Text style={styles.subtitle}>
-                        {t('diets.historical_section.subtitle') || 'Fun diets inspired by history and culture'}
+                        {t('diets_historical_section_subtitle') || 'Fun diets inspired by history and culture'}
                     </Text>
                 </View>
             </View>
@@ -66,7 +66,7 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
             <View style={styles.disclaimer}>
                 <Ionicons name="information-circle-outline" size={16} color="#8D6E63" />
                 <Text style={styles.disclaimerText}>
-                    {t('diets.historical_section.disclaimer_banner') || 'These are approximations for fun, not medical recommendations'}
+                    {t('diets_historical_section_disclaimer_banner') || 'These are approximations for fun, not medical recommendations'}
                 </Text>
             </View>
 
@@ -114,7 +114,7 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
                         <View style={styles.durationBadge}>
                             <Ionicons name="calendar-outline" size={12} color="#FFF" />
                             <Text style={styles.durationText}>
-                                {diet.duration} {t('diets.days') || 'days'}
+                                {diet.duration} {t('diets_days') || 'days'}
                             </Text>
                         </View>
 

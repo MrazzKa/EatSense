@@ -33,11 +33,11 @@ export default function ActiveDietWidget({ userDiet, onPress }) {
             <View style={styles.header}>
                 <View style={styles.titleRow}>
                     <Ionicons name="flame" size={20} color="#FFF" />
-                    <Text style={styles.title}>{t('diets.yourActiveDiet') || 'Your Active Diet'}</Text>
+                    <Text style={styles.title}>{t('diets_yourActiveDiet') || 'Your Active Diet'}</Text>
                 </View>
                 <View style={styles.dayBadge}>
                     <Text style={styles.dayBadgeText}>
-                        {t('diets.day') || 'Day'} {userDiet.currentDay || 1}
+                        {t('diets_day') || 'Day'} {userDiet.currentDay || 1}
                     </Text>
                 </View>
             </View>
@@ -60,7 +60,7 @@ export default function ActiveDietWidget({ userDiet, onPress }) {
                 <View style={styles.todayItem}>
                     <Ionicons name="restaurant-outline" size={16} color="rgba(255,255,255,0.8)" />
                     <Text style={styles.todayLabel}>
-                        {t('diets.mealsToday') || 'Meals today'}
+                        {t('diets_mealsToday') || 'Meals today'}
                     </Text>
                     <Text style={styles.todayValue}>{mealsLogged}/{mealsToday}</Text>
                 </View>
@@ -68,7 +68,7 @@ export default function ActiveDietWidget({ userDiet, onPress }) {
                 <View style={styles.todayItem}>
                     <Ionicons name="calendar-outline" size={16} color="rgba(255,255,255,0.8)" />
                     <Text style={styles.todayLabel}>
-                        {t('diets.daysLeft') || 'Days left'}
+                        {t('diets_daysLeft') || 'Days left'}
                     </Text>
                     <Text style={styles.todayValue}>
                         {userDiet.totalDays ? (userDiet.totalDays - (userDiet.currentDay - 1)) : 0}
@@ -78,7 +78,7 @@ export default function ActiveDietWidget({ userDiet, onPress }) {
 
             {/* CTA */}
             <View style={styles.ctaRow}>
-                <Text style={styles.ctaText}>{t('diets.viewPlan') || 'View today\'s plan'}</Text>
+                <Text style={styles.ctaText}>{t('diets_viewPlan') || 'View today\'s plan'}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFF" />
             </View>
         </TouchableOpacity>

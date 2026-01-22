@@ -116,8 +116,8 @@ const skeletonStyles = StyleSheet.create({
 
 // Main tabs: "Диеты" and "Стиль жизни"
 const MAIN_TABS = [
-    { id: 'diets', labelKey: 'diets.tabs.diets', fallback: 'Diets' },
-    { id: 'lifestyle', labelKey: 'diets.tabs.lifestyle', fallback: 'Lifestyle' },
+    { id: 'diets', labelKey: 'diets_tabs_diets', fallback: 'Diets' },
+    { id: 'lifestyle', labelKey: 'diets_tabs_lifestyle', fallback: 'Lifestyle' },
 ];
 
 // Featured diets to load first for instant display (lazy loading)
@@ -363,9 +363,9 @@ export default function DietsScreen({ navigation }) {
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{t('diets.title') || 'Diets'}</Text>
+                    <Text style={styles.headerTitle}>{t('diets_title') || 'Diets'}</Text>
                     <Text style={styles.headerSubtitle}>
-                        {t('diets.subtitle') || 'Find the perfect nutrition plan for you'}
+                        {t('diets_subtitle') || 'Find the perfect nutrition plan for you'}
                     </Text>
                 </View>
 
@@ -399,7 +399,7 @@ export default function DietsScreen({ navigation }) {
                             placeholder={
                                 activeTab === 'lifestyle'
                                     ? (t('lifestyles.search.placeholder') || 'Search lifestyle programs...')
-                                    : (t('diets.search_placeholder') || 'Search diets...')
+                                    : (t('diets_search_placeholder') || 'Search diets...')
                             }
                             placeholderTextColor={tokens.colors?.textTertiary || '#999'}
                             value={searchQuery}
@@ -450,7 +450,7 @@ export default function DietsScreen({ navigation }) {
                         <Text style={[styles.loadingMoreText, { color: tokens.colors?.textSecondary }]}>
                             {activeTab === 'lifestyle'
                                 ? (t('lifestyles.loading_more') || 'Loading more programs...')
-                                : (t('diets.loading_more') || 'Loading more diets...')}
+                                : (t('diets_loading_more') || 'Loading more diets...')}
                         </Text>
                     </View>
                 )}

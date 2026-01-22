@@ -48,7 +48,7 @@ export default function CategoryChips({ selectedCategory, onCategorySelect }: Ca
           styles.chipText,
           { color: !selectedCategory ? '#FFF' : colors.textSecondary }
         ]}>
-          {t('diets.all') || 'All'}
+          {t('diets_all') || 'All'}
         </Text>
       </TouchableOpacity>
 

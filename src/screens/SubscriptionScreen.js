@@ -231,9 +231,9 @@ export default function SubscriptionScreen() {
                 {
                     id: NON_CONSUMABLE_SKUS.FOUNDERS,
                     name: 'founders',
-                    price: '$249.00',
-                    priceFormatted: '$249 one-time',
-                    priceNumber: 249.00,
+                    price: '$99.99',
+                    priceFormatted: '$99.99 one-time',
+                    priceNumber: 99.99,
                     currency: 'USD',
                     title: PLAN_DESCRIPTIONS.founders.title,
                     headline: PLAN_DESCRIPTIONS.founders.subtitle,

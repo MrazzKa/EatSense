@@ -28,18 +28,18 @@ export default function DietCard({ diet, onPress }) {
     };
 
     const difficultyLabels = {
-        EASY: t('diets.easy') || 'Easy',
-        MODERATE: t('diets.moderate') || 'Moderate',
-        HARD: t('diets.hard') || 'Hard',
+        EASY: t('diets_difficulty_easy') || 'Easy',
+        MODERATE: t('diets_difficulty_moderate') || 'Moderate',
+        HARD: t('diets_difficulty_hard') || 'Hard',
     };
 
     const typeLabels = {
-        WEIGHT_LOSS: t('diets.weight_loss') || 'Weight Loss',
-        WEIGHT_GAIN: t('diets.weight_gain') || 'Weight Gain',
-        HEALTH: t('diets.health') || 'Health',
-        MEDICAL: t('diets.medical') || 'Medical',
-        LIFESTYLE: t('diets.lifestyle') || 'Lifestyle',
-        SPORTS: t('diets.sports') || 'Sports',
+        WEIGHT_LOSS: t('diets_type_weight_loss') || 'Weight Loss',
+        WEIGHT_GAIN: t('diets_weight_gain') || 'Weight Gain',
+        HEALTH: t('diets_type_health') || 'Health',
+        MEDICAL: t('diets_type_medical') || 'Medical',
+        LIFESTYLE: t('diets_lifestyle_label') || 'Lifestyle',
+        SPORTS: t('diets_type_sports') || 'Sports',
     };
 
     return (
@@ -96,7 +96,7 @@ export default function DietCard({ diet, onPress }) {
                     <View style={[styles.tag, { backgroundColor: tokens.colors?.surfaceSecondary || '#F0F0F0' }]}>
                         <Ionicons name="time-outline" size={12} color={tokens.colors?.textSecondary || '#666'} />
                         <Text style={[styles.tagText, { color: tokens.colors?.textSecondary || '#666', marginLeft: 4 }]}>
-                            {diet.duration} {t('diets.days') || 'days'}
+                            {diet.duration} {t('diets_days') || 'days'}
                         </Text>
                     </View>
                 </View>
@@ -107,11 +107,11 @@ export default function DietCard({ diet, onPress }) {
                         <Ionicons name="information-circle-outline" size={12} color="#795548" />
                         <Text style={styles.disclaimerBadgeText}>
                             {diet.disclaimerKey === 'DISCLAIMER_HISTORICAL'
-                                ? (t('diets.disclaimers.historical_short') || 'Historical')
+                                ? (t('diets_disclaimers_historical_short') || 'Historical')
                                 : diet.disclaimerKey === 'DISCLAIMER_PUBLIC_FIGURE'
-                                    ? (t('diets.disclaimers.public_figure_short') || 'Inspired')
+                                    ? (t('diets_disclaimers_public_figure_short') || 'Inspired')
                                     : diet.disclaimerKey === 'DISCLAIMER_MEDICAL'
-                                        ? (t('diets.disclaimers.medical_short') || 'Medical')
+                                        ? (t('diets_disclaimers_medical_short') || 'Medical')
                                         : ''}
                         </Text>
                     </View>
@@ -124,7 +124,7 @@ export default function DietCard({ diet, onPress }) {
                         <Text style={styles.rating}>{diet.averageRating.toFixed(1)}</Text>
                         <Text style={styles.ratingCount}>({diet.ratingCount || 0})</Text>
                         <Text style={styles.userCount}>
-                            • {diet.userCount || 0} {t('diets.users') || 'users'}
+                            • {diet.userCount || 0} {t('diets_users') || 'users'}
                         </Text>
                     </View>
                 )}

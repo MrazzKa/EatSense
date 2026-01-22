@@ -181,7 +181,7 @@ export default function LifestyleTabContent({
             items.push({
                 type: 'section-header',
                 data: {
-                    title: t(`diets.lifestyle.categories.${selectedCategory}`) || selectedCategory,
+                    title: t(`lifestyles.categories.${selectedCategory}`) || selectedCategory,
                     key: selectedCategory,
                 },
             });
@@ -195,7 +195,7 @@ export default function LifestyleTabContent({
                 items.push({
                     type: 'section-header',
                     data: {
-                        title: t(`diets.lifestyle.categories.${category}`) || category,
+                        title: t(`lifestyles.categories.${category}`) || category,
                         key: category,
                     },
                 });
@@ -269,7 +269,7 @@ export default function LifestyleTabContent({
                     ]}>
                         <Ionicons name="information-circle" size={16} color={colors.primary || '#4CAF50'} />
                         <Text style={[styles.disclaimerText, { color: colors.textSecondary || '#666' }]}>
-                            {t('diets.lifestyle.disclaimer') ||
+                            {t('diets_lifestyle_disclaimer') ||
                                 'These lifestyle programs are for inspiration and educational purposes only. They are not medical advice. Consult a healthcare professional before making significant dietary changes.'}
                         </Text>
                     </View>
@@ -294,8 +294,8 @@ export default function LifestyleTabContent({
                         <Ionicons name="sparkles" size={48} color="#CCC" />
                         <Text style={[styles.emptyText, { color: colors.textSecondary || '#999' }]}>
                             {item.data.searchQuery
-                                ? (t('diets.no_programs_search') || 'No programs found')
-                                : (t('diets.no_programs') || 'No programs available')}
+                                ? (t('diets_no_programs_search') || 'No programs found')
+                                : (t('diets_no_programs') || 'No programs available')}
                         </Text>
                     </View>
                 );
