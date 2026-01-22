@@ -363,6 +363,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
       borderColor: borderMuted,
       position: 'relative',
       marginBottom: 8,
+      overflow: 'visible',
     },
     planButtonStudent: {
       borderColor: '#7C3AED',
@@ -1557,7 +1558,7 @@ const OnboardingScreen = () => {
       </Text>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
         showsVerticalScrollIndicator={false}
         bounces={true}
       >

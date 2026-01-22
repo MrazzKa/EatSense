@@ -1763,8 +1763,15 @@
       "placeholder": "Search lifestyle programs..."
     },
     "filters": {
-      "target": "Target",
-      "age": "Age"
+      "target": {
+        "label": "Target:",
+        "all": "All",
+        "male": "Men",
+        "female": "Women"
+      },
+      "age": {
+        "label": "Age:"
+      }
     },
     "trending": "Trending",
     "empty": "No lifestyle programs found",

@@ -179,30 +179,78 @@ export default function SubscriptionScreen() {
         };
     }, [initIAP]);
 
-    // Fallback to backend plans when IAP is unavailable (e.g., simulator)
+    // Fallback to local plan data when IAP is unavailable (e.g., simulator, sandbox issues)
     const loadBackendPlans = async () => {
         try {
-            const response = await ApiService.getSubscriptionPlans();
-            if (response?.plans) {
-                // Enhance backend plans with descriptions
-                const enhancedPlans = response.plans.map(plan => ({
-                    ...plan,
-                    features: PLAN_DESCRIPTIONS[plan.name]?.features || plan.features,
-                    headline: PLAN_DESCRIPTIONS[plan.name]?.subtitle || plan.headline,
-                }));
-                setPlans(enhancedPlans);
-                const yearlyPlan = enhancedPlans.find(p => p.name === 'yearly');
-                if (yearlyPlan) {
-                    setSelectedPlanId(yearlyPlan.id);
-                } else if (enhancedPlans.length > 0) {
-                    setSelectedPlanId(enhancedPlans[0].id);
-                }
-                if (response.currency) {
-                    setCurrency(response.currency);
-                }
-            }
+            // Use local plan descriptions as fallback
+            // This ensures SubscriptionScreen shows content even without IAP
+            const fallbackPlans = [
+                {
+                    id: SUBSCRIPTION_SKUS.MONTHLY,
+                    name: 'monthly',
+                    price: '$9.99',
+                    priceFormatted: '$9.99/month',
+                    priceNumber: 9.99,
+                    currency: 'USD',
+                    title: PLAN_DESCRIPTIONS.monthly.title,
+                    headline: PLAN_DESCRIPTIONS.monthly.subtitle,
+                    features: PLAN_DESCRIPTIONS.monthly.features,
+                    isSubscription: true,
+                    badge: PLAN_DESCRIPTIONS.monthly.badge,
+                    badgeColor: PLAN_DESCRIPTIONS.monthly.badgeColor,
+                },
+                {
+                    id: SUBSCRIPTION_SKUS.YEARLY,
+                    name: 'yearly',
+                    price: '$69.99',
+                    priceFormatted: '$69.99/year',
+                    priceNumber: 69.99,
+                    currency: 'USD',
+                    title: PLAN_DESCRIPTIONS.yearly.title,
+                    headline: PLAN_DESCRIPTIONS.yearly.subtitle,
+                    features: PLAN_DESCRIPTIONS.yearly.features,
+                    isSubscription: true,
+                    originalPrice: PLAN_DESCRIPTIONS.yearly.originalPrice,
+                    badge: PLAN_DESCRIPTIONS.yearly.badge,
+                    badgeColor: PLAN_DESCRIPTIONS.yearly.badgeColor,
+                },
+                {
+                    id: SUBSCRIPTION_SKUS.STUDENT,
+                    name: 'student',
+                    price: '$49.00',
+                    priceFormatted: '$49.00/year',
+                    priceNumber: 49.00,
+                    currency: 'USD',
+                    title: PLAN_DESCRIPTIONS.student.title,
+                    headline: PLAN_DESCRIPTIONS.student.subtitle,
+                    features: PLAN_DESCRIPTIONS.student.features,
+                    isSubscription: true,
+                    badge: PLAN_DESCRIPTIONS.student.badge,
+                    badgeColor: PLAN_DESCRIPTIONS.student.badgeColor,
+                },
+                {
+                    id: NON_CONSUMABLE_SKUS.FOUNDERS,
+                    name: 'founders',
+                    price: '$249.00',
+                    priceFormatted: '$249 one-time',
+                    priceNumber: 249.00,
+                    currency: 'USD',
+                    title: PLAN_DESCRIPTIONS.founders.title,
+                    headline: PLAN_DESCRIPTIONS.founders.subtitle,
+                    features: PLAN_DESCRIPTIONS.founders.features,
+                    isSubscription: false,
+                    badge: PLAN_DESCRIPTIONS.founders.badge,
+                    badgeColor: PLAN_DESCRIPTIONS.founders.badgeColor,
+                },
+            ];
+
+            setPlans(fallbackPlans);
+            // Select yearly by default
+            setSelectedPlanId(SUBSCRIPTION_SKUS.YEARLY);
+            setCurrency('USD');
+            console.log('[SubscriptionScreen] Using local fallback plans');
         } catch (error) {
-            console.error('[SubscriptionScreen] Failed to load backend plans:', error);
+            console.error('[SubscriptionScreen] Failed to load fallback plans:', error);
         }
     };
 

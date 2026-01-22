@@ -169,22 +169,43 @@ export class DietsService {
     }
 
     /**
-     * Get featured diets
+     * Get featured diets (with Redis caching)
      */
     async getFeatured(locale: string = 'en') {
+        const cacheKey = `featured:${locale}`;
+
+        // Try cache first
+        const cached = await this.cacheService.get<any[]>('diets:featured', cacheKey);
+        if (cached) {
+            return cached;
+        }
+
         const diets = await this.prisma.dietProgram.findMany({
             where: { isActive: true, isFeatured: true },
             orderBy: { popularityScore: 'desc' },
             take: 5,
         });
 
-        return diets.map(diet => this.localizeDiet(diet, locale));
+        const result = diets.map(diet => this.localizeDiet(diet, locale));
+
+        // Cache for 5 minutes
+        await this.cacheService.set('diets:featured', cacheKey, result, DIETS_CACHE_TTL);
+
+        return result;
     }
 
     /**
-     * Get diet by ID or slug
+     * Get diet by ID or slug (with Redis caching)
      */
     async findOne(idOrSlug: string, locale: string = 'en') {
+        const cacheKey = `${idOrSlug}:${locale}`;
+
+        // Try cache first
+        const cached = await this.cacheService.get<any>('diets:detail', cacheKey);
+        if (cached) {
+            return cached;
+        }
+
         try {
             const diet = await this.prisma.dietProgram.findFirst({
                 where: {
@@ -209,7 +230,12 @@ export class DietsService {
                 throw new NotFoundException('Diet not found');
             }
 
-            return this.localizeDietFull(diet, locale);
+            const result = this.localizeDietFull(diet, locale);
+
+            // Cache for 5 minutes
+            await this.cacheService.set('diets:detail', cacheKey, result, DIETS_CACHE_TTL);
+
+            return result;
         } catch (error) {
             this.logger.error(`[findOne] Error fetching diet ${idOrSlug}:`, error);
             throw error;

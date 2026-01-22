@@ -2,6 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { PrismaService } from '../../prisma.service';
+import { CacheService } from '../cache/cache.service';
+
+// Cache TTL for recommendations (10 minutes - personalized data)
+const RECOMMENDATIONS_CACHE_TTL = 600;
 
 @Injectable()
 export class DietRecommendationsService {
@@ -11,6 +15,7 @@ export class DietRecommendationsService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private cacheService: CacheService,
     ) {
         this.openai = new OpenAI({
             apiKey: this.configService.get('OPENAI_API_KEY'),
@@ -18,9 +23,18 @@ export class DietRecommendationsService {
     }
 
     /**
-     * Get AI recommendations for user
+     * Get AI recommendations for user (with Redis caching)
      */
     async getRecommendations(userId: string, locale: string = 'en') {
+        const cacheKey = `${userId}:${locale}`;
+
+        // Try cache first (personalized per user)
+        const cached = await this.cacheService.get<any[]>('diets:recommendations', cacheKey);
+        if (cached) {
+            this.logger.log(`Recommendations cache hit for user ${userId}`);
+            return cached;
+        }
+
         this.logger.log(`Getting diet recommendations for user ${userId}`);
 
         const userContext = await this.buildUserContext(userId);
@@ -44,7 +58,7 @@ export class DietRecommendationsService {
             where: { slug: { in: recommendations.map(r => r.slug) } },
         });
 
-        return recommendations.map(rec => {
+        const result = recommendations.map(rec => {
             const diet = recommendedDiets.find(d => d.slug === rec.slug);
             if (!diet) return null;
 
@@ -55,6 +69,11 @@ export class DietRecommendationsService {
                 personalizedTips: rec.tips,
             };
         }).filter(Boolean);
+
+        // Cache for 10 minutes
+        await this.cacheService.set('diets:recommendations', cacheKey, result, RECOMMENDATIONS_CACHE_TTL);
+
+        return result;
     }
 
     private async buildUserContext(userId: string) {
