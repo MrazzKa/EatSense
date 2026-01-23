@@ -1075,7 +1075,8 @@ export class DietsService implements OnModuleInit {
         if (typeof json === 'number') return json;
         if (Array.isArray(json)) return json;
         if (typeof json === 'object') {
-            return json[locale] || json['en'] || json['ru'] || Object.values(json)[0] || '';
+            // Try locale first, then fallback chain: en -> ru -> kk -> fr -> first available
+            return json[locale] || json['en'] || json['ru'] || json['kk'] || json['fr'] || Object.values(json)[0] || '';
         }
         return '';
     }
@@ -1086,10 +1087,29 @@ export class DietsService implements OnModuleInit {
      */
     async getBundle(userId: string | null, locale: string = 'en') {
         const cacheKey = `bundle:${locale}`;
-        const BUNDLE_CACHE_TTL = 60; // 60 seconds for bundle
+        const BUNDLE_CACHE_TTL = 300; // 5 minutes for bundle (same as DIETS_CACHE_TTL)
 
         // Try cache first (only for public data - user-specific data is always fresh)
         const cached = await this.cacheService.get<any>(cacheKey, 'diets:bundle');
+
+        // ✅ If cache exists — use it (only activeProgram needs to be fresh)
+        if (cached) {
+            this.logger.debug('[getBundle] Using cached data');
+            // Only active program should be fresh (user-specific)
+            let activeProgram = null;
+            if (userId) {
+                try {
+                    activeProgram = await this.getActiveDiet(userId, locale);
+                } catch {
+                    activeProgram = null;
+                }
+            }
+            return {
+                ...cached,
+                activeProgram,
+                timestamp: Date.now(),
+            };
+        }
 
         try {
             // Prepare parallel requests
@@ -1153,7 +1173,7 @@ export class DietsService implements OnModuleInit {
                 timestamp: Date.now(),
             };
 
-            // Cache public data (without activeProgram) for 60 seconds
+            // Cache public data (without activeProgram) for 5 minutes
             if (!cached) {
                 await this.cacheService.set(cacheKey, {
                     featuredDiets,

@@ -28,6 +28,7 @@ import CategoryChips from './CategoryChips';
 import TrendingCarousel from './TrendingCarousel';
 import DisclaimerBanner from './DisclaimerBanner';
 import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
+import ActiveDietWidget from '../../../components/dashboard/ActiveDietWidget';
 
 // Card height for getItemLayout optimization
 const CARD_HEIGHT = 180;
@@ -60,7 +61,7 @@ interface LifestyleTabContentProps {
 
 // Section data type for grouped rendering
 interface SectionData {
-  type: 'header' | 'trending' | 'chips' | 'disclaimer' | 'filters' | 'category-header' | 'program' | 'empty' | 'loading' | 'suggest';
+  type: 'header' | 'trending' | 'chips' | 'disclaimer' | 'filters' | 'category-header' | 'program' | 'empty' | 'loading' | 'suggest' | 'active-tracker';
   data?: any;
   categoryId?: string;
 }
@@ -143,23 +144,10 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     // Loading state handled by parent DietsScreen - removed to prevent double spinner
     // If parent is loading and we have no cached data, show nothing (parent shows skeleton)
 
-    // Active Program Section (New)
-    // Only show if we have an active program
-    // And either it's explicitly a lifestyle or we are in Lifestyle tab (implied)
-    // We check type or category to filter out Diet programs if needed, 
-    // but typically the activeProgram passed here is the user's single active program.
-    // If it's a diet, maybe we shouldn't show it here? 
-    // Let's assume for now we show it if it's 'LIFESTYLE' type or has a matching category.
-    // However, if the user has ANY active program, it's usually valuable to see it.
-    // Let's filter to show only if it seems to be a lifestyle program or generic.
-    if (props.activeProgram) {
-      // Simple check: if it has a 'category' that maps to lifestyle or type is lifestyle
-      // const isLifestyle = props.activeProgram.type === 'LIFESTYLE' ||
-      // (props.activeProgram.id && programs.some(p => p.id === props.activeProgram.id));
-
-      // Force show for now as requested "display your active lifestyle program"
-      data.push({ type: 'header', data: { title: t('diets.active_program') || 'Active Program' } });
-      data.push({ type: 'program', data: { ...props.activeProgram, isActive: true } });
+    // Active Program Section - Show tracker widget for active lifestyle program
+    // Only show if we have an active program AND it's a lifestyle type
+    if (props.activeProgram && props.activeProgram.type === 'lifestyle') {
+      data.push({ type: 'active-tracker', data: props.activeProgram });
     }
 
     // Trending section (only if not searching and have featured)
@@ -280,6 +268,22 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
                 ({item.data.count})
               </Text>
             )}
+          </View>
+        );
+
+      case 'active-tracker':
+        // Show tracker widget for active lifestyle program
+        return (
+          <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+            <ActiveDietWidget
+              activeDiet={item.data}
+              onOpenTracker={() => {
+                if (item.data?.diet?.id) {
+                  onProgramPress(item.data.diet.id);
+                }
+              }}
+              onBrowseDiets={() => {}}
+            />
           </View>
         );
 

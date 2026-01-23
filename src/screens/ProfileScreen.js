@@ -274,7 +274,12 @@ const ProfileScreen = () => {
 
   const loadProfile = useCallback(async () => {
     try {
-      const result = await ApiService.getUserProfile();
+      // Load profile and real subscription in parallel
+      const [result, subscriptionData] = await Promise.all([
+        ApiService.getUserProfile(),
+        ApiService.getCurrentSubscription().catch(() => null), // Fallback to preferences if API fails
+      ]);
+      
       if (result) {
         const userProfile = result.userProfile || result.profile || {};
         const preferences =
@@ -282,8 +287,22 @@ const ProfileScreen = () => {
           result.preferences ||
           null;
         const healthProfile = userProfile.healthProfile || null;
-        const subscriptionPref =
-          preferences?.subscription || {};
+        
+        // Use real subscription from API if available, otherwise fallback to preferences
+        let subscriptionPref = preferences?.subscription || {};
+        if (subscriptionData?.hasSubscription && subscriptionData.subscription) {
+          // Map API subscription to our format
+          const apiPlan = subscriptionData.subscription.plan;
+          subscriptionPref = {
+            planId: apiPlan === 'weekly' ? 'pro_monthly' : 
+                   apiPlan === 'monthly' ? 'pro_monthly' :
+                   apiPlan === 'yearly' ? 'pro_annual' :
+                   apiPlan === 'student' ? 'student' : 'free',
+            billingCycle: apiPlan === 'yearly' || apiPlan === 'student' ? 'annual' :
+                         apiPlan === 'monthly' || apiPlan === 'weekly' ? 'monthly' : 'lifetime',
+          };
+        }
+        
         setProfile({
           firstName: userProfile.firstName || result.firstName || '',
           lastName: userProfile.lastName || result.lastName || '',

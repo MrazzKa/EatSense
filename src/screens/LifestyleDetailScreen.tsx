@@ -10,11 +10,13 @@ import LifestyleDetailScreenComponent from '../features/lifestyles/components/Li
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
+import { useI18n } from '../../app/i18n/hooks';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { t, language } = useI18n();
   const { refreshProgress, invalidateCache } = useProgramProgress();
   const params = route.params as { id?: string; programId?: string } | undefined;
   const programId = params?.id || params?.programId;
@@ -41,7 +43,10 @@ export default function LifestyleDetailScreen() {
         if (programRes) {
           setProgram(programRes);
         } else {
-          Alert.alert('Ошибка', 'Программа не найдена');
+          Alert.alert(
+            t('common.error', 'Error'),
+            t('lifestyles.programNotFound', 'Program not found')
+          );
           navigation.goBack();
           return;
         }
@@ -52,7 +57,10 @@ export default function LifestyleDetailScreen() {
         }
       } catch (error) {
         console.error('[LifestyleDetail] Load error:', error);
-        Alert.alert('Ошибка', 'Не удалось загрузить программу');
+        Alert.alert(
+          t('common.error', 'Error'),
+          t('lifestyles.loadError', 'Failed to load program')
+        );
         navigation.goBack();
       } finally {
         setLoading(false);
@@ -67,7 +75,7 @@ export default function LifestyleDetailScreen() {
       <View style={[styles.loadingContainer, { backgroundColor: colors.background || '#FFF' }]}>
         <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
         <Text style={[styles.loadingText, { color: colors.textSecondary || '#666' }]}>
-          Загрузка программы...
+          {t('lifestyles.loading', 'Loading program...')}
         </Text>
       </View>
     );
@@ -92,20 +100,24 @@ export default function LifestyleDetailScreen() {
       // Refresh progress store to update dashboard immediately
       await refreshProgress();
 
+      const programName = typeof program.name === 'object' 
+        ? (program.name[language] || program.name['en'] || program.name['ru'] || Object.values(program.name)[0] || '')
+        : (program.name || '');
+
       Alert.alert(
-        'Программа запущена!',
-        `Вы начали "${program.name?.ru || program.name?.en || program.name}". Отслеживайте прогресс на главном экране.`,
+        t('lifestyles.programStarted', 'Program started!'),
+        t('lifestyles.programStartedMessage', 'You started "{{name}}". Track your progress on the main screen.', { name: programName }),
         [
           {
-            text: 'Перейти',
+            text: t('common.goTo', 'Go to'),
             onPress: () => (navigation as any).navigate('MainTabs', { screen: 'Dashboard' })
           }
         ]
       );
     } catch (error: any) {
       console.error('[LifestyleDetail] Start failed:', error);
-      const message = error?.response?.data?.message || 'Не удалось запустить программу. Попробуйте позже.';
-      Alert.alert('Ошибка', message);
+      const message = error?.response?.data?.message || t('lifestyles.startFailed', 'Failed to start program. Please try again later.');
+      Alert.alert(t('common.error', 'Error'), message);
     } finally {
       setStarting(false);
     }

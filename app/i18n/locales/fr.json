@@ -949,6 +949,7 @@
   },
   "onboarding": {
     "startFree": "Commencer",
+    "subscribe": "S'abonner",
     "activity": "Quel est votre niveau d'activité ?",
     "activityLevels": {
       "extremelyActive": "Extrêmement actif",
@@ -1546,7 +1547,12 @@
     "plan_weekly": "Hebdomadaire",
     "plan_monthly": "Mensuel",
     "plan_yearly": "Annuel",
-    "plan_student": "Étudiant"
+    "plan_student": "Étudiant",
+    "restored": "Restauré",
+    "restorePurchases": "Restaurer les achats",
+    "terms_notice": "Annulation à tout moment. Conditions applicables.",
+    "studentVerificationTitle": "Réduction étudiante",
+    "studentVerificationDescription": "Téléchargez une photo de votre carte étudiante pour obtenir une réduction"
   },
   "tabs": {
     "articles": "Articles",
@@ -1556,7 +1562,7 @@
     "profile": "Profil",
     "recently": "Récent",
     "reports": "Reports",
-    "diets": "Régimes"
+    "diets": "Nutrition"
   },
   "terms": {
     "intro": "Veuillez lire attentivement ces Conditions d'Utilisation avant d'utiliser EatSense.",
@@ -1609,6 +1615,12 @@
   },
   "lifestyles": {
     "disclaimer": "Ceci est une source d'inspiration pour le mode de vie, et non un avis médical. Consultez un professionnel de santé pour des conseils médicaux.",
+    "programNotFound": "Programme introuvable",
+    "loadError": "Échec du chargement du programme",
+    "loading": "Chargement du programme...",
+    "programStarted": "Programme démarré !",
+    "programStartedMessage": "Vous avez démarré \"{{name}}\". Suivez votre progression sur l'écran principal.",
+    "startFailed": "Échec du démarrage du programme. Veuillez réessayer plus tard.",
     "categories": {
       "all": "Tous",
       "TRENDING": "Tendances",
@@ -1697,7 +1709,7 @@
   "diets_no_programs": "Aucun programme",
   "diets_no_programs_search": "Aucun programme trouvé",
   "diets_not_for": "Ne convient pas pour",
-  "diets_title": "Régimes",
+  "diets_title": "Nutrition",
   "diets_subtitle": "Trouvez le plan nutritionnel parfait pour vous",
   "diets_all": "Tout",
   "diets_weight_loss": "Perte de poids",

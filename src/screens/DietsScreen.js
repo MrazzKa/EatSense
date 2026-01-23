@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
     View,
     Text,
@@ -18,6 +18,8 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import DietsTabContent from '../components/programs/DietsTabContent';
 import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabContent';
+import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+import seedBundle from '../../assets/dietsBundleSeed.json';
 
 // Cache TTL for bundle data (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
@@ -135,13 +137,17 @@ export default function DietsScreen({ navigation }) {
     const { t, language } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
+    
+    // Get active program from store (real-time updates)
+    const { activeProgram } = useProgramProgress();
+    useRefreshProgressOnFocus(); // Refresh on focus
 
     // Unified cache key for bundle data
     const BUNDLE_CACHE_KEY = 'diets_bundle_cache_v1';
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [activeDiet, setActiveDiet] = useState(null);
+    const [activeDiet, setActiveDiet] = useState(null); // Bundle format for DietsTabContent
     const [recommendations, setRecommendations] = useState([]);
     const [featuredDiets, setFeaturedDiets] = useState([]);
     const [allDiets, setAllDiets] = useState([]);
@@ -165,6 +171,7 @@ export default function DietsScreen({ navigation }) {
             let hasCache = false;
             
             // Step 1: Try to show cached data immediately for instant UI (0ms)
+            // If no cache, use seed snapshot for instant display (not empty skeleton)
             if (!forceRefresh) {
                 const cached = await loadFromCache(BUNDLE_CACHE_KEY);
                 if (cached && isMounted) {
@@ -175,6 +182,18 @@ export default function DietsScreen({ navigation }) {
                     setActiveDiet(cached.activeProgram || null);
                     setLoading(false);
                     hasCache = true;
+                } else {
+                    // No cache - use seed snapshot for instant display (avoids gray skeleton)
+                    // This ensures UI is populated immediately, even if empty
+                    if (isMounted && seedBundle) {
+                        setFeaturedDiets(seedBundle.featuredDiets || []);
+                        setFeaturedLifestyles(seedBundle.featuredLifestyles || []);
+                        setAllDiets(seedBundle.allDiets || []);
+                        setLifestylePrograms(seedBundle.allLifestyles || []);
+                        setActiveDiet(seedBundle.activeProgram || null);
+                        setLoading(false);
+                        // Mark that we're using seed (will be replaced by real data)
+                    }
                 }
             }
 
@@ -235,6 +254,59 @@ export default function DietsScreen({ navigation }) {
             isMounted = false;
         };
     }, [language]);
+
+    // Update activeDiet from store when activeProgram changes (only for diet type, bundle format)
+    // Lifestyle programs are handled separately via activeProgram prop to LifestyleTabContent
+    useEffect(() => {
+        if (activeProgram && activeProgram.type === 'diet') {
+            // Convert ProgramProgressStore format to DietsTabContent ActiveDietWidget format
+            // ActiveDietWidget expects: { program, progress, currentDay, totalDays, todayPlan?, dailyLogs? }
+            // program.name can be string or object with nameLocalized
+            const programName = activeProgram.programName || 'Diet';
+            // Handle both string and object formats for programName
+            // If programName is object (localized), use it as nameLocalized; if string, create localized object
+            const nameLocalized = typeof programName === 'object' 
+                ? programName 
+                : { [language]: programName, en: programName, ru: programName, kk: programName, fr: programName };
+            const nameString = typeof programName === 'string' 
+                ? programName 
+                : (programName[language] || programName['en'] || programName['ru'] || programName['kk'] || programName['fr'] || Object.values(programName)[0] || 'Diet');
+            
+            setActiveDiet({
+                programId: activeProgram.programId,
+                currentDay: activeProgram.currentDayIndex || 1,
+                totalDays: activeProgram.durationDays || 0,
+                program: {
+                    id: activeProgram.programId,
+                    name: nameString, // String for backward compatibility
+                    nameLocalized: nameLocalized, // Object for localization
+                    color: '#4CAF50',
+                },
+                progress: {
+                    percentComplete: activeProgram.durationDays > 0 
+                        ? Math.round((activeProgram.currentDayIndex / activeProgram.durationDays) * 100) 
+                        : 0,
+                    totalDays: activeProgram.durationDays,
+                    daysCompleted: activeProgram.currentDayIndex,
+                },
+                todayPlan: activeProgram.todayPlan || [],
+                dailyLogs: activeProgram.todayLog ? [{
+                    breakfastLogged: false,
+                    lunchLogged: false,
+                    dinnerLogged: false,
+                }] : [],
+            });
+        } else if (activeProgram && activeProgram.type === 'lifestyle') {
+            // For lifestyle, clear activeDiet (DietsTabContent doesn't show lifestyle trackers)
+            // Lifestyle tracker is shown in LifestyleTabContent via activeProgram prop
+            setActiveDiet(null);
+        } else if (!activeProgram) {
+            // Clear activeDiet if no active program in store
+            setActiveDiet(null);
+        }
+        // Note: If activeProgram is null but bundle has activeProgram, we keep bundle data
+        // This ensures we show data from bundle if store hasn't loaded yet
+    }, [activeProgram]);
 
     useFocusEffect(
         useCallback(() => {
@@ -394,7 +466,21 @@ export default function DietsScreen({ navigation }) {
                         programs={lifestylePrograms}
                         featuredPrograms={featuredLifestyles}
                         isLoading={isLoadingLifestyles}
-                        activeProgram={activeDiet}
+                        activeProgram={activeProgram && activeProgram.type === 'lifestyle' ? {
+                            diet: {
+                                id: activeProgram.programId,
+                                name: activeProgram.programName || 'Lifestyle',
+                                color: '#9C27B0',
+                            },
+                            type: 'lifestyle',
+                            streak: activeProgram.streak?.current || 0,
+                            todayProgress: {
+                                completed: activeProgram.todayLog?.completedCount || 0,
+                                total: activeProgram.todayLog?.totalCount || 0,
+                            },
+                            currentDay: activeProgram.currentDayIndex,
+                            totalDays: activeProgram.durationDays,
+                        } : null}
                     />
                 )}
 
