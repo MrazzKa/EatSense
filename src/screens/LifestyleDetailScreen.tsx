@@ -90,18 +90,16 @@ export default function LifestyleDetailScreen() {
     setStarting(true);
 
     try {
-      // Invalidate cache before starting to ensure fresh data
-      invalidateCache();
-      
+      // FIX: Start program without invalidating cache - prevents unnecessary reloads
       // Use the diet API to start the lifestyle program (they share the same backend)
       await ApiService.startDiet(program.id || program.slug);
       setIsActive(true);
 
-      // Refresh progress store to update dashboard immediately
-      await refreshProgress();
-      
-      // Small delay to ensure store is updated before showing alert
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // FIX: Refresh store in background (non-blocking) - don't wait for it
+      // This prevents loading screen and improves UX
+      refreshProgress().catch(err => {
+        console.warn('[LifestyleDetail] Background refresh failed:', err);
+      });
 
       const programName = typeof program.name === 'object' 
         ? (program.name[language] || program.name['en'] || program.name['ru'] || Object.values(program.name)[0] || '')

@@ -18,6 +18,7 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import DietsTabContent from '../components/programs/DietsTabContent';
 import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabContent';
+import SuggestProgramCard from '../components/programs/SuggestProgramCard';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import seedBundle from '../../assets/dietsBundleSeed.json';
 
@@ -443,6 +444,13 @@ export default function DietsScreen({ navigation }) {
                     ))}
                 </View>
 
+                {/* FIX: Suggest Program Card - вариант 3: между табами и контентом для лучшей видимости */}
+                {!searchQuery && (
+                    <View style={styles.suggestSectionTop}>
+                        <SuggestProgramCard type={activeTab === 'lifestyle' ? 'lifestyle' : 'diet'} />
+                    </View>
+                )}
+
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
                     <View style={[styles.searchInputContainer, { backgroundColor: tokens.colors?.surface, borderColor: tokens.colors?.border }]}>
@@ -517,6 +525,14 @@ export default function DietsScreen({ navigation }) {
                         <Text style={[styles.loadingMoreText, { color: tokens.colors?.textSecondary }]}>
                             {t('lifestyles.loading_more') || 'Loading more programs...'}
                         </Text>
+                    </View>
+                )}
+
+                {/* FIX: Suggest Program Card - вынесен из LifestyleTabContent для лучшей видимости */}
+                {/* Показывается на обеих вкладках (Диеты и Стиль жизни) */}
+                {!searchQuery && (
+                    <View style={styles.suggestSection}>
+                        <SuggestProgramCard type={activeTab === 'lifestyle' ? 'lifestyle' : 'diet'} />
                     </View>
                 )}
 
@@ -847,5 +863,10 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         fontSize: 15,
         color: tokens.colors?.textSecondary || '#999',
         marginTop: 12,
+    },
+    suggestSectionTop: {
+        marginTop: 16,
+        marginBottom: 8,
+        paddingHorizontal: 0, // SuggestProgramCard has its own padding
     },
 });

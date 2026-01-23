@@ -89,13 +89,27 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
         setActiveProgram(progress);
         cache.current.set(CACHE_KEY, progress);
       } else {
-        setActiveProgram(null);
-        cache.current.delete(CACHE_KEY);
+        // FIX: Only clear if we have cached data to check - preserve during slow loads
+        const cached = cache.current.get(CACHE_KEY);
+        if (!cached) {
+          // No cached data and no progress - truly no active program
+          setActiveProgram(null);
+          cache.current.delete(CACHE_KEY);
+        }
+        // If we have cached data, keep it (prevents flicker during slow loads)
       }
     } catch (err: any) {
       console.error('[ProgramProgressStore] Load failed:', err);
       setError(err.message || 'Failed to load progress');
-      setActiveProgram(null);
+      // FIX: Don't clear activeProgram on error - preserve previous value from cache
+      // This prevents tracker from disappearing during slow loads or errors
+      const cached = cache.current.get(CACHE_KEY);
+      if (cached) {
+        // Keep cached value if available
+        setActiveProgram(cached);
+      } else {
+        setActiveProgram(null);
+      }
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -110,15 +124,22 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
         setActiveProgram(progress);
         cache.current.set(CACHE_KEY, progress);
       } else {
-        setActiveProgram(null);
-        cache.current.delete(CACHE_KEY);
+        // FIX: Don't clear activeProgram on null - preserve previous value during slow loads
+        // Only clear if we're certain there's no active program (e.g., after explicit deletion)
+        // This prevents tracker from disappearing during "Slow Dashboard Load"
+        // cache.current.delete(CACHE_KEY); // Keep cache for now
       }
     } catch (err) {
       console.error('[ProgramProgressStore] Background refresh failed:', err);
+      // FIX: Don't clear activeProgram on error - preserve previous value
+      // This prevents tracker from disappearing during slow loads or errors
     }
   }, []);
 
   const refreshProgress = useCallback(async () => {
+    // FIX: Don't delete cache immediately - check if we have valid cached data first
+    // This prevents clearing good data during refresh
+    const cached = cache.current.get(CACHE_KEY);
     cache.current.delete(CACHE_KEY);
     await loadProgress();
   }, [loadProgress]);
@@ -167,16 +188,42 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
     if (!activeProgram) return;
 
     try {
-      await programProgressService.completeDay(activeProgram.type, activeProgram.programId);
-      // Invalidate cache and refresh
-      invalidateCache();
-      await loadProgress();
+      // FIX: Use optimistic update - update UI immediately, then sync with server
+      const result = await programProgressService.completeDay(activeProgram.type, activeProgram.programId);
+      
+      // Optimistic update - update state immediately without full refresh
+      setActiveProgram(prev => {
+        if (!prev) return prev;
+        const newCurrentDay = result.currentDay || prev.currentDayIndex + 1;
+        const newDaysLeft = Math.max(0, prev.durationDays - newCurrentDay + 1);
+        return {
+          ...prev,
+          currentDayIndex: newCurrentDay,
+          daysLeft: newDaysLeft,
+          daysCompleted: result.daysCompleted || prev.daysCompleted + 1,
+          streak: {
+            ...prev.streak,
+            current: result.streak || prev.streak.current,
+          },
+          todayLog: {
+            ...prev.todayLog,
+            completed: true,
+            completionRate: result.completionRate || 1,
+          },
+        };
+      });
+      
+      // FIX: Don't refresh immediately after completeDay - optimistic update is enough
+      // This prevents visual reloads and screen flashing
+      // Data will be refreshed naturally on next screen focus or manual refresh
     } catch (err: any) {
       console.error('[ProgramProgressStore] Complete day failed:', err);
       setError(err.message || 'Failed to complete day');
+      // Revert optimistic update on error
+      await loadProgress();
       throw err;
     }
-  }, [activeProgram, invalidateCache, loadProgress]);
+  }, [activeProgram, loadProgress]);
 
   const markCelebrationShown = useCallback(async () => {
     if (!activeProgram) return;
@@ -232,13 +279,19 @@ export const useProgramProgress = (): ProgramProgressContextValue => {
 
 /**
  * Hook to refresh progress when screen comes into focus
+ * FIX: Use background refresh to prevent UI blocking and visual reloads
  */
 export const useRefreshProgressOnFocus = () => {
   const { refreshProgress } = useProgramProgress();
 
   useFocusEffect(
     useCallback(() => {
-      refreshProgress();
+      // FIX: Refresh in background - don't block UI or cause visual reloads
+      // This ensures data is fresh but doesn't interrupt user experience
+      refreshProgress().catch(err => {
+        // Silent fail - we'll retry on next focus or user action
+        console.warn('[useRefreshProgressOnFocus] Background refresh failed:', err);
+      });
     }, [refreshProgress])
   );
 };

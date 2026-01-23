@@ -32,43 +32,26 @@ export class DashboardService {
         }
 
         try {
-            // Execute all requests in parallel
-            const [
-                stats,
-                meals,
-                userStats,
-                suggestions,
-                activeDiet,
-                todayTracker
-            ] = await Promise.all([
+            // FIX: Execute critical requests first, then non-critical in parallel
+            // This prevents "Slow Dashboard Load" from blocking critical data
+            // Critical: stats, meals, userStats, activeDiet
+            // Non-critical: suggestions (can be slow due to AI processing)
+            
+            // Critical requests - these must complete for dashboard to be useful
+            const [stats, meals, userStats, activeDiet, todayTracker] = await Promise.all([
                 // 1. Stats (Calories, Macros for today)
-                // If date is provided, we might want stats for THAT date.
-                // StatsService.getDashboardStats is hardcoded to "today".
-                // Use getPersonalStats for specific date if needed?
-                // But Dashboard typically shows "Today's Status" logic even if browsing history?
-                // Actually, existing Dashboard code passes `selectedDate` to `getStats`.
-                // Let's defer to StatsService behavior. 
-                // Logic from ApiService: calls /me/stats?from=date&to=date if date exists.
-                // So we should replicate that logic here.
                 this.getStatsForDate(userId, date),
 
                 // 2. Meals
                 this.mealsService.getMeals(userId, date.toISOString()),
 
                 // 3. User Stats (Photos analyzed count etc - mainly for limits)
-                // Ensure UsersService has getStats or similar
                 this.usersService.getUserStats(userId).catch(e => {
                     this.logger.error(`Failed to get user stats: ${e.message}`);
                     return { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 };
                 }),
 
-                // 4. Suggestions (Personalized food advice)
-                this.suggestionsService.getSuggestionsV2(userId, normalizedLocale).catch(e => {
-                    this.logger.error(`Failed to get suggestions: ${e.message}`);
-                    return { status: 'error', sections: [] };
-                }),
-
-                // 5. Active Diet Program
+                // 5. Active Diet Program (critical - needed for tracker)
                 this.dietsService.getActiveDiet(userId, locale, true).catch(e => {
                     // It's normal to not have an active diet, expecting null or catch 404
                     return null;
@@ -78,9 +61,32 @@ export class DashboardService {
                 this.dietsService.getTodayTracker(userId, locale).catch(e => null),
             ]);
 
+            // Non-critical requests - can timeout or fail without breaking dashboard
+            // Suggestions can be slow (AI processing), so we add timeout
+            const suggestionsPromise = this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
+                .catch(e => {
+                    this.logger.error(`Failed to get suggestions: ${e.message}`);
+                    return { status: 'error', sections: [] };
+                });
+
+            // Add timeout for suggestions (5 seconds) - don't block dashboard
+            const suggestions = await Promise.race([
+                suggestionsPromise,
+                new Promise(resolve => setTimeout(() => {
+                    this.logger.warn(`Suggestions timeout for user ${userId} - returning error status`);
+                    resolve({ status: 'error', sections: [] });
+                }, 5000)),
+            ]) as any;
+
             const duration = Date.now() - start;
             if (duration > 1000) {
                 this.logger.warn(`Slow dashboard load: ${duration}ms for user ${userId}`);
+                // FIX: Log which requests are slow to help identify bottlenecks
+                this.logger.debug(`Dashboard timing breakdown for user ${userId}:`, {
+                    total: duration,
+                    // Individual timings would require Promise.allSettled with timing, but that's complex
+                    // For now, just log the warning - frontend will preserve cached activeDiet
+                });
             }
 
             return {
@@ -88,12 +94,23 @@ export class DashboardService {
                 meals,
                 userStats,
                 suggestions,
+                // FIX: Always return activeDiet structure, even if null
+                // This prevents frontend from clearing activeDiet on partial errors
+                // Frontend should preserve previous activeDiet value if this is null (during slow loads)
                 activeDiet: activeDiet ? { ...activeDiet, todayTracker } : null,
             };
 
         } catch (error) {
             this.logger.error(`Error aggregating dashboard data: ${error.message}`, error.stack);
-            throw error;
+            // FIX: Return partial data instead of throwing - allows UI to show cached/partial data
+            // This prevents tracker from disappearing during slow loads
+            return {
+                stats: { today: {}, goals: {} },
+                meals: [],
+                userStats: { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 },
+                suggestions: { status: 'error', sections: [] },
+                activeDiet: null, // Let frontend preserve previous activeDiet from cache/store
+            };
         }
     }
 

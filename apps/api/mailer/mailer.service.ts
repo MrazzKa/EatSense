@@ -112,7 +112,23 @@ export class MailerService {
     await this.dispatchMail('magic-link', { to, from: this.fromAddress, subject, text, html });
   }
 
-  private async dispatchMail(type: 'otp' | 'magic-link', message: MailDataRequired) {
+  /**
+   * Send generic email (for notifications, suggestions, etc.)
+   */
+  async sendEmail(options: { to: string | string[]; subject: string; text: string; html?: string }) {
+    const recipients = Array.isArray(options.to) ? options.to : [options.to];
+    const html = options.html || options.text.replace(/\n/g, '<br>');
+    
+    await this.dispatchMail('notification', {
+      to: recipients,
+      from: this.fromAddress,
+      subject: options.subject,
+      text: options.text,
+      html,
+    });
+  }
+
+  private async dispatchMail(type: 'otp' | 'magic-link' | 'notification', message: MailDataRequired) {
     if (this.mailDisabled) {
       this.logger.warn(`[Mailer] Mail disabled (MAIL_DISABLE=true). Skipping ${type} email.`);
       return;

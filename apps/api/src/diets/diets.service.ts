@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException, InternalServerErrorException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CacheService } from '../cache/cache.service';
+import { MailerService } from '../../mailer/mailer.service';
 import { DietType, DietDifficulty } from '@prisma/client';
 import * as crypto from 'crypto';
 
@@ -23,6 +24,12 @@ const DIETS_CACHE_TTL = 300;
 export class DietsService implements OnModuleInit {
     private readonly logger = new Logger(DietsService.name);
 
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly cacheService: CacheService,
+        private readonly mailerService: MailerService,
+    ) { }
+
     async onModuleInit() {
         // Warm up cache heavily used on app start
         this.logger.log('Warming up diets cache...');
@@ -41,10 +48,6 @@ export class DietsService implements OnModuleInit {
         }
     }
 
-    constructor(
-        private prisma: PrismaService,
-        private cacheService: CacheService,
-    ) { }
 
     private buildCacheKey(filters: DietFilters, locale: string): string {
         const data = JSON.stringify({ ...filters, locale });
@@ -81,7 +84,8 @@ export class DietsService implements OnModuleInit {
             };
 
             // Only add valid enum values to the filter
-            if (type && ['WEIGHT_LOSS', 'HEALTH', 'LIFESTYLE', 'MEDICAL', 'PERFORMANCE'].includes(type)) {
+            // FIX: Include SPORTS (mapped from PERFORMANCE in frontend)
+            if (type && ['WEIGHT_LOSS', 'HEALTH', 'LIFESTYLE', 'MEDICAL', 'PERFORMANCE', 'SPORTS'].includes(type)) {
                 where.type = type;
             }
             if (difficulty && ['EASY', 'MODERATE', 'HARD'].includes(difficulty)) {
@@ -91,7 +95,17 @@ export class DietsService implements OnModuleInit {
             if (uiGroup) where.uiGroup = uiGroup;
             if (suitableFor) where.suitableFor = { has: suitableFor };
             if (isFeatured === true) where.isFeatured = true;
-            if (search) where.slug = { contains: search.toLowerCase() };
+            // FIX: Search in slug and tags (text/array fields)
+            // Note: name, subtitle, description are JSON fields - filtered on frontend after localization
+            // This approach is more efficient than complex JSON queries
+            if (search) {
+                const searchLower = search.toLowerCase();
+                where.OR = [
+                    { slug: { contains: searchLower, mode: 'insensitive' } },
+                    { tags: { has: searchLower } },
+                ];
+                // Frontend will additionally filter by localized name/description for better UX
+            }
 
             const diets = await this.prisma.dietProgram.findMany({
                 where,
@@ -118,6 +132,10 @@ export class DietsService implements OnModuleInit {
                     dailyCalories: true,
                     category: true,
                     uiGroup: true,
+                    // FIX: Include additional fields for lifestyle filtering (target, ageRange stored in JSON)
+                    // These are filtered on frontend after localization
+                    color: true,
+                    suitableFor: true,
                     _count: {
                         select: {
                             userPrograms: { where: { status: 'active' } },
@@ -449,14 +467,18 @@ export class DietsService implements OnModuleInit {
             const diffTime = today.getTime() - startDate.getTime();
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             const calculatedCurrentDay = Math.max(1, diffDays + 1); // Day 1 is start date
+            const maxDay = userDiet.program?.duration || 0;
+
+            // FIX: Clamp currentDay to not exceed duration (prevents "0 days left" after completion)
+            const clampedCurrentDay = maxDay > 0 ? Math.min(calculatedCurrentDay, maxDay) : calculatedCurrentDay;
 
             // Update currentDay in database if it's different (for backward compatibility)
-            if (userDiet.currentDay !== calculatedCurrentDay && calculatedCurrentDay <= (userDiet.program?.duration || 0)) {
+            if (userDiet.currentDay !== clampedCurrentDay && clampedCurrentDay <= maxDay) {
                 await this.prisma.userDietProgram.update({
                     where: { id: userDiet.id },
-                    data: { currentDay: calculatedCurrentDay },
+                    data: { currentDay: clampedCurrentDay },
                 });
-                userDiet.currentDay = calculatedCurrentDay;
+                userDiet.currentDay = clampedCurrentDay;
             }
 
             // Get today's plan
@@ -1272,7 +1294,56 @@ export class DietsService implements OnModuleInit {
             },
         });
 
+        // FIX: Send email notification to info@eatsense.ch (email from privacy policy)
+        // Send email in background (don't wait for it to complete)
+        this.sendSuggestionEmail(suggestion, userId).catch(err => {
+            this.logger.error(`Failed to send suggestion email: ${err.message}`);
+            // Don't throw - email failure shouldn't break the API response
+        });
+
         return { success: true, created: true, suggestion };
+    }
+
+    /**
+     * Send email notification for new program suggestion
+     */
+    private async sendSuggestionEmail(suggestion: any, userId: string) {
+        try {
+            // Get user email for context
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { email: true },
+            });
+
+            const userEmail = user?.email || 'Unknown user';
+            const suggestionType = suggestion.type === 'diet' ? 'Диета' : 'Стиль жизни';
+            const emailSubject = `Новое предложение программы: ${suggestion.name}`;
+            const emailBody = `
+Новое предложение программы от пользователя:
+
+Тип: ${suggestionType}
+Название: ${suggestion.name}
+${suggestion.description ? `Описание: ${suggestion.description}` : ''}
+Голосов: ${suggestion.votes}
+Пользователь: ${userEmail} (ID: ${userId})
+Дата: ${new Date(suggestion.createdAt).toLocaleString('ru-RU')}
+
+ID предложения: ${suggestion.id}
+            `.trim();
+
+            // Send email to info@eatsense.ch (from privacy policy)
+            await this.mailerService.sendEmail({
+                to: 'info@eatsense.ch',
+                subject: emailSubject,
+                text: emailBody,
+                html: `<pre>${emailBody}</pre>`,
+            });
+
+            this.logger.log(`Suggestion email sent for: ${suggestion.name}`);
+        } catch (error: any) {
+            this.logger.error(`Failed to send suggestion email: ${error.message}`);
+            throw error;
+        }
     }
 
     async getSuggestions(type?: 'diet' | 'lifestyle', limit = 20) {

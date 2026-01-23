@@ -106,6 +106,24 @@ export default function ActiveDietWidget({ activeDiet, onOpenTracker, onBrowseDi
                 </View>
             </View>
 
+            {/* Days Left / Streak Info */}
+            <View style={styles.infoRow}>
+                <View style={styles.infoItem}>
+                    <Ionicons name="calendar-outline" size={14} color={colors.textSecondary || '#666'} />
+                    <Text style={[styles.infoLabel, { color: colors.textSecondary || '#666' }]}>
+                        {t('dashboard.activeDiet.daysLeft') || 'Days left'}
+                    </Text>
+                    <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+                        {/* FIX: Use daysLeft from props if available, otherwise calculate correctly */}
+                        {activeDiet?.daysLeft !== undefined && activeDiet.daysLeft !== null
+                          ? activeDiet.daysLeft 
+                          : (activeDiet?.totalDays && activeDiet?.currentDay 
+                            ? Math.max(0, activeDiet.totalDays - activeDiet.currentDay + 1)
+                            : 0)}
+                    </Text>
+                </View>
+            </View>
+
             {/* Footer */}
             <View style={styles.footer}>
                 <Text style={[styles.openTrackerText, { color: colors.primary || '#4CAF50' }]}>
@@ -206,6 +224,28 @@ const styles = StyleSheet.create({
     progressBarFill: {
         height: '100%',
         borderRadius: 4,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 12,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.05)',
+    },
+    infoItem: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 4,
+    },
+    infoLabel: {
+        fontSize: 12,
+        marginLeft: 4,
+    },
+    infoValue: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 4,
     },
     footer: {
         flexDirection: 'row',

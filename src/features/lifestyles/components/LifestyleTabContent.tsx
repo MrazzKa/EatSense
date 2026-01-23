@@ -27,7 +27,8 @@ import LifestyleCard from './LifestyleCard';
 import CategoryChips from './CategoryChips';
 import TrendingCarousel from './TrendingCarousel';
 import DisclaimerBanner from './DisclaimerBanner';
-import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
+// FIX: SuggestProgramCard moved to DietsScreen level for better visibility
+// import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
 import ActiveDietWidget from '../../../components/dashboard/ActiveDietWidget';
 
 // Card height for getItemLayout optimization
@@ -200,10 +201,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       data.push({ type: 'empty' });
     }
 
-    // Suggest program card at the end
-    if (!searchQuery && programs.length > 0) {
-      data.push({ type: 'suggest' });
-    }
+    // FIX: SuggestProgramCard moved to DietsScreen level for better visibility
+    // Removed from here - now shown at screen level after all content
 
     return data;
   }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, programs, props.activeProgram, t]);
@@ -307,8 +306,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
           </View>
         );
 
-      case 'suggest':
-        return <SuggestProgramCard type="lifestyle" />;
+      // FIX: SuggestProgramCard moved to DietsScreen level
+      // case 'suggest' removed
 
       default:
         return null;
