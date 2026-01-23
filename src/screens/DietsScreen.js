@@ -156,14 +156,15 @@ export default function DietsScreen({ navigation }) {
     const [lifestylePrograms, setLifestylePrograms] = useState([]);
     const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
-    const [isLoadingMoreData, setIsLoadingMoreData] = useState(false); // Fix: Added missing state
 
-    // Load data using bundle API (single request for all data)
+    // Load data using bundle API - OPTIMIZED for instant loading
     const loadData = useCallback(async (forceRefresh = false) => {
         let isMounted = true;
 
         try {
-            // Step 1: Try to show cached data immediately for instant UI
+            let hasCache = false;
+            
+            // Step 1: Try to show cached data immediately for instant UI (0ms)
             if (!forceRefresh) {
                 const cached = await loadFromCache(BUNDLE_CACHE_KEY);
                 if (cached && isMounted) {
@@ -173,35 +174,55 @@ export default function DietsScreen({ navigation }) {
                     setLifestylePrograms(cached.allLifestyles || []);
                     setActiveDiet(cached.activeProgram || null);
                     setLoading(false);
+                    hasCache = true;
                 }
             }
 
-            // Step 2: Fetch fresh data from bundle API
-            const bundle = await ApiService.getDietsBundle(language);
-
-            if (isMounted && bundle) {
-                setFeaturedDiets(bundle.featuredDiets || []);
-                setFeaturedLifestyles(bundle.featuredLifestyles || []);
-                setAllDiets(bundle.allDiets || []);
-                setLifestylePrograms(bundle.allLifestyles || []);
-                setActiveDiet(bundle.activeProgram || null);
-                setLoading(false);
-                setRefreshing(false);
-                setIsLoadingLifestyles(false);
-
-                // Save to cache for next visit
-                await saveToCache(BUNDLE_CACHE_KEY, bundle);
-            }
-
-            // Also fetch recommendations (not in bundle)
-            try {
-                const recsRes = await ApiService.getDietRecommendations();
-                if (isMounted && Array.isArray(recsRes)) {
-                    setRecommendations(recsRes);
+            // Step 2: Fetch fresh data in parallel with recommendations
+            // If cache exists, this runs in background (non-blocking)
+            // If no cache, we wait for this to complete
+            const fetchFreshData = async () => {
+                try {
+                    const bundle = await ApiService.getDietsBundle(language);
+                    if (isMounted && bundle) {
+                        setFeaturedDiets(bundle.featuredDiets || []);
+                        setFeaturedLifestyles(bundle.featuredLifestyles || []);
+                        setAllDiets(bundle.allDiets || []);
+                        setLifestylePrograms(bundle.allLifestyles || []);
+                        setActiveDiet(bundle.activeProgram || null);
+                        setLoading(false);
+                        setRefreshing(false);
+                        setIsLoadingLifestyles(false);
+                        await saveToCache(BUNDLE_CACHE_KEY, bundle);
+                    }
+                } catch (err) {
+                    console.error('[DietsScreen] Bundle fetch error:', err);
+                    if (!hasCache && isMounted) {
+                        setLoading(false);
+                        setRefreshing(false);
+                    }
                 }
-            } catch (e) {
-                // Recommendations are optional, don't block
-                console.warn('[DietsScreen] Recommendations fetch failed:', e);
+            };
+
+            // Step 3: Fetch recommendations in parallel (non-blocking)
+            const fetchRecommendations = async () => {
+                try {
+                    const recsRes = await ApiService.getDietRecommendations();
+                    if (isMounted && Array.isArray(recsRes)) {
+                        setRecommendations(recsRes);
+                    }
+                } catch (e) {
+                    console.warn('[DietsScreen] Recommendations fetch failed:', e);
+                }
+            };
+
+            // Execute: if cache exists, fetch in background. If no cache, wait for bundle.
+            if (hasCache) {
+                // Cache exists - fetch fresh data in background (non-blocking)
+                Promise.all([fetchFreshData(), fetchRecommendations()]).catch(() => {});
+            } else {
+                // No cache - wait for bundle, recommendations in parallel
+                await Promise.all([fetchFreshData(), fetchRecommendations()]);
             }
 
         } catch (error) {
@@ -377,14 +398,12 @@ export default function DietsScreen({ navigation }) {
                     />
                 )}
 
-                {/* PATCH 04: Loading indicator for additional diets/lifestyles */}
-                {((isLoadingMoreData && activeTab === 'diets') || (isLoadingLifestyles && activeTab === 'lifestyle')) && (
+                {/* Loading indicator for lifestyles */}
+                {(isLoadingLifestyles && activeTab === 'lifestyle') && (
                     <View style={styles.loadingMoreContainer}>
                         <ActivityIndicator size="small" color={tokens.colors?.primary || '#4CAF50'} />
                         <Text style={[styles.loadingMoreText, { color: tokens.colors?.textSecondary }]}>
-                            {activeTab === 'lifestyle'
-                                ? (t('lifestyles.loading_more') || 'Loading more programs...')
-                                : (t('diets_loading_more') || 'Loading more diets...')}
+                            {t('lifestyles.loading_more') || 'Loading more programs...'}
                         </Text>
                     </View>
                 )}

@@ -948,6 +948,7 @@
     "notEnabled": "Notifications were not enabled."
   },
   "onboarding": {
+    "startFree": "Commencer",
     "activity": "Quel est votre niveau d'activité ?",
     "activityLevels": {
       "extremelyActive": "Extrêmement actif",

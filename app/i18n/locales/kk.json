@@ -948,6 +948,7 @@
     "notEnabled": "Хабарландырулар қосылмады."
   },
   "onboarding": {
+    "startFree": "Бастау",
     "activity": "Сіздің белсенділігіңіз қандай?",
     "activityLevels": {
       "extremelyActive": "Өте белсенді",
