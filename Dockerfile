@@ -23,6 +23,9 @@ RUN npm install -g pnpm@9
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
+# Copy scripts needed for postinstall (patch-iap.js) BEFORE installing dependencies
+COPY scripts ./scripts
+
 # Copy apps/api package files
 COPY apps/api/package.json ./apps/api/
 
@@ -66,11 +69,15 @@ RUN npm install -g pnpm@9
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
+# Copy scripts needed for postinstall (patch-iap.js)
+COPY scripts ./scripts
+
 # Copy apps/api package files
 COPY apps/api/package.json ./apps/api/
 
 # Install production dependencies + dev dependencies needed for seeds (ts-node, tsconfig-paths)
 # We need ts-node for running seed scripts in start:railway
+# Use --ignore-scripts=false to allow postinstall to run (it needs scripts/patch-iap.js)
 RUN pnpm install --frozen-lockfile --filter ./apps/api
 
 # Copy built application from builder stage
