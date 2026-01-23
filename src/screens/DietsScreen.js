@@ -19,10 +19,8 @@ import ApiService from '../services/apiService';
 import DietsTabContent from '../components/programs/DietsTabContent';
 import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabContent';
 
-// Cache configuration
-const DIETS_CACHE_KEY = 'diets_cache_v2';
-const LIFESTYLES_CACHE_KEY = 'lifestyles_cache_v2';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Cache TTL for bundle data (5 minutes)
+const CACHE_TTL = 5 * 60 * 1000;
 
 // Helper functions for caching
 const loadFromCache = async (key) => {
@@ -134,14 +132,15 @@ const FEATURED_DIET_SLUGS = [
  * DietsScreen - Main screen for diet programs and meal plans
  */
 export default function DietsScreen({ navigation }) {
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
 
+    // Unified cache key for bundle data
+    const BUNDLE_CACHE_KEY = 'diets_bundle_cache_v1';
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [isLoadingMore, setIsLoadingMore] = useState(false); // PATCH 04: Two-stage loading
     const [activeDiet, setActiveDiet] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
     const [featuredDiets, setFeaturedDiets] = useState([]);
@@ -153,131 +152,67 @@ export default function DietsScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('diets'); // New: main tab state
     const scrollViewRef = useRef(null);
 
-    // Lifestyle state - now from API instead of local file
+    // Lifestyle state
     const [lifestylePrograms, setLifestylePrograms] = useState([]);
     const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
 
-    const loadData = useCallback(async () => {
-        // PATCH 04: Two-stage lazy loading for instant perceived speed
-        // PATCH 05: Cache-first loading with stale-while-revalidate
+    // Load data using bundle API (single request for all data)
+    const loadData = useCallback(async (forceRefresh = false) => {
         let isMounted = true;
 
-        // INSTANT: Show cached data immediately
-        if (activeTab === 'lifestyle') {
-            const cachedLifestyles = await loadFromCache(LIFESTYLES_CACHE_KEY);
-            if (cachedLifestyles) {
-                setLifestylePrograms(cachedLifestyles.all || []);
-                setFeaturedLifestyles(cachedLifestyles.featured || []);
-                setLoading(false);
-            }
-        } else {
-            const cachedDiets = await loadFromCache(DIETS_CACHE_KEY);
-            if (cachedDiets) {
-                setAllDiets(cachedDiets.all || []);
-                setFeaturedDiets(cachedDiets.featured || []);
-                setLoading(false);
-            }
-        }
-
-        // Show content immediately with optimistic loading
-        // setLoading(false); // REMOVED: Premature loading state change causing empty flash
-
         try {
-            // For lifestyle tab - load from API (unified with diets)
-            if (activeTab === 'lifestyle') {
-                setIsLoadingLifestyles(true);
-
-                // STAGE 1: Load featured lifestyles FAST for instant display
-                const [activeRes, featuredRes] = await Promise.all([
-                    ApiService.getActiveDiet().catch(() => null),
-                    ApiService.getDiets({ type: 'LIFESTYLE', featured: true, limit: 8 }).catch(() => ({ diets: [] })),
-                ]);
-
-                if (isMounted) {
-                    setActiveDiet(activeRes || null);
-                    if (featuredRes?.diets) setFeaturedLifestyles(featuredRes.diets);
-                    setRefreshing(false);
+            // Step 1: Try to show cached data immediately for instant UI
+            if (!forceRefresh) {
+                const cached = await loadFromCache(BUNDLE_CACHE_KEY);
+                if (cached && isMounted) {
+                    setFeaturedDiets(cached.featuredDiets || []);
+                    setFeaturedLifestyles(cached.featuredLifestyles || []);
+                    setAllDiets(cached.allDiets || []);
+                    setLifestylePrograms(cached.allLifestyles || []);
+                    setActiveDiet(cached.activeProgram || null);
+                    setLoading(false);
                 }
-
-                // STAGE 2: Load all lifestyles in background
-                setTimeout(async () => {
-                    if (!isMounted) return;
-                    try {
-                        const allRes = await ApiService.getDiets({ type: 'LIFESTYLE', limit: 50 }).catch(() => ({ diets: [] }));
-                        if (isMounted && allRes?.diets) {
-                            setLifestylePrograms(allRes.diets);
-                            setLoading(false); // Move loading completion here
-                            // Save to cache for next visit
-                            saveToCache(LIFESTYLES_CACHE_KEY, {
-                                all: allRes.diets,
-                                featured: featuredRes?.diets || [],
-                            });
-                        }
-                    } catch (error) {
-                        console.error('[DietsScreen] Load lifestyles error:', error);
-                    } finally {
-                        if (isMounted) setIsLoadingLifestyles(false);
-                    }
-                }, 100);
-                return;
             }
 
-            // STAGE 1: Load featured diets FAST for instant display
-            const [activeRes, recsRes, featuredRes] = await Promise.all([
-                ApiService.getActiveDiet().catch(() => null),
-                ApiService.getDietRecommendations().catch(() => []),
-                ApiService.getFeaturedDiets().catch(() => []),
-            ]);
+            // Step 2: Fetch fresh data from bundle API
+            const bundle = await ApiService.getDietsBundle(language);
 
-            if (isMounted) {
-                setActiveDiet(activeRes || null);
-                if (Array.isArray(recsRes)) setRecommendations(recsRes);
-                if (Array.isArray(featuredRes)) setFeaturedDiets(featuredRes);
+            if (isMounted && bundle) {
+                setFeaturedDiets(bundle.featuredDiets || []);
+                setFeaturedLifestyles(bundle.featuredLifestyles || []);
+                setAllDiets(bundle.allDiets || []);
+                setLifestylePrograms(bundle.allLifestyles || []);
+                setActiveDiet(bundle.activeProgram || null);
+                setLoading(false);
                 setRefreshing(false);
+                setIsLoadingLifestyles(false);
+
+                // Save to cache for next visit
+                await saveToCache(BUNDLE_CACHE_KEY, bundle);
             }
 
-            // STAGE 2: Load all diets in background (with small delay to let UI render)
-            setIsLoadingMore(true);
-
-            setTimeout(async () => {
-                if (!isMounted) return;
-
-                try {
-                    const filters = {};
-                    if (selectedType) filters.type = selectedType;
-                    if (selectedDifficulty) filters.difficulty = selectedDifficulty;
-                    if (searchQuery) filters.search = searchQuery;
-
-                    const allRes = await ApiService.getDiets(filters).catch(() => ({ diets: [] }));
-
-                    if (isMounted && allRes?.diets) {
-                        setAllDiets(allRes.diets);
-                        // Save to cache for next visit (only if no filters)
-                        if (!selectedType && !selectedDifficulty && !searchQuery) {
-                            saveToCache(DIETS_CACHE_KEY, {
-                                all: allRes.diets,
-                                featured: featuredRes || [],
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error('[DietsScreen] Load more error:', error);
-                } finally {
-                    if (isMounted) setIsLoadingMore(false);
+            // Also fetch recommendations (not in bundle)
+            try {
+                const recsRes = await ApiService.getDietRecommendations();
+                if (isMounted && Array.isArray(recsRes)) {
+                    setRecommendations(recsRes);
                 }
-            }, 100); // 100ms delay to let UI render featured first
+            } catch (e) {
+                // Recommendations are optional, don't block
+                console.warn('[DietsScreen] Recommendations fetch failed:', e);
+            }
 
         } catch (error) {
             console.error('[DietsScreen] Load error:', error);
+            setLoading(false);
             setRefreshing(false);
-            setIsLoadingMore(false);
         }
 
         return () => {
             isMounted = false;
         };
-    }, [selectedType, selectedDifficulty, searchQuery, activeTab]);
+    }, [language]);
 
     useFocusEffect(
         useCallback(() => {
@@ -288,17 +223,15 @@ export default function DietsScreen({ navigation }) {
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
 
-        // Clear cache on manual refresh to force fresh data
+        // Clear bundle cache on manual refresh to force fresh data
         try {
-            await AsyncStorage.removeItem(DIETS_CACHE_KEY);
-            await AsyncStorage.removeItem(LIFESTYLES_CACHE_KEY);
+            await AsyncStorage.removeItem('diets_bundle_cache_v1');
         } catch (e) {
             console.warn('[DietsScreen] Failed to clear cache:', e);
         }
 
-        // loadData uses loadFromCache inside, so clearing it first ensures API hit
-        await loadData();
-        // Note: loadData handles setRefreshing(false) internally
+        // Force refresh bypasses cache
+        await loadData(true);
     }, [loadData]);
 
     const onTypeChange = async (type) => {
@@ -347,7 +280,7 @@ export default function DietsScreen({ navigation }) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{t('diets.title') || 'Diets'}</Text>
+                    <Text style={styles.headerTitle}>{t('diets_title') || 'Diets'}</Text>
                 </View>
                 <DietsSkeleton colors={themeContext?.colors} />
             </SafeAreaView>

@@ -13,8 +13,8 @@ export default {
     runtimeVersion: {
       policy: "appVersion"
     },
-    // Use generated icon.png (standard Expo requirement is PNG 1024x1024)
-    icon: "./assets/icon.png",
+    // Use requested logo
+    icon: "./assets/logo/Logo.jpg",
     userInterfaceStyle: "light",
 
     extra: {
@@ -32,12 +32,12 @@ export default {
       }
     },
 
-    splash: { image: "./assets/splash.png", resizeMode: "contain", backgroundColor: "#ffffff" },
+    splash: { image: "./assets/logo/Logo.jpg", resizeMode: "contain", backgroundColor: "#ffffff" },
     scheme: "eatsense",
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "83",
+      buildNumber: "84",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {
@@ -77,7 +77,7 @@ export default {
     android: {
       package: "ch.eatsense.app",
       versionCode: 62,
-      adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#FFFFFF" },
+      adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
       permissions: ["CAMERA", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
       intentFilters: [{
         action: "VIEW",
@@ -91,7 +91,7 @@ export default {
       }]
     },
 
-    web: { favicon: "./assets/favicon.png" },
+    web: { favicon: "./assets/logo/Logo.jpg" },
     notification: { icon: "./assets/icon.png", color: "#FF6B6B", androidMode: "default", androidCollapsedTitle: "EatSense" },
     plugins: [
       [

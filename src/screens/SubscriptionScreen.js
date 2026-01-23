@@ -13,6 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import * as Localization from 'expo-localization';
 import { useI18n } from '../../app/i18n/hooks';
 import { openLegalLink } from '../utils/legal';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -22,31 +23,57 @@ import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions'
 
 // Plan descriptions for Apple App Store Review compliance
 // Each subscription must clearly state what features are included
-// Plan configuration with I18n keys
+
+// Default plan texts for fallback when translations are missing
+const PLAN_DEFAULTS = {
+    monthly: {
+        title: 'Monthly',
+        subtitle: 'Flexible billing',
+        features: ['Unlimited AI analysis', 'Advanced nutrition insights', 'Personalized coaching', 'Priority support'],
+    },
+    yearly: {
+        title: 'Yearly',
+        subtitle: 'Best value — save 33%',
+        features: ['Everything in Monthly', 'Exclusive webinars', 'Early access to features'],
+    },
+    student: {
+        title: 'Student',
+        subtitle: 'Special student pricing',
+        features: ['Unlimited AI analysis', 'Advanced nutrition insights', 'Student ID required'],
+    },
+    founders: {
+        title: 'Founder',
+        subtitle: 'Lifetime access + Exclusive badge',
+        badge: 'LIMITED',
+        features: ['One-time payment, forever access', 'Exclusive Founder Badge', 'Direct developer access'],
+    },
+};
+
+// Plan configuration with I18n keys (using onboarding.plans.* which exist)
 const PLAN_CONFIG = {
     monthly: {
-        titleKey: 'subscription.plans.monthly.title',
-        subtitleKey: 'subscription.plans.monthly.subtitle',
-        featuresKey: 'subscription.plans.monthly.features',
+        titleKey: 'onboarding.plans.monthly',
+        subtitleKey: 'onboarding.plans.monthlyHeadline',
+        featuresKey: 'onboarding.plans.proMonthly.features',
         originalPrice: { USD: 14.99, EUR: 12.99, CHF: 15.00 },
     },
     yearly: {
-        titleKey: 'subscription.plans.yearly.title',
-        subtitleKey: 'subscription.plans.yearly.subtitle',
-        featuresKey: 'subscription.plans.yearly.features',
+        titleKey: 'onboarding.plans.yearly',
+        subtitleKey: 'onboarding.plans.yearlyHeadline',
+        featuresKey: 'onboarding.plans.proAnnual.features',
         originalPrice: { USD: 119.99, EUR: 99.99, CHF: 120.00 },
     },
     student: {
-        titleKey: 'subscription.plans.student.title',
-        subtitleKey: 'subscription.plans.student.subtitle',
-        featuresKey: 'subscription.plans.student.features',
+        titleKey: 'onboarding.plans.student.name',
+        subtitleKey: 'onboarding.plans.studentHeadline',
+        featuresKey: 'onboarding.plans.student.features',
         originalPrice: { USD: 59.99, EUR: 49.99, CHF: 60.00 },
     },
     founders: {
-        titleKey: 'subscription.plans.founders.title',
-        subtitleKey: 'subscription.plans.founders.subtitle',
-        featuresKey: 'subscription.plans.founders.features',
-        badgeKey: 'subscription.plans.founders.badge',
+        titleKey: 'onboarding.plans.founder.name',
+        subtitleKey: 'onboarding.plans.founderHeadline',
+        featuresKey: 'onboarding.plans.founder.features',
+        badgeKey: 'onboarding.plans.founderBadge',
         badgeColor: '#FFD700',
         originalPrice: null,
     },
@@ -70,10 +97,42 @@ export default function SubscriptionScreen() {
     const [purchasing, setPurchasing] = useState(false);
     const [restoring, setRestoring] = useState(false);
     const [, setIapProducts] = useState([]);
-    // Currency is stored for future use with IAP pricing
-    const [, setCurrency] = useState({ code: 'USD', symbol: '$' });
+    // Currency with regional prices for fallback
+    const [currency, setCurrency] = useState({
+        symbol: '$',
+        code: 'USD',
+        monthlyPrice: '$9.99',
+        yearlyPrice: '$69.99',
+        studentPrice: '$49.00',
+        founderPrice: '$99.99',
+    });
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
+
+    // Load currency from device region (fallback when IAP unavailable)
+    React.useEffect(() => {
+        const deviceLocale = Localization.getLocales()?.[0];
+        const region = deviceLocale?.regionCode?.toUpperCase();
+
+        const regionMap = {
+            'CH': { symbol: 'CHF', code: 'CHF', monthlyPrice: 'CHF 9.90', yearlyPrice: 'CHF 69.00', studentPrice: 'CHF 49.00', founderPrice: 'CHF 99.00' },
+            'RU': { symbol: '₽', code: 'RUB', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽', founderPrice: '8 990 ₽' },
+            'KZ': { symbol: '₸', code: 'KZT', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸', founderPrice: '44 990 ₸' },
+            'DE': { symbol: '€', code: 'EUR', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
+            'FR': { symbol: '€', code: 'EUR', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
+            'GB': { symbol: '£', code: 'GBP', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99', founderPrice: '£89.99' },
+            'US': { symbol: '$', code: 'USD', monthlyPrice: '$9.99', yearlyPrice: '$69.99', studentPrice: '$49.00', founderPrice: '$99.99' },
+            'UA': { symbol: '₴', code: 'UAH', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴', founderPrice: '3 999 ₴' },
+            'PL': { symbol: 'zł', code: 'PLN', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł', founderPrice: '399,99 zł' },
+            'AU': { symbol: 'A$', code: 'AUD', monthlyPrice: 'A$14.99', yearlyPrice: 'A$99.99', studentPrice: 'A$64.99', founderPrice: 'A$149.99' },
+            'CA': { symbol: 'C$', code: 'CAD', monthlyPrice: 'C$12.99', yearlyPrice: 'C$89.99', studentPrice: 'C$59.99', founderPrice: 'C$129.99' },
+        };
+
+        if (region && regionMap[region]) {
+            setCurrency(regionMap[region]);
+            console.log('[SubscriptionScreen] Currency from region:', region);
+        }
+    }, []);
 
 
 
@@ -107,35 +166,30 @@ export default function SubscriptionScreen() {
                         isStudent ? 'student' : 'monthly';
 
                 const config = PLAN_CONFIG[planType] || PLAN_CONFIG.monthly;
+                const defaults = PLAN_DEFAULTS[planType] || PLAN_DEFAULTS.monthly;
 
-                // Resolve features using returnObjects: true if supported, or fallback
-                // For safety with potential i18n limitations, we'll try to get an array
-                // If it returns a string (key missing), we fallback to default hardcoded lists (English)
+                // Resolve features with fallback to defaults
                 let features = t(config.featuresKey, { returnObjects: true });
-                if (!Array.isArray(features)) {
-                    // Fallback features if translation missing
-                    if (planType === 'founders') {
-                        features = [
-                            'Lifetime Premium access',
-                            'All current & future features',
-                            'Exclusive Founder badge',
-                            'No recurring payments',
-                            'Priority support'
-                        ];
-                    } else {
-                        features = [
-                            'Unlimited food analysis',
-                            'Detailed nutrition reports',
-                            'Personal AI Assistant',
-                            'Diet & lifestyle programs'
-                        ];
-                    }
+                if (!Array.isArray(features) || features.length === 0) {
+                    features = defaults.features;
                 }
 
-                // Title and Subtitle
-                // Note: We use the key from config.
-                const title = t(config.titleKey) || (planType === 'founders' ? 'Founders Pass' : 'Premium');
-                const headline = t(config.subtitleKey);
+                // Title and Subtitle with fallbacks
+                let title = t(config.titleKey);
+                if (!title || title === config.titleKey || title.startsWith('subscription.') || title.startsWith('onboarding.')) {
+                    title = defaults.title;
+                }
+
+                let headline = t(config.subtitleKey);
+                if (!headline || headline === config.subtitleKey || headline.startsWith('subscription.') || headline.startsWith('onboarding.')) {
+                    headline = defaults.subtitle;
+                }
+
+                // Badge with fallback
+                let badge = config.badgeKey ? t(config.badgeKey) : null;
+                if (badge && (badge === config.badgeKey || badge.startsWith('subscription.') || badge.startsWith('onboarding.'))) {
+                    badge = defaults.badge || null;
+                }
 
                 return {
                     id: product.productId,
@@ -150,7 +204,7 @@ export default function SubscriptionScreen() {
                     isSubscription: !isFounders,
                     // Strike-through pricing support
                     originalPrice: config.originalPrice,
-                    badge: config.badgeKey ? t(config.badgeKey) : (config.badge || null),
+                    badge: badge,
                     badgeColor: config.badgeColor,
                 };
             });
@@ -175,7 +229,7 @@ export default function SubscriptionScreen() {
         } finally {
             setLoading(false);
         }
-    }, [route.params?.selectedPlanId]);
+    }, [route.params?.selectedPlanId, currency, t]);
 
     useEffect(() => {
         initIAP();
@@ -187,18 +241,40 @@ export default function SubscriptionScreen() {
     // Fallback to local plan data when IAP is unavailable (e.g., simulator, sandbox issues)
     const loadBackendPlans = async () => {
         try {
-            // Use local plan descriptions as fallback
-            // This ensures SubscriptionScreen shows content even without IAP
-            // Use local plan descriptions as fallback
+            // Use local plan descriptions as fallback with proper localization
             const getPlanData = (type) => {
                 const config = PLAN_CONFIG[type];
+                const defaults = PLAN_DEFAULTS[type];
+
+                // Features with fallback
                 let features = t(config.featuresKey, { returnObjects: true });
-                if (!Array.isArray(features)) features = ['Unlimited analysis', 'AI Assistant', 'Detailed reports']; // Fallback
+                if (!Array.isArray(features) || features.length === 0) {
+                    features = defaults.features;
+                }
+
+                // Title with fallback
+                let title = t(config.titleKey);
+                if (!title || title === config.titleKey || title.startsWith('subscription.') || title.startsWith('onboarding.')) {
+                    title = defaults.title;
+                }
+
+                // Headline with fallback
+                let headline = t(config.subtitleKey);
+                if (!headline || headline === config.subtitleKey || headline.startsWith('subscription.') || headline.startsWith('onboarding.')) {
+                    headline = defaults.subtitle;
+                }
+
+                // Badge with fallback
+                let badge = config.badgeKey ? t(config.badgeKey) : null;
+                if (badge && (badge === config.badgeKey || badge.startsWith('subscription.') || badge.startsWith('onboarding.'))) {
+                    badge = defaults.badge || null;
+                }
+
                 return {
-                    title: t(config.titleKey),
-                    headline: t(config.subtitleKey),
+                    title,
+                    headline,
                     features,
-                    badge: config.badgeKey ? t(config.badgeKey) : null,
+                    badge,
                     badgeColor: config.badgeColor,
                     originalPrice: config.originalPrice
                 };
@@ -209,14 +285,17 @@ export default function SubscriptionScreen() {
             const studentData = getPlanData('student');
             const foundersData = getPlanData('founders');
 
+            const monthLabel = t('onboarding.plans.month', 'mo');
+            const yearLabel = t('onboarding.plans.year', 'yr');
+
             const fallbackPlans = [
                 {
                     id: SUBSCRIPTION_SKUS.MONTHLY,
                     name: 'monthly',
-                    price: '$9.99',
-                    priceFormatted: '$9.99/' + t('onboarding.plans.month') || 'mo',
+                    price: currency.monthlyPrice,
+                    priceFormatted: currency.monthlyPrice + '/' + monthLabel,
                     priceNumber: 9.99,
-                    currency: 'USD',
+                    currency: currency.code,
                     title: monthlyData.title,
                     headline: monthlyData.headline,
                     features: monthlyData.features,
@@ -227,10 +306,10 @@ export default function SubscriptionScreen() {
                 {
                     id: SUBSCRIPTION_SKUS.YEARLY,
                     name: 'yearly',
-                    price: '$69.99',
-                    priceFormatted: '$69.99/' + t('onboarding.plans.year') || 'yr',
+                    price: currency.yearlyPrice,
+                    priceFormatted: currency.yearlyPrice + '/' + yearLabel,
                     priceNumber: 69.99,
-                    currency: 'USD',
+                    currency: currency.code,
                     title: yearlyData.title,
                     headline: yearlyData.headline,
                     features: yearlyData.features,
@@ -242,10 +321,10 @@ export default function SubscriptionScreen() {
                 {
                     id: SUBSCRIPTION_SKUS.STUDENT,
                     name: 'student',
-                    price: '$49.00',
-                    priceFormatted: '$49.00/' + t('onboarding.plans.year') || 'yr',
+                    price: currency.studentPrice,
+                    priceFormatted: currency.studentPrice + '/' + yearLabel,
                     priceNumber: 49.00,
-                    currency: 'USD',
+                    currency: currency.code,
                     title: studentData.title,
                     headline: studentData.headline,
                     features: studentData.features,
@@ -256,10 +335,10 @@ export default function SubscriptionScreen() {
                 {
                     id: NON_CONSUMABLE_SKUS.FOUNDERS,
                     name: 'founders',
-                    price: '$99.99',
-                    priceFormatted: '$99.99', // One time
+                    price: currency.founderPrice,
+                    priceFormatted: currency.founderPrice, // One time
                     priceNumber: 99.99,
-                    currency: 'USD',
+                    currency: currency.code,
                     title: foundersData.title,
                     headline: foundersData.headline,
                     features: foundersData.features,
@@ -272,8 +351,7 @@ export default function SubscriptionScreen() {
             setPlans(fallbackPlans);
             // Select yearly by default
             setSelectedPlanId(SUBSCRIPTION_SKUS.YEARLY);
-            setCurrency('USD');
-            console.log('[SubscriptionScreen] Using local fallback plans');
+            console.log('[SubscriptionScreen] Using local fallback plans with currency:', currency.code);
         } catch (error) {
             console.error('[SubscriptionScreen] Failed to load fallback plans:', error);
         }
@@ -1023,29 +1101,36 @@ const createStyles = (tokens, colors) => {
         planButtonFounders: {
             borderColor: '#FFD700',
             backgroundColor: '#FFF8E1',
+            marginTop: 20, // Increased margin for badge
         },
         popularBadgeCompact: {
             position: 'absolute',
-            top: -10,
+            top: -12,
             right: 12,
             backgroundColor: colors?.primary || tokens.colors?.primary || '#4CAF50',
-            paddingHorizontal: 8,
-            paddingVertical: 2,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
             borderRadius: 8,
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10, // Ensure badge is above content
         },
         studentBadge: {
             backgroundColor: '#7C3AED',
         },
         foundersBadge: {
             backgroundColor: '#FFD700',
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            width: 'auto', // Ensure it doesn't stretch weirdly
         },
         popularTextCompact: {
             fontSize: 10,
             fontWeight: '700',
             color: '#FFFFFF',
             textTransform: 'uppercase',
+            letterSpacing: 0.5,
         },
         planCompactContent: {
             flexDirection: 'row',

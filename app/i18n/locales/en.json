@@ -1666,7 +1666,7 @@
   "diets_historical_section_title": "Historical & Inspired",
   "diets_historical_section_subtitle": "Fun diets inspired by history and culture",
   "diets_historical_section_disclaimer_banner": "These are approximations for fun, not medical recommendations",
-  "diets_active_program": "Active_program",
+  "diets_active_program": "Active Program",
   "diets_loading_more": "Loading_more",
   "diets_more_items": "More_items",
   "diets_no_programs": "No_programs",
@@ -1747,7 +1747,7 @@
     "trending": "Trending",
     "empty": "No lifestyle programs found",
     "loading": "Loading",
-    "loading_more": "Loading_more"
+    "loading_more": "Loading more programs..."
   },
   "consultations": {
     "no_messages": "No_messages",

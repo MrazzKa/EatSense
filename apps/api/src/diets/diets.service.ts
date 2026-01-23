@@ -1058,6 +1058,97 @@ export class DietsService implements OnModuleInit {
         return '';
     }
 
+    /**
+     * Get bundle of all diets data for frontend (single request optimization)
+     * Returns: featured diets, featured lifestyles, all diets, all lifestyles, active program
+     */
+    async getBundle(userId: string | null, locale: string = 'en') {
+        const cacheKey = `bundle:${locale}`;
+        const BUNDLE_CACHE_TTL = 60; // 60 seconds for bundle
+
+        // Try cache first (only for public data - user-specific data is always fresh)
+        const cached = await this.cacheService.get<any>(cacheKey, 'diets:bundle');
+
+        try {
+            // Prepare parallel requests
+            const requests: Promise<any>[] = [
+                // Featured diets (type = WEIGHT_LOSS, HEALTH, etc, excluding LIFESTYLE)
+                this.prisma.dietProgram.findMany({
+                    where: { isActive: true, isFeatured: true, type: { not: 'LIFESTYLE' } },
+                    orderBy: { popularityScore: 'desc' },
+                    take: 8,
+                }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
+
+                // Featured lifestyles
+                this.prisma.dietProgram.findMany({
+                    where: { isActive: true, isFeatured: true, type: 'LIFESTYLE' },
+                    orderBy: { popularityScore: 'desc' },
+                    take: 8,
+                }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
+
+                // All diets (non-lifestyle)
+                this.prisma.dietProgram.findMany({
+                    where: { isActive: true, type: { not: 'LIFESTYLE' } },
+                    orderBy: [{ isFeatured: 'desc' }, { popularityScore: 'desc' }],
+                    take: 50,
+                    select: {
+                        id: true, slug: true, name: true, subtitle: true, shortDescription: true,
+                        type: true, difficulty: true, duration: true, imageUrl: true,
+                        isFeatured: true, popularityScore: true, tags: true, dailyCalories: true,
+                        category: true, uiGroup: true,
+                    },
+                }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
+
+                // All lifestyles
+                this.prisma.dietProgram.findMany({
+                    where: { isActive: true, type: 'LIFESTYLE' },
+                    orderBy: [{ isFeatured: 'desc' }, { popularityScore: 'desc' }],
+                    take: 50,
+                    select: {
+                        id: true, slug: true, name: true, subtitle: true, shortDescription: true,
+                        type: true, difficulty: true, duration: true, imageUrl: true,
+                        isFeatured: true, popularityScore: true, tags: true, dailyCalories: true,
+                        category: true, uiGroup: true,
+                    },
+                }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
+            ];
+
+            // Add active program request if user is authenticated
+            if (userId) {
+                requests.push(this.getActiveDiet(userId, locale).catch(() => null));
+            } else {
+                requests.push(Promise.resolve(null));
+            }
+
+            const [featuredDiets, featuredLifestyles, allDiets, allLifestyles, activeProgram] = await Promise.all(requests);
+
+            const result = {
+                featuredDiets,
+                featuredLifestyles,
+                allDiets,
+                allLifestyles,
+                activeProgram,
+                timestamp: Date.now(),
+            };
+
+            // Cache public data (without activeProgram) for 60 seconds
+            if (!cached) {
+                await this.cacheService.set(cacheKey, {
+                    featuredDiets,
+                    featuredLifestyles,
+                    allDiets,
+                    allLifestyles,
+                    timestamp: Date.now(),
+                }, 'diets:bundle', BUNDLE_CACHE_TTL);
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[getBundle] Error fetching bundle:`, error);
+            throw error;
+        }
+    }
+
     private calculateProgress(userDiet: any) {
         const totalDays = userDiet.program.duration;
         return {
