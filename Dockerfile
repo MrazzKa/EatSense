@@ -1,0 +1,104 @@
+# Production Dockerfile for EatSense API (Monorepo)
+# This Dockerfile is optimized for Railway deployment
+
+# Build stage
+FROM node:22-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    pango-dev \
+    giflib-dev \
+    librsvg-dev
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm@9
+
+# Copy root package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy apps/api package files
+COPY apps/api/package.json ./apps/api/
+
+# Install dependencies (root + api)
+RUN pnpm install --frozen-lockfile
+
+# Copy Prisma schema
+COPY apps/api/prisma ./apps/api/prisma
+
+# Generate Prisma client
+RUN pnpm --filter ./apps/api exec prisma generate --schema prisma/schema.prisma
+
+# Copy source code
+COPY apps/api ./apps/api
+COPY tsconfig.json ./
+
+# Build the application
+RUN pnpm --filter ./apps/api build
+
+# Production stage
+FROM node:22-alpine AS production
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    curl \
+    cairo \
+    pango \
+    giflib \
+    librsvg
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S eatsense -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm@9
+
+# Copy root package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy apps/api package files
+COPY apps/api/package.json ./apps/api/
+
+# Install production dependencies + dev dependencies needed for seeds (ts-node, tsconfig-paths)
+# We need ts-node for running seed scripts in start:railway
+RUN pnpm install --frozen-lockfile --filter ./apps/api
+
+# Copy built application from builder stage
+COPY --from=builder --chown=eatsense:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=eatsense:nodejs /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+
+# Copy Prisma schema for migrations
+COPY --chown=eatsense:nodejs apps/api/prisma ./apps/api/prisma
+
+# Copy scripts and configs needed for start:railway
+COPY --chown=eatsense:nodejs apps/api/scripts ./apps/api/scripts
+COPY --chown=eatsense:nodejs apps/api/tsconfig.json ./apps/api/
+COPY --chown=eatsense:nodejs apps/api/prisma/seeds ./apps/api/prisma/seeds
+
+# Create directories for uploads and logs
+RUN mkdir -p apps/api/uploads apps/api/logs && \
+    chown -R eatsense:nodejs apps/api/uploads apps/api/logs
+
+# Switch to non-root user
+USER eatsense
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Start the application using Railway start command
+# This runs migrations and seeds before starting
+CMD ["pnpm", "--filter", "./apps/api", "run", "start:railway"]
