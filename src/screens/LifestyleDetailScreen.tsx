@@ -99,6 +99,9 @@ export default function LifestyleDetailScreen() {
 
       // Refresh progress store to update dashboard immediately
       await refreshProgress();
+      
+      // Small delay to ensure store is updated before showing alert
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const programName = typeof program.name === 'object' 
         ? (program.name[language] || program.name['en'] || program.name['ru'] || Object.values(program.name)[0] || '')
@@ -116,8 +119,35 @@ export default function LifestyleDetailScreen() {
       );
     } catch (error: any) {
       console.error('[LifestyleDetail] Start failed:', error);
-      const message = error?.response?.data?.message || t('lifestyles.startFailed', 'Failed to start program. Please try again later.');
-      Alert.alert(t('common.error', 'Error'), message);
+      const status = error?.response?.status || error?.status;
+      
+      // Handle specific error cases
+      if (status === 409) {
+        // Already enrolled in this program - refresh and show success
+        await refreshProgress();
+        setIsActive(true);
+        Alert.alert(
+          t('lifestyles.programStarted', 'Program started!'),
+          t('lifestyles.programAlreadyActive', 'You are already enrolled in this program.')
+        );
+      } else if (status === 400) {
+        // Another program is active
+        await refreshProgress();
+        Alert.alert(
+          t('common.error', 'Error'),
+          t('dietPrograms.anotherDietActiveMessage', 'You already have an active program. Complete or abandon it first.'),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('dietPrograms.viewActive', 'View Active'),
+              onPress: () => (navigation as any).navigate('MainTabs', { screen: 'Dashboard' }),
+            },
+          ]
+        );
+      } else {
+        const message = error?.response?.data?.message || t('lifestyles.startFailed', 'Failed to start program. Please try again later.');
+        Alert.alert(t('common.error', 'Error'), message);
+      }
     } finally {
       setStarting(false);
     }

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import ApiService from '../services/apiService';
 
 // Import screens
 import DashboardScreen from '../screens/DashboardScreen';
@@ -17,12 +18,40 @@ const Tab = createBottomTabNavigator();
 
 export function MainTabsNavigator() {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const insets = useSafeAreaInsets();
 
   // Calculate safe tab bar height
   const tabBarPaddingBottom = Math.max(insets.bottom, 8);
   const tabBarHeight = 56 + tabBarPaddingBottom;
+
+  // Preload diets bundle when navigator mounts (background, non-blocking)
+  useEffect(() => {
+    // Preload bundle in background to warm up cache
+    // This ensures data is ready when user navigates to Diets tab
+    const preloadBundle = async () => {
+      try {
+        // Check if we already have cache
+        const cacheKey = 'diets_bundle_cache_v1';
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        const cached = await AsyncStorage.getItem(cacheKey);
+        
+        // Only preload if cache is missing or expired (older than 4 minutes)
+        if (!cached) {
+          // Preload in background (non-blocking)
+          ApiService.getDietsBundle(language).catch(() => {
+            // Silently fail - user will load it when they navigate
+          });
+        }
+      } catch (e) {
+        // Silently fail - not critical
+      }
+    };
+
+    // Delay preload slightly to not block initial render
+    const timer = setTimeout(preloadBundle, 1000);
+    return () => clearTimeout(timer);
+  }, [language]);
 
   return (
     <Tab.Navigator
@@ -66,6 +95,15 @@ export function MainTabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="nutrition" size={size || 24} color={color} />
           ),
+        }}
+        listeners={{
+          tabPress: () => {
+            // Preload bundle when user taps on Diets tab (before navigation)
+            // This makes navigation feel instant
+            ApiService.getDietsBundle(language).catch(() => {
+              // Silently fail - screen will load it anyway
+            });
+          },
         }}
       />
       <Tab.Screen

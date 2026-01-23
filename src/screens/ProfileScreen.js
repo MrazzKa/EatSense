@@ -293,14 +293,33 @@ const ProfileScreen = () => {
         if (subscriptionData?.hasSubscription && subscriptionData.subscription) {
           // Map API subscription to our format
           const apiPlan = subscriptionData.subscription.plan;
-          subscriptionPref = {
-            planId: apiPlan === 'weekly' ? 'pro_monthly' : 
-                   apiPlan === 'monthly' ? 'pro_monthly' :
-                   apiPlan === 'yearly' ? 'pro_annual' :
-                   apiPlan === 'student' ? 'student' : 'free',
-            billingCycle: apiPlan === 'yearly' || apiPlan === 'student' ? 'annual' :
-                         apiPlan === 'monthly' || apiPlan === 'weekly' ? 'monthly' : 'lifetime',
+          // Also handle onboarding plan IDs (eatsense.pro.monthly format) if they come from preferences
+          const mapToProfilePlanId = (plan) => {
+            if (!plan || plan === 'free') return 'free';
+            if (plan === 'weekly' || plan === 'monthly' || plan === 'eatsense.pro.monthly') return 'pro_monthly';
+            if (plan === 'yearly' || plan === 'eatsense.pro.yearly') return 'pro_annual';
+            if (plan === 'student' || plan === 'eatsense.pro.yearly.student') return 'student';
+            if (plan === 'founders' || plan === 'eatsense.founder.pass') return 'founders';
+            // If already in profile format, use as-is
+            return plan;
           };
+          subscriptionPref = {
+            planId: mapToProfilePlanId(apiPlan),
+            billingCycle: apiPlan === 'yearly' || apiPlan === 'student' || apiPlan === 'eatsense.pro.yearly' || apiPlan === 'eatsense.pro.yearly.student' ? 'annual' :
+                         apiPlan === 'monthly' || apiPlan === 'weekly' || apiPlan === 'eatsense.pro.monthly' ? 'monthly' : 
+                         apiPlan === 'founders' || apiPlan === 'eatsense.founder.pass' ? 'lifetime' : 'lifetime',
+          };
+        } else if (subscriptionPref.planId) {
+          // Map onboarding plan IDs from preferences if they exist
+          const mapToProfilePlanId = (planId) => {
+            if (!planId || planId === 'free') return 'free';
+            if (planId === 'eatsense.pro.monthly') return 'pro_monthly';
+            if (planId === 'eatsense.pro.yearly') return 'pro_annual';
+            if (planId === 'eatsense.pro.yearly.student') return 'student';
+            if (planId === 'eatsense.founder.pass') return 'founders';
+            return planId; // Already in profile format
+          };
+          subscriptionPref.planId = mapToProfilePlanId(subscriptionPref.planId);
         }
         
         setProfile({
@@ -563,6 +582,13 @@ const ProfileScreen = () => {
       featureKeys: ['unlimitedAnalyses', 'advancedInsights', 'studentDiscount'],
       badgeKey: 'studentDiscount',
     },
+    {
+      id: 'founders',
+      billingCycle: 'lifetime',
+      price: 99.99,
+      featureKeys: ['lifetimeAccess', 'founderBadge', 'directAccess'],
+      badgeKey: 'limited',
+    },
   ];
 
   // Always use USD for plans
@@ -572,11 +598,17 @@ const ProfileScreen = () => {
     const name =
       basePlan.id === 'free'
         ? safeT('profile.planFreeName', 'EatSense Free')
-        : safeT('profile.planProName', 'EatSense Pro');
+        : basePlan.id === 'founders'
+          ? safeT('profile.planFounderName', 'EatSense Founder')
+          : basePlan.id === 'student'
+            ? safeT('profile.planStudentName', 'EatSense Student')
+            : safeT('profile.planProName', 'EatSense Pro');
 
     let priceText;
     if (basePlan.id === 'free') {
       priceText = safeT('profile.planFreePrice', 'Free');
+    } else if (basePlan.id === 'founders') {
+      priceText = safeT('profile.planFounderPrice', 'One-time payment');
     } else if (basePlan.billingCycle === 'monthly') {
       priceText = safeT('profile.planMonthlyPrice', '{{price}} / month').replace(
         '{{price}}',
@@ -592,9 +624,13 @@ const ProfileScreen = () => {
     const description =
       basePlan.id === 'free'
         ? safeT('profile.planFreeDescription', 'Start tracking meals with essential features.')
-        : basePlan.billingCycle === 'monthly'
-          ? safeT('profile.planProMonthlyDescription', 'Unlock unlimited AI tools with flexible billing.')
-          : safeT('profile.planProAnnualDescription', 'Best value — save 33% vs monthly billing.');
+        : basePlan.id === 'founders'
+          ? safeT('profile.planFounderDescription', 'Lifetime access with exclusive badge.')
+          : basePlan.id === 'student'
+            ? safeT('profile.planStudentDescription', 'Special student pricing with verification.')
+            : basePlan.billingCycle === 'monthly'
+              ? safeT('profile.planProMonthlyDescription', 'Unlock unlimited AI tools with flexible billing.')
+              : safeT('profile.planProAnnualDescription', 'Best value — save 33% vs monthly billing.');
 
     const features =
       (basePlan.featureKeys || []).map((key) =>
@@ -606,7 +642,11 @@ const ProfileScreen = () => {
         ? safeT('profile.planBadges.included', 'Included')
         : basePlan.id === 'pro_monthly'
           ? safeT('profile.planBadges.mostPopular', 'Most Popular')
-          : safeT('profile.planBadges.save33', 'Save 33%');
+          : basePlan.id === 'founders'
+            ? safeT('profile.planBadges.limited', 'Limited')
+            : basePlan.id === 'student'
+              ? safeT('profile.planBadges.student', 'Student')
+              : safeT('profile.planBadges.save33', 'Save 33%');
 
     return {
       ...basePlan,
@@ -1644,7 +1684,7 @@ const ProfileScreen = () => {
 
           <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
             <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.app/privacy')}
+              onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
               style={styles.legalRow}
             >
               <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1659,7 +1699,7 @@ const ProfileScreen = () => {
             <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
             <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.app/terms')}
+              onPress={() => Linking.openURL('https://eatsense.vercel.app/terms')}
               style={styles.legalRow}
             >
               <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1673,6 +1713,29 @@ const ProfileScreen = () => {
           </View>
 
           <HealthDisclaimer style={{ marginTop: 16, marginHorizontal: 16 }} />
+        </View>
+
+        {/* Legal Links at Bottom */}
+        <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingTop: 20, paddingBottom: 20 }]}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={[styles.footerLinkText, { color: colors.textTertiary || '#999', fontSize: 13 }]}>
+                {safeT('profile.privacyPolicy', 'Privacy Policy')}
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.textTertiary || '#999', fontSize: 13 }}> • </Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://eatsense.vercel.app/terms')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={[styles.footerLinkText, { color: colors.textTertiary || '#999', fontSize: 13 }]}>
+                {safeT('profile.termsOfService', 'Terms of Service')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Build Info for debugging */}

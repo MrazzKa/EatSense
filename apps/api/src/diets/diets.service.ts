@@ -434,6 +434,12 @@ export class DietsService implements OnModuleInit {
 
             if (!userDiet) return null;
 
+            // FIX: Check if program exists before accessing its properties
+            if (!userDiet.program) {
+                this.logger.warn(`[getActiveDiet] Program is null for userDiet ${userDiet.id}`);
+                return null;
+            }
+
             // Calculate current day based on calendar dates
             const startDate = new Date(userDiet.startedAt);
             startDate.setHours(0, 0, 0, 0);
@@ -445,7 +451,7 @@ export class DietsService implements OnModuleInit {
             const calculatedCurrentDay = Math.max(1, diffDays + 1); // Day 1 is start date
 
             // Update currentDay in database if it's different (for backward compatibility)
-            if (userDiet.currentDay !== calculatedCurrentDay && calculatedCurrentDay <= userDiet.program.duration) {
+            if (userDiet.currentDay !== calculatedCurrentDay && calculatedCurrentDay <= (userDiet.program?.duration || 0)) {
                 await this.prisma.userDietProgram.update({
                     where: { id: userDiet.id },
                     data: { currentDay: calculatedCurrentDay },
@@ -467,7 +473,7 @@ export class DietsService implements OnModuleInit {
                     include: { meals: { orderBy: { sortOrder: 'asc' } } }
                 });
             } else {
-                currentDayData = userDiet.program.days.find(d => d.dayNumber === userDiet.currentDay);
+                currentDayData = userDiet.program?.days?.find(d => d.dayNumber === userDiet.currentDay);
             }
 
             if (currentDayData) {
@@ -480,7 +486,8 @@ export class DietsService implements OnModuleInit {
             });
 
             // Calculate checklist progress from dailyTracker
-            const dailyTracker = userDiet.program.dailyTracker as any[] || [];
+            // FIX: Safe access to dailyTracker with null check
+            const dailyTracker = (userDiet.program?.dailyTracker as any[]) || [];
             const checklist = (todayLog?.checklist as Record<string, boolean>) || {};
             const totalItems = dailyTracker.length;
             const completedItems = Object.values(checklist).filter(Boolean).length;
@@ -523,7 +530,8 @@ export class DietsService implements OnModuleInit {
 
         if (!userDiet) return null;
 
-        const currentDay = userDiet.program.days.find(d => d.dayNumber === userDiet.currentDay);
+        // FIX: Safe access to program.days
+        const currentDay = userDiet.program?.days?.find(d => d.dayNumber === userDiet.currentDay);
 
         // Get today's log
         const today = new Date();
@@ -695,7 +703,15 @@ export class DietsService implements OnModuleInit {
         }
 
         const program = userDiet.program;
-        const dailyTracker = program.dailyTracker as any[] || [];
+        
+        // FIX: Check if program exists before accessing its properties
+        if (!program) {
+            this.logger.warn(`[getTodayTracker] Program is null for userDiet ${userDiet.id}`);
+            return null;
+        }
+        
+        // FIX: Safe access to dailyTracker with null check
+        const dailyTracker = (program?.dailyTracker as any[]) || [];
         const checklist = (todayLog.checklist as Record<string, boolean>) || {};
         const symptoms = (todayLog.symptoms as Record<string, number>) || {};
 
@@ -707,23 +723,23 @@ export class DietsService implements OnModuleInit {
         return {
             diet: this.localizeDiet(program, locale),
             currentDay: userDiet.currentDay,
-            totalDays: program.duration,
+            totalDays: program?.duration || 0,
             streak: {
                 current: userDiet.currentStreak,
                 longest: userDiet.longestStreak,
-                threshold: program.streakThreshold,
+                threshold: program?.streakThreshold || 0.6,
             },
-            dailyTracker: dailyTracker.map((item: any) => ({
+            dailyTracker: (dailyTracker && Array.isArray(dailyTracker)) ? dailyTracker.map((item: any) => ({
                 key: item.key,
                 label: this.getLocalizedValue(item.label, locale),
                 checked: checklist[item.key] || false,
-            })),
-            weeklyGoals: program.weeklyGoals ? this.getLocalizedValue(program.weeklyGoals, locale) : null,
+            })) : [],
+            weeklyGoals: program?.weeklyGoals ? this.getLocalizedValue(program.weeklyGoals, locale) : null,
             symptoms: symptoms,
             completionPercent,
             completed: todayLog.completed || false,
             celebrationShown: todayLog.celebrationShown || false,
-            showSymptoms: program.uiGroup === 'Medical',
+            showSymptoms: program?.uiGroup === 'Medical',
             date: today.toISOString().split('T')[0],
         };
     }
@@ -893,6 +909,12 @@ export class DietsService implements OnModuleInit {
             throw new NotFoundException('No active diet found');
         }
 
+        // FIX: Check if program exists before accessing its properties
+        if (!userDiet.program) {
+            this.logger.warn(`[completeDay] Program is null for userDiet ${userDiet.id}`);
+            throw new BadRequestException('Program data is missing');
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -913,14 +935,15 @@ export class DietsService implements OnModuleInit {
                 currentDay: userDiet.currentDay,
                 daysCompleted: userDiet.daysCompleted,
                 streak: userDiet.currentStreak,
-                isComplete: userDiet.currentDay >= userDiet.program.duration,
+                isComplete: userDiet.currentDay >= (userDiet.program?.duration || 0),
                 completionRate: existingLog.completionPercent || 1,
             };
         }
 
         // Calculate completion rate from checklist
+        // FIX: Safe access to dailyTracker with null check
         const checklist = (existingLog?.checklist as Record<string, boolean>) || {};
-        const dailyTracker = userDiet.program.dailyTracker as any[] || [];
+        const dailyTracker = (userDiet.program?.dailyTracker as any[]) || [];
         const totalItems = dailyTracker.length;
         const completedItems = Object.values(checklist).filter(Boolean).length;
         const completionRate = totalItems > 0 ? completedItems / totalItems : 1;
@@ -955,15 +978,16 @@ export class DietsService implements OnModuleInit {
         });
 
         // Calculate new streak
-        const streakThreshold = userDiet.program.streakThreshold || 0.6;
+        const streakThreshold = userDiet.program?.streakThreshold || 0.6;
         const maintainsStreak = completionRate >= streakThreshold;
         const newStreak = maintainsStreak ? userDiet.currentStreak + 1 : 0;
         const bestStreak = Math.max(userDiet.longestStreak, newStreak);
 
         // CRITICAL FIX: Calculate next day correctly
+        const programDuration = userDiet.program?.duration || 0;
         const nextDay = userDiet.currentDay + 1;
-        const isComplete = nextDay > userDiet.program.duration;
-        const finalCurrentDay = isComplete ? userDiet.program.duration : nextDay;
+        const isComplete = nextDay > programDuration;
+        const finalCurrentDay = isComplete ? programDuration : nextDay;
 
         this.logger.log(`[completeDay] Updating progress:`, {
             nextDay,
@@ -1128,7 +1152,7 @@ export class DietsService implements OnModuleInit {
                     take: 8,
                 }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
 
-                // All diets (non-lifestyle)
+                // All diets (non-lifestyle) - optimized select (only essential fields)
                 this.prisma.dietProgram.findMany({
                     where: { isActive: true, type: { not: 'LIFESTYLE' } },
                     orderBy: [{ isFeatured: 'desc' }, { popularityScore: 'desc' }],
@@ -1137,11 +1161,12 @@ export class DietsService implements OnModuleInit {
                         id: true, slug: true, name: true, subtitle: true, shortDescription: true,
                         type: true, difficulty: true, duration: true, imageUrl: true,
                         isFeatured: true, popularityScore: true, tags: true, dailyCalories: true,
-                        category: true, uiGroup: true,
+                        category: true, uiGroup: true, color: true,
+                        // Exclude heavy fields: description, days, dailyTracker, etc.
                     },
                 }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
 
-                // All lifestyles
+                // All lifestyles - optimized select (only essential fields)
                 this.prisma.dietProgram.findMany({
                     where: { isActive: true, type: 'LIFESTYLE' },
                     orderBy: [{ isFeatured: 'desc' }, { popularityScore: 'desc' }],
@@ -1150,7 +1175,8 @@ export class DietsService implements OnModuleInit {
                         id: true, slug: true, name: true, subtitle: true, shortDescription: true,
                         type: true, difficulty: true, duration: true, imageUrl: true,
                         isFeatured: true, popularityScore: true, tags: true, dailyCalories: true,
-                        category: true, uiGroup: true,
+                        category: true, uiGroup: true, color: true,
+                        // Exclude heavy fields: description, days, dailyTracker, etc.
                     },
                 }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
             ];
@@ -1192,11 +1218,12 @@ export class DietsService implements OnModuleInit {
     }
 
     private calculateProgress(userDiet: any) {
-        const totalDays = userDiet.program.duration;
+        // FIX: Safe access to program.duration
+        const totalDays = userDiet.program?.duration || 0;
         return {
             daysCompleted: userDiet.daysCompleted,
             totalDays,
-            percentComplete: totalDays ? Math.round((userDiet.daysCompleted / totalDays) * 100) : 0,
+            percentComplete: totalDays > 0 ? Math.round((userDiet.daysCompleted / totalDays) * 100) : 0,
             adherenceScore: userDiet.adherenceScore,
         };
     }

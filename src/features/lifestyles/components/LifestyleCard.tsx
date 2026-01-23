@@ -20,11 +20,11 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
   const { colors } = useTheme();
 
   const getLocalizedText = (
-    text: { en?: string; ru?: string; kk?: string } | undefined | null
+    text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null
   ): string => {
     if (!text) return '';
     if (typeof text === 'string') return text;
-    return text[language as keyof typeof text] || text.en || '';
+    return text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || '';
   };
 
   const targetColor = {

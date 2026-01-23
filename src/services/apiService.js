@@ -194,6 +194,18 @@ class ApiService {
       if (__DEV__) console.log(`[ApiService] Response status: ${response.status}`);
 
       if (response.status === 401) {
+        // Special handling for auth endpoints - don't try to refresh on these
+        const isAuthEndpoint = endpoint.includes('/auth/logout') || endpoint.includes('/auth/refresh-token');
+        
+        if (isAuthEndpoint) {
+          // For auth endpoints, 401 is expected if token is expired/invalid
+          // Don't try to refresh - just return the error
+          if (__DEV__) {
+            console.log(`[ApiService] 401 on auth endpoint ${endpoint} - expected if token expired`);
+          }
+          throw await this.buildHttpError(response);
+        }
+
         // Check if we're in grace period after recent successful refresh
         const timeSinceRefresh = Date.now() - this._lastRefreshTime;
         const inGracePeriod = this._lastRefreshSuccess && timeSinceRefresh < this._refreshGracePeriodMs;
@@ -435,9 +447,21 @@ class ApiService {
   async logout() {
     // Clear refresh state before logout
     this._clearRefreshState();
-    return this.request('/auth/logout', {
-      method: 'POST',
-    });
+    try {
+      return await this.request('/auth/logout', {
+        method: 'POST',
+      });
+    } catch (error) {
+      // Ignore 401 errors on logout - token may already be invalid/expired
+      // This is expected behavior when logging out with expired tokens
+      if (error.status === 401) {
+        if (__DEV__) {
+          console.log('[ApiService] Logout returned 401 (token expired) - ignoring');
+        }
+        return null;
+      }
+      throw error;
+    }
   }
 
   async refreshToken() {
