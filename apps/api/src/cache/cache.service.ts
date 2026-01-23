@@ -17,7 +17,8 @@ type CacheNamespace =
   | 'diets:list'
   | 'diets:featured'
   | 'diets:recommendations'
-  | 'diets:detail';
+  | 'diets:detail'
+  | 'diets:bundle';
 
 interface CacheEntry<T> {
   value: T;

@@ -32,12 +32,12 @@ export default {
       }
     },
 
-    splash: { image: "./assets/logo/Logo.jpg", resizeMode: "contain", backgroundColor: "#ffffff" },
+    splash: { image: "./assets/splash.png", resizeMode: "contain", backgroundColor: "#ffffff" },
     scheme: "eatsense",
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "84",
+      buildNumber: "85",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {
