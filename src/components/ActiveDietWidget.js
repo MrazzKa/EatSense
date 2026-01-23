@@ -8,7 +8,7 @@ import { useDesignTokens } from '../contexts/ThemeContext';
  * ActiveDietWidget - Shows current active diet progress
  */
 export default function ActiveDietWidget({ userDiet, onPress }) {
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const tokens = useDesignTokens();
 
     if (!userDiet) return null;
@@ -44,7 +44,17 @@ export default function ActiveDietWidget({ userDiet, onPress }) {
 
             {/* Diet name - use localized name */}
             <Text style={styles.dietName}>
-                {program?.nameLocalized?.[t.language] || program?.name || 'Diet'}
+                {(() => {
+                    // Support both nameLocalized object and name string/object
+                    if (program?.nameLocalized) {
+                        return program.nameLocalized[language] || program.nameLocalized['en'] || program.nameLocalized['ru'] || program.nameLocalized['kk'] || program.nameLocalized['fr'] || Object.values(program.nameLocalized)[0] || program?.name || 'Diet';
+                    }
+                    // Fallback to name (can be string or object)
+                    if (typeof program?.name === 'object') {
+                        return program.name[language] || program.name['en'] || program.name['ru'] || program.name['kk'] || program.name['fr'] || Object.values(program.name)[0] || 'Diet';
+                    }
+                    return program?.name || 'Diet';
+                })()}
             </Text>
 
             {/* Progress bar */}

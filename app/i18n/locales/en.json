@@ -32,6 +32,7 @@
     "hoursShort": "h",
     "stop": "Stop",
     "goBack": "Go back",
+    "goTo": "Go to",
     "daysAgo": "Days Ago",
     "errorGeneric": "Error Generic",
     "free": "Free",
@@ -72,6 +73,7 @@
   },
   "onboarding": {
     "startFree": "Start Now",
+    "subscribe": "Subscribe",
     "activity": "How active are you?",
     "activitySubtitle": "This helps us calculate your calorie needs",
     "activityLevels": {
@@ -890,7 +892,7 @@
   },
   "tabs": {
     "dashboard": "Home",
-    "diets": "Diets",
+    "diets": "Nutrition",
     "articles": "Articles",
     "recently": "Recent",
     "profile": "Profile",
@@ -1394,7 +1396,12 @@
     "plan_yearly": "Yearly",
     "plan_student": "Student",
     "plan_founders": "Founder",
-    "student": "STUDENT"
+    "student": "STUDENT",
+    "restored": "Restored",
+    "restorePurchases": "Restore Purchases",
+    "terms_notice": "Cancel anytime. Terms apply.",
+    "studentVerificationTitle": "Student Discount",
+    "studentVerificationDescription": "Upload a photo of your student ID to get a discount"
   },
   "plan_yearly": "Yearly",
   "plan_student": "Student",
@@ -1602,7 +1609,7 @@
     "notEnabled": "Notifications were not enabled.",
     "enableFailed": "Could not enable notifications."
   },
-  "diets_title": "Diets",
+  "diets_title": "Nutrition",
   "diets_subtitle": "Find the perfect nutrition plan for you",
   "diets_all": "All",
   "diets_weight_loss": "Weight Loss",
@@ -1705,6 +1712,12 @@
   "diets_tabs_lifestyle": "Lifestyle",
   "lifestyles": {
     "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
+    "programNotFound": "Program not found",
+    "loadError": "Failed to load program",
+    "loading": "Loading program...",
+    "programStarted": "Program started!",
+    "programStartedMessage": "You started \"{{name}}\". Track your progress on the main screen.",
+    "startFailed": "Failed to start program. Please try again later.",
     "categories": {
       "all": "All",
       "TRENDING": "Trending",
