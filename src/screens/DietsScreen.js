@@ -156,6 +156,7 @@ export default function DietsScreen({ navigation }) {
     const [lifestylePrograms, setLifestylePrograms] = useState([]);
     const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // Fix: Added missing state
 
     // Load data using bundle API (single request for all data)
     const loadData = useCallback(async (forceRefresh = false) => {
