@@ -371,27 +371,34 @@ const createStyles = (tokens, colors, _isDark = false) => {
     planButtonFounder: {
       borderColor: '#FFD700',
       backgroundColor: '#FFF8E1',
+      marginTop: 14, // Extra margin for badge to not be clipped
     },
     popularBadgeCompact: {
       position: 'absolute',
       top: -10,
       right: 12,
       backgroundColor: colors.primary,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
       borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     studentBadge: {
       backgroundColor: '#7C3AED',
     },
     foundersBadge: {
       backgroundColor: '#FFD700',
+      paddingHorizontal: 10,
+      paddingVertical: 4,
     },
     popularTextCompact: {
       fontSize: 10,
       fontWeight: '700',
       color: '#FFFFFF',
       textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
     planCompactContent: {
       flexDirection: 'row',
@@ -774,6 +781,7 @@ const OnboardingScreen = () => {
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
   const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
   const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Notifications permission state
+  const [purchasing, setPurchasing] = useState(false); // IAP purchase in progress
   // Calculated plan data
   const [planData, setPlanData] = useState(null);
   const { t } = useI18n(); // Added useI18n hook
@@ -1035,6 +1043,61 @@ const OnboardingScreen = () => {
     }
   };
 
+  // Helper to navigate to MainTabs after successful onboarding completion
+  const navigateToMain = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        try {
+          if (navigation && navigation.isReady && navigation.isReady()) {
+            console.log('[OnboardingScreen] Navigation is ready, calling reset');
+            clientLog('Onboarding:navigateToMainTabs').catch(() => { });
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'MainTabs' }],
+              })
+            );
+          } else if (navigation && typeof navigation.reset === 'function') {
+            console.log('[OnboardingScreen] Navigation reset available, calling directly');
+            clientLog('Onboarding:navigateToMainTabs').catch(() => { });
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'MainTabs' }],
+            });
+          } else {
+            console.error('[OnboardingScreen] Navigation not available or not ready');
+            Alert.alert('Error', 'Navigation not available. Please restart the app.');
+          }
+        } catch (navError) {
+          console.error('[OnboardingScreen] Navigation reset error:', navError);
+          Alert.alert('Error', `Navigation error: ${navError.message}. Please restart the app.`);
+        }
+      }, 50);
+    });
+  }, [navigation]);
+
+  // Complete onboarding after profile is saved (called after purchase success or for free plan)
+  const completeOnboarding = useCallback(async () => {
+    try {
+      const onboardingResult = await ApiService.completeOnboarding();
+      console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
+
+      await clientLog('Onboarding:completed').catch(() => { });
+
+      // Update user context with isOnboardingCompleted
+      if (setUser) {
+        setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
+        console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
+      }
+
+      navigateToMain();
+    } catch (err) {
+      console.error('[OnboardingScreen] Complete onboarding error:', err);
+      // Still navigate to main on error
+      navigateToMain();
+    }
+  }, [setUser, navigateToMain]);
+
   const handleComplete = async () => {
     try {
       const {
@@ -1064,13 +1127,10 @@ const OnboardingScreen = () => {
       // Filter out empty 'other' condition if present and merge 'other' text
       let finalHealthConditions = [...(profileDataWithoutPlan.healthConditions || [])];
 
-      // Remove 'other' keyword for backend if we're replacing it with text, or keep it + text?
-      // Usually backend expects a list of strings. If 'other' is selected, we should append the text.
       if (finalHealthConditions.includes('other') && profileData.healthConditionOther) {
         finalHealthConditions = finalHealthConditions.filter(c => c !== 'other');
         finalHealthConditions.push(profileData.healthConditionOther);
       } else if (finalHealthConditions.includes('other') && !profileData.healthConditionOther) {
-        // Should not happen with validation, but safe cleanup
         finalHealthConditions = finalHealthConditions.filter(c => c !== 'other');
       }
 
@@ -1087,100 +1147,79 @@ const OnboardingScreen = () => {
         preferences: mergedPreferences,
       };
 
-      // Logging checks
       clientLog('Onboarding:profileSave:start', { payload: finalPayload });
 
-
-      // Проверяем, есть ли уже профиль
+      // Save profile
       try {
         await ApiService.getUserProfile();
-        // Если профиль существует, обновляем его
         await ApiService.updateUserProfile(finalPayload);
       } catch {
-        // Если профиля нет, создаем новый
         await ApiService.createUserProfile(finalPayload);
       }
 
       clientLog('Onboarding:profileSave:success');
 
-      // FIX 2026-01-19: If plan is NOT free, navigate to SubscriptionScreen for payment
+      // FIX 2026-01-23: Direct purchase on onboarding instead of navigating to SubscriptionScreen
       if (selectedPlan && selectedPlan !== 'free') {
-        console.log('[OnboardingScreen] Paid plan selected, navigating to SubscriptionScreen');
-        navigation.navigate('Subscription', { selectedPlanId: selectedPlan });
+        console.log('[OnboardingScreen] Paid plan selected, initiating purchase:', selectedPlan);
+        setPurchasing(true);
+
+        // Determine if subscription or one-time purchase
+        const isSubscription = selectedPlan !== NON_CONSUMABLE_SKUS.FOUNDERS;
+
+        const onPurchaseSuccess = async () => {
+          console.log('[OnboardingScreen] Purchase successful');
+          setPurchasing(false);
+          await completeOnboarding();
+        };
+
+        const onPurchaseError = (error) => {
+          console.error('[OnboardingScreen] Purchase error:', error);
+          setPurchasing(false);
+          if (error?.code !== 'E_USER_CANCELLED') {
+            Alert.alert(
+              t('error.title', 'Error'),
+              t('subscription.purchaseFailed', 'Purchase failed. Please try again.'),
+              [
+                { text: t('common.ok', 'OK') },
+                {
+                  text: t('onboarding.continueFree', 'Continue Free'),
+                  onPress: async () => {
+                    // Update plan to free and complete onboarding
+                    setProfileData(prev => ({ ...prev, selectedPlan: 'free', planBillingCycle: 'lifetime' }));
+                    await completeOnboarding();
+                  }
+                }
+              ]
+            );
+          }
+        };
+
+        try {
+          // Initialize IAP if not already done
+          await IAPService.init();
+
+          if (isSubscription) {
+            await IAPService.purchaseSubscription(selectedPlan, onPurchaseSuccess, onPurchaseError);
+          } else {
+            await IAPService.purchaseProduct(selectedPlan, onPurchaseSuccess, onPurchaseError);
+          }
+        } catch (error) {
+          console.error('[OnboardingScreen] IAP error:', error);
+          setPurchasing(false);
+          Alert.alert(
+            t('error.title', 'Error'),
+            t('subscription.purchaseFailed', 'Purchase failed. Please try again.')
+          );
+        }
         return;
       }
 
-      const onboardingResult = await ApiService.completeOnboarding();
-      console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
-
-      await clientLog('Onboarding:completed').catch(() => { });
-
-      // Update user context with isOnboardingCompleted (no need to refetch profile)
-      if (setUser) {
-        setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
-        console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
-      }
-
-      // Navigate immediately without extra delays
-      // FIX 2026-01-19: Reduced delay from 100ms to 50ms and removed redundant getUserProfile call
-      InteractionManager.runAfterInteractions(() => {
-        setTimeout(() => {
-          try {
-            if (navigation && navigation.isReady && navigation.isReady()) {
-              console.log('[OnboardingScreen] Navigation is ready, calling reset');
-              clientLog('Onboarding:navigateToMainTabs').catch(() => { });
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'MainTabs' }],
-                })
-              );
-            } else if (navigation && typeof navigation.reset === 'function') {
-              console.log('[OnboardingScreen] Navigation reset available, calling directly');
-              clientLog('Onboarding:navigateToMainTabs').catch(() => { });
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'MainTabs' }],
-              });
-            } else {
-              console.error('[OnboardingScreen] Navigation not available or not ready');
-              console.error('[OnboardingScreen] Navigation object:', navigation);
-              Alert.alert('Error', 'Navigation not available. Please restart the app.');
-            }
-          } catch (navError) {
-            console.error('[OnboardingScreen] Navigation reset error:', navError);
-            Alert.alert('Error', `Navigation error: ${navError.message}. Please restart the app.`);
-          }
-        }, 50); // Reduced from 100ms to 50ms
-      });
+      // Free plan - just complete onboarding
+      await completeOnboarding();
     } catch (err) {
       console.error('Onboarding error:', err);
-      // Показываем предупреждение, но все равно переходим к главному экрану
-      const navigateToMain = () => {
-        InteractionManager.runAfterInteractions(() => {
-          setTimeout(() => {
-            try {
-              if (navigation && navigation.isReady && navigation.isReady()) {
-                navigation.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: 'MainTabs' }],
-                  })
-                );
-              } else if (navigation && typeof navigation.reset === 'function') {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'MainTabs' }],
-                });
-              } else {
-                console.error('[OnboardingScreen] Navigation not available in error handler');
-              }
-            } catch (navError) {
-              console.error('[OnboardingScreen] Navigation error in catch block:', navError);
-            }
-          }, 100);
-        });
-      };
+      setPurchasing(false);
 
       if (navigation && (navigation.isReady || typeof navigation.reset === 'function')) {
         Alert.alert(
@@ -2444,17 +2483,29 @@ const OnboardingScreen = () => {
                 style={[
                   styles.nextButton,
                   currentStep === steps.length - 1 && styles.completeButton,
+                  purchasing && { opacity: 0.7 },
                 ]}
                 onPress={currentStep === steps.length - 1 ? handleComplete : nextStep}
+                disabled={purchasing}
               >
-                <Text style={styles.nextButtonText}>
-                  {currentStep === steps.length - 1 ? t('onboarding.buttons.complete') : t('onboarding.buttons.next')}
-                </Text>
-                <Ionicons
-                  name={currentStep === steps.length - 1 ? 'checkmark' : 'chevron-forward'}
-                  size={24}
-                  color={onPrimaryColor}
-                />
+                {purchasing ? (
+                  <ActivityIndicator size="small" color={onPrimaryColor} />
+                ) : (
+                  <>
+                    <Text style={styles.nextButtonText}>
+                      {currentStep === steps.length - 1
+                        ? (profileData.selectedPlan === 'free'
+                          ? t('onboarding.startFree', 'Start Free')
+                          : t('onboarding.subscribe', 'Subscribe'))
+                        : t('onboarding.buttons.next')}
+                    </Text>
+                    <Ionicons
+                      name={currentStep === steps.length - 1 ? 'checkmark' : 'chevron-forward'}
+                      size={24}
+                      color={onPrimaryColor}
+                    />
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </View>

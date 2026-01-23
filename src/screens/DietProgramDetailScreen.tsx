@@ -106,7 +106,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                         { text: t('common.cancel'), style: 'cancel' },
                                         {
                                             text: t('dietPrograms.viewActive') || 'View Active',
-                                            onPress: () => navigation.navigate('DietProgramProgress', { id: program.id }),
+                                            // FIX: Navigate to Dashboard which has the Active Widget with correct ID
+                                            // Direct navigation to DietProgramProgress might fail if we don't have the active ID handy
+                                            onPress: () => navigation.navigate('MainTabs', { screen: 'Dashboard' }),
                                         },
                                     ]
                                 );

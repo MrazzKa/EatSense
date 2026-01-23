@@ -31,6 +31,21 @@ export class DietsController {
     ) { }
 
     /**
+     * Get bundle of all diets data for frontend (single request optimization)
+     * Returns: featured diets, featured lifestyles, all diets, all lifestyles, active program
+     */
+    @Get('bundle')
+    @UseGuards(OptionalAuthGuard)
+    async getBundle(
+        @CurrentUser() user: any,
+        @Query('locale') locale?: string,
+        @Headers('accept-language') acceptLanguage?: string,
+    ) {
+        const resolvedLocale = locale || this.parseLocale(acceptLanguage);
+        return this.dietsService.getBundle(user?.id || null, resolvedLocale);
+    }
+
+    /**
      * Get list of diets
      */
     @Get()

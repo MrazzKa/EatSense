@@ -1555,6 +1555,29 @@ class ApiService {
   }
 
   /**
+   * Get all diets data in one bundle (optimized loading)
+   * Returns: featuredDiets, featuredLifestyles, allDiets, allLifestyles, activeProgram, timestamp
+   * @param {string} locale - Locale (en/ru/kk/fr)
+   * @returns {Promise<{featuredDiets: any[], featuredLifestyles: any[], allDiets: any[], allLifestyles: any[], activeProgram: any|null, timestamp: number}>}
+   */
+  async getDietsBundle(locale = 'en') {
+    try {
+      return await this.request(`/diets/bundle?locale=${encodeURIComponent(locale)}`);
+    } catch (error) {
+      console.error('[ApiService] getDietsBundle error:', error);
+      // Return empty bundle structure to allow graceful degradation
+      return {
+        featuredDiets: [],
+        featuredLifestyles: [],
+        allDiets: [],
+        allLifestyles: [],
+        activeProgram: null,
+        timestamp: Date.now(),
+      };
+    }
+  }
+
+  /**
    * Get featured diets
    */
   async getFeaturedDiets() {

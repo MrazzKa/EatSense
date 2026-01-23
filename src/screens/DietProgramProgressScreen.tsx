@@ -63,6 +63,15 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         }
     }, [storeLoading, isInitializing, activeProgram, retryCount, refreshProgress, invalidateCache]);
 
+    // Safeguard: If active program ID mismatches route params, redirect to correct one
+    // This prevents showing "Day X of Diet A" while displaying meals for "Diet B"
+    useEffect(() => {
+        if (!storeLoading && activeProgram && route.params?.id && activeProgram.programId !== route.params.id) {
+            console.warn(`[DietProgramProgress] Mismatch! Route: ${route.params.id}, Active: ${activeProgram.programId}. redirecting...`);
+            navigation.setParams({ id: activeProgram.programId });
+        }
+    }, [activeProgram, route.params?.id, storeLoading, navigation]);
+
     // Show celebration when day is completed
     useEffect(() => {
         if (activeProgram?.todayLog?.completed && !activeProgram.todayLog.celebrationShown) {

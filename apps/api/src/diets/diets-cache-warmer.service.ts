@@ -9,7 +9,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DietsService } from './diets.service';
 
 // Locales to pre-warm
-const LOCALES = ['en', 'ru', 'kk'];
+const LOCALES = ['en', 'ru', 'kk', 'fr'];
 
 @Injectable()
 export class DietsCacheWarmerService implements OnModuleInit {
@@ -23,8 +23,8 @@ export class DietsCacheWarmerService implements OnModuleInit {
      * Called automatically when the NestJS module initializes
      */
     async onModuleInit() {
-        // Small delay to ensure all dependencies are ready
-        setTimeout(() => this.warmCache(), 1000);
+        // Minimal delay to ensure Redis is connected
+        setTimeout(() => this.warmCache(), 100);
     }
 
     private async warmCache() {
@@ -32,7 +32,20 @@ export class DietsCacheWarmerService implements OnModuleInit {
         const startTime = Date.now();
 
         try {
-            // Warm featured diets for all locales (parallel)
+            // Warm bundle for all locales (this covers featured and all diets)
+            await Promise.all(
+                LOCALES.map(async (locale) => {
+                    try {
+                        // Use getBundle with null userId for public data
+                        await this.dietsService.getBundle(null, locale);
+                        this.logger.debug(`[${locale}] Bundle cached`);
+                    } catch (error) {
+                        this.logger.warn(`[${locale}] Bundle warm failed:`, error.message);
+                    }
+                })
+            );
+
+            // Warm featured diets separately for faster individual requests
             await Promise.all(
                 LOCALES.map(async (locale) => {
                     try {
@@ -44,18 +57,6 @@ export class DietsCacheWarmerService implements OnModuleInit {
                 })
             );
 
-            // Warm full diets list for all locales (parallel)
-            await Promise.all(
-                LOCALES.map(async (locale) => {
-                    try {
-                        const allDiets = await this.dietsService.findAll({}, locale);
-                        this.logger.debug(`[${locale}] All diets: ${allDiets.length} items cached`);
-                    } catch (error) {
-                        this.logger.warn(`[${locale}] All diets warm failed:`, error.message);
-                    }
-                })
-            );
-
             const elapsed = Date.now() - startTime;
             this.logger.log(`✅ Diets cache warm-up completed in ${elapsed}ms`);
         } catch (error) {
@@ -63,3 +64,4 @@ export class DietsCacheWarmerService implements OnModuleInit {
         }
     }
 }
+

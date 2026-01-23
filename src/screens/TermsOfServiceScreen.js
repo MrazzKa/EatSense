@@ -187,7 +187,9 @@ You agree to indemnify and hold harmless EatSense from claims arising from your 
 
 TEMONAN Geneva Holdings Sàrl
 Attn: Legal Department
-Avully, Switzerland
+24 Chemin De Sous-Forestal
+1237 Avully, Geneva
+Switzerland
 Email: info@eatsense.ch
 
 17. ACKNOWLEDGMENT
