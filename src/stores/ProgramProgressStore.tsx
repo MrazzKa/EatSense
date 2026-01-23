@@ -137,10 +137,9 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
   }, []);
 
   const refreshProgress = useCallback(async () => {
-    // FIX: Don't delete cache immediately - check if we have valid cached data first
-    // This prevents clearing good data during refresh
-    const cached = cache.current.get(CACHE_KEY);
-    cache.current.delete(CACHE_KEY);
+    // FIX: Don't delete cache before loadProgress - let loadProgress decide
+    // This prevents clearing good data during refresh if API is slow or returns null
+    // loadProgress will preserve cached value if API returns null (prevents tracker from disappearing)
     await loadProgress();
   }, [loadProgress]);
 
@@ -162,7 +161,7 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
 
       setActiveProgram(prev => {
         if (!prev) return prev;
-        return {
+        const updated = {
           ...prev,
           todayLog: {
             ...prev.todayLog!,
@@ -172,11 +171,11 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
             checklist,
           },
         };
+        // FIX: Update cache immediately with new data instead of deleting
+        // This prevents losing data during refresh
+        cache.current.set(CACHE_KEY, updated);
+        return updated;
       });
-      // Update cache with new data
-      if (activeProgram) {
-        cache.current.delete(CACHE_KEY);
-      }
     } catch (err: any) {
       console.error('[ProgramProgressStore] Update checklist failed:', err);
       setError(err.message || 'Failed to update checklist');
@@ -196,11 +195,12 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
         if (!prev) return prev;
         const newCurrentDay = result.currentDay || prev.currentDayIndex + 1;
         const newDaysLeft = Math.max(0, prev.durationDays - newCurrentDay + 1);
-        return {
+        const updated = {
           ...prev,
           currentDayIndex: newCurrentDay,
           daysLeft: newDaysLeft,
-          daysCompleted: result.daysCompleted || prev.daysCompleted + 1,
+          // FIX: daysCompleted is not in ProgramProgress interface, removed
+          // The daysCompleted is tracked implicitly via currentDayIndex
           streak: {
             ...prev.streak,
             current: result.streak || prev.streak.current,
@@ -211,6 +211,10 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
             completionRate: result.completionRate || 1,
           },
         };
+        // FIX: Update cache immediately with optimistic value
+        // This prevents refresh from clearing the updated state
+        cache.current.set(CACHE_KEY, updated);
+        return updated;
       });
       
       // FIX: Don't refresh immediately after completeDay - optimistic update is enough
@@ -230,12 +234,37 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
 
     try {
       await programProgressService.markCelebrationShown(activeProgram.type);
-      // Refresh to get updated celebrationShown flag
-      await refreshProgress();
+      // FIX: Use optimistic update instead of full refresh
+      // This prevents screen reload after closing celebration modal
+      setActiveProgram(prev => {
+        if (!prev || !prev.todayLog) return prev;
+        return {
+          ...prev,
+          todayLog: {
+            ...prev.todayLog,
+            celebrationShown: true,
+          },
+        };
+      });
+      // Update cache with optimistic value
+      const updated = cache.current.get(CACHE_KEY);
+      if (updated) {
+        cache.current.set(CACHE_KEY, {
+          ...updated,
+          todayLog: {
+            ...updated.todayLog,
+            celebrationShown: true,
+          },
+        });
+      }
+      // FIX: Don't refresh immediately - optimistic update is enough
+      // This prevents visual reload and screen flashing after closing celebration
+      // Data will be refreshed naturally on next screen focus or manual refresh
     } catch (err: any) {
       console.error('[ProgramProgressStore] Mark celebration shown failed:', err);
+      // Don't throw - celebration shown is not critical, just log error
     }
-  }, [activeProgram, refreshProgress]);
+  }, [activeProgram]);
 
   // Load on mount
   useEffect(() => {
@@ -253,11 +282,22 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
     completeDay,
     markCelebrationShown,
     setProgram: useCallback((program: ProgramProgress | null) => {
-      setActiveProgram(program);
+      // FIX: Don't clear activeProgram if program is null - preserve previous value
+      // This prevents tracker from disappearing during "Slow Dashboard Load" or errors
+      // Only update if program is not null, or if we're explicitly clearing (program === null AND no cached value)
       if (program) {
+        setActiveProgram(program);
         cache.current.set(CACHE_KEY, program);
       } else {
-        cache.current.delete(CACHE_KEY);
+        // Only clear if we're certain there's no active program (no cached value)
+        // This prevents clearing during slow loads when API temporarily returns null
+        const cached = cache.current.get(CACHE_KEY);
+        if (!cached) {
+          // No cached value and null program - truly no active program
+          setActiveProgram(null);
+          cache.current.delete(CACHE_KEY);
+        }
+        // If we have cached value, keep it (prevents tracker from disappearing)
       }
     }, []),
   };

@@ -163,7 +163,9 @@ class DietProgramsService {
     }
 
     async startProgram(programId) {
-        await this.invalidateCache();
+        // FIX: Don't invalidate cache before starting - causes unnecessary delay
+        // Cache will be invalidated naturally when program starts and store refreshes
+        // This prevents loading screen delay when starting program
         return ApiService.startDiet(programId);
     }
 
