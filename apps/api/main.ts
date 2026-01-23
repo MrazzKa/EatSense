@@ -56,7 +56,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,
@@ -104,7 +104,7 @@ async function bootstrap() {
       } else {
         console.log(`[Bootstrap] Russian articles already exist (${ruArticlesCount.total} total)`);
       }
-      
+
       // Check English articles
       const enArticlesCount = await articlesService.findAll('en', 1, 1);
       if (enArticlesCount.articles.length === 0) {

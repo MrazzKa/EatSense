@@ -9,11 +9,13 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import LifestyleDetailScreenComponent from '../features/lifestyles/components/LifestyleDetailScreen';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
+import { useProgramProgress } from '../stores/ProgramProgressStore';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { refreshProgress, invalidateCache } = useProgramProgress();
   const params = route.params as { id?: string; programId?: string } | undefined;
   const programId = params?.id || params?.programId;
 
@@ -80,9 +82,15 @@ export default function LifestyleDetailScreen() {
     setStarting(true);
 
     try {
+      // Invalidate cache before starting to ensure fresh data
+      invalidateCache();
+      
       // Use the diet API to start the lifestyle program (they share the same backend)
       await ApiService.startDiet(program.id || program.slug);
       setIsActive(true);
+
+      // Refresh progress store to update dashboard immediately
+      await refreshProgress();
 
       Alert.alert(
         'Программа запущена!',

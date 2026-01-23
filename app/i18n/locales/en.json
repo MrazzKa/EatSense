@@ -71,6 +71,7 @@
     }
   },
   "onboarding": {
+    "startFree": "Start Now",
     "activity": "How active are you?",
     "activitySubtitle": "This helps us calculate your calorie needs",
     "activityLevels": {
@@ -1369,68 +1370,65 @@
   "subscription": {
     "title": "Premium",
     "subtitle": "Unlock all features and enjoy unlimited access",
-    "applyPlan": "Apply plan",
-    "studentToggle": "I am a student",
-    "studentHint": "Show student discount",
-    "hideStudent": "Hide",
-    "perMonth": "per month",
-    "perYear": "per year",
-    "included": "Included",
-    "popular": "Popular",
-    "bestValue": "Best value",
-    "most_popular": "BEST VALUE",
-    "student": "Student",
     "freePlan": "Free Plan",
     "freePlanIncluded": "Currently active",
     "free": "Free",
     "freeFeature1": "3 analyses per day",
     "freeFeature2": "Basic nutrition tracking",
     "upgradeToPremium": "Upgrade to Premium",
-    "month": "mo",
-    "continue": "Continue",
-    "terms_notice": "Cancel anytime. Terms apply.",
-    "features_title": "What you get",
-    "feature_unlimited_analyses": "Unlimited AI food analyses",
+    "studentToggle": "I am a student",
+    "studentHint": "Show student discount",
+    "restore": "Restore Purchases",
+    "purchasesRestored": "Your purchases have been restored.",
+    "noPurchases": "No Purchases",
+    "noPurchasesFound": "No previous purchases found.",
+    "restoreFailed": "Could not restore purchases.",
+    "planNotFound": "Plan not found",
+    "purchaseFailed": "Purchase failed. Please try again.",
+    "feature_unlimited_analyses": "Unlimited food analysis",
     "feature_detailed_reports": "Detailed nutrition reports",
-    "feature_ai_chat": "AI nutrition assistant",
-    "feature_expert_access": "Access to nutrition experts",
-    "feature_export_data": "Export your data",
-    "plan_weekly": "Weekly",
+    "feature_ai_chat": "AI Nutrition Assistant",
+    "lifetime": "LIFETIME",
+    "most_popular": "BEST VALUE",
     "plan_monthly": "Monthly",
     "plan_yearly": "Yearly",
     "plan_student": "Student",
-    "plan": {
-      "free": "EatSense Free",
-      "pro": "EatSense Pro",
-      "premium": "EatSense Premium"
-    },
-    "features": {
-      "analyses": "AI analyses per day",
-      "tracking": "Calorie tracking",
-      "stats": "Advanced statistics"
-    },
-    "billing": {
-      "perMonth": "per month",
-      "perYear": "per year",
-      "free": "Basic Plan",
-      "currency": {
-        "ru": "₽",
-        "kk": "₸",
-        "default": "$"
-      }
-    },
-    "lifetime": "Lifetime",
-    "noPurchases": "No Purchases",
-    "noPurchasesFound": "No Purchases Found",
-    "planNotFound": "Plan Not Found",
-    "purchaseFailed": "Purchase Failed",
-    "purchasesRestored": "Purchases Restored",
-    "restoreFailed": "Restore Failed",
-    "restorePurchases": "Restore Purchases",
-    "restored": "Restored",
-    "studentVerificationDescription": "Student Verification Description",
-    "studentVerificationTitle": "Student Verification Title"
+    "plan_founders": "Founder",
+    "student": "STUDENT"
   },
+  "plan_yearly": "Yearly",
+  "plan_student": "Student",
+  "plan": {
+    "free": "EatSense Free",
+    "pro": "EatSense Pro",
+    "premium": "EatSense Premium"
+  },
+  "features": {
+    "analyses": "AI analyses per day",
+    "tracking": "Calorie tracking",
+    "stats": "Advanced statistics"
+  },
+  "billing": {
+    "perMonth": "per month",
+    "perYear": "per year",
+    "free": "Basic Plan",
+    "currency": {
+      "ru": "₽",
+      "kk": "₸",
+      "default": "$"
+    }
+  },
+  "lifetime": "Lifetime",
+  "noPurchases": "No Purchases",
+  "noPurchasesFound": "No Purchases Found",
+  "planNotFound": "Plan Not Found",
+  "purchaseFailed": "Purchase Failed",
+  "purchasesRestored": "Purchases Restored",
+  "restoreFailed": "Restore Failed",
+  "restorePurchases": "Restore Purchases",
+  "restored": "Restored",
+  "studentVerificationDescription": "Student Verification Description",
+  "studentVerificationTitle": "Student Verification Title",
   "limits": {
     "title": "Daily Limit Reached",
     "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow.",
