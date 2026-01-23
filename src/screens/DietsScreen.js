@@ -24,13 +24,26 @@ import seedBundle from '../../assets/dietsBundleSeed.json';
 // Cache TTL for bundle data (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
 
+// In-memory cache for instant access (faster than AsyncStorage)
+let memoryCache = null;
+let memoryCacheTimestamp = 0;
+
 // Helper functions for caching
 const loadFromCache = async (key) => {
+    // Step 1: Check in-memory cache first (fastest, 0ms)
+    if (memoryCache && Date.now() - memoryCacheTimestamp < CACHE_TTL) {
+        return memoryCache;
+    }
+
+    // Step 2: Check AsyncStorage (slower, ~10-50ms)
     try {
         const cached = await AsyncStorage.getItem(key);
         if (cached) {
             const { data, timestamp } = JSON.parse(cached);
             if (Date.now() - timestamp < CACHE_TTL) {
+                // Update memory cache for next time
+                memoryCache = data;
+                memoryCacheTimestamp = timestamp;
                 return data;
             }
         }
@@ -41,6 +54,11 @@ const loadFromCache = async (key) => {
 };
 
 const saveToCache = async (key, data) => {
+    // Update memory cache immediately (0ms)
+    memoryCache = data;
+    memoryCacheTimestamp = Date.now();
+
+    // Save to AsyncStorage in background (non-blocking)
     try {
         await AsyncStorage.setItem(key, JSON.stringify({
             data,
@@ -170,11 +188,16 @@ export default function DietsScreen({ navigation }) {
         try {
             let hasCache = false;
             
-            // Step 1: Try to show cached data immediately for instant UI (0ms)
+            // Step 1: Try to show cached data immediately for instant UI (0ms from memory, ~10-50ms from AsyncStorage)
             // If no cache, use seed snapshot for instant display (not empty skeleton)
             if (!forceRefresh) {
-                const cached = await loadFromCache(BUNDLE_CACHE_KEY);
+                // Check cache synchronously (memory cache is instant)
+                const cached = memoryCache && Date.now() - memoryCacheTimestamp < CACHE_TTL
+                    ? memoryCache
+                    : await loadFromCache(BUNDLE_CACHE_KEY);
+                
                 if (cached && isMounted) {
+                    // Set state immediately (no await needed)
                     setFeaturedDiets(cached.featuredDiets || []);
                     setFeaturedLifestyles(cached.featuredLifestyles || []);
                     setAllDiets(cached.allDiets || []);
@@ -308,8 +331,11 @@ export default function DietsScreen({ navigation }) {
         // This ensures we show data from bundle if store hasn't loaded yet
     }, [activeProgram]);
 
+    // Load data on focus - optimized to avoid unnecessary reloads
     useFocusEffect(
         useCallback(() => {
+            // Always call loadData - it's smart enough to use cache if available
+            // This ensures data is fresh but doesn't block UI if cache exists
             loadData();
         }, [loadData])
     );

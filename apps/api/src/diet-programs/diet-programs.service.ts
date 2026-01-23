@@ -115,6 +115,11 @@ export class DietProgramsService {
 
         if (!progress) throw new NotFoundException('Progress not found');
 
+        // FIX: Check if program exists before accessing its properties
+        if (!progress.program) {
+            throw new BadRequestException('Program data is missing');
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -125,7 +130,8 @@ export class DietProgramsService {
 
         if (!todayLog) {
             // Create today's log if it doesn't exist
-            const dailyTracker = progress.program.dailyTracker as any[] || [];
+            // FIX: Safe access to dailyTracker with null check
+            const dailyTracker = (progress.program?.dailyTracker as any[]) || [];
             todayLog = await this.prisma.userDietDailyLog.create({
                 data: {
                     userDietId: progress.id,
@@ -140,8 +146,9 @@ export class DietProgramsService {
         }
 
         // Calculate completion rate
+        // FIX: Safe access to dailyTracker with null check
         const checklist = (todayLog.checklist as Record<string, boolean>) || {};
-        const dailyTracker = progress.program.dailyTracker as any[] || [];
+        const dailyTracker = (progress.program?.dailyTracker as any[]) || [];
         const totalItems = dailyTracker.length;
         const completedItems = Object.values(checklist).filter(Boolean).length;
         const completionRate = totalItems > 0 ? completedItems / totalItems : 0;
@@ -156,7 +163,7 @@ export class DietProgramsService {
         });
 
         // Update streak based on completion rate
-        const threshold = progress.program.streakThreshold || 0.6;
+        const threshold = progress.program?.streakThreshold || 0.6;
         const meetsThreshold = completionRate >= threshold;
 
         const lastStreakDate = progress.lastStreakDate;
@@ -210,7 +217,8 @@ export class DietProgramsService {
         // const activeDays = diffDays - pausedDays.length;
         
         const nextDay = diffDays + 1; // Day 1 is start date
-        const isCompleted = nextDay > progress.program.duration;
+        const programDuration = progress.program?.duration || 0;
+        const isCompleted = nextDay > programDuration;
 
         // Create empty log for next day (if not completed)
         if (!isCompleted) {
@@ -241,10 +249,10 @@ export class DietProgramsService {
         const updatedProgress = await this.prisma.userDietProgram.update({
             where: { id: progress.id },
             data: {
-                currentDay: isCompleted ? progress.program.duration : nextDay,
+                currentDay: isCompleted ? programDuration : nextDay,
                 status: isCompleted ? 'completed' : 'active',
                 completedAt: isCompleted ? new Date() : null,
-                daysCompleted: isCompleted ? progress.program.duration : progress.daysCompleted + 1,
+                daysCompleted: isCompleted ? programDuration : progress.daysCompleted + 1,
             },
             include: { program: true },
         });

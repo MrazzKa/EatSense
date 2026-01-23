@@ -13,6 +13,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
@@ -450,6 +451,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
       fontWeight: '700',
       color: colors.text,
       marginLeft: 8,
+      marginTop: 4, // FIX: Slightly lower price to avoid being too close to badge
     },
     planPriceSelected: {
       color: colors.primary,
@@ -781,6 +783,7 @@ const OnboardingScreen = () => {
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
   const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
   const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Notifications permission state
+  const [notificationsRequested, setNotificationsRequested] = useState(false); // Track if permission was already requested
   const [purchasing, setPurchasing] = useState(false); // IAP purchase in progress
   // Calculated plan data
   const [planData, setPlanData] = useState(null);
@@ -1107,8 +1110,20 @@ const OnboardingScreen = () => {
         ...profileDataWithoutPlan
       } = profileData;
 
+      // Map onboarding plan IDs to profile plan IDs
+      // Onboarding uses SUBSCRIPTION_SKUS (eatsense.pro.monthly), Profile uses short names (pro_monthly)
+      const mapPlanIdToProfile = (planId) => {
+        if (!planId || planId === 'free') return 'free';
+        if (planId === SUBSCRIPTION_SKUS.MONTHLY) return 'pro_monthly';
+        if (planId === SUBSCRIPTION_SKUS.YEARLY) return 'pro_annual';
+        if (planId === SUBSCRIPTION_SKUS.STUDENT) return 'student';
+        if (planId === NON_CONSUMABLE_SKUS.FOUNDERS) return 'founders';
+        // Fallback: if already in profile format, use as-is
+        return planId;
+      };
+
       const subscriptionPreference = {
-        planId: selectedPlan || 'free',
+        planId: mapPlanIdToProfile(selectedPlan) || 'free',
         billingCycle:
           planBillingCycle ||
           (selectedPlan === 'free' ? 'lifetime' : 'monthly'),
@@ -2056,13 +2071,17 @@ const OnboardingScreen = () => {
           <Text style={styles.stepTitle}>
             {notificationsEnabled
               ? t('onboarding.notificationsEnabledTitle', 'Уведомления включены!')
-              : t('onboarding.notifications', 'Уведомления')}
+              : notificationsRequested
+                ? t('onboarding.notificationsDeniedTitle', 'Уведомления отключены')
+                : t('onboarding.notifications', 'Уведомления')}
           </Text>
 
           <Text style={[styles.stepSubtitle, { textAlign: 'center', lineHeight: 22 }]}>
             {notificationsEnabled
               ? t('onboarding.notificationsEnabledDescription', 'Мы будем отправлять напоминания о приёмах пищи и полезные советы. Вы можете изменить настройки в любое время.')
-              : t('onboarding.notificationsDescription', 'Мы отправляем напоминания о приёмах пищи и полезные советы для достижения ваших целей.')}
+              : notificationsRequested
+                ? t('onboarding.notificationsDeniedDescription', 'Вы можете включить уведомления позже в настройках приложения или системных настройках iOS, чтобы получать напоминания о приёмах пищи и полезные советы.')
+                : t('onboarding.notificationsDescription', 'Мы отправляем напоминания о приёмах пищи и полезные советы для достижения ваших целей.')}
           </Text>
 
           {notificationsEnabled && (
@@ -2087,14 +2106,38 @@ const OnboardingScreen = () => {
             </View>
           )}
 
-          <Text style={[styles.stepSubtitle, {
-            marginTop: 32,
-            fontSize: 13,
-            color: colors.textTertiary || '#999',
-            textAlign: 'center',
-          }]}>
-            {t('onboarding.notificationsHint', 'Вы можете отключить уведомления в настройках приложения или системных настройках iOS.')}
-          </Text>
+          {!notificationsEnabled && notificationsRequested && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 24,
+              paddingHorizontal: 20,
+              paddingVertical: 12,
+              backgroundColor: (colors.textTertiary || '#999') + '15',
+              borderRadius: 12,
+            }}>
+              <Ionicons name="information-circle-outline" size={24} color={colors.textTertiary || '#999'} />
+              <Text style={{
+                marginLeft: 10,
+                color: colors.textTertiary || '#999',
+                fontSize: 13,
+                flex: 1,
+              }}>
+                {t('onboarding.notificationsDeniedHint', 'Вы можете включить уведомления в настройках приложения позже.')}
+              </Text>
+            </View>
+          )}
+
+          {!notificationsRequested && (
+            <Text style={[styles.stepSubtitle, {
+              marginTop: 32,
+              fontSize: 13,
+              color: colors.textTertiary || '#999',
+              textAlign: 'center',
+            }]}>
+              {t('onboarding.notificationsHint', 'Вы можете отключить уведомления в настройках приложения или системных настройках iOS.')}
+            </Text>
+          )}
         </View>
       </View>
     );
@@ -2165,6 +2208,8 @@ const OnboardingScreen = () => {
 
         const { status } = await Notifications.requestPermissionsAsync();
         if (!isMounted) return;
+        
+        setNotificationsRequested(true); // Mark as requested
 
         if (status === 'granted') {
           if (notificationsEnabled) return;
@@ -2237,7 +2282,7 @@ const OnboardingScreen = () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [currentStep, steps, notificationsEnabled]);
+  }, [currentStep, steps, notificationsEnabled, notificationsRequested]);
 
   // Terms and Privacy Policy acceptance step
   const renderTermsStep = () => {
@@ -2278,13 +2323,6 @@ const OnboardingScreen = () => {
               {t('onboarding.privacyPolicy', 'Privacy Policy')}
             </Text>
             <LegalDocumentView type="privacy" maxHeight={200} />
-          </View>
-
-          {/* Company Address */}
-          <View style={{ paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.border || '#E5E5E5' }}>
-            <Text style={{ fontSize: 13, color: colors.textTertiary || '#999', textAlign: 'center', lineHeight: 20 }}>
-              {t('onboarding.address', 'My Company Name\n123 Innovation Dr.\nTech City, TC 94043')}
-            </Text>
           </View>
         </ScrollView>
 

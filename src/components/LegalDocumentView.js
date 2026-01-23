@@ -277,10 +277,7 @@ EatSense
 Aleksei Belov
 Rue Pictet-de-Bock 6
 1205 Geneva, Switzerland
-Email: support@eatsense.ch
-
-EatSense | Geneva, Switzerland
-Version 1.0 | Effective Date: January 14, 2026`;
+Email: info@eatsense.ch`;
 
 // Full Privacy Policy - Version 1.0 | Effective Date: January 14, 2026
 const PRIVACY_POLICY = `EATSENSE
@@ -557,12 +554,7 @@ EatSense
 Aleksei Belov
 Rue Pictet-de-Bock 6
 1205 Geneva, Switzerland
-Email: info@eatsense.ch
-
-For data protection inquiries, you may also contact us at: privacy@eatsense.ch
-
-EatSense | Geneva, Switzerland
-Version 1.0 | Effective Date: January 14, 2026`;
+Email: info@eatsense.ch`;
 
 /**
  * LegalDocumentView - Displays Terms or Privacy Policy inline with scrolling

@@ -58,25 +58,47 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
     // Load tracker data from API (for dailyTracker items and symptoms)
     const loadTrackerData = useCallback(async () => {
-        if (!activeProgram || activeProgram.type !== 'diet') return;
+        if (!activeProgram || activeProgram.type !== 'diet') {
+            setTrackerData(null);
+            return;
+        }
 
         try {
             const data = await ApiService.get('/diets/active/today');
+            
+            // FIX: Handle null response (when program is null on backend)
+            if (!data) {
+                console.warn('[DailyDietTracker] API returned null - program may be missing');
+                setTrackerData(null);
+                return;
+            }
+            
+            // FIX: Ensure dailyTracker is always an array, even if empty
+            const dailyTracker = Array.isArray(data?.dailyTracker) ? data.dailyTracker : [];
             setTrackerData({
-                dailyTracker: data.dailyTracker || [],
-                symptoms: data.symptoms || {},
-                showSymptoms: data.showSymptoms || false,
+                dailyTracker,
+                symptoms: data?.symptoms || {},
+                showSymptoms: data?.showSymptoms || false,
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('[DailyDietTracker] Load tracker data failed:', error);
+            // If 404, no active diet - clear tracker
+            if (error?.status === 404 || error?.response?.status === 404) {
+                setTrackerData(null);
+            } else {
+                // For other errors, also clear tracker to prevent showing stale data
+                setTrackerData(null);
+            }
         }
-    }, [activeProgram?.id, activeProgram?.currentDayIndex]);
+    }, [activeProgram?.id, activeProgram?.type, activeProgram?.currentDayIndex]);
 
     useEffect(() => {
         if (activeProgram && activeProgram.type === 'diet') {
             loadTrackerData();
+        } else {
+            setTrackerData(null);
         }
-    }, [activeProgram?.id, activeProgram?.currentDayIndex, loadTrackerData]);
+    }, [activeProgram?.id, activeProgram?.type, activeProgram?.currentDayIndex, loadTrackerData]);
 
     // Show celebration when day is completed
     useEffect(() => {
@@ -115,7 +137,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     }, [updateChecklist, loadTrackerData, onUpdate]);
 
     const handleChecklistToggle = useCallback((key: string) => {
-        if (!trackerData || !activeProgram) return;
+        if (!trackerData || !activeProgram || !trackerData.dailyTracker || trackerData.dailyTracker.length === 0) return;
 
         // Build new checklist state
         const newChecklist: Record<string, boolean> = {};
@@ -185,6 +207,15 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
     if (!activeProgram || activeProgram.type !== 'diet') {
         return null; // No active diet
+    }
+
+    // FIX: Check if trackerData exists before accessing dailyTracker
+    if (!trackerData || !trackerData.dailyTracker || trackerData.dailyTracker.length === 0) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.surface }]}>
+                <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+        );
     }
 
     const completedCount = trackerData.dailyTracker.filter(i => i.checked).length;

@@ -20,12 +20,14 @@ export interface LocalizedText {
   en: string;
   ru: string;
   kk: string;
+  fr?: string;
 }
 
 export interface LocalizedTextArray {
   en: string[];
   ru: string[];
   kk: string[];
+  fr?: string[];
 }
 
 export interface SampleDay {

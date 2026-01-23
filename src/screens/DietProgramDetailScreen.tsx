@@ -87,6 +87,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                             // Refresh store to get the new active program
                             await refreshProgress();
 
+                            // Small delay to ensure store is updated before navigation
+                            await new Promise(resolve => setTimeout(resolve, 100));
+
                             navigation.navigate('DietProgramProgress', { id: program.id });
                         } catch (err: any) {
                             const status = err?.response?.status || err?.status;
@@ -229,7 +232,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                         <View style={[styles.evidenceBadge, { backgroundColor: evidenceBadge.color + '15' }]}>
                             <Ionicons name={evidenceBadge.icon as any} size={14} color={evidenceBadge.color} />
                             <Text style={[styles.evidenceText, { color: evidenceBadge.color }]}>
-                                {t(`diets.evidence.${program.evidenceLevel}`)}
+                                {t(`diets_evidence_${program.evidenceLevel}`) || t(`diets.evidence.${program.evidenceLevel}`) || program.evidenceLevel}
                             </Text>
                         </View>
                     )}
@@ -251,7 +254,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                                 <Ionicons name="fitness-outline" size={20} color={colors.primary} />
                                 <Text style={[styles.statValue, { color: colors.textPrimary, textTransform: 'capitalize' }]}>
-                                    {t(`diets.difficulty.${program.difficulty.toLowerCase()}`) || program.difficulty}
+                                    {t(`diets_difficulty_${program.difficulty.toLowerCase()}`) || t(`diets.difficulty.${program.difficulty.toLowerCase()}`) || program.difficulty}
                                 </Text>
                                 <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('dietPrograms.level')}</Text>
                             </View>
@@ -291,11 +294,11 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                             <View style={styles.sectionHeaderRow}>
                                 <Ionicons name="checkbox" size={18} color={colors.primary} />
                                 <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginLeft: 8, marginBottom: 0 }]}>
-                                    {t('diets.daily_tracker_preview')}
+                                    {t('diets_daily_tracker_preview') || t('diets.daily_tracker_preview') || 'Daily Tracker'}
                                 </Text>
                             </View>
                             <Text style={[styles.trackerPreviewHint, { color: colors.textTertiary }]}>
-                                {t('diets.tracker_preview_hint')}
+                                {t('diets_tracker_preview_hint') || t('diets.tracker_preview_hint') || 'Track your daily progress with this checklist'}
                             </Text>
                             {dailyTracker.slice(0, 4).map((item: any, index: number) => (
                                 <View key={index} style={styles.trackerPreviewItem}>

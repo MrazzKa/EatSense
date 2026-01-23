@@ -59,6 +59,23 @@ export default function DashboardScreen() {
   // Load active diet for dashboard widget from store
   const { activeProgram, setProgram } = useProgramProgress();
 
+  // Preload diets bundle when Dashboard mounts (background, non-blocking)
+  // This ensures data is ready when user navigates to Diets tab
+  useEffect(() => {
+    const preloadDietsBundle = async () => {
+      try {
+        // Preload in background (non-blocking)
+        await ApiService.getDietsBundle(language);
+      } catch (e) {
+        // Silently fail - not critical
+      }
+    };
+
+    // Delay preload slightly to not block initial render
+    const timer = setTimeout(preloadDietsBundle, 2000);
+    return () => clearTimeout(timer);
+  }, [language]);
+
   // Removed unused currentTime and now state variables
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [plusScale] = useState(new Animated.Value(1));

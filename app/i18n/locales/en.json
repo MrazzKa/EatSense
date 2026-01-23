@@ -1512,6 +1512,7 @@
   },
   "medications": {
     "title": "Medication schedule",
+    "subtitle": "Manage your medication schedule",
     "tabTitle": "Medications",
     "error": {
       "load": "Failed to load medications",
@@ -1609,6 +1610,13 @@
     "notEnabled": "Notifications were not enabled.",
     "enableFailed": "Could not enable notifications."
   },
+  "onboarding": {
+    "notificationsDeniedTitle": "Notifications disabled",
+    "notificationsDeniedDescription": "You can enable notifications later in the app settings or iOS system settings to receive meal reminders and helpful tips.",
+    "notificationsDeniedHint": "You can enable notifications in the app settings later.",
+    "termsDescription": "Read our terms and conditions",
+    "privacyDescription": "Learn how we protect your data"
+  },
   "diets_title": "Nutrition",
   "diets_subtitle": "Find the perfect nutrition plan for you",
   "diets_all": "All",
@@ -1699,6 +1707,9 @@
   "diets_symptoms_title": "Title",
   "diets_daily_tracker_preview": "Daily Tracker",
   "diets_tracker_preview_hint": "Track your daily progress with this checklist",
+  "diets_evidence_high": "Strong evidence",
+  "diets_evidence_medium": "Moderate evidence",
+  "diets_evidence_low": "Limited evidence",
   "diets_medical_note": "This diet may have contraindications. Consult a healthcare professional before starting.",
   "diets_how_it_works": "How It Works",
   "diets_detail": {},
