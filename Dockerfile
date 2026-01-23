@@ -81,23 +81,24 @@ COPY apps/api/package.json ./apps/api/
 RUN pnpm install --frozen-lockfile --filter ./apps/api
 
 # Copy built application from builder stage
-COPY --from=builder --chown=eatsense:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=root:root /app/apps/api/dist ./apps/api/dist
 
 # Copy Prisma schema for migrations and client generation
-COPY --chown=eatsense:nodejs apps/api/prisma ./apps/api/prisma
+COPY --chown=root:root apps/api/prisma ./apps/api/prisma
 
 # Generate Prisma client in production stage (fast operation, avoids pnpm store path issues)
-# This is needed for migrations and runtime
+# This MUST happen before switching to non-root user (needs write access to node_modules)
 RUN pnpm --filter ./apps/api exec prisma generate --schema prisma/schema.prisma
 
 # Copy scripts and configs needed for start:railway
-COPY --chown=eatsense:nodejs apps/api/scripts ./apps/api/scripts
-COPY --chown=eatsense:nodejs apps/api/tsconfig.json ./apps/api/
-COPY --chown=eatsense:nodejs apps/api/prisma/seeds ./apps/api/prisma/seeds
+COPY --chown=root:root apps/api/scripts ./apps/api/scripts
+COPY --chown=root:root apps/api/tsconfig.json ./apps/api/
+COPY --chown=root:root apps/api/prisma/seeds ./apps/api/prisma/seeds
 
-# Create directories for uploads and logs
+# Create directories for uploads and logs, then change ownership
 RUN mkdir -p apps/api/uploads apps/api/logs && \
-    chown -R eatsense:nodejs apps/api/uploads apps/api/logs
+    chown -R eatsense:nodejs /app && \
+    chmod -R u+w /app/node_modules 2>/dev/null || true
 
 # Switch to non-root user
 USER eatsense
