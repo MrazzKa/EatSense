@@ -514,6 +514,7 @@ export default function DietsScreen({ navigation }) {
                             },
                             currentDay: activeProgram.currentDayIndex,
                             totalDays: activeProgram.durationDays,
+                            daysLeft: activeProgram.daysLeft, // FIX: Add daysLeft for ActiveDietWidget
                         } : null}
                     />
                 )}

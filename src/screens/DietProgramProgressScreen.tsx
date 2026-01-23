@@ -35,12 +35,24 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
     const { activeProgram, loading: storeLoading, completeDay: completeDayStore, refreshProgress, markCelebrationShown, invalidateCache } = useProgramProgress();
     const [showCelebration, setShowCelebration] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
-    const [isInitializing, setIsInitializing] = useState(true);
+    // FIX: Initialize based on whether we have correct data - prevents loading screen if data exists
+    const [isInitializing, setIsInitializing] = useState(() => {
+        // If we already have correct activeProgram, no need to initialize
+        return !(activeProgram && activeProgram.programId === route.params?.id);
+    });
 
     // FIX: Only refresh if we don't have the correct activeProgram
     // This prevents unnecessary reloads when navigating back to this screen
     useEffect(() => {
         const initialize = async () => {
+            // FIX: Check if we have correct data first - if yes, skip initialization entirely
+            // This prevents loading screen when navigating from start program with data already in store
+            if (activeProgram && activeProgram.programId === route.params?.id) {
+                // Data is already correct, no need to reload or show loading
+                setIsInitializing(false);
+                return;
+            }
+            
             setIsInitializing(true);
             // Only refresh if activeProgram is missing or doesn't match route
             if (!activeProgram || activeProgram.programId !== route.params?.id) {
@@ -49,25 +61,31 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                     invalidateCache();
                 }
                 await refreshProgress();
-            } else {
-                // FIX: If we already have correct activeProgram, skip refresh entirely
-                // This prevents visual reload and improves UX
-                // Data is already correct, no need to reload
             }
             setIsInitializing(false);
         };
-        initialize();
-    }, [route.params?.id]); // Only re-initialize if route ID changes
+        // FIX: Add small delay to allow navigation to complete before checking
+        // This prevents unnecessary refresh when navigating from start program
+        const timer = setTimeout(initialize, 50); // Reduced delay for faster initialization
+        return () => clearTimeout(timer);
+    }, [route.params?.id, activeProgram?.programId]); // Also depend on activeProgram.programId to detect when it changes
 
     // FIX: Don't refresh on every focus - only if data is missing or incorrect
     // This prevents constant reloads when navigating back to this screen
+    // Also prevents double refresh after completing day (celebration modal closes, screen regains focus)
     useFocusEffect(
         useCallback(() => {
             // Only refresh if activeProgram is missing or doesn't match route
+            // FIX: Add check to prevent refresh immediately after completing day
+            // If we just completed a day, the optimistic update is enough, don't refresh
             if (!activeProgram || activeProgram.programId !== route.params?.id) {
-                refreshProgress().catch(() => {
-                    // Silent fail - we'll retry on next focus
-                });
+                // Add small delay to prevent immediate refresh after navigation/actions
+                const timer = setTimeout(() => {
+                    refreshProgress().catch(() => {
+                        // Silent fail - we'll retry on next focus
+                    });
+                }, 300); // Small delay to prevent refresh during transitions
+                return () => clearTimeout(timer);
             }
             // FIX: If we have correct activeProgram, skip refresh entirely
             // This prevents visual reload and improves UX
@@ -158,9 +176,11 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         loadDetails();
     }, [route.params.id]);
 
-    // Show loading while initializing, loading, or retrying
-    const isLoading = storeLoading || loadingDetails || isInitializing ||
-        (!activeProgram && retryCount < MAX_RETRY_ATTEMPTS);
+    // FIX: Don't show loading if we have correct activeProgram - prevents loading screen when navigating from start
+    // Show loading only if we're truly missing data or loading details
+    const isLoading = (storeLoading || loadingDetails || isInitializing) &&
+        (!activeProgram || activeProgram.programId !== route.params?.id) &&
+        retryCount < MAX_RETRY_ATTEMPTS;
 
     if (isLoading) {
         return (

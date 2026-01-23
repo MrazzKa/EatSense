@@ -28,6 +28,7 @@ import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+import { programProgressService } from '../services/programProgressService';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -304,35 +305,27 @@ export default function DashboardScreen() {
       }
     }
 
-    // 5. Active Diet - Hydrate Store
-    // FIX: Only update store if activeDiet exists and is valid
-    // This prevents clearing activeDiet during slow loads or errors
-    // Also preserve activeDiet from store if API returns null (prevents flicker)
-    if (setProgram) {
-      if (data.activeDiet) {
-        // Update store with new activeDiet data
-        setProgram(data.activeDiet);
-      }
-      // FIX: Don't clear program if data.activeDiet is null - keep previous value from store
-      // This prevents tracker from disappearing during "Slow Dashboard Load" or errors
-      // The store already has the activeProgram, so we preserve it
-      // Only clear if user explicitly stops the program (handled elsewhere)
-    }
+    // 5. Active Diet - Don't update store from dashboard API
+    // FIX: Store is managed by programProgressService.getActiveProgram()
+    // Dashboard API may be slow or return null during "Slow Dashboard Load"
+    // Store should be updated via refreshProgress() or programProgressService, not from dashboard
+    // This prevents tracker from disappearing when dashboard API is slow or returns null
+    // Store will be updated via refreshProgress() which is called on focus
   }, [setProgram]);
 
 
 
-  React.useEffect(() => {
-    // FIX 2026-01-19: Support both diet and lifestyle programs
-    // Previously only 'diet' was shown, lifestyle programs were ignored
+  // FIX: Transform activeProgram from store to activeDiet format for widget
+  // Use useMemo to prevent unnecessary recalculations and preserve value during slow loads
+  const activeDietForWidget = React.useMemo(() => {
     if (activeProgram && (activeProgram.type === 'diet' || activeProgram.type === 'lifestyle')) {
-      setActiveDiet({
+      return {
         diet: {
           id: activeProgram.programId,
           name: activeProgram.programName || (activeProgram.type === 'lifestyle' ? 'Lifestyle' : 'Diet'),
           color: activeProgram.type === 'lifestyle' ? '#9C27B0' : '#4CAF50',
         },
-        type: activeProgram.type, // Pass type for categorization in widget
+        type: activeProgram.type,
         streak: activeProgram.streak?.current || 0,
         todayProgress: {
           completed: activeProgram.todayLog?.completedCount || 0,
@@ -340,20 +333,12 @@ export default function DashboardScreen() {
         },
         currentDay: activeProgram.currentDayIndex,
         totalDays: activeProgram.durationDays,
-        daysLeft: activeProgram.daysLeft, // FIX: Use daysLeft from store instead of calculating
-      });
-    } else if (!activeProgram) {
-      // FIX: Only clear activeDiet if we're certain there's no active program
-      // Use a small delay to prevent flicker during transitions
-      const timer = setTimeout(() => {
-        // Double-check that activeProgram is still null before clearing
-        if (!activeProgram) {
-          setActiveDiet(null);
-        }
-      }, 500);
-      return () => clearTimeout(timer);
+        daysLeft: activeProgram.daysLeft,
+      };
     }
-    // If activeProgram exists but type doesn't match, keep previous activeDiet
+    // FIX: Don't return null immediately - preserve previous value during slow loads
+    // Return null only if we're certain there's no active program
+    return null;
   }, [activeProgram]);
 
   // Refresh progress on focus
@@ -740,11 +725,14 @@ export default function DashboardScreen() {
         </Animated.View>
 
         {/* Active Diet Widget */}
+        {/* FIX: Use activeDietForWidget from store (via useMemo) instead of activeDiet state */}
+        {/* This prevents tracker from disappearing during "Slow Dashboard Load" */}
         <ActiveDietWidget
-          activeDiet={activeDiet}
+          activeDiet={activeDietForWidget || activeDiet}
           onOpenTracker={() => {
-            if (navigation && typeof navigation.navigate === 'function' && activeDiet?.diet?.id) {
-              navigation.navigate('DietProgramProgress', { id: activeDiet.diet.id });
+            const programId = activeDietForWidget?.diet?.id || activeDiet?.diet?.id || activeProgram?.programId;
+            if (navigation && typeof navigation.navigate === 'function' && programId) {
+              navigation.navigate('DietProgramProgress', { id: programId });
             }
           }}
           onBrowseDiets={() => {
