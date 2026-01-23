@@ -408,14 +408,18 @@ export class DietsService implements OnModuleInit {
     /**
      * Get user's active diet
      */
-    async getActiveDiet(userId: string, locale: string = 'en') {
+    /**
+     * Get user's active diet
+     */
+    async getActiveDiet(userId: string, locale: string = 'en', isLightweight: boolean = false) {
         try {
             const userDiet = await this.prisma.userDietProgram.findFirst({
                 where: { userId, status: 'active' },
                 include: {
                     program: {
                         include: {
-                            days: {
+                            // If lightweight, don't fetch all days/meals here. We'll fetch today's only.
+                            days: isLightweight ? false : {
                                 orderBy: { dayNumber: 'asc' },
                                 include: { meals: { orderBy: { sortOrder: 'asc' } } },
                             },
@@ -450,7 +454,25 @@ export class DietsService implements OnModuleInit {
             }
 
             // Get today's plan
-            const currentDay = userDiet.program.days.find(d => d.dayNumber === userDiet.currentDay);
+            let todayPlan = [];
+            let currentDayData;
+
+            if (isLightweight) {
+                // Fetch ONLY today's day and meals
+                currentDayData = await this.prisma.dietProgramDay.findFirst({
+                    where: {
+                        programId: userDiet.programId,
+                        dayNumber: userDiet.currentDay
+                    },
+                    include: { meals: { orderBy: { sortOrder: 'asc' } } }
+                });
+            } else {
+                currentDayData = userDiet.program.days.find(d => d.dayNumber === userDiet.currentDay);
+            }
+
+            if (currentDayData) {
+                todayPlan = currentDayData.meals;
+            }
 
             // Get today's log for checklist progress
             const todayLog = await this.prisma.userDietDailyLog.findFirst({
@@ -466,7 +488,7 @@ export class DietsService implements OnModuleInit {
             return {
                 ...userDiet,
                 program: this.localizeDiet(userDiet.program, locale),
-                todayPlan: currentDay?.meals || [],
+                todayPlan, // Now populated efficiently
                 progress: {
                     ...this.calculateProgress(userDiet),
                     // Add checklist progress for Dashboard widget

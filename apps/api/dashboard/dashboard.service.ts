@@ -69,7 +69,7 @@ export class DashboardService {
                 }),
 
                 // 5. Active Diet Program
-                this.dietsService.getActiveDiet(userId, locale).catch(e => {
+                this.dietsService.getActiveDiet(userId, locale, true).catch(e => {
                     // It's normal to not have an active diet, expecting null or catch 404
                     return null;
                 }),

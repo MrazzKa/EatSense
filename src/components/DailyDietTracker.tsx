@@ -173,7 +173,9 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         }
     };
 
-    if (storeLoading || !trackerData) {
+    // FIX: Only show loading indicator if we don't have data yet
+    // This prevents the component from flashing/unmounting when background updates happen
+    if (!trackerData && storeLoading) {
         return (
             <View style={[styles.container, { backgroundColor: colors.surface }]}>
                 <ActivityIndicator size="small" color={colors.primary} />
