@@ -36,7 +36,17 @@ RUN pnpm install --frozen-lockfile
 COPY apps/api/prisma ./apps/api/prisma
 
 # Generate Prisma client
-RUN pnpm --filter ./apps/api exec prisma generate --schema prisma/schema.prisma
+# After generation, copy it to a known location for production stage
+# Prisma client may be in root node_modules (pnpm hoisting) or in apps/api/node_modules
+RUN pnpm --filter ./apps/api exec prisma generate --schema prisma/schema.prisma && \
+    mkdir -p /tmp/prisma-client && \
+    if [ -d "node_modules/.prisma" ]; then \
+        cp -r node_modules/.prisma /tmp/prisma-client/; \
+    elif [ -d "apps/api/node_modules/.prisma" ]; then \
+        cp -r apps/api/node_modules/.prisma /tmp/prisma-client/; \
+    else \
+        echo "ERROR: Prisma client not found after generation" && exit 1; \
+    fi
 
 # Copy source code
 COPY apps/api ./apps/api
@@ -82,7 +92,9 @@ RUN pnpm install --frozen-lockfile --filter ./apps/api
 
 # Copy built application from builder stage
 COPY --from=builder --chown=eatsense:nodejs /app/apps/api/dist ./apps/api/dist
-COPY --from=builder --chown=eatsense:nodejs /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+
+# Copy Prisma client from known location (copied during build)
+COPY --from=builder --chown=eatsense:nodejs /tmp/prisma-client/.prisma ./node_modules/.prisma
 
 # Copy Prisma schema for migrations
 COPY --chown=eatsense:nodejs apps/api/prisma ./apps/api/prisma
