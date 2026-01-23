@@ -177,7 +177,11 @@ export default function DashboardScreen() {
       if (__DEV__) console.log('[DashboardScreen] Loading dashboard data from API...');
       const data = await ApiService.getDashboardData(selectedDate, currentLocale);
 
-      if (!data) return;
+      if (!data) {
+        // FIX: If API returns null, don't clear existing state - keep cached data
+        console.warn('[DashboardScreen] API returned null, keeping cached data');
+        return;
+      }
 
       // 3. Update Cache & State
       AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
@@ -185,6 +189,17 @@ export default function DashboardScreen() {
 
     } catch (error) {
       console.error('[DashboardScreen] Error loading dashboard data:', error);
+      // FIX: Don't clear activeDiet on error - keep previous value to prevent tracker from disappearing
+      // Try to load from cache as fallback
+      try {
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+          const data = JSON.parse(cached);
+          updateDashboardState(data);
+        }
+      } catch (e) {
+        console.warn('[DashboardScreen] Cache fallback also failed:', e);
+      }
     }
   }, [selectedDate, language, setProgram, updateDashboardState]);
 
@@ -290,9 +305,18 @@ export default function DashboardScreen() {
     }
 
     // 5. Active Diet - Hydrate Store
-    // Call setProgram from context (exposed in Step 3399/3400)
+    // FIX: Only update store if activeDiet exists and is valid
+    // This prevents clearing activeDiet during slow loads or errors
+    // Also preserve activeDiet from store if API returns null (prevents flicker)
     if (setProgram) {
-      setProgram(data.activeDiet || null);
+      if (data.activeDiet) {
+        // Update store with new activeDiet data
+        setProgram(data.activeDiet);
+      }
+      // FIX: Don't clear program if data.activeDiet is null - keep previous value from store
+      // This prevents tracker from disappearing during "Slow Dashboard Load" or errors
+      // The store already has the activeProgram, so we preserve it
+      // Only clear if user explicitly stops the program (handled elsewhere)
     }
   }, [setProgram]);
 
@@ -316,10 +340,20 @@ export default function DashboardScreen() {
         },
         currentDay: activeProgram.currentDayIndex,
         totalDays: activeProgram.durationDays,
+        daysLeft: activeProgram.daysLeft, // FIX: Use daysLeft from store instead of calculating
       });
-    } else {
-      setActiveDiet(null);
+    } else if (!activeProgram) {
+      // FIX: Only clear activeDiet if we're certain there's no active program
+      // Use a small delay to prevent flicker during transitions
+      const timer = setTimeout(() => {
+        // Double-check that activeProgram is still null before clearing
+        if (!activeProgram) {
+          setActiveDiet(null);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     }
+    // If activeProgram exists but type doesn't match, keep previous activeDiet
   }, [activeProgram]);
 
   // Refresh progress on focus

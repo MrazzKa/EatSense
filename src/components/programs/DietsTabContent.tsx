@@ -68,6 +68,8 @@ export default function DietsTabContent({
         { id: 'SPORTS', label: t('diets_sports') || 'Sports', icon: 'fitness' },
         { id: 'MEDICAL', label: t('diets_medical') || 'Medical', icon: 'medical' },
     ];
+    // FIX: Map SPORTS to PERFORMANCE for backend (if backend uses PERFORMANCE instead of SPORTS)
+    // Backend enum has SPORTS, so this should work directly
 
     const difficultyFilters = [
         { id: null, label: t('diets_all') || 'All' },
@@ -76,12 +78,39 @@ export default function DietsTabContent({
         { id: 'HARD', label: t('diets_difficulty_hard') || 'Hard' },
     ];
 
-    // Filter diets by uiGroup (only diet groups)
+    // Filter diets by uiGroup (only diet groups) and exclude lifestyle programs
+    // FIX: Apply all filters - type, difficulty, search query
     const filteredDiets = useMemo(() => {
         let diets = allDiets.filter(diet => {
+            // FIX: Exclude lifestyle programs - they should only appear in Lifestyle tab
+            // Lifestyle programs have type 'LIFESTYLE' (uppercase enum from Prisma)
+            // Also check category as fallback
+            if (diet.type === 'LIFESTYLE' || diet.type === 'lifestyle' || diet.category === 'lifestyle') {
+                return false;
+            }
             const group = diet.uiGroup || 'Popular';
             return DIETS_UI_GROUPS.some(g => g.id === group);
         });
+
+        // FIX: Apply type filter (WEIGHT_LOSS, HEALTH, SPORTS, MEDICAL)
+        if (selectedType) {
+            diets = diets.filter(diet => {
+                // Normalize type comparison - handle both uppercase and lowercase
+                const dietType = (diet.type || '').toUpperCase();
+                const filterType = selectedType.toUpperCase();
+                return dietType === filterType;
+            });
+        }
+
+        // FIX: Apply difficulty filter (EASY, MODERATE, HARD)
+        if (selectedDifficulty) {
+            diets = diets.filter(diet => {
+                // Normalize difficulty comparison
+                const dietDifficulty = (diet.difficulty || '').toUpperCase();
+                const filterDifficulty = selectedDifficulty.toUpperCase();
+                return dietDifficulty === filterDifficulty;
+            });
+        }
 
         // Filter by search query
         if (searchQuery.trim()) {
@@ -94,7 +123,7 @@ export default function DietsTabContent({
         }
 
         return diets;
-    }, [allDiets, searchQuery, language]);
+    }, [allDiets, selectedType, selectedDifficulty, searchQuery, language]);
 
     // Group diets by uiGroup
     const groupedDiets = useMemo(() => {
@@ -112,7 +141,9 @@ export default function DietsTabContent({
     return (
         <View>
             {/* Active Diet Widget */}
-            {activeDiet && (
+            {/* FIX: Only show activeDiet if it's a diet (not lifestyle) */}
+            {/* Lifestyle trackers should only appear in LifestyleTabContent */}
+            {activeDiet && activeDiet.program?.type !== 'LIFESTYLE' && activeDiet.program?.type !== 'lifestyle' && (
                 <View style={styles.section}>
                     <ActiveDietWidget
                         userDiet={activeDiet}

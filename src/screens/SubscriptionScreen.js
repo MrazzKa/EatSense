@@ -551,12 +551,9 @@ export default function SubscriptionScreen() {
                                 ]}
                                 activeOpacity={0.9}
                                 onPress={() => {
-                                    if (isStudent) {
-                                        setShowStudentModal(true);
-                                    } else {
-                                        setSelectedPlanId(plan.id);
-                                        handlePurchase(plan.id); // FIX: pass planId directly
-                                    }
+                                    // FIX: Убрать подтверждение документа для студенческой подписки - сразу оплата
+                                    setSelectedPlanId(plan.id);
+                                    handlePurchase(plan.id);
                                 }}
                                 disabled={purchasing}
                             >
@@ -700,12 +697,9 @@ export default function SubscriptionScreen() {
                                         ]}
                                         activeOpacity={0.9}
                                         onPress={() => {
-                                            if (isStudent) {
-                                                setShowStudentModal(true);
-                                            } else {
-                                                setSelectedPlanId(plan.id);
-                                                handlePurchase(plan.id); // FIX: pass planId directly
-                                            }
+                                            // FIX: Убрать подтверждение документа для студенческой подписки - сразу оплата
+                                            setSelectedPlanId(plan.id);
+                                            handlePurchase(plan.id);
                                         }}
                                         disabled={purchasing}
                                     >

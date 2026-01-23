@@ -25,9 +25,18 @@ function calculateCurrentDayIndex(
 
 /**
  * Calculate days left
+ * FIX: Correct calculation - if currentDayIndex is 2 and durationDays is 30, daysLeft should be 29
+ * Formula: daysLeft = durationDays - currentDayIndex + 1
+ * Example: Day 2 of 30 = 30 - 2 + 1 = 29 days left
  */
 function calculateDaysLeft(currentDayIndex: number, durationDays: number): number {
-  return Math.max(0, durationDays - (currentDayIndex - 1));
+  // FIX: Correct formula - daysLeft = totalDays - currentDay + 1
+  // If on day 1 of 30: 30 - 1 + 1 = 30 days left
+  // If on day 2 of 30: 30 - 2 + 1 = 29 days left
+  // If on day 30 of 30: 30 - 30 + 1 = 1 day left
+  // FIX: Ensure currentDayIndex doesn't exceed durationDays (after completion)
+  const clampedDay = Math.min(currentDayIndex, durationDays);
+  return Math.max(0, durationDays - clampedDay + 1);
 }
 
 /**

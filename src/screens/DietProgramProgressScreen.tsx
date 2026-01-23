@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+import { useProgramProgress } from '../stores/ProgramProgressStore';
 import DietProgramsService from '../services/dietProgramsService';
 import DailyDietTracker from '../components/DailyDietTracker';
 import CelebrationModal from '../components/CelebrationModal';
@@ -36,19 +37,42 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
     const [retryCount, setRetryCount] = useState(0);
     const [isInitializing, setIsInitializing] = useState(true);
 
-    // Force refresh on mount to ensure we have latest data
+    // FIX: Only refresh if we don't have the correct activeProgram
+    // This prevents unnecessary reloads when navigating back to this screen
     useEffect(() => {
         const initialize = async () => {
             setIsInitializing(true);
-            invalidateCache();
-            await refreshProgress();
+            // Only refresh if activeProgram is missing or doesn't match route
+            if (!activeProgram || activeProgram.programId !== route.params?.id) {
+                // Only invalidate if we're sure we need fresh data
+                if (!activeProgram) {
+                    invalidateCache();
+                }
+                await refreshProgress();
+            } else {
+                // FIX: If we already have correct activeProgram, skip refresh entirely
+                // This prevents visual reload and improves UX
+                // Data is already correct, no need to reload
+            }
             setIsInitializing(false);
         };
         initialize();
-    }, [refreshProgress, invalidateCache]);
+    }, [route.params?.id]); // Only re-initialize if route ID changes
 
-    // Refresh on focus
-    useRefreshProgressOnFocus();
+    // FIX: Don't refresh on every focus - only if data is missing or incorrect
+    // This prevents constant reloads when navigating back to this screen
+    useFocusEffect(
+        useCallback(() => {
+            // Only refresh if activeProgram is missing or doesn't match route
+            if (!activeProgram || activeProgram.programId !== route.params?.id) {
+                refreshProgress().catch(() => {
+                    // Silent fail - we'll retry on next focus
+                });
+            }
+            // FIX: If we have correct activeProgram, skip refresh entirely
+            // This prevents visual reload and improves UX
+        }, [activeProgram, route.params?.id, refreshProgress])
+    );
 
     // Retry logic when activeProgram is null but we expect it to exist
     useEffect(() => {
@@ -304,7 +328,10 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                             } else {
                                                 await DietProgramsService.pauseProgram();
                                             }
-                                            await refreshProgress();
+                                            // FIX: Refresh in background - don't block UI
+                                            refreshProgress().catch(() => {
+                                                // Silent fail - optimistic update already applied
+                                            });
                                         } catch {
                                             Alert.alert(t('common.error'), t('errors.pauseProgram'));
                                         }
@@ -339,10 +366,14 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                     onPress: async () => {
                                         try {
                                             await DietProgramsService.stopProgram(route.params.id);
-                                            // FIX 2026-01-19: Clear cache so Dashboard immediately hides the tracker
+                                            // FIX: Clear cache and navigate immediately
                                             invalidateCache();
-                                            await refreshProgress();
+                                            // Navigate immediately - refresh in background
                                             navigation.goBack();
+                                            // Refresh in background (non-blocking)
+                                            refreshProgress().catch(() => {
+                                                // Silent fail - navigation already happened
+                                            });
                                         } catch {
                                             Alert.alert(t('common.error'), t('errors.stopProgram'));
                                         }

@@ -79,18 +79,17 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                         setIsStarting(true);
 
                         try {
-                            // Invalidate cache before starting to ensure fresh data
-                            invalidateCache();
-
+                            // FIX: Start program and navigate immediately - no loading screen
+                            // Store will update automatically when screen focuses
                             await DietProgramsService.startProgram(program.id);
 
-                            // Refresh store to get the new active program
-                            await refreshProgress();
-
-                            // Small delay to ensure store is updated before navigation
-                            await new Promise(resolve => setTimeout(resolve, 100));
-
+                            // Navigate immediately - no waiting for store refresh
+                            // This prevents loading screen and improves UX
                             navigation.navigate('DietProgramProgress', { id: program.id });
+                            
+                            // FIX: Don't refresh immediately - let the target screen handle it
+                            // This prevents double refresh and visual reloads
+                            // The DietProgramProgressScreen will refresh on mount if needed
                         } catch (err: any) {
                             const status = err?.response?.status || err?.status;
 

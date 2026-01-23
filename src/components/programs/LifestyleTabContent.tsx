@@ -175,6 +175,9 @@ export default function LifestyleTabContent({
         // Disclaimer
         items.push({ type: 'disclaimer', data: null });
 
+        // FIX: SuggestProgramCard moved to DietsScreen level for better visibility
+        // Removed from here - now shown at screen level after all content
+
         // Programs
         if (selectedCategory) {
             // Selected category header
