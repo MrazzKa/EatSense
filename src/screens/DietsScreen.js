@@ -156,7 +156,7 @@ export default function DietsScreen({ navigation }) {
     const [lifestylePrograms, setLifestylePrograms] = useState([]);
     const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
-    const [isLoadingMore, setIsLoadingMore] = useState(false); // Fix: Added missing state
+    const [isLoadingMoreData, setIsLoadingMoreData] = useState(false); // Fix: Added missing state
 
     // Load data using bundle API (single request for all data)
     const loadData = useCallback(async (forceRefresh = false) => {
@@ -378,7 +378,7 @@ export default function DietsScreen({ navigation }) {
                 )}
 
                 {/* PATCH 04: Loading indicator for additional diets/lifestyles */}
-                {((isLoadingMore && activeTab === 'diets') || (isLoadingLifestyles && activeTab === 'lifestyle')) && (
+                {((isLoadingMoreData && activeTab === 'diets') || (isLoadingLifestyles && activeTab === 'lifestyle')) && (
                     <View style={styles.loadingMoreContainer}>
                         <ActivityIndicator size="small" color={tokens.colors?.primary || '#4CAF50'} />
                         <Text style={[styles.loadingMoreText, { color: tokens.colors?.textSecondary }]}>
