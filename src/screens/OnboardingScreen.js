@@ -2495,7 +2495,7 @@ const OnboardingScreen = () => {
                     <Text style={styles.nextButtonText}>
                       {currentStep === steps.length - 1
                         ? (profileData.selectedPlan === 'free'
-                          ? t('onboarding.startFree', 'Start Free')
+                          ? t('onboarding.startFree', 'Start Now')
                           : t('onboarding.subscribe', 'Subscribe'))
                         : t('onboarding.buttons.next')}
                     </Text>
