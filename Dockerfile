@@ -115,6 +115,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
-# Start the application using Railway start command
-# This runs migrations and seeds before starting
-CMD ["pnpm", "--filter", "./apps/api", "run", "start:railway"]
+# Start the application. Use start:railway:docker (skips prisma generate - already done at build).
+# Running prisma generate as non-root causes EACCES in node_modules.
+CMD ["pnpm", "--filter", "./apps/api", "run", "start:railway:docker"]
