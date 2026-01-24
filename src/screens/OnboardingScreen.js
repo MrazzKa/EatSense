@@ -1236,21 +1236,24 @@ const OnboardingScreen = () => {
       console.error('Onboarding error:', err);
       setPurchasing(false);
 
-      if (navigation && (navigation.isReady || typeof navigation.reset === 'function')) {
-        Alert.alert(
-          'Setup Complete',
-          'Profile saved locally. You can complete setup later in settings.',
-          [{
+      Alert.alert(
+        t('onboarding.setupComplete', 'Setup Complete'),
+        t('onboarding.profileSavedLocally', 'Profile saved locally. You can complete setup later in settings.'),
+        [
+          {
+            text: t('common.retry', 'Retry'),
+            onPress: () => handleComplete(),
+          },
+          {
             text: 'OK',
-            onPress: navigateToMain
-          }]
-        );
-      } else {
-        Alert.alert(
-          'Setup Complete',
-          'Profile saved locally. Please restart the app to continue.'
-        );
-      }
+            onPress: () => {
+              if (setUser) {
+                setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
+              }
+            },
+          },
+        ]
+      );
     }
   };
 

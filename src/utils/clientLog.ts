@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import safeEnv from './env';
 
-const API_BASE_URL = safeEnv.apiBaseUrl || 'https://caloriecam-production.up.railway.app';
+const API_BASE_URL = safeEnv.apiBaseUrl || 'https://eatsense-production.up.railway.app';
 
 /**
  * Client-side logging utility that sends logs to backend

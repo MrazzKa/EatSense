@@ -13,7 +13,7 @@ const safeEnv = {
   // For ngrok: set EXPO_PUBLIC_API_BASE_URL=https://<ngrok>.ngrok-free.app
   apiBaseUrl:
     String(process.env.EXPO_PUBLIC_API_BASE_URL ?? '').trim() ||
-    'https://caloriecam-production.up.railway.app',
+    'https://eatsense-production.up.railway.app',
   
   // Google OAuth Client IDs - safely normalized
   googleIosClientId: String(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '').trim(),

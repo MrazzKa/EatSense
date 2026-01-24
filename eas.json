@@ -47,7 +47,7 @@
       },
       "env": {
         "EXPO_PUBLIC_ENV": "production",
-        "EXPO_PUBLIC_API_BASE_URL": "https://caloriecam-production.up.railway.app",
+        "EXPO_PUBLIC_API_BASE_URL": "https://eatsense-production.up.railway.app",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "535303723114-95afjkjhsnns16s2kk3gh9ld435g8idl.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "535303723114-95afjkjhsnns16s2kk3gh9ld435g8idl.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "535303723114-gq2kis6u8hrle1q8miakbkpf2vjlmcf1.apps.googleusercontent.com",
