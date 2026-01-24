@@ -105,15 +105,18 @@ RUN mkdir -p apps/api/uploads apps/api/logs && \
     chown -R eatsense:nodejs /app/apps/api/logs && \
     chown -R eatsense:nodejs /app/apps/api/tsconfig.json
 
+# Production environment (Railway may override via Variables)
+ENV NODE_ENV=production
+
 # Switch to non-root user
 USER eatsense
 
-# Expose port
-EXPOSE 3000
+# Expose port (Railway uses PORT=8080)
+EXPOSE 8080
 
-# Health check
+# Health check (Railway exposes port 8080)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # Start the application. start:railway no longer runs prisma generate (done at build).
 CMD ["pnpm", "--filter", "./apps/api", "run", "start:railway"]
