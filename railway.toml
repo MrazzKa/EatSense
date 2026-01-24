@@ -1,7 +1,0 @@
-[build]
-builder = "dockerfile"
-dockerfilePath = "Dockerfile"
-
-[deploy]
-startCommand = "pnpm --filter ./apps/api run start:railway"
-restartPolicyType = "ON_FAILURE"
