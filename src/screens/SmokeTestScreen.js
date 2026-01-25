@@ -13,7 +13,7 @@ export default function SmokeTestScreen() {
   const handlePing = async () => {
     await clientLog('App:pingButtonPressed').catch(() => { });
     try {
-      const res = await fetch('https://caloriecam-production.up.railway.app/.well-known/health');
+      const res = await fetch('https://eatsense-production.up.railway.app/.well-known/health');
       const text = await res.text();
       await clientLog('App:pingSuccess', {
         status: res.status,

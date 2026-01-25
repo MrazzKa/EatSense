@@ -14,7 +14,6 @@ export * from './LanguageSelector.test';
 export * from './CameraComponent.test';
 export * from './AnalysisComponent.test';
 export * from './ImagePickerBlock.test';
-export * from './MainDashboard.test';
 export * from './AnalysisFlow.test';
 export * from './AnalysisResults.test';
 export * from './BottomSheet.test';

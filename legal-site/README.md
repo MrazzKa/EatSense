@@ -3,6 +3,7 @@
 Static site for App Store Review legal pages.
 
 ## Pages
+- `/` - Landing page (main site)
 - `/privacy` - Privacy Policy
 - `/terms` - Terms of Use
 - `/support` - Support Center

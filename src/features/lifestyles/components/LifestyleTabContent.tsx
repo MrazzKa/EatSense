@@ -147,7 +147,9 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
 
     // Active Program Section - Show tracker widget for active lifestyle program
     // Only show if we have an active program AND it's a lifestyle type
-    if (props.activeProgram && props.activeProgram.type === 'lifestyle') {
+    // FIX: Use stable check to prevent tracker from appearing/disappearing
+    // Only show tracker if activeProgram exists and is stable (not loading)
+    if (props.activeProgram && props.activeProgram.type === 'lifestyle' && !isLoading) {
       data.push({ type: 'active-tracker', data: props.activeProgram });
     }
 

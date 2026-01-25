@@ -39,7 +39,8 @@ export class SuggestionsController {
 
   /**
    * V2 endpoint - returns structured response with real personalization
-   * No static fallbacks, real stats and health scoring
+   * No static fallbacks, real stats and health scoring.
+   * Timeout 8s: return 200 + { status: 'error', ... } instead of 500.
    */
   @Get('foods/v2')
   async getSuggestedFoodsV2(
@@ -47,8 +48,6 @@ export class SuggestionsController {
     @Query('locale') localeParam?: string,
   ): Promise<SuggestedFoodV2Response> {
     const userId = req.user.id;
-
-    // Get locale from query param, user profile, or default to 'en'
     let locale: SupportedLocale = 'en';
     if (localeParam && ['en', 'ru', 'kk'].includes(localeParam)) {
       locale = localeParam as SupportedLocale;
@@ -60,6 +59,26 @@ export class SuggestionsController {
       locale = (preferences.language || 'en') as SupportedLocale;
     }
 
-    return this.suggestionsV2Service.getSuggestionsV2(userId, locale);
+    const SUGGESTIONS_V2_TIMEOUT_MS = 8000;
+    const errorPayload: SuggestedFoodV2Response = {
+      status: 'error',
+      locale,
+      summary: locale === 'ru' ? 'Рекомендации временно недоступны. Попробуйте позже.' : 'Suggestions temporarily unavailable. Try again later.',
+      health: { level: 'average', score: 50, reasons: [] },
+      stats: { daysWithMeals: 0, mealsCount: 0, avgCalories: 0, avgProteinG: 0, avgFatG: 0, avgCarbsG: 0, avgFiberG: 0, macroPercents: { protein: 0, fat: 0, carbs: 0 } },
+      sections: [],
+    };
+
+    try {
+      const result = await Promise.race([
+        this.suggestionsV2Service.getSuggestionsV2(userId, locale),
+        new Promise<SuggestedFoodV2Response>((_, reject) =>
+          setTimeout(() => reject(new Error('Suggestions V2 timeout')), SUGGESTIONS_V2_TIMEOUT_MS)
+        ),
+      ]);
+      return result;
+    } catch (e) {
+      return errorPayload;
+    }
   }
 }

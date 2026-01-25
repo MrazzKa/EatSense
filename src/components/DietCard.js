@@ -3,15 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useDesignTokens } from '../contexts/ThemeContext';
+// FIX: Use shared getLocalizedText for consistency and fr support
+import { getLocalizedText as getLocalizedTextShared } from './programs/types';
 
 // Helper to extract localized string from object or return string directly
+// FIX: Use shared implementation with proper fallback chain including fr
 const getLocalizedText = (value, lang) => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'object') {
-        return value[lang] || value['en'] || value[Object.keys(value)[0]] || '';
-    }
-    return String(value);
+    return getLocalizedTextShared(value, lang);
 };
 
 /**

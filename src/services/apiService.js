@@ -1704,6 +1704,16 @@ class ApiService {
   }
 
   /**
+   * Send contact request from "Предложения" card: userName + request -> email to info@eatsense.ch
+   */
+  async sendContactRequest(userName, request) {
+    return this.request('/diets/contact', {
+      method: 'POST',
+      body: JSON.stringify({ userName, request }),
+    });
+  }
+
+  /**
    * Get top suggestions
    */
   async getSuggestions(type, limit = 20) {

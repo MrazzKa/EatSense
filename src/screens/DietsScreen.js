@@ -158,8 +158,18 @@ export default function DietsScreen({ navigation }) {
     const tokens = useDesignTokens();
     
     // Get active program from store (real-time updates)
-    const { activeProgram } = useProgramProgress();
+    const { activeProgram, loadProgress } = useProgramProgress();
     useRefreshProgressOnFocus(); // Refresh on focus
+    
+    // FIX: Load progress when Diets screen mounts (lazy loading - only when needed)
+    // This ensures program data is available for the tracker
+    useEffect(() => {
+      if (!activeProgram) {
+        loadProgress().catch(() => {
+          // Silent fail - tracker will just not show if no program
+        });
+      }
+    }, [activeProgram, loadProgress]);
 
     // Unified cache key for bundle data
     const BUNDLE_CACHE_KEY = 'diets_bundle_cache_v1';
@@ -475,49 +485,52 @@ export default function DietsScreen({ navigation }) {
                     </View>
                 </View>
 
-                {/* Tab Content */}
-                {activeTab === 'diets' ? (
-                    <DietsTabContent
-                        activeDiet={activeDiet}
-                        recommendations={recommendations}
-                        featuredDiets={featuredDiets}
-                        allDiets={allDiets}
-                        selectedType={selectedType}
-                        selectedDifficulty={selectedDifficulty}
-                        searchQuery={searchQuery}
-                        onProgramPress={handleProgramPress}
-                        onTypeChange={onTypeChange}
-                        onDifficultyChange={onDifficultyChange}
-                        onSearchChange={onSearchChange}
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                    />
-                ) : (
-                    <LifestyleTabContent
-                        searchQuery={searchQuery}
-                        onSearchChange={onSearchChange}
-                        onProgramPress={handleProgramPress}
-                        programs={lifestylePrograms}
-                        featuredPrograms={featuredLifestyles}
-                        isLoading={isLoadingLifestyles}
-                        activeProgram={activeProgram && activeProgram.type === 'lifestyle' ? {
-                            diet: {
-                                id: activeProgram.programId,
-                                name: activeProgram.programName || 'Lifestyle',
-                                color: '#9C27B0',
-                            },
-                            type: 'lifestyle',
-                            streak: activeProgram.streak?.current || 0,
-                            todayProgress: {
-                                completed: activeProgram.todayLog?.completedCount || 0,
-                                total: activeProgram.todayLog?.totalCount || 0,
-                            },
-                            currentDay: activeProgram.currentDayIndex,
-                            totalDays: activeProgram.durationDays,
-                            daysLeft: activeProgram.daysLeft, // FIX: Add daysLeft for ActiveDietWidget
-                        } : null}
-                    />
-                )}
+                {/* Tab Content - minHeight prevents SuggestProgramCard from jumping to center during load */}
+                {/* FIX: Add minHeight to prevent SuggestProgramCard from jumping to center during load */}
+                <View style={[styles.tabContentWrapper, { minHeight: 400 }]}>
+                    {activeTab === 'diets' ? (
+                        <DietsTabContent
+                            activeDiet={activeDiet}
+                            recommendations={recommendations}
+                            featuredDiets={featuredDiets}
+                            allDiets={allDiets}
+                            selectedType={selectedType}
+                            selectedDifficulty={selectedDifficulty}
+                            searchQuery={searchQuery}
+                            onProgramPress={handleProgramPress}
+                            onTypeChange={onTypeChange}
+                            onDifficultyChange={onDifficultyChange}
+                            onSearchChange={onSearchChange}
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                        />
+                    ) : (
+                        <LifestyleTabContent
+                            searchQuery={searchQuery}
+                            onSearchChange={onSearchChange}
+                            onProgramPress={handleProgramPress}
+                            programs={lifestylePrograms}
+                            featuredPrograms={featuredLifestyles}
+                            isLoading={isLoadingLifestyles}
+                            activeProgram={activeProgram && activeProgram.type === 'lifestyle' ? {
+                                diet: {
+                                    id: activeProgram.programId,
+                                    name: activeProgram.programName || 'Lifestyle',
+                                    color: '#9C27B0',
+                                },
+                                type: 'lifestyle',
+                                streak: activeProgram.streak?.current || 0,
+                                todayProgress: {
+                                    completed: activeProgram.todayLog?.completedCount || 0,
+                                    total: activeProgram.todayLog?.totalCount || 0,
+                                },
+                                currentDay: activeProgram.currentDayIndex,
+                                totalDays: activeProgram.durationDays,
+                                daysLeft: activeProgram.daysLeft,
+                            } : null}
+                        />
+                    )}
+                </View>
 
                 {/* Loading indicator for lifestyles */}
                 {(isLoadingLifestyles && activeTab === 'lifestyle') && (
@@ -526,14 +539,6 @@ export default function DietsScreen({ navigation }) {
                         <Text style={[styles.loadingMoreText, { color: tokens.colors?.textSecondary }]}>
                             {t('lifestyles.loading_more') || 'Loading more programs...'}
                         </Text>
-                    </View>
-                )}
-
-                {/* FIX: Suggest Program Card - вынесен из LifestyleTabContent для лучшей видимости */}
-                {/* Показывается на обеих вкладках (Диеты и Стиль жизни) */}
-                {!searchQuery && (
-                    <View style={styles.suggestSection}>
-                        <SuggestProgramCard type={activeTab === 'lifestyle' ? 'lifestyle' : 'diet'} />
                     </View>
                 )}
 
@@ -868,6 +873,13 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
     suggestSectionTop: {
         marginTop: 16,
         marginBottom: 8,
-        paddingHorizontal: 0, // SuggestProgramCard has its own padding
+        paddingHorizontal: 0,
+    },
+    tabContentWrapper: {
+        minHeight: 400, // FIX: Increased to prevent SuggestProgramCard from jumping to center during load
+    },
+    suggestSection: {
+        marginTop: 16,
+        paddingHorizontal: 0,
     },
 });

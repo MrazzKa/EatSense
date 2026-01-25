@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
-
+// FIX: Use shared getLocalizedText for consistency and fr support
+import { getLocalizedText as getLocalizedTextShared } from './programs/types';
 
 interface Diet {
     id: string;
@@ -31,14 +32,9 @@ interface HistoricalDietsCarouselProps {
 export default function HistoricalDietsCarousel({ diets, onDietPress }: HistoricalDietsCarouselProps) {
     const { t, language } = useI18n();
 
-    // Helper to extract localized text
+    // Helper to extract localized text - use shared implementation
     const getLocalizedText = (value: any): string => {
-        if (!value) return '';
-        if (typeof value === 'string') return value;
-        if (typeof value === 'object') {
-            return value[language] || value['en'] || value[Object.keys(value)[0]] || '';
-        }
-        return String(value);
+        return getLocalizedTextShared(value, language);
     };
 
     if (!diets || diets.length === 0) {

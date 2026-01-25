@@ -360,6 +360,29 @@ export class DietsController {
     }
 
     /**
+     * Send contact/suggestion request: user name + request -> email to info@eatsense.ch
+     * Same mailer as login (Infomaniac/SendGrid); here we send TO info instead of FROM.
+     */
+    @Post('contact')
+    @UseGuards(JwtAuthGuard)
+    async sendContactRequest(
+        @CurrentUser() user: any,
+        @Body() dto: { userName: string; request: string },
+    ) {
+        if (!dto.userName?.trim()) {
+            throw new BadRequestException('Name is required');
+        }
+        if (!dto.request?.trim()) {
+            throw new BadRequestException('Request is required');
+        }
+        await this.dietsService.sendContactRequest(user.id, {
+            userName: dto.userName.trim(),
+            request: dto.request.trim(),
+        });
+        return { success: true };
+    }
+
+    /**
      * Get top suggestions (public)
      */
     @Get('suggestions')

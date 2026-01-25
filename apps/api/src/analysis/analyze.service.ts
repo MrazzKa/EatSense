@@ -850,7 +850,7 @@ export class AnalyzeService {
         foodDescription.toLowerCase().trim(),
         {
           originalQuery: foodDescription,
-          locale: locale as 'en' | 'ru' | 'kk',
+          locale: locale as 'en' | 'ru' | 'kk' | 'fr',
           region: 'OTHER',
           expectedCategory: 'solid',
         }
@@ -1082,7 +1082,7 @@ export class AnalyzeService {
    */
   private async processComponentAsync(
     component: VisionComponent,
-    locale: 'en' | 'ru' | 'kk',
+    locale: 'en' | 'ru' | 'kk' | 'fr',
     debug: AnalysisDebug,
   ): Promise<AnalyzedItem[]> {
     const items: AnalyzedItem[] = [];
@@ -1634,7 +1634,7 @@ export class AnalyzeService {
    * Analyze image and return normalized nutrition data.
    * Wrapper around internal implementation to handle request coalescing (locking).
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
     // Check for pending request to prevent double analysis (Race Condition Fix)
     // This uses a memory lock so that simultaneous requests for the same image Wait for the first one
     const imageHash = this.hashImage(params);
@@ -1658,9 +1658,9 @@ export class AnalyzeService {
     }
   }
 
-  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
-    const locale = (params.locale as 'en' | 'ru' | 'kk' | undefined) || 'en';
+    const locale = (params.locale as 'en' | 'ru' | 'kk' | 'fr' | undefined) || 'en';
     const mode = params.mode || 'default';
     const skipCache = params.skipCache || false;
 
@@ -2144,7 +2144,7 @@ export class AnalyzeService {
       dishNameSource = 'vision';
       dishNameConfidence = visionDish.dish_name_confidence;
       // Use Vision's localized name if available, otherwise localize the English name
-      if ((locale === 'ru' || locale === 'kk') && visionDish.dish_name_local) {
+      if ((locale === 'ru' || locale === 'kk' || locale === 'fr') && visionDish.dish_name_local) {
         dishNameLocalized = visionDish.dish_name_local;
       } else {
         dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
@@ -2292,10 +2292,10 @@ export class AnalyzeService {
   /**
    * Analyze text description
    */
-  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk', skipCache?: boolean): Promise<AnalysisData> {
+  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk' | 'fr', skipCache?: boolean): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     // Normalize locale
-    const normalizedLocale: 'en' | 'ru' | 'kk' =
+    const normalizedLocale: 'en' | 'ru' | 'kk' | 'fr' =
       (locale as any) || 'en';
 
     // Log skip-cache mode if enabled
@@ -2521,7 +2521,7 @@ export class AnalyzeService {
     canonicalFood: CanonicalFood,
     portionG: number,
     nutrients: Nutrients,
-    locale: 'en' | 'ru' | 'kk',
+    locale: 'en' | 'ru' | 'kk' | 'fr',
     source: string,
     usedVisionFallback: boolean = false,
   ): Promise<AnalyzedItem & { baseName?: string; displayNameLocalized?: string; providerId?: string }> {
@@ -2589,7 +2589,7 @@ export class AnalyzeService {
     component: VisionComponent,
     items: AnalyzedItem[],
     debug: AnalysisDebug,
-    locale: 'en' | 'ru' | 'kk' = 'en',
+    locale: 'en' | 'ru' | 'kk' | 'fr' = 'en',
     isBeverage: boolean = false,
   ): Promise<void> {
     // Если Vision уверен (confidence >= 0.7) и имя не слишком общее
@@ -3274,7 +3274,7 @@ export class AnalyzeService {
    * Compute health score from totals and items
    * Public method for re-analysis use cases
    */
-  public computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' = 'en'): HealthScore {
+  public computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' | 'fr' = 'en'): HealthScore {
     // Use new internal method for proper calculation
     const itemsArray = items || [];
     const totalsForInternal = {
@@ -3316,7 +3316,7 @@ export class AnalyzeService {
     dishName: string,
     items: AnalyzedItem[],
     totals: AnalysisTotals,
-    locale: 'en' | 'ru' | 'kk' = 'en',
+    locale: 'en' | 'ru' | 'kk' | 'fr' = 'en',
     analysisId?: string,
   ): Promise<HealthScore> {
     // Check if AI is enabled
@@ -3432,7 +3432,7 @@ export class AnalyzeService {
 
   private buildFeedback(
     factors: Record<string, { label: string; score: number; weight: number }>,
-    locale: 'en' | 'ru' | 'kk' = 'en',
+    locale: 'en' | 'ru' | 'kk' | 'fr' = 'en',
   ): Array<{ key: string; label: string; action: 'celebrate' | 'increase' | 'reduce' | 'monitor'; message: string }> {
     const entries: Array<{ key: string; label: string; action: 'celebrate' | 'increase' | 'reduce' | 'monitor'; message: string }> = [];
     const penaltyKeys = ['satFat', 'sugar', 'energyDensity'];
@@ -3506,13 +3506,13 @@ export class AnalyzeService {
     return entries;
   }
 
-  private translateLabel(label: string, locale: 'en' | 'ru' | 'kk'): string {
+  private translateLabel(label: string, locale: 'en' | 'ru' | 'kk' | 'fr'): string {
     const translations: Record<string, Record<string, string>> = {
-      Protein: { ru: 'Белок', kk: 'Ақуыз' },
-      Fiber: { ru: 'Клетчатка', kk: 'Талшық' },
-      'Saturated fat': { ru: 'Насыщенные жиры', kk: 'Қаныққан майлар' },
-      Sugar: { ru: 'Сахар', kk: 'Қант' },
-      'Energy density': { ru: 'Энергетическая плотность', kk: 'Энергия тығыздығы' },
+      Protein: { ru: 'Белок', kk: 'Ақуыз', fr: 'Protéines' },
+      Fiber: { ru: 'Клетчатка', kk: 'Талшық', fr: 'Fibres' },
+      'Saturated fat': { ru: 'Насыщенные жиры', kk: 'Қаныққан майлар', fr: 'Graisses saturées' },
+      Sugar: { ru: 'Сахар', kk: 'Қант', fr: 'Sucre' },
+      'Energy density': { ru: 'Энергетическая плотность', kk: 'Энергия тығыздығы', fr: 'Densité énergétique' },
     };
     return translations[label]?.[locale] || label;
   }
@@ -3538,8 +3538,8 @@ export class AnalyzeService {
     const factors = healthScore.factors;
     const { calories, protein, fiber, sugars, satFat } = totals;
 
-    // Приводим locale к базовым ('en' | 'ru' | 'kk')
-    const lang = (locale || 'en').split('-')[0] as 'en' | 'ru' | 'kk';
+    // Приводим locale к базовым ('en' | 'ru' | 'kk' | 'fr')
+    const lang = (locale || 'en').split('-')[0] as 'en' | 'ru' | 'kk' | 'fr';
 
     // Хелпер для текстов
     const t = (code: string): string => {
@@ -3597,6 +3597,24 @@ export class AnalyzeService {
           high_energy_density: 'Энергетикалық тығыздық жоғары — мұндай тағамдарды байқамай-ақ артық жеуге болады.',
           caloric_surplus_warning: 'Бұл тамақтанудың жалпы калориясы жоғары — тәуліктік норманы бақылаңыз.',
           caloric_low_warning: 'Калориясы төмен — бұл толыққанды тамақтанудан гөрі жеңіл жеңілдеу сияқты.',
+        },
+        fr: {
+          overall_excellent: 'Ce repas semble très équilibré et riche en nutriments.',
+          overall_good: 'Dans l\'ensemble, ce repas semble assez équilibré.',
+          overall_average: 'Ce repas est correct, mais il y a de la place pour amélioration.',
+          overall_poor: 'Ce repas est assez déséquilibré. Essayez de l\'améliorer la prochaine fois.',
+          high_protein: 'Bonne teneur en protéines — cela aide à préserver la masse musculaire.',
+          low_protein: 'Les protéines sont relativement faibles. Pensez à ajouter de la viande, du poisson, des œufs ou des légumineuses.',
+          high_fiber: 'Bonne quantité de fibres — bon pour la digestion et le contrôle de la glycémie.',
+          low_fiber: 'Les fibres sont faibles. Essayez d\'ajouter des légumes, des fruits ou des céréales complètes.',
+          low_saturated_fat: 'Les graisses saturées sont dans des limites raisonnables.',
+          high_saturated_fat: 'Les graisses saturées sont élevées. Essayez de réduire la viande grasse, le beurre ou les pâtisseries.',
+          low_sugar: 'Le sucre libre est dans une fourchette raisonnable.',
+          high_sugar: 'Le sucre libre est relativement élevé — attention aux sucreries et aux boissons sucrées.',
+          low_energy_density: 'La densité énergétique est faible, ce qui signifie généralement plus de volume pour moins de calories.',
+          high_energy_density: 'La densité énergétique est élevée. De tels repas sont faciles à surconsommer sans s\'en rendre compte.',
+          caloric_surplus_warning: 'Les calories totales de ce repas sont relativement élevées ; surveillez votre apport quotidien global.',
+          caloric_low_warning: 'Les calories sont faibles — cela ressemble plus à une collation qu\'à un repas complet.',
         },
       };
       return dict[lang]?.[code] ?? dict.en[code] ?? code;
@@ -3730,7 +3748,7 @@ export class AnalyzeService {
     input: {
       analysisId: string;
       components: Array<{ id: string; name: string; portion_g: number }>;
-      locale?: 'en' | 'ru' | 'kk';
+      locale?: 'en' | 'ru' | 'kk' | 'fr';
       region?: 'US' | 'CH' | 'EU' | 'OTHER';
     },
     userId: string,

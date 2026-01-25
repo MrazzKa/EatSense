@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EatSense — AI Nutrition, Swiss Precision</title>
+    <meta name="description" content="Transform your nutrition with AI-powered food analysis and 47 lifestyle programs. Swiss precision meets modern wellness.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --forest: #1B4D3E;
+            --forest-light: #2D6B5A;
+            --forest-dark: #143D31;
+            --cream: #FAFAFA;
+            --gold: #B8976A;
+            --gold-light: #C9A97A;
+            --text-primary: #1A1A1A;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --white: #FFFFFF;
+            --border: #E8E8E8;
+            
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'DM Sans', -apple-system, sans-serif;
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            font-weight: 400;
+            color: var(--text-primary);
+            background: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1.25rem 2rem;
+            transition: all 0.4s var(--ease-out);
+        }
+        .nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--border);
+        }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--forest);
+        }
+        .logo-icon { width: 36px; height: 36px; }
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover { color: var(--forest); }
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--cream);
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .lang-switcher:hover { border-color: var(--forest); color: var(--forest); }
+        .nav-cta {
+            padding: 0.7rem 1.5rem;
+            background: var(--forest);
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s var(--ease-out);
+        }
+        .nav-cta:hover { background: var(--forest-light); }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 8rem 2rem 4rem;
+            background: linear-gradient(180deg, var(--cream) 0%, var(--white) 100%);
+        }
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.9rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.8s var(--ease-out) both;
+        }
+        .hero-badge svg { width: 14px; height: 14px; color: var(--gold); }
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 400;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.8s var(--ease-out) 0.1s both;
+        }
+        .hero-title em { font-style: italic; color: var(--forest); }
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 480px;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.8s var(--ease-out) 0.2s both;
+        }
+        .hero-ctas {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            animation: fadeUp 0.8s var(--ease-out) 0.3s both;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1.75rem;
+            background: var(--forest);
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s var(--ease-out);
+        }
+        .btn-primary:hover { background: var(--forest-light); transform: translateY(-1px); }
+        .btn-primary svg { width: 18px; height: 18px; }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.9rem 1.75rem;
+            background: transparent;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.3s var(--ease-out);
+        }
+        .btn-secondary:hover { border-color: var(--forest); color: var(--forest); }
+
+        .hero-visual { animation: fadeUp 0.8s var(--ease-out) 0.4s both; }
+        .hero-phone {
+            width: 300px;
+            height: 620px;
+            background: var(--text-primary);
+            border-radius: 48px;
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        .hero-phone::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 8px solid var(--text-primary);
+            border-radius: 48px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .hero-phone-notch {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 32px;
+            background: var(--text-primary);
+            border-radius: 0 0 20px 20px;
+            z-index: 3;
+        }
+        .hero-phone-screen {
+            position: absolute;
+            top: 8px; left: 8px; right: 8px; bottom: 8px;
+            background: var(--white);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .screen-placeholder { text-align: center; padding: 2rem; }
+        .screen-placeholder svg { width: 48px; height: 48px; color: var(--border); margin-bottom: 1rem; }
+
+        section { padding: 6rem 2rem; }
+        .section-container { max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; max-width: 600px; margin: 0 auto 4rem; }
+        .section-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+        .section-subtitle { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; }
+
+        .features { background: var(--white); }
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .feature-card {
+            padding: 2.5rem 2rem;
+            background: var(--cream);
+            border-radius: 16px;
+            transition: all 0.4s var(--ease-out);
+            border: 1px solid transparent;
+        }
+        .feature-card:hover { border-color: var(--border); transform: translateY(-2px); }
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .feature-icon svg { width: 24px; height: 24px; color: var(--forest); }
+        .feature-title {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        .feature-desc { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; }
+
+        .programs { background: var(--cream); }
+        .programs-showcase {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding: 1rem 0 2rem;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+        .programs-showcase::-webkit-scrollbar { display: none; }
+        .program-card {
+            flex: 0 0 280px;
+            scroll-snap-align: start;
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.4s var(--ease-out);
+        }
+        .program-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); }
+        .program-image {
+            height: 160px;
+            background: linear-gradient(135deg, #f5f5f5, #ebebeb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .program-image svg { width: 40px; height: 40px; color: var(--text-muted); }
+        .program-content { padding: 1.5rem; }
+        .program-category {
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+        .program-name {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .program-desc { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
+        .programs-counter { text-align: center; margin-top: 3rem; }
+        .counter-number {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 400;
+            color: var(--forest);
+            line-height: 1;
+        }
+        .counter-label { font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+        .biomarkers { background: var(--forest-dark); color: var(--white); }
+        .biomarkers .section-tag { color: var(--gold-light); }
+        .biomarkers .section-title { color: var(--white); }
+        .biomarkers .section-subtitle { color: rgba(255, 255, 255, 0.7); }
+        .biomarkers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+        .biomarker-item {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.75rem;
+            text-align: center;
+            transition: all 0.3s var(--ease-out);
+        }
+        .biomarker-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .biomarker-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .biomarker-icon svg { width: 20px; height: 20px; color: var(--gold-light); }
+        .biomarker-name { font-family: var(--font-display); font-size: 1.05rem; font-weight: 500; margin-bottom: 0.35rem; }
+        .biomarker-desc { font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); }
+
+        .pricing { background: var(--white); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; align-items: start; }
+        .pricing-card {
+            background: var(--cream);
+            border-radius: 16px;
+            padding: 2rem 1.75rem;
+            position: relative;
+            transition: all 0.4s var(--ease-out);
+            border: 1px solid transparent;
+        }
+        .pricing-card:hover { border-color: var(--border); }
+        .pricing-card.featured { background: var(--forest); color: var(--white); }
+        .pricing-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: var(--white);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.3rem 0.9rem;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .pricing-name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 500; margin-bottom: 0.35rem; }
+        .pricing-card.featured .pricing-name { color: var(--white); }
+        .pricing-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+        .pricing-card.featured .pricing-desc { color: rgba(255, 255, 255, 0.7); }
+        .pricing-price { margin-bottom: 1.25rem; }
+        .pricing-amount { font-family: var(--font-display); font-size: 2.25rem; font-weight: 500; color: var(--text-primary); }
+        .pricing-card.featured .pricing-amount { color: var(--white); }
+        .pricing-period { font-size: 0.85rem; color: var(--text-muted); }
+        .pricing-card.featured .pricing-period { color: rgba(255, 255, 255, 0.6); }
+        .pricing-features { list-style: none; margin-bottom: 1.75rem; }
+        .pricing-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.6rem;
+            color: var(--text-secondary);
+        }
+        .pricing-card.featured .pricing-features li { color: rgba(255, 255, 255, 0.85); }
+        .pricing-features li svg { width: 16px; height: 16px; color: var(--forest); flex-shrink: 0; margin-top: 2px; }
+        .pricing-card.featured .pricing-features li svg { color: var(--gold-light); }
+        .pricing-btn {
+            display: block;
+            width: 100%;
+            padding: 0.85rem;
+            text-align: center;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s var(--ease-out);
+            background: var(--white);
+            color: var(--forest);
+            border: 1px solid var(--border);
+        }
+        .pricing-btn:hover { background: var(--forest); color: var(--white); border-color: var(--forest); }
+        .pricing-card.featured .pricing-btn { background: var(--white); color: var(--forest); border: none; }
+        .pricing-card.featured .pricing-btn:hover { background: var(--gold); color: var(--white); }
+
+        .influencers { background: var(--cream); }
+        .influencer-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .influencer-text h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.25rem);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            line-height: 1.2;
+        }
+        .influencer-text h2 em { font-style: italic; color: var(--forest); }
+        .influencer-text p { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
+        .influencer-benefits { list-style: none; margin-bottom: 2rem; }
+        .influencer-benefits li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        .influencer-benefits li:last-child { border-bottom: none; }
+        .benefit-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .benefit-icon svg { width: 18px; height: 18px; color: var(--forest); }
+        .influencer-visual { display: flex; flex-direction: column; gap: 1rem; }
+        .influencer-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s var(--ease-out);
+        }
+        .influencer-card:hover { border-color: var(--forest); }
+        .influencer-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .influencer-avatar svg { width: 24px; height: 24px; color: var(--forest); }
+        .influencer-info h4 { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.2rem; }
+        .influencer-info p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+        .footer { background: var(--text-primary); color: var(--white); padding: 4rem 2rem 2rem; }
+        .footer-container { max-width: 1200px; margin: 0 auto; }
+        .footer-top {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            padding-bottom: 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer-brand .logo { color: var(--white); margin-bottom: 1rem; }
+        .footer-brand p { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; line-height: 1.7; max-width: 280px; }
+        .footer-column h4 { font-family: var(--font-display); font-size: 1rem; font-weight: 500; margin-bottom: 1.25rem; }
+        .footer-column ul { list-style: none; }
+        .footer-column li { margin-bottom: 0.6rem; }
+        .footer-column a { color: rgba(255, 255, 255, 0.6); text-decoration: none; font-size: 0.875rem; transition: color 0.3s ease; }
+        .footer-column a:hover { color: var(--white); }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .footer-copy { color: rgba(255, 255, 255, 0.5); font-size: 0.8rem; }
+        .footer-badges { display: flex; gap: 0.75rem; }
+        .footer-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .footer-badge svg { width: 14px; height: 14px; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s var(--ease-out); }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+        .mobile-menu-btn span { display: block; width: 22px; height: 2px; background: var(--text-primary); margin: 5px 0; }
+
+        .lang-dropdown { position: relative; }
+        .lang-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 0.35rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: all 0.3s var(--ease-out);
+            z-index: 10;
+        }
+        .lang-dropdown:hover .lang-options { opacity: 1; visibility: visible; transform: translateY(4px); }
+        .lang-option {
+            display: block;
+            width: 100%;
+            padding: 0.45rem 0.75rem;
+            background: none;
+            border: none;
+            text-align: left;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .lang-option:hover { background: var(--cream); color: var(--forest); }
+        .lang-option.active { color: var(--forest); font-weight: 500; }
+
+        @media (max-width: 1100px) {
+            .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .mobile-menu-btn { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--white);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+                border-top: 1px solid var(--border);
+            }
+            .nav-links.active { display: flex; }
+            .hero-content { grid-template-columns: 1fr; text-align: center; }
+            .hero-subtitle { margin-left: auto; margin-right: auto; }
+            .hero-ctas { justify-content: center; }
+            .features-grid { grid-template-columns: 1fr; }
+            .biomarkers-grid { grid-template-columns: repeat(2, 1fr); }
+            .influencer-content { grid-template-columns: 1fr; }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+            section { padding: 4rem 1.5rem; }
+        }
+        @media (max-width: 600px) {
+            .pricing-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <svg class="logo-icon" viewBox="0 0 36 36" fill="none">
+                    <rect width="36" height="36" rx="8" fill="#1B4D3E"/>
+                    <path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="14" cy="13" r="1.5" fill="#B8976A"/>
+                    <circle cx="22" cy="13" r="1.5" fill="#B8976A"/>
+                    <circle cx="18" cy="10" r="1.5" fill="#B8976A"/>
+                </svg>
+                <span class="logo-text">EatSense</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#features" class="nav-link" data-i18n="nav.features">Features</a>
+                <a href="#programs" class="nav-link" data-i18n="nav.programs">Programs</a>
+                <a href="#pricing" class="nav-link" data-i18n="nav.pricing">Pricing</a>
+                <a href="#influencers" class="nav-link" data-i18n="nav.influencers">For Creators</a>
+                <div class="lang-dropdown">
+                    <button class="lang-switcher">
+                        <span id="currentLang">EN</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                    <div class="lang-options">
+                        <button class="lang-option active" data-lang="en">English</button>
+                        <button class="lang-option" data-lang="de">Deutsch</button>
+                        <button class="lang-option" data-lang="fr">Français</button>
+                    </div>
+                </div>
+                <a href="#" class="nav-cta" data-i18n="nav.download">Download App</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                    <span data-i18n="hero.badge">Made in Switzerland</span>
+                </div>
+                <h1 class="hero-title" data-i18n="hero.title">Nutrition that <em>understands</em> you</h1>
+                <p class="hero-subtitle" data-i18n="hero.subtitle">AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.</p>
+                <div class="hero-ctas">
+                    <a href="#" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                        <span data-i18n="hero.cta.primary">Download for iOS</span>
+                    </a>
+                    <a href="#features" class="btn-secondary" data-i18n="hero.cta.secondary">Learn more</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-phone">
+                    <div class="hero-phone-notch"></div>
+                    <div class="hero-phone-screen">
+                        <div class="screen-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg>
+                            <p>App screenshot</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag" data-i18n="features.tag">Why EatSense</span>
+                <h2 class="section-title" data-i18n="features.title">Smart nutrition, effortlessly</h2>
+                <p class="section-subtitle" data-i18n="features.subtitle">Snap a photo. Get instant insights. Make better choices.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+                    <h3 class="feature-title" data-i18n="features.ai.title">AI Food Analysis</h3>
+                    <p class="feature-desc" data-i18n="features.ai.desc">Photograph any meal and receive detailed nutritional breakdown in seconds. Calories, macros, vitamins — all calculated instantly.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                    <h3 class="feature-title" data-i18n="features.biomarkers.title">Biomarker Integration</h3>
+                    <p class="feature-desc" data-i18n="features.biomarkers.desc">Connect your blood test results with your nutrition data. Understand how what you eat affects your health markers.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                    <h3 class="feature-title" data-i18n="features.experts.title">Expert Marketplace</h3>
+                    <p class="feature-desc" data-i18n="features.experts.desc">Connect with certified nutritionists who can see your real data — not just what you remember eating.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="programs" id="programs">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag" data-i18n="programs.tag">Lifestyle Programs</span>
+                <h2 class="section-title" data-i18n="programs.title">Find your way of eating</h2>
+                <p class="section-subtitle" data-i18n="programs.subtitle">Curated nutrition philosophies inspired by cultures, warriors, and iconic lifestyles.</p>
+            </div>
+            <div class="programs-showcase">
+                <div class="program-card">
+                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-content">
+                        <div class="program-category">Historical</div>
+                        <h3 class="program-name">Old Hollywood Glamour</h3>
+                        <p class="program-desc">Elegant, portion-conscious dining inspired by golden age stars.</p>
+                    </div>
+                </div>
+                <div class="program-card">
+                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-content">
+                        <div class="program-category">Warrior</div>
+                        <h3 class="program-name">Spartan Discipline</h3>
+                        <p class="program-desc">High-protein, minimal processing. Fuel for strength and endurance.</p>
+                    </div>
+                </div>
+                <div class="program-card">
+                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-content">
+                        <div class="program-category">Culture</div>
+                        <h3 class="program-name">Swiss Precision</h3>
+                        <p class="program-desc">Balanced, quality-focused eating with Alpine wisdom.</p>
+                    </div>
+                </div>
+                <div class="program-card">
+                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-content">
+                        <div class="program-category">Modern</div>
+                        <h3 class="program-name">Glass Skin</h3>
+                        <p class="program-desc">Korean beauty-inspired nutrition for radiant skin from within.</p>
+                    </div>
+                </div>
+                <div class="program-card">
+                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-content">
+                        <div class="program-category">Lifestyle</div>
+                        <h3 class="program-name">NYC Hustle</h3>
+                        <p class="program-desc">High-performance eating for busy professionals on the go.</p>
+                    </div>
+                </div>
+                <div class="program-card">
+                    <div class="program-image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg></div>
+                    <div class="program-content">
+                        <div class="program-category">Spiritual</div>
+                        <h3 class="program-name">Ramadan Mode</h3>
+                        <p class="program-desc">Optimized nutrition for Suhoor and Iftar during fasting.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="programs-counter fade-in">
+                <div class="counter-number">47</div>
+                <div class="counter-label" data-i18n="programs.counter">unique lifestyle programs</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="biomarkers" id="biomarkers">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag">Biomarker Intelligence</span>
+                <h2 class="section-title">Connect diet to health</h2>
+                <p class="section-subtitle">Upload your lab results and see how your nutrition choices affect your body.</p>
+            </div>
+            <div class="biomarkers-grid">
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+                    <h4 class="biomarker-name">HbA1c</h4>
+                    <p class="biomarker-desc">Blood sugar control</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+                    <h4 class="biomarker-name">Cholesterol</h4>
+                    <p class="biomarker-desc">LDL, HDL, Triglycerides</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div>
+                    <h4 class="biomarker-name">Vitamin D</h4>
+                    <p class="biomarker-desc">Bone & immune health</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+                    <h4 class="biomarker-name">Ferritin</h4>
+                    <p class="biomarker-desc">Iron stores</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                    <h4 class="biomarker-name">hs-CRP</h4>
+                    <p class="biomarker-desc">Inflammation marker</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                    <h4 class="biomarker-name">B12</h4>
+                    <p class="biomarker-desc">Energy & nerves</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg></div>
+                    <h4 class="biomarker-name">Calcium</h4>
+                    <p class="biomarker-desc">Bone density</p>
+                </div>
+                <div class="biomarker-item fade-in">
+                    <div class="biomarker-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                    <h4 class="biomarker-name">Thyroid</h4>
+                    <p class="biomarker-desc">Metabolism balance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing" id="pricing">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag">Pricing</span>
+                <h2 class="section-title">Choose your journey</h2>
+                <p class="section-subtitle">Start free. Upgrade when you're ready for more.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card fade-in">
+                    <h3 class="pricing-name">Free</h3>
+                    <p class="pricing-desc">Get started</p>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 0</span><span class="pricing-period">forever</span></div>
+                    <ul class="pricing-features">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>3 scans per day</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Basic nutrition data</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>7-day history</span></li>
+                    </ul>
+                    <a href="#" class="pricing-btn">Get Started</a>
+                </div>
+                <div class="pricing-card featured fade-in">
+                    <span class="pricing-badge">Most Popular</span>
+                    <h3 class="pricing-name">PRO Annual</h3>
+                    <p class="pricing-desc">Best value</p>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 79</span><span class="pricing-period">/year</span></div>
+                    <ul class="pricing-features">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Unlimited scans</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>AI nutrition assistant</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Biomarker tracking</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>All 47 programs</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>PDF reports</span></li>
+                    </ul>
+                    <a href="#" class="pricing-btn">Upgrade to PRO</a>
+                </div>
+                <div class="pricing-card fade-in">
+                    <h3 class="pricing-name">PRO Monthly</h3>
+                    <p class="pricing-desc">Flexible</p>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 9.90</span><span class="pricing-period">/month</span></div>
+                    <ul class="pricing-features">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Unlimited scans</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>AI nutrition assistant</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Biomarker tracking</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>All 47 programs</span></li>
+                    </ul>
+                    <a href="#" class="pricing-btn">Try PRO</a>
+                </div>
+                <div class="pricing-card fade-in">
+                    <span class="pricing-badge">Limited</span>
+                    <h3 class="pricing-name">Founders Pass</h3>
+                    <p class="pricing-desc">Lifetime access</p>
+                    <div class="pricing-price"><span class="pricing-amount">CHF 99</span><span class="pricing-period">one-time</span></div>
+                    <ul class="pricing-features">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Everything in PRO</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Lifetime updates</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Founder badge</span></li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Early access to features</span></li>
+                    </ul>
+                    <a href="#" class="pricing-btn">Claim Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="influencers" id="influencers">
+        <div class="section-container">
+            <div class="influencer-content">
+                <div class="influencer-text fade-in">
+                    <h2>Become an <em>Inspiration</em></h2>
+                    <p>We're creating lifestyle programs inspired by health & fitness creators. Your philosophy. Your principles. Featured in our app.</p>
+                    <ul class="influencer-benefits">
+                        <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>Permanent feature in the app</span></li>
+                        <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/><path d="M12 15l9-9"/><path d="M15 6h6v6"/></svg></span><span>Free lifetime PRO access</span></li>
+                        <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span><span>Credit as inspiration source</span></li>
+                        <li><span class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span><span>No work required from you</span></li>
+                    </ul>
+                    <a href="mailto:creators@eatsense.ch" class="btn-primary">Get in Touch</a>
+                </div>
+                <div class="influencer-visual fade-in">
+                    <div class="influencer-card">
+                        <div class="influencer-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+                        <div class="influencer-info"><h4>Fitness Creators</h4><p>Training + nutrition combined</p></div>
+                    </div>
+                    <div class="influencer-card">
+                        <div class="influencer-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+                        <div class="influencer-info"><h4>Nutritionists</h4><p>Science-based approaches</p></div>
+                    </div>
+                    <div class="influencer-card">
+                        <div class="influencer-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+                        <div class="influencer-info"><h4>Lifestyle Influencers</h4><p>Wellness philosophy</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <svg class="logo-icon" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#2D6B5A"/><path d="M10 26C10 26 12 17 18 17C24 17 26 26 26 26" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="13" r="1.5" fill="#B8976A"/><circle cx="22" cy="13" r="1.5" fill="#B8976A"/><circle cx="18" cy="10" r="1.5" fill="#B8976A"/></svg>
+                        <span class="logo-text">EatSense</span>
+                    </a>
+                    <p>AI nutrition, Swiss precision. Understand what you eat.</p>
+                </div>
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <ul><li><a href="#features">Features</a></li><li><a href="#programs">Programs</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#">Download</a></li></ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul><li><a href="#">About</a></li><li><a href="#influencers">For Creators</a></li><li><a href="mailto:hello@eatsense.ch">Contact</a></li></ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li><li><a href="/support">Support</a></li></ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">© 2026 EatSense. Geneva, Switzerland.</p>
+                <div class="footer-badges">
+                    <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Swiss Made</span>
+                    <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>GDPR Compliant</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const translations={en:{"nav.features":"Features","nav.programs":"Programs","nav.pricing":"Pricing","nav.influencers":"For Creators","nav.download":"Download App","hero.badge":"Made in Switzerland","hero.title":"Nutrition that <em>understands</em> you","hero.subtitle":"AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.","hero.cta.primary":"Download for iOS","hero.cta.secondary":"Learn more","features.tag":"Why EatSense","features.title":"Smart nutrition, effortlessly","features.subtitle":"Snap a photo. Get instant insights. Make better choices.","features.ai.title":"AI Food Analysis","features.ai.desc":"Photograph any meal and receive detailed nutritional breakdown in seconds. Calories, macros, vitamins — all calculated instantly.","features.biomarkers.title":"Biomarker Integration","features.biomarkers.desc":"Connect your blood test results with your nutrition data. Understand how what you eat affects your health markers.","features.experts.title":"Expert Marketplace","features.experts.desc":"Connect with certified nutritionists who can see your real data — not just what you remember eating.","programs.tag":"Lifestyle Programs","programs.title":"Find your way of eating","programs.subtitle":"Curated nutrition philosophies inspired by cultures, warriors, and iconic lifestyles.","programs.counter":"unique lifestyle programs"},de:{"nav.features":"Funktionen","nav.programs":"Programme","nav.pricing":"Preise","nav.influencers":"Für Creator","nav.download":"App Laden","hero.badge":"Made in Switzerland","hero.title":"Ernährung, die dich <em>versteht</em>","hero.subtitle":"KI-gestützte Lebensmittelanalyse trifft personalisierte Lifestyle-Programme. Entdecke 47 Wege, gut zu essen, mit Schweizer Präzision.","hero.cta.primary":"Für iOS laden","hero.cta.secondary":"Mehr erfahren","features.tag":"Warum EatSense","features.title":"Smarte Ernährung, mühelos","features.subtitle":"Foto machen. Sofort Einblicke erhalten. Bessere Entscheidungen treffen.","features.ai.title":"KI-Lebensmittelanalyse","features.ai.desc":"Fotografiere jede Mahlzeit und erhalte in Sekunden eine detaillierte Nährwertanalyse.","features.biomarkers.title":"Biomarker-Integration","features.biomarkers.desc":"Verbinde deine Blutwerte mit deinen Ernährungsdaten.","features.experts.title":"Experten-Marktplatz","features.experts.desc":"Verbinde dich mit zertifizierten Ernährungsberatern.","programs.tag":"Lifestyle-Programme","programs.title":"Finde deine Art zu essen","programs.subtitle":"Kuratierte Ernährungsphilosophien.","programs.counter":"einzigartige Programme"},fr:{"nav.features":"Fonctionnalités","nav.programs":"Programmes","nav.pricing":"Tarifs","nav.influencers":"Pour Créateurs","nav.download":"Télécharger","hero.badge":"Made in Switzerland","hero.title":"Une nutrition qui vous <em>comprend</em>","hero.subtitle":"L'analyse alimentaire par IA rencontre les programmes lifestyle personnalisés. Découvrez 47 façons de bien manger.","hero.cta.primary":"Télécharger pour iOS","hero.cta.secondary":"En savoir plus","features.tag":"Pourquoi EatSense","features.title":"Nutrition intelligente, sans effort","features.subtitle":"Prenez une photo. Obtenez des insights instantanés.","features.ai.title":"Analyse IA des Aliments","features.ai.desc":"Photographiez n'importe quel repas et recevez une analyse nutritionnelle détaillée.","features.biomarkers.title":"Intégration Biomarqueurs","features.biomarkers.desc":"Connectez vos résultats sanguins à vos données nutritionnelles.","features.experts.title":"Marketplace d'Experts","features.experts.desc":"Connectez-vous avec des nutritionnistes certifiés.","programs.tag":"Programmes Lifestyle","programs.title":"Trouvez votre façon de manger","programs.subtitle":"Des philosophies nutritionnelles inspirées.","programs.counter":"programmes uniques"}};
+        let currentLang='en';
+        function setLanguage(lang){currentLang=lang;document.documentElement.lang=lang;document.getElementById('currentLang').textContent=lang.toUpperCase();document.querySelectorAll('.lang-option').forEach(opt=>opt.classList.toggle('active',opt.dataset.lang===lang));document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[lang]&&translations[lang][key])el.innerHTML=translations[lang][key];});localStorage.setItem('eatsense-lang',lang);}
+        document.addEventListener('DOMContentLoaded',()=>{const savedLang=localStorage.getItem('eatsense-lang');const browserLang=navigator.language.slice(0,2);setLanguage(savedLang||(['en','de','fr'].includes(browserLang)?browserLang:'en'));});
+        document.querySelectorAll('.lang-option').forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));
+        const nav=document.getElementById('nav');window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>50));
+        document.getElementById('mobileMenuBtn').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('active'));
+        const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+        document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+        document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));if(t){t.scrollIntoView({behavior:'smooth'});document.getElementById('navLinks').classList.remove('active');}}));
+    </script>
+</body>
+</html>

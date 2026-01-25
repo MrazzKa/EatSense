@@ -445,6 +445,7 @@
       "streak": "дней подряд",
       "progress": "Прогресс за сегодня",
       "completed": "выполнено",
+      "daysLeft": "Осталось дней",
       "openTracker": "Открыть трекер",
       "noDiet": "Выберите диету",
       "browseDiets": "Смотреть диеты"
@@ -524,6 +525,11 @@
     },
     "showAllMeals": "Показать все приёмы пищи"
   },
+  "mealHistory": {
+    "title": "Все приёмы пищи",
+    "emptyTitle": "Нет приёмов за этот день",
+    "emptySubtitle": "Записанные приёмы появятся здесь."
+  },
   "describeFood": {
     "analyzeButton": "Проанализировать",
     "errors": {
@@ -591,7 +597,7 @@
   "diets_groups_historical": "Исторические",
   "diets_groups_seasonal": "Сезонные",
   "diets_groups_vintage": "Винтаж",
-  "diets_groups_old_money": "Old Money",
+  "diets_groups_old_money": "Старые деньги",
   "diets_groups_aesthetic": "Эстетика",
   "diets_status_active": "Активна",
   "diets_status_completed": "Завершена",
@@ -642,7 +648,26 @@
   "diets_no_programs_search": "Программы не найдены",
   "diets_not_for": "Не подходит для",
   "diets_sample_day": "Пример меню",
+  "diets": {
+    "tracker": {
+      "days": "дней"
+    },
+    "disclaimers": {
+      "historical": "Историческая/вдохновлённая реконструкция. Историческая точность не гарантируется.",
+      "medical": "Эта диета может иметь противопоказания. Проконсультируйтесь со специалистом."
+    },
+    "how_it_works": "Как это работает",
+    "more_items": "Ещё",
+    "not_for": "Не рекомендуется для:",
+    "medical_note": "Эта диета может иметь противопоказания. Проконсультируйтесь с врачом перед началом."
+  },
   "dietPrograms": {
+    "mealTypes": {
+      "breakfast": "Завтрак",
+      "lunch": "Обед",
+      "dinner": "Ужин",
+      "snack": "Перекус"
+    },
     "about": "О программе",
     "categories": {},
     "empty": "Программы не найдены",
@@ -665,7 +690,8 @@
     "anotherDietActiveMessage": "Вы уже проходите другую программу. Завершите её перед началом новой.",
     "continueProgram": "Продолжить программу",
     "viewActive": "Посмотреть активную",
-    "completeDay": "День завершен",
+    "completeDay": "Завершить день",
+    "dayCompleted": "День завершён",
     "completed": "Выполнено",
     "completedMessage": "Поздравляем! Вы завершили программу.",
     "day": "День",
@@ -681,6 +707,7 @@
     "loading": "Загрузка программы...",
     "programStarted": "Программа запущена!",
     "programStartedMessage": "Вы начали \"{{name}}\". Отслеживайте прогресс на главном экране.",
+    "programAlreadyActive": "Вы уже записаны на эту программу.",
     "startFailed": "Не удалось запустить программу. Попробуйте позже.",
     "categories": {
       "all": "Все",
@@ -794,8 +821,13 @@
     "languages": "Языки",
     "recentReviews": "Отзывы",
     "switchRole": "Сменить роль",
-    "dietitian": "Диетолог",
-    "nutritionist": "Нутрициолог",
+    "dietitian": {
+      "title": "Диетолог"
+    },
+    "nutritionist": {
+      "title": "Нутрициолог"
+    },
+    "expertLabel": "Эксперт",
     "tabs": {
       "specialists": "Специалисты",
       "articles": "Статьи"
@@ -808,7 +840,9 @@
       "expertTitle": "Я сертифицированный специалист",
       "expertDescription": "Создать профиль и помогать клиентам"
     },
-    "expert": "Эксперт",
+    "expert": {
+      "myOffers": "Мои предложения"
+    },
     "edit": {
       "createProfile": "Создать профиль",
       "editProfile": "Редактировать профиль",
@@ -1105,6 +1139,7 @@
     "notEnabled": "Уведомления не были включены."
   },
   "onboarding": {
+    "welcome": "Добро пожаловать в EatSense",
     "startFree": "Начать",
     "subscribe": "Подписаться",
     "activity": "Ваша активность",
@@ -1198,6 +1233,7 @@
     "proteinLabel": "Белок",
     "carbsLabel": "Углеводы",
     "fatLabel": "Жиры",
+    "targetWeight": "Какой вес вы хотите?",
     "targetWeightLabel": "Целевой вес",
     "continueButton": "Продолжить",
     "specifyCondition": "Укажите состояние здоровья",
@@ -1241,6 +1277,10 @@
     "planSubtitle": "Выберите план который вам подходит",
     "plans": {
       "finePrint": "Вы можете сменить план или отменить подписку в любое время в Настройках.",
+      "plans": {
+        "month": "мес",
+        "year": "год"
+      },
       "free": {
         "badge": "Включено",
         "features": [
@@ -1414,6 +1454,10 @@
     "changePlan": "Сменить план",
     "choosePlan": "Выбрать план",
     "currentPlan": "Текущий план",
+    "planFreeName": "EatSense Бесплатный",
+    "planProName": "EatSense Про",
+    "planStudentName": "EatSense Студент",
+    "planFounderName": "EatSense Основатель",
     "dailyCalories": "Калории в день",
     "darkModeSubtitle": "Тёмная тема",
     "defaultName": "Гость",
@@ -1531,7 +1575,9 @@
     "planBadges": {
       "included": "Включено",
       "mostPopular": "Самый популярный",
-      "save33": "Экономия 33%"
+      "save33": "Экономия 33%",
+      "student": "Студент",
+      "limited": "Ограничено"
     },
     "planFeatures": {
       "advancedInsights": "Расширенная аналитика питания",
@@ -1542,15 +1588,21 @@
       "earlyAccess": "Ранний доступ к новым функциям",
       "everythingInProMonthly": "Всё из Pro Monthly",
       "limitedAnalyses": "До 3 AI‑анализов в день",
-      "unlimitedAnalyses": "Неограниченный AI‑анализ блюд"
+      "unlimitedAnalyses": "Неограниченный AI‑анализ блюд",
+      "studentDiscount": "Скидка для студентов при подтверждении"
     },
     "planFreeDescription": "Начните отслеживать приёмы пищи с базовыми функциями.",
-    "planFreeName": "EatSense Free",
+    "planFreeName": "EatSense Бесплатный",
     "planFreePrice": "Бесплатно",
     "planMonthlyPrice": "{{price}} в месяц",
     "planProAnnualDescription": "Лучшая выгода — экономия до 33% по сравнению с помесячной оплатой.",
     "planProMonthlyDescription": "Откройте неограниченные AI‑инструменты с гибкой оплатой.",
-    "planProName": "EatSense Pro",
+    "planProName": "EatSense Про",
+    "planStudentName": "EatSense Студент",
+    "planFounderName": "EatSense Основатель",
+    "planFounderPrice": "Единоразовая оплата",
+    "planStudentDescription": "Специальные условия для студентов при подтверждении.",
+    "planFounderDescription": "Пожизненный доступ и эксклюзивный значок.",
     "policy": "Политика конфиденциальности",
     "privacyPolicy": "Политика конфиденциальности",
     "policyError": "Не удалось открыть политику",
@@ -1563,6 +1615,7 @@
     "systemTheme": "Как в системе",
     "termsError": "Не удалось открыть условия использования",
     "termsOfService": "Условия использования",
+    "aboutEatsense": "О EatSense",
     "theme": "Тема",
     "title": "Профиль",
     "weight": "Вес (кг)",
@@ -1628,7 +1681,10 @@
     "subtitle": "Отслеживайте свой месячный прогресс",
     "title": "Отчёты",
     "error": {
-      "noDirectory": "Директория не найдена"
+      "noDirectory": "Директория не найдена",
+      "generic": "Не удалось сгенерировать месячный отчёт. Попробуйте позже.",
+      "network": "Ошибка сети. Проверьте подключение и попробуйте снова.",
+      "openFailed": "Не удалось открыть файл отчёта. Попробуйте снова."
     }
   },
   "statistics": {
@@ -1700,9 +1756,9 @@
     "tracking": "Отслеживание калорий"
   },
   "plan": {
-    "free": "EatSense Free",
-    "premium": "EatSense Premium",
-    "pro": "EatSense Pro"
+    "free": "EatSense Бесплатный",
+    "premium": "EatSense Премиум",
+    "pro": "EatSense Про"
   },
   "lifetime": "Навсегда",
   "noPurchases": "Нет покупок",
@@ -1787,18 +1843,22 @@
   },
   "suggest": {
     "already_voted": "Вы уже голосовали",
+    "contact_success": "Ваш запрос отправлен на info@eatsense.ch",
     "description_placeholder": "Опишите ваше предложение...",
-    "error": "Произошла ошибка",
-    "modal_title": "Предложить идею",
+    "error": "Не удалось отправить запрос",
+    "modal_title": "Предложения",
     "name_placeholder": "Ваше имя",
-    "name_required": "Имя обязательно",
+    "name_required": "Введите ваше имя",
+    "request_placeholder": "Ваш запрос",
+    "request_required": "Введите ваш запрос",
     "submit": "Отправить",
-    "subtitle": "Помогите нам стать лучше",
+    "subtitle": "Напишите нам — имя и запрос. Письмо уйдёт на info@eatsense.ch",
     "success": "Успешно отправлено",
     "title": "Предложения",
-    "voted": "Голос учтен"
+    "voted": "Голос учтён"
   },
   "lifestyles.filters_target_all": "Все",
   "lifestyles.filters_target_male": "Мужчины",
-  "lifestyles.filters_target_female": "Женщины"
+  "lifestyles.filters_target_female": "Женщины",
+  "CHAT_CONSULTATION": "Чат-консультация"
 }

@@ -58,7 +58,17 @@ export default function DashboardScreen() {
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
   // Load active diet for dashboard widget from store
-  const { activeProgram, setProgram } = useProgramProgress();
+  const { activeProgram, setProgram, loadProgress } = useProgramProgress();
+  
+  // FIX: Load progress when Dashboard mounts (lazy loading - only when needed)
+  // This ensures program data is available for the widget
+  useEffect(() => {
+    if (!activeProgram) {
+      loadProgress().catch(() => {
+        // Silent fail - widget will just not show if no program
+      });
+    }
+  }, [activeProgram, loadProgress]);
 
   // Preload diets bundle when Dashboard mounts (background, non-blocking)
   // This ensures data is ready when user navigates to Diets tab
@@ -219,9 +229,9 @@ export default function DashboardScreen() {
       });
     }
 
-    // 2. Recent Items (Meals)
+    // 2. Recent Items (Meals) — store all; UI shows first 3 + "Show all" when > 3
     if (Array.isArray(data.meals)) {
-      const normalizedMeals = data.meals.slice(0, 3).map((meal) => {
+      const normalizedMeals = data.meals.map((meal) => {
         if (!meal) return null;
         const items = Array.isArray(meal.items) ? meal.items : [];
         // Pre-calculated totals from backend service if available, else derive
@@ -243,6 +253,7 @@ export default function DashboardScreen() {
 
         return {
           id: meal.id,
+          analysisId: meal.analysisId || meal.id,
           name: meal.name || 'Meal',
           dishName: meal.name || 'Meal',
           totalCalories,
@@ -277,6 +288,16 @@ export default function DashboardScreen() {
         };
       }).filter(Boolean);
       setRecentItems(normalizedMeals);
+      // FIX: Clear justCompletedItems for IDs now in meals - prevents flicker when
+      // we used to clear at 2s before dashboard load finished
+      const idsInMeals = new Set(
+        normalizedMeals.map((m) => m.analysisId || m.id).filter(Boolean)
+      );
+      if (idsInMeals.size > 0) {
+        setJustCompletedItems((prev) =>
+          prev.filter((p) => !idsInMeals.has(p.analysisId))
+        );
+      }
     }
 
     // 3. User Stats
@@ -364,8 +385,23 @@ export default function DashboardScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
+      // FIX: Clear justCompletedItems when screen comes into focus if there are new pending analyses
+      // This prevents showing old completed cards when returning to dashboard after starting new analysis
+      if (pendingAnalyses.length > 0) {
+        const prevIds = prevPendingAnalysesRef.current.map(a => a.analysisId);
+        const currentIds = pendingAnalyses.map(a => a.analysisId);
+        const hasNewAnalysis = currentIds.some(id => !prevIds.includes(id));
+        
+        if (hasNewAnalysis) {
+          if (__DEV__) {
+            console.log('[DashboardScreen] New analysis detected on focus, clearing justCompletedItems');
+          }
+          setJustCompletedItems([]);
+        }
+      }
+      
       loadDashboardData();
-    }, [loadDashboardData])
+    }, [loadDashboardData, pendingAnalyses])
   );
 
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
@@ -381,9 +417,23 @@ export default function DashboardScreen() {
     // This relies on useMemo in Context ensuring stable references for same content
     if (prevItems === pendingAnalyses) return;
 
+    const prevIds = new Set(prevItems.map(a => a.analysisId));
     const currentIds = new Set(pendingAnalyses.map(a => a.analysisId));
 
-    // Find items that disappeared
+    // FIX: Clear justCompletedItems when a NEW analysis starts (detect new IDs)
+    // This prevents showing old completed analysis cards when starting a new analysis
+    // Check for new IDs that weren't in previous list (more reliable than length check)
+    const hasNewAnalysis = Array.from(currentIds).some(id => !prevIds.has(id));
+    
+    if (hasNewAnalysis) {
+      // New analysis started - clear old completed items immediately to prevent flicker
+      if (__DEV__) {
+        console.log('[DashboardScreen] New analysis detected, clearing justCompletedItems');
+      }
+      setJustCompletedItems([]);
+    }
+
+    // Find items that disappeared (completed)
     const completed = prevItems.filter(a => !currentIds.has(a.analysisId));
 
     if (completed.length > 0) {
@@ -394,8 +444,9 @@ export default function DashboardScreen() {
 
       const actuallyCompleted = completed.filter(c => c.status !== 'failed');
 
-      if (actuallyCompleted.length > 0) {
-        // Add to justCompleted with deduplication to prevent duplicate keys
+      if (actuallyCompleted.length > 0 && !hasNewAnalysis) {
+        // Only add to justCompleted if we didn't just start a new analysis
+        // This prevents showing completed cards when a new analysis is starting
         setJustCompletedItems(prev => {
           const existingIds = new Set(prev.map(p => p.analysisId));
           const newItems = actuallyCompleted
@@ -407,30 +458,17 @@ export default function DashboardScreen() {
           return [...prev, ...newItems];
         });
 
-        // FIX: Reload data immediately (was 2000ms delay)
-        // Server auto-saves analysis result synchronously before marking complete
+        // FIX: Reload data; justCompletedItems are cleared inside loadDashboardData
+        // when we receive meals (prevents flicker when dashboard is slow)
         const timer = setTimeout(() => {
           loadDashboardData();
-        }, 300); // Reduced delay - just enough for UI transition
-
-        // FIX: Keep justCompleted items visible longer for smooth transition
-        // Remove only after data reload should be complete
-        const cleanupTimer = setTimeout(() => {
-          // Use functional update to avoid dependency on state
-          setJustCompletedItems(prev => {
-            const completedIds = new Set(actuallyCompleted.map(c => c.analysisId));
-            const filtered = prev.filter(p => !completedIds.has(p.analysisId));
-            return filtered.length === prev.length ? prev : filtered;
-          });
-        }, 2000); // Extended to 2s (was 3.5s total, but reload now at 300ms)
-
-        return () => {
-          clearTimeout(timer);
-          clearTimeout(cleanupTimer);
-        };
+        }, 300);
+        return () => clearTimeout(timer);
       }
     }
 
+    // FIX: Always update ref at the end to track current state for next comparison
+    // This ensures we correctly detect new analyses on next render
     prevPendingAnalysesRef.current = pendingAnalyses;
   }, [pendingAnalyses, loadDashboardData]);
 

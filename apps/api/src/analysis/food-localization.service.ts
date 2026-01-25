@@ -15,11 +15,12 @@ export class FoodLocalizationService {
     });
   }
 
-  private normalizeLocale(locale?: string): 'en' | 'ru' | 'kk' {
+  private normalizeLocale(locale?: string): 'en' | 'ru' | 'kk' | 'fr' {
     if (!locale) return 'en';
     const lower = locale.toLowerCase();
     if (lower === 'ru' || lower.startsWith('ru')) return 'ru';
     if (lower === 'kk' || lower.startsWith('kk') || lower.startsWith('kz')) return 'kk';
+    if (lower === 'fr' || lower.startsWith('fr')) return 'fr';
     return 'en';
   }
 
@@ -27,7 +28,7 @@ export class FoodLocalizationService {
    * Batch translate multiple names in ONE API call
    * Saves 5+ seconds vs individual calls
    */
-  async localizeNamesBatch(names: string[], locale?: 'en' | 'ru' | 'kk'): Promise<Map<string, string>> {
+  async localizeNamesBatch(names: string[], locale?: 'en' | 'ru' | 'kk' | 'fr'): Promise<Map<string, string>> {
     const normalizedLocale = this.normalizeLocale(locale);
     const results = new Map<string, string>();
 
@@ -79,8 +80,8 @@ export class FoodLocalizationService {
     return results;
   }
 
-  private async batchTranslate(names: string[], locale: 'ru' | 'kk'): Promise<Map<string, string>> {
-    const languageName = locale === 'ru' ? 'Russian' : 'Kazakh';
+  private async batchTranslate(names: string[], locale: 'ru' | 'kk' | 'fr'): Promise<Map<string, string>> {
+    const languageName = locale === 'ru' ? 'Russian' : locale === 'kk' ? 'Kazakh' : 'French';
     const results = new Map<string, string>();
     const numberedList = names.map((name, i) => `${i + 1}. ${name}`).join('\n');
 
@@ -119,7 +120,7 @@ export class FoodLocalizationService {
     return `food:translation:${locale}:${createHash('sha1').update(name.trim()).digest('hex')}`;
   }
 
-  async localizeName(baseName: string, locale?: 'en' | 'ru' | 'kk'): Promise<string> {
+  async localizeName(baseName: string, locale?: 'en' | 'ru' | 'kk' | 'fr'): Promise<string> {
     const normalizedLocale = this.normalizeLocale(locale);
     const trimmed = (baseName || '').trim();
 

@@ -28,43 +28,38 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
     const { t } = useI18n();
 
     const [modalVisible, setModalVisible] = useState(false);
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
+    const [userName, setUserName] = useState('');
+    const [request, setRequest] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async () => {
-        if (!name.trim()) {
+        if (!userName.trim()) {
             Alert.alert(
                 t('common.error') || 'Ошибка',
-                t('suggest.name_required') || 'Введите название программы',
+                t('suggest.name_required') || 'Введите ваше имя',
+            );
+            return;
+        }
+        if (!request.trim()) {
+            Alert.alert(
+                t('common.error') || 'Ошибка',
+                t('suggest.request_required') || 'Введите ваш запрос',
             );
             return;
         }
 
         setSubmitting(true);
         try {
-            const result = await ApiService.suggestProgram(
-                name.trim(),
-                description.trim() || undefined,
-                type,
-            );
-
-            let message = t('suggest.success') || 'Ваше предложение отправлено!';
-            if (result.voted) {
-                message = t('suggest.voted') || 'Вы проголосовали за эту программу! +1 голос';
-            } else if (result.alreadyVoted) {
-                message = t('suggest.already_voted') || 'Вы уже голосовали за эту программу';
-            }
-
-            Alert.alert('🎉', message);
+            await ApiService.sendContactRequest(userName.trim(), request.trim());
+            Alert.alert('🎉', t('suggest.contact_success') || 'Ваш запрос отправлен на info@eatsense.ch');
             setModalVisible(false);
-            setName('');
-            setDescription('');
+            setUserName('');
+            setRequest('');
         } catch (error: any) {
             console.error('[SuggestProgram] Error:', error);
             Alert.alert(
                 t('common.error') || 'Ошибка',
-                error?.message || t('suggest.error') || 'Не удалось отправить предложение',
+                error?.message || t('suggest.error') || 'Не удалось отправить запрос',
             );
         } finally {
             setSubmitting(false);
@@ -178,10 +173,10 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                     />
                     <View style={styles.textContainer}>
                         <Text style={styles.title}>
-                            {t('suggest.title') || 'Предложить программу'}
+                            {t('suggest.title') || 'Предложения'}
                         </Text>
                         <Text style={styles.subtitle}>
-                            {t('suggest.subtitle') || 'Не нашли нужную? Предложите свою!'}
+                            {t('suggest.subtitle') || 'Напишите нам — имя, запрос. Письмо уйдёт на info@eatsense.ch'}
                         </Text>
                     </View>
                     <Ionicons
@@ -201,24 +196,24 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>
-                            {t('suggest.modal_title') || 'Предложить программу'}
+                            {t('suggest.modal_title') || 'Предложения'}
                         </Text>
 
                         <TextInput
                             style={styles.input}
-                            placeholder={t('suggest.name_placeholder') || 'Название программы'}
+                            placeholder={t('suggest.name_placeholder') || 'Ваше имя'}
                             placeholderTextColor={colors.textSecondary || '#999'}
-                            value={name}
-                            onChangeText={setName}
+                            value={userName}
+                            onChangeText={setUserName}
                             autoFocus
                         />
 
                         <TextInput
                             style={[styles.input, styles.textArea]}
-                            placeholder={t('suggest.description_placeholder') || 'Описание (необязательно)'}
+                            placeholder={t('suggest.request_placeholder') || 'Ваш запрос'}
                             placeholderTextColor={colors.textSecondary || '#999'}
-                            value={description}
-                            onChangeText={setDescription}
+                            value={request}
+                            onChangeText={setRequest}
                             multiline
                         />
 

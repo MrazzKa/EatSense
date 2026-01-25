@@ -6,6 +6,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import DietProgramsService from '../services/dietProgramsService';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+// FIX: Use shared getLocalizedText from types.ts for consistency
+import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
 
 const STARTING_TIMEOUT_MS = 10000; // 10 second timeout for start operation
 
@@ -14,14 +16,9 @@ interface DietProgramDetailScreenProps {
     route: any;
 }
 
-// Helper to extract localized string from object or return string directly
+// FIX: Use shared implementation for consistency
 const getLocalizedText = (value: any, lang: string): string => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'object') {
-        return value[lang] || value['en'] || value[Object.keys(value)[0]] || '';
-    }
-    return String(value);
+    return getLocalizedTextShared(value, lang);
 };
 
 export default function DietProgramDetailScreen({ navigation, route }: DietProgramDetailScreenProps) {
@@ -165,8 +162,32 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
     const day1 = program.days?.[0];
 
     // Parse howItWorks and notFor fields
-    const howItWorks = program.howItWorks ? (Array.isArray(program.howItWorks) ? program.howItWorks : []) : [];
-    const notFor = program.notFor ? (Array.isArray(program.notFor) ? program.notFor : []) : [];
+    // FIX: Backend now localizes these fields, so they should come as arrays
+    // But handle both cases: localized array (from backend) or localized object (fallback)
+    const howItWorksRaw = program.howItWorks;
+    let howItWorks: any[] = [];
+    if (howItWorksRaw) {
+        if (Array.isArray(howItWorksRaw)) {
+            // Backend already localized it - use as is
+            howItWorks = howItWorksRaw;
+        } else if (typeof howItWorksRaw === 'object') {
+            // Fallback: Localized object - extract array for current language
+            howItWorks = howItWorksRaw[language] || howItWorksRaw['en'] || howItWorksRaw['ru'] || howItWorksRaw['kk'] || howItWorksRaw['fr'] || [];
+        }
+    }
+
+    const notForRaw = program.notFor;
+    let notFor: any[] = [];
+    if (notForRaw) {
+        if (Array.isArray(notForRaw)) {
+            // Backend already localized it - use as is
+            notFor = notForRaw;
+        } else if (typeof notForRaw === 'object') {
+            // Fallback: Localized object - extract array for current language
+            notFor = notForRaw[language] || notForRaw['en'] || notForRaw['ru'] || notForRaw['kk'] || notForRaw['fr'] || [];
+        }
+    }
+
     const dailyTracker = program.dailyTracker ? (Array.isArray(program.dailyTracker) ? program.dailyTracker : []) : [];
     const showDisclaimer = program.disclaimerKey === 'DISCLAIMER_HISTORICAL' || program.disclaimerKey === 'DISCLAIMER_MEDICAL';
     const isHistorical = program.uiGroup === 'Historical';
@@ -280,7 +301,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                 <View key={index} style={styles.howItWorksItem}>
                                     <View style={[styles.bulletPoint, { backgroundColor: colors.primary }]} />
                                     <Text style={[styles.howItWorksText, { color: colors.textSecondary }]}>
-                                        {getLocalizedText(item, language)}
+                                        {typeof item === 'string' ? item : getLocalizedText(item, language)}
                                     </Text>
                                 </View>
                             ))}
@@ -328,7 +349,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                 <View key={index} style={styles.howItWorksItem}>
                                     <Ionicons name="close-circle" size={14} color="#E65100" style={{ marginRight: 8 }} />
                                     <Text style={[styles.howItWorksText, { color: '#BF360C' }]}>
-                                        {getLocalizedText(item, language)}
+                                        {typeof item === 'string' ? item : getLocalizedText(item, language)}
                                     </Text>
                                 </View>
                             ))}

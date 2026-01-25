@@ -19,8 +19,22 @@ export const useI18n = () => {
     }
   }, []);
 
+  // FIX: Enhanced t function that warns in dev mode when key is returned (missing translation)
+  const safeT = useCallback((key: string, fallback?: string) => {
+    const result = t ? t(key) : key;
+    
+    // FIX: In dev mode, warn if translation key is returned (indicates missing translation)
+    if (__DEV__ && result === key && !fallback) {
+      console.warn(`[useI18n] Missing translation for key: "${key}" in language: ${i18n?.language || 'en'}`);
+    }
+    
+    // If result is the same as key (missing translation), use fallback if provided
+    return result === key && fallback ? fallback : result;
+  }, [t, i18n?.language]);
+
   return {
     t: t || ((key: string) => key),
+    safeT, // Enhanced version with warnings
     language: i18n?.language || 'en',
     changeLanguage,
     availableLanguages: LANGUAGE_OPTIONS.filter(option =>

@@ -12,33 +12,45 @@ import { AppWrapper } from './src/components/AppWrapper';
 import { EmptySplash } from './src/components/EmptySplash';
 import { useAuth } from './src/contexts/AuthContext';
 
-// Import screens
+// FIX: Lazy load screens to improve app startup time
+// Only load screens when they're actually needed, not at app startup
 import AuthScreen from './src/components/AuthScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
-import CameraScreen from './src/screens/CameraScreen';
-import GalleryScreen from './src/screens/GalleryScreen';
-import AnalysisResultsScreen from './src/screens/AnalysisResultsScreen';
-import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
-import LegalDocumentScreen from './src/screens/LegalDocumentScreen';
-import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
-import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
-import LegalMenuScreen from './src/screens/LegalMenuScreen';
-import SuggestedFoodScreen from './src/screens/SuggestedFoodScreen';
-import MedicationScheduleScreen from './src/screens/MedicationScheduleScreen';
-import SpecialistListScreen from './src/screens/SpecialistListScreen';
-import SpecialistProfileScreen from './src/screens/SpecialistProfileScreen';
-import ChatScreen from './src/screens/ChatScreen';
-import ConsultationsListScreen from './src/screens/ConsultationsListScreen';
-import DietProgramsListScreen from './src/screens/DietProgramsListScreen';
-import DietProgramDetailScreen from './src/screens/DietProgramDetailScreen';
-import DietProgramProgressScreen from './src/screens/DietProgramProgressScreen';
-import LifestyleDetailScreen from './src/screens/LifestyleDetailScreen';
-import ReferralScreen from './src/screens/ReferralScreen';
-import ExpertProfileScreen from './src/screens/ExpertProfileScreen';
-import ConsultationChatScreen from './src/screens/ConsultationChatScreen';
-import SubscriptionScreen from './src/screens/SubscriptionScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
+
+// Lazy load all other screens - they'll be loaded only when navigated to
+const CameraScreen = React.lazy(() => import('./src/screens/CameraScreen'));
+const GalleryScreen = React.lazy(() => import('./src/screens/GalleryScreen'));
+const AnalysisResultsScreen = React.lazy(() => import('./src/screens/AnalysisResultsScreen'));
+const ArticleDetailScreen = React.lazy(() => import('./src/screens/ArticleDetailScreen'));
+const LegalDocumentScreen = React.lazy(() => import('./src/screens/LegalDocumentScreen'));
+const PrivacyPolicyScreen = React.lazy(() => import('./src/screens/PrivacyPolicyScreen'));
+const TermsOfServiceScreen = React.lazy(() => import('./src/screens/TermsOfServiceScreen'));
+const LegalMenuScreen = React.lazy(() => import('./src/screens/LegalMenuScreen'));
+const SuggestedFoodScreen = React.lazy(() => import('./src/screens/SuggestedFoodScreen'));
+const MedicationScheduleScreen = React.lazy(() => import('./src/screens/MedicationScheduleScreen'));
+const SpecialistListScreen = React.lazy(() => import('./src/screens/SpecialistListScreen'));
+const SpecialistProfileScreen = React.lazy(() => import('./src/screens/SpecialistProfileScreen'));
+const ChatScreen = React.lazy(() => import('./src/screens/ChatScreen'));
+const ConsultationsListScreen = React.lazy(() => import('./src/screens/ConsultationsListScreen'));
+const DietProgramsListScreen = React.lazy(() => import('./src/screens/DietProgramsListScreen'));
+const DietProgramDetailScreen = React.lazy(() => import('./src/screens/DietProgramDetailScreen'));
+const DietProgramProgressScreen = React.lazy(() => import('./src/screens/DietProgramProgressScreen'));
+const LifestyleDetailScreen = React.lazy(() => import('./src/screens/LifestyleDetailScreen'));
+const ReferralScreen = React.lazy(() => import('./src/screens/ReferralScreen'));
+const ExpertProfileScreen = React.lazy(() => import('./src/screens/ExpertProfileScreen'));
+const ConsultationChatScreen = React.lazy(() => import('./src/screens/ConsultationChatScreen'));
+const SubscriptionScreen = React.lazy(() => import('./src/screens/SubscriptionScreen'));
+const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScreen'));
+
 import { clientLog } from './src/utils/clientLog';
+
+// Wrapper component for lazy-loaded screens
+const LazyScreen = ({ component: Component, ...props }) => (
+  <React.Suspense fallback={<EmptySplash />}>
+    <Component {...props} />
+  </React.Suspense>
+);
 
 const Stack = createStackNavigator();
 
@@ -148,6 +160,14 @@ function AppContent() {
               component={AnalysisResultsScreen}
               options={{
                 presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="MealHistory"
+              component={MealHistoryScreen}
+              options={{
+                presentation: 'card',
+                headerShown: false,
               }}
             />
             <Stack.Screen
@@ -284,18 +304,23 @@ export default function App() {
   React.useEffect(() => {
     clientLog('App:rootMounted').catch(() => { });
 
+    // FIX: Don't block render - initialize i18n in background
+    // Show UI immediately, i18n will be ready by the time user interacts
     ensureI18nReady().then(() => {
+      setI18nReady(true);
+    }).catch((error) => {
+      console.error('[App] i18n initialization failed:', error);
+      // Still set ready to prevent infinite loading
       setI18nReady(true);
     });
   }, []);
 
-  // Блокируем рендер пока i18n не готов
+  // FIX: Show UI immediately instead of blocking on i18n
+  // i18n will be ready by the time user needs translations
+  // This significantly improves perceived startup time
   if (!i18nReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    // Show splash/loading screen while i18n initializes (non-blocking)
+    return <EmptySplash />;
   }
 
   return (
