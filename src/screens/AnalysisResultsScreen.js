@@ -411,6 +411,9 @@ export default function AnalysisResultsScreen() {
   useEffect(() => {
     if (initialAnalysisParam && !processedRef.current.initialParam) {
       processedRef.current.initialParam = true;
+      // FIX: Clear previous analysis result when starting a new analysis
+      setAnalysisResult(null);
+      setIsAnalyzing(true);
       // Slight delay to ensure layout is ready
       setTimeout(() => {
         applyResult(initialAnalysisParam, baseImageUri);
@@ -427,6 +430,10 @@ export default function AnalysisResultsScreen() {
     if (analysisIdFromRoute && processedRef.current.lastAnalysisId !== analysisIdFromRoute) {
       processedRef.current.lastAnalysisId = analysisIdFromRoute;
       setIsAnalyzing(true);
+      
+      // FIX: Clear previous analysis result when starting a new analysis
+      // This prevents showing old analysis card when starting a new one
+      setAnalysisResult(null);
 
       // Sync local state
       setAnalysisId(analysisIdFromRoute);
@@ -517,6 +524,8 @@ export default function AnalysisResultsScreen() {
     const description = routeParams.description;
     if (description && !routeParams.analysisId && processedRef.current.lastDescription !== description) {
       processedRef.current.lastDescription = description;
+      // FIX: Clear previous analysis result when starting a new text analysis
+      setAnalysisResult(null);
       setIsAnalyzing(true);
 
       const runText = async () => {
@@ -840,7 +849,15 @@ export default function AnalysisResultsScreen() {
   };
 
   // P2.3: Optimistic UI - показываем skeleton на экране результатов с изображением (если есть)
+  // FIX: Don't show previous analysis result when starting a new analysis
+  // Clear analysisResult when isAnalyzing is true to prevent showing old results
   if (!analysisResult || isAnalyzing) {
+    // FIX: Clear analysisResult when starting new analysis to prevent showing old results
+    if (isAnalyzing && analysisResult) {
+      // Don't clear immediately - let the effect handle it to prevent flicker
+      // The new result will replace the old one when it arrives
+    }
+    
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>

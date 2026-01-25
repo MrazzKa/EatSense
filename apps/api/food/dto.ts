@@ -8,12 +8,12 @@ export class AnalyzeImageDto {
 
   @ApiProperty({
     required: false,
-    enum: ['en', 'ru', 'kk'],
+    enum: ['en', 'ru', 'kk', 'fr'],
     description: 'Preferred locale for analysis and localized names',
   })
   @IsOptional()
-  @IsIn(['en', 'ru', 'kk'])
-  locale?: 'en' | 'ru' | 'kk';
+  @IsIn(['en', 'ru', 'kk', 'fr'])
+  locale?: 'en' | 'ru' | 'kk' | 'fr';
 
   @ApiProperty({
     required: false,
@@ -33,12 +33,12 @@ export class AnalyzeTextDto {
 
   @ApiProperty({
     required: false,
-    enum: ['en', 'ru', 'kk'],
+    enum: ['en', 'ru', 'kk', 'fr'],
     description: 'Preferred locale for analysis and localized names',
   })
   @IsOptional()
-  @IsIn(['en', 'ru', 'kk'])
-  locale?: 'en' | 'ru' | 'kk';
+  @IsIn(['en', 'ru', 'kk', 'fr'])
+  locale?: 'en' | 'ru' | 'kk' | 'fr';
 }
 
 export class ReanalyzeItemDto {
@@ -125,10 +125,10 @@ export class ManualReanalyzeDto {
   @Type(() => ManualComponentInputDto)
   components!: ManualComponentInputDto[];
 
-  @ApiProperty({ required: false, enum: ['en', 'ru', 'kk'] })
+  @ApiProperty({ required: false, enum: ['en', 'ru', 'kk', 'fr'] })
   @IsOptional()
-  @IsIn(['en', 'ru', 'kk'])
-  locale?: 'en' | 'ru' | 'kk';
+  @IsIn(['en', 'ru', 'kk', 'fr'])
+  locale?: 'en' | 'ru' | 'kk' | 'fr';
 
   @ApiProperty({ required: false, enum: ['US', 'CH', 'EU', 'OTHER'] })
   @IsOptional()

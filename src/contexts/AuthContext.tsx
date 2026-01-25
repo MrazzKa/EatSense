@@ -107,8 +107,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const attemptAutoLogin = async () => {
       try {
         setLoading(true);
-        // Load tokens from storage
-        await ApiService.loadTokens();
+        // FIX: Load tokens from storage (non-blocking - don't wait if slow)
+        // Use Promise.race to prevent blocking on slow AsyncStorage
+        await Promise.race([
+          ApiService.loadTokens(),
+          new Promise(resolve => setTimeout(resolve, 100)), // Max 100ms wait
+        ]);
 
         // Try to refresh token if we have one
         if (ApiService.refreshTokenValue) {

@@ -79,15 +79,24 @@ function transformDietProgress(apiData: any): ProgramProgress {
   }
 
   // Get today's log
+  // FIX: Always use today's date to get the correct log, not a cached/old log
+  // This ensures completed status is checked for TODAY, not yesterday
   const todayLog = logs[today] || {
     date: today,
     completedCount: 0,
     totalCount: apiData.program?.dailyTracker?.length || 0,
     completionRate: 0,
-    completed: false,
+    completed: false, // FIX: Always false for new day - prevents showing "Day completed" incorrectly
     celebrationShown: false,
     checklist: {},
   };
+  
+  // FIX: If API provides todayLog directly, use it (more reliable than parsing from dailyLogs)
+  // This ensures we get the correct completed status from the server
+  if (apiData.todayLog && apiData.todayLog.date === today) {
+    todayLog.completed = apiData.todayLog.completed || false;
+    todayLog.celebrationShown = apiData.todayLog.celebrationShown || false;
+  }
 
   return {
     id: apiData.id,

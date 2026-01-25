@@ -47,7 +47,7 @@ interface ProgramProgressContextValue {
   refreshProgress: () => Promise<void>;
   invalidateCache: () => void;
   updateChecklist: (_checklist: Record<string, boolean>) => Promise<void>;
-  completeDay: () => Promise<void>;
+  completeDay: () => Promise<{ alreadyCompleted?: boolean }>;
   markCelebrationShown: () => Promise<void>;
   setProgram: (_program: ProgramProgress | null) => void;
 }
@@ -183,14 +183,13 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
     }
   }, [activeProgram]);
 
-  const completeDay = useCallback(async () => {
-    if (!activeProgram) return;
+  const completeDay = useCallback(async (): Promise<{ alreadyCompleted?: boolean }> => {
+    if (!activeProgram) return {};
 
     try {
-      // FIX: Use optimistic update - update UI immediately, then sync with server
       const result = await programProgressService.completeDay(activeProgram.type, activeProgram.programId);
-      
-      // Optimistic update - update state immediately without full refresh
+      if (result.alreadyCompleted) return { alreadyCompleted: true };
+
       setActiveProgram(prev => {
         if (!prev) return prev;
         const newCurrentDay = result.currentDay || prev.currentDayIndex + 1;
@@ -199,31 +198,16 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
           ...prev,
           currentDayIndex: newCurrentDay,
           daysLeft: newDaysLeft,
-          // FIX: daysCompleted is not in ProgramProgress interface, removed
-          // The daysCompleted is tracked implicitly via currentDayIndex
-          streak: {
-            ...prev.streak,
-            current: result.streak || prev.streak.current,
-          },
-          todayLog: {
-            ...prev.todayLog,
-            completed: true,
-            completionRate: result.completionRate || 1,
-          },
+          streak: { ...prev.streak, current: result.streak || prev.streak.current },
+          todayLog: { ...prev.todayLog, completed: true, completionRate: result.completionRate || 1 },
         };
-        // FIX: Update cache immediately with optimistic value
-        // This prevents refresh from clearing the updated state
         cache.current.set(CACHE_KEY, updated);
         return updated;
       });
-      
-      // FIX: Don't refresh immediately after completeDay - optimistic update is enough
-      // This prevents visual reloads and screen flashing
-      // Data will be refreshed naturally on next screen focus or manual refresh
+      return {};
     } catch (err: any) {
       console.error('[ProgramProgressStore] Complete day failed:', err);
       setError(err.message || 'Failed to complete day');
-      // Revert optimistic update on error
       await loadProgress();
       throw err;
     }
@@ -266,10 +250,12 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
     }
   }, [activeProgram]);
 
-  // Load on mount
-  useEffect(() => {
-    loadProgress();
-  }, [loadProgress]);
+  // FIX: Don't load on mount - delay until actually needed
+  // This prevents blocking app startup with API call
+  // Load will happen when Dashboard or Diets screen needs it
+  // useEffect(() => {
+  //   loadProgress();
+  // }, [loadProgress]);
 
   const value: ProgramProgressContextValue = {
     activeProgram,

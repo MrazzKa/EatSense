@@ -50,6 +50,17 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  // Log incoming requests to /user-profiles* (onboarding, profile save) for debugging
+  app.use((req: any, _res: any, next: () => void) => {
+    const raw = req.originalUrl || req.url || '';
+    const path = raw.split('?')[0] || '';
+    if (path.includes('user-profiles')) {
+      const hasAuth = !!req.headers?.authorization;
+      console.log(`[Request] ${req.method} ${path} hasAuth=${hasAuth}`);
+    }
+    next();
+  });
+
   // Global exception filter for consistent error responses
   app.useGlobalFilters(new AllExceptionsFilter());
 

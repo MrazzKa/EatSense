@@ -15,7 +15,7 @@ interface GenerateFeedbackParams {
   totals: AnalysisTotals;
   healthScore: HealthScore;
   userGoal?: string;
-  locale: 'en' | 'ru' | 'kk';
+  locale: 'en' | 'ru' | 'kk' | 'fr';
   analysisId?: string;
 }
 
@@ -130,8 +130,8 @@ export class HealthFeedbackAiService {
     return this.parseResponse(content);
   }
 
-  private buildSystemPrompt(locale: 'en' | 'ru' | 'kk'): string {
-    const langName = locale === 'ru' ? 'Russian' : locale === 'kk' ? 'Kazakh' : 'English';
+  private buildSystemPrompt(locale: 'en' | 'ru' | 'kk' | 'fr'): string {
+    const langName = locale === 'ru' ? 'Russian' : locale === 'kk' ? 'Kazakh' : locale === 'fr' ? 'French' : 'English';
 
     return `You are a nutrition expert assistant. Your task is to provide personalized, actionable feedback about a meal's nutritional quality.
 
@@ -157,7 +157,7 @@ CODES TO USE:
     healthScore: HealthScore;
     factorsDesc: string;
     userGoal?: string;
-    locale: 'en' | 'ru' | 'kk';
+    locale: 'en' | 'ru' | 'kk' | 'fr';
   }): string {
     const { dishName, ingredientsList, totals, healthScore, factorsDesc, userGoal, locale } = params;
 

@@ -22,7 +22,7 @@ import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
-import { formatAmount } from '../utils/currency';
+import { formatAmount, getPriceValue } from '../utils/currency';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 
 const ProfileScreen = () => {
@@ -553,6 +553,8 @@ const ProfileScreen = () => {
 
 
 
+  // FIX: Use currency-aware pricing - prices are now determined by currency utility
+  // which automatically selects correct prices based on device region
   const planOptions = [
     {
       id: 'free',
@@ -564,34 +566,35 @@ const ProfileScreen = () => {
     {
       id: 'pro_monthly',
       billingCycle: 'monthly',
-      price: 9.99,
+      price: null, // Will be set from getPriceValue('monthly')
       featureKeys: ['unlimitedAnalyses', 'advancedInsights', 'coachingTips'],
       badgeKey: 'mostPopular',
     },
     {
       id: 'pro_annual',
       billingCycle: 'annual',
-      price: 79.99,
+      price: null, // Will be set from getPriceValue('yearly')
       featureKeys: ['everythingInProMonthly', 'annualWebinars', 'earlyAccess'],
       badgeKey: 'save33',
     },
     {
       id: 'student',
       billingCycle: 'annual',
-      price: 39.99,
+      price: null, // Will be set from getPriceValue('student')
       featureKeys: ['unlimitedAnalyses', 'advancedInsights', 'studentDiscount'],
       badgeKey: 'studentDiscount',
     },
     {
       id: 'founders',
       billingCycle: 'lifetime',
-      price: 99.99,
+      price: null, // Founders price is handled separately
       featureKeys: ['lifetimeAccess', 'founderBadge', 'directAccess'],
       badgeKey: 'limited',
     },
   ];
 
-  // Always use USD for plans
+  // FIX: Use currency-aware pricing based on device region
+  // formatAmount already uses getCurrencyCode() to detect correct currency
   const getPlanDetails = (planId) => {
     const basePlan = planOptions.find((plan) => plan.id === planId) || planOptions[0];
 
@@ -610,14 +613,18 @@ const ProfileScreen = () => {
     } else if (basePlan.id === 'founders') {
       priceText = safeT('profile.planFounderPrice', 'One-time payment');
     } else if (basePlan.billingCycle === 'monthly') {
+      // FIX: Use currency-aware pricing based on device region
+      const price = basePlan.price !== null ? basePlan.price : getPriceValue('monthly');
       priceText = safeT('profile.planMonthlyPrice', '{{price}} / month').replace(
         '{{price}}',
-        formatAmount(basePlan.price),
+        formatAmount(price),
       );
     } else {
+      // FIX: Use currency-aware pricing based on device region
+      const price = basePlan.price !== null ? basePlan.price : (basePlan.id === 'student' ? getPriceValue('student') : getPriceValue('yearly'));
       priceText = safeT('profile.planAnnualPrice', '{{price}} / year').replace(
         '{{price}}',
-        formatAmount(basePlan.price),
+        formatAmount(price),
       );
     }
 
@@ -1707,6 +1714,21 @@ const ProfileScreen = () => {
               </View>
               <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
                 {safeT('profile.termsOfService', 'Terms of Service')}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+            </TouchableOpacity>
+
+            <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
+
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://eatsense.vercel.app')}
+              style={styles.legalRow}
+            >
+              <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
+              </View>
+              <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                {safeT('profile.aboutEatsense', 'About EatSense')}
               </Text>
               <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
             </TouchableOpacity>

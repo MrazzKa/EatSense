@@ -45,8 +45,13 @@ export const ThemeProvider = ({ children }) => {
     }
   }, []);
 
+  // FIX: Load theme preference in background - don't block render
+  // Default to light theme immediately, update when preference loads
   useEffect(() => {
-    loadThemePreference();
+    // Load in background (non-blocking)
+    loadThemePreference().catch(() => {
+      // Silent fail - default theme is already set
+    });
   }, [loadThemePreference]);
 
   useEffect(() => {

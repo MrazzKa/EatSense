@@ -34,6 +34,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
+import { getCurrencyCode } from '../utils/currency';
 
 const { width } = Dimensions.get('window');
 
@@ -861,26 +862,36 @@ const OnboardingScreen = () => {
           const allProducts = [...(result?.subscriptions || []), ...(result?.products || [])];
 
           if (allProducts.length > 0 && allProducts[0]?.currency) {
-            const currencyCode = allProducts[0].currency;
+            const iapCurrencyCode = allProducts[0].currency;
+            // FIX: Use detected currency from device region instead of IAP currency
+            // This fixes the issue where Switzerland users see RUB instead of CHF
+            const detectedCurrencyCode = getCurrencyCode();
+            const finalCurrencyCode = detectedCurrencyCode || iapCurrencyCode;
+            
+            // If currency mismatch detected, log warning
+            if (iapCurrencyCode && iapCurrencyCode !== finalCurrencyCode) {
+              console.warn(`[Onboarding] Currency mismatch: IAP=${iapCurrencyCode}, Device=${finalCurrencyCode}. Using device currency.`);
+            }
+            
             const monthly = allProducts.find(p => p.productId?.includes('monthly'));
             const yearly = allProducts.find(p => p.productId?.includes('yearly') && !p.productId?.includes('student'));
             const student = allProducts.find(p => p.productId?.includes('student'));
 
             if (isMounted && (monthly || yearly)) {
               const symbols = { USD: '$', EUR: '€', GBP: '£', CHF: 'CHF', RUB: '₽', KZT: '₸', UAH: '₴', PLN: 'zł' };
-              const symbol = symbols[currencyCode] || currencyCode;
-              const isAfter = ['EUR', 'RUB', 'KZT', 'UAH', 'PLN', 'CZK'].includes(currencyCode);
+              const symbol = symbols[finalCurrencyCode] || finalCurrencyCode;
+              const isAfter = ['EUR', 'RUB', 'KZT', 'UAH', 'PLN', 'CZK'].includes(finalCurrencyCode);
 
               setCurrency({
                 symbol,
-                code: currencyCode,
+                code: finalCurrencyCode,
                 freePrice: isAfter ? `0 ${symbol}` : `${symbol}0`,
                 monthlyPrice: monthly?.localizedPrice || `${symbol}9.99`,
                 yearlyPrice: yearly?.localizedPrice || `${symbol}79.99`,
                 studentPrice: student?.localizedPrice || `${symbol}49.99`,
                 founderPrice: allProducts.find(p => p.productId === 'eatsense.founder.pass')?.localizedPrice || `${symbol}99.99`,
               });
-              console.log('[Onboarding] Currency from IAP:', currencyCode);
+              console.log('[Onboarding] Currency from IAP:', iapCurrencyCode, '-> Using:', finalCurrencyCode);
               return;
             }
           }

@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: any, payload: any) {
-    const requestPath = req?.path || req?.url || 'unknown';
+    const requestPath = (req?.originalUrl || req?.url || req?.path || 'unknown').split('?')[0];
     const jti = payload?.jti || 'no-jti';
     const exp = payload?.exp ? new Date(payload.exp * 1000).toISOString() : 'unknown';
     const iat = payload?.iat ? new Date(payload.iat * 1000).toISOString() : 'unknown';
@@ -35,14 +35,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      this.logger.warn(`[JWT] User not found for token`, {
-        userId: payload?.sub,
-        path: requestPath,
-      });
+      this.logger.log(`[JWT] User not found for token path=${requestPath} userId=${payload?.sub}`);
       return null;
     }
 
-    this.logger.debug(`[JWT] Token validated successfully for ${user.email.split('@')[0]}***`);
+    if (requestPath.includes('user-profiles')) {
+      this.logger.log(`[JWT] Token OK path=${requestPath} user=${user.email.split('@')[0]}***`);
+    }
 
     return {
       id: user.id,

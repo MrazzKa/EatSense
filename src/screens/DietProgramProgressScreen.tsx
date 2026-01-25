@@ -18,15 +18,12 @@ interface DietProgramProgressScreenProps {
     route: any;
 }
 
-// Helper to extract localized string from object or return string directly
+// FIX: Use shared getLocalizedText from types.ts for consistency
+import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
+
 const getLocalizedText = (value: any, lang: string): string => {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'object') {
-        // Try current language, then 'en', then first available
-        return value[lang] || value['en'] || value[Object.keys(value)[0]] || '';
-    }
-    return String(value);
+    // Use shared implementation for consistency
+    return getLocalizedTextShared(value, lang);
 };
 
 export default function DietProgramProgressScreen({ navigation, route }: DietProgramProgressScreenProps) {
@@ -123,6 +120,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
 
     const handleCompleteDay = async () => {
         if (!activeProgram || activeProgram.type !== 'diet') return;
+        if (activeProgram.todayLog?.completed) return;
 
         if (activeProgram.currentDayIndex >= activeProgram.durationDays) {
             Alert.alert(t('dietPrograms.completed'), t('dietPrograms.completedMessage'), [
@@ -132,11 +130,8 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         }
 
         try {
-            await completeDayStore();
-            // NOTE: Removed refreshProgress() here - the store already updates state internally
-            // This prevents the unnecessary full screen reload after completing the day
-
-            // Show celebration always to provide feedback
+            const res = await completeDayStore();
+            if (res?.alreadyCompleted) return;
             setShowCelebration(true);
         } catch (error: any) {
             Alert.alert(t('common.error'), error.message || t('errors.completeDay'));
@@ -411,11 +406,17 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
             </ScrollView>
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-                <TouchableOpacity style={[styles.completeButton, { backgroundColor: colors.primary }]} onPress={handleCompleteDay}>
+                <TouchableOpacity
+                    style={[styles.completeButton, { backgroundColor: colors.primary }]}
+                    onPress={handleCompleteDay}
+                    disabled={!!activeProgram.todayLog?.completed}
+                >
                     <Text style={styles.completeButtonText}>
-                        {activeProgram.currentDayIndex >= activeProgram.durationDays
-                            ? t('dietPrograms.finishProgram')
-                            : t('dietPrograms.completeDay')}
+                        {activeProgram.todayLog?.completed
+                            ? t('dietPrograms.dayCompleted')
+                            : activeProgram.currentDayIndex >= activeProgram.durationDays
+                                ? t('dietPrograms.finishProgram')
+                                : t('dietPrograms.completeDay')}
                     </Text>
                 </TouchableOpacity>
             </View>

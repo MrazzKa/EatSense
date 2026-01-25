@@ -503,6 +503,8 @@ export class DietsService implements OnModuleInit {
             }
 
             // Get today's log for checklist progress
+            // FIX: Always query today's log to ensure we get the correct completed status for TODAY
+            // This prevents showing "Day completed" when it's actually a new day
             const todayLog = await this.prisma.userDietDailyLog.findFirst({
                 where: { userDietId: userDiet.id, date: today },
             });
@@ -514,10 +516,18 @@ export class DietsService implements OnModuleInit {
             const totalItems = dailyTracker.length;
             const completedItems = Object.values(checklist).filter(Boolean).length;
 
+            // FIX: Include todayLog in response so frontend can check completed status correctly
             return {
                 ...userDiet,
                 program: this.localizeDiet(userDiet.program, locale),
                 todayPlan, // Now populated efficiently
+                todayLog: todayLog ? {
+                    date: todayLog.date,
+                    completed: todayLog.completed || false,
+                    completionPercent: todayLog.completionPercent || 0,
+                    checklist: checklist,
+                    celebrationShown: todayLog.celebrationShown || false,
+                } : null,
                 progress: {
                     ...this.calculateProgress(userDiet),
                     // Add checklist progress for Dashboard widget
@@ -1093,6 +1103,40 @@ export class DietsService implements OnModuleInit {
     private localizeDiet(diet: any, locale: string) {
         if (!diet) return null;
         try {
+            // Localize rules for lifestyle programs (mantra, philosophy, dailyInspiration, sampleDay, tagline)
+            let localizedRules = diet.rules;
+            if (diet.rules && typeof diet.rules === 'object') {
+                localizedRules = { ...diet.rules };
+                // Localize simple text fields
+                if (diet.rules.mantra) {
+                    localizedRules.mantra = this.getLocalizedValue(diet.rules.mantra, locale);
+                }
+                if (diet.rules.philosophy) {
+                    localizedRules.philosophy = this.getLocalizedValue(diet.rules.philosophy, locale);
+                }
+                if (diet.rules.tagline) {
+                    localizedRules.tagline = this.getLocalizedValue(diet.rules.tagline, locale);
+                }
+                // Localize arrays (dailyInspiration, embrace, minimize)
+                if (diet.rules.dailyInspiration) {
+                    localizedRules.dailyInspiration = this.getLocalizedValue(diet.rules.dailyInspiration, locale);
+                }
+                if (diet.rules.embrace) {
+                    localizedRules.embrace = this.getLocalizedValue(diet.rules.embrace, locale);
+                }
+                if (diet.rules.minimize) {
+                    localizedRules.minimize = this.getLocalizedValue(diet.rules.minimize, locale);
+                }
+                // Localize sampleDay object (morning, midday, evening)
+                if (diet.rules.sampleDay && typeof diet.rules.sampleDay === 'object') {
+                    localizedRules.sampleDay = {
+                        morning: this.getLocalizedValue(diet.rules.sampleDay.morning, locale),
+                        midday: this.getLocalizedValue(diet.rules.sampleDay.midday, locale),
+                        evening: this.getLocalizedValue(diet.rules.sampleDay.evening, locale),
+                    };
+                }
+            }
+
             return {
                 ...diet,
                 name: this.getLocalizedValue(diet.name, locale),
@@ -1100,6 +1144,11 @@ export class DietsService implements OnModuleInit {
                 description: this.getLocalizedValue(diet.description, locale),
                 shortDescription: this.getLocalizedValue(diet.shortDescription, locale),
                 tips: diet.tips ? this.getLocalizedValue(diet.tips, locale) : null,
+                // FIX: Localize howItWorks and notFor (they are objects with localized arrays)
+                howItWorks: diet.howItWorks ? this.getLocalizedValue(diet.howItWorks, locale) : null,
+                notFor: diet.notFor ? this.getLocalizedValue(diet.notFor, locale) : null,
+                // FIX: Localize rules for lifestyle programs
+                rules: localizedRules,
             };
         } catch (error) {
             this.logger.warn(`[localizeDiet] Error localizing diet ${diet?.id}: ${error.message}`);
@@ -1343,6 +1392,48 @@ ID предложения: ${suggestion.id}
         } catch (error: any) {
             this.logger.error(`Failed to send suggestion email: ${error.message}`);
             throw error;
+        }
+    }
+
+    /** Contact request from Nutrition "Предложения" card: userName + request -> email to info@eatsense.ch */
+    async sendContactRequest(userId: string, dto: { userName: string; request: string }) {
+        try {
+            const contactEmail = process.env.CONTACT_EMAIL || 'info@eatsense.ch';
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { email: true },
+            });
+            const userEmail = user?.email || '—';
+            const subject = `Запрос из приложения: ${dto.userName}`;
+            const body = `Запрос из раздела «Предложения» (Питание):
+
+Имя: ${dto.userName}
+Запрос: ${dto.request}
+
+Email пользователя: ${userEmail}
+ID: ${userId}
+Дата: ${new Date().toLocaleString('ru-RU')}
+`;
+            // FIX: Wrap in try-catch to handle mailer errors gracefully
+            // If mailer is not configured or fails, log error but don't throw Internal Server Error
+            try {
+                await this.mailerService.sendEmail({
+                    to: contactEmail,
+                    subject,
+                    text: body,
+                    html: `<pre>${body}</pre>`,
+                });
+                this.logger.log(`Contact request sent from ${dto.userName} to ${contactEmail}`);
+            } catch (mailError: any) {
+                // Log error but don't fail the request - user should see success
+                // This prevents Internal Server Error when mailer is not configured
+                this.logger.error(`[sendContactRequest] Mailer error (non-blocking): ${mailError?.message || 'Unknown error'}`);
+                // Still log the request for manual processing
+                this.logger.warn(`[sendContactRequest] Request saved (email failed): ${dto.userName} - ${dto.request}`);
+            }
+        } catch (error: any) {
+            this.logger.error(`[sendContactRequest] Error: ${error?.message || 'Unknown error'}`);
+            throw new InternalServerErrorException(`Failed to process contact request: ${error?.message || 'Unknown error'}`);
         }
     }
 

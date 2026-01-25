@@ -72,6 +72,7 @@
     }
   },
   "onboarding": {
+    "welcome": "Welcome to EatSense",
     "startFree": "Start Now",
     "subscribe": "Subscribe",
     "activity": "How active are you?",
@@ -166,6 +167,7 @@
     "proteinLabel": "Protein",
     "carbsLabel": "Carbs",
     "fatLabel": "Fat",
+    "targetWeight": "What weight do you want?",
     "targetWeightLabel": "Target weight",
     "continueButton": "Continue",
     "specifyCondition": "Please specify condition",
@@ -263,6 +265,10 @@
       "month": "mo",
       "year": "yr",
       "monthly": "Monthly",
+      "plans": {
+        "month": "mo",
+        "year": "yr"
+      },
       "yearly": "Yearly",
       "included": "Included",
       "bestValue": "Best Value",
@@ -329,6 +335,7 @@
       "streak": "days streak",
       "progress": "Today's progress",
       "completed": "completed",
+      "daysLeft": "Days left",
       "openTracker": "Open tracker",
       "noDiet": "Choose a diet",
       "browseDiets": "Browse diets"
@@ -461,6 +468,11 @@
       "title": "Title"
     },
     "showAllMeals": "Show All Meals"
+  },
+  "mealHistory": {
+    "title": "All Meals",
+    "emptyTitle": "No meals this day",
+    "emptySubtitle": "Meals you log will appear here."
   },
   "articles": {
     "title": "Articles",
@@ -699,7 +711,12 @@
     "billingFree": "Basic Plan",
     "planFreeName": "EatSense Free",
     "planProName": "EatSense Pro",
+    "planStudentName": "EatSense Student",
+    "planFounderName": "EatSense Founder",
     "planFreePrice": "Free",
+    "planFounderPrice": "One-time payment",
+    "planStudentDescription": "Special student pricing with verification.",
+    "planFounderDescription": "Lifetime access with exclusive badge.",
     "planMonthlyPrice": "{{price}} / month",
     "planAnnualPrice": "{{price}} / year",
     "planFreeDescription": "Start tracking meals with essential features.",
@@ -714,12 +731,15 @@
       "coachingTips": "Personalized coaching tips",
       "everythingInProMonthly": "Everything in Pro Monthly",
       "annualWebinars": "Exclusive annual webinars",
-      "earlyAccess": "Early access to new features"
+      "earlyAccess": "Early access to new features",
+      "studentDiscount": "Student discount with verification"
     },
     "planBadges": {
       "included": "Included",
       "mostPopular": "Most popular",
-      "save33": "Save 33%"
+      "save33": "Save 33%",
+      "student": "Student",
+      "limited": "Limited"
     },
     "currentPlan": "Current plan",
     "legal": "Legal",
@@ -727,6 +747,7 @@
     "policy": "Privacy Policy",
     "politics": "Data Processing Policy",
     "termsOfService": "Terms of Service",
+    "aboutEatsense": "About EatSense",
     "advanced": "Advanced Health Parameters",
     "noData": "No data",
     "policyError": "Failed to open policy",
@@ -934,8 +955,13 @@
     "languages": "Languages",
     "recentReviews": "Recent Reviews",
     "switchRole": "Switch",
-    "dietitian": "Dietitian",
-    "nutritionist": "Nutritionist",
+    "dietitian": {
+      "title": "Dietitian"
+    },
+    "nutritionist": {
+      "title": "Nutritionist"
+    },
+    "expertLabel": "Expert",
     "tabs": {
       "specialists": "Specialists",
       "articles": "Articles"
@@ -948,7 +974,9 @@
       "expertTitle": "I'm a certified specialist",
       "expertDescription": "Create a profile and help clients"
     },
-    "expert": "Expert",
+    "expert": {
+      "myOffers": "My Offers"
+    },
     "edit": {
       "createProfile": "Create Profile",
       "editProfile": "Edit Profile",
@@ -1074,7 +1102,26 @@
     },
     "error": "Failed to block user"
   },
+  "diets": {
+    "tracker": {
+      "days": "days"
+    },
+    "disclaimers": {
+      "historical": "Historical/inspired reconstruction. Not guaranteed historically accurate.",
+      "medical": "This diet may have contraindications. Consult a professional."
+    },
+    "how_it_works": "How It Works",
+    "more_items": "More",
+    "not_for": "Not recommended for:",
+    "medical_note": "This diet may have contraindications. Consult a healthcare professional before starting."
+  },
   "dietPrograms": {
+    "mealTypes": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
     "startProgram": "Start Program",
     "startConfirm": "Start",
     "kcalDay": "kcal/day",
@@ -1094,6 +1141,7 @@
     "anotherDietActive": "Another Diet Active",
     "anotherDietActiveMessage": "Another Diet Active Message",
     "completeDay": "Complete Day",
+    "dayCompleted": "Day completed",
     "completed": "Completed",
     "completedMessage": "Completed Message",
     "continueProgram": "Continue Program",
@@ -1478,7 +1526,10 @@
     "deleteConfirm": "Delete this report from history?",
     "fileSaved": "Report saved",
     "error": {
-      "noDirectory": "No Directory"
+      "noDirectory": "No Directory",
+      "generic": "Failed to generate monthly report. Please try again later.",
+      "network": "Network error. Please check your connection and try again.",
+      "openFailed": "Failed to open report file. Please try again."
     }
   },
   "legal": {
@@ -1680,11 +1731,11 @@
   "diets_historical_section_subtitle": "Fun diets inspired by history and culture",
   "diets_historical_section_disclaimer_banner": "These are approximations for fun, not medical recommendations",
   "diets_active_program": "Active Program",
-  "diets_loading_more": "Loading_more",
-  "diets_more_items": "More_items",
-  "diets_no_programs": "No_programs",
-  "diets_no_programs_search": "No_programs_search",
-  "diets_not_for": "Not_for",
+  "diets_loading_more": "Loading more...",
+  "diets_more_items": "More",
+  "diets_no_programs": "No programs",
+  "diets_no_programs_search": "No programs found for your search",
+  "diets_not_for": "Not recommended for:",
   "diets_sample_day": "Sample Day",
   "diets_tracker_title": "Daily Tracker",
   "diets_tracker_daily_checklist": "Daily Checklist",
@@ -1728,6 +1779,7 @@
     "loading": "Loading program...",
     "programStarted": "Program started!",
     "programStartedMessage": "You started \"{{name}}\". Track your progress on the main screen.",
+    "programAlreadyActive": "You are already enrolled in this program.",
     "startFailed": "Failed to start program. Please try again later.",
     "categories": {
       "all": "All",
@@ -1783,17 +1835,21 @@
     "title": "Title"
   },
   "suggest": {
-    "already_voted": "Already_voted",
-    "description_placeholder": "Description_placeholder",
-    "error": "Error",
-    "modal_title": "Modal_title",
-    "name_placeholder": "Name_placeholder",
-    "name_required": "Name_required",
-    "submit": "Submit",
-    "subtitle": "Subtitle",
-    "success": "Success",
-    "title": "Title",
+    "already_voted": "Already voted",
+    "contact_success": "Your request has been sent to info@eatsense.ch",
+    "description_placeholder": "Description (optional)",
+    "error": "Could not send request",
+    "modal_title": "Suggestions",
+    "name_placeholder": "Your name",
+    "name_required": "Enter your name",
+    "request_placeholder": "Your request",
+    "request_required": "Enter your request",
+    "submit": "Send",
+    "subtitle": "Write to us — name and request. Email goes to info@eatsense.ch",
+    "success": "Sent successfully",
+    "title": "Suggestions",
     "voted": "Voted"
   },
-  "diets_disclaimers_medical_short": "Medical"
+  "diets_disclaimers_medical_short": "Medical",
+  "CHAT_CONSULTATION": "Chat Consultation"
 }

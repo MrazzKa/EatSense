@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, UseGuards, Request, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserProfilesService } from './user-profiles.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -9,6 +9,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UserProfilesController {
+  private readonly logger = new Logger(UserProfilesController.name);
+
   constructor(private readonly userProfilesService: UserProfilesService) {}
 
   @Post()
@@ -16,6 +18,7 @@ export class UserProfilesController {
   @ApiResponse({ status: 201, description: 'Profile created successfully' })
   async createProfile(@Request() req, @Body() profileData: any) {
     const userId = req.user.id;
+    this.logger.log(`[user-profiles] POST create userId=${userId}`);
     return this.userProfilesService.createProfile(userId, profileData);
   }
 
@@ -24,7 +27,7 @@ export class UserProfilesController {
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   async getProfile(@Request() req) {
     const userId = req.user.id;
-    // getProfile now always returns a profile (creates default if missing)
+    this.logger.log(`[user-profiles] GET userId=${userId}`);
     return await this.userProfilesService.getProfile(userId);
   }
 
@@ -33,6 +36,7 @@ export class UserProfilesController {
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   async updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
     const userId = req.user.id;
+    this.logger.log(`[user-profiles] PUT update userId=${userId}`);
     return this.userProfilesService.updateProfile(userId, dto);
   }
 
@@ -41,6 +45,7 @@ export class UserProfilesController {
   @ApiResponse({ status: 200, description: 'Onboarding completed successfully' })
   async completeOnboarding(@Request() req) {
     const userId = req.user.id;
+    this.logger.log(`[user-profiles] POST complete-onboarding userId=${userId}`);
     return this.userProfilesService.completeOnboarding(userId);
   }
 }

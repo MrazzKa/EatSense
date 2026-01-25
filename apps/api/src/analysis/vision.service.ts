@@ -444,11 +444,11 @@ export class VisionService {
     let finalImageUrl = imageUrl;
     if (imageUrl) {
       if (imageUrl.startsWith('/')) {
-        const apiBaseUrl = process.env.API_PUBLIC_URL || process.env.API_BASE_URL || 'https://caloriecam-production.up.railway.app';
+        const apiBaseUrl = process.env.API_PUBLIC_URL || process.env.API_BASE_URL || 'https://eatsense-production.up.railway.app';
         finalImageUrl = `${apiBaseUrl}${imageUrl}`;
         this.logger.debug(`[VisionService] Converted relative URL to absolute: ${finalImageUrl}`);
       } else if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://') && !imageUrl.startsWith('data:')) {
-        const apiBaseUrl = process.env.API_PUBLIC_URL || process.env.API_BASE_URL || 'https://caloriecam-production.up.railway.app';
+        const apiBaseUrl = process.env.API_PUBLIC_URL || process.env.API_BASE_URL || 'https://eatsense-production.up.railway.app';
         finalImageUrl = `${apiBaseUrl}/${imageUrl}`;
       }
     }

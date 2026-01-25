@@ -59,7 +59,7 @@ export interface AnalyzedItem {
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)
   // Locale used for localization (optional, for debug)
-  locale?: 'en' | 'ru' | 'kk';
+  locale?: 'en' | 'ru' | 'kk' | 'fr';
   // Flag indicating if nutrition data is available (false = no data, show "No nutrition data")
   hasNutrition?: boolean;
   /** Food category from Vision or provider */

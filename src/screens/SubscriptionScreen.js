@@ -155,7 +155,7 @@ export default function SubscriptionScreen() {
                 return;
             }
 
-            // Map IAP products to our plan format
+            // Map IAP products to our plan format. Use IAP price and currency as-is (Store localizes by user's App Store country).
             const mappedPlans = all.map(product => {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
                 const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
@@ -194,7 +194,7 @@ export default function SubscriptionScreen() {
                 return {
                     id: product.productId,
                     name: planType,
-                    price: product.localizedPrice, // Use localized price from store
+                    price: product.localizedPrice,
                     priceFormatted: product.localizedPrice,
                     priceNumber: parseFloat(product.price),
                     currency: product.currency,

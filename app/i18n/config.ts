@@ -131,9 +131,16 @@ export const setAppLocale = async (locale: string) => {
 };
 
 export const ensureI18nReady = async () => {
+  // FIX: Initialize i18n first (fast - just sets up resources)
   await initializeI18next();
 
-  const saved = await loadStoredLocale();
+  // FIX: Load stored locale in parallel with language change (non-blocking)
+  // Use Promise.race to prevent slow AsyncStorage from blocking
+  const [saved] = await Promise.race([
+    Promise.all([loadStoredLocale()]),
+    new Promise(resolve => setTimeout(() => resolve([null]), 50)), // Max 50ms wait for AsyncStorage
+  ]).catch(() => [null]);
+  
   const initial = saved || detectDeviceLocale();
   if (i18n.language !== initial) {
     await i18n.changeLanguage(initial);

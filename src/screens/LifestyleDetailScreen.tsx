@@ -11,6 +11,8 @@ import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
 import { useI18n } from '../../app/i18n/hooks';
+// FIX: Use shared getLocalizedText for consistency
+import { getLocalizedText } from '../components/programs/types';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
@@ -101,9 +103,10 @@ export default function LifestyleDetailScreen() {
         console.warn('[LifestyleDetail] Background refresh failed:', err);
       });
 
-      const programName = typeof program.name === 'object' 
-        ? (program.name[language] || program.name['en'] || program.name['ru'] || Object.values(program.name)[0] || '')
-        : (program.name || '');
+      // FIX: Improved fallback chain to ensure proper translations for all languages
+      // This prevents showing English keys instead of translated names
+      // FIX: Use shared getLocalizedText for consistency
+      const programName = getLocalizedText(program.name, language);
 
       Alert.alert(
         t('lifestyles.programStarted', 'Program started!'),

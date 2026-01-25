@@ -430,6 +430,7 @@
       "streak": "күн қатарынан",
       "progress": "Бүгінгі прогресс",
       "completed": "орындалды",
+      "daysLeft": "Қалған күндер",
       "openTracker": "Трекерді ашу",
       "noDiet": "Диета таңдаңыз",
       "browseDiets": "Диеталарды қарау"
@@ -509,6 +510,11 @@
     },
     "showAllMeals": "Барлық тамақтарды көрсету"
   },
+  "mealHistory": {
+    "title": "Барлық тамақтар",
+    "emptyTitle": "Осы күнде тамақ жоқ",
+    "emptySubtitle": "Жазылған тамақтар осында пайда болады."
+  },
   "describeFood": {
     "analyzeButton": "Талдау",
     "errors": {
@@ -522,7 +528,26 @@
     "subtitle": "Не жегеніңізді еркін түрде жазыңыз. ИИ калория мен БЖҮ-ді шамамен есептейді.",
     "title": "Тамақтануды сипаттаңыз"
   },
+  "diets": {
+    "tracker": {
+      "days": "күн"
+    },
+    "disclaimers": {
+      "historical": "Тарихи/шабыт алған реконструкция. Тарихи дәлдік кепілденбейді.",
+      "medical": "Бұл диетада қарсы көрсеткіштер болуы мүмкін. Маманмен кеңесіңіз."
+    },
+    "how_it_works": "Бұл қалай жұмыс істейді",
+    "more_items": "Қосымша",
+    "not_for": "Келесілерге ұсынылмайды:",
+    "medical_note": "Бұл диетада қарсы көрсеткіштер болуы мүмкін. Бастамас бұрын дәрігерге кеңес алыңыз."
+  },
   "dietPrograms": {
+    "mealTypes": {
+      "breakfast": "Таңғы ас",
+      "lunch": "Түскі ас",
+      "dinner": "Кешкі ас",
+      "snack": "Тамқтану"
+    },
     "about": "Бағдарлама туралы",
     "categories": {},
     "empty": "Бағдарламалар табылмады",
@@ -546,6 +571,7 @@
     "continueProgram": "Бағдарламаны жалғастыру",
     "viewActive": "Белсендісін көру",
     "completeDay": "Күнді аяқтау",
+    "dayCompleted": "Күн аяқталды",
     "completed": "Аяқталды",
     "completedMessage": "Құттықтаймыз! Сіз бағдарламаны аяқтадыңыз.",
     "day": "Күн",
@@ -624,8 +650,13 @@
     "languages": "Тілдер",
     "recentReviews": "Соңғы пікірлер",
     "switchRole": "Ауыстыру",
-    "dietitian": "Диетолог",
-    "nutritionist": "Нутрициолог",
+    "dietitian": {
+      "title": "Диетолог"
+    },
+    "nutritionist": {
+      "title": "Нутрициолог"
+    },
+    "expertLabel": "Маман",
     "tabs": {
       "specialists": "Мамандар",
       "articles": "Мақалалар"
@@ -638,7 +669,9 @@
       "expertTitle": "Мен сертификатталған маманмын",
       "expertDescription": "Профиль жасап, клиенттерге көмектесу"
     },
-    "expert": "Маман",
+    "expert": {
+      "myOffers": "Менің ұсыныстарым"
+    },
     "edit": {
       "createProfile": "Профиль жасау",
       "editProfile": "Профильді өңдеу",
@@ -950,6 +983,7 @@
     "notEnabled": "Хабарландырулар қосылмады."
   },
   "onboarding": {
+    "welcome": "EatSense-ке қош келдіңіз",
     "startFree": "Бастау",
     "subscribe": "Жазылу",
     "activity": "Сіздің белсенділігіңіз қандай?",
@@ -1056,6 +1090,10 @@
     "planSubtitle": "Өзіңізге сәйкес жоспар таңдаңыз",
     "plans": {
       "finePrint": "Жоспарды Параметрлерден кез келген уақытта өзгертуге немесе бас тартуға болады.",
+      "plans": {
+        "month": "ай",
+        "year": "жыл"
+      },
       "free": {
         "badge": "Қосылған",
         "features": [
@@ -1192,6 +1230,7 @@
     "proteinLabel": "Ақуыз",
     "carbsLabel": "Көмірсулар",
     "fatLabel": "Май",
+    "targetWeight": "Қандай салмақты қалайсыз?",
     "targetWeightLabel": "Мақсатты салмақ",
     "specifyCondition": "Жағдайды көрсетіңіз",
     "specifyDiet": "Диетаңызды көрсетіңіз",
@@ -1259,6 +1298,10 @@
     "changePlan": "Жоспарды өзгерту",
     "choosePlan": "Жоспар таңдау",
     "currentPlan": "Ағымдағы жоспар",
+    "planFreeName": "EatSense Тегін",
+    "planProName": "EatSense Про",
+    "planStudentName": "EatSense Студент",
+    "planFounderName": "EatSense Негізін қалаушы",
     "dailyCalories": "Күніне калория",
     "darkModeSubtitle": "Қараңғы тақырып",
     "defaultName": "Қонақ",
@@ -1376,7 +1419,9 @@
     "planBadges": {
       "included": "Қамтылған",
       "mostPopular": "Ең танымал",
-      "save33": "33% үнемдеу"
+      "save33": "33% үнемдеу",
+      "student": "Студент",
+      "limited": "Шектеулі"
     },
     "planFeatures": {
       "advancedInsights": "Тамақтану бойынша кеңейтілген аналитика",
@@ -1387,15 +1432,21 @@
       "earlyAccess": "Жаңа функцияларға ерте қол жеткізу",
       "everythingInProMonthly": "Pro Monthly жоспарындағының бәрі",
       "limitedAnalyses": "Күніне 3 AI‑талдауға дейін",
-      "unlimitedAnalyses": "Шексіз AI тағам талдауы"
+      "unlimitedAnalyses": "Шексіз AI тағам талдауы",
+      "studentDiscount": "Растау кезінде студенттерге арнайы жеңілдік"
     },
     "planFreeDescription": "Негізгі мүмкіндіктермен тамақ қабылдауларын қадағалауды бастаңыз.",
-    "planFreeName": "EatSense Free",
+    "planFreeName": "EatSense Тегін",
     "planFreePrice": "Тегін",
     "planMonthlyPrice": "{{price}} / ай",
     "planProAnnualDescription": "Ең тиімді — ай сайынғы төлеммен салыстырғанда 33% үнемдеу.",
     "planProMonthlyDescription": "Икемді төлеммен шексіз AI‑құралдарды ашыңыз.",
-    "planProName": "EatSense Pro",
+    "planProName": "EatSense Про",
+    "planStudentName": "EatSense Студент",
+    "planFounderName": "EatSense Негізін қалаушы",
+    "planFounderPrice": "Бір реттік төлем",
+    "planStudentDescription": "Растау кезінде студенттерге арнайы баға.",
+    "planFounderDescription": "Өмір бойы қол жеткізу және эксклюзивті белгі.",
     "policy": "Құпиялылық саясаты",
     "privacyPolicy": "Құпиялылық саясаты",
     "policyError": "Саясатты ашу мүмкін болмады",
@@ -1408,6 +1459,7 @@
     "systemTheme": "Жүйе бойынша",
     "termsError": "Шарттарды ашу мүмкін болмады",
     "termsOfService": "Қолдану шарттары",
+    "aboutEatsense": "EatSense туралы",
     "theme": "Тақырып",
     "title": "Профиль",
     "weight": "Салмақ (кг)",
@@ -1473,7 +1525,10 @@
     "subtitle": "Айлық прогрессіңізді бақылаңыз",
     "title": "Есептер",
     "error": {
-      "noDirectory": "Каталог табылмады"
+      "noDirectory": "Каталог табылмады",
+      "generic": "Айлық есепті жасау сәтсіз аяқталды. Кейінірек қайталап көріңіз.",
+      "network": "Желі қатесі. Байланысты тексеріп, қайталап көріңіз.",
+      "openFailed": "Есеп файлын ашу сәтсіз аяқталды. Қайталап көріңіз."
     }
   },
   "statistics": {
@@ -1554,12 +1609,40 @@
     "plan_student": "Студент",
     "plan_weekly": "Апталық",
     "plan_yearly": "Жылдық",
+    "plan_founders": "Негізін қалаушы",
+    "restore": "Сатып алуларды қалпына келтіру",
     "terms_notice": "Кез келген уақытта бас тартуға болады. Шарттар қолданылады.",
     "restored": "Қалпына келтірілді",
     "restorePurchases": "Сатып алуларды қалпына келтіру",
     "studentVerificationTitle": "Студенттік жеңілдік",
     "studentVerificationDescription": "Жеңілдік алу үшін студенттік билеттің суретін жүктеңіз"
   },
+  "plan_yearly": "Жылдық",
+  "plan_student": "Студент",
+  "plan": {
+    "free": "EatSense Тегін",
+    "pro": "EatSense Про",
+    "premium": "EatSense Премиум"
+  },
+  "features": {
+    "analyses": "Күніне AI талдаулары",
+    "tracking": "Калорияларды бақылау",
+    "stats": "Кеңейтілген статистика"
+  },
+  "billing": {
+    "perMonth": "айына",
+    "perYear": "жылына",
+    "free": "Базалық жоспар",
+    "currency": {
+      "ru": "₽",
+      "kk": "₸",
+      "default": "$"
+    }
+  },
+  "lifetime": "Өмір бойғы",
+  "noPurchases": "Сатып алулар жоқ",
+  "noPurchasesFound": "Сатып алулар табылмады",
+  "planNotFound": "Жоспар табылмады",
   "tabs": {
     "articles": "Мақалалар",
     "dashboard": "Басты",
@@ -1620,6 +1703,7 @@
     "loading": "Бағдарлама жүктелуде...",
     "programStarted": "Бағдарлама басталды!",
     "programStartedMessage": "Сіз \"{{name}}\" бастадыңыз. Негізгі экранда прогресті бақылаңыз.",
+    "programAlreadyActive": "Сіз бұл бағдарламаға жазылғансыз.",
     "startFailed": "Бағдарламаны бастау мүмкін болмады. Кейінірек көріңіз.",
     "categories": {
       "all": "Барлығы",
@@ -1682,13 +1766,16 @@
   },
   "suggest": {
     "already_voted": "Дауыс берілді",
+    "contact_success": "Сұранысыңыз info@eatsense.ch-ке жіберілді",
     "description_placeholder": "Сипаттаңыз...",
-    "error": "Қате",
-    "modal_title": "Ұсыныс жасау",
+    "error": "Сұранысты жіберу мүмкін болмады",
+    "modal_title": "Ұсыныстар",
     "name_placeholder": "Атыңыз",
     "name_required": "Атыңызды енгізіңіз",
+    "request_placeholder": "Сұранысыңыз",
+    "request_required": "Сұранысыңызды енгізіңіз",
     "submit": "Жіберу",
-    "subtitle": "Бізге жақсартуға көмектесіңіз",
+    "subtitle": "Бізге жазыңыз — атыңыз және сұранысыңыз. Хат info@eatsense.ch-ке жіберіледі",
     "success": "Сәтті жіберілді",
     "title": "Ұсыныстар",
     "voted": "Дауыс берілген"
@@ -1741,7 +1828,7 @@
   "diets_groups_historical": "Тарихи",
   "diets_groups_seasonal": "Маусымдық",
   "diets_groups_vintage": "Винтаж",
-  "diets_groups_old_money": "Old Money",
+  "diets_groups_old_money": "Ескі ақша",
   "diets_groups_aesthetic": "Эстетика",
   "diets_tracker_title": "Күнделікті трекер",
   "diets_tracker_daily_checklist": "Бүгінгі чек-лист",
@@ -1796,5 +1883,13 @@
   "diets_type_medical": "Медициналық",
   "diets_status_active": "Белсенді",
   "diets_status_completed": "Аяқталды",
-  "diets_lifestyle_label": "Өмір салты"
+  "diets_lifestyle_label": "Өмір салты",
+  "purchaseFailed": "Сатып алу сәтсіз",
+  "purchasesRestored": "Сатып алулар қалпына келтірілді",
+  "restoreFailed": "Қалпына келтіру сәтсіз",
+  "restorePurchases": "Сатып алуларды қалпына келтіру",
+  "restored": "Қалпына келтірілді",
+  "studentVerificationDescription": "Студенттік жеңілдік алу үшін студенттік билеттің суретін жүктеңіз",
+  "studentVerificationTitle": "Студенттік жеңілдік",
+  "CHAT_CONSULTATION": "Чат-консультация"
 }

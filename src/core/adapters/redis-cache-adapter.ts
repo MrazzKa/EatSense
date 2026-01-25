@@ -144,7 +144,7 @@ export class RedisCacheAdapter implements CacheAdapter {
 export const createRedisCacheAdapter = (): RedisCacheAdapter => {
   // Use safeEnv helper for normalized env values
   const safeEnv = require('../../utils/env').default;
-  const baseUrl = safeEnv.apiBaseUrl || 'http://172.20.10.2:3000';
+  const baseUrl = safeEnv.apiBaseUrl || 'https://eatsense-production.up.railway.app';
   
   return new RedisCacheAdapter({
     baseUrl,
