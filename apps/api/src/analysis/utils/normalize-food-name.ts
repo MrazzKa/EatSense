@@ -11,11 +11,11 @@
  * - KK: Sentence case ("Тауық етінің грильденген")
  * - EN: Title Case ("Grilled Chicken Breast")
  * 
- * @param locale 'en' | 'ru' | 'kk'
+ * @param locale 'en' | 'ru' | 'kk' | 'fr'
  * @param name Food name to normalize
  * @returns Normalized name with proper casing
  */
-export function normalizeLocalizedFoodName(locale: 'en' | 'ru' | 'kk', name: string): string {
+export function normalizeLocalizedFoodName(locale: 'en' | 'ru' | 'kk' | 'fr', name: string): string {
     if (!name || typeof name !== 'string') {
         return name || '';
     }
@@ -23,9 +23,9 @@ export function normalizeLocalizedFoodName(locale: 'en' | 'ru' | 'kk', name: str
     const trimmed = name.trim();
     if (!trimmed) return '';
 
-    // For Russian and Kazakh: Sentence case (first letter uppercase, rest lowercase)
+    // For Russian, Kazakh, and French: Sentence case (first letter uppercase, rest lowercase)
     // Exception: preserve all-caps abbreviations (ККБЖУ, etc.)
-    if (locale === 'ru' || locale === 'kk') {
+    if (locale === 'ru' || locale === 'kk' || locale === 'fr') {
         // Sentence case: capitalize first letter, lowercase the rest
         // But preserve existing capitalization patterns within words (like "McDonald's")
         const words = trimmed.split(' ');
@@ -80,12 +80,12 @@ export function normalizeLocalizedFoodName(locale: 'en' | 'ru' | 'kk', name: str
 /**
  * Clean "and more" suffix and apply normalization
  */
-export function cleanAndNormalizeFoodName(locale: 'en' | 'ru' | 'kk', name: string): string {
+export function cleanAndNormalizeFoodName(locale: 'en' | 'ru' | 'kk' | 'fr', name: string): string {
     if (!name) return '';
 
     // Remove "and more" suffixes (safety net - should be removed at source)
     const cleanedName = name
-        .replace(/\s+(and more|& more|и другое|және басқалары)$/i, '')
+        .replace(/\s+(and more|& more|и другое|және басқалары|et plus)$/i, '')
         .trim();
 
     return normalizeLocalizedFoodName(locale, cleanedName);

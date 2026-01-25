@@ -38,7 +38,7 @@ export interface CanonicalFood {
 }
 
 export interface NutritionLookupContext {
-  locale: 'en' | 'ru' | 'kk';
+  locale: 'en' | 'ru' | 'kk' | 'fr';
   region?: 'US' | 'CH' | 'EU' | 'OTHER';
   expectedCategory?: NutritionCategory;
   /** 'ingredient' for image analysis, 'packaged' for barcode scanning */

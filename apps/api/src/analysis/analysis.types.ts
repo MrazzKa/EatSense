@@ -311,7 +311,7 @@ export interface AnalysisData {
   isSuspicious?: boolean; // флаг сомнительных результатов
   needsReview?: boolean; // флаг: все макросы нулевые или анализ не уверен
   // Preferred locale used during analysis / localization
-  locale?: 'en' | 'ru' | 'kk';
+  locale?: 'en' | 'ru' | 'kk' | 'fr';
 
   // =====================================================
   // DISH NAME FIELDS (STEP 2: Stabilized naming)
