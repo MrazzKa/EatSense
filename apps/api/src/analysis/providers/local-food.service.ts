@@ -16,7 +16,7 @@ export class LocalFoodService {
    * Search for food in local database by name
    * Uses fuzzy matching on normalized names
    */
-  async findLocalFood(query: string, locale: 'en' | 'ru' | 'kk' = 'en'): Promise<CanonicalFood | null> {
+  async findLocalFood(query: string, locale: 'en' | 'ru' | 'kk' | 'fr' = 'en'): Promise<CanonicalFood | null> {
     try {
       const normalizedQuery = this.normalizeName(query);
 
@@ -29,7 +29,7 @@ export class LocalFoodService {
 
       // If not found, try fuzzy match on name fields
       if (!localFood) {
-        const nameField = locale === 'ru' ? 'nameRu' : locale === 'kk' ? 'nameKk' : 'nameEn';
+        const nameField = locale === 'ru' ? 'nameRu' : locale === 'kk' ? 'nameKk' : locale === 'fr' ? 'nameEn' : 'nameEn';
         localFood = await this.prisma.localFood.findFirst({
           where: {
             OR: [
@@ -96,14 +96,18 @@ export class LocalFoodService {
   /**
    * Get localized display name
    */
-  private getDisplayName(localFood: any, locale: 'en' | 'ru' | 'kk'): string {
+  private getDisplayName(localFood: any, locale: 'en' | 'ru' | 'kk' | 'fr'): string {
     if (locale === 'ru' && localFood.nameRu) {
       return localFood.nameRu;
     }
     if (locale === 'kk' && localFood.nameKk) {
       return localFood.nameKk;
     }
-    if (localFood.nameEn) {
+    // For French, use English name as fallback (or add nameFr field later)
+    if (locale === 'fr' && localFood.nameEn) {
+      return localFood.nameEn;
+    }
+    if (locale === 'en' && localFood.nameEn) {
       return localFood.nameEn;
     }
     return localFood.name;
