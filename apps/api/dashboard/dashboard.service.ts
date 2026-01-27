@@ -69,17 +69,17 @@ export class DashboardService {
                     return { status: 'error', sections: [] };
                 });
 
-            // Add timeout for suggestions (5 seconds) - don't block dashboard
+            // Add timeout for suggestions (15 seconds) - increased to reduce timeout warnings
             const suggestions = await Promise.race([
                 suggestionsPromise,
                 new Promise(resolve => setTimeout(() => {
                     this.logger.warn(`Suggestions timeout for user ${userId} - returning error status`);
                     resolve({ status: 'error', sections: [] });
-                }, 5000)),
+                }, 15000)),
             ]) as any;
 
             const duration = Date.now() - start;
-            if (duration > 1000) {
+            if (duration > 3000) {
                 this.logger.warn(`Slow dashboard load: ${duration}ms for user ${userId}`);
                 // FIX: Log which requests are slow to help identify bottlenecks
                 this.logger.debug(`Dashboard timing breakdown for user ${userId}:`, {

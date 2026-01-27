@@ -487,6 +487,12 @@ model Medication {
   endDate      DateTime? // Дата окончания курса (nullable; если null — бессрочно)
   timezone     String    @default("UTC") // IANA timezone, например "Asia/Almaty"
   isActive     Boolean   @default(true)
+  
+  // P3.2: Medication quantity and stock tracking
+  quantity     Int?      // Общее количество таблеток в упаковке (nullable - опционально)
+  remainingStock Int?    // Остаток таблеток (nullable - опционально, вычисляется автоматически)
+  lowStockThreshold Int? @default(7) // Порог для уведомления о низком остатке (дни до окончания)
+  lastStockUpdate DateTime? // Дата последнего обновления остатка
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -508,6 +514,9 @@ model MedicationDose {
 
   beforeMeal Boolean @default(false)
   afterMeal  Boolean @default(false)
+  
+  // Количество таблеток на один приём
+  pillsPerDose Int @default(1) @map("pills_per_dose")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -34,7 +34,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
-import { getCurrencyCode } from '../utils/currency';
+import { getCurrencyCode, formatPrice, getCurrency, formatAmount, getDeviceRegion, getOriginalPrice } from '../utils/currency';
 
 const { width } = Dimensions.get('window');
 
@@ -457,6 +457,12 @@ const createStyles = (tokens, colors, _isDark = false) => {
     planPriceSelected: {
       color: colors.primary,
     },
+    planPriceOriginal: {
+      fontSize: 14,
+      fontWeight: '400',
+      textDecorationLine: 'line-through',
+      opacity: 0.6,
+    },
     planHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -854,75 +860,81 @@ const OnboardingScreen = () => {
     let isMounted = true;
 
     const loadCurrency = async () => {
-      // STEP 1: Try IAP (Apple/Google real prices)
+      // STEP 1: Try IAP (Apple/Google real prices) - MOST ACCURATE SOURCE
+      // IAP automatically returns correct prices for user's App Store country
+      // This is the most reliable way to get country-specific pricing
       try {
         const initResult = await IAPService.init();
         if (initResult) {
           const result = await IAPService.getAvailableProducts();
           const allProducts = [...(result?.subscriptions || []), ...(result?.products || [])];
 
-          if (allProducts.length > 0 && allProducts[0]?.currency) {
-            const iapCurrencyCode = allProducts[0].currency;
-            // FIX: Use detected currency from device region instead of IAP currency
-            // This fixes the issue where Switzerland users see RUB instead of CHF
-            const detectedCurrencyCode = getCurrencyCode();
-            const finalCurrencyCode = detectedCurrencyCode || iapCurrencyCode;
-            
-            // If currency mismatch detected, log warning
-            if (iapCurrencyCode && iapCurrencyCode !== finalCurrencyCode) {
-              console.warn(`[Onboarding] Currency mismatch: IAP=${iapCurrencyCode}, Device=${finalCurrencyCode}. Using device currency.`);
-            }
-            
+          if (allProducts.length > 0) {
+            const iapCurrencyCode = allProducts[0]?.currency;
             const monthly = allProducts.find(p => p.productId?.includes('monthly'));
             const yearly = allProducts.find(p => p.productId?.includes('yearly') && !p.productId?.includes('student'));
             const student = allProducts.find(p => p.productId?.includes('student'));
+            const founder = allProducts.find(p => p.productId === 'eatsense.founder.pass');
 
             if (isMounted && (monthly || yearly)) {
-              const symbols = { USD: '$', EUR: '€', GBP: '£', CHF: 'CHF', RUB: '₽', KZT: '₸', UAH: '₴', PLN: 'zł' };
-              const symbol = symbols[finalCurrencyCode] || finalCurrencyCode;
-              const isAfter = ['EUR', 'RUB', 'KZT', 'UAH', 'PLN', 'CZK'].includes(finalCurrencyCode);
-
+              // IAP prices are already localized for user's App Store country - use them directly
+              // Get currency symbol from currency utility for proper formatting
+              const currencyConfig = getCurrency();
+              
+              // IMPORTANT: Use IAP prices directly - they are already correct for user's country
+              // IAP.localizedPrice contains the exact price from App Store Connect for user's country
               setCurrency({
-                symbol,
-                code: finalCurrencyCode,
-                freePrice: isAfter ? `0 ${symbol}` : `${symbol}0`,
-                monthlyPrice: monthly?.localizedPrice || `${symbol}9.99`,
-                yearlyPrice: yearly?.localizedPrice || `${symbol}79.99`,
-                studentPrice: student?.localizedPrice || `${symbol}49.99`,
-                founderPrice: allProducts.find(p => p.productId === 'eatsense.founder.pass')?.localizedPrice || `${symbol}99.99`,
+                symbol: currencyConfig.symbol,
+                code: iapCurrencyCode || currencyConfig.code,
+                freePrice: formatAmount(0),
+                monthlyPrice: monthly?.localizedPrice || formatPrice('monthly'),
+                yearlyPrice: yearly?.localizedPrice || formatPrice('yearly'),
+                studentPrice: student?.localizedPrice || formatPrice('student'),
+                founderPrice: founder?.localizedPrice || formatPrice('founder'),
               });
-              console.log('[Onboarding] Currency from IAP:', iapCurrencyCode, '-> Using:', finalCurrencyCode);
+              
+              const deviceRegion = getDeviceRegion();
+              console.log('[Onboarding] Using IAP prices (most accurate):', {
+                currency: iapCurrencyCode,
+                deviceRegion,
+                monthly: monthly?.localizedPrice,
+                yearly: yearly?.localizedPrice,
+              });
               return;
             }
           }
         }
       } catch (e) {
-        console.log('[Onboarding] IAP unavailable:', e?.message);
+        console.log('[Onboarding] IAP unavailable, using fallback:', e?.message);
       }
 
-      // STEP 2: Fallback to device region
+      // STEP 2: Fallback to device region using currency utility
+      // This is used when IAP is unavailable (simulator, testing, etc.)
+      // Prices are based on device region, which should match user's country
       if (!isMounted) return;
-      const deviceLocale = Localization.getLocales()?.[0];
-      const region = deviceLocale?.regionCode?.toUpperCase();
-
-      const regionMap = {
-        'CH': { symbol: 'CHF', code: 'CHF', freePrice: 'CHF 0', monthlyPrice: 'CHF 9.90', yearlyPrice: 'CHF 79.00', studentPrice: 'CHF 49.00', founderPrice: 'CHF 99.00' },
-        'RU': { symbol: '₽', code: 'RUB', freePrice: '0 ₽', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽', founderPrice: '8 990 ₽' },
-        'KZ': { symbol: '₸', code: 'KZT', freePrice: '0 ₸', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸', founderPrice: '44 990 ₸' },
-        'DE': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
-        'FR': { symbol: '€', code: 'EUR', freePrice: '0 €', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
-        'GB': { symbol: '£', code: 'GBP', freePrice: '£0', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99', founderPrice: '£89.99' },
-        'US': { symbol: '$', code: 'USD', freePrice: '$0', monthlyPrice: '$9.99', yearlyPrice: '$79.99', studentPrice: '$49.99', founderPrice: '$99.99' },
-        'UA': { symbol: '₴', code: 'UAH', freePrice: '0 ₴', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴', founderPrice: '3 999 ₴' },
-        'PL': { symbol: 'zł', code: 'PLN', freePrice: '0 zł', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł', founderPrice: '399,99 zł' },
-        'AU': { symbol: 'A$', code: 'AUD', freePrice: 'A$0', monthlyPrice: 'A$14.99', yearlyPrice: 'A$119.99', studentPrice: 'A$74.99', founderPrice: 'A$149.99' },
-        'CA': { symbol: 'C$', code: 'CAD', freePrice: 'C$0', monthlyPrice: 'C$12.99', yearlyPrice: 'C$99.99', studentPrice: 'C$64.99', founderPrice: 'C$129.99' },
-      };
-
-      if (region && regionMap[region]) {
-        setCurrency(regionMap[region]);
-        console.log('[Onboarding] Currency from region:', region);
-      }
+      
+      const deviceRegion = getDeviceRegion();
+      const currencyConfig = getCurrency();
+      const currencyCode = currencyConfig.code;
+      
+      // Format prices using currency utility (handles all 175 countries correctly)
+      // Note: These are approximate prices based on currency, not exact country prices
+      // IAP prices are always more accurate as they use App Store country
+      setCurrency({
+        symbol: currencyConfig.symbol,
+        code: currencyCode,
+        freePrice: formatAmount(0),
+        monthlyPrice: formatPrice('monthly'),
+        yearlyPrice: formatPrice('yearly'),
+        studentPrice: formatPrice('student'),
+        founderPrice: formatPrice('founder'),
+      });
+      console.log('[Onboarding] Using fallback prices from device region:', {
+        region: deviceRegion,
+        currency: currencyCode,
+        symbol: currencyConfig.symbol,
+        note: 'IAP prices are more accurate - these are approximate',
+      });
     };
 
     loadCurrency();
@@ -1334,6 +1346,9 @@ const OnboardingScreen = () => {
     const genders = [
       { id: 'male', label: t('onboarding.genders.male'), icon: '♂' },
       { id: 'female', label: t('onboarding.genders.female'), icon: '♀' },
+      { id: 'non_binary', label: t('onboarding.genders.nonBinary', 'Non-binary'), icon: '⚧' },
+      { id: 'prefer_not_to_say', label: t('onboarding.genders.preferNotToSay', 'Prefer not to say'), icon: '○' },
+      { id: 'other', label: t('onboarding.genders.other', 'Other'), icon: '○' },
     ];
 
     return (
@@ -1689,9 +1704,23 @@ const OnboardingScreen = () => {
                       </View>
                     </View>
                   </View>
-                  <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
-                    {plan.price}
-                  </Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    {(() => {
+                      const originalPrice = getOriginalPrice(plan.billingCycle === 'monthly' ? 'monthly' : plan.billingCycle === 'annual' ? (plan.isStudent ? 'student' : 'yearly') : 'founder', currency.code);
+                      return (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          {originalPrice && (
+                            <Text style={[styles.planPriceOriginal, { color: colors.textSecondary || '#999' }]}>
+                              {originalPrice}
+                            </Text>
+                          )}
+                          <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                            {plan.price}
+                          </Text>
+                        </View>
+                      );
+                    })()}
+                  </View>
                 </View>
               </TouchableOpacity>
             );
@@ -1780,9 +1809,23 @@ const OnboardingScreen = () => {
                       </View>
                     </View>
                   </View>
-                  <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
-                    {plan.price}
-                  </Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    {(() => {
+                      const originalPrice = getOriginalPrice(plan.billingCycle === 'monthly' ? 'monthly' : plan.billingCycle === 'annual' ? (plan.isStudent ? 'student' : 'yearly') : 'founder', currency.code);
+                      return (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          {originalPrice && (
+                            <Text style={[styles.planPriceOriginal, { color: colors.textSecondary || '#999' }]}>
+                              {originalPrice}
+                            </Text>
+                          )}
+                          <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                            {plan.price}
+                          </Text>
+                        </View>
+                      );
+                    })()}
+                  </View>
                 </View>
               </TouchableOpacity>
             );

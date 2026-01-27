@@ -1685,10 +1685,8 @@ const ProfileScreen = () => {
           </Text>
         </AppCard>
 
-        {/* Legal Section */}
+        {/* Legal Section - Redesigned without duplication */}
         <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
-          <Text style={[styles.sectionTitle, { marginLeft: 16, marginTop: 16, marginBottom: 8 }]}>{t('profile.legal') || 'Legal'}</Text>
-
           <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
             <TouchableOpacity
               onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
@@ -1735,29 +1733,6 @@ const ProfileScreen = () => {
           </View>
 
           <HealthDisclaimer style={{ marginTop: 16, marginHorizontal: 16 }} />
-        </View>
-
-        {/* Legal Links at Bottom */}
-        <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingTop: 20, paddingBottom: 20 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={[styles.footerLinkText, { color: colors.textTertiary || '#999', fontSize: 13 }]}>
-                {safeT('profile.privacyPolicy', 'Privacy Policy')}
-              </Text>
-            </TouchableOpacity>
-            <Text style={{ color: colors.textTertiary || '#999', fontSize: 13 }}> • </Text>
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.vercel.app/terms')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={[styles.footerLinkText, { color: colors.textTertiary || '#999', fontSize: 13 }]}>
-                {safeT('profile.termsOfService', 'Terms of Service')}
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Build Info for debugging */}

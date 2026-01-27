@@ -974,13 +974,27 @@
       "instructions": "Instructions",
       "name": "Nom",
       "startDate": "Date de début (AAAA-MM-JJ)",
-      "timezone": "Fuseau horaire"
+      "timezone": "Fuseau horaire",
+      "quantity": "Quantité totale (optionnel)",
+      "remainingStock": "Stock restant (optionnel)"
     },
     "noDoses": "Aucun horaire spécifié",
     "placeholders": {
       "dosage": "500 mg",
       "instructions": "Avant le dîner, avec de l'eau",
-      "name": "Metformine"
+      "name": "Metformine",
+      "quantity": "30",
+      "remainingStock": "Calculé automatiquement"
+    },
+    "hints": {
+      "quantity": "Nombre total de comprimés/pilules dans l'emballage",
+      "remainingStock": "Sera calculé automatiquement en fonction des doses et des jours écoulés"
+    },
+    "stock": {
+      "total": "Total",
+      "remaining": "Restant",
+      "daysRemaining": "Jours restants",
+      "lowStock": "Stock faible ! Il est temps de réapprovisionner"
     },
     "tabTitle": "Médicaments",
     "times": "Horaires",
@@ -1057,6 +1071,8 @@
     "genders": {
       "female": "Femme",
       "male": "Homme",
+      "nonBinary": "Non-binaire",
+      "preferNotToSay": "Je préfère ne pas le dire",
       "other": "Autre"
     },
     "goalTypes": {
@@ -1204,7 +1220,7 @@
       "kg": "kg",
       "lbs": "lb",
       "years": "ans",
-      "pounds": "[MISSING] Pounds"
+      "pounds": "Livres"
     },
     "walking": "Combien marchez-vous ?",
     "weight": "Quel est votre poids ?",
@@ -1212,6 +1228,12 @@
     "weightSubtitle": "Le poids actuel est nécessaire pour le calcul des calories",
     "welcome": "Bienvenue sur EatSense",
     "welcomeSubtitle": "Votre compagnon nutritionnel alimenté par l'IA. Personnalisons votre expérience !",
+    "additionalPlans": "Plans supplémentaires",
+    "setupComplete": "Configuration terminée",
+    "profileSavedLocally": "Profil enregistré localement. Vous pouvez terminer la configuration plus tard dans les paramètres.",
+    "continueFree": "Continuer gratuitement",
+    "notificationsEnabledTitle": "Notifications activées !",
+    "notificationsEnabledDescription": "Nous enverrons des rappels sur les repas et des conseils utiles. Vous pouvez modifier les paramètres à tout moment.",
     "terms": "Conditions et Confidentialité",
     "termsSubtitle": "Veuillez lire et accepter pour continuer",
     "termsOfService": "Conditions d'utilisation",
@@ -1772,7 +1794,7 @@
   },
   "suggest": {
     "already_voted": "Déjà voté",
-    "contact_success": "Votre demande a été envoyée à info@eatsense.ch",
+    "contact_success": "Votre demande a été envoyée",
     "description_placeholder": "Décrivez votre suggestion...",
     "error": "Impossible d'envoyer la demande",
     "modal_title": "Suggestions",
@@ -1781,7 +1803,7 @@
     "request_placeholder": "Votre demande",
     "request_required": "Entrez votre demande",
     "submit": "Envoyer",
-    "subtitle": "Écrivez-nous — nom et demande. L'e-mail part vers info@eatsense.ch",
+    "subtitle": "Écrivez-nous — nom et demande",
     "success": "Envoyé avec succès",
     "title": "Suggestions",
     "voted": "Voté"

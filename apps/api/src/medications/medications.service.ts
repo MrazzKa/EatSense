@@ -98,6 +98,38 @@ export class MedicationsService {
   }
 
   /**
+   * Calculate remaining stock based on quantity, doses, and days passed
+   */
+  private calculateRemainingStock(
+    quantity: number | null | undefined,
+    dosesCount: number,
+    startDate: Date,
+    endDate: Date | null,
+  ): number | null {
+    if (!quantity || quantity <= 0) {
+      return null;
+    }
+
+    const now = DateTime.now();
+    const start = DateTime.fromJSDate(startDate);
+    const end = endDate ? DateTime.fromJSDate(endDate) : null;
+
+    // Calculate days passed since start
+    const daysPassed = Math.max(0, Math.floor(now.diff(start, 'days').days));
+    
+    // If end date exists and has passed, medication is finished
+    if (end && now > end) {
+      return 0;
+    }
+
+    // Calculate total doses taken (doses per day * days passed)
+    const totalDosesTaken = dosesCount * daysPassed;
+    const remaining = Math.max(0, quantity - totalDosesTaken);
+
+    return remaining;
+  }
+
+  /**
    * Create medication for user (new model)
    */
   async createForUser(userId: string, dto: CreateMedicationDto) {
@@ -110,7 +142,18 @@ export class MedicationsService {
       timezone,
       isActive,
       doses,
+      quantity,
+      remainingStock,
+      lowStockThreshold,
     } = dto;
+
+    const startDateObj = new Date(startDate);
+    const endDateObj = endDate ? new Date(endDate) : null;
+
+    // Calculate remaining stock if quantity is provided
+    const calculatedRemainingStock = quantity
+      ? this.calculateRemainingStock(quantity, doses.length, startDateObj, endDateObj)
+      : remainingStock || null;
 
     try {
       return await this.prisma.medication.create({
@@ -119,10 +162,14 @@ export class MedicationsService {
           name,
           dosage,
           instructions,
-          startDate: new Date(startDate),
-          endDate: endDate ? new Date(endDate) : null,
+          startDate: startDateObj,
+          endDate: endDateObj,
           timezone: timezone || 'UTC',
           isActive: isActive ?? true,
+          quantity: quantity || null,
+          remainingStock: calculatedRemainingStock,
+          lowStockThreshold: lowStockThreshold || 7,
+          lastStockUpdate: calculatedRemainingStock !== null ? new Date() : null,
           doses: {
             create: doses.map((dose) => ({
               timeOfDay: dose.timeOfDay,
@@ -147,7 +194,26 @@ export class MedicationsService {
   async updateForUser(userId: string, id: string, dto: UpdateMedicationDto) {
     const existing = await this.findOneForUser(userId, id);
 
-    const { doses, ...rest } = dto;
+    const { doses, quantity, remainingStock, lowStockThreshold, ...rest } = dto;
+
+    // Determine final doses count (use new doses if provided, otherwise existing)
+    const finalDosesCount = doses ? doses.length : existing.doses.length;
+    const finalStartDate = rest.startDate ? new Date(rest.startDate) : existing.startDate;
+    const finalEndDate = rest.endDate !== undefined 
+      ? (rest.endDate ? new Date(rest.endDate) : null)
+      : existing.endDate;
+    const finalQuantity = quantity !== undefined ? quantity : existing.quantity;
+
+    // Recalculate remaining stock if quantity or doses changed
+    let calculatedRemainingStock = remainingStock;
+    if (finalQuantity && (quantity !== undefined || doses !== undefined || rest.startDate)) {
+      calculatedRemainingStock = this.calculateRemainingStock(
+        finalQuantity,
+        finalDosesCount,
+        finalStartDate,
+        finalEndDate,
+      );
+    }
 
     // Обновляем сам Medication
     let updated;
@@ -170,6 +236,12 @@ export class MedicationsService {
         ...('isActive' in rest && typeof rest.isActive === 'boolean'
           ? { isActive: rest.isActive }
           : {}),
+        ...(quantity !== undefined ? { quantity: quantity || null } : {}),
+        ...(calculatedRemainingStock !== undefined ? { 
+          remainingStock: calculatedRemainingStock,
+          lastStockUpdate: calculatedRemainingStock !== null ? new Date() : null,
+        } : {}),
+        ...(lowStockThreshold !== undefined ? { lowStockThreshold: lowStockThreshold || 7 } : {}),
       },
       include: { doses: true },
       });

@@ -21,6 +21,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -71,33 +72,26 @@ export default function LifestyleDetailScreen({
       style={[styles.container, { backgroundColor: colors.background || '#FFF' }]}
       edges={['top']}
     >
-      {/* Header with back button */}
-      <View style={[styles.header, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary || '#212121'} />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          {category && (
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryEmoji}>{category.emoji}</Text>
-              <Text style={[styles.categoryText, { color: colors.textSecondary || '#666' }]}>
-                {t(category.nameKey) || category.id}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Program Header: Emoji + Name + Tagline */}
-        <View style={styles.programHeader}>
-          <View style={[styles.emojiContainer, { backgroundColor: colors.surfaceSecondary || '#F5F5F5' }]}>
-            <Text style={styles.emoji}>{program.emoji}</Text>
+        {/* Header Image - Same as DietProgramDetailScreen */}
+        {program.imageUrl ? (
+          <Image source={{ uri: program.imageUrl }} style={styles.headerImage} />
+        ) : (
+          <View style={[styles.headerImagePlaceholder, { backgroundColor: colors.primary + '20' }]}>
+            <Text style={styles.emojiPlaceholder}>{program.emoji || '✨'}</Text>
           </View>
+        )}
+        
+        {/* Back button overlay */}
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        {/* Program Header: Name + Tagline (emoji removed, image shown above) */}
+        <View style={styles.programHeader}>
           <Text
             style={[
               styles.programName,
@@ -303,16 +297,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
+  headerImage: {
+    width: '100%',
+    height: 280,
+    resizeMode: 'cover',
+  },
+  headerImagePlaceholder: {
+    width: '100%',
+    height: 280,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+  },
+  emojiPlaceholder: {
+    fontSize: 80,
   },
   backButton: {
-    marginRight: 12,
+    position: 'absolute',
+    top: 50,
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   headerContent: {
     flex: 1,

@@ -191,6 +191,9 @@ export default function DietsScreen({ navigation }) {
     const [lifestylePrograms, setLifestylePrograms] = useState([]);
     const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
+    
+    // Track if store has loaded at least once - prevents clearing activeDiet from bundle prematurely
+    const storeHasLoadedRef = useRef(false);
 
     // Load data using bundle API - OPTIMIZED for instant loading
     const loadData = useCallback(async (forceRefresh = false) => {
@@ -291,7 +294,13 @@ export default function DietsScreen({ navigation }) {
 
     // Update activeDiet from store when activeProgram changes (only for diet type, bundle format)
     // Lifestyle programs are handled separately via activeProgram prop to LifestyleTabContent
+    // FIX: Don't clear activeDiet if store hasn't loaded yet - preserve bundle data
     useEffect(() => {
+        // Mark that store has been checked (even if null)
+        if (activeProgram !== undefined) {
+            storeHasLoadedRef.current = true;
+        }
+        
         if (activeProgram && activeProgram.type === 'diet') {
             // Convert ProgramProgressStore format to DietsTabContent ActiveDietWidget format
             // ActiveDietWidget expects: { program, progress, currentDay, totalDays, todayPlan?, dailyLogs? }
@@ -314,6 +323,7 @@ export default function DietsScreen({ navigation }) {
                     id: activeProgram.programId,
                     name: nameString, // String for backward compatibility
                     nameLocalized: nameLocalized, // Object for localization
+                    type: 'diet', // Explicitly set type to prevent confusion
                     color: '#4CAF50',
                 },
                 progress: {
@@ -334,13 +344,15 @@ export default function DietsScreen({ navigation }) {
             // For lifestyle, clear activeDiet (DietsTabContent doesn't show lifestyle trackers)
             // Lifestyle tracker is shown in LifestyleTabContent via activeProgram prop
             setActiveDiet(null);
-        } else if (!activeProgram) {
-            // Clear activeDiet if no active program in store
+        } else if (!activeProgram && storeHasLoadedRef.current) {
+            // FIX: Only clear activeDiet if store has loaded and confirmed there's no active program
+            // This prevents tracker from disappearing during "Slow Dashboard Load" warnings
+            // If store hasn't loaded yet, preserve bundle data
             setActiveDiet(null);
         }
-        // Note: If activeProgram is null but bundle has activeProgram, we keep bundle data
+        // Note: If activeProgram is null but store hasn't loaded yet, we keep bundle data
         // This ensures we show data from bundle if store hasn't loaded yet
-    }, [activeProgram]);
+    }, [activeProgram, language]);
 
     // Load data on focus - optimized to avoid unnecessary reloads
     useFocusEffect(
