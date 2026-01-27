@@ -1312,6 +1312,8 @@
     "planMonthlyPrice": "{{price}} / month",
     "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
     "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planStudentDescription": "인증이 필요한 특별 학생 가격.",
+    "planFounderDescription": "독점 배지가 포함된 평생 액세스.",
     "planProName": "EatSense Pro",
     "policy": "개인정보 처리방침",
     "privacyPolicy": "개인정보 처리방침",

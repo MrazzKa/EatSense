@@ -61,7 +61,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         ],
         suitableFor: ['wellness', 'aesthetic', 'instagram'],
         isFeatured: true,
-        popularityScore: 95,
+        popularityScore: 94, // FIX #11: Slightly lower - Clean Girl is popular but more local than global
         tags: ['trending', 'aesthetic', 'wellness'],
         emoji: '✨',
         target: 'female',
@@ -118,8 +118,8 @@ const lifestylePrograms: LifestyleProgram[] = [
             { key: 'three_meals', label: { en: 'Three structured meals', ru: 'Три приёма пищи', kk: 'Үш тағам', fr: 'Trois repas structurés' } },
         ],
         suitableFor: ['luxury', 'quality', 'elegance'],
-        isFeatured: false,
-        popularityScore: 88,
+        isFeatured: true, // FIX #11: Make Old Money featured - it's globally popular
+        popularityScore: 98, // FIX #11: Increase popularity - Old Money is globally trending "quiet luxury"
         tags: ['trending', 'luxury', 'quality'],
         emoji: '🏛️',
         target: 'all',
@@ -148,7 +148,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         ],
         suitableFor: ['mediterranean', 'summer', 'italian'],
         isFeatured: true,
-        popularityScore: 90,
+        popularityScore: 93, // FIX #11: Keep high - Mediterranean summer trend is globally popular
         tags: ['trending', 'mediterranean', 'summer'],
         emoji: '🍅',
         target: 'female',
@@ -205,8 +205,8 @@ const lifestylePrograms: LifestyleProgram[] = [
             { key: 'beach_walk', label: { en: 'Walk on the beach', ru: 'Прогулка по пляжу', kk: 'Пляжда серуен', fr: 'Marche sur la plage' } },
         ],
         suitableFor: ['coastal', 'elegant', 'serene'],
-        isFeatured: false,
-        popularityScore: 82,
+        isFeatured: true, // FIX #11: Make featured - Coastal Grandmother is popular thanks to TikTok
+        popularityScore: 90, // FIX #11: Increase popularity - Coastal Grandmother trend is globally popular
         tags: ['trending', 'coastal', 'elegant'],
         emoji: '🐚',
         target: 'female',
@@ -234,8 +234,8 @@ const lifestylePrograms: LifestyleProgram[] = [
             { key: 'rest', label: { en: 'Rest is productive', ru: 'Отдых продуктивен', kk: 'Демалу өнімді', fr: 'Le repos est productif' } },
         ],
         suitableFor: ['comfort', 'relaxation', 'anti-stress'],
-        isFeatured: false,
-        popularityScore: 80,
+        isFeatured: true, // FIX #11: Make featured - Soft Life is popular anti-hustle culture
+        popularityScore: 90, // FIX #11: Increase popularity - Soft Life is globally popular among millennials and Gen Z
         tags: ['trending', 'soft', 'comfort'],
         emoji: '🌸',
         target: 'all',
@@ -397,7 +397,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         embrace: ['fermented foods', 'kimchi', 'miso', 'bone broth', 'salmon', 'seaweed', 'green tea'],
         minimize: ['dairy', 'sugar', 'processed foods', 'alcohol'],
         dailyTracker: [{ key: 'fermented', label: { en: 'Fermented foods', ru: 'Ферментированные продукты', kk: 'Ферменттелген тағамдар', fr: 'Aliments fermentés' } }],
-        suitableFor: ['skin', 'korean'], isFeatured: true, popularityScore: 88, tags: ['skin', 'kbeauty'], emoji: '✨', target: 'all', ageRange: '18-50',
+        suitableFor: ['skin', 'korean'], isFeatured: true, popularityScore: 91, tags: ['skin', 'kbeauty'], emoji: '✨', target: 'all', ageRange: '18-50', // FIX #11: Increase popularity - K-beauty is globally popular
         imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80', // Korean beauty, glass skin, healthy glow
         color: '#E1BEE7',
     },
@@ -477,7 +477,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         embrace: ['fresh seafood', 'fish', 'lemons', 'olive oil', 'tomatoes', 'fresh pasta', 'wine'],
         minimize: ['processed foods', 'fast food', 'rushing meals'],
         dailyTracker: [{ key: 'italian_meal', label: { en: 'Italian-style meal', ru: 'Итальянский приём пищи', kk: 'Италиялық тағам', fr: 'Repas style italien' } }],
-        suitableFor: ['italian', 'coastal'], isFeatured: true, popularityScore: 85, tags: ['destinations', 'italian'], emoji: '🍋', target: 'all', ageRange: '18-65',
+        suitableFor: ['italian', 'coastal'], isFeatured: true, popularityScore: 96, tags: ['destinations', 'italian'], emoji: '🍋', target: 'all', ageRange: '18-65', // FIX #11: Increase popularity - Mediterranean diet is globally popular
         imageUrl: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=800&q=80', // Italian coastal, Mediterranean summer
         color: '#FFEB3B',
     },
@@ -502,7 +502,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         embrace: ['purple sweet potato', 'tofu', 'vegetables', 'seaweed', 'fish', 'green tea', 'turmeric'],
         minimize: ['excessive meat', 'processed foods', 'large portions'],
         dailyTracker: [{ key: 'hara_hachi_bu', label: { en: '80% full', ru: '80% сытости', kk: '80% тоқ', fr: '80 % plein' } }],
-        suitableFor: ['longevity', 'japanese'], isFeatured: false, popularityScore: 80, tags: ['destinations', 'japanese'], emoji: '🇯🇵', target: 'all', ageRange: '25-80',
+        suitableFor: ['longevity', 'japanese'], isFeatured: true, popularityScore: 95, tags: ['destinations', 'japanese'], emoji: '🇯🇵', target: 'all', ageRange: '25-80', // FIX #11: Increase popularity and make featured - Japanese longevity diet is globally popular
         imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80', color: '#9C27B0', // Okinawa longevity, Japanese wellness, longevity
     },
     {
@@ -526,7 +526,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         embrace: ['fatty fish', 'salmon', 'whole grain bread', 'berries', 'root vegetables', 'dairy', 'skyr', 'coffee'],
         minimize: ['excessive processed foods', 'rushed eating'],
         dailyTracker: [{ key: 'hygge', label: { en: 'Hygge moment', ru: 'Момент хюгге', kk: 'Хюгге сәті', fr: 'Moment hygge' } }],
-        suitableFor: ['nordic', 'cozy'], isFeatured: false, popularityScore: 75, tags: ['destinations', 'nordic'], emoji: '🇩🇰', target: 'all', ageRange: '25-60',
+        suitableFor: ['nordic', 'cozy'], isFeatured: true, popularityScore: 92, tags: ['destinations', 'nordic'], emoji: '🇩🇰', target: 'all', ageRange: '25-60', // FIX #11: Increase popularity and make featured - Scandinavian lifestyle is globally popular
         imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', color: '#607D8B', // Scandi Hygge, cozy, comfort, Nordic lifestyle
     },
     // ============================================
@@ -566,7 +566,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         embrace: ['fresh bread', 'cheese', 'wine', 'butter', 'eggs', 'fish', 'vegetables', 'dark chocolate'],
         minimize: ['snacking', 'processed foods', 'soft drinks', 'guilt', 'large portions'],
         dailyTracker: [{ key: 'three_meals', label: { en: 'Three meals, no snacking', ru: 'Три приёма пищи', kk: 'Үш тағам', fr: 'Trois repas, pas de grignotage' } }],
-        suitableFor: ['french', 'intuitive'], isFeatured: true, popularityScore: 85, tags: ['aesthetics', 'french'], emoji: '🗼', target: 'female', ageRange: '20-60',
+        suitableFor: ['french', 'intuitive'], isFeatured: true, popularityScore: 97, tags: ['aesthetics', 'french'], emoji: '🗼', target: 'female', ageRange: '20-60', // FIX #11: Increase popularity - French Girl is globally popular
         imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', // French girl aesthetic, intuitive eating, elegant
         color: '#9C27B0',
     },

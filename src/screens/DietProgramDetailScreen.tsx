@@ -24,7 +24,7 @@ const getLocalizedText = (value: any, lang: string): string => {
 export default function DietProgramDetailScreen({ navigation, route }: DietProgramDetailScreenProps) {
     const { colors } = useTheme();
     const { t, language } = useI18n();
-    const { activeProgram, refreshProgress, invalidateCache } = useProgramProgress();
+    const { activeProgram, refreshProgress } = useProgramProgress();
     const [isStarting, setIsStarting] = useState(false);
     useRefreshProgressOnFocus(); // Refresh activeProgram when screen is focused
     const [program, setProgram] = useState<any>(null);

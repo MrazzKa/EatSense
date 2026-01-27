@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import i18n, { getSupportedLocales, setAppLocale } from './config';
-import { LANGUAGE_OPTIONS } from './languages';
+import i18n from './config';
 
 export const useI18n = () => {
   // Хуки должны вызываться безусловно
@@ -11,12 +10,10 @@ export const useI18n = () => {
 
   const { t } = translation;
 
-  const changeLanguage = useCallback(async (locale: string) => {
-    try {
-      await setAppLocale(locale);
-    } catch (error) {
-      console.warn('[useI18n] Failed to change language:', error);
-    }
+  // FIX: Language switching disabled - language is auto-detected from device
+  const changeLanguage = useCallback(async (_locale: string) => {
+    // No-op: Language cannot be changed manually
+    console.warn('[useI18n] changeLanguage called but language switching is disabled. Language is auto-detected from device.');
   }, []);
 
   // FIX: Enhanced t function that warns in dev mode when key is returned (missing translation)
@@ -30,15 +27,14 @@ export const useI18n = () => {
     
     // If result is the same as key (missing translation), use fallback if provided
     return result === key && fallback ? fallback : result;
-  }, [t, i18n?.language]);
+  }, [t]);
 
   return {
     t: t || ((key: string) => key),
     safeT, // Enhanced version with warnings
     language: i18n?.language || 'en',
-    changeLanguage,
-    availableLanguages: LANGUAGE_OPTIONS.filter(option =>
-      getSupportedLocales().includes(option.code)
-    ),
+    changeLanguage, // No-op - language switching disabled
+    // FIX: availableLanguages removed - language is auto-detected and cannot be changed
+    availableLanguages: [], // Empty array - language switching is disabled
   } as const;
 };

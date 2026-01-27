@@ -13,11 +13,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import * as Localization from 'expo-localization';
 import { useI18n } from '../../app/i18n/hooks';
 import { openLegalLink } from '../utils/legal';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
-import ApiService from '../services/apiService';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import { getCurrency, formatPrice, getDeviceRegion, getOriginalPrice } from '../utils/currency';
@@ -248,7 +246,7 @@ export default function SubscriptionScreen() {
         return () => {
             IAPService.destroy();
         };
-    }, [initIAP]);
+    }, [initIAP, loadBackendPlans]);
 
     // Fallback to local plan data when IAP is unavailable (e.g., simulator, sandbox issues)
     const loadBackendPlans = async () => {
@@ -404,6 +402,12 @@ export default function SubscriptionScreen() {
         };
 
         try {
+            // FIX #9: Ensure IAP is initialized before purchase
+            const initResult = await IAPService.init();
+            if (!initResult) {
+                throw new Error('Failed to initialize IAP service');
+            }
+
             if (plan.isSubscription) {
                 await IAPService.purchaseSubscription(targetPlanId, onSuccess, onError);
             } else {
@@ -412,6 +416,7 @@ export default function SubscriptionScreen() {
         } catch (error) {
             console.error('[SubscriptionScreen] Purchase initiation error:', error);
             setPurchasing(false);
+            onError(error);
         }
     };
 

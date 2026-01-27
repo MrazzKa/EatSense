@@ -65,7 +65,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         // This prevents unnecessary refresh when navigating from start program
         const timer = setTimeout(initialize, 50); // Reduced delay for faster initialization
         return () => clearTimeout(timer);
-    }, [route.params?.id, activeProgram?.programId]); // Also depend on activeProgram.programId to detect when it changes
+    }, [route.params?.id, activeProgram?.programId, invalidateCache, refreshProgress]); // Also depend on activeProgram.programId to detect when it changes
 
     // FIX: Don't refresh on every focus - only if data is missing or incorrect
     // This prevents constant reloads when navigating back to this screen

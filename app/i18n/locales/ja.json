@@ -1312,6 +1312,8 @@
     "planMonthlyPrice": "{{price}} / month",
     "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
     "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planStudentDescription": "確認が必要な特別な学生価格。",
+    "planFounderDescription": "限定バッジ付きの生涯アクセス。",
     "planProName": "EatSense Pro",
     "policy": "プライバシーポリシー",
     "privacyPolicy": "プライバシーポリシー",

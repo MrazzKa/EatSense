@@ -54,7 +54,7 @@ for (const prismaPath of possiblePaths) {
             prisma = new PrismaClient();
             break;
         }
-    } catch (e) {
+    } catch {
         // Try next path
         continue;
     }
@@ -376,7 +376,7 @@ function checkLifestyleProgram(lifestyle, stats = null) {
     return issues;
 }
 
-async function checkPrograms(programs, checkFunction, programType) {
+async function checkPrograms(programs, checkFunction, _programType) {
     const allIssues = [];
     const issuesByLocale = {
         en: [],
@@ -554,7 +554,7 @@ try {
 } finally {
     try {
         await prisma.$disconnect();
-    } catch (e) {
+    } catch {
         // Ignore disconnect errors
     }
 }

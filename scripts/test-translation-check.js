@@ -28,7 +28,7 @@ for (const prismaPath of possiblePaths) {
             prisma = new PrismaClient();
             break;
         }
-    } catch (e) {
+    } catch {
         continue;
     }
 }

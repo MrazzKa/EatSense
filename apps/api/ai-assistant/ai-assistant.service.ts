@@ -469,7 +469,8 @@ CRITICAL RULES:
     };
     const responseLanguage = languageMap[userLanguage] || 'English';
 
-    const prompt = this.buildLabResultsPrompt(text, responseLanguage);
+    // FIX #4: Pass inputType='text' to distinguish manual input from uploaded document
+    const prompt = this.buildLabResultsPrompt(text, responseLanguage, 'text');
 
     try {
       const response = await this.openai.chat.completions.create({
@@ -567,7 +568,8 @@ CRITICAL RULES:
     const responseLanguage = languageMap[userLanguage] || 'English';
 
     // Build image-specific prompt for OCR + analysis
-    const imagePrompt = this.buildLabResultsImagePrompt(responseLanguage);
+    // FIX #4: Pass inputType='file' to indicate this is from uploaded document
+    const imagePrompt = this.buildLabResultsImagePrompt(responseLanguage, 'file');
 
     try {
       const response = await this.openai.chat.completions.create({
@@ -694,7 +696,7 @@ CRITICAL RULES:
   /**
    * Build a specialized prompt for analyzing lab results from images
    */
-  private buildLabResultsImagePrompt(language: string): string {
+  private buildLabResultsImagePrompt(language: string, inputType: 'text' | 'file' = 'file'): string {
     const langName = language === 'Russian' ? 'Russian' : language === 'Kazakh' ? 'Kazakh' : 'English';
     const disclaimer = {
       Russian: 'Это не медицинский диагноз. Для решений обратитесь к врачу.',
@@ -702,7 +704,14 @@ CRITICAL RULES:
       English: 'This is not a medical diagnosis. Consult a doctor for decisions.',
     }[langName] || 'This is not a medical diagnosis. Consult a doctor for decisions.';
 
+    // FIX #4: For file uploads, mention that this is from an uploaded document
+    const inputContext = inputType === 'file'
+      ? 'The user has uploaded a medical document image (photo/scan of lab results, X-ray report, prescription, etc.).'
+      : 'The user has manually entered medical values/text.';
+
     return `You are a Medical Document Interpreter with OCR capabilities inside a mobile health app.
+
+${inputContext}
 
 === YOUR TASK ===
 1. FIRST: Extract ALL text visible in the image using OCR
@@ -775,7 +784,7 @@ Now analyze the uploaded image and return ONLY the JSON response in ${langName}:
 
 
 
-  private buildLabResultsPrompt(text: string, language: string): string {
+  private buildLabResultsPrompt(text: string, language: string, inputType: 'text' | 'file' = 'file'): string {
     const langName = language === 'Russian' ? 'Russian' : language === 'Kazakh' ? 'Kazakh' : 'English';
     const disclaimer = {
       Russian: 'Это не медицинский диагноз. Для решений обратитесь к врачу.',
@@ -783,7 +792,14 @@ Now analyze the uploaded image and return ONLY the JSON response in ${langName}:
       English: 'This is not a medical diagnosis. Consult a doctor for decisions.',
     }[langName] || 'This is not a medical diagnosis. Consult a doctor for decisions.';
 
-    return `You are a Medical Document Interpreter (non-diagnostic) inside a mobile health app. Your task is to carefully and safely interpret any medical document uploaded by the user (text/PDF/photo of reports, test results, prescriptions, discharge summaries, etc.).
+    // FIX #4: Different wording for manual text input vs uploaded document
+    const inputContext = inputType === 'text' 
+      ? 'The user has manually entered the following medical values/text. These are NOT from a scanned document, but directly typed by the user.'
+      : 'The user has uploaded a medical document (text/PDF/photo of reports, test results, prescriptions, discharge summaries, etc.).';
+
+    return `You are a Medical Document Interpreter (non-diagnostic) inside a mobile health app. Your task is to carefully and safely interpret medical information provided by the user.
+
+${inputContext}
 
 === CRITICAL RULES ===
 1. You do NOT diagnose, prescribe treatment, or replace a doctor.
@@ -887,6 +903,10 @@ Return ONLY valid JSON:
 
 === INPUT TEXT ===
 ${text || '[No text provided - this may be an image-only upload]'}
+
+${inputType === 'text' 
+  ? `IMPORTANT: The user manually entered this text. In your response, use phrases like "You entered", "You provided", or "Based on the values you entered" instead of "The document contains" or "The document shows".`
+  : 'The text below was extracted from an uploaded medical document.'}
 
 Now analyze and return ONLY the JSON response in ${langName}:`;
   }

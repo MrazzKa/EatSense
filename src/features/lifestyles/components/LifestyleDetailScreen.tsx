@@ -65,7 +65,8 @@ export default function LifestyleDetailScreen({
     return text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || [];
   };
 
-  const category = LIFESTYLE_CATEGORIES.find(c => c.id === program.categoryId);
+  // Category lookup - available for future use
+  // const category = LIFESTYLE_CATEGORIES.find(c => c.id === program.categoryId);
 
   return (
     <SafeAreaView

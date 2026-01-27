@@ -158,25 +158,38 @@ const MedicationScheduleScreen: React.FC = () => {
     return d;
   };
 
+  // FIX #7: Ensure tempDate is properly initialized when opening time picker
   const handleTimeVerify = (index: number) => {
     const dose = formDoses[index];
+    if (!dose || !dose.timeOfDay) {
+      console.warn(`[MedicationSchedule] Invalid dose at index ${index}`);
+      return;
+    }
     const date = parseTime(dose.timeOfDay);
     setTempDate(date);
     setActiveDoseIndex(index);
     setShowTimePicker(true);
+    console.log(`[MedicationSchedule] Opening time picker for dose ${index}, current time: ${dose.timeOfDay}`);
   };
 
+  // FIX #7: Improved time picker handling for both iOS and Android
   const onTimeChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
-      setShowTimePicker(false);
+      // Android: Save immediately when user selects time
       if (event.type === 'set' && selectedDate && activeDoseIndex !== null) {
         const hours = selectedDate.getHours().toString().padStart(2, '0');
         const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-        updateDoseField(activeDoseIndex, { timeOfDay: `${hours}:${minutes}` });
+        const timeString = `${hours}:${minutes}`;
+        updateDoseField(activeDoseIndex, { timeOfDay: timeString });
+        setActiveDoseIndex(null);
+        setShowTimePicker(false);
+      } else if (event.type === 'dismissed') {
+        // User cancelled - close picker without saving
+        setShowTimePicker(false);
         setActiveDoseIndex(null);
       }
     } else {
-      // iOS
+      // iOS: Update tempDate as user scrolls, save on confirm
       if (selectedDate) {
         setTempDate(selectedDate);
       }
@@ -184,10 +197,15 @@ const MedicationScheduleScreen: React.FC = () => {
   };
 
   const confirmIosTime = () => {
-    if (activeDoseIndex !== null) {
+    // FIX #7: Ensure time is saved correctly on iOS
+    if (activeDoseIndex !== null && tempDate) {
       const hours = tempDate.getHours().toString().padStart(2, '0');
       const minutes = tempDate.getMinutes().toString().padStart(2, '0');
-      updateDoseField(activeDoseIndex, { timeOfDay: `${hours}:${minutes}` });
+      const timeString = `${hours}:${minutes}`;
+      updateDoseField(activeDoseIndex, { timeOfDay: timeString });
+      console.log(`[MedicationSchedule] Saved time for dose ${activeDoseIndex}: ${timeString}`);
+    } else {
+      console.warn('[MedicationSchedule] Cannot save time: activeDoseIndex or tempDate is null');
     }
     setShowTimePicker(false);
     setActiveDoseIndex(null);
@@ -872,6 +890,8 @@ const MedicationScheduleScreen: React.FC = () => {
                   display="spinner"
                   onChange={onTimeChange}
                   textColor={colors.textPrimary}
+                  is24Hour={false}
+                  locale="en_US"
                 />
               </View>
             </View>

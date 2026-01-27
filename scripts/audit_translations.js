@@ -80,7 +80,7 @@ function checkUnused(enContent) {
                 unused.push(key);
             }
         });
-    } catch (e) {
+    } catch {
         console.log("Could not run fast grep check.");
     }
 
@@ -98,7 +98,7 @@ function checkHardcoded() {
     console.log('\n--- 3. Scanning for hardcoded JSX strings (Experimental) ---');
     // Look for <Text>Something</Text> where Something is not {variable}
     try {
-        const output = execSync(`grep -rP "<Text>[\w\s]+</Text>" "${SRC_DIR}" --include=*.{js,tsx,jsx}`).toString();
+        const output = execSync(`grep -rP "<Text>[\\w\\s]+</Text>" "${SRC_DIR}" --include=*.{js,tsx,jsx}`).toString();
         const lines = output.split('\n').filter(x => x.trim());
         if (lines.length > 0) {
             console.log(`Found ${lines.length} potential hardcoded strings in <Text>:`);
@@ -106,7 +106,7 @@ function checkHardcoded() {
         } else {
             console.log("No obvious hardcoded <Text> nodes found.");
         }
-    } catch (e) {
+    } catch {
         // grep might fail if no matches
         console.log("No hardcoded strings found (or grep failed).");
     }

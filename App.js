@@ -1,6 +1,5 @@
 // App.js - Main navigation structure
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -44,13 +43,6 @@ const SubscriptionScreen = React.lazy(() => import('./src/screens/SubscriptionSc
 const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScreen'));
 
 import { clientLog } from './src/utils/clientLog';
-
-// Wrapper component for lazy-loaded screens
-const LazyScreen = ({ component: Component, ...props }) => (
-  <React.Suspense fallback={<EmptySplash />}>
-    <Component {...props} />
-  </React.Suspense>
-);
 
 const Stack = createStackNavigator();
 

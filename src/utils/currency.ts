@@ -744,8 +744,8 @@ export function getCurrencyCode(): string {
     }
 
     // 3. Language-based fallback (only for specific languages)
-    if (languageTag) {
-      const localeParts = languageTag.split('-');
+    if (primaryLocale?.languageTag) {
+      const localeParts = primaryLocale.languageTag.split('-');
       const language = localeParts[0].toLowerCase();
       if (LANGUAGE_TO_CURRENCY[language]) {
         if (__DEV__) {
@@ -807,7 +807,7 @@ function needsDecimals(code: string): boolean {
  */
 export function getPriceValue(planId: PlanId): number {
   const currency = getCurrency();
-  return currency[planId];
+  return currency[planId] ?? 0;
 }
 
 /**

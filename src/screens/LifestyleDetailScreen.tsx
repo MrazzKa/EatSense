@@ -19,7 +19,7 @@ export default function LifestyleDetailScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { t, language } = useI18n();
-  const { refreshProgress, invalidateCache } = useProgramProgress();
+  const { refreshProgress } = useProgramProgress();
   const params = route.params as { id?: string; programId?: string } | undefined;
   const programId = params?.id || params?.programId;
 
@@ -70,7 +70,7 @@ export default function LifestyleDetailScreen() {
     };
 
     loadData();
-  }, [programId, navigation]);
+  }, [programId, navigation, t]);
 
   if (loading) {
     return (

@@ -43,7 +43,7 @@ export function MainTabsNavigator() {
             // Silently fail - user will load it when they navigate
           });
         }
-      } catch (e) {
+      } catch {
         // Silently fail - not critical
       }
     };
