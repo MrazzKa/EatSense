@@ -95,12 +95,16 @@ COPY --chown=root:root apps/api/scripts ./apps/api/scripts
 COPY --chown=root:root apps/api/tsconfig.json ./apps/api/
 COPY --chown=root:root apps/api/prisma/seeds ./apps/api/prisma/seeds
 
+# Copy assets (fonts) needed for PDF generation
+COPY --chown=root:root apps/api/assets ./apps/api/assets
+
 # Create directories for uploads and logs, then change ownership only for necessary directories
 # Don't chown node_modules - it's huge and takes too long. Prisma client already generated as root.
 RUN mkdir -p apps/api/uploads apps/api/logs && \
     chown -R eatsense:nodejs /app/apps/api/dist && \
     chown -R eatsense:nodejs /app/apps/api/prisma && \
     chown -R eatsense:nodejs /app/apps/api/scripts && \
+    chown -R eatsense:nodejs /app/apps/api/assets && \
     chown -R eatsense:nodejs /app/apps/api/uploads && \
     chown -R eatsense:nodejs /app/apps/api/logs && \
     chown -R eatsense:nodejs /app/apps/api/tsconfig.json

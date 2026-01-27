@@ -40,6 +40,9 @@ type Medication = {
   timezone: string;
   isActive: boolean;
   doses: MedicationDose[];
+  quantity?: number | null;
+  remainingStock?: number | null;
+  lowStockThreshold?: number | null;
 };
 
 const MedicationScheduleScreen: React.FC = () => {
@@ -61,6 +64,8 @@ const MedicationScheduleScreen: React.FC = () => {
   const [formEndDate, setFormEndDate] = useState('');
   const [formTimezone, setFormTimezone] = useState('');
   const [formDoses, setFormDoses] = useState<MedicationDose[]>([]);
+  const [formQuantity, setFormQuantity] = useState<string>('');
+  const [formRemainingStock, setFormRemainingStock] = useState<string>('');
 
   // TimePicker state
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -95,6 +100,8 @@ const MedicationScheduleScreen: React.FC = () => {
     setFormEndDate('');
     setFormTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
     setFormDoses([{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }]);
+    setFormQuantity('');
+    setFormRemainingStock('');
     setModalVisible(true);
   };
 
@@ -115,6 +122,8 @@ const MedicationScheduleScreen: React.FC = () => {
         }))
         : [{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }],
     );
+    setFormQuantity(med.quantity?.toString() || '');
+    setFormRemainingStock(med.remainingStock?.toString() || '');
     setModalVisible(true);
   };
 
@@ -190,7 +199,7 @@ const MedicationScheduleScreen: React.FC = () => {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       name: formName.trim(),
       dosage: formDosage.trim() || undefined,
       instructions: formInstructions.trim() || undefined,
@@ -206,6 +215,20 @@ const MedicationScheduleScreen: React.FC = () => {
           afterMeal: !!d.afterMeal,
         })),
     };
+
+    // Add quantity and remainingStock if provided
+    if (formQuantity.trim()) {
+      const quantity = parseInt(formQuantity.trim(), 10);
+      if (!isNaN(quantity) && quantity > 0) {
+        payload.quantity = quantity;
+      }
+    }
+    if (formRemainingStock.trim()) {
+      const remainingStock = parseInt(formRemainingStock.trim(), 10);
+      if (!isNaN(remainingStock) && remainingStock >= 0) {
+        payload.remainingStock = remainingStock;
+      }
+    }
 
     try {
       setLoading(true);
@@ -302,9 +325,24 @@ const MedicationScheduleScreen: React.FC = () => {
 
     const medicationName = getMedicationName(item.name);
 
+    // Calculate days until stock runs out
+    const dosesPerDay = item.doses?.length || 0;
+    const daysRemaining = item.remainingStock && dosesPerDay > 0
+      ? Math.floor(item.remainingStock / dosesPerDay)
+      : null;
+    
+    const isLowStock = item.remainingStock !== null && item.remainingStock !== undefined
+      && item.lowStockThreshold !== null && item.lowStockThreshold !== undefined
+      && daysRemaining !== null
+      && daysRemaining <= item.lowStockThreshold;
+
     return (
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: colors.card || colors.surface }]}
+        style={[
+          styles.card,
+          { backgroundColor: colors.card || colors.surface },
+          isLowStock && { borderLeftWidth: 4, borderLeftColor: colors.warning || '#FF9500' },
+        ]}
         onPress={() => openEditModal(item)}
       >
         <View style={styles.cardHeader}>
@@ -328,6 +366,44 @@ const MedicationScheduleScreen: React.FC = () => {
             {item.instructions}
           </Text>
         ) : null}
+        {/* Stock information */}
+        {item.quantity !== null && item.quantity !== undefined && (
+          <View style={styles.stockContainer}>
+            <Text style={[styles.stockLabel, { color: colors.textSecondary }]}>
+              {t('medications.stock.total') || 'Total'}: {item.quantity}
+            </Text>
+            {item.remainingStock !== null && item.remainingStock !== undefined && (
+              <>
+                <Text style={[styles.stockLabel, { color: colors.textSecondary }]}>
+                  {t('medications.stock.remaining') || 'Remaining'}: {item.remainingStock}
+                </Text>
+                {daysRemaining !== null && (
+                  <Text
+                    style={[
+                      styles.stockLabel,
+                      {
+                        color: isLowStock
+                          ? (colors.warning || '#FF9500')
+                          : colors.textSecondary,
+                        fontWeight: isLowStock ? '600' : '400',
+                      },
+                    ]}
+                  >
+                    {t('medications.stock.daysRemaining') || 'Days remaining'}: {daysRemaining}
+                  </Text>
+                )}
+              </>
+            )}
+            {isLowStock && (
+              <View style={[styles.lowStockWarning, { backgroundColor: (colors.warning || '#FF9500') + '20' }]}>
+                <Ionicons name="warning" size={16} color={colors.warning || '#FF9500'} />
+                <Text style={[styles.lowStockText, { color: colors.warning || '#FF9500' }]}>
+                  {t('medications.stock.lowStock') || 'Low stock! Time to refill'}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -383,6 +459,34 @@ const MedicationScheduleScreen: React.FC = () => {
     cardMeta: {
       fontSize: 13,
       marginTop: 2,
+    },
+    stockContainer: {
+      marginTop: 8,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: '#E5E5EA',
+    },
+    stockLabel: {
+      fontSize: 12,
+      marginTop: 2,
+    },
+    lowStockWarning: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 8,
+      padding: 8,
+      borderRadius: 8,
+    },
+    lowStockText: {
+      fontSize: 12,
+      marginLeft: 6,
+      fontWeight: '500',
+    },
+    hint: {
+      fontSize: 11,
+      marginTop: -4,
+      marginBottom: 8,
+      fontStyle: 'italic',
     },
     errorText: {
       paddingHorizontal: 16,
@@ -625,6 +729,36 @@ const MedicationScheduleScreen: React.FC = () => {
                   placeholder="Asia/Almaty"
                   placeholderTextColor={colors.textTertiary || '#8E8E93'}
                 />
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.quantity') || 'Total quantity (optional)'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formQuantity}
+                  onChangeText={setFormQuantity}
+                  placeholder={t('medications.placeholders.quantity') || '30'}
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                  keyboardType="numeric"
+                />
+                <Text style={[styles.hint, { color: colors.textTertiary || '#8E8E93' }]}>
+                  {t('medications.hints.quantity') || 'Total number of tablets/pills in package'}
+                </Text>
+
+                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
+                  {t('medications.fields.remainingStock') || 'Remaining stock (optional)'}
+                </Text>
+                <TextInput
+                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
+                  value={formRemainingStock}
+                  onChangeText={setFormRemainingStock}
+                  placeholder={t('medications.placeholders.remainingStock') || 'Auto-calculated'}
+                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
+                  keyboardType="numeric"
+                />
+                <Text style={[styles.hint, { color: colors.textTertiary || '#8E8E93' }]}>
+                  {t('medications.hints.remainingStock') || 'Will be calculated automatically based on doses and days passed'}
+                </Text>
 
                 <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
                   {t('medications.fields.doses') || 'Dose times'}

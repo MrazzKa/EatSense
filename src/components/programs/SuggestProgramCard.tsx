@@ -51,7 +51,7 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
         setSubmitting(true);
         try {
             await ApiService.sendContactRequest(userName.trim(), request.trim());
-            Alert.alert('🎉', t('suggest.contact_success') || 'Ваш запрос отправлен на info@eatsense.ch');
+            Alert.alert('🎉', t('suggest.contact_success') || 'Ваш запрос отправлен');
             setModalVisible(false);
             setUserName('');
             setRequest('');
@@ -176,7 +176,7 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                             {t('suggest.title') || 'Предложения'}
                         </Text>
                         <Text style={styles.subtitle}>
-                            {t('suggest.subtitle') || 'Напишите нам — имя, запрос. Письмо уйдёт на info@eatsense.ch'}
+                            {t('suggest.subtitle') || 'Напишите нам — имя и запрос'}
                         </Text>
                     </View>
                     <Ionicons

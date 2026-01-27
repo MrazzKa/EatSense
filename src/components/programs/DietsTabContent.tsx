@@ -143,7 +143,12 @@ export default function DietsTabContent({
             {/* Active Diet Widget */}
             {/* FIX: Only show activeDiet if it's a diet (not lifestyle) */}
             {/* Lifestyle trackers should only appear in LifestyleTabContent */}
-            {activeDiet && activeDiet.program?.type !== 'LIFESTYLE' && activeDiet.program?.type !== 'lifestyle' && (
+            {/* Check both program.type and ensure it's not lifestyle */}
+            {activeDiet && 
+             activeDiet.program?.type !== 'LIFESTYLE' && 
+             activeDiet.program?.type !== 'lifestyle' &&
+             activeDiet.type !== 'lifestyle' &&
+             activeDiet.type !== 'LIFESTYLE' && (
                 <View style={styles.section}>
                     <ActiveDietWidget
                         userDiet={activeDiet}

@@ -290,12 +290,23 @@ export default function DashboardScreen() {
       setRecentItems(normalizedMeals);
       // FIX: Clear justCompletedItems for IDs now in meals - prevents flicker when
       // we used to clear at 2s before dashboard load finished
+      // Also check meal names and image URLs to catch duplicates even if IDs don't match
       const idsInMeals = new Set(
         normalizedMeals.map((m) => m.analysisId || m.id).filter(Boolean)
       );
-      if (idsInMeals.size > 0) {
+      const imageUrlsInMeals = new Set(
+        normalizedMeals.map((m) => m.imageUrl || m.imageUri).filter(Boolean)
+      );
+      if (idsInMeals.size > 0 || imageUrlsInMeals.size > 0) {
         setJustCompletedItems((prev) =>
-          prev.filter((p) => !idsInMeals.has(p.analysisId))
+          prev.filter((p) => {
+            // Remove if ID matches
+            if (idsInMeals.has(p.analysisId)) return false;
+            // Remove if image URL matches (catch duplicates even if IDs differ)
+            if (p.localPreviewUri && imageUrlsInMeals.has(p.localPreviewUri)) return false;
+            if (p.imageUrl && imageUrlsInMeals.has(p.imageUrl)) return false;
+            return true;
+          })
         );
       }
     }
@@ -444,14 +455,15 @@ export default function DashboardScreen() {
 
       const actuallyCompleted = completed.filter(c => c.status !== 'failed');
 
-      if (actuallyCompleted.length > 0 && !hasNewAnalysis) {
+        if (actuallyCompleted.length > 0 && !hasNewAnalysis) {
         // Only add to justCompleted if we didn't just start a new analysis
         // This prevents showing completed cards when a new analysis is starting
         setJustCompletedItems(prev => {
           const existingIds = new Set(prev.map(p => p.analysisId));
+          const now = Date.now();
           const newItems = actuallyCompleted
             .filter(c => !existingIds.has(c.analysisId))
-            .map(c => ({ ...c, status: 'completed' }));
+            .map(c => ({ ...c, status: 'completed', completedAt: now, timestamp: now }));
 
           if (newItems.length === 0) return prev;
 
@@ -463,7 +475,24 @@ export default function DashboardScreen() {
         const timer = setTimeout(() => {
           loadDashboardData();
         }, 300);
-        return () => clearTimeout(timer);
+        
+        // FIX: Also set a timeout to auto-clear justCompletedItems after 5 seconds
+        // This ensures cards don't stick around if dashboard refresh is slow
+        const clearTimer = setTimeout(() => {
+          setJustCompletedItems((prev) => {
+            // Only clear items that are older than 5 seconds
+            const now = Date.now();
+            return prev.filter((item) => {
+              const itemTime = item.completedAt || item.timestamp || 0;
+              return now - itemTime < 5000; // Keep items less than 5 seconds old
+            });
+          });
+        }, 5000);
+        
+        return () => {
+          clearTimeout(timer);
+          clearTimeout(clearTimer);
+        };
       }
     }
 
@@ -769,8 +798,14 @@ export default function DashboardScreen() {
           activeDiet={activeDietForWidget || activeDiet}
           onOpenTracker={() => {
             const programId = activeDietForWidget?.diet?.id || activeDiet?.diet?.id || activeProgram?.programId;
+            const programType = activeDietForWidget?.type || activeDiet?.type || activeProgram?.type;
             if (navigation && typeof navigation.navigate === 'function' && programId) {
-              navigation.navigate('DietProgramProgress', { id: programId });
+              // FIX: Navigate to correct screen based on program type
+              if (programType === 'lifestyle' || programType === 'LIFESTYLE') {
+                navigation.navigate('LifestyleDetail', { id: programId });
+              } else {
+                navigation.navigate('DietProgramProgress', { id: programId });
+              }
             }
           }}
           onBrowseDiets={() => {
@@ -815,21 +850,40 @@ export default function DashboardScreen() {
           )}
 
           {/* Just Completed Items - Bridge the gap before server refresh */}
-          {justCompletedItems && justCompletedItems.length > 0 && (
-            justCompletedItems.map((item) => (
-              <TouchableOpacity
-                key={`completed-${item.analysisId}`}
-                style={[styles.articleRow, { borderColor: colors.success || '#34C759', borderWidth: 1 }]}
-                onPress={() => {
-                  if (navigation && typeof navigation.navigate === 'function') {
-                    navigation.navigate('AnalysisResults', {
-                      analysisId: item.analysisId,
-                      status: 'completed',
-                      localPreviewUri: item.localPreviewUri,
-                    });
-                  }
-                }}
-              >
+          {/* FIX: Filter out items that are already in recentItems to prevent duplicates */}
+          {(() => {
+            const justCompletedIds = new Set((justCompletedItems || []).map(a => a.analysisId));
+            const recentItemIds = new Set((recentItems || []).map(m => m.analysisId || m.id).filter(Boolean));
+            const recentImageUrls = new Set((recentItems || []).map(m => m.imageUrl || m.imageUri).filter(Boolean));
+            
+            const filteredJustCompleted = (justCompletedItems || []).filter(item => {
+              // Remove if already in recentItems by ID
+              if (recentItemIds.has(item.analysisId)) return false;
+              // Remove if image URL matches (catch duplicates even if IDs differ)
+              if (item.localPreviewUri && recentImageUrls.has(item.localPreviewUri)) return false;
+              if (item.imageUrl && recentImageUrls.has(item.imageUrl)) return false;
+              // Remove if older than 5 seconds
+              const now = Date.now();
+              const itemTime = item.completedAt || item.timestamp || 0;
+              if (itemTime > 0 && now - itemTime > 5000) return false;
+              return true;
+            });
+            
+            return filteredJustCompleted.length > 0 ? (
+              filteredJustCompleted.map((item) => (
+                <TouchableOpacity
+                  key={`completed-${item.analysisId}`}
+                  style={[styles.articleRow, { borderColor: colors.success || '#34C759', borderWidth: 1 }]}
+                  onPress={() => {
+                    if (navigation && typeof navigation.navigate === 'function') {
+                      navigation.navigate('AnalysisResults', {
+                        analysisId: item.analysisId,
+                        status: 'completed',
+                        localPreviewUri: item.localPreviewUri,
+                      });
+                    }
+                  }}
+                >
                 {item.localPreviewUri || item.imageUrl ? (
                   <Image
                     source={{ uri: item.localPreviewUri || item.imageUrl }}
@@ -851,13 +905,26 @@ export default function DashboardScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
-            ))
-          )}
+              ))
+            ) : null;
+          })()}
 
           {/* Completed meals - filter out items that are in justCompletedItems to avoid duplicate keys */}
           {(() => {
             const justCompletedIds = new Set((justCompletedItems || []).map(a => a.analysisId));
-            const filteredItems = (recentItems || []).filter(item => !justCompletedIds.has(item.analysisId || item.id));
+            const justCompletedImageUrls = new Set(
+              (justCompletedItems || [])
+                .map(a => a.localPreviewUri || a.imageUrl)
+                .filter(Boolean)
+            );
+            const filteredItems = (recentItems || []).filter(item => {
+              // Filter by ID
+              if (justCompletedIds.has(item.analysisId || item.id)) return false;
+              // Filter by image URL (catch duplicates even if IDs differ)
+              const itemImageUrl = item.imageUrl || item.imageUri;
+              if (itemImageUrl && justCompletedImageUrls.has(itemImageUrl)) return false;
+              return true;
+            });
             return filteredItems.length > 0 ? (
               <>
                 {filteredItems.slice(0, 3).map((item) => (

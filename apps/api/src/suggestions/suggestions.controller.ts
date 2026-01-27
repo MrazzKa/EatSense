@@ -59,7 +59,7 @@ export class SuggestionsController {
       locale = (preferences.language || 'en') as SupportedLocale;
     }
 
-    const SUGGESTIONS_V2_TIMEOUT_MS = 8000;
+    const SUGGESTIONS_V2_TIMEOUT_MS = 20000; // Increased from 8s to 20s to reduce timeout warnings
     const errorPayload: SuggestedFoodV2Response = {
       status: 'error',
       locale,

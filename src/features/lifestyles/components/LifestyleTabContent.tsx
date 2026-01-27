@@ -96,7 +96,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<LifestyleTarget | null>(null);
-  const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
+  // Removed selectedAgeRange - age filter removed per requirements
 
   // Memoized trending programs from featured
   const trendingPrograms = useMemo(() => {
@@ -115,14 +115,14 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     }
 
     if (selectedTarget) {
-      result = result.filter(p => p.target === selectedTarget);
-    }
-
-    if (selectedAgeRange) {
-      result = result.filter(p => {
-        const programAge = p.ageRange || '18-50';
-        return programAge.includes(selectedAgeRange) || !selectedAgeRange;
-      });
+      // FIX: Filter by target - handle both 'all' (show all) and specific targets
+      if (selectedTarget !== 'all') {
+        result = result.filter(p => {
+          // Handle programs with no target (show for all) or matching target
+          const programTarget = p.target || null;
+          return programTarget === null || programTarget === selectedTarget;
+        });
+      }
     }
 
     if (searchQuery.trim()) {
@@ -136,7 +136,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     }
 
     return result;
-  }, [programs, selectedCategory, selectedTarget, selectedAgeRange, searchQuery, language]);
+  }, [programs, selectedCategory, selectedTarget, searchQuery, language]);
 
   // Build flat list data with sections
   const listData = useMemo((): SectionData[] => {
@@ -249,9 +249,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         return (
           <FiltersSection
             selectedTarget={selectedTarget}
-            selectedAgeRange={selectedAgeRange}
             onTargetSelect={setSelectedTarget}
-            onAgeRangeSelect={setSelectedAgeRange}
             colors={colors}
             t={t}
           />
@@ -314,7 +312,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       default:
         return null;
     }
-  }, [selectedCategory, selectedTarget, selectedAgeRange, colors, t, onProgramPress, searchQuery]);
+  }, [selectedCategory, selectedTarget, colors, t, onProgramPress, searchQuery]);
 
   // Key extractor
   const keyExtractor = useCallback((item: SectionData, index: number) => {
@@ -342,23 +340,17 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
 // Extracted Filters component for better memoization
 interface FiltersSectionProps {
   selectedTarget: LifestyleTarget | null;
-  selectedAgeRange: string | null;
   onTargetSelect: (_target: LifestyleTarget | null) => void;
-  onAgeRangeSelect: (_range: string | null) => void;
   colors: any;
   t: (_key: string) => string;
 }
 
 const FiltersSection = React.memo(function FiltersSection({
   selectedTarget,
-  selectedAgeRange,
   onTargetSelect,
-  onAgeRangeSelect,
   colors,
   t,
 }: FiltersSectionProps) {
-  const ageRanges = ['18-30', '30-50', '50+'];
-
   return (
     <View style={styles.filtersContainer}>
       {/* Target Filter */}
@@ -394,45 +386,6 @@ const FiltersSection = React.memo(function FiltersSection({
                 ]}
               >
                 {t(`lifestyles.filters_target_${target}`) || target}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Age Range Filter */}
-      <View style={styles.filterSection}>
-        <Text style={[styles.filterLabel, { color: colors.textSecondary || '#666' }]}>
-          {t('lifestyles.filters_age_label') || 'Age:'}
-        </Text>
-        <View style={styles.filterChips}>
-          {ageRanges.map((range) => (
-            <TouchableOpacity
-              key={range}
-              style={[
-                styles.filterChip,
-                selectedAgeRange === range && styles.filterChipActive,
-                {
-                  backgroundColor:
-                    selectedAgeRange === range
-                      ? colors.primary
-                      : colors.inputBackground || colors.surfaceSecondary || '#F5F5F5',
-                },
-              ]}
-              onPress={() => onAgeRangeSelect(selectedAgeRange === range ? null : range)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  {
-                    color:
-                      selectedAgeRange === range
-                        ? '#FFF'
-                        : colors.textSecondary || '#666',
-                  },
-                ]}
-              >
-                {range}
               </Text>
             </TouchableOpacity>
           ))}

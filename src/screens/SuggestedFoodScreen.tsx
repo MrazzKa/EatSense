@@ -113,11 +113,17 @@ export const SuggestedFoodScreen: React.FC = () => {
           })),
         }));
         setSections(uiSections);
+        setError(null); // Clear error on success
       } else if (response.status === 'insufficient_data') {
         setSections([]);
+        setError(null); // Not an error, just insufficient data
       } else {
-        setError(response.summary || t('dashboard.suggestedFood.error.generic'));
+        // Handle error status (timeout or other errors)
+        const errorMessage = response.summary || t('dashboard.suggestedFood.error.generic');
+        setError(errorMessage);
         setSections([]);
+        // Log for debugging
+        console.warn('[SuggestedFoodScreen] Suggestions unavailable:', response.status, errorMessage);
       }
     } catch (e) {
       console.error('[SuggestedFoodScreen] API failed:', e);

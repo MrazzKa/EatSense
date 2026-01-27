@@ -1,7 +1,6 @@
 import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -25,7 +24,6 @@ export default function CameraScreen() {
   const { addPendingAnalysis } = useAnalysis();
   const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef(null);
-  const [zoom, setZoom] = useState(0);
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
@@ -258,7 +256,7 @@ export default function CameraScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: '#000000' }]}>
-      <CameraView style={StyleSheet.absoluteFill} facing={facing} ref={cameraRef} zoom={zoom} enableZoomGesture flash={flashMode}>
+      <CameraView style={StyleSheet.absoluteFill} facing={facing} ref={cameraRef} enableZoomGesture flash={flashMode}>
         <LinearGradient
           colors={['rgba(0,0,0,0.65)', 'transparent', 'rgba(0,0,0,0.75)']}
           style={StyleSheet.absoluteFill}
@@ -313,23 +311,6 @@ export default function CameraScreen() {
                   {t('camera.switchCamera')}
                 </Text>
               </Pressable>
-            </View>
-
-            <View style={styles.zoomContainer}>
-              <Text style={[styles.zoomLabel, { color: tokens.colors.onPrimary }]}>
-                {t('camera.zoomLabel', { value: (1 + zoom).toFixed(1) })}
-              </Text>
-              <Slider
-                style={styles.zoomSlider}
-                minimumValue={0}
-                maximumValue={1}
-                step={0.01}
-                value={zoom}
-                minimumTrackTintColor={tokens.colors.onPrimary}
-                maximumTrackTintColor="rgba(255,255,255,0.3)"
-                thumbTintColor={tokens.colors.primary}
-                onValueChange={setZoom}
-              />
             </View>
 
             <Pressable
@@ -432,21 +413,6 @@ const createStyles = (tokens) =>
     },
     captureButtonDisabled: {
       opacity: 0.6,
-    },
-    zoomContainer: {
-      gap: tokens.spacing.sm,
-      backgroundColor: 'rgba(15,23,42,0.32)',
-      borderRadius: tokens.radii.lg,
-      paddingHorizontal: tokens.spacing.md,
-      paddingVertical: tokens.spacing.md,
-    },
-    zoomLabel: {
-      fontSize: tokens.typography.caption.fontSize,
-      fontWeight: tokens.typography.caption.fontWeight,
-      textAlign: 'center',
-    },
-    zoomSlider: {
-      width: '100%',
     },
     permissionContainer: {
       flex: 1,

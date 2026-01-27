@@ -137,6 +137,8 @@
     "genders": {
       "male": "Male",
       "female": "Female",
+      "nonBinary": "Non-binary",
+      "preferNotToSay": "Prefer not to say",
       "other": "Other"
     },
     "goals": "What are your goals?",
@@ -318,7 +320,12 @@
     "weightRate": "Weight change rate",
     "welcome": "Welcome to EatSense",
     "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
-    "additionalPlans": "Additional Plans"
+    "additionalPlans": "Additional Plans",
+    "setupComplete": "Setup Complete",
+    "profileSavedLocally": "Profile saved locally. You can complete setup later in settings.",
+    "continueFree": "Continue Free",
+    "notificationsEnabledTitle": "Notifications Enabled!",
+    "notificationsEnabledDescription": "We'll send reminders about meals and helpful tips. You can change settings anytime."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1584,12 +1591,26 @@
       "startDate": "Start date (YYYY-MM-DD)",
       "endDate": "End date (optional)",
       "timezone": "Timezone",
-      "doses": "Dose times"
+      "doses": "Dose times",
+      "quantity": "Total quantity (optional)",
+      "remainingStock": "Remaining stock (optional)"
     },
     "placeholders": {
       "name": "Metformin",
       "dosage": "500 mg",
-      "instructions": "Before dinner, with water"
+      "instructions": "Before dinner, with water",
+      "quantity": "30",
+      "remainingStock": "Auto-calculated"
+    },
+    "hints": {
+      "quantity": "Total number of tablets/pills in package",
+      "remainingStock": "Will be calculated automatically based on doses and days passed"
+    },
+    "stock": {
+      "total": "Total",
+      "remaining": "Remaining",
+      "daysRemaining": "Days remaining",
+      "lowStock": "Low stock! Time to refill"
     },
     "times": "Times",
     "beforeMeal": "Before",
@@ -1836,7 +1857,7 @@
   },
   "suggest": {
     "already_voted": "Already voted",
-    "contact_success": "Your request has been sent to info@eatsense.ch",
+    "contact_success": "Your request has been sent",
     "description_placeholder": "Description (optional)",
     "error": "Could not send request",
     "modal_title": "Suggestions",
@@ -1845,7 +1866,7 @@
     "request_placeholder": "Your request",
     "request_required": "Enter your request",
     "submit": "Send",
-    "subtitle": "Write to us — name and request. Email goes to info@eatsense.ch",
+    "subtitle": "Write to us — name and request",
     "success": "Sent successfully",
     "title": "Suggestions",
     "voted": "Voted"

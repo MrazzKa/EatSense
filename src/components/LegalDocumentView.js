@@ -274,10 +274,12 @@ These Terms are drafted in English. In the event of any discrepancy between the 
 If you have any questions about these Terms, please contact us:
 
 EatSense
-Aleksei Belov
 Rue Pictet-de-Bock 6
 1205 Geneva, Switzerland
-Email: info@eatsense.ch`;
+Email: info@eatsense.ch
+
+
+`;
 
 // Full Privacy Policy - Version 1.0 | Effective Date: January 14, 2026
 const PRIVACY_POLICY = `EATSENSE
@@ -551,10 +553,12 @@ You have the right to request human review of any AI-generated analysis by conta
 If you have any questions about this Privacy Policy or our data practices, please contact us:
 
 EatSense
-Aleksei Belov
 Rue Pictet-de-Bock 6
 1205 Geneva, Switzerland
-Email: info@eatsense.ch`;
+Email: info@eatsense.ch
+
+
+`;
 
 /**
  * LegalDocumentView - Displays Terms or Privacy Policy inline with scrolling

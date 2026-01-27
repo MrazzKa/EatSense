@@ -69,18 +69,6 @@ export default function ExpertsScreen({ navigation: _navigation }: { navigation:
           </View>
         </View>
 
-        {/* CTA: View Articles */}
-        <TouchableOpacity
-          style={[styles.articlesButton, { backgroundColor: colors.primary }]}
-          onPress={handleViewArticles}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="newspaper-outline" size={20} color="#FFF" />
-          <Text style={styles.articlesButtonText}>
-            {t('experts.browseArticles', 'Browse Nutrition Articles')}
-          </Text>
-        </TouchableOpacity>
-
         {/* Coming soon badge */}
         <View style={[styles.comingSoonBadge, { backgroundColor: colors.warning + '20' }]}>
           <Ionicons name="time-outline" size={16} color={colors.warning || '#FF9500'} />

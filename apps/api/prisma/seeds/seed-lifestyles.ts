@@ -66,7 +66,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '✨',
         target: 'female',
         ageRange: '18-30',
-        imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80', // Aesthetic wellness, green smoothie, morning routine
         color: '#7CB342',
     },
     {
@@ -95,7 +95,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🧴',
         target: 'female',
         ageRange: '18-35',
-        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', // Clean minimal food, fresh vegetables
         color: '#81D4FA',
     },
     {
@@ -124,7 +124,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🏛️',
         target: 'all',
         ageRange: '22-55',
-        imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80', // Fine dining, elegant restaurant
         color: '#8D6E63',
     },
     {
@@ -153,7 +153,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🍅',
         target: 'female',
         ageRange: '18-40',
-        imageUrl: 'https://images.unsplash.com/photo-1506084868230-bb9d95c24759?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80', // Mediterranean summer, tomatoes, fresh food
         color: '#E53935',
     },
     {
@@ -182,7 +182,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🤍',
         target: 'female',
         ageRange: '20-50',
-        imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80', // Pilates, graceful movement, lean strength
         color: '#F48FB1',
     },
     {
@@ -211,7 +211,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🐚',
         target: 'female',
         ageRange: '30-65',
-        imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80', // Coastal, elegant, fresh seafood
         color: '#B0BEC5',
     },
     {
@@ -240,7 +240,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🌸',
         target: 'all',
         ageRange: '25-50',
-        imageUrl: 'https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=800&q=80', // Soft life, comfort, gentle living
         color: '#F8BBD9',
     },
     {
@@ -269,7 +269,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🖤',
         target: 'female',
         ageRange: '25-55',
-        imageUrl: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&q=80', // Italian luxury, dramatic, bold food
         color: '#212121',
     },
     // ============================================
@@ -286,7 +286,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sugar', 'alcohol', 'fried foods', 'processed carbs', 'late night eating'],
         dailyTracker: [{ key: 'protein', label: { en: 'Protein at every meal', ru: 'Белок при каждом приёме пищи', kk: 'Әр тағамда белок', fr: 'Protéines à chaque repas' } }],
         suitableFor: ['fat_loss', 'definition'], isFeatured: true, popularityScore: 88, tags: ['weight_loss', 'shred'], emoji: '🔥', target: 'all', ageRange: '18-45',
-        imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800', color: '#FF5722',
+        imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80', // Lean shredded body, beach ready
+        color: '#FF6B6B',
     },
     {
         slug: 'metabolic_reset',
@@ -299,7 +300,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'sugar', 'refined carbs', 'frequent snacking', 'late eating'],
         dailyTracker: [{ key: 'blood_sugar', label: { en: 'Stable blood sugar', ru: 'Стабильный сахар', kk: 'Тұрақты қан қанты', fr: 'Glycémie stable' } }],
         suitableFor: ['metabolism', 'reset'], isFeatured: false, popularityScore: 82, tags: ['weight_loss', 'metabolism'], emoji: '🔄', target: 'all', ageRange: '25-55',
-        imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800', color: '#4CAF50',
+        imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80', color: '#4CAF50', // Metabolic reset, healthy transformation
     },
     {
         slug: 'debloat_detox',
@@ -312,7 +313,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sodium', 'carbonated drinks', 'beans', 'dairy', 'alcohol'],
         dailyTracker: [{ key: 'debloat', label: { en: 'Low sodium day', ru: 'День без натрия', kk: 'Натрийсіз күн', fr: 'Journée pauvre en sodium' } }],
         suitableFor: ['debloat', 'refresh'], isFeatured: false, popularityScore: 80, tags: ['weight_loss', 'debloat'], emoji: '💨', target: 'all', ageRange: '18-55',
-        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800', color: '#00BCD4',
+        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80', color: '#00BCD4', // Debloat & glow, fresh vegetables, clean eating
     },
     {
         slug: 'sustainable_slim',
@@ -325,7 +326,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'excessive sugar', 'mindless snacking', 'emotional eating'],
         dailyTracker: [{ key: 'habits', label: { en: 'Build habits', ru: 'Стройте привычки', kk: 'Дағдылар құрыңыз', fr: 'Construire les habitudes' } }],
         suitableFor: ['sustainable', 'lifestyle'], isFeatured: false, popularityScore: 78, tags: ['weight_loss', 'sustainable'], emoji: '🌱', target: 'all', ageRange: '25-60',
-        imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800', color: '#8BC34A',
+        imageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80', // Aesthetic wellness, green smoothie, morning routine
+        color: '#8BC34A',
     },
     // ============================================
     // 🎯 GOAL_BUILD_MUSCLE (4 programs)
@@ -341,7 +343,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['junk food', 'excessive fat', 'alcohol', 'empty calories'],
         dailyTracker: [{ key: 'protein_goal', label: { en: 'Hit protein goal', ru: 'Достичь цели по белку', kk: 'Белок мақсатына жету', fr: 'Atteindre l\'objectif protéines' } }],
         suitableFor: ['bulking', 'muscle'], isFeatured: true, popularityScore: 85, tags: ['muscle', 'bulk'], emoji: '💪', target: 'male', ageRange: '18-45',
-        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800', color: '#F44336',
+        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', // Muscle building, strength training
+        color: '#FF9800',
     },
     {
         slug: 'strength_athlete',
@@ -354,7 +357,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['alcohol', 'excessive junk', 'undereating'],
         dailyTracker: [{ key: 'post_workout', label: { en: 'Post-workout nutrition', ru: 'Питание после тренировки', kk: 'Жаттығудан кейінгі тағам', fr: 'Nutrition post-entraînement' } }],
         suitableFor: ['strength', 'powerlifting'], isFeatured: false, popularityScore: 82, tags: ['muscle', 'strength'], emoji: '🏋️', target: 'male', ageRange: '18-50',
-        imageUrl: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800', color: '#673AB7',
+        imageUrl: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800&q=80', color: '#673AB7', // Strength athlete, power, performance
     },
     {
         slug: 'athletic_performance',
@@ -367,7 +370,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['alcohol', 'processed foods', 'heavy foods before training'],
         dailyTracker: [{ key: 'fuel_work', label: { en: 'Fuel the work', ru: 'Заправляйте работу', kk: 'Жұмысты отындаңыз', fr: 'Alimenter l\'effort' } }],
         suitableFor: ['athletes', 'performance'], isFeatured: false, popularityScore: 80, tags: ['muscle', 'athletic'], emoji: '🏃', target: 'all', ageRange: '16-45',
-        imageUrl: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800', color: '#2196F3',
+        imageUrl: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80', color: '#2196F3', // Athletic performance, sports nutrition
     },
     {
         slug: 'functional_fitness',
@@ -380,7 +383,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'inflammatory foods', 'excessive sugar'],
         dailyTracker: [{ key: 'anti_inflammatory', label: { en: 'Anti-inflammatory foods', ru: 'Противовоспалительные продукты', kk: 'Қабынуға қарсы тағамдар', fr: 'Aliments anti-inflammatoires' } }],
         suitableFor: ['functional', 'mobility'], isFeatured: false, popularityScore: 78, tags: ['muscle', 'functional'], emoji: '⚡', target: 'all', ageRange: '25-55',
-        imageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800', color: '#FF9800',
+        imageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80', color: '#FF9800', // Functional fitness, movement, strength
     },
     // ============================================
     // 🎯 GOAL_CLEAR_SKIN (3 programs)
@@ -395,7 +398,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['dairy', 'sugar', 'processed foods', 'alcohol'],
         dailyTracker: [{ key: 'fermented', label: { en: 'Fermented foods', ru: 'Ферментированные продукты', kk: 'Ферменттелген тағамдар', fr: 'Aliments fermentés' } }],
         suitableFor: ['skin', 'korean'], isFeatured: true, popularityScore: 88, tags: ['skin', 'kbeauty'], emoji: '✨', target: 'all', ageRange: '18-50',
-        imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800', color: '#E1BEE7',
+        imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80', // Korean beauty, glass skin, healthy glow
+        color: '#E1BEE7',
     },
     {
         slug: 'acne_clear', name: { en: 'Acne Clear', ru: 'Чистая Кожа', kk: 'Таза Тері', fr: 'Acne Clear' },
@@ -407,7 +411,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['dairy', 'sugar', 'high-glycemic carbs', 'processed foods'],
         dailyTracker: [{ key: 'low_glycemic', label: { en: 'Low glycemic day', ru: 'Низкогликемический день', kk: 'Төмен гликемиялық күн', fr: 'Journée low-glycémique' } }],
         suitableFor: ['acne', 'skin'], isFeatured: false, popularityScore: 82, tags: ['skin', 'acne'], emoji: '🧊', target: 'all', ageRange: '14-40',
-        imageUrl: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800', color: '#64B5F6',
+        imageUrl: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800&q=80', color: '#64B5F6', // Acne clear, clear skin, healthy glow
     },
     {
         slug: 'anti_aging_glow', name: { en: 'Anti-Aging Glow', ru: 'Антивозрастное Сияние', kk: 'Жасылдыққа Қарсы Жарқырау', fr: 'Anti-âge Glow' },
@@ -419,7 +423,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sugar', 'processed foods', 'alcohol', 'fried foods'],
         dailyTracker: [{ key: 'antioxidants', label: { en: 'Antioxidant-rich foods', ru: 'Продукты с антиоксидантами', kk: 'Антиоксидантқа бай тағамдар', fr: 'Aliments riches en antioxydants' } }],
         suitableFor: ['antiaging', 'glow'], isFeatured: false, popularityScore: 80, tags: ['skin', 'antiaging'], emoji: '🌟', target: 'all', ageRange: '30-65',
-        imageUrl: 'https://images.unsplash.com/photo-1505944270255-72b8c68c6a70?w=800', color: '#FFD54F',
+        imageUrl: 'https://images.unsplash.com/photo-1505944270255-72b8c68c6a70?w=800&q=80', color: '#FFD54F', // Anti-aging glow, youthful skin, healthy aging
     },
     // ============================================
     // 🎯 GOAL_MORE_ENERGY (3 programs)
@@ -434,7 +438,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sugar', 'refined carbs', 'excessive caffeine', 'skipping meals'],
         dailyTracker: [{ key: 'stable_energy', label: { en: 'Stable energy', ru: 'Стабильная энергия', kk: 'Тұрақты энергия', fr: 'Énergie stable' } }],
         suitableFor: ['energy', 'productivity'], isFeatured: true, popularityScore: 85, tags: ['energy', 'focus'], emoji: '⚡', target: 'all', ageRange: '20-55',
-        imageUrl: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800', color: '#FFC107',
+        imageUrl: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80', // Energy, productivity, healthy breakfast
+        color: '#FFD54F',
     },
     {
         slug: 'brain_fuel', name: { en: 'Brain Fuel', ru: 'Топливо для Мозга', kk: 'Ми Үшін Отын', fr: 'Carburant cerveau' },
@@ -446,7 +451,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sugar', 'processed foods', 'trans fats', 'blood sugar spikes'],
         dailyTracker: [{ key: 'brain_foods', label: { en: 'Brain foods', ru: 'Продукты для мозга', kk: 'Ми тағамдары', fr: 'Aliments cerveau' } }],
         suitableFor: ['focus', 'mental'], isFeatured: false, popularityScore: 82, tags: ['energy', 'brain'], emoji: '🧠', target: 'all', ageRange: '25-60',
-        imageUrl: 'https://images.unsplash.com/photo-1508558936510-0af1e3cccbab?w=800', color: '#9C27B0',
+        imageUrl: 'https://images.unsplash.com/photo-1508558936510-0af1e3cccbab?w=800&q=80', color: '#9C27B0', // Brain fuel, mental clarity, cognitive health
     },
     {
         slug: 'adrenal_recovery', name: { en: 'Adrenal Recovery', ru: 'Восстановление Надпочечников', kk: 'Бүйрек Үсті Бездерін Қалпына Келтіру', fr: 'Récupération surrénales' },
@@ -458,7 +463,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['caffeine', 'sugar', 'alcohol', 'processed foods', 'skipping meals'],
         dailyTracker: [{ key: 'no_caffeine', label: { en: 'No caffeine', ru: 'Без кофеина', kk: 'Кофеинсіз', fr: 'Pas de caféine' } }],
         suitableFor: ['burnout', 'recovery'], isFeatured: false, popularityScore: 78, tags: ['energy', 'recovery'], emoji: '🔋', target: 'all', ageRange: '25-55',
-        imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800', color: '#4DB6AC',
+        imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80', color: '#4DB6AC', // Adrenal recovery, stress management, balance
     },
     // ============================================
     // 🌍 DESTINATIONS (5 programs)
@@ -473,7 +478,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'fast food', 'rushing meals'],
         dailyTracker: [{ key: 'italian_meal', label: { en: 'Italian-style meal', ru: 'Итальянский приём пищи', kk: 'Италиялық тағам', fr: 'Repas style italien' } }],
         suitableFor: ['italian', 'coastal'], isFeatured: true, popularityScore: 85, tags: ['destinations', 'italian'], emoji: '🍋', target: 'all', ageRange: '18-65',
-        imageUrl: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=800', color: '#FFEB3B',
+        imageUrl: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=800&q=80', // Italian coastal, Mediterranean summer
+        color: '#FFEB3B',
     },
     {
         slug: 'greek_islands', name: { en: 'Greek Islands', ru: 'Греческие Острова', kk: 'Грек Аралдары', fr: 'Îles grecques' },
@@ -485,7 +491,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'excessive red meat'],
         dailyTracker: [{ key: 'mediterranean', label: { en: 'Mediterranean meal', ru: 'Средиземноморская еда', kk: 'Жерорта теңізі тағамы', fr: 'Repas méditerranéen' } }],
         suitableFor: ['greek', 'mediterranean'], isFeatured: false, popularityScore: 82, tags: ['destinations', 'greek'], emoji: '🇬🇷', target: 'all', ageRange: '18-70',
-        imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800', color: '#03A9F4',
+        imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&q=80', color: '#03A9F4', // Greek Islands, Mediterranean, fresh seafood
     },
     {
         slug: 'okinawa_longevity', name: { en: 'Okinawa Longevity', ru: 'Долголетие Окинавы', kk: 'Окинава Ұзақ Өмір', fr: 'Longévité Okinawa' },
@@ -497,7 +503,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['excessive meat', 'processed foods', 'large portions'],
         dailyTracker: [{ key: 'hara_hachi_bu', label: { en: '80% full', ru: '80% сытости', kk: '80% тоқ', fr: '80 % plein' } }],
         suitableFor: ['longevity', 'japanese'], isFeatured: false, popularityScore: 80, tags: ['destinations', 'japanese'], emoji: '🇯🇵', target: 'all', ageRange: '25-80',
-        imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800', color: '#9C27B0',
+        imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80', color: '#9C27B0', // Okinawa longevity, Japanese wellness, longevity
     },
     {
         slug: 'tokyo_energy', name: { en: 'Tokyo Energy', ru: 'Энергия Токио', kk: 'Токио Энергиясы', fr: 'Tokyo Energy' },
@@ -509,7 +515,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['excessive processed foods', 'skipping meals'],
         dailyTracker: [{ key: 'bento', label: { en: 'Bento balance', ru: 'Баланс бенто', kk: 'Бенто теңгерімі', fr: 'Équilibre bento' } }],
         suitableFor: ['japanese', 'urban'], isFeatured: false, popularityScore: 78, tags: ['destinations', 'tokyo'], emoji: '🗼', target: 'all', ageRange: '20-50',
-        imageUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800', color: '#FF5722',
+        imageUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&q=80', color: '#FF5722', // Tokyo Energy, Japanese efficiency, vibrant city life
     },
     {
         slug: 'scandi_hygge', name: { en: 'Scandi Hygge', ru: 'Скандинавский Хюгге', kk: 'Скандинавиялық Хюгге', fr: 'Scandi Hygge' },
@@ -521,7 +527,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['excessive processed foods', 'rushed eating'],
         dailyTracker: [{ key: 'hygge', label: { en: 'Hygge moment', ru: 'Момент хюгге', kk: 'Хюгге сәті', fr: 'Moment hygge' } }],
         suitableFor: ['nordic', 'cozy'], isFeatured: false, popularityScore: 75, tags: ['destinations', 'nordic'], emoji: '🇩🇰', target: 'all', ageRange: '25-60',
-        imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800', color: '#607D8B',
+        imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', color: '#607D8B', // Scandi Hygge, cozy, comfort, Nordic lifestyle
     },
     // ============================================
     // 👗 AESTHETICS (5 programs)
@@ -536,7 +542,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'TV dinners', 'diet products'],
         dailyTracker: [{ key: 'protein', label: { en: 'Protein at every meal', ru: 'Белок при каждом приёме', kk: 'Әр тағамда белок', fr: 'Protéines à chaque repas' } }],
         suitableFor: ['curves', 'classic'], isFeatured: false, popularityScore: 75, tags: ['aesthetics', 'vintage'], emoji: '💄', target: 'female', ageRange: '20-50',
-        imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800', color: '#E91E63',
+        imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80', color: '#E91E63', // 1950s Bombshell, vintage glamour, classic beauty
     },
     {
         slug: 'prima_ballerina', name: { en: 'Prima Ballerina', ru: 'Прима-балерина', kk: 'Прима-балерина', fr: 'Prima ballerina' },
@@ -548,7 +554,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['heavy greasy foods', 'excessive sugar', 'alcohol'],
         dailyTracker: [{ key: 'dancer_fuel', label: { en: 'Dancer-style eating', ru: 'Питание танцора', kk: 'Биші тағамы', fr: 'Alimentation style danseur' } }],
         suitableFor: ['dance', 'grace'], isFeatured: false, popularityScore: 72, tags: ['aesthetics', 'dance'], emoji: '🩰', target: 'female', ageRange: '16-45',
-        imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800', color: '#F8BBD9',
+        imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80', // Prima Ballerina, graceful dance, elegant movement
+        color: '#F8BBD9',
     },
     {
         slug: 'french_girl', name: { en: 'French Girl', ru: 'Французская Девушка', kk: 'Француз Қызы', fr: 'French Girl' },
@@ -560,7 +567,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['snacking', 'processed foods', 'soft drinks', 'guilt', 'large portions'],
         dailyTracker: [{ key: 'three_meals', label: { en: 'Three meals, no snacking', ru: 'Три приёма пищи', kk: 'Үш тағам', fr: 'Trois repas, pas de grignotage' } }],
         suitableFor: ['french', 'intuitive'], isFeatured: true, popularityScore: 85, tags: ['aesthetics', 'french'], emoji: '🗼', target: 'female', ageRange: '20-60',
-        imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800', color: '#3F51B5',
+        imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', // French girl aesthetic, intuitive eating, elegant
+        color: '#9C27B0',
     },
     {
         slug: 'pin_up_retro', name: { en: 'Pin-Up Retro', ru: 'Ретро Пин-ап', kk: 'Ретро Пин-ап', fr: 'Pin-Up Rétro' },
@@ -572,7 +580,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'fast food', 'artificial ingredients', 'guilt'],
         dailyTracker: [{ key: 'home_cooked', label: { en: 'Home-cooked meal', ru: 'Домашняя еда', kk: 'Үйде дайындалған тағам', fr: 'Repas fait maison' } }],
         suitableFor: ['retro', 'bodypositive'], isFeatured: false, popularityScore: 70, tags: ['aesthetics', 'retro'], emoji: '🎀', target: 'female', ageRange: '20-45',
-        imageUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800', color: '#F44336',
+        imageUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80', color: '#F44336', // Pin-Up Retro, vintage curves, body-positive
     },
     {
         slug: 'minimalist_zen', name: { en: 'Minimalist Zen', ru: 'Минималистский Дзен', kk: 'Минималистік Дзен', fr: 'Minimaliste Zen' },
@@ -584,7 +592,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['complicated recipes', 'excessive variety', 'distracted eating'],
         dailyTracker: [{ key: 'simple_meal', label: { en: 'Simple, quality meal', ru: 'Простая качественная еда', kk: 'Қарапайым сапалы тағам', fr: 'Repas simple et qualité' } }],
         suitableFor: ['minimalist', 'zen'], isFeatured: false, popularityScore: 68, tags: ['aesthetics', 'zen'], emoji: '⚪', target: 'all', ageRange: '25-60',
-        imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800', color: '#9E9E9E',
+        imageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80', color: '#9E9E9E', // Minimalist Zen, simplicity, mindfulness, peace
     },
     // ============================================
     // ⚔️ WARRIOR_MODE (6 programs)
@@ -599,7 +607,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['luxury foods', 'excessive variety', 'sweets', 'weakness'],
         dailyTracker: [{ key: 'spartan', label: { en: 'Spartan discipline', ru: 'Спартанская дисциплина', kk: 'Спартандық тәртіп', fr: 'Discipline spartiate' } }],
         suitableFor: ['warrior', 'discipline'], isFeatured: true, popularityScore: 82, tags: ['warrior', 'spartan'], emoji: '🛡️', target: 'male', ageRange: '18-50',
-        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800', color: '#795548',
+        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', // Spartan discipline, warrior mode, strength
+        color: '#795548',
     },
     {
         slug: 'viking_raider', name: { en: 'Viking Raider', ru: 'Викинг-Завоеватель', kk: 'Викинг Басып Алушы', fr: 'Viking Raider' },
@@ -611,7 +620,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'sugar', 'weakness'],
         dailyTracker: [{ key: 'viking', label: { en: 'Viking strength', ru: 'Сила викинга', kk: 'Викинг күші', fr: 'Force viking' } }],
         suitableFor: ['warrior', 'strength'], isFeatured: false, popularityScore: 78, tags: ['warrior', 'viking'], emoji: '🪓', target: 'male', ageRange: '18-50',
-        imageUrl: 'https://images.unsplash.com/photo-1597347316205-36f6c451902a?w=800', color: '#455A64',
+        imageUrl: 'https://images.unsplash.com/photo-1597347316205-36f6c451902a?w=800&q=80', color: '#455A64', // Viking Raider, Nordic strength, warrior fuel
     },
     {
         slug: 'navy_seal', name: { en: 'Navy SEAL', ru: 'Морской Спецназ', kk: 'Теңіз Арнайы Бөлімі', fr: 'Navy SEAL' },
@@ -623,7 +632,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['alcohol', 'sugar', 'fried foods', 'anything that slows you down'],
         dailyTracker: [{ key: 'mission', label: { en: 'Mission fuel', ru: 'Топливо для миссии', kk: 'Миссия отыны', fr: 'Carburant mission' } }],
         suitableFor: ['elite', 'military'], isFeatured: false, popularityScore: 80, tags: ['warrior', 'seal'], emoji: '🎖️', target: 'male', ageRange: '18-45',
-        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800', color: '#263238',
+        imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', color: '#263238', // Navy SEAL, elite performance, discipline
     },
     {
         slug: 'mma_fighter', name: { en: 'MMA Fighter', ru: 'Боец MMA', kk: 'MMA Жауынгері', fr: 'Combattant MMA' },
@@ -635,7 +644,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sodium', 'alcohol', 'junk food'],
         dailyTracker: [{ key: 'fight_ready', label: { en: 'Fight ready', ru: 'Готов к бою', kk: 'Ұрысқа дайын', fr: 'Prêt au combat' } }],
         suitableFor: ['mma', 'fighter'], isFeatured: false, popularityScore: 76, tags: ['warrior', 'mma'], emoji: '🥊', target: 'male', ageRange: '18-40',
-        imageUrl: 'https://images.unsplash.com/photo-1562771379-eafdca7a02f8?w=800', color: '#D32F2F',
+        imageUrl: 'https://images.unsplash.com/photo-1562771379-eafdca7a02f8?w=800&q=80', color: '#D32F2F', // MMA Fighter, combat nutrition, peak performance
     },
     {
         slug: 'ceo_warrior', name: { en: 'CEO Warrior', ru: 'CEO-Воин', kk: 'CEO Жауынгері', fr: 'CEO Warrior' },
@@ -647,7 +656,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['sugar', 'processed carbs', 'frequent meals', 'blood sugar spikes'],
         dailyTracker: [{ key: 'optimized', label: { en: 'Optimized day', ru: 'Оптимизированный день', kk: 'Оңтайландырылған күн', fr: 'Journée optimisée' } }],
         suitableFor: ['biohacker', 'executive'], isFeatured: false, popularityScore: 74, tags: ['warrior', 'ceo'], emoji: '💼', target: 'male', ageRange: '25-55',
-        imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800', color: '#37474F',
+        imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80', color: '#37474F', // CEO Warrior, executive performance, high performance
     },
     {
         slug: 'stoic_monk', name: { en: 'Stoic Monk', ru: 'Стоический Монах', kk: 'Стоик Монах', fr: 'Moine stoïque' },
@@ -659,7 +668,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['luxury', 'excess', 'emotional eating'],
         dailyTracker: [{ key: 'stoic', label: { en: 'Stoic discipline', ru: 'Стоическая дисциплина', kk: 'Стоик тәртібі', fr: 'Discipline stoïque' } }],
         suitableFor: ['stoic', 'minimalist'], isFeatured: false, popularityScore: 70, tags: ['warrior', 'stoic'], emoji: '🧘', target: 'all', ageRange: '25-60',
-        imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800', color: '#78909C',
+        imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80', color: '#78909C', // Stoic Monk, minimalism, discipline, simplicity
     },
     // ============================================
     // 📅 SEASONAL (4 programs)
@@ -674,7 +683,8 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['bread', 'pasta', 'sugar', 'alcohol', 'fried foods'],
         dailyTracker: [{ key: 'beach_ready', label: { en: 'Beach ready day', ru: 'День готов к пляжу', kk: 'Пляжқа дайын күн', fr: 'Journée prête plage' } }],
         suitableFor: ['summer', 'beach'], isFeatured: true, popularityScore: 88, tags: ['seasonal', 'summer'], emoji: '☀️', target: 'all', ageRange: '18-45',
-        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800', color: '#FF9800',
+        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', // Summer body, beach ready, healthy lifestyle
+        color: '#00BCD4',
     },
     {
         slug: 'new_year_reset', name: { en: 'New Year Reset', ru: 'Новогоднее Обновление', kk: 'Жаңа Жылдық Қалпына Келтіру', fr: 'Reset Nouvel An' },
@@ -686,7 +696,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['processed foods', 'sugar', 'alcohol', 'excessive coffee'],
         dailyTracker: [{ key: 'reset', label: { en: 'Reset day', ru: 'День обновления', kk: 'Қалпына келтіру күні', fr: 'Journée reset' } }],
         suitableFor: ['reset', 'newyear'], isFeatured: false, popularityScore: 82, tags: ['seasonal', 'newyear'], emoji: '🎆', target: 'all', ageRange: '18-60',
-        imageUrl: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?w=800', color: '#673AB7',
+        imageUrl: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?w=800&q=80', color: '#673AB7', // New Year Reset, fresh start, clean slate
     },
     {
         slug: 'wedding_ready', name: { en: 'Wedding Ready', ru: 'К Свадьбе Готова', kk: 'Үйленуге Дайын', fr: 'Prête pour le mariage' },
@@ -698,7 +708,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['high-sodium foods', 'beans', 'alcohol', 'carbonated drinks', 'dairy', 'sugar'],
         dailyTracker: [{ key: 'bridal_glow', label: { en: 'Bridal glow day', ru: 'День свадебного сияния', kk: 'Үйлену жарқырауы күні', fr: 'Journée glow mariée' } }],
         suitableFor: ['wedding', 'bride'], isFeatured: false, popularityScore: 80, tags: ['seasonal', 'wedding'], emoji: '💍', target: 'female', ageRange: '22-45',
-        imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800', color: '#FFCDD2',
+        imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80', color: '#FFCDD2', // Wedding Ready, bridal preparation, special occasion
     },
     {
         slug: 'holiday_balance', name: { en: 'Holiday Balance', ru: 'Праздничный Баланс', kk: 'Мерекелік Теңгерім', fr: 'Équilibre fêtes' },
@@ -710,7 +720,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['mindless snacking', 'eating because it is there', 'guilt'],
         dailyTracker: [{ key: 'balance', label: { en: 'Balanced day', ru: 'Сбалансированный день', kk: 'Теңгерімді күн', fr: 'Journée équilibrée' } }],
         suitableFor: ['holiday', 'balance'], isFeatured: false, popularityScore: 75, tags: ['seasonal', 'holiday'], emoji: '🎄', target: 'all', ageRange: '18-65',
-        imageUrl: 'https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=800', color: '#4CAF50',
+        imageUrl: 'https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=800&q=80', color: '#4CAF50', // Holiday Balance, festive moderation, seasonal wellness
     },
     // ============================================
     // 🔥 EXTRA (DB-only, previously missing fr)
@@ -741,7 +751,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🚶‍♀️',
         target: 'all',
         ageRange: '18-50',
-        imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800&q=80', // Hot Girl Walk, walking, movement, confidence
         color: '#E91E63',
     },
     {
@@ -770,7 +780,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '😴',
         target: 'female',
         ageRange: '18-45',
-        imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80', // Pilates, graceful movement, lean strength
         color: '#9C27B0',
     },
     {
@@ -799,7 +809,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '⚡',
         target: 'all',
         ageRange: '20-55',
-        imageUrl: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800',
+        imageUrl: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80', // High Energy, all-day energy, productivity, performance
         color: '#FFC107',
     },
 ];

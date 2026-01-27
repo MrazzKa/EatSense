@@ -20,6 +20,7 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
+import { getCurrency, formatPrice, getDeviceRegion, getOriginalPrice } from '../utils/currency';
 
 // Plan descriptions for Apple App Store Review compliance
 // Each subscription must clearly state what features are included
@@ -110,28 +111,27 @@ export default function SubscriptionScreen() {
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
 
     // Load currency from device region (fallback when IAP unavailable)
+    // Use currency utility to get correct currency and prices for all 175 countries
     React.useEffect(() => {
-        const deviceLocale = Localization.getLocales()?.[0];
-        const region = deviceLocale?.regionCode?.toUpperCase();
-
-        const regionMap = {
-            'CH': { symbol: 'CHF', code: 'CHF', monthlyPrice: 'CHF 9.90', yearlyPrice: 'CHF 69.00', studentPrice: 'CHF 49.00', founderPrice: 'CHF 99.00' },
-            'RU': { symbol: '₽', code: 'RUB', monthlyPrice: '799 ₽', yearlyPrice: '5 990 ₽', studentPrice: '3 990 ₽', founderPrice: '8 990 ₽' },
-            'KZ': { symbol: '₸', code: 'KZT', monthlyPrice: '3 990 ₸', yearlyPrice: '29 990 ₸', studentPrice: '19 990 ₸', founderPrice: '44 990 ₸' },
-            'DE': { symbol: '€', code: 'EUR', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
-            'FR': { symbol: '€', code: 'EUR', monthlyPrice: '8,99 €', yearlyPrice: '69,99 €', studentPrice: '44,99 €', founderPrice: '99,99 €' },
-            'GB': { symbol: '£', code: 'GBP', monthlyPrice: '£7.99', yearlyPrice: '£59.99', studentPrice: '£39.99', founderPrice: '£89.99' },
-            'US': { symbol: '$', code: 'USD', monthlyPrice: '$9.99', yearlyPrice: '$69.99', studentPrice: '$49.00', founderPrice: '$99.99' },
-            'UA': { symbol: '₴', code: 'UAH', monthlyPrice: '399 ₴', yearlyPrice: '2 999 ₴', studentPrice: '1 999 ₴', founderPrice: '3 999 ₴' },
-            'PL': { symbol: 'zł', code: 'PLN', monthlyPrice: '39,99 zł', yearlyPrice: '299,99 zł', studentPrice: '199,99 zł', founderPrice: '399,99 zł' },
-            'AU': { symbol: 'A$', code: 'AUD', monthlyPrice: 'A$14.99', yearlyPrice: 'A$99.99', studentPrice: 'A$64.99', founderPrice: 'A$149.99' },
-            'CA': { symbol: 'C$', code: 'CAD', monthlyPrice: 'C$12.99', yearlyPrice: 'C$89.99', studentPrice: 'C$59.99', founderPrice: 'C$129.99' },
-        };
-
-        if (region && regionMap[region]) {
-            setCurrency(regionMap[region]);
-            console.log('[SubscriptionScreen] Currency from region:', region);
-        }
+        const currencyConfig = getCurrency();
+        const currencyCode = currencyConfig.code;
+        
+        // Format prices using currency utility (handles all 175 countries correctly)
+        setCurrency({
+            symbol: currencyConfig.symbol,
+            code: currencyCode,
+            monthlyPrice: formatPrice('monthly'),
+            yearlyPrice: formatPrice('yearly'),
+            studentPrice: formatPrice('student'),
+            founderPrice: formatPrice('founder'),
+        });
+        const deviceRegion = getDeviceRegion();
+        console.log('[SubscriptionScreen] Using fallback prices from device region:', {
+            region: deviceRegion,
+            currency: currencyCode,
+            symbol: currencyConfig.symbol,
+            note: 'IAP prices are more accurate - these are approximate',
+        });
     }, []);
 
 
@@ -155,7 +155,19 @@ export default function SubscriptionScreen() {
                 return;
             }
 
+            // IMPORTANT: IAP prices are the MOST ACCURATE source
+            // IAP automatically returns correct prices for user's App Store country
+            // product.localizedPrice contains exact price from App Store Connect for user's country
             // Map IAP products to our plan format. Use IAP price and currency as-is (Store localizes by user's App Store country).
+            const deviceRegion = getDeviceRegion();
+            const iapCurrency = all[0]?.currency;
+            console.log('[SubscriptionScreen] Using IAP prices (most accurate):', {
+                deviceRegion,
+                currency: iapCurrency,
+                productsCount: all.length,
+                note: 'IAP prices are country-specific from App Store Connect',
+            });
+            
             const mappedPlans = all.map(product => {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
                 const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
@@ -628,22 +640,29 @@ export default function SubscriptionScreen() {
 
                                     {/* Price with optional strike-through */}
                                     <View style={styles.priceRow}>
-                                        {plan.originalPrice && plan.originalPrice[plan.currency] && (
-                                            <Text style={[
-                                                styles.originalPrice,
-                                                { color: tokens.colors?.textSecondary || '#999' }
-                                            ]}>
-                                                {plan.currency === 'USD' ? '$' : plan.currency === 'EUR' ? '€' : 'CHF '}
-                                                {plan.originalPrice[plan.currency]}
-                                            </Text>
-                                        )}
-                                        <Text style={[
-                                            styles.planPriceCompact,
-                                            isSelected && styles.planPriceSelected,
-                                            { color: tokens.colors?.textPrimary || '#212121' }
-                                        ]}>
-                                            {plan.priceFormatted}
-                                        </Text>
+                                        {(() => {
+                                            const planId = plan.name === 'monthly' ? 'monthly' : plan.name === 'yearly' ? 'yearly' : plan.name === 'student' ? 'student' : 'founder';
+                                            const originalPrice = getOriginalPrice(planId, plan.currency);
+                                            return (
+                                                <>
+                                                    {originalPrice && (
+                                                        <Text style={[
+                                                            styles.originalPrice,
+                                                            { color: tokens.colors?.textSecondary || '#999' }
+                                                        ]}>
+                                                            {originalPrice}
+                                                        </Text>
+                                                    )}
+                                                    <Text style={[
+                                                        styles.planPriceCompact,
+                                                        isSelected && styles.planPriceSelected,
+                                                        { color: tokens.colors?.textPrimary || '#212121' }
+                                                    ]}>
+                                                        {plan.priceFormatted}
+                                                    </Text>
+                                                </>
+                                            );
+                                        })()}
                                     </View>
                                 </View>
                             </TouchableOpacity>

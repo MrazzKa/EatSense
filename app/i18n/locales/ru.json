@@ -1121,13 +1121,27 @@
       "instructions": "Инструкция",
       "name": "Название",
       "startDate": "Дата начала (ГГГГ-ММ-ДД)",
-      "timezone": "Часовой пояс"
+      "timezone": "Часовой пояс",
+      "quantity": "Общее количество (опционально)",
+      "remainingStock": "Остаток (опционально)"
     },
     "noDoses": "Время приёма не указано",
     "placeholders": {
       "dosage": "500 мг",
       "instructions": "Перед ужином, с водой",
-      "name": "Метформин"
+      "name": "Метформин",
+      "quantity": "30",
+      "remainingStock": "Автоматически рассчитано"
+    },
+    "hints": {
+      "quantity": "Общее количество таблеток в упаковке",
+      "remainingStock": "Будет рассчитано автоматически на основе доз и прошедших дней"
+    },
+    "stock": {
+      "total": "Всего",
+      "remaining": "Остаток",
+      "daysRemaining": "Дней осталось",
+      "lowStock": "Низкий остаток! Пора пополнить"
     },
     "tabTitle": "Таблетки",
     "times": "Время",
@@ -1204,6 +1218,8 @@
     "genders": {
       "female": "Женский",
       "male": "Мужской",
+      "nonBinary": "Небинарный",
+      "preferNotToSay": "Предпочитаю не указывать",
       "other": "Другой"
     },
     "goalTypes": {
@@ -1390,7 +1406,12 @@
     "weightSubtitle": "Текущий вес нужен для расчета калорий",
     "welcome": "Добро пожаловать в EatSense",
     "welcomeSubtitle": "Ваш AI-помощник по питанию. Давайте персонализируем ваш опыт!",
-    "additionalPlans": "Дополнительные планы"
+    "additionalPlans": "Дополнительные планы",
+    "setupComplete": "Настройка завершена",
+    "profileSavedLocally": "Профиль сохранен локально. Вы можете завершить настройку позже в параметрах.",
+    "continueFree": "Продолжить бесплатно",
+    "notificationsEnabledTitle": "Уведомления включены!",
+    "notificationsEnabledDescription": "Мы будем отправлять напоминания о приёмах пищи и полезные советы. Вы можете изменить настройки в любое время."
   },
   "permissions": {
     "cameraRequired": "Для съёмки требуется доступ к камере",
@@ -1843,7 +1864,7 @@
   },
   "suggest": {
     "already_voted": "Вы уже голосовали",
-    "contact_success": "Ваш запрос отправлен на info@eatsense.ch",
+    "contact_success": "Ваш запрос отправлен",
     "description_placeholder": "Опишите ваше предложение...",
     "error": "Не удалось отправить запрос",
     "modal_title": "Предложения",
@@ -1852,7 +1873,7 @@
     "request_placeholder": "Ваш запрос",
     "request_required": "Введите ваш запрос",
     "submit": "Отправить",
-    "subtitle": "Напишите нам — имя и запрос. Письмо уйдёт на info@eatsense.ch",
+    "subtitle": "Напишите нам — имя и запрос",
     "success": "Успешно отправлено",
     "title": "Предложения",
     "voted": "Голос учтён"

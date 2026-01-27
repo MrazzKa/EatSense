@@ -2,8 +2,10 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsInt,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -43,6 +45,24 @@ export class CreateMedicationDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ example: 30, description: 'Total quantity of tablets/pills in package' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  quantity?: number;
+
+  @ApiPropertyOptional({ example: 30, description: 'Remaining stock (will be calculated automatically if not provided)' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  remainingStock?: number;
+
+  @ApiPropertyOptional({ example: 7, description: 'Low stock threshold in days', default: 7 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  lowStockThreshold?: number;
 
   @ApiProperty({ 
     example: [{ timeOfDay: '08:00', beforeMeal: false, afterMeal: false }], 

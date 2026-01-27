@@ -4,6 +4,7 @@ import { CacheService } from '../src/cache/cache.service';
 import { MealLogMealType } from '@prisma/client';
 import * as crypto from 'crypto';
 import * as path from 'path';
+import * as fs from 'fs';
 import { Readable } from 'stream';
 import { normalizeFoodLabelForLocale, normalizeMealType } from './food-translations';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -607,12 +608,24 @@ export class StatsService {
 
       let fontsRegistered = false;
       try {
-        doc.registerFont('Roboto', path.join(fontsDir, 'Roboto-Regular.ttf'));
-        doc.registerFont('Roboto-Bold', path.join(fontsDir, 'Roboto-Bold.ttf'));
-        doc.registerFont('Roboto-Light', path.join(fontsDir, 'Roboto-Light.ttf'));
-        fontsRegistered = true;
+        const regularFontPath = path.join(fontsDir, 'Roboto-Regular.ttf');
+        const boldFontPath = path.join(fontsDir, 'Roboto-Bold.ttf');
+        const lightFontPath = path.join(fontsDir, 'Roboto-Light.ttf');
+
+        // Check if fonts directory exists
+        if (!fs.existsSync(fontsDir)) {
+          console.warn(`[StatsService] Fonts directory not found: ${fontsDir}, using Helvetica`);
+        } else {
+          // Register fonts
+          doc.registerFont('Roboto', regularFontPath);
+          doc.registerFont('Roboto-Bold', boldFontPath);
+          doc.registerFont('Roboto-Light', lightFontPath);
+          fontsRegistered = true;
+          console.log(`[StatsService] Fonts registered successfully from: ${fontsDir}`);
+        }
       } catch (e) {
-        console.warn('[StatsService] Font registration failed, using Helvetica');
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.warn('[StatsService] Font registration failed, using Helvetica:', errorMessage);
       }
 
       const font = (name: string) => {
