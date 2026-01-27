@@ -98,7 +98,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         } else {
             setTrackerData(null);
         }
-    }, [activeProgram?.id, activeProgram?.type, activeProgram?.currentDayIndex, loadTrackerData]);
+    }, [activeProgram, loadTrackerData]);
 
     // Show celebration when day is completed
     useEffect(() => {

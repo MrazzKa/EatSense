@@ -1312,6 +1312,8 @@
     "planMonthlyPrice": "{{price}} / month",
     "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
     "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planStudentDescription": "需要验证的特殊学生价格。",
+    "planFounderDescription": "终身访问和专属徽章。",
     "planProName": "EatSense Pro",
     "policy": "隐私政策",
     "privacyPolicy": "隐私政策",

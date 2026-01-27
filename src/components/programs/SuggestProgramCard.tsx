@@ -13,6 +13,9 @@ import {
     StyleSheet,
     Alert,
     ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -23,7 +26,7 @@ interface SuggestProgramCardProps {
     type?: 'diet' | 'lifestyle';
 }
 
-export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgramCardProps) {
+export default function SuggestProgramCard({ type: _type = 'lifestyle' }: SuggestProgramCardProps) {
     const { colors } = useTheme();
     const { t } = useI18n();
 
@@ -107,6 +110,9 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
             backgroundColor: colors.background || '#FFF',
             borderRadius: 20,
             padding: 24,
+            maxHeight: '80%',
+            width: '90%',
+            alignSelf: 'center',
         },
         modalTitle: {
             fontSize: 20,
@@ -193,56 +199,77 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                 animationType="fade"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>
-                            {t('suggest.modal_title') || 'Предложения'}
-                        </Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholder={t('suggest.name_placeholder') || 'Ваше имя'}
-                            placeholderTextColor={colors.textSecondary || '#999'}
-                            value={userName}
-                            onChangeText={setUserName}
-                            autoFocus
-                        />
-
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholder={t('suggest.request_placeholder') || 'Ваш запрос'}
-                            placeholderTextColor={colors.textSecondary || '#999'}
-                            value={request}
-                            onChangeText={setRequest}
-                            multiline
-                        />
-
-                        <View style={styles.buttonRow}>
-                            <TouchableOpacity
-                                style={styles.cancelButton}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={styles.cancelText}>
-                                    {t('common.cancel') || 'Отмена'}
+                {/* FIX #8: Use KeyboardAvoidingView to prevent keyboard from covering content */}
+                <KeyboardAvoidingView
+                    style={styles.modalOverlay}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+                >
+                    <TouchableOpacity
+                        style={styles.modalOverlay}
+                        activeOpacity={1}
+                        onPress={() => setModalVisible(false)}
+                    >
+                        <TouchableOpacity
+                            activeOpacity={1}
+                            onPress={(e) => e.stopPropagation()}
+                        >
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalTitle}>
+                                    {t('suggest.modal_title') || 'Предложения'}
                                 </Text>
-                            </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={[styles.submitButton, submitting && { opacity: 0.6 }]}
-                                onPress={handleSubmit}
-                                disabled={submitting}
-                            >
-                                {submitting ? (
-                                    <ActivityIndicator color="#FFF" size="small" />
-                                ) : (
-                                    <Text style={styles.submitText}>
-                                        {t('suggest.submit') || 'Отправить'}
-                                    </Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
+                                <ScrollView
+                                    keyboardShouldPersistTaps="handled"
+                                    showsVerticalScrollIndicator={false}
+                                >
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={t('suggest.name_placeholder') || 'Ваше имя'}
+                                        placeholderTextColor={colors.textSecondary || '#999'}
+                                        value={userName}
+                                        onChangeText={setUserName}
+                                        autoFocus
+                                    />
+
+                                    <TextInput
+                                        style={[styles.input, styles.textArea]}
+                                        placeholder={t('suggest.request_placeholder') || 'Ваш запрос'}
+                                        placeholderTextColor={colors.textSecondary || '#999'}
+                                        value={request}
+                                        onChangeText={setRequest}
+                                        multiline
+                                    />
+                                </ScrollView>
+
+                                <View style={styles.buttonRow}>
+                                    <TouchableOpacity
+                                        style={styles.cancelButton}
+                                        onPress={() => setModalVisible(false)}
+                                    >
+                                        <Text style={styles.cancelText}>
+                                            {t('common.cancel') || 'Отмена'}
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+                                        onPress={handleSubmit}
+                                        disabled={submitting}
+                                    >
+                                        {submitting ? (
+                                            <ActivityIndicator color="#FFF" size="small" />
+                                        ) : (
+                                            <Text style={styles.submitText}>
+                                                {t('suggest.submit') || 'Отправить'}
+                                            </Text>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                </KeyboardAvoidingView>
             </Modal>
         </>
     );

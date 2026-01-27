@@ -62,20 +62,21 @@ export class DashboardService {
             ]);
 
             // Non-critical requests - can timeout or fail without breaking dashboard
-            // Suggestions can be slow (AI processing), so we add timeout
+            // FIX #3/#13: Suggestions can be slow (AI processing), increased timeout and improved error handling
             const suggestionsPromise = this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
                 .catch(e => {
-                    this.logger.error(`Failed to get suggestions: ${e.message}`);
-                    return { status: 'error', sections: [] };
+                    this.logger.error(`Failed to get suggestions: ${e.message}`, e.stack);
+                    return { status: 'error', sections: [], error: e.message };
                 });
 
-            // Add timeout for suggestions (15 seconds) - increased to reduce timeout warnings
+            // FIX #3/#13: Increased timeout to 20 seconds to reduce timeout warnings
+            // Suggestions are important but non-critical - dashboard should load even if they fail
             const suggestions = await Promise.race([
                 suggestionsPromise,
                 new Promise(resolve => setTimeout(() => {
-                    this.logger.warn(`Suggestions timeout for user ${userId} - returning error status`);
-                    resolve({ status: 'error', sections: [] });
-                }, 15000)),
+                    this.logger.warn(`Suggestions timeout for user ${userId} after 20s - returning error status`);
+                    resolve({ status: 'timeout', sections: [], message: 'Suggestions are taking longer than expected' });
+                }, 20000)),
             ]) as any;
 
             const duration = Date.now() - start;

@@ -1312,6 +1312,8 @@
     "planMonthlyPrice": "{{price}} / month",
     "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
     "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planStudentDescription": "Spezieller Studentenpreis mit Verifizierung.",
+    "planFounderDescription": "Lebenslanger Zugang mit exklusivem Abzeichen.",
     "planProName": "EatSense Pro",
     "policy": "Datenschutzrichtlinie",
     "privacyPolicy": "Datenschutzrichtlinie",

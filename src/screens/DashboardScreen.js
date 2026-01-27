@@ -28,7 +28,6 @@ import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
-import { programProgressService } from '../services/programProgressService';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -58,7 +57,7 @@ export default function DashboardScreen() {
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
   // Load active diet for dashboard widget from store
-  const { activeProgram, setProgram, loadProgress } = useProgramProgress();
+  const { activeProgram, loadProgress } = useProgramProgress();
   
   // FIX: Load progress when Dashboard mounts (lazy loading - only when needed)
   // This ensures program data is available for the widget
@@ -77,7 +76,7 @@ export default function DashboardScreen() {
       try {
         // Preload in background (non-blocking)
         await ApiService.getDietsBundle(language);
-      } catch (e) {
+      } catch {
         // Silently fail - not critical
       }
     };
@@ -107,7 +106,6 @@ export default function DashboardScreen() {
     dailyLimit: 3,
   });
   const [suggestedFoodSummary, setSuggestedFoodSummary] = useState(null);
-  const [activeDiet, setActiveDiet] = useState(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [cardAnimations] = useState(() => ({
     calories: new Animated.Value(0),
@@ -165,56 +163,8 @@ export default function DashboardScreen() {
     cardAnimations.suggested
   ]);
 
-  // Consolidated data loading
-  const loadDashboardData = React.useCallback(async () => {
-    try {
-      const currentLocale = language || 'en';
-      const dateKey = selectedDate.toISOString().split('T')[0];
-      const cacheKey = `dashboard_data_${dateKey}_${currentLocale}`;
-
-      // 1. Try Cache First (Fast Render)
-      try {
-        const cached = await AsyncStorage.getItem(cacheKey);
-        if (cached) {
-          if (__DEV__) console.log('[Dashboard] Loaded from cache');
-          const data = JSON.parse(cached);
-          updateDashboardState(data);
-        }
-      } catch (e) {
-        console.warn('Cache read error', e);
-      }
-
-      // 2. Fetch Fresh Data (Network)
-      if (__DEV__) console.log('[DashboardScreen] Loading dashboard data from API...');
-      const data = await ApiService.getDashboardData(selectedDate, currentLocale);
-
-      if (!data) {
-        // FIX: If API returns null, don't clear existing state - keep cached data
-        console.warn('[DashboardScreen] API returned null, keeping cached data');
-        return;
-      }
-
-      // 3. Update Cache & State
-      AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
-      updateDashboardState(data);
-
-    } catch (error) {
-      console.error('[DashboardScreen] Error loading dashboard data:', error);
-      // FIX: Don't clear activeDiet on error - keep previous value to prevent tracker from disappearing
-      // Try to load from cache as fallback
-      try {
-        const cached = await AsyncStorage.getItem(cacheKey);
-        if (cached) {
-          const data = JSON.parse(cached);
-          updateDashboardState(data);
-        }
-      } catch (e) {
-        console.warn('[DashboardScreen] Cache fallback also failed:', e);
-      }
-    }
-  }, [selectedDate, language, setProgram, updateDashboardState]);
-
   // Helper to update state from data (used by cache and api)
+  // FIX: Moved before loadDashboardData to fix "accessed before declaration" error
   const updateDashboardState = React.useCallback((data) => {
     if (!data) return;
 
@@ -288,27 +238,7 @@ export default function DashboardScreen() {
         };
       }).filter(Boolean);
       setRecentItems(normalizedMeals);
-      // FIX: Clear justCompletedItems for IDs now in meals - prevents flicker when
-      // we used to clear at 2s before dashboard load finished
-      // Also check meal names and image URLs to catch duplicates even if IDs don't match
-      const idsInMeals = new Set(
-        normalizedMeals.map((m) => m.analysisId || m.id).filter(Boolean)
-      );
-      const imageUrlsInMeals = new Set(
-        normalizedMeals.map((m) => m.imageUrl || m.imageUri).filter(Boolean)
-      );
-      if (idsInMeals.size > 0 || imageUrlsInMeals.size > 0) {
-        setJustCompletedItems((prev) =>
-          prev.filter((p) => {
-            // Remove if ID matches
-            if (idsInMeals.has(p.analysisId)) return false;
-            // Remove if image URL matches (catch duplicates even if IDs differ)
-            if (p.localPreviewUri && imageUrlsInMeals.has(p.localPreviewUri)) return false;
-            if (p.imageUrl && imageUrlsInMeals.has(p.imageUrl)) return false;
-            return true;
-          })
-        );
-      }
+      // FIX #2: No need to clear justCompletedItems - removed that logic
     }
 
     // 3. User Stats
@@ -343,7 +273,56 @@ export default function DashboardScreen() {
     // Store should be updated via refreshProgress() or programProgressService, not from dashboard
     // This prevents tracker from disappearing when dashboard API is slow or returns null
     // Store will be updated via refreshProgress() which is called on focus
-  }, [setProgram]);
+  }, []);
+
+  // Consolidated data loading
+  const loadDashboardData = React.useCallback(async () => {
+    const currentLocale = language || 'en';
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    const cacheKey = `dashboard_data_${dateKey}_${currentLocale}`;
+
+    try {
+      // 1. Try Cache First (Fast Render)
+      try {
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+          if (__DEV__) console.log('[Dashboard] Loaded from cache');
+          const data = JSON.parse(cached);
+          updateDashboardState(data);
+        }
+      } catch {
+        console.warn('Cache read error');
+      }
+
+      // 2. Fetch Fresh Data (Network)
+      if (__DEV__) console.log('[DashboardScreen] Loading dashboard data from API...');
+      const data = await ApiService.getDashboardData(selectedDate, currentLocale);
+
+      if (!data) {
+        // FIX: If API returns null, don't clear existing state - keep cached data
+        console.warn('[DashboardScreen] API returned null, keeping cached data');
+        return;
+      }
+
+      // 3. Update Cache & State
+      AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
+      updateDashboardState(data);
+
+    } catch (error) {
+      console.error('[DashboardScreen] Error loading dashboard data:', error);
+      // FIX: Don't clear activeDiet on error - keep previous value to prevent tracker from disappearing
+      // Try to load from cache as fallback
+      try {
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+          const data = JSON.parse(cached);
+          updateDashboardState(data);
+        }
+      } catch {
+        console.warn('[DashboardScreen] Cache fallback also failed');
+      }
+    }
+  }, [selectedDate, language, updateDashboardState]);
 
 
 
@@ -396,108 +375,39 @@ export default function DashboardScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      // FIX: Clear justCompletedItems when screen comes into focus if there are new pending analyses
-      // This prevents showing old completed cards when returning to dashboard after starting new analysis
-      if (pendingAnalyses.length > 0) {
-        const prevIds = prevPendingAnalysesRef.current.map(a => a.analysisId);
-        const currentIds = pendingAnalyses.map(a => a.analysisId);
-        const hasNewAnalysis = currentIds.some(id => !prevIds.includes(id));
-        
-        if (hasNewAnalysis) {
-          if (__DEV__) {
-            console.log('[DashboardScreen] New analysis detected on focus, clearing justCompletedItems');
-          }
-          setJustCompletedItems([]);
-        }
-      }
-      
+      // FIX #2: Removed justCompletedItems clearing logic - no longer needed
       loadDashboardData();
-    }, [loadDashboardData, pendingAnalyses])
+    }, [loadDashboardData])
   );
 
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
   // Auto-refresh when pending analyses change (e.g., when an analysis completes)
+  // FIX #2: Removed justCompletedItems logic to prevent duplicate cards
+  // When analysis completes, it will remain in pendingAnalyses until it appears in recentItems
+  // This eliminates the visual bug of showing two cards (green border + ready card)
+  
+  // Reload dashboard data when pending analyses complete to get fresh data from API
   const prevPendingAnalysesRef = React.useRef(pendingAnalyses);
-  const [justCompletedItems, setJustCompletedItems] = useState([]);
-
+  
   useEffect(() => {
-    // Detect items that were pending but are now gone (completed)
     const prevItems = prevPendingAnalysesRef.current;
-
-    // Optimization: If lengths and IDs are identical, do nothing (skip filtering)
-    // This relies on useMemo in Context ensuring stable references for same content
     if (prevItems === pendingAnalyses) return;
 
-    const prevIds = new Set(prevItems.map(a => a.analysisId));
     const currentIds = new Set(pendingAnalyses.map(a => a.analysisId));
 
-    // FIX: Clear justCompletedItems when a NEW analysis starts (detect new IDs)
-    // This prevents showing old completed analysis cards when starting a new analysis
-    // Check for new IDs that weren't in previous list (more reliable than length check)
-    const hasNewAnalysis = Array.from(currentIds).some(id => !prevIds.has(id));
+    // Detect completed analyses (disappeared from pendingAnalyses)
+    const completed = prevItems.filter(a => !currentIds.has(a.analysisId) && a.status !== 'failed');
     
-    if (hasNewAnalysis) {
-      // New analysis started - clear old completed items immediately to prevent flicker
-      if (__DEV__) {
-        console.log('[DashboardScreen] New analysis detected, clearing justCompletedItems');
-      }
-      setJustCompletedItems([]);
-    }
-
-    // Find items that disappeared (completed)
-    const completed = prevItems.filter(a => !currentIds.has(a.analysisId));
-
     if (completed.length > 0) {
-      // Logic: If disappeared and NOT failed (assuming success if just disappeared from list without error flag in context?)
-      // Context usually handles 'failed' by keeping it or alerting.
-      // Let's assume disappearance means success or user dismissal.
-      // If regular success flow, we want to show it.
-
-      const actuallyCompleted = completed.filter(c => c.status !== 'failed');
-
-        if (actuallyCompleted.length > 0 && !hasNewAnalysis) {
-        // Only add to justCompleted if we didn't just start a new analysis
-        // This prevents showing completed cards when a new analysis is starting
-        setJustCompletedItems(prev => {
-          const existingIds = new Set(prev.map(p => p.analysisId));
-          const now = Date.now();
-          const newItems = actuallyCompleted
-            .filter(c => !existingIds.has(c.analysisId))
-            .map(c => ({ ...c, status: 'completed', completedAt: now, timestamp: now }));
-
-          if (newItems.length === 0) return prev;
-
-          return [...prev, ...newItems];
-        });
-
-        // FIX: Reload data; justCompletedItems are cleared inside loadDashboardData
-        // when we receive meals (prevents flicker when dashboard is slow)
-        const timer = setTimeout(() => {
-          loadDashboardData();
-        }, 300);
-        
-        // FIX: Also set a timeout to auto-clear justCompletedItems after 5 seconds
-        // This ensures cards don't stick around if dashboard refresh is slow
-        const clearTimer = setTimeout(() => {
-          setJustCompletedItems((prev) => {
-            // Only clear items that are older than 5 seconds
-            const now = Date.now();
-            return prev.filter((item) => {
-              const itemTime = item.completedAt || item.timestamp || 0;
-              return now - itemTime < 5000; // Keep items less than 5 seconds old
-            });
-          });
-        }, 5000);
-        
-        return () => {
-          clearTimeout(timer);
-          clearTimeout(clearTimer);
-        };
-      }
+      // Reload dashboard data to get completed analyses from API
+      // This ensures smooth transition from pendingAnalyses to recentItems
+      const timer = setTimeout(() => {
+        loadDashboardData();
+      }, 500); // Small delay to allow backend to process
+      
+      return () => clearTimeout(timer);
     }
 
-    // FIX: Always update ref at the end to track current state for next comparison
-    // This ensures we correctly detect new analyses on next render
     prevPendingAnalysesRef.current = pendingAnalyses;
   }, [pendingAnalyses, loadDashboardData]);
 
@@ -795,18 +705,48 @@ export default function DashboardScreen() {
         {/* FIX: Use activeDietForWidget from store (via useMemo) instead of activeDiet state */}
         {/* This prevents tracker from disappearing during "Slow Dashboard Load" */}
         <ActiveDietWidget
-          activeDiet={activeDietForWidget || activeDiet}
+          activeDiet={activeDietForWidget}
           onOpenTracker={() => {
-            const programId = activeDietForWidget?.diet?.id || activeDiet?.diet?.id || activeProgram?.programId;
-            const programType = activeDietForWidget?.type || activeDiet?.type || activeProgram?.type;
-            if (navigation && typeof navigation.navigate === 'function' && programId) {
-              // FIX: Navigate to correct screen based on program type
-              if (programType === 'lifestyle' || programType === 'LIFESTYLE') {
-                navigation.navigate('LifestyleDetail', { id: programId });
-              } else {
-                navigation.navigate('DietProgramProgress', { id: programId });
-              }
+            // FIX #6.3: Ensure programId and programType are available before navigation
+            // Add delay to ensure data is loaded and navigation is ready
+            const programId = activeDietForWidget?.diet?.id || activeProgram?.programId;
+            const programType = activeDietForWidget?.type || activeProgram?.type;
+            
+            if (!programId) {
+              console.warn('[DashboardScreen] Cannot navigate: programId is missing');
+              return;
             }
+            
+            if (!navigation || typeof navigation.navigate !== 'function') {
+              console.warn('[DashboardScreen] Navigation not available');
+              return;
+            }
+            
+            // Small delay to ensure navigation is ready (fixes "Page not Found" bug)
+            setTimeout(() => {
+              try {
+                // FIX: Navigate to correct screen based on program type
+                if (programType === 'lifestyle' || programType === 'LIFESTYLE') {
+                  navigation.navigate('LifestyleDetail', { id: programId });
+                } else {
+                  navigation.navigate('DietProgramProgress', { id: programId });
+                }
+              } catch (error) {
+                console.error('[DashboardScreen] Navigation error:', error);
+                // Retry navigation after a short delay
+                setTimeout(() => {
+                  try {
+                    if (programType === 'lifestyle' || programType === 'LIFESTYLE') {
+                      navigation.navigate('LifestyleDetail', { id: programId });
+                    } else {
+                      navigation.navigate('DietProgramProgress', { id: programId });
+                    }
+                  } catch (retryError) {
+                    console.error('[DashboardScreen] Navigation retry failed:', retryError);
+                  }
+                }, 300);
+              }
+            }, 100);
           }}
           onBrowseDiets={() => {
             if (navigation && typeof navigation.navigate === 'function') {
@@ -849,80 +789,21 @@ export default function DashboardScreen() {
             ))
           )}
 
-          {/* Just Completed Items - Bridge the gap before server refresh */}
-          {/* FIX: Filter out items that are already in recentItems to prevent duplicates */}
+          {/* FIX #2: Removed justCompletedItems display - now showing only pendingAnalyses and recentItems */}
+          {/* Completed meals - filter out items that are in pendingAnalyses to avoid duplicates */}
           {(() => {
-            const justCompletedIds = new Set((justCompletedItems || []).map(a => a.analysisId));
-            const recentItemIds = new Set((recentItems || []).map(m => m.analysisId || m.id).filter(Boolean));
-            const recentImageUrls = new Set((recentItems || []).map(m => m.imageUrl || m.imageUri).filter(Boolean));
-            
-            const filteredJustCompleted = (justCompletedItems || []).filter(item => {
-              // Remove if already in recentItems by ID
-              if (recentItemIds.has(item.analysisId)) return false;
-              // Remove if image URL matches (catch duplicates even if IDs differ)
-              if (item.localPreviewUri && recentImageUrls.has(item.localPreviewUri)) return false;
-              if (item.imageUrl && recentImageUrls.has(item.imageUrl)) return false;
-              // Remove if older than 5 seconds
-              const now = Date.now();
-              const itemTime = item.completedAt || item.timestamp || 0;
-              if (itemTime > 0 && now - itemTime > 5000) return false;
-              return true;
-            });
-            
-            return filteredJustCompleted.length > 0 ? (
-              filteredJustCompleted.map((item) => (
-                <TouchableOpacity
-                  key={`completed-${item.analysisId}`}
-                  style={[styles.articleRow, { borderColor: colors.success || '#34C759', borderWidth: 1 }]}
-                  onPress={() => {
-                    if (navigation && typeof navigation.navigate === 'function') {
-                      navigation.navigate('AnalysisResults', {
-                        analysisId: item.analysisId,
-                        status: 'completed',
-                        localPreviewUri: item.localPreviewUri,
-                      });
-                    }
-                  }}
-                >
-                {item.localPreviewUri || item.imageUrl ? (
-                  <Image
-                    source={{ uri: item.localPreviewUri || item.imageUrl }}
-                    style={styles.recentItemImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.recentItemImagePlaceholder}>
-                    <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
-                  </View>
-                )}
-                <View style={{ flex: 1, marginLeft: tokens.spacing.md }}>
-                  <Text numberOfLines={1} style={styles.articleRowTitle}>
-                    {item.dishName || t('analysis.analysisComplete', 'Analysis Complete')}
-                  </Text>
-                  <Text numberOfLines={1} style={[styles.articleRowExcerpt, { color: colors.success || '#34C759' }]}>
-                    {t('analysis.tapToView', 'Tap to view results')}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-              </TouchableOpacity>
-              ))
-            ) : null;
-          })()}
-
-          {/* Completed meals - filter out items that are in justCompletedItems to avoid duplicate keys */}
-          {(() => {
-            const justCompletedIds = new Set((justCompletedItems || []).map(a => a.analysisId));
-            const justCompletedImageUrls = new Set(
-              (justCompletedItems || [])
+            const pendingIds = new Set(pendingAnalyses.map(a => a.analysisId));
+            const pendingImageUrls = new Set(
+              pendingAnalyses
                 .map(a => a.localPreviewUri || a.imageUrl)
                 .filter(Boolean)
             );
             const filteredItems = (recentItems || []).filter(item => {
-              // Filter by ID
-              if (justCompletedIds.has(item.analysisId || item.id)) return false;
+              // Filter by ID - don't show if already in pendingAnalyses
+              if (pendingIds.has(item.analysisId || item.id)) return false;
               // Filter by image URL (catch duplicates even if IDs differ)
               const itemImageUrl = item.imageUrl || item.imageUri;
-              if (itemImageUrl && justCompletedImageUrls.has(itemImageUrl)) return false;
+              if (itemImageUrl && pendingImageUrls.has(itemImageUrl)) return false;
               return true;
             });
             return filteredItems.length > 0 ? (

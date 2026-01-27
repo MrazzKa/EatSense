@@ -382,7 +382,8 @@ async function main() {
     console.log(`   Code Usage Issues: ${codeResults.totalIssues}`);
     console.log(`   Database Issues: ${dbResults.totalIssues} (requires separate check)\n`);
     
-    const totalIssues = jsonResults.totalIssues + codeResults.totalIssues;
+    // Total issues (informational, not used for exit code)
+    // const totalIssues = jsonResults.totalIssues + codeResults.totalIssues;
     
     // FIX: Don't fail on warnings from test files - they're not real issues
     const realIssues = codeResults.issues.filter(issue => 

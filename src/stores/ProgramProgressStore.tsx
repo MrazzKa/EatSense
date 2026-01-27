@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { programProgressService } from '../services/programProgressService';
 import { createCache } from '../utils/cacheUtils';
@@ -194,12 +194,24 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
         if (!prev) return prev;
         const newCurrentDay = result.currentDay || prev.currentDayIndex + 1;
         const newDaysLeft = Math.max(0, prev.durationDays - newCurrentDay + 1);
+        const todayDate = prev.todayLog?.date || new Date().toISOString().split('T')[0];
         const updated = {
           ...prev,
           currentDayIndex: newCurrentDay,
           daysLeft: newDaysLeft,
           streak: { ...prev.streak, current: result.streak || prev.streak.current },
-          todayLog: { ...prev.todayLog, completed: true, completionRate: result.completionRate || 1 },
+          todayLog: prev.todayLog ? {
+            ...prev.todayLog,
+            completed: true,
+            completionRate: result.completionRate || 1,
+            date: todayDate,
+          } : {
+            date: todayDate,
+            completedCount: 0,
+            totalCount: 0,
+            completionRate: result.completionRate || 1,
+            completed: true,
+          },
         };
         cache.current.set(CACHE_KEY, updated);
         return updated;
@@ -222,17 +234,19 @@ export const ProgramProgressProvider: React.FC<{ children: React.ReactNode }> = 
       // This prevents screen reload after closing celebration modal
       setActiveProgram(prev => {
         if (!prev || !prev.todayLog) return prev;
+        const todayDate = prev.todayLog.date || new Date().toISOString().split('T')[0];
         return {
           ...prev,
           todayLog: {
             ...prev.todayLog,
+            date: todayDate,
             celebrationShown: true,
           },
         };
       });
       // Update cache with optimistic value
       const updated = cache.current.get(CACHE_KEY);
-      if (updated) {
+      if (updated && updated.todayLog) {
         cache.current.set(CACHE_KEY, {
           ...updated,
           todayLog: {

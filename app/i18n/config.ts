@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 
 import en from './locales/en.json';
@@ -13,7 +12,8 @@ import ko from './locales/ko.json';
 import ja from './locales/ja.json';
 import zh from './locales/zh.json';
 
-const STORAGE_KEY = '@eatsense:language';
+// FIX: Removed language storage - language is now auto-detected from device and cannot be changed
+// const STORAGE_KEY = '@eatsense:language'; // No longer used
 
 // Безопасная нормализация ENV переменных
 const DEFAULT_FALLBACK = String(process.env.EXPO_PUBLIC_DEFAULT_LOCALE || 'en').trim() || 'en';
@@ -104,46 +104,29 @@ export const getCurrentLocale = () => i18n.language;
 
 export const getSupportedLocales = () => [...SUPPORTED_LOCALES];
 
+// FIX: Removed loadStoredLocale - language is now auto-detected from device
+// Language cannot be changed manually
 export const loadStoredLocale = async () => {
-  try {
-    const saved = await AsyncStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return resolveSupportedLocale(saved);
-    }
-  } catch (error) {
-    console.warn('[i18n] Failed to read stored locale:', error);
-  }
+  // Always return null - language is determined by device locale only
   return null;
 };
 
-export const setAppLocale = async (locale: string) => {
-  const target = resolveSupportedLocale(locale);
-  await initializeI18next();
-  if (i18n.language !== target) {
-    await i18n.changeLanguage(target);
-  }
-
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, target);
-  } catch (error) {
-    console.warn('[i18n] Failed to persist locale:', error);
-  }
+// FIX: setAppLocale is now a no-op - language cannot be changed manually
+// Language is determined automatically from device settings
+export const setAppLocale = async (_locale: string) => {
+  // No-op: Language is auto-detected and cannot be changed
+  console.warn('[i18n] setAppLocale called but language switching is disabled. Language is auto-detected from device.');
 };
 
 export const ensureI18nReady = async () => {
-  // FIX: Initialize i18n first (fast - just sets up resources)
+  // FIX: Initialize i18n with device locale - language is auto-detected and cannot be changed
   await initializeI18next();
 
-  // FIX: Load stored locale in parallel with language change (non-blocking)
-  // Use Promise.race to prevent slow AsyncStorage from blocking
-  const [saved] = await Promise.race([
-    Promise.all([loadStoredLocale()]),
-    new Promise(resolve => setTimeout(() => resolve([null]), 50)), // Max 50ms wait for AsyncStorage
-  ]).catch(() => [null]);
-  
-  const initial = saved || detectDeviceLocale();
-  if (i18n.language !== initial) {
-    await i18n.changeLanguage(initial);
+  // Language is determined automatically from device settings
+  // No stored language preference - always use device locale
+  const deviceLocale = detectDeviceLocale();
+  if (i18n.language !== deviceLocale) {
+    await i18n.changeLanguage(deviceLocale);
   }
 };
 

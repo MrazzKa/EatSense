@@ -81,7 +81,7 @@ function normalizeMeals(meals) {
 export default function MealHistoryScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { colors, tokens } = useTheme();
+  const { colors } = useTheme();
   const { t, language } = useI18n();
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);

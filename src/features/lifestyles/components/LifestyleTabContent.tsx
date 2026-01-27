@@ -115,14 +115,21 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     }
 
     if (selectedTarget) {
-      // FIX: Filter by target - handle both 'all' (show all) and specific targets
+      // FIX #6: Filter by target - handle both 'all' (show all) and specific targets
+      // Normalize comparison to handle case-insensitive matching
       if (selectedTarget !== 'all') {
         result = result.filter(p => {
           // Handle programs with no target (show for all) or matching target
-          const programTarget = p.target || null;
-          return programTarget === null || programTarget === selectedTarget;
+          const programTarget = (p.target || '').toLowerCase().trim();
+          const normalizedSelectedTarget = selectedTarget.toLowerCase().trim();
+          
+          // Show program if:
+          // 1. Program has no target (empty/null) - show for all
+          // 2. Program target matches selected target (case-insensitive)
+          return !programTarget || programTarget === normalizedSelectedTarget;
         });
       }
+      // If selectedTarget === 'all', show all programs (no filtering)
     }
 
     if (searchQuery.trim()) {
@@ -207,7 +214,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     // Removed from here - now shown at screen level after all content
 
     return data;
-  }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, programs, props.activeProgram, t]);
+  }, [searchQuery, trendingPrograms, selectedCategory, filteredPrograms, isLoading, props.activeProgram]);
 
   // Memoized render item
   const renderItem: ListRenderItem<SectionData> = useCallback(({ item }) => {

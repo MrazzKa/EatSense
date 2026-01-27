@@ -13,7 +13,6 @@ import {
   Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
-  Linking,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
@@ -34,7 +33,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
-import { getCurrencyCode, formatPrice, getCurrency, formatAmount, getDeviceRegion, getOriginalPrice } from '../utils/currency';
+import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getOriginalPrice } from '../utils/currency';
 
 const { width } = Dimensions.get('window');
 
@@ -1234,8 +1233,11 @@ const OnboardingScreen = () => {
         };
 
         try {
-          // Initialize IAP if not already done
-          await IAPService.init();
+          // FIX #9: Ensure IAP is initialized before purchase
+          const initResult = await IAPService.init();
+          if (!initResult) {
+            throw new Error('Failed to initialize IAP service');
+          }
 
           if (isSubscription) {
             await IAPService.purchaseSubscription(selectedPlan, onPurchaseSuccess, onPurchaseError);
@@ -1245,10 +1247,7 @@ const OnboardingScreen = () => {
         } catch (error) {
           console.error('[OnboardingScreen] IAP error:', error);
           setPurchasing(false);
-          Alert.alert(
-            t('error.title', 'Error'),
-            t('subscription.purchaseFailed', 'Purchase failed. Please try again.')
-          );
+          onPurchaseError(error);
         }
         return;
       }

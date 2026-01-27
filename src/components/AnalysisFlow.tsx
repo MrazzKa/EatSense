@@ -36,7 +36,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
     }
 
     return true;
-  }, []);
+  }, [t]);
 
   const startAnalysis = useCallback(async (imageUri: string) => {
     setStep('analyzing');

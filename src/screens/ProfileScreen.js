@@ -11,7 +11,7 @@ import Constants from 'expo-constants';
 import ApiService from '../services/apiService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import { LanguageSelector } from '../components/LanguageSelector';
+// FIX: Language selector removed - language is now auto-detected from device
 // import { clientLog } from '../utils/clientLog'; // Unused
 import AppCard from '../components/common/AppCard';
 import PrimaryButton from '../components/common/PrimaryButton';
@@ -28,7 +28,7 @@ import HealthDisclaimer from '../components/HealthDisclaimer';
 const ProfileScreen = () => {
   const navigation = useNavigation();
   // const insets = useSafeAreaInsets();
-  const { t, language, changeLanguage, availableLanguages } = useI18n();
+  const { t } = useI18n(); // FIX: Removed changeLanguage, availableLanguages, and language - language is auto-detected
   const themeContext = useTheme();
   const { signOut } = useAuth();
 
@@ -1508,16 +1508,8 @@ const ProfileScreen = () => {
 
         <AppCard style={styles.preferencesCard}>
           <Text style={styles.sectionTitle}>{t('profile.preferences')}</Text>
-          <View style={styles.preferenceRow}>
-            <Text style={styles.preferenceLabel}>{safeT('profile.language', 'Language')}</Text>
-            <View style={styles.languageSelectorContainer}>
-              <LanguageSelector
-                selectedLanguage={language}
-                languages={availableLanguages}
-                onLanguageChange={changeLanguage}
-              />
-            </View>
-          </View>
+          {/* FIX: Language selector removed - language is automatically detected from device settings */}
+          {/* Language cannot be changed manually - it's determined by device locale */}
           <View style={[styles.preferenceRow, styles.themeRow]}>
             <View>
               <Text style={styles.preferenceLabel}>{safeT('profile.theme', 'Theme')}</Text>
@@ -2257,11 +2249,7 @@ const createStyles = (tokens) =>
     preferencesCard: {
       gap: tokens.spacing.lg,
     },
-    languageSelectorContainer: {
-      flex: 1,
-      marginLeft: tokens.spacing.md,
-      maxWidth: '100%',
-    },
+    // FIX: languageSelectorContainer removed - language selector is no longer used
     preferenceRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',

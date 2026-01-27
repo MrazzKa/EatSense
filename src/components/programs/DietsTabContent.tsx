@@ -146,9 +146,7 @@ export default function DietsTabContent({
             {/* Check both program.type and ensure it's not lifestyle */}
             {activeDiet && 
              activeDiet.program?.type !== 'LIFESTYLE' && 
-             activeDiet.program?.type !== 'lifestyle' &&
-             activeDiet.type !== 'lifestyle' &&
-             activeDiet.type !== 'LIFESTYLE' && (
+             activeDiet.program?.type !== 'lifestyle' && (
                 <View style={styles.section}>
                     <ActiveDietWidget
                         userDiet={activeDiet}

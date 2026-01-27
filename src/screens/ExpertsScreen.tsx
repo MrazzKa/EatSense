@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,11 +16,6 @@ import { useI18n } from '../../app/i18n/hooks';
 export default function ExpertsScreen({ navigation: _navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const { t } = useI18n();
-
-  // Removed Articles button - feature not ready
-  const handleViewArticles = () => {
-    // Navigation to Articles disabled for MVP
-  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
