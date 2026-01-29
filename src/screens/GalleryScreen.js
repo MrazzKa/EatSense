@@ -36,7 +36,7 @@ const PICKER_TIMEOUT_MS = 3000;
 
 export default function GalleryScreen() {
   const navigation = useNavigation();
-  const { language } = useI18n();
+  const { language, t } = useI18n(); // FIX: destructure t
   const { addPendingAnalysis } = useAnalysis();
   const [state, setState] = useState(STATE.READY); // Start with READY - show button immediately
   const [error, setError] = useState(null);
@@ -273,7 +273,7 @@ export default function GalleryScreen() {
         <View style={styles.content}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>
-            {state === STATE.CHECKING ? 'Checking permissions...' : 'Opening gallery...'}
+            {state === STATE.CHECKING ? t('common.loading') : t('gallery.opening')}
           </Text>
         </View>
       );
@@ -284,16 +284,16 @@ export default function GalleryScreen() {
       return (
         <View style={styles.content}>
           <Ionicons name="images-outline" size={64} color="#007AFF" />
-          <Text style={styles.permissionTitle}>Gallery Not Responding</Text>
+          <Text style={styles.permissionTitle}>{t('gallery.notResponding')}</Text>
           <Text style={styles.permissionText}>
-            The photo picker is taking too long. Tap the button below to try again.
+            {t('gallery.timeoutMessage')}
           </Text>
           <TouchableOpacity style={styles.pickButton} onPress={handleOpenGallery}>
             <Ionicons name="folder-open-outline" size={24} color="#FFFFFF" />
-            <Text style={styles.pickButtonText}>Open Gallery</Text>
+            <Text style={styles.pickButtonText}>{t('gallery.openGallery')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.secondaryButton, { borderWidth: 1, borderColor: '#8E8E93', marginTop: 12 }]} onPress={handleClose}>
-            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>Go Back</Text>
+            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>{t('gallery.goBack')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -303,13 +303,13 @@ export default function GalleryScreen() {
       return (
         <View style={styles.content}>
           <Ionicons name="images-outline" size={64} color="#007AFF" />
-          <Text style={styles.permissionTitle}>Select Photo from Gallery</Text>
+          <Text style={styles.permissionTitle}>{t('gallery.selectPhoto')}</Text>
           <Text style={styles.permissionText}>
-            Tap the button below to open your photo library and select an image of your meal.
+            {t('gallery.selectPhotoHint')}
           </Text>
           <TouchableOpacity style={styles.pickButton} onPress={handleOpenGallery}>
             <Ionicons name="folder-open-outline" size={24} color="#FFFFFF" />
-            <Text style={styles.pickButtonText}>Open Gallery</Text>
+            <Text style={styles.pickButtonText}>{t('gallery.openGallery')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -319,18 +319,18 @@ export default function GalleryScreen() {
       return (
         <View style={styles.permissionContainer}>
           <Ionicons name="images-outline" size={64} color="#8E8E93" />
-          <Text style={styles.permissionTitle}>Gallery Access Required</Text>
+          <Text style={styles.permissionTitle}>{t('gallery.accessRequired')}</Text>
           <Text style={styles.permissionText}>
-            Please enable photo library access in your device settings to select photos of your meals.
+            {t('gallery.accessRequiredHint')}
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={handleOpenGallery}>
-            <Text style={styles.permissionButtonText}>Grant Permission</Text>
+            <Text style={styles.permissionButtonText}>{t('gallery.grantPermission')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.secondaryButton, { borderWidth: 1, borderColor: '#007AFF' }]} onPress={openSettings}>
-            <Text style={[styles.secondaryButtonText, { color: '#007AFF' }]}>Open Settings</Text>
+            <Text style={[styles.secondaryButtonText, { color: '#007AFF' }]}>{t('gallery.openSettings')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.secondaryButton, { borderWidth: 1, borderColor: '#8E8E93', marginTop: 8 }]} onPress={handleClose}>
-            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>Go Back</Text>
+            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>{t('gallery.goBack')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -340,13 +340,13 @@ export default function GalleryScreen() {
       return (
         <View style={styles.permissionContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.permissionTitle}>Error</Text>
-          <Text style={styles.permissionText}>{error || 'Failed to open gallery'}</Text>
+          <Text style={styles.permissionTitle}>{t('gallery.error')}</Text>
+          <Text style={styles.permissionText}>{error || t('errors.galleryFailed')}</Text>
           <TouchableOpacity style={styles.permissionButton} onPress={pickImage}>
-            <Text style={styles.permissionButtonText}>Try Again</Text>
+            <Text style={styles.permissionButtonText}>{t('gallery.tryAgain')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryButton} onPress={handleClose}>
-            <Text style={styles.secondaryButtonText}>Go Back</Text>
+            <Text style={styles.secondaryButtonText}>{t('gallery.goBack')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -357,15 +357,15 @@ export default function GalleryScreen() {
       return (
         <View style={styles.permissionContainer}>
           <Ionicons name="images-outline" size={64} color="#007AFF" />
-          <Text style={styles.permissionTitle}>Select Photo</Text>
+          <Text style={styles.permissionTitle}>{t('gallery.selectTitle')}</Text>
           <Text style={styles.permissionText}>
-            Choose a photo from your gallery to analyze.
+            {t('gallery.selectHint')}
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={handleOpenGallery}>
-            <Text style={styles.permissionButtonText}>Open Gallery</Text>
+            <Text style={styles.permissionButtonText}>{t('gallery.openGallery')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.secondaryButton, { borderWidth: 1, borderColor: '#8E8E93', marginTop: 8 }]} onPress={handleClose}>
-            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>Go Back</Text>
+            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>{t('gallery.goBack')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -376,15 +376,15 @@ export default function GalleryScreen() {
       return (
         <View style={styles.permissionContainer}>
           <Ionicons name="close-circle-outline" size={64} color="#8E8E93" />
-          <Text style={styles.permissionTitle}>Selection Canceled</Text>
+          <Text style={styles.permissionTitle}>{t('gallery.canceled')}</Text>
           <Text style={styles.permissionText}>
-            You canceled photo selection.
+            {t('gallery.canceledHint')}
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={handleOpenGallery}>
-            <Text style={styles.permissionButtonText}>Try Again</Text>
+            <Text style={styles.permissionButtonText}>{t('gallery.tryAgain')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.secondaryButton, { borderWidth: 1, borderColor: '#8E8E93', marginTop: 8 }]} onPress={handleClose}>
-            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>Go Back</Text>
+            <Text style={[styles.secondaryButtonText, { color: '#8E8E93' }]}>{t('gallery.goBack')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -399,7 +399,7 @@ export default function GalleryScreen() {
         <TouchableOpacity style={styles.headerButton} onPress={handleClose}>
           <Ionicons name="close" size={24} color="#1C1C1E" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Select Photo</Text>
+        <Text style={styles.headerTitle}>{t('gallery.selectTitle')}</Text>
         <View style={styles.headerButton} />
       </View>
 

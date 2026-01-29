@@ -58,7 +58,7 @@ export default function DashboardScreen() {
   const { t, language } = useI18n();
   // Load active diet for dashboard widget from store
   const { activeProgram, loadProgress } = useProgramProgress();
-  
+
   // FIX: Load progress when Dashboard mounts (lazy loading - only when needed)
   // This ensures program data is available for the widget
   useEffect(() => {
@@ -275,11 +275,22 @@ export default function DashboardScreen() {
     // Store will be updated via refreshProgress() which is called on focus
   }, []);
 
+  // Track fetch status to prevent parallel/duplicate requests
+  const isFetchingRef = React.useRef(false);
+
   // Consolidated data loading
-  const loadDashboardData = React.useCallback(async () => {
+  const loadDashboardData = React.useCallback(async (force = false) => {
+    // Prevent duplicate calls if already fetching, unless forced
+    if (isFetchingRef.current && !force) {
+      if (__DEV__) console.log('[DashboardScreen] Skipping duplicate load request');
+      return;
+    }
+
     const currentLocale = language || 'en';
     const dateKey = selectedDate.toISOString().split('T')[0];
     const cacheKey = `dashboard_data_${dateKey}_${currentLocale}`;
+
+    isFetchingRef.current = true;
 
     try {
       // 1. Try Cache First (Fast Render)
@@ -291,7 +302,7 @@ export default function DashboardScreen() {
           updateDashboardState(data);
         }
       } catch {
-        console.warn('Cache read error');
+        // ignore cache errors
       }
 
       // 2. Fetch Fresh Data (Network)
@@ -299,7 +310,6 @@ export default function DashboardScreen() {
       const data = await ApiService.getDashboardData(selectedDate, currentLocale);
 
       if (!data) {
-        // FIX: If API returns null, don't clear existing state - keep cached data
         console.warn('[DashboardScreen] API returned null, keeping cached data');
         return;
       }
@@ -310,8 +320,7 @@ export default function DashboardScreen() {
 
     } catch (error) {
       console.error('[DashboardScreen] Error loading dashboard data:', error);
-      // FIX: Don't clear activeDiet on error - keep previous value to prevent tracker from disappearing
-      // Try to load from cache as fallback
+      // Fallback to cache if request failed and we haven't loaded it yet
       try {
         const cached = await AsyncStorage.getItem(cacheKey);
         if (cached) {
@@ -319,76 +328,20 @@ export default function DashboardScreen() {
           updateDashboardState(data);
         }
       } catch {
-        console.warn('[DashboardScreen] Cache fallback also failed');
+        // ignore
       }
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [selectedDate, language, updateDashboardState]);
 
 
+  // FIX: Improve pending -> recent transition to prevent card disappearance
+  // We keep track of "just completed" analyses to show them temporarily if needed
+  // However, the best approach is to NOT rely on simple setTimeout but wait for data
 
-  // FIX: Transform activeProgram from store to activeDiet format for widget
-  // Use useMemo to prevent unnecessary recalculations and preserve value during slow loads
-  const activeDietForWidget = React.useMemo(() => {
-    if (activeProgram && (activeProgram.type === 'diet' || activeProgram.type === 'lifestyle')) {
-      return {
-        diet: {
-          id: activeProgram.programId,
-          name: activeProgram.programName || (activeProgram.type === 'lifestyle' ? 'Lifestyle' : 'Diet'),
-          color: activeProgram.type === 'lifestyle' ? '#9C27B0' : '#4CAF50',
-        },
-        type: activeProgram.type,
-        streak: activeProgram.streak?.current || 0,
-        todayProgress: {
-          completed: activeProgram.todayLog?.completedCount || 0,
-          total: activeProgram.todayLog?.totalCount || 0,
-        },
-        currentDay: activeProgram.currentDayIndex,
-        totalDays: activeProgram.durationDays,
-        daysLeft: activeProgram.daysLeft,
-      };
-    }
-    // FIX: Don't return null immediately - preserve previous value during slow loads
-    // Return null only if we're certain there's no active program
-    return null;
-  }, [activeProgram]);
-
-  // Refresh progress on focus
-  useRefreshProgressOnFocus();
-
-  // Load data on mount and when date changes
-  useEffect(() => {
-    loadDashboardData();
-  }, [selectedDate, loadDashboardData]);
-
-  // Handle refresh param from other screens (e.g. AnalysisResults)
-  useEffect(() => {
-    if (route.params?.refresh) {
-      if (__DEV__) console.log('[DashboardScreen] Refresh requested via params');
-      loadDashboardData();
-    }
-  }, [route.params?.refresh, loadDashboardData]);
-
-  // Теперь используем функции в хуках ПОСЛЕ их определения
-  // Removed unused timer effect
-
-  // Removed unused time update effect
-
-  useFocusEffect(
-    React.useCallback(() => {
-      // FIX #2: Removed justCompletedItems clearing logic - no longer needed
-      loadDashboardData();
-    }, [loadDashboardData])
-  );
-
-  // Auto-refresh when pending analyses change (e.g., when an analysis completes)
-  // Auto-refresh when pending analyses change (e.g., when an analysis completes)
-  // FIX #2: Removed justCompletedItems logic to prevent duplicate cards
-  // When analysis completes, it will remain in pendingAnalyses until it appears in recentItems
-  // This eliminates the visual bug of showing two cards (green border + ready card)
-  
-  // Reload dashboard data when pending analyses complete to get fresh data from API
   const prevPendingAnalysesRef = React.useRef(pendingAnalyses);
-  
+
   useEffect(() => {
     const prevItems = prevPendingAnalysesRef.current;
     if (prevItems === pendingAnalyses) return;
@@ -397,15 +350,11 @@ export default function DashboardScreen() {
 
     // Detect completed analyses (disappeared from pendingAnalyses)
     const completed = prevItems.filter(a => !currentIds.has(a.analysisId) && a.status !== 'failed');
-    
+
     if (completed.length > 0) {
-      // Reload dashboard data to get completed analyses from API
-      // This ensures smooth transition from pendingAnalyses to recentItems
-      const timer = setTimeout(() => {
-        loadDashboardData();
-      }, 500); // Small delay to allow backend to process
-      
-      return () => clearTimeout(timer);
+      console.log('[Dashboard] Analysis completed, reloading data...');
+      // Force reload to get the new meal immediately
+      loadDashboardData(true);
     }
 
     prevPendingAnalysesRef.current = pendingAnalyses;
@@ -711,17 +660,17 @@ export default function DashboardScreen() {
             // Add delay to ensure data is loaded and navigation is ready
             const programId = activeDietForWidget?.diet?.id || activeProgram?.programId;
             const programType = activeDietForWidget?.type || activeProgram?.type;
-            
+
             if (!programId) {
               console.warn('[DashboardScreen] Cannot navigate: programId is missing');
               return;
             }
-            
+
             if (!navigation || typeof navigation.navigate !== 'function') {
               console.warn('[DashboardScreen] Navigation not available');
               return;
             }
-            
+
             // Small delay to ensure navigation is ready (fixes "Page not Found" bug)
             setTimeout(() => {
               try {

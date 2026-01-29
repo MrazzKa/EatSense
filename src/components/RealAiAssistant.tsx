@@ -257,7 +257,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
       if (status !== 'granted') {
         Alert.alert(
           t('common.error'),
-          t('gallery.permissionRequired'),
+          t('gallery.accessRequired'),
         );
         return;
       }

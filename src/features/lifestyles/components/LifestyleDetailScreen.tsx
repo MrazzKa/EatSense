@@ -14,7 +14,7 @@
  * - CTA button: "Start Program" / "Continue" if active
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import type { LifestyleProgram } from '../types';
 import { LIFESTYLE_CATEGORIES } from '../constants';
 import DisclaimerBanner from './DisclaimerBanner';
+import { getLifestyleImage } from '../lifestyleImages';
 
 interface LifestyleDetailScreenProps {
   program: LifestyleProgram;
@@ -37,6 +38,7 @@ interface LifestyleDetailScreenProps {
   onStartProgram: () => void;
   onContinueProgram?: () => void;
   onBack: () => void;
+  children?: React.ReactNode;
 }
 
 export default function LifestyleDetailScreen({
@@ -45,6 +47,7 @@ export default function LifestyleDetailScreen({
   onStartProgram,
   onContinueProgram,
   onBack,
+  children,
 }: LifestyleDetailScreenProps) {
   const { t, language } = useI18n();
   const { colors } = useTheme();
@@ -68,6 +71,14 @@ export default function LifestyleDetailScreen({
   // Category lookup - available for future use
   // const category = LIFESTYLE_CATEGORIES.find(c => c.id === program.categoryId);
 
+  // Get local image if available, prefer local assets over backend URL
+  const localImage = useMemo(() => {
+    return getLifestyleImage(program.id, program.name);
+  }, [program.id, program.name]);
+
+  // Determine image source: prefer local asset, then backend URL
+  const imageSource = localImage || (program.imageUrl ? { uri: program.imageUrl } : null);
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background || '#FFF' }]}
@@ -79,14 +90,14 @@ export default function LifestyleDetailScreen({
         showsVerticalScrollIndicator={false}
       >
         {/* Header Image - Same as DietProgramDetailScreen */}
-        {program.imageUrl ? (
-          <Image source={{ uri: program.imageUrl }} style={styles.headerImage} />
+        {imageSource ? (
+          <Image source={imageSource} style={styles.headerImage} />
         ) : (
           <View style={[styles.headerImagePlaceholder, { backgroundColor: colors.primary + '20' }]}>
             <Text style={styles.emojiPlaceholder}>{program.emoji || '✨'}</Text>
           </View>
         )}
-        
+
         {/* Back button overlay */}
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -290,6 +301,7 @@ export default function LifestyleDetailScreen({
           <Ionicons name="arrow-forward" size={20} color="#FFF" />
         </TouchableOpacity>
       </View>
+      {children}
     </SafeAreaView>
   );
 }

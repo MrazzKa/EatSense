@@ -48,7 +48,7 @@ const AnalysisContext = createContext<AnalysisContextType | null>(null);
 const MAX_POLL_ATTEMPTS = 30;
 const POLL_INTERVAL_MS = 3000;
 const POLL_BACKOFF_MULTIPLIER = 1.2;
-const COMPLETION_ANIMATION_DELAY_MS = 800; // Delay before removing completed analysis for smooth fade-out
+const COMPLETION_ANIMATION_DELAY_MS = 2500; // Delay before removing completed analysis for smooth fade-out
 
 // deriveStatus removed
 

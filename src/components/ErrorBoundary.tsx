@@ -1,15 +1,17 @@
-import React, { Component, type ReactNode } from 'react';
+import React, { Component } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import i18n from '../../app/i18n/config';
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  fallback?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: { componentStack?: string } | null;
+  error?: Error;
+  errorInfo?: React.ErrorInfo;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -45,21 +47,15 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      const stack = this.state.error?.stack || this.state.errorInfo?.componentStack || 'no stack';
-      const errorMessage = String(this.state.error) || 'Unknown error';
-
       return (
-        <View style={styles.wrap}>
-          <Text style={styles.title}>App crashed</Text>
-          <ScrollView style={styles.box} contentContainerStyle={styles.boxContent}>
-            <Text selectable style={styles.msg}>{errorMessage}</Text>
-            <Text selectable style={styles.stack}>{stack}</Text>
-          </ScrollView>
+        <SafeAreaView style={styles.wrap}>
+          <Text style={styles.title}>{i18n.t('errorBoundary.crashed')}</Text>
+          <Text selectable style={styles.error}>{this.state.error?.toString()}</Text>
           <TouchableOpacity style={styles.button} onPress={this.handleReset}>
-            <Text style={styles.buttonText}>Try Again</Text>
+            <Text style={styles.buttonText}>{i18n.t('errorBoundary.tryAgain')}</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>Debug screen. Collecting stack trace.</Text>
-        </View>
+          <Text style={styles.hint}>{i18n.t('errorBoundary.debugMessage')}</Text>
+        </SafeAreaView>
       );
     }
 
@@ -75,10 +71,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   title: {
-    color: '#ff5555',
-    fontSize: 20,
+    color: '#FF3B30',
+    fontSize: 24,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 16,
+  },
+  error: {
+    color: '#FFF',
+    marginBottom: 20,
+    fontSize: 14,
+    fontFamily: 'monospace',
+    backgroundColor: '#000',
+    padding: 10,
+    borderRadius: 8,
   },
   box: {
     backgroundColor: '#121212',

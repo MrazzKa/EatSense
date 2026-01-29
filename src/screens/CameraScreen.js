@@ -27,8 +27,8 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
-  const [zoom, setZoom] = useState(0); // Zoom level (0-1)
-  // const [capturedImageUri, setCapturedImageUri] = useState(null); // Unused
+  // Note: zoom state removed - using native pinch-to-zoom gesture only
+  // expo-camera handles zoom internally when enableZoomGesture is true
 
   // Safe requestPermission wrapper
   const handleRequestPermission = async () => {
@@ -257,25 +257,20 @@ export default function CameraScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: '#000000' }]}>
-      <CameraView 
-        style={StyleSheet.absoluteFill} 
-        facing={facing} 
-        ref={cameraRef} 
+      <CameraView
+        style={StyleSheet.absoluteFill}
+        facing={facing}
+        ref={cameraRef}
         enableZoomGesture={true}
-        zoom={zoom}
-        onZoomChanged={(event) => {
-          if (event?.nativeEvent?.zoom !== undefined) {
-            setZoom(event.nativeEvent.zoom);
-          }
-        }}
         flash={flashMode}
       >
         <LinearGradient
           colors={['rgba(0,0,0,0.65)', 'transparent', 'rgba(0,0,0,0.75)']}
           style={StyleSheet.absoluteFill}
+          pointerEvents="none"
         />
 
-        <View style={[styles.cameraOverlay, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[styles.cameraOverlay, { paddingTop: insets.top, paddingBottom: insets.bottom }]} pointerEvents="box-none">
           <View
             style={[styles.header, { paddingTop: tokens.spacing.lg }]}
           >

@@ -19,7 +19,7 @@ export const AnalysisComponent: React.FC<AnalysisComponentProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const { language } = useI18n();
+  const { language, t } = useI18n();
 
   const startAnalysis = React.useCallback(async () => {
     try {
@@ -65,9 +65,9 @@ export const AnalysisComponent: React.FC<AnalysisComponentProps> = ({
   };
 
   const getAnalysisSteps = () => [
-    { id: 'upload', label: 'Uploaded', completed: true },
-    { id: 'analyzing', label: 'Analyzing', completed: !isAnalyzing },
-    { id: 'calculating', label: 'Calculating calories', completed: !isAnalyzing },
+    { id: 'upload', label: t('analysisComponent.uploaded') || 'Uploaded', completed: true },
+    { id: 'analyzing', label: t('analysisComponent.analyzing') || 'Analyzing', completed: !isAnalyzing },
+    { id: 'calculating', label: t('analysisComponent.calculatingCalories') || 'Calculating calories', completed: !isAnalyzing },
   ];
 
   if (error) {
@@ -77,17 +77,17 @@ export const AnalysisComponent: React.FC<AnalysisComponentProps> = ({
           <TouchableOpacity style={styles.closeButton} onPress={() => onClose && typeof onClose === 'function' ? onClose() : null}>
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.title}>Analysis Error</Text>
+          <Text style={styles.title}>{t('analysisComponent.analysisError') || 'Analysis Error'}</Text>
           <View style={styles.placeholder} />
         </View>
 
         <View style={styles.content}>
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle" size={48} color="#E74C3C" />
-            <Text style={styles.errorTitle}>Analysis failed</Text>
+            <Text style={styles.errorTitle}>{t('analysisComponent.analysisFailed') || 'Analysis failed'}</Text>
             <Text style={styles.errorMessage}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={retryAnalysis}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText}>{t('analysisComponent.tryAgain') || 'Try Again'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -102,7 +102,7 @@ export const AnalysisComponent: React.FC<AnalysisComponentProps> = ({
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.title}>
-          {isAnalyzing ? 'Analyzing your dish...' : 'Analysis complete!'}
+          {isAnalyzing ? (t('analysisComponent.analyzingDish') || 'Analyzing your dish...') : (t('analysisComponent.analysisComplete') || 'Analysis complete!')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -113,7 +113,7 @@ export const AnalysisComponent: React.FC<AnalysisComponentProps> = ({
           {isAnalyzing && (
             <View style={styles.overlay}>
               <ActivityIndicator size="large" color="#3498DB" />
-              <Text style={styles.overlayText}>Analyzing...</Text>
+              <Text style={styles.overlayText}>{t('analysisComponent.analyzing') || 'Analyzing...'}</Text>
             </View>
           )}
         </View>

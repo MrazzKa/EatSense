@@ -30,7 +30,7 @@ export const AnalysisFlow: React.FC<AnalysisFlowProps> = ({ onClose, onAnalysisC
     }
 
     if (mediaPermission.status !== 'granted') {
-      setError(t('gallery.permissionRequired') || 'Media library permission is required');
+      setError(t('gallery.accessRequired') || 'Media library permission is required');
       setStep('error');
       return false;
     }

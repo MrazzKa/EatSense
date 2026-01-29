@@ -313,8 +313,26 @@ export class UsersService {
       todayPhotosAnalyzed = 0;
     }
 
-    // Get daily limit based on subscription (for now, assume free)
-    const dailyLimit = parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10);
+    // Get daily limit based on subscription
+    let dailyLimit = parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10);
+    
+    // Check user's active subscription to get plan-specific limit
+    const activeSubscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() },
+      },
+      include: { plan: true },
+    });
+
+    if (activeSubscription?.plan?.dailyLimit) {
+      // Use plan-specific limit (e.g., student: 10, paid: 9999)
+      dailyLimit = activeSubscription.plan.dailyLimit;
+    } else if (activeSubscription && !activeSubscription.plan) {
+      // Subscription exists but plan not found - use pro default
+      dailyLimit = parseInt(process.env.PRO_DAILY_ANALYSES || '9999', 10);
+    }
 
     return {
         totalPhotosAnalyzed,

@@ -5,9 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import DietProgramsService from '../services/dietProgramsService';
+import ApiService from '../services/apiService';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 // FIX: Use shared getLocalizedText from types.ts for consistency
 import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
+import { isFreeDiet } from '../config/freeContent';
+import PaywallModal from '../components/PaywallModal';
 
 const STARTING_TIMEOUT_MS = 10000; // 10 second timeout for start operation
 
@@ -29,6 +32,8 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
     useRefreshProgressOnFocus(); // Refresh activeProgram when screen is focused
     const [program, setProgram] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [showPaywall, setShowPaywall] = useState(false);
+    const [isPremiumUser, setIsPremiumUser] = useState(false);
 
     const loadProgram = useCallback(async () => {
         try {
@@ -52,6 +57,20 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
         loadProgram();
     }, [loadProgram]);
 
+    // Check subscription status
+    useEffect(() => {
+        const checkSubscription = async () => {
+            try {
+                const subscription = await ApiService.getCurrentSubscription();
+                setIsPremiumUser(subscription?.hasSubscription === true);
+            } catch (error) {
+                console.error('[DietProgramDetail] Failed to check subscription:', error);
+                setIsPremiumUser(false);
+            }
+        };
+        checkSubscription();
+    }, []);
+
     // Check if this program is currently active
     const isActive = activeProgram?.programId === program?.id;
 
@@ -63,6 +82,13 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
     const handleStart = () => {
         if (isStarting) return; // Prevent double-tap
+
+        // Check if user has access to this diet
+        const isFree = isFreeDiet(program?.id || '');
+        if (!isFree && !isPremiumUser) {
+            setShowPaywall(true);
+            return;
+        }
 
         Alert.alert(
             t('dietPrograms.startProgram'),
@@ -413,6 +439,17 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                     )}
                 </TouchableOpacity>
             </View>
+
+            {/* Paywall Modal */}
+            <PaywallModal
+                visible={showPaywall}
+                onClose={() => setShowPaywall(false)}
+                onSubscribed={() => {
+                    setIsPremiumUser(true);
+                    setShowPaywall(false);
+                }}
+                featureName={getLocalizedText(program?.name, language)}
+            />
         </SafeAreaView>
     );
 }

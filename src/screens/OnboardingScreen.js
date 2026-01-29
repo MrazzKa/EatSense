@@ -879,7 +879,7 @@ const OnboardingScreen = () => {
               // IAP prices are already localized for user's App Store country - use them directly
               // Get currency symbol from currency utility for proper formatting
               const currencyConfig = getCurrency();
-              
+
               // IMPORTANT: Use IAP prices directly - they are already correct for user's country
               // IAP.localizedPrice contains the exact price from App Store Connect for user's country
               setCurrency({
@@ -891,7 +891,7 @@ const OnboardingScreen = () => {
                 studentPrice: student?.localizedPrice || formatPrice('student'),
                 founderPrice: founder?.localizedPrice || formatPrice('founder'),
               });
-              
+
               const deviceRegion = getDeviceRegion();
               console.log('[Onboarding] Using IAP prices (most accurate):', {
                 currency: iapCurrencyCode,
@@ -911,11 +911,11 @@ const OnboardingScreen = () => {
       // This is used when IAP is unavailable (simulator, testing, etc.)
       // Prices are based on device region, which should match user's country
       if (!isMounted) return;
-      
+
       const deviceRegion = getDeviceRegion();
       const currencyConfig = getCurrency();
       const currencyCode = currencyConfig.code;
-      
+
       // Format prices using currency utility (handles all 175 countries correctly)
       // Note: These are approximate prices based on currency, not exact country prices
       // IAP prices are always more accurate as they use App Store country
@@ -1035,17 +1035,17 @@ const OnboardingScreen = () => {
     // Validation based on step ID (not hard-coded indices)
     if (currentStepId === 'goals') {
       if (!profileData.goal) {
-        Alert.alert('Required Field', 'Please select your goal.');
+        Alert.alert(t('common.required', 'Required Field'), t('onboarding.validation.goal', 'Please select your goal.'));
         return;
       }
     } else if (currentStepId === 'gender') {
       if (!profileData.gender) {
-        Alert.alert('Required Field', 'Please select your gender.');
+        Alert.alert(t('common.required', 'Required Field'), t('onboarding.validation.gender', 'Please select your gender.'));
         return;
       }
     } else if (currentStepId === 'activity') {
       if (!profileData.activityLevel) {
-        Alert.alert('Required Field', 'Please select your activity level.');
+        Alert.alert(t('common.required', 'Required Field'), t('onboarding.validation.activity', 'Please select your activity level.'));
         return;
       }
     }
@@ -1091,11 +1091,11 @@ const OnboardingScreen = () => {
             });
           } else {
             console.error('[OnboardingScreen] Navigation not available or not ready');
-            Alert.alert('Error', 'Navigation not available. Please restart the app.');
+            Alert.alert(t('common.error', 'Error'), t('errors.navigationNotAvailable', 'Navigation not available. Please restart the app.'));
           }
         } catch (navError) {
           console.error('[OnboardingScreen] Navigation reset error:', navError);
-          Alert.alert('Error', `Navigation error: ${navError.message}. Please restart the app.`);
+          Alert.alert(t('common.error', 'Error'), t('errors.navigationError', 'Navigation error: {{message}}. Please restart the app.', { message: navError.message }));
         }
       }, 50);
     });
@@ -2264,7 +2264,7 @@ const OnboardingScreen = () => {
 
         const { status } = await Notifications.requestPermissionsAsync();
         if (!isMounted) return;
-        
+
         setNotificationsRequested(true); // Mark as requested
 
         if (status === 'granted') {

@@ -59,6 +59,8 @@ export class SubscriptionsController {
             subscription: {
                 id: subscription.id,
                 plan: subscription.plan.name,
+                planId: subscription.plan.id,
+                dailyLimit: subscription.plan.dailyLimit,
                 status: subscription.status,
                 startDate: subscription.startDate,
                 endDate: subscription.endDate,

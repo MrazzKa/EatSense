@@ -3,12 +3,13 @@
  * Displays: emoji, name, tagline, target badge, vibe keywords, CTA button
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { LifestyleProgram } from '../types';
+import { getLifestyleImage } from '../lifestyleImages';
 
 interface LifestyleCardProps {
   program: LifestyleProgram;
@@ -33,6 +34,14 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
     all: '#4CAF50',
   }[program.target];
 
+  // Get local image if available, prefer local assets over backend URL
+  const localImage = useMemo(() => {
+    return getLifestyleImage(program.id, program.name);
+  }, [program.id, program.name]);
+
+  // Determine image source: prefer local asset, then backend URL, then emoji
+  const imageSource = localImage || (program.imageUrl ? { uri: program.imageUrl } : null);
+
   return (
     <TouchableOpacity
       style={[
@@ -48,9 +57,9 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
       {/* Header: Emoji + Name + Target Badge */}
       <View style={styles.header}>
         <View style={styles.emojiContainer}>
-          {program.imageUrl ? (
+          {imageSource ? (
             <Image
-              source={{ uri: program.imageUrl }}
+              source={imageSource}
               style={{ width: '100%', height: '100%', borderRadius: 24 }}
               resizeMode="cover"
             />
