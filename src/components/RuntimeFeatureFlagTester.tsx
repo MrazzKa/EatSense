@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useI18n } from '../../app/i18n/hooks';
+
 interface FeatureFlag {
   key: string;
   name: string;
@@ -21,6 +23,7 @@ export const RuntimeFeatureFlagTester: React.FC<RuntimeFeatureFlagTesterProps> =
   onSave,
   onReset,
 }) => {
+  const { t } = useI18n();
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleToggle = (key: string, enabled: boolean) => {
@@ -48,8 +51,8 @@ export const RuntimeFeatureFlagTester: React.FC<RuntimeFeatureFlagTesterProps> =
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Feature Flags</Text>
-        <Text style={styles.subtitle}>Runtime configuration for development</Text>
+        <Text style={styles.title}>{t('featureFlags.title') || 'Feature Flags'}</Text>
+        <Text style={styles.subtitle}>{t('featureFlags.subtitle') || 'Runtime configuration for development'}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -73,12 +76,12 @@ export const RuntimeFeatureFlagTester: React.FC<RuntimeFeatureFlagTesterProps> =
         <View style={styles.actions}>
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
             <Ionicons name="refresh" size={20} color="#7F8C8D" />
-            <Text style={styles.resetButtonText}>Reset</Text>
+            <Text style={styles.resetButtonText}>{t('common.reset') || 'Reset'}</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Ionicons name="checkmark" size={20} color="white" />
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+            <Text style={styles.saveButtonText}>{t('common.saveChanges') || 'Save Changes'}</Text>
           </TouchableOpacity>
         </View>
       )}

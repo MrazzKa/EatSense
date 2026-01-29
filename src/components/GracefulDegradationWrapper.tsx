@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../app/i18n/hooks';
 
 interface GracefulDegradationWrapperProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ export const GracefulDegradationWrapper: React.FC<GracefulDegradationWrapperProp
 }) => {
   const [hasError, setHasError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     // Add error boundary logic here
@@ -29,9 +31,9 @@ export const GracefulDegradationWrapper: React.FC<GracefulDegradationWrapperProp
         {fallback || (
           <View style={styles.defaultFallback}>
             <Ionicons name="warning" size={48} color="#E74C3C" />
-            <Text style={styles.errorTitle}>Something went wrong</Text>
+            <Text style={styles.errorTitle}>{t('errorBoundary.somethingWentWrong') || 'Something went wrong'}</Text>
             <Text style={styles.errorMessage}>
-              {error?.message || 'An unexpected error occurred'}
+              {error?.message || t('errorBoundary.unexpectedError') || 'An unexpected error occurred'}
             </Text>
             <TouchableOpacity
               style={styles.retryButton}
@@ -40,7 +42,7 @@ export const GracefulDegradationWrapper: React.FC<GracefulDegradationWrapperProp
                 setError(null);
               }}
             >
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText}>{t('common.tryAgain') || t('errorBoundary.tryAgain') || 'Try Again'}</Text>
             </TouchableOpacity>
           </View>
         )}

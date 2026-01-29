@@ -118,6 +118,25 @@ const plans = [
         displayOrder: 4,
         requiresVerification: true,
     },
+    {
+        name: 'founders',
+        basePriceUsd: 199.99,
+        durationDays: 36500, // ~100 years (lifetime)
+        dailyLimit: 9999, // Unlimited for founders
+        features: [
+            'unlimited_analyses',
+            'detailed_reports',
+            'meal_history',
+            'ai_chat',
+            'export_data',
+            'priority_support',
+            'expert_access',
+            'founder_badge',
+            'lifetime_access',
+        ],
+        displayOrder: 5,
+        requiresVerification: false,
+    },
 ];
 
 async function seedSubscriptions() {

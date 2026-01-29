@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../app/i18n/hooks';
 
 interface AnalysisResultsProps {
   imageUri: string;
@@ -31,13 +32,15 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 
   const healthScore = getHealthScore();
 
+  const { t } = useI18n(); // Assuming useI18n is available, if not need to import
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.title}>Analysis Result</Text>
+        <Text style={styles.title}>{t('analysisResults.title') || 'Analysis Result'}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.heartButton}>
             <Ionicons name="heart-outline" size={24} color="#E74C3C" />
@@ -60,7 +63,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 
         <View style={styles.dishNameContainer}>
           <Text style={styles.dishName}>
-            {result?.items?.[0]?.label || 'Unknown dish'}
+            {result?.items?.[0]?.label || t('analysisResults.unknownDish') || 'Unknown dish'}
           </Text>
         </View>
 
@@ -68,14 +71,14 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
           <View style={styles.nutritionGrid}>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionValue}>{Math.round(totalKcal)}</Text>
-              <Text style={styles.nutritionLabel}>Calories</Text>
+              <Text style={styles.nutritionLabel}>{t('analysisResults.calories') || 'Calories'}</Text>
               <TouchableOpacity style={styles.miniEditButton}>
                 <Ionicons name="create-outline" size={16} color="#7F8C8D" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.portionContainer}>
-              <Text style={styles.portionLabel}>Portions</Text>
+              <Text style={styles.portionLabel}>{t('analysisResults.portions') || 'Portions'}</Text>
               <View style={styles.portionControls}>
                 <TouchableOpacity style={styles.portionButton}>
                   <Ionicons name="remove" size={16} color="#7F8C8D" />
@@ -122,7 +125,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         </View>
 
         <View style={styles.healthScoreCard}>
-          <Text style={styles.healthScoreTitle}>Health Score</Text>
+          <Text style={styles.healthScoreTitle}>{t('analysisResults.healthScore') || 'Health Score'}</Text>
           <View style={styles.healthScoreBar}>
             {[...Array(10)].map((_, i) => (
               <View
@@ -135,12 +138,18 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             ))}
           </View>
           <Text style={styles.healthScoreText}>
-            This dish is {healthScore > 7 ? 'very healthy' : healthScore > 4 ? 'moderately healthy' : 'less healthy'}.
+            {t('analysisResults.healthScoreLevel.text', {
+              level: healthScore > 7
+                ? t('analysisResults.healthScoreLevel.very')
+                : healthScore > 4
+                  ? t('analysisResults.healthScoreLevel.moderately')
+                  : t('analysisResults.healthScoreLevel.less')
+            })}
           </Text>
         </View>
 
         <View style={styles.ingredientsCard}>
-          <Text style={styles.ingredientsTitle}>Ingredients</Text>
+          <Text style={styles.ingredientsTitle}>{t('analysisResults.ingredients') || 'Ingredients'}</Text>
 
           {(result?.items && Array.isArray(result.items) ? result.items : []).map((item: any, index: number) => {
             // Helper to check if string looks like a localization key
@@ -153,6 +162,10 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             const getItemLabel = (label: string | undefined | null): string => {
               if (!label) return 'Ingredient';
               if (isLocalizationKey(label)) {
+                // If it looks like a key, try to translate it, or fallback nicely
+                const translated = t(label);
+                if (translated !== label) return translated;
+
                 const parts = label.split('.');
                 const fallback = parts[parts.length - 1];
                 return fallback.charAt(0).toUpperCase() + fallback.slice(1).replace(/_/g, ' ');
@@ -165,7 +178,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                 <View style={styles.ingredientInfo}>
                   <Text style={styles.ingredientName}>{getItemLabel(item.label || item.name)}</Text>
                   <Text style={styles.ingredientWeight}>
-                    {item.gramsMean ? `${Math.round(item.gramsMean)}g per portion` : 'Weight not determined'}
+                    {item.gramsMean ? `${Math.round(item.gramsMean)}g ${t('analysisResults.perPortion') || 'per portion'}` : t('analysisResults.weightNotDetermined') || 'Weight not determined'}
                   </Text>
                   <View style={styles.ingredientMacros}>
                     <Text style={styles.ingredientMacroText}>
@@ -184,12 +197,12 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.shareButton} onPress={onShare}>
             <Ionicons name="share-outline" size={20} color="#3498DB" />
-            <Text style={styles.shareButtonText}>Share</Text>
+            <Text style={styles.shareButtonText}>{t('analysisResults.share') || 'Share'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.editButton} onPress={onEdit}>
             <Ionicons name="sparkles" size={20} color="white" />
-            <Text style={styles.editButtonText}>Correct</Text>
+            <Text style={styles.editButtonText}>{t('analysisResults.correct') || 'Correct'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

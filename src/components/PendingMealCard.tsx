@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import type { PendingAnalysis } from '../contexts/AnalysisContext';
+import { formatCalories, formatMacro } from '../utils/nutritionFormat';
 
 interface PendingMealCardProps {
     analysis: PendingAnalysis;
@@ -165,17 +166,24 @@ export function PendingMealCard({
                 );
 
             case 'completed':
+            case 'completed':
                 return (
                     <View style={styles.statusContainer}>
-                        <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
                         <View style={styles.statusTextContainer}>
-                            <Text style={[styles.statusTitle, { color: colors.success || '#34C759' }]}>
-                                {t('common.done') || 'Done!'}
+                            <Text style={[styles.statusTitle, { color: colors.text }]} numberOfLines={1}>
+                                {analysis.dishName || t('common.done') || 'Done!'}
                             </Text>
-                            <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
-                                {t('dashboard.diary.analysisComplete') || 'Analysis complete'}
-                            </Text>
+                            {analysis.calories !== null && analysis.calories !== undefined ? (
+                                <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
+                                    {formatCalories(analysis.calories)} · P {formatMacro(analysis.protein || 0)} · C {formatMacro(analysis.carbs || 0)} · F {formatMacro(analysis.fat || 0)}
+                                </Text>
+                            ) : (
+                                <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
+                                    {t('dashboard.diary.analysisComplete') || 'Analysis complete'}
+                                </Text>
+                            )}
                         </View>
+                        <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
                     </View>
                 );
 

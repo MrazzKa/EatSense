@@ -1,6 +1,7 @@
 import { API_BASE_URL, DEV_TOKEN, DEV_REFRESH_TOKEN } from '../config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import i18n from '../../app/i18n/config';
 // Article types are used in JSDoc comments only
 
 class ApiService {
@@ -146,7 +147,7 @@ class ApiService {
     if (__DEV__) console.log(`[ApiService] Requesting: ${url}`);
 
     // Create AbortController for timeout (more reliable than AbortSignal.timeout)
-    const timeoutMs = 30000; // 30 seconds
+    const timeoutMs = options.timeout || 60000; // Default 60 seconds (increased for AI/Reports)
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => {
       abortController.abort();
@@ -196,7 +197,7 @@ class ApiService {
       if (response.status === 401) {
         // Special handling for auth endpoints - don't try to refresh on these
         const isAuthEndpoint = endpoint.includes('/auth/logout') || endpoint.includes('/auth/refresh-token');
-        
+
         if (isAuthEndpoint) {
           // For auth endpoints, 401 is expected if token is expired/invalid
           // Don't try to refresh - just return the error
@@ -343,11 +344,11 @@ class ApiService {
 
           // Return user-friendly message instead of HTML
           if (response.status === 502) {
-            message = 'Server temporarily unavailable. Please try again.';
+            message = i18n.t('errors.serverUnavailable', 'Server temporarily unavailable. Please try again.');
           } else if (response.status === 504) {
-            message = 'Request timed out. Please try again.';
+            message = i18n.t('errors.requestTimeout', 'Request timed out. Please try again.');
           } else {
-            message = 'Connection error. Please check your network.';
+            message = i18n.t('errors.networkConnection', 'Connection error. Please check your network.');
           }
         } else {
           // Non-HTML text response - use as-is but limit length
@@ -796,11 +797,17 @@ class ApiService {
     const queryString = queryParams.toString();
     const endpoint = `/stats/monthly-report${queryString ? `?${queryString}` : ''}`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout for heavy PDF generation
+
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: 'GET',
         headers: this.getHeaders(),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       // Return response with status for handling on the screen
       // Don't throw on 204/404 - let the screen handle it
@@ -834,6 +841,11 @@ class ApiService {
         data,
       };
     } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.error('[ApiService] getMonthlyReport timed out after 90s');
+        throw new Error('TIMEOUT');
+      }
       console.error('[ApiService] getMonthlyReport error:', error);
       // Re-throw network errors so screen can handle them
       throw error;
@@ -1014,7 +1026,7 @@ class ApiService {
   async getSuggestedFoodsV2(locale) {
     try {
       const params = locale ? `?locale=${encodeURIComponent(locale)}` : '';
-      const response = await this.request(`/suggestions/foods/v2${params}`);
+      const response = await this.request(`/suggestions/foods/v2${params}`, { timeout: 90000 });
       return response || { status: 'error', summary: '', sections: [] };
     } catch (error) {
       console.error('[ApiService] getSuggestedFoodsV2 error:', error);

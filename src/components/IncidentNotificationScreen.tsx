@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useI18n } from '../../app/i18n/hooks';
+
 interface IncidentNotificationScreenProps {
   onClose: () => void;
   onReport: () => void;
@@ -11,11 +13,13 @@ export const IncidentNotificationScreen: React.FC<IncidentNotificationScreenProp
   onClose,
   onReport,
 }) => {
+  const { t } = useI18n();
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.closeButton} 
+        <TouchableOpacity
+          style={styles.closeButton}
           onPress={() => {
             if (onClose && typeof onClose === 'function') {
               onClose();
@@ -24,7 +28,7 @@ export const IncidentNotificationScreen: React.FC<IncidentNotificationScreenProp
         >
           <Ionicons name="close" size={24} color="#2C3E50" />
         </TouchableOpacity>
-        <Text style={styles.title}>Report Incident</Text>
+        <Text style={styles.title}>{t('incident.title') || 'Report Incident'}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -33,21 +37,21 @@ export const IncidentNotificationScreen: React.FC<IncidentNotificationScreenProp
           <Ionicons name="shield-checkmark" size={64} color="#2ECC71" />
         </View>
 
-        <Text style={styles.mainTitle}>Security Incident Detected</Text>
+        <Text style={styles.mainTitle}>{t('incident.detectedTitle') || 'Security Incident Detected'}</Text>
         <Text style={styles.description}>
-          We&apos;ve detected unusual activity in your account. For your security, we&apos;ve temporarily restricted access.
+          {t('incident.description') || "We've detected unusual activity in your account. For your security, we've temporarily restricted access."}
         </Text>
 
         <View style={styles.incidentDetails}>
-          <Text style={styles.detailsTitle}>Incident Details:</Text>
-          <Text style={styles.detailsText}>• Unusual login attempt detected</Text>
-          <Text style={styles.detailsText}>• Location: Unknown</Text>
+          <Text style={styles.detailsTitle}>{t('incident.detailsTitle') || 'Incident Details:'}</Text>
+          <Text style={styles.detailsText}>• {t('incident.loginAttempt') || 'Unusual login attempt detected'}</Text>
+          <Text style={styles.detailsText}>• {t('incident.locationUnknown') || 'Location: Unknown'}</Text>
           <Text style={styles.detailsText}>• Time: {new Date().toLocaleString()}</Text>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity 
-            style={styles.reportButton} 
+          <TouchableOpacity
+            style={styles.reportButton}
             onPress={() => {
               if (onReport && typeof onReport === 'function') {
                 onReport();
@@ -55,11 +59,11 @@ export const IncidentNotificationScreen: React.FC<IncidentNotificationScreenProp
             }}
           >
             <Ionicons name="shield" size={20} color="white" />
-            <Text style={styles.reportButtonText}>Report Incident</Text>
+            <Text style={styles.reportButtonText}>{t('incident.title') || 'Report Incident'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.contactButton} 
+          <TouchableOpacity
+            style={styles.contactButton}
             onPress={() => {
               if (onClose && typeof onClose === 'function') {
                 onClose();
@@ -67,7 +71,7 @@ export const IncidentNotificationScreen: React.FC<IncidentNotificationScreenProp
             }}
           >
             <Ionicons name="mail" size={20} color="#3498DB" />
-            <Text style={styles.contactButtonText}>Contact Support</Text>
+            <Text style={styles.contactButtonText}>{t('incident.contactSupport') || 'Contact Support'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

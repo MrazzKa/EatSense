@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../app/i18n/hooks';
 
 interface UsageSummaryProps {
   totalAnalyses: number;
@@ -15,6 +16,7 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
   remainingAnalyses,
   onUpgrade,
 }) => {
+  const { t } = useI18n();
   const usagePercentage = (totalAnalyses / dailyLimit) * 100;
   const isNearLimit = usagePercentage >= 80;
   const isAtLimit = remainingAnalyses <= 0;
@@ -26,15 +28,15 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
   };
 
   const getStatusText = () => {
-    if (isAtLimit) return 'Daily limit reached';
-    if (isNearLimit) return 'Approaching daily limit';
-    return 'Usage within limits';
+    if (isAtLimit) return t('usageSummary.limitReached') || 'Daily limit reached';
+    if (isNearLimit) return t('usageSummary.limitApproaching') || 'Approaching daily limit';
+    return t('usageSummary.limitOk') || 'Usage within limits';
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Daily Usage</Text>
+        <Text style={styles.title}>{t('usageSummary.title') || 'Daily Usage'}</Text>
         <View style={styles.statusContainer}>
           <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
           <Text style={[styles.statusText, { color: getStatusColor() }]}>
@@ -56,26 +58,26 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
           />
         </View>
         <Text style={styles.progressText}>
-          {totalAnalyses} / {dailyLimit} analyses
+          {totalAnalyses} / {dailyLimit} {t('usageSummary.analyses') || 'analyses'}
         </Text>
       </View>
 
       <View style={styles.details}>
         <View style={styles.detailItem}>
           <Ionicons name="analytics" size={20} color="#3498DB" />
-          <Text style={styles.detailLabel}>Total Today</Text>
+          <Text style={styles.detailLabel}>{t('usageSummary.totalToday') || 'Total Today'}</Text>
           <Text style={styles.detailValue}>{totalAnalyses}</Text>
         </View>
 
         <View style={styles.detailItem}>
           <Ionicons name="time" size={20} color="#F39C12" />
-          <Text style={styles.detailLabel}>Remaining</Text>
+          <Text style={styles.detailLabel}>{t('usageSummary.remaining') || 'Remaining'}</Text>
           <Text style={styles.detailValue}>{remainingAnalyses}</Text>
         </View>
 
         <View style={styles.detailItem}>
           <Ionicons name="trending-up" size={20} color="#2ECC71" />
-          <Text style={styles.detailLabel}>Limit</Text>
+          <Text style={styles.detailLabel}>{t('usageSummary.limit') || 'Limit'}</Text>
           <Text style={styles.detailValue}>{dailyLimit}</Text>
         </View>
       </View>
@@ -83,7 +85,7 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
       {isNearLimit && (
         <TouchableOpacity style={styles.upgradeButton} onPress={onUpgrade}>
           <Ionicons name="star" size={20} color="white" />
-          <Text style={styles.upgradeButtonText}>Upgrade for More</Text>
+          <Text style={styles.upgradeButtonText}>{t('usageSummary.upgrade') || 'Upgrade for More'}</Text>
         </TouchableOpacity>
       )}
     </View>

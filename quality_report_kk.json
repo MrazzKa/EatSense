@@ -1,0 +1,7 @@
+[
+  {
+    "k": "limits.tryFreeTrialMessage",
+    "type": "PLACEHOLDER_MISMATCH",
+    "v": "Exp: {{price}}, Got: "
+  }
+]

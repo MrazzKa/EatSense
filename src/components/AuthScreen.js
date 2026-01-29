@@ -619,7 +619,7 @@ export default function AuthScreen({ onAuthSuccess }) {
     <View style={styles.card}>
       <TouchableOpacity style={styles.backButton} onPress={() => setStep('welcome')}>
         <Ionicons name="chevron-back" size={24} color={colors.primary} />
-        <Text style={styles.backButtonText}>Back</Text>
+        <Text style={styles.backButtonText}>{t('common.back')}</Text>
       </TouchableOpacity>
 
       <View style={styles.iconWrap}>

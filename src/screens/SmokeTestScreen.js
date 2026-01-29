@@ -53,24 +53,28 @@ export default function SmokeTestScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>EatSense Smoke Test</Text>
-      <Text style={styles.subtitle}>
-        If you see this screen — JS tree mounted successfully.
-      </Text>
+    <View style={{ flex: 1, padding: 50, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>{i18n.t('smokeTest.title')}</Text>
+      <Text style={{ marginBottom: 10 }}>Environment: {JSON.stringify(process.env.NODE_ENV)}</Text>
+      <Text style={{ marginBottom: 20 }}>API URL: {ApiService.config.baseURL}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handlePing}>
-        <Text style={styles.buttonText}>Ping API</Text>
-      </TouchableOpacity>
+      <Button
+        title={loading ? "Pinging..." : i18n.t('smokeTest.pingApi')}
+        onPress={pingApi}
+        disabled={loading}
+      />
 
-      <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleOpenApp}>
-        <Text style={[styles.buttonText, styles.primaryButtonText]}>Open App</Text>
-      </TouchableOpacity>
+      <View style={{ height: 20 }} />
+
+      <Button
+        title={i18n.t('smokeTest.openApp')}
+        onPress={() => navigation.replace('MainTabs')}
+      />
 
       <Text style={styles.buildInfo}>
         Build: {process.env.EXPO_PUBLIC_ENV || 'n/a'}
       </Text>
-    </ScrollView>
+    </View>
   );
 }
 

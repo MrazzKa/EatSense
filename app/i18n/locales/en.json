@@ -39,7 +39,34 @@
     "gotIt": "Got It",
     "later": "Later",
     "other": "Other",
+    "required": "Required",
     "yesterday": "Yesterday"
+  },
+  "errors": {
+    "serverUnavailable": "Server temporarily unavailable. Please try again.",
+    "requestTimeout": "Request timed out. Please try again.",
+    "networkConnection": "Connection error. Please check your network.",
+    "photoFailed": "Failed to take photo",
+    "selectFailed": "Failed to select image",
+    "loadFailed": "Failed to load images from gallery",
+    "cameraPermission": "Failed to request camera permission",
+    "cameraNotAvailable": "Camera function not available",
+    "takePictureFailed": "Failed to take picture",
+    "startConsultation": "Failed to start consultation",
+    "sendMessage": "Failed to send message",
+    "shareMeals": "Failed to share meals",
+    "startProgram": "Failed to start program",
+    "stopProgram": "Failed to stop program",
+    "pauseProgram": "Failed to pause diet",
+    "completeDay": "Failed to complete day",
+    "navNotAvailable": "Navigation not available. Please restart the app.",
+    "navigationError": "Navigation error occurred",
+    "navigationNotAvailable": "Navigation not available. Please restart the app.",
+    "galleryFailed": "Gallery Failed",
+    "title": "Title"
+  },
+  "error": {
+    "title": "Error"
   },
   "help": {
     "title": "Help & Support",
@@ -73,6 +100,11 @@
   },
   "onboarding": {
     "welcome": "Welcome to EatSense",
+    "notificationsDeniedTitle": "Notifications disabled",
+    "notificationsDeniedDescription": "You can enable notifications later in the app settings or iOS system settings to receive meal reminders and helpful tips.",
+    "notificationsDeniedHint": "You can enable notifications in the app settings later.",
+    "termsDescription": "Read our terms and conditions",
+    "privacyDescription": "Learn how we protect your data",
     "startFree": "Start Now",
     "subscribe": "Subscribe",
     "activity": "How active are you?",
@@ -281,6 +313,9 @@
       "studentHeadline": "Special student pricing",
       "founderHeadline": "Lifetime access + Exclusive badge",
       "founderBadge": "Limited",
+      "proMonthly": {
+        "badge": "Most Popular"
+      },
       "features": {
         "analysis3": "AI food analysis (3/day)",
         "tracking": "Daily calorie tracking",
@@ -325,7 +360,46 @@
     "profileSavedLocally": "Profile saved locally. You can complete setup later in settings.",
     "continueFree": "Continue Free",
     "notificationsEnabledTitle": "Notifications Enabled!",
-    "notificationsEnabledDescription": "We'll send reminders about meals and helpful tips. You can change settings anytime."
+    "notificationsEnabledDescription": "We'll send reminders about meals and helpful tips. You can change settings anytime.",
+    "notificationsHint": "You can disable notifications in app settings or iOS system settings.",
+    "notificationsReady": "Ready!",
+    "validation": {
+      "requiredField": "Required field",
+      "selectActivity": "Please select your activity level.",
+      "selectGender": "Please select your gender.",
+      "selectGoal": "Please select a goal.",
+      "enterName": "Enter your name",
+      "enterAge": "Enter your age",
+      "enterHeight": "Enter your height",
+      "enterWeight": "Enter your weight",
+      "selectDiet": "Select a diet type",
+      "selectConditions": "Select health conditions",
+      "goal": "Please select your goal.",
+      "gender": "Please select your gender.",
+      "activity": "Please select your activity level."
+    }
+  },
+  "dietPrograms": {
+    "startProgram": "Start Program",
+    "startConfirm": "Are you sure you want to start this program?",
+    "active": "Active",
+    "anotherDietActive": "Another Diet Active",
+    "anotherDietActiveMessage": "You already have an active diet. Complete or abandon it first.",
+    "viewActive": "View Active",
+    "empty": "Program not found",
+    "days": "days"
+  },
+  "suggest": {
+    "title": "Suggestions",
+    "subtitle": "Write to us — name and request",
+    "modal_title": "Suggestions",
+    "name_placeholder": "Your name",
+    "request_placeholder": "Your request",
+    "submit": "Submit",
+    "name_required": "Enter your name",
+    "request_required": "Enter your request",
+    "contact_success": "Your request has been sent",
+    "error": "Failed to send request"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1113,6 +1187,8 @@
     "tracker": {
       "days": "days"
     },
+    "daily_tracker_preview": "Daily Tracker",
+    "tracker_preview_hint": "Track your daily progress with this checklist",
     "disclaimers": {
       "historical": "Historical/inspired reconstruction. Not guaranteed historically accurate.",
       "medical": "This diet may have contraindications. Consult a professional."
@@ -1146,7 +1222,7 @@
     "resume": "Resume",
     "mealsForDay": "Meals for Day",
     "anotherDietActive": "Another Diet Active",
-    "anotherDietActiveMessage": "Another Diet Active Message",
+    "anotherDietActiveMessage": "You already have an active diet. Complete or abandon it first.",
     "completeDay": "Complete Day",
     "dayCompleted": "Day completed",
     "completed": "Completed",
@@ -1172,7 +1248,7 @@
     "step1": "Share your code with friends",
     "step2": "They sign up with your code",
     "step3": "You both get 7 days PRO free!",
-    "shareMessage": "Share Message"
+    "shareMessage": "Hey! I'm giving you 7 days of Pro: {{link}}"
   },
   "terms": {
     "title": "Terms of Service",
@@ -1416,7 +1492,7 @@
     },
     "healthScoreLabel": "Score {{score}}",
     "analyzingSubtitle": "Analyzing Subtitle",
-    "daysAgo": "Days Ago"
+    "daysAgo": "{{count}} days ago"
   },
   "meals": {
     "title": "Meals",
@@ -1497,7 +1573,7 @@
     "description": "Description",
     "resetsAt": "Resets At",
     "tryFreeTrial": "Try Free Trial",
-    "tryFreeTrialMessage": "Try Free Trial Message",
+    "tryFreeTrialMessage": "Try for {{price}}",
     "unlimitedBenefit": "Unlimited Benefit",
     "upgradeToPremium": "Upgrade To Premium"
   },
@@ -1653,23 +1729,24 @@
     "required": "Permission required",
     "grantAccess": "Please grant access to your photo library"
   },
-  "errors": {
-    "photoFailed": "Failed to take photo",
-    "selectFailed": "Failed to select image",
-    "loadFailed": "Failed to load images from gallery",
-    "cameraPermission": "Failed to request camera permission",
-    "cameraNotAvailable": "Camera function not available",
-    "takePictureFailed": "Failed to take picture",
-    "startConsultation": "Failed to start consultation",
-    "sendMessage": "Failed to send message",
-    "shareMeals": "Failed to share meals",
-    "startProgram": "Failed to start program",
-    "stopProgram": "Failed to stop program",
-    "pauseProgram": "Failed to pause diet",
-    "completeDay": "Failed to complete day",
-    "navNotAvailable": "Navigation not available. Please restart the app.",
-    "galleryFailed": "Gallery Failed",
-    "title": "Title"
+  "gallery": {
+    "notResponding": "Gallery Not Responding",
+    "timeoutMessage": "The photo picker is taking too long. Tap the button below to try again.",
+    "openGallery": "Open Gallery",
+    "goBack": "Go Back",
+    "selectPhoto": "Select Photo from Gallery",
+    "selectPhotoHint": "Tap the button below to open your photo library and select an image of your meal.",
+    "accessRequired": "Gallery Access Required",
+    "accessRequiredHint": "Please enable photo library access in your device settings to select photos of your meals.",
+    "grantPermission": "Grant Permission",
+    "openSettings": "Open Settings",
+    "error": "Error",
+    "tryAgain": "Try Again",
+    "selectTitle": "Select Photo",
+    "selectHint": "Choose a photo from your gallery to analyze.",
+    "canceled": "Selection Canceled",
+    "canceledHint": "You canceled photo selection.",
+    "opening": "Opening..."
   },
   "validation": {
     "requiredField": "Required Field",
@@ -1677,17 +1754,133 @@
     "selectGender": "Please select your gender.",
     "selectActivity": "Please select your activity level."
   },
+  "smokeTest": {
+    "title": "EatSense Smoke Test",
+    "pingApi": "Ping API",
+    "openApp": "Open App"
+  },
+  "errorBoundary": {
+    "crashed": "App crashed",
+    "tryAgain": "Try Again",
+    "debugMessage": "Debug screen. Collecting stack trace."
+  },
+  "analysisResults": {
+    "title": "Analysis Result",
+    "calories": "Calories",
+    "portions": "Portions",
+    "healthScore": "Health Score",
+    "healthScoreLevel": {
+      "very": "very healthy",
+      "moderately": "moderately healthy",
+      "less": "less healthy",
+      "text": "This dish is {{level}}."
+    },
+    "ingredients": "Ingredients",
+    "share": "Share",
+    "correct": "Correct",
+    "unknownDish": "Unknown dish",
+    "perPortion": "per portion",
+    "weightNotDetermined": "Weight not determined"
+  },
+  "incident": {
+    "title": "Report Incident",
+    "detectedTitle": "Security Incident Detected",
+    "description": "We've detected unusual activity in your account. For your security, we've temporarily restricted access.",
+    "detailsTitle": "Incident Details:",
+    "loginAttempt": "Unusual login attempt detected",
+    "locationUnknown": "Location: Unknown",
+    "contactSupport": "Contact Support"
+  },
+  "analysisComponent": {
+    "analysisError": "Analysis Error",
+    "analysisFailed": "Analysis failed",
+    "tryAgain": "Try Again",
+    "analyzing": "Analyzing...",
+    "analyzingDish": "Analyzing your dish...",
+    "analysisComplete": "Analysis complete!",
+    "calculatingCalories": "Calculating calories",
+    "uploaded": "Uploaded"
+  },
+  "common": {
+    "back": "Back",
+    "loading": "Loading...",
+    "close": "Close",
+    "retry": "Retry",
+    "done": "Done",
+    "ok": "OK",
+    "save": "Save",
+    "cancel": "Cancel",
+    "tryAgain": "Try Again",
+    "enabled": "Enabled",
+    "saveChanges": "Save Changes",
+    "reset": "Reset",
+    "error": "Error",
+    "edit": "Edit",
+    "days": "days",
+    "rerun": "Rerun",
+    "later": "Later",
+    "continue": "Continue",
+    "stop": "Stop",
+    "goBack": "Go back",
+    "of": "of",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "errorGeneric": "Something went wrong",
+    "success": "Success",
+    "info": "Info",
+    "gotIt": "Got it",
+    "yesterday": "Yesterday"
+  },
+  "usageSummary": {
+    "title": "Daily Usage",
+    "totalToday": "Total Today",
+    "remaining": "Remaining",
+    "limit": "Limit",
+    "upgrade": "Upgrade for More",
+    "limitReached": "Daily limit reached",
+    "limitApproaching": "Approaching daily limit",
+    "limitOk": "Usage within limits",
+    "analyses": "analyses"
+  },
+  "profile": {
+    "title": "Account",
+    "section": "Your Profile",
+    "goal": "Your Goal",
+    "age": "Age",
+    "weight": "Weight",
+    "height": "Height",
+    "activityLevel": "Activity Level",
+    "personalization": "Personalization",
+    "plan": "Your Plan",
+    "sync": "Apple Health Sync",
+    "settings": "Settings",
+    "units": "Units of Measurement",
+    "unitsMetric": "Metric",
+    "savePhotos": "Save Photos",
+    "autoSave": "Auto-save to gallery",
+    "planPremium": "Premium",
+    "about": "About Us",
+    "aboutText1": "EatSense is an AI-powered nutrition analysis app that helps you track your food intake and maintain a healthy lifestyle.",
+    "aboutText2": "Our advanced AI technology can identify ingredients and calculate nutritional values from photos of your meals.",
+    "faq": "Frequently Asked Questions",
+    "faq1q": "How accurate is the AI analysis?",
+    "faq1a": "Our AI provides highly accurate nutritional analysis based on advanced machine learning models.",
+    "faq2q": "Can I edit the analysis results?",
+    "faq2a": "Yes, you can manually correct any analysis results to ensure accuracy.",
+    "faq3q": "Is my data secure?",
+    "faq3a": "Yes, we use industry-standard encryption to protect your personal data.",
+    "tabs": {
+      "profile": "Profile",
+      "personalization": "Personalization",
+      "settings": "Settings",
+      "about": "About Us",
+      "faq": "FAQ"
+    }
+  },
   "notifications": {
     "enabled": "Notifications enabled!",
     "notEnabled": "Notifications were not enabled.",
     "enableFailed": "Could not enable notifications."
-  },
-  "onboarding": {
-    "notificationsDeniedTitle": "Notifications disabled",
-    "notificationsDeniedDescription": "You can enable notifications later in the app settings or iOS system settings to receive meal reminders and helpful tips.",
-    "notificationsDeniedHint": "You can enable notifications in the app settings later.",
-    "termsDescription": "Read our terms and conditions",
-    "privacyDescription": "Learn how we protect your data"
   },
   "diets_title": "Nutrition",
   "diets_subtitle": "Find the perfect nutrition plan for you",
@@ -1843,34 +2036,5 @@
     "empty": "No lifestyle programs found",
     "loading": "Loading",
     "loading_more": "Loading more programs..."
-  },
-  "consultations": {
-    "no_messages": "No_messages",
-    "start_conversation": "Start_conversation",
-    "status_active": "Status_active",
-    "status_cancelled": "Status_cancelled",
-    "status_completed": "Status_completed",
-    "type_message": "Type_message"
-  },
-  "error": {
-    "title": "Title"
-  },
-  "suggest": {
-    "already_voted": "Already voted",
-    "contact_success": "Your request has been sent",
-    "description_placeholder": "Description (optional)",
-    "error": "Could not send request",
-    "modal_title": "Suggestions",
-    "name_placeholder": "Your name",
-    "name_required": "Enter your name",
-    "request_placeholder": "Your request",
-    "request_required": "Enter your request",
-    "submit": "Send",
-    "subtitle": "Write to us — name and request",
-    "success": "Sent successfully",
-    "title": "Suggestions",
-    "voted": "Voted"
-  },
-  "diets_disclaimers_medical_short": "Medical",
-  "CHAT_CONSULTATION": "Chat Consultation"
+  }
 }

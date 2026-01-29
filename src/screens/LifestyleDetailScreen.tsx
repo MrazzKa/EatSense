@@ -13,6 +13,8 @@ import { useProgramProgress } from '../stores/ProgramProgressStore';
 import { useI18n } from '../../app/i18n/hooks';
 // FIX: Use shared getLocalizedText for consistency
 import { getLocalizedText } from '../components/programs/types';
+import { isFreeLifestyle } from '../config/freeContent';
+import PaywallModal from '../components/PaywallModal';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
@@ -27,6 +29,8 @@ export default function LifestyleDetailScreen() {
   const [isActive, setIsActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,12 +87,34 @@ export default function LifestyleDetailScreen() {
     );
   }
 
+  // Check subscription status
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        const subscription = await ApiService.getCurrentSubscription();
+        setIsPremiumUser(subscription?.hasSubscription === true);
+      } catch (error) {
+        console.error('[LifestyleDetail] Failed to check subscription:', error);
+        setIsPremiumUser(false);
+      }
+    };
+    checkSubscription();
+  }, []);
+
   if (!program) {
     return null;
   }
 
   const handleStartProgram = async () => {
     if (starting) return;
+
+    // Check if user has access to this lifestyle
+    const isFree = isFreeLifestyle(program?.id || '');
+    if (!isFree && !isPremiumUser) {
+      setShowPaywall(true);
+      return;
+    }
+
     setStarting(true);
 
     try {
@@ -121,7 +147,7 @@ export default function LifestyleDetailScreen() {
     } catch (error: any) {
       console.error('[LifestyleDetail] Start failed:', error);
       const status = error?.response?.status || error?.status;
-      
+
       // Handle specific error cases
       if (status === 409) {
         // Already enrolled in this program - refresh and show success
@@ -170,7 +196,17 @@ export default function LifestyleDetailScreen() {
       onStartProgram={handleStartProgram}
       onContinueProgram={isActive ? handleContinueProgram : undefined}
       onBack={handleBack}
-    />
+    >
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onSubscribed={() => {
+          setIsPremiumUser(true);
+          setShowPaywall(false);
+        }}
+        featureName={getLocalizedText(program?.name, language)}
+      />
+    </LifestyleDetailScreenComponent>
   );
 }
 

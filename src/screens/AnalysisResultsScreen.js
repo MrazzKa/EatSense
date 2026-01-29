@@ -430,7 +430,7 @@ export default function AnalysisResultsScreen() {
     if (analysisIdFromRoute && processedRef.current.lastAnalysisId !== analysisIdFromRoute) {
       processedRef.current.lastAnalysisId = analysisIdFromRoute;
       setIsAnalyzing(true);
-      
+
       // FIX: Clear previous analysis result when starting a new analysis
       // This prevents showing old analysis card when starting a new one
       setAnalysisResult(null);
@@ -857,7 +857,7 @@ export default function AnalysisResultsScreen() {
       // Don't clear immediately - let the effect handle it to prevent flicker
       // The new result will replace the old one when it arrives
     }
-    
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -916,132 +916,134 @@ export default function AnalysisResultsScreen() {
         </View>
       )}
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        nestedScrollEnabled={true}
-        scrollEventThrottle={16}
-      >
-        {/* A. Hero Block */}
-        <View style={styles.heroContainer}>
-          {(() => {
-            const imageSource = previewImage ||
-              analysisResult?.imageUrl ||
-              analysisResult?.imageUri ||
-              analysisResult?.image?.url ||
-              analysisResult?.data?.imageUrl ||
-              null;
-
-            if (imageSource) {
-              return (
-                <TouchableOpacity
-                  style={styles.heroImageWrapper}
-                  activeOpacity={0.9}
-                  onPress={() => setShowImageModal(true)}
-                >
-                  {renderImage(imageSource, styles.heroImage, false)}
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.8)']}
-                    style={styles.heroGradient}
-                  >
-                    <Text style={styles.heroTitle} numberOfLines={2}>
-                      {analysisResult?.dishName}
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              );
-            }
-            return (
-              <View style={styles.heroTextWrapper}>
-                <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>
-                  {analysisResult?.dishName}
-                </Text>
-              </View>
-            );
-          })()}
-        </View>
-
-        {/* Disclaimer Text */}
-        {disclaimerText ? (
-          <View style={styles.disclaimerContainer}>
-            <Ionicons name="information-circle-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
-              {disclaimerText}
-            </Text>
-          </View>
-        ) : null}
-
-        {/* B. Summary Block Uses Chips */}
-        <View style={styles.summaryContainer}>
-          <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
-            <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalCalories || 0)}</Text>
-            <Text style={styles.summaryLabel}>{t('analysis.kcal') || 'kcal'}</Text>
-          </View>
-          <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
-            <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalProtein || 0)} {t('analysis.grams')}</Text>
-            <Text style={styles.summaryLabel}>{t('analysis.proteinShort') || 'Prot'}</Text>
-          </View>
-          <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
-            <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalCarbs || 0)} {t('analysis.grams')}</Text>
-            <Text style={styles.summaryLabel}>{t('analysis.carbsShort') || 'Carb'}</Text>
-          </View>
-          <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
-            <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalFat || 0)} {t('analysis.grams')}</Text>
-            <Text style={styles.summaryLabel}>{t('analysis.fatShort') || 'Fat'}</Text>
-          </View>
-        </View>
-
-        {/* C. Health Score */}
-        {analysisResult?.healthScore && (
-          <View style={styles.sectionContainer}>
-            <HealthScoreCard
-              healthScore={analysisResult.healthScore}
-              dishName={analysisResult.dishName}
-            />
-          </View>
-        )}
-
-        {/* E. Ingredients */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t('analysis.ingredients') || 'Ingredients'}</Text>
-          <View style={styles.ingredientsList}>
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          nestedScrollEnabled={true}
+          scrollEventThrottle={16}
+        >
+          {/* A. Hero Block */}
+          <View style={styles.heroContainer}>
             {(() => {
-              const ingredients = analysisResult?.ingredients || [];
-              if (ingredients.length === 0) {
+              const imageSource = previewImage ||
+                analysisResult?.imageUrl ||
+                analysisResult?.imageUri ||
+                analysisResult?.image?.url ||
+                analysisResult?.data?.imageUrl ||
+                null;
+
+              if (imageSource) {
                 return (
-                  <Text style={styles.emptyText}>{t('analysis.noIngredients')}</Text>
+                  <TouchableOpacity
+                    style={styles.heroImageWrapper}
+                    activeOpacity={0.9}
+                    onPress={() => setShowImageModal(true)}
+                  >
+                    {renderImage(imageSource, styles.heroImage, false)}
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,0.8)']}
+                      style={styles.heroGradient}
+                    >
+                      <Text style={styles.heroTitle} numberOfLines={2}>
+                        {analysisResult?.dishName}
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
                 );
               }
-              return ingredients.map((ing, idx) => (
-                <SwipeableIngredientItem
-                  key={ing.id || idx}
-                  ingredient={ing}
-                  index={idx}
-                  allowEditing={allowEditing}
-                  onPress={() => handleCorrect(ing, idx)}
-                  onDelete={(item, i) => handleDeleteItem(item?.id || i)}
-                />
-              ));
+              return (
+                <View style={styles.heroTextWrapper}>
+                  <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>
+                    {analysisResult?.dishName}
+                  </Text>
+                </View>
+              );
             })()}
           </View>
 
-          {allowEditing && (
-            <TouchableOpacity
-              style={[styles.addIngredientButton, { borderColor: colors.primary }]}
-              onPress={handleAddItem}
-            >
-              <Ionicons name="add" size={20} color={colors.primary} />
-              <Text style={[styles.addIngredientText, { color: colors.primary }]}>
-                {t('analysis.addIngredient') || 'Add Ingredient'}
+          {/* Disclaimer Text */}
+          {disclaimerText ? (
+            <View style={styles.disclaimerContainer}>
+              <Ionicons name="information-circle-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
+                {disclaimerText}
               </Text>
-            </TouchableOpacity>
-          )}
-          <HealthDisclaimer style={{ marginTop: 24, marginHorizontal: 4 }} />
-        </View>
+            </View>
+          ) : null}
 
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          {/* B. Summary Block Uses Chips */}
+          <View style={styles.summaryContainer}>
+            <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
+              <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalCalories || 0)}</Text>
+              <Text style={styles.summaryLabel}>{t('analysis.kcal') || 'kcal'}</Text>
+            </View>
+            <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
+              <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalProtein || 0)} {t('analysis.grams')}</Text>
+              <Text style={styles.summaryLabel}>{t('analysis.proteinShort') || 'Prot'}</Text>
+            </View>
+            <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
+              <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalCarbs || 0)} {t('analysis.grams')}</Text>
+              <Text style={styles.summaryLabel}>{t('analysis.carbsShort') || 'Carb'}</Text>
+            </View>
+            <View style={[styles.summaryChip, { backgroundColor: colors.surfaceMuted }]}>
+              <Text style={styles.summaryValue}>{Math.round(analysisResult?.totalFat || 0)} {t('analysis.grams')}</Text>
+              <Text style={styles.summaryLabel}>{t('analysis.fatShort') || 'Fat'}</Text>
+            </View>
+          </View>
+
+          {/* C. Health Score */}
+          {analysisResult?.healthScore && (
+            <View style={styles.sectionContainer}>
+              <HealthScoreCard
+                healthScore={analysisResult.healthScore}
+                dishName={analysisResult.dishName}
+              />
+            </View>
+          )}
+
+          {/* E. Ingredients */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>{t('analysis.ingredients') || 'Ingredients'}</Text>
+            <View style={styles.ingredientsList}>
+              {(() => {
+                const ingredients = analysisResult?.ingredients || [];
+                if (ingredients.length === 0) {
+                  return (
+                    <Text style={styles.emptyText}>{t('analysis.noIngredients')}</Text>
+                  );
+                }
+                return ingredients.map((ing, idx) => (
+                  <SwipeableIngredientItem
+                    key={ing.id || idx}
+                    ingredient={ing}
+                    index={idx}
+                    allowEditing={allowEditing}
+                    onPress={() => handleCorrect(ing, idx)}
+                    onDelete={(item, i) => handleDeleteItem(item?.id || i)}
+                  />
+                ));
+              })()}
+            </View>
+
+            {allowEditing && (
+              <TouchableOpacity
+                style={[styles.addIngredientButton, { borderColor: colors.primary }]}
+                onPress={handleAddItem}
+              >
+                <Ionicons name="add" size={20} color={colors.primary} />
+                <Text style={[styles.addIngredientText, { color: colors.primary }]}>
+                  {t('analysis.addIngredient') || 'Add Ingredient'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            <HealthDisclaimer style={{ marginTop: 24, marginHorizontal: 4 }} />
+          </View>
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </Animated.View>
 
       {/* F. Bottom CTA */}
       <View style={[styles.bottomContainer, { backgroundColor: colors.surface }]}>

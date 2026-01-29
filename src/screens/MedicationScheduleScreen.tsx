@@ -250,34 +250,39 @@ const MedicationScheduleScreen: React.FC = () => {
 
     try {
       setLoading(true);
-      let savedMedId: string;
       if (editingMed) {
         await ApiService.updateMedication(editingMed.id, payload);
-        savedMedId = editingMed.id;
-        // Cancel old notifications for this medication
-        await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
       } else {
-        const created = await ApiService.createMedication(payload);
-        savedMedId = created?.id || '';
+        await ApiService.createMedication(payload);
       }
 
-      // Schedule notifications for each dose time
-      if (savedMedId && payload.doses.length > 0) {
-        const hasPermission = await localNotificationService.checkPermissions();
-        if (hasPermission) {
-          for (const dose of payload.doses) {
+      // RELOAD all medications to get fresh state (including IDs)
+      const freshMedications = await ApiService.getMedications();
+      setMedications(freshMedications || []);
+
+      // Reschedule ALL medication notifications
+      // 1. Cancel existing
+      await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
+
+      // 2. Schedule for ALL active medications
+      const hasPermission = await localNotificationService.checkPermissions();
+      if (hasPermission && freshMedications) {
+        for (const med of freshMedications) {
+          if (!med.isActive || !med.doses) continue;
+
+          for (const dose of med.doses) {
+            if (!dose.timeOfDay) continue;
             const [hour, minute] = dose.timeOfDay.split(':').map(Number);
             await localNotificationService.scheduleMedicationReminder(
-              payload.name,
+              med.name,
               hour,
               minute,
-              savedMedId
+              med.id
             );
           }
         }
       }
 
-      await loadMedications();
       setModalVisible(false);
       setError(null);
     } catch (e: any) {
@@ -348,7 +353,7 @@ const MedicationScheduleScreen: React.FC = () => {
     const daysRemaining = item.remainingStock && dosesPerDay > 0
       ? Math.floor(item.remainingStock / dosesPerDay)
       : null;
-    
+
     const isLowStock = item.remainingStock !== null && item.remainingStock !== undefined
       && item.lowStockThreshold !== null && item.lowStockThreshold !== undefined
       && daysRemaining !== null

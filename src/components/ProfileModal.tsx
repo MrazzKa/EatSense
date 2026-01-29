@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { SwipeClosableModal } from './common/SwipeClosableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useI18n } from '../../app/i18n/hooks';
 
 interface ProfileModalProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface ProfileModalProps {
 export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) => {
   const insets = useSafeAreaInsets();
   const [activeSection, setActiveSection] = useState<'profile' | 'personalization' | 'settings' | 'about' | 'faq'>('profile');
+  const { t } = useI18n();
 
   const headerStyle = {
     paddingTop: Math.max(insets.top + 20, 20),
@@ -19,45 +21,45 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
 
   const renderProfileSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Your Profile</Text>
+      <Text style={styles.sectionTitle}>{t('profile.section') || 'Your Profile'}</Text>
 
       <View style={styles.profileCard}>
         <View style={styles.profileItem}>
-          <Text style={styles.profileLabel}>Your Goal</Text>
+          <Text style={styles.profileLabel}>{t('profile.goal') || 'Your Goal'}</Text>
           <TouchableOpacity style={styles.profileValue}>
-            <Text style={styles.profileValueText}>Weight Loss</Text>
+            <Text style={styles.profileValueText}>{t('profile.goalValue') || 'Weight Loss'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileItem}>
-          <Text style={styles.profileLabel}>Age</Text>
+          <Text style={styles.profileLabel}>{t('profile.age') || 'Age'}</Text>
           <TouchableOpacity style={styles.profileValue}>
-            <Text style={styles.profileValueText}>25 years</Text>
+            <Text style={styles.profileValueText}>25 {t('profile.metricAge') || 'years'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileItem}>
-          <Text style={styles.profileLabel}>Weight</Text>
+          <Text style={styles.profileLabel}>{t('profile.weight') || 'Weight'}</Text>
           <TouchableOpacity style={styles.profileValue}>
-            <Text style={styles.profileValueText}>75.2 kg</Text>
+            <Text style={styles.profileValueText}>75.2 {t('profile.metricWeight') || 'kg'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileItem}>
-          <Text style={styles.profileLabel}>Height</Text>
+          <Text style={styles.profileLabel}>{t('profile.height') || 'Height'}</Text>
           <TouchableOpacity style={styles.profileValue}>
-            <Text style={styles.profileValueText}>175 cm</Text>
+            <Text style={styles.profileValueText}>175 {t('profile.metricHeight') || 'cm'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.profileItem}>
-          <Text style={styles.profileLabel}>Activity Level</Text>
+          <Text style={styles.profileLabel}>{t('profile.activityLevel') || 'Activity Level'}</Text>
           <TouchableOpacity style={styles.profileValue}>
-            <Text style={styles.profileValueText}>Moderately Active</Text>
+            <Text style={styles.profileValueText}>{t('onboarding.activityLevels.moderatelyActive') || 'Moderately Active'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
@@ -67,21 +69,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
 
   const renderPersonalizationSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Personalization</Text>
+      <Text style={styles.sectionTitle}>{t('profile.personalization') || 'Personalization'}</Text>
 
       <View style={styles.personalizationCard}>
         <View style={styles.personalizationItem}>
-          <Text style={styles.personalizationLabel}>Your Plan</Text>
+          <Text style={styles.personalizationLabel}>{t('profile.plan') || 'Your Plan'}</Text>
           <TouchableOpacity style={styles.personalizationValue}>
-            <Text style={styles.personalizationValueText}>Premium</Text>
+            <Text style={styles.personalizationValueText}>{t('profile.planPremium') || 'Premium'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.personalizationItem}>
-          <Text style={styles.personalizationLabel}>Apple Health Sync</Text>
+          <Text style={styles.personalizationLabel}>{t('profile.sync') || 'Apple Health Sync'}</Text>
           <TouchableOpacity style={styles.personalizationValue}>
-            <Text style={styles.personalizationValueText}>Enabled</Text>
+            <Text style={styles.personalizationValueText}>{t('common.enabled') || 'Enabled'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
@@ -91,21 +93,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
 
   const renderSettingsSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Settings</Text>
+      <Text style={styles.sectionTitle}>{t('profile.settings') || 'Settings'}</Text>
 
       <View style={styles.settingsCard}>
         <View style={styles.settingsItem}>
-          <Text style={styles.settingsLabel}>Units of Measurement</Text>
+          <Text style={styles.settingsLabel}>{t('profile.units') || 'Units of Measurement'}</Text>
           <TouchableOpacity style={styles.settingsValue}>
-            <Text style={styles.settingsValueText}>Metric</Text>
+            <Text style={styles.settingsValueText}>{t('profile.unitsMetric') || 'Metric'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.settingsItem}>
-          <Text style={styles.settingsLabel}>Save Photos</Text>
+          <Text style={styles.settingsLabel}>{t('profile.savePhotos') || 'Save Photos'}</Text>
           <TouchableOpacity style={styles.settingsValue}>
-            <Text style={styles.settingsValueText}>Auto-save to gallery</Text>
+            <Text style={styles.settingsValueText}>{t('profile.autoSave') || 'Auto-save to gallery'}</Text>
             <Ionicons name="chevron-forward" size={16} color="#7F8C8D" />
           </TouchableOpacity>
         </View>
@@ -115,14 +117,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
 
   const renderAboutSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>About Us</Text>
+      <Text style={styles.sectionTitle}>{t('profile.about') || 'About Us'}</Text>
 
       <View style={styles.aboutCard}>
         <Text style={styles.aboutText}>
-          EatSense is an AI-powered nutrition analysis app that helps you track your food intake and maintain a healthy lifestyle.
+          {t('profile.aboutText1') || 'EatSense is an AI-powered nutrition analysis app that helps you track your food intake and maintain a healthy lifestyle.'}
         </Text>
         <Text style={styles.aboutText}>
-          Our advanced AI technology can identify ingredients and calculate nutritional values from photos of your meals.
+          {t('profile.aboutText2') || 'Our advanced AI technology can identify ingredients and calculate nutritional values from photos of your meals.'}
         </Text>
       </View>
     </View>
@@ -130,22 +132,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
 
   const renderFAQSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
+      <Text style={styles.sectionTitle}>{t('profile.faq') || 'Frequently Asked Questions'}</Text>
 
       <View style={styles.faqCard}>
         <View style={styles.faqItem}>
-          <Text style={styles.faqQuestion}>How accurate is the AI analysis?</Text>
-          <Text style={styles.faqAnswer}>Our AI provides highly accurate nutritional analysis based on advanced machine learning models.</Text>
+          <Text style={styles.faqQuestion}>{t('profile.faq1q') || 'How accurate is the AI analysis?'}</Text>
+          <Text style={styles.faqAnswer}>{t('profile.faq1a') || 'Our AI provides highly accurate nutritional analysis based on advanced machine learning models.'}</Text>
         </View>
 
         <View style={styles.faqItem}>
-          <Text style={styles.faqQuestion}>Can I edit the analysis results?</Text>
-          <Text style={styles.faqAnswer}>Yes, you can manually correct any analysis results to ensure accuracy.</Text>
+          <Text style={styles.faqQuestion}>{t('profile.faq2q') || 'Can I edit the analysis results?'}</Text>
+          <Text style={styles.faqAnswer}>{t('profile.faq2a') || 'Yes, you can manually correct any analysis results to ensure accuracy.'}</Text>
         </View>
 
         <View style={styles.faqItem}>
-          <Text style={styles.faqQuestion}>Is my data secure?</Text>
-          <Text style={styles.faqAnswer}>Yes, we use industry-standard encryption to protect your personal data.</Text>
+          <Text style={styles.faqQuestion}>{t('profile.faq3q') || 'Is my data secure?'}</Text>
+          <Text style={styles.faqAnswer}>{t('profile.faq3a') || 'Yes, we use industry-standard encryption to protect your personal data.'}</Text>
         </View>
       </View>
     </View>
@@ -166,7 +168,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close" size={24} color="#2C3E50" />
           </TouchableOpacity>
-          <Text style={styles.title}>Account</Text>
+          <Text style={styles.title}>{t('profile.title') || 'Account'}</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -175,35 +177,35 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ visible, onClose }) 
             style={[styles.tab, activeSection === 'profile' && styles.activeTab]}
             onPress={() => setActiveSection('profile')}
           >
-            <Text style={[styles.tabText, activeSection === 'profile' && styles.activeTabText]}>Profile</Text>
+            <Text style={[styles.tabText, activeSection === 'profile' && styles.activeTabText]}>{t('profile.tabs.profile') || 'Profile'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tab, activeSection === 'personalization' && styles.activeTab]}
             onPress={() => setActiveSection('personalization')}
           >
-            <Text style={[styles.tabText, activeSection === 'personalization' && styles.activeTabText]}>Personalization</Text>
+            <Text style={[styles.tabText, activeSection === 'personalization' && styles.activeTabText]}>{t('profile.tabs.personalization') || 'Personalization'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tab, activeSection === 'settings' && styles.activeTab]}
             onPress={() => setActiveSection('settings')}
           >
-            <Text style={[styles.tabText, activeSection === 'settings' && styles.activeTabText]}>Settings</Text>
+            <Text style={[styles.tabText, activeSection === 'settings' && styles.activeTabText]}>{t('profile.tabs.settings') || 'Settings'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tab, activeSection === 'about' && styles.activeTab]}
             onPress={() => setActiveSection('about')}
           >
-            <Text style={[styles.tabText, activeSection === 'about' && styles.activeTabText]}>About Us</Text>
+            <Text style={[styles.tabText, activeSection === 'about' && styles.activeTabText]}>{t('profile.tabs.about') || 'About Us'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tab, activeSection === 'faq' && styles.activeTab]}
             onPress={() => setActiveSection('faq')}
           >
-            <Text style={[styles.tabText, activeSection === 'faq' && styles.activeTabText]}>FAQ</Text>
+            <Text style={[styles.tabText, activeSection === 'faq' && styles.activeTabText]}>{t('profile.tabs.faq') || 'FAQ'}</Text>
           </TouchableOpacity>
         </View>
 
