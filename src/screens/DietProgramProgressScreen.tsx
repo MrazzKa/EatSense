@@ -49,7 +49,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                 setIsInitializing(false);
                 return;
             }
-            
+
             setIsInitializing(true);
             // Only refresh if activeProgram is missing or doesn't match route
             if (!activeProgram || activeProgram.programId !== route.params?.id) {
@@ -217,7 +217,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         );
     }
 
-    const currentDay = programDetails.days?.find((d: any) => d.dayNumber === activeProgram.currentDayIndex);
+    const currentDay = programDetails?.days?.find((d: any) => d.dayNumber === activeProgram.currentDayIndex);
     const progressPercent = Math.round((activeProgram.currentDayIndex / activeProgram.durationDays) * 100);
 
     return (
@@ -277,7 +277,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
                             {t('dietPrograms.mealsForDay')} {activeProgram.currentDayIndex}
                         </Text>
-                        {currentDay.title && (
+                        {currentDay?.title && (
                             <Text style={[styles.dayTitle, { color: colors.textSecondary }]}>{getLocalizedText(currentDay.title, language)}</Text>
                         )}
                         {currentDay.meals.map((meal: any, index: number) => (
