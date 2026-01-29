@@ -59,6 +59,16 @@ export default function DashboardScreen() {
   // Load active diet for dashboard widget from store
   const { activeProgram, loadProgress } = useProgramProgress();
 
+  // FIX: Define missing variable used by the widget
+  const activeDietForWidget = useMemo(() => {
+    if (!activeProgram) return null;
+    return {
+      ...activeProgram,
+      diet: activeProgram.programMetadata || activeProgram.diet,
+      progress: activeProgram.progress || activeProgram,
+    };
+  }, [activeProgram]);
+
   // FIX: Load progress when Dashboard mounts (lazy loading - only when needed)
   // This ensures program data is available for the widget
   useEffect(() => {
