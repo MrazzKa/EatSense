@@ -3,12 +3,14 @@ import { PrismaClient, DietType, DietDifficulty } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Type definition for lifestyle programs
+type LocalizedText = string | { [key: string]: string };
+
 interface LifestyleProgram {
     slug: string;
-    name: string;
-    subtitle: string;
-    description: string;
-    shortDescription: string;
+    name: LocalizedText;
+    subtitle: LocalizedText;
+    description: LocalizedText;
+    shortDescription: LocalizedText;
     category: string;
     type: DietType;
     difficulty: DietDifficulty;
@@ -17,7 +19,7 @@ interface LifestyleProgram {
     streakThreshold: number;
     embrace: string[];
     minimize: string[];
-    dailyTracker: { key: string; label: string }[];
+    dailyTracker: { key: string; label: LocalizedText }[];
     suitableFor: string[];
     isFeatured: boolean;
     popularityScore: number;
@@ -833,9 +835,9 @@ async function main() {
         });
 
         const getPhilosophy = (p: LifestyleProgram) => ({
-            en: p.description.en || "Wellness is a journey, not a destination.",
-            ru: p.description.ru || "Здоровье - это путь, а не цель.",
-            kk: p.description.kk || "Денсаулық - бұл мақсат емес, жол.",
+            en: (p.description as any).en || "Wellness is a journey, not a destination.",
+            ru: (p.description as any).ru || "Здоровье - это путь, а не цель.",
+            kk: (p.description as any).kk || "Денсаулық - бұл мақсат емес, жол.",
             fr: "Le bien-être est un voyage, pas une destination."
         });
 
@@ -916,7 +918,8 @@ async function main() {
             },
         });
 
-        console.log(`  ✅ ${program.name.en}`);
+        const programName = typeof program.name === 'string' ? program.name : program.name['en'] || 'Unknown Program';
+        console.log(`  ✅ ${programName}`);
     }
 
     console.log(`\n🎉 Seeded ${lifestylePrograms.length} lifestyle programs!`);
