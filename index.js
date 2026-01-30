@@ -1,14 +1,14 @@
 // CRITICAL: These imports MUST be first for Reanimated and Gesture Handler to work correctly
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import 'react-native-url-polyfill/auto';
+
 
 // Early client logging - log as early as possible to track app startup
 let clientLog;
 try {
   // Dynamic import to avoid blocking startup if clientLog fails
   clientLog = require('./src/utils/clientLog').clientLog;
-  clientLog('index:start').catch(() => {});
+  clientLog('index:start').catch(() => { });
 } catch (error) {
   // If clientLog import fails, we can't log it, but app should continue
   console.error('[index.js] Failed to import clientLog:', error);
@@ -22,14 +22,14 @@ let App;
 try {
   App = require('./App').default;
   if (clientLog) {
-    clientLog('index:AppImportedOK').catch(() => {});
+    clientLog('index:AppImportedOK').catch(() => { });
   }
 } catch (error) {
   if (clientLog) {
     clientLog('index:AppImportError', {
       message: error?.message || 'Unknown error',
       stack: String(error?.stack || '').substring(0, 500), // Limit stack trace length
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   console.error('[index.js] Failed to import App:', error);
