@@ -23,7 +23,7 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
 
   const getLocalizedText = (
     text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null,
-    t?: (key: string) => string
+    t?: (_key: string) => string
   ): string => {
     if (!text) return '';
 

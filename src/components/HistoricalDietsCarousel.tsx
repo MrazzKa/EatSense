@@ -33,7 +33,7 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
     const { t, language } = useI18n();
 
     // Helper to extract localized text - use shared implementation
-    const getLocalizedText = (value: any, t?: (key: string) => string): string => {
+    const getLocalizedText = (value: any, t?: (_key: string) => string): string => {
         return getLocalizedTextShared(value, language, t);
     };
 

@@ -9,7 +9,6 @@ import {
   Animated,
   Alert,
   TextInput,
-  InteractionManager,
   Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
@@ -17,7 +16,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import * as Localization from 'expo-localization';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+// import { useNavigation, CommonActions } from '@react-navigation/native'; // Unused
+// import { useNavigation } from '@react-navigation/native';
 
 // import Slider from '@react-native-community/slider'; // Unused
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -754,7 +754,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
 
 const OnboardingScreen = () => {
 
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const { colors, tokens, isDark } = useTheme();
   const { setUser } = useAuth();
   const styles = useMemo(() => createStyles(tokens, colors, isDark), [tokens, colors, isDark]);
@@ -1061,7 +1061,7 @@ const OnboardingScreen = () => {
       setCurrentStep(nextStepIndex);
       scrollViewRef.current?.scrollTo({ x: nextStepIndex * width, animated: true });
     }
-  }, [currentStep, steps, profileData, markStepConfirmed]);
+  }, [currentStep, steps, profileData, markStepConfirmed, t]);
 
   const prevStep = () => {
     if (currentStep > 0) {
@@ -1071,37 +1071,7 @@ const OnboardingScreen = () => {
     }
   };
 
-  // Helper to navigate to MainTabs after successful onboarding completion
-  const navigateToMain = useCallback(() => {
-    // FIX: Removed InteractionManager.runAfterInteractions as it can cause hangs with continuous animations (like ActivityIndicator)
-    setTimeout(() => {
-      try {
-        if (navigation && navigation.isReady && navigation.isReady()) {
-          console.log('[OnboardingScreen] Navigation is ready, calling reset');
-          clientLog('Onboarding:navigateToMainTabs').catch(() => { });
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'MainTabs' }],
-            })
-          );
-        } else if (navigation && typeof navigation.reset === 'function') {
-          console.log('[OnboardingScreen] Navigation reset available, calling directly');
-          clientLog('Onboarding:navigateToMainTabs').catch(() => { });
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'MainTabs' }],
-          });
-        } else {
-          console.error('[OnboardingScreen] Navigation not available or not ready');
-          Alert.alert(t('common.error', 'Error'), t('errors.navigationNotAvailable', 'Navigation not available. Please restart the app.'));
-        }
-      } catch (navError) {
-        console.error('[OnboardingScreen] Navigation reset error:', navError);
-        Alert.alert(t('common.error', 'Error'), t('errors.navigationError', 'Navigation error: {{message}}. Please restart the app.', { message: navError.message }));
-      }
-    }, 100);
-  }, [navigation]);
+
 
   // Complete onboarding after profile is saved (called after purchase success or for free plan)
   const completeOnboarding = useCallback(async () => {
@@ -1134,7 +1104,7 @@ const OnboardingScreen = () => {
 
       // navigateToMain();
     }
-  }, [setUser, navigateToMain]);
+  }, [setUser]);
 
   const handleComplete = async () => {
     // Start loading state immediately to provide feedback

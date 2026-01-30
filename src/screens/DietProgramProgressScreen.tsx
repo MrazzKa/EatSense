@@ -21,7 +21,7 @@ interface DietProgramProgressScreenProps {
 // FIX: Use shared getLocalizedText from types.ts for consistency
 import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
 
-const getLocalizedText = (value: any, lang: string, t?: (key: string) => string): string => {
+const getLocalizedText = (value: any, lang: string, t?: (_key: string) => string): string => {
     // Use shared implementation for consistency
     return getLocalizedTextShared(value, lang, t);
 };
@@ -65,7 +65,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
         // This prevents unnecessary refresh when navigating from start program
         const timer = setTimeout(initialize, 50); // Reduced delay for faster initialization
         return () => clearTimeout(timer);
-    }, [route.params?.id, activeProgram?.programId, invalidateCache, refreshProgress]); // Also depend on activeProgram.programId to detect when it changes
+    }, [route.params?.id, activeProgram?.programId, invalidateCache, refreshProgress, activeProgram]); // Also depend on activeProgram.programId to detect when it changes
 
     // FIX: Don't refresh on every focus - only if data is missing or incorrect
     // This prevents constant reloads when navigating back to this screen
@@ -252,6 +252,8 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                 {t('common.of')} {activeProgram.durationDays}
                             </Text>
                         </View>
+                        {/* Streak Badge */}
+                        {/* Streak Badge */}
                         {/* Streak Badge */}
                         {activeProgram.streak?.current > 0 && (
                             <View style={styles.streakBadge}>

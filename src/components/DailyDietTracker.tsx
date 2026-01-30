@@ -57,6 +57,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     const DEBOUNCE_MS = 300; // Batch rapid toggles
 
     // Load tracker data from API (for dailyTracker items and symptoms)
+    // Load tracker data from API (for dailyTracker items and symptoms)
     const loadTrackerData = useCallback(async () => {
         if (!activeProgram || activeProgram.type !== 'diet') {
             setTrackerData(null);
@@ -65,14 +66,14 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
         try {
             const data = await ApiService.get('/diets/active/today');
-            
+
             // FIX: Handle null response (when program is null on backend)
             if (!data) {
                 console.warn('[DailyDietTracker] API returned null - program may be missing');
                 setTrackerData(null);
                 return;
             }
-            
+
             // FIX: Ensure dailyTracker is always an array, even if empty
             const dailyTracker = Array.isArray(data?.dailyTracker) ? data.dailyTracker : [];
             setTrackerData({
@@ -90,7 +91,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                 setTrackerData(null);
             }
         }
-    }, [activeProgram?.id, activeProgram?.type, activeProgram?.currentDayIndex]);
+    }, [activeProgram]);
 
     useEffect(() => {
         if (activeProgram && activeProgram.type === 'diet') {

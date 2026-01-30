@@ -121,14 +121,14 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
   const [showLockModal, setShowLockModal] = useState(false);
 
   // Handler for program press with lock check
-  const handleProgramPress = (program: LifestyleProgram) => {
+  const handleProgramPress = useCallback((program: LifestyleProgram) => {
     const locked = !hasAccess(program, subscription);
     if (locked) {
       setShowLockModal(true);
     } else {
       onProgramPress(program.id || program.slug);
     }
-  };
+  }, [subscription, onProgramPress]);
   // Removed selectedAgeRange - age filter removed per requirements
 
   // Memoized trending programs from featured
@@ -360,7 +360,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       default:
         return null;
     }
-  }, [selectedCategory, selectedTarget, colors, t, onProgramPress, searchQuery]);
+  }, [selectedCategory, selectedTarget, colors, t, onProgramPress, searchQuery, handleProgramPress, subscription]);
 
   // Key extractor
   const keyExtractor = useCallback((item: SectionData, index: number) => {

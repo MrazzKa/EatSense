@@ -1,9 +1,8 @@
 
 const fs = require('fs');
-const path = require('path');
+
 
 const locales = ['en', 'ru'];
-const keys = ['referral.shareMessage', 'referral.title'];
 
 locales.forEach(lang => {
     const p = `app/i18n/locales/${lang}.json`;

@@ -88,8 +88,8 @@ export default function MealHistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const dateParam = route.params?.date;
-  const date = dateParam ? new Date(dateParam) : new Date();
-  const dateKey = date.toISOString().split('T')[0];
+  // Memoize date to avoid recreation on every render
+  const date = React.useMemo(() => dateParam ? new Date(dateParam) : new Date(), [dateParam]);
   const locale = language || 'en';
 
   const load = useCallback(async (isRefresh = false) => {
@@ -106,7 +106,7 @@ export default function MealHistoryScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [dateKey, locale]);
+  }, [date, locale]);
 
   useEffect(() => {
     load();

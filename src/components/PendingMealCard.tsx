@@ -166,7 +166,7 @@ export function PendingMealCard({
                 );
 
             case 'completed':
-            case 'completed':
+
                 return (
                     <View style={styles.statusContainer}>
                         <View style={styles.statusTextContainer}>
