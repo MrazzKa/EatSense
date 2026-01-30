@@ -15,6 +15,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { getLocalizedText } from '../components/programs/types';
 import { isFreeLifestyle } from '../config/freeContent';
 import PaywallModal from '../components/PaywallModal';
+import { trialService } from '../services/trialService';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
@@ -76,17 +77,6 @@ export default function LifestyleDetailScreen() {
     loadData();
   }, [programId, navigation, t]);
 
-  if (loading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background || '#FFF' }]}>
-        <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary || '#666' }]}>
-          {t('lifestyles.loading', 'Loading program...')}
-        </Text>
-      </View>
-    );
-  }
-
   // Check subscription status
   useEffect(() => {
     const checkSubscription = async () => {
@@ -101,82 +91,107 @@ export default function LifestyleDetailScreen() {
     checkSubscription();
   }, []);
 
-  if (!program) {
-    return null;
-  }
-
+  // Check subscription status
   const handleStartProgram = async () => {
     if (starting) return;
 
     // Check if user has access to this lifestyle
     const isFree = isFreeLifestyle(program?.id || '');
-    if (!isFree && !isPremiumUser) {
+    const hasActiveTrial = trialService.isTrialActive(program?.id || '');
+
+    // 1. If Free or Premium or Active Trial -> ALLOW
+    if (isFree || isPremiumUser || hasActiveTrial) {
+      await startProgramExecution();
+      return;
+    }
+
+    // 2. If Trial Used (and not active) -> PAYWALL
+    if (trialService.isTrialUsed(program?.id || '')) {
       setShowPaywall(true);
       return;
     }
 
-    setStarting(true);
-
-    try {
-      // FIX: Start program without invalidating cache - prevents unnecessary reloads
-      // Use the diet API to start the lifestyle program (they share the same backend)
-      await ApiService.startDiet(program.id || program.slug);
-      setIsActive(true);
-
-      // FIX: Refresh store in background (non-blocking) - don't wait for it
-      // This prevents loading screen and improves UX
-      refreshProgress().catch(err => {
-        console.warn('[LifestyleDetail] Background refresh failed:', err);
-      });
-
-      // FIX: Improved fallback chain to ensure proper translations for all languages
-      // This prevents showing English keys instead of translated names
-      // FIX: Use shared getLocalizedText for consistency
-      const programName = getLocalizedText(program.name, language);
-
-      Alert.alert(
-        t('lifestyles.programStarted', 'Program started!'),
-        t('lifestyles.programStartedMessage', 'You started "{{name}}". Track your progress on the main screen.', { name: programName }),
-        [
-          {
-            text: t('common.goTo', 'Go to'),
-            onPress: () => (navigation as any).navigate('MainTabs', { screen: 'Dashboard' })
+    // 3. Offer Trial
+    Alert.alert(
+      t('lifestyles.startTrialTitle', 'Start 7-Day Free Trial?'),
+      t('lifestyles.startTrialBody', 'Try this lifestyle program for free for 7 days. You can continue or cancel anytime.'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.start'),
+          onPress: async () => {
+            await trialService.startTrial(program?.id || '');
+            await startProgramExecution();
           }
-        ]
-      );
-    } catch (error: any) {
-      console.error('[LifestyleDetail] Start failed:', error);
-      const status = error?.response?.status || error?.status;
+        }
+      ]
+    );
 
-      // Handle specific error cases
-      if (status === 409) {
-        // Already enrolled in this program - refresh and show success
-        await refreshProgress();
+    // Helper to run the actual start logic
+    async function startProgramExecution() {
+      setStarting(true);
+
+      try {
+        // FIX: Start program without invalidating cache - prevents unnecessary reloads
+        // Use the diet API to start the lifestyle program (they share the same backend)
+        await ApiService.startDiet(program.id || program.slug);
         setIsActive(true);
+
+        // FIX: Refresh store in background (non-blocking) - don't wait for it
+        // This prevents loading screen and improves UX
+        refreshProgress().catch(err => {
+          console.warn('[LifestyleDetail] Background refresh failed:', err);
+        });
+
+        // FIX: Improved fallback chain to ensure proper translations for all languages
+        // This prevents showing English keys instead of translated names
+        // FIX: Use shared getLocalizedText for consistency
+        const programName = getLocalizedText(program.name, language, t);
+
         Alert.alert(
           t('lifestyles.programStarted', 'Program started!'),
-          t('lifestyles.programAlreadyActive', 'You are already enrolled in this program.')
-        );
-      } else if (status === 400) {
-        // Another program is active
-        await refreshProgress();
-        Alert.alert(
-          t('common.error', 'Error'),
-          t('dietPrograms.anotherDietActiveMessage', 'You already have an active program. Complete or abandon it first.'),
+          t('lifestyles.programStartedMessage', 'You started "{{name}}". Track your progress on the main screen.', { name: programName }),
           [
-            { text: t('common.cancel'), style: 'cancel' },
             {
-              text: t('dietPrograms.viewActive', 'View Active'),
-              onPress: () => (navigation as any).navigate('MainTabs', { screen: 'Dashboard' }),
-            },
+              text: t('common.goTo', 'Go to'),
+              onPress: () => (navigation as any).navigate('MainTabs', { screen: 'Dashboard' })
+            }
           ]
         );
-      } else {
-        const message = error?.response?.data?.message || t('lifestyles.startFailed', 'Failed to start program. Please try again later.');
-        Alert.alert(t('common.error', 'Error'), message);
+      } catch (error: any) {
+        console.error('[LifestyleDetail] Start failed:', error);
+        const status = error?.response?.status || error?.status;
+
+        // Handle specific error cases
+        if (status === 409) {
+          // Already enrolled in this program - refresh and show success
+          await refreshProgress();
+          setIsActive(true);
+          Alert.alert(
+            t('lifestyles.programStarted', 'Program started!'),
+            t('lifestyles.programAlreadyActive', 'You are already enrolled in this program.')
+          );
+        } else if (status === 400) {
+          // Another program is active
+          await refreshProgress();
+          Alert.alert(
+            t('common.error', 'Error'),
+            t('dietPrograms.anotherDietActiveMessage', 'You already have an active program. Complete or abandon it first.'),
+            [
+              { text: t('common.cancel'), style: 'cancel' },
+              {
+                text: t('dietPrograms.viewActive', 'View Active'),
+                onPress: () => (navigation as any).navigate('MainTabs', { screen: 'Dashboard' }),
+              },
+            ]
+          );
+        } else {
+          const message = error?.response?.data?.message || t('lifestyles.startFailed', 'Failed to start program. Please try again later.');
+          Alert.alert(t('common.error', 'Error'), message);
+        }
+      } finally {
+        setStarting(false);
       }
-    } finally {
-      setStarting(false);
     }
   };
 
@@ -190,23 +205,36 @@ export default function LifestyleDetailScreen() {
   };
 
   return (
-    <LifestyleDetailScreenComponent
-      program={program}
-      isActive={isActive}
-      onStartProgram={handleStartProgram}
-      onContinueProgram={isActive ? handleContinueProgram : undefined}
-      onBack={handleBack}
-    >
-      <PaywallModal
-        visible={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        onSubscribed={() => {
-          setIsPremiumUser(true);
-          setShowPaywall(false);
-        }}
-        featureName={getLocalizedText(program?.name, language)}
-      />
-    </LifestyleDetailScreenComponent>
+    <>
+      {loading ? (
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background || '#FFF' }]}>
+          <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary || '#666' }]}>
+            {t('lifestyles.loading', 'Loading program...')}
+          </Text>
+        </View>
+      ) : !program ? (
+        null
+      ) : (
+        <LifestyleDetailScreenComponent
+          program={program}
+          isActive={isActive}
+          onStartProgram={handleStartProgram}
+          onContinueProgram={isActive ? handleContinueProgram : undefined}
+          onBack={handleBack}
+        >
+          <PaywallModal
+            visible={showPaywall}
+            onClose={() => setShowPaywall(false)}
+            onSubscribed={() => {
+              setIsPremiumUser(true);
+              setShowPaywall(false);
+            }}
+            featureName={getLocalizedText(program?.name, language)}
+          />
+        </LifestyleDetailScreenComponent>
+      )}
+    </>
   );
 }
 

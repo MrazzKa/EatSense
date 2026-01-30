@@ -580,7 +580,12 @@
       "snack": "Тамқтану"
     },
     "about": "Бағдарлама туралы",
-    "categories": {},
+    "categories": {
+      "all": "Барлығы",
+      "hollywood": "Голливуд",
+      "athletes": "Спортшылар",
+      "historical": "Тарихи"
+    },
     "empty": "Бағдарламалар табылмады",
     "kcalDay": "ккал/күн",
     "level": "Деңгей",
@@ -596,7 +601,11 @@
     "pause": "Үзіліс",
     "resume": "Жалғастыру",
     "mealsForDay": "Күндегі тағамдар",
-    "difficulty": {},
+    "difficulty": {
+      "easy": "Оңай",
+      "medium": "Орташа",
+      "hard": "Қиын"
+    },
     "anotherDietActive": "Басқа диета белсенді",
     "anotherDietActiveMessage": "Сізде басқа бағдарлама қосулы. Жаңасын бастау үшін оны аяқтаңыз.",
     "continueProgram": "Бағдарламаны жалғастыру",
@@ -1394,9 +1403,6 @@
     "unitsMetric": "Метрлік",
     "savePhotos": "Суреттерді сақтау",
     "autoSave": "Галереяға автоматты сақтау",
-    "about": "Біз туралы",
-    "aboutText1": "EatSense - бұл тамақтануды қадағалауға және салауатты өмір салтын ұстануға көмектесетін AI негізіндегі тамақтануды талдау қолданбасы.",
-    "aboutText2": "Біздің жетілдірілген AI технологиямыз тағамдарыңыздың фотосуреттерінен ингредиенттерді анықтап, тағамдық құндылықтарды есептей алады.",
     "faq": "Жиі қойылатын сұрақтар",
     "faq1q": "AI талдауы қаншалықты дәл?",
     "faq1a": "Біздің AI жетілдірілген машиналық оқыту модельдеріне негізделген жоғары дәлдіктегі тамақтану талдауын ұсынады.",
@@ -1411,12 +1417,80 @@
       "about": "Біз туралы",
       "faq": "Жиі қойылатын сұрақтар"
     },
+    "health": {
+      "advanced": "Кеңейтілген параметрлер",
+      "show": "Көрсету",
+      "hide": "Жасыру",
+      "metabolic": "Метаболизм",
+      "sleep": "Ұйқы және ритмдер",
+      "eatingBehavior": "Тамақтану тәртібі",
+      "glp1Module": "GLP-1 модулі",
+      "healthFocus": "Денсаулық фокусы",
+      "bodyFatPercent": "Май пайыз %",
+      "waistCm": "Бел (см)",
+      "hipCm": "Жамбас (см)",
+      "whr": "WHR (Бел/Жамбас)",
+      "auto": "авто",
+      "fatDistributionType": "Май таралу түрі",
+      "fatDistribution": {
+        "visceral": "Висцералды",
+        "gynoid": "Гиноидты",
+        "mixed": "Аралас"
+      },
+      "mealsPerDay": "Күніне тамақтану саны",
+      "snackingTendency": "Тіске басуға бейімділік",
+      "snacking": {
+        "low": "Төмен",
+        "medium": "Орташа",
+        "high": "Жоғары"
+      },
+      "eveningAppetite": "Кешкі тәбет",
+      "sleepHours": "Ұйқы (сағат)",
+      "chronotype": "Хронотип",
+      "chronotypeOptions": {
+        "early": "Бозторғай",
+        "mid": "Кептер",
+        "late": "Жапалақ"
+      },
+      "isGlp1User": "GLP-1 қолданушысы",
+      "drugType": "Препарат түрі",
+      "therapyGoal": "Терапия мақсаты",
+      "therapyGoalOptions": {
+        "preserve_muscle": "Бұлшықетті сақтау",
+        "appetite_control": "Тәбетті бақылау",
+        "weight_maintenance": "Салмақты ұстау",
+        "slow_weight_loss": "Баяу салмақ тастау"
+      },
+      "focus": {
+        "sugarControl": "Қантты бақылау",
+        "cholesterol": "Холестерин",
+        "inflammation": "Қабыну",
+        "iron": "Темір",
+        "microbiome": "Микробиом",
+        "hormonalBalance": "Гормоналды теңгерім"
+      },
+      "fatLabel": "май",
+      "sleepLabel": "Ұйқы",
+      "waistLabel": "Бел",
+      "noData": "Деректер жоқ",
+      "focusAreas": "Фокус",
+      "clearData": "Деректерді тазалау",
+      "clearTitle": "Денсаулық деректерін тазалау",
+      "clearMessage": "Барлық денсаулық параметрлерін өшіргіңіз келе ме? Бұл әрекетті қайтару мүмкін емес.",
+      "cleared": "Денсаулық деректері тазартылды"
+    },
     "legal": "Құқықтық ақпарат",
     "policy": "Құпиялылық саясаты",
     "termsOfService": "Қызмет көрсету шарттары",
+    "privacyPolicy": "Құпиялылық саясаты",
+    "aboutEatsense": "EatSense туралы",
+    "aboutText1": "EatSense — тамақтануды қадағалауға және салауатты өмір салтын ұстануға көмектесетін ИИ негізіндегі қосымша.",
+    "aboutText2": "Біздің озық ИИ технологиямыз тағамдарыңыздың фотосуреттерінен ингредиенттерді анықтап, тағамдық құндылықтарды есептей алады.",
     "notificationsDailyDisabled": "Күнделікті хабарландырулар өшірілген",
     "notificationsDailyEnabled": "Күнделікті хабарландырулар қосулы",
     "notificationsDailyTitle": "Күнделікті еске салғыш",
+    "notificationsPermissionTitle": "Рұқсат қажет",
+    "notificationsPermissionMessage": "Еске салғыштарды алу үшін хабарламаларға рұқсат беріңіз.",
     "metricHeight": "см",
     "metricWeight": "кг",
     "metricAge": "жас",
@@ -1878,5 +1952,1336 @@
   "PUT": "PUT",
   "GET": "GET",
   "DELETE": "DELETE",
-  "HEAD": "HEAD"
+  "HEAD": "HEAD",
+  "programs": {
+    "lifestyle": {
+      "that_girl": {
+        "dailyTracker": {
+          "morning_routine": {
+            "label": "Таңғы 5-те режим"
+          },
+          "green_juice": {
+            "label": "Жасыл смузи немесе матча"
+          },
+          "aesthetic_meal": {
+            "label": "Эстетикалық сау тағам"
+          },
+          "hydration": {
+            "label": "Су ішу"
+          }
+        },
+        "name": "That Girl",
+        "subtitle": "Таңғы 5, жасыл шырын, басты кейіпкер энергиясы",
+        "description": "Денсаулық эстетика ретінде. Жасыл смузи, матча.",
+        "shortDescription": "Таңғы 5, жасыл шырын"
+      },
+      "clean_girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Тек толық тағамдар"
+          },
+          "hydration": {
+            "label": "3л су"
+          },
+          "simple_meal": {
+            "label": "Қарапайым таза тағам"
+          }
+        },
+        "name": "Таза Қыз",
+        "subtitle": "Минималистік, жарқыраған, табиғи сұлулық",
+        "description": "Макияжсыз тағам. Толық тағамдар.",
+        "shortDescription": "Минималистік, жарқыраған"
+      },
+      "old_money": {
+        "dailyTracker": {
+          "quality_ingredients": {
+            "label": "Сапалы ингредиенттер"
+          },
+          "proper_dining": {
+            "label": "Дұрыс сервировка"
+          },
+          "three_meals": {
+            "label": "Үш тағам"
+          }
+        },
+        "name": "Ескі Ақша",
+        "subtitle": "Тыныш сәнділік, мәңгі элеганттылық",
+        "description": "Сапа бәрінен жоғары.",
+        "shortDescription": "Сапа санынан маңызды"
+      },
+      "tomato_girl_summer": {
+        "dailyTracker": {
+          "olive_oil": {
+            "label": "Барлық нәрсеге зейтін майы"
+          },
+          "fresh_tomatoes": {
+            "label": "Жаңа қызанақтар"
+          },
+          "aperitivo": {
+            "label": "Аперитив сағаты"
+          }
+        },
+        "name": "Қызанақ Қыз Жаз",
+        "subtitle": "Жерорта теңізі армандары",
+        "description": "Табақтағы тәтті өмір.",
+        "shortDescription": "Жерорта теңізі энергиясы"
+      },
+      "pilates_princess": {
+        "dailyTracker": {
+          "collagen": {
+            "label": "Смузидегі коллаген"
+          },
+          "lean_protein": {
+            "label": "Азық белок"
+          },
+          "light_eating": {
+            "label": "Сабақ күндерінде жеңіл тағам"
+          }
+        },
+        "name": "Пилатес Ханшасы",
+        "subtitle": "Ұзын, арық, сәнді күш",
+        "description": "Ұзарту және күшейту үшін отын.",
+        "shortDescription": "Арық, сәнді, күшті"
+      },
+      "coastal_grandmother": {
+        "dailyTracker": {
+          "set_table": {
+            "label": "Дұрыс сервировка"
+          },
+          "fresh_seafood": {
+            "label": "Жаңа теңіз өнімдері"
+          },
+          "beach_walk": {
+            "label": "Пляжда серуен"
+          }
+        },
+        "name": "Жағалау Анасы",
+        "subtitle": "Нэнси Мейерс асхана энергиясы",
+        "description": "Диана Китон өмір салты.",
+        "shortDescription": "Жағалау элеганттылығы"
+      },
+      "soft_life": {
+        "dailyTracker": {
+          "comfort_food": {
+            "label": "Кінәсіз ыңғайлы тағам"
+          },
+          "gentle_self": {
+            "label": "Өзіңізбен жұмсақ"
+          },
+          "rest": {
+            "label": "Демалу өнімді"
+          }
+        },
+        "name": "Жұмсақ Өмір",
+        "subtitle": "Жеңілдік, ыңғайлылық, стресс жоқ",
+        "description": "Асығыс мәдениетіне қарсы тағам.",
+        "shortDescription": "Жеңіл, ыңғайлы, стресссіз"
+      },
+      "mob_wife": {
+        "dailyTracker": {
+          "sunday_sauce": {
+            "label": "Жексенбі соусы дәстүрі"
+          },
+          "espresso": {
+            "label": "Эспрессо, кешірім емес"
+          },
+          "family_dinner": {
+            "label": "Отбасылық кешкі ас"
+          }
+        },
+        "name": "Мафия Әйелі",
+        "subtitle": "Драмалық, сәнді, кешірімсіз",
+        "description": "Италия-америкалық ләззат.",
+        "shortDescription": "Италиялық сәнділік"
+      },
+      "summer_shred": {
+        "dailyTracker": {},
+        "name": "Жаздық Сушка",
+        "subtitle": "Арық, анықталған, пляжқа дайын",
+        "description": "Бұлшық етті сақтай отырып стратегиялық май жоғалту.",
+        "shortDescription": "Арық, анықталған"
+      },
+      "metabolic_reset": {
+        "dailyTracker": {},
+        "name": "Метаболизмдік Қалпына Келтіру",
+        "subtitle": "Май жағу қозғалтқышын қайта бастаңыз",
+        "description": "Толық тағамдар арқылы метаболизмді жөндеу.",
+        "shortDescription": "Метаболизмді қалпына келтіру"
+      },
+      "debloat_detox": {
+        "dailyTracker": {},
+        "name": "Ісінуді Алып Тастау",
+        "subtitle": "Тегістеу, жаңарту, жеңіл сезіну",
+        "description": "Қабынуға қарсы, төмен натрийлі тағам.",
+        "shortDescription": "Ісінуді алу, жаңарту"
+      },
+      "sustainable_slim": {
+        "dailyTracker": {},
+        "name": "Тұрақты Арықтық",
+        "subtitle": "Жоғалтыңыз және мәңгі сақтаңыз",
+        "description": "Йо-йоға қарсы тәсіл.",
+        "shortDescription": "Тұрақты арықтау"
+      },
+      "lean_bulk": {
+        "dailyTracker": {},
+        "name": "Таза Қосылу",
+        "subtitle": "Майсыз бұлшық ет қосу",
+        "description": "Стратегиялық артықшылық.",
+        "shortDescription": "Бұлшық ет қосу, арық қалу"
+      },
+      "strength_athlete": {
+        "dailyTracker": {},
+        "name": "Күш Атлеті",
+        "subtitle": "Күш пен өнімділік үшін отын",
+        "description": "Көтерушілерге арналған тағам.",
+        "shortDescription": "Күш үшін отын"
+      },
+      "athletic_performance": {
+        "dailyTracker": {},
+        "name": "Спорттық Форма",
+        "subtitle": "Қатты жаттығу, ақылды жеу",
+        "description": "Бәсекелес атлеттерге арналған тағам.",
+        "shortDescription": "Спорттық тағам"
+      },
+      "functional_fitness": {
+        "dailyTracker": {},
+        "name": "Функционалдық Фитнес",
+        "subtitle": "Күшті, қабілетті, кез келген нәрсеге дайын",
+        "description": "Нақты өмір өнімділігіне арналған тағам.",
+        "shortDescription": "Функционалдық күш тағамы"
+      },
+      "glass_skin": {
+        "dailyTracker": {},
+        "subtitle": "Кореялық сұлулық іштен басталады",
+        "description": "Ішек-тері байланысы.",
+        "shortDescription": "К-бьюти тағам"
+      },
+      "acne_clear": {
+        "dailyTracker": {},
+        "subtitle": "Қабынуды тыныштандыру",
+        "description": "Қабынуға қарсы тағам.",
+        "shortDescription": "Таза тері тағамы"
+      },
+      "anti_aging_glow": {
+        "dailyTracker": {},
+        "subtitle": "Әдемі қартаю, мәңгі жарқырау",
+        "description": "Теріге арналған ұзақ өмір тағамы.",
+        "shortDescription": "Қартаюға қарсы тағам"
+      },
+      "all_day_energy": {
+        "dailyTracker": {},
+        "subtitle": "Төмендеу жоқ, тек алға",
+        "description": "Тұрақты энергия үшін қан қантының тұрақтылығы.",
+        "shortDescription": "Күн бойы тұрақты энергия"
+      },
+      "brain_fuel": {
+        "dailyTracker": {},
+        "subtitle": "Назар, анықтық",
+        "description": "Ноотроптық тағам.",
+        "shortDescription": "Миға арналған тағам"
+      },
+      "adrenal_recovery": {
+        "dailyTracker": {},
+        "subtitle": "Күйіп қалуды жазу",
+        "description": "Күйіп қалған жүйелерге арналған жазылу тағамы.",
+        "shortDescription": "Күйіп қалудан қалпына келтіру"
+      },
+      "amalfi_coast": {
+        "dailyTracker": {},
+        "subtitle": "Лимончелло күн батулары",
+        "description": "Оңтүстік италиялық жағалау өмірі.",
+        "shortDescription": "Италиялық жағалау тағамы"
+      },
+      "greek_islands": {
+        "dailyTracker": {},
+        "subtitle": "Санторини күн батулары табақта",
+        "description": "Түпнұсқа Жерорта теңізі диетасы.",
+        "shortDescription": "Грек Жерорта теңізі тағамы"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {},
+        "subtitle": "100-ге дейін өмір сүру құпиялары",
+        "description": "Көк аймақ даналығы.",
+        "shortDescription": "Көк аймақ ұзақ өмір"
+      },
+      "tokyo_energy": {
+        "dailyTracker": {},
+        "subtitle": "Жылдам қала, теңгерімді тағам",
+        "description": "Жапон тиімділігі тағаммен кездеседі.",
+        "shortDescription": "Жапон тиімді тағамы"
+      },
+      "scandi_hygge": {
+        "dailyTracker": {},
+        "subtitle": "Жайлы, теңгерімді, бақытты",
+        "description": "Скандинавиялық тағам хюгге өмір салтымен.",
+        "shortDescription": "Скандинавиялық жайлы тағам"
+      },
+      "1950s_bombshell": {
+        "dailyTracker": {},
+        "subtitle": "Иілмелер, сенімділік",
+        "description": "Нағыз тағам, нағыз иілмелер.",
+        "shortDescription": "Классикалық иілмелер тағамы"
+      },
+      "prima_ballerina": {
+        "dailyTracker": {},
+        "subtitle": "Сәнділік, тәртіп",
+        "description": "Өнер көрсету және сәнділік үшін тағам.",
+        "shortDescription": "Биші тағамы"
+      },
+      "french_girl": {
+        "dailyTracker": {},
+        "subtitle": "Түсіндірілмейтін сүйкімділік",
+        "description": "Түпнұсқа интуитивті тағам.",
+        "shortDescription": "Француз интуитивті тағамы"
+      },
+      "pin_up_retro": {
+        "dailyTracker": {},
+        "subtitle": "Винтаждық иілмелер",
+        "description": "Үйде дайындалған тағамдар.",
+        "shortDescription": "Ретро дене-позитивті тағам"
+      },
+      "minimalist_zen": {
+        "dailyTracker": {},
+        "subtitle": "Азырақ шатасу, көбірек анықтық",
+        "description": "Жапонға шабыттанған минимализм.",
+        "shortDescription": "Минималистік тағам"
+      },
+      "spartan_warrior": {
+        "dailyTracker": {},
+        "subtitle": "БҰЛ. БОЛЫП ТАБЫЛАДЫ. ТӘРТІП.",
+        "description": "Ежелгі жауынгер отыны.",
+        "shortDescription": "Спартандық тәртіп"
+      },
+      "viking_raider": {
+        "dailyTracker": {},
+        "subtitle": "Басып алу үшін отын",
+        "description": "Норвегиялық отын.",
+        "shortDescription": "Викинг күші тағамы"
+      },
+      "navy_seal": {
+        "dailyTracker": {},
+        "subtitle": "Элиталық отын",
+        "description": "Өнер көрсету тағамы, мағынасыз нәрсе жоқ.",
+        "shortDescription": "Элиталық спорт тағамы"
+      },
+      "mma_fighter": {
+        "dailyTracker": {},
+        "subtitle": "Салмақты азайту, күшті қалу",
+        "description": "Жауынгер лагері тағамы.",
+        "shortDescription": "Жауынгер тағамы"
+      },
+      "ceo_warrior": {
+        "dailyTracker": {},
+        "subtitle": "Кеңседе басым бол",
+        "description": "Биохакинг басшымен кездеседі.",
+        "shortDescription": "Басшы биохакингі"
+      },
+      "stoic_monk": {
+        "dailyTracker": {},
+        "subtitle": "Денеңізді басқарыңыз",
+        "description": "Ерікті қарапайымдылық.",
+        "shortDescription": "Стоик қарапайымдылығы"
+      },
+      "summer_beach_body": {
+        "dailyTracker": {},
+        "subtitle": "Ең сенімді жазға 4 апта",
+        "description": "Пляж сенімділігі үшін жеңіл тағам.",
+        "shortDescription": "Пляж денесін дайындау"
+      },
+      "new_year_reset": {
+        "dailyTracker": {},
+        "subtitle": "Жаңа бастау, таза парақ",
+        "description": "Ләззат кезеңдерінен кейінгі жұмсақ қалпына келтіру.",
+        "shortDescription": "Жаңа жылдық қалпына келтіру"
+      },
+      "wedding_ready": {
+        "dailyTracker": {},
+        "subtitle": "Жарқыраған, сенімді",
+        "description": "Ерекше күніңізге арналған біртіндеп тәсіл.",
+        "shortDescription": "Үйленуге дайындық тағамы"
+      },
+      "holiday_balance": {
+        "dailyTracker": {},
+        "subtitle": "Мерекесіз кешірімсіз ләззат алыңыз",
+        "description": "Салмақ қоспай мерекелерді басқару.",
+        "shortDescription": "Мерекелік теңгерім"
+      },
+      "hot_girl_walk": {
+        "dailyTracker": {
+          "walk": {
+            "label": "Серуен орындалдым"
+          },
+          "hydration": {
+            "label": "Жеткілікті су іштім"
+          },
+          "mood": {
+            "label": "Көңіл-күйді бақыладым"
+          }
+        },
+        "name": "Hot Girl Walk",
+        "subtitle": "Жүр, ойлан, жарқыра",
+        "description": "Көңіл-күй және қозғалыс үшін күнделікті серуен. Қарапайым.",
+        "shortDescription": "Күнделікті серуен"
+      },
+      "lazy_girl_weight_loss": {
+        "dailyTracker": {
+          "simple_habit": {
+            "label": "Бір қарапайым сау әдет"
+          },
+          "no_restrict": {
+            "label": "Қатаң шектеу жоқ"
+          },
+          "sustainable": {
+            "label": "Тұрақты таңдау"
+          }
+        },
+        "name": "Жатыңқы Арықтау",
+        "subtitle": "Ең аз күш, ең көп нәтиже",
+        "description": "Тұрақты арықтау үшін төмен күш салу әдеттері.",
+        "shortDescription": "Төмен күш, тұрақты жоғалту"
+      },
+      "high_energy": {
+        "dailyTracker": {
+          "steady_energy": {
+            "label": "Тұрақты энергия"
+          },
+          "no_crash": {
+            "label": "Түскі астан кейінгі төмендеу жоқ"
+          },
+          "balanced_meals": {
+            "label": "Теңгерімді тамақ"
+          }
+        },
+        "name": "Жоғары Қуат",
+        "subtitle": "Отында, орында, гүлден",
+        "description": "Күн бойы энергия үшін тағам. Теңгерімді тамақ, ақылды көмірсулар.",
+        "shortDescription": "Күн бойы энергия"
+      }
+    },
+    "diet": {
+      "mediterranean": {
+        "dailyTracker": {
+          "veggies_5": {
+            "label": "5+ көкөніс/жеміс порциясы"
+          },
+          "whole_grains": {
+            "label": "1-2 тұтас дән порциясы"
+          },
+          "healthy_fat": {
+            "label": "Пайдалы май (зәйтүн/жаңғақ)"
+          },
+          "protein": {
+            "label": "Ақуыз: балық/бұршақ/құс"
+          },
+          "water": {
+            "label": "Су 6-8 стақан"
+          }
+        },
+        "name": "Жерорта теңізі",
+        "description": "Жерорта теңізі елдерінің дәстүрлі асханасына негізделген жүрекке пайдалы тамақтану жоспары.",
+        "shortDescription": "Жүрекке пайдалы диета"
+      },
+      "dash": {
+        "dailyTracker": {
+          "veggies_fruits_5": {
+            "label": "Көкөніс/жеміс 5+"
+          },
+          "whole_grains": {
+            "label": "Тұтас дәндер 1-2"
+          },
+          "lean_protein": {
+            "label": "Майсыз ақуыз"
+          },
+          "low_salt": {
+            "label": "Тұз/тұзды — минималды"
+          },
+          "no_sugary_drinks": {
+            "label": "Тәтті сусындарсыз"
+          }
+        },
+        "name": "DASH",
+        "description": "Гипертензияны тоқтатуға арналған диеталық тәсіл. Жеміс-жидектер, көкөністер, тұтас дәндер және майсыз ақуыздарға назар аудару.",
+        "shortDescription": "Қан қысымын төмендетуге арналған диета"
+      },
+      "mind": {
+        "dailyTracker": {
+          "greens_veggies": {
+            "label": "Жасылдар/көкөністер (кем дегенде 2 порция)"
+          },
+          "berries": {
+            "label": "Жидектер/жемістер 1 порция"
+          },
+          "nuts": {
+            "label": "Жаңғақтар/тұқымдар 1 порция"
+          },
+          "whole_grains": {
+            "label": "Тұтас дәндер 1-2"
+          },
+          "limit_sweets": {
+            "label": "Тәттілер/қуырылғанды шектеу"
+          }
+        },
+        "name": "MIND",
+        "description": "Жерорта теңізі және DASH диеталарының комбинациясы ми денсаулығына арналған тағамдарға баса назар аудара отырып.",
+        "shortDescription": "Ми денсаулығына арналған диета"
+      },
+      "flexitarian": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Көкөністер 4+ порция"
+          },
+          "legumes_grains": {
+            "label": "Бұршақ/тұтас дәндер"
+          },
+          "protein": {
+            "label": "Ақуыз (өсімдік немесе жануар)"
+          },
+          "limit_junk": {
+            "label": "Тәтті/фастфуд — минимум"
+          }
+        },
+        "name": "Флекситариан",
+        "description": "Вегетариандыққа икемді көзқарас. Негізі - өсімдіктер, ет қалауы бойынша сирек.",
+        "shortDescription": "Сирек етпен икемді өсімдік тамақтану"
+      },
+      "nordic": {
+        "dailyTracker": {
+          "fish_legumes": {
+            "label": "Балық/теңіз өнімдері немесе бұршақ (ақуыз)"
+          },
+          "berries": {
+            "label": "Жидектер/жемістер"
+          },
+          "whole_grains": {
+            "label": "Тұтас дәндер"
+          },
+          "root_veggies": {
+            "label": "Көкөністер/тамыр көкөністері"
+          },
+          "min_sugar": {
+            "label": "Минималды қант"
+          }
+        },
+        "name": "Скандинавиялық",
+        "description": "Дәстүрлі скандинавиялық асханаға негізделген. Жергілікті маусымдық тағамдарға баса назар.",
+        "shortDescription": "Скандинавиялық стильдегі сау тамақтану"
+      },
+      "plate-method": {
+        "dailyTracker": {
+          "veggies_2meals": {
+            "label": "Көкөністер 2+ тамақ"
+          },
+          "protein_each": {
+            "label": "Әр тамақта ақуыз"
+          },
+          "complex_carbs": {
+            "label": "Күрделі көмірсулар 1-2"
+          },
+          "water": {
+            "label": "Су 6-8"
+          }
+        },
+        "name": "Тәрелке әдісі",
+        "description": "Қарапайым көрнекі нұсқаулық: тәрелкенің жартысы көкөністер, төрттен бірі ақуыз, төрттен бірі көмірсулар.",
+        "shortDescription": "Теңгерімді тамақ үшін қарапайым тәрелке бөлу"
+      },
+      "if-14-10": {
+        "dailyTracker": {
+          "fasting_14h": {
+            "label": "Аштық интервалы сақталды (14 сағ)"
+          },
+          "eating_window": {
+            "label": "Тек терезеде тамақтандым (10 сағ)"
+          },
+          "protein_veggies": {
+            "label": "Негізгі тамақтарда ақуыз + көкөністер"
+          }
+        },
+        "name": "14:10 тамақтану терезесі",
+        "description": "Аралық аштыққа жұмсақ тәсіл. 14 сағат аштық, 10 сағаттық терезеде тамақтану.",
+        "shortDescription": "Жұмсақ аштық: 14 сағ аштық, 10 сағ терезе"
+      },
+      "if-16-8": {
+        "dailyTracker": {
+          "fasting_16h": {
+            "label": "Аштық интервалы сақталды (16 сағ)"
+          },
+          "eating_window": {
+            "label": "Тек терезеде тамақтандым (8 сағ)"
+          },
+          "no_sugary_drinks": {
+            "label": "Тәтті сусындарсыз"
+          }
+        },
+        "name": "16:8 тамақтану терезесі",
+        "description": "Классикалық аралық аштық. 16 сағат аштық, 8 сағаттық терезеде тамақтану.",
+        "shortDescription": "Классика: 16 сағ аштық, 8 сағ терезе"
+      },
+      "high-protein-cut": {
+        "dailyTracker": {
+          "protein_4x": {
+            "label": "Күніне 3-4 рет ақуыз"
+          },
+          "veggies_4": {
+            "label": "Көкөністер 4+ порция"
+          },
+          "min_sweets": {
+            "label": "Тәтті — минимум"
+          },
+          "activity": {
+            "label": "Қадамдар/белсенділік"
+          }
+        },
+        "name": "Жоғары ақуыз (кептіру)",
+        "description": "Майды жағу кезінде бұлшықетті сақтау үшін жоғары ақуыз тұтыну. Спортшылар арасында танымал.",
+        "shortDescription": "Бұлшықетті сақтай отырып май жоғалту үшін жоғары ақуыз"
+      },
+      "low-carb": {
+        "dailyTracker": {
+          "no_sugary_drinks": {
+            "label": "Тәтті сусындарсыз"
+          },
+          "whole_carbs": {
+            "label": "Көмірсулар — тек тұтас/көкөністер"
+          },
+          "protein_each": {
+            "label": "Әр тамақта ақуыз"
+          },
+          "veggies_4": {
+            "label": "Көкөністер 4+"
+          }
+        },
+        "name": "Төмен көмірсу",
+        "description": "Көмірсуларды, әсіресе тазартылғандарды азайту. Ақуыз бен көкөністерге назар аудару.",
+        "shortDescription": "Аз көмірсу, көп ақуыз және көкөністер"
+      },
+      "keto": {
+        "dailyTracker": {
+          "carbs_limited": {
+            "label": "Көмірсулар қатаң шектелген"
+          },
+          "water_electrolytes": {
+            "label": "Жеткілікті су және электролиттер"
+          },
+          "low_carb_veggies": {
+            "label": "Төмен көмірсулы көкөністер"
+          }
+        },
+        "name": "Кето",
+        "description": "Организмді кетозға салатын өте төмен көмірсулы, майы көп диета. Көптеген адамдарға медициналық бақылау қажет.",
+        "shortDescription": "Кетоз үшін өте төмен көмірсу — сақтықты талап етеді"
+      },
+      "low-fodmap": {
+        "dailyTracker": {
+          "phase_foods": {
+            "label": "Кезең тағамдары сақталды"
+          },
+          "symptoms_noted": {
+            "label": "Симптомдар белгіленді (1-5)"
+          },
+          "water": {
+            "label": "Жеткілікті су"
+          }
+        },
+        "name": "Low-FODMAP (Асқазан-ішек)",
+        "description": "IBS және ас қорыту мәселелері үшін элиминациялық диета. Маман басшылығымен кезеңдермен өткізілуі керек.",
+        "shortDescription": "Асқазан-ішек үшін кезеңдік диета — маман қажет"
+      },
+      "gluten-free": {
+        "dailyTracker": {
+          "no_gluten": {
+            "label": "Глютенсіз (қолмен тексеру)"
+          },
+          "fiber": {
+            "label": "Жеткілікті талшық"
+          }
+        },
+        "name": "Глютенсіз",
+        "description": "Целиакия және глютенге сезімталдық үшін қажет. Медициналық көрсеткіштерсіз міндетті емес.",
+        "shortDescription": "Целиакия немесе глютенге сезімталдық үшін"
+      },
+      "roman-inspired": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Бұршақ/жасымық 1 рет"
+          },
+          "veggies_3": {
+            "label": "Көкөністер 3+"
+          },
+          "whole_grains": {
+            "label": "Тұтас дәндер"
+          },
+          "min_junk": {
+            "label": "Тәтті/фастфуд минимум"
+          }
+        },
+        "name": "Римдік (шабыт)",
+        "description": "Ежелгі Рим диетасынан шабыт алған. Дәндер, бұршақ, зәйтүн майы, көкөністер.",
+        "shortDescription": "Ежелгі Рим стиліндегі тамақтану"
+      },
+      "spartan-inspired": {
+        "dailyTracker": {
+          "simple_foods": {
+            "label": "Қарапайым өнімдер"
+          },
+          "veggies_3": {
+            "label": "Көкөністер 3+"
+          },
+          "protein_2_3": {
+            "label": "Ақуыз 2-3"
+          },
+          "no_sugary_drinks": {
+            "label": "Тәтті сусындарсыз"
+          }
+        },
+        "name": "Спартандық (шабыт)",
+        "description": "Спартандық қарапайымдылықтан шабыт алған. Қарапайым, өңделмеген тағамдар және тәртіп.",
+        "shortDescription": "Спартандық қарапайымдылық және тәртіп"
+      },
+      "arctic-inspired": {
+        "dailyTracker": {
+          "fish_omega3": {
+            "label": "Балық/теңіз өнімдері немесе омега-3 көзі"
+          },
+          "berries": {
+            "label": "Жидектер/жемістер"
+          },
+          "protein_2_3": {
+            "label": "Ақуыз 2-3"
+          },
+          "water": {
+            "label": "Жеткілікті су"
+          }
+        },
+        "name": "Арктикалық (шабыт)",
+        "description": "Дәстүрлі инуит диетасынан бейімделген. Балық, омега-3 және маусымдық өнімдерге назар аудару.",
+        "shortDescription": "Омега-3 және жидектермен балыққа бағытталған"
+      },
+      "steppe-inspired": {
+        "dailyTracker": {
+          "protein_2_3": {
+            "label": "Ақуыз 2-3"
+          },
+          "fermented": {
+            "label": "Ашытылған сүт өнімдері (төзімді болса)"
+          },
+          "veggies_2": {
+            "label": "Көкөністер/жасылдар 2+"
+          }
+        },
+        "name": "Дала (шабыт)",
+        "description": "Моңғол даласы дәстүрлерінен бейімделген. Ақуыз және ашытылған сүт өнімдеріне назар аудару.",
+        "shortDescription": "Ақуыз және ашытылған тағамдар, дала стилі"
+      },
+      "three-sisters": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Бұршақ 1 рет"
+          },
+          "veggies_3": {
+            "label": "Көкөністер 3+"
+          },
+          "whole_grains": {
+            "label": "Тұтас дәндер"
+          }
+        },
+        "name": "Үш әпке",
+        "description": "Америкалық үндістердің \"Үш әпке\" ауыл шаруашылығына негізделген. Жүгері, бұршақ және асқабақ диета негізі ретінде.",
+        "shortDescription": "Америкалық үндістердің өсімдік негізі"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {
+          "vegetables_5": {
+            "label": "Көкөністер 5+ порция"
+          },
+          "sweet_potato": {
+            "label": "Тәтті картоп немесе тұтас дәндер"
+          },
+          "tofu_legumes": {
+            "label": "Ақуыз үшін тофу/бұршақ"
+          },
+          "hara_hachi_bu": {
+            "label": "80% тойғанда тоқтадым"
+          },
+          "minimal_processed": {
+            "label": "Өңделген тағамдардан аулақ болдым"
+          }
+        },
+        "name": "Окинава (ұзақ өмір)",
+        "description": "Жапонияның Окинава тұрғындарының ұзақ өмір сүруімен танымал дәстүрлі диетасына негізделген. Өсімдік тағамдары, балық, тәтті картоп және қалыпты калория шектеуіне баса назар аударылады.",
+        "shortDescription": "Окинавадан жапондық ұзақ өмір диетасы"
+      },
+      "paleo": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Көкөністер 4+ порция"
+          },
+          "protein_3": {
+            "label": "Ақуыз 2-3 рет"
+          },
+          "no_sugary": {
+            "label": "Тәтті сусындарсыз"
+          },
+          "min_processed": {
+            "label": "Ультра-өңдеу минимумы"
+          }
+        },
+        "name": "Палео",
+        "description": "Қарапайым өнімдерге негізделген, өңделген тағамды азайтады.",
+        "shortDescription": "Тұтас өнімдер, дәнді және сүтсіз"
+      },
+      "whole30-inspired": {
+        "dailyTracker": {
+          "no_sugar": {
+            "label": "Қосылған қантсыз"
+          },
+          "veggies_4": {
+            "label": "Көкөністер 4+"
+          },
+          "protein_3": {
+            "label": "Ақуыз 2-3"
+          },
+          "home_cooked": {
+            "label": "Үй тағамы/фастфудсыз"
+          }
+        },
+        "name": "Whole30 (шабыт)",
+        "description": "Қысқа reset протоколы, қатаң ережелері бар.",
+        "shortDescription": "30 күндік reset протоколы"
+      },
+      "vegan-balanced": {
+        "dailyTracker": {
+          "plant_protein": {
+            "label": "Ақуыз 2-3 рет (өсімдік)"
+          },
+          "veggies_4": {
+            "label": "Көкөністер 4+"
+          },
+          "grains_legumes": {
+            "label": "Тұтас дәндер/бұршақ"
+          },
+          "b12_check": {
+            "label": "B12 (еске салу)"
+          }
+        },
+        "name": "Веган (теңгерімді)",
+        "description": "Жеткілікті ақуыз, B12 және басқа қоректік заттарға назар аудара отырып теңгерімді өсімдік тамақтану.",
+        "shortDescription": "Теңгерімді өсімдік тамақтану"
+      },
+      "clean-eating": {
+        "dailyTracker": {
+          "home_cooked_2": {
+            "label": "Үй тағамы 2+ рет"
+          },
+          "veggies_4": {
+            "label": "Көкөністер 4+"
+          },
+          "no_sugary": {
+            "label": "Тәтті сусындарсыз"
+          }
+        },
+        "name": "Clean Eating (қарапайым)",
+        "description": "Қарапайым тәсіл: қарапайым өнімдерге және үйде дайындауға назар аудару, өңдеуді азайту.",
+        "shortDescription": "Қарапайым өнімдер, үй асханасы"
+      },
+      "iifym": {
+        "dailyTracker": {
+          "calories_check": {
+            "label": "Калориялар мақсат шегінде"
+          },
+          "protein_check": {
+            "label": "Ақуызға қол жеткізілді"
+          },
+          "veggies_2": {
+            "label": "Көкөністер 2+"
+          }
+        },
+        "name": "Икемді диета (IIFYM)",
+        "description": "Күнделікті калория мен БЖУ мақсаттарына жетуге бағытталған икемді тәсіл.",
+        "shortDescription": "БЖУ-ға жетіңіз, икемді тағам таңдауы"
+      },
+      "roman-commoner": {
+        "dailyTracker": {
+          "legumes_1": {
+            "label": "Бұршақ 1 рет"
+          },
+          "veggies_3": {
+            "label": "Көкөністер 3+"
+          },
+          "whole_grains": {
+            "label": "Тұтас дәндер"
+          }
+        },
+        "name": "Римдік (қарапайым, шабыт)",
+        "description": "Қарапайым римдік азаматтардың тамақтануынан шабыттанған. Қарапайым дәндер, бұршақ, көкөністер, сирек балық немесе ірімшік.",
+        "shortDescription": "Римдік стильдегі қарапайым тамақтану"
+      },
+      "roman-elite": {
+        "dailyTracker": {
+          "veggies_3": {
+            "label": "Көкөністер 3+"
+          },
+          "protein_3": {
+            "label": "Ақуыз 2-3"
+          },
+          "sweets_limited": {
+            "label": "Тәтті шектелген"
+          }
+        },
+        "name": "Римдік (бай, шабыт)",
+        "description": "Бай римдіктердің тамақтануынан шабыттанған. Балық, ет, тәбет ашары және жемістермен көп түрлілік.",
+        "shortDescription": "Бай римдіктер стиліндегі түрлілік"
+      },
+      "napoleon-soldier": {
+        "dailyTracker": {
+          "soup_warm": {
+            "label": "Сорпа/жылы тағам 1 рет"
+          },
+          "veggies_2": {
+            "label": "Көкөністер 2+"
+          },
+          "water": {
+            "label": "Су"
+          }
+        },
+        "name": "Наполеон (сарбазша, шабыт)",
+        "description": "Наполеон дәуіріндегі сарбаз рационынан шабыттанған. Тоймалы сорпалар, нан және қарапайым ақуыз.",
+        "shortDescription": "Қарапайым сарбаздық тамақтану"
+      },
+      "on-set-day": {
+        "dailyTracker": {
+          "protein_3": {
+            "label": "Ақуыз 3 рет"
+          },
+          "veggies_4": {
+            "label": "Көкөністер 4+"
+          },
+          "snacks_no_sugar": {
+            "label": "Қантсыз тіскебасар"
+          }
+        },
+        "name": "Түсірілім күні (шабыт)",
+        "description": "Белгілі адамдар стиліндегі үлгі, нақты есімдерсіз. Ақуыз бен көкөністерге бағытталған құрылымды тамақтану.",
+        "shortDescription": "Ақуызға бағытталған құрылымды күн"
+      },
+      "ramadan": {
+        "dailyTracker": {
+          "iftar_balanced": {
+            "label": "Теңгерімді ауызашар"
+          },
+          "suhoor_eaten": {
+            "label": "Сәресі ішілді"
+          },
+          "hydration": {
+            "label": "8+ стақан су ішілді"
+          },
+          "no_overeating": {
+            "label": "Саналы тамақтандым, артық жемедім"
+          },
+          "dates_start": {
+            "label": "Ауызашарды құрмамен бастадым"
+          }
+        },
+        "name": "Рамазан",
+        "description": "Рамазан оразасы кезеңінде дұрыс тамақтану бойынша нұсқаулар. Теңгерімді сәресі мен ауызашар, дұрыс сусын режимі.",
+        "shortDescription": "Рамазанда дұрыс тамақтану"
+      },
+      "great-lent": {
+        "dailyTracker": {
+          "plant_based": {
+            "label": "Бүгін өсімдік тағамын жедім"
+          },
+          "no_meat": {
+            "label": "Етсіз/сүтсіз/жұмыртқасыз"
+          },
+          "vegetables_4": {
+            "label": "Көкөніс 4+ порция"
+          },
+          "legumes": {
+            "label": "Бұршақ немесе жарма"
+          },
+          "mindful": {
+            "label": "Саналы тамақтандым"
+          }
+        },
+        "name": "Ұлы ораза",
+        "description": "Ұлы ораза кезеңінде өсімдік тағамдарымен тамақтану бойынша нұсқаулар. Саналы тамақтану арқылы рухани жол.",
+        "shortDescription": "Православиелік ораза дәстүрлері"
+      },
+      "summer-detox": {
+        "dailyTracker": {
+          "fruits_3": {
+            "label": "Таза жемістер 3+ порция"
+          },
+          "vegetables_4": {
+            "label": "Көкөністер 4+ порция"
+          },
+          "water_8": {
+            "label": "Су 8+ стақан"
+          },
+          "light_protein": {
+            "label": "Жеңіл ақуыз (балық/тауық/бұршақ)"
+          },
+          "no_heavy_food": {
+            "label": "Ауыр/қуырылған тағамсыз"
+          }
+        },
+        "name": "Жазғы сергектік",
+        "description": "Ыстық жаз күндеріне арналған таза жемістер, көкөністер және жеңіл тағамдарға бағытталған маусымдық тамақтану.",
+        "shortDescription": "Таза жазғы тамақтану жоспары"
+      },
+      "navruz": {
+        "dailyTracker": {
+          "fresh_greens": {
+            "label": "Таза жасылдар"
+          },
+          "dairy": {
+            "label": "Сүт өнімдері"
+          },
+          "traditional_dish": {
+            "label": "Дәстүрлі тағам"
+          },
+          "vegetables_3": {
+            "label": "Көкөністер 3+ порция"
+          },
+          "shared_meal": {
+            "label": "Бірге тамақтану"
+          }
+        },
+        "name": "Наурыз",
+        "description": "Орталық Азияның дәстүрлі тағамдарымен көктемгі теңелу мерекесі. Таза жасылдар, сүт өнімдері және жаңару символикалық тағамдары.",
+        "shortDescription": "Көктемгі мерекелік тамақтану"
+      },
+      "winter-warmth": {
+        "dailyTracker": {
+          "warm_breakfast": {
+            "label": "Жылы таңғы ас"
+          },
+          "soup_stew": {
+            "label": "Сорпа немесе рагу"
+          },
+          "root_vegetables": {
+            "label": "Тамыржемістер"
+          },
+          "immune_foods": {
+            "label": "Иммунитет тағамдары"
+          },
+          "warm_drinks": {
+            "label": "Жылы сусындар"
+          }
+        },
+        "name": "Қысқы жылу",
+        "description": "Қысты энергиямен өткізуге арналған тамаша, жылытатын тағамдар. Сорпалар, рагу, тамыржемістер және иммунитетті қолдайтын тағамдарға назар.",
+        "shortDescription": "Жылытатын қысқы тамақтану жоспары"
+      },
+      "autumn-harvest": {
+        "dailyTracker": {
+          "autumn_vegetable": {
+            "label": "Күзгі көкөніс (асқабақ/кабачок)"
+          },
+          "fall_fruit": {
+            "label": "Күзгі жеміс (алма/алмұрт)"
+          },
+          "warming_spices": {
+            "label": "Жылытатын дәмдеуіштер қолдандым"
+          },
+          "vegetables_4": {
+            "label": "Көкөністер 4+ порция"
+          },
+          "cooked_meal": {
+            "label": "Жылы пісірілген тағам"
+          }
+        },
+        "name": "Күзгі егін",
+        "description": "Асқабақ, алма, кабачок және басқа күзгі сүйіктілермен күзді қарсы алыңыз. Жазғы жеңілдіктен қысқы жылуға көшу.",
+        "shortDescription": "Маусымдық күзгі тамақтану"
+      },
+      "clean-girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Тұтас тағамдар жедім"
+          },
+          "water_8": {
+            "label": "Су 8+ стақан"
+          },
+          "skin_foods": {
+            "label": "Теріге пайдалы тағамдар"
+          },
+          "no_processed": {
+            "label": "Өңделген тәттілерсіз"
+          },
+          "mindful_meal": {
+            "label": "Саналы, тыныш тамақтану"
+          }
+        },
+        "name": "Clean Girl",
+        "description": "Clean Girl эстетикасынан шабыт алған таза тамақтану. Жарқыраған тері мен табиғи энергия үшін қарапайым, тұтас тағамдарға назар.",
+        "shortDescription": "Табиғи жарқырау үшін қарапайым тамақтану"
+      },
+      "vacation-vibes": {
+        "dailyTracker": {
+          "fresh_meal": {
+            "label": "Таза, түрлі-түсті тамақ"
+          },
+          "slow_eating": {
+            "label": "Баяу, ләззат алып жедім"
+          },
+          "seafood_olive": {
+            "label": "Теңіз өнімі немесе зәйтүн майы"
+          },
+          "vegetables_3": {
+            "label": "Таза көкөністер 3+"
+          },
+          "relaxed": {
+            "label": "Демалған, стресссіз тамақтану"
+          }
+        },
+        "name": "Демалыс көңіл-күйі",
+        "description": "Жерорта теңізі демалыс стиліндегі теңгерімді тамақтану — таза, түрлі-түсті, жағымды. Стресссіз, тек рахат.",
+        "shortDescription": "Демалыс стиліндегі тамақтану"
+      },
+      "old-money": {
+        "dailyTracker": {
+          "quality_meal": {
+            "label": "Сапа санды маңызды"
+          },
+          "proper_times": {
+            "label": "Белгілі уақытта тамақтандым"
+          },
+          "no_overeating": {
+            "label": "Артық жемедім"
+          },
+          "table_manners": {
+            "label": "Дастарқан мәдениеті"
+          },
+          "classic_foods": {
+            "label": "Классикалық, сапалы тағамдар"
+          }
+        },
+        "name": "Old Money классика",
+        "description": "Классикалық талғампаздық рухындағы нәзік тамақтану әдеттері — сан емес сапа, дұрыс порциялар, мәңгілік тағамдар.",
+        "shortDescription": "Классикалық талғампаз тамақтану стилі"
+      },
+      "country-club-breakfast": {
+        "dailyTracker": {
+          "proper_breakfast": {
+            "label": "Дастарқан басында таңғы ас"
+          },
+          "protein_included": {
+            "label": "Ақуыз қосылған"
+          },
+          "no_phone": {
+            "label": "Таңғы аста телефонсыз"
+          },
+          "fruit_included": {
+            "label": "Таза жеміс қосылған"
+          },
+          "no_rush": {
+            "label": "Асықпау"
+          }
+        },
+        "name": "Country Club таңғы асы",
+        "description": "Country club дәстүрлерінен шабыт алған таңғы рәсімдер. Талғампаз күннің негізі ретінде дұрыс таңғы ас.",
+        "shortDescription": "Талғампаз таңғы рәсімдер"
+      },
+      "sunday-brunch": {
+        "dailyTracker": {
+          "leisurely_meal": {
+            "label": "Баяу, асықпаған тамақ"
+          },
+          "quality_food": {
+            "label": "Сапалы, нәзік тағам"
+          },
+          "good_company": {
+            "label": "Жақсы серіктестік"
+          },
+          "balanced_plate": {
+            "label": "Теңгерімді тәрелке"
+          },
+          "no_phones": {
+            "label": "Дастарқанда телефонсыз"
+          }
+        },
+        "name": "Жексенбілік бранч",
+        "description": "Баяу жексенбілік бранч өнері — кешкі таң, жақсы серіктестік, сапалы тағам, асықпау.",
+        "shortDescription": "Баяу бранч дәстүрі"
+      },
+      "yacht-week": {
+        "dailyTracker": {
+          "seafood": {
+            "label": "Теңіз өнімі немесе балық"
+          },
+          "light_portions": {
+            "label": "Жеңіл порциялар"
+          },
+          "hydrated": {
+            "label": "Жеткілікті су іштім"
+          },
+          "fresh_vegetables": {
+            "label": "Таза көкөністер"
+          },
+          "elegant_dinner": {
+            "label": "Талғампаз кешкі ас"
+          }
+        },
+        "name": "Яхта апталығы",
+        "description": "Яхта өмір салтынан шабыт алған тамақтану — жеңіл, таза, Жерорта теңізі әсерімен, әрқашан талғампаз.",
+        "shortDescription": "Талғампаз теңіз жағасы тамағы"
+      },
+      "prep-school-lunch": {
+        "dailyTracker": {
+          "proper_lunch": {
+            "label": "Отырып дұрыс түскі ас"
+          },
+          "balanced_plate": {
+            "label": "Теңгерімді тәрелке"
+          },
+          "set_time": {
+            "label": "Белгілі уақытта жедім"
+          },
+          "water": {
+            "label": "Тамақпен бірге су"
+          },
+          "no_desk_eating": {
+            "label": "Жұмыс үстелінде жемедім"
+          }
+        },
+        "name": "Prep School түскі асы",
+        "description": "Дәстүрлі prep school асханасынан шабыт алған — теңгерімді, қоректі, дұрыс. Тамақты өткізбей, джанк-фудсыз.",
+        "shortDescription": "Дұрыс, теңгерімді түскі астар"
+      },
+      "french-chic": {
+        "dailyTracker": {
+          "small_portions": {
+            "label": "Кішкене порциялар жедім"
+          },
+          "enjoyed_food": {
+            "label": "Тамақтан шынымен ләззат алдым"
+          },
+          "sat_down": {
+            "label": "Отырып жедім"
+          },
+          "quality_choice": {
+            "label": "Санды емес, сапаны таңдадым"
+          },
+          "stopped_satisfied": {
+            "label": "Тойғанда тоқтадым"
+          }
+        },
+        "name": "Француз қыз диетасы",
+        "description": "Тамаққа француз көзқарасы — сапалы порциялар, рахат, қатаң тыйымсыз, табиғи тепе-теңдік және рахат.",
+        "shortDescription": "Француз интуитивті тамақтануы"
+      },
+      "gatsby-twenties": {
+        "dailyTracker": {
+          "elegant_appetizer": {
+            "label": "Талғампаз тәбет ашар/канапе"
+          },
+          "small_portions": {
+            "label": "Кішкене, нәзік порциялар"
+          },
+          "social_meal": {
+            "label": "Басқалармен бірге тамақтану"
+          },
+          "presentation": {
+            "label": "Әдемі безендіру"
+          },
+          "sparkling": {
+            "label": "Газдалған сусын"
+          }
+        },
+        "name": "1920-жылдар Гэтсби",
+        "description": "Жиырмасыншы жылдардан шабыт алған — сәнді кештер, талғампаз тәбет ашарлар, шампанское және нәзік дәмдер.",
+        "shortDescription": "Джаз дәуірі тамақтануы"
+      },
+      "fifties-hollywood": {
+        "dailyTracker": {
+          "protein_focused": {
+            "label": "Ақуызға бағытталған тамақ"
+          },
+          "vegetables": {
+            "label": "Көп көкөніс"
+          },
+          "light_breakfast": {
+            "label": "Жеңіл таңғы ас"
+          },
+          "no_bloating": {
+            "label": "Ісіну тудыратын тағамсыз"
+          },
+          "elegant_dinner": {
+            "label": "Талғампаз кешкі ас"
+          }
+        },
+        "name": "1950-жылдар Голливуд",
+        "description": "1950-жылдар Голливуд сәнінен шабыт алған — теңгерімді, саналы порциялар, әрқашан камераға дайын, бірақ өмірден ләззат алу.",
+        "shortDescription": "Голливуд стиліндегі тамақтану"
+      },
+      "sixties-twiggy": {
+        "dailyTracker": {
+          "light_meal": {
+            "label": "Жеңіл, түрлі-түсті тамақ"
+          },
+          "fresh_juice": {
+            "label": "Таза шырын немесе смузи"
+          },
+          "small_portions": {
+            "label": "Кішкене, жиі порциялар"
+          },
+          "something_new": {
+            "label": "Жаңа нәрсе көрдім"
+          },
+          "fun_presentation": {
+            "label": "Көңілді безендіру"
+          }
+        },
+        "name": "1960-жылдар Мод",
+        "description": "1960-жылдар мод мәдениетінен шабыт алған — жеңіл, жасөспірімдік, түрлі-түсті, дәстүрлі ережелерді бұза отырып, талғампаз қалу.",
+        "shortDescription": "Жасөспірімдік мод стиліндегі тамақтану"
+      },
+      "seventies-disco": {
+        "dailyTracker": {
+          "light_eating": {
+            "label": "Жеңіл тамақтану"
+          },
+          "movement": {
+            "label": "Биледім немесе қозғалдым"
+          },
+          "appetizers": {
+            "label": "Ауыр тамақтың орнына тәбет ашар"
+          },
+          "energy_maintained": {
+            "label": "Қуат сақталды"
+          },
+          "moderate_drinks": {
+            "label": "Қалыпты сусындар"
+          }
+        },
+        "name": "1970-жылдар Диско",
+        "description": "Studio 54 дәуірінен шабыт алған — кешке қуат үшін жеңіл тамақтану, жылдам тәбет ашарлар, шампанское, би алаңына арықтық.",
+        "shortDescription": "Кешке дайын тамақтану"
+      },
+      "eighties-power": {
+        "dailyTracker": {
+          "protein_lunch": {
+            "label": "Ақуызға бай түскі ас"
+          },
+          "quality_restaurant": {
+            "label": "Сапалы мейрамхана"
+          },
+          "confident_order": {
+            "label": "Сенімді тапсырыс бердім"
+          },
+          "networking": {
+            "label": "Тамақ кезінде іскерлік әңгіме"
+          },
+          "balanced": {
+            "label": "Теңгерімді таңдау"
+          }
+        },
+        "name": "1980-жылдар Power Lunch",
+        "description": "1980-жылдар корпоративтік мәдениетінен шабыт алған — бизнес-ланчтар, стейк-хаустар, тамақ үстінде іс, сенімді таңдау.",
+        "shortDescription": "Бизнес тамақтануы"
+      }
+    }
+  }
 }

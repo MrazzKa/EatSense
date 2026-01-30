@@ -408,11 +408,15 @@ export class AuthService {
           return { tokens: newTokens, user: tokenRecord.user, expiresAt: tokenRecord.expiresAt };
         });
 
-        // Add old token to Redis blacklist until it expires
+        // REMOVED: Do not blacklist immediately to allow Grace Period (45s) to work.
+        // The DB 'revoked' check handles security and allows returning the new valid token
+        // if the client retries with the old token due to network issues.
+        /*
         const oldTokenTtl = Math.max(0, Math.floor((result.expiresAt.getTime() - Date.now()) / 1000));
         if (oldTokenTtl > 0) {
           await this.redisService.set(blacklistKey, '1', oldTokenTtl);
         }
+        */
 
         // Fetch full profile
         const profile = await this.prisma.userProfile.findUnique({

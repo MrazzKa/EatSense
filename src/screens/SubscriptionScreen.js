@@ -97,13 +97,16 @@ export default function SubscriptionScreen() {
     const [restoring, setRestoring] = useState(false);
     const [, setIapProducts] = useState([]);
     // Currency with regional prices for fallback
-    const [currency, setCurrency] = useState({
-        symbol: '$',
-        code: 'USD',
-        monthlyPrice: '$9.99',
-        yearlyPrice: '$69.99',
-        studentPrice: '$49.00',
-        founderPrice: '$99.99',
+    const [currency, setCurrency] = useState(() => {
+        const config = getCurrency();
+        return {
+            symbol: config.symbol,
+            code: config.code,
+            monthlyPrice: formatPrice('monthly'),
+            yearlyPrice: formatPrice('yearly'),
+            studentPrice: formatPrice('student'),
+            founderPrice: formatPrice('founder'),
+        };
     });
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
@@ -113,7 +116,7 @@ export default function SubscriptionScreen() {
     React.useEffect(() => {
         const currencyConfig = getCurrency();
         const currencyCode = currencyConfig.code;
-        
+
         // Format prices using currency utility (handles all 175 countries correctly)
         setCurrency({
             symbol: currencyConfig.symbol,
@@ -165,7 +168,7 @@ export default function SubscriptionScreen() {
                 productsCount: all.length,
                 note: 'IAP prices are country-specific from App Store Connect',
             });
-            
+
             const mappedPlans = all.map(product => {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
                 const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;

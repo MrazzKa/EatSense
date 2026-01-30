@@ -7,9 +7,9 @@ const PrimaryButton = ({
   onPress,
   loading = false,
   disabled = false,
-  icon,
-  style,
-  textStyle,
+  icon = null,
+  style = null,
+  textStyle = null,
   androidRipple = true,
 }) => {
   const { tokens } = useTheme();
@@ -63,12 +63,12 @@ const createStyles = (tokens) =>
       borderColor: tokens.states.primary.disabledBorder || tokens.states.primary.disabled,
       ...(tokens.states?.cardShadow
         ? {
-            shadowColor: tokens.states.cardShadow.shadowColor,
-            shadowOpacity: 0.3,
-            shadowOffset: { width: 0, height: 0 },
-            shadowRadius: 0,
-            elevation: 0,
-          }
+          shadowColor: tokens.states.cardShadow.shadowColor,
+          shadowOpacity: 0.3,
+          shadowOffset: { width: 0, height: 0 },
+          shadowRadius: 0,
+          elevation: 0,
+        }
         : { opacity: 1 }),
     },
     label: {

@@ -815,7 +815,7 @@ const OnboardingScreen = () => {
     { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
     { id: 'diet', title: t('onboarding.diet', 'Are you following any diet?') },
     { id: 'health', title: t('onboarding.health', 'What should we know about you?') },
-    { id: 'notifications', title: t('onboarding.notifications', 'Enable notifications') },
+    // Notifications step removed
     { id: 'terms', title: t('onboarding.terms', 'Terms & Privacy') },
     { id: 'loading', title: t('onboarding.loading', 'Creating your plan') },
     { id: 'plan', title: t('onboarding.plan', 'Choose Your Plan') },
@@ -844,14 +844,17 @@ const OnboardingScreen = () => {
 
   // FIX 2026-01-19: Currency from IAP (Apple/Google) with region fallback
   // This ensures we show the exact price the user will pay
-  const [currency, setCurrency] = useState({
-    symbol: '$',
-    code: 'USD',
-    freePrice: '$0',
-    monthlyPrice: '$9.99',
-    yearlyPrice: '$79.99',
-    studentPrice: '$49.99',
-    founderPrice: '$99.99',
+  const [currency, setCurrency] = useState(() => {
+    const config = getCurrency();
+    return {
+      symbol: config.symbol,
+      code: config.code,
+      freePrice: formatAmount(0),
+      monthlyPrice: formatPrice('monthly'),
+      yearlyPrice: formatPrice('yearly'),
+      studentPrice: formatPrice('student'),
+      founderPrice: formatPrice('founder'),
+    };
   });
 
   // Load currency from IAP on mount
@@ -1070,35 +1073,34 @@ const OnboardingScreen = () => {
 
   // Helper to navigate to MainTabs after successful onboarding completion
   const navigateToMain = useCallback(() => {
-    InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => {
-        try {
-          if (navigation && navigation.isReady && navigation.isReady()) {
-            console.log('[OnboardingScreen] Navigation is ready, calling reset');
-            clientLog('Onboarding:navigateToMainTabs').catch(() => { });
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'MainTabs' }],
-              })
-            );
-          } else if (navigation && typeof navigation.reset === 'function') {
-            console.log('[OnboardingScreen] Navigation reset available, calling directly');
-            clientLog('Onboarding:navigateToMainTabs').catch(() => { });
-            navigation.reset({
+    // FIX: Removed InteractionManager.runAfterInteractions as it can cause hangs with continuous animations (like ActivityIndicator)
+    setTimeout(() => {
+      try {
+        if (navigation && navigation.isReady && navigation.isReady()) {
+          console.log('[OnboardingScreen] Navigation is ready, calling reset');
+          clientLog('Onboarding:navigateToMainTabs').catch(() => { });
+          navigation.dispatch(
+            CommonActions.reset({
               index: 0,
               routes: [{ name: 'MainTabs' }],
-            });
-          } else {
-            console.error('[OnboardingScreen] Navigation not available or not ready');
-            Alert.alert(t('common.error', 'Error'), t('errors.navigationNotAvailable', 'Navigation not available. Please restart the app.'));
-          }
-        } catch (navError) {
-          console.error('[OnboardingScreen] Navigation reset error:', navError);
-          Alert.alert(t('common.error', 'Error'), t('errors.navigationError', 'Navigation error: {{message}}. Please restart the app.', { message: navError.message }));
+            })
+          );
+        } else if (navigation && typeof navigation.reset === 'function') {
+          console.log('[OnboardingScreen] Navigation reset available, calling directly');
+          clientLog('Onboarding:navigateToMainTabs').catch(() => { });
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          });
+        } else {
+          console.error('[OnboardingScreen] Navigation not available or not ready');
+          Alert.alert(t('common.error', 'Error'), t('errors.navigationNotAvailable', 'Navigation not available. Please restart the app.'));
         }
-      }, 50);
-    });
+      } catch (navError) {
+        console.error('[OnboardingScreen] Navigation reset error:', navError);
+        Alert.alert(t('common.error', 'Error'), t('errors.navigationError', 'Navigation error: {{message}}. Please restart the app.', { message: navError.message }));
+      }
+    }, 100);
   }, [navigation]);
 
   // Complete onboarding after profile is saved (called after purchase success or for free plan)
@@ -1110,20 +1112,34 @@ const OnboardingScreen = () => {
       await clientLog('Onboarding:completed').catch(() => { });
 
       // Update user context with isOnboardingCompleted
+      // This will trigger App.js to switch from OnboardingStack to MainStack
       if (setUser) {
         setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
         console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
       }
 
-      navigateToMain();
+      // We rely on App.js to switch stacks based on user.isOnboardingCompleted
+      // calling navigateToMain() here is redundant and can cause errors if MainTabs
+      // is not in the current stack hierarchy
+      // navigateToMain(); 
     } catch (err) {
       console.error('[OnboardingScreen] Complete onboarding error:', err);
-      // Still navigate to main on error
-      navigateToMain();
+
+      // FAIL OPEN: Even if API fails (e.g. timeout, network), let the user in
+      // Update local state so they can use the app
+      if (setUser) {
+        setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
+        console.log('[OnboardingScreen] Force updating user context on error');
+      }
+
+      // navigateToMain();
     }
   }, [setUser, navigateToMain]);
 
   const handleComplete = async () => {
+    // Start loading state immediately to provide feedback
+    setPurchasing(true);
+
     try {
       const {
         selectedPlan,
@@ -1133,14 +1149,12 @@ const OnboardingScreen = () => {
       } = profileData;
 
       // Map onboarding plan IDs to profile plan IDs
-      // Onboarding uses SUBSCRIPTION_SKUS (eatsense.pro.monthly), Profile uses short names (pro_monthly)
       const mapPlanIdToProfile = (planId) => {
         if (!planId || planId === 'free') return 'free';
         if (planId === SUBSCRIPTION_SKUS.MONTHLY) return 'pro_monthly';
         if (planId === SUBSCRIPTION_SKUS.YEARLY) return 'pro_annual';
         if (planId === SUBSCRIPTION_SKUS.STUDENT) return 'student';
         if (planId === NON_CONSUMABLE_SKUS.FOUNDERS) return 'founders';
-        // Fallback: if already in profile format, use as-is
         return planId;
       };
 
@@ -1161,7 +1175,7 @@ const OnboardingScreen = () => {
 
       profileDataWithoutPlan.preferences = mergedPreferences;
 
-      // Filter out empty 'other' condition if present and merge 'other' text
+      // Filter out empty 'other' condition
       let finalHealthConditions = [...(profileDataWithoutPlan.healthConditions || [])];
 
       if (finalHealthConditions.includes('other') && profileData.healthConditionOther) {
@@ -1196,18 +1210,18 @@ const OnboardingScreen = () => {
 
       clientLog('Onboarding:profileSave:success');
 
-      // FIX 2026-01-23: Direct purchase on onboarding instead of navigating to SubscriptionScreen
+      // Direct purchase on onboarding
       if (selectedPlan && selectedPlan !== 'free') {
         console.log('[OnboardingScreen] Paid plan selected, initiating purchase:', selectedPlan);
-        setPurchasing(true);
+        // Purchasing state already set to true at start
 
-        // Determine if subscription or one-time purchase
         const isSubscription = selectedPlan !== NON_CONSUMABLE_SKUS.FOUNDERS;
 
         const onPurchaseSuccess = async () => {
           console.log('[OnboardingScreen] Purchase successful');
-          setPurchasing(false);
+          // Keep purchasing true while completing onboarding
           await completeOnboarding();
+          setPurchasing(false);
         };
 
         const onPurchaseError = (error) => {
@@ -1222,9 +1236,11 @@ const OnboardingScreen = () => {
                 {
                   text: t('onboarding.continueFree', 'Continue Free'),
                   onPress: async () => {
+                    setPurchasing(true); // Re-enable loading as we try free plan
                     // Update plan to free and complete onboarding
                     setProfileData(prev => ({ ...prev, selectedPlan: 'free', planBillingCycle: 'lifetime' }));
                     await completeOnboarding();
+                    setPurchasing(false);
                   }
                 }
               ]
@@ -1233,7 +1249,6 @@ const OnboardingScreen = () => {
         };
 
         try {
-          // FIX #9: Ensure IAP is initialized before purchase
           const initResult = await IAPService.init();
           if (!initResult) {
             throw new Error('Failed to initialize IAP service');
@@ -1254,6 +1269,8 @@ const OnboardingScreen = () => {
 
       // Free plan - just complete onboarding
       await completeOnboarding();
+      setPurchasing(false);
+
     } catch (err) {
       console.error('Onboarding error:', err);
       setPurchasing(false);
@@ -2104,109 +2121,59 @@ const OnboardingScreen = () => {
 
 
   // Note: Notifications permission useEffect moved to top level of component (search for "notifications step effect")
-  const renderNotificationsStep = () => {
-    return (
-      <View style={styles.stepContainer}>
-        <View style={styles.welcomeContent}>
-          <View style={{
-            width: 100,
-            height: 100,
-            borderRadius: 50,
-            backgroundColor: (colors.primary || '#4CAF50') + '15',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 24,
-          }}>
-            <Ionicons
-              name={notificationsEnabled ? 'notifications' : 'notifications-outline'}
-              size={48}
-              color={notificationsEnabled ? (colors.success || '#34C759') : colors.primary}
-            />
-          </View>
-
-          <Text style={styles.stepTitle}>
-            {notificationsEnabled
-              ? t('onboarding.notificationsEnabledTitle', 'Уведомления включены!')
-              : notificationsRequested
-                ? t('onboarding.notificationsDeniedTitle', 'Уведомления отключены')
-                : t('onboarding.notifications', 'Уведомления')}
-          </Text>
-
-          <Text style={[styles.stepSubtitle, { textAlign: 'center', lineHeight: 22 }]}>
-            {notificationsEnabled
-              ? t('onboarding.notificationsEnabledDescription', 'Мы будем отправлять напоминания о приёмах пищи и полезные советы. Вы можете изменить настройки в любое время.')
-              : notificationsRequested
-                ? t('onboarding.notificationsDeniedDescription', 'Вы можете включить уведомления позже в настройках приложения или системных настройках iOS, чтобы получать напоминания о приёмах пищи и полезные советы.')
-                : t('onboarding.notificationsDescription', 'Мы отправляем напоминания о приёмах пищи и полезные советы для достижения ваших целей.')}
-          </Text>
-
-          {notificationsEnabled && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 24,
-              paddingHorizontal: 20,
-              paddingVertical: 12,
-              backgroundColor: (colors.success || '#34C759') + '15',
-              borderRadius: 12,
-            }}>
-              <Ionicons name="checkmark-circle" size={24} color={colors.success || '#34C759'} />
-              <Text style={{
-                marginLeft: 10,
-                color: colors.success || '#34C759',
-                fontSize: 15,
-                fontWeight: '600'
-              }}>
-                {t('onboarding.notificationsReady', 'Готово!')}
-              </Text>
-            </View>
-          )}
-
-          {!notificationsEnabled && notificationsRequested && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 24,
-              paddingHorizontal: 20,
-              paddingVertical: 12,
-              backgroundColor: (colors.textTertiary || '#999') + '15',
-              borderRadius: 12,
-            }}>
-              <Ionicons name="information-circle-outline" size={24} color={colors.textTertiary || '#999'} />
-              <Text style={{
-                marginLeft: 10,
-                color: colors.textTertiary || '#999',
-                fontSize: 13,
-                flex: 1,
-              }}>
-                {t('onboarding.notificationsDeniedHint', 'Вы можете включить уведомления в настройках приложения позже.')}
-              </Text>
-            </View>
-          )}
-
-          {!notificationsRequested && (
-            <Text style={[styles.stepSubtitle, {
-              marginTop: 32,
-              fontSize: 13,
-              color: colors.textTertiary || '#999',
-              textAlign: 'center',
-            }]}>
-              {t('onboarding.notificationsHint', 'Вы можете отключить уведомления в настройках приложения или системных настройках iOS.')}
-            </Text>
-          )}
-        </View>
-      </View>
-    );
-  };
+  // Notification step removed
 
 
 
-  // Effect for loading step - calculate plan when on loading step
+
+  // Effect for loading step - calculate plan AND REQUEST NOTIFICATIONS
   useEffect(() => {
     const currentStepId = steps[currentStep]?.id;
     if (currentStepId === 'loading') {
       setLoadingProgress(0);
       setPlanData(null);
+
+      // Request notifications permission (Triggered once during loading)
+      const requestNotifications = async () => {
+        try {
+          if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync('default', {
+              name: 'default',
+              importance: Notifications.AndroidImportance.MAX,
+              vibrationPattern: [0, 250, 250, 250],
+              lightColor: '#4CAF50',
+            });
+          }
+          const { status } = await Notifications.requestPermissionsAsync();
+          if (status === 'granted') {
+            setNotificationsEnabled(true);
+            // Setup push token, etc... (similar to previous logic)
+            // We can fire this asynchronously without blocking progress
+            try {
+              const tokenData = await Notifications.getExpoPushTokenAsync({
+                projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-expo-project-id',
+              });
+              if (tokenData.data) {
+                ApiService.put('/user-profiles', { pushToken: tokenData.data }).catch(() => { });
+              }
+            } catch (e) {
+              console.warn('Push token error', e);
+            }
+
+            // Schedule default reminders
+            const { localNotificationService } = require('../services/localNotificationService');
+            localNotificationService.scheduleMealReminders(3).catch(() => { });
+          }
+        } catch (e) {
+          console.warn('Notification permission error', e);
+        }
+      };
+
+      // Delay slightly to not interrupt animation start
+      setTimeout(() => {
+        requestNotifications();
+      }, 500);
+
       const interval = setInterval(() => {
         setLoadingProgress((prev) => {
           if (prev >= 100) {
@@ -2514,11 +2481,12 @@ const OnboardingScreen = () => {
       case 7: return renderActivityStep();
       case 8: return renderDietStep();
       case 9: return renderHealthConditionsStep();
-      case 10: return renderNotificationsStep();
-      case 11: return renderTermsStep();
-      case 12: return renderLoadingStep();
-      case 13: return renderPlanStep();
+      // case 10: return renderNotificationsStep(); // Removed
+      case 10: return renderTermsStep();
+      case 11: return renderLoadingStep();
+      case 12: return renderPlanStep();
       default: return renderWelcomeStep();
+
     }
   };
 

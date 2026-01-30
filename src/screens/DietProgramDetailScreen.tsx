@@ -11,6 +11,7 @@ import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/Program
 import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
 import { isFreeDiet } from '../config/freeContent';
 import PaywallModal from '../components/PaywallModal';
+import { trialService } from '../services/trialService';
 
 const STARTING_TIMEOUT_MS = 10000; // 10 second timeout for start operation
 
@@ -20,8 +21,8 @@ interface DietProgramDetailScreenProps {
 }
 
 // FIX: Use shared implementation for consistency
-const getLocalizedText = (value: any, lang: string): string => {
-    return getLocalizedTextShared(value, lang);
+const getLocalizedText = (value: any, lang: string, t?: (key: string) => string): string => {
+    return getLocalizedTextShared(value, lang, t);
 };
 
 export default function DietProgramDetailScreen({ navigation, route }: DietProgramDetailScreenProps) {
@@ -80,74 +81,101 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
         }
     };
 
-    const handleStart = () => {
+    const handleStart = async () => {
         if (isStarting) return; // Prevent double-tap
 
         // Check if user has access to this diet
         const isFree = isFreeDiet(program?.id || '');
-        if (!isFree && !isPremiumUser) {
+        const hasActiveTrial = trialService.isTrialActive(program?.id || '');
+
+        // 1. If Free or Premium or Active Trial -> ALLOW
+        if (isFree || isPremiumUser || hasActiveTrial) {
+            confirmAndStart();
+            return;
+        }
+
+        // 2. If Trial Used (and not active) -> PAYWALL
+        if (trialService.isTrialUsed(program?.id || '')) {
             setShowPaywall(true);
             return;
         }
 
+        // 3. Offer Trial
         Alert.alert(
-            t('dietPrograms.startProgram'),
-            `Start "${getLocalizedText(program.name, language)}" (${program.duration} ${t('common.days')})?`,
+            t('dietPrograms.startTrialTitle', 'Start 7-Day Free Trial?'),
+            t('dietPrograms.startTrialBody', 'Try this diet program for free for 7 days. You can continue or cancel anytime.'),
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: t('dietPrograms.startConfirm'),
+                    text: t('common.start'),
                     onPress: async () => {
-                        if (isStarting) return;
-                        setIsStarting(true);
-
-                        try {
-                            // FIX: Start program and navigate immediately - no loading screen
-                            // Store will update automatically when screen focuses
-                            await DietProgramsService.startProgram(program.id);
-
-                            // Navigate immediately - no waiting for store refresh
-                            // This prevents loading screen and improves UX
-                            navigation.navigate('DietProgramProgress', { id: program.id });
-                            
-                            // FIX: Don't refresh immediately - let the target screen handle it
-                            // This prevents double refresh and visual reloads
-                            // The DietProgramProgressScreen will refresh on mount if needed
-                        } catch (err: any) {
-                            const status = err?.response?.status || err?.status;
-
-                            // 409 Conflict = already enrolled in THIS diet, refresh and navigate
-                            if (status === 409) {
-                                await refreshProgress();
-                                navigation.navigate('DietProgramProgress', { id: program.id });
-                            }
-                            // 400 Bad Request = already have ANOTHER active diet
-                            else if (status === 400) {
-                                await refreshProgress();
-                                Alert.alert(
-                                    t('dietPrograms.anotherDietActive') || 'Another Diet Active',
-                                    t('dietPrograms.anotherDietActiveMessage') || 'You already have an active diet. Complete or abandon it first.',
-                                    [
-                                        { text: t('common.cancel'), style: 'cancel' },
-                                        {
-                                            text: t('dietPrograms.viewActive') || 'View Active',
-                                            // FIX: Navigate to Dashboard which has the Active Widget with correct ID
-                                            // Direct navigation to DietProgramProgress might fail if we don't have the active ID handy
-                                            onPress: () => navigation.navigate('MainTabs', { screen: 'Dashboard' }),
-                                        },
-                                    ]
-                                );
-                            } else {
-                                console.error('[DietProgramDetail] Start failed:', err);
-                                Alert.alert(t('common.error'), t('errors.startProgram'));
-                            }
-                        } finally {
-                            setIsStarting(false);
-                        }
-                    },
-                },
+                        await trialService.startTrial(program?.id || '');
+                        confirmAndStart();
+                    }
+                }
             ]
         );
+
+        function confirmAndStart() {
+            Alert.alert(
+                t('dietPrograms.startProgram'),
+                `Start "${getLocalizedText(program.name, language)}" (${program.duration} ${t('common.days')})?`,
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    {
+                        text: t('dietPrograms.startConfirm'),
+                        onPress: async () => {
+                            if (isStarting) return;
+                            setIsStarting(true);
+
+                            try {
+                                // FIX: Start program and navigate immediately - no loading screen
+                                // Store will update automatically when screen focuses
+                                await DietProgramsService.startProgram(program.id);
+
+                                // Navigate immediately - no waiting for store refresh
+                                // This prevents loading screen and improves UX
+                                navigation.navigate('DietProgramProgress', { id: program.id });
+
+                                // FIX: Don't refresh immediately - let the target screen handle it
+                                // This prevents double refresh and visual reloads
+                                // The DietProgramProgressScreen will refresh on mount if needed
+                            } catch (err: any) {
+                                const status = err?.response?.status || err?.status;
+
+                                // 409 Conflict = already enrolled in THIS diet, refresh and navigate
+                                if (status === 409) {
+                                    await refreshProgress();
+                                    navigation.navigate('DietProgramProgress', { id: program.id });
+                                }
+                                // 400 Bad Request = already have ANOTHER active diet
+                                else if (status === 400) {
+                                    await refreshProgress();
+                                    Alert.alert(
+                                        t('dietPrograms.anotherDietActive') || 'Another Diet Active',
+                                        t('dietPrograms.anotherDietActiveMessage') || 'You already have an active diet. Complete or abandon it first.',
+                                        [
+                                            { text: t('common.cancel'), style: 'cancel' },
+                                            {
+                                                text: t('dietPrograms.viewActive') || 'View Active',
+                                                // FIX: Navigate to Dashboard which has the Active Widget with correct ID
+                                                // Direct navigation to DietProgramProgress might fail if we don't have the active ID handy
+                                                onPress: () => navigation.navigate('MainTabs', { screen: 'Dashboard' }),
+                                            },
+                                        ]
+                                    );
+                                } else {
+                                    console.error('[DietProgramDetail] Start failed:', err);
+                                    Alert.alert(t('common.error'), t('errors.startProgram'));
+                                }
+                            } finally {
+                                setIsStarting(false);
+                            }
+                        },
+                    },
+                ]
+            );
+        }
     };
 
     const getMealIcon = (mealType: string): any => {
@@ -268,9 +296,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                         </View>
                     )}
 
-                    <Text style={[styles.programName, { color: colors.textPrimary }]}>{getLocalizedText(program.name, language)}</Text>
+                    <Text style={[styles.programName, { color: colors.textPrimary }]}>{getLocalizedText(program.name, language, t)}</Text>
                     {program.subtitle && (
-                        <Text style={[styles.programSubtitle, { color: colors.textSecondary }]}>{getLocalizedText(program.subtitle, language)}</Text>
+                        <Text style={[styles.programSubtitle, { color: colors.textSecondary }]}>{getLocalizedText(program.subtitle, language, t)}</Text>
                     )}
 
                     {/* Evidence Badge */}
@@ -310,7 +338,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                     {program.description && (
                         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('dietPrograms.about')}</Text>
-                            <Text style={[styles.description, { color: colors.textSecondary }]}>{getLocalizedText(program.description, language)}</Text>
+                            <Text style={[styles.description, { color: colors.textSecondary }]}>{getLocalizedText(program.description, language, t)}</Text>
                         </View>
                     )}
 
@@ -327,7 +355,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                 <View key={index} style={styles.howItWorksItem}>
                                     <View style={[styles.bulletPoint, { backgroundColor: colors.primary }]} />
                                     <Text style={[styles.howItWorksText, { color: colors.textSecondary }]}>
-                                        {typeof item === 'string' ? item : getLocalizedText(item, language)}
+                                        {typeof item === 'string' ? item : getLocalizedText(item, language, t)}
                                     </Text>
                                 </View>
                             ))}
@@ -350,7 +378,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                 <View key={index} style={styles.trackerPreviewItem}>
                                     <View style={[styles.checkboxPreview, { borderColor: colors.border }]} />
                                     <Text style={[styles.trackerPreviewText, { color: colors.textSecondary }]}>
-                                        {getLocalizedText(item.label, language)}
+                                        {getLocalizedText(item.label, language, t)}
                                     </Text>
                                 </View>
                             ))}
@@ -375,7 +403,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                 <View key={index} style={styles.howItWorksItem}>
                                     <Ionicons name="close-circle" size={14} color="#E65100" style={{ marginRight: 8 }} />
                                     <Text style={[styles.howItWorksText, { color: '#BF360C' }]}>
-                                        {typeof item === 'string' ? item : getLocalizedText(item, language)}
+                                        {typeof item === 'string' ? item : getLocalizedText(item, language, t)}
                                     </Text>
                                 </View>
                             ))}
@@ -402,7 +430,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                                     </View>
                                     <View style={styles.mealInfo}>
                                         <Text style={[styles.mealType, { color: colors.textSecondary }]}>{meal.mealType}</Text>
-                                        <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language)}</Text>
+                                        <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language, t)}</Text>
                                     </View>
                                     {meal.calories && (
                                         <Text style={[styles.mealCalories, { color: colors.textSecondary }]}>{meal.calories} kcal</Text>

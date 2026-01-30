@@ -299,10 +299,6 @@
       "month": "mo",
       "year": "yr",
       "monthly": "Monthly",
-      "plans": {
-        "month": "mo",
-        "year": "yr"
-      },
       "yearly": "Yearly",
       "included": "Included",
       "bestValue": "Best Value",
@@ -313,9 +309,6 @@
       "studentHeadline": "Special student pricing",
       "founderHeadline": "Lifetime access + Exclusive badge",
       "founderBadge": "Limited",
-      "proMonthly": {
-        "badge": "Most Popular"
-      },
       "features": {
         "analysis3": "AI food analysis (3/day)",
         "tracking": "Daily calorie tracking",
@@ -336,7 +329,6 @@
     "summary": "Your choices",
     "summarySubtitle": "Review your information",
     "support": "We care about you",
-    "targetWeight": "What weight do you want?",
     "targetWeightSubtitle": "What weight are you aiming for?",
     "trust": "Thank you for trusting us",
     "trustSubtitle": "We'll help you achieve your goals",
@@ -353,7 +345,6 @@
     "weight": "What's your weight?",
     "weightSubtitle": "Current weight is needed for calorie calculation",
     "weightRate": "Weight change rate",
-    "welcome": "Welcome to EatSense",
     "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
     "additionalPlans": "Additional Plans",
     "setupComplete": "Setup Complete",
@@ -378,16 +369,6 @@
       "gender": "Please select your gender.",
       "activity": "Please select your activity level."
     }
-  },
-  "dietPrograms": {
-    "startProgram": "Start Program",
-    "startConfirm": "Are you sure you want to start this program?",
-    "active": "Active",
-    "anotherDietActive": "Another Diet Active",
-    "anotherDietActiveMessage": "You already have an active diet. Complete or abandon it first.",
-    "viewActive": "View Active",
-    "empty": "Program not found",
-    "days": "days"
   },
   "suggest": {
     "title": "Suggestions",
@@ -752,6 +733,8 @@
     "notificationsChangeTime": "Change time (currently {{time}})",
     "notificationsErrorTitle": "Update failed",
     "notificationsErrorMessage": "We couldn’t update notification settings. Please try again.",
+    "notificationsPermissionTitle": "Permission Required",
+    "notificationsPermissionMessage": "Please enable notifications in system settings to receive reminders.",
     "savedTitle": "Profile saved",
     "savedMessage": "Your profile was updated successfully.",
     "errorTitle": "Update failed",
@@ -829,6 +812,18 @@
     "politics": "Data Processing Policy",
     "termsOfService": "Terms of Service",
     "aboutEatsense": "About EatSense",
+    "aboutText1": "EatSense is an AI-powered nutrition analysis app that helps you track your food intake and maintain a healthy lifestyle.",
+    "aboutText2": "Our advanced AI technology can identify ingredients and calculate nutritional values from photos of your meals.",
+    "faq1q": "How accurate is the AI analysis?",
+    "faq1a": "Our AI provides highly accurate nutritional analysis based on advanced machine learning models.",
+    "faq2q": "Can I edit the analysis results?",
+    "faq2a": "Yes, you can manually correct any analysis results to ensure accuracy.",
+    "faq3q": "Is my data secure?",
+    "faq3a": "Yes, we use industry-standard encryption to protect your personal data.",
+    "section": "Your Profile",
+    "unitsMetric": "Metric",
+    "autoSave": "Auto-save to gallery",
+    "planPremium": "Premium",
     "advanced": "Advanced Health Parameters",
     "noData": "No data",
     "policyError": "Failed to open policy",
@@ -890,21 +885,12 @@
       "waistLabel": "Waist",
       "noData": "No data",
       "focusAreas": "Focus",
-      "clearData": "Clear Health Data"
+      "clearData": "Clear Health Data",
+      "clearTitle": "Clear Health Data",
+      "clearMessage": "Are you sure you want to clear all health parameters? This action cannot be undone.",
+      "cleared": "Health data cleared"
     },
     "notificationsDailyEnabled": "Notifications Daily Enabled"
-  },
-  "gallery": {
-    "title": "Select Photo",
-    "loadingGallery": "Loading gallery...",
-    "permissionRequired": "Gallery Access Required",
-    "permissionText": "Please enable photo library access in your device settings to select photos of your meals.",
-    "goBack": "Go Back",
-    "requestingPermission": "Requesting camera permission...",
-    "accessDenied": "Gallery Access",
-    "accessDeniedText": "To select photos, you need to grant gallery access. Open settings and allow photo access.",
-    "settings": "Settings",
-    "error": "Failed to load image. Please try again."
   },
   "camera": {
     "requestingPermission": "Requesting camera permission...",
@@ -1233,7 +1219,18 @@
     "finishProgram": "Finish Program",
     "notFound": "Not Found",
     "title": "Title",
-    "viewActive": "View Active"
+    "viewActive": "View Active",
+    "categories": {
+      "all": "All",
+      "hollywood": "Hollywood",
+      "athletes": "Athletes",
+      "historical": "Historical"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    }
   },
   "referral": {
     "title": "Invite Friends",
@@ -1801,36 +1798,6 @@
     "calculatingCalories": "Calculating calories",
     "uploaded": "Uploaded"
   },
-  "common": {
-    "back": "Back",
-    "loading": "Loading...",
-    "close": "Close",
-    "retry": "Retry",
-    "done": "Done",
-    "ok": "OK",
-    "save": "Save",
-    "cancel": "Cancel",
-    "tryAgain": "Try Again",
-    "enabled": "Enabled",
-    "saveChanges": "Save Changes",
-    "reset": "Reset",
-    "error": "Error",
-    "edit": "Edit",
-    "days": "days",
-    "rerun": "Rerun",
-    "later": "Later",
-    "continue": "Continue",
-    "stop": "Stop",
-    "goBack": "Go back",
-    "of": "of",
-    "delete": "Delete",
-    "confirm": "Confirm",
-    "errorGeneric": "Something went wrong",
-    "success": "Success",
-    "info": "Info",
-    "gotIt": "Got it",
-    "yesterday": "Yesterday"
-  },
   "usageSummary": {
     "title": "Daily Usage",
     "totalToday": "Total Today",
@@ -1841,41 +1808,6 @@
     "limitApproaching": "Approaching daily limit",
     "limitOk": "Usage within limits",
     "analyses": "analyses"
-  },
-  "profile": {
-    "title": "Account",
-    "section": "Your Profile",
-    "goal": "Your Goal",
-    "age": "Age",
-    "weight": "Weight",
-    "height": "Height",
-    "activityLevel": "Activity Level",
-    "personalization": "Personalization",
-    "plan": "Your Plan",
-    "sync": "Apple Health Sync",
-    "settings": "Settings",
-    "units": "Units of Measurement",
-    "unitsMetric": "Metric",
-    "savePhotos": "Save Photos",
-    "autoSave": "Auto-save to gallery",
-    "planPremium": "Premium",
-    "about": "About Us",
-    "aboutText1": "EatSense is an AI-powered nutrition analysis app that helps you track your food intake and maintain a healthy lifestyle.",
-    "aboutText2": "Our advanced AI technology can identify ingredients and calculate nutritional values from photos of your meals.",
-    "faq": "Frequently Asked Questions",
-    "faq1q": "How accurate is the AI analysis?",
-    "faq1a": "Our AI provides highly accurate nutritional analysis based on advanced machine learning models.",
-    "faq2q": "Can I edit the analysis results?",
-    "faq2a": "Yes, you can manually correct any analysis results to ensure accuracy.",
-    "faq3q": "Is my data secure?",
-    "faq3a": "Yes, we use industry-standard encryption to protect your personal data.",
-    "tabs": {
-      "profile": "Profile",
-      "personalization": "Personalization",
-      "settings": "Settings",
-      "about": "About Us",
-      "faq": "FAQ"
-    }
   },
   "notifications": {
     "enabled": "Notifications enabled!",
@@ -1987,16 +1919,7 @@
   "diets_tabs_diets": "Diets",
   "diets_tabs_lifestyle": "Lifestyle",
   "lifestyles": {
-    "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
-    "programNotFound": "Program not found",
-    "loadError": "Failed to load program",
-    "loading": "Loading program...",
-    "programStarted": "Program started!",
-    "programStartedMessage": "You started \"{{name}}\". Track your progress on the main screen.",
-    "programAlreadyActive": "You are already enrolled in this program.",
-    "startFailed": "Failed to start program. Please try again later.",
     "categories": {
-      "all": "All",
       "TRENDING": "Trending",
       "GOAL_LOSE_WEIGHT": "Weight Loss",
       "GOAL_BUILD_MUSCLE": "Build Muscle",
@@ -2007,9 +1930,27 @@
       "WARRIOR_MODE": "Warrior Mode",
       "SEASONAL": "Seasonal"
     },
-    "card": {
-      "view": "View"
+    "filters_target_label": "Target:",
+    "filters_target_all": "All",
+    "filters_target_male": "Men",
+    "filters_target_female": "Women",
+    "loading": "Loading lifestyle programs...",
+    "empty": "No programs found",
+    "loading_more": "Loading more...",
+    "search": {
+      "placeholder": "Search lifestyle programs..."
     },
+    "card": {
+      "view": "View Program",
+      "locked": "Paid Plan"
+    },
+    "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
+    "programNotFound": "Program not found",
+    "loadError": "Failed to load program",
+    "programStarted": "Program started!",
+    "programStartedMessage": "You started \"{{name}}\". Track your progress on the main screen.",
+    "programAlreadyActive": "You are already enrolled in this program.",
+    "startFailed": "Failed to start program. Please try again later.",
     "detail": {
       "mantra": "Daily Mantra",
       "philosophy": "Philosophy",
@@ -2023,18 +1964,1337 @@
       "vibe": "Vibe",
       "startProgram": "Start Program",
       "continueProgram": "Continue"
+    }
+  },
+  "programs": {
+    "lifestyle": {
+      "that_girl": {
+        "dailyTracker": {
+          "morning_routine": {
+            "label": "Morning routine 5AM"
+          },
+          "green_juice": {
+            "label": "Green smoothie or matcha"
+          },
+          "aesthetic_meal": {
+            "label": "Aesthetic healthy meal"
+          },
+          "hydration": {
+            "label": "Stay hydrated"
+          }
+        },
+        "name": "That Girl",
+        "subtitle": "5AM, green juice, main character energy",
+        "description": "Wellness as aesthetic. Green smoothies, matcha, overnight oats. Looking good, feeling good.",
+        "shortDescription": "5AM routine, green juice, main character energy"
+      },
+      "clean_girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Whole foods only"
+          },
+          "hydration": {
+            "label": "3L water"
+          },
+          "simple_meal": {
+            "label": "Simple clean meal"
+          }
+        },
+        "name": "Clean Girl",
+        "subtitle": "Minimal, glowing, effortless beauty",
+        "description": "The no-makeup makeup of eating. Whole foods, nothing processed, maximum hydration.",
+        "shortDescription": "Minimal, glowing, effortless"
+      },
+      "old_money": {
+        "dailyTracker": {
+          "quality_ingredients": {
+            "label": "Quality ingredients"
+          },
+          "proper_dining": {
+            "label": "Proper table setting"
+          },
+          "three_meals": {
+            "label": "Three structured meals"
+          }
+        },
+        "name": "Old Money",
+        "subtitle": "Quiet luxury, timeless elegance",
+        "description": "Quality over everything. Grass-fed, wild-caught, organic, artisanal. No chain restaurants.",
+        "shortDescription": "Quality over quantity, timeless elegance"
+      },
+      "tomato_girl_summer": {
+        "dailyTracker": {
+          "olive_oil": {
+            "label": "Olive oil on everything"
+          },
+          "fresh_tomatoes": {
+            "label": "Fresh tomatoes"
+          },
+          "aperitivo": {
+            "label": "Aperitivo hour"
+          }
+        },
+        "name": "Tomato Girl Summer",
+        "subtitle": "Mediterranean dreams, sun-kissed living",
+        "description": "La dolce vita on your plate. Fresh tomatoes, burrata, olive oil, pasta, wine.",
+        "shortDescription": "Mediterranean vibes, sun-kissed"
+      },
+      "pilates_princess": {
+        "dailyTracker": {
+          "collagen": {
+            "label": "Collagen in smoothie"
+          },
+          "lean_protein": {
+            "label": "Lean protein"
+          },
+          "light_eating": {
+            "label": "Light eating on class days"
+          }
+        },
+        "name": "Pilates Princess",
+        "subtitle": "Long, lean, graceful strength",
+        "description": "Fuel for lengthening and strengthening. Lean proteins, anti-inflammatory foods, collagen.",
+        "shortDescription": "Lean, graceful, strong"
+      },
+      "coastal_grandmother": {
+        "dailyTracker": {
+          "set_table": {
+            "label": "Set table properly"
+          },
+          "fresh_seafood": {
+            "label": "Fresh seafood"
+          },
+          "beach_walk": {
+            "label": "Walk on the beach"
+          }
+        },
+        "name": "Coastal Grandmother",
+        "subtitle": "Nancy Meyers kitchen energy",
+        "description": "Diane Keaton lifestyle. Fresh seafood, farmers market vegetables, white wine on the porch.",
+        "shortDescription": "Coastal elegance, Nancy Meyers vibes"
+      },
+      "soft_life": {
+        "dailyTracker": {
+          "comfort_food": {
+            "label": "Comfort food without guilt"
+          },
+          "gentle_self": {
+            "label": "Gentle with yourself"
+          },
+          "rest": {
+            "label": "Rest is productive"
+          }
+        },
+        "name": "Soft Life",
+        "subtitle": "Ease, comfort, zero stress",
+        "description": "Anti-hustle culture eating. Gentle foods, no strict rules, comfort without guilt.",
+        "shortDescription": "Easy, comfortable, stress-free"
+      },
+      "mob_wife": {
+        "dailyTracker": {
+          "sunday_sauce": {
+            "label": "Sunday sauce tradition"
+          },
+          "espresso": {
+            "label": "Espresso, not apologies"
+          },
+          "family_dinner": {
+            "label": "Family-style dinner"
+          }
+        },
+        "name": "Mob Wife",
+        "subtitle": "Dramatic, luxurious, unapologetic",
+        "description": "Italian-American indulgence. Sunday sauce, big family dinners, espresso, cannoli.",
+        "shortDescription": "Italian luxury, bold choices"
+      },
+      "summer_shred": {
+        "dailyTracker": {},
+        "name": "Summer Shred",
+        "subtitle": "Lean, defined, beach-ready",
+        "description": "Strategic fat loss while preserving muscle. High protein, plenty of vegetables.",
+        "shortDescription": "Lean, defined, beach-ready"
+      },
+      "metabolic_reset": {
+        "dailyTracker": {},
+        "name": "Metabolic Reset",
+        "subtitle": "Restart your fat-burning engine",
+        "description": "Repair metabolism through whole foods, stable blood sugar, strategic eating windows.",
+        "shortDescription": "Reset metabolism, stable energy"
+      },
+      "debloat_detox": {
+        "dailyTracker": {},
+        "name": "Debloat & Glow",
+        "subtitle": "Flatten, refresh, feel light",
+        "description": "Anti-inflammatory, low sodium, gut-friendly eating.",
+        "shortDescription": "Debloat, refresh, feel light"
+      },
+      "sustainable_slim": {
+        "dailyTracker": {},
+        "name": "Sustainable Slim",
+        "subtitle": "Lose it and keep it off forever",
+        "description": "Anti-yo-yo approach. Small sustainable changes, focus on habits not numbers.",
+        "shortDescription": "Sustainable weight loss"
+      },
+      "lean_bulk": {
+        "dailyTracker": {},
+        "name": "Lean Bulk",
+        "subtitle": "Build muscle without the fat",
+        "description": "Strategic surplus. Enough calories to grow, enough protein to build.",
+        "shortDescription": "Build muscle, stay lean"
+      },
+      "strength_athlete": {
+        "dailyTracker": {},
+        "name": "Strength Athlete",
+        "subtitle": "Fuel for power and performance",
+        "description": "Performance nutrition for lifters. High protein, strategic carbs.",
+        "shortDescription": "Fuel for strength"
+      },
+      "athletic_performance": {
+        "dailyTracker": {},
+        "name": "Athletic Performance",
+        "subtitle": "Train hard, eat smart, perform better",
+        "description": "Sports nutrition for competitive athletes.",
+        "shortDescription": "Athletic performance nutrition"
+      },
+      "functional_fitness": {
+        "dailyTracker": {},
+        "name": "Functional Fitness",
+        "subtitle": "Strong, capable, ready for anything",
+        "description": "Nutrition for real-world performance. Balanced macros, anti-inflammatory focus.",
+        "shortDescription": "Functional strength nutrition"
+      },
+      "glass_skin": {
+        "dailyTracker": {},
+        "subtitle": "Korean beauty starts from inside",
+        "description": "Gut-skin connection. Fermented foods, omega-3s, collagen.",
+        "shortDescription": "K-beauty nutrition"
+      },
+      "acne_clear": {
+        "dailyTracker": {},
+        "subtitle": "Calm inflammation, clear breakouts",
+        "description": "Anti-inflammatory, low-glycemic eating.",
+        "shortDescription": "Clear skin nutrition"
+      },
+      "anti_aging_glow": {
+        "dailyTracker": {},
+        "subtitle": "Age gracefully, glow eternally",
+        "description": "Longevity nutrition. Antioxidants, collagen, healthy fats.",
+        "shortDescription": "Anti-aging nutrition"
+      },
+      "all_day_energy": {
+        "dailyTracker": {},
+        "subtitle": "No crashes, no slumps, just go",
+        "description": "Blood sugar stability for sustained energy.",
+        "shortDescription": "Sustained energy all day"
+      },
+      "brain_fuel": {
+        "dailyTracker": {},
+        "subtitle": "Focus, clarity, mental edge",
+        "description": "Nootropic nutrition. Omega-3s, stable glucose, brain nutrients.",
+        "shortDescription": "Brain-boosting nutrition"
+      },
+      "adrenal_recovery": {
+        "dailyTracker": {},
+        "subtitle": "Heal burnout, restore vitality",
+        "description": "Healing nutrition for burned-out systems.",
+        "shortDescription": "Burnout recovery"
+      },
+      "amalfi_coast": {
+        "dailyTracker": {},
+        "subtitle": "Limoncello sunsets, Italian dreams",
+        "description": "Southern Italian coastal living.",
+        "shortDescription": "Italian coastal eating"
+      },
+      "greek_islands": {
+        "dailyTracker": {},
+        "subtitle": "Santorini sunsets on your plate",
+        "description": "The original Mediterranean diet.",
+        "shortDescription": "Greek Mediterranean eating"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {},
+        "subtitle": "Secrets of living to 100",
+        "description": "Blue Zone wisdom. Hara hachi bu — 80% full.",
+        "shortDescription": "Blue zone longevity"
+      },
+      "tokyo_energy": {
+        "dailyTracker": {},
+        "subtitle": "Fast-paced city, balanced eating",
+        "description": "Japanese efficiency meets nutrition.",
+        "shortDescription": "Japanese efficient eating"
+      },
+      "scandi_hygge": {
+        "dailyTracker": {},
+        "subtitle": "Cozy, balanced, sustainably happy",
+        "description": "Nordic eating meets hygge lifestyle.",
+        "shortDescription": "Nordic cozy eating"
+      },
+      "1950s_bombshell": {
+        "dailyTracker": {},
+        "subtitle": "Curves, confidence, classic beauty",
+        "description": "Real food, real curves. Protein-rich, whole ingredients.",
+        "shortDescription": "Classic curves nutrition"
+      },
+      "prima_ballerina": {
+        "dailyTracker": {},
+        "subtitle": "Grace, discipline, elegant strength",
+        "description": "Eating for performance and grace. Carbs for energy, protein for strength.",
+        "shortDescription": "Dancer nutrition"
+      },
+      "french_girl": {
+        "dailyTracker": {},
+        "subtitle": "Je ne sais quoi in every bite",
+        "description": "Original intuitive eating. Three meals, no snacking, wine with dinner.",
+        "shortDescription": "French intuitive eating"
+      },
+      "pin_up_retro": {
+        "dailyTracker": {},
+        "subtitle": "Vintage curves, modern confidence",
+        "description": "Home-cooked meals, whole ingredients, no guilt.",
+        "shortDescription": "Retro body-positive eating"
+      },
+      "minimalist_zen": {
+        "dailyTracker": {},
+        "subtitle": "Less clutter, more clarity",
+        "description": "Japanese-inspired minimalism. Few ingredients, high quality.",
+        "shortDescription": "Minimalist eating"
+      },
+      "spartan_warrior": {
+        "dailyTracker": {},
+        "subtitle": "THIS. IS. DISCIPLINE.",
+        "description": "Ancient warrior fuel. Simple foods, no luxury.",
+        "shortDescription": "Spartan discipline"
+      },
+      "viking_raider": {
+        "dailyTracker": {},
+        "subtitle": "Fuel for conquest and cold",
+        "description": "Norse fuel. High fat, high protein, fermented foods.",
+        "shortDescription": "Viking strength eating"
+      },
+      "navy_seal": {
+        "dailyTracker": {},
+        "subtitle": "Elite fuel for elite performance",
+        "description": "Performance nutrition, no nonsense. High calories for high output.",
+        "shortDescription": "Elite performance nutrition"
+      },
+      "mma_fighter": {
+        "dailyTracker": {},
+        "subtitle": "Cut weight, stay strong, dominate",
+        "description": "Fight camp nutrition. High protein, strategic carbs.",
+        "shortDescription": "Fighter nutrition"
+      },
+      "ceo_warrior": {
+        "dailyTracker": {},
+        "subtitle": "Dominate the boardroom",
+        "description": "Biohacker meets executive. IF, keto principles.",
+        "shortDescription": "Executive biohacking"
+      },
+      "stoic_monk": {
+        "dailyTracker": {},
+        "subtitle": "Master your body, master your mind",
+        "description": "Voluntary simplicity. Eat little, want nothing.",
+        "shortDescription": "Stoic simplicity"
+      },
+      "summer_beach_body": {
+        "dailyTracker": {},
+        "subtitle": "4 weeks to your most confident summer",
+        "description": "Light, clean eating for beach confidence.",
+        "shortDescription": "Beach body prep"
+      },
+      "new_year_reset": {
+        "dailyTracker": {},
+        "subtitle": "Fresh start, clean slate",
+        "description": "Gentle reset after indulgent times.",
+        "shortDescription": "New year reset"
+      },
+      "wedding_ready": {
+        "dailyTracker": {},
+        "subtitle": "Glowing, confident, picture-perfect",
+        "description": "Gradual, sustainable approach for your special day.",
+        "shortDescription": "Wedding prep nutrition"
+      },
+      "holiday_balance": {
+        "dailyTracker": {},
+        "subtitle": "Enjoy the season without regret",
+        "description": "Navigate holidays without gaining or restricting.",
+        "shortDescription": "Holiday balance"
+      },
+      "hot_girl_walk": {
+        "dailyTracker": {
+          "walk": {
+            "label": "Hot girl walk done"
+          },
+          "hydration": {
+            "label": "Stayed hydrated"
+          },
+          "mood": {
+            "label": "Checked in with mood"
+          }
+        },
+        "name": "Hot Girl Walk",
+        "subtitle": "Walk, reflect, glow",
+        "description": "Daily walks for mood and movement. Simple, sustainable, no gym required.",
+        "shortDescription": "Daily walks, mood, movement"
+      },
+      "lazy_girl_weight_loss": {
+        "dailyTracker": {
+          "simple_habit": {
+            "label": "One simple healthy habit"
+          },
+          "no_restrict": {
+            "label": "No harsh restriction"
+          },
+          "sustainable": {
+            "label": "Sustainable choice"
+          }
+        },
+        "name": "Lazy Girl Weight Loss",
+        "subtitle": "Minimal effort, maximum results",
+        "description": "Low-effort habits for sustainable weight loss. No strict diets, no punishing workouts.",
+        "shortDescription": "Low-effort, sustainable loss"
+      },
+      "high_energy": {
+        "dailyTracker": {
+          "steady_energy": {
+            "label": "Steady energy all day"
+          },
+          "no_crash": {
+            "label": "No afternoon crash"
+          },
+          "balanced_meals": {
+            "label": "Balanced meals"
+          }
+        },
+        "name": "High Energy",
+        "subtitle": "Fuel up, perform, thrive",
+        "description": "Nutrition for all-day energy. Balanced meals, smart carbs, no crashes.",
+        "shortDescription": "All-day energy nutrition"
+      }
     },
-    "search": {
-      "placeholder": "Search lifestyle programs..."
-    },
-    "filters_target_label": "Target:",
-    "filters_target_all": "All",
-    "filters_target_male": "Men",
-    "filters_target_female": "Women",
-    "filters_age_label": "Age:",
-    "trending": "Trending",
-    "empty": "No lifestyle programs found",
-    "loading": "Loading",
-    "loading_more": "Loading more programs..."
+    "diet": {
+      "mediterranean": {
+        "dailyTracker": {
+          "veggies_5": {
+            "label": "5+ servings of vegetables/fruits"
+          },
+          "whole_grains": {
+            "label": "1-2 servings of whole grains"
+          },
+          "healthy_fat": {
+            "label": "Healthy fat (olive oil/nuts)"
+          },
+          "protein": {
+            "label": "Protein: fish/legumes/poultry"
+          },
+          "water": {
+            "label": "Water 6-8 glasses"
+          }
+        },
+        "name": "Mediterranean",
+        "description": "A heart-healthy eating plan based on traditional cuisine of Mediterranean countries. Rich in vegetables, fruits, whole grains, and olive oil.",
+        "shortDescription": "Heart-healthy diet rich in olive oil, fish, and vegetables"
+      },
+      "dash": {
+        "dailyTracker": {
+          "veggies_fruits_5": {
+            "label": "Vegetables/fruits 5+"
+          },
+          "whole_grains": {
+            "label": "Whole grains 1-2"
+          },
+          "lean_protein": {
+            "label": "Lean protein"
+          },
+          "low_salt": {
+            "label": "Salt/salty — minimal"
+          },
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "DASH",
+        "description": "Dietary Approaches to Stop Hypertension. Focuses on fruits, vegetables, whole grains, and lean proteins while limiting sodium.",
+        "shortDescription": "Heart-healthy diet to lower blood pressure"
+      },
+      "mind": {
+        "dailyTracker": {
+          "greens_veggies": {
+            "label": "Greens/vegetables (min 2 servings)"
+          },
+          "berries": {
+            "label": "Berries/fruits 1 serving"
+          },
+          "nuts": {
+            "label": "Nuts/seeds 1 serving"
+          },
+          "whole_grains": {
+            "label": "Whole grains 1-2"
+          },
+          "limit_sweets": {
+            "label": "Limit sweets/fried"
+          }
+        },
+        "name": "MIND",
+        "description": "Mediterranean-DASH Intervention for Neurodegenerative Delay. Combines Mediterranean and DASH with emphasis on brain-healthy foods.",
+        "shortDescription": "Diet for brain health and cognitive function"
+      },
+      "flexitarian": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "legumes_grains": {
+            "label": "Legumes/whole grains"
+          },
+          "protein": {
+            "label": "Protein (plant or animal)"
+          },
+          "limit_junk": {
+            "label": "Sweets/fast food — minimal"
+          }
+        },
+        "name": "Flexitarian",
+        "description": "A flexible approach to vegetarian eating. Primarily plant-based with occasional meat.",
+        "shortDescription": "Flexible plant-based eating with occasional meat"
+      },
+      "nordic": {
+        "dailyTracker": {
+          "fish_legumes": {
+            "label": "Fish/seafood or legumes (protein)"
+          },
+          "berries": {
+            "label": "Berries/fruits"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          },
+          "root_veggies": {
+            "label": "Vegetables/root vegetables"
+          },
+          "min_sugar": {
+            "label": "Minimal sugar"
+          }
+        },
+        "name": "Nordic",
+        "description": "Based on traditional Scandinavian cuisine. Emphasizes local, seasonal foods.",
+        "shortDescription": "Scandinavian-style healthy eating"
+      },
+      "plate-method": {
+        "dailyTracker": {
+          "veggies_2meals": {
+            "label": "Vegetables 2+ meals"
+          },
+          "protein_each": {
+            "label": "Protein in each meal"
+          },
+          "complex_carbs": {
+            "label": "Complex carbs 1-2"
+          },
+          "water": {
+            "label": "Water 6-8"
+          }
+        },
+        "name": "Plate Method",
+        "description": "Simple visual guide: half plate vegetables, quarter protein, quarter carbs. Perfect for beginners.",
+        "shortDescription": "Simple plate division for balanced meals"
+      },
+      "if-14-10": {
+        "dailyTracker": {
+          "fasting_14h": {
+            "label": "Fasting interval observed (14h)"
+          },
+          "eating_window": {
+            "label": "Ate only within window (10h)"
+          },
+          "protein_veggies": {
+            "label": "Protein + vegetables in main meals"
+          }
+        },
+        "name": "14:10 Eating Window",
+        "description": "A gentler approach to intermittent fasting. Fast for 14 hours, eat within a 10-hour window.",
+        "shortDescription": "Gentle fasting: 14h fast, 10h eating window"
+      },
+      "if-16-8": {
+        "dailyTracker": {
+          "fasting_16h": {
+            "label": "Fasting interval observed (16h)"
+          },
+          "eating_window": {
+            "label": "Ate only within window (8h)"
+          },
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "16:8 Eating Window",
+        "description": "Classic intermittent fasting. Fast for 16 hours, eat within an 8-hour window.",
+        "shortDescription": "Classic fasting: 16h fast, 8h eating window"
+      },
+      "high-protein-cut": {
+        "dailyTracker": {
+          "protein_4x": {
+            "label": "Protein 3-4 times a day"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "min_sweets": {
+            "label": "Sweets — minimal"
+          },
+          "activity": {
+            "label": "Steps/activity (if tracking)"
+          }
+        },
+        "name": "High-Protein Cut",
+        "description": "High protein intake for preserving muscle while cutting fat. Popular with athletes.",
+        "shortDescription": "High protein for fat loss while preserving muscle"
+      },
+      "low-carb": {
+        "dailyTracker": {
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          },
+          "whole_carbs": {
+            "label": "Carbs — only whole/vegetables"
+          },
+          "protein_each": {
+            "label": "Protein in each meal"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          }
+        },
+        "name": "Low-Carb",
+        "description": "Reduces carbohydrates, especially refined ones. Focus on protein and vegetables.",
+        "shortDescription": "Reduce carbs, focus on protein and vegetables"
+      },
+      "keto": {
+        "dailyTracker": {
+          "carbs_limited": {
+            "label": "Carbs strictly limited (manual)"
+          },
+          "water_electrolytes": {
+            "label": "Enough water and electrolytes"
+          },
+          "low_carb_veggies": {
+            "label": "Low-carb vegetables"
+          }
+        },
+        "name": "Keto",
+        "description": "Very low-carb, high-fat diet that puts body into ketosis. Requires medical supervision for many people.",
+        "shortDescription": "Very low-carb for ketosis — requires caution"
+      },
+      "low-fodmap": {
+        "dailyTracker": {
+          "phase_foods": {
+            "label": "Phase-appropriate foods followed"
+          },
+          "symptoms_noted": {
+            "label": "Symptoms noted (1-5)"
+          },
+          "water": {
+            "label": "Enough water"
+          }
+        },
+        "name": "Low-FODMAP (Gut)",
+        "description": "Elimination diet for IBS and digestive issues. Must be done in phases with professional guidance.",
+        "shortDescription": "Gut-healing diet in phases — requires guidance"
+      },
+      "gluten-free": {
+        "dailyTracker": {
+          "no_gluten": {
+            "label": "No gluten (manual check)"
+          },
+          "fiber": {
+            "label": "Enough fiber (vegetables/legumes/GF grains)"
+          }
+        },
+        "name": "Gluten-Free",
+        "description": "Essential for celiac disease and gluten sensitivity. Not necessary as a lifestyle choice without medical indication.",
+        "shortDescription": "For celiac disease or gluten sensitivity"
+      },
+      "roman-inspired": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Legumes/lentils 1 time"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          },
+          "min_junk": {
+            "label": "Minimal sweets/fast food"
+          }
+        },
+        "name": "Roman-Inspired",
+        "description": "Inspired by ancient Roman diet. Focus on grains, legumes, olive oil, and vegetables. Historical reconstruction for fun.",
+        "shortDescription": "Ancient Roman-inspired eating"
+      },
+      "spartan-inspired": {
+        "dailyTracker": {
+          "simple_foods": {
+            "label": "Simple products (no ultra-processed)"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "protein_2_3": {
+            "label": "Protein 2-3"
+          },
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "Spartan-Inspired",
+        "description": "Inspired by Spartan simplicity. Focus on simple, unprocessed foods and discipline.",
+        "shortDescription": "Spartan simplicity and discipline"
+      },
+      "arctic-inspired": {
+        "dailyTracker": {
+          "fish_omega3": {
+            "label": "Fish/seafood or omega-3 source"
+          },
+          "berries": {
+            "label": "Berries/fruits"
+          },
+          "protein_2_3": {
+            "label": "Protein 2-3"
+          },
+          "water": {
+            "label": "Enough water"
+          }
+        },
+        "name": "Arctic-Inspired",
+        "description": "Adapted from traditional Inuit diet. Focus on fish, omega-3, and seasonal produce.",
+        "shortDescription": "Fish-focused with omega-3 and berries"
+      },
+      "steppe-inspired": {
+        "dailyTracker": {
+          "protein_2_3": {
+            "label": "Protein 2-3"
+          },
+          "fermented": {
+            "label": "Fermented dairy (if tolerated)"
+          },
+          "veggies_2": {
+            "label": "Vegetables/greens 2+ (adaptation)"
+          }
+        },
+        "name": "Steppe-Inspired",
+        "description": "Adapted from Mongolian steppe traditions. Focus on protein and fermented dairy.",
+        "shortDescription": "Protein and fermented foods, steppe style"
+      },
+      "three-sisters": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Legumes 1 time"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          }
+        },
+        "name": "Three Sisters",
+        "description": "Based on Native American \"Three Sisters\" agriculture. Corn, beans, and squash as dietary foundation.",
+        "shortDescription": "Native American plant-based foundation"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {
+          "vegetables_5": {
+            "label": "Vegetables 5+ servings"
+          },
+          "sweet_potato": {
+            "label": "Sweet potato or whole grains"
+          },
+          "tofu_legumes": {
+            "label": "Tofu/legumes for protein"
+          },
+          "hara_hachi_bu": {
+            "label": "Stopped eating at 80% full"
+          },
+          "minimal_processed": {
+            "label": "Avoided processed foods"
+          }
+        },
+        "name": "Okinawa Longevity",
+        "description": "Based on the traditional diet of Okinawa, Japan, known for the long lifespan of its inhabitants. Emphasizes plant-based foods, fish, sweet potatoes, and moderate calorie restriction.",
+        "shortDescription": "Japanese longevity diet from Okinawa"
+      },
+      "paleo": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "protein_3": {
+            "label": "Protein 2-3 times"
+          },
+          "no_sugary": {
+            "label": "No sugary drinks"
+          },
+          "min_processed": {
+            "label": "Minimal ultra-processing"
+          }
+        },
+        "name": "Paleo",
+        "description": "A whole-food approach with minimal processing. Emphasizes meat, fish, vegetables, fruits, nuts, and seeds.",
+        "shortDescription": "Whole foods, no grains or dairy"
+      },
+      "whole30-inspired": {
+        "dailyTracker": {
+          "no_sugar": {
+            "label": "No added sugar"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "protein_3": {
+            "label": "Protein 2-3"
+          },
+          "home_cooked": {
+            "label": "Home cooked/no fast food"
+          }
+        },
+        "name": "Whole30 (Inspired)",
+        "description": "A short reset protocol with strict rules. Eliminates sugar, alcohol, and common triggers for 30 days.",
+        "shortDescription": "30-day elimination reset"
+      },
+      "vegan-balanced": {
+        "dailyTracker": {
+          "plant_protein": {
+            "label": "Protein 2-3 times (plant)"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "grains_legumes": {
+            "label": "Whole grains/legumes"
+          },
+          "b12_check": {
+            "label": "B12 (reminder check)"
+          }
+        },
+        "name": "Vegan (Balanced)",
+        "description": "Balanced plant-based eating with focus on adequate protein, B12, and other nutrients.",
+        "shortDescription": "Balanced plant-based eating"
+      },
+      "clean-eating": {
+        "dailyTracker": {
+          "home_cooked_2": {
+            "label": "Home cooked 2+ meals"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "no_sugary": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "Clean Eating (Simple)",
+        "description": "Simple approach: focus on whole foods and home cooking, minimize processed foods.",
+        "shortDescription": "Whole foods, home cooking"
+      },
+      "iifym": {
+        "dailyTracker": {
+          "calories_check": {
+            "label": "Calories within goal (check)"
+          },
+          "protein_check": {
+            "label": "Protein achieved (check)"
+          },
+          "veggies_2": {
+            "label": "Vegetables 2+"
+          }
+        },
+        "name": "Flexible Dieting (IIFYM)",
+        "description": "If It Fits Your Macros — flexible approach focusing on hitting daily calorie and macro targets.",
+        "shortDescription": "Hit your macros, flexible food choices"
+      },
+      "roman-commoner": {
+        "dailyTracker": {
+          "legumes_1": {
+            "label": "Legumes 1 time"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          }
+        },
+        "name": "Roman Commoner (Inspired)",
+        "description": "Inspired by the diet of common Roman citizens. Simple grains, legumes, vegetables with occasional fish or cheese.",
+        "shortDescription": "Simple Roman-inspired eating"
+      },
+      "roman-elite": {
+        "dailyTracker": {
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "protein_3": {
+            "label": "Protein 2-3"
+          },
+          "sweets_limited": {
+            "label": "Sweets limited"
+          }
+        },
+        "name": "Roman Elite (Inspired)",
+        "description": "Inspired by wealthier Roman diets. More variety with fish, meat, various appetizers, and fruits.",
+        "shortDescription": "Wealthy Roman-inspired variety"
+      },
+      "napoleon-soldier": {
+        "dailyTracker": {
+          "soup_warm": {
+            "label": "Soup/warm food 1 time"
+          },
+          "veggies_2": {
+            "label": "Vegetables 2+"
+          },
+          "water": {
+            "label": "Water"
+          }
+        },
+        "name": "Napoleon (Soldier-Style, Inspired)",
+        "description": "Inspired by Napoleonic era soldier rations. Hearty soups, bread, and simple protein.",
+        "shortDescription": "Simple soldier-style eating"
+      },
+      "on-set-day": {
+        "dailyTracker": {
+          "protein_3": {
+            "label": "Protein 3 times"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "snacks_no_sugar": {
+            "label": "Snacks without sugar"
+          }
+        },
+        "name": "On-Set Day (Inspired)",
+        "description": "A public-figure-inspired template without naming individuals. Structured eating focused on protein and vegetables.",
+        "shortDescription": "Structured day with protein focus"
+      },
+      "ramadan": {
+        "dailyTracker": {
+          "iftar_balanced": {
+            "label": "Balanced iftar meal"
+          },
+          "suhoor_eaten": {
+            "label": "Had suhoor"
+          },
+          "hydration": {
+            "label": "Drank 8+ glasses of water"
+          },
+          "no_overeating": {
+            "label": "Ate mindfully, no overeating"
+          },
+          "dates_start": {
+            "label": "Started iftar with dates"
+          }
+        },
+        "name": "Ramadan Fasting",
+        "description": "Guidance for healthy eating during Ramadan fasting period. Focus on balanced suhoor and iftar meals with proper hydration.",
+        "shortDescription": "Healthy eating during Ramadan"
+      },
+      "great-lent": {
+        "dailyTracker": {
+          "plant_based": {
+            "label": "Ate plant-based today"
+          },
+          "no_meat": {
+            "label": "No meat/dairy/eggs"
+          },
+          "vegetables_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "legumes": {
+            "label": "Legumes or grains"
+          },
+          "mindful": {
+            "label": "Ate mindfully"
+          }
+        },
+        "name": "Great Lent (Orthodox)",
+        "description": "Guidance for the Orthodox Great Lent fasting period with plant-based meals. A spiritual journey through mindful eating.",
+        "shortDescription": "Orthodox fasting traditions"
+      },
+      "summer-detox": {
+        "dailyTracker": {
+          "fruits_3": {
+            "label": "Fresh fruits 3+ servings"
+          },
+          "vegetables_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "water_8": {
+            "label": "Water 8+ glasses"
+          },
+          "light_protein": {
+            "label": "Light protein (fish/chicken/legumes)"
+          },
+          "no_heavy_food": {
+            "label": "No heavy/fried food"
+          }
+        },
+        "name": "Summer Fresh",
+        "description": "Seasonal eating focused on fresh fruits, vegetables, and light meals perfect for hot summer days.",
+        "shortDescription": "Fresh summer eating plan"
+      },
+      "navruz": {
+        "dailyTracker": {
+          "fresh_greens": {
+            "label": "Fresh greens/herbs"
+          },
+          "dairy": {
+            "label": "Dairy products"
+          },
+          "traditional_dish": {
+            "label": "Traditional dish"
+          },
+          "vegetables_3": {
+            "label": "Vegetables 3+ servings"
+          },
+          "shared_meal": {
+            "label": "Shared meal with others"
+          }
+        },
+        "name": "Navruz Spring",
+        "description": "A celebration of spring equinox with traditional Central Asian foods. Fresh greens, dairy, and symbolic dishes for renewal.",
+        "shortDescription": "Spring celebration eating"
+      },
+      "winter-warmth": {
+        "dailyTracker": {
+          "warm_breakfast": {
+            "label": "Warm breakfast"
+          },
+          "soup_stew": {
+            "label": "Soup or stew"
+          },
+          "root_vegetables": {
+            "label": "Root vegetables"
+          },
+          "immune_foods": {
+            "label": "Immune-supporting foods"
+          },
+          "warm_drinks": {
+            "label": "Warm beverages"
+          }
+        },
+        "name": "Winter Warmth",
+        "description": "Hearty, warming meals to keep you energized through winter. Focus on soups, stews, root vegetables, and immune-supporting foods.",
+        "shortDescription": "Warming winter eating plan"
+      },
+      "autumn-harvest": {
+        "dailyTracker": {
+          "autumn_vegetable": {
+            "label": "Autumn vegetable (pumpkin/squash)"
+          },
+          "fall_fruit": {
+            "label": "Fall fruit (apple/pear)"
+          },
+          "warming_spices": {
+            "label": "Used warming spices"
+          },
+          "vegetables_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "cooked_meal": {
+            "label": "Warm cooked meal"
+          }
+        },
+        "name": "Autumn Harvest",
+        "description": "Embrace autumn with pumpkins, apples, squash, and other fall favorites. Transition from summer lightness to winter warmth.",
+        "shortDescription": "Seasonal autumn eating"
+      },
+      "clean-girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Ate whole, unprocessed foods"
+          },
+          "water_8": {
+            "label": "Water 8+ glasses"
+          },
+          "skin_foods": {
+            "label": "Skin-healthy foods (greens/berries)"
+          },
+          "no_processed": {
+            "label": "No processed snacks"
+          },
+          "mindful_meal": {
+            "label": "Mindful, calm meal"
+          }
+        },
+        "name": "Clean Girl Aesthetic",
+        "description": "A clean eating approach inspired by the clean girl aesthetic trend. Focus on simple, whole foods for glowing skin and natural energy.",
+        "shortDescription": "Simple, clean eating for natural glow"
+      },
+      "vacation-vibes": {
+        "dailyTracker": {
+          "fresh_meal": {
+            "label": "Fresh, colorful meal"
+          },
+          "slow_eating": {
+            "label": "Ate slowly, enjoyed"
+          },
+          "seafood_olive": {
+            "label": "Seafood or olive oil"
+          },
+          "vegetables_3": {
+            "label": "Fresh vegetables 3+"
+          },
+          "relaxed": {
+            "label": "Relaxed, stress-free eating"
+          }
+        },
+        "name": "Vacation Vibes",
+        "description": "Balanced eating inspired by Mediterranean vacation style — fresh, colorful, enjoyable. No stress, just pleasure.",
+        "shortDescription": "Vacation-style balanced eating"
+      },
+      "old-money": {
+        "dailyTracker": {
+          "quality_meal": {
+            "label": "Quality over quantity"
+          },
+          "proper_times": {
+            "label": "Ate at proper times"
+          },
+          "no_overeating": {
+            "label": "No overeating"
+          },
+          "table_manners": {
+            "label": "Proper table manners"
+          },
+          "classic_foods": {
+            "label": "Classic, quality foods"
+          }
+        },
+        "name": "Old Money Classic",
+        "description": "Refined eating habits inspired by classic elegance — quality over quantity, proper portions, timeless foods.",
+        "shortDescription": "Classic elegant eating style"
+      },
+      "country-club-breakfast": {
+        "dailyTracker": {
+          "proper_breakfast": {
+            "label": "Proper sit-down breakfast"
+          },
+          "protein_included": {
+            "label": "Protein included"
+          },
+          "no_phone": {
+            "label": "No phone during breakfast"
+          },
+          "fruit_included": {
+            "label": "Fresh fruit included"
+          },
+          "no_rush": {
+            "label": "No rushing"
+          }
+        },
+        "name": "Country Club Breakfast",
+        "description": "Morning rituals inspired by country club traditions. Proper breakfast as the foundation of a refined day.",
+        "shortDescription": "Elegant morning rituals"
+      },
+      "sunday-brunch": {
+        "dailyTracker": {
+          "leisurely_meal": {
+            "label": "Leisurely, unhurried meal"
+          },
+          "quality_food": {
+            "label": "Quality, refined food"
+          },
+          "good_company": {
+            "label": "Good company"
+          },
+          "balanced_plate": {
+            "label": "Balanced plate"
+          },
+          "no_phones": {
+            "label": "No phones at table"
+          }
+        },
+        "name": "Sunday Brunch",
+        "description": "The art of leisurely Sunday brunch — late morning, good company, quality food, no rush.",
+        "shortDescription": "Leisurely brunch tradition"
+      },
+      "yacht-week": {
+        "dailyTracker": {
+          "seafood": {
+            "label": "Seafood or fish"
+          },
+          "light_portions": {
+            "label": "Light portions"
+          },
+          "hydrated": {
+            "label": "Stayed hydrated"
+          },
+          "fresh_vegetables": {
+            "label": "Fresh vegetables"
+          },
+          "elegant_dinner": {
+            "label": "Elegant dinner"
+          }
+        },
+        "name": "Yacht Week",
+        "description": "Eating inspired by yacht lifestyle — light, fresh, Mediterranean-influenced, always elegant.",
+        "shortDescription": "Elegant seaside eating"
+      },
+      "prep-school-lunch": {
+        "dailyTracker": {
+          "proper_lunch": {
+            "label": "Proper sit-down lunch"
+          },
+          "balanced_plate": {
+            "label": "Balanced plate"
+          },
+          "set_time": {
+            "label": "Ate at set time"
+          },
+          "water": {
+            "label": "Water with meal"
+          },
+          "no_desk_eating": {
+            "label": "No eating at desk"
+          }
+        },
+        "name": "Prep School Lunch",
+        "description": "Inspired by traditional prep school dining — balanced, nutritious, proper. No skipping meals, no junk food.",
+        "shortDescription": "Proper, balanced lunches"
+      },
+      "french-chic": {
+        "dailyTracker": {
+          "small_portions": {
+            "label": "Ate small portions"
+          },
+          "enjoyed_food": {
+            "label": "Truly enjoyed food"
+          },
+          "sat_down": {
+            "label": "Ate sitting down"
+          },
+          "quality_choice": {
+            "label": "Chose quality over quantity"
+          },
+          "stopped_satisfied": {
+            "label": "Stopped when satisfied"
+          }
+        },
+        "name": "French Girl Diet",
+        "description": "French approach to eating — quality portions, enjoyment, no strict restrictions, natural balance and pleasure.",
+        "shortDescription": "French-style intuitive eating"
+      },
+      "gatsby-twenties": {
+        "dailyTracker": {
+          "elegant_appetizer": {
+            "label": "Elegant appetizer/canapé"
+          },
+          "small_portions": {
+            "label": "Small, refined portions"
+          },
+          "social_meal": {
+            "label": "Social meal with others"
+          },
+          "presentation": {
+            "label": "Nice presentation"
+          },
+          "sparkling": {
+            "label": "Sparkling beverage"
+          }
+        },
+        "name": "1920s Gatsby",
+        "description": "Inspired by the roaring twenties — glamorous parties, elegant appetizers, champagne, and indulgent but refined tastes.",
+        "shortDescription": "Jazz age inspired eating"
+      },
+      "fifties-hollywood": {
+        "dailyTracker": {
+          "protein_focused": {
+            "label": "Protein-focused meal"
+          },
+          "vegetables": {
+            "label": "Plenty of vegetables"
+          },
+          "light_breakfast": {
+            "label": "Light breakfast"
+          },
+          "no_bloating": {
+            "label": "No bloating foods"
+          },
+          "elegant_dinner": {
+            "label": "Elegant dinner"
+          }
+        },
+        "name": "1950s Hollywood",
+        "description": "Inspired by 1950s Hollywood glamour — balanced, portion-conscious, always camera-ready but enjoying life.",
+        "shortDescription": "Classic Hollywood eating"
+      },
+      "sixties-twiggy": {
+        "dailyTracker": {
+          "light_meal": {
+            "label": "Light, colorful meal"
+          },
+          "fresh_juice": {
+            "label": "Fresh juice or smoothie"
+          },
+          "small_portions": {
+            "label": "Small, frequent portions"
+          },
+          "something_new": {
+            "label": "Tried something new"
+          },
+          "fun_presentation": {
+            "label": "Fun presentation"
+          }
+        },
+        "name": "1960s Mod",
+        "description": "Inspired by 1960s mod culture — light, youthful, colorful, breaking traditional rules while staying elegant.",
+        "shortDescription": "Youthful mod-style eating"
+      },
+      "seventies-disco": {
+        "dailyTracker": {
+          "light_eating": {
+            "label": "Light eating"
+          },
+          "movement": {
+            "label": "Danced or moved"
+          },
+          "appetizers": {
+            "label": "Appetizers over heavy meals"
+          },
+          "energy_maintained": {
+            "label": "Energy maintained"
+          },
+          "moderate_drinks": {
+            "label": "Moderate drinks"
+          }
+        },
+        "name": "1970s Disco",
+        "description": "Inspired by Studio 54 era — light eating to stay energized for parties, quick bites, champagne, staying slim for dance floor.",
+        "shortDescription": "Party-ready eating"
+      },
+      "eighties-power": {
+        "dailyTracker": {
+          "protein_lunch": {
+            "label": "Protein-rich lunch"
+          },
+          "quality_restaurant": {
+            "label": "Quality restaurant"
+          },
+          "confident_order": {
+            "label": "Ordered confidently"
+          },
+          "networking": {
+            "label": "Business discussion at meal"
+          },
+          "balanced": {
+            "label": "Balanced choice"
+          }
+        },
+        "name": "1980s Power Lunch",
+        "description": "Inspired by 1980s corporate culture — power lunches, steak houses, business over meals, confident choices.",
+        "shortDescription": "Power business eating"
+      }
+    }
   }
 }

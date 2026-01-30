@@ -3,42 +3,51 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useDesignTokens } from '../contexts/ThemeContext';
-// FIX: Use shared getLocalizedText for consistency and fr support
 import { getLocalizedText as getLocalizedTextShared } from './programs/types';
 
 // Helper to extract localized string from object or return string directly
-// FIX: Use shared implementation with proper fallback chain including fr
-const getLocalizedText = (value, lang) => {
-    return getLocalizedTextShared(value, lang);
+const getLocalizedText = (value, lang, t) => {
+    return getLocalizedTextShared(value, lang, t);
+};
+
+const difficultyColors = {
+    EASY: '#4CAF50',
+    MODERATE: '#FF9800',
+    HARD: '#F44336',
+    // Fallbacks
+    easy: '#4CAF50',
+    moderate: '#FF9800',
+    hard: '#F44336'
+};
+
+const difficultyLabels = {
+    EASY: 'Easy',
+    MODERATE: 'Moderate',
+    HARD: 'Hard',
+    easy: 'Easy',
+    moderate: 'Moderate',
+    hard: 'Hard'
+};
+
+const typeLabels = {
+    LIFESTYLE: 'Lifestyle',
+    HEALTH: 'Health',
+    WEIGHT_LOSS: 'Weight Loss',
+    MUSCLE_BUILDING: 'Muscle Building',
+    ENERGY: 'Energy',
+    // Fallbacks
+    lifestyle: 'Lifestyle',
+    health: 'Health'
 };
 
 /**
  * DietCard - Card component for displaying diet in list
  */
-export default function DietCard({ diet, onPress }) {
+export default function DietCard({ diet, onPress, isLocked = false }) {
     const { t, language } = useI18n();
     const tokens = useDesignTokens();
 
-    const difficultyColors = {
-        EASY: '#4CAF50',
-        MODERATE: '#FF9800',
-        HARD: '#F44336',
-    };
-
-    const difficultyLabels = {
-        EASY: t('diets_difficulty_easy') || 'Easy',
-        MODERATE: t('diets_difficulty_moderate') || 'Moderate',
-        HARD: t('diets_difficulty_hard') || 'Hard',
-    };
-
-    const typeLabels = {
-        WEIGHT_LOSS: t('diets_type_weight_loss') || 'Weight Loss',
-        WEIGHT_GAIN: t('diets_weight_gain') || 'Weight Gain',
-        HEALTH: t('diets_type_health') || 'Health',
-        MEDICAL: t('diets_type_medical') || 'Medical',
-        LIFESTYLE: t('diets_lifestyle_label') || 'Lifestyle',
-        SPORTS: t('diets_type_sports') || 'Sports',
-    };
+    const diffColor = difficultyColors[diet.difficulty] || difficultyColors[diet.difficulty?.toUpperCase()] || '#999';
 
     return (
         <TouchableOpacity
@@ -49,15 +58,22 @@ export default function DietCard({ diet, onPress }) {
             {/* Image */}
             <View style={styles.imageContainer}>
                 {diet.imageUrl ? (
-                    <Image source={{ uri: diet.imageUrl }} style={styles.image} />
+                    <Image source={{ uri: diet.imageUrl }} style={[styles.image, isLocked && { opacity: 0.6 }]} />
                 ) : (
-                    <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: diet.color || '#4CAF50' }]}>
+                    <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: diet.color || '#4CAF50' }, isLocked && { opacity: 0.6 }]}>
                         <Ionicons name="restaurant" size={32} color="#FFF" />
                     </View>
                 )}
 
+                {/* Lock badge */}
+                {isLocked && (
+                    <View style={styles.lockOverlay}>
+                        <Ionicons name="lock-closed" size={24} color="#FFF" />
+                    </View>
+                )}
+
                 {/* Featured badge */}
-                {diet.isFeatured && (
+                {!isLocked && diet.isFeatured && (
                     <View style={styles.featuredBadge}>
                         <Ionicons name="star" size={12} color="#FFF" />
                     </View>
@@ -65,13 +81,13 @@ export default function DietCard({ diet, onPress }) {
             </View>
 
             {/* Content */}
-            <View style={styles.content}>
+            <View style={[styles.content, isLocked && { opacity: 0.6 }]}>
                 <Text style={[styles.name, { color: tokens.colors?.textPrimary || '#212121' }]} numberOfLines={1}>
-                    {getLocalizedText(diet.name, language)}
+                    {getLocalizedText(diet.name, language, t)}
                 </Text>
 
                 <Text style={[styles.description, { color: tokens.colors?.textSecondary || '#666' }]} numberOfLines={2}>
-                    {getLocalizedText(diet.shortDescription, language) || getLocalizedText(diet.description, language)}
+                    {getLocalizedText(diet.shortDescription, language, t) || getLocalizedText(diet.description, language, t)}
                 </Text>
 
                 {/* Tags row */}
@@ -84,8 +100,8 @@ export default function DietCard({ diet, onPress }) {
                     </View>
 
                     {/* Difficulty */}
-                    <View style={[styles.tag, { backgroundColor: `${difficultyColors[diet.difficulty]}20` }]}>
-                        <Text style={[styles.tagText, { color: difficultyColors[diet.difficulty] }]}>
+                    <View style={[styles.tag, { backgroundColor: `${diffColor}20` }]}>
+                        <Text style={[styles.tagText, { color: diffColor }]}>
                             {difficultyLabels[diet.difficulty] || diet.difficulty}
                         </Text>
                     </View>
@@ -98,38 +114,16 @@ export default function DietCard({ diet, onPress }) {
                         </Text>
                     </View>
                 </View>
-
-                {/* Disclaimer badge for historical/inspired diets */}
-                {diet.disclaimerKey && (
-                    <View style={styles.disclaimerBadge}>
-                        <Ionicons name="information-circle-outline" size={12} color="#795548" />
-                        <Text style={styles.disclaimerBadgeText}>
-                            {diet.disclaimerKey === 'DISCLAIMER_HISTORICAL'
-                                ? (t('diets_disclaimers_historical_short') || 'Historical')
-                                : diet.disclaimerKey === 'DISCLAIMER_PUBLIC_FIGURE'
-                                    ? (t('diets_disclaimers_public_figure_short') || 'Inspired')
-                                    : diet.disclaimerKey === 'DISCLAIMER_MEDICAL'
-                                        ? (t('diets_disclaimers_medical_short') || 'Medical')
-                                        : ''}
-                        </Text>
-                    </View>
-                )}
-
-                {/* Rating */}
-                {diet.averageRating > 0 && (
-                    <View style={styles.ratingRow}>
-                        <Ionicons name="star" size={14} color="#FFC107" />
-                        <Text style={styles.rating}>{diet.averageRating.toFixed(1)}</Text>
-                        <Text style={styles.ratingCount}>({diet.ratingCount || 0})</Text>
-                        <Text style={styles.userCount}>
-                            • {diet.userCount || 0} {t('diets_users') || 'users'}
-                        </Text>
-                    </View>
-                )}
             </View>
 
-            {/* Arrow */}
-            <Ionicons name="chevron-forward" size={20} color={tokens.colors?.textTertiary || '#999'} />
+            {/* Arrow or Lock */}
+            <View style={styles.arrowContainer}>
+                {isLocked ? (
+                    <Ionicons name="lock-closed-outline" size={20} color={tokens.colors?.textTertiary || '#999'} />
+                ) : (
+                    <Ionicons name="chevron-forward" size={20} color={tokens.colors?.textTertiary || '#999'} />
+                )}
+            </View>
         </TouchableOpacity>
     );
 }
@@ -138,13 +132,13 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 12,
         padding: 12,
+        borderRadius: 16,
         marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 3,
+        shadowRadius: 4,
         elevation: 2,
     },
     imageContainer: {
@@ -171,8 +165,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    lockOverlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderRadius: 12,
+    },
     content: {
         flex: 1,
+        justifyContent: 'center',
     },
     name: {
         fontSize: 16,
@@ -188,53 +191,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 6,
-        marginBottom: 6,
     },
     tag: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 8,
         paddingVertical: 3,
-        borderRadius: 10,
+        borderRadius: 8,
     },
     tagText: {
         fontSize: 11,
         fontWeight: '500',
     },
-    ratingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    rating: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginLeft: 4,
-    },
-    ratingCount: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        marginLeft: 2,
-    },
-    userCount: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        marginLeft: 4,
-    },
-    disclaimerBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F5F0E6',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 8,
-        marginBottom: 6,
-        alignSelf: 'flex-start',
-        gap: 4,
-    },
-    disclaimerBadgeText: {
-        fontSize: 10,
-        color: '#795548',
-        fontWeight: '500',
+    arrowContainer: {
+        marginLeft: 8,
     },
 });

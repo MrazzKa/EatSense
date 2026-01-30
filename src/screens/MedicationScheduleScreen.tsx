@@ -265,7 +265,11 @@ const MedicationScheduleScreen: React.FC = () => {
       await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
 
       // 2. Schedule for ALL active medications
-      const hasPermission = await localNotificationService.checkPermissions();
+      let hasPermission = await localNotificationService.checkPermissions();
+      if (!hasPermission) {
+        hasPermission = await localNotificationService.requestPermissions();
+      }
+
       if (hasPermission && freshMedications) {
         for (const med of freshMedications) {
           if (!med.isActive || !med.doses) continue;
@@ -518,14 +522,19 @@ const MedicationScheduleScreen: React.FC = () => {
     },
     modalBackdrop: {
       flex: 1,
-      justifyContent: 'center',
-      paddingHorizontal: 16,
+      justifyContent: 'flex-end', // Change to bottom-sheet style to avoid "too high" issues
+      backgroundColor: 'rgba(0,0,0,0.5)',
     },
     modalContent: {
-      borderRadius: 16,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
       maxHeight: '90%',
-      padding: 16,
-      overflow: 'hidden', // Added to ensure border radius clips content
+      width: '100%',
+      padding: 20,
+      paddingBottom: Platform.OS === 'ios' ? 40 : 24, // Extra padding for safe area
+      overflow: 'hidden',
     },
     modalHeader: {
       flexDirection: 'row',
@@ -665,10 +674,9 @@ const MedicationScheduleScreen: React.FC = () => {
       >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined} // Android often handles this automatically or doesn't need 'padding' for center/bottom modals
         >
-          <View style={[styles.modalBackdrop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <View style={styles.modalBackdrop}>
             <View style={[styles.modalContent, { backgroundColor: colors.card || colors.surface }]}>
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, { color: colors.textPrimary || colors.text }]}>
@@ -795,8 +803,10 @@ const MedicationScheduleScreen: React.FC = () => {
                         { borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background, justifyContent: 'center' },
                       ]}
                       onPress={() => handleTimeVerify(index)}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={{ color: colors.textPrimary || colors.text }}>
+                      <Text style={{ color: colors.textPrimary || colors.text, fontSize: 16, fontWeight: '500' }}>
                         {dose.timeOfDay}
                       </Text>
                     </TouchableOpacity>

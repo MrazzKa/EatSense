@@ -14,6 +14,15 @@ export class MealsService {
   ) { }
 
   async getMeals(userId: string, date?: string) {
+    const cacheKey = `${userId}:${date || 'latest'}`;
+
+    if (this.cache) {
+      const cached = await this.cache.get(cacheKey, 'meals:diary');
+      if (cached) {
+        return cached;
+      }
+    }
+
     const where: any = { userId };
 
     // Filter by date if provided (date should be in YYYY-MM-DD format)
@@ -64,7 +73,7 @@ export class MealsService {
 
     // B: Map meals with calculated totals from items
     // Frontend expects totalCalories, totalProtein, totalCarbs, totalFat for Recent items
-    return meals.map(meal => {
+    const result = meals.map(meal => {
       // Calculate totals from items
       const totals = meal.items.reduce(
         (acc, item) => {
@@ -116,6 +125,13 @@ export class MealsService {
         healthInsights: meal.healthInsights || null,
       };
     });
+
+    if (this.cache) {
+      // Cache for 5 minutes (300s) - good balance between freshness and load
+      await this.cache.set(cacheKey, result, 'meals:diary', 300);
+    }
+
+    return result;
   }
 
   async createMeal(userId: string, createMealDto: CreateMealDto) {
@@ -217,11 +233,13 @@ export class MealsService {
       this.logger.warn(`mealLog=failed userId=${userId} mealId=${meal.id} reason=${error.message}`);
     }
 
-    // Invalidate stats cache when meal is created
+    // Invalidate stats cache and MEALS cache when meal is created
     if (this.cache) {
       try {
         await this.cache.invalidateNamespace('stats:monthly', userId);
         await this.cache.invalidateNamespace('stats:daily' as any, userId);
+        await this.cache.invalidateNamespace('meals:diary', userId);
+        await this.cache.invalidateNamespace('suggestions', userId);
       } catch (error: any) {
         this.logger.warn(`Failed to invalidate stats cache: ${error?.message || String(error)}`);
       }
@@ -278,6 +296,18 @@ export class MealsService {
       include: { items: true },
     });
 
+    // Invalidate stats cache when meal is updated
+    if (this.cache) {
+      try {
+        await this.cache.invalidateNamespace('stats:monthly', userId);
+        await this.cache.invalidateNamespace('stats:daily' as any, userId);
+        await this.cache.invalidateNamespace('meals:diary', userId);
+        await this.cache.invalidateNamespace('suggestions', userId);
+      } catch (error: any) {
+        this.logger.warn(`Failed to invalidate stats cache: ${error?.message || String(error)}`);
+      }
+    }
+
     // Task 5: Map imageUri to imageUrl for frontend consistency
     return {
       ...updatedMeal,
@@ -304,6 +334,8 @@ export class MealsService {
       try {
         await this.cache.invalidateNamespace('stats:monthly', userId);
         await this.cache.invalidateNamespace('stats:daily' as any, userId);
+        await this.cache.invalidateNamespace('meals:diary', userId);
+        await this.cache.invalidateNamespace('suggestions', userId);
       } catch (error: any) {
         this.logger.warn(`Failed to invalidate stats cache: ${error?.message || String(error)}`);
       }
@@ -330,10 +362,24 @@ export class MealsService {
     }
 
     // Update the item
-    return this.prisma.mealItem.update({
+    const updated = await this.prisma.mealItem.update({
       where: { id: itemId },
       data: updateItemDto,
     });
+
+    if (this.cache) {
+      try {
+        await this.cache.invalidateNamespace('meals:diary', userId);
+        await this.cache.invalidateNamespace('suggestions', userId);
+        // Also invalidate stats to be safe
+        await this.cache.invalidateNamespace('stats:monthly', userId);
+        await this.cache.invalidateNamespace('stats:daily' as any, userId);
+      } catch (e) {
+        this.logger.warn(`Failed to invalidate cache in updateMealItem: ${e}`);
+      }
+    }
+
+    return updated;
   }
 
   private mapMealTypeForLogging(mealType: string): MealLogMealType {

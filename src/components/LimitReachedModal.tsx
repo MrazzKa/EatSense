@@ -10,6 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useDesignTokens } from '../contexts/ThemeContext';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 interface LimitReachedModalProps {
     visible: boolean;
     limit: number;
@@ -48,46 +50,55 @@ export default function LimitReachedModal({
             <View style={styles.overlay}>
                 <View style={[styles.container, { backgroundColor: tokens.colors?.surface || '#fff' }]}>
                     {/* Icon */}
-                    <View style={[styles.iconContainer, { backgroundColor: (tokens.colors?.warning || '#FF9800') + '20' }]}>
-                        <Ionicons name="flash" size={32} color={tokens.colors?.warning || '#FF9800'} />
+                    <View style={[styles.iconContainer, { backgroundColor: (tokens.colors?.warning || '#F59E0B') + '20' }]}>
+                        <Ionicons name="flash" size={32} color={tokens.colors?.warning || '#F59E0B'} />
                     </View>
 
                     {/* Title */}
-                    <Text style={[styles.title, { color: tokens.colors?.textPrimary || '#212121' }]}>
+                    <Text style={[styles.title, { color: tokens.colors?.textPrimary || '#111827' }]}>
                         {t('limits.title', 'Daily Limit Reached')}
                     </Text>
 
                     {/* Description */}
-                    <Text style={[styles.description, { color: tokens.colors?.textSecondary || '#666' }]}>
+                    <Text style={[styles.description, { color: tokens.colors?.textSecondary || '#4B5563' }]}>
                         {t('limits.description', `You've used all ${limit} free analyses for today.`)}
                     </Text>
 
                     {resetAt && (
-                        <Text style={[styles.resetTime, { color: tokens.colors?.textSecondary || '#666' }]}>
+                        <Text style={[styles.resetTime, { color: tokens.colors?.textSecondary || '#4B5563' }]}>
                             {t('limits.resetsAt', 'Resets at')} {formatResetTime(resetAt)}
                         </Text>
                     )}
 
                     {/* Upgrade benefit */}
-                    <View style={[styles.benefitBox, { backgroundColor: (tokens.colors?.primary || '#4CAF50') + '10' }]}>
-                        <Ionicons name="infinite" size={20} color={tokens.colors?.primary || '#4CAF50'} />
-                        <Text style={[styles.benefitText, { color: tokens.colors?.textPrimary || '#212121' }]}>
+                    <View style={[styles.benefitBox, { backgroundColor: (tokens.colors?.primary || '#2563EB') + '10' }]}>
+                        <Ionicons name="infinite" size={20} color={tokens.colors?.primary || '#2563EB'} />
+                        <Text style={[styles.benefitText, { color: tokens.colors?.textPrimary || '#111827' }]}>
                             {t('limits.unlimitedBenefit', 'Premium users get unlimited analyses')}
                         </Text>
                     </View>
 
                     {/* Buttons */}
                     <TouchableOpacity
-                        style={[styles.upgradeButton, { backgroundColor: tokens.colors?.primary || '#4CAF50' }]}
+                        style={styles.upgradeButtonContainer}
                         onPress={onUpgrade}
+                        activeOpacity={0.8}
                     >
-                        <Text style={styles.upgradeButtonText}>
-                            {t('limits.upgradeToPremium', 'Upgrade to Premium')}
-                        </Text>
+                        <LinearGradient
+                            colors={['#7C3AED', '#5B21B6']} // Purple gradient for premium
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.upgradeButton}
+                        >
+                            <Ionicons name="star" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                            <Text style={styles.upgradeButtonText}>
+                                {t('limits.upgradeToPremium', 'Upgrade to Premium')}
+                            </Text>
+                        </LinearGradient>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                        <Text style={[styles.cancelButtonText, { color: tokens.colors?.textSecondary || '#666' }]}>
+                    <TouchableOpacity style={styles.cancelButton} onPress={onClose} activeOpacity={0.7}>
+                        <Text style={[styles.cancelButtonText, { color: tokens.colors?.textSecondary || '#4B5563' }]}>
                             {t('common.cancel', 'Cancel')}
                         </Text>
                     </TouchableOpacity>
@@ -100,7 +111,7 @@ export default function LimitReachedModal({
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 24,
@@ -108,9 +119,17 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         maxWidth: 340,
-        borderRadius: 20,
+        borderRadius: 24,
         padding: 24,
         alignItems: 'center',
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 10,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
     },
     iconContainer: {
         width: 64,
@@ -121,50 +140,67 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     title: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: '700',
         marginBottom: 8,
         textAlign: 'center',
     },
     description: {
-        fontSize: 15,
+        fontSize: 16,
         textAlign: 'center',
         marginBottom: 4,
+        lineHeight: 22,
     },
     resetTime: {
-        fontSize: 13,
+        fontSize: 14,
         textAlign: 'center',
         marginBottom: 16,
     },
     benefitBox: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 12,
-        marginBottom: 20,
+        padding: 14,
+        borderRadius: 16,
+        marginBottom: 24,
         gap: 8,
+        width: '100%',
     },
     benefitText: {
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
         flex: 1,
+    },
+    upgradeButtonContainer: {
+        width: '100%',
+        borderRadius: 14,
+        marginBottom: 12,
+        // Premium shadow
+        shadowColor: '#7C3AED',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
     },
     upgradeButton: {
         width: '100%',
-        paddingVertical: 14,
-        borderRadius: 12,
+        paddingVertical: 16,
+        borderRadius: 14,
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        justifyContent: 'center',
     },
     upgradeButtonText: {
         color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
+        fontSize: 17,
+        fontWeight: '700',
     },
     cancelButton: {
-        paddingVertical: 8,
+        paddingVertical: 10,
+        width: '100%',
+        alignItems: 'center',
     },
     cancelButtonText: {
-        fontSize: 14,
+        fontSize: 15,
+        fontWeight: '500',
     },
 });

@@ -18,7 +18,9 @@ type CacheNamespace =
   | 'diets:featured'
   | 'diets:recommendations'
   | 'diets:detail'
-  | 'diets:bundle';
+  | 'diets:bundle'
+  | 'meals:diary'
+  | 'suggestions';
 
 interface CacheEntry<T> {
   value: T;
@@ -135,10 +137,8 @@ export class CacheService {
     return this.resolveTtl(namespace);
   }
 
-  async clear(namespace?: CacheNamespace): Promise<void> {
+  private async deleteByPattern(pattern: string): Promise<void> {
     const client = this.redis.getClient();
-    const pattern = namespace ? `${this.prefix}:${namespace}:*` : `${this.prefix}:*`;
-
     const stream = client.scanIterator({
       MATCH: pattern,
       COUNT: 100,
@@ -162,8 +162,18 @@ export class CacheService {
     }
   }
 
+  async clear(namespace?: CacheNamespace): Promise<void> {
+    const pattern = namespace ? `${this.prefix}:${namespace}:*` : `${this.prefix}:*`;
+    await this.deleteByPattern(pattern);
+  }
+
   async invalidateNamespace(namespace: CacheNamespace, userId?: string): Promise<void> {
-    await this.clear(namespace);
+    const pattern = userId
+      ? `${this.prefix}:${namespace}:${userId}:*`
+      : `${this.prefix}:${namespace}:*`;
+
+    this.logger.debug(`Invalidating namespace=${namespace} userId=${userId || 'all'} pattern=${pattern}`);
+    await this.deleteByPattern(pattern);
   }
 
   async healthCheck(): Promise<boolean> {

@@ -13,19 +13,33 @@ import { getLifestyleImage } from '../lifestyleImages';
 
 interface LifestyleCardProps {
   program: LifestyleProgram;
+  isLocked?: boolean;
   onPress: () => void;
 }
 
-export default function LifestyleCard({ program, onPress }: LifestyleCardProps) {
+export default function LifestyleCard({ program, isLocked, onPress }: LifestyleCardProps) {
   const { t, language } = useI18n();
   const { colors } = useTheme();
 
   const getLocalizedText = (
-    text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null
+    text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null,
+    t?: (key: string) => string
   ): string => {
     if (!text) return '';
-    if (typeof text === 'string') return text;
-    return text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || '';
+
+    // Helper to translate if t provided
+    const translateIfNeeded = (str: string) => {
+      if (t && str && /^[a-z_][a-z0-9_.]*\.[a-z0-9_.]+$/i.test(str) && str.includes('.')) {
+        return t(str);
+      }
+      return str;
+    };
+
+    if (typeof text === 'string') return translateIfNeeded(text);
+
+    // Fallback logic
+    const result = text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || Object.values(text)[0] || '';
+    return translateIfNeeded(result);
   };
 
   const targetColor = {
@@ -60,11 +74,16 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
           {imageSource ? (
             <Image
               source={imageSource}
-              style={{ width: '100%', height: '100%', borderRadius: 24 }}
+              style={{ width: '100%', height: '100%', borderRadius: 24, opacity: isLocked ? 0.6 : 1 }}
               resizeMode="cover"
             />
           ) : (
             <Text style={styles.emoji}>{program.emoji}</Text>
+          )}
+          {isLocked && (
+            <View style={styles.lockOverlay}>
+              <Ionicons name="lock-closed" size={16} color="#FFF" />
+            </View>
           )}
         </View>
 
@@ -78,7 +97,7 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
             ]}
             numberOfLines={2}
           >
-            {getLocalizedText(program.name)}
+            {getLocalizedText(program.name, t)}
           </Text>
         </View>
 
@@ -105,10 +124,12 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
             color: colors.textSecondary || '#666',
           },
         ]}
-        numberOfLines={2}
+        numberOfLines={3}
       >
-        {getLocalizedText(program.tagline)}
+        {getLocalizedText(program.tagline, t) || getLocalizedText(program.shortDescription, t) || getLocalizedText(program.description, t) || getLocalizedText(program.subtitle, t)}
       </Text>
+
+
 
       {/* Vibe keywords */}
       {program.vibe && (
@@ -138,21 +159,60 @@ export default function LifestyleCard({ program, onPress }: LifestyleCardProps) 
         </View>
       )}
 
+      {/* Tags: Category, Difficulty, Duration */}
+      <View style={styles.tagsRow}>
+        {/* Duration (Moved from above) */}
+        <View style={[styles.tag, { backgroundColor: colors.surfaceSecondary || '#F0F0F0' }]}>
+          <Ionicons name="time-outline" size={12} color={colors.textSecondary || '#666'} />
+          <Text style={[styles.tagText, { color: colors.textSecondary || '#666', marginLeft: 4 }]}>
+            {program.durationDays || 14} {t('diets_days') || 'days'}
+          </Text>
+        </View>
+
+        {/* Category Tag */}
+        {program.category && (
+          <View style={[styles.tag, { backgroundColor: (colors.primary || '#4CAF50') + '20' }]}>
+            <Text style={[styles.tagText, { color: colors.primary || '#4CAF50' }]}>
+              {(program.category.charAt(0).toUpperCase() + program.category.slice(1)).replace(/_/g, ' ')}
+            </Text>
+          </View>
+        )}
+        {/* Difficulty Tag */}
+        {program.difficulty && (
+          <View style={[styles.tag, { backgroundColor: (colors.warning || '#FFC107') + '20' }]}>
+            <Text style={[styles.tagText, { color: colors.warning || '#856404' }]}>
+              {(program.difficulty.charAt(0).toUpperCase() + program.difficulty.slice(1))}
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* CTA Button */}
       <TouchableOpacity
         style={[
           styles.ctaButton,
           {
-            backgroundColor: colors.primary || '#4CAF50',
+            backgroundColor: isLocked ? (colors.surfaceSecondary || '#E0E0E0') : (colors.primary || '#4CAF50'),
           },
         ]}
         onPress={onPress}
         activeOpacity={0.8}
       >
-        <Text style={styles.ctaText}>
-          {t('lifestyles.card.view') || 'Посмотреть'}
-        </Text>
-        <Ionicons name="chevron-forward" size={16} color="#FFF" />
+        {isLocked ? (
+          <>
+            <Ionicons name="lock-closed-outline" size={16} color={colors.textSecondary} />
+            <Text style={[styles.ctaText, { color: colors.textSecondary }]}>
+              {t('lifestyles.card.locked') || 'Paid Plan'}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.ctaText}>
+              {t('lifestyles.card.view') || 'View Program'}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color="#FFF" />
+          </>
+        )}
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -209,7 +269,25 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 8,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+  },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 0,
   },
   vibeContainer: {
     flexDirection: 'row',
@@ -238,5 +316,15 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  lockOverlay: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: '#FFA500',
+    borderRadius: 10,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
 });

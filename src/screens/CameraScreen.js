@@ -5,9 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
-// Note: we intentionally avoid react-native-reanimated here to reduce
-// chances of runtime issues in production builds. No custom animations.
+import Reanimated, {
+  useSharedValue,
+  useAnimatedProps,
+  runOnJS
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { clientLog } from '../utils/clientLog';
@@ -15,6 +19,8 @@ import DescribeFoodModal from '../components/DescribeFoodModal';
 import ApiService from '../services/apiService';
 import { mapLanguageToLocale } from '../utils/locale';
 import { useAnalysis } from '../contexts/AnalysisContext';
+
+const AnimatedCamera = Reanimated.createAnimatedComponent(CameraView);
 
 export default function CameraScreen() {
   const navigation = useNavigation();
@@ -27,8 +33,34 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
-  // Note: zoom state removed - using native pinch-to-zoom gesture only
-  // expo-camera handles zoom internally when enableZoomGesture is true
+
+  // Reanimated Zoom State
+  const zoom = useSharedValue(0);
+  const baseZoom = useSharedValue(0);
+
+  const pinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      baseZoom.value = zoom.value;
+    })
+    .onUpdate((e) => {
+      // Zoom logic: additive scale
+      // e.scale starts at 1. We treat (scale - 1) as the delta to add to base zoom
+      // Multiplier 0.02 helps control sensitivity
+      // Logic from similar functional implementations:
+      const ROUGH_SENSITIVITY = 1.5;
+      // standard pinch scale behaves exponentially, so we linearize it roughly
+      // newZoom = base + (scale - 1)
+      const delta = (e.scale - 1);
+
+      // Clamp between 0 and 1
+      zoom.value = Math.min(Math.max(baseZoom.value + delta * 0.5, 0), 1);
+    });
+
+  const animatedProps = useAnimatedProps(() => {
+    return {
+      zoom: zoom.value,
+    };
+  });
 
   // Safe requestPermission wrapper
   const handleRequestPermission = async () => {
@@ -61,6 +93,9 @@ export default function CameraScreen() {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const takePicture = async () => {
+    // Access the real camera ref from the animated component
+    // Reanimated wraps the ref, so we might need to exact it or pass it through?
+    // createAnimatedComponent forwards refs, so cameraRef.current should work directly if it points to CameraView instance
     if (!cameraRef.current || isLoading) {
       await clientLog('Camera:takePictureNoRef').catch(() => { });
       return;
@@ -257,82 +292,87 @@ export default function CameraScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: '#000000' }]}>
-      <CameraView
-        style={StyleSheet.absoluteFill}
-        facing={facing}
-        ref={cameraRef}
-        enableZoomGesture={true}
-        flash={flashMode}
-      >
-        <LinearGradient
-          colors={['rgba(0,0,0,0.65)', 'transparent', 'rgba(0,0,0,0.75)']}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-
-        <View style={[styles.cameraOverlay, { paddingTop: insets.top, paddingBottom: insets.bottom }]} pointerEvents="box-none">
-          <View
-            style={[styles.header, { paddingTop: tokens.spacing.lg }]}
+      <GestureDetector gesture={pinchGesture}>
+        <View style={StyleSheet.absoluteFill}>
+          <AnimatedCamera
+            style={StyleSheet.absoluteFill}
+            facing={facing}
+            ref={cameraRef}
+            animatedProps={animatedProps}
+            enableZoomGesture={false} // Use our Gesture Detector
+            flash={flashMode}
           >
-            <Pressable style={styles.headerButton} onPress={typeof handleClose === 'function' ? handleClose : () => { }}>
-              <Ionicons name="close" size={24} color={tokens.colors.onPrimary} />
-            </Pressable>
-            <Text style={[styles.headerTitle, { color: tokens.colors.onPrimary }]}>{t('camera.takePhoto')}</Text>
-            <View style={styles.headerButtonPlaceholder} />
-          </View>
+            <LinearGradient
+              colors={['rgba(0,0,0,0.65)', 'transparent', 'rgba(0,0,0,0.75)']}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
 
-          <View
-            style={[styles.controls, { paddingBottom: tokens.spacing.xl }]}
-          >
-            <View style={styles.controlRow}>
-              <Pressable style={styles.controlButton} onPress={typeof handleFlashToggle === 'function' ? handleFlashToggle : () => { }}>
-                <Ionicons
-                  name={
-                    flashMode === 'off' ? 'flash-off' : flashMode === 'on' ? 'flash' : 'flash-outline'
-                  }
-                  size={24}
-                  color={tokens.colors.onPrimary}
-                />
-                <Text style={[styles.controlLabel, { color: tokens.colors.onPrimary }]}>{flashLabel}</Text>
-              </Pressable>
-
-              <View style={styles.captureWrapper}>
-                <Pressable
-                  style={[styles.captureButton, isLoading && styles.captureButtonDisabled]}
-                  onPress={typeof takePicture === 'function' ? takePicture : () => { }}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color={tokens.colors.onPrimary} />
-                  ) : (
-                    <View style={[styles.captureButtonInner, { backgroundColor: tokens.colors.primary }]} />
-                  )}
+            <View style={[styles.cameraOverlay, { paddingTop: insets.top, paddingBottom: insets.bottom }]} pointerEvents="box-none">
+              <View
+                style={[styles.header, { paddingTop: tokens.spacing.lg }]}
+              >
+                <Pressable style={styles.headerButton} onPress={typeof handleClose === 'function' ? handleClose : () => { }}>
+                  <Ionicons name="close" size={24} color={tokens.colors.onPrimary} />
                 </Pressable>
+                <Text style={[styles.headerTitle, { color: tokens.colors.onPrimary }]}>{t('camera.takePhoto')}</Text>
+                <View style={styles.headerButtonPlaceholder} />
               </View>
 
-              <Pressable
-                style={styles.controlButton}
-                onPress={() => setFacing((prev) => (prev === 'back' ? 'front' : 'back'))}
+              <View
+                style={[styles.controls, { paddingBottom: tokens.spacing.xl }]}
               >
-                <Ionicons name="camera-reverse" size={24} color={tokens.colors.onPrimary} />
-                <Text style={[styles.controlLabel, { color: tokens.colors.onPrimary }]}>
-                  {t('camera.switchCamera')}
-                </Text>
-              </Pressable>
-            </View>
+                <View style={styles.controlRow}>
+                  <Pressable style={styles.controlButton} onPress={typeof handleFlashToggle === 'function' ? handleFlashToggle : () => { }}>
+                    <Ionicons
+                      name={
+                        flashMode === 'off' ? 'flash-off' : flashMode === 'on' ? 'flash' : 'flash-outline'
+                      }
+                      size={24}
+                      color={tokens.colors.onPrimary}
+                    />
+                    <Text style={[styles.controlLabel, { color: tokens.colors.onPrimary }]}>{flashLabel}</Text>
+                  </Pressable>
 
-            <Pressable
-              style={styles.typeButton}
-              onPress={() => setShowDescribeModal(true)}
-            >
-              <Ionicons name="create-outline" size={20} color={tokens.colors.onPrimary} />
-              <Text style={[styles.typeButtonText, { color: tokens.colors.onPrimary }]}>
-                {t('camera.typeInstead') || 'Type instead'}
-              </Text>
-            </Pressable>
-          </View>
+                  <View style={styles.captureWrapper}>
+                    <Pressable
+                      style={[styles.captureButton, isLoading && styles.captureButtonDisabled]}
+                      onPress={typeof takePicture === 'function' ? takePicture : () => { }}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator size="small" color={tokens.colors.onPrimary} />
+                      ) : (
+                        <View style={[styles.captureButtonInner, { backgroundColor: tokens.colors.primary }]} />
+                      )}
+                    </Pressable>
+                  </View>
+
+                  <Pressable
+                    style={styles.controlButton}
+                    onPress={() => setFacing((prev) => (prev === 'back' ? 'front' : 'back'))}
+                  >
+                    <Ionicons name="camera-reverse" size={24} color={tokens.colors.onPrimary} />
+                    <Text style={[styles.controlLabel, { color: tokens.colors.onPrimary }]}>
+                      {t('camera.switchCamera')}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <Pressable
+                  style={styles.typeButton}
+                  onPress={() => setShowDescribeModal(true)}
+                >
+                  <Ionicons name="create-outline" size={20} color={tokens.colors.onPrimary} />
+                  <Text style={[styles.typeButtonText, { color: tokens.colors.onPrimary }]}>
+                    {t('camera.typeInstead') || 'Type instead'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </AnimatedCamera>
         </View>
-      </CameraView>
+      </GestureDetector>
 
       <DescribeFoodModal
         visible={showDescribeModal}
