@@ -2,6 +2,8 @@
  * Shared types for Programs components
  */
 
+import type React from 'react';
+
 export interface Program {
   id: string;
   name: string | Record<string, string>;
@@ -23,6 +25,8 @@ export interface Program {
   disclaimerKey?: string;
   emoji?: string;
 }
+
+export type RenderItemFunction = (_: Program, __: number) => React.ReactNode;
 
 export interface Recommendation {
   diet: Program;
@@ -52,7 +56,7 @@ export type LocalizedText = string | Record<string, string>;
 export function getLocalizedText(
   value: LocalizedText | undefined,
   language: string,
-  t?: (key: string) => string
+  t?: (_key: string) => string
 ): string {
   if (!value) return '';
 

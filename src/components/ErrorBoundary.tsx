@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import i18n from '../../app/i18n/config';
 
@@ -10,8 +10,8 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
+  error?: Error | null;
+  errorInfo?: React.ErrorInfo | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {

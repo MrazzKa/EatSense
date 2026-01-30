@@ -75,7 +75,7 @@ export default function PaywallModal({
         slideAnim.setValue(SCREEN_HEIGHT);
       }
     }
-  }, [visible, fadeAnim, slideAnim]);
+  }, [visible, fadeAnim, slideAnim, showModal]);
 
   const handleClose = () => {
     Animated.parallel([

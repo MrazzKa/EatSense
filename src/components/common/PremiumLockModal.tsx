@@ -82,7 +82,7 @@ export default function PremiumLockModal({ visible, onClose, onUnlock }: Premium
                     <PrimaryButton
                         title={t('premium.start_trial') || 'Start 7-Day Free Trial'}
                         onPress={onUnlock}
-                        style={styles.button}
+                        style={styles.button as any}
                     />
 
                     <TouchableOpacity onPress={onUnlock} style={styles.restoreButton}>

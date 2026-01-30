@@ -54,7 +54,7 @@ export default function LifestyleDetailScreen({
 
   const getLocalizedText = (
     text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null,
-    t?: (key: string) => string
+    t?: (_key: string) => string
   ): string => {
     if (!text) return '';
 
@@ -75,14 +75,14 @@ export default function LifestyleDetailScreen({
 
   const getLocalizedTextArray = (
     text: { en?: string[]; ru?: string[]; kk?: string[]; fr?: string[] } | undefined | null,
-    t?: (key: string) => string
+    t?: (_key: string) => string
   ): string[] => {
     if (!text) return [];
 
     // Helper to translate array items
     const translateArray = (arr: string[]) => {
       if (!t) return arr;
-      return arr.map(str => {
+      return arr.map((str, _) => {
         if (str && /^[a-z_][a-z0-9_.]*\.[a-z0-9_.]+$/i.test(str) && str.includes('.')) {
           return t(str);
         }

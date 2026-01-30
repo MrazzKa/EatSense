@@ -37,7 +37,7 @@ interface DietsTabContentProps {
     onSearchChange: (_query: string) => void;
     refreshing?: boolean;
     onRefresh?: () => void;
-    checkLockStatus?: (id: string) => boolean; // Added checkLockStatus prop
+    checkLockStatus?: (_id: string) => boolean; // Added checkLockStatus prop
 }
 
 /**
@@ -80,6 +80,8 @@ export default function DietsTabContent({
         { id: 'HARD', label: t('diets_difficulty_hard') || 'Hard' },
     ];
 
+    // Filter diets by uiGroup (only diet groups) and exclude lifestyle programs
+    // FIX: Apply all filters - type, difficulty, search query
     // Filter diets by uiGroup (only diet groups) and exclude lifestyle programs
     // FIX: Apply all filters - type, difficulty, search query
     const filteredDiets = useMemo(() => {
@@ -125,7 +127,7 @@ export default function DietsTabContent({
         }
 
         return diets;
-    }, [allDiets, selectedType, selectedDifficulty, searchQuery, language]);
+    }, [allDiets, selectedType, selectedDifficulty, searchQuery, language, t]);
 
     // Group diets by uiGroup
     const groupedDiets = useMemo(() => {

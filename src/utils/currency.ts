@@ -692,7 +692,7 @@ export function getDeviceRegion(): string | null {
         if (tz.includes('London')) return 'GB';
         if (tz.includes('Berlin')) return 'DE';
       }
-    } catch (tzError) {
+    } catch {
       // Ignore
     }
   } catch (error) {

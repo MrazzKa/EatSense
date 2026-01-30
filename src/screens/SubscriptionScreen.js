@@ -137,122 +137,8 @@ export default function SubscriptionScreen() {
 
 
 
-    // Initialize IAP and load products with Apple prices
-    const initIAP = React.useCallback(async () => {
-        try {
-            setLoading(true);
-
-            // Init IAP connection
-            await IAPService.init();
-
-            // Get products from Apple/Google with localized prices
-            const { all } = await IAPService.getAvailableProducts();
-            setIapProducts(all);
-
-            // FIX 2026-01-21: If IAP returns 0 products, fallback to backend
-            if (all.length === 0) {
-                console.log('[SubscriptionScreen] IAP returned 0 products, falling back to backend');
-                await loadBackendPlans();
-                return;
-            }
-
-            // IMPORTANT: IAP prices are the MOST ACCURATE source
-            // IAP automatically returns correct prices for user's App Store country
-            // product.localizedPrice contains exact price from App Store Connect for user's country
-            // Map IAP products to our plan format. Use IAP price and currency as-is (Store localizes by user's App Store country).
-            const deviceRegion = getDeviceRegion();
-            const iapCurrency = all[0]?.currency;
-            console.log('[SubscriptionScreen] Using IAP prices (most accurate):', {
-                deviceRegion,
-                currency: iapCurrency,
-                productsCount: all.length,
-                note: 'IAP prices are country-specific from App Store Connect',
-            });
-
-            const mappedPlans = all.map(product => {
-                const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
-                const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
-                const isStudent = product.productId === SUBSCRIPTION_SKUS.STUDENT;
-
-                const planType = isFounders ? 'founders' :
-                    isYearly ? 'yearly' :
-                        isStudent ? 'student' : 'monthly';
-
-                const config = PLAN_CONFIG[planType] || PLAN_CONFIG.monthly;
-                const defaults = PLAN_DEFAULTS[planType] || PLAN_DEFAULTS.monthly;
-
-                // Resolve features with fallback to defaults
-                let features = t(config.featuresKey, { returnObjects: true });
-                if (!Array.isArray(features) || features.length === 0) {
-                    features = defaults.features;
-                }
-
-                // Title and Subtitle with fallbacks
-                let title = t(config.titleKey);
-                if (!title || title === config.titleKey || title.startsWith('subscription.') || title.startsWith('onboarding.')) {
-                    title = defaults.title;
-                }
-
-                let headline = t(config.subtitleKey);
-                if (!headline || headline === config.subtitleKey || headline.startsWith('subscription.') || headline.startsWith('onboarding.')) {
-                    headline = defaults.subtitle;
-                }
-
-                // Badge with fallback
-                let badge = config.badgeKey ? t(config.badgeKey) : null;
-                if (badge && (badge === config.badgeKey || badge.startsWith('subscription.') || badge.startsWith('onboarding.'))) {
-                    badge = defaults.badge || null;
-                }
-
-                return {
-                    id: product.productId,
-                    name: planType,
-                    price: product.localizedPrice,
-                    priceFormatted: product.localizedPrice,
-                    priceNumber: parseFloat(product.price),
-                    currency: product.currency,
-                    title: title,
-                    headline: headline,
-                    features: features,
-                    isSubscription: !isFounders,
-                    // Strike-through pricing support
-                    originalPrice: config.originalPrice,
-                    badge: badge,
-                    badgeColor: config.badgeColor,
-                };
-            });
-
-            setPlans(mappedPlans);
-
-            // Select yearly plan by default (best value)
-            if (route.params?.selectedPlanId) {
-                setSelectedPlanId(route.params.selectedPlanId);
-            } else {
-                const yearlyPlan = mappedPlans.find(p => p.name === 'yearly');
-                if (yearlyPlan) {
-                    setSelectedPlanId(yearlyPlan.id);
-                } else if (mappedPlans.length > 0) {
-                    setSelectedPlanId(mappedPlans[0].id);
-                }
-            }
-        } catch (error) {
-            console.error('[SubscriptionScreen] IAP init error:', error);
-            // Fallback to backend plans if IAP fails
-            await loadBackendPlans();
-        } finally {
-            setLoading(false);
-        }
-    }, [route.params?.selectedPlanId, currency, t]);
-
-    useEffect(() => {
-        initIAP();
-        return () => {
-            IAPService.destroy();
-        };
-    }, [initIAP, loadBackendPlans]);
-
     // Fallback to local plan data when IAP is unavailable (e.g., simulator, sandbox issues)
-    const loadBackendPlans = async () => {
+    const loadBackendPlans = React.useCallback(async () => {
         try {
             // Use local plan descriptions as fallback with proper localization
             const getPlanData = (type) => {
@@ -368,7 +254,121 @@ export default function SubscriptionScreen() {
         } catch (error) {
             console.error('[SubscriptionScreen] Failed to load fallback plans:', error);
         }
-    };
+    }, [t, currency]);
+
+    // Initialize IAP and load products with Apple prices
+    const initIAP = React.useCallback(async () => {
+        try {
+            setLoading(true);
+
+            // Init IAP connection
+            await IAPService.init();
+
+            // Get products from Apple/Google with localized prices
+            const { all } = await IAPService.getAvailableProducts();
+            setIapProducts(all);
+
+            // FIX 2026-01-21: If IAP returns 0 products, fallback to backend
+            if (all.length === 0) {
+                console.log('[SubscriptionScreen] IAP returned 0 products, falling back to backend');
+                await loadBackendPlans();
+                return;
+            }
+
+            // IMPORTANT: IAP prices are the MOST ACCURATE source
+            // IAP automatically returns correct prices for user's App Store country
+            // product.localizedPrice contains exact price from App Store Connect for user's country
+            // Map IAP products to our plan format. Use IAP price and currency as-is (Store localizes by user's App Store country).
+            const deviceRegion = getDeviceRegion();
+            const iapCurrency = all[0]?.currency;
+            console.log('[SubscriptionScreen] Using IAP prices (most accurate):', {
+                deviceRegion,
+                currency: iapCurrency,
+                productsCount: all.length,
+                note: 'IAP prices are country-specific from App Store Connect',
+            });
+
+            const mappedPlans = all.map(product => {
+                const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
+                const isYearly = product.productId === SUBSCRIPTION_SKUS.YEARLY;
+                const isStudent = product.productId === SUBSCRIPTION_SKUS.STUDENT;
+
+                const planType = isFounders ? 'founders' :
+                    isYearly ? 'yearly' :
+                        isStudent ? 'student' : 'monthly';
+
+                const config = PLAN_CONFIG[planType] || PLAN_CONFIG.monthly;
+                const defaults = PLAN_DEFAULTS[planType] || PLAN_DEFAULTS.monthly;
+
+                // Resolve features with fallback to defaults
+                let features = t(config.featuresKey, { returnObjects: true });
+                if (!Array.isArray(features) || features.length === 0) {
+                    features = defaults.features;
+                }
+
+                // Title and Subtitle with fallbacks
+                let title = t(config.titleKey);
+                if (!title || title === config.titleKey || title.startsWith('subscription.') || title.startsWith('onboarding.')) {
+                    title = defaults.title;
+                }
+
+                let headline = t(config.subtitleKey);
+                if (!headline || headline === config.subtitleKey || headline.startsWith('subscription.') || headline.startsWith('onboarding.')) {
+                    headline = defaults.subtitle;
+                }
+
+                // Badge with fallback
+                let badge = config.badgeKey ? t(config.badgeKey) : null;
+                if (badge && (badge === config.badgeKey || badge.startsWith('subscription.') || badge.startsWith('onboarding.'))) {
+                    badge = defaults.badge || null;
+                }
+
+                return {
+                    id: product.productId,
+                    name: planType,
+                    price: product.localizedPrice,
+                    priceFormatted: product.localizedPrice,
+                    priceNumber: parseFloat(product.price),
+                    currency: product.currency,
+                    title: title,
+                    headline: headline,
+                    features: features,
+                    isSubscription: !isFounders,
+                    // Strike-through pricing support
+                    originalPrice: config.originalPrice,
+                    badge: badge,
+                    badgeColor: config.badgeColor,
+                };
+            });
+
+            setPlans(mappedPlans);
+
+            // Select yearly plan by default (best value)
+            if (route.params?.selectedPlanId) {
+                setSelectedPlanId(route.params.selectedPlanId);
+            } else {
+                const yearlyPlan = mappedPlans.find(p => p.name === 'yearly');
+                if (yearlyPlan) {
+                    setSelectedPlanId(yearlyPlan.id);
+                } else if (mappedPlans.length > 0) {
+                    setSelectedPlanId(mappedPlans[0].id);
+                }
+            }
+        } catch (error) {
+            console.error('[SubscriptionScreen] IAP init error:', error);
+            // Fallback to backend plans if IAP fails
+            await loadBackendPlans();
+        } finally {
+            setLoading(false);
+        }
+    }, [route.params?.selectedPlanId, t, loadBackendPlans]);
+
+    useEffect(() => {
+        initIAP();
+        return () => {
+            IAPService.destroy();
+        };
+    }, [initIAP]);
 
     // Handle purchase via IAPService
     // FIX 2026-01-19: Accept planId directly to avoid race condition with async setState

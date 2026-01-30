@@ -21,7 +21,7 @@ interface DietProgramDetailScreenProps {
 }
 
 // FIX: Use shared implementation for consistency
-const getLocalizedText = (value: any, lang: string, t?: (key: string) => string): string => {
+const getLocalizedText = (value: any, lang: string, t?: (_key: string) => string): string => {
     return getLocalizedTextShared(value, lang, t);
 };
 

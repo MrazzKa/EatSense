@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import AiAssistant from '../components/AiAssistant';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,7 +27,7 @@ import LabResultsModal from '../components/LabResultsModal';
 import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
-import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
+import { useProgramProgress } from '../stores/ProgramProgressStore';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -53,7 +53,6 @@ function getItemImageUrl(item) {
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
-  const route = useRoute();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
   // Load active diet for dashboard widget from store

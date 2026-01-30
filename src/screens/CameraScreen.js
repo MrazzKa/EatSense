@@ -7,8 +7,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
 import Reanimated, {
   useSharedValue,
-  useAnimatedProps,
-  runOnJS
+  useAnimatedProps
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
