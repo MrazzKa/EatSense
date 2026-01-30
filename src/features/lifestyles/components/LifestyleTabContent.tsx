@@ -27,6 +27,7 @@ import LifestyleCard from './LifestyleCard';
 import CategoryChips from './CategoryChips';
 import TrendingCarousel from './TrendingCarousel';
 import DisclaimerBanner from './DisclaimerBanner';
+import PremiumLockModal from '../../../components/common/PremiumLockModal';
 // FIX: SuggestProgramCard moved to DietsScreen level for better visibility
 // import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
 import ActiveDietWidget from '../../../components/dashboard/ActiveDietWidget';
@@ -58,7 +59,27 @@ interface LifestyleTabContentProps {
   featuredPrograms?: LifestyleProgram[];
   isLoading?: boolean;
   activeProgram?: any;
+  subscription?: any;
 }
+
+// Helper to check if user has access
+const hasAccess = (program: LifestyleProgram, subscription: any): boolean => {
+  // If program is explicitly free, access allowed
+  // Note: Assuming 'type' or similar field indicates premium. If not, default to paid for now per requirement.
+  // Adjust logic based on real data structure.
+  const isFree = program.price === 'free' || program.type === 'free';
+  if (isFree) return true;
+
+  // Check subscription
+  const isPremium = subscription && (
+    subscription.planId === 'premium_monthly' ||
+    subscription.planId === 'premium_yearly' ||
+    subscription.status === 'active' ||
+    subscription.isActive === true
+  );
+
+  return !!isPremium;
+};
 
 // Section data type for grouped rendering
 interface SectionData {
@@ -90,12 +111,24 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     programs = [],
     featuredPrograms = [],
     isLoading = false,
+    subscription,
   } = props;
   const { t, language } = useI18n();
   const { colors } = useTheme();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<LifestyleTarget | null>(null);
+  const [showLockModal, setShowLockModal] = useState(false);
+
+  // Handler for program press with lock check
+  const handleProgramPress = (program: LifestyleProgram) => {
+    const locked = !hasAccess(program, subscription);
+    if (locked) {
+      setShowLockModal(true);
+    } else {
+      onProgramPress(program.id || program.slug);
+    }
+  };
   // Removed selectedAgeRange - age filter removed per requirements
 
   // Memoized trending programs from featured
@@ -116,17 +149,24 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
 
     if (selectedTarget) {
       // FIX #6: Filter by target - handle both 'all' (show all) and specific targets
-      // Normalize comparison to handle case-insensitive matching
+      // Normalize comparison to handle case-insensitive matching and synonyms
       if (selectedTarget !== 'all') {
+        const targetSynonyms: Record<string, string[]> = {
+          male: ['male', 'men', 'man', 'masculine'],
+          female: ['female', 'women', 'woman', 'feminine'],
+        };
+        const normalizedSelected = selectedTarget.toLowerCase().trim();
+        const validTargets = targetSynonyms[normalizedSelected] || [normalizedSelected];
+
         result = result.filter(p => {
           // Handle programs with no target (show for all) or matching target
           const programTarget = (p.target || '').toLowerCase().trim();
-          const normalizedSelectedTarget = selectedTarget.toLowerCase().trim();
-          
+
           // Show program if:
-          // 1. Program has no target (empty/null) - show for all
-          // 2. Program target matches selected target (case-insensitive)
-          return !programTarget || programTarget === normalizedSelectedTarget;
+          // 1. Program has no target (empty/null)
+          // 2. Program target is explicitly 'all'
+          // 3. Program target matches selected target (or synonyms)
+          return !programTarget || programTarget === 'all' || validTargets.includes(programTarget);
         });
       }
       // If selectedTarget === 'all', show all programs (no filtering)
@@ -288,7 +328,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
                   onProgramPress(item.data.diet.id);
                 }
               }}
-              onBrowseDiets={() => {}}
+              onBrowseDiets={() => { }}
             />
           </View>
         );
@@ -297,7 +337,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         return (
           <LifestyleCard
             program={item.data}
-            onPress={() => onProgramPress(item.data.id || item.data.slug)}
+            isLocked={!hasAccess(item.data, subscription)}
+            onPress={() => handleProgramPress(item.data)}
           />
         );
 
@@ -330,17 +371,30 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
   }, []);
 
   return (
-    <FlatList
-      data={listData}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      windowSize={5}
-      initialNumToRender={8}
-      maxToRenderPerBatch={5}
-      removeClippedSubviews={true}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    />
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={listData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        windowSize={5}
+        initialNumToRender={8}
+        maxToRenderPerBatch={5}
+        removeClippedSubviews={true}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      />
+      <PremiumLockModal
+        visible={showLockModal}
+        onClose={() => setShowLockModal(false)}
+        onUnlock={() => {
+          setShowLockModal(false);
+          // Navigate to paywall or trigger potential purchase flow
+          // For now, maybe navigate to Profile or just close
+          // Ideally should open Paywall
+          // console.log('Unlock pressed');
+        }}
+      />
+    </View>
   );
 }
 
@@ -366,36 +420,47 @@ const FiltersSection = React.memo(function FiltersSection({
           {t('lifestyles.filters_target_label') || 'Target:'}
         </Text>
         <View style={styles.filterChips}>
-          {(['all', 'male', 'female'] as LifestyleTarget[]).map((target) => (
-            <TouchableOpacity
-              key={target}
-              style={[
-                styles.filterChip,
-                selectedTarget === target && styles.filterChipActive,
-                {
-                  backgroundColor:
-                    selectedTarget === target
-                      ? colors.primary
-                      : colors.inputBackground || colors.surfaceSecondary || '#F5F5F5',
-                },
-              ]}
-              onPress={() => onTargetSelect(selectedTarget === target ? null : target)}
-            >
-              <Text
+          {(['all', 'male', 'female'] as LifestyleTarget[]).map((target) => {
+            const isSelected = selectedTarget === target || (target === 'all' && selectedTarget === null);
+            return (
+              <TouchableOpacity
+                key={target}
                 style={[
-                  styles.filterChipText,
+                  styles.filterChip,
+                  isSelected && styles.filterChipActive,
                   {
-                    color:
-                      selectedTarget === target
-                        ? '#FFF'
-                        : colors.textSecondary || '#666',
+                    backgroundColor:
+                      isSelected
+                        ? colors.primary
+                        : colors.inputBackground || colors.surfaceSecondary || '#F5F5F5',
                   },
                 ]}
+                onPress={() => {
+                  if (target === 'all') {
+                    // Tapping 'all' always resets to null (default state)
+                    onTargetSelect(null);
+                  } else {
+                    // Toggle other targets
+                    onTargetSelect(selectedTarget === target ? null : target);
+                  }
+                }}
               >
-                {t(`lifestyles.filters_target_${target}`) || target}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    {
+                      color:
+                        isSelected
+                          ? '#FFF'
+                          : colors.textSecondary || '#666',
+                    },
+                  ]}
+                >
+                  {t(`lifestyles.filters_target_${target}`) || target}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </View>

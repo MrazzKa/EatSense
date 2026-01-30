@@ -2,7 +2,7 @@
  * PaywallModal - Shows subscription offer when user tries to access premium content
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Platform,
+  Animated,
+  Dimensions,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
@@ -19,6 +22,10 @@ import { TRIAL_DAYS } from '../config/freeContent';
 import IAPService from '../services/iapService';
 import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS } from '../config/subscriptions';
+
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface PaywallModalProps {
   visible: boolean;
@@ -38,17 +45,64 @@ export default function PaywallModal({
   const [loading, setLoading] = useState(false);
   const [selectedTrial, setSelectedTrial] = useState<number>(TRIAL_DAYS.STANDARD);
 
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const [showModal, setShowModal] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setShowModal(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 20,
+          mass: 1,
+          stiffness: 100,
+        }),
+      ]).start();
+    } else {
+      // Handle external close if needed
+      if (!visible && showModal) {
+        setShowModal(false);
+        fadeAnim.setValue(0);
+        slideAnim.setValue(SCREEN_HEIGHT);
+      }
+    }
+  }, [visible, fadeAnim, slideAnim]);
+
+  const handleClose = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+        easing: Easing.in(Easing.ease),
+      }),
+    ]).start(() => {
+      setShowModal(false);
+      onClose();
+    });
+  };
+
   const handleStartTrial = async () => {
     setLoading(true);
     try {
-      // Note: The trial period is handled by Apple/Google IAP system
-      // When user subscribes to monthly plan, they get the selected trial days automatically
-      // The backend will track the trial period based on subscription start date
       await IAPService.purchaseSubscription(
         SUBSCRIPTION_SKUS.MONTHLY,
         async (productId) => {
           console.log('[Paywall] Subscription successful:', productId);
-          // Verify purchase with backend to ensure trial period is tracked
           try {
             await ApiService.verifyPurchase({
               productId,
@@ -57,7 +111,6 @@ export default function PaywallModal({
             });
           } catch (verifyError) {
             console.error('[Paywall] Verify purchase error:', verifyError);
-            // Continue anyway - purchase was successful
           }
           setLoading(false);
           onSubscribed?.();
@@ -81,28 +134,54 @@ export default function PaywallModal({
     t('paywall.features.support') || 'Priority support',
   ];
 
+  if (!showModal) return null;
+
   return (
     <Modal
-      visible={visible}
+      visible={showModal}
       transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      animationType="none"
+      onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.overlayContainer}>
+        <Animated.View
+          style={[
+            styles.backdrop,
+            { opacity: fadeAnim }
+          ]}
+        >
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={handleClose} activeOpacity={1} />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.container,
+            {
+              backgroundColor: colors.background,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          {/* Handle bar for visual cue */}
+          <View style={styles.dragHandle} />
+
           {/* Close button */}
           <TouchableOpacity
-            style={[styles.closeButton, { backgroundColor: colors.surfaceSecondary }]}
-            onPress={onClose}
+            style={[styles.closeButton, { backgroundColor: colors.surfaceMuted || colors.surfaceSecondary }]}
+            onPress={handleClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close" size={24} color={colors.textPrimary} />
+            <Ionicons name="close" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           {/* Header */}
           <View style={styles.header}>
-            <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <Ionicons name="star" size={32} color={colors.primary} />
-            </View>
+            <LinearGradient
+              colors={['#7C3AED', '#5B21B6']}
+              style={styles.iconContainer}
+            >
+              <Ionicons name="star" size={32} color="#FFF" />
+            </LinearGradient>
             <Text style={[styles.title, { color: colors.textPrimary }]}>
               {t('paywall.title') || 'Upgrade to Pro'}
             </Text>
@@ -117,7 +196,9 @@ export default function PaywallModal({
           <View style={styles.features}>
             {features.map((feature, index) => (
               <View key={index} style={styles.featureRow}>
-                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="checkmark" size={16} color={colors.primary} />
+                </View>
                 <Text style={[styles.featureText, { color: colors.textPrimary }]}>
                   {feature}
                 </Text>
@@ -132,8 +213,8 @@ export default function PaywallModal({
                 styles.trialOption,
                 {
                   backgroundColor: selectedTrial === TRIAL_DAYS.SHORT
-                    ? colors.primary + '15'
-                    : colors.surfaceSecondary,
+                    ? colors.primary + '10'
+                    : colors.surfaceMuted || colors.surfaceSecondary,
                   borderColor: selectedTrial === TRIAL_DAYS.SHORT
                     ? colors.primary
                     : 'transparent',
@@ -155,8 +236,8 @@ export default function PaywallModal({
                 styles.trialOptionRecommended,
                 {
                   backgroundColor: selectedTrial === TRIAL_DAYS.STANDARD
-                    ? colors.primary + '15'
-                    : colors.surfaceSecondary,
+                    ? colors.primary + '10'
+                    : colors.surfaceMuted || colors.surfaceSecondary,
                   borderColor: selectedTrial === TRIAL_DAYS.STANDARD
                     ? colors.primary
                     : 'transparent',
@@ -180,55 +261,85 @@ export default function PaywallModal({
 
           {/* CTA Button */}
           <TouchableOpacity
-            style={[styles.ctaButton, { backgroundColor: colors.primary }]}
+            style={styles.ctaButtonContainer}
             onPress={handleStartTrial}
             disabled={loading}
+            activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.ctaText}>
-                {t('paywall.startTrial', { days: selectedTrial }) || `Start ${selectedTrial}-Day Free Trial`}
-              </Text>
-            )}
+            <LinearGradient
+              colors={['#7C3AED', '#5B21B6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.ctaButton}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <>
+                  <Ionicons name="flash" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                  <Text style={styles.ctaText}>
+                    {t('paywall.startTrial', { days: selectedTrial }) || `Start ${selectedTrial}-Day Free Trial`}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Fine print */}
           <Text style={[styles.finePrint, { color: colors.textTertiary }]}>
             {t('paywall.finePrint') || 'Cancel anytime. You won\'t be charged during the trial period.'}
           </Text>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  overlayContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
   container: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'ios' ? 44 : 32,
+    elevation: 24,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -10,
+    },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+  },
+  dragHandle: {
+    width: 36,
+    height: 5,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 12,
   },
   closeButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    top: 20,
+    right: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   iconContainer: {
     width: 64,
@@ -236,79 +347,113 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    // Add glow
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    paddingHorizontal: 12,
   },
   features: {
-    marginBottom: 24,
+    marginBottom: 32,
+    gap: 16,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+  },
+  featureIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   featureText: {
-    fontSize: 15,
-    marginLeft: 12,
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
   },
   trialOptions: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
+    gap: 16,
+    marginBottom: 32,
   },
   trialOption: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 20,
     borderWidth: 2,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   trialOptionRecommended: {
     position: 'relative',
   },
   recommendedBadge: {
     position: 'absolute',
-    top: -10,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    top: -12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
+    zIndex: 1,
   },
   recommendedText: {
     color: '#FFF',
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   trialDays: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 4,
   },
   trialLabel: {
-    fontSize: 13,
-    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  ctaButtonContainer: {
+    width: '100%',
+    borderRadius: 16,
+    marginBottom: 16,
+    // Premium shadow
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   ctaButton: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
   },
   ctaText: {
     color: '#FFF',
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
   finePrint: {
-    fontSize: 12,
+    fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
+    paddingHorizontal: 24,
   },
 });

@@ -1899,5 +1899,1336 @@
   "DELETE": "DELETE",
   "OPTIONS": "OPTIONS",
   "diets_detail": {},
-  "title": "Titre"
+  "title": "Titre",
+  "programs": {
+    "lifestyle": {
+      "that_girl": {
+        "dailyTracker": {
+          "morning_routine": {
+            "label": "Routine matin 5h"
+          },
+          "green_juice": {
+            "label": "Smoothie vert ou matcha"
+          },
+          "aesthetic_meal": {
+            "label": "Repas sain esthétique"
+          },
+          "hydration": {
+            "label": "Rester hydraté"
+          }
+        },
+        "name": "That Girl",
+        "subtitle": "5h, jus vert, énergie personnage principal",
+        "description": "Le bien-être comme esthétique. Smoothies verts, matcha, overnight oats.",
+        "shortDescription": "Routine 5h, jus vert, énergie protagoniste"
+      },
+      "clean_girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Aliments complets uniquement"
+          },
+          "hydration": {
+            "label": "3 L eau"
+          },
+          "simple_meal": {
+            "label": "Repas simple et sain"
+          }
+        },
+        "name": "Clean Girl",
+        "subtitle": "Minimal, lumineux, beauté naturelle",
+        "description": "Alimentation sobre et saine. Aliments complets, hydratation max.",
+        "shortDescription": "Minimal, lumineux, effortless"
+      },
+      "old_money": {
+        "dailyTracker": {
+          "quality_ingredients": {
+            "label": "Ingrédients de qualité"
+          },
+          "proper_dining": {
+            "label": "Bonne mise en table"
+          },
+          "three_meals": {
+            "label": "Trois repas structurés"
+          }
+        },
+        "name": "Old Money",
+        "subtitle": "Luxe discret, élégance intemporelle",
+        "description": "La qualité avant tout. Bio, artisanal, pas de chaînes.",
+        "shortDescription": "Qualité avant quantité"
+      },
+      "tomato_girl_summer": {
+        "dailyTracker": {
+          "olive_oil": {
+            "label": "Huile d\\"
+          },
+          "fresh_tomatoes": {
+            "label": "Tomates fraîches"
+          },
+          "aperitivo": {
+            "label": "Heure apéritif"
+          }
+        },
+        "name": "Tomato Girl Summer",
+        "subtitle": "Rêves méditerranéens, vie ensoleillée",
+        "description": "La dolce vita dans l\\",
+        "shortDescription": "Vibes méditerranéennes, soleil"
+      },
+      "pilates_princess": {
+        "dailyTracker": {
+          "collagen": {
+            "label": "Collagène dans smoothie"
+          },
+          "lean_protein": {
+            "label": "Protéines maigres"
+          },
+          "light_eating": {
+            "label": "Repas léger les jours de cours"
+          }
+        },
+        "name": "Pilates Princess",
+        "subtitle": "Long, fine, force gracieuse",
+        "description": "Carburant pour allongement et renforcement. Protéines maigres, collagène.",
+        "shortDescription": "Fine, gracieuse, forte"
+      },
+      "coastal_grandmother": {
+        "dailyTracker": {
+          "set_table": {
+            "label": "Mettre la table correctement"
+          },
+          "fresh_seafood": {
+            "label": "Fruits de mer frais"
+          },
+          "beach_walk": {
+            "label": "Marche sur la plage"
+          }
+        },
+        "name": "Grand-mère côtière",
+        "subtitle": "Énergie cuisine Nancy Meyers",
+        "description": "Style Diane Keaton. Fruits de mer, légumes du marché, vin blanc sur la véranda.",
+        "shortDescription": "Élégance côtière, vibes Nancy Meyers"
+      },
+      "soft_life": {
+        "dailyTracker": {
+          "comfort_food": {
+            "label": "Comfort food sans culpabilité"
+          },
+          "gentle_self": {
+            "label": "Douceur envers soi"
+          },
+          "rest": {
+            "label": "Le repos est productif"
+          }
+        },
+        "name": "Soft Life",
+        "subtitle": "Douceur, confort, zéro stress",
+        "description": "Anti-hustle. Aliments doux, pas de règles strictes, confort sans culpabilité.",
+        "shortDescription": "Facile, confortable, sans stress"
+      },
+      "mob_wife": {
+        "dailyTracker": {
+          "sunday_sauce": {
+            "label": "Tradition sauce du dimanche"
+          },
+          "espresso": {
+            "label": "Espresso, pas d\\"
+          },
+          "family_dinner": {
+            "label": "Dîner en famille"
+          }
+        },
+        "name": "Mob Wife",
+        "subtitle": "Dramatique, luxueux, sans excuses",
+        "description": "Indulgence italo-américaine. Sauce du dimanche, dîners en famille, espresso, cannoli.",
+        "shortDescription": "Luxe italien, choix audacieux"
+      },
+      "summer_shred": {
+        "dailyTracker": {},
+        "name": "Summer Shred",
+        "subtitle": "Sèche, définie, prête plage",
+        "description": "Perte de gras stratégique, préserver le muscle. Protéines, légumes.",
+        "shortDescription": "Sèche, définie, prête plage"
+      },
+      "metabolic_reset": {
+        "dailyTracker": {},
+        "name": "Reset métabolique",
+        "subtitle": "Redémarrer la machine à brûler les graisses",
+        "description": "Réparer le métabolisme : aliments bruts, glycémie stable, fenêtres alimentaires.",
+        "shortDescription": "Reset métabolisme, énergie stable"
+      },
+      "debloat_detox": {
+        "dailyTracker": {},
+        "name": "Debloat & Glow",
+        "subtitle": "Aplatir, rafraîchir, se sentir léger",
+        "description": "Anti-inflammatoire, peu de sodium, intestin-friendly.",
+        "shortDescription": "Dégonfler, rafraîchir, légèreté"
+      },
+      "sustainable_slim": {
+        "dailyTracker": {},
+        "name": "Sustainable Slim",
+        "subtitle": "Perdre et ne pas reprendre",
+        "description": "Approche anti-yo-yo. Petits changements durables, habitudes pas chiffres.",
+        "shortDescription": "Perte de poids durable"
+      },
+      "lean_bulk": {
+        "dailyTracker": {},
+        "name": "Lean Bulk",
+        "subtitle": "Prendre du muscle sans gras",
+        "description": "Surplus stratégique. Assez de calories pour grossir, assez de protéines.",
+        "shortDescription": "Prendre du muscle, rester sec"
+      },
+      "strength_athlete": {
+        "dailyTracker": {},
+        "name": "Athlète force",
+        "subtitle": "Carburant force et performance",
+        "description": "Nutrition performance pour haltérophiles. Protéines, glucides stratégiques.",
+        "shortDescription": "Carburant force"
+      },
+      "athletic_performance": {
+        "dailyTracker": {},
+        "name": "Performance athlétique",
+        "subtitle": "S\\",
+        "description": "Nutrition sportive pour athlètes compétitifs.",
+        "shortDescription": "Nutrition performance athlétique"
+      },
+      "functional_fitness": {
+        "dailyTracker": {},
+        "name": "Functional Fitness",
+        "subtitle": "Fort, capable, prêt à tout",
+        "description": "Nutrition performance au quotidien. Macros équilibrés, anti-inflammatoire.",
+        "shortDescription": "Nutrition force fonctionnelle"
+      },
+      "glass_skin": {
+        "dailyTracker": {},
+        "subtitle": "La beauté K part de l\\",
+        "description": "Lien intestin-peau. Fermentés, oméga-3, collagène.",
+        "shortDescription": "Nutrition K-beauty"
+      },
+      "acne_clear": {
+        "dailyTracker": {},
+        "subtitle": "Apaiser l\\",
+        "description": "Anti-inflammatoire, alimentation low-glycémique.",
+        "shortDescription": "Nutrition peau nette"
+      },
+      "anti_aging_glow": {
+        "dailyTracker": {},
+        "subtitle": "Vieillir avec grâce, rayonner",
+        "description": "Nutrition longévité. Antioxydants, collagène, bonnes graisses.",
+        "shortDescription": "Nutrition anti-âge"
+      },
+      "all_day_energy": {
+        "dailyTracker": {},
+        "subtitle": "Pas de coup de barre, en avant",
+        "description": "Glycémie stable pour énergie durable.",
+        "shortDescription": "Énergie stable toute la journée"
+      },
+      "brain_fuel": {
+        "dailyTracker": {},
+        "subtitle": "Focus, clarté, acuité mentale",
+        "description": "Nutrition nootropique. Oméga-3, glucose stable.",
+        "shortDescription": "Nutrition cerveau"
+      },
+      "adrenal_recovery": {
+        "dailyTracker": {},
+        "subtitle": "Guérir le burnout, restaurer la vitalité",
+        "description": "Nutrition guérison pour systèmes épuisés.",
+        "shortDescription": "Récupération burnout"
+      },
+      "amalfi_coast": {
+        "dailyTracker": {},
+        "subtitle": "Couchers limoncello, rêves italiens",
+        "description": "Vie côtière sud italien.",
+        "shortDescription": "Alimentation côtière italienne"
+      },
+      "greek_islands": {
+        "dailyTracker": {},
+        "subtitle": "Couchers Santorin dans l\\",
+        "description": "Le régime méditerranéen originel.",
+        "shortDescription": "Alimentation grecque méditerranéenne"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {},
+        "subtitle": "Secrets pour vivre jusqu\\",
+        "description": "Sagesse zone bleue. Hara hachi bu — 80 % plein.",
+        "shortDescription": "Longévité zone bleue"
+      },
+      "tokyo_energy": {
+        "dailyTracker": {},
+        "subtitle": "Ville rapide, alimentation équilibrée",
+        "description": "Efficacité japonaise et nutrition.",
+        "shortDescription": "Alimentation japonaise efficace"
+      },
+      "scandi_hygge": {
+        "dailyTracker": {},
+        "subtitle": "Cocooning, équilibré, durablement heureux",
+        "description": "Alimentation nordique et hygge.",
+        "shortDescription": "Alimentation nordique cocooning"
+      },
+      "1950s_bombshell": {
+        "dailyTracker": {},
+        "subtitle": "Courbes, confiance, beauté classique",
+        "description": "Vraie nourriture, vraies courbes. Protéines, ingrédients bruts.",
+        "shortDescription": "Nutrition courbes classiques"
+      },
+      "prima_ballerina": {
+        "dailyTracker": {},
+        "subtitle": "Grâce, discipline, force élégante",
+        "description": "Manger pour performance et grâce. Glucides énergie, protéines force.",
+        "shortDescription": "Nutrition danseur"
+      },
+      "french_girl": {
+        "dailyTracker": {},
+        "subtitle": "Je ne sais quoi à chaque bouchée",
+        "description": "Manger intuitif originel. Trois repas, pas de grignotage, vin au dîner.",
+        "shortDescription": "Alimentation intuitive française"
+      },
+      "pin_up_retro": {
+        "dailyTracker": {},
+        "subtitle": "Courbes vintage, confiance moderne",
+        "description": "Repas maison, ingrédients bruts, sans culpabilité.",
+        "shortDescription": "Alimentation rétro body-positive"
+      },
+      "minimalist_zen": {
+        "dailyTracker": {},
+        "subtitle": "Moins de désordre, plus de clarté",
+        "description": "Minimalisme inspiré du Japon. Peu d\\",
+        "shortDescription": "Alimentation minimaliste"
+      },
+      "spartan_warrior": {
+        "dailyTracker": {},
+        "subtitle": "CECI. EST. LA DISCIPLINE.",
+        "description": "Carburant guerrier antique. Aliments simples, pas de luxe.",
+        "shortDescription": "Discipline spartiate"
+      },
+      "viking_raider": {
+        "dailyTracker": {},
+        "subtitle": "Carburant conquête et froid",
+        "description": "Carburant nordique. Gras, protéines, fermentés.",
+        "shortDescription": "Alimentation force viking"
+      },
+      "navy_seal": {
+        "dailyTracker": {},
+        "subtitle": "Carburant élite pour performance élite",
+        "description": "Nutrition performance, pas de bêtises. Calories pour output élevé.",
+        "shortDescription": "Nutrition performance élite"
+      },
+      "mma_fighter": {
+        "dailyTracker": {},
+        "subtitle": "Sèche, reste fort, domine",
+        "description": "Nutrition camp d\\",
+        "shortDescription": "Nutrition combattant"
+      },
+      "ceo_warrior": {
+        "dailyTracker": {},
+        "subtitle": "Domine la salle de réunion",
+        "description": "Biohacking dirigeant. Jeûne intermittent, principes keto.",
+        "shortDescription": "Biohacking dirigeant"
+      },
+      "stoic_monk": {
+        "dailyTracker": {},
+        "subtitle": "Maîtrise corps et esprit",
+        "description": "Simplicité volontaire. Manger peu, ne rien désirer.",
+        "shortDescription": "Simplicité stoïque"
+      },
+      "summer_beach_body": {
+        "dailyTracker": {},
+        "subtitle": "4 semaines vers l\\",
+        "description": "Manger léger et sain pour confiance plage.",
+        "shortDescription": "Prépa corps plage"
+      },
+      "new_year_reset": {
+        "dailyTracker": {},
+        "subtitle": "Nouveau départ, page blanche",
+        "description": "Reset doux après les excès.",
+        "shortDescription": "Reset Nouvel An"
+      },
+      "wedding_ready": {
+        "dailyTracker": {},
+        "subtitle": "Lumineuse, confiante, parfaite en photo",
+        "description": "Approche graduelle et durable pour le grand jour.",
+        "shortDescription": "Nutrition prépa mariage"
+      },
+      "holiday_balance": {
+        "dailyTracker": {},
+        "subtitle": "Profiter des fêtes sans regret",
+        "description": "Traverser les fêtes sans prendre ni se priver.",
+        "shortDescription": "Équilibre fêtes"
+      },
+      "hot_girl_walk": {
+        "dailyTracker": {
+          "walk": {
+            "label": "Hot girl walk faite"
+          },
+          "hydration": {
+            "label": "Bien hydraté"
+          },
+          "mood": {
+            "label": "Prise de conscience de l\\"
+          }
+        },
+        "name": "Hot Girl Walk",
+        "subtitle": "Marche, réflexion, glow",
+        "description": "Marches quotidiennes pour le moral et le mouvement. Simple, durable, pas de salle.",
+        "shortDescription": "Marches quotidiennes, moral, mouvement"
+      },
+      "lazy_girl_weight_loss": {
+        "dailyTracker": {
+          "simple_habit": {
+            "label": "Une habitude saine simple"
+          },
+          "no_restrict": {
+            "label": "Pas de restriction stricte"
+          },
+          "sustainable": {
+            "label": "Choix durable"
+          }
+        },
+        "name": "Lazy Girl perte de poids",
+        "subtitle": "Effort minimal, résultats max",
+        "description": "Habitudes low-effort pour une perte de poids durable. Pas de régime strict.",
+        "shortDescription": "Faible effort, perte durable"
+      },
+      "high_energy": {
+        "dailyTracker": {
+          "steady_energy": {
+            "label": "Énergie stable toute la journée"
+          },
+          "no_crash": {
+            "label": "Pas de coup de barre après-midi"
+          },
+          "balanced_meals": {
+            "label": "Repas équilibrés"
+          }
+        },
+        "name": "Haute énergie",
+        "subtitle": "Se carburer, performer, prospérer",
+        "description": "Nutrition pour énergie toute la journée. Repas équilibrés, glucides intelligents.",
+        "shortDescription": "Nutrition énergie toute la journée"
+      }
+    },
+    "diet": {
+      "mediterranean": {
+        "dailyTracker": {
+          "veggies_5": {
+            "label": "5+ portions de légumes/fruits"
+          },
+          "whole_grains": {
+            "label": "1–2 portions de céréales complètes"
+          },
+          "healthy_fat": {
+            "label": "Bonnes graisses (huile d\\"
+          },
+          "protein": {
+            "label": "Protéines : poisson/légumineuses/volaille"
+          },
+          "water": {
+            "label": "Eau 6–8 verres"
+          }
+        },
+        "name": "Méditerranéenne",
+        "description": "Régime bon pour le cœur, basé sur la cuisine traditionnelle des pays méditerranéens. Riche en légumes, fruits, céréales complètes et huile d\\",
+        "shortDescription": "Régime cœur-santé riche en huile d\\"
+      },
+      "dash": {
+        "dailyTracker": {
+          "veggies_fruits_5": {
+            "label": "Légumes/fruits 5+"
+          },
+          "whole_grains": {
+            "label": "Céréales complètes 1–2"
+          },
+          "lean_protein": {
+            "label": "Protéines maigres"
+          },
+          "low_salt": {
+            "label": "Sel/salé — minimal"
+          },
+          "no_sugary_drinks": {
+            "label": "Pas de boissons sucrées"
+          }
+        },
+        "name": "DASH",
+        "description": "Approche diététique pour arrêter l\\",
+        "shortDescription": "Régime cœur-santé pour faire baisser la tension"
+      },
+      "mind": {
+        "dailyTracker": {
+          "greens_veggies": {
+            "label": "Verts/légumes (min 2 portions)"
+          },
+          "berries": {
+            "label": "Baies/fruits 1 portion"
+          },
+          "nuts": {
+            "label": "Noix/graines 1 portion"
+          },
+          "whole_grains": {
+            "label": "Céréales complètes 1–2"
+          },
+          "limit_sweets": {
+            "label": "Limiter sucreries/fritures"
+          }
+        },
+        "name": "MIND",
+        "description": "Intervention Méditerranée-DASH pour le retard neurodégénératif. Combine Méditerranée et DASH, aliments bons pour le cerveau.",
+        "shortDescription": "Régime santé cerveau et cognition"
+      },
+      "flexitarian": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Légumes 4+ portions"
+          },
+          "legumes_grains": {
+            "label": "Légumineuses/céréales complètes"
+          },
+          "protein": {
+            "label": "Protéines (végétal ou animal)"
+          },
+          "limit_junk": {
+            "label": "Sucreries/fast-food — minimal"
+          }
+        },
+        "name": "Flexitarien",
+        "description": "Approche flexible du végétarisme. Surtout végétal, viande occasionnelle.",
+        "shortDescription": "Alimentation végétale flexible, viande occasionnelle"
+      },
+      "nordic": {
+        "dailyTracker": {
+          "fish_legumes": {
+            "label": "Poisson/fruits de mer ou légumineuses (protéines)"
+          },
+          "berries": {
+            "label": "Baies/fruits"
+          },
+          "whole_grains": {
+            "label": "Céréales complètes"
+          },
+          "root_veggies": {
+            "label": "Légumes/légumes-racines"
+          },
+          "min_sugar": {
+            "label": "Sucre minimal"
+          }
+        },
+        "name": "Nordique",
+        "description": "Basé sur la cuisine scandinave traditionnelle. Produits locaux et de saison.",
+        "shortDescription": "Alimentation saine style scandinave"
+      },
+      "plate-method": {
+        "dailyTracker": {
+          "veggies_2meals": {
+            "label": "Légumes 2+ repas"
+          },
+          "protein_each": {
+            "label": "Protéines à chaque repas"
+          },
+          "complex_carbs": {
+            "label": "Glucides complexes 1–2"
+          },
+          "water": {
+            "label": "Eau 6–8"
+          }
+        },
+        "name": "Méthode assiette",
+        "description": "Guide visuel simple : moitié légumes, quart protéines, quart glucides. Parfait pour débutants.",
+        "shortDescription": "Division simple de l\\"
+      },
+      "if-14-10": {
+        "dailyTracker": {
+          "fasting_14h": {
+            "label": "Jeûne 14 h respecté"
+          },
+          "eating_window": {
+            "label": "Repas uniquement dans la fenêtre (10 h)"
+          },
+          "protein_veggies": {
+            "label": "Protéines + légumes aux repas principaux"
+          }
+        },
+        "name": "Fenêtre 14:10",
+        "description": "Jeûne intermittent plus doux. Jeûner 14 h, manger sur 10 h.",
+        "shortDescription": "Jeûne 14 h, fenêtre 10 h"
+      },
+      "if-16-8": {
+        "dailyTracker": {
+          "fasting_16h": {
+            "label": "Jeûne 16 h respecté"
+          },
+          "eating_window": {
+            "label": "Repas uniquement dans la fenêtre (8 h)"
+          },
+          "no_sugary_drinks": {
+            "label": "Pas de boissons sucrées"
+          }
+        },
+        "name": "Fenêtre 16:8",
+        "description": "Jeûne intermittent classique. Jeûner 16 h, manger sur 8 h.",
+        "shortDescription": "Jeûne 16 h, fenêtre 8 h"
+      },
+      "high-protein-cut": {
+        "dailyTracker": {
+          "protein_4x": {
+            "label": "Protéines 3–4×/jour"
+          },
+          "veggies_4": {
+            "label": "Légumes 4+ portions"
+          },
+          "min_sweets": {
+            "label": "Sucreries — minimal"
+          },
+          "activity": {
+            "label": "Pas/activité (si suivi)"
+          }
+        },
+        "name": "Cut haute protéine",
+        "description": "Fort apport en protéines pour préserver le muscle tout en perdant du gras. Populaire chez les sportifs.",
+        "shortDescription": "Haute protéine pour perte de gras en préservant le muscle"
+      },
+      "low-carb": {
+        "dailyTracker": {
+          "no_sugary_drinks": {
+            "label": "Pas de boissons sucrées"
+          },
+          "whole_carbs": {
+            "label": "Glucides — complets/légumes uniquement"
+          },
+          "protein_each": {
+            "label": "Protéines à chaque repas"
+          },
+          "veggies_4": {
+            "label": "Légumes 4+"
+          }
+        },
+        "name": "Low-carb",
+        "description": "Réduit les glucides, surtout raffinés. Focus protéines et légumes.",
+        "shortDescription": "Moins de glucides, plus de protéines et légumes"
+      },
+      "keto": {
+        "dailyTracker": {
+          "carbs_limited": {
+            "label": "Glucides strictement limités (manuel)"
+          },
+          "water_electrolytes": {
+            "label": "Assez d\\"
+          },
+          "low_carb_veggies": {
+            "label": "Légumes low-carb"
+          }
+        },
+        "name": "Keto",
+        "description": "Régime très faible en glucides, riche en lipides (cétose). Supervision médicale recommandée.",
+        "shortDescription": "Très faible en glucides pour cétose — prudence requise"
+      },
+      "low-fodmap": {
+        "dailyTracker": {
+          "phase_foods": {
+            "label": "Aliments de la phase respectés"
+          },
+          "symptoms_noted": {
+            "label": "Symptômes notés (1–5)"
+          },
+          "water": {
+            "label": "Assez d\\"
+          }
+        },
+        "name": "Low-FODMAP (intestin)",
+        "description": "Régime d\\",
+        "shortDescription": "Régime intestin par phases — suivi requis"
+      },
+      "gluten-free": {
+        "dailyTracker": {
+          "no_gluten": {
+            "label": "Sans gluten (vérif manuelle)"
+          },
+          "fiber": {
+            "label": "Assez de fibres (légumes/légumineuses/céréales SG)"
+          }
+        },
+        "name": "Sans gluten",
+        "description": "Indispensable en cas de maladie cœliaque ou sensibilité. Pas utile sans indication médicale.",
+        "shortDescription": "Maladie cœliaque ou sensibilité au gluten"
+      },
+      "roman-inspired": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Légumineuses/lentilles 1×"
+          },
+          "veggies_3": {
+            "label": "Légumes 3+"
+          },
+          "whole_grains": {
+            "label": "Céréales complètes"
+          },
+          "min_junk": {
+            "label": "Sucreries/fast-food minimal"
+          }
+        },
+        "name": "Inspiré romain",
+        "description": "Inspiré du régime romain antique. Céréales, légumineuses, huile d\\",
+        "shortDescription": "Alimentation style Rome antique"
+      },
+      "spartan-inspired": {
+        "dailyTracker": {
+          "simple_foods": {
+            "label": "Produits simples (sans ultra-transformés)"
+          },
+          "veggies_3": {
+            "label": "Légumes 3+"
+          },
+          "protein_2_3": {
+            "label": "Protéines 2–3"
+          },
+          "no_sugary_drinks": {
+            "label": "Pas de boissons sucrées"
+          }
+        },
+        "name": "Inspiré spartiate",
+        "description": "Inspiré par la simplicité spartiate. Aliments simples, non transformés et discipline.",
+        "shortDescription": "Simplicité et discipline spartiates"
+      },
+      "arctic-inspired": {
+        "dailyTracker": {
+          "fish_omega3": {
+            "label": "Poisson/fruits de mer ou oméga-3"
+          },
+          "berries": {
+            "label": "Baies/fruits"
+          },
+          "protein_2_3": {
+            "label": "Protéines 2–3"
+          },
+          "water": {
+            "label": "Assez d\\"
+          }
+        },
+        "name": "Inspiré arctique",
+        "description": "Adaptation du régime inuit. Focus poisson, oméga-3 et produits de saison.",
+        "shortDescription": "Poisson, oméga-3 et baies"
+      },
+      "steppe-inspired": {
+        "dailyTracker": {
+          "protein_2_3": {
+            "label": "Protéines 2–3"
+          },
+          "fermented": {
+            "label": "Laitages fermentés (si tolérés)"
+          },
+          "veggies_2": {
+            "label": "Légumes/verts 2+ (adaptation)"
+          }
+        },
+        "name": "Inspiré steppe",
+        "description": "Adaptation des traditions de la steppe. Focus protéines et laitages fermentés.",
+        "shortDescription": "Protéines et fermentés, style steppe"
+      },
+      "three-sisters": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Légumineuses 1×"
+          },
+          "veggies_3": {
+            "label": "Légumes 3+"
+          },
+          "whole_grains": {
+            "label": "Céréales complètes"
+          }
+        },
+        "name": "Trois sœurs",
+        "description": "Inspiré des « Trois sœurs » amérindiennes. Maïs, haricots et courges comme fondation.",
+        "shortDescription": "Fondation végétale amérindienne"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {
+          "vegetables_5": {
+            "label": "Légumes 5+ portions"
+          },
+          "sweet_potato": {
+            "label": "Patate douce ou céréales complètes"
+          },
+          "tofu_legumes": {
+            "label": "Tofu/légumineuses pour les protéines"
+          },
+          "hara_hachi_bu": {
+            "label": "S\\"
+          },
+          "minimal_processed": {
+            "label": "Éviter les produits transformés"
+          }
+        },
+        "name": "Longévité Okinawa",
+        "description": "Régime traditionnel d\\",
+        "shortDescription": "Régime longévité japonais (Okinawa)"
+      },
+      "paleo": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Légumes 4+ portions"
+          },
+          "protein_3": {
+            "label": "Protéines 2–3×"
+          },
+          "no_sugary": {
+            "label": "Pas de boissons sucrées"
+          },
+          "min_processed": {
+            "label": "Ultra-transformés minimaux"
+          }
+        },
+        "name": "Paléo",
+        "description": "Aliments bruts, peu transformés. Viande, poisson, légumes, fruits, noix, graines.",
+        "shortDescription": "Aliments bruts, sans céréales ni laitages"
+      },
+      "whole30-inspired": {
+        "dailyTracker": {
+          "no_sugar": {
+            "label": "Sans sucre ajouté"
+          },
+          "veggies_4": {
+            "label": "Légumes 4+"
+          },
+          "protein_3": {
+            "label": "Protéines 2–3"
+          },
+          "home_cooked": {
+            "label": "Fait maison / pas de fast-food"
+          }
+        },
+        "name": "Whole30 (inspiré)",
+        "description": "Protocole reset 30 jours. Supprime sucre, alcool et déclencheurs courants.",
+        "shortDescription": "Reset élimination 30 jours"
+      },
+      "vegan-balanced": {
+        "dailyTracker": {
+          "plant_protein": {
+            "label": "Protéines 2–3× (végétal)"
+          },
+          "veggies_4": {
+            "label": "Légumes 4+"
+          },
+          "grains_legumes": {
+            "label": "Céréales complètes/légumineuses"
+          },
+          "b12_check": {
+            "label": "B12 (rappel)"
+          }
+        },
+        "name": "Végan (équilibré)",
+        "description": "Alimentation végétale équilibrée : protéines, B12 et autres nutriments.",
+        "shortDescription": "Alimentation végétale équilibrée"
+      },
+      "clean-eating": {
+        "dailyTracker": {
+          "home_cooked_2": {
+            "label": "Fait maison 2+ repas"
+          },
+          "veggies_4": {
+            "label": "Légumes 4+"
+          },
+          "no_sugary": {
+            "label": "Pas de boissons sucrées"
+          }
+        },
+        "name": "Clean Eating (simple)",
+        "description": "Approche simple : aliments bruts, cuisine maison, limiter le transformé.",
+        "shortDescription": "Aliments bruts, cuisine maison"
+      },
+      "iifym": {
+        "dailyTracker": {
+          "calories_check": {
+            "label": "Calories dans l\\"
+          },
+          "protein_check": {
+            "label": "Protéines atteintes"
+          },
+          "veggies_2": {
+            "label": "Légumes 2+"
+          }
+        },
+        "name": "Diète flexible (IIFYM)",
+        "description": "Si ça rentre dans tes macros — objectifs calories et macros, choix flexibles.",
+        "shortDescription": "Atteindre ses macros, choix alimentaires flexibles"
+      },
+      "roman-commoner": {
+        "dailyTracker": {
+          "legumes_1": {
+            "label": "Légumineuses 1×"
+          },
+          "veggies_3": {
+            "label": "Légumes 3+"
+          },
+          "whole_grains": {
+            "label": "Céréales complètes"
+          }
+        },
+        "name": "Romain modeste (inspiré)",
+        "description": "Inspiré du régime des citoyens romains. Céréales, légumineuses, légumes, un peu poisson ou fromage.",
+        "shortDescription": "Alimentation simple style romain"
+      },
+      "roman-elite": {
+        "dailyTracker": {
+          "veggies_3": {
+            "label": "Légumes 3+"
+          },
+          "protein_3": {
+            "label": "Protéines 2–3"
+          },
+          "sweets_limited": {
+            "label": "Sucreries limitées"
+          }
+        },
+        "name": "Romain elite (inspiré)",
+        "description": "Inspiré des régimes romains aisés. Poisson, viande, entrées, fruits.",
+        "shortDescription": "Variété style romain aisé"
+      },
+      "napoleon-soldier": {
+        "dailyTracker": {
+          "soup_warm": {
+            "label": "Soupe/plat chaud 1×"
+          },
+          "veggies_2": {
+            "label": "Légumes 2+"
+          },
+          "water": {
+            "label": "Eau"
+          }
+        },
+        "name": "Napoléon (style soldat, inspiré)",
+        "description": "Inspiré des rations soldats napoléoniens. Soupes, pain, protéines simples.",
+        "shortDescription": "Alimentation simple style soldat"
+      },
+      "on-set-day": {
+        "dailyTracker": {
+          "protein_3": {
+            "label": "Protéines 3×"
+          },
+          "veggies_4": {
+            "label": "Légumes 4+"
+          },
+          "snacks_no_sugar": {
+            "label": "Collations sans sucre"
+          }
+        },
+        "name": "Journée plateau (inspiré)",
+        "description": "Modèle inspiré des personnalités publiques. Alimentation structurée : protéines et légumes.",
+        "shortDescription": "Journée structurée, focus protéines"
+      },
+      "ramadan": {
+        "dailyTracker": {
+          "iftar_balanced": {
+            "label": "Iftar équilibré"
+          },
+          "suhoor_eaten": {
+            "label": "Suhoor pris"
+          },
+          "hydration": {
+            "label": "8+ verres d\\"
+          },
+          "no_overeating": {
+            "label": "Mangé en conscience, sans excès"
+          },
+          "dates_start": {
+            "label": "Iftar commencé avec dattes"
+          }
+        },
+        "name": "Jeûne du Ramadan",
+        "description": "Conseils pour une alimentation saine pendant le Ramadan. Suhoor et iftar équilibrés, bonne hydratation.",
+        "shortDescription": "Alimentation saine pendant le Ramadan"
+      },
+      "great-lent": {
+        "dailyTracker": {
+          "plant_based": {
+            "label": "Végétal aujourd\\"
+          },
+          "no_meat": {
+            "label": "Sans viande/lait/œufs"
+          },
+          "vegetables_4": {
+            "label": "Légumes 4+ portions"
+          },
+          "legumes": {
+            "label": "Légumineuses ou céréales"
+          },
+          "mindful": {
+            "label": "Mangé en conscience"
+          }
+        },
+        "name": "Grand Carême (orthodoxe)",
+        "description": "Conseils pour le Grand Carême orthodoxe, repas végétaux. Parcours spirituel par une alimentation consciente.",
+        "shortDescription": "Traditions du jeûne orthodoxe"
+      },
+      "summer-detox": {
+        "dailyTracker": {
+          "fruits_3": {
+            "label": "Fruits frais 3+ portions"
+          },
+          "vegetables_4": {
+            "label": "Légumes 4+ portions"
+          },
+          "water_8": {
+            "label": "Eau 8+ verres"
+          },
+          "light_protein": {
+            "label": "Protéines légères (poisson/poulet/légumineuses)"
+          },
+          "no_heavy_food": {
+            "label": "Pas lourd/frit"
+          }
+        },
+        "name": "Été fraîcheur",
+        "description": "Fruits et légumes frais, repas légers pour les jours chauds.",
+        "shortDescription": "Plan alimentaire estival frais"
+      },
+      "navruz": {
+        "dailyTracker": {
+          "fresh_greens": {
+            "label": "Verts/herbes frais"
+          },
+          "dairy": {
+            "label": "Laitages"
+          },
+          "traditional_dish": {
+            "label": "Plat traditionnel"
+          },
+          "vegetables_3": {
+            "label": "Légumes 3+ portions"
+          },
+          "shared_meal": {
+            "label": "Repas partagé"
+          }
+        },
+        "name": "Navrouz printanier",
+        "description": "Célébration de l\\",
+        "shortDescription": "Alimentation fête du printemps"
+      },
+      "winter-warmth": {
+        "dailyTracker": {
+          "warm_breakfast": {
+            "label": "Petit-déj chaud"
+          },
+          "soup_stew": {
+            "label": "Soupe ou ragoût"
+          },
+          "root_vegetables": {
+            "label": "Légumes-racines"
+          },
+          "immune_foods": {
+            "label": "Aliments immunitaires"
+          },
+          "warm_drinks": {
+            "label": "Boissons chaudes"
+          }
+        },
+        "name": "Chaleur hivernale",
+        "description": "Plats réconfortants pour l\\",
+        "shortDescription": "Plan alimentaire réconfortant hiver"
+      },
+      "autumn-harvest": {
+        "dailyTracker": {
+          "autumn_vegetable": {
+            "label": "Légume d\\"
+          },
+          "fall_fruit": {
+            "label": "Fruit (pomme/poire)"
+          },
+          "warming_spices": {
+            "label": "Épices réconfortantes"
+          },
+          "vegetables_4": {
+            "label": "Légumes 4+ portions"
+          },
+          "cooked_meal": {
+            "label": "Repas chaud cuisiné"
+          }
+        },
+        "name": "Récolte d\\",
+        "description": "Citrouille, pommes, courges et autres classiques d\\",
+        "shortDescription": "Alimentation automnale de saison"
+      },
+      "clean-girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Aliments bruts, non transformés"
+          },
+          "water_8": {
+            "label": "Eau 8+ verres"
+          },
+          "skin_foods": {
+            "label": "Aliments peau (verts/baies)"
+          },
+          "no_processed": {
+            "label": "Pas de snacks transformés"
+          },
+          "mindful_meal": {
+            "label": "Repas conscient, calme"
+          }
+        },
+        "name": "Clean Girl",
+        "description": "Alimentation clean, style clean girl. Aliments simples et bruts pour teint lumineux et énergie.",
+        "shortDescription": "Alimentation simple et saine pour glow naturel"
+      },
+      "vacation-vibes": {
+        "dailyTracker": {
+          "fresh_meal": {
+            "label": "Repas frais et coloré"
+          },
+          "slow_eating": {
+            "label": "Mangé lentement, savouré"
+          },
+          "seafood_olive": {
+            "label": "Fruits de mer ou huile d\\"
+          },
+          "vegetables_3": {
+            "label": "Légumes frais 3+"
+          },
+          "relaxed": {
+            "label": "Détendu, sans stress"
+          }
+        },
+        "name": "Vibes vacances",
+        "description": "Alimentation type vacances méditerranéennes — frais, coloré, plaisir. Pas de stress.",
+        "shortDescription": "Alimentation équilibrée style vacances"
+      },
+      "old-money": {
+        "dailyTracker": {
+          "quality_meal": {
+            "label": "Qualité avant quantité"
+          },
+          "proper_times": {
+            "label": "Repas aux heures fixes"
+          },
+          "no_overeating": {
+            "label": "Pas d\\"
+          },
+          "table_manners": {
+            "label": "Bonne tenue à table"
+          },
+          "classic_foods": {
+            "label": "Plats classiques, qualité"
+          }
+        },
+        "name": "Old Money classique",
+        "description": "Qualité avant quantité, portions raisonnables, classiques intemporels.",
+        "shortDescription": "Style alimentaire classique et élégant"
+      },
+      "country-club-breakfast": {
+        "dailyTracker": {
+          "proper_breakfast": {
+            "label": "Petit-déj assis à table"
+          },
+          "protein_included": {
+            "label": "Protéines incluses"
+          },
+          "no_phone": {
+            "label": "Pas de téléphone au petit-déj"
+          },
+          "fruit_included": {
+            "label": "Fruits frais inclus"
+          },
+          "no_rush": {
+            "label": "Sans se presser"
+          }
+        },
+        "name": "Petit-déj Country Club",
+        "description": "Rituels matinaux style country club. Un vrai petit-déj comme base de la journée.",
+        "shortDescription": "Rituels matinaux élégants"
+      },
+      "sunday-brunch": {
+        "dailyTracker": {
+          "leisurely_meal": {
+            "label": "Repas tranquille, sans précipitation"
+          },
+          "quality_food": {
+            "label": "Qualité, raffiné"
+          },
+          "good_company": {
+            "label": "Bonne compagnie"
+          },
+          "balanced_plate": {
+            "label": "Assiette équilibrée"
+          },
+          "no_phones": {
+            "label": "Pas de portables à table"
+          }
+        },
+        "name": "Brunch du dimanche",
+        "description": "L\\",
+        "shortDescription": "Tradition brunch tranquille"
+      },
+      "yacht-week": {
+        "dailyTracker": {
+          "seafood": {
+            "label": "Fruits de mer ou poisson"
+          },
+          "light_portions": {
+            "label": "Portions légères"
+          },
+          "hydrated": {
+            "label": "Bien hydraté"
+          },
+          "fresh_vegetables": {
+            "label": "Légumes frais"
+          },
+          "elegant_dinner": {
+            "label": "Dîner élégant"
+          }
+        },
+        "name": "Yacht Week",
+        "description": "Style yacht — léger, frais, influence méditerranéenne, toujours élégant.",
+        "shortDescription": "Alimentation élégante bord de mer"
+      },
+      "prep-school-lunch": {
+        "dailyTracker": {
+          "proper_lunch": {
+            "label": "Déjeuner assis correct"
+          },
+          "balanced_plate": {
+            "label": "Assiette équilibrée"
+          },
+          "set_time": {
+            "label": "Repas à heure fixe"
+          },
+          "water": {
+            "label": "Eau au repas"
+          },
+          "no_desk_eating": {
+            "label": "Pas de repas au bureau"
+          }
+        },
+        "name": "Déjeuner Prep School",
+        "description": "Style cantine prep school — équilibré, nutritif, correct. Pas de repas sautés, pas de junk.",
+        "shortDescription": "Déjeuners corrects et équilibrés"
+      },
+      "french-chic": {
+        "dailyTracker": {
+          "small_portions": {
+            "label": "Petites portions"
+          },
+          "enjoyed_food": {
+            "label": "Vraiment savouré"
+          },
+          "sat_down": {
+            "label": "Mangé assis"
+          },
+          "quality_choice": {
+            "label": "Qualité avant quantité"
+          },
+          "stopped_satisfied": {
+            "label": "Arrêté rassasié"
+          }
+        },
+        "name": "French Girl",
+        "description": "Approche française : portions qualité, plaisir, pas d\\",
+        "shortDescription": "Alimentation intuitive à la française"
+      },
+      "gatsby-twenties": {
+        "dailyTracker": {
+          "elegant_appetizer": {
+            "label": "Amuse-bouche/canapé élégant"
+          },
+          "small_portions": {
+            "label": "Petites portions raffinées"
+          },
+          "social_meal": {
+            "label": "Repas en société"
+          },
+          "presentation": {
+            "label": "Belle présentation"
+          },
+          "sparkling": {
+            "label": "Boisson pétillante"
+          }
+        },
+        "name": "Gatsby années 20",
+        "description": "Inspiré des années folles — soirées, canapés, champagne, goûts raffinés.",
+        "shortDescription": "Alimentation inspirée âge du jazz"
+      },
+      "fifties-hollywood": {
+        "dailyTracker": {
+          "protein_focused": {
+            "label": "Repas centré protéines"
+          },
+          "vegetables": {
+            "label": "Beaucoup de légumes"
+          },
+          "light_breakfast": {
+            "label": "Petit-déj léger"
+          },
+          "no_bloating": {
+            "label": "Pas d\\"
+          },
+          "elegant_dinner": {
+            "label": "Dîner élégant"
+          }
+        },
+        "name": "Hollywood années 50",
+        "description": "Glamour Hollywood années 50 — équilibré, portions maîtrisées, prêt pour la caméra tout en profitant.",
+        "shortDescription": "Alimentation style Hollywood classique"
+      },
+      "sixties-twiggy": {
+        "dailyTracker": {
+          "light_meal": {
+            "label": "Repas léger et coloré"
+          },
+          "fresh_juice": {
+            "label": "Jus frais ou smoothie"
+          },
+          "small_portions": {
+            "label": "Petites portions fréquentes"
+          },
+          "something_new": {
+            "label": "Essayé quelque chose de nouveau"
+          },
+          "fun_presentation": {
+            "label": "Présentation fun"
+          }
+        },
+        "name": "Mod années 60",
+        "description": "Culture mod années 60 — léger, jeune, coloré, casser les règles en restant élégant.",
+        "shortDescription": "Alimentation mod et jeune"
+      },
+      "seventies-disco": {
+        "dailyTracker": {
+          "light_eating": {
+            "label": "Manger léger"
+          },
+          "movement": {
+            "label": "Dansé ou bougé"
+          },
+          "appetizers": {
+            "label": "Amuse-bouches plutôt que lourd"
+          },
+          "energy_maintained": {
+            "label": "Énergie maintenue"
+          },
+          "moderate_drinks": {
+            "label": "Boissons avec modération"
+          }
+        },
+        "name": "Disco années 70",
+        "description": "Ère Studio 54 — manger léger pour les soirées, canapés, champagne, rester fine pour la piste.",
+        "shortDescription": "Alimentation prête à faire la fête"
+      },
+      "eighties-power": {
+        "dailyTracker": {
+          "protein_lunch": {
+            "label": "Déjeuner riche en protéines"
+          },
+          "quality_restaurant": {
+            "label": "Restaurant de qualité"
+          },
+          "confident_order": {
+            "label": "Commandé avec assurance"
+          },
+          "networking": {
+            "label": "Discussion affaires au repas"
+          },
+          "balanced": {
+            "label": "Choix équilibré"
+          }
+        },
+        "name": "Power Lunch années 80",
+        "description": "Culture corporate années 80 — power lunches, steak-houses, affaires autour des repas, choix assurés.",
+        "shortDescription": "Alimentation business power"
+      }
+    }
+  }
 }

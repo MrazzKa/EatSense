@@ -21,9 +21,9 @@ interface DietProgramProgressScreenProps {
 // FIX: Use shared getLocalizedText from types.ts for consistency
 import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
 
-const getLocalizedText = (value: any, lang: string): string => {
+const getLocalizedText = (value: any, lang: string, t?: (key: string) => string): string => {
     // Use shared implementation for consistency
-    return getLocalizedTextShared(value, lang);
+    return getLocalizedTextShared(value, lang, t);
 };
 
 export default function DietProgramProgressScreen({ navigation, route }: DietProgramProgressScreenProps) {
@@ -236,7 +236,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.textPrimary }]}>{getLocalizedText(programDetails.name, language)}</Text>
+                <Text style={[styles.title, { color: colors.textPrimary }]}>{getLocalizedText(programDetails.name, language, t)}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -278,7 +278,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                             {t('dietPrograms.mealsForDay')} {activeProgram.currentDayIndex}
                         </Text>
                         {currentDay?.title && (
-                            <Text style={[styles.dayTitle, { color: colors.textSecondary }]}>{getLocalizedText(currentDay.title, language)}</Text>
+                            <Text style={[styles.dayTitle, { color: colors.textSecondary }]}>{getLocalizedText(currentDay.title, language, t)}</Text>
                         )}
                         {currentDay.meals.map((meal: any, index: number) => (
                             <View key={index} style={styles.mealItem}>
@@ -287,10 +287,10 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                                 </View>
                                 <View style={styles.mealInfo}>
                                     <Text style={[styles.mealType, { color: colors.textSecondary }]}>{t(`dietPrograms.mealTypes.${meal.mealType}`) || meal.mealType}</Text>
-                                    <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language)}</Text>
+                                    <Text style={[styles.mealName, { color: colors.textPrimary }]}>{getLocalizedText(meal.name, language, t)}</Text>
                                     {meal.description && (
                                         <Text style={[styles.mealDescription, { color: colors.textSecondary }]} numberOfLines={2}>
-                                            {getLocalizedText(meal.description, language)}
+                                            {getLocalizedText(meal.description, language, t)}
                                         </Text>
                                     )}
                                 </View>

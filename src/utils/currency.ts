@@ -481,9 +481,9 @@ const REGION_TO_CURRENCY: Record<string, string> = {
   // CIS
   'KZ': 'KZT', // Kazakhstan
   'RU': 'RUB', // Russia
-  'BY': 'USD', // Belarus (USD in App Store Connect)
-  'UA': 'USD', // Ukraine (USD in App Store Connect)
-  'UZ': 'USD', // Uzbekistan (USD in App Store Connect)
+  'BY': 'BYN', // Belarus
+  'UA': 'UAH', // Ukraine
+  'UZ': 'UZS', // Uzbekistan
   'AM': 'USD', // Armenia
   'AZ': 'USD', // Azerbaijan
   'GE': 'USD', // Georgia
@@ -644,7 +644,7 @@ export function getDeviceRegion(): string | null {
   try {
     const locales = Localization.getLocales();
     const primaryLocale = locales[0];
-    
+
     // 1. Try device region code directly
     const region = primaryLocale?.regionCode; // e.g., 'CH', 'US', 'KZ'
     if (region) {
@@ -653,7 +653,7 @@ export function getDeviceRegion(): string | null {
       }
       return region.toUpperCase();
     }
-    
+
     // 2. Try to extract region from languageTag (e.g., 'en-CH' -> 'CH')
     const languageTag = primaryLocale?.languageTag; // e.g., 'en-CH'
     if (languageTag) {
@@ -666,10 +666,39 @@ export function getDeviceRegion(): string | null {
         return regionFromLocale;
       }
     }
+
+    // 3. Try languageRegionCode (specific to the preferred language)
+    const langRegion = primaryLocale?.languageRegionCode;
+    if (langRegion) {
+      if (__DEV__) {
+        console.log(`[currency] Detected languageRegionCode: ${langRegion}`);
+      }
+      return langRegion.toUpperCase();
+    }
+
+    // 4. Try getCalendars timezone guessing (Last resort fallback)
+    try {
+      const calendars = Localization.getCalendars();
+      const tz = calendars[0]?.timeZone;
+      if (tz) {
+        if (__DEV__) {
+          console.log(`[currency] Guessing region from timezone: ${tz}`);
+        }
+        // Common timezones to regions mapping
+        if (tz.includes('Almaty') || tz.includes('Qyzylorda') || tz.includes('Astana')) return 'KZ';
+        if (tz.includes('Moscow') || tz.includes('St_Petersburg') || tz.includes('Samara')) return 'RU';
+        if (tz.includes('Zurich')) return 'CH';
+        if (tz.includes('Paris')) return 'FR';
+        if (tz.includes('London')) return 'GB';
+        if (tz.includes('Berlin')) return 'DE';
+      }
+    } catch (tzError) {
+      // Ignore
+    }
   } catch (error) {
     console.warn('[currency] Error detecting region:', error);
   }
-  
+
   return null;
 }
 
@@ -683,23 +712,23 @@ export function getDeviceRegion(): string | null {
 export function getOriginalPrice(planId: PlanId, currencyCode: string): string | null {
   try {
     const currentPrice = PRICING[currencyCode]?.[planId];
-    
+
     if (!currentPrice) {
       return null;
     }
-    
+
     // Calculate original price (2x current price for discount effect)
     const originalPrice = currentPrice * 2;
-    
+
     // Format the original price
     const config = PRICING[currencyCode];
     if (!config) return null;
-    
+
     // Use needsDecimals to format properly
     const formattedPrice = needsDecimals(currencyCode)
       ? originalPrice.toFixed(2)
       : Math.round(originalPrice).toString();
-    
+
     if (config.position === 'before') {
       return `${config.symbol}${formattedPrice}`;
     } else {
@@ -720,7 +749,7 @@ export function getOriginalPrice(planId: PlanId, currencyCode: string): string |
 export function getCurrencyCode(): string {
   try {
     const region = getDeviceRegion();
-    
+
     // 1. Try device region FIRST (most accurate - fixes Switzerland issue)
     // This takes priority over currencyCode because IAP may return wrong currency
     if (region && REGION_TO_CURRENCY[region]) {
@@ -730,7 +759,7 @@ export function getCurrencyCode(): string {
       }
       return detectedCurrency;
     }
-    
+
     const locales = Localization.getLocales();
     const primaryLocale = locales[0];
 
@@ -799,7 +828,7 @@ export function formatPrice(planId: PlanId): string {
  */
 function needsDecimals(code: string): boolean {
   // Currencies that typically use decimals
-  return ['USD', 'EUR', 'CHF', 'GBP', 'CAD', 'BYN', 'AUD', 'NZD', 'SGD', 'HKD', 'BRL', 'MXN', 'PEN', 'MYR', 'ILS', 'SAR', 'AED', 'QAR', 'PLN', 'RON', 'TRY', 'SEK', 'DKK', 'NOK', 'CZK', 'EGP'].includes(code);
+  return ['USD', 'EUR', 'CHF', 'GBP', 'CAD', 'BYN', 'AUD', 'NZD', 'SGD', 'HKD', 'BRL', 'MXN', 'PEN', 'MYR', 'ILS', 'SAR', 'AED', 'QAR', 'PLN', 'RON', 'TRY', 'SEK', 'DKK', 'NOK', 'CZK', 'EGP', 'ZAR'].includes(code);
 }
 
 /**

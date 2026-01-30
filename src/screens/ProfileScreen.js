@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking, Keyboard } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import ApiService from '../services/apiService';
+import { localNotificationService } from '../services/localNotificationService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 // FIX: Language selector removed - language is now auto-detected from device
@@ -27,7 +28,7 @@ import HealthDisclaimer from '../components/HealthDisclaimer';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  // const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n(); // FIX: Removed changeLanguage, availableLanguages, and language - language is auto-detected
   const themeContext = useTheme();
   const { signOut } = useAuth();
@@ -279,7 +280,7 @@ const ProfileScreen = () => {
         ApiService.getUserProfile(),
         ApiService.getCurrentSubscription().catch(() => null), // Fallback to preferences if API fails
       ]);
-      
+
       if (result) {
         const userProfile = result.userProfile || result.profile || {};
         const preferences =
@@ -287,7 +288,7 @@ const ProfileScreen = () => {
           result.preferences ||
           null;
         const healthProfile = userProfile.healthProfile || null;
-        
+
         // Use real subscription from API if available, otherwise fallback to preferences
         let subscriptionPref = preferences?.subscription || {};
         if (subscriptionData?.hasSubscription && subscriptionData.subscription) {
@@ -306,8 +307,8 @@ const ProfileScreen = () => {
           subscriptionPref = {
             planId: mapToProfilePlanId(apiPlan),
             billingCycle: apiPlan === 'yearly' || apiPlan === 'student' || apiPlan === 'eatsense.pro.yearly' || apiPlan === 'eatsense.pro.yearly.student' ? 'annual' :
-                         apiPlan === 'monthly' || apiPlan === 'weekly' || apiPlan === 'eatsense.pro.monthly' ? 'monthly' : 
-                         apiPlan === 'founders' || apiPlan === 'eatsense.founder.pass' ? 'lifetime' : 'lifetime',
+              apiPlan === 'monthly' || apiPlan === 'weekly' || apiPlan === 'eatsense.pro.monthly' ? 'monthly' :
+                apiPlan === 'founders' || apiPlan === 'eatsense.founder.pass' ? 'lifetime' : 'lifetime',
           };
         } else if (subscriptionPref.planId) {
           // Map onboarding plan IDs from preferences if they exist
@@ -321,7 +322,7 @@ const ProfileScreen = () => {
           };
           subscriptionPref.planId = mapToProfilePlanId(subscriptionPref.planId);
         }
-        
+
         setProfile({
           firstName: userProfile.firstName || result.firstName || '',
           lastName: userProfile.lastName || result.lastName || '',
@@ -426,9 +427,12 @@ const ProfileScreen = () => {
     try {
       setNotificationLoading(true);
       const prefs = await ApiService.getNotificationPreferences();
+      // SYNC: Check actual system permissions
+      const hasPermission = await localNotificationService.checkPermissions();
+
       if (prefs) {
         setNotificationPreferences({
-          dailyPushEnabled: !!prefs.dailyPushEnabled,
+          dailyPushEnabled: !!prefs.dailyPushEnabled && hasPermission,
           dailyPushHour: typeof prefs.dailyPushHour === 'number' ? prefs.dailyPushHour : 8,
           dailyPushMinute: typeof prefs.dailyPushMinute === 'number' ? prefs.dailyPushMinute : 0,
           timezone: prefs.timezone || deviceTimezone,
@@ -442,10 +446,15 @@ const ProfileScreen = () => {
     }
   }, [deviceTimezone]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadNotificationPreferences();
+    }, [loadNotificationPreferences])
+  );
+
   useEffect(() => {
     loadProfile();
-    loadNotificationPreferences();
-  }, [loadProfile, loadNotificationPreferences]);
+  }, [loadProfile]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -689,6 +698,21 @@ const ProfileScreen = () => {
         payload.dailyPushHour = 8;
       }
 
+      // SYNC: Request system permissions if enabling
+      if (value) {
+        const hasPermission = await localNotificationService.checkPermissions();
+        if (!hasPermission) {
+          const granted = await localNotificationService.requestPermissions();
+          if (!granted) {
+            Alert.alert(
+              safeT('profile.notificationsPermissionTitle', 'Permission Required'),
+              safeT('profile.notificationsPermissionMessage', 'Please enable notifications in system settings to receive reminders.')
+            );
+            return; // Do not update backend state
+          }
+        }
+      }
+
       const updated = await ApiService.updateNotificationPreferences(payload);
       setNotificationPreferences({
         dailyPushEnabled: Boolean(updated.dailyPushEnabled),
@@ -706,14 +730,14 @@ const ProfileScreen = () => {
     }
   };
 
-  // const handleNotificationHourChange = () => {
-  //   // Initialize tempDate with current notification time
-  //   const d = new Date();
-  //   d.setHours(notificationPreferences.dailyPushHour || 8);
-  //   d.setMinutes(notificationPreferences.dailyPushMinute || 0);
-  //   setTempDate(d);
-  //   setShowTimePicker(true);
-  // };
+  const handleNotificationHourChange = () => {
+    // Initialize tempDate with current notification time
+    const d = new Date();
+    d.setHours(notificationPreferences.dailyPushHour || 8);
+    d.setMinutes(notificationPreferences.dailyPushMinute || 0);
+    setTempDate(d);
+    setShowTimePicker(true);
+  };
 
   const onTimeChange = (event, selectedDate) => {
     if (Platform.OS === 'android') {
@@ -858,9 +882,14 @@ const ProfileScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View>
+    <>
+      <SafeAreaView style={[styles.container, { backgroundColor: tokens.colors.background }]}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <AppCard style={styles.heroCard} padding="xl">
             <View style={styles.heroHeader}>
               <View style={styles.avatar}>
@@ -896,836 +925,860 @@ const ProfileScreen = () => {
               loading={loading}
               style={styles.heroButton}
             />
-          </AppCard>
-        </View>
+          </AppCard >
 
-        {/* Health Profile Summary - Under Edit Profile */}
-        <AppCard style={styles.healthSection}>
-          <View style={styles.healthSummaryHeader}>
-            <View style={styles.healthSummaryContent}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.advanced', 'Health Settings')}
-              </Text>
-              <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
-                {(() => {
-                  const parts = [];
-                  if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% ${safeT('profile.health.fatLabel', 'fat')}`);
-                  if (healthProfile.metabolic?.waistCm) parts.push(`${safeT('profile.health.waistLabel', 'Waist')} ${healthProfile.metabolic.waistCm} ${safeT('common.cm', 'cm')}`);
-                  if (healthProfile.sleep?.sleepHours) parts.push(`${safeT('profile.health.sleepLabel', 'Sleep')} ${healthProfile.sleep.sleepHours} ${safeT('common.hoursShort', 'h')}`);
-                  const focusAreas = Object.entries(healthProfile.healthFocus || {})
-                    .filter(([, val]) => val === true)
-                    .map(([key]) => {
-                      const keyMap = {
-                        sugarControl: safeT('profile.health.focus.sugarControl', 'Sugar Control'),
-                        cholesterol: safeT('profile.health.focus.cholesterol', 'Cholesterol'),
-                        inflammation: safeT('profile.health.focus.inflammation', 'Inflammation'),
-                        iron: safeT('profile.health.focus.iron', 'Iron'),
-                        microbiome: safeT('profile.health.focus.microbiome', 'Microbiome'),
-                        hormonalBalance: safeT('profile.health.focus.hormonalBalance', 'Hormones'),
-                      };
-                      return keyMap[key] || key;
-                    });
-                  if (focusAreas.length > 0) parts.push(`${safeT('profile.health.focusAreas', 'Focus')}: ${focusAreas.slice(0, 2).join(', ')}${focusAreas.length > 2 ? '...' : ''}`);
-                  return parts.length > 0 ? parts.join(' • ') : safeT('profile.health.noData', 'No data');
-                })()}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.editHealthButton}
-              onPress={async () => {
-                // If expanding, check for disclaimer
-                if (!showHealthDetails) {
-                  const show = await shouldShowDisclaimer('biomarkers');
-                  if (show) {
-                    setShowBiomarkerDisclaimer(true);
-                    return;
-                  }
-                }
-
-                // Proceed with expansion/collapse if no disclaimer or already accepted
-                const toValue = showHealthDetails ? 0 : 1;
-                Animated.timing(chevronRotation, {
-                  toValue,
-                  duration: 250,
-                  useNativeDriver: true,
-                }).start();
-                setShowHealthDetails(!showHealthDetails);
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={styles.editHealthButtonContent}>
-                <Text style={[styles.editHealthButtonText, { color: colors.primary }]}>
-                  {showHealthDetails ? safeT('common.hide', 'Hide') : safeT('common.show', 'Show')}
+          {/* Health Profile Summary - Under Edit Profile */}
+          < AppCard style={styles.healthSection} >
+            <View style={styles.healthSummaryHeader}>
+              <View style={styles.healthSummaryContent}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                  {safeT('profile.health.advanced', 'Health Settings')}
                 </Text>
-                <Animated.View
-                  style={{
-                    transform: [
-                      {
-                        rotate: chevronRotation.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: ['0deg', '180deg'],
-                        }),
-                      },
-                    ],
-                  }}
-                >
-                  <Ionicons name="chevron-down" size={20} color={colors.primary} />
-                </Animated.View>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </AppCard>
-
-        {/* Health Profile Sections - Collapsible - only show when expanded */}
-        {showHealthDetails && (
-          <>
-            {__DEV__ && console.log('[ProfileScreen] Rendering health details sections, showHealthDetails:', showHealthDetails)}
-            <AppCard style={styles.healthSection}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.metabolic', 'Metabolic Parameters')}
-              </Text>
-
-              <ProfileNumberRow
-                label={safeT('profile.health.bodyFatPercent', 'Body Fat %')}
-                suffix="%"
-                value={healthProfile.metabolic.bodyFatPercent}
-                min={5}
-                max={60}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    metabolic: { ...prev.metabolic, bodyFatPercent: val },
-                  }))
-                }
-              />
-
-              <ProfileNumberRow
-                label={safeT('profile.health.waistCm', 'Waist Circumference')}
-                suffix="cm"
-                value={healthProfile.metabolic.waistCm}
-                min={50}
-                max={150}
-                onChange={(val) =>
-                  setHealthProfile((prev) => {
-                    const hip = prev.metabolic.hipCm;
-                    const whr = hip && hip > 0 ? Number((val / hip).toFixed(2)) : prev.metabolic.whr;
-                    return {
-                      ...prev,
-                      metabolic: { ...prev.metabolic, waistCm: val, whr },
-                    };
-                  })
-                }
-              />
-
-              <ProfileNumberRow
-                label={safeT('profile.health.hipCm', 'Hip Circumference')}
-                suffix="cm"
-                value={healthProfile.metabolic.hipCm}
-                min={70}
-                max={160}
-                onChange={(val) =>
-                  setHealthProfile((prev) => {
-                    const waist = prev.metabolic.waistCm;
-                    const whr = waist && waist > 0 && val > 0 ? Number((waist / val).toFixed(2)) : prev.metabolic.whr;
-                    return {
-                      ...prev,
-                      metabolic: { ...prev.metabolic, hipCm: val, whr },
-                    };
-                  })
-                }
-              />
-
-              <View style={styles.row}>
-                <Text style={[styles.label, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-                  {safeT('profile.health.whr', 'WHR')}
-                </Text>
-                <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                  {healthProfile.metabolic.whr != null
-                    ? `${healthProfile.metabolic.whr.toFixed(2)} (${safeT('profile.health.auto', 'auto')})`
-                    : `— (${safeT('profile.health.auto', 'auto')})`}
+                <Text style={[styles.healthSummaryText, { color: colors.textSecondary }]}>
+                  {(() => {
+                    const parts = [];
+                    if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% ${safeT('profile.health.fatLabel', 'fat')}`);
+                    if (healthProfile.metabolic?.waistCm) parts.push(`${safeT('profile.health.waistLabel', 'Waist')} ${healthProfile.metabolic.waistCm} ${safeT('common.cm', 'cm')}`);
+                    if (healthProfile.sleep?.sleepHours) parts.push(`${safeT('profile.health.sleepLabel', 'Sleep')} ${healthProfile.sleep.sleepHours} ${safeT('common.hoursShort', 'h')}`);
+                    const focusAreas = Object.entries(healthProfile.healthFocus || {})
+                      .filter(([, val]) => val === true)
+                      .map(([key]) => {
+                        const keyMap = {
+                          sugarControl: safeT('profile.health.focus.sugarControl', 'Sugar Control'),
+                          cholesterol: safeT('profile.health.focus.cholesterol', 'Cholesterol'),
+                          inflammation: safeT('profile.health.focus.inflammation', 'Inflammation'),
+                          iron: safeT('profile.health.focus.iron', 'Iron'),
+                          microbiome: safeT('profile.health.focus.microbiome', 'Microbiome'),
+                          hormonalBalance: safeT('profile.health.focus.hormonalBalance', 'Hormones'),
+                        };
+                        return keyMap[key] || key;
+                      });
+                    if (focusAreas.length > 0) parts.push(`${safeT('profile.health.focusAreas', 'Focus')}: ${focusAreas.slice(0, 2).join(', ')}${focusAreas.length > 2 ? '...' : ''}`);
+                    return parts.length > 0 ? parts.join(' • ') : safeT('profile.health.noData', 'No data');
+                  })()}
                 </Text>
               </View>
-
-              <ProfileSegmentedControl
-                label={safeT('profile.health.fatDistributionType', 'Fat Distribution Type')}
-                value={healthProfile.metabolic.fatDistributionType || 'visceral'}
-                options={[
-                  { value: 'visceral', label: safeT('profile.health.fatDistribution.visceral', 'Visceral') },
-                  { value: 'gynoid', label: safeT('profile.health.fatDistribution.gynoid', 'Gynoid') },
-                  { value: 'mixed', label: safeT('profile.health.fatDistribution.mixed', 'Mixed') },
-                ]}
-                onChange={(value) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    metabolic: { ...prev.metabolic, fatDistributionType: value },
-                  }))
-                }
-              />
-            </AppCard>
-
-            <AppCard style={styles.healthSection}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.eatingBehavior', 'Eating Behavior')}
-              </Text>
-
-              <ProfileNumberRow
-                label={safeT('profile.health.mealsPerDay', 'Meals per Day')}
-                value={healthProfile.eatingBehavior.mealsPerDay}
-                min={1}
-                max={8}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    eatingBehavior: { ...prev.eatingBehavior, mealsPerDay: val },
-                  }))
-                }
-              />
-
-              <ProfileSegmentedControl
-                label={safeT('profile.health.snackingTendency', 'Snacking Tendency')}
-                value={healthProfile.eatingBehavior.snackingTendency || 'medium'}
-                options={[
-                  { value: 'low', label: safeT('profile.health.snacking.low', 'Low') },
-                  { value: 'medium', label: safeT('profile.health.snacking.medium', 'Medium') },
-                  { value: 'high', label: safeT('profile.health.snacking.high', 'High') },
-                ]}
-                onChange={(value) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    eatingBehavior: { ...prev.eatingBehavior, snackingTendency: value },
-                  }))
-                }
-              />
-
-              <ProfileSegmentedControl
-                label={safeT('profile.health.eveningAppetite', 'Evening Appetite')}
-                value={healthProfile.eatingBehavior.eveningAppetite ? 'yes' : 'no'}
-                options={[
-                  { value: 'yes', label: safeT('common.yes', 'Yes') },
-                  { value: 'no', label: safeT('common.no', 'No') },
-                ]}
-                onChange={(value) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    eatingBehavior: { ...prev.eatingBehavior, eveningAppetite: value === 'yes' },
-                  }))
-                }
-              />
-            </AppCard>
-
-            <AppCard style={styles.healthSection}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.sleep', 'Sleep & Circadian Rhythms')}
-              </Text>
-
-              <ProfileNumberRow
-                label={safeT('profile.health.sleepHours', 'Sleep (hours)')}
-                value={healthProfile.sleep.sleepHours}
-                min={3}
-                max={12}
-                step={0.5}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    sleep: { ...prev.sleep, sleepHours: val },
-                  }))
-                }
-              />
-
-              <ProfileSegmentedControl
-                label={safeT('profile.health.chronotype', 'Chronotype')}
-                value={healthProfile.sleep.chronotype || 'late'}
-                options={[
-                  { value: 'early', label: safeT('profile.health.chronotypeOptions.early', safeT('profile.health.chronotype.early', 'Early')) },
-                  { value: 'mid', label: safeT('profile.health.chronotypeOptions.mid', safeT('profile.health.chronotype.mid', 'Mid')) },
-                  { value: 'late', label: safeT('profile.health.chronotypeOptions.late', safeT('profile.health.chronotype.late', 'Late')) },
-                ]}
-                onChange={(value) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    sleep: { ...prev.sleep, chronotype: value },
-                  }))
-                }
-              />
-            </AppCard>
-
-            <AppCard style={styles.healthSection}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.glp1Module', 'GLP-1 Module')}
-              </Text>
-
-              <ProfileSegmentedControl
-                label={safeT('profile.health.isGlp1User', 'GLP-1 User')}
-                value={healthProfile.glp1Module.isGlp1User ? 'yes' : 'no'}
-                options={[
-                  { value: 'yes', label: safeT('common.yes', 'Yes') },
-                  { value: 'no', label: safeT('common.no', 'No') },
-                ]}
-                onChange={(value) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    glp1Module: { ...prev.glp1Module, isGlp1User: value === 'yes' },
-                  }))
-                }
-              />
-
-              {healthProfile.glp1Module.isGlp1User && (
-                <>
-                  <ProfileSegmentedControl
-                    label={safeT('profile.health.drugType', 'Drug Type')}
-                    value={healthProfile.glp1Module.drugType || 'semaglutide'}
-                    options={[
-                      { value: 'semaglutide', label: safeT('profile.health.drugType.semaglutide', 'Semaglutide') },
-                      { value: 'tirzepatide', label: safeT('profile.health.drugType.tirzepatide', 'Tirzepatide') },
-                      { value: 'liraglutide', label: safeT('profile.health.drugType.liraglutide', 'Liraglutide') },
-                    ]}
-                    onChange={(value) =>
-                      setHealthProfile((prev) => ({
-                        ...prev,
-                        glp1Module: { ...prev.glp1Module, drugType: value },
-                      }))
-                    }
-                  />
-
-                  <ProfileSegmentedControl
-                    label={safeT('profile.health.therapyGoal', 'Therapy Goal')}
-                    value={healthProfile.glp1Module.therapyGoal || 'preserve_muscle'}
-                    options={[
-                      { value: 'preserve_muscle', label: safeT('profile.health.therapyGoalOptions.preserve_muscle', 'Preserve Muscle') },
-                      { value: 'appetite_control', label: safeT('profile.health.therapyGoalOptions.appetite_control', 'Appetite Control') },
-                      { value: 'weight_maintenance', label: safeT('profile.health.therapyGoalOptions.weight_maintenance', 'Weight Maintenance') },
-                      { value: 'slow_weight_loss', label: safeT('profile.health.therapyGoalOptions.slow_weight_loss', 'Slow Weight Loss') },
-                    ]}
-                    onChange={(value) =>
-                      setHealthProfile((prev) => ({
-                        ...prev,
-                        glp1Module: { ...prev.glp1Module, therapyGoal: value },
-                      }))
-                    }
-                  />
-                </>
-              )}
-            </AppCard>
-
-            <AppCard style={styles.healthSection}>
-              <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                {safeT('profile.health.healthFocus', 'Health Focus Areas')}
-              </Text>
-
-              <ProfileToggleRow
-                label={safeT('profile.health.focus.sugarControl', 'Sugar Control')}
-                value={healthProfile.healthFocus.sugarControl}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    healthFocus: { ...prev.healthFocus, sugarControl: val },
-                  }))
-                }
-              />
-
-              <ProfileToggleRow
-                label={safeT('profile.health.focus.cholesterol', 'Cholesterol')}
-                value={healthProfile.healthFocus.cholesterol}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    healthFocus: { ...prev.healthFocus, cholesterol: val },
-                  }))
-                }
-              />
-
-              <ProfileToggleRow
-                label={safeT('profile.health.focus.inflammation', 'Inflammation')}
-                value={healthProfile.healthFocus.inflammation}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    healthFocus: { ...prev.healthFocus, inflammation: val },
-                  }))
-                }
-              />
-
-              <ProfileToggleRow
-                label={safeT('profile.health.focus.iron', 'Iron')}
-                value={healthProfile.healthFocus.iron}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    healthFocus: { ...prev.healthFocus, iron: val },
-                  }))
-                }
-              />
-
-              <ProfileToggleRow
-                label={safeT('profile.health.focus.microbiome', 'Microbiome')}
-                value={healthProfile.healthFocus.microbiome}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    healthFocus: { ...prev.healthFocus, microbiome: val },
-                  }))
-                }
-              />
-
-              <ProfileToggleRow
-                label={safeT('profile.health.focus.hormonalBalance', 'Hormonal Balance')}
-                value={healthProfile.healthFocus.hormonalBalance}
-                onChange={(val) =>
-                  setHealthProfile((prev) => ({
-                    ...prev,
-                    healthFocus: { ...prev.healthFocus, hormonalBalance: val },
-                  }))
-                }
-              />
-            </AppCard>
-
-            <View style={{ marginTop: 16, marginBottom: 16 }}>
               <TouchableOpacity
-                style={[styles.dangerButton, { borderColor: colors.error, backgroundColor: 'transparent' }]}
-                onPress={handleClearHealthData}
-              >
-                <Ionicons name="trash-outline" size={20} color={colors.error} />
-                <Text style={[styles.dangerButtonText, { color: colors.error }]}>
-                  {safeT('profile.health.clearData', 'Clear Health Data')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-
-        {/* Medications Section */}
-        <AppCard style={styles.medicationsCard}>
-          <TouchableOpacity
-            onPress={() => {
-              if (navigation && typeof navigation.navigate === 'function') {
-                navigation.navigate('MedicationSchedule');
-              }
-            }}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardContent}>
-              <Ionicons name="medkit-outline" size={24} color={colors.primary} />
-              <View style={styles.cardTextContainer}>
-                <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-                  {safeT('medications.title', safeT('profile.medications', 'Medications'))}
-                </Text>
-                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                  {safeT('medications.subtitle', safeT('profile.medicationsSubtitle', 'Manage your medication schedule'))}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-            </View>
-          </TouchableOpacity>
-        </AppCard>
-
-        <Modal
-          visible={editing}
-          animationType="slide"
-          presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
-          onRequestClose={handleCancel}
-        >
-          <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.background }} edges={['bottom', 'left', 'right']}>
-            <KeyboardAvoidingView
-              style={{ flex: 1 }}
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-            >
-              <View style={styles.editModalContainer}>
-                <View
-                  style={[
-                    styles.editModalHeader,
-                    {
-                      borderBottomColor: tokens.colors.border,
-                      paddingTop: 16, // More padding for visual breathability
-                      paddingBottom: 16,
+                style={styles.editHealthButton}
+                onPress={async () => {
+                  // If expanding, check for disclaimer
+                  if (!showHealthDetails) {
+                    const show = await shouldShowDisclaimer('biomarkers');
+                    if (show) {
+                      setShowBiomarkerDisclaimer(true);
+                      return;
                     }
-                  ]}
-                >
-                  <TouchableOpacity
-                    onPress={handleCancel}
-                    style={styles.editModalCloseButton}
-                    hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                  >
-                    <Ionicons name="close" size={28} color={tokens.colors.textPrimary || tokens.colors.text} />
-                  </TouchableOpacity>
-                  <Text style={[styles.editModalTitle, { color: tokens.colors.textPrimary }]}>
-                    {t('profile.editProfile') || 'Edit Profile'}
+                  }
+
+                  // Proceed with expansion/collapse if no disclaimer or already accepted
+                  const toValue = showHealthDetails ? 0 : 1;
+                  Animated.timing(chevronRotation, {
+                    toValue,
+                    duration: 250,
+                    useNativeDriver: true,
+                  }).start();
+                  setShowHealthDetails(!showHealthDetails);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.editHealthButtonContent}>
+                  <Text style={[styles.editHealthButtonText, { color: colors.primary }]}>
+                    {showHealthDetails ? safeT('common.hide', 'Hide') : safeT('common.show', 'Show')}
                   </Text>
-                  {/* Invisible view to balance the header title centering */}
-                  <View style={styles.editModalCloseButton} />
+                  <Animated.View
+                    style={{
+                      transform: [
+                        {
+                          rotate: chevronRotation.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['0deg', '180deg'],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <Ionicons name="chevron-down" size={20} color={colors.primary} />
+                  </Animated.View>
                 </View>
-                <ScrollView
-                  style={styles.editModalContent}
-                  contentContainerStyle={styles.editModalContentInner}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
-                  keyboardDismissMode="on-drag"
-                >
-                  <AppCard style={styles.formCard}>
-                    <Text style={styles.sectionTitle}>{safeT('profile.details', 'Details')}</Text>
-                    <View style={styles.fieldRow}>
-                      <ProfileField
-                        label={safeT('profile.firstName', 'First Name')}
-                        value={profile.firstName}
-                        onChangeText={(text) => setProfile((prev) => ({ ...prev, firstName: text }))}
-                      />
-                      <ProfileField
-                        label={safeT('profile.lastName', 'Last Name')}
-                        value={profile.lastName}
-                        onChangeText={(text) => setProfile((prev) => ({ ...prev, lastName: text }))}
-                      />
-                    </View>
-                    <ProfileField
-                      label={safeT('profile.email', 'Email')}
-                      value={profile.email}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      onChangeText={(text) => setProfile((prev) => ({ ...prev, email: text }))}
-                    />
-                    <View style={styles.fieldRow}>
-                      <ProfileField
-                        label={safeT('profile.weight', 'Weight')}
-                        value={profile.weight ? String(profile.weight) : ''}
-                        keyboardType="numeric"
-                        onChangeText={(text) => setProfile((prev) => ({ ...prev, weight: parseFloat(text) || 0 }))}
-                      />
-                      <ProfileField
-                        label={safeT('profile.height', 'Height')}
-                        value={profile.height ? String(profile.height) : ''}
-                        keyboardType="numeric"
-                        onChangeText={(text) => setProfile((prev) => ({ ...prev, height: parseFloat(text) || 0 }))}
-                      />
-                    </View>
-                    <View style={styles.fieldRow}>
-                      <ProfileField
-                        label={safeT('profile.age', 'Age')}
-                        value={profile.age ? String(profile.age) : ''}
-                        keyboardType="numeric"
-                        onChangeText={(text) => setProfile((prev) => ({ ...prev, age: parseInt(text, 10) || 0 }))}
-                      />
-                      <ProfileField
-                        label={safeT('profile.dailyCalories', 'Daily Calories')}
-                        value={profile.dailyCalories ? String(profile.dailyCalories) : ''}
-                        keyboardType="numeric"
-                        onChangeText={(text) => setProfile((prev) => ({ ...prev, dailyCalories: parseInt(text, 10) || 0 }))}
-                      />
-                    </View>
+              </TouchableOpacity>
+            </View>
+          </AppCard >
 
-                    <View style={styles.goalsSection}>
-                      <Text style={styles.sectionTitle}>{safeT('profile.goalsTitle', 'Goals & diet')}</Text>
+          {/* Health Profile Sections - Collapsible - only show when expanded */}
+          {
+            showHealthDetails && (
+              <>
+                {__DEV__ && console.log('[ProfileScreen] Rendering health details sections, showHealthDetails:', showHealthDetails)}
+                <AppCard style={styles.healthSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                    {safeT('profile.health.metabolic', 'Metabolic Parameters')}
+                  </Text>
 
-                      <View style={styles.subsection}>
-                        <Text style={styles.subsectionTitle}>{safeT('profile.goalLabel', 'Goal')}</Text>
-                        <View style={styles.chipRow}>
-                          <TouchableOpacity
-                            style={[styles.chip, goal === 'lose_weight' && styles.chipActive]}
-                            onPress={() => setGoal('lose_weight')}
-                          >
-                            <Text style={[styles.chipLabel, goal === 'lose_weight' && styles.chipLabelActive]}>
-                              {safeT('profile.goalLoseWeight', 'Lose weight')}
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.chip, goal === 'maintain_weight' && styles.chipActive]}
-                            onPress={() => setGoal('maintain_weight')}
-                          >
-                            <Text style={[styles.chipLabel, goal === 'maintain_weight' && styles.chipLabelActive]}>
-                              {safeT('profile.goalMaintainWeight', 'Maintain weight')}
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.chip, goal === 'gain_muscle' && styles.chipActive]}
-                            onPress={() => setGoal('gain_muscle')}
-                          >
-                            <Text style={[styles.chipLabel, goal === 'gain_muscle' && styles.chipLabelActive]}>
-                              {safeT('profile.goalGainMuscle', 'Gain muscle')}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-
-                      <View style={styles.subsection}>
-                        <Text style={styles.subsectionTitle}>{safeT('profile.dietLabel', 'Diet type')}</Text>
-                        <View style={styles.chipWrap}>
-                          <TouchableOpacity
-                            style={[styles.chip, dietPreferences.includes('balanced') && styles.chipActive]}
-                            onPress={() => toggleDietPreference('balanced')}
-                          >
-                            <Text style={[styles.chipLabel, dietPreferences.includes('balanced') && styles.chipLabelActive]}>
-                              {safeT('profile.dietBalanced', 'Balanced')}
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.chip, dietPreferences.includes('high_protein') && styles.chipActive]}
-                            onPress={() => toggleDietPreference('high_protein')}
-                          >
-                            <Text style={[styles.chipLabel, dietPreferences.includes('high_protein') && styles.chipLabelActive]}>
-                              {safeT('profile.dietHighProtein', 'High protein')}
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.chip, dietPreferences.includes('low_carb') && styles.chipActive]}
-                            onPress={() => toggleDietPreference('low_carb')}
-                          >
-                            <Text style={[styles.chipLabel, dietPreferences.includes('low_carb') && styles.chipLabelActive]}>
-                              {safeT('profile.dietLowCarb', 'Low carb')}
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.chip, dietPreferences.includes('mediterranean') && styles.chipActive]}
-                            onPress={() => toggleDietPreference('mediterranean')}
-                          >
-                            <Text style={[styles.chipLabel, dietPreferences.includes('mediterranean') && styles.chipLabelActive]}>
-                              {safeT('profile.dietMediterranean', 'Mediterranean')}
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.chip, dietPreferences.includes('plant_based') && styles.chipActive]}
-                            onPress={() => toggleDietPreference('plant_based')}
-                          >
-                            <Text style={[styles.chipLabel, dietPreferences.includes('plant_based') && styles.chipLabelActive]}>
-                              {safeT('profile.dietPlantBased', 'Plant-based')}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </View>
-                  </AppCard>
-                </ScrollView>
-                <View style={[styles.editModalFooter, { borderTopColor: tokens.colors.border, backgroundColor: tokens.colors.surface }]}>
-
-                  <PrimaryButton
-                    title={safeT('common.save', 'Save')}
-                    onPress={typeof handleSave === 'function' ? handleSave : () => { }}
-                    loading={loading}
-                    style={styles.formSaveButton}
+                  <ProfileNumberRow
+                    label={safeT('profile.health.bodyFatPercent', 'Body Fat %')}
+                    suffix="%"
+                    value={healthProfile.metabolic.bodyFatPercent}
+                    min={5}
+                    max={60}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        metabolic: { ...prev.metabolic, bodyFatPercent: val },
+                      }))
+                    }
                   />
-                </View>
-              </View>
-            </KeyboardAvoidingView>
-          </SafeAreaView>
-        </Modal>
 
-        <AppCard style={styles.preferencesCard}>
-          <Text style={styles.sectionTitle}>{t('profile.preferences')}</Text>
-          {/* FIX: Language selector removed - language is automatically detected from device settings */}
-          {/* Language cannot be changed manually - it's determined by device locale */}
-          <View style={[styles.preferenceRow, styles.themeRow]}>
-            <View>
-              <Text style={styles.preferenceLabel}>{safeT('profile.theme', 'Theme')}</Text>
-              <Text style={styles.preferenceCaption}>
-                {themeMode === 'system' ? safeT('profile.systemTheme', 'System') : isDark ? safeT('profile.darkModeSubtitle', 'Dark mode') : safeT('profile.lightMode', 'Light mode')}
-              </Text>
-            </View>
-            <View style={styles.themeToggles}>
-              <TouchableOpacity
-                style={[
-                  styles.themeChip,
-                  themeMode === 'light' && styles.themeChipActive,
-                ]}
-                onPress={() => {
-                  if (typeof toggleTheme === 'function') {
-                    toggleTheme('light');
-                  }
-                }}
-              >
-                <View style={[styles.themeColorDot, { backgroundColor: '#2563EB' }]}>
-                  {themeMode === 'light' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.themeChip,
-                  themeMode === 'dark' && styles.themeChipActive,
-                ]}
-                onPress={() => {
-                  if (typeof toggleTheme === 'function') {
-                    toggleTheme('dark');
-                  }
-                }}
-              >
-                <View style={[styles.themeColorDot, { backgroundColor: '#1E293B' }]}>
-                  {themeMode === 'dark' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.themeChip,
-                  themeMode === 'monochrome' && styles.themeChipActive,
-                ]}
-                onPress={() => {
-                  if (typeof toggleTheme === 'function') {
-                    toggleTheme('monochrome');
-                  }
-                }}
-              >
-                <View style={[styles.themeColorDot, { backgroundColor: '#000000', borderWidth: 1, borderColor: '#E5E7EB' }]}>
-                  {themeMode === 'monochrome' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.themeChip,
-                  themeMode === 'rose' && styles.themeChipActive,
-                ]}
-                onPress={() => {
-                  if (typeof toggleTheme === 'function') {
-                    toggleTheme('rose');
-                  }
-                }}
-              >
-                <View style={[styles.themeColorDot, { backgroundColor: '#EC4899' }]}>
-                  {themeMode === 'rose' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.themeChip,
-                  themeMode === 'beige' && styles.themeChipActive,
-                ]}
-                onPress={() => {
-                  if (typeof toggleTheme === 'function') {
-                    toggleTheme('beige');
-                  }
-                }}
-              >
-                <View style={[styles.themeColorDot, { backgroundColor: '#A16207' }]}>
-                  {themeMode === 'beige' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.preferenceRow}>
-            <View style={styles.notificationCopy}>
-              <Text style={styles.preferenceLabel}>{t('profile.notificationsDailyTitle')}</Text>
-              <Text style={styles.notificationDescription}>
-                {notificationPreferences.dailyPushEnabled
-                  ? t('profile.notificationsDailyEnabled') || 'Напоминания включены'
-                  : t('profile.notificationsDailyDisabled') || 'Напоминания отключены'}
-              </Text>
-            </View>
-            <Switch
-              value={notificationPreferences.dailyPushEnabled}
-              onValueChange={(value) => handleNotificationToggle(value)}
-              trackColor={{ false: tokens.colors.borderMuted, true: tokens.colors.primary }}
-              thumbColor={tokens.states.primary.on}
-              disabled={notificationLoading || notificationSaving}
-            />
-          </View>
-        </AppCard>
+                  <ProfileNumberRow
+                    label={safeT('profile.health.waistCm', 'Waist Circumference')}
+                    suffix="cm"
+                    value={healthProfile.metabolic.waistCm}
+                    min={50}
+                    max={150}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => {
+                        const hip = prev.metabolic.hipCm;
+                        const whr = hip && hip > 0 ? Number((val / hip).toFixed(2)) : prev.metabolic.whr;
+                        return {
+                          ...prev,
+                          metabolic: { ...prev.metabolic, waistCm: val, whr },
+                        };
+                      })
+                    }
+                  />
 
-        <AppCard style={styles.planCard}>
-          <View style={styles.planHeader}>
-            <Text style={styles.sectionTitle}>
-              {safeT('profile.subscriptionTitle', 'Subscription')}
-            </Text>
+                  <ProfileNumberRow
+                    label={safeT('profile.health.hipCm', 'Hip Circumference')}
+                    suffix="cm"
+                    value={healthProfile.metabolic.hipCm}
+                    min={70}
+                    max={160}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => {
+                        const waist = prev.metabolic.waistCm;
+                        const whr = waist && waist > 0 && val > 0 ? Number((waist / val).toFixed(2)) : prev.metabolic.whr;
+                        return {
+                          ...prev,
+                          metabolic: { ...prev.metabolic, hipCm: val, whr },
+                        };
+                      })
+                    }
+                  />
+
+                  <View style={styles.row}>
+                    <Text style={[styles.label, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+                      {safeT('profile.health.whr', 'WHR')}
+                    </Text>
+                    <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                      {healthProfile.metabolic.whr != null
+                        ? `${healthProfile.metabolic.whr.toFixed(2)} (${safeT('profile.health.auto', 'auto')})`
+                        : `— (${safeT('profile.health.auto', 'auto')})`}
+                    </Text>
+                  </View>
+
+                  <ProfileSegmentedControl
+                    label={safeT('profile.health.fatDistributionType', 'Fat Distribution Type')}
+                    value={healthProfile.metabolic.fatDistributionType || 'visceral'}
+                    options={[
+                      { value: 'visceral', label: safeT('profile.health.fatDistribution.visceral', 'Visceral') },
+                      { value: 'gynoid', label: safeT('profile.health.fatDistribution.gynoid', 'Gynoid') },
+                      { value: 'mixed', label: safeT('profile.health.fatDistribution.mixed', 'Mixed') },
+                    ]}
+                    onChange={(value) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        metabolic: { ...prev.metabolic, fatDistributionType: value },
+                      }))
+                    }
+                  />
+                </AppCard>
+
+                <AppCard style={styles.healthSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                    {safeT('profile.health.eatingBehavior', 'Eating Behavior')}
+                  </Text>
+
+                  <ProfileNumberRow
+                    label={safeT('profile.health.mealsPerDay', 'Meals per Day')}
+                    value={healthProfile.eatingBehavior.mealsPerDay}
+                    min={1}
+                    max={8}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        eatingBehavior: { ...prev.eatingBehavior, mealsPerDay: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileSegmentedControl
+                    label={safeT('profile.health.snackingTendency', 'Snacking Tendency')}
+                    value={healthProfile.eatingBehavior.snackingTendency || 'medium'}
+                    options={[
+                      { value: 'low', label: safeT('profile.health.snacking.low', 'Low') },
+                      { value: 'medium', label: safeT('profile.health.snacking.medium', 'Medium') },
+                      { value: 'high', label: safeT('profile.health.snacking.high', 'High') },
+                    ]}
+                    onChange={(value) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        eatingBehavior: { ...prev.eatingBehavior, snackingTendency: value },
+                      }))
+                    }
+                  />
+
+                  <ProfileSegmentedControl
+                    label={safeT('profile.health.eveningAppetite', 'Evening Appetite')}
+                    value={healthProfile.eatingBehavior.eveningAppetite ? 'yes' : 'no'}
+                    options={[
+                      { value: 'yes', label: safeT('common.yes', 'Yes') },
+                      { value: 'no', label: safeT('common.no', 'No') },
+                    ]}
+                    onChange={(value) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        eatingBehavior: { ...prev.eatingBehavior, eveningAppetite: value === 'yes' },
+                      }))
+                    }
+                  />
+                </AppCard>
+
+                <AppCard style={styles.healthSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                    {safeT('profile.health.sleep', 'Sleep & Circadian Rhythms')}
+                  </Text>
+
+                  <ProfileNumberRow
+                    label={safeT('profile.health.sleepHours', 'Sleep (hours)')}
+                    value={healthProfile.sleep.sleepHours}
+                    min={3}
+                    max={12}
+                    step={0.5}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        sleep: { ...prev.sleep, sleepHours: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileSegmentedControl
+                    label={safeT('profile.health.chronotype', 'Chronotype')}
+                    value={healthProfile.sleep.chronotype || 'late'}
+                    options={[
+                      { value: 'early', label: safeT('profile.health.chronotypeOptions.early', safeT('profile.health.chronotype.early', 'Early')) },
+                      { value: 'mid', label: safeT('profile.health.chronotypeOptions.mid', safeT('profile.health.chronotype.mid', 'Mid')) },
+                      { value: 'late', label: safeT('profile.health.chronotypeOptions.late', safeT('profile.health.chronotype.late', 'Late')) },
+                    ]}
+                    onChange={(value) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        sleep: { ...prev.sleep, chronotype: value },
+                      }))
+                    }
+                  />
+                </AppCard>
+
+                <AppCard style={styles.healthSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                    {safeT('profile.health.glp1Module', 'GLP-1 Module')}
+                  </Text>
+
+                  <ProfileSegmentedControl
+                    label={safeT('profile.health.isGlp1User', 'GLP-1 User')}
+                    value={healthProfile.glp1Module.isGlp1User ? 'yes' : 'no'}
+                    options={[
+                      { value: 'yes', label: safeT('common.yes', 'Yes') },
+                      { value: 'no', label: safeT('common.no', 'No') },
+                    ]}
+                    onChange={(value) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        glp1Module: { ...prev.glp1Module, isGlp1User: value === 'yes' },
+                      }))
+                    }
+                  />
+
+                  {healthProfile.glp1Module.isGlp1User && (
+                    <>
+                      <ProfileSegmentedControl
+                        label={safeT('profile.health.drugType', 'Drug Type')}
+                        value={healthProfile.glp1Module.drugType || 'semaglutide'}
+                        options={[
+                          { value: 'semaglutide', label: safeT('profile.health.drugType.semaglutide', 'Semaglutide') },
+                          { value: 'tirzepatide', label: safeT('profile.health.drugType.tirzepatide', 'Tirzepatide') },
+                          { value: 'liraglutide', label: safeT('profile.health.drugType.liraglutide', 'Liraglutide') },
+                        ]}
+                        onChange={(value) =>
+                          setHealthProfile((prev) => ({
+                            ...prev,
+                            glp1Module: { ...prev.glp1Module, drugType: value },
+                          }))
+                        }
+                      />
+
+                      <ProfileSegmentedControl
+                        label={safeT('profile.health.therapyGoal', 'Therapy Goal')}
+                        value={healthProfile.glp1Module.therapyGoal || 'preserve_muscle'}
+                        options={[
+                          { value: 'preserve_muscle', label: safeT('profile.health.therapyGoalOptions.preserve_muscle', 'Preserve Muscle') },
+                          { value: 'appetite_control', label: safeT('profile.health.therapyGoalOptions.appetite_control', 'Appetite Control') },
+                          { value: 'weight_maintenance', label: safeT('profile.health.therapyGoalOptions.weight_maintenance', 'Weight Maintenance') },
+                          { value: 'slow_weight_loss', label: safeT('profile.health.therapyGoalOptions.slow_weight_loss', 'Slow Weight Loss') },
+                        ]}
+                        onChange={(value) =>
+                          setHealthProfile((prev) => ({
+                            ...prev,
+                            glp1Module: { ...prev.glp1Module, therapyGoal: value },
+                          }))
+                        }
+                      />
+                    </>
+                  )}
+                </AppCard>
+
+                <AppCard style={styles.healthSection}>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                    {safeT('profile.health.healthFocus', 'Health Focus Areas')}
+                  </Text>
+
+                  <ProfileToggleRow
+                    label={safeT('profile.health.focus.sugarControl', 'Sugar Control')}
+                    value={healthProfile.healthFocus.sugarControl}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        healthFocus: { ...prev.healthFocus, sugarControl: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileToggleRow
+                    label={safeT('profile.health.focus.cholesterol', 'Cholesterol')}
+                    value={healthProfile.healthFocus.cholesterol}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        healthFocus: { ...prev.healthFocus, cholesterol: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileToggleRow
+                    label={safeT('profile.health.focus.inflammation', 'Inflammation')}
+                    value={healthProfile.healthFocus.inflammation}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        healthFocus: { ...prev.healthFocus, inflammation: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileToggleRow
+                    label={safeT('profile.health.focus.iron', 'Iron')}
+                    value={healthProfile.healthFocus.iron}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        healthFocus: { ...prev.healthFocus, iron: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileToggleRow
+                    label={safeT('profile.health.focus.microbiome', 'Microbiome')}
+                    value={healthProfile.healthFocus.microbiome}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        healthFocus: { ...prev.healthFocus, microbiome: val },
+                      }))
+                    }
+                  />
+
+                  <ProfileToggleRow
+                    label={safeT('profile.health.focus.hormonalBalance', 'Hormonal Balance')}
+                    value={healthProfile.healthFocus.hormonalBalance}
+                    onChange={(val) =>
+                      setHealthProfile((prev) => ({
+                        ...prev,
+                        healthFocus: { ...prev.healthFocus, hormonalBalance: val },
+                      }))
+                    }
+                  />
+                </AppCard>
+
+                <View style={{ marginTop: 16, marginBottom: 16 }}>
+                  <TouchableOpacity
+                    style={[styles.dangerButton, { borderColor: colors.error, backgroundColor: 'transparent' }]}
+                    onPress={handleClearHealthData}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={colors.error} />
+                    <Text style={[styles.dangerButtonText, { color: colors.error }]}>
+                      {safeT('profile.health.clearData', 'Clear Health Data')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )
+          }
+
+          {/* Medications Section */}
+          <AppCard style={styles.medicationsCard}>
             <TouchableOpacity
               onPress={() => {
-                // FIX 2026-01-19: Navigate to SubscriptionScreen for real IAP purchase
-                navigation.navigate('Subscription');
+                if (navigation && typeof navigation.navigate === 'function') {
+                  navigation.navigate('MedicationSchedule');
+                }
               }}
+              activeOpacity={0.8}
             >
-              <Text style={styles.planChangeText}>
-                {safeT('profile.changePlan', 'Change plan')}
+              <View style={styles.cardContent}>
+                <Ionicons name="medkit-outline" size={24} color={colors.primary} />
+                <View style={styles.cardTextContainer}>
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                    {safeT('medications.title', safeT('profile.medications', 'Medications'))}
+                  </Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    {safeT('medications.subtitle', safeT('profile.medicationsSubtitle', 'Manage your medication schedule'))}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </View>
+            </TouchableOpacity>
+          </AppCard>
+
+          <Modal
+            visible={editing}
+            animationType="slide"
+            presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+            onRequestClose={handleCancel}
+          >
+            <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.background }} edges={['bottom', 'left', 'right']}>
+              <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+              >
+                <View style={styles.editModalContainer}>
+                  <View
+                    style={[
+                      styles.editModalHeader,
+                      {
+                        borderBottomColor: tokens.colors.border,
+                        paddingTop: 16, // More padding for visual breathability
+                        paddingBottom: 16,
+                      }
+                    ]}
+                  >
+                    <TouchableOpacity
+                      onPress={handleCancel}
+                      style={styles.editModalCloseButton}
+                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                    >
+                      <Ionicons name="close" size={28} color={tokens.colors.textPrimary || tokens.colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.editModalTitle, { color: tokens.colors.textPrimary }]}>
+                      {t('profile.editProfile') || 'Edit Profile'}
+                    </Text>
+                    {/* Invisible view to balance the header title centering */}
+                    <View style={styles.editModalCloseButton} />
+                  </View>
+                  <ScrollView
+                    style={styles.editModalContent}
+                    contentContainerStyle={styles.editModalContentInner}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    keyboardDismissMode="on-drag"
+                  >
+                    <AppCard style={styles.formCard}>
+                      <Text style={styles.sectionTitle}>{safeT('profile.details', 'Details')}</Text>
+                      <View style={styles.fieldRow}>
+                        <ProfileField
+                          label={safeT('profile.firstName', 'First Name')}
+                          value={profile.firstName}
+                          onChangeText={(text) => setProfile((prev) => ({ ...prev, firstName: text }))}
+                        />
+                        <ProfileField
+                          label={safeT('profile.lastName', 'Last Name')}
+                          value={profile.lastName}
+                          onChangeText={(text) => setProfile((prev) => ({ ...prev, lastName: text }))}
+                        />
+                      </View>
+                      <ProfileField
+                        label={safeT('profile.email', 'Email')}
+                        value={profile.email}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        onChangeText={(text) => setProfile((prev) => ({ ...prev, email: text }))}
+                      />
+                      <View style={styles.fieldRow}>
+                        <ProfileField
+                          label={safeT('profile.weight', 'Weight')}
+                          value={profile.weight ? String(profile.weight) : ''}
+                          keyboardType="numeric"
+                          onChangeText={(text) => setProfile((prev) => ({ ...prev, weight: parseFloat(text) || 0 }))}
+                        />
+                        <ProfileField
+                          label={safeT('profile.height', 'Height')}
+                          value={profile.height ? String(profile.height) : ''}
+                          keyboardType="numeric"
+                          onChangeText={(text) => setProfile((prev) => ({ ...prev, height: parseFloat(text) || 0 }))}
+                        />
+                      </View>
+                      <View style={styles.fieldRow}>
+                        <ProfileField
+                          label={safeT('profile.age', 'Age')}
+                          value={profile.age ? String(profile.age) : ''}
+                          keyboardType="numeric"
+                          onChangeText={(text) => setProfile((prev) => ({ ...prev, age: parseInt(text, 10) || 0 }))}
+                        />
+                        <ProfileField
+                          label={safeT('profile.dailyCalories', 'Daily Calories')}
+                          value={profile.dailyCalories ? String(profile.dailyCalories) : ''}
+                          keyboardType="numeric"
+                          onChangeText={(text) => setProfile((prev) => ({ ...prev, dailyCalories: parseInt(text, 10) || 0 }))}
+                        />
+                      </View>
+
+                      <View style={styles.goalsSection}>
+                        <Text style={styles.sectionTitle}>{safeT('profile.goalsTitle', 'Goals & diet')}</Text>
+
+                        <View style={styles.subsection}>
+                          <Text style={styles.subsectionTitle}>{safeT('profile.goalLabel', 'Goal')}</Text>
+                          <View style={styles.chipRow}>
+                            <TouchableOpacity
+                              style={[styles.chip, goal === 'lose_weight' && styles.chipActive]}
+                              onPress={() => setGoal('lose_weight')}
+                            >
+                              <Text style={[styles.chipLabel, goal === 'lose_weight' && styles.chipLabelActive]}>
+                                {safeT('profile.goalLoseWeight', 'Lose weight')}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.chip, goal === 'maintain_weight' && styles.chipActive]}
+                              onPress={() => setGoal('maintain_weight')}
+                            >
+                              <Text style={[styles.chipLabel, goal === 'maintain_weight' && styles.chipLabelActive]}>
+                                {safeT('profile.goalMaintainWeight', 'Maintain weight')}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.chip, goal === 'gain_muscle' && styles.chipActive]}
+                              onPress={() => setGoal('gain_muscle')}
+                            >
+                              <Text style={[styles.chipLabel, goal === 'gain_muscle' && styles.chipLabelActive]}>
+                                {safeT('profile.goalGainMuscle', 'Gain muscle')}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+
+                        <View style={styles.subsection}>
+                          <Text style={styles.subsectionTitle}>{safeT('profile.dietLabel', 'Diet type')}</Text>
+                          <View style={styles.chipWrap}>
+                            <TouchableOpacity
+                              style={[styles.chip, dietPreferences.includes('balanced') && styles.chipActive]}
+                              onPress={() => toggleDietPreference('balanced')}
+                            >
+                              <Text style={[styles.chipLabel, dietPreferences.includes('balanced') && styles.chipLabelActive]}>
+                                {safeT('profile.dietBalanced', 'Balanced')}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.chip, dietPreferences.includes('high_protein') && styles.chipActive]}
+                              onPress={() => toggleDietPreference('high_protein')}
+                            >
+                              <Text style={[styles.chipLabel, dietPreferences.includes('high_protein') && styles.chipLabelActive]}>
+                                {safeT('profile.dietHighProtein', 'High protein')}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.chip, dietPreferences.includes('low_carb') && styles.chipActive]}
+                              onPress={() => toggleDietPreference('low_carb')}
+                            >
+                              <Text style={[styles.chipLabel, dietPreferences.includes('low_carb') && styles.chipLabelActive]}>
+                                {safeT('profile.dietLowCarb', 'Low carb')}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.chip, dietPreferences.includes('mediterranean') && styles.chipActive]}
+                              onPress={() => toggleDietPreference('mediterranean')}
+                            >
+                              <Text style={[styles.chipLabel, dietPreferences.includes('mediterranean') && styles.chipLabelActive]}>
+                                {safeT('profile.dietMediterranean', 'Mediterranean')}
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.chip, dietPreferences.includes('plant_based') && styles.chipActive]}
+                              onPress={() => toggleDietPreference('plant_based')}
+                            >
+                              <Text style={[styles.chipLabel, dietPreferences.includes('plant_based') && styles.chipLabelActive]}>
+                                {safeT('profile.dietPlantBased', 'Plant-based')}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    </AppCard>
+                  </ScrollView>
+                  <View style={[styles.editModalFooter, { borderTopColor: tokens.colors.border, backgroundColor: tokens.colors.surface }]}>
+
+                    <PrimaryButton
+                      title={safeT('common.save', 'Save')}
+                      onPress={typeof handleSave === 'function' ? handleSave : () => { }}
+                      loading={loading}
+                      style={styles.formSaveButton}
+                    />
+                  </View>
+                </View>
+              </KeyboardAvoidingView>
+            </SafeAreaView>
+          </Modal>
+
+          <AppCard style={styles.preferencesCard}>
+            <Text style={styles.sectionTitle}>{t('profile.preferences')}</Text>
+            {/* FIX: Language selector removed - language is automatically detected from device settings */}
+            {/* Language cannot be changed manually - it's determined by device locale */}
+            <View style={[styles.preferenceRow, styles.themeRow]}>
+              <View>
+                <Text style={styles.preferenceLabel}>{safeT('profile.theme', 'Theme')}</Text>
+                <Text style={styles.preferenceCaption}>
+                  {themeMode === 'system' ? safeT('profile.systemTheme', 'System') : isDark ? safeT('profile.darkModeSubtitle', 'Dark mode') : safeT('profile.lightMode', 'Light mode')}
+                </Text>
+              </View>
+              <View style={styles.themeToggles}>
+                <TouchableOpacity
+                  style={[
+                    styles.themeChip,
+                    themeMode === 'light' && styles.themeChipActive,
+                  ]}
+                  onPress={() => {
+                    if (typeof toggleTheme === 'function') {
+                      toggleTheme('light');
+                    }
+                  }}
+                >
+                  <View style={[styles.themeColorDot, { backgroundColor: '#2563EB' }]}>
+                    {themeMode === 'light' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.themeChip,
+                    themeMode === 'dark' && styles.themeChipActive,
+                  ]}
+                  onPress={() => {
+                    if (typeof toggleTheme === 'function') {
+                      toggleTheme('dark');
+                    }
+                  }}
+                >
+                  <View style={[styles.themeColorDot, { backgroundColor: '#1E293B' }]}>
+                    {themeMode === 'dark' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.themeChip,
+                    themeMode === 'monochrome' && styles.themeChipActive,
+                  ]}
+                  onPress={() => {
+                    if (typeof toggleTheme === 'function') {
+                      toggleTheme('monochrome');
+                    }
+                  }}
+                >
+                  <View style={[styles.themeColorDot, { backgroundColor: '#000000', borderWidth: 1, borderColor: '#E5E7EB' }]}>
+                    {themeMode === 'monochrome' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.themeChip,
+                    themeMode === 'rose' && styles.themeChipActive,
+                  ]}
+                  onPress={() => {
+                    if (typeof toggleTheme === 'function') {
+                      toggleTheme('rose');
+                    }
+                  }}
+                >
+                  <View style={[styles.themeColorDot, { backgroundColor: '#EC4899' }]}>
+                    {themeMode === 'rose' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.themeChip,
+                    themeMode === 'beige' && styles.themeChipActive,
+                  ]}
+                  onPress={() => {
+                    if (typeof toggleTheme === 'function') {
+                      toggleTheme('beige');
+                    }
+                  }}
+                >
+                  <View style={[styles.themeColorDot, { backgroundColor: '#A16207' }]}>
+                    {themeMode === 'beige' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.preferenceRow}>
+              <View style={styles.notificationCopy}>
+                <Text style={styles.preferenceLabel}>{t('profile.notificationsDailyTitle')}</Text>
+                <Text style={styles.notificationDescription}>
+                  {notificationPreferences.dailyPushEnabled
+                    ? t('profile.notificationsDailyEnabled') || 'Напоминания включены'
+                    : t('profile.notificationsDailyDisabled') || 'Напоминания отключены'}
+                </Text>
+                {notificationPreferences.dailyPushEnabled && (
+                  <View style={{ marginTop: 12 }}>
+                    <TouchableOpacity
+                      style={styles.notificationTimeButton}
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        handleNotificationHourChange();
+                      }}
+                      hitSlop={{ top: 15, bottom: 15, left: 15, right: 60 }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.timeChip}>
+                        <Ionicons name="time-outline" size={16} color={tokens.colors.primary} />
+                        <Text style={styles.notificationTimeText}>
+                          {`${String(notificationPreferences.dailyPushHour || 8).padStart(2, '0')}:${String(notificationPreferences.dailyPushMinute || 0).padStart(2, '0')}`}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+              <Switch
+                value={notificationPreferences.dailyPushEnabled}
+                onValueChange={(value) => handleNotificationToggle(value)}
+                trackColor={{ false: tokens.colors.borderMuted, true: tokens.colors.primary }}
+                thumbColor={tokens.states.primary.on}
+                disabled={notificationLoading || notificationSaving}
+              />
+            </View>
+          </AppCard>
+
+          {/* ... existing plan card ... */}
+          <AppCard style={styles.planCard}>
+            <View style={styles.planHeader}>
+              <Text style={styles.sectionTitle}>
+                {safeT('profile.subscriptionTitle', 'Subscription')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  // FIX 2026-01-19: Navigate to SubscriptionScreen for real IAP purchase
+                  navigation.navigate('Subscription');
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.planChangeText}>
+                  {safeT('profile.changePlan', 'Change plan')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.planSummary}>
+              <View style={styles.planSummaryText}>
+                <Text style={styles.planSummaryName}>
+                  {getPlanDetails(subscription.planId).name}
+                </Text>
+                <Text style={styles.planSummaryPrice}>
+                  {getPlanDetails(subscription.planId).priceText}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.planSummaryFeatures}>
+              {(getPlanDetails(subscription.planId).features || []).slice(0, 3).map((feature) => (
+                <View key={feature} style={styles.planFeatureRow}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={tokens.colors?.success ?? '#34C759'}
+                  />
+                  <Text style={styles.planFeatureText}>{feature}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.planMeta}>
+              {subscription.billingCycle === 'annual'
+                ? safeT('profile.billingAnnual', 'Billed annually')
+                : subscription.billingCycle === 'monthly'
+                  ? safeT('profile.billingMonthly', 'Billed monthly')
+                  : safeT('profile.billingFree', 'Free forever')}
+            </Text>
+          </AppCard>
+
+          {/* Delete Account Button - Always Visible */}
+          <AppCard style={styles.resetCard}>
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              style={[styles.resetButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.error || '#FF3B30' }]}
+            >
+              <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
+              <Text style={[styles.resetButtonText, { color: colors.error || '#FF3B30' }]}>
+                {safeT('profile.deleteAccount', 'Delete Account')}
               </Text>
             </TouchableOpacity>
-          </View>
-          <View style={styles.planSummary}>
-            <View style={styles.planSummaryText}>
-              <Text style={styles.planSummaryName}>
-                {getPlanDetails(subscription.planId).name}
-              </Text>
-              <Text style={styles.planSummaryPrice}>
-                {getPlanDetails(subscription.planId).priceText}
-              </Text>
+            <Text style={{ textAlign: 'center', marginTop: 8, color: colors.textTertiary, fontSize: 12 }}>
+              {safeT('profile.deleteAccountDisclaimer', 'This creates a fresh start. All data will be wiped.')}
+            </Text>
+          </AppCard>
+
+          {/* Legal Section - Redesigned without duplication */}
+          <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
+            <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('PrivacyPolicy')}
+                style={styles.legalRow}
+              >
+                <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
+                </View>
+                <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                  {safeT('profile.privacyPolicy', 'Privacy Policy')}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
+
+              <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('TermsOfService')}
+                style={styles.legalRow}
+              >
+                <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+                </View>
+                <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                  {safeT('profile.termsOfService', 'Terms of Service')}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
+
+              <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
+
+              <TouchableOpacity
+                onPress={() => Linking.openURL('https://eatsense.vercel.app')}
+                style={styles.legalRow}
+              >
+                <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
+                </View>
+                <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                  {safeT('profile.aboutEatsense', 'About EatSense')}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
             </View>
           </View>
-          <View style={styles.planSummaryFeatures}>
-            {(getPlanDetails(subscription.planId).features || []).slice(0, 3).map((feature) => (
-              <View key={feature} style={styles.planFeatureRow}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color={tokens.colors?.success ?? '#34C759'}
-                />
-                <Text style={styles.planFeatureText}>{feature}</Text>
-              </View>
-            ))}
-          </View>
-          <Text style={styles.planMeta}>
-            {subscription.billingCycle === 'annual'
-              ? safeT('profile.billingAnnual', 'Billed annually')
-              : subscription.billingCycle === 'monthly'
-                ? safeT('profile.billingMonthly', 'Billed monthly')
-                : safeT('profile.billingFree', 'Free forever')}
-          </Text>
-        </AppCard>
+        </ScrollView>
 
-        {/* Delete Account Button - Always Visible */}
-        <AppCard style={styles.resetCard}>
-          <TouchableOpacity
-            onPress={handleDeleteAccount}
-            style={[styles.resetButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.error || '#FF3B30' }]}
-          >
-            <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
-            <Text style={[styles.resetButtonText, { color: colors.error || '#FF3B30' }]}>
-              {safeT('profile.deleteAccount', 'Delete Account')}
-            </Text>
-          </TouchableOpacity>
-          <Text style={{ textAlign: 'center', marginTop: 8, color: colors.textTertiary, fontSize: 12 }}>
-            {safeT('profile.deleteAccountDisclaimer', 'This creates a fresh start. All data will be wiped.')}
-          </Text>
-        </AppCard>
-
-        {/* Legal Section - Redesigned without duplication */}
-        <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
-          <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
-              style={styles.legalRow}
-            >
-              <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
-                <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
-              </View>
-              <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
-                {safeT('profile.privacyPolicy', 'Privacy Policy')}
-              </Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-
-            <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
-
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.vercel.app/terms')}
-              style={styles.legalRow}
-            >
-              <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
-                <Ionicons name="document-text-outline" size={18} color={colors.primary} />
-              </View>
-              <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
-                {safeT('profile.termsOfService', 'Terms of Service')}
-              </Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-
-            <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
-
-            <TouchableOpacity
-              onPress={() => Linking.openURL('https://eatsense.vercel.app')}
-              style={styles.legalRow}
-            >
-              <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
-                <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
-              </View>
-              <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
-                {safeT('profile.aboutEatsense', 'About EatSense')}
-              </Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-            </TouchableOpacity>
-          </View>
-
-          <HealthDisclaimer style={{ marginTop: 16, marginHorizontal: 16 }} />
-        </View>
+        <HealthDisclaimer style={{ marginTop: 16, marginHorizontal: 16 }} />
 
         {/* Build Info for debugging */}
         <View style={styles.buildInfoContainer}>
@@ -1733,16 +1786,17 @@ const ProfileScreen = () => {
             Build {Constants.expoConfig?.version || '?'}.{Constants.expoConfig?.ios?.buildNumber || Constants.expoConfig?.android?.versionCode || '?'}
           </Text>
         </View>
-      </ScrollView>
+      </SafeAreaView >
 
       <Modal
         visible={planModalVisible}
         animationType="slide"
         presentationStyle="fullScreen"
         onRequestClose={() => !planSaving && setPlanModalVisible(false)}
+        statusBarTranslucent
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: tokens.colors.background }}>
-          <View style={[styles.editModalHeader, { borderBottomWidth: 0 }]}>
+          <View style={[styles.editModalHeader, { borderBottomWidth: 0, paddingTop: Math.max(insets.top, 20) }]}>
             <TouchableOpacity
               onPress={() => !planSaving && setPlanModalVisible(false)}
               style={styles.editModalCloseButton}
@@ -1824,11 +1878,15 @@ const ProfileScreen = () => {
         showTimePicker && (
           <>
             {Platform.OS === 'ios' ? (
-              <Modal transparent animationType="fade" visible={showTimePicker}>
-                <View style={styles.modalBackdrop}>
-                  <View style={[styles.modalContent, { paddingBottom: 20 }]}>
-                    <View style={styles.modalHeader}>
-                      <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+              <Modal transparent animationType="fade" visible={showTimePicker} statusBarTranslucent>
+                <TouchableOpacity
+                  style={styles.modalBackdrop}
+                  activeOpacity={1}
+                  onPress={() => setShowTimePicker(false)}
+                >
+                  <View style={[styles.modalContent, { padding: 0, paddingBottom: Math.max(insets.bottom, 30) }]}>
+                    <View style={[styles.modalHeader, { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }]}>
+                      <TouchableOpacity onPress={() => setShowTimePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <Text style={{ fontSize: 16, color: tokens.colors.textSecondary }}>
                           {safeT('common.cancel', 'Cancel')}
                         </Text>
@@ -1836,24 +1894,24 @@ const ProfileScreen = () => {
                       <Text style={[styles.modalTitle, { fontSize: 16 }]}>
                         {safeT('profile.selectTime', 'Select Time')}
                       </Text>
-                      <TouchableOpacity onPress={confirmIosTime}>
+                      <TouchableOpacity onPress={confirmIosTime} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <Text style={{ fontSize: 16, color: tokens.colors.primary, fontWeight: '600' }}>
                           {safeT('common.done', 'Done')}
                         </Text>
                       </TouchableOpacity>
                     </View>
-                    <View style={{ alignItems: 'center', width: '100%' }}>
+                    <View style={{ width: '100%', height: 216, overflow: 'hidden' }}>
                       <DateTimePicker
                         value={tempDate}
                         mode="time"
                         display="spinner"
                         onChange={onTimeChange}
                         textColor={tokens.colors.textPrimary}
-                        style={{ width: '100%' }}
+                        style={{ width: '100%', height: 216 }}
                       />
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               </Modal>
             ) : (
               <DateTimePicker
@@ -1870,8 +1928,9 @@ const ProfileScreen = () => {
               />
             )}
           </>
-        )
-      }
+        )}
+
+      {/* Disclaimer Modal */}
       <DisclaimerModal
         disclaimerKey="biomarkers"
         visible={showBiomarkerDisclaimer}
@@ -1888,7 +1947,7 @@ const ProfileScreen = () => {
         }}
         onCancel={() => setShowBiomarkerDisclaimer(false)}
       />
-    </SafeAreaView >
+    </>
   );
 };
 
@@ -2032,6 +2091,7 @@ const createStyles = (tokens) =>
     modalBackdrop: {
       flex: 1,
       justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
       backgroundColor: tokens.colors.surfacePrimary || tokens.colors.surface,
@@ -2314,7 +2374,17 @@ const createStyles = (tokens) =>
     notificationTimeButton: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    timeChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: tokens.spacing.xs,
+      backgroundColor: tokens.colors.surfaceSecondary || '#F5F5F5',
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: tokens.radii.pill || 999,
+      borderWidth: 1,
+      borderColor: tokens.colors.borderMuted,
     },
     notificationTimeText: {
       fontSize: 13,

@@ -53,19 +53,46 @@ export default function LifestyleDetailScreen({
   const { colors } = useTheme();
 
   const getLocalizedText = (
-    text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null
+    text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null,
+    t?: (key: string) => string
   ): string => {
     if (!text) return '';
-    if (typeof text === 'string') return text;
-    return text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || '';
+
+    // Helper to translate if t provided
+    const translateIfNeeded = (str: string) => {
+      if (t && str && /^[a-z_][a-z0-9_.]*\.[a-z0-9_.]+$/i.test(str) && str.includes('.')) {
+        return t(str);
+      }
+      return str;
+    };
+
+    if (typeof text === 'string') return translateIfNeeded(text);
+
+    // Fallback logic
+    const result = text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || '';
+    return translateIfNeeded(result);
   };
 
   const getLocalizedTextArray = (
-    text: { en?: string[]; ru?: string[]; kk?: string[]; fr?: string[] } | undefined | null
+    text: { en?: string[]; ru?: string[]; kk?: string[]; fr?: string[] } | undefined | null,
+    t?: (key: string) => string
   ): string[] => {
     if (!text) return [];
-    if (Array.isArray(text)) return text;
-    return text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || [];
+
+    // Helper to translate array items
+    const translateArray = (arr: string[]) => {
+      if (!t) return arr;
+      return arr.map(str => {
+        if (str && /^[a-z_][a-z0-9_.]*\.[a-z0-9_.]+$/i.test(str) && str.includes('.')) {
+          return t(str);
+        }
+        return str;
+      });
+    };
+
+    if (Array.isArray(text)) return translateArray(text);
+    const result = text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || [];
+    return translateArray(result);
   };
 
   // Category lookup - available for future use
@@ -110,7 +137,7 @@ export default function LifestyleDetailScreen({
               { color: colors.textPrimary || '#212121' },
             ]}
           >
-            {getLocalizedText(program.name)}
+            {getLocalizedText(program.name, t)}
           </Text>
           <Text
             style={[
@@ -118,7 +145,7 @@ export default function LifestyleDetailScreen({
               { color: colors.textSecondary || '#666' },
             ]}
           >
-            {getLocalizedText(program.tagline || program.subtitle)}
+            {getLocalizedText(program.tagline || program.subtitle, t)}
           </Text>
         </View>
 
@@ -138,7 +165,7 @@ export default function LifestyleDetailScreen({
                 { color: colors.textPrimary || '#212121' },
               ]}
             >
-              {getLocalizedText(program.mantra || (program.rules && program.rules.mantra))}
+              {getLocalizedText(program.mantra || (program.rules && program.rules.mantra), t)}
             </Text>
           </View>
         </View>
@@ -154,7 +181,7 @@ export default function LifestyleDetailScreen({
               { color: colors.textSecondary || '#666' },
             ]}
           >
-            {getLocalizedText(program.philosophy || (program.rules && program.rules.philosophy))}
+            {getLocalizedText(program.philosophy || (program.rules && program.rules.philosophy), t)}
           </Text>
         </View>
 
@@ -164,7 +191,7 @@ export default function LifestyleDetailScreen({
             {t('lifestyles.detail.embrace') || 'Выбирать чаще'}
           </Text>
           <View style={styles.listContainer}>
-            {getLocalizedTextArray(program.embrace || (program.rules && program.rules.embrace) || program.allowedFoods).map((item, index) => (
+            {getLocalizedTextArray(program.embrace || (program.rules && program.rules.embrace) || program.allowedFoods, t).map((item, index) => (
               <View key={index} style={styles.listItem}>
                 <Ionicons name="checkmark-circle" size={20} color={colors.success || '#4CAF50'} />
                 <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
@@ -181,7 +208,7 @@ export default function LifestyleDetailScreen({
             {t('lifestyles.detail.minimize') || 'Уменьшить'}
           </Text>
           <View style={styles.listContainer}>
-            {getLocalizedTextArray(program.minimize || (program.rules && program.rules.minimize) || program.restrictedFoods).map((item, index) => (
+            {getLocalizedTextArray(program.minimize || (program.rules && program.rules.minimize) || program.restrictedFoods, t).map((item, index) => (
               <View key={index} style={styles.listItem}>
                 <Ionicons name="remove-circle" size={20} color={colors.error || '#F44336'} />
                 <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
@@ -198,7 +225,7 @@ export default function LifestyleDetailScreen({
             {t('lifestyles.detail.dailyInspiration') || 'Идеи на сегодня'}
           </Text>
           <View style={styles.listContainer}>
-            {getLocalizedTextArray(program.dailyInspiration || (program.rules && program.rules.dailyInspiration)).map((item, index) => (
+            {getLocalizedTextArray(program.dailyInspiration || (program.rules && program.rules.dailyInspiration), t).map((item, index) => (
               <View key={index} style={styles.inspirationItem}>
                 <View style={[styles.inspirationBullet, { backgroundColor: colors.primary || '#4CAF50' }]} />
                 <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
@@ -222,7 +249,7 @@ export default function LifestyleDetailScreen({
                     {t('lifestyles.detail.morning') || 'Утро'}
                   </Text>
                   <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                    {getLocalizedText(program.sampleDay?.morning || program.rules?.sampleDay?.morning)}
+                    {getLocalizedText(program.sampleDay?.morning || program.rules?.sampleDay?.morning, t)}
                   </Text>
                 </View>
               )}
@@ -232,7 +259,7 @@ export default function LifestyleDetailScreen({
                     {t('lifestyles.detail.midday') || 'День'}
                   </Text>
                   <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                    {getLocalizedText(program.sampleDay?.midday || program.rules?.sampleDay?.midday)}
+                    {getLocalizedText(program.sampleDay?.midday || program.rules?.sampleDay?.midday, t)}
                   </Text>
                 </View>
               )}
@@ -242,7 +269,7 @@ export default function LifestyleDetailScreen({
                     {t('lifestyles.detail.evening') || 'Вечер'}
                   </Text>
                   <Text style={[styles.sampleDayText, { color: colors.textSecondary || '#666' }]}>
-                    {getLocalizedText(program.sampleDay?.evening || program.rules?.sampleDay?.evening)}
+                    {getLocalizedText(program.sampleDay?.evening || program.rules?.sampleDay?.evening, t)}
                   </Text>
                 </View>
               )}

@@ -37,6 +37,7 @@ interface DietsTabContentProps {
     onSearchChange: (_query: string) => void;
     refreshing?: boolean;
     onRefresh?: () => void;
+    checkLockStatus?: (id: string) => boolean; // Added checkLockStatus prop
 }
 
 /**
@@ -56,6 +57,7 @@ export default function DietsTabContent({
     onSearchChange: _onSearchChange,
     refreshing: _refreshing = false,
     onRefresh: _onRefresh,
+    checkLockStatus, // Destructure new prop
 }: DietsTabContentProps) {
     const { t, language } = useI18n();
     const { colors } = useTheme();
@@ -116,8 +118,8 @@ export default function DietsTabContent({
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             diets = diets.filter(diet => {
-                const name = getLocalizedText(diet.name, language).toLowerCase();
-                const desc = getLocalizedText(diet.shortDescription || diet.description, language).toLowerCase();
+                const name = getLocalizedText(diet.name, language, t).toLowerCase();
+                const desc = getLocalizedText(diet.shortDescription || diet.description, language, t).toLowerCase();
                 return name.includes(query) || desc.includes(query);
             });
         }
@@ -144,16 +146,16 @@ export default function DietsTabContent({
             {/* FIX: Only show activeDiet if it's a diet (not lifestyle) */}
             {/* Lifestyle trackers should only appear in LifestyleTabContent */}
             {/* Check both program.type and ensure it's not lifestyle */}
-            {activeDiet && 
-             activeDiet.program?.type !== 'LIFESTYLE' && 
-             activeDiet.program?.type !== 'lifestyle' && (
-                <View style={styles.section}>
-                    <ActiveDietWidget
-                        userDiet={activeDiet}
-                        onPress={() => onProgramPress(activeDiet.programId)}
-                    />
-                </View>
-            )}
+            {activeDiet &&
+                activeDiet.program?.type !== 'LIFESTYLE' &&
+                activeDiet.program?.type !== 'lifestyle' && (
+                    <View style={styles.section}>
+                        <ActiveDietWidget
+                            userDiet={activeDiet}
+                            onPress={() => onProgramPress(activeDiet.programId)}
+                        />
+                    </View>
+                )}
 
             {/* AI Recommendations */}
             {recommendations.length > 0 && !activeDiet && (
@@ -179,48 +181,60 @@ export default function DietsTabContent({
                                     <Text style={styles.matchText}>{rec.matchScore}%</Text>
                                 </View>
                                 <Text style={styles.recName}>
-                                    {getLocalizedText(rec.diet.name, language)}
+                                    {getLocalizedText(rec.diet.name, language, t)}
                                 </Text>
                                 <Text style={styles.recReason} numberOfLines={2}>
-                                    {getLocalizedText(rec.reason, language)}
+                                    {getLocalizedText(rec.reason, language, t)}
                                 </Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
-                </View>
-            )}
+                </View >
+            )
+            }
 
             {/* Featured Diets */}
-            {featuredDiets.length > 0 && !searchQuery && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                        {t('diets_featured') || 'Popular Diets'}
-                    </Text>
+            {
+                featuredDiets.length > 0 && !searchQuery && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>
+                            {t('diets_featured') || 'Popular Diets'}
+                        </Text>
 
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {featuredDiets.map((diet) => (
-                            <TouchableOpacity
-                                key={diet.id}
-                                style={[styles.featuredCard, { backgroundColor: diet.color || '#4CAF50' }]}
-                                onPress={() => onProgramPress(diet.id)}
-                            >
-                                <Ionicons name="star" size={20} color="rgba(255,255,255,0.8)" />
-                                <Text style={styles.featuredName}>
-                                    {getLocalizedText(diet.name, language)}
-                                </Text>
-                                <Text style={styles.featuredDesc} numberOfLines={2}>
-                                    {getLocalizedText(diet.shortDescription || diet.description, language)}
-                                </Text>
-                                <View style={styles.featuredMeta}>
-                                    <Text style={styles.featuredMetaText}>
-                                        {diet.duration} {t('diets_days') || 'days'}
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            {featuredDiets.map((diet) => (
+                                <TouchableOpacity
+                                    key={diet.id}
+                                    style={[
+                                        styles.featuredCard,
+                                        { backgroundColor: diet.color || '#4CAF50' },
+                                        checkLockStatus && checkLockStatus(diet.id) && { opacity: 0.8 } // Visual feedback for locked
+                                    ]}
+                                    onPress={() => onProgramPress(diet.id)}
+                                >
+                                    <Ionicons name="star" size={20} color="rgba(255,255,255,0.8)" />
+                                    {checkLockStatus && checkLockStatus(diet.id) && (
+                                        <View style={{ position: 'absolute', top: 10, right: 10 }}>
+                                            <Ionicons name="lock-closed" size={16} color="rgba(255,255,255,0.9)" />
+                                        </View>
+                                    )}
+                                    <Text style={styles.featuredName}>
+                                        {getLocalizedText(diet.name, language, t)}
                                     </Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            )}
+                                    <Text style={styles.featuredDesc} numberOfLines={2}>
+                                        {getLocalizedText(diet.shortDescription || diet.description, language, t)}
+                                    </Text>
+                                    <View style={styles.featuredMeta}>
+                                        <Text style={styles.featuredMetaText}>
+                                            {diet.duration} {t('diets_days') || 'days'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))
+                            }
+                        </ScrollView >
+                    </View >
+                )}
 
             {/* Type Filters */}
             <View style={styles.section}>
@@ -277,40 +291,45 @@ export default function DietsTabContent({
             </View>
 
             {/* All Diets grouped by category */}
-            {Object.entries(groupedDiets).map(([group, diets]) => {
-                const groupConfig = DIETS_UI_GROUPS.find(g => g.id === group);
-                if (!groupConfig) return null;
+            {
+                Object.entries(groupedDiets).map(([group, diets]) => {
+                    const groupConfig = DIETS_UI_GROUPS.find(g => g.id === group);
+                    if (!groupConfig) return null;
 
-                return (
-                    <View key={group} style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Ionicons name={groupConfig.icon} size={18} color={groupConfig.color} />
-                            <Text style={styles.sectionTitle}>
-                                {t(groupConfig.labelKey) || group}
-                            </Text>
+                    return (
+                        <View key={group} style={styles.section}>
+                            <View style={styles.sectionHeader}>
+                                <Ionicons name={groupConfig.icon} size={18} color={groupConfig.color} />
+                                <Text style={styles.sectionTitle}>
+                                    {t(groupConfig.labelKey) || group}
+                                </Text>
+                            </View>
+                            <View style={styles.dietsList}>
+                                {diets.map((diet) => (
+                                    <DietCard
+                                        key={diet.id}
+                                        diet={diet}
+                                        onPress={() => onProgramPress(diet.id)}
+                                        isLocked={checkLockStatus ? checkLockStatus(diet.id) : false}
+                                    />
+                                ))}
+                            </View>
                         </View>
-                        <View style={styles.dietsList}>
-                            {diets.map((diet) => (
-                                <DietCard
-                                    key={diet.id}
-                                    diet={diet}
-                                    onPress={() => onProgramPress(diet.id)}
-                                />
-                            ))}
-                        </View>
+                    );
+                })
+            }
+
+            {
+                filteredDiets.length === 0 && (
+                    <View style={styles.emptyContainer}>
+                        <Ionicons name="search" size={48} color="#CCC" />
+                        <Text style={styles.emptyText}>
+                            {t('diets_no_diets') || 'No diets found'}
+                        </Text>
                     </View>
-                );
-            })}
-
-            {filteredDiets.length === 0 && (
-                <View style={styles.emptyContainer}>
-                    <Ionicons name="search" size={48} color="#CCC" />
-                    <Text style={styles.emptyText}>
-                        {t('diets_no_diets') || 'No diets found'}
-                    </Text>
-                </View>
-            )}
-        </View>
+                )
+            }
+        </View >
     );
 }
 

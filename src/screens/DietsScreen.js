@@ -21,6 +21,8 @@ import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabC
 import SuggestProgramCard from '../components/programs/SuggestProgramCard';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import seedBundle from '../../assets/dietsBundleSeed.json';
+import { trialService } from '../services/trialService';
+import PremiumLockModal from '../components/common/PremiumLockModal';
 
 // Cache TTL for bundle data (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
@@ -139,16 +141,6 @@ const MAIN_TABS = [
     { id: 'lifestyle', labelKey: 'diets_tabs_lifestyle', fallback: 'Lifestyle' },
 ];
 
-// Featured diets to load first for instant display (lazy loading)
-const FEATURED_DIET_SLUGS = [
-    'mediterranean',
-    'keto',
-    'if-16-8',
-    'plate-method',
-    'low-carb',
-];
-
-
 /**
  * DietsScreen - Main screen for diet programs and meal plans
  */
@@ -156,19 +148,19 @@ export default function DietsScreen({ navigation }) {
     const { t, language } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
-    
+
     // Get active program from store (real-time updates)
     const { activeProgram, loadProgress } = useProgramProgress();
     useRefreshProgressOnFocus(); // Refresh on focus
-    
+
     // FIX: Load progress when Diets screen mounts (lazy loading - only when needed)
     // This ensures program data is available for the tracker
     useEffect(() => {
-      if (!activeProgram) {
-        loadProgress().catch(() => {
-          // Silent fail - tracker will just not show if no program
-        });
-      }
+        if (!activeProgram) {
+            loadProgress().catch(() => {
+                // Silent fail - tracker will just not show if no program
+            });
+        }
     }, [activeProgram, loadProgress]);
 
     // Unified cache key for bundle data
@@ -191,9 +183,40 @@ export default function DietsScreen({ navigation }) {
     const [lifestylePrograms, setLifestylePrograms] = useState([]);
     const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
-    
+    const [subscription, setSubscription] = useState(null); // Access control
+
+    // NEW: Trial & Lock State
+    const [lockModalVisible, setLockModalVisible] = useState(false);
+    const [selectedProgramForUnlock, setSelectedProgramForUnlock] = useState(null);
+    // Force update state to re-render when trial starts
+    const [, setTick] = useState(0);
+
     // Track if store has loaded at least once - prevents clearing activeDiet from bundle prematurely
     const storeHasLoadedRef = useRef(false);
+
+    // Initialize trial service on mount
+    useEffect(() => {
+        trialService.init();
+    }, []);
+
+    // NEW: Check if program is locked
+    const checkLockStatus = useCallback((programId) => {
+        // 1. If user has active subscription, NEVER lock
+        if (subscription?.hasSubscription) return false;
+
+        // 2. If user has active customized/started this program (activeProgram), NEVER lock
+        // This ensures if they started it, they keep it.
+        // Also check if activeProgram matches the ID? 
+        // Ideally if they are running it, it's unlocked.
+        if (activeProgram?.programId === programId) return false;
+
+        // 3. Check local soft trial
+        const isTrial = trialService.isTrialActive(programId);
+        if (isTrial) return false;
+
+        // 4. Otherwise Locked
+        return true;
+    }, [subscription, activeProgram]);
 
     // Load data using bundle API - OPTIMIZED for instant loading
     const loadData = useCallback(async (forceRefresh = false) => {
@@ -201,17 +224,14 @@ export default function DietsScreen({ navigation }) {
 
         try {
             let hasCache = false;
-            
-            // Step 1: Try to show cached data immediately for instant UI (0ms from memory, ~10-50ms from AsyncStorage)
-            // If no cache, use seed snapshot for instant display (not empty skeleton)
+
+            // Step 1: Try to show cached data immediately for instant UI
             if (!forceRefresh) {
-                // Check cache synchronously (memory cache is instant)
                 const cached = memoryCache && Date.now() - memoryCacheTimestamp < CACHE_TTL
                     ? memoryCache
                     : await loadFromCache(BUNDLE_CACHE_KEY);
-                
+
                 if (cached && isMounted) {
-                    // Set state immediately (no await needed)
                     setFeaturedDiets(cached.featuredDiets || []);
                     setFeaturedLifestyles(cached.featuredLifestyles || []);
                     setAllDiets(cached.allDiets || []);
@@ -220,8 +240,6 @@ export default function DietsScreen({ navigation }) {
                     setLoading(false);
                     hasCache = true;
                 } else {
-                    // No cache - use seed snapshot for instant display (avoids gray skeleton)
-                    // This ensures UI is populated immediately, even if empty
                     if (isMounted && seedBundle) {
                         setFeaturedDiets(seedBundle.featuredDiets || []);
                         setFeaturedLifestyles(seedBundle.featuredLifestyles || []);
@@ -229,14 +247,11 @@ export default function DietsScreen({ navigation }) {
                         setLifestylePrograms(seedBundle.allLifestyles || []);
                         setActiveDiet(seedBundle.activeProgram || null);
                         setLoading(false);
-                        // Mark that we're using seed (will be replaced by real data)
                     }
                 }
             }
 
-            // Step 2: Fetch fresh data in parallel with recommendations
-            // If cache exists, this runs in background (non-blocking)
-            // If no cache, we wait for this to complete
+            // Step 2: Fetch fresh data
             const fetchFreshData = async () => {
                 try {
                     const bundle = await ApiService.getDietsBundle(language);
@@ -260,7 +275,7 @@ export default function DietsScreen({ navigation }) {
                 }
             };
 
-            // Step 3: Fetch recommendations in parallel (non-blocking)
+            // Step 3: Fetch recommendations
             const fetchRecommendations = async () => {
                 try {
                     const recsRes = await ApiService.getDietRecommendations();
@@ -272,14 +287,18 @@ export default function DietsScreen({ navigation }) {
                 }
             };
 
-            // Execute: if cache exists, fetch in background. If no cache, wait for bundle.
             if (hasCache) {
-                // Cache exists - fetch fresh data in background (non-blocking)
-                Promise.all([fetchFreshData(), fetchRecommendations()]).catch(() => {});
+                Promise.all([fetchFreshData(), fetchRecommendations()]).catch(() => { });
             } else {
-                // No cache - wait for bundle, recommendations in parallel
                 await Promise.all([fetchFreshData(), fetchRecommendations()]);
             }
+
+            // Step 4: Fetch subscription status
+            ApiService.getCurrentSubscription()
+                .then(sub => {
+                    if (isMounted) setSubscription(sub);
+                })
+                .catch(err => console.warn('[DietsScreen] Subscription fetch failed:', err));
 
         } catch (error) {
             console.error('[DietsScreen] Load error:', error);
@@ -292,43 +311,35 @@ export default function DietsScreen({ navigation }) {
         };
     }, [language]);
 
-    // Update activeDiet from store when activeProgram changes (only for diet type, bundle format)
-    // Lifestyle programs are handled separately via activeProgram prop to LifestyleTabContent
-    // FIX: Don't clear activeDiet if store hasn't loaded yet - preserve bundle data
+    // Update activeDiet from store when activeProgram changes
     useEffect(() => {
-        // Mark that store has been checked (even if null)
         if (activeProgram !== undefined) {
             storeHasLoadedRef.current = true;
         }
-        
+
         if (activeProgram && activeProgram.type === 'diet') {
-            // Convert ProgramProgressStore format to DietsTabContent ActiveDietWidget format
-            // ActiveDietWidget expects: { program, progress, currentDay, totalDays, todayPlan?, dailyLogs? }
-            // program.name can be string or object with nameLocalized
             const programName = activeProgram.programName || 'Diet';
-            // Handle both string and object formats for programName
-            // If programName is object (localized), use it as nameLocalized; if string, create localized object
-            const nameLocalized = typeof programName === 'object' 
-                ? programName 
+            const nameLocalized = typeof programName === 'object'
+                ? programName
                 : { [language]: programName, en: programName, ru: programName, kk: programName, fr: programName };
-            const nameString = typeof programName === 'string' 
-                ? programName 
+            const nameString = typeof programName === 'string'
+                ? programName
                 : (programName[language] || programName['en'] || programName['ru'] || programName['kk'] || programName['fr'] || Object.values(programName)[0] || 'Diet');
-            
+
             setActiveDiet({
                 programId: activeProgram.programId,
                 currentDay: activeProgram.currentDayIndex || 1,
                 totalDays: activeProgram.durationDays || 0,
                 program: {
                     id: activeProgram.programId,
-                    name: nameString, // String for backward compatibility
-                    nameLocalized: nameLocalized, // Object for localization
-                    type: 'diet', // Explicitly set type to prevent confusion
+                    name: nameString,
+                    nameLocalized: nameLocalized,
+                    type: 'diet',
                     color: '#4CAF50',
                 },
                 progress: {
-                    percentComplete: activeProgram.durationDays > 0 
-                        ? Math.round((activeProgram.currentDayIndex / activeProgram.durationDays) * 100) 
+                    percentComplete: activeProgram.durationDays > 0
+                        ? Math.round((activeProgram.currentDayIndex / activeProgram.durationDays) * 100)
                         : 0,
                     totalDays: activeProgram.durationDays,
                     daysCompleted: activeProgram.currentDayIndex,
@@ -341,39 +352,25 @@ export default function DietsScreen({ navigation }) {
                 }] : [],
             });
         } else if (activeProgram && activeProgram.type === 'lifestyle') {
-            // For lifestyle, clear activeDiet (DietsTabContent doesn't show lifestyle trackers)
-            // Lifestyle tracker is shown in LifestyleTabContent via activeProgram prop
             setActiveDiet(null);
         } else if (!activeProgram && storeHasLoadedRef.current) {
-            // FIX: Only clear activeDiet if store has loaded and confirmed there's no active program
-            // This prevents tracker from disappearing during "Slow Dashboard Load" warnings
-            // If store hasn't loaded yet, preserve bundle data
             setActiveDiet(null);
         }
-        // Note: If activeProgram is null but store hasn't loaded yet, we keep bundle data
-        // This ensures we show data from bundle if store hasn't loaded yet
     }, [activeProgram, language]);
 
-    // Load data on focus - optimized to avoid unnecessary reloads
     useFocusEffect(
         useCallback(() => {
-            // Always call loadData - it's smart enough to use cache if available
-            // This ensures data is fresh but doesn't block UI if cache exists
             loadData();
         }, [loadData])
     );
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-
-        // Clear bundle cache on manual refresh to force fresh data
         try {
             await AsyncStorage.removeItem('diets_bundle_cache_v1');
         } catch (e) {
             console.warn('[DietsScreen] Failed to clear cache:', e);
         }
-
-        // Force refresh bypasses cache
         await loadData(true);
     }, [loadData]);
 
@@ -389,27 +386,48 @@ export default function DietsScreen({ navigation }) {
         setSearchQuery(text);
     };
 
-    // Handle tab switch - reset scroll and filters
-    // Handle tab switch - reset scroll and filters
     const handleTabSwitch = (tabId) => {
         setActiveTab(tabId);
-        setSearchQuery(''); // Clear search
-        setSelectedType(null); // Clear type filter
-        setSelectedDifficulty(null); // Clear difficulty filter
-        setSelectedCategory(null); // Clear lifestyle category
-        // Scroll to top
+        setSearchQuery('');
+        setSelectedType(null);
+        setSelectedDifficulty(null);
+        setSelectedCategory(null);
         if (scrollViewRef.current) {
             scrollViewRef.current.scrollTo({ y: 0, animated: true });
         }
     };
 
     const handleProgramPress = (programId) => {
-        // Check if this is a lifestyle program by checking if activeTab is 'lifestyle'
-        // This is a simple approach - could be improved by checking actual program data
+        // Check lock status
+        if (checkLockStatus(programId)) {
+            setSelectedProgramForUnlock(programId);
+            setLockModalVisible(true);
+            return;
+        }
+
         if (activeTab === 'lifestyle') {
             navigation.navigate('LifestyleDetail', { id: programId });
         } else {
             navigation.navigate('DietProgramDetail', { dietId: programId });
+        }
+    };
+
+    // NEW: Unlock handler
+    const handleUnlock = async () => {
+        if (selectedProgramForUnlock) {
+            const success = await trialService.startTrial(selectedProgramForUnlock);
+            if (success) {
+                setLockModalVisible(false);
+                setTick(t => t + 1); // Force re-render/re-check lock status
+
+                setTimeout(() => {
+                    if (activeTab === 'lifestyle') {
+                        navigation.navigate('LifestyleDetail', { id: selectedProgramForUnlock });
+                    } else {
+                        navigation.navigate('DietProgramDetail', { dietId: selectedProgramForUnlock });
+                    }
+                }, 100);
+            }
         }
     };
 
@@ -418,7 +436,6 @@ export default function DietsScreen({ navigation }) {
         return createStyles(tokens, colors);
     }, [tokens, themeContext?.colors]);
 
-    // Show skeleton only on initial load when we have no data
     if (loading && allDiets.length === 0) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
@@ -466,7 +483,7 @@ export default function DietsScreen({ navigation }) {
                     ))}
                 </View>
 
-                {/* FIX: Suggest Program Card - вариант 3: между табами и контентом для лучшей видимости */}
+                {/* Suggest Program Card */}
                 {!searchQuery && (
                     <View style={styles.suggestSectionTop}>
                         <SuggestProgramCard type={activeTab === 'lifestyle' ? 'lifestyle' : 'diet'} />
@@ -497,8 +514,7 @@ export default function DietsScreen({ navigation }) {
                     </View>
                 </View>
 
-                {/* Tab Content - minHeight prevents SuggestProgramCard from jumping to center during load */}
-                {/* FIX: Add minHeight to prevent SuggestProgramCard from jumping to center during load */}
+                {/* Tab Content */}
                 <View style={[styles.tabContentWrapper, { minHeight: 400 }]}>
                     {activeTab === 'diets' ? (
                         <DietsTabContent
@@ -515,6 +531,7 @@ export default function DietsScreen({ navigation }) {
                             onSearchChange={onSearchChange}
                             refreshing={refreshing}
                             onRefresh={onRefresh}
+                            checkLockStatus={checkLockStatus}
                         />
                     ) : (
                         <LifestyleTabContent
@@ -540,6 +557,7 @@ export default function DietsScreen({ navigation }) {
                                 totalDays: activeProgram.durationDays,
                                 daysLeft: activeProgram.daysLeft,
                             } : null}
+                            subscription={subscription}
                         />
                     )}
                 </View>
@@ -556,6 +574,13 @@ export default function DietsScreen({ navigation }) {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
+
+            {/* Premium Lock Modal */}
+            <PremiumLockModal
+                visible={lockModalVisible}
+                onClose={() => setLockModalVisible(false)}
+                onUnlock={handleUnlock}
+            />
         </SafeAreaView>
     );
 }
@@ -571,7 +596,6 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         alignItems: 'center',
         backgroundColor: tokens.colors?.background || '#FAFAFA',
     },
-    // PATCH 04: Loading more indicator
     loadingMoreContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -597,7 +621,7 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         color: tokens.colors?.textSecondary || '#666',
         marginTop: 4,
     },
-    // Main Tabs (Diets / Lifestyle)
+    // Main Tabs
     tabsContainer: {
         flexDirection: 'row',
         marginHorizontal: 16,
@@ -644,8 +668,6 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         color: tokens.colors?.textSecondary || '#666',
         marginBottom: 12,
     },
-
-    // Recommendations
     recommendationCard: {
         width: 200,
         backgroundColor: tokens.colors?.surface || '#FFF',
@@ -682,8 +704,6 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         color: tokens.colors?.textSecondary || '#666',
         lineHeight: 16,
     },
-
-    // Featured
     featuredCard: {
         width: 180,
         borderRadius: 14,
@@ -715,8 +735,6 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         fontSize: 11,
         fontWeight: '600',
     },
-
-    // Filters
     filtersRow: {
         marginTop: 12,
         marginBottom: 12,
@@ -742,8 +760,6 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
     filterChipTextActive: {
         color: '#FFF',
     },
-
-    // Search
     searchContainer: {
         paddingHorizontal: 16,
         marginBottom: 8,
@@ -762,8 +778,6 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         fontSize: 15,
         paddingVertical: 0,
     },
-
-    // Difficulty Filter
     difficultyRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -787,111 +801,5 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
     difficultyChipText: {
         fontSize: 12,
         fontWeight: '500',
-    },
-
-    // Historical Section
-    historicalSection: {
-        marginHorizontal: 16,
-        marginTop: 16,
-        marginBottom: 8,
-        borderRadius: 16,
-        padding: 16,
-    },
-    historicalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    historicalHeaderText: {
-        marginLeft: 10,
-    },
-    historicalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#4E342E',
-    },
-    historicalSubtitle: {
-        fontSize: 12,
-        color: '#795548',
-        marginTop: 2,
-    },
-    disclaimerBanner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(121, 85, 72, 0.1)',
-        padding: 10,
-        borderRadius: 8,
-        marginBottom: 12,
-        gap: 8,
-    },
-    disclaimerText: {
-        flex: 1,
-        fontSize: 12,
-        color: '#795548',
-        fontStyle: 'italic',
-    },
-    historicalCard: {
-        width: 160,
-        height: 140,
-        borderRadius: 12,
-        padding: 16,
-        marginRight: 12,
-        justifyContent: 'space-between',
-    },
-    historicalName: {
-        color: '#FFF',
-        fontSize: 15,
-        fontWeight: '700',
-        marginTop: 8,
-        marginBottom: 4,
-    },
-    historicalDesc: {
-        color: 'rgba(255,255,255,0.85)',
-        fontSize: 11,
-        marginTop: 4,
-        lineHeight: 15,
-        flex: 1,
-    },
-    historicalMeta: {
-        position: 'absolute',
-        bottom: 14,
-        left: 14,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 8,
-    },
-    historicalMetaText: {
-        color: '#FFF',
-        fontSize: 11,
-        fontWeight: '600',
-    },
-
-    // Diets List
-    dietsList: {
-        paddingHorizontal: 16,
-        marginTop: 8,
-        gap: 12,
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        paddingTop: 40,
-    },
-    emptyText: {
-        fontSize: 15,
-        color: tokens.colors?.textSecondary || '#999',
-        marginTop: 12,
-    },
-    suggestSectionTop: {
-        marginTop: 16,
-        marginBottom: 8,
-        paddingHorizontal: 0,
-    },
-    tabContentWrapper: {
-        minHeight: 400, // FIX: Increased to prevent SuggestProgramCard from jumping to center during load
-    },
-    suggestSection: {
-        marginTop: 16,
-        paddingHorizontal: 0,
     },
 });

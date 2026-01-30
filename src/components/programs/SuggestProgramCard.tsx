@@ -75,9 +75,9 @@ export default function SuggestProgramCard({ type: _type = 'lifestyle' }: Sugges
             padding: 20,
             marginHorizontal: 16,
             marginVertical: 12,
-            borderWidth: 1, // Solid border looks better than dashed usually, but sticking to existing design if preferred. User said "crooked", let's make it cleaner.
-            borderColor: colors.primary,
-            borderStyle: 'dashed',
+            borderWidth: 1,
+            borderColor: colors.border, // Muted border
+            borderStyle: 'solid',
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,

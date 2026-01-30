@@ -33,8 +33,8 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
     const { t, language } = useI18n();
 
     // Helper to extract localized text - use shared implementation
-    const getLocalizedText = (value: any): string => {
-        return getLocalizedTextShared(value, language);
+    const getLocalizedText = (value: any, t?: (key: string) => string): string => {
+        return getLocalizedTextShared(value, language, t);
     };
 
     if (!diets || diets.length === 0) {
@@ -93,17 +93,17 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
 
                         {/* Content */}
                         <Text style={styles.cardName} numberOfLines={2}>
-                            {getLocalizedText(diet.name)}
+                            {getLocalizedText(diet.name, t)}
                         </Text>
 
                         {diet.subtitle && (
                             <Text style={styles.cardSubtitle} numberOfLines={1}>
-                                {getLocalizedText(diet.subtitle)}
+                                {getLocalizedText(diet.subtitle, t)}
                             </Text>
                         )}
 
                         <Text style={styles.cardDesc} numberOfLines={2}>
-                            {getLocalizedText(diet.shortDescription)}
+                            {getLocalizedText(diet.shortDescription, t)}
                         </Text>
 
                         {/* Duration Badge */}
@@ -116,10 +116,11 @@ export default function HistoricalDietsCarousel({ diets, onDietPress }: Historic
 
                         {/* Vintage Pattern Overlay */}
                         <View style={styles.patternOverlay} />
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-        </View>
+                    </TouchableOpacity >
+                ))
+                }
+            </ScrollView >
+        </View >
     );
 }
 

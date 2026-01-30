@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import { CacheService } from '../cache/cache.service';
 import {
     SuggestedFoodV2Response,
     SuggestionSection,
@@ -25,7 +26,10 @@ import {
 export class SuggestionsV2Service {
     private readonly logger = new Logger(SuggestionsV2Service.name);
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        @Optional() @Inject(CacheService) private readonly cache?: CacheService,
+    ) { }
 
     /**
      * Get personalized food suggestions based on real meal data
@@ -37,6 +41,16 @@ export class SuggestionsV2Service {
         const debug = process.env.SUGGESTIONS_DEBUG === 'true';
 
         try {
+            // Cache check
+            const cacheKey = `${userId}:${locale}`;
+            if (this.cache) {
+                const cached = await this.cache.get<SuggestedFoodV2Response>(cacheKey, 'suggestions');
+                if (cached) {
+                    if (debug) this.logger.debug(`[SuggestionsV2] Cache hit for ${userId}`);
+                    return cached;
+                }
+            }
+
             // 1. Get user profile
             const userProfile = await this.prisma.userProfile.findUnique({
                 where: { userId },
@@ -137,7 +151,7 @@ export class SuggestionsV2Service {
                 sectionTypes: sections.map(s => s.id),
             }));
 
-            return {
+            const result: SuggestedFoodV2Response = {
                 status: 'ok',
                 locale,
                 summary,
@@ -162,6 +176,13 @@ export class SuggestionsV2Service {
                 },
                 sections,
             };
+
+            if (this.cache) {
+                // Cache for 30 mins (1800s)
+                await this.cache.set(cacheKey, result, 'suggestions', 1800);
+            }
+
+            return result;
         } catch (error) {
             this.logger.error('[SuggestionsV2] Error:', error);
             return {
