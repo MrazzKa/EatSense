@@ -102,8 +102,8 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
         // 3. Offer Trial
         Alert.alert(
-            t('dietPrograms.startTrialTitle', 'Start 7-Day Free Trial?'),
-            t('dietPrograms.startTrialBody', 'Try this diet program for free for 7 days. You can continue or cancel anytime.'),
+            t('dietPrograms.startTrialTitle', 'Start 3-Day Free Trial?'),
+            t('dietPrograms.startTrialBody', 'Try this diet program for free for 3 days. You can continue or cancel anytime.'),
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 {

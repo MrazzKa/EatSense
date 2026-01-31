@@ -994,6 +994,7 @@
     "subtitle": "Gérez votre planning de médicaments",
     "error": {
       "delete": "Échec de la suppression du médicament",
+      "endDateBeforeStart": "La date de fin doit être après la date de début",
       "load": "Échec du chargement des médicaments",
       "nameRequired": "Le nom du médicament est requis",
       "save": "Échec de l'enregistrement du médicament"
@@ -1661,7 +1662,8 @@
       "SEASONAL": "Saisonnier"
     },
     "card": {
-      "view": "Voir"
+      "locked": "Plan Premium",
+      "view": "Ouvrir le programme"
     },
     "detail": {
       "mantra": "Mantra du jour",
@@ -1826,6 +1828,17 @@
     "recommended": "Recommandé",
     "startTrial": "Commencer l'essai gratuit de {{days}} jours",
     "finePrint": "Annulez à tout moment. Aucun frais pendant la période d'essai."
+  },
+  "premium": {
+    "lock_title": "Contenu Premium",
+    "lock_desc": "Obtenez un accès illimité à tous les régimes, styles de vie et fonctionnalités avec EatSense Pro.",
+    "feature": {
+      "diets": "Tous les régimes premium",
+      "lifestyles": "Programmes de style de vie",
+      "tracker": "Suivi de progression avancé"
+    },
+    "start_trial": "Commencer l'essai gratuit de 3 jours",
+    "restore": "Restaurer les achats"
   },
   "usageSummary": {
     "title": "Daily Usage",

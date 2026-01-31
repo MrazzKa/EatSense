@@ -217,6 +217,16 @@ const MedicationScheduleScreen: React.FC = () => {
       return;
     }
 
+    // FIX: Validate end date is >= start date
+    if (formEndDate && formStartDate) {
+      const startDate = new Date(formStartDate);
+      const endDate = new Date(formEndDate);
+      if (endDate < startDate) {
+        setError(t('medications.error.endDateBeforeStart') || 'End date must be after start date');
+        return;
+      }
+    }
+
     const payload: any = {
       name: formName.trim(),
       dosage: formDosage.trim() || undefined,
@@ -735,7 +745,7 @@ const MedicationScheduleScreen: React.FC = () => {
                   style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
                   value={formStartDate}
                   onChangeText={setFormStartDate}
-                  placeholder="2025-01-01"
+                  placeholder="YYYY-MM-DD"
                   placeholderTextColor={colors.textTertiary || '#8E8E93'}
                 />
 
@@ -746,7 +756,7 @@ const MedicationScheduleScreen: React.FC = () => {
                   style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
                   value={formEndDate}
                   onChangeText={setFormEndDate}
-                  placeholder="2025-12-31"
+                  placeholder="YYYY-MM-DD"
                   placeholderTextColor={colors.textTertiary || '#8E8E93'}
                 />
 
@@ -888,29 +898,32 @@ const MedicationScheduleScreen: React.FC = () => {
       {/* Date Picker (iOS Modal / Android Inline) */}
       {showTimePicker && (
         Platform.OS === 'ios' ? (
-          <Modal transparent animationType="fade" visible={showTimePicker}>
-            <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-              <View style={{ backgroundColor: colors.surface || 'white', padding: 16 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                    <Text style={{ color: colors.primary || 'blue', fontSize: 17 }}>{t('common.cancel') || 'Cancel'}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={confirmIosTime}>
-                    <Text style={{ color: colors.primary || 'blue', fontWeight: '600', fontSize: 17 }}>{t('common.done') || 'Done'}</Text>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  value={tempDate}
-                  mode="time"
-                  display="spinner"
-                  onChange={onTimeChange}
-                  textColor={colors.textPrimary}
-                  is24Hour={false}
-                  locale="en_US"
-                />
+          <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
+            <TouchableOpacity
+              style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
+              activeOpacity={1}
+              onPress={() => setShowTimePicker(false)}
+            />
+            <View style={{ backgroundColor: colors.surface || 'white', padding: 16, position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={{ color: colors.primary || 'blue', fontSize: 17 }}>{t('common.cancel') || 'Cancel'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={confirmIosTime}>
+                  <Text style={{ color: colors.primary || 'blue', fontWeight: '600', fontSize: 17 }}>{t('common.done') || 'Done'}</Text>
+                </TouchableOpacity>
               </View>
+              <DateTimePicker
+                value={tempDate}
+                mode="time"
+                display="spinner"
+                onChange={onTimeChange}
+                textColor={colors.textPrimary}
+                is24Hour={false}
+                locale="en_US"
+              />
             </View>
-          </Modal>
+          </View>
         ) : (
           <DateTimePicker
             value={tempDate}

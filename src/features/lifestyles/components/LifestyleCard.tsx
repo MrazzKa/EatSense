@@ -97,7 +97,7 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
             ]}
             numberOfLines={2}
           >
-            {getLocalizedText(program.name, t)}
+            {getLocalizedText(program.name, t) || ''}
           </Text>
         </View>
 
@@ -207,8 +207,10 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
           </>
         ) : (
           <>
-            <Text style={styles.ctaText}>
-              {t('lifestyles.card.view') || 'View Program'}
+            <Text style={styles.streakText}>
+              {typeof program?.streak === 'object'
+                ? program.streak.current || 0
+                : program?.streak || 0} {t('diets.tracker.days')}
             </Text>
             <Ionicons name="chevron-forward" size={16} color="#FFF" />
           </>
@@ -316,6 +318,11 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  streakText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFF',
   },
   lockOverlay: {
     position: 'absolute',

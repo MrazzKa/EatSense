@@ -37,9 +37,9 @@ class TrialService {
 
         const now = Date.now();
         const start = this.trials[contentId];
-        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-        return (now - start) < sevenDaysMs;
+        return (now - start) < THREE_DAYS_MS;
     }
 
     isTrialUsed(contentId: string): boolean {
@@ -49,15 +49,15 @@ class TrialService {
         return !!this.trials[contentId];
     }
 
-    // Check if trial is expired (Trial started AND > 7 days)
+    // Check if trial is expired (Trial started AND > 3 days)
     isTrialExpired(contentId: string): boolean {
         if (!this.trials[contentId]) return false;
 
         const now = Date.now();
         const start = this.trials[contentId];
-        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-        return (now - start) >= sevenDaysMs;
+        return (now - start) >= THREE_DAYS_MS;
     }
 
     private async save() {

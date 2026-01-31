@@ -431,11 +431,39 @@ const ProfileScreen = () => {
       const hasPermission = await localNotificationService.checkPermissions();
 
       if (prefs) {
+        // FIX: Show backend state if permission exists, otherwise always show disabled
+        // If user has system permission but backend shows disabled, sync to enable
+        const shouldBeEnabled = hasPermission && !!prefs.dailyPushEnabled;
+
         setNotificationPreferences({
-          dailyPushEnabled: !!prefs.dailyPushEnabled && hasPermission,
+          dailyPushEnabled: shouldBeEnabled,
           dailyPushHour: typeof prefs.dailyPushHour === 'number' ? prefs.dailyPushHour : 8,
           dailyPushMinute: typeof prefs.dailyPushMinute === 'number' ? prefs.dailyPushMinute : 0,
           timezone: prefs.timezone || deviceTimezone,
+        });
+
+        // FIX: If user has system permission but backend is not synced, sync it
+        if (hasPermission && !prefs.dailyPushEnabled) {
+          // Auto-enable on backend since user has granted permission
+          try {
+            await ApiService.updateNotificationPreferences({
+              dailyPushEnabled: true,
+              dailyPushHour: typeof prefs.dailyPushHour === 'number' ? prefs.dailyPushHour : 8,
+              dailyPushMinute: typeof prefs.dailyPushMinute === 'number' ? prefs.dailyPushMinute : 0,
+              timezone: prefs.timezone || deviceTimezone,
+            });
+            setNotificationPreferences(prev => ({ ...prev, dailyPushEnabled: true }));
+          } catch (syncError) {
+            console.warn('Failed to sync notification preferences with backend', syncError);
+          }
+        }
+      } else if (hasPermission) {
+        // No backend prefs but has permission - set default enabled state
+        setNotificationPreferences({
+          dailyPushEnabled: true,
+          dailyPushHour: 8,
+          dailyPushMinute: 0,
+          timezone: deviceTimezone,
         });
       }
     } catch (error) {
@@ -1776,16 +1804,20 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             </View>
           </View>
+          <HealthDisclaimer
+            onPressTerm={() => Linking.openURL('https://eatsense.app/terms')}
+            onPressPrivacy={() => Linking.openURL('https://eatsense.app/privacy')}
+          />
+
+          <View style={styles.buildInfoContainer}>
+            <Text style={styles.buildInfoText}>
+              Version {Constants.expoConfig?.version || '1.0.0'} ({Constants.expoConfig?.ios?.buildNumber || '1'})
+            </Text>
+          </View>
+
+          <View style={{ height: 40 }} />
         </ScrollView>
 
-        <HealthDisclaimer style={{ marginTop: 16, marginHorizontal: 16 }} />
-
-        {/* Build Info for debugging */}
-        <View style={styles.buildInfoContainer}>
-          <Text style={[styles.buildInfoText, { color: colors.textTertiary }]}>
-            Build {Constants.expoConfig?.version || '?'}.{Constants.expoConfig?.ios?.buildNumber || Constants.expoConfig?.android?.versionCode || '?'}
-          </Text>
-        </View>
       </SafeAreaView >
 
       <Modal
@@ -1969,8 +2001,9 @@ const createStyles = (tokens) =>
       backgroundColor: tokens.colors.background,
     },
     container: {
-      padding: tokens.spacing.xl,
-      gap: tokens.spacing.xl,
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.lg,
+      gap: tokens.spacing.lg,
     },
     heroCard: {
       gap: tokens.spacing.md,

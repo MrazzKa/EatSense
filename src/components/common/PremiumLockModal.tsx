@@ -80,7 +80,7 @@ export default function PremiumLockModal({ visible, onClose, onUnlock }: Premium
                     </View>
 
                     <PrimaryButton
-                        title={t('premium.start_trial') || 'Start 7-Day Free Trial'}
+                        title={t('premium.start_trial') || 'Start 3-Day Free Trial'}
                         onPress={onUnlock}
                         style={styles.button as any}
                     />
