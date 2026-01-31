@@ -146,6 +146,10 @@ class IAPService {
         } catch (error: any) {
             console.error('[IAP] Purchase subscription error:', error);
             if (error.code === 'E_USER_CANCELLED') {
+                // Call error callback so UI can reset purchasing state
+                if (this.onPurchaseError) {
+                    this.onPurchaseError(error);
+                }
                 return;
             }
             throw error;
@@ -169,6 +173,10 @@ class IAPService {
         } catch (error: any) {
             console.error('[IAP] Purchase product error:', error);
             if (error.code === 'E_USER_CANCELLED') {
+                // Call error callback so UI can reset purchasing state
+                if (this.onPurchaseError) {
+                    this.onPurchaseError(error);
+                }
                 return;
             }
             throw error;

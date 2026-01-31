@@ -113,8 +113,8 @@ export default function LifestyleDetailScreen() {
 
     // 3. Offer Trial
     Alert.alert(
-      t('lifestyles.startTrialTitle', 'Start 7-Day Free Trial?'),
-      t('lifestyles.startTrialBody', 'Try this lifestyle program for free for 7 days. You can continue or cancel anytime.'),
+      t('lifestyles.startTrialTitle', 'Start 3-Day Free Trial?'),
+      t('lifestyles.startTrialBody', 'Try this lifestyle program for free for 3 days. You can continue or cancel anytime.'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {

@@ -1649,7 +1649,8 @@
       "load": "Failed to load medications",
       "save": "Failed to save medication",
       "delete": "Failed to delete medication",
-      "nameRequired": "Medication name is required"
+      "nameRequired": "Medication name is required",
+      "endDateBeforeStart": "End date must be after start date"
     },
     "empty": "No medications yet. Add your first one.",
     "noDoses": "No times specified",
@@ -1808,6 +1809,17 @@
     "limitApproaching": "Approaching daily limit",
     "limitOk": "Usage within limits",
     "analyses": "analyses"
+  },
+  "premium": {
+    "lock_title": "Premium Content",
+    "lock_desc": "Get unlimited access to all diets, lifestyles, and features with EatSense Pro.",
+    "feature": {
+      "diets": "All Premium Diets",
+      "lifestyles": "Lifestyle Programs",
+      "tracker": "Advanced Progress Tracking"
+    },
+    "start_trial": "Start 3-Day Free Trial",
+    "restore": "Restore Purchases"
   },
   "notifications": {
     "enabled": "Notifications enabled!",

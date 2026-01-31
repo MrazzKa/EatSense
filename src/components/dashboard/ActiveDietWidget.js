@@ -76,7 +76,7 @@ export default function ActiveDietWidget({ activeDiet, onOpenTracker, onBrowseDi
                 <View style={[styles.streakBadge, { backgroundColor: (diet?.color || colors.primary) + '20' }]}>
                     <Ionicons name={isLifestyle ? 'leaf' : 'flame'} size={14} color={diet?.color || colors.primary || '#4CAF50'} />
                     <Text style={[styles.streakText, { color: diet?.color || colors.primary || '#4CAF50' }]}>
-                        {streak || 0} {t('dashboard.activeDiet.streak') || 'days streak'}
+                        {typeof streak === 'object' ? (streak.current || 0) : (streak || 0)} {t('dashboard.activeDiet.streak') || 'days streak'}
                     </Text>
                 </View>
             </View>

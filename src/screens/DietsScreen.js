@@ -23,6 +23,7 @@ import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/Program
 import seedBundle from '../../assets/dietsBundleSeed.json';
 import { trialService } from '../services/trialService';
 import PremiumLockModal from '../components/common/PremiumLockModal';
+import { isFreeDiet } from '../config/freeContent';
 
 // Cache TTL for bundle data (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
@@ -201,20 +202,23 @@ export default function DietsScreen({ navigation }) {
 
     // NEW: Check if program is locked
     const checkLockStatus = useCallback((programId) => {
-        // 1. If user has active subscription, NEVER lock
+        // 1. Check free list first
+        if (isFreeDiet(programId)) return false;
+
+        // 2. If user has active subscription, NEVER lock
         if (subscription?.hasSubscription) return false;
 
-        // 2. If user has active customized/started this program (activeProgram), NEVER lock
+        // 3. If user has active customized/started this program (activeProgram), NEVER lock
         // This ensures if they started it, they keep it.
-        // Also check if activeProgram matches the ID? 
+        // Also check if activeProgram matches the ID?
         // Ideally if they are running it, it's unlocked.
         if (activeProgram?.programId === programId) return false;
 
-        // 3. Check local soft trial
+        // 4. Check local soft trial
         const isTrial = trialService.isTrialActive(programId);
         if (isTrial) return false;
 
-        // 4. Otherwise Locked
+        // 5. Otherwise Locked
         return true;
     }, [subscription, activeProgram]);
 

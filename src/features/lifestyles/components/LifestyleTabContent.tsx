@@ -31,6 +31,7 @@ import PremiumLockModal from '../../../components/common/PremiumLockModal';
 // FIX: SuggestProgramCard moved to DietsScreen level for better visibility
 // import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
 import ActiveDietWidget from '../../../components/dashboard/ActiveDietWidget';
+import { isFreeLifestyle } from '../../../config/freeContent';
 
 // Card height for getItemLayout optimization
 const CARD_HEIGHT = 180;
@@ -64,13 +65,14 @@ interface LifestyleTabContentProps {
 
 // Helper to check if user has access
 const hasAccess = (program: LifestyleProgram, subscription: any): boolean => {
-  // If program is explicitly free, access allowed
-  // Note: Assuming 'type' or similar field indicates premium. If not, default to paid for now per requirement.
-  // Adjust logic based on real data structure.
+  // 1. Check free list first
+  if (isFreeLifestyle(program.id || program.slug || '')) return true;
+
+  // 2. Check if explicitly free
   const isFree = program.price === 'free' || program.type === 'free';
   if (isFree) return true;
 
-  // Check subscription
+  // 3. Check subscription
   const isPremium = subscription && (
     subscription.planId === 'premium_monthly' ||
     subscription.planId === 'premium_yearly' ||
