@@ -23,8 +23,8 @@ export const LIFESTYLE_IMAGES: Record<string, any> = {
   'dog_mom': require('../../../assets/lifestyles/Dog mom.jpeg'),
   'slavic_girl': require('../../../assets/lifestyles/Slavic girl.jpeg'),
   'jet_woman': require('../../../assets/lifestyles/Jet woman.jpeg'),
-  'horse_riders': require('../../../assets/lifestyles/Horse rider\'s.jpeg'),
-  'horse_rider': require('../../../assets/lifestyles/Horse rider\'s.jpeg'), // Alias
+  'horse_riders': require('../../../assets/lifestyles/Horse riders.jpeg'),
+  'horse_rider': require('../../../assets/lifestyles/Horse riders.jpeg'), // Alias
 
   // Goals / Health
   'acne_clear': require('../../../assets/lifestyles/Clear acne.jpeg'),

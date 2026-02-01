@@ -193,7 +193,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         slug: 'tomato_girl_summer',
         name: { en: 'Tomato Girl Summer', ru: 'Лето Томатной Девушки', kk: 'Қызанақ Қыз Жаз', fr: 'Tomato Girl Summer' },
         subtitle: { en: 'Mediterranean dreams, sun-kissed living', ru: 'Средиземноморские мечты, загорелая жизнь', kk: 'Жерорта теңізі армандары', fr: 'Rêves méditerranéens, vie ensoleillée' },
-        description: { en: 'La dolce vita on your plate. Fresh tomatoes, burrata, olive oil, pasta, wine.', ru: 'Сладкая жизнь на тарелке. Помидоры, буррата, оливковое масло.', kk: 'Табақтағы тәтті өмір.', fr: 'La dolce vita dans l\' },
+        description: { en: 'La dolce vita on your plate. Fresh tomatoes, burrata, olive oil, pasta, wine.', ru: 'Сладкая жизнь на тарелке. Помидоры, буррата, оливковое масло.', kk: 'Табақтағы тәтті өмір.', fr: 'La dolce vita dans l\'assiette.' },
         shortDescription: { en: 'Mediterranean vibes, sun-kissed', ru: 'Средиземноморские вайбы', kk: 'Жерорта теңізі энергиясы', fr: 'Vibes méditerranéennes, soleil' },
         category: 'trending',
         type: DietType.LIFESTYLE,
@@ -204,7 +204,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         embrace: ['tomatoes', 'olive oil', 'burrata', 'mozzarella', 'feta', 'fresh pasta', 'crusty bread', 'seafood', 'peaches', 'figs', 'wine', 'fresh herbs', 'basil'],
         minimize: ['processed foods', 'heavy cream sauces', 'fast food'],
         dailyTracker: [
-            { key: 'olive_oil', label: { en: 'Olive oil on everything', ru: 'Оливковое масло на всём', kk: 'Барлық нәрсеге зейтін майы', fr: 'Huile d\' } },
+            { key: 'olive_oil', label: { en: 'Olive oil on everything', ru: 'Оливковое масло на всём', kk: 'Барлық нәрсеге зейтін майы', fr: 'Huile d\'olive partout' } },
             { key: 'fresh_tomatoes', label: { en: 'Fresh tomatoes', ru: 'Свежие помидоры', kk: 'Жаңа қызанақтар', fr: 'Tomates fraîches' } },
             { key: 'aperitivo', label: { en: 'Aperitivo hour', ru: 'Час аперитива', kk: 'Аперитив сағаты', fr: 'Heure apéritif' } },
         ],
@@ -321,7 +321,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         minimize: ['diet food', 'sad salads', 'apologizing for eating', 'guilt', 'eating alone'],
         dailyTracker: [
             { key: 'sunday_sauce', label: { en: 'Sunday sauce tradition', ru: 'Традиция воскресного соуса', kk: 'Жексенбі соусы дәстүрі', fr: 'Tradition sauce du dimanche' } },
-            { key: 'espresso', label: { en: 'Espresso, not apologies', ru: 'Эспрессо, а не извинения', kk: 'Эспрессо, кешірім емес', fr: 'Espresso, pas d\' } },
+            { key: 'espresso', label: { en: 'Espresso, not apologies', ru: 'Эспрессо, а не извинения', kk: 'Эспрессо, кешірім емес', fr: 'Espresso, pas d\'excuses' } },
             { key: 'family_dinner', label: { en: 'Family-style dinner', ru: 'Семейный ужин', kk: 'Отбасылық кешкі ас', fr: 'Dîner en famille' } },
         ],
         suitableFor: ['italian', 'family', 'bold'],
@@ -424,7 +424,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     {
         slug: 'athletic_performance',
         name: { en: 'Athletic Performance', ru: 'Спортивная Форма', kk: 'Спорттық Форма', fr: 'Performance athlétique' },
-        subtitle: { en: 'Train hard, eat smart, perform better', ru: 'Тренируйся усердно, ешь умно', kk: 'Қатты жаттығу, ақылды жеу', fr: 'S\' },
+        subtitle: { en: 'Train hard, eat smart, perform better', ru: 'Тренируйся усердно, ешь умно', kk: 'Қатты жаттығу, ақылды жеу', fr: 'S\'entraîner dur, manger malin, mieux performer' },
         description: { en: 'Sports nutrition for competitive athletes.', ru: 'Спортивное питание для соревновательных атлетов.', kk: 'Бәсекелес атлеттерге арналған тағам.', fr: 'Nutrition sportive pour athlètes compétitifs.' },
         shortDescription: { en: 'Athletic performance nutrition', ru: 'Спортивное питание', kk: 'Спорттық тағам', fr: 'Nutrition performance athlétique' },
         category: 'muscle_building', type: DietType.LIFESTYLE, difficulty: DietDifficulty.MODERATE, duration: 14, uiGroup: 'Build Muscle', streakThreshold: 0.7,
@@ -452,7 +452,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     // ============================================
     {
         slug: 'glass_skin', name: { en: 'Glass Skin', ru: 'Стеклянная Кожа', kk: 'Шыны Тері', fr: 'Glass Skin' },
-        subtitle: { en: 'Korean beauty starts from inside', ru: 'Корейская красота начинается изнутри', kk: 'Кореялық сұлулық іштен басталады', fr: 'La beauté K part de l\' },
+        subtitle: { en: 'Korean beauty starts from inside', ru: 'Корейская красота начинается изнутри', kk: 'Кореялық сұлулық іштен басталады', fr: 'La beauté K part de l\'intérieur' },
         description: { en: 'Gut-skin connection. Fermented foods, omega-3s, collagen.', ru: 'Связь кишечника и кожи.', kk: 'Ішек-тері байланысы.', fr: 'Lien intestin-peau. Fermentés, oméga-3, collagène.' },
         shortDescription: { en: 'K-beauty nutrition', ru: 'К-бьюти питание', kk: 'К-бьюти тағам', fr: 'Nutrition K-beauty' },
         category: 'skin_health', type: DietType.LIFESTYLE, difficulty: DietDifficulty.EASY, duration: 14, uiGroup: 'Clear Skin', streakThreshold: 0.6,
@@ -465,7 +465,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     },
     {
         slug: 'acne_clear', name: { en: 'Acne Clear', ru: 'Чистая Кожа', kk: 'Таза Тері', fr: 'Acne Clear' },
-        subtitle: { en: 'Calm inflammation, clear breakouts', ru: 'Успокоить воспаление, очистить высыпания', kk: 'Қабынуды тыныштандыру', fr: 'Apaiser l\' },
+        subtitle: { en: 'Calm inflammation, clear breakouts', ru: 'Успокоить воспаление, очистить высыпания', kk: 'Қабынуды тыныштандыру', fr: 'Apaiser l\'inflammation' },
         description: { en: 'Anti-inflammatory, low-glycemic eating.', ru: 'Противовоспалительное, низкогликемическое питание.', kk: 'Қабынуға қарсы тағам.', fr: 'Anti-inflammatoire, alimentation low-glycémique.' },
         shortDescription: { en: 'Clear skin nutrition', ru: 'Питание для чистой кожи', kk: 'Таза тері тағамы', fr: 'Nutrition peau nette' },
         category: 'skin_health', type: DietType.LIFESTYLE, difficulty: DietDifficulty.MODERATE, duration: 14, uiGroup: 'Clear Skin', streakThreshold: 0.6,
@@ -545,7 +545,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     },
     {
         slug: 'greek_islands', name: { en: 'Greek Islands', ru: 'Греческие Острова', kk: 'Грек Аралдары', fr: 'Îles grecques' },
-        subtitle: { en: 'Santorini sunsets on your plate', ru: 'Закаты Санторини на тарелке', kk: 'Санторини күн батулары табақта', fr: 'Couchers Santorin dans l\' },
+        subtitle: { en: 'Santorini sunsets on your plate', ru: 'Закаты Санторини на тарелке', kk: 'Санторини күн батулары табақта', fr: 'Couchers Santorin dans l\'assiette' },
         description: { en: 'The original Mediterranean diet.', ru: 'Оригинальная средиземноморская диета.', kk: 'Түпнұсқа Жерорта теңізі диетасы.', fr: 'Le régime méditerranéen originel.' },
         shortDescription: { en: 'Greek Mediterranean eating', ru: 'Греческое средиземноморское питание', kk: 'Грек Жерорта теңізі тағамы', fr: 'Alimentation grecque méditerranéenne' },
         category: 'destinations', type: DietType.LIFESTYLE, difficulty: DietDifficulty.EASY, duration: 14, uiGroup: 'Destinations', streakThreshold: 0.6,
@@ -557,7 +557,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     },
     {
         slug: 'okinawa_longevity', name: { en: 'Okinawa Longevity', ru: 'Долголетие Окинавы', kk: 'Окинава Ұзақ Өмір', fr: 'Longévité Okinawa' },
-        subtitle: { en: 'Secrets of living to 100', ru: 'Секреты жизни до 100', kk: '100-ге дейін өмір сүру құпиялары', fr: 'Secrets pour vivre jusqu\' },
+        subtitle: { en: 'Secrets of living to 100', ru: 'Секреты жизни до 100', kk: '100-ге дейін өмір сүру құпиялары', fr: 'Secrets pour vivre jusqu\'à 100 ans' },
         description: { en: 'Blue Zone wisdom. Hara hachi bu — 80% full.', ru: 'Мудрость Голубой зоны.', kk: 'Көк аймақ даналығы.', fr: 'Sagesse zone bleue. Hara hachi bu — 80 % plein.' },
         shortDescription: { en: 'Blue zone longevity', ru: 'Долголетие синей зоны', kk: 'Көк аймақ ұзақ өмір', fr: 'Longévité zone bleue' },
         category: 'destinations', type: DietType.LIFESTYLE, difficulty: DietDifficulty.MODERATE, duration: 14, uiGroup: 'Destinations', streakThreshold: 0.6,
@@ -647,7 +647,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     {
         slug: 'minimalist_zen', name: { en: 'Minimalist Zen', ru: 'Минималистский Дзен', kk: 'Минималистік Дзен', fr: 'Minimaliste Zen' },
         subtitle: { en: 'Less clutter, more clarity', ru: 'Меньше беспорядка, больше ясности', kk: 'Азырақ шатасу, көбірек анықтық', fr: 'Moins de désordre, plus de clarté' },
-        description: { en: 'Japanese-inspired minimalism. Few ingredients, high quality.', ru: 'Японский минимализм.', kk: 'Жапонға шабыттанған минимализм.', fr: 'Minimalisme inspiré du Japon. Peu d\' },
+        description: { en: 'Japanese-inspired minimalism. Few ingredients, high quality.', ru: 'Японский минимализм.', kk: 'Жапонға шабыттанған минимализм.', fr: 'Minimalisme inspiré du Japon. Peu d\'ingrédients.' },
         shortDescription: { en: 'Minimalist eating', ru: 'Минималистичное питание', kk: 'Минималистік тағам', fr: 'Alimentation minimaliste' },
         category: 'aesthetics', type: DietType.LIFESTYLE, difficulty: DietDifficulty.EASY, duration: 14, uiGroup: 'Aesthetics', streakThreshold: 0.6,
         embrace: ['simple ingredients', 'rice', 'fish', 'vegetables', 'tofu', 'miso', 'green tea', 'seasonal foods'],
@@ -699,7 +699,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     {
         slug: 'mma_fighter', name: { en: 'MMA Fighter', ru: 'Боец MMA', kk: 'MMA Жауынгері', fr: 'Combattant MMA' },
         subtitle: { en: 'Cut weight, stay strong, dominate', ru: 'Сбросить вес, остаться сильным', kk: 'Салмақты азайту, күшті қалу', fr: 'Sèche, reste fort, domine' },
-        description: { en: 'Fight camp nutrition. High protein, strategic carbs.', ru: 'Питание бойцовского лагеря.', kk: 'Жауынгер лагері тағамы.', fr: 'Nutrition camp d\' },
+        description: { en: 'Fight camp nutrition. High protein, strategic carbs.', ru: 'Питание бойцовского лагеря.', kk: 'Жауынгер лагері тағамы.', fr: 'Nutrition de camp d\'entraînement. Protéines élevées, glucides stratégiques.' },
         shortDescription: { en: 'Fighter nutrition', ru: 'Питание бойца', kk: 'Жауынгер тағамы', fr: 'Nutrition combattant' },
         category: 'warrior_mode', type: DietType.LIFESTYLE, difficulty: DietDifficulty.HARD, duration: 14, uiGroup: 'Warrior Mode', streakThreshold: 0.8,
         embrace: ['lean proteins', 'chicken', 'fish', 'eggs', 'vegetables', 'complex carbs', 'fruits', 'water'],
@@ -737,7 +737,7 @@ const lifestylePrograms: LifestyleProgram[] = [
     // ============================================
     {
         slug: 'summer_beach_body', name: { en: 'Summer Beach Body', ru: 'Пляжное Тело', kk: 'Пляж Денесі', fr: 'Corps plage été' },
-        subtitle: { en: '4 weeks to your most confident summer', ru: '4 недели до уверенного лета', kk: 'Ең сенімді жазға 4 апта', fr: '4 semaines vers l\' },
+        subtitle: { en: '4 weeks to your most confident summer', ru: '4 недели до уверенного лета', kk: 'Ең сенімді жазға 4 апта', fr: '4 semaines vers l\'été le plus confiant' },
         description: { en: 'Light, clean eating for beach confidence.', ru: 'Лёгкое, чистое питание для пляжной уверенности.', kk: 'Пляж сенімділігі үшін жеңіл тағам.', fr: 'Manger léger et sain pour confiance plage.' },
         shortDescription: { en: 'Beach body prep', ru: 'Подготовка пляжного тела', kk: 'Пляж денесін дайындау', fr: 'Prépa corps plage' },
         category: 'seasonal', type: DietType.LIFESTYLE, difficulty: DietDifficulty.MODERATE, duration: 14, uiGroup: 'Seasonal', streakThreshold: 0.7,
@@ -804,7 +804,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         dailyTracker: [
             { key: 'walk', label: { en: 'Hot girl walk done', ru: 'Прогулка выполнена', kk: 'Серуен орындалдым', fr: 'Hot girl walk faite' } },
             { key: 'hydration', label: { en: 'Stayed hydrated', ru: 'Пил достаточно воды', kk: 'Жеткілікті су іштім', fr: 'Bien hydraté' } },
-            { key: 'mood', label: { en: 'Checked in with mood', ru: 'Отследил настроение', kk: 'Көңіл-күйді бақыладым', fr: 'Prise de conscience de l\' } },
+            { key: 'mood', label: { en: 'Checked in with mood', ru: 'Отследил настроение', kk: 'Көңіл-күйді бақыладым', fr: 'Prise de conscience de l\'humeur' } },
         ],
         suitableFor: ['walking', 'mood', 'simple'],
         isFeatured: false,
@@ -951,7 +951,7 @@ async function main() {
                 imageUrl: program.imageUrl,
                 color: program.color,
                 rules: rules, // Save lifestyle content here
-            },
+            } as any,
             create: {
                 id,
                 slug: program.slug,
@@ -975,7 +975,7 @@ async function main() {
                 imageUrl: program.imageUrl,
                 color: program.color,
                 rules: rules, // Save lifestyle content here
-            },
+            } as any,
         });
 
         const programName = typeof program.name === 'string' ? program.name : program.name['en'] || 'Unknown Program';
