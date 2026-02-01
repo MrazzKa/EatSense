@@ -1972,7 +1972,7 @@
       "tomato_girl_summer": {
         "dailyTracker": {
           "olive_oil": {
-            "label": "Huile d\\"
+            "label": "Huile d'olive"
           },
           "fresh_tomatoes": {
             "label": "Tomates fraîches"
@@ -1983,7 +1983,7 @@
         },
         "name": "Tomato Girl Summer",
         "subtitle": "Rêves méditerranéens, vie ensoleillée",
-        "description": "La dolce vita dans l\\",
+        "description": "La dolce vita dans l'assiette. Pâtes, vin, plaisir et modération.",
         "shortDescription": "Vibes méditerranéennes, soleil"
       },
       "pilates_princess": {
@@ -2043,7 +2043,7 @@
             "label": "Tradition sauce du dimanche"
           },
           "espresso": {
-            "label": "Espresso, pas d\\"
+            "label": "Espresso, pas d'excès"
           },
           "family_dinner": {
             "label": "Dîner en famille"
@@ -2112,13 +2112,13 @@
       },
       "glass_skin": {
         "dailyTracker": {},
-        "subtitle": "La beauté K part de l\\",
+        "subtitle": "La beauté K part de l'intérieur",
         "description": "Lien intestin-peau. Fermentés, oméga-3, collagène.",
         "shortDescription": "Nutrition K-beauty"
       },
       "acne_clear": {
         "dailyTracker": {},
-        "subtitle": "Apaiser l\\",
+        "subtitle": "Apaiser l'esprit",
         "description": "Anti-inflammatoire, alimentation low-glycémique.",
         "shortDescription": "Nutrition peau nette"
       },
@@ -2154,7 +2154,7 @@
       },
       "greek_islands": {
         "dailyTracker": {},
-        "subtitle": "Couchers Santorin dans l\\",
+        "subtitle": "Couchers Santorin dans l'assiette",
         "description": "Le régime méditerranéen originel.",
         "shortDescription": "Alimentation grecque méditerranéenne"
       },
@@ -2203,7 +2203,7 @@
       "minimalist_zen": {
         "dailyTracker": {},
         "subtitle": "Moins de désordre, plus de clarté",
-        "description": "Minimalisme inspiré du Japon. Peu d\\",
+        "description": "Minimalisme inspiré du Japon. Peu d'ingrédients, haute qualité.",
         "shortDescription": "Alimentation minimaliste"
       },
       "spartan_warrior": {
@@ -2227,7 +2227,7 @@
       "mma_fighter": {
         "dailyTracker": {},
         "subtitle": "Sèche, reste fort, domine",
-        "description": "Nutrition camp d\\",
+        "description": "Nutrition camp d'entraînement",
         "shortDescription": "Nutrition combattant"
       },
       "ceo_warrior": {
@@ -2244,7 +2244,7 @@
       },
       "summer_beach_body": {
         "dailyTracker": {},
-        "subtitle": "4 semaines vers l\\",
+        "subtitle": "4 semaines vers l'objectif",
         "description": "Manger léger et sain pour confiance plage.",
         "shortDescription": "Prépa corps plage"
       },
@@ -2275,7 +2275,7 @@
             "label": "Bien hydraté"
           },
           "mood": {
-            "label": "Prise de conscience de l\\"
+            "label": "Prise de conscience de l'alimentation"
           }
         },
         "name": "Hot Girl Walk",
@@ -2328,7 +2328,7 @@
             "label": "1–2 portions de céréales complètes"
           },
           "healthy_fat": {
-            "label": "Bonnes graisses (huile d\\"
+            "label": "Bonnes graisses (huile d'olive)"
           },
           "protein": {
             "label": "Protéines : poisson/légumineuses/volaille"
@@ -2338,8 +2338,8 @@
           }
         },
         "name": "Méditerranéenne",
-        "description": "Régime bon pour le cœur, basé sur la cuisine traditionnelle des pays méditerranéens. Riche en légumes, fruits, céréales complètes et huile d\\",
-        "shortDescription": "Régime cœur-santé riche en huile d\\"
+        "description": "Régime bon pour le cœur, basé sur la cuisine traditionnelle des pays méditerranéens. Riche en légumes, fruits, céréales complètes et huile d'olive.",
+        "shortDescription": "Régime cœur-santé riche en huile d'olive"
       },
       "dash": {
         "dailyTracker": {
@@ -2360,7 +2360,7 @@
           }
         },
         "name": "DASH",
-        "description": "Approche diététique pour arrêter l\\",
+        "description": "Approche diététique pour arrêter l'hypertension",
         "shortDescription": "Régime cœur-santé pour faire baisser la tension"
       },
       "mind": {
@@ -2443,7 +2443,7 @@
         },
         "name": "Méthode assiette",
         "description": "Guide visuel simple : moitié légumes, quart protéines, quart glucides. Parfait pour débutants.",
-        "shortDescription": "Division simple de l\\"
+        "shortDescription": "Division simple de l'assiette"
       },
       "if-14-10": {
         "dailyTracker": {
@@ -2521,7 +2521,7 @@
             "label": "Glucides strictement limités (manuel)"
           },
           "water_electrolytes": {
-            "label": "Assez d\\"
+            "label": "Assez d'eau"
           },
           "low_carb_veggies": {
             "label": "Légumes low-carb"
@@ -2540,11 +2540,11 @@
             "label": "Symptômes notés (1–5)"
           },
           "water": {
-            "label": "Assez d\\"
+            "label": "Assez d'eau"
           }
         },
         "name": "Low-FODMAP (intestin)",
-        "description": "Régime d\\",
+        "description": "Régime d'élimination pour le confort digestif.",
         "shortDescription": "Régime intestin par phases — suivi requis"
       },
       "gluten-free": {
@@ -2576,7 +2576,7 @@
           }
         },
         "name": "Inspiré romain",
-        "description": "Inspiré du régime romain antique. Céréales, légumineuses, huile d\\",
+        "description": "Inspiré du régime romain antique. Céréales, légumineuses, huile d'olive.",
         "shortDescription": "Alimentation style Rome antique"
       },
       "spartan-inspired": {
@@ -2610,7 +2610,7 @@
             "label": "Protéines 2–3"
           },
           "water": {
-            "label": "Assez d\\"
+            "label": "Assez d'eau"
           }
         },
         "name": "Inspiré arctique",
@@ -2668,7 +2668,7 @@
           }
         },
         "name": "Longévité Okinawa",
-        "description": "Régime traditionnel d\\",
+        "description": "Régime traditionnel d'Okinawa",
         "shortDescription": "Régime longévité japonais (Okinawa)"
       },
       "paleo": {
@@ -2747,7 +2747,7 @@
       "iifym": {
         "dailyTracker": {
           "calories_check": {
-            "label": "Calories dans l\\"
+            "label": "Calories dans l'objectif"
           },
           "protein_check": {
             "label": "Protéines atteintes"
@@ -2833,7 +2833,7 @@
             "label": "Suhoor pris"
           },
           "hydration": {
-            "label": "8+ verres d\\"
+            "label": "8+ verres d'eau"
           },
           "no_overeating": {
             "label": "Mangé en conscience, sans excès"
@@ -2849,7 +2849,7 @@
       "great-lent": {
         "dailyTracker": {
           "plant_based": {
-            "label": "Végétal aujourd\\"
+            "label": "Végétal aujourd'hui"
           },
           "no_meat": {
             "label": "Sans viande/lait/œufs"
@@ -2909,7 +2909,7 @@
           }
         },
         "name": "Navrouz printanier",
-        "description": "Célébration de l\\",
+        "description": "Célébration de l'automne",
         "shortDescription": "Alimentation fête du printemps"
       },
       "winter-warmth": {
@@ -2931,13 +2931,13 @@
           }
         },
         "name": "Chaleur hivernale",
-        "description": "Plats réconfortants pour l\\",
+        "description": "Plats réconfortants pour l'hiver",
         "shortDescription": "Plan alimentaire réconfortant hiver"
       },
       "autumn-harvest": {
         "dailyTracker": {
           "autumn_vegetable": {
-            "label": "Légume d\\"
+            "label": "Légume d'automne"
           },
           "fall_fruit": {
             "label": "Fruit (pomme/poire)"
@@ -2952,8 +2952,8 @@
             "label": "Repas chaud cuisiné"
           }
         },
-        "name": "Récolte d\\",
-        "description": "Citrouille, pommes, courges et autres classiques d\\",
+        "name": "Récolte d'automne",
+        "description": "Citrouille, pommes, courges et autres classiques d'automne.",
         "shortDescription": "Alimentation automnale de saison"
       },
       "clean-girl": {
@@ -2987,7 +2987,7 @@
             "label": "Mangé lentement, savouré"
           },
           "seafood_olive": {
-            "label": "Fruits de mer ou huile d\\"
+            "label": "Fruits de mer ou huile d'algue"
           },
           "vegetables_3": {
             "label": "Légumes frais 3+"
@@ -3009,7 +3009,7 @@
             "label": "Repas aux heures fixes"
           },
           "no_overeating": {
-            "label": "Pas d\\"
+            "label": "Pas d'alcool"
           },
           "table_manners": {
             "label": "Bonne tenue à table"
@@ -3129,7 +3129,7 @@
           }
         },
         "name": "French Girl",
-        "description": "Approche française : portions qualité, plaisir, pas d\\",
+        "description": "Approche française : portions qualité, plaisir, pas d'interdit.",
         "shortDescription": "Alimentation intuitive à la française"
       },
       "gatsby-twenties": {
@@ -3166,7 +3166,7 @@
             "label": "Petit-déj léger"
           },
           "no_bloating": {
-            "label": "Pas d\\"
+            "label": "Pas d'alcool"
           },
           "elegant_dinner": {
             "label": "Dîner élégant"
