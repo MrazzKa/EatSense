@@ -23,7 +23,7 @@ import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/Program
 import seedBundle from '../../assets/dietsBundleSeed.json';
 import { trialService } from '../services/trialService';
 import PremiumLockModal from '../components/common/PremiumLockModal';
-import { isFreeDiet } from '../config/freeContent';
+import { isFreeDiet, ENABLE_PREMIUM_LOCK } from '../config/freeContent';
 
 // Cache TTL for bundle data (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
@@ -333,7 +333,7 @@ export default function DietsScreen({ navigation }) {
             setActiveDiet({
                 programId: activeProgram.programId,
                 currentDay: activeProgram.currentDayIndex || 1,
-                totalDays: activeProgram.durationDays || 0,
+                totalDays: activeProgram.durationDays || 30, // FIX: Default to 30 instead of 0
                 program: {
                     id: activeProgram.programId,
                     name: nameString,
@@ -579,12 +579,14 @@ export default function DietsScreen({ navigation }) {
                 <View style={{ height: 40 }} />
             </ScrollView>
 
-            {/* Premium Lock Modal */}
-            <PremiumLockModal
-                visible={lockModalVisible}
-                onClose={() => setLockModalVisible(false)}
-                onUnlock={handleUnlock}
-            />
+            {/* Premium Lock Modal - only show when premium lock is enabled */}
+            {ENABLE_PREMIUM_LOCK && (
+                <PremiumLockModal
+                    visible={lockModalVisible}
+                    onClose={() => setLockModalVisible(false)}
+                    onUnlock={handleUnlock}
+                />
+            )}
         </SafeAreaView>
     );
 }

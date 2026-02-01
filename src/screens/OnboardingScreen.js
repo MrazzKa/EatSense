@@ -33,7 +33,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
-import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getOriginalPrice } from '../utils/currency';
+import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getOriginalPrice, getCurrencySymbolByCode } from '../utils/currency';
 
 const { width } = Dimensions.get('window');
 
@@ -756,7 +756,7 @@ const OnboardingScreen = () => {
 
   // const navigation = useNavigation();
   const { colors, tokens, isDark } = useTheme();
-  const { setUser } = useAuth();
+  const { setUser, refreshUser } = useAuth();
   const styles = useMemo(() => createStyles(tokens, colors, isDark), [tokens, colors, isDark]);
   const onPrimaryColor = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const [currentStep, setCurrentStep] = useState(0);
@@ -880,13 +880,17 @@ const OnboardingScreen = () => {
 
             if (isMounted && (monthly || yearly)) {
               // IAP prices are already localized for user's App Store country - use them directly
-              // Get currency symbol from currency utility for proper formatting
+              // Get currency symbol from IAP currency code for proper formatting
               const currencyConfig = getCurrency();
+
+              // FIX: Use symbol from IAP currency code, not device region
+              // This ensures we show the correct currency symbol (e.g., ₸ for KZT, not $ for USD)
+              const iapSymbol = iapCurrencyCode ? getCurrencySymbolByCode(iapCurrencyCode) : currencyConfig.symbol;
 
               // IMPORTANT: Use IAP prices directly - they are already correct for user's country
               // IAP.localizedPrice contains the exact price from App Store Connect for user's country
               setCurrency({
-                symbol: currencyConfig.symbol,
+                symbol: iapSymbol,
                 code: iapCurrencyCode || currencyConfig.code,
                 freePrice: formatAmount(0),
                 monthlyPrice: monthly?.localizedPrice || formatPrice('monthly'),
@@ -1088,10 +1092,12 @@ const OnboardingScreen = () => {
         console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
       }
 
-      // We rely on App.js to switch stacks based on user.isOnboardingCompleted
-      // calling navigateToMain() here is redundant and can cause errors if MainTabs
-      // is not in the current stack hierarchy
-      // navigateToMain(); 
+      // Also refresh user from backend to ensure sync
+      if (refreshUser) {
+        await refreshUser().catch((e) => {
+          console.warn('[OnboardingScreen] refreshUser failed after completeOnboarding, but continuing:', e);
+        });
+      }
     } catch (err) {
       console.error('[OnboardingScreen] Complete onboarding error:', err);
 
@@ -1101,10 +1107,8 @@ const OnboardingScreen = () => {
         setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
         console.log('[OnboardingScreen] Force updating user context on error');
       }
-
-      // navigateToMain();
     }
-  }, [setUser]);
+  }, [setUser, refreshUser]);
 
   const handleComplete = async () => {
     // Start loading state immediately to provide feedback

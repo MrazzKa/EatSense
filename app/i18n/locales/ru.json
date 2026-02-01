@@ -344,6 +344,9 @@
     "retry": "Повторить",
     "bmi": "ИМТ",
     "hours": "ч",
+    "hoursShort": "ч",
+    "show": "Показать",
+    "hide": "Скрыть",
     "later": "Позже",
     "continue": "Продолжить",
     "stop": "Стоп",
@@ -353,7 +356,13 @@
     "confirm": "Подтвердить",
     "errorGeneric": "Что-то пошло не так",
     "info": "Информация",
-    "gotIt": "Понятно"
+    "gotIt": "Понятно",
+    "days": "дней",
+    "cm": "см",
+    "normal": "Норма",
+    "underweight": "Недовес",
+    "overweight": "Избыточный вес",
+    "obese": "Ожирение"
   },
   "dashboard": {
     "addFood": {
@@ -1960,6 +1969,7 @@
     "metricHeight": "Рост",
     "metricAge": "Возраст",
     "metricCalories": "ккал/день",
+    "metricBmi": "ИМТ",
     "activityLevel": "Уровень активности",
     "personalization": "Персонализация",
     "plan": "План",

@@ -895,22 +895,26 @@ const MedicationScheduleScreen: React.FC = () => {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Date Picker (iOS Modal / Android Inline) */}
-      {showTimePicker && (
-        Platform.OS === 'ios' ? (
-          <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
-            <TouchableOpacity
-              style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
-              activeOpacity={1}
-              onPress={() => setShowTimePicker(false)}
-            />
-            <View style={{ backgroundColor: colors.surface || 'white', padding: 16, position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+      {/* Time Picker Modal (iOS) / Inline (Android) */}
+      {Platform.OS === 'ios' ? (
+        <Modal
+          visible={showTimePicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
+            activeOpacity={1}
+            onPress={() => setShowTimePicker(false)}
+          >
+            <View style={{ backgroundColor: colors.surface || colors.background || 'white', borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: 34 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.borderMuted || colors.border || '#E5E5E5' }}>
                 <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                  <Text style={{ color: colors.primary || 'blue', fontSize: 17 }}>{t('common.cancel') || 'Cancel'}</Text>
+                  <Text style={{ color: colors.primary || '#007AFF', fontSize: 17 }}>{t('common.cancel') || 'Cancel'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={confirmIosTime}>
-                  <Text style={{ color: colors.primary || 'blue', fontWeight: '600', fontSize: 17 }}>{t('common.done') || 'Done'}</Text>
+                  <Text style={{ color: colors.primary || '#007AFF', fontWeight: '600', fontSize: 17 }}>{t('common.done') || 'Done'}</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
@@ -921,10 +925,13 @@ const MedicationScheduleScreen: React.FC = () => {
                 textColor={colors.textPrimary}
                 is24Hour={false}
                 locale="en_US"
+                style={{ height: 200 }}
               />
             </View>
-          </View>
-        ) : (
+          </TouchableOpacity>
+        </Modal>
+      ) : (
+        showTimePicker && (
           <DateTimePicker
             value={tempDate}
             mode="time"
