@@ -81,10 +81,12 @@ export default function ActiveDietWidget({ userDiet, onPress }) {
                         {t('diets_daysLeft') || 'Days left'}
                     </Text>
                     <Text style={styles.todayValue}>
-                        {/* FIX: Correct formula - daysLeft = totalDays - currentDay + 1 */}
-                        {userDiet.totalDays && userDiet.currentDay 
-                          ? Math.max(0, userDiet.totalDays - userDiet.currentDay + 1)
-                          : 0}
+                        {/* FIX: Use daysLeft from props if available, otherwise calculate */}
+                        {userDiet.daysLeft !== undefined && userDiet.daysLeft !== null
+                          ? userDiet.daysLeft
+                          : (userDiet.totalDays && userDiet.currentDay
+                            ? Math.max(0, userDiet.totalDays - userDiet.currentDay + 1)
+                            : (userDiet.totalDays || 30))}
                     </Text>
                 </View>
             </View>

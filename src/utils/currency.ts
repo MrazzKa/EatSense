@@ -847,6 +847,25 @@ export function getCurrencySymbol(): string {
 }
 
 /**
+ * Get currency symbol by currency code
+ * Used when we have IAP currency code and need the symbol
+ */
+export function getCurrencySymbolByCode(currencyCode: string): string {
+  const config = PRICING[currencyCode];
+  if (config) {
+    return config.symbol;
+  }
+  // Fallback to common currency symbols
+  const commonSymbols: Record<string, string> = {
+    USD: '$', EUR: '€', GBP: '£', JPY: '¥', CNY: '¥',
+    KZT: '₸', RUB: '₽', UAH: '₴', BYN: 'Br',
+    CAD: 'CA$', AUD: 'A$', CHF: 'CHF', INR: '₹',
+    KRW: '₩', BRL: 'R$', MXN: '$', TRY: '₺',
+  };
+  return commonSymbols[currencyCode] || currencyCode;
+}
+
+/**
  * Format any amount in current currency
  */
 export function formatAmount(amount: number): string {
@@ -881,6 +900,7 @@ export default {
   formatPrice,
   getPriceValue,
   getCurrencySymbol,
+  getCurrencySymbolByCode,
   formatAmount,
   getDetectedRegion,
   getOriginalPrice,

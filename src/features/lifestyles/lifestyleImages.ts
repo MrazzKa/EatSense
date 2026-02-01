@@ -17,19 +17,33 @@ export const LIFESTYLE_IMAGES: Record<string, any> = {
   'old_money': require('../../../assets/lifestyles/Old money.jpeg'),
   'pilates_princess': require('../../../assets/lifestyles/Pilates princess.jpeg'),
   'hot_girl_walk': require('../../../assets/lifestyles/Hot girl walks.jpeg'),
+  'hot_girl_walks': require('../../../assets/lifestyles/Hot girl walks.jpeg'), // Alias
   'lazy_girl_weight_loss': require('../../../assets/lifestyles/Lazy girl weight loss.jpeg'),
+  'cat_mom': require('../../../assets/lifestyles/Cat mom.jpeg'),
+  'dog_mom': require('../../../assets/lifestyles/Dog mom.jpeg'),
+  'slavic_girl': require('../../../assets/lifestyles/Slavic girl.jpeg'),
+  'jet_woman': require('../../../assets/lifestyles/Jet woman.jpeg'),
+  'horse_riders': require('../../../assets/lifestyles/Horse rider\'s.jpeg'),
+  'horse_rider': require('../../../assets/lifestyles/Horse rider\'s.jpeg'), // Alias
 
-  // Goals
+  // Goals / Health
   'acne_clear': require('../../../assets/lifestyles/Clear acne.jpeg'),
   'clear_acne': require('../../../assets/lifestyles/Clear acne.jpeg'), // Alias
+  'glass_skin': require('../../../assets/lifestyles/Glass skin.jpeg'),
   'lean_bulk': require('../../../assets/lifestyles/Lean bulk.jpeg'),
   'adrenal_recovery': require('../../../assets/lifestyles/Adrenal recovery.jpeg'),
   'summer_shred': require('../../../assets/lifestyles/Summer shred.jpeg'),
+  'sustainable_slim': require('../../../assets/lifestyles/Sustainable slim.jpg'),
+  'anti_aging': require('../../../assets/lifestyles/Anti aging.jpeg'),
+  'all_day_energy': require('../../../assets/lifestyles/All day energy.jpeg'),
+  'high_energy': require('../../../assets/lifestyles/High energy.jpeg'),
+  'brain_fuel': require('../../../assets/lifestyles/Brain fuel.jpeg'),
+  'functional_fitness': require('../../../assets/lifestyles/Functional fitness.jpeg'),
 
   // Warriors / Fitness
   'mma_fighter': require('../../../assets/lifestyles/MMA fighter.jpeg'),
-  'athletic_performance': require('../../../assets/lifestyles/Athletic Performance.jpeg'),
-  'strength_athlete': require('../../../assets/lifestyles/Strength Athlete.jpeg'),
+  'athletic_performance': require('../../../assets/lifestyles/Athletic performance.jpeg'),
+  'strength_athlete': require('../../../assets/lifestyles/Strength athlete.jpeg'),
   'navy_seal': require('../../../assets/lifestyles/Navy seal.jpeg'),
   'spartan_warrior': require('../../../assets/lifestyles/Spartan Warrior.jpeg'),
   'viking_raider': require('../../../assets/lifestyles/Viking raider.jpeg'),
@@ -55,7 +69,9 @@ export const LIFESTYLE_IMAGES: Record<string, any> = {
 
   // Seasonal
   'ramadan_fasting': require('../../../assets/lifestyles/Ramadan Fasting.jpeg'),
+  'ramadan': require('../../../assets/lifestyles/Ramadan Fasting.jpeg'), // Alias
   'navruz_spring': require('../../../assets/lifestyles/Navruz spring.jpeg'),
+  'navruz': require('../../../assets/lifestyles/Navruz spring.jpeg'), // Alias
   'new_year_reset': require('../../../assets/lifestyles/New Year Reset.jpeg'),
   'holiday_balance': require('../../../assets/lifestyles/Holiday balance.jpeg'),
 

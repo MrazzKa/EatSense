@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -758,14 +758,7 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleNotificationHourChange = () => {
-    // Initialize tempDate with current notification time
-    const d = new Date();
-    d.setHours(notificationPreferences.dailyPushHour || 8);
-    d.setMinutes(notificationPreferences.dailyPushMinute || 0);
-    setTempDate(d);
-    setShowTimePicker(true);
-  };
+
 
   const onTimeChange = (event, selectedDate) => {
     if (Platform.OS === 'android') {
@@ -911,9 +904,9 @@ const ProfileScreen = () => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, { backgroundColor: tokens.colors.background }]}>
+      <SafeAreaView style={styles.safeArea}>
         <ScrollView
-          style={styles.container}
+          style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -1661,26 +1654,6 @@ const ProfileScreen = () => {
                     ? t('profile.notificationsDailyEnabled') || 'Напоминания включены'
                     : t('profile.notificationsDailyDisabled') || 'Напоминания отключены'}
                 </Text>
-                {notificationPreferences.dailyPushEnabled && (
-                  <View style={{ marginTop: 12 }}>
-                    <TouchableOpacity
-                      style={styles.notificationTimeButton}
-                      onPress={() => {
-                        Keyboard.dismiss();
-                        handleNotificationHourChange();
-                      }}
-                      hitSlop={{ top: 15, bottom: 15, left: 15, right: 60 }}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.timeChip}>
-                        <Ionicons name="time-outline" size={16} color={tokens.colors.primary} />
-                        <Text style={styles.notificationTimeText}>
-                          {`${String(notificationPreferences.dailyPushHour || 8).padStart(2, '0')}:${String(notificationPreferences.dailyPushMinute || 0).padStart(2, '0')}`}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                )}
               </View>
               <Switch
                 value={notificationPreferences.dailyPushEnabled}
@@ -1791,7 +1764,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.vercel.app')}
+                onPress={() => Linking.openURL('https://eatsense.app')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1799,6 +1772,21 @@ const ProfileScreen = () => {
                 </View>
                 <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
                   {safeT('profile.aboutEatsense', 'About EatSense')}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
+
+              <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
+
+              <TouchableOpacity
+                onPress={() => Linking.openURL('mailto:support@eatsense.app')}
+                style={styles.legalRow}
+              >
+                <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="mail-outline" size={18} color={colors.primary} />
+                </View>
+                <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                  {safeT('profile.supportLink', 'Support')}
                 </Text>
                 <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </TouchableOpacity>
@@ -1999,6 +1987,15 @@ const createStyles = (tokens) =>
     safeArea: {
       flex: 1,
       backgroundColor: tokens.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.xl * 2,
+      gap: tokens.spacing.lg,
     },
     container: {
       paddingHorizontal: tokens.spacing.md,

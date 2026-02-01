@@ -31,7 +31,7 @@ import PremiumLockModal from '../../../components/common/PremiumLockModal';
 // FIX: SuggestProgramCard moved to DietsScreen level for better visibility
 // import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
 import ActiveDietWidget from '../../../components/dashboard/ActiveDietWidget';
-import { isFreeLifestyle } from '../../../config/freeContent';
+import { isFreeLifestyle, ENABLE_PREMIUM_LOCK } from '../../../config/freeContent';
 
 // Card height for getItemLayout optimization
 const CARD_HEIGHT = 180;
@@ -65,6 +65,9 @@ interface LifestyleTabContentProps {
 
 // Helper to check if user has access
 const hasAccess = (program: LifestyleProgram, subscription: any): boolean => {
+  // Feature flag: when premium lock is disabled, all content is accessible
+  if (!ENABLE_PREMIUM_LOCK) return true;
+
   // 1. Check free list first
   if (isFreeLifestyle(program.id || program.slug || '')) return true;
 
@@ -385,17 +388,15 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       />
-      <PremiumLockModal
-        visible={showLockModal}
-        onClose={() => setShowLockModal(false)}
-        onUnlock={() => {
-          setShowLockModal(false);
-          // Navigate to paywall or trigger potential purchase flow
-          // For now, maybe navigate to Profile or just close
-          // Ideally should open Paywall
-          // console.log('Unlock pressed');
-        }}
-      />
+      {ENABLE_PREMIUM_LOCK && (
+        <PremiumLockModal
+          visible={showLockModal}
+          onClose={() => setShowLockModal(false)}
+          onUnlock={() => {
+            setShowLockModal(false);
+          }}
+        />
+      )}
     </View>
   );
 }

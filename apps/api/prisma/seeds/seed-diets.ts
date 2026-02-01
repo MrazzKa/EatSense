@@ -14,9 +14,24 @@ const diets = [
     // 1) Mediterranean (MED_DIET)
     {
         slug: 'mediterranean',
-        name: 'programs.diet.mediterranean.name',
-        description: 'programs.diet.mediterranean.description',
-        shortDescription: 'programs.diet.mediterranean.shortDescription',
+        name: {
+            en: 'Mediterranean Diet',
+            ru: 'Средиземноморская диета',
+            kk: 'Жерорта теңізі диетасы',
+            fr: 'Régime méditerranéen',
+        },
+        description: {
+            en: 'A heart-healthy eating pattern inspired by the traditional cuisines of Greece, Italy, and other Mediterranean countries. Emphasizes whole foods, healthy fats, and moderate portions.',
+            ru: 'Полезный для сердца рацион питания, вдохновленный традиционной кухней Греции, Италии и других средиземноморских стран. Акцент на цельные продукты, полезные жиры и умеренные порции.',
+            kk: 'Грекия, Италия және басқа Жерорта теңізі елдерінің дәстүрлі асханаларынан шабыт алған жүрекке пайдалы тамақтану үлгісі.',
+            fr: 'Un régime alimentaire bon pour le cœur inspiré des cuisines traditionnelles de la Grèce, de l\'Italie et d\'autres pays méditerranéens.',
+        },
+        shortDescription: {
+            en: 'Heart-healthy Mediterranean eating',
+            ru: 'Средиземноморское питание для здоровья сердца',
+            kk: 'Жүрекке пайдалы Жерорта теңізі тамақтануы',
+            fr: 'Alimentation méditerranéenne saine pour le cœur',
+        },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -52,11 +67,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'veggies_5', label: 'programs.diet.mediterranean.dailyTracker.veggies_5.label' },
-            { key: 'whole_grains', label: 'programs.diet.mediterranean.dailyTracker.whole_grains.label' },
-            { key: 'healthy_fat', label: 'programs.diet.mediterranean.dailyTracker.healthy_fat.label' },
-            { key: 'protein', label: 'programs.diet.mediterranean.dailyTracker.protein.label' },
-            { key: 'water', label: 'programs.diet.mediterranean.dailyTracker.water.label' },
+            { key: 'veggies_5', label: { en: '5+ servings of vegetables', ru: '5+ порций овощей', kk: '5+ порция көкөніс', fr: '5+ portions de légumes' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәнді дақылдар', fr: 'Céréales complètes' } },
+            { key: 'healthy_fat', label: { en: 'Healthy fats (olive oil)', ru: 'Полезные жиры (оливковое масло)', kk: 'Пайдалы майлар (зәйтүн майы)', fr: 'Graisses saines (huile d\'olive)' } },
+            { key: 'protein', label: { en: 'Fish or legumes', ru: 'Рыба или бобовые', kk: 'Балық немесе бұршақ', fr: 'Poisson ou légumineuses' } },
+            { key: 'water', label: { en: '8 glasses of water', ru: '8 стаканов воды', kk: '8 стақан су', fr: '8 verres d\'eau' } },
         ],
         notFor: null,
         suitableFor: ['heart_health', 'weight_loss', 'diabetes', 'longevity'],
@@ -80,9 +95,24 @@ const diets = [
     // 2) DASH (DASH_DIET)
     {
         slug: 'dash',
-        name: 'programs.diet.dash.name',
-        description: 'programs.diet.dash.description',
-        shortDescription: 'programs.diet.dash.shortDescription',
+        name: {
+            en: 'DASH Diet',
+            ru: 'Диета DASH',
+            kk: 'DASH диетасы',
+            fr: 'Régime DASH',
+        },
+        description: {
+            en: 'Dietary Approaches to Stop Hypertension - a proven eating plan to lower blood pressure and improve heart health through whole foods and reduced sodium.',
+            ru: 'Диетические подходы к остановке гипертонии - проверенный план питания для снижения артериального давления и улучшения здоровья сердца.',
+            kk: 'Гипертонияны тоқтатудың диеталық тәсілдері - қан қысымын төмендету және жүрек денсаулығын жақсарту үшін дәлелденген тамақтану жоспары.',
+            fr: 'Approches diététiques pour stopper l\'hypertension - un plan alimentaire prouvé pour réduire la pression artérielle.',
+        },
+        shortDescription: {
+            en: 'Lower blood pressure naturally',
+            ru: 'Снижение давления естественным путем',
+            kk: 'Қан қысымын табиғи түрде төмендету',
+            fr: 'Réduire la pression artérielle naturellement',
+        },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -114,11 +144,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'veggies_fruits_5', label: 'programs.diet.dash.dailyTracker.veggies_fruits_5.label' },
-            { key: 'whole_grains', label: 'programs.diet.dash.dailyTracker.whole_grains.label' },
-            { key: 'lean_protein', label: 'programs.diet.dash.dailyTracker.lean_protein.label' },
-            { key: 'low_salt', label: 'programs.diet.dash.dailyTracker.low_salt.label' },
-            { key: 'no_sugary_drinks', label: 'programs.diet.dash.dailyTracker.no_sugary_drinks.label' },
+            { key: 'veggies_fruits_5', label: { en: '5+ fruits & vegetables', ru: '5+ фруктов и овощей', kk: '5+ жеміс және көкөніс', fr: '5+ fruits et légumes' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәнді дақылдар', fr: 'Céréales complètes' } },
+            { key: 'lean_protein', label: { en: 'Lean protein', ru: 'Нежирный белок', kk: 'Майсыз ақуыз', fr: 'Protéines maigres' } },
+            { key: 'low_salt', label: { en: 'Low sodium intake', ru: 'Мало натрия', kk: 'Аз натрий', fr: 'Faible en sodium' } },
+            { key: 'no_sugary_drinks', label: { en: 'No sugary drinks', ru: 'Без сладких напитков', kk: 'Тәтті сусынсыз', fr: 'Pas de boissons sucrées' } },
         ],
         notFor: null,
         suitableFor: ['hypertension', 'heart_health', 'weight_loss'],
@@ -142,9 +172,24 @@ const diets = [
     // 3) MIND (MIND_DIET)
     {
         slug: 'mind',
-        name: 'programs.diet.mind.name',
-        description: 'programs.diet.mind.description',
-        shortDescription: 'programs.diet.mind.shortDescription',
+        name: {
+            en: 'MIND Diet',
+            ru: 'Диета MIND',
+            kk: 'MIND диетасы',
+            fr: 'Régime MIND',
+        },
+        description: {
+            en: 'The MIND diet combines Mediterranean and DASH diets, specifically designed to boost brain health and reduce the risk of cognitive decline.',
+            ru: 'Диета MIND сочетает средиземноморскую и DASH диеты, специально разработана для здоровья мозга и снижения риска когнитивного упадка.',
+            kk: 'MIND диетасы Жерорта теңізі және DASH диеталарын біріктіреді, ми денсаулығын жақсарту үшін арнайы жасалған.',
+            fr: 'Le régime MIND combine les régimes méditerranéen et DASH, conçu pour la santé cérébrale.',
+        },
+        shortDescription: {
+            en: 'Brain-boosting diet',
+            ru: 'Диета для здоровья мозга',
+            kk: 'Ми денсаулығы үшін диета',
+            fr: 'Régime pour la santé cérébrale',
+        },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -172,11 +217,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'greens_veggies', label: 'programs.diet.mind.dailyTracker.greens_veggies.label' },
-            { key: 'berries', label: 'programs.diet.mind.dailyTracker.berries.label' },
-            { key: 'nuts', label: 'programs.diet.mind.dailyTracker.nuts.label' },
-            { key: 'whole_grains', label: 'programs.diet.mind.dailyTracker.whole_grains.label' },
-            { key: 'limit_sweets', label: 'programs.diet.mind.dailyTracker.limit_sweets.label' },
+            { key: 'greens_veggies', label: { en: 'Leafy greens', ru: 'Листовая зелень', kk: 'Жапырақты жасылдар', fr: 'Légumes verts' } },
+            { key: 'berries', label: { en: 'Berries', ru: 'Ягоды', kk: 'Жидектер', fr: 'Baies' } },
+            { key: 'nuts', label: { en: 'Nuts (handful)', ru: 'Орехи (горсть)', kk: 'Жаңғақтар (уыс)', fr: 'Noix (poignée)' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәнді дақылдар', fr: 'Céréales complètes' } },
+            { key: 'limit_sweets', label: { en: 'Limited sweets', ru: 'Ограничили сладости', kk: 'Тәттілерді шектеу', fr: 'Sucreries limitées' } },
         ],
         notFor: null,
         suitableFor: ['brain_health', 'memory', 'longevity'],
@@ -199,9 +244,24 @@ const diets = [
     // 4) Flexitarian (FLEX_DIET)
     {
         slug: 'flexitarian',
-        name: 'programs.diet.flexitarian.name',
-        description: 'programs.diet.flexitarian.description',
-        shortDescription: 'programs.diet.flexitarian.shortDescription',
+        name: {
+            en: 'Flexitarian Diet',
+            ru: 'Флекситарианская диета',
+            kk: 'Флекситариандық диета',
+            fr: 'Régime Flexitarien',
+        },
+        description: {
+            en: 'A flexible approach to plant-based eating with occasional meat. Perfect for those who want to reduce meat consumption gradually.',
+            ru: 'Гибкий подход к растительному питанию с редким употреблением мяса. Идеально для постепенного сокращения мяса.',
+            kk: 'Кейде етпен бірге өсімдіктерге негізделген тамақтануға икемді көзқарас.',
+            fr: 'Une approche flexible de l\'alimentation végétale avec de la viande occasionnellement.',
+        },
+        shortDescription: {
+            en: 'Mostly plants, some meat',
+            ru: 'Больше растений, меньше мяса',
+            kk: 'Көбінесе өсімдіктер, аз ет',
+            fr: 'Principalement végétal, un peu de viande',
+        },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -229,10 +289,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'veggies_4', label: 'programs.diet.flexitarian.dailyTracker.veggies_4.label' },
-            { key: 'legumes_grains', label: 'programs.diet.flexitarian.dailyTracker.legumes_grains.label' },
-            { key: 'protein', label: 'programs.diet.flexitarian.dailyTracker.protein.label' },
-            { key: 'limit_junk', label: 'programs.diet.flexitarian.dailyTracker.limit_junk.label' },
+            { key: 'veggies_4', label: { en: '4+ servings vegetables', ru: '4+ порций овощей', kk: '4+ порция көкөніс', fr: '4+ portions légumes' } },
+            { key: 'legumes_grains', label: { en: 'Legumes or whole grains', ru: 'Бобовые или злаки', kk: 'Бұршақ немесе дәнді дақылдар', fr: 'Légumineuses ou céréales' } },
+            { key: 'protein', label: { en: 'Plant or lean protein', ru: 'Растительный или нежирный белок', kk: 'Өсімдік немесе майсыз ақуыз', fr: 'Protéine végétale ou maigre' } },
+            { key: 'limit_junk', label: { en: 'Limited processed food', ru: 'Ограничили обработанную еду', kk: 'Өңделген тағамды шектеу', fr: 'Aliments transformés limités' } },
         ],
         notFor: null,
         suitableFor: ['weight_loss', 'heart_health', 'beginners'],
@@ -256,9 +316,9 @@ const diets = [
     // 5) Nordic (NORDIC_DIET)
     {
         slug: 'nordic',
-        name: 'programs.diet.nordic.name',
-        description: 'programs.diet.nordic.description',
-        shortDescription: 'programs.diet.nordic.shortDescription',
+        name: { en: 'Nordic', ru: 'Скандинавская', kk: 'Скандинавиялық', fr: 'Nordique' },
+        description: { en: 'Based on traditional Scandinavian cuisine. Emphasizes local, seasonal foods.', ru: 'Основана на традиционной скандинавской кухне. Акцент на местных сезонных продуктах.', kk: 'Дәстүрлі скандинавиялық асханаға негізделген. Жергілікті маусымдық тағамдарға баса назар.', fr: 'Basé sur la cuisine scandinave traditionnelle. Produits locaux et de saison.' },
+        shortDescription: { en: 'Scandinavian-style healthy eating', ru: 'Здоровое питание по-скандинавски', kk: 'Скандинавиялық стильдегі сау тамақтану', fr: 'Alimentation saine style scandinave' },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -286,11 +346,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fish_legumes', label: 'programs.diet.nordic.dailyTracker.fish_legumes.label' },
-            { key: 'berries', label: 'programs.diet.nordic.dailyTracker.berries.label' },
-            { key: 'whole_grains', label: 'programs.diet.nordic.dailyTracker.whole_grains.label' },
-            { key: 'root_veggies', label: 'programs.diet.nordic.dailyTracker.root_veggies.label' },
-            { key: 'min_sugar', label: 'programs.diet.nordic.dailyTracker.min_sugar.label' },
+            { key: 'fish_legumes', label: { en: 'Fish/seafood or legumes (protein)', ru: 'Рыба/морепродукты или бобовые (белок)', kk: 'Балық/теңіз өнімдері немесе бұршақ (ақуыз)', fr: 'Poisson/fruits de mer ou légumineuses (protéines)' } },
+            { key: 'berries', label: { en: 'Berries/fruits', ru: 'Ягоды/фрукты', kk: 'Жидектер/жемістер', fr: 'Baies/fruits' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәндер', fr: 'Céréales complètes' } },
+            { key: 'root_veggies', label: { en: 'Vegetables/root vegetables', ru: 'Овощи/корнеплоды', kk: 'Көкөністер/тамыр көкөністері', fr: 'Légumes/légumes-racines' } },
+            { key: 'min_sugar', label: { en: 'Minimal sugar', ru: 'Минимум сахара', kk: 'Минималды қант', fr: 'Sucre minimal' } },
         ],
         notFor: null,
         suitableFor: ['heart_health', 'weight_loss', 'sustainability'],
@@ -314,9 +374,24 @@ const diets = [
     // 6) Balanced Plate (PLATE_METHOD)
     {
         slug: 'plate-method',
-        name: 'programs.diet.plate-method.name',
-        description: 'programs.diet.plate-method.description',
-        shortDescription: 'programs.diet.plate-method.shortDescription',
+        name: {
+            en: 'Balanced Plate Method',
+            ru: 'Метод сбалансированной тарелки',
+            kk: 'Теңдестірілген тәрелке әдісі',
+            fr: 'Méthode de l\'assiette équilibrée',
+        },
+        description: {
+            en: 'A simple visual guide to balanced eating. Divide your plate into sections: half vegetables, quarter protein, quarter carbs. Easy to follow at every meal.',
+            ru: 'Простое визуальное руководство по сбалансированному питанию. Разделите тарелку на секции: половина овощей, четверть белка, четверть углеводов.',
+            kk: 'Теңдестірілген тамақтануға қарапайым визуалды нұсқаулық. Тәрелкені бөліктерге бөліңіз: жартысы көкөніс, төрттен бірі ақуыз, төрттен бірі көмірсулар.',
+            fr: 'Un guide visuel simple pour une alimentation équilibrée. Divisez votre assiette: moitié légumes, quart protéines, quart glucides.',
+        },
+        shortDescription: {
+            en: 'Simple visual portion guide',
+            ru: 'Простой визуальный гид по порциям',
+            kk: 'Қарапайым визуалды порция нұсқаулығы',
+            fr: 'Guide visuel simple des portions',
+        },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -352,10 +427,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'veggies_2meals', label: 'programs.diet.plate-method.dailyTracker.veggies_2meals.label' },
-            { key: 'protein_each', label: 'programs.diet.plate-method.dailyTracker.protein_each.label' },
-            { key: 'complex_carbs', label: 'programs.diet.plate-method.dailyTracker.complex_carbs.label' },
-            { key: 'water', label: 'programs.diet.plate-method.dailyTracker.water.label' },
+            { key: 'veggies_2meals', label: { en: 'Vegetables at 2+ meals', ru: 'Овощи в 2+ приёмах пищи', kk: '2+ тамақта көкөніс', fr: 'Légumes à 2+ repas' } },
+            { key: 'protein_each', label: { en: 'Protein at each meal', ru: 'Белок в каждом приёме', kk: 'Әр тамақта ақуыз', fr: 'Protéines à chaque repas' } },
+            { key: 'complex_carbs', label: { en: 'Complex carbs', ru: 'Сложные углеводы', kk: 'Күрделі көмірсулар', fr: 'Glucides complexes' } },
+            { key: 'water', label: { en: '8 glasses of water', ru: '8 стаканов воды', kk: '8 стақан су', fr: '8 verres d\'eau' } },
         ],
         notFor: null,
         suitableFor: ['beginners', 'weight_management', 'diabetes'],
@@ -381,9 +456,9 @@ const diets = [
     // 7) Intermittent Fasting 14:10 (IF_14_10)
     {
         slug: 'if-14-10',
-        name: 'programs.diet.if-14-10.name',
-        description: 'programs.diet.if-14-10.description',
-        shortDescription: 'programs.diet.if-14-10.shortDescription',
+        name: { en: '14:10 Eating Window', ru: 'Окно питания 14:10', kk: '14:10 тамақтану терезесі', fr: 'Fenêtre 14:10' },
+        description: { en: 'A gentler approach to intermittent fasting. Fast for 14 hours, eat within a 10-hour window.', ru: 'Более мягкий подход к интервальному голоданию. Голодание 14 часов, приём пищи в 10-часовом окне.', kk: 'Аралық аштыққа жұмсақ тәсіл. 14 сағат аштық, 10 сағаттық терезеде тамақтану.', fr: 'Jeûne intermittent plus doux. Jeûner 14 h, manger sur 10 h.' },
+        shortDescription: { en: 'Gentle fasting: 14h fast, 10h eating window', ru: 'Мягкое голодание: 14ч аштық, 10ч окно', kk: 'Жұмсақ аштық: 14 сағ аштық, 10 сағ терезе', fr: 'Jeûne 14 h, fenêtre 10 h' },
         category: 'inspired',
         type: 'WEIGHT_LOSS',
         difficulty: 'EASY',
@@ -415,9 +490,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fasting_14h', label: 'programs.diet.if-14-10.dailyTracker.fasting_14h.label' },
-            { key: 'eating_window', label: 'programs.diet.if-14-10.dailyTracker.eating_window.label' },
-            { key: 'protein_veggies', label: 'programs.diet.if-14-10.dailyTracker.protein_veggies.label' },
+            { key: 'fasting_14h', label: { en: 'Fasting interval observed (14h)', ru: 'Соблюдён интервал голода (14ч)', kk: 'Аштық интервалы сақталды (14 сағ)', fr: 'Jeûne 14 h respecté' } },
+            { key: 'eating_window', label: { en: 'Ate only within window (10h)', ru: 'Еда только в окне (10ч)', kk: 'Тек терезеде тамақтандым (10 сағ)', fr: 'Repas uniquement dans la fenêtre (10 h)' } },
+            { key: 'protein_veggies', label: { en: 'Protein + vegetables in main meals', ru: 'Белок + овощи в основных приёмах', kk: 'Негізгі тамақтарда ақуыз + көкөністер', fr: 'Protéines + légumes aux repas principaux' } },
         ],
         notFor: {
             en: ['Pregnancy/breastfeeding', 'Eating disorders', 'Insulin-dependent diabetes without doctor', 'Teenagers'],
@@ -447,9 +522,24 @@ const diets = [
     // 8) Intermittent Fasting 16:8 (IF_16_8)
     {
         slug: 'if-16-8',
-        name: 'programs.diet.if-16-8.name',
-        description: 'programs.diet.if-16-8.description',
-        shortDescription: 'programs.diet.if-16-8.shortDescription',
+        name: {
+            en: 'Intermittent Fasting 16:8',
+            ru: 'Интервальное голодание 16:8',
+            kk: 'Интервалды аштық 16:8',
+            fr: 'Jeûne intermittent 16:8',
+        },
+        description: {
+            en: 'Popular fasting protocol with 16 hours of fasting and an 8-hour eating window. Supports weight loss and metabolic health.',
+            ru: 'Популярный протокол голодания: 16 часов голода и 8-часовое окно питания. Поддерживает снижение веса и метаболическое здоровье.',
+            kk: '16 сағат аштық және 8 сағат тамақтану терезесі бар танымал аштық хаттамасы.',
+            fr: 'Protocole de jeûne populaire avec 16 heures de jeûne et une fenêtre alimentaire de 8 heures.',
+        },
+        shortDescription: {
+            en: '16h fast, 8h eating window',
+            ru: '16ч голод, 8ч питание',
+            kk: '16с аштық, 8с тамақтану',
+            fr: '16h jeûne, 8h alimentation',
+        },
         category: 'inspired',
         type: 'WEIGHT_LOSS',
         difficulty: 'MODERATE',
@@ -481,9 +571,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fasting_16h', label: 'programs.diet.if-16-8.dailyTracker.fasting_16h.label' },
-            { key: 'eating_window', label: 'programs.diet.if-16-8.dailyTracker.eating_window.label' },
-            { key: 'no_sugary_drinks', label: 'programs.diet.if-16-8.dailyTracker.no_sugary_drinks.label' },
+            { key: 'fasting_16h', label: { en: '16h fasting complete', ru: '16ч голодания', kk: '16 сағат аштық', fr: '16h de jeûne' } },
+            { key: 'eating_window', label: { en: 'Ate within 8h window', ru: 'Ели в 8ч окне', kk: '8 сағат терезесінде тамақтану', fr: 'Mangé dans 8h' } },
+            { key: 'no_sugary_drinks', label: { en: 'No sugary drinks', ru: 'Без сладких напитков', kk: 'Тәтті сусынсыз', fr: 'Pas de boissons sucrées' } },
         ],
         notFor: {
             en: ['Same as 14:10 — see above'],
@@ -513,9 +603,9 @@ const diets = [
     // 9) High-Protein Cut (HP_CUT)
     {
         slug: 'high-protein-cut',
-        name: 'programs.diet.high-protein-cut.name',
-        description: 'programs.diet.high-protein-cut.description',
-        shortDescription: 'programs.diet.high-protein-cut.shortDescription',
+        name: { en: 'High-Protein Cut', ru: 'Высокобелковая (сушка)', kk: 'Жоғары ақуыз (кептіру)', fr: 'Cut haute protéine' },
+        description: { en: 'High protein intake for preserving muscle while cutting fat. Popular with athletes.', ru: 'Высокое потребление белка для сохранения мышц при сжигании жира. Популярна у спортсменов.', kk: 'Майды жағу кезінде бұлшықетті сақтау үшін жоғары ақуыз тұтыну. Спортшылар арасында танымал.', fr: 'Fort apport en protéines pour préserver le muscle tout en perdant du gras. Populaire chez les sportifs.' },
+        shortDescription: { en: 'High protein for fat loss while preserving muscle', ru: 'Высокий белок для сжигания жира с сохранением мышц', kk: 'Бұлшықетті сақтай отырып май жоғалту үшін жоғары ақуыз', fr: 'Haute protéine pour perte de gras en préservant le muscle' },
         category: 'modern',
         type: 'SPORTS',
         difficulty: 'MODERATE',
@@ -551,10 +641,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'protein_4x', label: 'programs.diet.high-protein-cut.dailyTracker.protein_4x.label' },
-            { key: 'veggies_4', label: 'programs.diet.high-protein-cut.dailyTracker.veggies_4.label' },
-            { key: 'min_sweets', label: 'programs.diet.high-protein-cut.dailyTracker.min_sweets.label' },
-            { key: 'activity', label: 'programs.diet.high-protein-cut.dailyTracker.activity.label' },
+            { key: 'protein_4x', label: { en: 'Protein 3-4 times a day', ru: 'Белок 3–4 раза в день', kk: 'Күніне 3-4 рет ақуыз', fr: 'Protéines 3–4×/jour' } },
+            { key: 'veggies_4', label: { en: 'Vegetables 4+ servings', ru: 'Овощи 4+ порции', kk: 'Көкөністер 4+ порция', fr: 'Légumes 4+ portions' } },
+            { key: 'min_sweets', label: { en: 'Sweets — minimal', ru: 'Сладкое — минимум', kk: 'Тәтті — минимум', fr: 'Sucreries — minimal' } },
+            { key: 'activity', label: { en: 'Steps/activity (if tracking)', ru: 'Шаги/активность (если есть трекер)', kk: 'Қадамдар/белсенділік', fr: 'Pas/activité (si suivi)' } },
         ],
         notFor: {
             en: ['Kidney problems — only with doctor'],
@@ -583,9 +673,24 @@ const diets = [
     // 10) Low-Carb (LOW_CARB)
     {
         slug: 'low-carb',
-        name: 'programs.diet.low-carb.name',
-        description: 'programs.diet.low-carb.description',
-        shortDescription: 'programs.diet.low-carb.shortDescription',
+        name: {
+            en: 'Low-Carb Diet',
+            ru: 'Низкоуглеводная диета',
+            kk: 'Төмен көмірсулы диета',
+            fr: 'Régime faible en glucides',
+        },
+        description: {
+            en: 'Reduce carbohydrate intake while focusing on protein and healthy fats. Effective for weight loss and blood sugar control.',
+            ru: 'Снижение потребления углеводов с фокусом на белок и полезные жиры. Эффективна для похудения и контроля сахара в крови.',
+            kk: 'Ақуыз бен пайдалы майларға назар аудара отырып көмірсу тұтынуын азайту.',
+            fr: 'Réduire l\'apport en glucides tout en se concentrant sur les protéines et les graisses saines.',
+        },
+        shortDescription: {
+            en: 'Fewer carbs, more protein',
+            ru: 'Меньше углеводов, больше белка',
+            kk: 'Аз көмірсу, көп ақуыз',
+            fr: 'Moins de glucides, plus de protéines',
+        },
         category: 'modern',
         type: 'WEIGHT_LOSS',
         difficulty: 'MODERATE',
@@ -621,10 +726,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'no_sugary_drinks', label: 'programs.diet.low-carb.dailyTracker.no_sugary_drinks.label' },
-            { key: 'whole_carbs', label: 'programs.diet.low-carb.dailyTracker.whole_carbs.label' },
-            { key: 'protein_each', label: 'programs.diet.low-carb.dailyTracker.protein_each.label' },
-            { key: 'veggies_4', label: 'programs.diet.low-carb.dailyTracker.veggies_4.label' },
+            { key: 'no_sugary_drinks', label: { en: 'No sugary drinks', ru: 'Без сладких напитков', kk: 'Тәтті сусынсыз', fr: 'Pas de boissons sucrées' } },
+            { key: 'whole_carbs', label: { en: 'Only whole carbs', ru: 'Только цельные углеводы', kk: 'Тек тұтас көмірсулар', fr: 'Glucides complets uniquement' } },
+            { key: 'protein_each', label: { en: 'Protein at each meal', ru: 'Белок в каждом приёме', kk: 'Әр тамақта ақуыз', fr: 'Protéines à chaque repas' } },
+            { key: 'veggies_4', label: { en: '4+ servings vegetables', ru: '4+ порций овощей', kk: '4+ порция көкөніс', fr: '4+ portions légumes' } },
         ],
         notFor: null,
         suitableFor: ['weight_loss', 'blood_sugar_control'],
@@ -650,9 +755,24 @@ const diets = [
     // 11) Keto (KETO)
     {
         slug: 'keto',
-        name: 'programs.diet.keto.name',
-        description: 'programs.diet.keto.description',
-        shortDescription: 'programs.diet.keto.shortDescription',
+        name: {
+            en: 'Keto Diet',
+            ru: 'Кето диета',
+            kk: 'Кето диетасы',
+            fr: 'Régime Keto',
+        },
+        description: {
+            en: 'Very low carbohydrate, high fat diet that puts your body into ketosis. Requires medical supervision for some conditions.',
+            ru: 'Диета с очень низким содержанием углеводов и высоким содержанием жиров, вводящая тело в кетоз. Для некоторых состояний требуется медицинский контроль.',
+            kk: 'Денені кетозға енгізетін өте төмен көмірсулы, жоғары майлы диета.',
+            fr: 'Régime très faible en glucides et riche en graisses qui met votre corps en cétose.',
+        },
+        shortDescription: {
+            en: 'Very low-carb, high-fat',
+            ru: 'Очень мало углеводов, много жиров',
+            kk: 'Өте аз көмірсу, көп май',
+            fr: 'Très faible en glucides, riche en graisses',
+        },
         category: 'medical',
         type: 'MEDICAL',
         difficulty: 'HARD',
@@ -684,9 +804,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'carbs_limited', label: 'programs.diet.keto.dailyTracker.carbs_limited.label' },
-            { key: 'water_electrolytes', label: 'programs.diet.keto.dailyTracker.water_electrolytes.label' },
-            { key: 'low_carb_veggies', label: 'programs.diet.keto.dailyTracker.low_carb_veggies.label' },
+            { key: 'carbs_limited', label: { en: 'Carbs under 50g', ru: 'Углеводы до 50г', kk: 'Көмірсулар 50г астам емес', fr: 'Glucides sous 50g' } },
+            { key: 'water_electrolytes', label: { en: 'Water + electrolytes', ru: 'Вода + электролиты', kk: 'Су + электролиттер', fr: 'Eau + électrolytes' } },
+            { key: 'low_carb_veggies', label: { en: 'Low-carb vegetables', ru: 'Низкоуглеводные овощи', kk: 'Төмен көмірсулы көкөністер', fr: 'Légumes faibles en glucides' } },
         ],
         notFor: {
             en: ['Pregnancy/breastfeeding', 'Pancreatitis', 'Liver/gallbladder disease', 'Eating disorders', 'Many endocrine conditions — without doctor'],
@@ -717,9 +837,9 @@ const diets = [
     // 12) Low-FODMAP (LOW_FODMAP)
     {
         slug: 'low-fodmap',
-        name: 'programs.diet.low-fodmap.name',
-        description: 'programs.diet.low-fodmap.description',
-        shortDescription: 'programs.diet.low-fodmap.shortDescription',
+        name: { en: 'Low-FODMAP (Gut)', ru: 'Low-FODMAP (ЖКТ)', kk: 'Low-FODMAP (Асқазан-ішек)', fr: 'Low-FODMAP (intestin)' },
+        description: { en: 'Elimination diet for IBS and digestive issues. Must be done in phases with professional guidance.', ru: 'Элиминационная диета для СРК и проблем ЖКТ. Должна проводиться по фазам под руководством специалиста.', kk: 'IBS және ас қорыту мәселелері үшін элиминациялық диета. Маман басшылығымен кезеңдермен өткізілуі керек.', fr: 'Régime d\' },
+        shortDescription: { en: 'Gut-healing diet in phases — requires guidance', ru: 'Диета для ЖКТ по фазам — требует специалиста', kk: 'Асқазан-ішек үшін кезеңдік диета — маман қажет', fr: 'Régime intestin par phases — suivi requis' },
         category: 'medical',
         type: 'MEDICAL',
         difficulty: 'HARD',
@@ -743,9 +863,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'phase_foods', label: 'programs.diet.low-fodmap.dailyTracker.phase_foods.label' },
-            { key: 'symptoms_noted', label: 'programs.diet.low-fodmap.dailyTracker.symptoms_noted.label' },
-            { key: 'water', label: 'programs.diet.low-fodmap.dailyTracker.water.label' },
+            { key: 'phase_foods', label: { en: 'Phase-appropriate foods followed', ru: 'Соблюдены продукты фазы', kk: 'Кезең тағамдары сақталды', fr: 'Aliments de la phase respectés' } },
+            { key: 'symptoms_noted', label: { en: 'Symptoms noted (1-5)', ru: 'Симптомы отмечены (1–5)', kk: 'Симптомдар белгіленді (1-5)', fr: 'Symptômes notés (1–5)' } },
+            { key: 'water', label: { en: 'Enough water', ru: 'Достаточно воды', kk: 'Жеткілікті су', fr: 'Assez d\' } },
         ],
         notFor: {
             en: ['Should not stay on long-term without specialist'],
@@ -774,9 +894,9 @@ const diets = [
     // 13) Gluten-Free (GF)
     {
         slug: 'gluten-free',
-        name: 'programs.diet.gluten-free.name',
-        description: 'programs.diet.gluten-free.description',
-        shortDescription: 'programs.diet.gluten-free.shortDescription',
+        name: { en: 'Gluten-Free', ru: 'Безглютеновая', kk: 'Глютенсіз', fr: 'Sans gluten' },
+        description: { en: 'Essential for celiac disease and gluten sensitivity. Not necessary as a lifestyle choice without medical indication.', ru: 'Необходима при целиакии и чувствительности к глютену. Не обязательна без медицинских показаний.', kk: 'Целиакия және глютенге сезімталдық үшін қажет. Медициналық көрсеткіштерсіз міндетті емес.', fr: 'Indispensable en cas de maladie cœliaque ou sensibilité. Pas utile sans indication médicale.' },
+        shortDescription: { en: 'For celiac disease or gluten sensitivity', ru: 'При целиакии или непереносимости глютена', kk: 'Целиакия немесе глютенге сезімталдық үшін', fr: 'Maladie cœliaque ou sensibilité au gluten' },
         category: 'medical',
         type: 'MEDICAL',
         difficulty: 'MODERATE',
@@ -804,8 +924,8 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'no_gluten', label: 'programs.diet.gluten-free.dailyTracker.no_gluten.label' },
-            { key: 'fiber', label: 'programs.diet.gluten-free.dailyTracker.fiber.label' },
+            { key: 'no_gluten', label: { en: 'No gluten (manual check)', ru: 'Без глютена (ручной чек)', kk: 'Глютенсіз (қолмен тексеру)', fr: 'Sans gluten (vérif manuelle)' } },
+            { key: 'fiber', label: { en: 'Enough fiber (vegetables/legumes/GF grains)', ru: 'Достаточно клетчатки (овощи/бобовые/крупы без глютена)', kk: 'Жеткілікті талшық', fr: 'Assez de fibres (légumes/légumineuses/céréales SG)' } },
         ],
         notFor: {
             en: ['If no indication — not necessary'],
@@ -836,9 +956,9 @@ const diets = [
     // 14) Roman-Inspired (ROMAN_INSPIRED)
     {
         slug: 'roman-inspired',
-        name: 'programs.diet.roman-inspired.name',
-        description: 'programs.diet.roman-inspired.description',
-        shortDescription: 'programs.diet.roman-inspired.shortDescription',
+        name: { en: 'Roman-Inspired', ru: 'Римская (вдохновл.)', kk: 'Римдік (шабыт)', fr: 'Inspiré romain' },
+        description: { en: 'Inspired by ancient Roman diet. Focus on grains, legumes, olive oil, and vegetables. Historical reconstruction for fun.', ru: 'Вдохновлённая древнеримской диетой. Зёрна, бобовые, оливковое масло, овощи. Историческая реконструкция.', kk: 'Ежелгі Рим диетасынан шабыт алған. Дәндер, бұршақ, зәйтүн майы, көкөністер.', fr: 'Inspiré du régime romain antique. Céréales, légumineuses, huile d\' },
+        shortDescription: { en: 'Ancient Roman-inspired eating', ru: 'Питание в стиле Древнего Рима', kk: 'Ежелгі Рим стиліндегі тамақтану', fr: 'Alimentation style Rome antique' },
         category: 'historical',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -870,10 +990,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'legumes', label: 'programs.diet.roman-inspired.dailyTracker.legumes.label' },
-            { key: 'veggies_3', label: 'programs.diet.roman-inspired.dailyTracker.veggies_3.label' },
-            { key: 'whole_grains', label: 'programs.diet.roman-inspired.dailyTracker.whole_grains.label' },
-            { key: 'min_junk', label: 'programs.diet.roman-inspired.dailyTracker.min_junk.label' },
+            { key: 'legumes', label: { en: 'Legumes/lentils 1 time', ru: 'Бобовые/чечевица 1 раз', kk: 'Бұршақ/жасымық 1 рет', fr: 'Légumineuses/lentilles 1×' } },
+            { key: 'veggies_3', label: { en: 'Vegetables 3+', ru: 'Овощи 3+', kk: 'Көкөністер 3+', fr: 'Légumes 3+' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәндер', fr: 'Céréales complètes' } },
+            { key: 'min_junk', label: { en: 'Minimal sweets/fast food', ru: 'Минимум сладкого/фастфуда', kk: 'Тәтті/фастфуд минимум', fr: 'Sucreries/fast-food minimal' } },
         ],
         notFor: null,
         suitableFor: ['fun', 'historical_interest', 'simple_eating'],
@@ -897,9 +1017,9 @@ const diets = [
     // 15) Spartan-Inspired (SPARTAN_INSPIRED)
     {
         slug: 'spartan-inspired',
-        name: 'programs.diet.spartan-inspired.name',
-        description: 'programs.diet.spartan-inspired.description',
-        shortDescription: 'programs.diet.spartan-inspired.shortDescription',
+        name: { en: 'Spartan-Inspired', ru: 'Спартанская (вдохновл.)', kk: 'Спартандық (шабыт)', fr: 'Inspiré spartiate' },
+        description: { en: 'Inspired by Spartan simplicity. Focus on simple, unprocessed foods and discipline.', ru: 'Вдохновлённая спартанской простотой. Простые, непереработанные продукты и дисциплина.', kk: 'Спартандық қарапайымдылықтан шабыт алған. Қарапайым, өңделмеген тағамдар және тәртіп.', fr: 'Inspiré par la simplicité spartiate. Aliments simples, non transformés et discipline.' },
+        shortDescription: { en: 'Spartan simplicity and discipline', ru: 'Спартанская простота и дисциплина', kk: 'Спартандық қарапайымдылық және тәртіп', fr: 'Simplicité et discipline spartiates' },
         category: 'historical',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -935,10 +1055,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'simple_foods', label: 'programs.diet.spartan-inspired.dailyTracker.simple_foods.label' },
-            { key: 'veggies_3', label: 'programs.diet.spartan-inspired.dailyTracker.veggies_3.label' },
-            { key: 'protein_2_3', label: 'programs.diet.spartan-inspired.dailyTracker.protein_2_3.label' },
-            { key: 'no_sugary_drinks', label: 'programs.diet.spartan-inspired.dailyTracker.no_sugary_drinks.label' },
+            { key: 'simple_foods', label: { en: 'Simple products (no ultra-processed)', ru: 'Простые продукты (без ультра-переработки)', kk: 'Қарапайым өнімдер', fr: 'Produits simples (sans ultra-transformés)' } },
+            { key: 'veggies_3', label: { en: 'Vegetables 3+', ru: 'Овощи 3+', kk: 'Көкөністер 3+', fr: 'Légumes 3+' } },
+            { key: 'protein_2_3', label: { en: 'Protein 2-3', ru: 'Белок 2–3', kk: 'Ақуыз 2-3', fr: 'Protéines 2–3' } },
+            { key: 'no_sugary_drinks', label: { en: 'No sugary drinks', ru: 'Без сладких напитков', kk: 'Тәтті сусындарсыз', fr: 'Pas de boissons sucrées' } },
         ],
         notFor: null,
         suitableFor: ['discipline', 'minimalism', 'fun'],
@@ -962,9 +1082,9 @@ const diets = [
     // 16) Arctic-Inspired (INUIT_INSPIRED)
     {
         slug: 'arctic-inspired',
-        name: 'programs.diet.arctic-inspired.name',
-        description: 'programs.diet.arctic-inspired.description',
-        shortDescription: 'programs.diet.arctic-inspired.shortDescription',
+        name: { en: 'Arctic-Inspired', ru: 'Арктическая (инуиты, вдохновл.)', kk: 'Арктикалық (шабыт)', fr: 'Inspiré arctique' },
+        description: { en: 'Adapted from traditional Inuit diet. Focus on fish, omega-3, and seasonal produce.', ru: 'Адаптация традиционной диеты инуитов. Фокус на рыбе, омега-3 и сезонных продуктах.', kk: 'Дәстүрлі инуит диетасынан бейімделген. Балық, омега-3 және маусымдық өнімдерге назар аудару.', fr: 'Adaptation du régime inuit. Focus poisson, oméga-3 et produits de saison.' },
+        shortDescription: { en: 'Fish-focused with omega-3 and berries', ru: 'Фокус на рыбе с омега-3 и ягодами', kk: 'Омега-3 және жидектермен балыққа бағытталған', fr: 'Poisson, oméga-3 et baies' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -1000,10 +1120,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fish_omega3', label: 'programs.diet.arctic-inspired.dailyTracker.fish_omega3.label' },
-            { key: 'berries', label: 'programs.diet.arctic-inspired.dailyTracker.berries.label' },
-            { key: 'protein_2_3', label: 'programs.diet.arctic-inspired.dailyTracker.protein_2_3.label' },
-            { key: 'water', label: 'programs.diet.arctic-inspired.dailyTracker.water.label' },
+            { key: 'fish_omega3', label: { en: 'Fish/seafood or omega-3 source', ru: 'Рыба/морепродукты или омега-3 источник', kk: 'Балық/теңіз өнімдері немесе омега-3 көзі', fr: 'Poisson/fruits de mer ou oméga-3' } },
+            { key: 'berries', label: { en: 'Berries/fruits', ru: 'Ягоды/фрукты', kk: 'Жидектер/жемістер', fr: 'Baies/fruits' } },
+            { key: 'protein_2_3', label: { en: 'Protein 2-3', ru: 'Белок 2–3', kk: 'Ақуыз 2-3', fr: 'Protéines 2–3' } },
+            { key: 'water', label: { en: 'Enough water', ru: 'Достаточно воды', kk: 'Жеткілікті су', fr: 'Assez d\' } },
         ],
         notFor: null,
         suitableFor: ['omega3_focus', 'fish_lovers', 'fun'],
@@ -1027,9 +1147,9 @@ const diets = [
     // 17) Steppe-Inspired (MONGOL_INSPIRED)
     {
         slug: 'steppe-inspired',
-        name: 'programs.diet.steppe-inspired.name',
-        description: 'programs.diet.steppe-inspired.description',
-        shortDescription: 'programs.diet.steppe-inspired.shortDescription',
+        name: { en: 'Steppe-Inspired', ru: 'Степная (монголы, вдохновл.)', kk: 'Дала (шабыт)', fr: 'Inspiré steppe' },
+        description: { en: 'Adapted from Mongolian steppe traditions. Focus on protein and fermented dairy.', ru: 'Адаптация традиций монгольской степи. Фокус на белке и ферментированных молочных.', kk: 'Моңғол даласы дәстүрлерінен бейімделген. Ақуыз және ашытылған сүт өнімдеріне назар аудару.', fr: 'Adaptation des traditions de la steppe. Focus protéines et laitages fermentés.' },
+        shortDescription: { en: 'Protein and fermented foods, steppe style', ru: 'Белок и ферментированное, степной стиль', kk: 'Ақуыз және ашытылған тағамдар, дала стилі', fr: 'Protéines et fermentés, style steppe' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -1061,9 +1181,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'protein_2_3', label: 'programs.diet.steppe-inspired.dailyTracker.protein_2_3.label' },
-            { key: 'fermented', label: 'programs.diet.steppe-inspired.dailyTracker.fermented.label' },
-            { key: 'veggies_2', label: 'programs.diet.steppe-inspired.dailyTracker.veggies_2.label' },
+            { key: 'protein_2_3', label: { en: 'Protein 2-3', ru: 'Белок 2–3', kk: 'Ақуыз 2-3', fr: 'Protéines 2–3' } },
+            { key: 'fermented', label: { en: 'Fermented dairy (if tolerated)', ru: 'Кисломолочные/ферментированные (если переносимость)', kk: 'Ашытылған сүт өнімдері (төзімді болса)', fr: 'Laitages fermentés (si tolérés)' } },
+            { key: 'veggies_2', label: { en: 'Vegetables/greens 2+ (adaptation)', ru: 'Овощи/зелень 2+ (адаптация)', kk: 'Көкөністер/жасылдар 2+', fr: 'Légumes/verts 2+ (adaptation)' } },
         ],
         notFor: null,
         suitableFor: ['protein_focus', 'fermented_food_lovers', 'fun'],
@@ -1087,9 +1207,9 @@ const diets = [
     // 18) Three Sisters (PUEBLO_THREE_SISTERS)
     {
         slug: 'three-sisters',
-        name: 'programs.diet.three-sisters.name',
-        description: 'programs.diet.three-sisters.description',
-        shortDescription: 'programs.diet.three-sisters.shortDescription',
+        name: { en: 'Three Sisters', ru: 'Три сестры (индейцы пуэбло)', kk: 'Үш әпке', fr: 'Trois sœurs' },
+        description: { en: 'Based on Native American "Three Sisters" agriculture. Corn, beans, and squash as dietary foundation.', ru: 'Основана на сельском хозяйстве "Трёх сестёр" коренных американцев. Кукуруза, фасоль и тыква как основа.', kk: 'Америкалық үндістердің "Үш әпке" ауыл шаруашылығына негізделген. Жүгері, бұршақ және асқабақ диета негізі ретінде.', fr: 'Inspiré des « Trois sœurs » amérindiennes. Maïs, haricots et courges comme fondation.' },
+        shortDescription: { en: 'Native American plant-based foundation', ru: 'Растительная основа коренных американцев', kk: 'Америкалық үндістердің өсімдік негізі', fr: 'Fondation végétale amérindienne' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -1121,9 +1241,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'legumes', label: 'programs.diet.three-sisters.dailyTracker.legumes.label' },
-            { key: 'veggies_3', label: 'programs.diet.three-sisters.dailyTracker.veggies_3.label' },
-            { key: 'whole_grains', label: 'programs.diet.three-sisters.dailyTracker.whole_grains.label' },
+            { key: 'legumes', label: { en: 'Legumes 1 time', ru: 'Бобовые 1 раз', kk: 'Бұршақ 1 рет', fr: 'Légumineuses 1×' } },
+            { key: 'veggies_3', label: { en: 'Vegetables 3+', ru: 'Овощи 3+', kk: 'Көкөністер 3+', fr: 'Légumes 3+' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәндер', fr: 'Céréales complètes' } },
         ],
         notFor: null,
         suitableFor: ['plant_based', 'cultural_interest', 'fun'],
@@ -1147,9 +1267,9 @@ const diets = [
     // 18.5) Okinawa Longevity (OKINAWA_LONGEVITY)
     {
         slug: 'okinawa_longevity',
-        name: 'programs.diet.okinawa_longevity.name',
-        description: 'programs.diet.okinawa_longevity.description',
-        shortDescription: 'programs.diet.okinawa_longevity.shortDescription',
+        name: { en: 'Okinawa Longevity', ru: 'Окинавская (долголетие)', kk: 'Окинава (ұзақ өмір)', fr: 'Longévité Okinawa' },
+        description: { en: 'Based on the traditional diet of Okinawa, Japan, known for the long lifespan of its inhabitants. Emphasizes plant-based foods, fish, sweet potatoes, and moderate calorie restriction.', ru: 'Основана на традиционной диете жителей Окинавы, Япония, известных своим долголетием. Акцент на растительных продуктах, рыбе, сладком картофеле и умеренном ограничении калорий.', kk: 'Жапонияның Окинава тұрғындарының ұзақ өмір сүруімен танымал дәстүрлі диетасына негізделген. Өсімдік тағамдары, балық, тәтті картоп және қалыпты калория шектеуіне баса назар аударылады.', fr: 'Régime traditionnel d\' },
+        shortDescription: { en: 'Japanese longevity diet from Okinawa', ru: 'Японская диета долголетия из Окинавы', kk: 'Окинавадан жапондық ұзақ өмір диетасы', fr: 'Régime longévité japonais (Okinawa)' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -1185,11 +1305,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'vegetables_5', label: 'programs.diet.okinawa_longevity.dailyTracker.vegetables_5.label' },
-            { key: 'sweet_potato', label: 'programs.diet.okinawa_longevity.dailyTracker.sweet_potato.label' },
-            { key: 'tofu_legumes', label: 'programs.diet.okinawa_longevity.dailyTracker.tofu_legumes.label' },
-            { key: 'hara_hachi_bu', label: 'programs.diet.okinawa_longevity.dailyTracker.hara_hachi_bu.label' },
-            { key: 'minimal_processed', label: 'programs.diet.okinawa_longevity.dailyTracker.minimal_processed.label' },
+            { key: 'vegetables_5', label: { en: 'Vegetables 5+ servings', ru: 'Овощи 5+ порций', kk: 'Көкөністер 5+ порция', fr: 'Légumes 5+ portions' } },
+            { key: 'sweet_potato', label: { en: 'Sweet potato or whole grains', ru: 'Сладкий картофель или цельные злаки', kk: 'Тәтті картоп немесе тұтас дәндер', fr: 'Patate douce ou céréales complètes' } },
+            { key: 'tofu_legumes', label: { en: 'Tofu/legumes for protein', ru: 'Тофу/бобовые для белка', kk: 'Ақуыз үшін тофу/бұршақ', fr: 'Tofu/légumineuses pour les protéines' } },
+            { key: 'hara_hachi_bu', label: { en: 'Stopped eating at 80% full', ru: 'Остановился на 80% насыщения', kk: '80% тойғанда тоқтадым', fr: 'S\' } },
+            { key: 'minimal_processed', label: { en: 'Avoided processed foods', ru: 'Избегал обработанных продуктов', kk: 'Өңделген тағамдардан аулақ болдым', fr: 'Éviter les produits transformés' } },
         ],
         notFor: null,
         suitableFor: ['longevity', 'heart_health', 'weight_management', 'plant_based'],
@@ -1215,9 +1335,9 @@ const diets = [
     // 19) Paleo (PALEO)
     {
         slug: 'paleo',
-        name: 'programs.diet.paleo.name',
-        description: 'programs.diet.paleo.description',
-        shortDescription: 'programs.diet.paleo.shortDescription',
+        name: { en: 'Paleo', ru: 'Палео', kk: 'Палео', fr: 'Paléo' },
+        description: { en: 'A whole-food approach with minimal processing. Emphasizes meat, fish, vegetables, fruits, nuts, and seeds.', ru: 'Стиль питания с упором на простые продукты и минимум переработки.', kk: 'Қарапайым өнімдерге негізделген, өңделген тағамды азайтады.', fr: 'Aliments bruts, peu transformés. Viande, poisson, légumes, fruits, noix, graines.' },
+        shortDescription: { en: 'Whole foods, no grains or dairy', ru: 'Цельные продукты, без злаков и молочного', kk: 'Тұтас өнімдер, дәнді және сүтсіз', fr: 'Aliments bruts, sans céréales ni laitages' },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'MODERATE',
@@ -1249,10 +1369,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'veggies_4', label: 'programs.diet.paleo.dailyTracker.veggies_4.label' },
-            { key: 'protein_3', label: 'programs.diet.paleo.dailyTracker.protein_3.label' },
-            { key: 'no_sugary', label: 'programs.diet.paleo.dailyTracker.no_sugary.label' },
-            { key: 'min_processed', label: 'programs.diet.paleo.dailyTracker.min_processed.label' },
+            { key: 'veggies_4', label: { en: 'Vegetables 4+ servings', ru: 'Овощи 4+ порции', kk: 'Көкөністер 4+ порция', fr: 'Légumes 4+ portions' } },
+            { key: 'protein_3', label: { en: 'Protein 2-3 times', ru: 'Белок 2–3 раза', kk: 'Ақуыз 2-3 рет', fr: 'Protéines 2–3×' } },
+            { key: 'no_sugary', label: { en: 'No sugary drinks', ru: 'Нет сладких напитков', kk: 'Тәтті сусындарсыз', fr: 'Pas de boissons sucrées' } },
+            { key: 'min_processed', label: { en: 'Minimal ultra-processing', ru: 'Минимум ультра-переработки', kk: 'Ультра-өңдеу минимумы', fr: 'Ultra-transformés minimaux' } },
         ],
         sampleDay: {
             en: 'Breakfast: eggs with veggies + fruit.\nLunch: salad with chicken/beef + nuts.\nDinner: baked fish/steak + grilled vegetables.\nSnacks: berries, nuts, raw veggies.',
@@ -1282,9 +1402,9 @@ const diets = [
     // 20) Whole30-style Clean Reset (WHOLE30_INSPIRED)
     {
         slug: 'whole30-inspired',
-        name: 'programs.diet.whole30-inspired.name',
-        description: 'programs.diet.whole30-inspired.description',
-        shortDescription: 'programs.diet.whole30-inspired.shortDescription',
+        name: { en: 'Whole30 (Inspired)', ru: 'Whole30 (вдохновл.)', kk: 'Whole30 (шабыт)', fr: 'Whole30 (inspiré)' },
+        description: { en: 'A short reset protocol with strict rules. Eliminates sugar, alcohol, and common triggers for 30 days.', ru: 'Короткий «reset» протокол. Требует аккуратности и понятных правил.', kk: 'Қысқа reset протоколы, қатаң ережелері бар.', fr: 'Protocole reset 30 jours. Supprime sucre, alcool et déclencheurs courants.' },
+        shortDescription: { en: '30-day elimination reset', ru: '30-дневный reset протокол', kk: '30 күндік reset протоколы', fr: 'Reset élimination 30 jours' },
         category: 'inspired',
         type: 'WEIGHT_LOSS',
         difficulty: 'HARD',
@@ -1316,10 +1436,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'no_sugar', label: 'programs.diet.whole30-inspired.dailyTracker.no_sugar.label' },
-            { key: 'veggies_4', label: 'programs.diet.whole30-inspired.dailyTracker.veggies_4.label' },
-            { key: 'protein_3', label: 'programs.diet.whole30-inspired.dailyTracker.protein_3.label' },
-            { key: 'home_cooked', label: 'programs.diet.whole30-inspired.dailyTracker.home_cooked.label' },
+            { key: 'no_sugar', label: { en: 'No added sugar', ru: 'Без добавленного сахара', kk: 'Қосылған қантсыз', fr: 'Sans sucre ajouté' } },
+            { key: 'veggies_4', label: { en: 'Vegetables 4+', ru: 'Овощи 4+', kk: 'Көкөністер 4+', fr: 'Légumes 4+' } },
+            { key: 'protein_3', label: { en: 'Protein 2-3', ru: 'Белок 2–3', kk: 'Ақуыз 2-3', fr: 'Protéines 2–3' } },
+            { key: 'home_cooked', label: { en: 'Home cooked/no fast food', ru: 'Домашняя еда/без фастфуда', kk: 'Үй тағамы/фастфудсыз', fr: 'Fait maison / pas de fast-food' } },
         ],
         sampleDay: {
             en: 'Breakfast: eggs + avocado + vegetables.\nLunch: chicken salad with olive oil.\nDinner: fish/steak + sweet potato + salad.\nSnacks: fruit, nuts, veggies.',
@@ -1354,9 +1474,9 @@ const diets = [
     // 21) Vegan Balanced (VEGAN_BALANCED)
     {
         slug: 'vegan-balanced',
-        name: 'programs.diet.vegan-balanced.name',
-        description: 'programs.diet.vegan-balanced.description',
-        shortDescription: 'programs.diet.vegan-balanced.shortDescription',
+        name: { en: 'Vegan (Balanced)', ru: 'Веганская (сбаланс.)', kk: 'Веган (теңгерімді)', fr: 'Végan (équilibré)' },
+        description: { en: 'Balanced plant-based eating with focus on adequate protein, B12, and other nutrients.', ru: 'Сбалансированное растительное питание с фокусом на достаточный белок, B12 и другие нутриенты.', kk: 'Жеткілікті ақуыз, B12 және басқа қоректік заттарға назар аудара отырып теңгерімді өсімдік тамақтану.', fr: 'Alimentation végétale équilibrée : protéines, B12 et autres nutriments.' },
+        shortDescription: { en: 'Balanced plant-based eating', ru: 'Сбалансированное растительное питание', kk: 'Теңгерімді өсімдік тамақтану', fr: 'Alimentation végétale équilibrée' },
         category: 'modern',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -1384,10 +1504,10 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'plant_protein', label: 'programs.diet.vegan-balanced.dailyTracker.plant_protein.label' },
-            { key: 'veggies_4', label: 'programs.diet.vegan-balanced.dailyTracker.veggies_4.label' },
-            { key: 'grains_legumes', label: 'programs.diet.vegan-balanced.dailyTracker.grains_legumes.label' },
-            { key: 'b12_check', label: 'programs.diet.vegan-balanced.dailyTracker.b12_check.label' },
+            { key: 'plant_protein', label: { en: 'Protein 2-3 times (plant)', ru: 'Белок 2–3 раза (растительный)', kk: 'Ақуыз 2-3 рет (өсімдік)', fr: 'Protéines 2–3× (végétal)' } },
+            { key: 'veggies_4', label: { en: 'Vegetables 4+', ru: 'Овощи 4+', kk: 'Көкөністер 4+', fr: 'Légumes 4+' } },
+            { key: 'grains_legumes', label: { en: 'Whole grains/legumes', ru: 'Цельные злаки/бобовые', kk: 'Тұтас дәндер/бұршақ', fr: 'Céréales complètes/légumineuses' } },
+            { key: 'b12_check', label: { en: 'B12 (reminder check)', ru: 'B12 (чек-напоминание)', kk: 'B12 (еске салу)', fr: 'B12 (rappel)' } },
         ],
         sampleDay: {
             en: 'Breakfast: tofu scramble + toast + fruit.\nLunch: bean/chickpea salad + baked sweet potato.\nDinner: quinoa + veggies + tahini sauce.\nSnacks: soy yogurt, nuts, berries.',
@@ -1417,9 +1537,9 @@ const diets = [
     // 22) Clean Eating (CLEAN_EATING)
     {
         slug: 'clean-eating',
-        name: 'programs.diet.clean-eating.name',
-        description: 'programs.diet.clean-eating.description',
-        shortDescription: 'programs.diet.clean-eating.shortDescription',
+        name: { en: 'Clean Eating (Simple)', ru: 'Clean Eating (простое)', kk: 'Clean Eating (қарапайым)', fr: 'Clean Eating (simple)' },
+        description: { en: 'Simple approach: focus on whole foods and home cooking, minimize processed foods.', ru: 'Простой подход: фокус на простых продуктах и готовке дома, минимум переработки.', kk: 'Қарапайым тәсіл: қарапайым өнімдерге және үйде дайындауға назар аудару, өңдеуді азайту.', fr: 'Approche simple : aliments bruts, cuisine maison, limiter le transformé.' },
+        shortDescription: { en: 'Whole foods, home cooking', ru: 'Простые продукты, домашняя кухня', kk: 'Қарапайым өнімдер, үй асханасы', fr: 'Aliments bruts, cuisine maison' },
         category: 'inspired',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -1447,9 +1567,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'home_cooked_2', label: 'programs.diet.clean-eating.dailyTracker.home_cooked_2.label' },
-            { key: 'veggies_4', label: 'programs.diet.clean-eating.dailyTracker.veggies_4.label' },
-            { key: 'no_sugary', label: 'programs.diet.clean-eating.dailyTracker.no_sugary.label' },
+            { key: 'home_cooked_2', label: { en: 'Home cooked 2+ meals', ru: 'Домашняя еда 2+ раза', kk: 'Үй тағамы 2+ рет', fr: 'Fait maison 2+ repas' } },
+            { key: 'veggies_4', label: { en: 'Vegetables 4+', ru: 'Овощи 4+', kk: 'Көкөністер 4+', fr: 'Légumes 4+' } },
+            { key: 'no_sugary', label: { en: 'No sugary drinks', ru: 'Без сладких напитков', kk: 'Тәтті сусындарсыз', fr: 'Pas de boissons sucrées' } },
         ],
         sampleDay: {
             en: 'Breakfast: oatmeal + fruit + nuts.\nLunch: soup + salad + whole-grain bread.\nDinner: chicken/fish + grains + salad.\nSnacks: fruit, yogurt, nuts.',
@@ -1479,9 +1599,9 @@ const diets = [
     // 23) IIFYM / Flexible Macros (IIFYM)
     {
         slug: 'iifym',
-        name: 'programs.diet.iifym.name',
-        description: 'programs.diet.iifym.description',
-        shortDescription: 'programs.diet.iifym.shortDescription',
+        name: { en: 'Flexible Dieting (IIFYM)', ru: 'Гибкая диета (IIFYM)', kk: 'Икемді диета (IIFYM)', fr: 'Diète flexible (IIFYM)' },
+        description: { en: 'If It Fits Your Macros — flexible approach focusing on hitting daily calorie and macro targets.', ru: 'Гибкий подход с фокусом на достижение дневных целей по калориям и БЖУ.', kk: 'Күнделікті калория мен БЖУ мақсаттарына жетуге бағытталған икемді тәсіл.', fr: 'Si ça rentre dans tes macros — objectifs calories et macros, choix flexibles.' },
+        shortDescription: { en: 'Hit your macros, flexible food choices', ru: 'Достигайте БЖУ, гибкий выбор еды', kk: 'БЖУ-ға жетіңіз, икемді тағам таңдауы', fr: 'Atteindre ses macros, choix alimentaires flexibles' },
         category: 'inspired',
         type: 'SPORTS',
         difficulty: 'MODERATE',
@@ -1509,9 +1629,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'calories_check', label: 'programs.diet.iifym.dailyTracker.calories_check.label' },
-            { key: 'protein_check', label: 'programs.diet.iifym.dailyTracker.protein_check.label' },
-            { key: 'veggies_2', label: 'programs.diet.iifym.dailyTracker.veggies_2.label' },
+            { key: 'calories_check', label: { en: 'Calories within goal (check)', ru: 'Калории в пределах цели (чек)', kk: 'Калориялар мақсат шегінде', fr: 'Calories dans l\' } },
+            { key: 'protein_check', label: { en: 'Protein achieved (check)', ru: 'Белок достигнут (чек)', kk: 'Ақуызға қол жеткізілді', fr: 'Protéines atteintes' } },
+            { key: 'veggies_2', label: { en: 'Vegetables 2+', ru: 'Овощи 2+', kk: 'Көкөністер 2+', fr: 'Légumes 2+' } },
         ],
         sampleDay: {
             en: 'Breakfast: oats + berries + protein.\nLunch: rice + chicken + vegetables.\nDinner: whole-wheat pasta + tomato sauce + salad.\nSnacks: cottage cheese/yogurt, fruit, small chocolate.',
@@ -1541,9 +1661,9 @@ const diets = [
     // 24) Roman Commoner (ROMAN_COMMONER_INSPIRED)
     {
         slug: 'roman-commoner',
-        name: 'programs.diet.roman-commoner.name',
-        description: 'programs.diet.roman-commoner.description',
-        shortDescription: 'programs.diet.roman-commoner.shortDescription',
+        name: { en: 'Roman Commoner (Inspired)', ru: 'Римлянин (простой, вдохновл.)', kk: 'Римдік (қарапайым, шабыт)', fr: 'Romain modeste (inspiré)' },
+        description: { en: 'Inspired by the diet of common Roman citizens. Simple grains, legumes, vegetables with occasional fish or cheese.', ru: 'Вдохновлено питанием обычных римских граждан. Простые злаки, бобовые, овощи с редкой рыбой или сыром.', kk: 'Қарапайым римдік азаматтардың тамақтануынан шабыттанған. Қарапайым дәндер, бұршақ, көкөністер, сирек балық немесе ірімшік.', fr: 'Inspiré du régime des citoyens romains. Céréales, légumineuses, légumes, un peu poisson ou fromage.' },
+        shortDescription: { en: 'Simple Roman-inspired eating', ru: 'Простое питание в стиле Рима', kk: 'Римдік стильдегі қарапайым тамақтану', fr: 'Alimentation simple style romain' },
         category: 'historical',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -1575,9 +1695,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'legumes_1', label: 'programs.diet.roman-commoner.dailyTracker.legumes_1.label' },
-            { key: 'veggies_3', label: 'programs.diet.roman-commoner.dailyTracker.veggies_3.label' },
-            { key: 'whole_grains', label: 'programs.diet.roman-commoner.dailyTracker.whole_grains.label' },
+            { key: 'legumes_1', label: { en: 'Legumes 1 time', ru: 'Бобовые 1 раз', kk: 'Бұршақ 1 рет', fr: 'Légumineuses 1×' } },
+            { key: 'veggies_3', label: { en: 'Vegetables 3+', ru: 'Овощи 3+', kk: 'Көкөністер 3+', fr: 'Légumes 3+' } },
+            { key: 'whole_grains', label: { en: 'Whole grains', ru: 'Цельные злаки', kk: 'Тұтас дәндер', fr: 'Céréales complètes' } },
         ],
         sampleDay: {
             en: 'Breakfast: bread/porridge + fruit.\nLunch: bread + legumes/fish leftovers + vegetables.\nDinner: porridge/bread + vegetables + some cheese.',
@@ -1607,9 +1727,9 @@ const diets = [
     // 25) Roman Elite (ROMAN_ELITE_INSPIRED)
     {
         slug: 'roman-elite',
-        name: 'programs.diet.roman-elite.name',
-        description: 'programs.diet.roman-elite.description',
-        shortDescription: 'programs.diet.roman-elite.shortDescription',
+        name: { en: 'Roman Elite (Inspired)', ru: 'Римлянин (богатый, вдохновл.)', kk: 'Римдік (бай, шабыт)', fr: 'Romain elite (inspiré)' },
+        description: { en: 'Inspired by wealthier Roman diets. More variety with fish, meat, various appetizers, and fruits.', ru: 'Вдохновлено питанием богатых римлян. Больше разнообразия: рыба, мясо, закуски, фрукты.', kk: 'Бай римдіктердің тамақтануынан шабыттанған. Балық, ет, тәбет ашары және жемістермен көп түрлілік.', fr: 'Inspiré des régimes romains aisés. Poisson, viande, entrées, fruits.' },
+        shortDescription: { en: 'Wealthy Roman-inspired variety', ru: 'Разнообразие в стиле богатых римлян', kk: 'Бай римдіктер стиліндегі түрлілік', fr: 'Variété style romain aisé' },
         category: 'historical',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -1641,9 +1761,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'veggies_3', label: 'programs.diet.roman-elite.dailyTracker.veggies_3.label' },
-            { key: 'protein_3', label: 'programs.diet.roman-elite.dailyTracker.protein_3.label' },
-            { key: 'sweets_limited', label: 'programs.diet.roman-elite.dailyTracker.sweets_limited.label' },
+            { key: 'veggies_3', label: { en: 'Vegetables 3+', ru: 'Овощи 3+', kk: 'Көкөністер 3+', fr: 'Légumes 3+' } },
+            { key: 'protein_3', label: { en: 'Protein 2-3', ru: 'Белок 2–3', kk: 'Ақуыз 2-3', fr: 'Protéines 2–3' } },
+            { key: 'sweets_limited', label: { en: 'Sweets limited', ru: 'Сладкое ограничено', kk: 'Тәтті шектелген', fr: 'Sucreries limitées' } },
         ],
         sampleDay: {
             en: 'Breakfast: eggs/cheese + fruit.\nLunch: fish/poultry + vegetables + bread.\nDinner: several small dishes + fruit/nuts.',
@@ -1673,9 +1793,9 @@ const diets = [
     // 26) Napoleon — Soldier Style (NAPOLEON_INSPIRED)
     {
         slug: 'napoleon-soldier',
-        name: 'programs.diet.napoleon-soldier.name',
-        description: 'programs.diet.napoleon-soldier.description',
-        shortDescription: 'programs.diet.napoleon-soldier.shortDescription',
+        name: { en: 'Napoleon (Soldier-Style, Inspired)', ru: 'Наполеон (солдатская, вдохновл.)', kk: 'Наполеон (сарбазша, шабыт)', fr: 'Napoléon (style soldat, inspiré)' },
+        description: { en: 'Inspired by Napoleonic era soldier rations. Hearty soups, bread, and simple protein.', ru: 'Вдохновлено рационом солдат эпохи Наполеона. Сытные супы, хлеб и простой белок.', kk: 'Наполеон дәуіріндегі сарбаз рационынан шабыттанған. Тоймалы сорпалар, нан және қарапайым ақуыз.', fr: 'Inspiré des rations soldats napoléoniens. Soupes, pain, protéines simples.' },
+        shortDescription: { en: 'Simple soldier-style eating', ru: 'Простое солдатское питание', kk: 'Қарапайым сарбаздық тамақтану', fr: 'Alimentation simple style soldat' },
         category: 'historical',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -1707,9 +1827,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'soup_warm', label: 'programs.diet.napoleon-soldier.dailyTracker.soup_warm.label' },
-            { key: 'veggies_2', label: 'programs.diet.napoleon-soldier.dailyTracker.veggies_2.label' },
-            { key: 'water', label: 'programs.diet.napoleon-soldier.dailyTracker.water.label' },
+            { key: 'soup_warm', label: { en: 'Soup/warm food 1 time', ru: 'Суп/тёплая еда 1 раз', kk: 'Сорпа/жылы тағам 1 рет', fr: 'Soupe/plat chaud 1×' } },
+            { key: 'veggies_2', label: { en: 'Vegetables 2+', ru: 'Овощи 2+', kk: 'Көкөністер 2+', fr: 'Légumes 2+' } },
+            { key: 'water', label: { en: 'Water', ru: 'Вода', kk: 'Су', fr: 'Eau' } },
         ],
         sampleDay: {
             en: 'Breakfast: hot soup + bread.\nLunch: eggs/omelet + meat + vegetables.\nDinner: soup + small protein + bread.',
@@ -1739,9 +1859,9 @@ const diets = [
     // 27) On-Set Day (PUBLIC_FIGURE_ONSET_INSPIRED)
     {
         slug: 'on-set-day',
-        name: 'programs.diet.on-set-day.name',
-        description: 'programs.diet.on-set-day.description',
-        shortDescription: 'programs.diet.on-set-day.shortDescription',
+        name: { en: 'On-Set Day (Inspired)', ru: 'Съёмочный день (вдохновл.)', kk: 'Түсірілім күні (шабыт)', fr: 'Journée plateau (inspiré)' },
+        description: { en: 'A public-figure-inspired template without naming individuals. Structured eating focused on protein and vegetables.', ru: 'Шаблон «в стиле публичных людей» без привязки к конкретным именам. Структурированное питание с фокусом на белок и овощи.', kk: 'Белгілі адамдар стиліндегі үлгі, нақты есімдерсіз. Ақуыз бен көкөністерге бағытталған құрылымды тамақтану.', fr: 'Modèle inspiré des personnalités publiques. Alimentation structurée : protéines et légumes.' },
+        shortDescription: { en: 'Structured day with protein focus', ru: 'Структурированный день с фокусом на белок', kk: 'Ақуызға бағытталған құрылымды күн', fr: 'Journée structurée, focus protéines' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -1773,9 +1893,9 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'protein_3', label: 'programs.diet.on-set-day.dailyTracker.protein_3.label' },
-            { key: 'veggies_4', label: 'programs.diet.on-set-day.dailyTracker.veggies_4.label' },
-            { key: 'snacks_no_sugar', label: 'programs.diet.on-set-day.dailyTracker.snacks_no_sugar.label' },
+            { key: 'protein_3', label: { en: 'Protein 3 times', ru: 'Белок 3 раза', kk: 'Ақуыз 3 рет', fr: 'Protéines 3×' } },
+            { key: 'veggies_4', label: { en: 'Vegetables 4+', ru: 'Овощи 4+', kk: 'Көкөністер 4+', fr: 'Légumes 4+' } },
+            { key: 'snacks_no_sugar', label: { en: 'Snacks without sugar', ru: 'Перекусы без сахара', kk: 'Қантсыз тіскебасар', fr: 'Collations sans sucre' } },
         ],
         sampleDay: {
             en: 'Breakfast: eggs + veggies, sometimes oats.\nLunch: chicken/fish + quinoa/rice + lots of vegetables.\nDinner: fish/turkey + salad.\nSnacks: yogurt/protein, nuts, fruit.',
@@ -1807,9 +1927,9 @@ const diets = [
     // 28) Ramadan (RAMADAN)
     {
         slug: 'ramadan',
-        name: 'programs.diet.ramadan.name',
-        description: 'programs.diet.ramadan.description',
-        shortDescription: 'programs.diet.ramadan.shortDescription',
+        name: { en: 'Ramadan Fasting', ru: 'Рамадан', kk: 'Рамазан', fr: 'Jeûne du Ramadan' },
+        description: { en: 'Guidance for healthy eating during Ramadan fasting period. Focus on balanced suhoor and iftar meals with proper hydration.', ru: 'Рекомендации по здоровому питанию в период поста Рамадан. Сбалансированный сухур и ифтар с правильным питьевым режимом.', kk: 'Рамазан оразасы кезеңінде дұрыс тамақтану бойынша нұсқаулар. Теңгерімді сәресі мен ауызашар, дұрыс сусын режимі.', fr: 'Conseils pour une alimentation saine pendant le Ramadan. Suhoor et iftar équilibrés, bonne hydratation.' },
+        shortDescription: { en: 'Healthy eating during Ramadan', ru: 'Здоровое питание в Рамадан', kk: 'Рамазанда дұрыс тамақтану', fr: 'Alimentation saine pendant le Ramadan' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -1849,11 +1969,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'iftar_balanced', label: 'programs.diet.ramadan.dailyTracker.iftar_balanced.label' },
-            { key: 'suhoor_eaten', label: 'programs.diet.ramadan.dailyTracker.suhoor_eaten.label' },
-            { key: 'hydration', label: 'programs.diet.ramadan.dailyTracker.hydration.label' },
-            { key: 'no_overeating', label: 'programs.diet.ramadan.dailyTracker.no_overeating.label' },
-            { key: 'dates_start', label: 'programs.diet.ramadan.dailyTracker.dates_start.label' },
+            { key: 'iftar_balanced', label: { en: 'Balanced iftar meal', ru: 'Сбалансированный ифтар', kk: 'Теңгерімді ауызашар', fr: 'Iftar équilibré' } },
+            { key: 'suhoor_eaten', label: { en: 'Had suhoor', ru: 'Поел сухур', kk: 'Сәресі ішілді', fr: 'Suhoor pris' } },
+            { key: 'hydration', label: { en: 'Drank 8+ glasses of water', ru: 'Выпил 8+ стаканов воды', kk: '8+ стақан су ішілді', fr: '8+ verres d\' } },
+            { key: 'no_overeating', label: { en: 'Ate mindfully, no overeating', ru: 'Ел осознанно, без переедания', kk: 'Саналы тамақтандым, артық жемедім', fr: 'Mangé en conscience, sans excès' } },
+            { key: 'dates_start', label: { en: 'Started iftar with dates', ru: 'Начал ифтар с фиников', kk: 'Ауызашарды құрмамен бастадым', fr: 'Iftar commencé avec dattes' } },
         ],
         sampleDay: {
             en: 'Suhoor: Oatmeal with banana, eggs, whole grain bread, water. Iftar: Dates + water, lentil soup, grilled chicken with rice and salad, fruit.',
@@ -1888,9 +2008,9 @@ const diets = [
     // 29) Great Lent (LENT)
     {
         slug: 'great-lent',
-        name: 'programs.diet.great-lent.name',
-        description: 'programs.diet.great-lent.description',
-        shortDescription: 'programs.diet.great-lent.shortDescription',
+        name: { en: 'Great Lent (Orthodox)', ru: 'Великий пост', kk: 'Ұлы ораза', fr: 'Grand Carême (orthodoxe)' },
+        description: { en: 'Guidance for the Orthodox Great Lent fasting period with plant-based meals. A spiritual journey through mindful eating.', ru: 'Рекомендации по питанию в Великий пост с растительными блюдами. Духовный путь через осознанное питание.', kk: 'Ұлы ораза кезеңінде өсімдік тағамдарымен тамақтану бойынша нұсқаулар. Саналы тамақтану арқылы рухани жол.', fr: 'Conseils pour le Grand Carême orthodoxe, repas végétaux. Parcours spirituel par une alimentation consciente.' },
+        shortDescription: { en: 'Orthodox fasting traditions', ru: 'Традиции православного поста', kk: 'Православиелік ораза дәстүрлері', fr: 'Traditions du jeûne orthodoxe' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -1930,11 +2050,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'plant_based', label: 'programs.diet.great-lent.dailyTracker.plant_based.label' },
-            { key: 'no_meat', label: 'programs.diet.great-lent.dailyTracker.no_meat.label' },
-            { key: 'vegetables_4', label: 'programs.diet.great-lent.dailyTracker.vegetables_4.label' },
-            { key: 'legumes', label: 'programs.diet.great-lent.dailyTracker.legumes.label' },
-            { key: 'mindful', label: 'programs.diet.great-lent.dailyTracker.mindful.label' },
+            { key: 'plant_based', label: { en: 'Ate plant-based today', ru: 'Ел растительное сегодня', kk: 'Бүгін өсімдік тағамын жедім', fr: 'Végétal aujourd\' } },
+            { key: 'no_meat', label: { en: 'No meat/dairy/eggs', ru: 'Без мяса/молочного/яиц', kk: 'Етсіз/сүтсіз/жұмыртқасыз', fr: 'Sans viande/lait/œufs' } },
+            { key: 'vegetables_4', label: { en: 'Vegetables 4+ servings', ru: 'Овощи 4+ порции', kk: 'Көкөніс 4+ порция', fr: 'Légumes 4+ portions' } },
+            { key: 'legumes', label: { en: 'Legumes or grains', ru: 'Бобовые или крупы', kk: 'Бұршақ немесе жарма', fr: 'Légumineuses ou céréales' } },
+            { key: 'mindful', label: { en: 'Ate mindfully', ru: 'Ел осознанно', kk: 'Саналы тамақтандым', fr: 'Mangé en conscience' } },
         ],
         sampleDay: {
             en: 'Breakfast: Oatmeal with dried fruits and nuts. Lunch: Lentil soup, bread, vegetable salad. Dinner: Buckwheat with mushrooms, pickled vegetables.',
@@ -1964,9 +2084,9 @@ const diets = [
     // 30) Summer Detox (SUMMER_DETOX)
     {
         slug: 'summer-detox',
-        name: 'programs.diet.summer-detox.name',
-        description: 'programs.diet.summer-detox.description',
-        shortDescription: 'programs.diet.summer-detox.shortDescription',
+        name: { en: 'Summer Fresh', ru: 'Летняя свежесть', kk: 'Жазғы сергектік', fr: 'Été fraîcheur' },
+        description: { en: 'Seasonal eating focused on fresh fruits, vegetables, and light meals perfect for hot summer days.', ru: 'Сезонное питание с акцентом на свежие фрукты, овощи и лёгкие блюда для жарких летних дней.', kk: 'Ыстық жаз күндеріне арналған таза жемістер, көкөністер және жеңіл тағамдарға бағытталған маусымдық тамақтану.', fr: 'Fruits et légumes frais, repas légers pour les jours chauds.' },
+        shortDescription: { en: 'Fresh summer eating plan', ru: 'Свежий летний план питания', kk: 'Таза жазғы тамақтану жоспары', fr: 'Plan alimentaire estival frais' },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -2006,11 +2126,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fruits_3', label: 'programs.diet.summer-detox.dailyTracker.fruits_3.label' },
-            { key: 'vegetables_4', label: 'programs.diet.summer-detox.dailyTracker.vegetables_4.label' },
-            { key: 'water_8', label: 'programs.diet.summer-detox.dailyTracker.water_8.label' },
-            { key: 'light_protein', label: 'programs.diet.summer-detox.dailyTracker.light_protein.label' },
-            { key: 'no_heavy_food', label: 'programs.diet.summer-detox.dailyTracker.no_heavy_food.label' },
+            { key: 'fruits_3', label: { en: 'Fresh fruits 3+ servings', ru: 'Свежие фрукты 3+ порции', kk: 'Таза жемістер 3+ порция', fr: 'Fruits frais 3+ portions' } },
+            { key: 'vegetables_4', label: { en: 'Vegetables 4+ servings', ru: 'Овощи 4+ порции', kk: 'Көкөністер 4+ порция', fr: 'Légumes 4+ portions' } },
+            { key: 'water_8', label: { en: 'Water 8+ glasses', ru: 'Вода 8+ стаканов', kk: 'Су 8+ стақан', fr: 'Eau 8+ verres' } },
+            { key: 'light_protein', label: { en: 'Light protein (fish/chicken/legumes)', ru: 'Лёгкий белок (рыба/курица/бобовые)', kk: 'Жеңіл ақуыз (балық/тауық/бұршақ)', fr: 'Protéines légères (poisson/poulet/légumineuses)' } },
+            { key: 'no_heavy_food', label: { en: 'No heavy/fried food', ru: 'Без тяжёлой/жареной еды', kk: 'Ауыр/қуырылған тағамсыз', fr: 'Pas lourd/frit' } },
         ],
         sampleDay: {
             en: 'Breakfast: Greek yogurt with berries and granola. Lunch: Grilled chicken salad with seasonal vegetables. Dinner: Grilled fish with quinoa and cucumber salad. Snacks: Watermelon, cold gazpacho.',
@@ -2040,9 +2160,9 @@ const diets = [
     // 31) Navruz (NAVRUZ)
     {
         slug: 'navruz',
-        name: 'programs.diet.navruz.name',
-        description: 'programs.diet.navruz.description',
-        shortDescription: 'programs.diet.navruz.shortDescription',
+        name: { en: 'Navruz Spring', ru: 'Навруз', kk: 'Наурыз', fr: 'Navrouz printanier' },
+        description: { en: 'A celebration of spring equinox with traditional Central Asian foods. Fresh greens, dairy, and symbolic dishes for renewal.', ru: 'Празднование весеннего равноденствия с традиционными блюдами Центральной Азии. Свежая зелень, молочные продукты и символичные блюда обновления.', kk: 'Орталық Азияның дәстүрлі тағамдарымен көктемгі теңелу мерекесі. Таза жасылдар, сүт өнімдері және жаңару символикалық тағамдары.', fr: 'Célébration de l\' },
+        shortDescription: { en: 'Spring celebration eating', ru: 'Весеннее праздничное питание', kk: 'Көктемгі мерекелік тамақтану', fr: 'Alimentation fête du printemps' },
         category: 'cultural',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2082,11 +2202,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fresh_greens', label: 'programs.diet.navruz.dailyTracker.fresh_greens.label' },
-            { key: 'dairy', label: 'programs.diet.navruz.dailyTracker.dairy.label' },
-            { key: 'traditional_dish', label: 'programs.diet.navruz.dailyTracker.traditional_dish.label' },
-            { key: 'vegetables_3', label: 'programs.diet.navruz.dailyTracker.vegetables_3.label' },
-            { key: 'shared_meal', label: 'programs.diet.navruz.dailyTracker.shared_meal.label' },
+            { key: 'fresh_greens', label: { en: 'Fresh greens/herbs', ru: 'Свежая зелень', kk: 'Таза жасылдар', fr: 'Verts/herbes frais' } },
+            { key: 'dairy', label: { en: 'Dairy products', ru: 'Молочные продукты', kk: 'Сүт өнімдері', fr: 'Laitages' } },
+            { key: 'traditional_dish', label: { en: 'Traditional dish', ru: 'Традиционное блюдо', kk: 'Дәстүрлі тағам', fr: 'Plat traditionnel' } },
+            { key: 'vegetables_3', label: { en: 'Vegetables 3+ servings', ru: 'Овощи 3+ порции', kk: 'Көкөністер 3+ порция', fr: 'Légumes 3+ portions' } },
+            { key: 'shared_meal', label: { en: 'Shared meal with others', ru: 'Совместная трапеза', kk: 'Бірге тамақтану', fr: 'Repas partagé' } },
         ],
         sampleDay: {
             en: 'Breakfast: Baursak with honey, kurt, tea. Lunch: Navruz-kozhe (traditional seven-ingredient soup), fresh salad. Dinner: Beshbarmak or plov with meat and vegetables. Snacks: Dried fruits, nuts, suzma.',
@@ -2116,9 +2236,9 @@ const diets = [
     // 32) Winter Warmth (WINTER_WARMTH)
     {
         slug: 'winter-warmth',
-        name: 'programs.diet.winter-warmth.name',
-        description: 'programs.diet.winter-warmth.description',
-        shortDescription: 'programs.diet.winter-warmth.shortDescription',
+        name: { en: 'Winter Warmth', ru: 'Зимнее тепло', kk: 'Қысқы жылу', fr: 'Chaleur hivernale' },
+        description: { en: 'Hearty, warming meals to keep you energized through winter. Focus on soups, stews, root vegetables, and immune-supporting foods.', ru: 'Сытные, согревающие блюда для энергии всю зиму. Фокус на супах, рагу, корнеплодах и продуктах для иммунитета.', kk: 'Қысты энергиямен өткізуге арналған тамаша, жылытатын тағамдар. Сорпалар, рагу, тамыржемістер және иммунитетті қолдайтын тағамдарға назар.', fr: 'Plats réconfortants pour l\' },
+        shortDescription: { en: 'Warming winter eating plan', ru: 'Согревающий зимний план питания', kk: 'Жылытатын қысқы тамақтану жоспары', fr: 'Plan alimentaire réconfortant hiver' },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -2158,11 +2278,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'warm_breakfast', label: 'programs.diet.winter-warmth.dailyTracker.warm_breakfast.label' },
-            { key: 'soup_stew', label: 'programs.diet.winter-warmth.dailyTracker.soup_stew.label' },
-            { key: 'root_vegetables', label: 'programs.diet.winter-warmth.dailyTracker.root_vegetables.label' },
-            { key: 'immune_foods', label: 'programs.diet.winter-warmth.dailyTracker.immune_foods.label' },
-            { key: 'warm_drinks', label: 'programs.diet.winter-warmth.dailyTracker.warm_drinks.label' },
+            { key: 'warm_breakfast', label: { en: 'Warm breakfast', ru: 'Тёплый завтрак', kk: 'Жылы таңғы ас', fr: 'Petit-déj chaud' } },
+            { key: 'soup_stew', label: { en: 'Soup or stew', ru: 'Суп или рагу', kk: 'Сорпа немесе рагу', fr: 'Soupe ou ragoût' } },
+            { key: 'root_vegetables', label: { en: 'Root vegetables', ru: 'Корнеплоды', kk: 'Тамыржемістер', fr: 'Légumes-racines' } },
+            { key: 'immune_foods', label: { en: 'Immune-supporting foods', ru: 'Продукты для иммунитета', kk: 'Иммунитет тағамдары', fr: 'Aliments immunitaires' } },
+            { key: 'warm_drinks', label: { en: 'Warm beverages', ru: 'Тёплые напитки', kk: 'Жылы сусындар', fr: 'Boissons chaudes' } },
         ],
         sampleDay: {
             en: 'Breakfast: Oatmeal with cinnamon, honey, and walnuts. Lunch: Beef and vegetable stew with crusty bread. Dinner: Baked salmon with roasted root vegetables. Snacks: Hot tea with ginger, baked apple.',
@@ -2192,9 +2312,9 @@ const diets = [
     // 33) Autumn Harvest (AUTUMN_HARVEST)
     {
         slug: 'autumn-harvest',
-        name: 'programs.diet.autumn-harvest.name',
-        description: 'programs.diet.autumn-harvest.description',
-        shortDescription: 'programs.diet.autumn-harvest.shortDescription',
+        name: { en: 'Autumn Harvest', ru: 'Осенний урожай', kk: 'Күзгі егін', fr: 'Récolte d\' },
+        description: { en: 'Embrace autumn with pumpkins, apples, squash, and other fall favorites. Transition from summer lightness to winter warmth.', ru: 'Встречаем осень с тыквой, яблоками, кабачками и другими осенними любимцами. Переход от летней лёгкости к зимнему теплу.', kk: 'Асқабақ, алма, кабачок және басқа күзгі сүйіктілермен күзді қарсы алыңыз. Жазғы жеңілдіктен қысқы жылуға көшу.', fr: 'Citrouille, pommes, courges et autres classiques d\' },
+        shortDescription: { en: 'Seasonal autumn eating', ru: 'Сезонное осеннее питание', kk: 'Маусымдық күзгі тамақтану', fr: 'Alimentation automnale de saison' },
         category: 'modern',
         type: 'HEALTH',
         difficulty: 'EASY',
@@ -2234,11 +2354,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'autumn_vegetable', label: 'programs.diet.autumn-harvest.dailyTracker.autumn_vegetable.label' },
-            { key: 'fall_fruit', label: 'programs.diet.autumn-harvest.dailyTracker.fall_fruit.label' },
-            { key: 'warming_spices', label: 'programs.diet.autumn-harvest.dailyTracker.warming_spices.label' },
-            { key: 'vegetables_4', label: 'programs.diet.autumn-harvest.dailyTracker.vegetables_4.label' },
-            { key: 'cooked_meal', label: 'programs.diet.autumn-harvest.dailyTracker.cooked_meal.label' },
+            { key: 'autumn_vegetable', label: { en: 'Autumn vegetable (pumpkin/squash)', ru: 'Осенний овощ (тыква/кабачок)', kk: 'Күзгі көкөніс (асқабақ/кабачок)', fr: 'Légume d\' } },
+            { key: 'fall_fruit', label: { en: 'Fall fruit (apple/pear)', ru: 'Осенний фрукт (яблоко/груша)', kk: 'Күзгі жеміс (алма/алмұрт)', fr: 'Fruit (pomme/poire)' } },
+            { key: 'warming_spices', label: { en: 'Used warming spices', ru: 'Использовал согревающие специи', kk: 'Жылытатын дәмдеуіштер қолдандым', fr: 'Épices réconfortantes' } },
+            { key: 'vegetables_4', label: { en: 'Vegetables 4+ servings', ru: 'Овощи 4+ порции', kk: 'Көкөністер 4+ порция', fr: 'Légumes 4+ portions' } },
+            { key: 'cooked_meal', label: { en: 'Warm cooked meal', ru: 'Тёплое приготовленное блюдо', kk: 'Жылы пісірілген тағам', fr: 'Repas chaud cuisiné' } },
         ],
         sampleDay: {
             en: 'Breakfast: Pumpkin oatmeal with cinnamon and pecans. Lunch: Butternut squash soup with whole grain bread. Dinner: Roasted chicken with sweet potato and Brussels sprouts. Snacks: Apple slices with almond butter, pear.',
@@ -2270,9 +2390,9 @@ const diets = [
     // 34) Clean Girl Aesthetic
     {
         slug: 'clean-girl',
-        name: 'programs.diet.clean-girl.name',
-        description: 'programs.diet.clean-girl.description',
-        shortDescription: 'programs.diet.clean-girl.shortDescription',
+        name: { en: 'Clean Girl Aesthetic', ru: 'Clean Girl', kk: 'Clean Girl', fr: 'Clean Girl' },
+        description: { en: 'A clean eating approach inspired by the clean girl aesthetic trend. Focus on simple, whole foods for glowing skin and natural energy.', ru: 'Чистое питание в стиле Clean Girl. Фокус на простых, цельных продуктах для сияющей кожи и естественной энергии.', kk: 'Clean Girl эстетикасынан шабыт алған таза тамақтану. Жарқыраған тері мен табиғи энергия үшін қарапайым, тұтас тағамдарға назар.', fr: 'Alimentation clean, style clean girl. Aliments simples et bruts pour teint lumineux et énergie.' },
+        shortDescription: { en: 'Simple, clean eating for natural glow', ru: 'Простое питание для естественного сияния', kk: 'Табиғи жарқырау үшін қарапайым тамақтану', fr: 'Alimentation simple et saine pour glow naturel' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2312,11 +2432,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'whole_foods', label: 'programs.diet.clean-girl.dailyTracker.whole_foods.label' },
-            { key: 'water_8', label: 'programs.diet.clean-girl.dailyTracker.water_8.label' },
-            { key: 'skin_foods', label: 'programs.diet.clean-girl.dailyTracker.skin_foods.label' },
-            { key: 'no_processed', label: 'programs.diet.clean-girl.dailyTracker.no_processed.label' },
-            { key: 'mindful_meal', label: 'programs.diet.clean-girl.dailyTracker.mindful_meal.label' },
+            { key: 'whole_foods', label: { en: 'Ate whole, unprocessed foods', ru: 'Ел цельные продукты', kk: 'Тұтас тағамдар жедім', fr: 'Aliments bruts, non transformés' } },
+            { key: 'water_8', label: { en: 'Water 8+ glasses', ru: 'Вода 8+ стаканов', kk: 'Су 8+ стақан', fr: 'Eau 8+ verres' } },
+            { key: 'skin_foods', label: { en: 'Skin-healthy foods (greens/berries)', ru: 'Продукты для кожи (зелень/ягоды)', kk: 'Теріге пайдалы тағамдар', fr: 'Aliments peau (verts/baies)' } },
+            { key: 'no_processed', label: { en: 'No processed snacks', ru: 'Без переработанных снеков', kk: 'Өңделген тәттілерсіз', fr: 'Pas de snacks transformés' } },
+            { key: 'mindful_meal', label: { en: 'Mindful, calm meal', ru: 'Осознанный, спокойный приём', kk: 'Саналы, тыныш тамақтану', fr: 'Repas conscient, calme' } },
         ],
         sampleDay: {
             en: 'Breakfast: Greek yogurt with berries and honey. Lunch: Avocado toast with poached eggs, side salad. Dinner: Grilled salmon with quinoa and roasted vegetables. Snacks: Green smoothie, almonds.',
@@ -2346,9 +2466,9 @@ const diets = [
     // 35) Vacation Vibes
     {
         slug: 'vacation-vibes',
-        name: 'programs.diet.vacation-vibes.name',
-        description: 'programs.diet.vacation-vibes.description',
-        shortDescription: 'programs.diet.vacation-vibes.shortDescription',
+        name: { en: 'Vacation Vibes', ru: 'Отпускное настроение', kk: 'Демалыс көңіл-күйі', fr: 'Vibes vacances' },
+        description: { en: 'Balanced eating inspired by Mediterranean vacation style — fresh, colorful, enjoyable. No stress, just pleasure.', ru: 'Сбалансированное питание в стиле средиземноморского отпуска — свежее, яркое, приятное. Без стресса, только удовольствие.', kk: 'Жерорта теңізі демалыс стиліндегі теңгерімді тамақтану — таза, түрлі-түсті, жағымды. Стресссіз, тек рахат.', fr: 'Alimentation type vacances méditerranéennes — frais, coloré, plaisir. Pas de stress.' },
+        shortDescription: { en: 'Vacation-style balanced eating', ru: 'Питание в отпускном стиле', kk: 'Демалыс стиліндегі тамақтану', fr: 'Alimentation équilibrée style vacances' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2388,11 +2508,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'fresh_meal', label: 'programs.diet.vacation-vibes.dailyTracker.fresh_meal.label' },
-            { key: 'slow_eating', label: 'programs.diet.vacation-vibes.dailyTracker.slow_eating.label' },
-            { key: 'seafood_olive', label: 'programs.diet.vacation-vibes.dailyTracker.seafood_olive.label' },
-            { key: 'vegetables_3', label: 'programs.diet.vacation-vibes.dailyTracker.vegetables_3.label' },
-            { key: 'relaxed', label: 'programs.diet.vacation-vibes.dailyTracker.relaxed.label' },
+            { key: 'fresh_meal', label: { en: 'Fresh, colorful meal', ru: 'Свежий, яркий приём пищи', kk: 'Таза, түрлі-түсті тамақ', fr: 'Repas frais et coloré' } },
+            { key: 'slow_eating', label: { en: 'Ate slowly, enjoyed', ru: 'Ел медленно, наслаждаясь', kk: 'Баяу, ләззат алып жедім', fr: 'Mangé lentement, savouré' } },
+            { key: 'seafood_olive', label: { en: 'Seafood or olive oil', ru: 'Морепродукты или оливковое масло', kk: 'Теңіз өнімі немесе зәйтүн майы', fr: 'Fruits de mer ou huile d\' } },
+            { key: 'vegetables_3', label: { en: 'Fresh vegetables 3+', ru: 'Свежие овощи 3+', kk: 'Таза көкөністер 3+', fr: 'Légumes frais 3+' } },
+            { key: 'relaxed', label: { en: 'Relaxed, stress-free eating', ru: 'Расслабленный, без стресса', kk: 'Демалған, стресссіз тамақтану', fr: 'Détendu, sans stress' } },
         ],
         sampleDay: {
             en: 'Breakfast: Fresh fruit, croissant, coffee on the terrace. Lunch: Grilled fish with Greek salad, bread, wine. Dinner: Pasta with seafood, side salad. Snacks: Gelato, fresh figs, cheese.',
@@ -2424,9 +2544,9 @@ const diets = [
     // 36) Old Money Style
     {
         slug: 'old-money',
-        name: 'programs.diet.old-money.name',
-        description: 'programs.diet.old-money.description',
-        shortDescription: 'programs.diet.old-money.shortDescription',
+        name: { en: 'Old Money Classic', ru: 'Old Money классика', kk: 'Old Money классика', fr: 'Old Money classique' },
+        description: { en: 'Refined eating habits inspired by classic elegance — quality over quantity, proper portions, timeless foods.', ru: 'Изысканные привычки питания в духе классической элегантности — качество важнее количества, правильные порции, вечные продукты.', kk: 'Классикалық талғампаздық рухындағы нәзік тамақтану әдеттері — сан емес сапа, дұрыс порциялар, мәңгілік тағамдар.', fr: 'Qualité avant quantité, portions raisonnables, classiques intemporels.' },
+        shortDescription: { en: 'Classic elegant eating style', ru: 'Классический элегантный стиль питания', kk: 'Классикалық талғампаз тамақтану стилі', fr: 'Style alimentaire classique et élégant' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2466,11 +2586,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'quality_meal', label: 'programs.diet.old-money.dailyTracker.quality_meal.label' },
-            { key: 'proper_times', label: 'programs.diet.old-money.dailyTracker.proper_times.label' },
-            { key: 'no_overeating', label: 'programs.diet.old-money.dailyTracker.no_overeating.label' },
-            { key: 'table_manners', label: 'programs.diet.old-money.dailyTracker.table_manners.label' },
-            { key: 'classic_foods', label: 'programs.diet.old-money.dailyTracker.classic_foods.label' },
+            { key: 'quality_meal', label: { en: 'Quality over quantity', ru: 'Качество важнее количества', kk: 'Сапа санды маңызды', fr: 'Qualité avant quantité' } },
+            { key: 'proper_times', label: { en: 'Ate at proper times', ru: 'Ел в определённое время', kk: 'Белгілі уақытта тамақтандым', fr: 'Repas aux heures fixes' } },
+            { key: 'no_overeating', label: { en: 'No overeating', ru: 'Без переедания', kk: 'Артық жемедім', fr: 'Pas d\' } },
+            { key: 'table_manners', label: { en: 'Proper table manners', ru: 'Хорошие манеры за столом', kk: 'Дастарқан мәдениеті', fr: 'Bonne tenue à table' } },
+            { key: 'classic_foods', label: { en: 'Classic, quality foods', ru: 'Классические, качественные продукты', kk: 'Классикалық, сапалы тағамдар', fr: 'Plats classiques, qualité' } },
         ],
         sampleDay: {
             en: 'Breakfast: Soft-boiled eggs, toast with butter, fresh juice. Lunch: Grilled salmon, steamed vegetables, sparkling water. Dinner: Roast chicken, garden salad, one glass of wine. Snack: Fresh fruit, small cheese plate.',
@@ -2500,9 +2620,9 @@ const diets = [
     // 37) Country Club Breakfast
     {
         slug: 'country-club-breakfast',
-        name: 'programs.diet.country-club-breakfast.name',
-        description: 'programs.diet.country-club-breakfast.description',
-        shortDescription: 'programs.diet.country-club-breakfast.shortDescription',
+        name: { en: 'Country Club Breakfast', ru: 'Завтрак в загородном клубе', kk: 'Country Club таңғы асы', fr: 'Petit-déj Country Club' },
+        description: { en: 'Morning rituals inspired by country club traditions. Proper breakfast as the foundation of a refined day.', ru: 'Утренние ритуалы в духе традиций загородных клубов. Правильный завтрак как основа изысканного дня.', kk: 'Country club дәстүрлерінен шабыт алған таңғы рәсімдер. Талғампаз күннің негізі ретінде дұрыс таңғы ас.', fr: 'Rituels matinaux style country club. Un vrai petit-déj comme base de la journée.' },
+        shortDescription: { en: 'Elegant morning rituals', ru: 'Элегантные утренние ритуалы', kk: 'Талғампаз таңғы рәсімдер', fr: 'Rituels matinaux élégants' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2542,11 +2662,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'proper_breakfast', label: 'programs.diet.country-club-breakfast.dailyTracker.proper_breakfast.label' },
-            { key: 'protein_included', label: 'programs.diet.country-club-breakfast.dailyTracker.protein_included.label' },
-            { key: 'no_phone', label: 'programs.diet.country-club-breakfast.dailyTracker.no_phone.label' },
-            { key: 'fruit_included', label: 'programs.diet.country-club-breakfast.dailyTracker.fruit_included.label' },
-            { key: 'no_rush', label: 'programs.diet.country-club-breakfast.dailyTracker.no_rush.label' },
+            { key: 'proper_breakfast', label: { en: 'Proper sit-down breakfast', ru: 'Завтрак сидя за столом', kk: 'Дастарқан басында таңғы ас', fr: 'Petit-déj assis à table' } },
+            { key: 'protein_included', label: { en: 'Protein included', ru: 'Белок включён', kk: 'Ақуыз қосылған', fr: 'Protéines incluses' } },
+            { key: 'no_phone', label: { en: 'No phone during breakfast', ru: 'Без телефона за завтраком', kk: 'Таңғы аста телефонсыз', fr: 'Pas de téléphone au petit-déj' } },
+            { key: 'fruit_included', label: { en: 'Fresh fruit included', ru: 'Свежие фрукты включены', kk: 'Таза жеміс қосылған', fr: 'Fruits frais inclus' } },
+            { key: 'no_rush', label: { en: 'No rushing', ru: 'Без спешки', kk: 'Асықпау', fr: 'Sans se presser' } },
         ],
         sampleDay: {
             en: 'Breakfast: Eggs Benedict with smoked salmon, fresh orange juice, coffee, fresh berries. Or: Omelette with herbs, toast, fruit plate.',
@@ -2576,9 +2696,9 @@ const diets = [
     // 38) Sunday Brunch
     {
         slug: 'sunday-brunch',
-        name: 'programs.diet.sunday-brunch.name',
-        description: 'programs.diet.sunday-brunch.description',
-        shortDescription: 'programs.diet.sunday-brunch.shortDescription',
+        name: { en: 'Sunday Brunch', ru: 'Воскресный бранч', kk: 'Жексенбілік бранч', fr: 'Brunch du dimanche' },
+        description: { en: 'The art of leisurely Sunday brunch — late morning, good company, quality food, no rush.', ru: 'Искусство неспешного воскресного бранча — позднее утро, хорошая компания, качественная еда, без спешки.', kk: 'Баяу жексенбілік бранч өнері — кешкі таң, жақсы серіктестік, сапалы тағам, асықпау.', fr: 'L\' },
+        shortDescription: { en: 'Leisurely brunch tradition', ru: 'Традиция неспешного бранча', kk: 'Баяу бранч дәстүрі', fr: 'Tradition brunch tranquille' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2618,11 +2738,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'leisurely_meal', label: 'programs.diet.sunday-brunch.dailyTracker.leisurely_meal.label' },
-            { key: 'quality_food', label: 'programs.diet.sunday-brunch.dailyTracker.quality_food.label' },
-            { key: 'good_company', label: 'programs.diet.sunday-brunch.dailyTracker.good_company.label' },
-            { key: 'balanced_plate', label: 'programs.diet.sunday-brunch.dailyTracker.balanced_plate.label' },
-            { key: 'no_phones', label: 'programs.diet.sunday-brunch.dailyTracker.no_phones.label' },
+            { key: 'leisurely_meal', label: { en: 'Leisurely, unhurried meal', ru: 'Неспешный приём пищи', kk: 'Баяу, асықпаған тамақ', fr: 'Repas tranquille, sans précipitation' } },
+            { key: 'quality_food', label: { en: 'Quality, refined food', ru: 'Качественная, изысканная еда', kk: 'Сапалы, нәзік тағам', fr: 'Qualité, raffiné' } },
+            { key: 'good_company', label: { en: 'Good company', ru: 'Хорошая компания', kk: 'Жақсы серіктестік', fr: 'Bonne compagnie' } },
+            { key: 'balanced_plate', label: { en: 'Balanced plate', ru: 'Сбалансированная тарелка', kk: 'Теңгерімді тәрелке', fr: 'Assiette équilibrée' } },
+            { key: 'no_phones', label: { en: 'No phones at table', ru: 'Без телефонов за столом', kk: 'Дастарқанда телефонсыз', fr: 'Pas de portables à table' } },
         ],
         sampleDay: {
             en: 'Brunch: Eggs any style, smoked salmon, fresh bread, cheese selection, fruit plate, pastry, fresh juice, champagne or mimosa (optional). Duration: 2 hours.',
@@ -2652,9 +2772,9 @@ const diets = [
     // 39) Yacht Week
     {
         slug: 'yacht-week',
-        name: 'programs.diet.yacht-week.name',
-        description: 'programs.diet.yacht-week.description',
-        shortDescription: 'programs.diet.yacht-week.shortDescription',
+        name: { en: 'Yacht Week', ru: 'Яхт-неделя', kk: 'Яхта апталығы', fr: 'Yacht Week' },
+        description: { en: 'Eating inspired by yacht lifestyle — light, fresh, Mediterranean-influenced, always elegant.', ru: 'Питание в духе яхтенного образа жизни — лёгкое, свежее, со средиземноморским влиянием, всегда элегантно.', kk: 'Яхта өмір салтынан шабыт алған тамақтану — жеңіл, таза, Жерорта теңізі әсерімен, әрқашан талғампаз.', fr: 'Style yacht — léger, frais, influence méditerranéenne, toujours élégant.' },
+        shortDescription: { en: 'Elegant seaside eating', ru: 'Элегантное питание у моря', kk: 'Талғампаз теңіз жағасы тамағы', fr: 'Alimentation élégante bord de mer' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2694,11 +2814,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'seafood', label: 'programs.diet.yacht-week.dailyTracker.seafood.label' },
-            { key: 'light_portions', label: 'programs.diet.yacht-week.dailyTracker.light_portions.label' },
-            { key: 'hydrated', label: 'programs.diet.yacht-week.dailyTracker.hydrated.label' },
-            { key: 'fresh_vegetables', label: 'programs.diet.yacht-week.dailyTracker.fresh_vegetables.label' },
-            { key: 'elegant_dinner', label: 'programs.diet.yacht-week.dailyTracker.elegant_dinner.label' },
+            { key: 'seafood', label: { en: 'Seafood or fish', ru: 'Морепродукты или рыба', kk: 'Теңіз өнімі немесе балық', fr: 'Fruits de mer ou poisson' } },
+            { key: 'light_portions', label: { en: 'Light portions', ru: 'Лёгкие порции', kk: 'Жеңіл порциялар', fr: 'Portions légères' } },
+            { key: 'hydrated', label: { en: 'Stayed hydrated', ru: 'Пил достаточно воды', kk: 'Жеткілікті су іштім', fr: 'Bien hydraté' } },
+            { key: 'fresh_vegetables', label: { en: 'Fresh vegetables', ru: 'Свежие овощи', kk: 'Таза көкөністер', fr: 'Légumes frais' } },
+            { key: 'elegant_dinner', label: { en: 'Elegant dinner', ru: 'Элегантный ужин', kk: 'Талғампаз кешкі ас', fr: 'Dîner élégant' } },
         ],
         sampleDay: {
             en: 'Breakfast: Fresh fruit, yogurt, coffee. Lunch: Grilled octopus salad, crusty bread. Snack: Oysters, white wine. Dinner: Grilled sea bass, Greek salad, light pasta.',
@@ -2728,9 +2848,9 @@ const diets = [
     // 40) Prep School Lunch
     {
         slug: 'prep-school-lunch',
-        name: 'programs.diet.prep-school-lunch.name',
-        description: 'programs.diet.prep-school-lunch.description',
-        shortDescription: 'programs.diet.prep-school-lunch.shortDescription',
+        name: { en: 'Prep School Lunch', ru: 'Обед в частной школе', kk: 'Prep School түскі асы', fr: 'Déjeuner Prep School' },
+        description: { en: 'Inspired by traditional prep school dining — balanced, nutritious, proper. No skipping meals, no junk food.', ru: 'В духе столовых частных школ — сбалансировано, питательно, правильно. Без пропусков еды, без джанк-фуда.', kk: 'Дәстүрлі prep school асханасынан шабыт алған — теңгерімді, қоректі, дұрыс. Тамақты өткізбей, джанк-фудсыз.', fr: 'Style cantine prep school — équilibré, nutritif, correct. Pas de repas sautés, pas de junk.' },
+        shortDescription: { en: 'Proper, balanced lunches', ru: 'Правильные, сбалансированные обеды', kk: 'Дұрыс, теңгерімді түскі астар', fr: 'Déjeuners corrects et équilibrés' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2770,11 +2890,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'proper_lunch', label: 'programs.diet.prep-school-lunch.dailyTracker.proper_lunch.label' },
-            { key: 'balanced_plate', label: 'programs.diet.prep-school-lunch.dailyTracker.balanced_plate.label' },
-            { key: 'set_time', label: 'programs.diet.prep-school-lunch.dailyTracker.set_time.label' },
-            { key: 'water', label: 'programs.diet.prep-school-lunch.dailyTracker.water.label' },
-            { key: 'no_desk_eating', label: 'programs.diet.prep-school-lunch.dailyTracker.no_desk_eating.label' },
+            { key: 'proper_lunch', label: { en: 'Proper sit-down lunch', ru: 'Правильный обед сидя', kk: 'Отырып дұрыс түскі ас', fr: 'Déjeuner assis correct' } },
+            { key: 'balanced_plate', label: { en: 'Balanced plate', ru: 'Сбалансированная тарелка', kk: 'Теңгерімді тәрелке', fr: 'Assiette équilibrée' } },
+            { key: 'set_time', label: { en: 'Ate at set time', ru: 'Ел в определённое время', kk: 'Белгілі уақытта жедім', fr: 'Repas à heure fixe' } },
+            { key: 'water', label: { en: 'Water with meal', ru: 'Вода к еде', kk: 'Тамақпен бірге су', fr: 'Eau au repas' } },
+            { key: 'no_desk_eating', label: { en: 'No eating at desk', ru: 'Не ел за рабочим столом', kk: 'Жұмыс үстелінде жемедім', fr: 'Pas de repas au bureau' } },
         ],
         sampleDay: {
             en: 'Lunch: Roasted chicken breast, steamed broccoli, brown rice, side salad, water. Followed by an apple or small dessert.',
@@ -2804,9 +2924,9 @@ const diets = [
     // 41) French Girl Diet
     {
         slug: 'french-chic',
-        name: 'programs.diet.french-chic.name',
-        description: 'programs.diet.french-chic.description',
-        shortDescription: 'programs.diet.french-chic.shortDescription',
+        name: { en: 'French Girl Diet', ru: 'Французский шик', kk: 'Француз қыз диетасы', fr: 'French Girl' },
+        description: { en: 'French approach to eating — quality portions, enjoyment, no strict restrictions, natural balance and pleasure.', ru: 'Французский подход к еде — качественные порции, удовольствие, без строгих запретов, естественный баланс и удовольствие.', kk: 'Тамаққа француз көзқарасы — сапалы порциялар, рахат, қатаң тыйымсыз, табиғи тепе-теңдік және рахат.', fr: 'Approche française : portions qualité, plaisir, pas d\' },
+        shortDescription: { en: 'French-style intuitive eating', ru: 'Интуитивное питание по-французски', kk: 'Француз интуитивті тамақтануы', fr: 'Alimentation intuitive à la française' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -2846,11 +2966,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'small_portions', label: 'programs.diet.french-chic.dailyTracker.small_portions.label' },
-            { key: 'enjoyed_food', label: 'programs.diet.french-chic.dailyTracker.enjoyed_food.label' },
-            { key: 'sat_down', label: 'programs.diet.french-chic.dailyTracker.sat_down.label' },
-            { key: 'quality_choice', label: 'programs.diet.french-chic.dailyTracker.quality_choice.label' },
-            { key: 'stopped_satisfied', label: 'programs.diet.french-chic.dailyTracker.stopped_satisfied.label' },
+            { key: 'small_portions', label: { en: 'Ate small portions', ru: 'Ел небольшие порции', kk: 'Кішкене порциялар жедім', fr: 'Petites portions' } },
+            { key: 'enjoyed_food', label: { en: 'Truly enjoyed food', ru: 'Получил удовольствие от еды', kk: 'Тамақтан шынымен ләззат алдым', fr: 'Vraiment savouré' } },
+            { key: 'sat_down', label: { en: 'Ate sitting down', ru: 'Ел сидя', kk: 'Отырып жедім', fr: 'Mangé assis' } },
+            { key: 'quality_choice', label: { en: 'Chose quality over quantity', ru: 'Выбрал качество, не количество', kk: 'Санды емес, сапаны таңдадым', fr: 'Qualité avant quantité' } },
+            { key: 'stopped_satisfied', label: { en: 'Stopped when satisfied', ru: 'Остановился когда насытился', kk: 'Тойғанда тоқтадым', fr: 'Arrêté rassasié' } },
         ],
         sampleDay: {
             en: 'Breakfast: Croissant, coffee, small fruit. Lunch: Salad niçoise, bread. Dinner: Small steak, haricots verts, red wine. Dessert: Two squares of dark chocolate.',
@@ -2882,9 +3002,9 @@ const diets = [
     // 42) 1920s Gatsby
     {
         slug: 'gatsby-twenties',
-        name: 'programs.diet.gatsby-twenties.name',
-        description: 'programs.diet.gatsby-twenties.description',
-        shortDescription: 'programs.diet.gatsby-twenties.shortDescription',
+        name: { en: '1920s Gatsby', ru: 'Гэтсби 1920-х', kk: '1920-жылдар Гэтсби', fr: 'Gatsby années 20' },
+        description: { en: 'Inspired by the roaring twenties — glamorous parties, elegant appetizers, champagne, and indulgent but refined tastes.', ru: 'В духе ревущих двадцатых — гламурные вечеринки, элегантные закуски, шампанское и изысканные, но утончённые вкусы.', kk: 'Жиырмасыншы жылдардан шабыт алған — сәнді кештер, талғампаз тәбет ашарлар, шампанское және нәзік дәмдер.', fr: 'Inspiré des années folles — soirées, canapés, champagne, goûts raffinés.' },
+        shortDescription: { en: 'Jazz age inspired eating', ru: 'Питание в духе эпохи джаза', kk: 'Джаз дәуірі тамақтануы', fr: 'Alimentation inspirée âge du jazz' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -2924,11 +3044,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'elegant_appetizer', label: 'programs.diet.gatsby-twenties.dailyTracker.elegant_appetizer.label' },
-            { key: 'small_portions', label: 'programs.diet.gatsby-twenties.dailyTracker.small_portions.label' },
-            { key: 'social_meal', label: 'programs.diet.gatsby-twenties.dailyTracker.social_meal.label' },
-            { key: 'presentation', label: 'programs.diet.gatsby-twenties.dailyTracker.presentation.label' },
-            { key: 'sparkling', label: 'programs.diet.gatsby-twenties.dailyTracker.sparkling.label' },
+            { key: 'elegant_appetizer', label: { en: 'Elegant appetizer/canapé', ru: 'Элегантная закуска/канапе', kk: 'Талғампаз тәбет ашар/канапе', fr: 'Amuse-bouche/canapé élégant' } },
+            { key: 'small_portions', label: { en: 'Small, refined portions', ru: 'Маленькие, изысканные порции', kk: 'Кішкене, нәзік порциялар', fr: 'Petites portions raffinées' } },
+            { key: 'social_meal', label: { en: 'Social meal with others', ru: 'Социальная трапеза', kk: 'Басқалармен бірге тамақтану', fr: 'Repas en société' } },
+            { key: 'presentation', label: { en: 'Nice presentation', ru: 'Красивая подача', kk: 'Әдемі безендіру', fr: 'Belle présentation' } },
+            { key: 'sparkling', label: { en: 'Sparkling beverage', ru: 'Газированный напиток', kk: 'Газдалған сусын', fr: 'Boisson pétillante' } },
         ],
         sampleDay: {
             en: 'Lunch: Crab canapés, cucumber sandwiches, iced tea. Dinner: Oysters Rockefeller, lobster thermidor, champagne. Dessert: Crème brûlée.',
@@ -2958,9 +3078,9 @@ const diets = [
     // 43) 1950s Hollywood
     {
         slug: 'fifties-hollywood',
-        name: 'programs.diet.fifties-hollywood.name',
-        description: 'programs.diet.fifties-hollywood.description',
-        shortDescription: 'programs.diet.fifties-hollywood.shortDescription',
+        name: { en: '1950s Hollywood', ru: 'Голливуд 1950-х', kk: '1950-жылдар Голливуд', fr: 'Hollywood années 50' },
+        description: { en: 'Inspired by 1950s Hollywood glamour — balanced, portion-conscious, always camera-ready but enjoying life.', ru: 'В духе голливудского гламура 1950-х — сбалансировано, осознанные порции, всегда готовы к камере, но наслаждаемся жизнью.', kk: '1950-жылдар Голливуд сәнінен шабыт алған — теңгерімді, саналы порциялар, әрқашан камераға дайын, бірақ өмірден ләззат алу.', fr: 'Glamour Hollywood années 50 — équilibré, portions maîtrisées, prêt pour la caméra tout en profitant.' },
+        shortDescription: { en: 'Classic Hollywood eating', ru: 'Питание в голливудском стиле', kk: 'Голливуд стиліндегі тамақтану', fr: 'Alimentation style Hollywood classique' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -3000,11 +3120,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'protein_focused', label: 'programs.diet.fifties-hollywood.dailyTracker.protein_focused.label' },
-            { key: 'vegetables', label: 'programs.diet.fifties-hollywood.dailyTracker.vegetables.label' },
-            { key: 'light_breakfast', label: 'programs.diet.fifties-hollywood.dailyTracker.light_breakfast.label' },
-            { key: 'no_bloating', label: 'programs.diet.fifties-hollywood.dailyTracker.no_bloating.label' },
-            { key: 'elegant_dinner', label: 'programs.diet.fifties-hollywood.dailyTracker.elegant_dinner.label' },
+            { key: 'protein_focused', label: { en: 'Protein-focused meal', ru: 'Белковый приём пищи', kk: 'Ақуызға бағытталған тамақ', fr: 'Repas centré protéines' } },
+            { key: 'vegetables', label: { en: 'Plenty of vegetables', ru: 'Много овощей', kk: 'Көп көкөніс', fr: 'Beaucoup de légumes' } },
+            { key: 'light_breakfast', label: { en: 'Light breakfast', ru: 'Лёгкий завтрак', kk: 'Жеңіл таңғы ас', fr: 'Petit-déj léger' } },
+            { key: 'no_bloating', label: { en: 'No bloating foods', ru: 'Без продуктов для вздутия', kk: 'Ісіну тудыратын тағамсыз', fr: 'Pas d\' } },
+            { key: 'elegant_dinner', label: { en: 'Elegant dinner', ru: 'Элегантный ужин', kk: 'Талғампаз кешкі ас', fr: 'Dîner élégant' } },
         ],
         sampleDay: {
             en: 'Breakfast: Grapefruit, soft-boiled egg, black coffee. Lunch: Grilled chicken salad, iced tea. Dinner: Filet mignon, steamed asparagus, glass of champagne. Dessert: Two squares of chocolate.',
@@ -3034,9 +3154,9 @@ const diets = [
     // 44) 1960s Twiggy
     {
         slug: 'sixties-twiggy',
-        name: 'programs.diet.sixties-twiggy.name',
-        description: 'programs.diet.sixties-twiggy.description',
-        shortDescription: 'programs.diet.sixties-twiggy.shortDescription',
+        name: { en: '1960s Mod', ru: 'Мод 1960-х', kk: '1960-жылдар Мод', fr: 'Mod années 60' },
+        description: { en: 'Inspired by 1960s mod culture — light, youthful, colorful, breaking traditional rules while staying elegant.', ru: 'В духе мод-культуры 1960-х — лёгко, молодёжно, ярко, ломаем традиционные правила, оставаясь элегантными.', kk: '1960-жылдар мод мәдениетінен шабыт алған — жеңіл, жасөспірімдік, түрлі-түсті, дәстүрлі ережелерді бұза отырып, талғампаз қалу.', fr: 'Culture mod années 60 — léger, jeune, coloré, casser les règles en restant élégant.' },
+        shortDescription: { en: 'Youthful mod-style eating', ru: 'Молодёжное питание в стиле мод', kk: 'Жасөспірімдік мод стиліндегі тамақтану', fr: 'Alimentation mod et jeune' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'EASY',
@@ -3076,11 +3196,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'light_meal', label: 'programs.diet.sixties-twiggy.dailyTracker.light_meal.label' },
-            { key: 'fresh_juice', label: 'programs.diet.sixties-twiggy.dailyTracker.fresh_juice.label' },
-            { key: 'small_portions', label: 'programs.diet.sixties-twiggy.dailyTracker.small_portions.label' },
-            { key: 'something_new', label: 'programs.diet.sixties-twiggy.dailyTracker.something_new.label' },
-            { key: 'fun_presentation', label: 'programs.diet.sixties-twiggy.dailyTracker.fun_presentation.label' },
+            { key: 'light_meal', label: { en: 'Light, colorful meal', ru: 'Лёгкий, яркий приём', kk: 'Жеңіл, түрлі-түсті тамақ', fr: 'Repas léger et coloré' } },
+            { key: 'fresh_juice', label: { en: 'Fresh juice or smoothie', ru: 'Свежий сок или смузи', kk: 'Таза шырын немесе смузи', fr: 'Jus frais ou smoothie' } },
+            { key: 'small_portions', label: { en: 'Small, frequent portions', ru: 'Маленькие, частые порции', kk: 'Кішкене, жиі порциялар', fr: 'Petites portions fréquentes' } },
+            { key: 'something_new', label: { en: 'Tried something new', ru: 'Попробовал что-то новое', kk: 'Жаңа нәрсе көрдім', fr: 'Essayé quelque chose de nouveau' } },
+            { key: 'fun_presentation', label: { en: 'Fun presentation', ru: 'Весёлая подача', kk: 'Көңілді безендіру', fr: 'Présentation fun' } },
         ],
         sampleDay: {
             en: 'Breakfast: Fresh orange juice, toast with jam. Lunch: Colorful salad bowl, sparkling water. Dinner: Fondue with vegetables, wine. Snacks: Fruit smoothie, cheese cubes.',
@@ -3110,9 +3230,9 @@ const diets = [
     // 45) 1970s Studio 54
     {
         slug: 'seventies-disco',
-        name: 'programs.diet.seventies-disco.name',
-        description: 'programs.diet.seventies-disco.description',
-        shortDescription: 'programs.diet.seventies-disco.shortDescription',
+        name: { en: '1970s Disco', ru: 'Диско 1970-х', kk: '1970-жылдар Диско', fr: 'Disco années 70' },
+        description: { en: 'Inspired by Studio 54 era — light eating to stay energized for parties, quick bites, champagne, staying slim for dance floor.', ru: 'В духе эпохи Studio 54 — лёгкое питание для энергии на вечеринках, быстрые закуски, шампанское, стройность для танцпола.', kk: 'Studio 54 дәуірінен шабыт алған — кешке қуат үшін жеңіл тамақтану, жылдам тәбет ашарлар, шампанское, би алаңына арықтық.', fr: 'Ère Studio 54 — manger léger pour les soirées, canapés, champagne, rester fine pour la piste.' },
+        shortDescription: { en: 'Party-ready eating', ru: 'Питание для вечеринок', kk: 'Кешке дайын тамақтану', fr: 'Alimentation prête à faire la fête' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -3152,11 +3272,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'light_eating', label: 'programs.diet.seventies-disco.dailyTracker.light_eating.label' },
-            { key: 'movement', label: 'programs.diet.seventies-disco.dailyTracker.movement.label' },
-            { key: 'appetizers', label: 'programs.diet.seventies-disco.dailyTracker.appetizers.label' },
-            { key: 'energy_maintained', label: 'programs.diet.seventies-disco.dailyTracker.energy_maintained.label' },
-            { key: 'moderate_drinks', label: 'programs.diet.seventies-disco.dailyTracker.moderate_drinks.label' },
+            { key: 'light_eating', label: { en: 'Light eating', ru: 'Лёгкое питание', kk: 'Жеңіл тамақтану', fr: 'Manger léger' } },
+            { key: 'movement', label: { en: 'Danced or moved', ru: 'Танцевал или двигался', kk: 'Биледім немесе қозғалдым', fr: 'Dansé ou bougé' } },
+            { key: 'appetizers', label: { en: 'Appetizers over heavy meals', ru: 'Закуски вместо тяжёлого', kk: 'Ауыр тамақтың орнына тәбет ашар', fr: 'Amuse-bouches plutôt que lourd' } },
+            { key: 'energy_maintained', label: { en: 'Energy maintained', ru: 'Энергия сохранена', kk: 'Қуат сақталды', fr: 'Énergie maintenue' } },
+            { key: 'moderate_drinks', label: { en: 'Moderate drinks', ru: 'Умеренные напитки', kk: 'Қалыпты сусындар', fr: 'Boissons avec modération' } },
         ],
         sampleDay: {
             en: 'Brunch: Eggs, fresh fruit, coffee. Dinner: Shrimp cocktail, cheese plate, champagne. Late snack: Crackers with caviar. Dance all night!',
@@ -3186,9 +3306,9 @@ const diets = [
     // 46) 1980s Power Lunch
     {
         slug: 'eighties-power',
-        name: 'programs.diet.eighties-power.name',
-        description: 'programs.diet.eighties-power.description',
-        shortDescription: 'programs.diet.eighties-power.shortDescription',
+        name: { en: '1980s Power Lunch', ru: 'Бизнес-ланч 1980-х', kk: '1980-жылдар Power Lunch', fr: 'Power Lunch années 80' },
+        description: { en: 'Inspired by 1980s corporate culture — power lunches, steak houses, business over meals, confident choices.', ru: 'В духе корпоративной культуры 1980-х — бизнес-ланчи, стейк-хаусы, дела за едой, уверенный выбор.', kk: '1980-жылдар корпоративтік мәдениетінен шабыт алған — бизнес-ланчтар, стейк-хаустар, тамақ үстінде іс, сенімді таңдау.', fr: 'Culture corporate années 80 — power lunches, steak-houses, affaires autour des repas, choix assurés.' },
+        shortDescription: { en: 'Power business eating', ru: 'Бизнес-питание', kk: 'Бизнес тамақтануы', fr: 'Alimentation business power' },
         category: 'inspired',
         type: 'LIFESTYLE',
         difficulty: 'MODERATE',
@@ -3228,11 +3348,11 @@ const diets = [
             ],
         },
         dailyTracker: [
-            { key: 'protein_lunch', label: 'programs.diet.eighties-power.dailyTracker.protein_lunch.label' },
-            { key: 'quality_restaurant', label: 'programs.diet.eighties-power.dailyTracker.quality_restaurant.label' },
-            { key: 'confident_order', label: 'programs.diet.eighties-power.dailyTracker.confident_order.label' },
-            { key: 'networking', label: 'programs.diet.eighties-power.dailyTracker.networking.label' },
-            { key: 'balanced', label: 'programs.diet.eighties-power.dailyTracker.balanced.label' },
+            { key: 'protein_lunch', label: { en: 'Protein-rich lunch', ru: 'Белковый обед', kk: 'Ақуызға бай түскі ас', fr: 'Déjeuner riche en protéines' } },
+            { key: 'quality_restaurant', label: { en: 'Quality restaurant', ru: 'Качественный ресторан', kk: 'Сапалы мейрамхана', fr: 'Restaurant de qualité' } },
+            { key: 'confident_order', label: { en: 'Ordered confidently', ru: 'Заказал уверенно', kk: 'Сенімді тапсырыс бердім', fr: 'Commandé avec assurance' } },
+            { key: 'networking', label: { en: 'Business discussion at meal', ru: 'Деловой разговор за едой', kk: 'Тамақ кезінде іскерлік әңгіме', fr: 'Discussion affaires au repas' } },
+            { key: 'balanced', label: { en: 'Balanced choice', ru: 'Сбалансированный выбор', kk: 'Теңгерімді таңдау', fr: 'Choix équilibré' } },
         ],
         sampleDay: {
             en: 'Breakfast: Continental — coffee, pastry, fruit. Power Lunch: Caesar salad, 8oz steak, steamed vegetables, sparkling water. Dinner: Light — soup, bread, wine.',

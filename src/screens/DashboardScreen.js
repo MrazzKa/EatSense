@@ -713,6 +713,23 @@ export default function DashboardScreen() {
           }}
         />
 
+        {/* Medical Analysis / "Медицинские анализы" - placed above Дневник */}
+        <Animated.View
+          style={[
+            styles.section,
+            {
+              opacity: cardAnimations.suggested,
+            },
+          ]}
+        >
+          <ManualAnalysisCard onPressAddManual={() => {
+            if (__DEV__) {
+              console.log('[Dashboard] Opening manual analysis modal');
+            }
+            handleOpenManualAnalysis();
+          }} />
+        </Animated.View>
+
         {/* PART A: Section 2 - Recent meals (short list) */}
         <Animated.View
           style={[
@@ -915,23 +932,6 @@ export default function DashboardScreen() {
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
-        </Animated.View>
-
-        {/* 3. Manual Analysis / "Вставьте свой анализ" */}
-        <Animated.View
-          style={[
-            styles.section,
-            {
-              opacity: cardAnimations.suggested,
-            },
-          ]}
-        >
-          <ManualAnalysisCard onPressAddManual={() => {
-            if (__DEV__) {
-              console.log('[Dashboard] Opening manual analysis modal');
-            }
-            handleOpenManualAnalysis();
-          }} />
         </Animated.View>
 
         {/* PART A: Section 5 - Nutrition section */}

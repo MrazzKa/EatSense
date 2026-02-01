@@ -173,9 +173,11 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
 
     // FIX: Don't show loading if we have correct activeProgram - prevents loading screen when navigating from start
     // Show loading only if we're truly missing data or loading details
-    const isLoading = (storeLoading || loadingDetails || isInitializing) &&
-        (!activeProgram || activeProgram.programId !== route.params?.id) &&
-        retryCount < MAX_RETRY_ATTEMPTS;
+    // FIX: Also show loading if activeProgram is null and we haven't exhausted retries
+    const isLoading = (
+        (storeLoading || loadingDetails || isInitializing) ||
+        (!activeProgram && retryCount < MAX_RETRY_ATTEMPTS)
+    ) && retryCount < MAX_RETRY_ATTEMPTS;
 
     if (isLoading) {
         return (
