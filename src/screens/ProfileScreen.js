@@ -1183,7 +1183,7 @@ const ProfileScreen = () => {
                   />
 
                   <ProfileSegmentedControl
-                    label={safeT('profile.health.chronotype', 'Chronotype')}
+                    label={safeT('profile.health.chronotypeLabel', 'Chronotype')}
                     value={healthProfile.sleep.chronotype || 'late'}
                     options={[
                       { value: 'early', label: safeT('profile.health.chronotypeOptions.early', safeT('profile.health.chronotype.early', 'Early')) },
@@ -1222,7 +1222,7 @@ const ProfileScreen = () => {
                   {healthProfile.glp1Module.isGlp1User && (
                     <>
                       <ProfileSegmentedControl
-                        label={safeT('profile.health.drugType', 'Drug Type')}
+                        label={safeT('profile.health.drugTypeLabel', 'Drug Type')}
                         value={healthProfile.glp1Module.drugType || 'semaglutide'}
                         options={[
                           { value: 'semaglutide', label: safeT('profile.health.drugType.semaglutide', 'Semaglutide') },

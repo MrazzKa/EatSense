@@ -76,7 +76,7 @@ export default function ActiveDietWidget({ activeDiet, onOpenTracker, onBrowseDi
                 <View style={[styles.streakBadge, { backgroundColor: (diet?.color || colors.primary) + '20' }]}>
                     <Ionicons name={isLifestyle ? 'leaf' : 'flame'} size={14} color={diet?.color || colors.primary || '#4CAF50'} />
                     <Text style={[styles.streakText, { color: diet?.color || colors.primary || '#4CAF50' }]}>
-                        {typeof streak === 'object' ? (streak.current || 0) : (streak || 0)} {t('dashboard.activeDiet.streak') || 'days streak'}
+                        {t('dashboard.activeDiet.streak_count', { count: typeof streak === 'object' ? (streak.current || 0) : (streak || 0) })}
                     </Text>
                 </View>
             </View>
@@ -116,10 +116,10 @@ export default function ActiveDietWidget({ activeDiet, onOpenTracker, onBrowseDi
                     <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                         {/* FIX: Use daysLeft from props if available, otherwise calculate correctly */}
                         {activeDiet?.daysLeft !== undefined && activeDiet.daysLeft !== null
-                          ? activeDiet.daysLeft 
-                          : (activeDiet?.totalDays && activeDiet?.currentDay 
-                            ? Math.max(0, activeDiet.totalDays - activeDiet.currentDay + 1)
-                            : 0)}
+                            ? activeDiet.daysLeft
+                            : (activeDiet?.totalDays && activeDiet?.currentDay
+                                ? Math.max(0, activeDiet.totalDays - activeDiet.currentDay + 1)
+                                : 0)}
                     </Text>
                 </View>
             </View>

@@ -10,8 +10,8 @@ export default function ExpertCard({ specialist, onPress }) {
     const { t } = useI18n();
 
     const typeLabel = specialist.type === 'dietitian'
-        ? t('experts.dietitian') || 'Dietitian'
-        : t('experts.nutritionist') || 'Nutritionist';
+        ? t('experts.dietitian.title') || 'Dietitian'
+        : t('experts.nutritionist.title') || 'Nutritionist';
 
     const priceLabel = specialist.pricePerWeek === 0 || !specialist.pricePerWeek
         ? t('experts.free') || 'Free'

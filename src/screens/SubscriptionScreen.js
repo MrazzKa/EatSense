@@ -465,6 +465,9 @@ export default function SubscriptionScreen() {
         return (
             <SafeAreaView style={styles.loadingContainer} edges={['top']}>
                 <ActivityIndicator size="large" color={tokens.colors?.primary || '#4CAF50'} />
+                <Text style={{ marginTop: 16, color: tokens.colors?.textSecondary || '#666', fontSize: 14 }}>
+                    {t('subscription.loadingPrices') || 'Loading prices...'}
+                </Text>
             </SafeAreaView>
         );
     }

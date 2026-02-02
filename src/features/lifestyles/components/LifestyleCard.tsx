@@ -207,10 +207,8 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
           </>
         ) : (
           <>
-            <Text style={styles.streakText}>
-              {typeof program?.streak === 'object'
-                ? program.streak.current || 0
-                : program?.streak || 0} {t('diets.tracker.days')}
+            <Text style={styles.ctaText}>
+              {t('lifestyles.card.view') || 'View Program'}
             </Text>
             <Ionicons name="chevron-forward" size={16} color="#FFF" />
           </>

@@ -142,8 +142,8 @@ export default function ExpertProfileScreen({ route, navigation }) {
 
                     <Text style={styles.type}>
                         {specialist.type === 'dietitian'
-                            ? t('experts.dietitian') || 'Dietitian'
-                            : t('experts.nutritionist') || 'Nutritionist'}
+                            ? t('experts.dietitian.title') || 'Dietitian'
+                            : t('experts.nutritionist.title') || 'Nutritionist'}
                     </Text>
 
                     {/* Rating */}

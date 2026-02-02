@@ -444,7 +444,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                         <View style={styles.tagsRow}>
                             {program.tags.map((tag: string) => (
                                 <View key={tag} style={[styles.tag, { backgroundColor: colors.primary + '15' }]}>
-                                    <Text style={[styles.tagText, { color: colors.primary }]}>{tag}</Text>
+                                    <Text style={[styles.tagText, { color: colors.primary }]}>
+                                        {t(`diets.tags.${tag}`) || tag}
+                                    </Text>
                                 </View>
                             ))}
                         </View>

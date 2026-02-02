@@ -20,6 +20,7 @@ export interface ProgramProgress {
   type: ProgramType;
   programId: string;
   programName?: string;
+  programMetadata?: any; // Full program data from API (for UI display)
   startDate: string; // YYYY-MM-DD (local)
   currentDayIndex: number;
   daysLeft: number;
