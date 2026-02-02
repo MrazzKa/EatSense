@@ -70,7 +70,7 @@ export default function ReportsScreen() {
         // Any other status or missing data = error
         Alert.alert(
           t('common.error'),
-          t('reports.error.generic') || t('reports.error') || 'Failed to generate monthly report. Please try again later.',
+          t('reports.error.generic') || 'Failed to generate monthly report. Please try again later.',
         );
         return;
       }
@@ -206,7 +206,7 @@ export default function ReportsScreen() {
       } else {
         Alert.alert(
           t('common.error'),
-          t('reports.error.generic') || t('reports.error') || 'Failed to download monthly report. Please try again later.',
+          t('reports.error.generic') || 'Failed to download monthly report. Please try again later.',
         );
       }
     } finally {

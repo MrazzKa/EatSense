@@ -144,7 +144,7 @@ export default function ExpertsScreen({ navigation }) {
                     onPress={() => setFilters(f => ({ ...f, type: 'dietitian' }))}
                 >
                     <Text style={[styles.filterChipText, filters.type === 'dietitian' && styles.filterChipTextActive]}>
-                        {t('experts.dietitian') || 'Dietitian'}
+                        {t('experts.dietitian.title') || 'Dietitian'}
                     </Text>
                 </TouchableOpacity>
 
@@ -153,7 +153,7 @@ export default function ExpertsScreen({ navigation }) {
                     onPress={() => setFilters(f => ({ ...f, type: 'nutritionist' }))}
                 >
                     <Text style={[styles.filterChipText, filters.type === 'nutritionist' && styles.filterChipTextActive]}>
-                        {t('experts.nutritionist') || 'Nutritionist'}
+                        {t('experts.nutritionist.title') || 'Nutritionist'}
                     </Text>
                 </TouchableOpacity>
 

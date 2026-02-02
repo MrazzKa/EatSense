@@ -1,5 +1,11 @@
 {
   "common": {
+    "tryAgain": "Try again",
+    "enabled": "Enabled",
+    "reset": "Reset",
+    "saveChanges": "Save Changes",
+    "start": "Start",
+    "clear": "Clear",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -103,6 +109,95 @@
     }
   },
   "onboarding": {
+    "plans": {
+      "month": "mo",
+      "year": "yr",
+      "free": {
+        "name": "EatSense Free",
+        "price": "$0 forever",
+        "headline": "Get started with the essentials",
+        "features": [
+          "AI food analysis (3/day)",
+          "Daily calorie tracking",
+          "Basic statistics"
+        ],
+        "badge": "Included"
+      },
+      "proMonthly": {
+        "name": "EatSense Pro",
+        "price": "$9.99 / month",
+        "headline": "Unlock everything with flexible billing",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Personalized coaching tips",
+          "Priority support"
+        ],
+        "badge": "Most Popular"
+      },
+      "proAnnual": {
+        "name": "EatSense Pro",
+        "price": "$79.99 / year",
+        "headline": "Best value — save 33%",
+        "features": [
+          "Everything in Pro Monthly",
+          "Exclusive annual webinars",
+          "Early access to new features"
+        ],
+        "badge": "Save 33%"
+      },
+      "student": {
+        "name": "Student",
+        "price": "$49 / year",
+        "headline": "Special student pricing",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Student ID required"
+        ],
+        "badge": "Student"
+      },
+      "founder": {
+        "name": "Founder",
+        "price": "$199.99 / once",
+        "headline": "Lifetime access + Exclusive badge",
+        "features": [
+          "One-time payment, forever access",
+          "Exclusive Founder Badge",
+          "Direct developer access"
+        ],
+        "badge": "Limited"
+      },
+      "finePrint": "You can change plans or cancel anytime from Settings.",
+      "forever": "forever",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "included": "Included",
+      "bestValue": "Best Value",
+      "studentBadge": "Student",
+      "freeHeadline": "Get started with the essentials",
+      "monthlyHeadline": "Flexible billing",
+      "yearlyHeadline": "Best value — save 33%",
+      "studentHeadline": "Special student pricing",
+      "founderHeadline": "Lifetime access + Exclusive badge",
+      "founderBadge": "Limited",
+      "features": {
+        "analysis3": "AI food analysis (3/day)",
+        "tracking": "Daily calorie tracking",
+        "basicStats": "Basic statistics",
+        "unlimited": "Unlimited AI analysis",
+        "insights": "Advanced nutrition insights",
+        "coaching": "Personalized coaching",
+        "support": "Priority support",
+        "everything": "Everything in Monthly",
+        "webinars": "Exclusive webinars",
+        "earlyAccess": "Early access to features",
+        "verification": "Student ID required",
+        "lifetime": "One-time payment, forever access",
+        "badge": "Exclusive Founder Badge",
+        "priority": "Direct developer access"
+      }
+    },
     "welcome": "Welcome to EatSense",
     "notificationsDeniedTitle": "Notifications disabled",
     "notificationsDeniedDescription": "You can enable notifications later in the app settings or iOS system settings to receive meal reminders and helpful tips.",
@@ -241,95 +336,6 @@
     },
     "plan": "Choose Your Plan",
     "planSubtitle": "Select a plan that works for you",
-    "plans": {
-      "free": {
-        "name": "EatSense Free",
-        "price": "$0 forever",
-        "headline": "Get started with the essentials",
-        "features": [
-          "AI food analysis (3/day)",
-          "Daily calorie tracking",
-          "Basic statistics"
-        ],
-        "badge": "Included"
-      },
-      "proMonthly": {
-        "name": "EatSense Pro",
-        "price": "$9.99 / month",
-        "headline": "Unlock everything with flexible billing",
-        "features": [
-          "Unlimited AI analysis",
-          "Advanced nutrition insights",
-          "Personalized coaching tips",
-          "Priority support"
-        ],
-        "badge": "Most Popular"
-      },
-      "proAnnual": {
-        "name": "EatSense Pro",
-        "price": "$79.99 / year",
-        "headline": "Best value — save 33%",
-        "features": [
-          "Everything in Pro Monthly",
-          "Exclusive annual webinars",
-          "Early access to new features"
-        ],
-        "badge": "Save 33%"
-      },
-      "student": {
-        "name": "Student",
-        "price": "$49 / year",
-        "headline": "Special student pricing",
-        "features": [
-          "Unlimited AI analysis",
-          "Advanced nutrition insights",
-          "Student ID required"
-        ],
-        "badge": "Student"
-      },
-      "founder": {
-        "name": "Founder",
-        "price": "$199.99 / once",
-        "headline": "Lifetime access + Exclusive badge",
-        "features": [
-          "One-time payment, forever access",
-          "Exclusive Founder Badge",
-          "Direct developer access"
-        ],
-        "badge": "Limited"
-      },
-      "finePrint": "You can change plans or cancel anytime from Settings.",
-      "forever": "forever",
-      "month": "mo",
-      "year": "yr",
-      "monthly": "Monthly",
-      "yearly": "Yearly",
-      "included": "Included",
-      "bestValue": "Best Value",
-      "studentBadge": "Student",
-      "freeHeadline": "Get started with the essentials",
-      "monthlyHeadline": "Flexible billing",
-      "yearlyHeadline": "Best value — save 33%",
-      "studentHeadline": "Special student pricing",
-      "founderHeadline": "Lifetime access + Exclusive badge",
-      "founderBadge": "Limited",
-      "features": {
-        "analysis3": "AI food analysis (3/day)",
-        "tracking": "Daily calorie tracking",
-        "basicStats": "Basic statistics",
-        "unlimited": "Unlimited AI analysis",
-        "insights": "Advanced nutrition insights",
-        "coaching": "Personalized coaching",
-        "support": "Priority support",
-        "everything": "Everything in Monthly",
-        "webinars": "Exclusive webinars",
-        "earlyAccess": "Early access to features",
-        "verification": "Student ID required",
-        "lifetime": "One-time payment, forever access",
-        "badge": "Exclusive Founder Badge",
-        "priority": "Direct developer access"
-      }
-    },
     "summary": "Your choices",
     "summarySubtitle": "Review your information",
     "support": "We care about you",
@@ -387,6 +393,19 @@
     "error": "Failed to send request"
   },
   "dashboard": {
+    "activeDiet": {
+      "streak_count": "Streak count",
+      "title": "Your diet",
+      "streak": "days streak",
+      "streak_count_one": "{{count}} day streak",
+      "streak_count_other": "{{count}} days streak",
+      "progress": "Today's progress",
+      "completed": "completed",
+      "daysLeft": "Days left",
+      "openTracker": "Open tracker",
+      "noDiet": "Choose a diet",
+      "browseDiets": "Browse diets"
+    },
     "title": "Dashboard",
     "calories": "calories",
     "caloriesUnit": "kcal",
@@ -396,16 +415,6 @@
     "carbs": "Carbs",
     "fat": "Fat",
     "quickStats": "Quick Stats",
-    "activeDiet": {
-      "title": "Your diet",
-      "streak": "days streak",
-      "progress": "Today's progress",
-      "completed": "completed",
-      "daysLeft": "Days left",
-      "openTracker": "Open tracker",
-      "noDiet": "Choose a diet",
-      "browseDiets": "Browse diets"
-    },
     "articles": "Articles",
     "aiAssistant": "AI Assistant",
     "aiAssistantSubtitle": "Get personalized nutrition advice",
@@ -707,6 +716,110 @@
     }
   },
   "profile": {
+    "goal": "Goal",
+    "goalValue": "Current Goal",
+    "activityLevel": "Activity Level",
+    "personalization": "Personalization",
+    "plan": "Plan",
+    "sync": "Sync",
+    "settings": "Settings",
+    "units": "Units",
+    "savePhotos": "Save Photos",
+    "about": "About",
+    "faq": "FAQ",
+    "bmiUnderweight": "Underweight",
+    "bmiNormal": "Normal",
+    "bmiOverweight": "Overweight",
+    "bmiObesity": "Obesity",
+    "planUpdatedTitle": "Plan Updated",
+    "planUpdatedMessage": "Your plan has been successfully updated.",
+    "planUpdateError": "Failed to update plan.",
+    "metricBmi": "BMI",
+    "medications": "Medications",
+    "medicationsSubtitle": "Manage your schedule",
+    "supportLink": "Contact Support",
+    "savingButton": "Saving...",
+    "applyPlan": "Apply Plan",
+    "selectTime": "Select Time",
+    "tabs": {
+      "profile": "Profile",
+      "personalization": "Personalization",
+      "settings": "Settings",
+      "about": "About",
+      "faq": "FAQ"
+    },
+    "health": {
+      "chronotype": {
+        "early": "Early Bird",
+        "mid": "Intermediate",
+        "late": "Night Owl"
+      },
+      "drugType": {
+        "semaglutide": "Semaglutide",
+        "tirzepatide": "Tirzepatide",
+        "liraglutide": "Liraglutide"
+      },
+      "advanced": "Advanced Settings",
+      "show": "Show",
+      "hide": "Hide",
+      "metabolic": "Metabolic Parameters",
+      "sleep": "Sleep & Circadian Rhythms",
+      "eatingBehavior": "Eating Behavior",
+      "glp1Module": "GLP-1 Module",
+      "healthFocus": "Health Focus Areas",
+      "bodyFatPercent": "Body Fat %",
+      "waistCm": "Waist Circumference",
+      "hipCm": "Hip Circumference",
+      "whr": "WHR (Waist / Hip)",
+      "auto": "auto",
+      "fatDistributionType": "Fat Distribution Type",
+      "fatDistribution": {
+        "visceral": "Visceral",
+        "gynoid": "Gynoid",
+        "mixed": "Mixed"
+      },
+      "mealsPerDay": "Meals per Day",
+      "snackingTendency": "Snacking Tendency",
+      "snacking": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "eveningAppetite": "Evening Appetite",
+      "sleepHours": "Sleep (hours)",
+      "chronotypeOptions": {
+        "early": "Early",
+        "mid": "Mid",
+        "late": "Late"
+      },
+      "isGlp1User": "GLP-1 User",
+      "therapyGoal": "Therapy Goal",
+      "therapyGoalOptions": {
+        "preserve_muscle": "Preserve Muscle",
+        "appetite_control": "Appetite Control",
+        "weight_maintenance": "Weight Maintenance",
+        "slow_weight_loss": "Slow Weight Loss"
+      },
+      "focus": {
+        "sugarControl": "Sugar Control",
+        "cholesterol": "Cholesterol",
+        "inflammation": "Inflammation",
+        "iron": "Iron",
+        "microbiome": "Microbiome",
+        "hormonalBalance": "Hormonal Balance"
+      },
+      "fatLabel": "fat",
+      "sleepLabel": "Sleep",
+      "waistLabel": "Waist",
+      "noData": "No data",
+      "focusAreas": "Focus",
+      "clearData": "Clear Health Data",
+      "clearTitle": "Clear Health Data",
+      "clearMessage": "Are you sure you want to clear all health parameters? This action cannot be undone.",
+      "cleared": "Health data cleared",
+      "chronotypeLabel": "Chronotype",
+      "drugTypeLabel": "Drug Type"
+    },
     "title": "Profile",
     "welcomeBack": "Welcome back",
     "defaultName": "Guest",
@@ -832,68 +945,6 @@
     "noData": "No data",
     "policyError": "Failed to open policy",
     "termsError": "Failed to open terms",
-    "health": {
-      "advanced": "Advanced Settings",
-      "show": "Show",
-      "hide": "Hide",
-      "metabolic": "Metabolic Parameters",
-      "sleep": "Sleep & Circadian Rhythms",
-      "eatingBehavior": "Eating Behavior",
-      "glp1Module": "GLP-1 Module",
-      "healthFocus": "Health Focus Areas",
-      "bodyFatPercent": "Body Fat %",
-      "waistCm": "Waist Circumference",
-      "hipCm": "Hip Circumference",
-      "whr": "WHR (Waist / Hip)",
-      "auto": "auto",
-      "fatDistributionType": "Fat Distribution Type",
-      "fatDistribution": {
-        "visceral": "Visceral",
-        "gynoid": "Gynoid",
-        "mixed": "Mixed"
-      },
-      "mealsPerDay": "Meals per Day",
-      "snackingTendency": "Snacking Tendency",
-      "snacking": {
-        "low": "Low",
-        "medium": "Medium",
-        "high": "High"
-      },
-      "eveningAppetite": "Evening Appetite",
-      "sleepHours": "Sleep (hours)",
-      "chronotype": "Chronotype",
-      "chronotypeOptions": {
-        "early": "Early",
-        "mid": "Mid",
-        "late": "Late"
-      },
-      "isGlp1User": "GLP-1 User",
-      "drugType": "Drug Type",
-      "therapyGoal": "Therapy Goal",
-      "therapyGoalOptions": {
-        "preserve_muscle": "Preserve Muscle",
-        "appetite_control": "Appetite Control",
-        "weight_maintenance": "Weight Maintenance",
-        "slow_weight_loss": "Slow Weight Loss"
-      },
-      "focus": {
-        "sugarControl": "Sugar Control",
-        "cholesterol": "Cholesterol",
-        "inflammation": "Inflammation",
-        "iron": "Iron",
-        "microbiome": "Microbiome",
-        "hormonalBalance": "Hormonal Balance"
-      },
-      "fatLabel": "fat",
-      "sleepLabel": "Sleep",
-      "waistLabel": "Waist",
-      "noData": "No data",
-      "focusAreas": "Focus",
-      "clearData": "Clear Health Data",
-      "clearTitle": "Clear Health Data",
-      "clearMessage": "Are you sure you want to clear all health parameters? This action cannot be undone.",
-      "cleared": "Health data cleared"
-    },
     "notificationsDailyEnabled": "Notifications Daily Enabled"
   },
   "camera": {
@@ -993,6 +1044,12 @@
     "medications": "Medications"
   },
   "experts": {
+    "dietitian": {
+      "title": "Dietitian"
+    },
+    "nutritionist": {
+      "title": "Nutritionist"
+    },
     "title": "Expert Consultations",
     "subtitle": "Connect with certified dietitians and nutritionists for personal consultations. Coming soon!",
     "comingSoonTitle": "Expert Consultations",
@@ -1026,12 +1083,6 @@
     "languages": "Languages",
     "recentReviews": "Recent Reviews",
     "switchRole": "Switch",
-    "dietitian": {
-      "title": "Dietitian"
-    },
-    "nutritionist": {
-      "title": "Nutritionist"
-    },
     "expertLabel": "Expert",
     "tabs": {
       "specialists": "Specialists",
@@ -1174,6 +1225,152 @@
     "error": "Failed to block user"
   },
   "diets": {
+    "groups": {
+      "popular": "Popular",
+      "health": "Health",
+      "weight_loss": "Weight Loss",
+      "performance": "Performance",
+      "medical": "Medical",
+      "seasonal": "Seasonal"
+    },
+    "filters": {
+      "all": "All",
+      "weight_loss": "Weight Loss",
+      "health": "Health",
+      "sports": "Sports",
+      "medical": "Medical",
+      "difficulty": {
+        "title": "Difficulty",
+        "easy": "Easy",
+        "moderate": "Moderate",
+        "hard": "Hard"
+      }
+    },
+    "labels": {
+      "featured": "Popular Diets",
+      "recommended": "Recommended for You",
+      "recommended_description": "Based on your profile and eating habits",
+      "browse": "Browse All",
+      "no_diets": "No diets found",
+      "days": "days"
+    },
+    "detail": {
+      "how_it_works": "How it works",
+      "items_allowed": "What you can eat",
+      "items_restricted": "Best to avoid",
+      "daily_tracker": "Daily Tracker",
+      "daily_tracker_preview": "Daily Tracker Preview",
+      "tracker_preview_hint": "Track your daily progress with this checklist",
+      "more_items": "more items",
+      "not_for": "Not recommended for",
+      "medical_note": "This is a medical diet. Please consult with your doctor before starting.",
+      "start_program": "Start Program",
+      "view_schedule": "View Schedule"
+    },
+    "tags": {
+      "1920s": "1920s",
+      "1950s": "1950s",
+      "1960s": "1960s",
+      "1970s": "1970s",
+      "1980s": "1980s",
+      "aesthetic": "Aesthetic",
+      "allergy": "Allergy Friendly",
+      "autumn": "Autumn",
+      "b12": "Vitamin B12",
+      "balanced": "Balanced",
+      "beginner_friendly": "Beginner Friendly",
+      "blood_pressure": "Blood Pressure",
+      "brain_health": "Brain Health",
+      "breakfast": "Breakfast",
+      "brunch": "Brunch",
+      "business": "Business",
+      "celiac": "Celiac Safe",
+      "central_asian": "Central Asian",
+      "classic": "Classic",
+      "clean_eating": "Clean Eating",
+      "cognitive": "Cognitive",
+      "comfort": "Comfort Food",
+      "cultural": "Cultural",
+      "discipline": "Discipline",
+      "disco": "Disco",
+      "elegant": "Elegant",
+      "elimination": "Elimination",
+      "evidence_based": "Evidence Based",
+      "fasting": "Fasting",
+      "fat_loss": "Fat Loss",
+      "feast": "Feast",
+      "fermented": "Fermented",
+      "fiber": "Fiber Rich",
+      "fish": "Fish",
+      "flexible": "Flexible",
+      "french": "French",
+      "fresh": "Fresh",
+      "fun": "Fun",
+      "gatsby": "Gatsby",
+      "glamour": "Glamour",
+      "gut_health": "Gut Health",
+      "harvest": "Harvest",
+      "heart_healthy": "Heart Healthy",
+      "historical": "Historical",
+      "history": "History",
+      "hollywood": "Hollywood",
+      "home_cooking": "Home Cooking",
+      "immune": "Immunity",
+      "intuitive": "Intuitive",
+      "japanese": "Japanese",
+      "kazakh": "Kazakh",
+      "light": "Light",
+      "longevity": "Longevity",
+      "low_carb": "Low Carb",
+      "lunch": "Lunch",
+      "macros": "Macros",
+      "medical": "Medical",
+      "mediterranean": "Mediterranean",
+      "mindful": "Mindful",
+      "minimalist": "Minimalist",
+      "mod": "Mod",
+      "morning": "Morning",
+      "muscle": "Muscle Gain",
+      "no_dairy": "Dairy Free",
+      "no_grains": "Grain Free",
+      "old_money": "Old Money",
+      "omega3": "Omega-3",
+      "party": "Party",
+      "plant_based": "Plant Based",
+      "pleasure": "Pleasure",
+      "popular": "Popular",
+      "power": "Power",
+      "proper": "Proper Nutrition",
+      "protein": "High Protein",
+      "public_figure": "Public Figure",
+      "pumpkin": "Pumpkin",
+      "relaxed": "Relaxed",
+      "religious": "Religious",
+      "requires_supervision": "Requires Supervision",
+      "reset": "Reset",
+      "scandinavian": "Scandinavian",
+      "seafood": "Seafood",
+      "seasonal": "Seasonal",
+      "short_term": "Short Term",
+      "simple": "Simple",
+      "skin": "Skin Health",
+      "social": "Social",
+      "sports": "Sports",
+      "spring": "Spring",
+      "summer": "Summer",
+      "sustainable": "Sustainable",
+      "therapeutic": "Therapeutic",
+      "tracking": "Tracking",
+      "vacation": "Vacation",
+      "vintage": "Vintage",
+      "visual": "Visual",
+      "weekend": "Weekend",
+      "weight_loss": "Weight Loss",
+      "whole_foods": "Whole Foods",
+      "winter": "Winter",
+      "yacht": "Yacht Life",
+      "youthful": "Youthful"
+    },
     "tracker": {
       "days": "days"
     },
@@ -1189,6 +1386,8 @@
     "medical_note": "This diet may have contraindications. Consult a healthcare professional before starting."
   },
   "dietPrograms": {
+    "startTrialTitle": "Start your journey",
+    "startTrialBody": "Join this program today",
     "mealTypes": {
       "breakfast": "Breakfast",
       "lunch": "Lunch",
@@ -1252,94 +1451,16 @@
     "shareMessage": "Hey! I'm giving you 7 days of Pro: {{link}}"
   },
   "terms": {
+    "sections": "Sections",
     "title": "Terms of Service",
     "lastUpdated": "Last updated",
-    "intro": "Please read these Terms of Service carefully before using EatSense.",
-    "sections": {
-      "acceptance": {
-        "title": "1. Acceptance of Terms",
-        "content": "By using EatSense, you agree to these Terms of Service. If you do not agree with these terms, please do not use the application."
-      },
-      "description": {
-        "title": "2. Service Description",
-        "content": "EatSense provides tools for nutrition tracking, food analysis, and personalized nutrition recommendations using artificial intelligence."
-      },
-      "registration": {
-        "title": "3. Registration and Account",
-        "content": "You are responsible for maintaining the confidentiality of your account credentials. You agree to immediately notify us of any unauthorized use of your account."
-      },
-      "userContent": {
-        "title": "4. User Content",
-        "content": "You retain ownership of content you upload. By uploading content, you grant us a license to use it for providing services and improving the application."
-      },
-      "prohibited": {
-        "title": "5. Prohibited Uses",
-        "content": "You may not use the service for illegal purposes, to harm others, or to violate any laws or regulations."
-      },
-      "intellectual": {
-        "title": "6. Intellectual Property",
-        "content": "All content, features, and functionality of EatSense are owned by us and protected by copyright and other intellectual property laws."
-      },
-      "limitation": {
-        "title": "7. Limitation of Liability",
-        "content": "EatSense is provided 'as is' without warranties. We are not liable for any damages arising from use of the application."
-      },
-      "changes": {
-        "title": "8. Changes to Terms",
-        "content": "We reserve the right to modify these terms at any time. Continued use of the application after changes constitutes acceptance of the new terms."
-      },
-      "contact": {
-        "title": "9. Contact",
-        "content": "For questions about these Terms of Service, please contact: legal@eatsense.ch"
-      }
-    }
+    "intro": "Please read these Terms of Service carefully before using EatSense."
   },
   "privacy": {
+    "sections": "Sections",
     "title": "Privacy Policy",
     "lastUpdated": "Last updated",
-    "intro": "EatSense values your privacy. This policy describes how we collect, use, and protect your information.",
-    "sections": {
-      "collection": {
-        "title": "1. Information Collection",
-        "content": "We collect information you provide during registration and app use, including personal data, nutrition information, and food photos."
-      },
-      "usage": {
-        "title": "2. Information Usage",
-        "content": "Your information is used to provide personalized nutrition recommendations, food analysis, and to improve the application."
-      },
-      "protection": {
-        "title": "3. Data Protection",
-        "content": "We use modern encryption and secure data storage methods to protect your personal information."
-      },
-      "sharing": {
-        "title": "4. Data Sharing",
-        "content": "We do not sell your personal information. We may share anonymized data with partners to improve services."
-      },
-      "changes": {
-        "title": "5. Changes to this Policy",
-        "content": "We will notify you of significant changes to this privacy policy through the app or email before they take effect."
-      },
-      "cookies": {
-        "title": "6. Cookies and Tracking",
-        "content": "We use cookies and similar technologies to remember preferences, measure performance, and improve the experience. You can control cookies in your device settings."
-      },
-      "children": {
-        "title": "7. Children's Privacy",
-        "content": "EatSense is not intended for children under 13. We do not knowingly collect data from children. If we learn we have, we will delete it promptly."
-      },
-      "rights": {
-        "title": "8. Your Rights",
-        "content": "Depending on your region, you may have rights to access, update, delete, or restrict processing of your data. Contact us to exercise these rights."
-      },
-      "choices": {
-        "title": "9. Your Choices",
-        "content": "You can manage your privacy preferences in the app settings. You may request a copy or deletion of your data at any time."
-      },
-      "contact": {
-        "title": "10. Contact",
-        "content": "For privacy-related questions, please contact privacy@eatsense.ch"
-      }
-    }
+    "intro": "EatSense values your privacy. This policy describes how we collect, use, and protect your information."
   },
   "analysisFlow": {
     "uploadPhoto": "Upload Photo",
@@ -1504,34 +1625,35 @@
   "subscription": {
     "title": "Premium",
     "subtitle": "Unlock all features and enjoy unlimited access",
+    "loadingPrices": "Loading prices...",
+    "plan_monthly": "Monthly",
+    "plan_yearly": "Yearly",
+    "plan_student": "Student",
+    "plan_founders": "Founder",
     "freePlan": "Free Plan",
     "freePlanIncluded": "Currently active",
     "free": "Free",
     "freeFeature1": "3 analyses per day",
     "freeFeature2": "Basic nutrition tracking",
     "upgradeToPremium": "Upgrade to Premium",
+    "feature_unlimited_analyses": "Unlimited food analysis",
+    "feature_detailed_reports": "Detailed nutrition reports",
+    "feature_ai_chat": "AI Nutrition Assistant",
+    "most_popular": "BEST VALUE",
+    "lifetime": "LIFETIME",
+    "student": "STUDENT",
     "studentToggle": "I am a student",
     "studentHint": "Show student discount",
-    "restore": "Restore Purchases",
+    "restorePurchases": "Restore Purchases",
+    "restored": "Restored",
     "purchasesRestored": "Your purchases have been restored.",
     "noPurchases": "No Purchases",
     "noPurchasesFound": "No previous purchases found.",
     "restoreFailed": "Could not restore purchases.",
     "planNotFound": "Plan not found",
     "purchaseFailed": "Purchase failed. Please try again.",
-    "feature_unlimited_analyses": "Unlimited food analysis",
-    "feature_detailed_reports": "Detailed nutrition reports",
-    "feature_ai_chat": "AI Nutrition Assistant",
-    "lifetime": "LIFETIME",
-    "most_popular": "BEST VALUE",
-    "plan_monthly": "Monthly",
-    "plan_yearly": "Yearly",
-    "plan_student": "Student",
-    "plan_founders": "Founder",
-    "student": "STUDENT",
-    "restored": "Restored",
-    "restorePurchases": "Restore Purchases",
-    "terms_notice": "Cancel anytime. Terms apply.",
+    "terms_notice": "Cancel anytime from Settings.",
+    "restore": "Restore Purchases",
     "studentVerificationTitle": "Student Discount",
     "studentVerificationDescription": "Upload a photo of your student ID to get a discount"
   },
@@ -1594,6 +1716,12 @@
     "mealDistribution": "Meal Distribution"
   },
   "reports": {
+    "error": {
+      "generic": "Error generating report",
+      "noDirectory": "Download not available in Expo Go.",
+      "network": "Network error.",
+      "openFailed": "Failed to open report file."
+    },
     "title": "Reports",
     "subtitle": "Track your monthly progress",
     "monthly": {
@@ -1608,13 +1736,7 @@
     "downloaded": "Report downloaded successfully",
     "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
     "deleteConfirm": "Delete this report from history?",
-    "fileSaved": "Report saved",
-    "error": {
-      "noDirectory": "No Directory",
-      "generic": "Failed to generate monthly report. Please try again later.",
-      "network": "Network error. Please check your connection and try again.",
-      "openFailed": "Failed to open report file. Please try again."
-    }
+    "fileSaved": "Report saved"
   },
   "legal": {
     "title": "Legal & Policies",
@@ -1646,16 +1768,20 @@
     }
   },
   "medications": {
-    "title": "Medication schedule",
-    "subtitle": "Manage your medication schedule",
-    "tabTitle": "Medications",
     "error": {
+      "invalidTime": "Invalid time format",
       "load": "Failed to load medications",
       "save": "Failed to save medication",
       "delete": "Failed to delete medication",
       "nameRequired": "Medication name is required",
       "endDateBeforeStart": "End date must be after start date"
     },
+    "schedule": "Schedule",
+    "supply": "Supply",
+    "notes": "Notes",
+    "title": "Medication schedule",
+    "subtitle": "Manage your medication schedule",
+    "tabTitle": "Medications",
     "empty": "No medications yet. Add your first one.",
     "noDoses": "No times specified",
     "edit": "Edit medication",
@@ -1762,6 +1888,8 @@
     "openApp": "Open App"
   },
   "errorBoundary": {
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred",
     "crashed": "App crashed",
     "tryAgain": "Try Again",
     "debugMessage": "Debug screen. Collecting stack trace."
@@ -1879,7 +2007,7 @@
   "diets_groups_popular": "Popular",
   "diets_groups_health": "Health",
   "diets_groups_weight_loss": "Weight Loss",
-  "diets_groups_performance": "Sports & Performance",
+  "diets_groups_performance": "Performance",
   "diets_groups_medical": "Medical",
   "diets_groups_historical": "Historical",
   "diets_groups_seasonal": "Seasonal",
@@ -1918,7 +2046,7 @@
   "diets_celebration_goodSubtext": "Every step counts!",
   "diets_symptoms_scale_hint": "Scale_hint",
   "diets_symptoms_title": "Title",
-  "diets_daily_tracker_preview": "Daily Tracker",
+  "diets_daily_tracker_preview": "Daily Tracker Preview",
   "diets_tracker_preview_hint": "Track your daily progress with this checklist",
   "diets_evidence_high": "Strong evidence",
   "diets_evidence_medium": "Moderate evidence",
@@ -1936,6 +2064,7 @@
   "diets_tabs_lifestyle": "Lifestyle",
   "lifestyles": {
     "categories": {
+      "all": "All",
       "TRENDING": "Trending",
       "GOAL_LOSE_WEIGHT": "Weight Loss",
       "GOAL_BUILD_MUSCLE": "Build Muscle",
@@ -1946,6 +2075,9 @@
       "WARRIOR_MODE": "Warrior Mode",
       "SEASONAL": "Seasonal"
     },
+    "trending": "Trending Now",
+    "startTrialTitle": "Start Lifestyle",
+    "startTrialBody": "Begin this lifestyle program",
     "filters_target_label": "Target:",
     "filters_target_all": "All",
     "filters_target_male": "Men",
@@ -3312,5 +3444,32 @@
         "shortDescription": "Power business eating"
       }
     }
+  },
+  "consultations": {
+    "status_active": "Active",
+    "status_completed": "Completed",
+    "status_cancelled": "Cancelled",
+    "no_messages": "No messages yet",
+    "start_conversation": "Start Conversation",
+    "type_message": "Type a message..."
+  },
+  "paywall": {
+    "title": "Unlock Full Access",
+    "subtitle": "Get the most out of EatSense",
+    "unlockFeature": "Unlock this feature",
+    "freeTrial": "Start Free Trial",
+    "recommended": "Recommended",
+    "startTrial": "Start 7-Day Free Trial",
+    "finePrint": "Cancel anytime. Billed annually.",
+    "features": {
+      "unlimited": "Unlimited Analysis",
+      "diets": "All Diets & Plans",
+      "insights": "Health Insights",
+      "support": "Priority Support"
+    }
+  },
+  "featureFlags": {
+    "title": "Feature Flags",
+    "subtitle": "Manage experimental features"
   }
 }

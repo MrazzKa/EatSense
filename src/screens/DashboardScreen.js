@@ -59,12 +59,34 @@ export default function DashboardScreen() {
   const { activeProgram, loadProgress } = useProgramProgress();
 
   // FIX: Define missing variable used by the widget
+  // Ensure diet object has proper name structure for ActiveDietWidget
   const activeDietForWidget = useMemo(() => {
     if (!activeProgram) return null;
+
+    // Build diet object with proper name structure
+    const programMeta = activeProgram.programMetadata || activeProgram.diet || {};
+    const dietObject = {
+      ...programMeta,
+      id: activeProgram.programId,
+      // FIX: Ensure name is available - use programName from progress data
+      name: programMeta.name || activeProgram.programName || {
+        en: activeProgram.type === 'lifestyle' ? 'Lifestyle' : 'Diet',
+        ru: activeProgram.type === 'lifestyle' ? 'Стиль жизни' : 'Диета'
+      },
+    };
+
+    // Get today's progress for the widget
+    const todayProgress = activeProgram.todayLog ? {
+      completed: activeProgram.todayLog.completedCount || 0,
+      total: activeProgram.todayLog.totalCount || 0,
+    } : { completed: 0, total: 0 };
+
     return {
       ...activeProgram,
-      diet: activeProgram.programMetadata || activeProgram.diet,
-      progress: activeProgram.progress || activeProgram,
+      diet: dietObject,
+      todayProgress,
+      totalDays: activeProgram.durationDays,
+      currentDay: activeProgram.currentDayIndex,
     };
   }, [activeProgram]);
 

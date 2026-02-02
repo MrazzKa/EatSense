@@ -82,7 +82,7 @@ const diets = [
         tips: {
             en: ['Use olive oil as your primary fat source', 'Eat fish at least twice a week', 'Enjoy meals with family'],
             ru: ['Используйте оливковое масло', 'Ешьте рыбу минимум два раза в неделю', 'Наслаждайтесь едой в кругу семьи'],
-            kk: ['Зәйтүн майын негізгі май көзі ретінде пайдаланыңыз', 'Аптасына кем дегенде екі рет балық жеңіз'],
+            kk: ['Зәйтүн майын негізгі май көзі ретінде пайдаланыңыз', 'Аптасына кем дегенде екі рет балық жеңіз', 'Отбасымен бірге тамақтаныңыз'],
             fr: ['Utilisez l\'huile d\'olive comme principale source de lipides', 'Mangez du poisson au moins deux fois par semaine', 'Prenez les repas en famille'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80',
@@ -158,8 +158,8 @@ const diets = [
         macroSplit: { protein: 18, carbs: 55, fat: 27 },
         tips: {
             en: ['Read labels for sodium content', 'Use herbs instead of salt', 'Choose whole grains over refined'],
-            ru: ['Читайте этикетки на содержание натрия', 'Используйте травы вместо соли'],
-            kk: ['Натрий мөлшері үшін жапсырмаларды оқыңыз', 'Тұздың орнына шөптерді қолданыңыз'],
+            ru: ['Читайте этикетки на содержание натрия', 'Используйте травы вместо соли', 'Выбирайте цельные злаки вместо рафинированных'],
+            kk: ['Натрий мөлшері үшін жапсырмаларды оқыңыз', 'Тұздың орнына шөптерді қолданыңыз', 'Өңделген дәндерден гөрі тұтас дәндерді таңдаңыз'],
             fr: ['Lisez les étiquettes pour le sodium', 'Utilisez des herbes au lieu de sel', 'Préférez les céréales complètes'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80',
@@ -231,8 +231,8 @@ const diets = [
         macroSplit: { protein: 20, carbs: 50, fat: 30 },
         tips: {
             en: ['Eat leafy greens daily', 'Have berries at least twice a week', 'Limit red meat to 4 servings per week'],
-            ru: ['Ешьте зелень ежедневно', 'Ягоды минимум дважды в неделю'],
-            kk: ['Күн сайын жасылдар жеңіз', 'Аптасына кем дегенде екі рет жидек жеңіз'],
+            ru: ['Ешьте зелень ежедневно', 'Ягоды минимум дважды в неделю', 'Ограничьте красное мясо до 4 порций в неделю'],
+            kk: ['Күн сайын жасылдар жеңіз', 'Аптасына кем дегенде екі рет жидек жеңіз', 'Қызыл етті аптасына 4 порцияға дейін шектеңіз'],
             fr: ['Verts à feuilles quotidiennement', 'Baies au moins 2×/semaine', 'Viande rouge max 4 portions/semaine'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&q=80',
@@ -509,7 +509,7 @@ const diets = [
         tips: {
             en: ['Start with breakfast at 8am, finish dinner by 6pm', 'Black coffee and tea are OK during fasting'],
             ru: ['Начните с завтрака в 8:00, ужин до 18:00', 'Чёрный кофе и чай можно во время голодания'],
-            kk: ['Таңғы асты 8:00-де бастаңыз, кешкі асты 18:00-ге дейін аяқтаңыз'],
+            kk: ['Таңғы асты 8:00-де бастаңыз, кешкі асты 18:00-ге дейін аяқтаңыз', 'Қара кофе мен шай аштық кезінде бола береді'],
             fr: ['Petit-déj à 8 h, dîner avant 18 h', 'Café et thé sans sucre OK pendant le jeûne'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=800&q=80',
@@ -590,7 +590,7 @@ const diets = [
         tips: {
             en: ['Start with 14:10 if new to fasting', 'Stay hydrated', 'Break fast with balanced meal'],
             ru: ['Если новичок — начните с 14:10', 'Пейте много воды', 'Прерывайте голодание сбалансированной едой'],
-            kk: ['Жаңа болсаңыз 14:10-дан бастаңыз', 'Көп су ішіңіз'],
+            kk: ['Жаңа болсаңыз 14:10-дан бастаңыз', 'Көп су ішіңіз', 'Аштықты теңгерімді тамақпен аяқтаңыз'],
             fr: ['Commencez par 14:10 si débutant', 'Restez hydraté', 'Rompez le jeûne avec un repas équilibré'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=800&q=80',
@@ -824,7 +824,7 @@ const diets = [
         tips: {
             en: ['Consult a doctor first', 'Monitor ketones', 'Watch for keto flu'],
             ru: ['Сначала консультация врача', 'Следите за кетонами', 'Следите за кето-гриппом'],
-            kk: ['Алдымен дәрігерге кеңесіңіз', 'Кетондарды қадағалаңыз'],
+            kk: ['Алдымен дәрігерге кеңесіңіз', 'Кетондарды қадағалаңыз', 'Кето тұмауынан сақ болыңыз'],
             fr: ['Consulter un médecin d\'abord', 'Surveiller les cétones', 'Attention à la grippe céto'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=800&q=80',
@@ -881,7 +881,7 @@ const diets = [
         tips: {
             en: ['Work with a dietitian', 'Keep a food diary', 'Reintroduce foods one at a time'],
             ru: ['Работайте с диетологом', 'Ведите дневник питания', 'Вводите продукты по одному'],
-            kk: ['Диетологпен жұмыс істеңіз', 'Тамақтану күнделігін жүргізіңіз'],
+            kk: ['Диетологпен жұмыс істеңіз', 'Тамақтану күнделігін жүргізіңіз', 'Тағамдарды бір-бірлеп қайта енгізіңіз'],
             fr: ['Travailler avec un diététicien', 'Tenir un journal alimentaire', 'Réintroduire les aliments un par un'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80',
@@ -940,8 +940,8 @@ const diets = [
         macroSplit: { protein: 20, carbs: 50, fat: 30 },
         tips: {
             en: ['Read all labels carefully', 'Watch for cross-contamination', 'Many naturally GF foods exist'],
-            ru: ['Внимательно читайте этикетки', 'Следите за перекрёстным загрязнением'],
-            kk: ['Барлық жапсырмаларды мұқият оқыңыз', 'Кросс-контаминацияны қадағалаңыз'],
+            ru: ['Внимательно читайте этикетки', 'Следите за перекрёстным загрязнением', 'Существует много натуральных безглютеновых продуктов'],
+            kk: ['Барлық жапсырмаларды мұқият оқыңыз', 'Кросс-контаминацияны қадағалаңыз', 'Табиғи глютенсіз тағамдар көп'],
             fr: ['Lire toutes les étiquettes', 'Attention à la contamination croisée', 'Beaucoup d\'aliments naturellement SG'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80',
@@ -1003,8 +1003,8 @@ const diets = [
         macroSplit: { protein: 15, carbs: 60, fat: 25 },
         tips: {
             en: ['Try farro and lentils', 'Use olive oil generously', 'Eat simple, seasonal foods'],
-            ru: ['Попробуйте полбу и чечевицу', 'Щедро используйте оливковое масло'],
-            kk: ['Полба мен жасымықты қолданып көріңіз', 'Зәйтүн майын мол пайдаланыңыз'],
+            ru: ['Попробуйте полбу и чечевицу', 'Щедро используйте оливковое масло', 'Ешьте простую, сезонную еду'],
+            kk: ['Полба мен жасымықты қолданып көріңіз', 'Зәйтүн майын мол пайдаланыңыз', 'Қарапайым, маусымдық тағамдарды жеңіз'],
             fr: ['Essayez épeautre et lentilles', 'Huile d\'olive généreusement', 'Manger simple et de saison'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
@@ -1068,8 +1068,8 @@ const diets = [
         macroSplit: { protein: 25, carbs: 50, fat: 25 },
         tips: {
             en: ['Embrace simplicity', 'Eat to fuel, not for entertainment', 'Practice discipline'],
-            ru: ['Примите простоту', 'Ешьте для топлива, не для развлечения'],
-            kk: ['Қарапайымдылықты қабылдаңыз', 'Ойын-сауық үшін емес, отын үшін жеңіз'],
+            ru: ['Примите простоту', 'Ешьте для топлива, не для развлечения', 'Практикуйте дисциплину'],
+            kk: ['Қарапайымдылықты қабылдаңыз', 'Ойын-сауық үшін емес, отын үшін жеңіз', 'Тәртіпке дағдыланыңыз'],
             fr: ['Embrassez la simplicité', 'Manger pour carburer, pas pour le plaisir', 'Pratiquer la discipline'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80',
@@ -1134,7 +1134,7 @@ const diets = [
         tips: {
             en: ['Focus on fatty fish for omega-3', 'Try seasonal berries', 'This is an adaptation, not authentic'],
             ru: ['Фокус на жирной рыбе для омега-3', 'Попробуйте сезонные ягоды', 'Это адаптация, не аутентичный рецепт'],
-            kk: ['Омега-3 үшін майлы балыққа назар аударыңыз', 'Маусымдық жидектерді қолданып көріңіз'],
+            kk: ['Омега-3 үшін майлы балыққа назар аударыңыз', 'Маусымдық жидектерді қолданып көріңіз', 'Бұл түпнұсқа емес, бейімделген нұсқа'],
             fr: ['Privilégier les poissons gras (oméga-3)', 'Baies de saison', 'Adaptation, pas authentique'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
@@ -1193,8 +1193,8 @@ const diets = [
         macroSplit: { protein: 30, carbs: 30, fat: 40 },
         tips: {
             en: ['Try kefir or yogurt', 'This is adapted for modern diet', 'Focus on quality protein'],
-            ru: ['Попробуйте кефир или йогурт', 'Это адаптация для современного рациона'],
-            kk: ['Кефир немесе йогуртты қолданып көріңіз', 'Бұл заманауи рационға бейімделген'],
+            ru: ['Попробуйте кефир или йогурт', 'Это адаптация для современного рациона', 'Фокус на качественном белке'],
+            kk: ['Кефир немесе йогуртты қолданып көріңіз', 'Бұл заманауи рационға бейімделген', 'Сапалы ақуызға назар аударыңыз'],
             fr: ['Essayez kéfir ou yaourt', 'Adaptation au régime moderne', 'Qualité des protéines'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80',
@@ -1388,8 +1388,8 @@ const diets = [
         macroSplit: { protein: 30, carbs: 30, fat: 40 },
         tips: {
             en: ['Focus on whole, unprocessed foods', 'Include variety of vegetables', 'Choose grass-fed meat when possible'],
-            ru: ['Фокус на цельных, необработанных продуктах', 'Включайте разнообразные овощи'],
-            kk: ['Тұтас, өңделмеген тағамдарға назар аударыңыз', 'Көкөністердің түрлілігін қосыңыз'],
+            ru: ['Фокус на цельных, необработанных продуктах', 'Включайте разнообразные овощи', 'Выбирайте мясо травяного откорма, если возможно'],
+            kk: ['Тұтас, өңделмеген тағамдарға назар аударыңыз', 'Көкөністердің түрлілігін қосыңыз', 'Мүмкіндігінше шөппен қоректенген мал етін таңдаңыз'],
             fr: ['Privilégier aliments bruts, non transformés', 'Varier les légumes', 'Viande pâturée si possible'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=800&q=80',
@@ -1461,7 +1461,7 @@ const diets = [
         tips: {
             en: ['This is a short-term reset, not forever', 'Plan meals in advance', 'Read all labels carefully'],
             ru: ['Это короткий reset, не навсегда', 'Планируйте еду заранее', 'Читайте все этикетки внимательно'],
-            kk: ['Бұл қысқа мерзімді reset, мәңгілік емес', 'Тамақты алдын ала жоспарлаңыз'],
+            kk: ['Бұл қысқа мерзімді reset, мәңгілік емес', 'Тамақты алдын ала жоспарлаңыз', 'Барлық жапсырмаларды мұқият оқыңыз'],
             fr: ['Reset court terme, pas pour toujours', 'Planifier les repas', 'Lire toutes les étiquettes'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
@@ -1523,8 +1523,8 @@ const diets = [
         macroSplit: { protein: 20, carbs: 55, fat: 25 },
         tips: {
             en: ['Ensure adequate B12 intake (supplement if needed)', 'Combine protein sources', 'Include omega-3 sources like flax, chia, walnuts'],
-            ru: ['Обеспечьте достаточное потребление B12 (добавки при необходимости)', 'Комбинируйте источники белка'],
-            kk: ['Жеткілікті B12 қабылдауын қамтамасыз етіңіз', 'Ақуыз көздерін біріктіріңіз'],
+            ru: ['Обеспечьте достаточное потребление B12 (добавки при необходимости)', 'Комбинируйте источники белка', 'Включайте источники омега-3, такие как лен, чиа, грецкие орехи'],
+            kk: ['Жеткілікті B12 қабылдауын қамтамасыз етіңіз', 'Ақуыз көздерін біріктіріңіз', 'Зығыр, чиа, грек жаңғағы сияқты омега-3 көздерін қосыңыз'],
             fr: ['B12 suffisant (complément si besoin)', 'Combiner les sources de protéines', 'Oméga-3 : lin, chia, noix'],
         },
         imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',

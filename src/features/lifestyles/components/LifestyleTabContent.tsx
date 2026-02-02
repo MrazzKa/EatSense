@@ -153,25 +153,35 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     }
 
     if (selectedTarget) {
-      // FIX #6: Filter by target - handle both 'all' (show all) and specific targets
-      // Normalize comparison to handle case-insensitive matching and synonyms
+      // FIX #8: Filter by target - handle gender filtering with proper synonyms
       if (selectedTarget !== 'all') {
         const targetSynonyms: Record<string, string[]> = {
-          male: ['male', 'men', 'man', 'masculine'],
-          female: ['female', 'women', 'woman', 'feminine'],
+          male: ['male', 'men', 'man', 'masculine', 'мужской', 'мужчины', 'm'],
+          female: ['female', 'women', 'woman', 'feminine', 'женский', 'женщины', 'f'],
+          all: ['all', 'unisex', 'both', 'все', 'universal'],
         };
         const normalizedSelected = selectedTarget.toLowerCase().trim();
         const validTargets = targetSynonyms[normalizedSelected] || [normalizedSelected];
+        const allTargets = targetSynonyms['all'] || ['all'];
 
         result = result.filter(p => {
-          // Handle programs with no target (show for all) or matching target
           const programTarget = (p.target || '').toLowerCase().trim();
 
           // Show program if:
-          // 1. Program has no target (empty/null)
-          // 2. Program target is explicitly 'all'
-          // 3. Program target matches selected target (or synonyms)
-          return !programTarget || programTarget === 'all' || validTargets.includes(programTarget);
+          // 1. Program has no target (implicitly for all)
+          // 2. Program target is explicitly 'all' or universal
+          // 3. Program target matches selected gender
+          if (!programTarget) {
+            return true; // No target = for everyone
+          }
+
+          // Check if program is for all genders
+          if (allTargets.includes(programTarget)) {
+            return true;
+          }
+
+          // Check if program matches selected gender
+          return validTargets.includes(programTarget);
         });
       }
       // If selectedTarget === 'all', show all programs (no filtering)

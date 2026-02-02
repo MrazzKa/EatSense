@@ -1,950 +1,792 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    TouchableOpacity,
+    Modal,
+    TextInput,
+    Platform,
+    ScrollView,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Keyboard,
+    Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { localNotificationService, NotificationCategories } from '../services/localNotificationService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 
+// --- Types ---
+
 type MedicationDose = {
-  id?: string;
-  timeOfDay: string; // "08:00"
-  beforeMeal?: boolean;
-  afterMeal?: boolean;
+    id?: string;
+    timeOfDay: string; // "08:00"
+    beforeMeal?: boolean;
+    afterMeal?: boolean;
 };
 
 type Medication = {
-  id: string;
-  name: string;
-  dosage?: string | null;
-  instructions?: string | null;
-  startDate: string;
-  endDate?: string | null;
-  timezone: string;
-  isActive: boolean;
-  doses: MedicationDose[];
-  quantity?: number | null;
-  remainingStock?: number | null;
-  lowStockThreshold?: number | null;
+    id: string;
+    name: string;
+    dosage?: string | null;
+    instructions?: string | null;
+    startDate: string;
+    endDate?: string | null;
+    timezone: string;
+    isActive: boolean;
+    doses: MedicationDose[];
+    quantity?: number | null;
+    remainingStock?: number | null;
+    lowStockThreshold?: number | null;
+};
+
+// --- Helper Functions ---
+
+const formatTimeInput = (text: string): string => {
+    // Remove non-numeric characters
+    const clean = text.replace(/[^0-9]/g, '');
+    if (clean.length === 0) return '';
+
+    // Auto-insert colon
+    if (clean.length <= 2) return clean;
+    return `${clean.slice(0, 2)}:${clean.slice(2, 4)}`;
+};
+
+const validateTime = (time: string): boolean => {
+    if (!/^\d{2}:\d{2}$/.test(time)) return false;
+    const [h, m] = time.split(':').map(Number);
+    return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+};
+
+// --- Components ---
+
+// 1. Header Component
+const Header = ({ title, onAdd, onBack, colors }: any) => (
+    <View style={[styles.header, { borderBottomColor: colors.border || '#E5E5EA' }]}>
+        <TouchableOpacity
+            onPress={onBack}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.headerButton}
+        >
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary || '#000'} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary || '#000' }]}>
+            {title}
+        </Text>
+        <TouchableOpacity onPress={onAdd} style={styles.headerButton}>
+            <Ionicons name="add" size={28} color={colors.primary} />
+        </TouchableOpacity>
+    </View>
+);
+
+// 2. Medication Card Component
+const MedicationCard = ({ item, onPress, onDelete, colors, t }: any) => {
+    const dosesText = item.doses && item.doses.length
+        ? item.doses.map((d: any) => d.timeOfDay).join(', ')
+        : t('medications.noDoses') || 'No times';
+
+    // Stock logic
+    const dosesPerDay = item.doses?.length || 0;
+    const daysRemaining = item.remainingStock && dosesPerDay > 0
+        ? Math.floor(item.remainingStock / dosesPerDay)
+        : null;
+
+    // Safety check for localization keys in name
+    const displayName = item.name.includes('.') && item.name.includes('_')
+        ? item.name.split('.').pop().replace(/_/g, ' ')
+        : item.name;
+
+    return (
+        <TouchableOpacity
+            style={[
+                styles.card,
+                { backgroundColor: colors.card || '#FFF', shadowColor: colors.shadow || '#000' }
+            ]}
+            onPress={() => onPress(item)}
+            activeOpacity={0.7}
+        >
+            <View style={styles.cardInternal}>
+                <View style={styles.iconContainer}>
+                    <View style={[styles.iconCircle, { backgroundColor: (colors.primary || '#4CAF50') + '20' }]}>
+                        <Ionicons name="medkit" size={20} color={colors.primary || '#4CAF50'} />
+                    </View>
+                </View>
+
+                <View style={styles.cardContent}>
+                    <Text style={[styles.cardTitle, { color: colors.textPrimary || '#000' }]}>
+                        {displayName}
+                    </Text>
+                    {item.dosage ? (
+                        <Text style={[styles.cardSubtitle, { color: colors.textSecondary || '#666' }]}>
+                            {item.dosage}
+                        </Text>
+                    ) : null}
+
+                    <View style={styles.cardFooter}>
+                        <View style={[styles.timeChip, { backgroundColor: (colors.surfaceSecondary || '#F5F5F5') }]}>
+                            <Ionicons name="time-outline" size={12} color={colors.textSecondary || '#666'} />
+                            <Text style={[styles.timeText, { color: colors.textSecondary || '#666' }]}>
+                                {dosesText}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Low Stock Warning */}
+                    {daysRemaining !== null && daysRemaining <= (item.lowStockThreshold || 5) && (
+                        <View style={styles.alertRow}>
+                            <Ionicons name="warning" size={12} color="#FF9500" />
+                            <Text style={[styles.alertText, { color: '#FF9500' }]}>
+                                {t('medications.stock.lowStock') || 'Low stock'} ({daysRemaining}d)
+                            </Text>
+                        </View>
+                    )}
+                </View>
+
+                <TouchableOpacity onPress={() => onDelete(item)} hitSlop={15}>
+                    <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
+                </TouchableOpacity>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+// 3. Edit Modal Component
+const EditMedicationModal = ({
+    visible,
+    medication,
+    onClose,
+    onSave,
+    colors,
+    t
+}: any) => {
+    const [name, setName] = useState('');
+    const [dosage, setDosage] = useState('');
+    const [instructions, setInstructions] = useState('');
+    const [startDate, setStartDate] = useState(''); // YYYY-MM-DD
+    const [endDate, setEndDate] = useState('');
+    const [doses, setDoses] = useState<MedicationDose[]>([]);
+    const [quantity, setQuantity] = useState('');
+    const [remainingStock, setRemainingStock] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    // Initialize form
+    useEffect(() => {
+        if (visible) {
+            if (medication) {
+                setName(medication.name || '');
+                setDosage(medication.dosage || '');
+                setInstructions(medication.instructions || '');
+                setStartDate(medication.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10));
+                setEndDate(medication.endDate?.slice(0, 10) || '');
+                setDoses(medication.doses ? [...medication.doses] : [{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }]);
+                setQuantity(medication.quantity?.toString() || '');
+                setRemainingStock(medication.remainingStock?.toString() || '');
+            } else {
+                // New medication default state
+                setName('');
+                setDosage('');
+                setInstructions('');
+                setStartDate(new Date().toISOString().slice(0, 10));
+                setEndDate('');
+                setDoses([{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }]);
+                setQuantity('');
+                setRemainingStock('');
+            }
+        }
+    }, [visible, medication]);
+
+    const handleAddDose = () => {
+        setDoses([...doses, { timeOfDay: '', beforeMeal: false, afterMeal: false }]);
+    };
+
+    const handleRemoveDose = (index: number) => {
+        const newDoses = [...doses];
+        newDoses.splice(index, 1);
+        setDoses(newDoses);
+    };
+
+    const handleDoseChange = (index: number, field: keyof MedicationDose, value: any) => {
+        const newDoses = [...doses];
+
+        if (field === 'timeOfDay') {
+            // Smart formatting for time input
+            const formatted = formatTimeInput(value);
+            // Validate length limit
+            if (formatted.length > 5) return;
+            newDoses[index] = { ...newDoses[index], [field]: formatted };
+        } else if (field === 'beforeMeal') {
+            newDoses[index] = { ...newDoses[index], beforeMeal: value, afterMeal: false };
+        } else if (field === 'afterMeal') {
+            newDoses[index] = { ...newDoses[index], afterMeal: value, beforeMeal: false };
+        } else {
+            // @ts-ignore
+            newDoses[index] = { ...newDoses[index], [field]: value };
+        }
+        setDoses(newDoses);
+    };
+
+    const handleSaveInternal = async () => {
+        // Validation
+        if (!name.trim()) {
+            Alert.alert(t('common.error'), t('medications.error.nameRequired') || 'Name is required');
+            return;
+        }
+
+        // Validate times
+        for (let i = 0; i < doses.length; i++) {
+            if (!validateTime(doses[i].timeOfDay)) {
+                Alert.alert(t('common.error'), `${t('medications.error.invalidTime') || 'Invalid time'}: ${doses[i].timeOfDay} (Use HH:MM)`);
+                return;
+            }
+        }
+
+        setLoading(true);
+        const payload = {
+            name,
+            dosage,
+            instructions,
+            startDate: new Date(startDate).toISOString(),
+            endDate: endDate ? new Date(endDate).toISOString() : undefined,
+            doses: doses.filter(d => d.timeOfDay).map(d => ({
+                timeOfDay: d.timeOfDay,
+                beforeMeal: !!d.beforeMeal,
+                afterMeal: !!d.afterMeal
+            })),
+            isActive: true, // Default to active
+            quantity: quantity ? parseInt(quantity, 10) : undefined,
+            remainingStock: remainingStock ? parseInt(remainingStock, 10) : undefined,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+        };
+
+        await onSave(payload, medication?.id);
+        setLoading(false);
+    };
+
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E5EA' }]}>
+                    <TouchableOpacity onPress={onClose} style={styles.modalCancelBtn}>
+                        <Text style={{ color: colors.primary, fontSize: 16 }}>{t('common.cancel')}</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                        {medication ? (t('medications.edit') || 'Edit Medication') : (t('medications.add') || 'Add Medication')}
+                    </Text>
+                    <TouchableOpacity onPress={handleSaveInternal} disabled={loading} style={styles.modalSaveBtn}>
+                        {loading ? <ActivityIndicator color={colors.primary} /> : (
+                            <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 16 }}>{t('common.save')}</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
+
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+                    <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
+
+                        {/* Section: Basic Info */}
+                        <View style={[styles.sectionContainer, { backgroundColor: colors.card || '#FFF' }]}>
+                            <View style={styles.inputRow}>
+                                <Text style={[styles.label, { color: colors.textPrimary }]}>{t('medications.fields.name')}</Text>
+                                <TextInput
+                                    style={[styles.input, { color: colors.textPrimary, borderBottomColor: colors.border }]}
+                                    placeholder={t('medications.placeholders.name') || 'e.g. Vitamin C'}
+                                    placeholderTextColor={colors.textTertiary || '#999'}
+                                    value={name}
+                                    onChangeText={setName}
+                                />
+                            </View>
+                            <View style={styles.inputRow}>
+                                <Text style={[styles.label, { color: colors.textPrimary }]}>{t('medications.fields.dosage')}</Text>
+                                <TextInput
+                                    style={[styles.input, { color: colors.textPrimary, borderBottomColor: colors.border }]}
+                                    placeholder={t('medications.placeholders.dosage') || 'e.g. 500mg'}
+                                    placeholderTextColor={colors.textTertiary || '#999'}
+                                    value={dosage}
+                                    onChangeText={setDosage}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Section: Schedule */}
+                        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>{t('medications.schedule') || 'SCHEDULE'}</Text>
+                        <View style={[styles.sectionContainer, { backgroundColor: colors.card || '#FFF', paddingVertical: 8 }]}>
+                            {doses.map((dose, index) => (
+                                <View key={index} style={[styles.doseRow, { borderBottomColor: colors.border }]}>
+                                    <View style={styles.timeInputContainer}>
+                                        <Ionicons name="time-outline" size={20} color={colors.textSecondary} style={{ marginRight: 8 }} />
+                                        <TextInput
+                                            style={[styles.timeInput, { color: colors.textPrimary }]}
+                                            placeholder="08:00"
+                                            placeholderTextColor={colors.textTertiary || '#CCC'}
+                                            keyboardType="number-pad"
+                                            maxLength={5}
+                                            value={dose.timeOfDay}
+                                            onChangeText={(text) => handleDoseChange(index, 'timeOfDay', text)}
+                                        />
+                                    </View>
+
+                                    <View style={styles.doseOptions}>
+                                        <TouchableOpacity
+                                            style={[styles.chip, dose.beforeMeal && { backgroundColor: colors.primary }]}
+                                            onPress={() => handleDoseChange(index, 'beforeMeal', !dose.beforeMeal)}
+                                        >
+                                            <Text style={[styles.chipText, dose.beforeMeal ? { color: '#FFF' } : { color: colors.textSecondary }]}>
+                                                {t('medications.beforeMeal') || 'Before Meal'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.chip, dose.afterMeal && { backgroundColor: colors.primary }]}
+                                            onPress={() => handleDoseChange(index, 'afterMeal', !dose.afterMeal)}
+                                        >
+                                            <Text style={[styles.chipText, dose.afterMeal ? { color: '#FFF' } : { color: colors.textSecondary }]}>
+                                                {t('medications.afterMeal') || 'After Meal'}
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        {doses.length > 1 && (
+                                            <TouchableOpacity onPress={() => handleRemoveDose(index)} style={{ padding: 4 }}>
+                                                <Ionicons name="close-circle" size={20} color={colors.error || '#FF3B30'} />
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                </View>
+                            ))}
+
+                            <TouchableOpacity onPress={handleAddDose} style={styles.addDoseButton}>
+                                <Ionicons name="add-circle" size={22} color={colors.primary} />
+                                <Text style={[styles.addDoseText, { color: colors.primary }]}>{t('medications.addDose') || 'Add another time'}</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Section: Supply Wrapper */}
+                        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>{t('medications.supply') || 'SUPPLY TRACKING'}</Text>
+                        <View style={[styles.sectionContainer, { backgroundColor: colors.card || '#FFF' }]}>
+                            <View style={styles.inputRow}>
+                                <Text style={[styles.label, { color: colors.textPrimary }]}>{t('medications.fields.quantity')}</Text>
+                                <TextInput
+                                    style={[styles.input, { color: colors.textPrimary, borderBottomColor: colors.border }]}
+                                    placeholder={t('medications.placeholders.quantity') || 'Total pills (e.g. 30)'}
+                                    placeholderTextColor={colors.textTertiary || '#999'}
+                                    keyboardType="numeric"
+                                    value={quantity}
+                                    onChangeText={setQuantity}
+                                />
+                            </View>
+                            <View style={styles.inputRow}>
+                                <Text style={[styles.label, { color: colors.textPrimary }]}>{t('medications.fields.remainingStock')}</Text>
+                                <TextInput
+                                    style={[styles.input, { color: colors.textPrimary, borderBottomColor: colors.border }]}
+                                    placeholder={t('medications.placeholders.remainingStock') || 'Current stock'}
+                                    placeholderTextColor={colors.textTertiary || '#999'}
+                                    keyboardType="numeric"
+                                    value={remainingStock}
+                                    onChangeText={setRemainingStock}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Section: Additional Info */}
+                        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>{t('medications.notes') || 'NOTES'}</Text>
+                        <View style={[styles.sectionContainer, { backgroundColor: colors.card || '#FFF' }]}>
+                            <TextInput
+                                style={[styles.textArea, { color: colors.textPrimary, minHeight: 80 }]}
+                                placeholder={t('medications.placeholders.instructions') || 'Notes, instructions...'}
+                                placeholderTextColor={colors.textTertiary || '#999'}
+                                multiline
+                                value={instructions}
+                                onChangeText={setInstructions}
+                            />
+                        </View>
+
+                        <View style={{ height: 100 }} />
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </View>
+        </Modal>
+    );
 };
 
 const MedicationScheduleScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const { colors } = useTheme();
-  const { t } = useI18n();
+    const navigation = useNavigation();
+    const { colors } = useTheme();
+    const { t } = useI18n();
 
-  const [medications, setMedications] = useState<Medication[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+    const [medications, setMedications] = useState<Medication[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  const [editingMed, setEditingMed] = useState<Medication | null>(null);
-  const [isModalVisible, setModalVisible] = useState(false);
+    // Modal state
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [editingMed, setEditingMed] = useState<Medication | null>(null);
 
-  const [formName, setFormName] = useState('');
-  const [formDosage, setFormDosage] = useState('');
-  const [formInstructions, setFormInstructions] = useState('');
-  const [formStartDate, setFormStartDate] = useState('');
-  const [formEndDate, setFormEndDate] = useState('');
-  const [formTimezone, setFormTimezone] = useState('');
-  const [formDoses, setFormDoses] = useState<MedicationDose[]>([]);
-  const [formQuantity, setFormQuantity] = useState<string>('');
-  const [formRemainingStock, setFormRemainingStock] = useState<string>('');
+    const loadMedications = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await ApiService.getMedications();
+            setMedications(data || []);
+            setError(null);
+        } catch (e: any) {
+            console.error('[MedicationSchedule] Load error:', e);
+            setError(t('medications.error.load') || 'Failed to load medications');
+        } finally {
+            setLoading(false);
+        }
+    }, [t]);
 
-  // TimePicker state
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date());
-  const [activeDoseIndex, setActiveDoseIndex] = useState<number | null>(null);
+    useEffect(() => {
+        loadMedications();
+    }, [loadMedications]);
 
-  const loadMedications = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await ApiService.getMedications();
-      setMedications(data || []);
-      setError(null);
-    } catch (e: any) {
-      console.error('[MedicationScheduleScreen] getMedications error', e);
-      setError(t('medications.error.load') || 'Failed to load medications');
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    loadMedications();
-  }, [loadMedications]);
-
-  const openCreateModal = () => {
-    setEditingMed(null);
-    setFormName('');
-    setFormDosage('');
-    setFormInstructions('');
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    setFormStartDate(today);
-    setFormEndDate('');
-    setFormTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
-    setFormDoses([{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }]);
-    setFormQuantity('');
-    setFormRemainingStock('');
-    setModalVisible(true);
-  };
-
-  const openEditModal = (med: Medication) => {
-    setEditingMed(med);
-    setFormName(med.name);
-    setFormDosage(med.dosage || '');
-    setFormInstructions(med.instructions || '');
-    setFormStartDate(med.startDate.slice(0, 10));
-    setFormEndDate(med.endDate ? med.endDate.slice(0, 10) : '');
-    setFormTimezone(med.timezone || (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'));
-    setFormDoses(
-      med.doses && med.doses.length
-        ? med.doses.map((d) => ({
-          timeOfDay: d.timeOfDay,
-          beforeMeal: d.beforeMeal,
-          afterMeal: d.afterMeal,
-        }))
-        : [{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }],
-    );
-    setFormQuantity(med.quantity?.toString() || '');
-    setFormRemainingStock(med.remainingStock?.toString() || '');
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-  };
-
-  const addDoseRow = () => {
-    setFormDoses((prev) => [
-      ...prev,
-      { timeOfDay: '09:00', beforeMeal: false, afterMeal: false },
-    ]);
-  };
-
-  const updateDoseField = (index: number, patch: Partial<MedicationDose>) => {
-    setFormDoses((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, ...patch } : item)),
-    );
-  };
-
-  const removeDoseRow = (index: number) => {
-    setFormDoses((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Time Picker Logic
-  const parseTime = (timeStr: string) => {
-    const d = new Date();
-    const [h, m] = timeStr.split(':').map(Number);
-    d.setHours(h || 0);
-    d.setMinutes(m || 0);
-    d.setSeconds(0);
-    return d;
-  };
-
-  // FIX #7: Ensure tempDate is properly initialized when opening time picker
-  const handleTimeVerify = (index: number) => {
-    const dose = formDoses[index];
-    if (!dose || !dose.timeOfDay) {
-      console.warn(`[MedicationSchedule] Invalid dose at index ${index}`);
-      return;
-    }
-    const date = parseTime(dose.timeOfDay);
-    setTempDate(date);
-    setActiveDoseIndex(index);
-    setShowTimePicker(true);
-    console.log(`[MedicationSchedule] Opening time picker for dose ${index}, current time: ${dose.timeOfDay}`);
-  };
-
-  // FIX #7: Improved time picker handling for both iOS and Android
-  const onTimeChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      // Android: Save immediately when user selects time
-      if (event.type === 'set' && selectedDate && activeDoseIndex !== null) {
-        const hours = selectedDate.getHours().toString().padStart(2, '0');
-        const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-        const timeString = `${hours}:${minutes}`;
-        updateDoseField(activeDoseIndex, { timeOfDay: timeString });
-        setActiveDoseIndex(null);
-        setShowTimePicker(false);
-      } else if (event.type === 'dismissed') {
-        // User cancelled - close picker without saving
-        setShowTimePicker(false);
-        setActiveDoseIndex(null);
-      }
-    } else {
-      // iOS: Update tempDate as user scrolls, save on confirm
-      if (selectedDate) {
-        setTempDate(selectedDate);
-      }
-    }
-  };
-
-  const confirmIosTime = () => {
-    // FIX #7: Ensure time is saved correctly on iOS
-    if (activeDoseIndex !== null && tempDate) {
-      const hours = tempDate.getHours().toString().padStart(2, '0');
-      const minutes = tempDate.getMinutes().toString().padStart(2, '0');
-      const timeString = `${hours}:${minutes}`;
-      updateDoseField(activeDoseIndex, { timeOfDay: timeString });
-      console.log(`[MedicationSchedule] Saved time for dose ${activeDoseIndex}: ${timeString}`);
-    } else {
-      console.warn('[MedicationSchedule] Cannot save time: activeDoseIndex or tempDate is null');
-    }
-    setShowTimePicker(false);
-    setActiveDoseIndex(null);
-  };
-
-  const handleSave = async () => {
-    if (!formName.trim()) {
-      setError(t('medications.error.nameRequired') || 'Medication name is required');
-      return;
-    }
-
-    // FIX: Validate end date is >= start date
-    if (formEndDate && formStartDate) {
-      const startDate = new Date(formStartDate);
-      const endDate = new Date(formEndDate);
-      if (endDate < startDate) {
-        setError(t('medications.error.endDateBeforeStart') || 'End date must be after start date');
-        return;
-      }
-    }
-
-    const payload: any = {
-      name: formName.trim(),
-      dosage: formDosage.trim() || undefined,
-      instructions: formInstructions.trim() || undefined,
-      startDate: new Date(formStartDate).toISOString(),
-      endDate: formEndDate ? new Date(formEndDate).toISOString() : undefined,
-      timezone: formTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-      isActive: true,
-      doses: formDoses
-        .filter((d) => d.timeOfDay)
-        .map((d) => ({
-          timeOfDay: d.timeOfDay,
-          beforeMeal: !!d.beforeMeal,
-          afterMeal: !!d.afterMeal,
-        })),
+    const handleOpenAdd = () => {
+        setEditingMed(null);
+        setModalVisible(true);
     };
 
-    // Add quantity and remainingStock if provided
-    if (formQuantity.trim()) {
-      const quantity = parseInt(formQuantity.trim(), 10);
-      if (!isNaN(quantity) && quantity > 0) {
-        payload.quantity = quantity;
-      }
-    }
-    if (formRemainingStock.trim()) {
-      const remainingStock = parseInt(formRemainingStock.trim(), 10);
-      if (!isNaN(remainingStock) && remainingStock >= 0) {
-        payload.remainingStock = remainingStock;
-      }
-    }
+    const handleOpenEdit = (med: Medication) => {
+        setEditingMed(med);
+        setModalVisible(true);
+    };
 
-    try {
-      setLoading(true);
-      if (editingMed) {
-        await ApiService.updateMedication(editingMed.id, payload);
-      } else {
-        await ApiService.createMedication(payload);
-      }
-
-      // RELOAD all medications to get fresh state (including IDs)
-      const freshMedications = await ApiService.getMedications();
-      setMedications(freshMedications || []);
-
-      // Reschedule ALL medication notifications
-      // 1. Cancel existing
-      await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
-
-      // 2. Schedule for ALL active medications
-      let hasPermission = await localNotificationService.checkPermissions();
-      if (!hasPermission) {
-        hasPermission = await localNotificationService.requestPermissions();
-      }
-
-      if (hasPermission && freshMedications) {
-        for (const med of freshMedications) {
-          if (!med.isActive || !med.doses) continue;
-
-          for (const dose of med.doses) {
-            if (!dose.timeOfDay) continue;
-            const [hour, minute] = dose.timeOfDay.split(':').map(Number);
-            await localNotificationService.scheduleMedicationReminder(
-              med.name,
-              hour,
-              minute,
-              med.id
-            );
-          }
-        }
-      }
-
-      setModalVisible(false);
-      setError(null);
-    } catch (e: any) {
-      console.error('[MedicationScheduleScreen] save error', e);
-      setError(t('medications.error.save') || 'Failed to save medication');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (med: Medication) => {
-    Alert.alert(
-      t('medications.deleteConfirm') || 'Delete medication',
-      t('medications.deleteMessage') || 'Are you sure you want to delete this medication?',
-      [
-        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
-        {
-          text: t('common.delete') || 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await ApiService.deleteMedication(med.id);
-              await loadMedications();
-            } catch (e: any) {
-              console.error('[MedicationScheduleScreen] delete error', e);
-              setError(t('medications.error.delete') || 'Failed to delete medication');
-            } finally {
-              setLoading(false);
+    const handleSaveMedication = async (payload: any, id?: string) => {
+        try {
+            if (id) {
+                await ApiService.updateMedication(id, payload);
+            } else {
+                await ApiService.createMedication(payload);
             }
-          },
-        },
-      ],
-    );
-  };
 
-  // Helper function to check if a string looks like a localization key
-  const isLocalizationKey = (str: string): boolean => {
-    if (!str || typeof str !== 'string') return false;
-    // Check if it contains dots (like "medications.name") or looks like a key path
-    return str.includes('.') && str.length > 3 && str.split('.').length >= 2;
-  };
+            // Reload list
+            const freshData = await ApiService.getMedications();
+            setMedications(freshData || []);
+            setModalVisible(false);
 
-  // Helper function to safely get medication name, avoiding localization keys
-  const getMedicationName = (name: string | undefined | null): string => {
-    if (!name) return '';
-    // If it looks like a localization key, return a fallback
-    if (isLocalizationKey(name)) {
-      // Try to extract the last part as a fallback
-      const parts = name.split('.');
-      const fallback = parts[parts.length - 1];
-      // Capitalize first letter and replace underscores with spaces
-      return fallback.charAt(0).toUpperCase() + fallback.slice(1).replace(/_/g, ' ');
-    }
-    return name;
-  };
+            // --- Update Notifications ---
+            // 1. Cancel all medication reminders first to avoid duplicates
+            await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
 
-  const renderMedicationItem = ({ item }: { item: Medication }) => {
-    const dosesText =
-      item.doses && item.doses.length
-        ? item.doses.map((d) => d.timeOfDay).join(', ')
-        : t('medications.noDoses') || 'No times specified';
+            // 2. Reschedule for ALL active medications
+            const hasPermission = await localNotificationService.checkPermissions() || await localNotificationService.requestPermissions();
 
-    const medicationName = getMedicationName(item.name);
+            if (hasPermission && freshData) {
+                for (const med of freshData) {
+                    if (!med.isActive || !med.doses) continue;
 
-    // Calculate days until stock runs out
-    const dosesPerDay = item.doses?.length || 0;
-    const daysRemaining = item.remainingStock && dosesPerDay > 0
-      ? Math.floor(item.remainingStock / dosesPerDay)
-      : null;
+                    for (const dose of med.doses) {
+                        if (!dose.timeOfDay) continue;
+                        const [hStr, mStr] = dose.timeOfDay.split(':');
+                        const h = parseInt(hStr, 10);
+                        const m = parseInt(mStr, 10);
 
-    const isLowStock = item.remainingStock !== null && item.remainingStock !== undefined
-      && item.lowStockThreshold !== null && item.lowStockThreshold !== undefined
-      && daysRemaining !== null
-      && daysRemaining <= item.lowStockThreshold;
+                        if (!isNaN(h) && !isNaN(m)) {
+                            await localNotificationService.scheduleMedicationReminder(med.name, h, m, med.id);
+                            console.log(`[MedicationSchedule] Scheduled ${med.name} at ${h}:${m}`);
+                        }
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error('[MedicationSchedule] Save error:', e);
+            Alert.alert(t('common.error'), t('medications.error.save') || 'Failed to save');
+        }
+    };
+
+    const handleDelete = (med: Medication) => {
+        Alert.alert(
+            t('medications.deleteConfirm') || 'Delete?',
+            t('medications.deleteMessage') || 'This cannot be undone.',
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('common.delete'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await ApiService.deleteMedication(med.id);
+                            loadMedications();
+                        } catch (e) {
+                            console.error('[MedicationSchedule] Delete error:', e);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     return (
-      <TouchableOpacity
-        style={[
-          styles.card,
-          { backgroundColor: colors.card || colors.surface },
-          isLowStock && { borderLeftWidth: 4, borderLeftColor: colors.warning || '#FF9500' },
-        ]}
-        onPress={() => openEditModal(item)}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-            {medicationName}
-          </Text>
-          <TouchableOpacity onPress={() => handleDelete(item)}>
-            <Ionicons name="trash-outline" size={20} color={colors.error || colors.danger || '#FF3B30'} />
-          </TouchableOpacity>
-        </View>
-        {item.dosage ? (
-          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-            {item.dosage}
-          </Text>
-        ) : null}
-        <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-          {t('medications.times') || 'Times'}: {dosesText}
-        </Text>
-        {item.instructions ? (
-          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-            {item.instructions}
-          </Text>
-        ) : null}
-        {/* Stock information */}
-        {item.quantity !== null && item.quantity !== undefined && (
-          <View style={styles.stockContainer}>
-            <Text style={[styles.stockLabel, { color: colors.textSecondary }]}>
-              {t('medications.stock.total') || 'Total'}: {item.quantity}
-            </Text>
-            {item.remainingStock !== null && item.remainingStock !== undefined && (
-              <>
-                <Text style={[styles.stockLabel, { color: colors.textSecondary }]}>
-                  {t('medications.stock.remaining') || 'Remaining'}: {item.remainingStock}
-                </Text>
-                {daysRemaining !== null && (
-                  <Text
-                    style={[
-                      styles.stockLabel,
-                      {
-                        color: isLowStock
-                          ? (colors.warning || '#FF9500')
-                          : colors.textSecondary,
-                        fontWeight: isLowStock ? '600' : '400',
-                      },
-                    ]}
-                  >
-                    {t('medications.stock.daysRemaining') || 'Days remaining'}: {daysRemaining}
-                  </Text>
-                )}
-              </>
-            )}
-            {isLowStock && (
-              <View style={[styles.lowStockWarning, { backgroundColor: (colors.warning || '#FF9500') + '20' }]}>
-                <Ionicons name="warning" size={16} color={colors.warning || '#FF9500'} />
-                <Text style={[styles.lowStockText, { color: colors.warning || '#FF9500' }]}>
-                  {t('medications.stock.lowStock') || 'Low stock! Time to refill'}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+            {/* Header */}
+            <Header
+                title={t('medications.title') || 'Medication Schedule'}
+                onAdd={handleOpenAdd}
+                onBack={() => navigation.goBack()}
+                colors={colors}
+            />
 
-  const styles = StyleSheet.create({
+            {/* Main Content */}
+            {loading && medications.length === 0 ? (
+                <View style={styles.centerLoading}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            ) : (
+                <FlatList
+                    data={medications}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.listContent}
+                    renderItem={({ item }) => (
+                        <MedicationCard
+                            item={item}
+                            onPress={handleOpenEdit}
+                            onDelete={handleDelete}
+                            colors={colors}
+                            t={t}
+                        />
+                    )}
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="medical-outline" size={64} color={colors.textTertiary || '#CCC'} />
+                            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                                {t('medications.empty') || 'No medications yet. tap + to add.'}
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
+
+            {/* Edit Component Modal */}
+            <EditMedicationModal
+                visible={isModalVisible}
+                medication={editingMed}
+                onClose={() => setModalVisible(false)}
+                onSave={handleSaveMedication}
+                colors={colors}
+                t={t}
+            />
+
+            {/* @ts-ignore */}
+            <DisclaimerModal disclaimerKey="medications" />
+        </SafeAreaView>
+    );
+};
+
+const styles = StyleSheet.create({
     container: {
-      flex: 1,
+        flex: 1,
     },
-    listContent: {
-      paddingHorizontal: 16,
-      paddingBottom: 32,
+    centerLoading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     header: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border || '#E5E5EA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
     },
     headerTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      flex: 1,
-      textAlign: 'center',
+        fontSize: 18,
+        fontWeight: '700',
     },
+    headerButton: {
+        padding: 4,
+    },
+    listContent: {
+        padding: 16,
+        paddingBottom: 40,
+    },
+    emptyContainer: {
+        padding: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 60,
+    },
+    emptyText: {
+        marginTop: 16,
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    // Card Styles
     card: {
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-      elevation: 1,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 2,
+        borderRadius: 16,
+        marginBottom: 16,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
-    cardHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 4,
+    cardInternal: {
+        flexDirection: 'row',
+        padding: 16,
+        alignItems: 'center',
+    },
+    iconContainer: {
+        marginRight: 16,
+    },
+    iconCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cardContent: {
+        flex: 1,
+        marginRight: 8,
     },
     cardTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      flex: 1,
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 4,
     },
     cardSubtitle: {
-      fontSize: 14,
-      marginBottom: 2,
+        fontSize: 14,
+        marginBottom: 8,
     },
-    cardMeta: {
-      fontSize: 13,
-      marginTop: 2,
+    cardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 8,
     },
-    stockContainer: {
-      marginTop: 8,
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: '#E5E5EA',
+    timeChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        gap: 4,
     },
-    stockLabel: {
-      fontSize: 12,
-      marginTop: 2,
+    timeText: {
+        fontSize: 12,
+        fontWeight: '500',
     },
-    lowStockWarning: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 8,
-      padding: 8,
-      borderRadius: 8,
+    alertRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+        gap: 4,
     },
-    lowStockText: {
-      fontSize: 12,
-      marginLeft: 6,
-      fontWeight: '500',
+    alertText: {
+        fontSize: 12,
+        fontWeight: '600',
     },
-    hint: {
-      fontSize: 11,
-      marginTop: -4,
-      marginBottom: 8,
-      fontStyle: 'italic',
-    },
-    errorText: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      fontSize: 13,
-    },
-    modalBackdrop: {
-      flex: 1,
-      justifyContent: 'flex-end', // Change to bottom-sheet style to avoid "too high" issues
-      backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-      maxHeight: '90%',
-      width: '100%',
-      padding: 20,
-      paddingBottom: Platform.OS === 'ios' ? 40 : 24, // Extra padding for safe area
-      overflow: 'hidden',
+    // Modal Styles
+    modalContainer: {
+        flex: 1,
     },
     modalHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+    },
+    modalCancelBtn: {
+        padding: 8,
     },
     modalTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      flex: 1,
+        fontSize: 17,
+        fontWeight: '600',
     },
-    modalCloseButton: {
-      width: 32,
-      height: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 16,
+    modalSaveBtn: {
+        padding: 8,
     },
-    modalBody: {
-      marginTop: 8,
+    formContent: {
+        padding: 16,
+    },
+    sectionHeader: {
+        fontSize: 13,
+        fontWeight: '600',
+        marginTop: 24,
+        marginBottom: 8,
+        marginLeft: 4,
+        letterSpacing: 0.5,
+    },
+    sectionContainer: {
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 4,
+    },
+    inputRow: {
+        paddingVertical: 12,
     },
     label: {
-      fontSize: 13,
-      marginTop: 10,
-      marginBottom: 4,
-      fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: 8,
     },
     input: {
-      borderWidth: 1,
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: Platform.OS === 'ios' ? 10 : 8,
-      fontSize: 14,
-      marginBottom: 4,
+        fontSize: 16,
+        paddingVertical: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
     },
+    textArea: {
+        fontSize: 16,
+        paddingVertical: 12,
+        textAlignVertical: 'top',
+    },
+    // Dose Row Styles
     doseRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#EEE',
     },
-    doseInput: {
-      flex: 1,
-      borderWidth: 1,
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: Platform.OS === 'ios' ? 8 : 6,
-      marginRight: 6,
-      fontSize: 14,
-      justifyContent: 'center', // Align text vertically
+    timeInputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F2F2F7',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 10,
+        width: 100,
     },
-    doseToggle: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      marginRight: 4,
-      borderRadius: 6,
-      borderWidth: 1,
-      borderColor: colors.border || '#E5E5EA',
+    timeInput: {
+        fontSize: 18,
+        fontWeight: '600',
+        flex: 1,
     },
-    doseToggleText: {
-      fontSize: 12,
+    doseOptions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
-    addDoseBtn: {
-      marginTop: 6,
-      marginBottom: 10,
+    chip: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
+        backgroundColor: '#F2F2F7',
+    },
+    chipText: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    addDoseButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        gap: 8,
     },
     addDoseText: {
-      fontSize: 14,
-      fontWeight: '500',
+        fontSize: 16,
+        fontWeight: '600',
     },
-    modalFooter: {
-      marginTop: 16,
-    },
-    saveButton: {
-      borderRadius: 12,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    saveButtonText: {
-      fontSize: 15,
-      fontWeight: '600',
-    },
-  });
-
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            if (navigation && typeof navigation.goBack === 'function') {
-              navigation.goBack();
-            }
-          }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
-          {t('medications.title') || 'Medication schedule'}
-        </Text>
-        <TouchableOpacity onPress={openCreateModal}>
-          <Ionicons name="add-circle-outline" size={28} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-
-      {error && (
-        <Text style={[styles.errorText, { color: colors.error || '#FF3B30' }]}>{error}</Text>
-      )}
-
-      {loading && !medications.length ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : (
-        <FlatList
-          data={medications}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={renderMedicationItem}
-          ListEmptyComponent={
-            !loading ? (
-              <View style={{ padding: 32, alignItems: 'center' }}>
-                <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>
-                  {t('medications.empty') || 'No medications yet. Add your first one.'}
-                </Text>
-              </View>
-            ) : null
-          }
-        />
-      )}
-
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeModal}
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} // Android often handles this automatically or doesn't need 'padding' for center/bottom modals
-        >
-          <View style={styles.modalBackdrop}>
-            <View style={[styles.modalContent, { backgroundColor: colors.card || colors.surface }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.textPrimary || colors.text }]}>
-                  {editingMed
-                    ? t('medications.edit') || 'Edit medication'
-                    : t('medications.add') || 'Add medication'}
-                </Text>
-                <TouchableOpacity
-                  onPress={closeModal}
-                  style={styles.modalCloseButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="close" size={24} color={colors.textPrimary || colors.text} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.name') || 'Name'} *
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formName}
-                  onChangeText={setFormName}
-                  placeholder={t('medications.placeholders.name') || 'Metformin'}
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                />
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.dosage') || 'Dosage'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formDosage}
-                  onChangeText={setFormDosage}
-                  placeholder={t('medications.placeholders.dosage') || '500 mg'}
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                />
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.instructions') || 'Instructions'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formInstructions}
-                  onChangeText={setFormInstructions}
-                  placeholder={t('medications.placeholders.instructions') || 'Before dinner, with water'}
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                />
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.startDate') || 'Start date (YYYY-MM-DD)'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formStartDate}
-                  onChangeText={setFormStartDate}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                />
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.endDate') || 'End date (optional)'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formEndDate}
-                  onChangeText={setFormEndDate}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                />
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.timezone') || 'Timezone'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formTimezone}
-                  onChangeText={setFormTimezone}
-                  placeholder="Asia/Almaty"
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                />
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.quantity') || 'Total quantity (optional)'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formQuantity}
-                  onChangeText={setFormQuantity}
-                  placeholder={t('medications.placeholders.quantity') || '30'}
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                  keyboardType="numeric"
-                />
-                <Text style={[styles.hint, { color: colors.textTertiary || '#8E8E93' }]}>
-                  {t('medications.hints.quantity') || 'Total number of tablets/pills in package'}
-                </Text>
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.remainingStock') || 'Remaining stock (optional)'}
-                </Text>
-                <TextInput
-                  style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background }]}
-                  value={formRemainingStock}
-                  onChangeText={setFormRemainingStock}
-                  placeholder={t('medications.placeholders.remainingStock') || 'Auto-calculated'}
-                  placeholderTextColor={colors.textTertiary || '#8E8E93'}
-                  keyboardType="numeric"
-                />
-                <Text style={[styles.hint, { color: colors.textTertiary || '#8E8E93' }]}>
-                  {t('medications.hints.remainingStock') || 'Will be calculated automatically based on doses and days passed'}
-                </Text>
-
-                <Text style={[styles.label, { color: colors.textPrimary || colors.text }]}>
-                  {t('medications.fields.doses') || 'Dose times'}
-                </Text>
-
-                {formDoses.map((dose, index) => (
-                  <View key={index} style={styles.doseRow}>
-                    <TouchableOpacity
-                      style={[
-                        styles.doseInput,
-                        { borderColor: colors.border || '#E5E5EA', backgroundColor: colors.background, justifyContent: 'center' },
-                      ]}
-                      onPress={() => handleTimeVerify(index)}
-                      activeOpacity={0.7}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Text style={{ color: colors.textPrimary || colors.text, fontSize: 16, fontWeight: '500' }}>
-                        {dose.timeOfDay}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.doseToggle, { borderColor: dose.beforeMeal ? colors.primary : colors.border || '#E5E5EA', backgroundColor: dose.beforeMeal ? colors.primary + '20' : 'transparent' }]}
-                      onPress={() =>
-                        updateDoseField(index, {
-                          beforeMeal: !dose.beforeMeal,
-                          afterMeal: false,
-                        })
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.doseToggleText,
-                          {
-                            color: dose.beforeMeal ? colors.primary : colors.textSecondary,
-                          },
-                        ]}
-                      >
-                        {t('medications.beforeMeal') || 'Before'}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.doseToggle, { borderColor: dose.afterMeal ? colors.primary : colors.border || '#E5E5EA', backgroundColor: dose.afterMeal ? colors.primary + '20' : 'transparent' }]}
-                      onPress={() =>
-                        updateDoseField(index, {
-                          afterMeal: !dose.afterMeal,
-                          beforeMeal: false,
-                        })
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.doseToggleText,
-                          {
-                            color: dose.afterMeal ? colors.primary : colors.textSecondary,
-                          },
-                        ]}
-                      >
-                        {t('medications.afterMeal') || 'After'}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => removeDoseRow(index)}>
-                      <Ionicons name="remove-circle-outline" size={20} color={colors.error || '#FF3B30'} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-
-                <TouchableOpacity style={styles.addDoseBtn} onPress={addDoseRow}>
-                  <Text style={[styles.addDoseText, { color: colors.primary }]}>
-                    + {t('medications.addDose') || 'Add time'}
-                  </Text>
-                </TouchableOpacity>
-              </ScrollView>
-
-              <View style={styles.modalFooter}>
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: colors.primary }]}
-                  onPress={handleSave}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={[styles.saveButtonText, { color: colors.onPrimary || '#fff' }]}>
-                      {t('common.save') || 'Save'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Time Picker Modal (iOS) / Inline (Android) */}
-      {Platform.OS === 'ios' ? (
-        <Modal
-          visible={showTimePicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowTimePicker(false)}
-        >
-          <TouchableOpacity
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
-            activeOpacity={1}
-            onPress={() => setShowTimePicker(false)}
-          >
-            <View style={{ backgroundColor: colors.surface || colors.background || 'white', borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: 34 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: colors.borderMuted || colors.border || '#E5E5E5' }}>
-                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                  <Text style={{ color: colors.primary || '#007AFF', fontSize: 17 }}>{t('common.cancel') || 'Cancel'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={confirmIosTime}>
-                  <Text style={{ color: colors.primary || '#007AFF', fontWeight: '600', fontSize: 17 }}>{t('common.done') || 'Done'}</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="time"
-                display="spinner"
-                onChange={onTimeChange}
-                textColor={colors.textPrimary}
-                is24Hour={false}
-                locale="en_US"
-                style={{ height: 200 }}
-              />
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      ) : (
-        showTimePicker && (
-          <DateTimePicker
-            value={tempDate}
-            mode="time"
-            display="default"
-            onChange={onTimeChange}
-          />
-        )
-      )}
-      {/* Disclaimer Modal */}
-      {/* @ts-ignore */}
-      <DisclaimerModal disclaimerKey="medications" />
-    </SafeAreaView>
-  );
-};
+});
 
 export default MedicationScheduleScreen;

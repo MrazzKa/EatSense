@@ -1,14 +1,15 @@
 /**
  * TrendingCarousel - Horizontal carousel for TRENDING category programs
- * Updated to use LifestyleProgram type
+ * Updated to use LifestyleProgram type and local images
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { LifestyleProgram } from '../types';
+import { getLifestyleImage } from '../lifestyleImages';
 
 interface TrendingCarouselProps {
   programs: LifestyleProgram[];
@@ -48,21 +49,26 @@ export default function TrendingCarousel({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.carouselContent}
       >
-        {programs.map((program) => (
+        {programs.map((program) => {
+          // Get local image if available, prefer local assets over backend URL
+          const localImage = getLifestyleImage(program.id, program.name);
+          const imageSource = localImage || (program.imageUrl ? { uri: program.imageUrl } : null);
+
+          return (
           <TouchableOpacity
             key={program.id}
             style={[
               styles.card,
-              { backgroundColor: program.imageUrl ? 'transparent' : (colors.primary || '#4CAF50') },
+              { backgroundColor: imageSource ? 'transparent' : (colors.primary || '#4CAF50') },
             ]}
             onPress={() => onProgramPress(program.id)}
             activeOpacity={0.85}
           >
-            {/* Background Image */}
-            {program.imageUrl && (
+            {/* Background Image - prefer local assets */}
+            {imageSource && (
               <>
                 <Image
-                  source={{ uri: program.imageUrl }}
+                  source={imageSource}
                   style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
                   resizeMode="cover"
                 />
@@ -99,7 +105,8 @@ export default function TrendingCarousel({
               </View>
             )}
           </TouchableOpacity>
-        ))}
+          );
+        })}
       </ScrollView>
     </View>
   );

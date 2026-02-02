@@ -328,48 +328,6 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                     ))}
                 </View>
 
-                {/* Pause/Resume Button */}
-                <TouchableOpacity
-                    style={[styles.pauseButton, { borderColor: colors.warning || '#FF9800', backgroundColor: (colors.warning || '#FF9800') + '10' }]}
-                    onPress={() => {
-                        const isPaused = activeProgram?.status === 'paused';
-                        Alert.alert(
-                            isPaused ? t('dietPrograms.resumeProgram') : t('dietPrograms.pauseProgram'),
-                            isPaused ? t('dietPrograms.resumeProgramConfirm') : t('dietPrograms.pauseProgramConfirm'),
-                            [
-                                { text: t('common.cancel'), style: 'cancel' },
-                                {
-                                    text: isPaused ? t('dietPrograms.resume') : t('dietPrograms.pause'),
-                                    onPress: async () => {
-                                        try {
-                                            if (isPaused) {
-                                                await DietProgramsService.resumeProgram();
-                                            } else {
-                                                await DietProgramsService.pauseProgram();
-                                            }
-                                            // FIX: Refresh in background - don't block UI
-                                            refreshProgress().catch(() => {
-                                                // Silent fail - optimistic update already applied
-                                            });
-                                        } catch {
-                                            Alert.alert(t('common.error'), t('errors.pauseProgram'));
-                                        }
-                                    },
-                                },
-                            ]
-                        );
-                    }}
-                >
-                    <Ionicons
-                        name={activeProgram?.status === 'paused' ? 'play-circle-outline' : 'pause-circle-outline'}
-                        size={18}
-                        color={colors.warning || '#FF9800'}
-                    />
-                    <Text style={[styles.pauseButtonText, { color: colors.warning || '#FF9800' }]}>
-                        {activeProgram?.status === 'paused' ? t('dietPrograms.resumeProgram') : t('dietPrograms.pauseProgram')}
-                    </Text>
-                </TouchableOpacity>
-
                 {/* Stop Program Button */}
                 <TouchableOpacity
                     style={[styles.stopButton, { borderColor: colors.error }]}
@@ -583,20 +541,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: '600',
-    },
-    pauseButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 14,
-        borderRadius: 12,
-        borderWidth: 1,
-        marginTop: 16,
-        gap: 8,
-    },
-    pauseButtonText: {
-        fontSize: 15,
-        fontWeight: '500',
     },
     stopButton: {
         flexDirection: 'row',

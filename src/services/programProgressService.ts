@@ -40,6 +40,43 @@ function calculateDaysLeft(currentDayIndex: number, durationDays: number): numbe
 }
 
 /**
+ * Detect if a program is a lifestyle based on its fields
+ * Lifestyle programs have: mantra, embrace, minimize, dailyInspiration, sampleDay
+ * Diet programs have: dailyTracker, mealPlan
+ */
+function isLifestyleProgram(program: any): boolean {
+  if (!program) return false;
+
+  // Check for explicit type field from backend
+  if (program.type === 'lifestyle' || program.dietType === 'lifestyle') {
+    return true;
+  }
+
+  // Check for lifestyle-specific fields in program or program.rules
+  const hasLifestyleFields = !!(
+    program.mantra ||
+    program.embrace ||
+    program.minimize ||
+    program.dailyInspiration ||
+    program.sampleDay ||
+    program.rules?.mantra ||
+    program.rules?.embrace ||
+    program.rules?.minimize ||
+    program.rules?.dailyInspiration ||
+    program.rules?.sampleDay
+  );
+
+  // Check for diet-specific fields
+  const hasDietFields = !!(
+    program.dailyTracker?.length > 0 ||
+    program.mealPlan
+  );
+
+  // If it has lifestyle fields but no diet fields, it's a lifestyle
+  return hasLifestyleFields && !hasDietFields;
+}
+
+/**
  * Transform API response to ProgramProgress format
  */
 function transformDietProgress(apiData: any): ProgramProgress {
@@ -57,14 +94,24 @@ function transformDietProgress(apiData: any): ProgramProgress {
   const durationDays = apiData.program?.duration || 30;
   const daysLeft = calculateDaysLeft(currentDayIndex, durationDays);
 
+  // FIX: Detect if this is a lifestyle program based on its fields
+  const programType: ProgramType = isLifestyleProgram(apiData.program) ? 'lifestyle' : 'diet';
+
   // Build logs from dailyLogs
   const logs: Record<string, DailyLog> = {};
+
+  // For lifestyle programs, use dailyInspiration for total count
+  const lifestyleTrackerCount = apiData.program?.dailyInspiration?.length ||
+    apiData.program?.rules?.dailyInspiration?.length || 0;
+  const dietTrackerCount = apiData.program?.dailyTracker?.length || 0;
+  const trackerCount = programType === 'lifestyle' ? lifestyleTrackerCount : dietTrackerCount;
+
   if (apiData.dailyLogs) {
     apiData.dailyLogs.forEach((log: any) => {
       const date = new Date(log.date).toISOString().split('T')[0];
       const checklist = (log.checklist as Record<string, boolean>) || {};
       const completedCount = Object.values(checklist).filter(Boolean).length;
-      const totalCount = apiData.program?.dailyTracker?.length || 0;
+      const totalCount = trackerCount;
 
       logs[date] = {
         date,
@@ -84,13 +131,13 @@ function transformDietProgress(apiData: any): ProgramProgress {
   const todayLog = logs[today] || {
     date: today,
     completedCount: 0,
-    totalCount: apiData.program?.dailyTracker?.length || 0,
+    totalCount: trackerCount,
     completionRate: 0,
     completed: false, // FIX: Always false for new day - prevents showing "Day completed" incorrectly
     celebrationShown: false,
     checklist: {},
   };
-  
+
   // FIX: If API provides todayLog directly, use it (more reliable than parsing from dailyLogs)
   // This ensures we get the correct completed status from the server
   if (apiData.todayLog && apiData.todayLog.date === today) {
@@ -98,15 +145,17 @@ function transformDietProgress(apiData: any): ProgramProgress {
     todayLog.celebrationShown = apiData.todayLog.celebrationShown || false;
   }
 
-  return {
+  // Build base progress object
+  const progress: ProgramProgress = {
     id: apiData.id,
-    type: 'diet',
+    type: programType,
     programId: apiData.programId,
     programName: apiData.program?.name,
+    programMetadata: apiData.program, // Include full program data for UI
     startDate,
     currentDayIndex,
     daysLeft,
-    durationDays: apiData.program?.duration || 30,
+    durationDays: apiData.program?.duration || (programType === 'lifestyle' ? 14 : 30),
     status: apiData.status || 'active',
     pausedDays,
     streak: {
@@ -118,6 +167,14 @@ function transformDietProgress(apiData: any): ProgramProgress {
     todayLog,
     todayPlan: apiData.todayPlan || [],
   };
+
+  // Add lifestyle-specific data if it's a lifestyle program
+  if (programType === 'lifestyle') {
+    progress.dailyInspiration = apiData.program?.dailyInspiration ||
+      apiData.program?.rules?.dailyInspiration || [];
+  }
+
+  return progress;
 }
 
 /**
