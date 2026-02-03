@@ -26,7 +26,7 @@ class ApiService {
     /** @type {boolean} - Result of last refresh */
     this._lastRefreshSuccess = false;
     /** @type {number} - Grace period in ms: skip refresh if recently succeeded */
-    this._refreshGracePeriodMs = 10000; // 10 seconds (increased from 5)
+    this._refreshGracePeriodMs = 15000; // 15 seconds - increased to reduce race conditions
 
     // Timer for resetting refresh attempts
     this._refreshResetTimer = null;
@@ -590,6 +590,33 @@ class ApiService {
 
       // Handle specific error cases
       if (refreshRes.status === 401) {
+        // Check if it's "Token already used" error (race condition)
+        try {
+          const errorBody = await refreshRes.json();
+          const errorMessage = errorBody?.message || errorBody?.error || '';
+
+          if (errorMessage.toLowerCase().includes('already used') ||
+              errorMessage.toLowerCase().includes('token has been used')) {
+            // Another request already used this refresh token
+            // Wait briefly and reload tokens from storage (they should be updated)
+            if (__DEV__) {
+              console.log('[ApiService] Token already used by another request, reloading from storage...');
+            }
+            await new Promise(resolve => setTimeout(resolve, 200));
+            await this.loadTokens();
+
+            // If we have a new token, consider this a success
+            if (this.token) {
+              this._lastRefreshTime = Date.now();
+              this._lastRefreshSuccess = true;
+              this._refreshAttempts = 0;
+              return true;
+            }
+          }
+        } catch (parseError) {
+          // Ignore JSON parse errors
+        }
+
         // Token is invalid/expired, need to re-login
         console.warn('[ApiService] Refresh token invalid (401), logging out');
         await this.setToken(null, null);

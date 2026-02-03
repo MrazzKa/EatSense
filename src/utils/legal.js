@@ -4,6 +4,7 @@ export const LEGAL_URLS = {
     privacy: 'https://eatsense.vercel.app/privacy',
     terms: 'https://eatsense.vercel.app/terms',
     support: 'https://eatsense.vercel.app/support',
+    about: 'https://eatsense.vercel.app/',
 };
 
 export const openLegalLink = async (type) => {

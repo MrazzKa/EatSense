@@ -39,7 +39,7 @@
         "noSummary": "The AI did not return a summary. Please try again.",
         "fileUploadFailed": "[MISSING] File Upload Failed"
       },
-      "fileHint": "Attach a PDF file with your lab report.",
+      "fileHint": "附上PDF或图片文件。最大文件大小：10 MB。",
       "fileLabel": "PDF report",
       "manualPlaceholder": "Enter your lab results here...",
       "manualTitle": "Manual Entry",
@@ -843,38 +843,38 @@
     "title": "餐食"
   },
   "medications": {
-    "add": "Add medication",
-    "addDose": "Add time",
-    "afterMeal": "After",
-    "beforeMeal": "Before",
-    "deleteConfirm": "Delete medication",
-    "deleteMessage": "Are you sure you want to delete this medication?",
-    "edit": "Edit medication",
-    "empty": "No medications yet. Add your first one.",
+    "add": "添加药物",
+    "addDose": "添加时间",
+    "afterMeal": "饭后",
+    "beforeMeal": "饭前",
+    "deleteConfirm": "删除药物",
+    "deleteMessage": "确定要删除这个药物吗？",
+    "edit": "编辑药物",
+    "empty": "还没有药物。添加您的第一个药物。",
     "error": {
-      "delete": "Failed to delete medication",
-      "load": "Failed to load medications",
-      "nameRequired": "Medication name is required",
-      "save": "Failed to save medication"
+      "delete": "删除药物失败",
+      "load": "加载药物失败",
+      "nameRequired": "药物名称是必填项",
+      "save": "保存药物失败"
     },
     "fields": {
-      "dosage": "Dosage",
-      "doses": "Dose times",
-      "endDate": "End date (optional)",
-      "instructions": "Instructions",
-      "name": "Name",
-      "startDate": "Start date (YYYY-MM-DD)",
-      "timezone": "Timezone"
+      "dosage": "剂量",
+      "doses": "服药时间",
+      "endDate": "结束日期（可选）",
+      "instructions": "说明",
+      "name": "名称",
+      "startDate": "开始日期（YYYY-MM-DD）",
+      "timezone": "时区"
     },
-    "noDoses": "No times specified",
+    "noDoses": "未指定时间",
     "placeholders": {
       "dosage": "500 mg",
-      "instructions": "Before dinner, with water",
-      "name": "Metformin"
+      "instructions": "晚餐前，用水服用",
+      "name": "二甲双胍"
     },
-    "tabTitle": "Medications",
-    "times": "Times",
-    "title": "Medication schedule"
+    "tabTitle": "药物",
+    "times": "时间",
+    "title": "用药计划"
   },
   "notifications": {
     "enableFailed": "Could not enable notifications.",

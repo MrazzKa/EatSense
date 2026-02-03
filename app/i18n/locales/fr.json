@@ -1,6 +1,4 @@
 {
-  "Performance": "Performance",
-  "Error": "Erreur",
   "aiAssistant": {
     "attach": {
       "error": "Impossible de sélectionner le fichier",
@@ -41,7 +39,7 @@
         "noSummary": "L'IA n'a pas renvoyé de résumé. Veuillez réessayer.",
         "fileUploadFailed": "Échec du téléchargement du fichier"
       },
-      "fileHint": "Joindre un fichier PDF avec votre rapport d'analyse.",
+      "fileHint": "Joindre un fichier PDF ou image avec votre rapport d'analyse. Taille maximale: 10 Mo.",
       "fileLabel": "Rapport PDF",
       "manualPlaceholder": "Saisissez vos résultats d'analyse ici...",
       "manualTitle": "Saisie manuelle",
@@ -466,7 +464,7 @@
       "openTracker": "Ouvrir le suivi",
       "noDiet": "Choisir un régime",
       "browseDiets": "Parcourir les régimes",
-      "streak_count": ""
+      "streak_count": "Série"
     },
     "addFood": {
       "camera": {
@@ -786,20 +784,9 @@
     "tracker_preview_hint": "Suivez vos progrès quotidiens"
   },
   "suggest": {
-    "already_voted": "Déjà voté",
-    "contact_success": "Votre demande a été envoyée",
-    "description_placeholder": "Décrivez votre suggestion...",
-    "error": "Impossible d'envoyer la demande",
-    "modal_title": "Suggestions",
-    "name_placeholder": "Votre nom",
-    "name_required": "Entrez votre nom",
-    "request_placeholder": "Votre demande",
-    "request_required": "Entrez votre demande",
-    "submit": "Envoyer",
     "subtitle": "Écrivez-nous — nom et demande",
     "success": "Envoyé avec succès",
-    "title": "Suggestions",
-    "voted": "Voté"
+    "title": "Suggestions"
   },
   "validation": {
     "requiredField": "Champ requis",

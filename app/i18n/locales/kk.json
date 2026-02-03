@@ -39,7 +39,7 @@
         "noSummary": "Сервис қорытынды қайтармады. Қайта сұраныс жіберіп көріңіз.",
         "fileUploadFailed": "Файлды жүктеу сәтсіз"
       },
-      "fileHint": "Зертханалық есеп PDF файлын тіркеңіз.",
+      "fileHint": "PDF немесе сурет файлын тіркеңіз. Максималды өлшем: 10 МБ.",
       "fileLabel": "Файл",
       "manualPlaceholder": "Зертханалық нәтижелерді осы жерге енгізіңіз...",
       "manualTitle": "Қолмен енгізу",
@@ -300,14 +300,7 @@
     "captureError": "Фото түсіру мүмкін болмады. Қайталап көріңіз.",
     "flashModeAuto": "Авто",
     "flashModeOff": "Жарқыл өшірулі",
-    "flashModeOn": "Жарқыл қосулы",
-    "requestPermission": "Рұқсат беру",
-    "requestingPermission": "Камераға рұқсат сұралуда...",
-    "switchCamera": "Камераны ауыстыру",
-    "takePhoto": "Тағамды түсіру",
-    "typeInstead": "Қолмен жазу",
-    "zoomLabel": "Зум {{value}}x",
-    "permissionError": "Рұқсат қатесі"
+    "flashModeOn": "Жарқыл қосулы"
   },
   "carcinogenicRisk": {
     "highRiskItems": "Шектеуге болатын өнімдер",
@@ -366,13 +359,7 @@
     "cm": "см",
     "hoursShort": "сағ",
     "stop": "Тоқтату",
-    "goBack": "Артқа қайту",
-    "goTo": "Бару",
-    "errorGeneric": "Қате орын алды",
-    "gotIt": "Түсіндім",
-    "later": "Кейінірек",
-    "Performance": "Өнімділік",
-    "Error": "Қате"
+    "goBack": "Артқа қайту"
   },
   "dashboard": {
     "activeDiet": {
@@ -386,7 +373,7 @@
       "openTracker": "Трекерді ашу",
       "noDiet": "Диета таңдаңыз",
       "browseDiets": "Диеталарды қарау",
-      "streak_count": ""
+      "streak_count": "Серия"
     },
     "addFood": {
       "camera": {
@@ -706,20 +693,10 @@
     "tracker_preview_hint": "Күнделікті прогрессіңізді қадағалаңыз"
   },
   "suggest": {
-    "already_voted": "Дауыс берілді",
-    "contact_success": "Сұранысыңыз жіберілді",
-    "description_placeholder": "Сипаттаңыз...",
-    "error": "Сұранысты жіберу мүмкін болмады",
-    "modal_title": "Ұсыныстар",
-    "name_placeholder": "Атыңыз",
-    "name_required": "Атыңызды енгізіңіз",
-    "request_placeholder": "Сұранысыңыз",
-    "request_required": "Сұранысыңызды енгізіңіз",
     "submit": "Жіберу",
     "subtitle": "Бізге жазыңыз — атыңыз және сұранысыңыз",
     "success": "Сәтті жіберілді",
-    "title": "Ұсыныстар",
-    "voted": "Дауыс берілген"
+    "title": "Ұсыныстар"
   },
   "validation": {
     "requiredField": "Міндетті өріс",

@@ -9,6 +9,7 @@ import { useProgramProgress } from '../stores/ProgramProgressStore';
 import DietProgramsService from '../services/dietProgramsService';
 import DailyDietTracker from '../components/DailyDietTracker';
 import CelebrationModal from '../components/CelebrationModal';
+import { getDaysText } from '../utils/pluralize';
 
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
@@ -261,7 +262,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
                             <View style={styles.streakBadge}>
                                 <Ionicons name="flame" size={16} color="#FFB300" />
                                 <Text style={styles.streakText}>
-                                    {activeProgram.streak?.current || 0} {t('diets.tracker.days')}
+                                    {getDaysText(activeProgram.streak?.current || 0, language)}
                                 </Text>
                             </View>
                         )}

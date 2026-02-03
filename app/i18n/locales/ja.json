@@ -39,7 +39,7 @@
         "noSummary": "The AI did not return a summary. Please try again.",
         "fileUploadFailed": "[MISSING] File Upload Failed"
       },
-      "fileHint": "Attach a PDF file with your lab report.",
+      "fileHint": "PDFまたは画像ファイルを添付してください。最大ファイルサイズ: 10 MB。",
       "fileLabel": "PDF report",
       "manualPlaceholder": "Enter your lab results here...",
       "manualTitle": "Manual Entry",
@@ -843,38 +843,38 @@
     "title": "食事"
   },
   "medications": {
-    "add": "Add medication",
-    "addDose": "Add time",
-    "afterMeal": "After",
-    "beforeMeal": "Before",
-    "deleteConfirm": "Delete medication",
-    "deleteMessage": "Are you sure you want to delete this medication?",
-    "edit": "Edit medication",
-    "empty": "No medications yet. Add your first one.",
+    "add": "薬を追加",
+    "addDose": "時間を追加",
+    "afterMeal": "食後",
+    "beforeMeal": "食前",
+    "deleteConfirm": "薬を削除",
+    "deleteMessage": "この薬を削除してもよろしいですか？",
+    "edit": "薬を編集",
+    "empty": "まだ薬がありません。最初の薬を追加してください。",
     "error": {
-      "delete": "Failed to delete medication",
-      "load": "Failed to load medications",
-      "nameRequired": "Medication name is required",
-      "save": "Failed to save medication"
+      "delete": "薬の削除に失敗しました",
+      "load": "薬の読み込みに失敗しました",
+      "nameRequired": "薬の名前は必須です",
+      "save": "薬の保存に失敗しました"
     },
     "fields": {
-      "dosage": "Dosage",
-      "doses": "Dose times",
-      "endDate": "End date (optional)",
-      "instructions": "Instructions",
-      "name": "Name",
-      "startDate": "Start date (YYYY-MM-DD)",
-      "timezone": "Timezone"
+      "dosage": "用量",
+      "doses": "服用時間",
+      "endDate": "終了日（任意）",
+      "instructions": "指示",
+      "name": "名前",
+      "startDate": "開始日（YYYY-MM-DD）",
+      "timezone": "タイムゾーン"
     },
-    "noDoses": "No times specified",
+    "noDoses": "時間が指定されていません",
     "placeholders": {
       "dosage": "500 mg",
-      "instructions": "Before dinner, with water",
-      "name": "Metformin"
+      "instructions": "夕食前、水と一緒に",
+      "name": "メトホルミン"
     },
-    "tabTitle": "Medications",
-    "times": "Times",
-    "title": "Medication schedule"
+    "tabTitle": "薬",
+    "times": "時間",
+    "title": "服薬スケジュール"
   },
   "notifications": {
     "enableFailed": "Could not enable notifications.",
