@@ -13,6 +13,7 @@ import { useProgramProgress } from '../stores/ProgramProgressStore';
 import ApiService from '../services/apiService';
 import CircularProgressRing from './CircularProgressRing';
 import CelebrationModal from './CelebrationModal';
+import { getDaysText } from '../utils/pluralize';
 
 interface TrackerItem {
     key: string;
@@ -35,7 +36,7 @@ interface DailyDietTrackerProps {
  * DailyDietTracker - Daily checklist with progress ring and symptoms input
  */
 export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const { colors } = useTheme();
     const { activeProgram, loading: storeLoading, updateChecklist, markCelebrationShown } = useProgramProgress();
 
@@ -56,11 +57,14 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     const isRequestInFlightRef = useRef(false);
     const DEBOUNCE_MS = 300; // Batch rapid toggles
 
-    // Load tracker data from API (for dailyTracker items and symptoms)
+    // FIX: Store last valid tracker data to prevent data loss on transient errors
+    const lastValidTrackerDataRef = useRef<typeof trackerData>(null);
+
     // Load tracker data from API (for dailyTracker items and symptoms)
     const loadTrackerData = useCallback(async () => {
         if (!activeProgram || activeProgram.type !== 'diet') {
             setTrackerData(null);
+            lastValidTrackerDataRef.current = null;
             return;
         }
 
@@ -71,24 +75,40 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             if (!data) {
                 console.warn('[DailyDietTracker] API returned null - program may be missing');
                 setTrackerData(null);
+                lastValidTrackerDataRef.current = null;
                 return;
             }
 
             // FIX: Ensure dailyTracker is always an array, even if empty
             const dailyTracker = Array.isArray(data?.dailyTracker) ? data.dailyTracker : [];
-            setTrackerData({
+            const newTrackerData = {
                 dailyTracker,
                 symptoms: data?.symptoms || {},
                 showSymptoms: data?.showSymptoms || false,
-            });
+            };
+            setTrackerData(newTrackerData);
+            // Save as last valid state
+            lastValidTrackerDataRef.current = newTrackerData;
         } catch (error: any) {
             console.error('[DailyDietTracker] Load tracker data failed:', error);
             // If 404, no active diet - clear tracker
             if (error?.status === 404 || error?.response?.status === 404) {
                 setTrackerData(null);
+                lastValidTrackerDataRef.current = null;
+            } else if (error?.status === 401) {
+                // FIX: On auth errors, keep showing last valid data instead of clearing
+                // This prevents data "disappearing" during token refresh
+                console.warn('[DailyDietTracker] Auth error - keeping last valid data');
+                if (lastValidTrackerDataRef.current) {
+                    setTrackerData(lastValidTrackerDataRef.current);
+                }
+                // Don't clear lastValidTrackerDataRef - keep it for recovery
             } else {
-                // For other errors, also clear tracker to prevent showing stale data
-                setTrackerData(null);
+                // For other errors, keep last valid data if available
+                console.warn('[DailyDietTracker] Network/server error - keeping last valid data');
+                if (lastValidTrackerDataRef.current) {
+                    setTrackerData(lastValidTrackerDataRef.current);
+                }
             }
         }
     }, [activeProgram]);
@@ -116,9 +136,16 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             return;
         }
 
+        // FIX: Save current state before sync for potential rollback
+        const previousState = trackerData ? { ...trackerData } : null;
+
         isRequestInFlightRef.current = true;
         try {
             await updateChecklist(checklistToSync);
+            // Update lastValidTrackerDataRef with new state after successful save
+            if (trackerData) {
+                lastValidTrackerDataRef.current = trackerData;
+            }
             // Don't call loadTrackerData or full refresh - just notify parent
             onUpdate?.();
 
@@ -130,12 +157,17 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             }
         } catch (error) {
             console.error('[DailyDietTracker] Save checklist failed:', error);
-            // Revert on error by reloading
-            await loadTrackerData();
+            // FIX: Revert to previous state instead of reloading (prevents flicker)
+            if (previousState) {
+                setTrackerData(previousState);
+            } else if (lastValidTrackerDataRef.current) {
+                setTrackerData(lastValidTrackerDataRef.current);
+            }
+            // Don't reload - just show error state with previous data
         } finally {
             isRequestInFlightRef.current = false;
         }
-    }, [updateChecklist, loadTrackerData, onUpdate]);
+    }, [updateChecklist, trackerData, onUpdate]);
 
     const handleChecklistToggle = useCallback((key: string) => {
         if (!trackerData || !activeProgram || !trackerData.dailyTracker || trackerData.dailyTracker.length === 0) return;
@@ -176,6 +208,8 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     const handleSymptomChange = async (symptom: string, value: number) => {
         if (!trackerData || saving) return;
 
+        // FIX: Save previous state for rollback
+        const previousSymptoms = { ...trackerData.symptoms };
         const newSymptoms = { ...trackerData.symptoms, [symptom]: value };
 
         // Optimistic update
@@ -187,10 +221,18 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         setSaving(true);
         try {
             await ApiService.patch('/diets/active/symptoms', { symptoms: newSymptoms });
+            // Update lastValidTrackerDataRef on success
+            if (trackerData) {
+                lastValidTrackerDataRef.current = { ...trackerData, symptoms: newSymptoms };
+            }
             onUpdate?.();
         } catch (error) {
             console.error('[DailyDietTracker] Save symptoms failed:', error);
-            await loadTrackerData();
+            // FIX: Revert to previous symptoms instead of reloading (prevents flicker)
+            setTrackerData(prev => {
+                if (!prev) return prev;
+                return { ...prev, symptoms: previousSymptoms };
+            });
         } finally {
             setSaving(false);
         }
@@ -264,7 +306,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                 <View style={[styles.streakContainer, { backgroundColor: colors.surfaceSecondary }]}>
                     <Ionicons name="flame" size={18} color={colors.warning} />
                     <Text style={[styles.streakText, { color: colors.textPrimary }]}>
-                        {t('diets_tracker_streak')}: {activeProgram.streak?.current || 0} {t('diets_tracker_days')}
+                        {t('diets_tracker_streak')}: {getDaysText(activeProgram.streak?.current || 0, language)}
                     </Text>
                     {(activeProgram.streak?.longest || 0) > 0 && (
                         <Text style={[styles.streakBest, { color: colors.textSecondary }]}>

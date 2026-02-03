@@ -48,6 +48,23 @@ type Medication = {
     lowStockThreshold?: number | null;
 };
 
+// --- Constants ---
+
+// Dosage units for medications
+const DOSAGE_UNITS = [
+    { key: 'mg', label: 'мг' },
+    { key: 'g', label: 'г' },
+    { key: 'ml', label: 'мл' },
+    { key: 'drops', label: 'капли' },
+    { key: 'tablets', label: 'таблетки' },
+    { key: 'capsules', label: 'капсулы' },
+    { key: 'puffs', label: 'пшики' },
+    { key: 'sprays', label: 'впрыски' },
+    { key: 'IU', label: 'МЕ' },
+] as const;
+
+type DosageUnitKey = typeof DOSAGE_UNITS[number]['key'];
+
 // --- Helper Functions ---
 
 const formatTimeInput = (text: string): string => {
@@ -168,7 +185,8 @@ const EditMedicationModal = ({
     t
 }: any) => {
     const [name, setName] = useState('');
-    const [dosage, setDosage] = useState('');
+    const [dosageAmount, setDosageAmount] = useState('');
+    const [dosageUnit, setDosageUnit] = useState<DosageUnitKey>('mg');
     const [instructions, setInstructions] = useState('');
     const [startDate, setStartDate] = useState(''); // YYYY-MM-DD
     const [endDate, setEndDate] = useState('');
@@ -177,12 +195,39 @@ const EditMedicationModal = ({
     const [remainingStock, setRemainingStock] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Helper to parse existing dosage string (e.g., "500 мг" -> { amount: "500", unit: "mg" })
+    const parseDosage = (dosageStr: string | null | undefined): { amount: string; unit: DosageUnitKey } => {
+        if (!dosageStr) return { amount: '', unit: 'mg' };
+        const match = dosageStr.match(/^([\d.,]+)\s*(.*)$/);
+        if (match) {
+            const amount = match[1].trim();
+            const unitStr = match[2].trim().toLowerCase();
+            // Find matching unit
+            const foundUnit = DOSAGE_UNITS.find(u =>
+                u.key.toLowerCase() === unitStr ||
+                u.label.toLowerCase() === unitStr
+            );
+            return { amount, unit: foundUnit?.key || 'mg' };
+        }
+        return { amount: dosageStr, unit: 'mg' };
+    };
+
+    // Helper to combine amount and unit
+    const combineDosage = (amount: string, unit: DosageUnitKey): string => {
+        if (!amount.trim()) return '';
+        const unitLabel = DOSAGE_UNITS.find(u => u.key === unit)?.label || unit;
+        return `${amount.trim()} ${unitLabel}`;
+    };
+
     // Initialize form
     useEffect(() => {
         if (visible) {
             if (medication) {
                 setName(medication.name || '');
-                setDosage(medication.dosage || '');
+                // Parse existing dosage into amount and unit
+                const parsed = parseDosage(medication.dosage);
+                setDosageAmount(parsed.amount);
+                setDosageUnit(parsed.unit);
                 setInstructions(medication.instructions || '');
                 setStartDate(medication.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10));
                 setEndDate(medication.endDate?.slice(0, 10) || '');
@@ -192,7 +237,8 @@ const EditMedicationModal = ({
             } else {
                 // New medication default state
                 setName('');
-                setDosage('');
+                setDosageAmount('');
+                setDosageUnit('mg');
                 setInstructions('');
                 setStartDate(new Date().toISOString().slice(0, 10));
                 setEndDate('');
@@ -251,7 +297,7 @@ const EditMedicationModal = ({
         setLoading(true);
         const payload = {
             name,
-            dosage,
+            dosage: combineDosage(dosageAmount, dosageUnit),
             instructions,
             startDate: new Date(startDate).toISOString(),
             endDate: endDate ? new Date(endDate).toISOString() : undefined,
@@ -305,13 +351,40 @@ const EditMedicationModal = ({
                             </View>
                             <View style={styles.inputRow}>
                                 <Text style={[styles.label, { color: colors.textPrimary }]}>{t('medications.fields.dosage')}</Text>
-                                <TextInput
-                                    style={[styles.input, { color: colors.textPrimary, borderBottomColor: colors.border }]}
-                                    placeholder={t('medications.placeholders.dosage') || 'e.g. 500mg'}
-                                    placeholderTextColor={colors.textTertiary || '#999'}
-                                    value={dosage}
-                                    onChangeText={setDosage}
-                                />
+                                <View style={styles.dosageRow}>
+                                    <TextInput
+                                        style={[styles.dosageInput, { color: colors.textPrimary, borderBottomColor: colors.border }]}
+                                        placeholder={t('medications.placeholders.dosageAmount') || '500'}
+                                        placeholderTextColor={colors.textTertiary || '#999'}
+                                        value={dosageAmount}
+                                        onChangeText={setDosageAmount}
+                                        keyboardType="numeric"
+                                    />
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        style={styles.unitsScroll}
+                                        contentContainerStyle={styles.unitsContainer}
+                                    >
+                                        {DOSAGE_UNITS.map((unit) => (
+                                            <TouchableOpacity
+                                                key={unit.key}
+                                                style={[
+                                                    styles.unitChip,
+                                                    dosageUnit === unit.key && { backgroundColor: colors.primary }
+                                                ]}
+                                                onPress={() => setDosageUnit(unit.key)}
+                                            >
+                                                <Text style={[
+                                                    styles.unitChipText,
+                                                    dosageUnit === unit.key ? { color: '#FFF' } : { color: colors.textSecondary }
+                                                ]}>
+                                                    {unit.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
                             </View>
                         </View>
 
@@ -733,6 +806,36 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#EEE',
     },
+    // Dosage row styles
+    dosageRow: {
+        flexDirection: 'column',
+        gap: 10,
+    },
+    dosageInput: {
+        fontSize: 16,
+        paddingVertical: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+        width: 100,
+    },
+    unitsScroll: {
+        flexGrow: 0,
+    },
+    unitsContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        paddingVertical: 4,
+    },
+    unitChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        backgroundColor: '#F2F2F7',
+    },
+    unitChipText: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
     textArea: {
         fontSize: 16,
         paddingVertical: 12,
@@ -754,7 +857,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 10,
-        width: 100,
+        width: 120,
+        minWidth: 120,
     },
     timeInput: {
         fontSize: 18,

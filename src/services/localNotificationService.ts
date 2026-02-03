@@ -117,12 +117,14 @@ class LocalNotificationService {
             en: 'Time to take medication',
             ru: 'Время принять лекарство',
             kk: 'Дәрі ішу уақыты',
+            fr: 'Heure de prendre le médicament',
         };
 
         const bodies: Record<string, string> = {
             en: `Don't forget to take ${medicationName}`,
             ru: `Не забудьте принять ${medicationName}`,
             kk: `${medicationName} қабылдауды ұмытпаңыз`,
+            fr: `N'oubliez pas de prendre ${medicationName}`,
         };
 
         return this.scheduleDailyNotification(
@@ -150,6 +152,7 @@ class LocalNotificationService {
             en: "Don't forget to log your meal!",
             ru: 'Не забудьте записать еду!',
             kk: 'Тамақты жазуды ұмытпаңыз!',
+            fr: "N'oubliez pas de noter votre repas !",
         };
 
         const bodies: Record<string, Record<string, string>> = {
@@ -157,16 +160,19 @@ class LocalNotificationService {
                 en: 'How was your breakfast? Snap a photo!',
                 ru: 'Как завтрак? Сфотографируйте!',
                 kk: 'Таңғы ас қандай болды? Суретке түсіріңіз!',
+                fr: 'Comment était votre petit-déjeuner ? Prenez une photo !',
             },
             afternoon: {
                 en: "Time to log your lunch. What did you eat?",
                 ru: 'Время записать обед. Что съели?',
                 kk: 'Түскі асты жазу уақыты. Не жедіңіз?',
+                fr: "C'est l'heure de noter votre déjeuner. Qu'avez-vous mangé ?",
             },
             evening: {
                 en: "How was your dinner? Don't forget to log it.",
                 ru: 'Как ужин? Не забудьте записать.',
                 kk: 'Кешкі ас қандай болды? Жазуды ұмытпаңыз.',
+                fr: "Comment était votre dîner ? N'oubliez pas de le noter.",
             },
         };
 

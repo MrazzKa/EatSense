@@ -1734,7 +1734,7 @@ const ProfileScreen = () => {
           <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
             <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('PrivacyPolicy')}
+                onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1749,7 +1749,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('TermsOfService')}
+                onPress={() => Linking.openURL('https://eatsense.vercel.app/terms')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1764,7 +1764,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.app')}
+                onPress={() => Linking.openURL('https://eatsense.vercel.app/')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1779,7 +1779,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('mailto:support@eatsense.app')}
+                onPress={() => Linking.openURL('https://eatsense.vercel.app/support')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -1792,10 +1792,7 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <HealthDisclaimer
-            onPressTerm={() => Linking.openURL('https://eatsense.app/terms')}
-            onPressPrivacy={() => Linking.openURL('https://eatsense.app/privacy')}
-          />
+          <HealthDisclaimer />
 
           <View style={styles.buildInfoContainer}>
             <Text style={styles.buildInfoText}>

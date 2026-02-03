@@ -1,19 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 
-// --- Configuration ---
-const LOCALES_DIR = path.join(__dirname, '../app/i18n/locales');
-const SRC_DIR = path.join(__dirname, '../src');
-const MASTER_LOCALE = 'en';
-const TARGET_LOCALES = ['ru', 'kk', 'fr']; // Add others if needed
+// Configuration
+const LOCALE_DIR = path.join(__dirname, '../app/i18n/locales');
+const MASTER_LANG = 'en';
+const TARGET_LANGS = ['ru', 'kk', 'fr']; // Russian, Kazakh, French
 
-// --- Helper Functions ---
-
-// Flatten a JSON object to dot.notation keys
+// Helper to flatten object keys (e.g. { a: { b: 1 } } -> "a.b")
 function flattenKeys(obj, prefix = '') {
     let keys = [];
     for (const key in obj) {
-        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
             keys = keys.concat(flattenKeys(obj[key], prefix + key + '.'));
         } else {
             keys.push(prefix + key);
@@ -22,99 +19,107 @@ function flattenKeys(obj, prefix = '') {
     return keys;
 }
 
-// Load JSON file safely
-function loadLocale(locale) {
-    try {
-        const filePath = path.join(LOCALES_DIR, `${locale}.json`);
-        const content = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(content);
-    } catch (e) {
-        console.error(`Error loading locale ${locale}:`, e.message);
-        return {};
-    }
+// Helper to get value by dot info path
+function getValue(obj, path) {
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
-// Recursively find files in directory
-function walkDir(dir, fileList = []) {
-    const files = fs.readdirSync(dir);
-    files.forEach(file => {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        if (stat.isDirectory()) {
-            walkDir(filePath, fileList);
+function runAudit() {
+    console.log('Starting Translation Audit...');
+    console.log(`Locales Directory: ${LOCALE_DIR}`);
+
+    // 1. Load Master Language (EN)
+    const masterPath = path.join(LOCALE_DIR, `${MASTER_LANG}.json`);
+    if (!fs.existsSync(masterPath)) {
+        console.error(`CRITICAL: Master locale file not found at ${masterPath}`);
+        process.exit(1);
+    }
+
+    const masterContent = JSON.parse(fs.readFileSync(masterPath, 'utf8'));
+    const masterKeys = new Set(flattenKeys(masterContent));
+    console.log(`Loaded Master (${MASTER_LANG}): ${masterKeys.size} keys`);
+
+    const results = {};
+
+    // 2. Check Target Languages
+    TARGET_LANGS.forEach(lang => {
+        const langPath = path.join(LOCALE_DIR, `${lang}.json`);
+        results[lang] = {
+            missing: [],
+            extra: [],
+            empty: []
+        };
+
+        if (!fs.existsSync(langPath)) {
+            console.error(`WARNING: Locale file for '${lang}' not found at ${langPath}`);
+            return;
+        }
+
+        try {
+            const content = JSON.parse(fs.readFileSync(langPath, 'utf8'));
+            const keys = new Set(flattenKeys(content));
+
+            console.log(`Loaded ${lang}: ${keys.size} keys`);
+
+            // Check for missing keys (present in EN, missing in LANG)
+            masterKeys.forEach(key => {
+                if (!keys.has(key)) {
+                    results[lang].missing.push(key);
+                }
+            });
+
+            // Check for extra keys (present in LANG, missing in EN)
+            keys.forEach(key => {
+                if (!masterKeys.has(key)) {
+                    results[lang].extra.push(key);
+                } else {
+                    // Check for empty values
+                    const val = getValue(content, key);
+                    if (typeof val === 'string' && val.trim() === '') {
+                        results[lang].empty.push(key);
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.error(`Error parsing ${lang}.json: ${e.message}`);
+        }
+    });
+
+    // 3. Output Report
+    console.log('\n=== AUDIT REPORT ===');
+
+    TARGET_LANGS.forEach(lang => {
+        const stats = results[lang];
+        if (!stats) return;
+
+        console.log(`\n[${lang.toUpperCase()}]`);
+
+        if (stats.missing.length === 0 && stats.extra.length === 0 && stats.empty.length === 0) {
+            console.log('✅ Perfect match with Master!');
         } else {
-            if (/\.(js|jsx|ts|tsx)$/.test(file)) {
-                fileList.push(filePath);
+            if (stats.missing.length > 0) {
+                console.log(`❌ Missing Keys (${stats.missing.length}):`);
+                stats.missing.slice(0, 20).forEach(k => console.log(`  - ${k}`));
+                if (stats.missing.length > 20) console.log(`  ... and ${stats.missing.length - 20} more`);
+            }
+
+            if (stats.empty.length > 0) {
+                console.log(`⚠️ Empty Values (${stats.empty.length}):`);
+                stats.empty.slice(0, 10).forEach(k => console.log(`  - ${k}`));
+            }
+
+            if (stats.extra.length > 0) {
+                console.log(`ℹ️ Extra/Orphaned Keys (${stats.extra.length}):`);
+                stats.extra.slice(0, 10).forEach(k => console.log(`  - ${k}`));
             }
         }
     });
-    return fileList;
+
+    // Save full JSON report for the user to send back
+    const reportPath = path.join(__dirname, 'translation_audit_report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
+    console.log(`\nDetailed JSON report saved to: ${reportPath}`);
 }
 
-// Scan file for t('key') patterns
-function scanFileForKeys(filePath) {
-    const content = fs.readFileSync(filePath, 'utf8');
-    // Matches: t('key'), t("key"), i18n.t('key'), safeT('key')
-    // Note: This is a basic regex and might miss complex dynamic keys or capture false positives.
-    const regex = /\b(?:t|safeT|i18n\.t)\(\s*['"]([a-zA-Z0-9_.]+)['"]/g;
-    const keys = [];
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-        keys.push(match[1]);
-    }
-    return keys;
-}
-
-// --- Main Execution ---
-
-console.log('--- Starting Translation Audit ---\n');
-
-// 1. Load Master Locale (EN)
-console.log(`Loading master locale: ${MASTER_LOCALE}`);
-const masterJson = loadLocale(MASTER_LOCALE);
-const masterKeys = new Set(flattenKeys(masterJson));
-console.log(`Found ${masterKeys.size} keys in master locale.`);
-
-// 2. Compare Target Locales
-console.log('\n--- Comparing Target Locales ---');
-TARGET_LOCALES.forEach(locale => {
-    const targetJson = loadLocale(locale);
-    const targetKeys = new Set(flattenKeys(targetJson));
-
-    const missingInTarget = [...masterKeys].filter(k => !targetKeys.has(k));
-
-    if (missingInTarget.length > 0) {
-        console.log(`\n❌ [${locale.toUpperCase()}] Missing ${missingInTarget.length} keys:`);
-        missingInTarget.forEach(k => console.log(`  - ${k}`));
-    } else {
-        console.log(`\n✅ [${locale.toUpperCase()}] All keys from master present.`);
-    }
-
-    // Optional: Check for keys in target that are NOT in master (orphaned?)
-    const extraInTarget = [...targetKeys].filter(k => !masterKeys.has(k));
-    if (extraInTarget.length > 0) {
-        console.log(`   (Note: ${locale.toUpperCase()} has ${extraInTarget.length} extra keys not in master)`);
-    }
-});
-
-// 3. Scan Codebase
-console.log('\n--- Scanning Codebase for Usages ---');
-const files = walkDir(SRC_DIR);
-const usedKeys = new Set();
-files.forEach(f => {
-    const keys = scanFileForKeys(f);
-    keys.forEach(k => usedKeys.add(k));
-});
-
-console.log(`Scanned ${files.length} files. Found ${usedKeys.size} unique used keys.`);
-
-const missingInMaster = [...usedKeys].filter(k => !masterKeys.has(k));
-
-if (missingInMaster.length > 0) {
-    console.log(`\n❌ Found ${missingInMaster.length} keys used in code but MISSING in ${MASTER_LOCALE}.json:`);
-    missingInMaster.forEach(k => console.log(`  - ${k}`));
-} else {
-    console.log(`\n✅ All keys found in code exist in ${MASTER_LOCALE}.json.`);
-}
-
-console.log('\n--- Audit Complete ---');
+runAudit();

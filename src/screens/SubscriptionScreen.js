@@ -275,18 +275,21 @@ export default function SubscriptionScreen() {
                 return;
             }
 
-            // IMPORTANT: IAP prices are the MOST ACCURATE source
-            // IAP automatically returns correct prices for user's App Store country
-            // product.localizedPrice contains exact price from App Store Connect for user's country
-            // Map IAP products to our plan format. Use IAP price and currency as-is (Store localizes by user's App Store country).
+            // FIX 2026-02-03: Always use device region prices to prevent currency flickering
+            // IAP products are used ONLY for SKU identifiers and purchase calls
+            // Prices are ALWAYS taken from currency.ts based on device region
             const deviceRegion = getDeviceRegion();
-            const iapCurrency = all[0]?.currency;
-            console.log('[SubscriptionScreen] Using IAP prices (most accurate):', {
+            const localCurrency = getCurrency();
+            console.log('[SubscriptionScreen] Using device region prices (consistent display):', {
                 deviceRegion,
-                currency: iapCurrency,
+                currency: localCurrency.code,
+                symbol: localCurrency.symbol,
                 productsCount: all.length,
-                note: 'IAP prices are country-specific from App Store Connect',
+                note: 'Prices from currency.ts, IAP used only for purchase',
             });
+
+            const monthLabel = t('onboarding.plans.month', 'mo');
+            const yearLabel = t('onboarding.plans.year', 'yr');
 
             const mappedPlans = all.map(product => {
                 const isFounders = product.productId === NON_CONSUMABLE_SKUS.FOUNDERS;
@@ -323,13 +326,17 @@ export default function SubscriptionScreen() {
                     badge = defaults.badge || null;
                 }
 
+                // FIX: Use local currency prices instead of IAP prices
+                const localPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
+                const periodSuffix = isFounders ? '' : (isYearly || isStudent ? `/${yearLabel}` : `/${monthLabel}`);
+
                 return {
                     id: product.productId,
                     name: planType,
-                    price: product.localizedPrice,
-                    priceFormatted: product.localizedPrice,
-                    priceNumber: parseFloat(product.price),
-                    currency: product.currency,
+                    price: localPrice,
+                    priceFormatted: localPrice + periodSuffix,
+                    priceNumber: localCurrency[planType === 'founders' ? 'founder' : planType] || 0,
+                    currency: localCurrency.code,
                     title: title,
                     headline: headline,
                     features: features,

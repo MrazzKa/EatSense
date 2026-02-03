@@ -1501,7 +1501,7 @@
       "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
       "fileLabel": "File",
       "attachPdf": "Attach",
-      "fileHint": "Attach a PDF file with your lab report.",
+      "fileHint": "Attach a PDF or image file with your lab report. Maximum file size: 10 MB.",
       "analyzeButton": "Analyze",
       "resultTitle": "AI Interpretation",
       "errors": {

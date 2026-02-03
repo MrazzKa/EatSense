@@ -3,8 +3,9 @@
  * Updated to use LifestyleProgram type and local images
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -55,56 +56,56 @@ export default function TrendingCarousel({
           const imageSource = localImage || (program.imageUrl ? { uri: program.imageUrl } : null);
 
           return (
-          <TouchableOpacity
-            key={program.id}
-            style={[
-              styles.card,
-              { backgroundColor: imageSource ? 'transparent' : (colors.primary || '#4CAF50') },
-            ]}
-            onPress={() => onProgramPress(program.id)}
-            activeOpacity={0.85}
-          >
-            {/* Background Image - prefer local assets */}
-            {imageSource && (
-              <>
+            <TouchableOpacity
+              key={program.id}
+              style={[
+                styles.card,
+                { backgroundColor: imageSource ? 'transparent' : (colors.primary || '#4CAF50') },
+              ]}
+              onPress={() => onProgramPress(program.id)}
+              activeOpacity={0.85}
+            >
+              {/* Background Image - prefer local assets */}
+              {imageSource && (
                 <Image
                   source={imageSource}
-                  style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+                  style={StyleSheet.absoluteFill}
                   resizeMode="cover"
                 />
-                <View
-                  style={[
-                    StyleSheet.absoluteFill,
-                    { backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 16 },
-                  ]}
+              )}
+
+              {/* Gradient overlay for text readability */}
+              {imageSource && (
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.75)']}
+                  locations={[0, 0.5, 1]}
+                  style={StyleSheet.absoluteFill}
                 />
-              </>
-            )}
+              )}
 
-            {/* Emoji */}
-            <View style={styles.cardIconContainer}>
-              <Text style={styles.emoji}>{program.emoji}</Text>
-            </View>
+              {/* Duration Badge - top right */}
+              {program.durationDays && (
+                <View style={styles.durationBadge}>
+                  <Ionicons name="calendar-outline" size={12} color="#FFF" />
+                  <Text style={styles.durationText}>
+                    {program.durationDays} {t('common.days') || 'days'}
+                  </Text>
+                </View>
+              )}
 
-            {/* Content */}
-            <Text style={styles.cardName} numberOfLines={2}>
-              {getLocalizedText(program.name)}
-            </Text>
-
-            <Text style={styles.cardDesc} numberOfLines={2}>
-              {getLocalizedText(program.tagline)}
-            </Text>
-
-            {/* Duration Badge */}
-            {program.durationDays && (
-              <View style={styles.durationBadge}>
-                <Ionicons name="calendar-outline" size={12} color="#FFF" />
-                <Text style={styles.durationText}>
-                  {program.durationDays} {t('common.days') || 'days'}
+              {/* Content at bottom */}
+              <View style={styles.cardContent}>
+                <View style={styles.cardIconContainer}>
+                  <Text style={styles.emoji}>{program.emoji}</Text>
+                </View>
+                <Text style={styles.cardName} numberOfLines={1}>
+                  {getLocalizedText(program.name)}
+                </Text>
+                <Text style={styles.cardDesc} numberOfLines={1}>
+                  {getLocalizedText(program.tagline)}
                 </Text>
               </View>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -115,12 +116,12 @@ export default function TrendingCarousel({
 const styles = StyleSheet.create({
   section: {
     marginTop: 24,
-    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    paddingHorizontal: 16,
     gap: 8,
   },
   title: {
@@ -128,46 +129,58 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   carouselContent: {
+    paddingLeft: 16,
     paddingRight: 16,
+    gap: 14,
   },
   card: {
-    width: 180,
+    width: 240,
+    height: 160,
     borderRadius: 16,
-    padding: 16,
-    marginRight: 12,
-    justifyContent: 'space-between',
-    minHeight: 200,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 4,
+  },
+  cardContent: {
+    padding: 14,
+    paddingTop: 20,
   },
   cardIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'transparent',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   emoji: {
-    fontSize: 32,
+    fontSize: 22,
   },
   cardName: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   cardDesc: {
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 12,
     lineHeight: 16,
-    marginBottom: 12,
-    flex: 1,
   },
   durationBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,

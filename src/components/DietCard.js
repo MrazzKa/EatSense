@@ -20,24 +20,26 @@ const difficultyColors = {
     hard: '#F44336'
 };
 
-const difficultyLabels = {
-    EASY: 'Easy',
-    MODERATE: 'Moderate',
-    HARD: 'Hard',
-    easy: 'Easy',
-    moderate: 'Moderate',
-    hard: 'Hard'
+const getDifficultyLabel = (difficulty, t) => {
+    const key = difficulty?.toUpperCase();
+    switch (key) {
+        case 'EASY': return t('diets_difficulty_easy') || 'Easy';
+        case 'MODERATE': return t('diets_difficulty_moderate') || 'Moderate';
+        case 'HARD': return t('diets_difficulty_hard') || 'Hard';
+        default: return difficulty;
+    }
 };
 
-const typeLabels = {
-    LIFESTYLE: 'Lifestyle',
-    HEALTH: 'Health',
-    WEIGHT_LOSS: 'Weight Loss',
-    MUSCLE_BUILDING: 'Muscle Building',
-    ENERGY: 'Energy',
-    // Fallbacks
-    lifestyle: 'Lifestyle',
-    health: 'Health'
+const getTypeLabel = (type, t) => {
+    const key = type?.toUpperCase();
+    switch (key) {
+        case 'LIFESTYLE': return t('diets_lifestyle') || 'Lifestyle';
+        case 'HEALTH': return t('diets_health') || 'Health';
+        case 'WEIGHT_LOSS': return t('diets_weight_loss') || 'Weight Loss';
+        case 'MUSCLE_BUILDING': return t('diets_muscle_building') || 'Muscle Building';
+        case 'ENERGY': return t('diets_energy') || 'Energy';
+        default: return type;
+    }
 };
 
 /**
@@ -95,14 +97,14 @@ export default function DietCard({ diet, onPress, isLocked = false }) {
                     {/* Type */}
                     <View style={[styles.tag, { backgroundColor: `${diet.color || '#4CAF50'}20` }]}>
                         <Text style={[styles.tagText, { color: diet.color || '#4CAF50' }]}>
-                            {typeLabels[diet.type] || diet.type}
+                            {getTypeLabel(diet.type, t)}
                         </Text>
                     </View>
 
                     {/* Difficulty */}
                     <View style={[styles.tag, { backgroundColor: `${diffColor}20` }]}>
                         <Text style={[styles.tagText, { color: diffColor }]}>
-                            {difficultyLabels[diet.difficulty] || diet.difficulty}
+                            {getDifficultyLabel(diet.difficulty, t)}
                         </Text>
                     </View>
 
