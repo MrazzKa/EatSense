@@ -362,7 +362,7 @@ export class DietsService implements OnModuleInit {
 
             const dietId = diet.id; // Use actual ID for subsequent operations
 
-            // Check for existing active diet
+            // Check for existing active diet (any program)
             const existingActive = await this.prisma.userDietProgram.findFirst({
                 where: { userId, status: 'active' },
             });
@@ -380,24 +380,54 @@ export class DietsService implements OnModuleInit {
                 });
             }
 
+            // FIX P2002: Check if user already has a record for THIS program (any status)
+            // This prevents unique constraint violation when restarting a completed/paused/abandoned program
+            const existingForThisProgram = await this.prisma.userDietProgram.findFirst({
+                where: { userId, programId: dietId },
+            });
+
             // Get user profile for weight
             const userProfile = await this.prisma.userProfile.findUnique({
                 where: { userId },
             });
 
-            const userDiet = await this.prisma.userDietProgram.create({
-                data: {
-                    userId,
-                    programId: dietId,
-                    status: 'active',
-                    currentDay: 1,
-                    customCalories: options?.customCalories,
-                    targetWeight: options?.targetWeight,
-                    startWeight: userProfile?.weight,
-                    currentWeight: userProfile?.weight,
-                },
-                include: { program: true },
-            });
+            let userDiet;
+
+            if (existingForThisProgram) {
+                // Reactivate existing record instead of creating a new one
+                this.logger.log(`[startDiet] Reactivating existing program record for user ${userId}, status was: ${existingForThisProgram.status}`);
+                userDiet = await this.prisma.userDietProgram.update({
+                    where: { id: existingForThisProgram.id },
+                    data: {
+                        status: 'active',
+                        currentDay: 1, // Reset to day 1
+                        startedAt: new Date(), // Reset start date
+                        completedAt: null, // Clear completion date
+                        daysCompleted: 0, // Reset progress
+                        currentStreak: 0,
+                        customCalories: options?.customCalories ?? existingForThisProgram.customCalories,
+                        targetWeight: options?.targetWeight ?? existingForThisProgram.targetWeight,
+                        startWeight: userProfile?.weight ?? existingForThisProgram.startWeight,
+                        currentWeight: userProfile?.weight ?? existingForThisProgram.currentWeight,
+                    },
+                    include: { program: true },
+                });
+            } else {
+                // Create new record
+                userDiet = await this.prisma.userDietProgram.create({
+                    data: {
+                        userId,
+                        programId: dietId,
+                        status: 'active',
+                        currentDay: 1,
+                        customCalories: options?.customCalories,
+                        targetWeight: options?.targetWeight,
+                        startWeight: userProfile?.weight,
+                        currentWeight: userProfile?.weight,
+                    },
+                    include: { program: true },
+                });
+            }
 
             // Increment user count
             await this.prisma.dietProgram.update({
@@ -412,6 +442,40 @@ export class DietsService implements OnModuleInit {
 
             return userDiet;
         } catch (error: any) {
+            // FIX: Handle P2002 (unique constraint violation) as race condition
+            // This happens when two requests bypass the findFirst check simultaneously
+            if (error?.code === 'P2002') {
+                this.logger.warn(`[startDiet] Race condition detected - user ${userId} already has this diet. Returning existing.`);
+
+                // Return existing record instead of error
+                const existing = await this.prisma.userDietProgram.findFirst({
+                    where: { userId, programId: dietIdOrSlug },
+                    include: { program: true },
+                });
+
+                if (existing) {
+                    // If it's already active, return conflict
+                    if (existing.status === 'active') {
+                        throw new ConflictException('Already enrolled in this diet program');
+                    }
+                    // Otherwise reactivate it
+                    return this.prisma.userDietProgram.update({
+                        where: { id: existing.id },
+                        data: {
+                            status: 'active',
+                            currentDay: 1,
+                            startedAt: new Date(),
+                            completedAt: null,
+                            daysCompleted: 0,
+                            currentStreak: 0,
+                        },
+                        include: { program: true },
+                    });
+                }
+
+                throw new ConflictException('Diet program enrollment conflict. Please try again.');
+            }
+
             // Re-throw known exceptions
             if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
                 throw error;
@@ -735,13 +799,13 @@ export class DietsService implements OnModuleInit {
         }
 
         const program = userDiet.program;
-        
+
         // FIX: Check if program exists before accessing its properties
         if (!program) {
             this.logger.warn(`[getTodayTracker] Program is null for userDiet ${userDiet.id}`);
             return null;
         }
-        
+
         // FIX: Safe access to dailyTracker with null check
         const dailyTracker = (program?.dailyTracker as any[]) || [];
         const checklist = (todayLog.checklist as Record<string, boolean>) || {};

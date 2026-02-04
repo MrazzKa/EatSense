@@ -28,11 +28,26 @@ export default function TrendingCarousel({
     return null;
   }
 
+  // FIX 2026-02-04: List of lifestyle names that should stay in original English
+  const KEEP_ENGLISH_NAMES = [
+    'Old Money', 'Hot Girl Walk', 'That Girl', 'Clean Girl',
+    'Soft Girl', 'Coquette', 'Vanilla Girl', 'Dark Academia',
+    'Light Academia', 'Cottagecore', 'Coastal Grandmother',
+    'Mob Wife', 'Pilates Princess', 'It Girl',
+  ];
+
   const getLocalizedText = (
     text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null
   ): string => {
     if (!text) return '';
     if (typeof text === 'string') return text;
+
+    // Keep certain aesthetic names in English
+    const englishName = text.en || '';
+    if (KEEP_ENGLISH_NAMES.some(name => englishName.toLowerCase().includes(name.toLowerCase()))) {
+      return englishName;
+    }
+
     return text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || '';
   };
 
@@ -131,11 +146,11 @@ const styles = StyleSheet.create({
   carouselContent: {
     paddingLeft: 16,
     paddingRight: 16,
-    gap: 14,
+    gap: 12,
   },
   card: {
-    width: 240,
-    height: 160,
+    width: 200,
+    height: 220, // FIX: Square-ish ratio (220x220) for minimal photo cropping
     borderRadius: 16,
     overflow: 'hidden',
     justifyContent: 'flex-end',

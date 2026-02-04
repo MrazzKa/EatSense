@@ -109,29 +109,53 @@ class LocalNotificationService {
         medicationName: string,
         hour: number,
         minute: number,
-        medicationId: string
+        medicationId: string,
+        dosage?: string
     ): Promise<string> {
-        const locale = i18n.language || 'en';
+        // Use i18n translations with fallbacks
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 
-        const titles: Record<string, string> = {
-            en: 'Time to take medication',
-            ru: 'Время принять лекарство',
-            kk: 'Дәрі ішу уақыты',
-            fr: 'Heure de prendre le médicament',
-        };
+        // Get translated title
+        let title = i18n.t('medications.notifications.title');
+        if (!title || title.includes('notifications.title')) {
+            // Fallback if translation not found
+            const locale = i18n.language || 'en';
+            const titles: Record<string, string> = {
+                en: 'Time to take medication',
+                ru: 'Время принять лекарство',
+                kk: 'Дәрі ішу уақыты',
+                fr: 'Heure de prendre le médicament',
+            };
+            title = titles[locale] || titles.en;
+        }
 
-        const bodies: Record<string, string> = {
-            en: `Don't forget to take ${medicationName}`,
-            ru: `Не забудьте принять ${medicationName}`,
-            kk: `${medicationName} қабылдауды ұмытпаңыз`,
-            fr: `N'oubliez pas de prendre ${medicationName}`,
-        };
+        // Get translated body with interpolation
+        let body: string;
+        const bodyTemplate = i18n.t('medications.notifications.body', {
+            name: medicationName,
+            time: timeStr,
+            dosage: dosage || ''
+        });
+
+        if (!bodyTemplate || bodyTemplate.includes('notifications.body')) {
+            // Fallback if translation not found
+            const locale = i18n.language || 'en';
+            const bodies: Record<string, string> = {
+                en: `${medicationName} at ${timeStr}${dosage ? ` (${dosage})` : ''}`,
+                ru: `${medicationName} в ${timeStr}${dosage ? ` (${dosage})` : ''}`,
+                kk: `${medicationName} ${timeStr}${dosage ? ` (${dosage})` : ''}`,
+                fr: `${medicationName} à ${timeStr}${dosage ? ` (${dosage})` : ''}`,
+            };
+            body = bodies[locale] || bodies.en;
+        } else {
+            body = bodyTemplate;
+        }
 
         return this.scheduleDailyNotification(
             {
-                title: titles[locale] || titles.en,
-                body: bodies[locale] || bodies.en,
-                data: { type: 'medication', medicationId },
+                title,
+                body,
+                data: { type: 'medication', medicationId, dosage },
                 categoryIdentifier: NotificationCategories.MEDICATION_REMINDER,
             },
             hour,

@@ -14,7 +14,9 @@ import {
     KeyboardAvoidingView,
     Keyboard,
     Animated,
+    Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -46,24 +48,50 @@ type Medication = {
     quantity?: number | null;
     remainingStock?: number | null;
     lowStockThreshold?: number | null;
+    imageUrl?: string | null; // FIX 2026-02-04: Photo of medication
 };
 
 // --- Constants ---
 
-// Dosage units for medications
-const DOSAGE_UNITS = [
-    { key: 'mg', label: 'мг' },
-    { key: 'g', label: 'г' },
-    { key: 'ml', label: 'мл' },
-    { key: 'drops', label: 'капли' },
-    { key: 'tablets', label: 'таблетки' },
-    { key: 'capsules', label: 'капсулы' },
-    { key: 'puffs', label: 'пшики' },
-    { key: 'sprays', label: 'впрыски' },
-    { key: 'IU', label: 'МЕ' },
-] as const;
+// Dosage unit keys for medications
+const DOSAGE_UNIT_KEYS = ['mg', 'g', 'ml', 'drops', 'tablets', 'capsules', 'puffs', 'sprays', 'IU'] as const;
 
-type DosageUnitKey = typeof DOSAGE_UNITS[number]['key'];
+type DosageUnitKey = typeof DOSAGE_UNIT_KEYS[number];
+
+// Helper to get localized label for dosage unit
+const getDosageUnitLabel = (key: DosageUnitKey, t: (key: string) => string): string => {
+    const translated = t(`medications.dosageUnits.${key}`);
+    // Fallback to key if translation not found
+    return translated && !translated.includes('dosageUnits') ? translated : key;
+};
+
+// Map of countable units that need pluralization
+const COUNTABLE_UNITS: Record<string, string> = {
+    tablets: 'tablet',
+    capsules: 'capsule',
+    drops: 'drop',
+    puffs: 'puff',
+    sprays: 'spray',
+};
+
+// Helper to get pluralized unit label based on count
+const getPluralizedUnitLabel = (
+    key: DosageUnitKey,
+    count: number,
+    t: (key: string, options?: object) => string
+): string => {
+    // Check if this is a countable unit that needs pluralization
+    const singularKey = COUNTABLE_UNITS[key];
+    if (singularKey) {
+        // Use i18n plural support
+        const pluralized = t(`medications.dosagePlural.${singularKey}`, { count });
+        if (pluralized && !pluralized.includes('dosagePlural')) {
+            return pluralized;
+        }
+    }
+    // Fall back to regular unit label for non-countable units (mg, g, ml, IU)
+    return getDosageUnitLabel(key, t);
+};
 
 // --- Helper Functions ---
 
@@ -132,9 +160,18 @@ const MedicationCard = ({ item, onPress, onDelete, colors, t }: any) => {
         >
             <View style={styles.cardInternal}>
                 <View style={styles.iconContainer}>
-                    <View style={[styles.iconCircle, { backgroundColor: (colors.primary || '#4CAF50') + '20' }]}>
-                        <Ionicons name="medkit" size={20} color={colors.primary || '#4CAF50'} />
-                    </View>
+                    {/* FIX 2026-02-04: Show medication photo if available */}
+                    {item.imageUrl ? (
+                        <Image
+                            source={{ uri: item.imageUrl }}
+                            style={styles.medicationPhoto}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <View style={[styles.iconCircle, { backgroundColor: (colors.primary || '#4CAF50') + '20' }]}>
+                            <Ionicons name="medkit" size={20} color={colors.primary || '#4CAF50'} />
+                        </View>
+                    )}
                 </View>
 
                 <View style={styles.cardContent}>
@@ -154,6 +191,15 @@ const MedicationCard = ({ item, onPress, onDelete, colors, t }: any) => {
                                 {dosesText}
                             </Text>
                         </View>
+                        {/* FIX 2026-02-04: Show remaining stock */}
+                        {item.remainingStock !== null && item.remainingStock !== undefined && (
+                            <View style={[styles.timeChip, { backgroundColor: (colors.surfaceSecondary || '#F5F5F5') }]}>
+                                <Ionicons name="cube-outline" size={12} color={colors.textSecondary || '#666'} />
+                                <Text style={[styles.timeText, { color: colors.textSecondary || '#666' }]}>
+                                    {item.remainingStock}{item.quantity ? `/${item.quantity}` : ''} {t('medications.stock.remaining') || 'left'}
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Low Stock Warning */}
@@ -193,6 +239,8 @@ const EditMedicationModal = ({
     const [doses, setDoses] = useState<MedicationDose[]>([]);
     const [quantity, setQuantity] = useState('');
     const [remainingStock, setRemainingStock] = useState('');
+    const [imageUrl, setImageUrl] = useState<string | null>(null); // FIX 2026-02-04: Medication photo
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // Helper to parse existing dosage string (e.g., "500 мг" -> { amount: "500", unit: "mg" })
@@ -202,20 +250,32 @@ const EditMedicationModal = ({
         if (match) {
             const amount = match[1].trim();
             const unitStr = match[2].trim().toLowerCase();
-            // Find matching unit
-            const foundUnit = DOSAGE_UNITS.find(u =>
-                u.key.toLowerCase() === unitStr ||
-                u.label.toLowerCase() === unitStr
-            );
-            return { amount, unit: foundUnit?.key || 'mg' };
+            // Find matching unit by key, localized label, or any plural form
+            const foundUnit = DOSAGE_UNIT_KEYS.find(key => {
+                if (key.toLowerCase() === unitStr) return true;
+                if (getDosageUnitLabel(key, t).toLowerCase() === unitStr) return true;
+                // Also check all plural forms for countable units
+                const singularKey = COUNTABLE_UNITS[key];
+                if (singularKey) {
+                    // Check _one, _few, _many forms
+                    const pluralForms = ['_one', '_few', '_many', '_other'].map(
+                        suffix => t(`medications.dosagePlural.${singularKey}${suffix}`)?.toLowerCase()
+                    ).filter(Boolean);
+                    if (pluralForms.includes(unitStr)) return true;
+                }
+                return false;
+            });
+            return { amount, unit: foundUnit || 'mg' };
         }
         return { amount: dosageStr, unit: 'mg' };
     };
 
-    // Helper to combine amount and unit
+    // Helper to combine amount and unit with proper pluralization
     const combineDosage = (amount: string, unit: DosageUnitKey): string => {
         if (!amount.trim()) return '';
-        const unitLabel = DOSAGE_UNITS.find(u => u.key === unit)?.label || unit;
+        // Parse the amount to get the count for pluralization
+        const count = parseFloat(amount.replace(',', '.')) || 1;
+        const unitLabel = getPluralizedUnitLabel(unit, count, t);
         return `${amount.trim()} ${unitLabel}`;
     };
 
@@ -234,6 +294,7 @@ const EditMedicationModal = ({
                 setDoses(medication.doses ? [...medication.doses] : [{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }]);
                 setQuantity(medication.quantity?.toString() || '');
                 setRemainingStock(medication.remainingStock?.toString() || '');
+                setImageUrl(medication.imageUrl || null);
             } else {
                 // New medication default state
                 setName('');
@@ -245,6 +306,7 @@ const EditMedicationModal = ({
                 setDoses([{ timeOfDay: '09:00', beforeMeal: false, afterMeal: false }]);
                 setQuantity('');
                 setRemainingStock('');
+                setImageUrl(null);
             }
         }
     }, [visible, medication]);
@@ -279,6 +341,35 @@ const EditMedicationModal = ({
         setDoses(newDoses);
     };
 
+    // FIX 2026-02-04: Photo picker for medication
+    const handlePickPhoto = async () => {
+        try {
+            setUploadingPhoto(true);
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+                // Upload image to server
+                const uploadResult = await ApiService.uploadImage(result.assets[0].uri);
+                if (uploadResult?.url) {
+                    setImageUrl(uploadResult.url);
+                } else if (uploadResult?.id) {
+                    // Some APIs return id instead of url
+                    setImageUrl(uploadResult.id);
+                }
+            }
+        } catch (err) {
+            console.error('[MedicationSchedule] Photo pick error:', err);
+            Alert.alert(t('common.error'), t('medications.error.photoUpload') || 'Failed to upload photo');
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
+
     const handleSaveInternal = async () => {
         // Validation
         if (!name.trim()) {
@@ -309,7 +400,8 @@ const EditMedicationModal = ({
             isActive: true, // Default to active
             quantity: quantity ? parseInt(quantity, 10) : undefined,
             remainingStock: remainingStock ? parseInt(remainingStock, 10) : undefined,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+            imageUrl: imageUrl || undefined, // FIX 2026-02-04: Include medication photo
         };
 
         await onSave(payload, medication?.id);
@@ -366,25 +458,64 @@ const EditMedicationModal = ({
                                         style={styles.unitsScroll}
                                         contentContainerStyle={styles.unitsContainer}
                                     >
-                                        {DOSAGE_UNITS.map((unit) => (
+                                        {DOSAGE_UNIT_KEYS.map((unitKey) => (
                                             <TouchableOpacity
-                                                key={unit.key}
+                                                key={unitKey}
                                                 style={[
                                                     styles.unitChip,
-                                                    dosageUnit === unit.key && { backgroundColor: colors.primary }
+                                                    dosageUnit === unitKey && { backgroundColor: colors.primary }
                                                 ]}
-                                                onPress={() => setDosageUnit(unit.key)}
+                                                onPress={() => setDosageUnit(unitKey)}
                                             >
                                                 <Text style={[
                                                     styles.unitChipText,
-                                                    dosageUnit === unit.key ? { color: '#FFF' } : { color: colors.textSecondary }
+                                                    dosageUnit === unitKey ? { color: '#FFF' } : { color: colors.textSecondary }
                                                 ]}>
-                                                    {unit.label}
+                                                    {getDosageUnitLabel(unitKey, t)}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>
                                 </View>
+                            </View>
+                        </View>
+
+                        {/* FIX 2026-02-04: Section: Medication Photo */}
+                        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>{t('medications.photo') || 'PHOTO'}</Text>
+                        <View style={[styles.sectionContainer, { backgroundColor: colors.card || '#FFF' }]}>
+                            <View style={styles.photoSection}>
+                                {imageUrl ? (
+                                    <View style={styles.photoPreviewContainer}>
+                                        <Image
+                                            source={{ uri: imageUrl }}
+                                            style={styles.photoPreview}
+                                            resizeMode="cover"
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.removePhotoBtn}
+                                            onPress={() => setImageUrl(null)}
+                                        >
+                                            <Ionicons name="close-circle" size={24} color={colors.error || '#FF3B30'} />
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity
+                                        style={[styles.addPhotoBtn, { borderColor: colors.primary }]}
+                                        onPress={handlePickPhoto}
+                                        disabled={uploadingPhoto}
+                                    >
+                                        {uploadingPhoto ? (
+                                            <ActivityIndicator color={colors.primary} />
+                                        ) : (
+                                            <>
+                                                <Ionicons name="camera-outline" size={24} color={colors.primary} />
+                                                <Text style={[styles.addPhotoText, { color: colors.primary }]}>
+                                                    {t('medications.addPhoto') || 'Add photo'}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
 
@@ -559,8 +690,14 @@ const MedicationScheduleScreen: React.FC = () => {
                         const m = parseInt(mStr, 10);
 
                         if (!isNaN(h) && !isNaN(m)) {
-                            await localNotificationService.scheduleMedicationReminder(med.name, h, m, med.id);
-                            console.log(`[MedicationSchedule] Scheduled ${med.name} at ${h}:${m}`);
+                            await localNotificationService.scheduleMedicationReminder(
+                                med.name,
+                                h,
+                                m,
+                                med.id,
+                                med.dosage || undefined
+                            );
+                            console.log(`[MedicationSchedule] Scheduled ${med.name} at ${h}:${m} (${med.dosage || 'no dosage'})`);
                         }
                     }
                 }
@@ -857,13 +994,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 10,
-        width: 120,
-        minWidth: 120,
+        minWidth: 140,
     },
     timeInput: {
         fontSize: 18,
         fontWeight: '600',
-        flex: 1,
+        minWidth: 60,
+        textAlign: 'center',
     },
     doseOptions: {
         flexDirection: 'row',
@@ -890,6 +1027,55 @@ const styles = StyleSheet.create({
     addDoseText: {
         fontSize: 16,
         fontWeight: '600',
+    },
+    // FIX 2026-02-04: Photo styles
+    medicationPhoto: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+    },
+    // FIX: Take button style
+    takeButton: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 8,
+    } as const,
+    photoSection: {
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    photoPreviewContainer: {
+        position: 'relative',
+    },
+    photoPreview: {
+        width: 100,
+        height: 100,
+        borderRadius: 12,
+    },
+    removePhotoBtn: {
+        position: 'absolute',
+        top: -8,
+        right: -8,
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+    },
+    addPhotoBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+        paddingHorizontal: 24,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderRadius: 12,
+        gap: 8,
+    },
+    addPhotoText: {
+        fontSize: 14,
+        fontWeight: '500',
     },
 });
 

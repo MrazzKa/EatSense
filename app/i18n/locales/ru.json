@@ -605,7 +605,7 @@
   "diets_groups_historical": "Исторические",
   "diets_groups_seasonal": "Сезонные",
   "diets_groups_vintage": "Винтаж",
-  "diets_groups_old_money": "Старые деньги",
+  "diets_groups_old_money": "Old Money",
   "diets_groups_aesthetic": "Эстетика",
   "diets_status_active": "Активна",
   "diets_status_completed": "Завершена",
@@ -1475,7 +1475,8 @@
       "endDateBeforeStart": "Дата окончания должна быть после даты начала",
       "load": "Не удалось загрузить список лекарств",
       "nameRequired": "Название лекарства обязательно",
-      "save": "Не удалось сохранить лекарство"
+      "save": "Не удалось сохранить лекарство",
+      "photoUpload": "Не удалось загрузить фото"
     },
     "schedule": "Расписание",
     "supply": "Запас",
@@ -1520,7 +1521,42 @@
     },
     "tabTitle": "Таблетки",
     "times": "Время",
-    "title": "Расписание таблеток"
+    "title": "Расписание таблеток",
+    "dosageUnits": {
+      "mg": "мг",
+      "g": "г",
+      "ml": "мл",
+      "drops": "капли",
+      "tablets": "таблетки",
+      "capsules": "капсулы",
+      "puffs": "пшики",
+      "sprays": "впрыски",
+      "IU": "МЕ"
+    },
+    "notifications": {
+      "title": "Время приёма лекарства",
+      "body": "{{name}} в {{time}} ({{dosage}})",
+      "reminder": "Напоминание о приёме"
+    },
+    "dosagePlural": {
+      "tablet_one": "таблетка",
+      "tablet_few": "таблетки",
+      "tablet_many": "таблеток",
+      "capsule_one": "капсула",
+      "capsule_few": "капсулы",
+      "capsule_many": "капсул",
+      "drop_one": "капля",
+      "drop_few": "капли",
+      "drop_many": "капель",
+      "puff_one": "пшик",
+      "puff_few": "пшика",
+      "puff_many": "пшиков",
+      "spray_one": "впрыск",
+      "spray_few": "впрыска",
+      "spray_many": "впрысков"
+    },
+    "photo": "Фото",
+    "addPhoto": "Добавить фото"
   },
   "notifications": {
     "enableFailed": "Не удалось включить уведомления.",
@@ -2348,7 +2384,7 @@
             "label": "Три приёма пищи"
           }
         },
-        "name": "Старые Деньги",
+        "name": "Old Money",
         "subtitle": "Тихая роскошь, вечная элегантность",
         "description": "Качество превыше всего. Травяное, дикое, органическое.",
         "shortDescription": "Качество важнее количества"

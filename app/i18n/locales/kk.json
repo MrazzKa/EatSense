@@ -1143,7 +1143,8 @@
       "endDateBeforeStart": "Аяқталу күні басталу күнінен кейін болуы керек",
       "load": "Дәрілер тізімін жүктеу сәтсіз",
       "nameRequired": "Дәрінің аты қажет",
-      "save": "Дәріні сақтау сәтсіз"
+      "save": "Дәріні сақтау сәтсіз",
+      "photoUpload": "Суретті жүктеу сәтсіз"
     },
     "schedule": "Кесте",
     "supply": "Қор",
@@ -1188,7 +1189,39 @@
     "times": "Уақыттар",
     "beforeMeal": "Тамаққа дейін",
     "afterMeal": "Тамақтан кейін",
-    "addDose": "Уақыт қосу"
+    "addDose": "Уақыт қосу",
+    "dosageUnits": {
+      "mg": "мг",
+      "g": "г",
+      "ml": "мл",
+      "drops": "тамшы",
+      "tablets": "таблетка",
+      "capsules": "капсула",
+      "puffs": "шашыру",
+      "sprays": "бүрку",
+      "IU": "ХБ"
+    },
+    "notifications": {
+      "title": "Дәрі қабылдау уақыты",
+      "body": "{{name}} {{time}} ({{dosage}})",
+      "reminder": "Дәрі еске салу"
+    },
+    "dosagePlural": {
+      "tablet_one": "таблетка",
+      "tablet_few": "таблетка",
+      "tablet_many": "таблетка",
+      "capsule_one": "капсула",
+      "capsule_few": "капсула",
+      "capsule_many": "капсула",
+      "drop_one": "тамшы",
+      "drop_few": "тамшы",
+      "drop_many": "тамшы",
+      "puff_one": "шашыру",
+      "puff_few": "шашыру",
+      "puff_many": "шашыру"
+    },
+    "photo": "Сурет",
+    "addPhoto": "Сурет қосу"
   },
   "notifications": {
     "enableFailed": "Хабарландыруларды қосу сәтсіз.",

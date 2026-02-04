@@ -857,97 +857,21 @@ const OnboardingScreen = () => {
     };
   });
 
-  // Load currency from IAP on mount
+  // FIX 2026-02-04: Always use device region prices to prevent currency flickering
+  // Same approach as SubscriptionScreen - IAP is used only for purchase, not display
+  // This ensures consistent pricing between Onboarding and Profile screens
   useEffect(() => {
-    let isMounted = true;
-
-    const loadCurrency = async () => {
-      // STEP 1: Try IAP (Apple/Google real prices) - MOST ACCURATE SOURCE
-      // IAP automatically returns correct prices for user's App Store country
-      // This is the most reliable way to get country-specific pricing
-      try {
-        const initResult = await IAPService.init();
-        if (initResult) {
-          const result = await IAPService.getAvailableProducts();
-          const allProducts = [...(result?.subscriptions || []), ...(result?.products || [])];
-
-          if (allProducts.length > 0) {
-            const iapCurrencyCode = allProducts[0]?.currency;
-            const monthly = allProducts.find(p => p.productId?.includes('monthly'));
-            const yearly = allProducts.find(p => p.productId?.includes('yearly') && !p.productId?.includes('student'));
-            const student = allProducts.find(p => p.productId?.includes('student'));
-            const founder = allProducts.find(p => p.productId === 'eatsense.founder.pass');
-
-            if (isMounted && (monthly || yearly)) {
-              // IAP prices are already localized for user's App Store country - use them directly
-              // Get currency symbol from IAP currency code for proper formatting
-              const currencyConfig = getCurrency();
-
-              // FIX: Use symbol from IAP currency code, not device region
-              // This ensures we show the correct currency symbol (e.g., ₸ for KZT, not $ for USD)
-              const iapSymbol = iapCurrencyCode ? getCurrencySymbolByCode(iapCurrencyCode) : currencyConfig.symbol;
-
-              // IMPORTANT: Use IAP prices directly - they are already correct for user's country
-              // IAP.localizedPrice contains the exact price from App Store Connect for user's country
-              setCurrency({
-                symbol: iapSymbol,
-                code: iapCurrencyCode || currencyConfig.code,
-                freePrice: formatAmount(0),
-                monthlyPrice: monthly?.localizedPrice || formatPrice('monthly'),
-                yearlyPrice: yearly?.localizedPrice || formatPrice('yearly'),
-                studentPrice: student?.localizedPrice || formatPrice('student'),
-                founderPrice: founder?.localizedPrice || formatPrice('founder'),
-              });
-
-              const deviceRegion = getDeviceRegion();
-              console.log('[Onboarding] Using IAP prices (most accurate):', {
-                currency: iapCurrencyCode,
-                deviceRegion,
-                monthly: monthly?.localizedPrice,
-                yearly: yearly?.localizedPrice,
-              });
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        console.log('[Onboarding] IAP unavailable, using fallback:', e?.message);
-      }
-
-      // STEP 2: Fallback to device region using currency utility
-      // This is used when IAP is unavailable (simulator, testing, etc.)
-      // Prices are based on device region, which should match user's country
-      if (!isMounted) return;
-
-      const deviceRegion = getDeviceRegion();
-      const currencyConfig = getCurrency();
-      const currencyCode = currencyConfig.code;
-
-      // Format prices using currency utility (handles all 175 countries correctly)
-      // Note: These are approximate prices based on currency, not exact country prices
-      // IAP prices are always more accurate as they use App Store country
-      setCurrency({
-        symbol: currencyConfig.symbol,
-        code: currencyCode,
-        freePrice: formatAmount(0),
-        monthlyPrice: formatPrice('monthly'),
-        yearlyPrice: formatPrice('yearly'),
-        studentPrice: formatPrice('student'),
-        founderPrice: formatPrice('founder'),
-      });
-      console.log('[Onboarding] Using fallback prices from device region:', {
-        region: deviceRegion,
-        currency: currencyCode,
-        symbol: currencyConfig.symbol,
-        note: 'IAP prices are more accurate - these are approximate',
-      });
-    };
-
-    loadCurrency();
-    return () => { isMounted = false; };
+    // Currency is already set from useState initializer using getCurrency()
+    // No need to load IAP prices - they might differ from device region
+    const deviceRegion = getDeviceRegion();
+    const currencyConfig = getCurrency();
+    console.log('[Onboarding] Using device region prices (consistent with Profile):', {
+      region: deviceRegion,
+      currency: currencyConfig.code,
+      symbol: currencyConfig.symbol,
+      note: 'Prices from currency.ts based on device region',
+    });
   }, []);
-
-
 
   const plans = [
     {
@@ -1170,6 +1094,8 @@ const OnboardingScreen = () => {
         healthConditions: finalHealthConditions,
         diet: finalDiet,
         preferences: mergedPreferences,
+        // FIX: Sync calculated calorie goal from onboarding to profile
+        dailyCalories: planData?.dailyCalories || 0,
       };
 
       clientLog('Onboarding:profileSave:start', { payload: finalPayload });

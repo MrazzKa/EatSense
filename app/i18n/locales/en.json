@@ -1774,7 +1774,8 @@
       "save": "Failed to save medication",
       "delete": "Failed to delete medication",
       "nameRequired": "Medication name is required",
-      "endDateBeforeStart": "End date must be after start date"
+      "endDateBeforeStart": "End date must be after start date",
+      "photoUpload": "Failed to upload photo"
     },
     "schedule": "Schedule",
     "supply": "Supply",
@@ -1819,7 +1820,37 @@
     "times": "Times",
     "beforeMeal": "Before",
     "afterMeal": "After",
-    "addDose": "Add time"
+    "addDose": "Add time",
+    "dosageUnits": {
+      "mg": "mg",
+      "g": "g",
+      "ml": "ml",
+      "drops": "drops",
+      "tablets": "tablets",
+      "capsules": "capsules",
+      "puffs": "puffs",
+      "sprays": "sprays",
+      "IU": "IU"
+    },
+    "notifications": {
+      "title": "Time for medication",
+      "body": "{{name}} at {{time}} ({{dosage}})",
+      "reminder": "Medication reminder"
+    },
+    "dosagePlural": {
+      "tablet_one": "tablet",
+      "tablet_other": "tablets",
+      "capsule_one": "capsule",
+      "capsule_other": "capsules",
+      "drop_one": "drop",
+      "drop_other": "drops",
+      "puff_one": "puff",
+      "puff_other": "puffs",
+      "spray_one": "spray",
+      "spray_other": "sprays"
+    },
+    "photo": "Photo",
+    "addPhoto": "Add photo"
   },
   "foodDescriptionPrompt": {
     "title": "What did you eat?",
