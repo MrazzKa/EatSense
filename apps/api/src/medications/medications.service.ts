@@ -10,7 +10,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 export class MedicationsService {
   private readonly logger = new Logger(MedicationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * P3.1: Get medications due for today (using new Medication model)
@@ -116,7 +116,7 @@ export class MedicationsService {
 
     // Calculate days passed since start
     const daysPassed = Math.max(0, Math.floor(now.diff(start, 'days').days));
-    
+
     // If end date exists and has passed, medication is finished
     if (end && now > end) {
       return 0;
@@ -145,6 +145,7 @@ export class MedicationsService {
       quantity,
       remainingStock,
       lowStockThreshold,
+      imageUrl,
     } = dto;
 
     const startDateObj = new Date(startDate);
@@ -170,6 +171,7 @@ export class MedicationsService {
           remainingStock: calculatedRemainingStock,
           lowStockThreshold: lowStockThreshold || 7,
           lastStockUpdate: calculatedRemainingStock !== null ? new Date() : null,
+          imageUrl: imageUrl || null,
           doses: {
             create: doses.map((dose) => ({
               timeOfDay: dose.timeOfDay,
@@ -199,10 +201,13 @@ export class MedicationsService {
     // Determine final doses count (use new doses if provided, otherwise existing)
     const finalDosesCount = doses ? doses.length : existing.doses.length;
     const finalStartDate = rest.startDate ? new Date(rest.startDate) : existing.startDate;
-    const finalEndDate = rest.endDate !== undefined 
+    const finalEndDate = rest.endDate !== undefined
       ? (rest.endDate ? new Date(rest.endDate) : null)
       : existing.endDate;
     const finalQuantity = quantity !== undefined ? quantity : existing.quantity;
+
+    // Extract imageUrl if present
+    const { imageUrl } = rest as any;
 
     // Recalculate remaining stock if quantity or doses changed
     let calculatedRemainingStock = remainingStock;
@@ -219,31 +224,32 @@ export class MedicationsService {
     let updated;
     try {
       updated = await this.prisma.medication.update({
-      where: { id: existing.id },
-      data: {
-        ...('name' in rest && rest.name !== undefined ? { name: rest.name } : {}),
-        ...('dosage' in rest && rest.dosage !== undefined ? { dosage: rest.dosage } : {}),
-        ...('instructions' in rest && rest.instructions !== undefined ? { instructions: rest.instructions } : {}),
-        ...('startDate' in rest && rest.startDate
-          ? { startDate: new Date(rest.startDate) }
-          : {}),
-        ...('endDate' in rest && rest.endDate !== undefined
-          ? { endDate: rest.endDate ? new Date(rest.endDate) : null }
-          : {}),
-        ...('timezone' in rest && rest.timezone
-          ? { timezone: rest.timezone }
-          : {}),
-        ...('isActive' in rest && typeof rest.isActive === 'boolean'
-          ? { isActive: rest.isActive }
-          : {}),
-        ...(quantity !== undefined ? { quantity: quantity || null } : {}),
-        ...(calculatedRemainingStock !== undefined ? { 
-          remainingStock: calculatedRemainingStock,
-          lastStockUpdate: calculatedRemainingStock !== null ? new Date() : null,
-        } : {}),
-        ...(lowStockThreshold !== undefined ? { lowStockThreshold: lowStockThreshold || 7 } : {}),
-      },
-      include: { doses: true },
+        where: { id: existing.id },
+        data: {
+          ...('name' in rest && rest.name !== undefined ? { name: rest.name } : {}),
+          ...('dosage' in rest && rest.dosage !== undefined ? { dosage: rest.dosage } : {}),
+          ...('instructions' in rest && rest.instructions !== undefined ? { instructions: rest.instructions } : {}),
+          ...('startDate' in rest && rest.startDate
+            ? { startDate: new Date(rest.startDate) }
+            : {}),
+          ...('endDate' in rest && rest.endDate !== undefined
+            ? { endDate: rest.endDate ? new Date(rest.endDate) : null }
+            : {}),
+          ...('timezone' in rest && rest.timezone
+            ? { timezone: rest.timezone }
+            : {}),
+          ...('isActive' in rest && typeof rest.isActive === 'boolean'
+            ? { isActive: rest.isActive }
+            : {}),
+          ...(quantity !== undefined ? { quantity: quantity || null } : {}),
+          ...(calculatedRemainingStock !== undefined ? {
+            remainingStock: calculatedRemainingStock,
+            lastStockUpdate: calculatedRemainingStock !== null ? new Date() : null,
+          } : {}),
+          ...(lowStockThreshold !== undefined ? { lowStockThreshold: lowStockThreshold || 7 } : {}),
+          ...(imageUrl !== undefined ? { imageUrl: imageUrl || null } : {}),
+        },
+        include: { doses: true },
       });
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2021') {
@@ -297,6 +303,28 @@ export class MedicationsService {
       }
       throw err;
     }
+  }
+  /**
+   * Decrement usage count (Safe Take)
+   */
+  async decrementStock(userId: string, id: string) {
+    const existing = await this.findOneForUser(userId, id);
+
+    if (existing.remainingStock === null || existing.remainingStock === undefined) {
+      // Nothing to decrement if stock is not tracked
+      return existing;
+    }
+
+    const newStock = Math.max(0, existing.remainingStock - 1);
+
+    return await this.prisma.medication.update({
+      where: { id },
+      data: {
+        remainingStock: newStock,
+        lastStockUpdate: new Date(),
+      },
+      include: { doses: true },
+    });
   }
 }
 

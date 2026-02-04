@@ -379,7 +379,10 @@
     "underweight": "Недовес",
     "overweight": "Избыточный вес",
     "obese": "Ожирение",
-    "comingSoon": "Скоро"
+    "comingSoon": "Скоро",
+    "show": "Показать",
+    "hide": "Скрыть",
+    "hoursShort": "ч"
   },
   "dashboard": {
     "addFood": {

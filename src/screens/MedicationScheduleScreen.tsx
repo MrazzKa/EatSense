@@ -83,10 +83,32 @@ const getPluralizedUnitLabel = (
     // Check if this is a countable unit that needs pluralization
     const singularKey = COUNTABLE_UNITS[key];
     if (singularKey) {
-        // Use i18n plural support
-        const pluralized = t(`medications.dosagePlural.${singularKey}`, { count });
-        if (pluralized && !pluralized.includes('dosagePlural')) {
+        // Determine Russian plural form manually
+        // Russian rules: 1 -> one, 2-4 -> few, 5-20 -> many, 21 -> one, 22-24 -> few, etc.
+        const getRuPluralSuffix = (n: number): string => {
+            const abs = Math.abs(n);
+            const lastTwo = abs % 100;
+            const lastOne = abs % 10;
+
+            if (lastTwo >= 11 && lastTwo <= 19) return '_many';
+            if (lastOne === 1) return '_one';
+            if (lastOne >= 2 && lastOne <= 4) return '_few';
+            return '_many';
+        };
+
+        const suffix = getRuPluralSuffix(count);
+        const pluralKey = `medications.dosagePlural.${singularKey}${suffix}`;
+        const pluralized = t(pluralKey);
+
+        // Check if translation was found (not a fallback key)
+        if (pluralized && !pluralized.includes('dosagePlural') && pluralized !== pluralKey) {
             return pluralized;
+        }
+
+        // Fallback: try i18next automatic pluralization
+        const autoPlural = t(`medications.dosagePlural.${singularKey}`, { count });
+        if (autoPlural && !autoPlural.includes('dosagePlural')) {
+            return autoPlural;
         }
     }
     // Fall back to regular unit label for non-countable units (mg, g, ml, IU)
@@ -133,7 +155,7 @@ const Header = ({ title, onAdd, onBack, colors }: any) => (
 );
 
 // 2. Medication Card Component
-const MedicationCard = ({ item, onPress, onDelete, colors, t }: any) => {
+const MedicationCard = ({ item, onPress, onDelete, onTake, colors, t }: any) => {
     const dosesText = item.doses && item.doses.length
         ? item.doses.map((d: any) => d.timeOfDay).join(', ')
         : t('medications.noDoses') || 'No times';
@@ -215,6 +237,15 @@ const MedicationCard = ({ item, onPress, onDelete, colors, t }: any) => {
 
                 <TouchableOpacity onPress={() => onDelete(item)} hitSlop={15}>
                     <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
+                </TouchableOpacity>
+
+                {/* Take Button */}
+                <TouchableOpacity
+                    style={[styles.takeButton, { backgroundColor: (colors.primary || '#4CAF50') + '15' }]}
+                    onPress={() => onTake && onTake(item)}
+                    hitSlop={10}
+                >
+                    <Ionicons name="checkmark-circle" size={24} color={colors.primary || '#4CAF50'} />
                 </TouchableOpacity>
             </View>
         </TouchableOpacity>
@@ -731,6 +762,25 @@ const MedicationScheduleScreen: React.FC = () => {
         );
     };
 
+    const handleTake = async (med: Medication) => {
+        try {
+            // Optimistic update
+            setMedications(prev => prev.map(m => {
+                if (m.id === med.id && m.remainingStock !== null && m.remainingStock !== undefined) {
+                    return { ...m, remainingStock: Math.max(0, m.remainingStock - 1) };
+                }
+                return m;
+            }));
+
+            await ApiService.takeMedication(med.id);
+        } catch (e) {
+            console.error('[MedicationSchedule] Take error:', e);
+            Alert.alert(t('common.error'), t('medications.error.take') || 'Failed to update stock');
+            // Revert on error
+            loadMedications();
+        }
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             {/* Header */}
@@ -756,6 +806,7 @@ const MedicationScheduleScreen: React.FC = () => {
                             item={item}
                             onPress={handleOpenEdit}
                             onDelete={handleDelete}
+                            onTake={handleTake}
                             colors={colors}
                             t={t}
                         />
