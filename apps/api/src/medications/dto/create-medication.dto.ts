@@ -64,8 +64,13 @@ export class CreateMedicationDto {
   @Min(1)
   lowStockThreshold?: number;
 
-  @ApiProperty({ 
-    example: [{ timeOfDay: '08:00', beforeMeal: false, afterMeal: false }], 
+  @ApiPropertyOptional({ example: 'https://example.com/photo.jpg', description: 'Medication photo URL' })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @ApiProperty({
+    example: [{ timeOfDay: '08:00', beforeMeal: false, afterMeal: false }],
     description: 'Array of dose times',
     type: [MedicationDoseDto],
   })

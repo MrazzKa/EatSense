@@ -596,7 +596,7 @@ class ApiService {
           const errorMessage = errorBody?.message || errorBody?.error || '';
 
           if (errorMessage.toLowerCase().includes('already used') ||
-              errorMessage.toLowerCase().includes('token has been used')) {
+            errorMessage.toLowerCase().includes('token has been used')) {
             // Another request already used this refresh token
             // Wait briefly and reload tokens from storage (they should be updated)
             if (__DEV__) {
@@ -1445,13 +1445,19 @@ class ApiService {
     });
   }
 
-  /**
-   * Update medication
-   */
   async updateMedication(id, payload) {
     return this.request(`/medications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Mark medication as taken (decrement stock)
+   */
+  async takeMedication(id) {
+    return this.request(`/medications/${id}/take`, {
+      method: 'POST',
     });
   }
 

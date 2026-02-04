@@ -28,21 +28,52 @@ export default function TrendingCarousel({
     return null;
   }
 
-  // FIX 2026-02-04: List of lifestyle names that should stay in original English
+  // FIX 2026-02-05: List of lifestyle names that should stay in original English
+  // These trendy aesthetic names lose meaning when translated
   const KEEP_ENGLISH_NAMES = [
     'Old Money', 'Hot Girl Walk', 'That Girl', 'Clean Girl',
     'Soft Girl', 'Coquette', 'Vanilla Girl', 'Dark Academia',
     'Light Academia', 'Cottagecore', 'Coastal Grandmother',
-    'Mob Wife', 'Pilates Princess', 'It Girl',
+    'Mob Wife', 'Pilates Princess', 'It Girl', 'Tomato Girl Summer',
+    'Lazy Girl', 'Summer Shred', 'Glass Skin', 'French Girl',
   ];
 
+  // Map Russian translations back to English names (for backend that sends localized names)
+  const RU_TO_EN_MAP: Record<string, string> = {
+    'Старые деньги': 'Old Money',
+    '"Старые деньги"': 'Old Money',
+    'Hot Girl Walk': 'Hot Girl Walk',
+    'Та самая девушка': 'That Girl',
+    '"Та самая девушка"': 'That Girl',
+    'Чистая девушка': 'Clean Girl',
+    '"Чистая девушка"': 'Clean Girl',
+    'Прибрежная Бабушка': 'Coastal Grandmother',
+    'Жена Мафиози': 'Mob Wife',
+    'Принцесса пилатеса': 'Pilates Princess',
+    'Лето Томатной Девушки': 'Tomato Girl Summer',
+    'Французская Девушка': 'French Girl',
+  };
+
   const getLocalizedText = (
-    text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null
+    text: { en?: string; ru?: string; kk?: string; fr?: string } | string | undefined | null
   ): string => {
     if (!text) return '';
-    if (typeof text === 'string') return text;
 
-    // Keep certain aesthetic names in English
+    // If text is already a string (backend sends localized name)
+    if (typeof text === 'string') {
+      // Check if this is a Russian translation that should be English
+      const englishName = RU_TO_EN_MAP[text];
+      if (englishName && KEEP_ENGLISH_NAMES.some(name => englishName.toLowerCase().includes(name.toLowerCase()))) {
+        return englishName;
+      }
+      // Check if the string itself is in KEEP_ENGLISH_NAMES
+      if (KEEP_ENGLISH_NAMES.some(name => text.toLowerCase().includes(name.toLowerCase()))) {
+        return text;
+      }
+      return text;
+    }
+
+    // Text is an object with language keys
     const englishName = text.en || '';
     if (KEEP_ENGLISH_NAMES.some(name => englishName.toLowerCase().includes(name.toLowerCase()))) {
       return englishName;

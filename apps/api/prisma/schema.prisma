@@ -493,6 +493,7 @@ model Medication {
   remainingStock Int?    // Остаток таблеток (nullable - опционально, вычисляется автоматически)
   lowStockThreshold Int? @default(7) // Порог для уведомления о низком остатке (дни до окончания)
   lastStockUpdate DateTime? // Дата последнего обновления остатка
+  imageUrl     String?   // Фото лекарства
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

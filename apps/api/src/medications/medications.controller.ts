@@ -10,7 +10,7 @@ import { UpdateMedicationDto } from './dto/update-medication.dto';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class MedicationsController {
-  constructor(private readonly medicationsService: MedicationsService) {}
+  constructor(private readonly medicationsService: MedicationsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create medication schedule' })
@@ -58,6 +58,13 @@ export class MedicationsController {
     // Use new model (soft delete)
     await this.medicationsService.removeForUser(req.user.id, id);
     return { message: 'Medication schedule deleted successfully' };
+  }
+
+  @Post(':id/take')
+  @ApiOperation({ summary: 'Decrement medication stock' })
+  @ApiResponse({ status: 200, description: 'Stock updated' })
+  async take(@Request() req: any, @Param('id') id: string) {
+    return this.medicationsService.decrementStock(req.user.id, id);
   }
 }
 
