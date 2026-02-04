@@ -18,8 +18,12 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   const circumference = 2 * Math.PI * radius;
 
   // Animate progress change smoothly
+  // FIX: Use ref to track current animated value to avoid dependency loop
+  const animatedRef = React.useRef(animatedProgress);
+  animatedRef.current = animatedProgress;
+
   useEffect(() => {
-    const startValue = animatedProgress;
+    const startValue = animatedRef.current;
     const endValue = displayProgress;
     const duration = 800;
     const startTime = Date.now();
@@ -45,7 +49,7 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
     if (Math.abs(startValue - endValue) > 0.01) {
       requestAnimationFrame(animate);
     }
-  }, [displayProgress, animatedProgress]);
+  }, [displayProgress]); // Only re-run when target progress changes
 
   const strokeDashoffset = circumference * (1 - animatedProgress);
 

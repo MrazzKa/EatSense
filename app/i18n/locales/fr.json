@@ -1153,7 +1153,8 @@
       "endDateBeforeStart": "La date de fin doit être après la date de début",
       "load": "Échec du chargement des médicaments",
       "nameRequired": "Le nom du médicament est requis",
-      "save": "Échec de l'enregistrement du médicament"
+      "save": "Échec de l'enregistrement du médicament",
+      "photoUpload": "Échec du téléchargement de la photo"
     },
     "schedule": "Calendrier",
     "supply": "Stock",
@@ -1198,7 +1199,35 @@
     },
     "tabTitle": "Médicaments",
     "times": "Horaires",
-    "title": "Planning des médicaments"
+    "title": "Planning des médicaments",
+    "dosageUnits": {
+      "mg": "mg",
+      "g": "g",
+      "ml": "ml",
+      "drops": "gouttes",
+      "tablets": "comprimés",
+      "capsules": "gélules",
+      "puffs": "bouffées",
+      "sprays": "sprays",
+      "IU": "UI"
+    },
+    "notifications": {
+      "title": "Heure de prendre vos médicaments",
+      "body": "{{name}} à {{time}} ({{dosage}})",
+      "reminder": "Rappel de médicament"
+    },
+    "dosagePlural": {
+      "tablet_one": "comprimé",
+      "tablet_other": "comprimés",
+      "capsule_one": "gélule",
+      "capsule_other": "gélules",
+      "drop_one": "goutte",
+      "drop_other": "gouttes",
+      "puff_one": "bouffée",
+      "puff_other": "bouffées"
+    },
+    "photo": "Photo",
+    "addPhoto": "Ajouter photo"
   },
   "notifications": {
     "enableFailed": "Impossible d'activer les notifications.",

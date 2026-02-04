@@ -21,6 +21,15 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
   const { t, language } = useI18n();
   const { colors } = useTheme();
 
+  // FIX 2026-02-04: List of lifestyle names that should stay in original English
+  // These are aesthetic/trend names that lose meaning when translated
+  const KEEP_ENGLISH_NAMES = [
+    'Old Money', 'Hot Girl Walk', 'That Girl', 'Clean Girl',
+    'Soft Girl', 'Coquette', 'Vanilla Girl', 'Dark Academia',
+    'Light Academia', 'Cottagecore', 'Coastal Grandmother',
+    'Mob Wife', 'Pilates Princess', 'It Girl', 'Tomato Girl Summer',
+  ];
+
   const getLocalizedText = (
     text: { en?: string; ru?: string; kk?: string; fr?: string } | undefined | null,
     t?: (_key: string) => string
@@ -37,7 +46,13 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
 
     if (typeof text === 'string') return translateIfNeeded(text);
 
-    // Fallback logic
+    // FIX: Keep certain aesthetic names in English regardless of language
+    const englishName = text.en || '';
+    if (KEEP_ENGLISH_NAMES.some(name => englishName.toLowerCase().includes(name.toLowerCase()))) {
+      return englishName;
+    }
+
+    // Fallback logic for other names
     const result = text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || Object.values(text)[0] || '';
     return translateIfNeeded(result);
   };

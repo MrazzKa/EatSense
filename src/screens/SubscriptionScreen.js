@@ -348,6 +348,11 @@ export default function SubscriptionScreen() {
                 };
             });
 
+            // FIX: Sort plans in consistent order to prevent position switching
+            // Order: yearly, monthly, student, founders
+            const planOrder = { 'yearly': 0, 'monthly': 1, 'student': 2, 'founders': 3 };
+            mappedPlans.sort((a, b) => (planOrder[a.name] ?? 99) - (planOrder[b.name] ?? 99));
+
             setPlans(mappedPlans);
 
             // Select yearly plan by default (best value)

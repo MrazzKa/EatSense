@@ -137,6 +137,93 @@ export class CacheService {
     return this.resolveTtl(namespace);
   }
 
+  /**
+   * Get cached value or generate and store it with lock protection.
+   * Prevents cache stampede by using a Redis lock so only one request generates the value.
+   * @param key Cache key
+   * @param namespace Cache namespace
+   * @param factory Function to generate the value if cache miss
+   * @param ttl Optional TTL override
+   */
+  async getOrSet<T>(
+    key: string,
+    namespace: CacheNamespace,
+    factory: () => Promise<T>,
+    ttl?: number,
+  ): Promise<T> {
+    // First try to get from cache
+    const cached = await this.get<T>(key, namespace);
+    if (cached !== null) {
+      return cached;
+    }
+
+    // Try to acquire lock for generating this key
+    const lockKey = `${this.prefix}:lock:${namespace}:${key}`;
+    const lockAcquired = await this.redis.setNx(lockKey, 'generating', 30); // 30 second lock
+
+    if (lockAcquired) {
+      try {
+        // Double-check cache after acquiring lock (another request might have just finished)
+        const cachedAfterLock = await this.get<T>(key, namespace);
+        if (cachedAfterLock !== null) {
+          await this.redis.del(lockKey);
+          return cachedAfterLock;
+        }
+
+        // Generate the value
+        this.logger.debug(`cache=generating namespace=${namespace} key=${key}`);
+        const value = await factory();
+
+        // Store in cache
+        await this.set(key, value, namespace, ttl);
+
+        // Release lock
+        await this.redis.del(lockKey);
+
+        return value;
+      } catch (error) {
+        // Release lock on error
+        await this.redis.del(lockKey);
+        throw error;
+      }
+    } else {
+      // Lock not acquired - wait for the other request to finish
+      this.logger.debug(`cache=waiting namespace=${namespace} key=${key}`);
+
+      // Poll for result with exponential backoff
+      const maxWait = 10000; // 10 seconds max wait
+      const pollInterval = 100; // Start with 100ms
+      let waited = 0;
+
+      while (waited < maxWait) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        waited += pollInterval;
+
+        const result = await this.get<T>(key, namespace);
+        if (result !== null) {
+          return result;
+        }
+
+        // Check if lock is still held
+        const lockStillHeld = await this.redis.exists(lockKey);
+        if (!lockStillHeld) {
+          // Lock released but no value - try one more time
+          const finalResult = await this.get<T>(key, namespace);
+          if (finalResult !== null) {
+            return finalResult;
+          }
+          break;
+        }
+      }
+
+      // Timeout or lock released without value - generate ourselves as fallback
+      this.logger.warn(`cache=timeout namespace=${namespace} key=${key} - generating fallback`);
+      const value = await factory();
+      await this.set(key, value, namespace, ttl);
+      return value;
+    }
+  }
+
   private async deleteByPattern(pattern: string): Promise<void> {
     const client = this.redis.getClient();
     const stream = client.scanIterator({

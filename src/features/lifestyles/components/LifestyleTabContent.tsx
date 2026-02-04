@@ -21,7 +21,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { LifestyleTarget } from '../types';
+// LifestyleTarget type removed - gender filter no longer used
 import { LIFESTYLE_CATEGORIES } from '../constants';
 import LifestyleCard from './LifestyleCard';
 import CategoryChips from './CategoryChips';
@@ -122,7 +122,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
   const { colors } = useTheme();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<LifestyleTarget | null>(null);
+  // selectedTarget state removed - gender filter disabled (no data to filter by)
   const [showLockModal, setShowLockModal] = useState(false);
 
   // Handler for program press with lock check
@@ -152,40 +152,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       });
     }
 
-    if (selectedTarget) {
-      // FIX #8: Filter by target - handle gender filtering with proper synonyms
-      if (selectedTarget !== 'all') {
-        const targetSynonyms: Record<string, string[]> = {
-          male: ['male', 'men', 'man', 'masculine', 'мужской', 'мужчины', 'm'],
-          female: ['female', 'women', 'woman', 'feminine', 'женский', 'женщины', 'f'],
-          all: ['all', 'unisex', 'both', 'все', 'universal'],
-        };
-        const normalizedSelected = selectedTarget.toLowerCase().trim();
-        const validTargets = targetSynonyms[normalizedSelected] || [normalizedSelected];
-        const allTargets = targetSynonyms['all'] || ['all'];
-
-        result = result.filter(p => {
-          const programTarget = (p.target || '').toLowerCase().trim();
-
-          // Show program if:
-          // 1. Program has no target (implicitly for all)
-          // 2. Program target is explicitly 'all' or universal
-          // 3. Program target matches selected gender
-          if (!programTarget) {
-            return true; // No target = for everyone
-          }
-
-          // Check if program is for all genders
-          if (allTargets.includes(programTarget)) {
-            return true;
-          }
-
-          // Check if program matches selected gender
-          return validTargets.includes(programTarget);
-        });
-      }
-      // If selectedTarget === 'all', show all programs (no filtering)
-    }
+    // Gender filtering removed - target data not available in programs
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -198,7 +165,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     }
 
     return result;
-  }, [programs, selectedCategory, selectedTarget, searchQuery, language]);
+  }, [programs, selectedCategory, searchQuery, language]);
 
   // Build flat list data with sections
   const listData = useMemo((): SectionData[] => {
@@ -209,9 +176,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
 
     // Active Program Section - Show tracker widget for active lifestyle program
     // Only show if we have an active program AND it's a lifestyle type
-    // FIX: Use stable check to prevent tracker from appearing/disappearing
-    // Only show tracker if activeProgram exists and is stable (not loading)
-    if (props.activeProgram && props.activeProgram.type === 'lifestyle' && !isLoading) {
+    // FIX: Keep tracker visible during loading to prevent flicker - only hide if we truly have no active program
+    if (props.activeProgram && props.activeProgram.type === 'lifestyle') {
       data.push({ type: 'active-tracker', data: props.activeProgram });
     }
 
@@ -228,10 +194,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     // Disclaimer banner
     data.push({ type: 'disclaimer' });
 
-    // Filters (only if not searching)
-    if (!searchQuery) {
-      data.push({ type: 'filters' });
-    }
+    // FIX 2026-02-04: Removed "For whom" filter as target data is not properly populated in programs
+    // The filter was not working correctly and was confusing users
 
     // Programs grouped by category or flat list
     if (selectedCategory) {
@@ -307,15 +271,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       case 'disclaimer':
         return <DisclaimerBanner />;
 
-      case 'filters':
-        return (
-          <FiltersSection
-            selectedTarget={selectedTarget}
-            onTargetSelect={setSelectedTarget}
-            colors={colors}
-            t={t}
-          />
-        );
+      // FIX 2026-02-04: 'filters' case removed - filter was not working
 
       case 'category-header':
         return (
@@ -375,7 +331,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       default:
         return null;
     }
-  }, [selectedCategory, selectedTarget, colors, t, onProgramPress, searchQuery, handleProgramPress, subscription]);
+  }, [selectedCategory, colors, t, onProgramPress, searchQuery, handleProgramPress, subscription]);
 
   // Key extractor
   const keyExtractor = useCallback((item: SectionData, index: number) => {
@@ -411,74 +367,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
   );
 }
 
-// Extracted Filters component for better memoization
-interface FiltersSectionProps {
-  selectedTarget: LifestyleTarget | null;
-  onTargetSelect: (_target: LifestyleTarget | null) => void;
-  colors: any;
-  t: (_key: string) => string;
-}
-
-const FiltersSection = React.memo(function FiltersSection({
-  selectedTarget,
-  onTargetSelect,
-  colors,
-  t,
-}: FiltersSectionProps) {
-  return (
-    <View style={styles.filtersContainer}>
-      {/* Target Filter */}
-      <View style={styles.filterSection}>
-        <Text style={[styles.filterLabel, { color: colors.textSecondary || '#666' }]}>
-          {t('lifestyles.filters_target_label') || 'Target:'}
-        </Text>
-        <View style={styles.filterChips}>
-          {(['all', 'male', 'female'] as LifestyleTarget[]).map((target) => {
-            const isSelected = selectedTarget === target || (target === 'all' && selectedTarget === null);
-            return (
-              <TouchableOpacity
-                key={target}
-                style={[
-                  styles.filterChip,
-                  isSelected && styles.filterChipActive,
-                  {
-                    backgroundColor:
-                      isSelected
-                        ? colors.primary
-                        : colors.inputBackground || colors.surfaceSecondary || '#F5F5F5',
-                  },
-                ]}
-                onPress={() => {
-                  if (target === 'all') {
-                    // Tapping 'all' always resets to null (default state)
-                    onTargetSelect(null);
-                  } else {
-                    // Toggle other targets
-                    onTargetSelect(selectedTarget === target ? null : target);
-                  }
-                }}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    {
-                      color:
-                        isSelected
-                          ? '#FFF'
-                          : colors.textSecondary || '#666',
-                    },
-                  ]}
-                >
-                  {t(`lifestyles.filters_target_${target}`) || target}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    </View>
-  );
-});
+// FiltersSection component removed - gender filter no longer used (no data available)
 
 const styles = StyleSheet.create({
   container: {
@@ -493,33 +382,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
   },
-  filtersContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 16,
-  },
-  filterSection: {
-    gap: 8,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  filterChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  filterChipActive: {},
-  filterChipText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
+  // Filter styles removed - filter component no longer exists
   categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',

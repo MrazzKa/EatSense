@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import AiAssistant from '../components/AiAssistant';
 import { useTheme } from '../contexts/ThemeContext';
@@ -325,12 +325,18 @@ export default function DashboardScreen() {
 
     try {
       // 1. Try Cache First (Fast Render)
+      // FIX: Only show cache if it has meals to prevent showing empty diary
       try {
         const cached = await AsyncStorage.getItem(cacheKey);
         if (cached) {
-          if (__DEV__) console.log('[Dashboard] Loaded from cache');
           const data = JSON.parse(cached);
-          updateDashboardState(data);
+          // FIX: Only use cache if it has actual meals data
+          if (data?.meals?.length > 0) {
+            if (__DEV__) console.log('[Dashboard] Loaded from cache with', data.meals.length, 'meals');
+            updateDashboardState(data);
+          } else {
+            if (__DEV__) console.log('[Dashboard] Cache empty or no meals, skipping');
+          }
         }
       } catch {
         // ignore cache errors
@@ -346,7 +352,12 @@ export default function DashboardScreen() {
       }
 
       // 3. Update Cache & State
-      AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
+      // FIX: Only cache data if it has meals to prevent caching empty data
+      if (data?.meals?.length > 0) {
+        AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
+      } else {
+        if (__DEV__) console.log('[Dashboard] Not caching empty meals data');
+      }
       updateDashboardState(data);
 
     } catch (error) {
@@ -366,6 +377,28 @@ export default function DashboardScreen() {
     }
   }, [selectedDate, language, updateDashboardState]);
 
+  // ===== FIX: Ensure dashboard data loads reliably =====
+
+  // FIX 1: Load data on first mount
+  useEffect(() => {
+    loadDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // FIX 2: Reload when screen gets focus (user returns from other screen or app background)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (__DEV__) console.log('[Dashboard] Screen focused, reloading data...');
+      loadDashboardData(true); // Force reload on focus to get fresh data
+    }, [loadDashboardData])
+  );
+
+  // FIX 3: Reload when selected date changes
+  useEffect(() => {
+    loadDashboardData();
+  }, [selectedDate, loadDashboardData]);
+
+  // ===== END FIX =====
 
   // FIX: Improve pending -> recent transition to prevent card disappearance
   // We keep track of "just completed" analyses to show them temporarily if needed
