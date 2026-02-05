@@ -1,6 +1,6 @@
 // App.js - Main navigation structure
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -10,6 +10,7 @@ import { ensureI18nReady } from './app/i18n/config';
 import { AppWrapper } from './src/components/AppWrapper';
 import { EmptySplash } from './src/components/EmptySplash';
 import { useAuth } from './src/contexts/AuthContext';
+import { useNotificationActions, setNotificationNavigationCallback } from './src/hooks/useNotificationActions';
 
 // FIX: Lazy load screens to improve app startup time
 // Only load screens when they're actually needed, not at app startup
@@ -45,6 +46,27 @@ const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScre
 import { clientLog } from './src/utils/clientLog';
 
 const Stack = createStackNavigator();
+
+// Component to set up notification action handlers with navigation
+function NotificationActionsHandler() {
+  const navigation = useNavigation();
+
+  // Set up notification actions hook
+  useNotificationActions();
+
+  // Register navigation callback for notification actions
+  useEffect(() => {
+    setNotificationNavigationCallback((screen) => {
+      navigation.navigate(screen);
+    });
+
+    return () => {
+      setNotificationNavigationCallback(null);
+    };
+  }, [navigation]);
+
+  return null;
+}
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -114,21 +136,24 @@ function AppContent() {
           </Stack.Navigator>
         ) : (
           // Authenticated and onboarding complete - show main app
-          <Stack.Navigator
-            initialRouteName="MainTabs"
-            screenOptions={{
-              headerShown: false,
-              presentation: 'card',
-            }}
-          >
-            {/* Main Bottom Tab Navigator */}
-            <Stack.Screen
-              name="MainTabs"
-              component={MainTabsNavigator}
-              options={{
+          <>
+            {/* Notification action handlers - must be inside NavigationContainer */}
+            <NotificationActionsHandler />
+            <Stack.Navigator
+              initialRouteName="MainTabs"
+              screenOptions={{
                 headerShown: false,
+                presentation: 'card',
               }}
-            />
+            >
+              {/* Main Bottom Tab Navigator */}
+              <Stack.Screen
+                name="MainTabs"
+                component={MainTabsNavigator}
+                options={{
+                  headerShown: false,
+                }}
+              />
 
             {/* Modal/Detail Screens */}
             <Stack.Screen
@@ -284,6 +309,7 @@ function AppContent() {
               options={{ presentation: 'card' }}
             />
           </Stack.Navigator>
+          </>
         )}
       </NavigationContainer>
     </SafeAreaProvider>

@@ -23,6 +23,9 @@ import IAPService from '../services/iapService';
 import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS } from '../config/subscriptions';
 
+// Promotional offer ID for 3-day free trial
+const TRIAL_OFFER_ID = 'eatsense.monthly.trial';
+
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -43,12 +46,33 @@ export default function PaywallModal({
   const { t } = useI18n();
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [selectedTrial, setSelectedTrial] = useState<number>(TRIAL_DAYS.STANDARD);
+  const [selectedTrial, setSelectedTrial] = useState<number>(TRIAL_DAYS.SHORT);
+  const [isTrialEligible, setIsTrialEligible] = useState(true);
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const [showModal, setShowModal] = useState(visible);
+
+  // Check trial eligibility when modal opens
+  useEffect(() => {
+    if (visible) {
+      setCheckingEligibility(true);
+      ApiService.checkTrialEligibility()
+        .then((result: { eligible: boolean }) => {
+          setIsTrialEligible(result.eligible);
+        })
+        .catch((err: any) => {
+          console.error('[Paywall] Failed to check eligibility:', err);
+          // Default to eligible on error
+          setIsTrialEligible(true);
+        })
+        .finally(() => {
+          setCheckingEligibility(false);
+        });
+    }
+  }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -99,28 +123,79 @@ export default function PaywallModal({
   const handleStartTrial = async () => {
     setLoading(true);
     try {
-      await IAPService.purchaseSubscription(
-        SUBSCRIPTION_SKUS.MONTHLY,
-        async (productId) => {
-          console.log('[Paywall] Subscription successful:', productId);
-          try {
-            await ApiService.verifyPurchase({
-              productId,
-              platform: Platform.OS === 'ios' ? 'ios' : 'android',
-              trialDays: selectedTrial,
-            });
-          } catch (verifyError) {
-            console.error('[Paywall] Verify purchase error:', verifyError);
-          }
-          setLoading(false);
-          onSubscribed?.();
-          onClose();
-        },
-        (error) => {
-          console.error('[Paywall] Subscription error:', error);
-          setLoading(false);
+      // If user is eligible for trial, use promotional offer
+      if (isTrialEligible && Platform.OS === 'ios') {
+        console.log('[Paywall] User eligible for trial, requesting signed offer...');
+
+        // Get signed offer from server
+        const offerData = await ApiService.signPromotionalOffer(
+          SUBSCRIPTION_SKUS.MONTHLY,
+          TRIAL_OFFER_ID
+        );
+
+        if (!offerData.success) {
+          throw new Error('Failed to sign promotional offer');
         }
-      );
+
+        console.log('[Paywall] Got signed offer, starting purchase with trial...');
+
+        // Purchase with promotional offer (free trial)
+        await IAPService.purchaseSubscriptionWithOffer(
+          SUBSCRIPTION_SKUS.MONTHLY,
+          {
+            offerId: TRIAL_OFFER_ID,
+            keyIdentifier: offerData.keyIdentifier,
+            nonce: offerData.nonce,
+            timestamp: offerData.timestamp,
+            signature: offerData.signature,
+            applicationUsername: offerData.applicationUsername,
+          },
+          async (productId) => {
+            console.log('[Paywall] Trial subscription successful:', productId);
+            try {
+              await ApiService.verifyPurchase({
+                productId,
+                platform: 'ios',
+                trialDays: TRIAL_DAYS.SHORT,
+              });
+            } catch (verifyError) {
+              console.error('[Paywall] Verify purchase error:', verifyError);
+            }
+            setLoading(false);
+            onSubscribed?.();
+            onClose();
+          },
+          (error) => {
+            console.error('[Paywall] Trial subscription error:', error);
+            setLoading(false);
+          }
+        );
+      } else {
+        // No trial eligible or not iOS - regular purchase without offer
+        console.log('[Paywall] Regular subscription (no trial)...');
+
+        await IAPService.purchaseSubscription(
+          SUBSCRIPTION_SKUS.MONTHLY,
+          async (productId) => {
+            console.log('[Paywall] Subscription successful:', productId);
+            try {
+              await ApiService.verifyPurchase({
+                productId,
+                platform: Platform.OS === 'ios' ? 'ios' : 'android',
+              });
+            } catch (verifyError) {
+              console.error('[Paywall] Verify purchase error:', verifyError);
+            }
+            setLoading(false);
+            onSubscribed?.();
+            onClose();
+          },
+          (error) => {
+            console.error('[Paywall] Subscription error:', error);
+            setLoading(false);
+          }
+        );
+      }
     } catch (error) {
       console.error('[Paywall] Start trial error:', error);
       setLoading(false);
@@ -206,64 +281,21 @@ export default function PaywallModal({
             ))}
           </View>
 
-          {/* Trial selection */}
-          <View style={styles.trialOptions}>
-            <TouchableOpacity
-              style={[
-                styles.trialOption,
-                {
-                  backgroundColor: selectedTrial === TRIAL_DAYS.SHORT
-                    ? colors.primary + '10'
-                    : colors.surfaceMuted || colors.surfaceSecondary,
-                  borderColor: selectedTrial === TRIAL_DAYS.SHORT
-                    ? colors.primary
-                    : 'transparent',
-                },
-              ]}
-              onPress={() => setSelectedTrial(TRIAL_DAYS.SHORT)}
-            >
-              <Text style={[styles.trialDays, { color: colors.textPrimary }]}>
-                {TRIAL_DAYS.SHORT} {t('common.days') || 'days'}
+          {/* Trial badge - shown only if eligible */}
+          {isTrialEligible && !checkingEligibility && (
+            <View style={[styles.trialBadge, { backgroundColor: colors.primary + '15' }]}>
+              <Ionicons name="gift-outline" size={20} color={colors.primary} />
+              <Text style={[styles.trialBadgeText, { color: colors.primary }]}>
+                {t('paywall.trialBadge', { days: TRIAL_DAYS.SHORT }) || `${TRIAL_DAYS.SHORT} days free trial`}
               </Text>
-              <Text style={[styles.trialLabel, { color: colors.textSecondary }]}>
-                {t('paywall.freeTrial') || 'Free trial'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.trialOption,
-                styles.trialOptionRecommended,
-                {
-                  backgroundColor: selectedTrial === TRIAL_DAYS.STANDARD
-                    ? colors.primary + '10'
-                    : colors.surfaceMuted || colors.surfaceSecondary,
-                  borderColor: selectedTrial === TRIAL_DAYS.STANDARD
-                    ? colors.primary
-                    : 'transparent',
-                },
-              ]}
-              onPress={() => setSelectedTrial(TRIAL_DAYS.STANDARD)}
-            >
-              <View style={[styles.recommendedBadge, { backgroundColor: colors.primary }]}>
-                <Text style={styles.recommendedText}>
-                  {t('paywall.recommended') || 'Recommended'}
-                </Text>
-              </View>
-              <Text style={[styles.trialDays, { color: colors.textPrimary }]}>
-                {TRIAL_DAYS.STANDARD} {t('common.days') || 'days'}
-              </Text>
-              <Text style={[styles.trialLabel, { color: colors.textSecondary }]}>
-                {t('paywall.freeTrial') || 'Free trial'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+          )}
 
           {/* CTA Button */}
           <TouchableOpacity
             style={styles.ctaButtonContainer}
             onPress={handleStartTrial}
-            disabled={loading}
+            disabled={loading || checkingEligibility}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -272,13 +304,20 @@ export default function PaywallModal({
               end={{ x: 1, y: 0 }}
               style={styles.ctaButton}
             >
-              {loading ? (
+              {loading || checkingEligibility ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
                 <>
-                  <Ionicons name="flash" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                  <Ionicons
+                    name={isTrialEligible ? 'flash' : 'card-outline'}
+                    size={18}
+                    color="#FFF"
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.ctaText}>
-                    {t('paywall.startTrial', { days: selectedTrial }) || `Start ${selectedTrial}-Day Free Trial`}
+                    {isTrialEligible
+                      ? (t('paywall.tryFree', { days: TRIAL_DAYS.SHORT }) || `Try free for ${TRIAL_DAYS.SHORT} days`)
+                      : (t('paywall.subscribeNow') || 'Subscribe Now')}
                   </Text>
                 </>
               )}
@@ -287,7 +326,9 @@ export default function PaywallModal({
 
           {/* Fine print */}
           <Text style={[styles.finePrint, { color: colors.textTertiary }]}>
-            {t('paywall.finePrint') || 'Cancel anytime. You won\'t be charged during the trial period.'}
+            {isTrialEligible
+              ? (t('paywall.finePrint') || 'Cancel anytime. You won\'t be charged during the trial period.')
+              : (t('paywall.finePrintNoTrial') || 'Subscription renews monthly. Cancel anytime.')}
           </Text>
         </Animated.View>
       </View>
@@ -388,44 +429,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
   },
-  trialOptions: {
+  trialBadge: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  trialOption: {
-    flex: 1,
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 24,
+    gap: 8,
   },
-  trialOptionRecommended: {
-    position: 'relative',
-  },
-  recommendedBadge: {
-    position: 'absolute',
-    top: -12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 10,
-    zIndex: 1,
-  },
-  recommendedText: {
-    color: '#FFF',
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  trialDays: {
-    fontSize: 24,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  trialLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+  trialBadgeText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   ctaButtonContainer: {
     width: '100%',

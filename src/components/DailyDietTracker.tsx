@@ -274,6 +274,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             <CelebrationModal
                 visible={showCelebration}
                 completionRate={activeProgram.todayLog?.completionRate || 0}
+                programName={activeProgram.programName}
                 onClose={async () => {
                     setShowCelebration(false);
                     // Mark celebration as shown in database

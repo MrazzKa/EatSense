@@ -156,6 +156,65 @@ class IAPService {
         }
     }
 
+    /**
+     * Purchase subscription with promotional offer (free trial)
+     * Used for paywall purchases where user gets a free trial period
+     *
+     * @param sku - Product SKU (e.g., 'eatsense.pro.monthly')
+     * @param offerData - Signed offer data from server
+     * @param onSuccess - Success callback
+     * @param onError - Error callback
+     */
+    async purchaseSubscriptionWithOffer(
+        sku: string,
+        offerData: {
+            offerId: string;
+            keyIdentifier: string;
+            nonce: string;
+            timestamp: number;
+            signature: string;
+            applicationUsername: string;
+        },
+        onSuccess?: (_productId: string) => void,
+        onError?: (_error: any) => void
+    ) {
+        this.onPurchaseSuccess = onSuccess || null;
+        this.onPurchaseError = onError || null;
+
+        try {
+            console.log('[IAP] Requesting subscription with offer:', sku, offerData.offerId);
+
+            // Build iOS discount object for promotional offer
+            const iosOffer = Platform.OS === 'ios' ? {
+                identifier: offerData.offerId,
+                keyIdentifier: offerData.keyIdentifier,
+                nonce: offerData.nonce,
+                signature: offerData.signature,
+                timestamp: offerData.timestamp,
+            } : undefined;
+
+            await requestSubscription({
+                sku,
+                andDangerouslyFinishTransactionAutomaticallyIOS: false,
+                // @ts-ignore - iosOffer is supported but not in types
+                subscriptionOffers: iosOffer ? [{
+                    sku,
+                    offerToken: '', // Not needed for iOS promotional offers
+                    ...iosOffer,
+                }] : undefined,
+            });
+        } catch (error: any) {
+            console.error('[IAP] Purchase with offer error:', error);
+            if (error.code === 'E_USER_CANCELLED') {
+                if (this.onPurchaseError) {
+                    this.onPurchaseError(error);
+                }
+                return;
+            }
+            throw error;
+        }
+    }
+
     async purchaseProduct(
         sku: string,
         onSuccess?: (_productId: string) => void,

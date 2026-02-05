@@ -55,4 +55,11 @@ export const configSchema = Joi.object({
   S3_ACCESS_KEY_ID: Joi.string().optional().allow(''),
   S3_SECRET_ACCESS_KEY: Joi.string().optional().allow(''),
   S3_FORCE_PATH_STYLE: Joi.boolean().optional().default(true),
+  // Apple In-App Purchase settings for Promotional Offers
+  APPLE_IAP_KEY_ID: Joi.string().optional().allow(''),
+  APPLE_IAP_ISSUER_ID: Joi.string().optional().allow(''),
+  APPLE_IAP_KEY: Joi.string().optional().allow(''), // Contents of .p8 file
+  APP_BUNDLE_ID: Joi.string().optional().default('me.eatsense.app'),
+  // Medication push notifications (disabled by default, use local notifications)
+  MEDICATION_PUSH_ENABLED: Joi.boolean().optional().default(false),
 });

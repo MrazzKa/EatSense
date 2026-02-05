@@ -159,7 +159,7 @@ export class MediaService {
       filename: media.filename,
       mimetype: media.mimetype,
       size: media.size,
-      url: `/media/${media.id}`,
+      url: this.makePublicUrl(`/media/${media.id}`),
       storageProvider: 'database',
     };
   }

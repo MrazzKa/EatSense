@@ -228,6 +228,7 @@ export default function DietProgramProgressScreen({ navigation, route }: DietPro
             <CelebrationModal
                 visible={showCelebration}
                 completionRate={activeProgram.todayLog?.completionRate || 0}
+                programName={getLocalizedText(programDetails?.name, language, t) || undefined}
                 onClose={async () => {
                     setShowCelebration(false);
                     // Mark celebration as shown in database

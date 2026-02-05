@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "1.0.3",
+    version: "1.0.4",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "100",
+      buildNumber: "1",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {

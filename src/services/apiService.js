@@ -1506,6 +1506,28 @@ class ApiService {
     });
   }
 
+  /**
+   * Sign promotional offer for Apple IAP
+   * Used to apply free trial when purchasing from paywall
+   * @param {string} productId - The subscription product ID (e.g., 'eatsense.pro.monthly')
+   * @param {string} offerId - The promotional offer ID (e.g., 'eatsense.monthly.trial')
+   * @returns {Promise<{keyIdentifier, nonce, timestamp, signature, productId, offerId, applicationUsername}>}
+   */
+  async signPromotionalOffer(productId, offerId) {
+    return this.request('/subscriptions/sign-offer', {
+      method: 'POST',
+      body: JSON.stringify({ productId, offerId }),
+    });
+  }
+
+  /**
+   * Check if user is eligible for free trial
+   * @returns {Promise<{eligible: boolean, reason?: string}>}
+   */
+  async checkTrialEligibility() {
+    return this.request('/subscriptions/trial-eligibility');
+  }
+
   // ========== Specialists/Experts Methods ==========
 
   /**
