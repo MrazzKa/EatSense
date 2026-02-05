@@ -8,7 +8,7 @@
 // Set to false to disable all premium locks (all content available to everyone)
 // Set to true to enable premium restrictions
 // ============================================================================
-export const ENABLE_PREMIUM_LOCK = false;
+export const ENABLE_PREMIUM_LOCK = true;
 
 // Free diet program IDs (3 most basic/popular diets)
 export const FREE_DIET_IDS: string[] = [

@@ -29,6 +29,12 @@ export const NotificationCategories = {
     DAILY_TIP: 'daily_tip',
 } as const;
 
+// Action identifiers for actionable notifications
+export const NotificationActions = {
+    MEDICATION_TAKE: 'medication_take',
+    MEDICATION_SNOOZE: 'medication_snooze',
+} as const;
+
 class LocalNotificationService {
     private initialized = false;
 
@@ -57,7 +63,42 @@ class LocalNotificationService {
             });
         }
 
+        // Set up notification categories with actionable buttons
+        await this.setupNotificationCategories();
+
         this.initialized = true;
+    }
+
+    /**
+     * Setup notification categories with action buttons
+     */
+    private async setupNotificationCategories(): Promise<void> {
+        // Get localized button text from i18n with fallback
+        let takeButtonText = i18n.t('medications.notifications.actionTake');
+        if (!takeButtonText || takeButtonText.includes('notifications.actionTake')) {
+            // Fallback if translation not found
+            const locale = i18n.language || 'en';
+            const takeButtonTexts: Record<string, string> = {
+                en: 'Taken',
+                ru: 'Принял',
+                kk: 'Ішілді',
+                fr: 'Pris',
+            };
+            takeButtonText = takeButtonTexts[locale] || takeButtonTexts.en;
+        }
+
+        // Set up medication reminder category with "Take" action button
+        await Notifications.setNotificationCategoryAsync(NotificationCategories.MEDICATION_REMINDER, [
+            {
+                identifier: NotificationActions.MEDICATION_TAKE,
+                buttonTitle: takeButtonText,
+                options: {
+                    opensAppToForeground: false, // Don't open app, just process in background
+                },
+            },
+        ]);
+
+        console.log('[LocalNotificationService] Notification categories initialized');
     }
 
     /**
@@ -155,7 +196,7 @@ class LocalNotificationService {
             {
                 title,
                 body,
-                data: { type: 'medication', medicationId, dosage },
+                data: { type: 'medication', medicationId, medicationName, dosage },
                 categoryIdentifier: NotificationCategories.MEDICATION_REMINDER,
             },
             hour,

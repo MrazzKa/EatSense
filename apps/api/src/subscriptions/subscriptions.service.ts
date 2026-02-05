@@ -1,6 +1,7 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { GeoService } from '../geo/geo.service';
+import * as crypto from 'crypto';
 
 export interface PlanWithPrice {
     id: string;
@@ -240,5 +241,116 @@ export class SubscriptionsService {
                 cancelledAt: new Date(),
             },
         });
+    }
+
+    /**
+     * Generate signed promotional offer for Apple In-App Purchase
+     * Used to apply free trial offer when purchasing from paywall (not onboarding)
+     *
+     * @param productId - The subscription product ID (e.g., 'eatsense.pro.monthly')
+     * @param offerId - The promotional offer ID (e.g., 'eatsense.monthly.trial')
+     * @param applicationUsername - Unique identifier for the user (usually app user ID)
+     * @returns Signed offer data for use with react-native-iap
+     */
+    async signPromotionalOffer(
+        productId: string,
+        offerId: string,
+        applicationUsername: string,
+    ): Promise<{
+        keyIdentifier: string;
+        nonce: string;
+        timestamp: number;
+        signature: string;
+    }> {
+        const keyId = process.env.APPLE_IAP_KEY_ID;
+        const issuerId = process.env.APPLE_IAP_ISSUER_ID;
+        const privateKey = process.env.APPLE_IAP_KEY;
+
+        if (!keyId || !issuerId || !privateKey) {
+            this.logger.error('[SubscriptionsService] Apple IAP credentials not configured');
+            throw new BadRequestException(
+                'Apple IAP credentials not configured. Please configure APPLE_IAP_KEY_ID, APPLE_IAP_ISSUER_ID, and APPLE_IAP_KEY in environment variables.'
+            );
+        }
+
+        // Generate nonce (UUID v4 without dashes, lowercase)
+        const nonce = crypto.randomUUID().toLowerCase();
+
+        // Timestamp in milliseconds
+        const timestamp = Date.now();
+
+        // Build the payload to sign
+        // Format: appBundleID + '\u2063' + keyIdentifier + '\u2063' + productIdentifier + '\u2063' + offerIdentifier + '\u2063' + applicationUsername + '\u2063' + nonce + '\u2063' + timestamp
+        // Note: \u2063 is the invisible separator character
+        const appBundleId = process.env.APP_BUNDLE_ID || 'me.eatsense.app';
+        const separator = '\u2063';
+
+        const payload = [
+            appBundleId,
+            keyId,
+            productId,
+            offerId,
+            applicationUsername,
+            nonce,
+            timestamp.toString(),
+        ].join(separator);
+
+        try {
+            // Parse the private key (PEM format)
+            const keyContent = privateKey.replace(/\\n/g, '\n');
+
+            // Create signature using ECDSA with SHA-256
+            const sign = crypto.createSign('SHA256');
+            sign.update(payload);
+            sign.end();
+
+            // Sign and encode as base64
+            const signature = sign.sign(
+                {
+                    key: keyContent,
+                    dsaEncoding: 'ieee-p1363', // Required format for Apple
+                },
+                'base64'
+            );
+
+            this.logger.debug(`[SubscriptionsService] Generated promotional offer signature for ${offerId}`);
+
+            return {
+                keyIdentifier: keyId,
+                nonce,
+                timestamp,
+                signature,
+            };
+        } catch (error: any) {
+            this.logger.error(`[SubscriptionsService] Failed to sign promotional offer: ${error.message}`);
+            throw new BadRequestException(`Failed to sign promotional offer: ${error.message}`);
+        }
+    }
+
+    /**
+     * Check if user is eligible for promotional offer (free trial)
+     * User is NOT eligible if they've already used a trial or have/had an active subscription
+     */
+    async checkTrialEligibility(userId: string): Promise<{
+        eligible: boolean;
+        reason?: string;
+    }> {
+        // Check for any previous subscriptions (including expired)
+        const previousSubscription = await this.prisma.userSubscription.findFirst({
+            where: {
+                userId,
+            },
+        });
+
+        if (previousSubscription) {
+            return {
+                eligible: false,
+                reason: 'User has previous subscription history',
+            };
+        }
+
+        return {
+            eligible: true,
+        };
     }
 }

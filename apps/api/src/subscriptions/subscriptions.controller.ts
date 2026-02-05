@@ -170,6 +170,50 @@ export class SubscriptionsController {
         };
     }
 
+    /**
+     * Sign promotional offer for Apple In-App Purchase
+     * Used to apply free trial when purchasing from paywall
+     */
+    @Post('sign-offer')
+    @UseGuards(JwtAuthGuard)
+    async signPromotionalOffer(
+        @CurrentUser() user: any,
+        @Body() dto: {
+            productId: string;
+            offerId: string;
+        },
+    ) {
+        if (!dto.productId || !dto.offerId) {
+            throw new BadRequestException('productId and offerId are required');
+        }
+
+        this.logger.log(`Signing promotional offer for user ${user.id}: ${dto.offerId}`);
+
+        const signature = await this.subscriptionsService.signPromotionalOffer(
+            dto.productId,
+            dto.offerId,
+            user.id, // Use user ID as applicationUsername
+        );
+
+        return {
+            success: true,
+            ...signature,
+            productId: dto.productId,
+            offerId: dto.offerId,
+            applicationUsername: user.id,
+        };
+    }
+
+    /**
+     * Check if user is eligible for free trial (promotional offer)
+     */
+    @Get('trial-eligibility')
+    @UseGuards(JwtAuthGuard)
+    async checkTrialEligibility(@CurrentUser() user: any) {
+        const result = await this.subscriptionsService.checkTrialEligibility(user.id);
+        return result;
+    }
+
     private getClientIp(req: Request): string {
         const forwarded = req.headers['x-forwarded-for'];
         if (typeof forwarded === 'string') {

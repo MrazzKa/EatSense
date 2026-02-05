@@ -52,6 +52,32 @@
     "required": "Required",
     "yesterday": "Yesterday"
   },
+  "tooltips": {
+    "scanMeal": {
+      "title": "Scan Your Meal",
+      "text": "Take a photo of your meal or select from gallery to get a detailed nutritional analysis"
+    },
+    "dashboard": {
+      "title": "Your Dashboard",
+      "text": "Track your daily progress, calories, and macronutrient balance here"
+    },
+    "lifestyles": {
+      "title": "Lifestyles",
+      "text": "Choose a nutrition program that matches your lifestyle and goals"
+    },
+    "medications": {
+      "title": "Medication Schedule",
+      "text": "Add your medications and get reminders to take them at the right time"
+    },
+    "assistant": {
+      "title": "AI Assistant",
+      "text": "Ask any question about nutrition, diets, or health - the assistant will help"
+    },
+    "profile": {
+      "title": "Your Profile",
+      "text": "Set up your personal data, goals, and preferences for personalized recommendations"
+    }
+  },
   "errors": {
     "serverUnavailable": "Server temporarily unavailable. Please try again.",
     "requestTimeout": "Request timed out. Please try again.",
@@ -1817,6 +1843,7 @@
       "daysRemaining": "Days remaining",
       "lowStock": "Low stock! Time to refill"
     },
+    "take": "Take",
     "times": "Times",
     "beforeMeal": "Before",
     "afterMeal": "After",
@@ -1835,7 +1862,14 @@
     "notifications": {
       "title": "Time for medication",
       "body": "{{name}} at {{time}} ({{dosage}})",
-      "reminder": "Medication reminder"
+      "reminder": "Medication reminder",
+      "actionTake": "Taken",
+      "alertTitle": "Medication Reminder",
+      "alertMessage": "Did you take your medication?",
+      "taken": "Taken",
+      "later": "Later",
+      "success": "Medication marked as taken",
+      "error": "Failed to update medication"
     },
     "dosagePlural": {
       "tablet_one": "tablet",
@@ -2142,7 +2176,15 @@
       "evening": "Evening",
       "vibe": "Vibe",
       "startProgram": "Start Program",
-      "continueProgram": "Continue"
+      "continueProgram": "Continue",
+      "share": "Share"
+    },
+    "share": {
+      "button": "Share",
+      "title": "Share Your Style",
+      "textTemplate": "🌟 I chose the \"{{name}}\" lifestyle ✨\n\nWhat about you? Discover your style in EatSense!\n\n📲 https://eatsense.me/download",
+      "celebrationTitle": "Share Your Success!",
+      "celebrationSubtitle": "Tell your friends about your lifestyle"
     }
   },
   "programs": {
@@ -3491,7 +3533,11 @@
     "freeTrial": "Start Free Trial",
     "recommended": "Recommended",
     "startTrial": "Start 7-Day Free Trial",
-    "finePrint": "Cancel anytime. Billed annually.",
+    "finePrint": "Cancel anytime. You won't be charged during the trial period.",
+    "finePrintNoTrial": "Subscription renews monthly. Cancel anytime.",
+    "trialBadge": "{{days}} days free trial",
+    "tryFree": "Try free for {{days}} days",
+    "subscribeNow": "Subscribe Now",
     "features": {
       "unlimited": "Unlimited Analysis",
       "diets": "All Diets & Plans",

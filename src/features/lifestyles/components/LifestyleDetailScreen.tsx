@@ -14,7 +14,7 @@
  * - CTA button: "Start Program" / "Continue" if active
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,6 +32,7 @@ import type { LifestyleProgram } from '../types';
 import { LIFESTYLE_CATEGORIES } from '../constants';
 import DisclaimerBanner from './DisclaimerBanner';
 import { getLifestyleImage } from '../lifestyleImages';
+import { shareLifestyleAsText } from '../../../services/lifestyleShareService';
 
 interface LifestyleDetailScreenProps {
   program: LifestyleProgram;
@@ -170,6 +172,17 @@ export default function LifestyleDetailScreen({
         {/* Back button overlay */}
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        {/* Share button overlay */}
+        <TouchableOpacity
+          onPress={() => {
+            const name = typeof program.name === 'string' ? program.name : program.name?.en || 'lifestyle';
+            shareLifestyleAsText({ name, language: language as 'en' | 'ru' | 'kk' | 'fr' });
+          }}
+          style={styles.shareButton}
+        >
+          <Ionicons name="share-outline" size={22} color="#fff" />
         </TouchableOpacity>
         {/* Program Header: Name + Tagline (emoji removed, image shown above) */}
         <View style={styles.programHeader}>
@@ -397,6 +410,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  shareButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
     width: 40,
     height: 40,
     borderRadius: 20,

@@ -452,6 +452,32 @@
     "daysAgo": "Il y a {{count}} jours",
     "yesterday": "Hier"
   },
+  "tooltips": {
+    "scanMeal": {
+      "title": "Analyser votre repas",
+      "text": "Prenez une photo de votre repas ou sélectionnez-en une dans la galerie pour obtenir une analyse nutritionnelle détaillée"
+    },
+    "dashboard": {
+      "title": "Votre tableau de bord",
+      "text": "Suivez vos progrès quotidiens, vos calories et l'équilibre de vos macronutriments ici"
+    },
+    "lifestyles": {
+      "title": "Styles de vie",
+      "text": "Choisissez un programme nutritionnel qui correspond à votre mode de vie et à vos objectifs"
+    },
+    "medications": {
+      "title": "Planning médicaments",
+      "text": "Ajoutez vos médicaments et recevez des rappels pour les prendre au bon moment"
+    },
+    "assistant": {
+      "title": "Assistant IA",
+      "text": "Posez n'importe quelle question sur la nutrition, les régimes ou la santé - l'assistant vous aidera"
+    },
+    "profile": {
+      "title": "Votre profil",
+      "text": "Configurez vos données personnelles, vos objectifs et vos préférences pour des recommandations personnalisées"
+    }
+  },
   "dashboard": {
     "activeDiet": {
       "streak_count_one": "{{count}} jour consécutif",
@@ -1197,6 +1223,7 @@
       "daysRemaining": "Jours restants",
       "lowStock": "Stock faible ! Il est temps de réapprovisionner"
     },
+    "take": "Prendre",
     "tabTitle": "Médicaments",
     "times": "Horaires",
     "title": "Planning des médicaments",
@@ -1214,7 +1241,14 @@
     "notifications": {
       "title": "Heure de prendre vos médicaments",
       "body": "{{name}} à {{time}} ({{dosage}})",
-      "reminder": "Rappel de médicament"
+      "reminder": "Rappel de médicament",
+      "actionTake": "Pris",
+      "alertTitle": "Rappel de médicament",
+      "alertMessage": "Avez-vous pris votre médicament ?",
+      "taken": "Pris",
+      "later": "Plus tard",
+      "success": "Médicament marqué comme pris",
+      "error": "Échec de la mise à jour du médicament"
     },
     "dosagePlural": {
       "tablet_one": "comprimé",
@@ -2127,7 +2161,11 @@
     "freeTrial": "Essai gratuit",
     "recommended": "Recommandé",
     "startTrial": "Commencer l'essai gratuit de 7 jours",
-    "finePrint": "Annulez à tout moment. Facturé annuellement.",
+    "finePrint": "Annulez à tout moment. Vous ne serez pas facturé pendant la période d'essai.",
+    "finePrintNoTrial": "L'abonnement se renouvelle chaque mois. Annulez à tout moment.",
+    "trialBadge": "{{days}} jours d'essai gratuit",
+    "tryFree": "Essayer gratuitement pendant {{days}} jours",
+    "subscribeNow": "S'abonner",
     "features": {
       "unlimited": "Analyse illimitée",
       "diets": "Tous les régimes et plans",

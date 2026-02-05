@@ -15,9 +15,22 @@ export class NotificationsScheduler {
 
   /**
    * Cron, который проверяет напоминания о таблетках каждую минуту.
+   *
+   * NOTE: Server-side medication reminders are DISABLED.
+   * Reason: Local notifications are scheduled on the client and are already
+   * localized (ru, en, kk, fr). Server notifications were causing duplicates
+   * (one in Russian from local, one in English from server).
+   *
+   * To re-enable: set MEDICATION_PUSH_ENABLED=true in environment
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async handleMedicationReminders() {
+    // Skip if server-side medication push is disabled (default: disabled)
+    const medicationPushEnabled = process.env.MEDICATION_PUSH_ENABLED === 'true';
+    if (!medicationPushEnabled) {
+      return;
+    }
+
     try {
       // Check if medications table exists by attempting a query
       // If it fails, we'll catch and log the error but not crash

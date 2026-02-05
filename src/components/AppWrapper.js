@@ -5,6 +5,7 @@ import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { AnalysisProvider } from '../contexts/AnalysisContext';
 import { ProgramProgressProvider } from '../stores/ProgramProgressStore';
+import { TooltipProvider } from './Tooltip';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import ApiService from '../services/apiService';
 import Constants from 'expo-constants';
@@ -52,14 +53,16 @@ export function AppWrapper({ children }) {
         console.log('[BOOT:AppWrapper] Inside ThemeProvider, rendering AuthProvider');
         return (
           <AuthProvider>
-            <ProgramProgressProvider>
-              <AnalysisProvider>
-                {(() => {
-                  console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
-                  return <AppContent>{children}</AppContent>;
-                })()}
-              </AnalysisProvider>
-            </ProgramProgressProvider>
+            <TooltipProvider>
+              <ProgramProgressProvider>
+                <AnalysisProvider>
+                  {(() => {
+                    console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
+                    return <AppContent>{children}</AppContent>;
+                  })()}
+                </AnalysisProvider>
+              </ProgramProgressProvider>
+            </TooltipProvider>
           </AuthProvider>
         );
       })()}

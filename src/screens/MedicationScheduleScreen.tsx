@@ -17,6 +17,7 @@ import {
     Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -156,6 +157,7 @@ const Header = ({ title, onAdd, onBack, colors }: any) => (
 
 // 2. Medication Card Component
 const MedicationCard = ({ item, onPress, onDelete, onTake, colors, t }: any) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
     const dosesText = item.doses && item.doses.length
         ? item.doses.map((d: any) => d.timeOfDay).join(', ')
         : t('medications.noDoses') || 'No times';
@@ -170,6 +172,29 @@ const MedicationCard = ({ item, onPress, onDelete, onTake, colors, t }: any) => 
     const displayName = item.name.includes('.') && item.name.includes('_')
         ? item.name.split('.').pop().replace(/_/g, ' ')
         : item.name;
+
+    // Animated take button handler with haptic feedback
+    const handleTakePress = () => {
+        // Haptic feedback
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+        // Scale animation
+        Animated.sequence([
+            Animated.spring(scaleAnim, {
+                toValue: 0.9,
+                useNativeDriver: true,
+                speed: 50,
+            }),
+            Animated.spring(scaleAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                speed: 20,
+            }),
+        ]).start();
+
+        // Call the actual handler
+        onTake && onTake(item);
+    };
 
     return (
         <TouchableOpacity
@@ -235,18 +260,24 @@ const MedicationCard = ({ item, onPress, onDelete, onTake, colors, t }: any) => 
                     )}
                 </View>
 
-                <TouchableOpacity onPress={() => onDelete(item)} hitSlop={15}>
-                    <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
-                </TouchableOpacity>
+                {/* Actions row */}
+                <View style={styles.actionsColumn}>
+                    <TouchableOpacity onPress={() => onDelete(item)} hitSlop={10} style={styles.deleteButton}>
+                        <Ionicons name="trash-outline" size={18} color={colors.error || '#FF3B30'} />
+                    </TouchableOpacity>
 
-                {/* Take Button */}
-                <TouchableOpacity
-                    style={[styles.takeButton, { backgroundColor: (colors.primary || '#4CAF50') + '15' }]}
-                    onPress={() => onTake && onTake(item)}
-                    hitSlop={10}
-                >
-                    <Ionicons name="checkmark-circle" size={24} color={colors.primary || '#4CAF50'} />
-                </TouchableOpacity>
+                    {/* Take Button - Enhanced */}
+                    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                        <TouchableOpacity
+                            style={[styles.takeButton, { backgroundColor: colors.primary || '#4CAF50' }]}
+                            onPress={handleTakePress}
+                            activeOpacity={0.8}
+                        >
+                            <Ionicons name="checkmark" size={18} color="#FFF" />
+                            <Text style={styles.takeButtonText}>{t('medications.take') || 'Take'}</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -1085,14 +1116,38 @@ const styles = StyleSheet.create({
         height: 48,
         borderRadius: 24,
     },
-    // FIX: Take button style
-    takeButton: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
+    // Actions column
+    actionsColumn: {
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
         marginLeft: 8,
+        gap: 8,
+    } as const,
+    deleteButton: {
+        padding: 4,
+    } as const,
+    // Enhanced take button
+    takeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        gap: 4,
+        // Shadow for iOS
+        shadowColor: '#4CAF50',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        // Shadow for Android
+        elevation: 3,
+    } as const,
+    takeButtonText: {
+        color: '#FFF',
+        fontSize: 13,
+        fontWeight: '600',
     } as const,
     photoSection: {
         paddingVertical: 12,

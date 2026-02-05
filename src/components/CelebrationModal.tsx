@@ -5,33 +5,38 @@ import {
   Modal,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ConfettiCelebration from './ConfettiCelebration';
+import { shareLifestyleAsText } from '../services/lifestyleShareService';
 
 interface CelebrationModalProps {
   visible: boolean;
   completionRate: number; // 0-1
   onClose: () => void;
   onContinue?: () => void;
+  /** Optional lifestyle/program name for sharing */
+  programName?: string;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 /**
  * CelebrationModal - Shows celebration when day is completed
- * Displays confetti, praise text based on completion rate, and auto-closes after 2 seconds
+ * Displays confetti, praise text based on completion rate, and auto-closes after 4 seconds
+ * Optionally shows a share button if programName is provided
  */
 export default function CelebrationModal({
   visible,
   completionRate,
   onClose,
-
+  programName,
 }: CelebrationModalProps) {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [showConfetti, setShowConfetti] = useState(false);
 
   const handleClose = React.useCallback(() => {
@@ -39,12 +44,14 @@ export default function CelebrationModal({
     onClose();
   }, [onClose]);
 
-  // handleContinue removed as there is no button to trigger it
-  // If onContinue is needed later, restore handleContinue
-  // const handleContinue = React.useCallback(() => {
-  //   handleClose();
-  //   onContinue?.();
-  // }, [handleClose, onContinue]);
+  const handleShare = React.useCallback(() => {
+    if (programName) {
+      shareLifestyleAsText({
+        name: programName,
+        language: (language || 'ru') as 'en' | 'ru' | 'kk' | 'fr',
+      });
+    }
+  }, [programName, language]);
 
   useEffect(() => {
     if (visible) {
@@ -76,7 +83,7 @@ export default function CelebrationModal({
     if (completionRate >= 1.0) {
       return t('diets_celebration_perfectSubtext') || 'You completed all tasks today!';
     } else if (completionRate >= 0.6) {
-      return t('diets_celebration_greatSubtext') || 'You\'re maintaining your streak!';
+      return t('diets_celebration_greatSubtext') || "You're maintaining your streak!";
     } else {
       return t('diets_celebration_goodSubtext') || 'Every step counts!';
     }
@@ -111,6 +118,19 @@ export default function CelebrationModal({
           <Text style={[styles.subtext, { color: colors.textSecondary }]}>
             {getSubtext()}
           </Text>
+
+          {programName && (
+            <TouchableOpacity
+              style={[styles.shareButton, { backgroundColor: colors.primary }]}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="share-outline" size={20} color="#fff" />
+              <Text style={styles.shareButtonText}>
+                {t('lifestyles.share.button') || 'Share'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
@@ -153,8 +173,22 @@ const styles = StyleSheet.create({
   subtext: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 0, // Reduced bottom margin since button is gone
+    marginBottom: 16,
     lineHeight: 22,
   },
-  // Button styles removed
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 8,
+    gap: 8,
+  },
+  shareButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

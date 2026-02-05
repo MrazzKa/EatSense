@@ -120,11 +120,11 @@ export default function TrendingCarousel({
                 />
               )}
 
-              {/* Gradient overlay for text readability */}
+              {/* Gradient overlay for text readability - minimal coverage to show more photo */}
               {imageSource && (
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.75)']}
-                  locations={[0, 0.5, 1]}
+                  colors={['transparent', 'transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
+                  locations={[0, 0.5, 0.75, 1]}
                   style={StyleSheet.absoluteFill}
                 />
               )}
@@ -141,9 +141,7 @@ export default function TrendingCarousel({
 
               {/* Content at bottom */}
               <View style={styles.cardContent}>
-                <View style={styles.cardIconContainer}>
-                  <Text style={styles.emoji}>{program.emoji}</Text>
-                </View>
+                <Text style={styles.emoji}>{program.emoji}</Text>
                 <Text style={styles.cardName} numberOfLines={1}>
                   {getLocalizedText(program.name)}
                 </Text>
@@ -158,6 +156,12 @@ export default function TrendingCarousel({
     </View>
   );
 }
+
+// Card dimensions - using 9:16 aspect ratio for optimal photo display
+// This ratio matches phone screens and shows photos without excessive cropping
+const CARD_WIDTH = 160;
+const CARD_ASPECT_RATIO = 9 / 16; // Portrait ratio (0.5625)
+const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO; // ~284
 
 const styles = StyleSheet.create({
   section: {
@@ -180,8 +184,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    width: 200,
-    height: 220, // FIX: Square-ish ratio (220x220) for minimal photo cropping
+    width: CARD_WIDTH,
+    aspectRatio: CARD_ASPECT_RATIO, // Adaptive height based on aspect ratio
     borderRadius: 16,
     overflow: 'hidden',
     justifyContent: 'flex-end',
@@ -194,31 +198,32 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardContent: {
-    padding: 14,
-    paddingTop: 20,
-  },
-  cardIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+    padding: 12,
+    paddingTop: 8, // Smaller top padding to show more photo
   },
   emoji: {
     fontSize: 22,
+    marginBottom: 4,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   cardName: {
     color: '#FFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   cardDesc: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 12,
-    lineHeight: 16,
+    color: 'rgba(255,255,255,0.95)',
+    fontSize: 11,
+    lineHeight: 14,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   durationBadge: {
     position: 'absolute',
@@ -226,7 +231,7 @@ const styles = StyleSheet.create({
     right: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
