@@ -26,6 +26,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { localNotificationService, NotificationCategories } from '../services/localNotificationService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
+import Tooltip from '../components/Tooltip/Tooltip';
+import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
 // --- Types ---
 
@@ -820,6 +822,15 @@ const MedicationScheduleScreen: React.FC = () => {
                 onAdd={handleOpenAdd}
                 onBack={() => navigation.goBack()}
                 colors={colors}
+            />
+
+            {/* Onboarding Tooltip for first-time users */}
+            <Tooltip
+                id={TooltipIds.MEDICATION_SCHEDULE}
+                title={t('tooltips.medications.title')}
+                text={t('tooltips.medications.text')}
+                arrowPosition="top"
+                style={{ top: 60, right: 16 }}
             />
 
             {/* Main Content */}

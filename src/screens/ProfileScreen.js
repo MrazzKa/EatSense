@@ -25,6 +25,8 @@ import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import { formatAmount, getPriceValue } from '../utils/currency';
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import Tooltip from '../components/Tooltip/Tooltip';
+import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -911,6 +913,14 @@ const ProfileScreen = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Onboarding Tooltip for first-time users */}
+          <Tooltip
+            id={TooltipIds.PROFILE_SETTINGS}
+            title={t('tooltips.profile.title')}
+            text={t('tooltips.profile.text')}
+            arrowPosition="top"
+            style={{ marginHorizontal: 16, marginTop: 8 }}
+          />
           <AppCard style={styles.heroCard} padding="xl">
             <View style={styles.heroHeader}>
               <View style={styles.avatar}>
