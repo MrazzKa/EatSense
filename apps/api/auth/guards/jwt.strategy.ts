@@ -19,15 +19,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(req: any, payload: any) {
     const requestPath = (req?.originalUrl || req?.url || req?.path || 'unknown').split('?')[0];
-    const jti = payload?.jti || 'no-jti';
-    const exp = payload?.exp ? new Date(payload.exp * 1000).toISOString() : 'unknown';
-    const iat = payload?.iat ? new Date(payload.iat * 1000).toISOString() : 'unknown';
 
     this.logger.debug(`[JWT] Validating token for ${requestPath}`, {
       userId: payload?.sub,
-      jti: jti.substring(0, 8) + '...',
-      issuedAt: iat,
-      expiresAt: exp,
     });
 
     const user = await this.prisma.user.findUnique({

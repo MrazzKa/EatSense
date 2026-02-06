@@ -22,8 +22,8 @@ import SuggestProgramCard from '../components/programs/SuggestProgramCard';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import seedBundle from '../../assets/dietsBundleSeed.json';
 import { trialService } from '../services/trialService';
-import PremiumLockModal from '../components/common/PremiumLockModal';
-import { isFreeDiet, ENABLE_PREMIUM_LOCK } from '../config/freeContent';
+import PaywallModal from '../components/PaywallModal';
+import { isFreeDiet, isFreeLifestyle, ENABLE_PREMIUM_LOCK } from '../config/freeContent';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
@@ -204,8 +204,8 @@ export default function DietsScreen({ navigation }) {
 
     // NEW: Check if program is locked
     const checkLockStatus = useCallback((programId) => {
-        // 1. Check free list first
-        if (isFreeDiet(programId)) return false;
+        // 1. Check free list first (diets and lifestyles)
+        if (isFreeDiet(programId) || isFreeLifestyle(programId)) return false;
 
         // 2. If user has active subscription, NEVER lock
         if (subscription?.hasSubscription) return false;
@@ -573,6 +573,7 @@ export default function DietsScreen({ navigation }) {
                                 daysLeft: activeProgram.daysLeft,
                             } : null}
                             subscription={subscription}
+                            checkLockStatus={checkLockStatus}
                         />
                     )}
                 </View>
@@ -590,12 +591,25 @@ export default function DietsScreen({ navigation }) {
                 <View style={{ height: 40 }} />
             </ScrollView>
 
-            {/* Premium Lock Modal - only show when premium lock is enabled */}
+            {/* Paywall Modal for Apple StoreKit trial - only show when premium lock is enabled */}
             {ENABLE_PREMIUM_LOCK && (
-                <PremiumLockModal
+                <PaywallModal
                     visible={lockModalVisible}
                     onClose={() => setLockModalVisible(false)}
-                    onUnlock={handleUnlock}
+                    onSubscribed={() => {
+                        setLockModalVisible(false);
+                        // After successful subscription, navigate to the program
+                        if (selectedProgramForUnlock) {
+                            setTimeout(() => {
+                                if (activeTab === 'lifestyle') {
+                                    navigation.navigate('LifestyleDetail', { id: selectedProgramForUnlock });
+                                } else {
+                                    navigation.navigate('DietProgramDetail', { dietId: selectedProgramForUnlock });
+                                }
+                            }, 100);
+                        }
+                    }}
+                    featureName={activeTab === 'lifestyle' ? 'Lifestyle Programs' : 'Premium Diets'}
                 />
             )}
         </SafeAreaView>

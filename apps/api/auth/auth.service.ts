@@ -255,8 +255,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token required');
     }
 
-    const tokenPrefix = refreshToken.substring(0, 20) + '...';
-    this.logger.debug(`[AuthService] refreshToken() called`, { tokenPrefix });
+    this.logger.debug(`[AuthService] refreshToken() called`);
 
     try {
       // 1. Check if token is blacklisted in Redis (fast path rejection)
@@ -264,7 +263,7 @@ export class AuthService {
       const isBlacklisted = await this.redisService.exists(blacklistKey);
 
       if (isBlacklisted) {
-        this.logger.warn(`[AuthService] Token is blacklisted (already rotated)`, { tokenPrefix });
+        this.logger.warn(`[AuthService] Token is blacklisted (already rotated)`);
         throw new UnauthorizedException('Token has been revoked');
       }
 
@@ -276,14 +275,14 @@ export class AuthService {
         });
       } catch (jwtError: any) {
         if (jwtError.name === 'TokenExpiredError') {
-          this.logger.warn('[AuthService] Refresh token expired', { tokenPrefix });
+          this.logger.warn('[AuthService] Refresh token expired');
           throw new UnauthorizedException('Refresh token expired');
         }
         if (jwtError.name === 'JsonWebTokenError') {
-          this.logger.warn('[AuthService] Invalid JWT signature', { tokenPrefix, error: jwtError.message });
+          this.logger.warn('[AuthService] Invalid JWT signature', { error: jwtError.message });
           throw new UnauthorizedException('Invalid refresh token signature');
         }
-        this.logger.warn('[AuthService] JWT verification failed', { tokenPrefix, error: jwtError.message });
+        this.logger.warn('[AuthService] JWT verification failed', { error: jwtError.message });
         throw new UnauthorizedException('Invalid refresh token');
       }
 
@@ -359,7 +358,7 @@ export class AuthService {
           }
 
           if (!tokenRecord) {
-            this.logger.warn('[AuthService] Token not found in database', { tokenPrefix });
+            this.logger.warn('[AuthService] Token not found in database');
             throw new UnauthorizedException('Token not found');
           }
 
@@ -441,7 +440,7 @@ export class AuthService {
     } catch (error) {
       // Re-throw UnauthorizedException as-is (already properly formatted)
       if (error instanceof UnauthorizedException) {
-        this.logger.warn(`[AuthService] Refresh failed: ${error.message}`, { tokenPrefix: refreshToken?.substring?.(0, 20) || 'none' });
+        this.logger.warn(`[AuthService] Refresh failed: ${error.message}`);
         throw error;
       }
       this.logger.error(`[AuthService] Unexpected refresh error: ${error.message || error}`);

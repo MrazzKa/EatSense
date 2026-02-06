@@ -12,7 +12,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
 import ApiService from '../services/apiService';
 import CircularProgressRing from './CircularProgressRing';
-import CelebrationModal from './CelebrationModal';
 import { getDaysText } from '../utils/pluralize';
 
 interface TrackerItem {
@@ -43,8 +42,22 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     // NOTE: useRefreshProgressOnFocus removed - parent component handles this
     // Having it in both parent and child caused double refresh on every focus
 
+    // Cache last valid activeProgram to prevent tracker from disappearing during reloads
+    const lastValidProgramRef = useRef<typeof activeProgram>(null);
+
+    // Update cached program when we get a valid one
+    useEffect(() => {
+        if (activeProgram && (activeProgram.type === 'diet' || activeProgram.type === 'lifestyle')) {
+            lastValidProgramRef.current = activeProgram;
+        }
+    }, [activeProgram]);
+
+    // Use cached program during transient null states (API reload)
+    const program = activeProgram || lastValidProgramRef.current;
+
     const [saving, setSaving] = useState(false);
-    const [showCelebration, setShowCelebration] = useState(false);
+    // NOTE: CelebrationModal removed from DailyDietTracker to prevent duplicate modals
+    // CelebrationModal is now only rendered in DietProgramProgressScreen
     const [trackerData, setTrackerData] = useState<{
         dailyTracker: TrackerItem[];
         symptoms: SymptomsData;
@@ -62,7 +75,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
     // Load tracker data from API (for dailyTracker items and symptoms)
     const loadTrackerData = useCallback(async () => {
-        if (!activeProgram || activeProgram.type !== 'diet') {
+        if (!program || (program.type !== 'diet' && program.type !== 'lifestyle')) {
             setTrackerData(null);
             lastValidTrackerDataRef.current = null;
             return;
@@ -111,22 +124,17 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                 }
             }
         }
-    }, [activeProgram]);
+    }, [program]);
 
     useEffect(() => {
-        if (activeProgram && activeProgram.type === 'diet') {
+        if (program && (program.type === 'diet' || program.type === 'lifestyle')) {
             loadTrackerData();
         } else {
             setTrackerData(null);
         }
-    }, [activeProgram, loadTrackerData]);
+    }, [program, loadTrackerData]);
 
-    // Show celebration when day is completed
-    useEffect(() => {
-        if (activeProgram?.todayLog?.completed && !activeProgram.todayLog.celebrationShown) {
-            setShowCelebration(true);
-        }
-    }, [activeProgram?.todayLog?.completed, activeProgram?.todayLog?.celebrationShown]);
+    // NOTE: CelebrationModal useEffect removed - celebration is handled by parent screen
 
     // Debounced sync to backend
     const syncChecklistToBackend = useCallback(async (checklistToSync: Record<string, boolean>) => {
@@ -170,7 +178,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     }, [updateChecklist, trackerData, onUpdate]);
 
     const handleChecklistToggle = useCallback((key: string) => {
-        if (!trackerData || !activeProgram || !trackerData.dailyTracker || trackerData.dailyTracker.length === 0) return;
+        if (!trackerData || !program || !trackerData.dailyTracker || trackerData.dailyTracker.length === 0) return;
 
         // Build new checklist state
         const newChecklist: Record<string, boolean> = {};
@@ -203,7 +211,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                 syncChecklistToBackend(checklistToSync).finally(() => setSaving(false));
             }
         }, DEBOUNCE_MS);
-    }, [trackerData, activeProgram, syncChecklistToBackend]);
+    }, [trackerData, program, syncChecklistToBackend]);
 
     const handleSymptomChange = async (symptom: string, value: number) => {
         if (!trackerData || saving) return;
@@ -248,8 +256,8 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         );
     }
 
-    if (!activeProgram || activeProgram.type !== 'diet') {
-        return null; // No active diet
+    if (!program || (program.type !== 'diet' && program.type !== 'lifestyle')) {
+        return null; // No active diet or lifestyle
     }
 
     // FIX: Check if trackerData exists before accessing dailyTracker
@@ -266,26 +274,18 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     // FIX 2026-01-19: Use local state for instant progress updates instead of store's todayLog
     // This ensures the progress ring updates immediately when checkboxes are toggled
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-    const thresholdPercent = Math.round((activeProgram.streak?.threshold || 0.6) * 100);
+    const thresholdPercent = Math.round((program.streak?.threshold || 0.6) * 100);
+    const isLifestyle = program.type === 'lifestyle';
 
     return (
         <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {/* Celebration Modal */}
-            <CelebrationModal
-                visible={showCelebration}
-                completionRate={activeProgram.todayLog?.completionRate || 0}
-                programName={activeProgram.programName}
-                onClose={async () => {
-                    setShowCelebration(false);
-                    // Mark celebration as shown in database
-                    await markCelebrationShown();
-                }}
-            />
             {/* Header with Progress Ring */}
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
                     <Text style={[styles.title, { color: colors.textPrimary }]}>
-                        {t('diets_tracker_daily_checklist')}
+                        {isLifestyle
+                            ? (t('lifestyles_tracker_daily_inspiration') || 'Daily Inspiration')
+                            : t('diets_tracker_daily_checklist')}
                     </Text>
                     <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                         {t('diets_tracker_completed')}: {completedCount}/{totalCount}
@@ -303,15 +303,15 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             </View>
 
             {/* Streak Info */}
-            {activeProgram.streak && (
+            {program.streak && (
                 <View style={[styles.streakContainer, { backgroundColor: colors.surfaceSecondary }]}>
                     <Ionicons name="flame" size={18} color={colors.warning} />
                     <Text style={[styles.streakText, { color: colors.textPrimary }]}>
-                        {t('diets_tracker_streak')}: {getDaysText(activeProgram.streak?.current || 0, language)}
+                        {t('diets_tracker_streak')}: {getDaysText(program.streak?.current || 0, language)}
                     </Text>
-                    {(activeProgram.streak?.longest || 0) > 0 && (
+                    {(program.streak?.longest || 0) > 0 && (
                         <Text style={[styles.streakBest, { color: colors.textSecondary }]}>
-                            ({t('diets_tracker_longest_streak')}: {activeProgram.streak?.longest || 0})
+                            ({t('diets_tracker_longest_streak')}: {program.streak?.longest || 0})
                         </Text>
                     )}
                 </View>
