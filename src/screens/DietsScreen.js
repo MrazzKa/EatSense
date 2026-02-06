@@ -24,6 +24,8 @@ import seedBundle from '../../assets/dietsBundleSeed.json';
 import { trialService } from '../services/trialService';
 import PremiumLockModal from '../components/common/PremiumLockModal';
 import { isFreeDiet, ENABLE_PREMIUM_LOCK } from '../config/freeContent';
+import Tooltip from '../components/Tooltip/Tooltip';
+import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
 // Cache TTL for bundle data (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
@@ -167,12 +169,12 @@ export default function DietsScreen({ navigation }) {
     // Unified cache key for bundle data
     const BUNDLE_CACHE_KEY = 'diets_bundle_cache_v1';
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Start with false since we have seed data
     const [refreshing, setRefreshing] = useState(false);
-    const [activeDiet, setActiveDiet] = useState(null); // Bundle format for DietsTabContent
+    const [activeDiet, setActiveDiet] = useState(seedBundle?.activeProgram || null);
     const [recommendations, setRecommendations] = useState([]);
-    const [featuredDiets, setFeaturedDiets] = useState([]);
-    const [allDiets, setAllDiets] = useState([]);
+    const [featuredDiets, setFeaturedDiets] = useState(seedBundle?.featuredDiets || []);
+    const [allDiets, setAllDiets] = useState(seedBundle?.allDiets || []);
     const [selectedType, setSelectedType] = useState(null);
     const [selectedDifficulty, setSelectedDifficulty] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -180,9 +182,9 @@ export default function DietsScreen({ navigation }) {
     const [activeTab, setActiveTab] = useState('diets'); // New: main tab state
     const scrollViewRef = useRef(null);
 
-    // Lifestyle state
-    const [lifestylePrograms, setLifestylePrograms] = useState([]);
-    const [featuredLifestyles, setFeaturedLifestyles] = useState([]);
+    // Lifestyle state - pre-initialize with seed data
+    const [lifestylePrograms, setLifestylePrograms] = useState(seedBundle?.allLifestyles || []);
+    const [featuredLifestyles, setFeaturedLifestyles] = useState(seedBundle?.featuredLifestyles || []);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
     const [subscription, setSubscription] = useState(null); // Access control
 
@@ -493,6 +495,15 @@ export default function DietsScreen({ navigation }) {
                         <SuggestProgramCard type={activeTab === 'lifestyle' ? 'lifestyle' : 'diet'} />
                     </View>
                 )}
+
+                {/* Onboarding Tooltip for first-time users */}
+                <Tooltip
+                    id={TooltipIds.LIFESTYLES_INTRO}
+                    title={t('tooltips.lifestyles.title')}
+                    text={t('tooltips.lifestyles.text')}
+                    arrowPosition="top"
+                    style={{ top: 180, left: 16, right: 16 }}
+                />
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>

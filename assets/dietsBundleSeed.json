@@ -1,8 +1,360 @@
 {
-  "featuredDiets": [],
-  "featuredLifestyles": [],
+  "featuredDiets": [
+    {
+      "id": "mediterranean",
+      "slug": "mediterranean",
+      "name": {
+        "en": "Mediterranean Diet",
+        "ru": "Средиземноморская диета",
+        "kk": "Жерорта теңізі диетасы",
+        "fr": "Régime méditerranéen"
+      },
+      "shortDescription": {
+        "en": "Heart-healthy Mediterranean eating",
+        "ru": "Средиземноморское питание для здоровья сердца",
+        "kk": "Жүрекке пайдалы Жерорта теңізі тамақтануы",
+        "fr": "Alimentation méditerranéenne saine pour le cœur"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80",
+      "color": "#4CAF50",
+      "difficulty": "EASY",
+      "duration": 30,
+      "isFeatured": true,
+      "popularityScore": 95,
+      "type": "HEALTH",
+      "uiGroup": "Health",
+      "tags": [
+        "heart_healthy",
+        "sustainable",
+        "evidence_based"
+      ]
+    },
+    {
+      "id": "dash",
+      "slug": "dash",
+      "name": {
+        "en": "DASH Diet",
+        "ru": "Диета DASH",
+        "kk": "DASH диетасы",
+        "fr": "Régime DASH"
+      },
+      "shortDescription": {
+        "en": "Lower blood pressure naturally",
+        "ru": "Снижение давления естественным путем",
+        "kk": "Қан қысымын табиғи түрде төмендету",
+        "fr": "Réduire la pression artérielle naturellement"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80",
+      "color": "#2196F3",
+      "difficulty": "EASY",
+      "duration": 30,
+      "isFeatured": true,
+      "popularityScore": 88,
+      "type": "HEALTH",
+      "uiGroup": "Health",
+      "tags": [
+        "heart_healthy",
+        "blood_pressure",
+        "evidence_based"
+      ]
+    },
+    {
+      "id": "plate-method",
+      "slug": "plate-method",
+      "name": {
+        "en": "Balanced Plate Method",
+        "ru": "Метод сбалансированной тарелки",
+        "kk": "Теңдестірілген тәрелке әдісі",
+        "fr": "Méthode de l'assiette équilibrée"
+      },
+      "shortDescription": {
+        "en": "Simple visual portion guide",
+        "ru": "Простой визуальный гид по порциям",
+        "kk": "Қарапайым визуалды порция нұсқаулығы",
+        "fr": "Guide visuel simple des portions"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
+      "color": "#00BCD4",
+      "difficulty": "EASY",
+      "duration": 30,
+      "isFeatured": true,
+      "popularityScore": 92,
+      "type": "HEALTH",
+      "uiGroup": "Popular",
+      "tags": [
+        "beginner_friendly",
+        "simple",
+        "visual"
+      ]
+    },
+    {
+      "id": "if-16-8",
+      "slug": "if-16-8",
+      "name": {
+        "en": "Intermittent Fasting 16:8",
+        "ru": "Интервальное голодание 16:8",
+        "kk": "Интервалды аштық 16:8",
+        "fr": "Jeûne intermittent 16:8"
+      },
+      "shortDescription": {
+        "en": "16h fast, 8h eating window",
+        "ru": "16ч голод, 8ч питание",
+        "kk": "16с аштық, 8с тамақтану",
+        "fr": "16h jeûne, 8h alimentation"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=800&q=80",
+      "color": "#9C27B0",
+      "difficulty": "MODERATE",
+      "duration": 30,
+      "isFeatured": true,
+      "popularityScore": 88,
+      "type": "WEIGHT_LOSS",
+      "uiGroup": "Weight loss",
+      "tags": [
+        "fasting",
+        "popular",
+        "flexible"
+      ]
+    },
+    {
+      "id": "low-carb",
+      "slug": "low-carb",
+      "name": {
+        "en": "Low-Carb Diet",
+        "ru": "Низкоуглеводная диета",
+        "kk": "Төмен көмірсулы диета",
+        "fr": "Régime faible en glucides"
+      },
+      "shortDescription": {
+        "en": "Fewer carbs, more protein",
+        "ru": "Меньше углеводов, больше белка",
+        "kk": "Аз көмірсу, көп ақуыз",
+        "fr": "Moins de glucides, plus de protéines"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80",
+      "color": "#FF5722",
+      "difficulty": "MODERATE",
+      "duration": 30,
+      "isFeatured": true,
+      "popularityScore": 88,
+      "type": "WEIGHT_LOSS",
+      "uiGroup": "Weight loss",
+      "tags": [
+        "low_carb",
+        "weight_loss"
+      ]
+    }
+  ],
+  "featuredLifestyles": [
+    {
+      "id": "that_girl",
+      "slug": "that_girl",
+      "name": {
+        "en": "That Girl",
+        "ru": "\"Та самая девушка\"",
+        "kk": "\"Сол қыз\"",
+        "fr": "Cette Fille"
+      },
+      "subtitle": {
+        "en": "Become your best self",
+        "ru": "Стань лучшей версией себя",
+        "kk": "Өзіңнің ең жақсы нұсқаң бол",
+        "fr": "Deviens ta meilleure version"
+      },
+      "shortDescription": {
+        "en": "Wellness aesthetic lifestyle",
+        "ru": "Велнес-эстетика образа жизни",
+        "kk": "Сауықтыру эстетикалық өмір салты",
+        "fr": "Style de vie esthétique bien-être"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80",
+      "color": "#7CB342",
+      "difficulty": "EASY",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 94,
+      "emoji": "✨",
+      "uiGroup": "Trending",
+      "tags": [
+        "trending",
+        "aesthetic",
+        "wellness"
+      ]
+    },
+    {
+      "id": "old_money",
+      "slug": "old_money",
+      "name": {
+        "en": "Old Money",
+        "ru": "\"Старые деньги\"",
+        "kk": "\"Ескі ақша\"",
+        "fr": "Old Money"
+      },
+      "subtitle": {
+        "en": "Quiet luxury living",
+        "ru": "Тихая роскошь",
+        "kk": "Тыныш сәнділік",
+        "fr": "Luxe discret"
+      },
+      "shortDescription": {
+        "en": "Timeless elegance lifestyle",
+        "ru": "Образ жизни вечной элегантности",
+        "kk": "Мәңгі талғампаздық өмір салты",
+        "fr": "Style de vie élégance intemporelle"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
+      "color": "#8D6E63",
+      "difficulty": "EASY",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 98,
+      "emoji": "🏛️",
+      "uiGroup": "Trending",
+      "tags": [
+        "trending",
+        "luxury",
+        "quality"
+      ]
+    },
+    {
+      "id": "french_girl",
+      "slug": "french_girl",
+      "name": {
+        "en": "French Girl",
+        "ru": "Французская Девушка",
+        "kk": "Француз Қызы",
+        "fr": "French Girl"
+      },
+      "subtitle": {
+        "en": "Je ne sais quoi in every bite",
+        "ru": "Необъяснимое очарование",
+        "kk": "Түсіндірілмейтін сүйкімділік",
+        "fr": "Je ne sais quoi à chaque bouchée"
+      },
+      "shortDescription": {
+        "en": "French intuitive eating",
+        "ru": "Французское интуитивное питание",
+        "kk": "Француз интуитивті тағамы",
+        "fr": "Alimentation intuitive française"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+      "color": "#9C27B0",
+      "difficulty": "EASY",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 97,
+      "emoji": "🗼",
+      "uiGroup": "Aesthetics",
+      "tags": [
+        "aesthetics",
+        "french"
+      ]
+    },
+    {
+      "id": "amalfi_coast",
+      "slug": "amalfi_coast",
+      "name": {
+        "en": "Amalfi Coast",
+        "ru": "Амальфитанское Побережье",
+        "kk": "Амальфи Жағалауы",
+        "fr": "Côte Amalfitaine"
+      },
+      "subtitle": {
+        "en": "Limoncello sunsets, Italian dreams",
+        "ru": "Закаты с лимончелло",
+        "kk": "Лимончелло күн батулары",
+        "fr": "Couchers limoncello, rêves italiens"
+      },
+      "shortDescription": {
+        "en": "Italian coastal eating",
+        "ru": "Итальянское прибрежное питание",
+        "kk": "Италиялық жағалау тағамы",
+        "fr": "Alimentation côtière italienne"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=800&q=80",
+      "color": "#FFEB3B",
+      "difficulty": "EASY",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 96,
+      "emoji": "🍋",
+      "uiGroup": "Destinations",
+      "tags": [
+        "destinations",
+        "italian"
+      ]
+    },
+    {
+      "id": "glass_skin",
+      "slug": "glass_skin",
+      "name": {
+        "en": "Glass Skin",
+        "ru": "Стеклянная Кожа",
+        "kk": "Шыны Тері",
+        "fr": "Glass Skin"
+      },
+      "subtitle": {
+        "en": "Korean beauty starts from inside",
+        "ru": "Корейская красота начинается изнутри",
+        "kk": "Кореялық сұлулық іштен басталады",
+        "fr": "La beauté K part de l'intérieur"
+      },
+      "shortDescription": {
+        "en": "K-beauty nutrition",
+        "ru": "К-бьюти питание",
+        "kk": "К-бьюти тағам",
+        "fr": "Nutrition K-beauty"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
+      "color": "#E1BEE7",
+      "difficulty": "EASY",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 91,
+      "emoji": "✨",
+      "uiGroup": "Clear Skin",
+      "tags": [
+        "skin",
+        "kbeauty"
+      ]
+    },
+    {
+      "id": "okinawa_longevity",
+      "slug": "okinawa_longevity",
+      "name": {
+        "en": "Okinawa Longevity",
+        "ru": "Долголетие Окинавы",
+        "kk": "Окинава Ұзақ Өмір",
+        "fr": "Longévité Okinawa"
+      },
+      "subtitle": {
+        "en": "Secrets of living to 100",
+        "ru": "Секреты жизни до 100",
+        "kk": "100-ге дейін өмір сүру құпиялары",
+        "fr": "Secrets pour vivre jusqu'à 100 ans"
+      },
+      "shortDescription": {
+        "en": "Blue zone longevity",
+        "ru": "Долголетие синей зоны",
+        "kk": "Көк аймақ ұзақ өмір",
+        "fr": "Longévité zone bleue"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80",
+      "color": "#9C27B0",
+      "difficulty": "MODERATE",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 95,
+      "emoji": "🇯🇵",
+      "uiGroup": "Destinations",
+      "tags": [
+        "destinations",
+        "japanese"
+      ]
+    }
+  ],
   "allDiets": [],
   "allLifestyles": [],
   "activeProgram": null,
-  "timestamp": 0
+  "timestamp": 1738859551612
 }

@@ -139,9 +139,8 @@ export default function TrendingCarousel({
                 </View>
               )}
 
-              {/* Content at bottom */}
+              {/* Content at bottom - no emoji, just text */}
               <View style={styles.cardContent}>
-                <Text style={styles.emoji}>{program.emoji}</Text>
                 <Text style={styles.cardName} numberOfLines={1}>
                   {getLocalizedText(program.name)}
                 </Text>

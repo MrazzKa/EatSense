@@ -22,6 +22,8 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { clientLog } from '../utils/clientLog';
 import { mapLanguageToLocale } from '../utils/locale';
+import Tooltip from './Tooltip/Tooltip';
+import { TooltipIds } from './Tooltip/TooltipContext';
 
 interface Message {
   id: string;
@@ -605,6 +607,15 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
         </Text>
         <View style={styles.headerPlaceholder} />
       </View>
+
+      {/* Onboarding Tooltip for first-time users */}
+      <Tooltip
+        id={TooltipIds.AI_ASSISTANT}
+        title={t('tooltips.assistant.title')}
+        text={t('tooltips.assistant.text')}
+        arrowPosition="top"
+        style={{ top: 60, left: 16, right: 16 }}
+      />
 
       {/* Pinned Dish Context Card */}
       {mealContext && (

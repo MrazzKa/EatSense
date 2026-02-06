@@ -33,6 +33,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
 import LimitReachedModal from '../components/LimitReachedModal';
+import Tooltip from '../components/Tooltip/Tooltip';
+import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
 // Helper function to get image URL from item (handles various field names and resolves relative URLs)
 function getItemImageUrl(item) {
@@ -112,8 +114,8 @@ export default function DashboardScreen() {
       }
     };
 
-    // Delay preload slightly to not block initial render
-    const timer = setTimeout(preloadDietsBundle, 2000);
+    // Delay preload slightly to not block initial render, but start early for fast Diets tab
+    const timer = setTimeout(preloadDietsBundle, 500);
     return () => clearTimeout(timer);
   }, [language]);
 
@@ -1011,6 +1013,15 @@ export default function DashboardScreen() {
         >
           <Ionicons name="add" size={32} color={colors.onPrimary || colors.inverseText} />
         </TouchableOpacity>
+
+        {/* Onboarding Tooltip for first-time users */}
+        <Tooltip
+          id={TooltipIds.SCAN_MEAL}
+          title={t('tooltips.scanMeal.title') || 'Сканировать еду'}
+          text={t('tooltips.scanMeal.text') || 'Нажмите сюда, чтобы сфотографировать еду и узнать её калории'}
+          arrowPosition="bottom"
+          style={{ bottom: 80, right: 24 }}
+        />
       </Animated.View>
 
       {/* Modal for Add Options */}
