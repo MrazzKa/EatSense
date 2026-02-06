@@ -27,7 +27,7 @@ import LifestyleCard from './LifestyleCard';
 import CategoryChips from './CategoryChips';
 import TrendingCarousel from './TrendingCarousel';
 import DisclaimerBanner from './DisclaimerBanner';
-import PremiumLockModal from '../../../components/common/PremiumLockModal';
+// PremiumLockModal removed - delegated to DietsScreen which has working handleUnlock flow
 // FIX: SuggestProgramCard moved to DietsScreen level for better visibility
 // import SuggestProgramCard from '../../../components/programs/SuggestProgramCard';
 import ActiveDietWidget from '../../../components/dashboard/ActiveDietWidget';
@@ -61,6 +61,7 @@ interface LifestyleTabContentProps {
   isLoading?: boolean;
   activeProgram?: any;
   subscription?: any;
+  checkLockStatus?: (_programId: string) => boolean;
 }
 
 // Helper to check if user has access
@@ -117,23 +118,13 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
     featuredPrograms = [],
     isLoading = false,
     subscription,
+    checkLockStatus,
   } = props;
   const { t, language } = useI18n();
   const { colors } = useTheme();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   // selectedTarget state removed - gender filter disabled (no data to filter by)
-  const [showLockModal, setShowLockModal] = useState(false);
-
-  // Handler for program press with lock check
-  const handleProgramPress = useCallback((program: LifestyleProgram) => {
-    const locked = !hasAccess(program, subscription);
-    if (locked) {
-      setShowLockModal(true);
-    } else {
-      onProgramPress(program.id || program.slug);
-    }
-  }, [subscription, onProgramPress]);
   // Removed selectedAgeRange - age filter removed per requirements
 
   // Memoized trending programs from featured
@@ -308,8 +299,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         return (
           <LifestyleCard
             program={item.data}
-            isLocked={!hasAccess(item.data, subscription)}
-            onPress={() => handleProgramPress(item.data)}
+            isLocked={checkLockStatus ? checkLockStatus(item.data.id || item.data.slug) : !hasAccess(item.data, subscription)}
+            onPress={() => onProgramPress(item.data.id || item.data.slug)}
           />
         );
 
@@ -331,7 +322,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       default:
         return null;
     }
-  }, [selectedCategory, colors, t, onProgramPress, searchQuery, handleProgramPress, subscription]);
+  }, [selectedCategory, colors, t, onProgramPress, searchQuery, subscription]);
 
   // Key extractor
   const keyExtractor = useCallback((item: SectionData, index: number) => {
@@ -354,15 +345,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       />
-      {ENABLE_PREMIUM_LOCK && (
-        <PremiumLockModal
-          visible={showLockModal}
-          onClose={() => setShowLockModal(false)}
-          onUnlock={() => {
-            setShowLockModal(false);
-          }}
-        />
-      )}
+      {/* PremiumLockModal removed - handled by DietsScreen with working trial flow */}
     </View>
   );
 }

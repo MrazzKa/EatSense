@@ -1013,16 +1013,16 @@ export default function DashboardScreen() {
         >
           <Ionicons name="add" size={32} color={colors.onPrimary || colors.inverseText} />
         </TouchableOpacity>
-
-        {/* Onboarding Tooltip for first-time users */}
-        <Tooltip
-          id={TooltipIds.SCAN_MEAL}
-          title={t('tooltips.scanMeal.title') || 'Сканировать еду'}
-          text={t('tooltips.scanMeal.text') || 'Нажмите сюда, чтобы сфотографировать еду и узнать её калории'}
-          arrowPosition="bottom"
-          style={{ bottom: 80, right: 24 }}
-        />
       </Animated.View>
+
+      {/* Onboarding Tooltip for first-time users - positioned above FAB */}
+      <Tooltip
+        id={TooltipIds.SCAN_MEAL}
+        title={t('tooltips.scanMeal.title') || 'Сканировать еду'}
+        text={t('tooltips.scanMeal.text') || 'Нажмите сюда, чтобы сфотографировать еду и узнать её калории'}
+        arrowPosition="bottom"
+        style={{ position: 'absolute', bottom: 120, right: 16, zIndex: 1001 }}
+      />
 
       {/* Modal for Add Options */}
       <SwipeClosableModal

@@ -48,7 +48,11 @@ async function bootstrap() {
   // Check environment variables for analysis
   checkAnalysisEnv();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: process.env.NODE_ENV === 'production'
+      ? ['log', 'warn', 'error']
+      : ['log', 'debug', 'warn', 'error'],
+  });
 
   // Log incoming requests to /user-profiles* (onboarding, profile save) for debugging
   app.use((req: any, _res: any, next: () => void) => {

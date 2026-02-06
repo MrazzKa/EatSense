@@ -159,6 +159,33 @@ export default function DietsTabContent({
                     </View>
                 )}
 
+            {/* FIX: Show informational banner when user has active lifestyle program */}
+            {/* This helps user understand their tracker is in Lifestyle tab, not here */}
+            {activeDiet &&
+                (activeDiet.program?.type === 'LIFESTYLE' ||
+                    activeDiet.program?.type === 'lifestyle') && (
+                    <View style={styles.section}>
+                        <TouchableOpacity
+                            style={[styles.lifestyleBanner, { backgroundColor: (colors.primary || '#4CAF50') + '15' }]}
+                            onPress={() => onProgramPress(activeDiet.programId)}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.lifestyleBannerIcon}>
+                                <Ionicons name="sparkles" size={24} color={colors.primary || '#4CAF50'} />
+                            </View>
+                            <View style={styles.lifestyleBannerContent}>
+                                <Text style={[styles.lifestyleBannerTitle, { color: colors.textPrimary || '#000' }]}>
+                                    {getLocalizedText(activeDiet.program?.name, language, t)}
+                                </Text>
+                                <Text style={[styles.lifestyleBannerSubtitle, { color: colors.textSecondary || '#666' }]}>
+                                    {t('diets_activeLifestyleBanner') || 'Ваш активный стиль жизни. Нажмите для отслеживания.'}
+                                </Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary || '#666'} />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
             {/* AI Recommendations */}
             {recommendations.length > 0 && !activeDiet && (
                 <View style={styles.section}>
@@ -486,5 +513,36 @@ const createStyles = (tokens: any, colors: any) => StyleSheet.create({
         fontSize: 15,
         color: tokens.colors?.textSecondary || '#999',
         marginTop: 12,
+    },
+    // FIX: Styles for active lifestyle banner in Diets tab
+    lifestyleBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        marginHorizontal: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: (tokens.colors?.primary || '#4CAF50') + '30',
+    },
+    lifestyleBannerIcon: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: (tokens.colors?.primary || '#4CAF50') + '20',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    lifestyleBannerContent: {
+        flex: 1,
+    },
+    lifestyleBannerTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    lifestyleBannerSubtitle: {
+        fontSize: 13,
+        lineHeight: 18,
     },
 });

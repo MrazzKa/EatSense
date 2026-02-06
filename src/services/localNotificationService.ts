@@ -93,7 +93,8 @@ class LocalNotificationService {
                 identifier: NotificationActions.MEDICATION_TAKE,
                 buttonTitle: takeButtonText,
                 options: {
-                    opensAppToForeground: false, // Don't open app, just process in background
+                    // FIX: Set to true on iOS so action button is visible and response is processed
+                    opensAppToForeground: true,
                 },
             },
         ]);

@@ -169,7 +169,9 @@ export default function Tooltip({
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        zIndex: 1000,
+        // FIX: Increased z-index to ensure tooltip is always visible above FAB and other components
+        zIndex: 9999,
+        elevation: 9999, // Android requires elevation for z-order
         maxWidth: TOOLTIP_MAX_WIDTH,
     },
     content: {

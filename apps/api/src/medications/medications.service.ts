@@ -151,10 +151,8 @@ export class MedicationsService {
     const startDateObj = new Date(startDate);
     const endDateObj = endDate ? new Date(endDate) : null;
 
-    // Calculate remaining stock if quantity is provided
-    const calculatedRemainingStock = quantity
-      ? this.calculateRemainingStock(quantity, doses.length, startDateObj, endDateObj)
-      : remainingStock || null;
+    // Use user-provided remainingStock, or default to quantity if not provided
+    const calculatedRemainingStock = remainingStock ?? quantity ?? null;
 
     try {
       return await this.prisma.medication.create({
@@ -198,27 +196,11 @@ export class MedicationsService {
 
     const { doses, quantity, remainingStock, lowStockThreshold, ...rest } = dto;
 
-    // Determine final doses count (use new doses if provided, otherwise existing)
-    const finalDosesCount = doses ? doses.length : existing.doses.length;
-    const finalStartDate = rest.startDate ? new Date(rest.startDate) : existing.startDate;
-    const finalEndDate = rest.endDate !== undefined
-      ? (rest.endDate ? new Date(rest.endDate) : null)
-      : existing.endDate;
-    const finalQuantity = quantity !== undefined ? quantity : existing.quantity;
-
     // Extract imageUrl if present
     const { imageUrl } = rest as any;
 
-    // Recalculate remaining stock if quantity or doses changed
-    let calculatedRemainingStock = remainingStock;
-    if (finalQuantity && (quantity !== undefined || doses !== undefined || rest.startDate)) {
-      calculatedRemainingStock = this.calculateRemainingStock(
-        finalQuantity,
-        finalDosesCount,
-        finalStartDate,
-        finalEndDate,
-      );
-    }
+    // Only update remainingStock if explicitly provided by frontend, never recalculate
+    const calculatedRemainingStock = remainingStock;
 
     // Обновляем сам Medication
     let updated;
