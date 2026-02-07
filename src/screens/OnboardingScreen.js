@@ -1160,8 +1160,10 @@ const OnboardingScreen = () => {
             throw new Error('Failed to initialize IAP service');
           }
 
-          // Small delay to ensure IAP listeners are ready
-          await new Promise(resolve => setTimeout(resolve, 300));
+          // CRITICAL: Must fetch products before purchasing (react-native-iap requirement)
+          // Without this, requestSubscription/requestPurchase will fail silently
+          console.log('[OnboardingScreen] Fetching available products before purchase...');
+          await IAPService.getAvailableProducts();
 
           if (isSubscription) {
             await IAPService.purchaseSubscription(selectedPlan, onPurchaseSuccess, onPurchaseError);

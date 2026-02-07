@@ -28,19 +28,19 @@ export class SubscriptionsService implements OnModuleInit {
     ) { }
 
     onModuleInit() {
-        const keyId = !!process.env.APPLE_IAP_KEY_ID;
-        const issuerId = !!process.env.APPLE_IAP_ISSUER_ID;
-        const privateKey = !!process.env.APPLE_IAP_KEY;
-        const bundleId = process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID;
+        const rawKeyId = process.env.APPLE_IAP_KEY_ID?.trim();
+        const rawIssuerId = process.env.APPLE_IAP_ISSUER_ID?.trim();
+        const rawKey = process.env.APPLE_IAP_KEY?.trim();
+        const bundleId = (process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID || '').trim();
 
         this.logger.log(
-            `Apple IAP config: KEY_ID=${keyId ? 'SET' : 'MISSING'}, ` +
-            `ISSUER_ID=${issuerId ? 'SET' : 'MISSING'}, ` +
-            `KEY=${privateKey ? 'SET' : 'MISSING'}, ` +
+            `Apple IAP config: KEY_ID=${rawKeyId ? `SET(${rawKeyId.length})` : 'MISSING'}, ` +
+            `ISSUER_ID=${rawIssuerId ? `SET(${rawIssuerId.length})` : 'MISSING'}, ` +
+            `KEY=${rawKey ? `SET(${rawKey.length})` : 'MISSING'}, ` +
             `BUNDLE_ID=${bundleId || 'DEFAULT'}`
         );
 
-        if (!keyId || !issuerId || !privateKey) {
+        if (!rawKeyId || !rawIssuerId || !rawKey) {
             this.logger.warn('Apple IAP promotional offers will not work - missing credentials');
         }
     }
@@ -280,9 +280,9 @@ export class SubscriptionsService implements OnModuleInit {
         timestamp: number;
         signature: string;
     }> {
-        const keyId = process.env.APPLE_IAP_KEY_ID;
-        const issuerId = process.env.APPLE_IAP_ISSUER_ID;
-        const privateKey = process.env.APPLE_IAP_KEY;
+        const keyId = process.env.APPLE_IAP_KEY_ID?.trim();
+        const issuerId = process.env.APPLE_IAP_ISSUER_ID?.trim();
+        const privateKey = process.env.APPLE_IAP_KEY?.trim();
 
         if (!keyId || !issuerId || !privateKey) {
             const missing = [
@@ -305,7 +305,7 @@ export class SubscriptionsService implements OnModuleInit {
         // Build the payload to sign
         // Format: appBundleID + '\u2063' + keyIdentifier + '\u2063' + productIdentifier + '\u2063' + offerIdentifier + '\u2063' + applicationUsername + '\u2063' + nonce + '\u2063' + timestamp
         // Note: \u2063 is the invisible separator character
-        const appBundleId = process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID || 'me.eatsense.app';
+        const appBundleId = (process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID || 'ch.eatsense.app').trim();
         const separator = '\u2063';
 
         const payload = [
