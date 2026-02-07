@@ -11,7 +11,7 @@ export class NotificationsScheduler {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   /**
    * Cron, который проверяет напоминания о таблетках каждую минуту.
@@ -114,8 +114,7 @@ export class NotificationsScheduler {
               );
             } catch (error: any) {
               this.logger.error(
-                `Failed to send medication reminder for medicationId=${med.id}: ${
-                  error?.message || error
+                `Failed to send medication reminder for medicationId=${med.id}: ${error?.message || error
                 }`,
               );
             }

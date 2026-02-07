@@ -20,8 +20,8 @@ import { useTooltip, TooltipId } from './TooltipContext';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TOOLTIP_MAX_WIDTH = SCREEN_WIDTH - 48;
 
-// Arrow direction based on tooltip position
-type ArrowPosition = 'top' | 'bottom' | 'left' | 'right';
+// Arrow direction based on tooltip position ('none' hides the arrow)
+type ArrowPosition = 'top' | 'bottom' | 'left' | 'right' | 'none';
 
 interface TooltipProps {
     // Unique ID for this tooltip
@@ -108,17 +108,17 @@ export default function Tooltip({
         return null;
     }
 
-    const arrowStyle = {
+    const arrowStyle = arrowPosition !== 'none' ? {
         top: styles.arrowTop,
         bottom: styles.arrowBottom,
         left: styles.arrowLeft,
         right: styles.arrowRight,
-    }[arrowPosition];
+    }[arrowPosition] : undefined;
 
     // Calculate arrow horizontal position based on arrowHorizontalAlign
     const getArrowHorizontalStyle = () => {
-        if (arrowPosition === 'left' || arrowPosition === 'right') {
-            return {}; // Horizontal alignment doesn't apply to left/right arrows
+        if (arrowPosition === 'none' || arrowPosition === 'left' || arrowPosition === 'right') {
+            return {}; // Horizontal alignment doesn't apply to left/right arrows or hidden
         }
         switch (arrowHorizontalAlign) {
             case 'left':
@@ -142,15 +142,17 @@ export default function Tooltip({
                 },
             ]}
         >
-            {/* Arrow */}
-            <View
-                style={[
-                    styles.arrow,
-                    arrowStyle,
-                    getArrowHorizontalStyle(),
-                    { borderBottomColor: colors.primary || '#4CAF50' },
-                ]}
-            />
+            {/* Arrow (hidden when arrowPosition="none") */}
+            {arrowPosition !== 'none' && (
+                <View
+                    style={[
+                        styles.arrow,
+                        arrowStyle,
+                        getArrowHorizontalStyle(),
+                        { borderBottomColor: colors.primary || '#4CAF50' },
+                    ]}
+                />
+            )}
 
             {/* Content */}
             <View style={[styles.content, { backgroundColor: colors.primary || '#4CAF50' }]}>

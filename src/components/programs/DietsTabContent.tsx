@@ -204,7 +204,7 @@ export default function DietsTabContent({
                             <TouchableOpacity
                                 key={idx}
                                 style={styles.recommendationCard}
-                                onPress={() => onProgramPress(rec.diet.id)}
+                                onPress={() => onProgramPress(rec.diet.slug || rec.diet.id)}
                             >
                                 <View style={styles.matchBadge}>
                                     <Text style={styles.matchText}>{rec.matchScore}%</Text>
@@ -237,12 +237,12 @@ export default function DietsTabContent({
                                     style={[
                                         styles.featuredCard,
                                         { backgroundColor: diet.color || '#4CAF50' },
-                                        checkLockStatus && checkLockStatus(diet.id) && { opacity: 0.8 } // Visual feedback for locked
+                                        checkLockStatus && checkLockStatus(diet.slug || diet.id) && { opacity: 0.8 } // Visual feedback for locked
                                     ]}
-                                    onPress={() => onProgramPress(diet.id)}
+                                    onPress={() => onProgramPress(diet.slug || diet.id)}
                                 >
                                     <Ionicons name="star" size={20} color="rgba(255,255,255,0.8)" />
-                                    {checkLockStatus && checkLockStatus(diet.id) && (
+                                    {checkLockStatus && checkLockStatus(diet.slug || diet.id) && (
                                         <View style={{ position: 'absolute', top: 10, right: 10 }}>
                                             <Ionicons name="lock-closed" size={16} color="rgba(255,255,255,0.9)" />
                                         </View>
@@ -338,8 +338,8 @@ export default function DietsTabContent({
                                     <DietCard
                                         key={diet.id}
                                         diet={diet}
-                                        onPress={() => onProgramPress(diet.id)}
-                                        isLocked={checkLockStatus ? checkLockStatus(diet.id) : false}
+                                        onPress={() => onProgramPress(diet.slug || diet.id)}
+                                        isLocked={checkLockStatus ? checkLockStatus(diet.slug || diet.id) : false}
                                     />
                                 ))}
                             </View>

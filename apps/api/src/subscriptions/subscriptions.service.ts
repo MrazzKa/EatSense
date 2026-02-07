@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { GeoService } from '../geo/geo.service';
 import * as crypto from 'crypto';
@@ -19,13 +19,31 @@ export interface PlanWithPrice {
 }
 
 @Injectable()
-export class SubscriptionsService {
+export class SubscriptionsService implements OnModuleInit {
     private readonly logger = new Logger(SubscriptionsService.name);
 
     constructor(
         private prisma: PrismaService,
         private geoService: GeoService,
     ) { }
+
+    onModuleInit() {
+        const keyId = !!process.env.APPLE_IAP_KEY_ID;
+        const issuerId = !!process.env.APPLE_IAP_ISSUER_ID;
+        const privateKey = !!process.env.APPLE_IAP_KEY;
+        const bundleId = process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID;
+
+        this.logger.log(
+            `Apple IAP config: KEY_ID=${keyId ? 'SET' : 'MISSING'}, ` +
+            `ISSUER_ID=${issuerId ? 'SET' : 'MISSING'}, ` +
+            `KEY=${privateKey ? 'SET' : 'MISSING'}, ` +
+            `BUNDLE_ID=${bundleId || 'DEFAULT'}`
+        );
+
+        if (!keyId || !issuerId || !privateKey) {
+            this.logger.warn('Apple IAP promotional offers will not work - missing credentials');
+        }
+    }
 
     /**
      * Get all plans with prices for the specified currency
@@ -267,9 +285,14 @@ export class SubscriptionsService {
         const privateKey = process.env.APPLE_IAP_KEY;
 
         if (!keyId || !issuerId || !privateKey) {
-            this.logger.error('[SubscriptionsService] Apple IAP credentials not configured');
+            const missing = [
+                !keyId && 'APPLE_IAP_KEY_ID',
+                !issuerId && 'APPLE_IAP_ISSUER_ID',
+                !privateKey && 'APPLE_IAP_KEY',
+            ].filter(Boolean).join(', ');
+            this.logger.error(`Apple IAP credentials missing: ${missing}`);
             throw new BadRequestException(
-                'Apple IAP credentials not configured. Please configure APPLE_IAP_KEY_ID, APPLE_IAP_ISSUER_ID, and APPLE_IAP_KEY in environment variables.'
+                `Apple IAP credentials not configured. Missing: ${missing}`
             );
         }
 
@@ -282,7 +305,7 @@ export class SubscriptionsService {
         // Build the payload to sign
         // Format: appBundleID + '\u2063' + keyIdentifier + '\u2063' + productIdentifier + '\u2063' + offerIdentifier + '\u2063' + applicationUsername + '\u2063' + nonce + '\u2063' + timestamp
         // Note: \u2063 is the invisible separator character
-        const appBundleId = process.env.APP_BUNDLE_ID || 'me.eatsense.app';
+        const appBundleId = process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID || 'me.eatsense.app';
         const separator = '\u2063';
 
         const payload = [

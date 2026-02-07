@@ -157,10 +157,10 @@ export default function TrendingCarousel({
 }
 
 // Card dimensions - using 3:4 aspect ratio for better photo display
-// This ratio shows more of the photo without excessive cropping
-const CARD_WIDTH = 160;
+// Larger cards for better image quality and less cropping
+const CARD_WIDTH = 200;
 const CARD_ASPECT_RATIO = 3 / 4; // Portrait ratio (0.75) - less extreme than 9:16
-const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO; // ~213
+const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO; // ~267
 
 const styles = StyleSheet.create({
   section: {

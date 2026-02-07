@@ -918,8 +918,8 @@ const ProfileScreen = () => {
             id={TooltipIds.PROFILE_SETTINGS}
             title={t('tooltips.profile.title')}
             text={t('tooltips.profile.text')}
-            arrowPosition="top"
-            style={{ marginHorizontal: 16, marginTop: 8 }}
+            arrowPosition="none"
+            style={{ marginHorizontal: 16, marginTop: 16 }}
           />
           <AppCard style={styles.heroCard} padding="xl">
             <View style={styles.heroHeader}>
