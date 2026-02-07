@@ -59,8 +59,8 @@ export const configSchema = Joi.object({
   APPLE_IAP_KEY_ID: Joi.string().optional().allow(''),
   APPLE_IAP_ISSUER_ID: Joi.string().optional().allow(''),
   APPLE_IAP_KEY: Joi.string().optional().allow(''), // Contents of .p8 file
-  APP_BUNDLE_ID: Joi.string().optional().default('me.eatsense.app'),
-  APPLE_BUNDLE_ID: Joi.string().optional().default('me.eatsense.app'),
+  APP_BUNDLE_ID: Joi.string().optional().default('ch.eatsense.app'),
+  APPLE_BUNDLE_ID: Joi.string().optional().default('ch.eatsense.app'),
   // Medication push notifications (disabled by default, use local notifications)
   MEDICATION_PUSH_ENABLED: Joi.boolean().optional().default(false),
 });
