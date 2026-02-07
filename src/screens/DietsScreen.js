@@ -502,6 +502,7 @@ export default function DietsScreen({ navigation }) {
                     title={t('tooltips.lifestyles.title')}
                     text={t('tooltips.lifestyles.text')}
                     arrowPosition="top"
+                    arrowHorizontalAlign="right"
                     style={{ top: 180, left: 16, right: 16 }}
                 />
 

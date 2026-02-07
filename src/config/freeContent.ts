@@ -35,12 +35,20 @@ export const TRIAL_DAYS = {
 };
 
 /**
+ * Normalize an ID for comparison - handles dashes, underscores, spaces
+ */
+function normalizeId(id: string): string {
+  return id.toLowerCase().replace(/[\s_-]+/g, '-');
+}
+
+/**
  * Check if a diet is free
  * When ENABLE_PREMIUM_LOCK is false, all diets are considered free
  */
 export function isFreeDiet(dietId: string): boolean {
   if (!ENABLE_PREMIUM_LOCK) return true; // All content free when premium lock disabled
-  return FREE_DIET_IDS.includes(dietId.toLowerCase().replace(/\s+/g, '-'));
+  const normalized = normalizeId(dietId);
+  return FREE_DIET_IDS.some(freeId => normalizeId(freeId) === normalized);
 }
 
 /**
@@ -49,8 +57,8 @@ export function isFreeDiet(dietId: string): boolean {
  */
 export function isFreeLifestyle(lifestyleId: string): boolean {
   if (!ENABLE_PREMIUM_LOCK) return true; // All content free when premium lock disabled
-  const normalizedId = lifestyleId.toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_');
-  return FREE_LIFESTYLE_IDS.includes(normalizedId);
+  const normalized = normalizeId(lifestyleId);
+  return FREE_LIFESTYLE_IDS.some(freeId => normalizeId(freeId) === normalized);
 }
 
 /**

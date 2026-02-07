@@ -120,6 +120,31 @@ export default function PaywallModal({
     });
   };
 
+  const purchaseRegular = async () => {
+    console.log('[Paywall] Regular subscription (no trial)...');
+    await IAPService.purchaseSubscription(
+      SUBSCRIPTION_SKUS.MONTHLY,
+      async (productId: string) => {
+        console.log('[Paywall] Subscription successful:', productId);
+        try {
+          await ApiService.verifyPurchase({
+            productId,
+            platform: Platform.OS === 'ios' ? 'ios' : 'android',
+          });
+        } catch (verifyError) {
+          console.error('[Paywall] Verify purchase error:', verifyError);
+        }
+        setLoading(false);
+        onSubscribed?.();
+        onClose();
+      },
+      (error: any) => {
+        console.error('[Paywall] Subscription error:', error);
+        setLoading(false);
+      }
+    );
+  };
+
   const handleStartTrial = async () => {
     setLoading(true);
     try {
@@ -127,74 +152,57 @@ export default function PaywallModal({
       if (isTrialEligible && Platform.OS === 'ios') {
         console.log('[Paywall] User eligible for trial, requesting signed offer...');
 
-        // Get signed offer from server
-        const offerData = await ApiService.signPromotionalOffer(
-          SUBSCRIPTION_SKUS.MONTHLY,
-          TRIAL_OFFER_ID
-        );
+        try {
+          // Get signed offer from server
+          const offerData = await ApiService.signPromotionalOffer(
+            SUBSCRIPTION_SKUS.MONTHLY,
+            TRIAL_OFFER_ID
+          );
 
-        if (!offerData.success) {
-          throw new Error('Failed to sign promotional offer');
+          if (!offerData.success) {
+            throw new Error('Failed to sign promotional offer');
+          }
+
+          console.log('[Paywall] Got signed offer, starting purchase with trial...');
+
+          // Purchase with promotional offer (free trial)
+          await IAPService.purchaseSubscriptionWithOffer(
+            SUBSCRIPTION_SKUS.MONTHLY,
+            {
+              offerId: TRIAL_OFFER_ID,
+              keyIdentifier: offerData.keyIdentifier,
+              nonce: offerData.nonce,
+              timestamp: offerData.timestamp,
+              signature: offerData.signature,
+              applicationUsername: offerData.applicationUsername,
+            },
+            async (productId: string) => {
+              console.log('[Paywall] Trial subscription successful:', productId);
+              try {
+                await ApiService.verifyPurchase({
+                  productId,
+                  platform: 'ios',
+                  trialDays: TRIAL_DAYS.SHORT,
+                });
+              } catch (verifyError) {
+                console.error('[Paywall] Verify purchase error:', verifyError);
+              }
+              setLoading(false);
+              onSubscribed?.();
+              onClose();
+            },
+            (error: any) => {
+              console.error('[Paywall] Trial subscription error:', error);
+              setLoading(false);
+            }
+          );
+        } catch (signError) {
+          // Sign-offer failed - fall back to regular purchase without trial
+          console.warn('[Paywall] Sign-offer failed, falling back to regular purchase:', signError);
+          await purchaseRegular();
         }
-
-        console.log('[Paywall] Got signed offer, starting purchase with trial...');
-
-        // Purchase with promotional offer (free trial)
-        await IAPService.purchaseSubscriptionWithOffer(
-          SUBSCRIPTION_SKUS.MONTHLY,
-          {
-            offerId: TRIAL_OFFER_ID,
-            keyIdentifier: offerData.keyIdentifier,
-            nonce: offerData.nonce,
-            timestamp: offerData.timestamp,
-            signature: offerData.signature,
-            applicationUsername: offerData.applicationUsername,
-          },
-          async (productId) => {
-            console.log('[Paywall] Trial subscription successful:', productId);
-            try {
-              await ApiService.verifyPurchase({
-                productId,
-                platform: 'ios',
-                trialDays: TRIAL_DAYS.SHORT,
-              });
-            } catch (verifyError) {
-              console.error('[Paywall] Verify purchase error:', verifyError);
-            }
-            setLoading(false);
-            onSubscribed?.();
-            onClose();
-          },
-          (error) => {
-            console.error('[Paywall] Trial subscription error:', error);
-            setLoading(false);
-          }
-        );
       } else {
-        // No trial eligible or not iOS - regular purchase without offer
-        console.log('[Paywall] Regular subscription (no trial)...');
-
-        await IAPService.purchaseSubscription(
-          SUBSCRIPTION_SKUS.MONTHLY,
-          async (productId) => {
-            console.log('[Paywall] Subscription successful:', productId);
-            try {
-              await ApiService.verifyPurchase({
-                productId,
-                platform: Platform.OS === 'ios' ? 'ios' : 'android',
-              });
-            } catch (verifyError) {
-              console.error('[Paywall] Verify purchase error:', verifyError);
-            }
-            setLoading(false);
-            onSubscribed?.();
-            onClose();
-          },
-          (error) => {
-            console.error('[Paywall] Subscription error:', error);
-            setLoading(false);
-          }
-        );
+        await purchaseRegular();
       }
     } catch (error) {
       console.error('[Paywall] Start trial error:', error);

@@ -1149,10 +1149,19 @@ const OnboardingScreen = () => {
         };
 
         try {
-          const initResult = await IAPService.init();
+          // Init IAP with retry - first attempt may fail due to timing after profile save
+          let initResult = await IAPService.init();
+          if (!initResult) {
+            console.warn('[OnboardingScreen] IAP init failed, retrying after delay...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            initResult = await IAPService.init();
+          }
           if (!initResult) {
             throw new Error('Failed to initialize IAP service');
           }
+
+          // Small delay to ensure IAP listeners are ready
+          await new Promise(resolve => setTimeout(resolve, 300));
 
           if (isSubscription) {
             await IAPService.purchaseSubscription(selectedPlan, onPurchaseSuccess, onPurchaseError);
