@@ -1021,6 +1021,7 @@ export default function DashboardScreen() {
         title={t('tooltips.scanMeal.title') || 'Сканировать еду'}
         text={t('tooltips.scanMeal.text') || 'Нажмите сюда, чтобы сфотографировать еду и узнать её калории'}
         arrowPosition="bottom"
+        arrowHorizontalAlign="right"
         style={{ position: 'absolute', bottom: 120, right: 16, zIndex: 1001 }}
       />
 
