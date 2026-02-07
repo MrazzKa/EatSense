@@ -42,6 +42,8 @@ interface TooltipProps {
     showButton?: boolean;
     // Custom button text
     buttonText?: string;
+    // Horizontal offset for arrow (e.g., 'right' to align arrow to right side for right-aligned tooltips)
+    arrowHorizontalAlign?: 'left' | 'center' | 'right';
 }
 
 export default function Tooltip({
@@ -49,6 +51,7 @@ export default function Tooltip({
     text,
     title,
     arrowPosition = 'bottom',
+    arrowHorizontalAlign = 'center',
     style,
     onDismiss,
     showButton = true,
@@ -100,6 +103,7 @@ export default function Tooltip({
         });
     };
 
+
     if (!shouldShow) {
         return null;
     }
@@ -110,6 +114,22 @@ export default function Tooltip({
         left: styles.arrowLeft,
         right: styles.arrowRight,
     }[arrowPosition];
+
+    // Calculate arrow horizontal position based on arrowHorizontalAlign
+    const getArrowHorizontalStyle = () => {
+        if (arrowPosition === 'left' || arrowPosition === 'right') {
+            return {}; // Horizontal alignment doesn't apply to left/right arrows
+        }
+        switch (arrowHorizontalAlign) {
+            case 'left':
+                return { left: 20, marginLeft: 0 };
+            case 'right':
+                return { left: undefined, right: 20, marginLeft: 0 };
+            case 'center':
+            default:
+                return { left: '50%' as const, marginLeft: -10 };
+        }
+    };
 
     return (
         <Animated.View
@@ -127,6 +147,7 @@ export default function Tooltip({
                 style={[
                     styles.arrow,
                     arrowStyle,
+                    getArrowHorizontalStyle(),
                     { borderBottomColor: colors.primary || '#4CAF50' },
                 ]}
             />
