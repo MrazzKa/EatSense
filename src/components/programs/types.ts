@@ -24,6 +24,7 @@ export interface Program {
   userCount?: number;
   disclaimerKey?: string;
   emoji?: string;
+  slug?: string;
 }
 
 export type RenderItemFunction = (_: Program, __: number) => React.ReactNode;
