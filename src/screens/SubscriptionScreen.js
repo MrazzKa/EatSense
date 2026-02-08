@@ -19,6 +19,7 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import { getCurrency, formatPrice, getDeviceRegion, getOriginalPrice } from '../utils/currency';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Plan descriptions for Apple App Store Review compliance
 // Each subscription must clearly state what features are included
@@ -275,17 +276,13 @@ export default function SubscriptionScreen() {
                 return;
             }
 
-            // FIX 2026-02-03: Always use device region prices to prevent currency flickering
-            // IAP products are used ONLY for SKU identifiers and purchase calls
-            // Prices are ALWAYS taken from currency.ts based on device region
-            const deviceRegion = getDeviceRegion();
+            // FIX 2026-02-08: Use IAP localizedPrice (most accurate - from Apple/Google)
+            // Falls back to device region prices from currency.ts if localizedPrice unavailable
             const localCurrency = getCurrency();
-            console.log('[SubscriptionScreen] Using device region prices (consistent display):', {
-                deviceRegion,
-                currency: localCurrency.code,
-                symbol: localCurrency.symbol,
+            console.log('[SubscriptionScreen] Loading IAP products with localized prices:', {
                 productsCount: all.length,
-                note: 'Prices from currency.ts, IAP used only for purchase',
+                fallbackCurrency: localCurrency.code,
+                products: all.map(p => ({ id: p.productId, price: p.localizedPrice || 'N/A' })),
             });
 
             const monthLabel = t('onboarding.plans.month', 'mo');
@@ -326,17 +323,20 @@ export default function SubscriptionScreen() {
                     badge = defaults.badge || null;
                 }
 
-                // FIX: Use local currency prices instead of IAP prices
-                const localPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
+                // FIX 2026-02-08: Use IAP localizedPrice (accurate for user's store region)
+                // Fall back to device region price if IAP doesn't provide localized price
+                const iapPrice = product.localizedPrice;
+                const fallbackPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
+                const displayPrice = iapPrice || fallbackPrice;
                 const periodSuffix = isFounders ? '' : (isYearly || isStudent ? `/${yearLabel}` : `/${monthLabel}`);
 
                 return {
                     id: product.productId,
                     name: planType,
-                    price: localPrice,
-                    priceFormatted: localPrice + periodSuffix,
-                    priceNumber: localCurrency[planType === 'founders' ? 'founder' : planType] || 0,
-                    currency: localCurrency.code,
+                    price: displayPrice,
+                    priceFormatted: displayPrice + periodSuffix,
+                    priceNumber: product.price || localCurrency[planType === 'founders' ? 'founder' : planType] || 0,
+                    currency: product.currency || localCurrency.code,
                     title: title,
                     headline: headline,
                     features: features,
@@ -586,9 +586,7 @@ export default function SubscriptionScreen() {
                                 ]}
                                 activeOpacity={0.9}
                                 onPress={() => {
-                                    // FIX: Убрать подтверждение документа для студенческой подписки - сразу оплата
                                     setSelectedPlanId(plan.id);
-                                    handlePurchase(plan.id);
                                 }}
                                 disabled={purchasing}
                             >
@@ -739,9 +737,7 @@ export default function SubscriptionScreen() {
                                         ]}
                                         activeOpacity={0.9}
                                         onPress={() => {
-                                            // FIX: Убрать подтверждение документа для студенческой подписки - сразу оплата
                                             setSelectedPlanId(plan.id);
-                                            handlePurchase(plan.id);
                                         }}
                                         disabled={purchasing}
                                     >
@@ -872,6 +868,47 @@ export default function SubscriptionScreen() {
                     </View>
                 </View>
             </ScrollView>
+
+            {/* Fixed Subscribe Button */}
+            {selectedPlanId && (
+                <View style={[styles.subscribeButtonContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                    <TouchableOpacity
+                        style={styles.subscribeButtonWrapper}
+                        onPress={() => handlePurchase()}
+                        disabled={purchasing || !selectedPlanId}
+                        activeOpacity={0.8}
+                    >
+                        <LinearGradient
+                            colors={['#4CAF50', '#388E3C']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.subscribeButton}
+                        >
+                            {purchasing ? (
+                                <ActivityIndicator color="#FFF" />
+                            ) : (
+                                <>
+                                    <Ionicons name="flash" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                                    <Text style={styles.subscribeButtonText}>
+                                        {(() => {
+                                            const plan = plans.find(p => p.id === selectedPlanId);
+                                            if (!plan) return t('subscription.subscribe', 'Subscribe');
+                                            if (!plan.isSubscription) return t('subscription.purchaseNow', 'Purchase Now');
+                                            return t('subscription.subscribeNow', 'Subscribe Now');
+                                        })()}
+                                    </Text>
+                                    <Text style={styles.subscribeButtonPrice}>
+                                        {(() => {
+                                            const plan = plans.find(p => p.id === selectedPlanId);
+                                            return plan ? plan.priceFormatted : '';
+                                        })()}
+                                    </Text>
+                                </>
+                            )}
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             <StudentModal
                 visible={showStudentModal}
@@ -1239,6 +1276,40 @@ const createStyles = (tokens, colors) => {
         restoreButtonText: {
             fontSize: 15,
             fontWeight: '600',
+        },
+        // Subscribe Button
+        subscribeButtonContainer: {
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            backgroundColor: tokens.colors?.background || '#FAFAFA',
+            borderTopWidth: 1,
+            borderTopColor: borderMuted,
+        },
+        subscribeButtonWrapper: {
+            borderRadius: 16,
+            shadowColor: '#4CAF50',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 6,
+        },
+        subscribeButton: {
+            paddingVertical: 16,
+            borderRadius: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        subscribeButtonText: {
+            color: '#FFF',
+            fontSize: 17,
+            fontWeight: '700',
+        },
+        subscribeButtonPrice: {
+            color: 'rgba(255,255,255,0.85)',
+            fontSize: 14,
+            fontWeight: '600',
+            marginLeft: 8,
         },
         // Legal Footers
         legalLinksContainer: {

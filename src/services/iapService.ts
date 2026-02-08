@@ -72,6 +72,9 @@ class IAPService {
 
         if (!receipt) {
             console.error('[IAP] No receipt found');
+            if (this.onPurchaseError) {
+                this.onPurchaseError(new Error('No receipt found in purchase'));
+            }
             return;
         }
 

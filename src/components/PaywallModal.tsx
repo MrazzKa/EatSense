@@ -101,6 +101,16 @@ export default function PaywallModal({
     }
   }, [visible, fadeAnim, slideAnim, showModal]);
 
+  // Safety timeout: auto-reset loading if stuck for more than 60 seconds
+  useEffect(() => {
+    if (!loading) return;
+    const timeout = setTimeout(() => {
+      console.warn('[Paywall] Loading timeout - resetting after 60s');
+      setLoading(false);
+    }, 60000);
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   const handleClose = () => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -122,18 +132,13 @@ export default function PaywallModal({
 
   const purchaseRegular = async () => {
     console.log('[Paywall] Regular subscription (no trial)...');
+    // Ensure IAP is initialized (may have been destroyed by SubscriptionScreen)
+    await IAPService.init();
     await IAPService.purchaseSubscription(
       SUBSCRIPTION_SKUS.MONTHLY,
       async (productId: string) => {
+        // Verification already done in iapService.handlePurchase() with receipt
         console.log('[Paywall] Subscription successful:', productId);
-        try {
-          await ApiService.verifyPurchase({
-            productId,
-            platform: Platform.OS === 'ios' ? 'ios' : 'android',
-          });
-        } catch (verifyError) {
-          console.error('[Paywall] Verify purchase error:', verifyError);
-        }
         setLoading(false);
         onSubscribed?.();
         onClose();
@@ -165,6 +170,8 @@ export default function PaywallModal({
 
           console.log('[Paywall] Got signed offer, starting purchase with trial...');
 
+          // Ensure IAP is initialized before purchase
+          await IAPService.init();
           // Purchase with promotional offer (free trial)
           await IAPService.purchaseSubscriptionWithOffer(
             SUBSCRIPTION_SKUS.MONTHLY,
@@ -177,16 +184,8 @@ export default function PaywallModal({
               applicationUsername: offerData.applicationUsername,
             },
             async (productId: string) => {
+              // Verification already done in iapService.handlePurchase() with receipt
               console.log('[Paywall] Trial subscription successful:', productId);
-              try {
-                await ApiService.verifyPurchase({
-                  productId,
-                  platform: 'ios',
-                  trialDays: TRIAL_DAYS.SHORT,
-                });
-              } catch (verifyError) {
-                console.error('[Paywall] Verify purchase error:', verifyError);
-              }
               setLoading(false);
               onSubscribed?.();
               onClose();

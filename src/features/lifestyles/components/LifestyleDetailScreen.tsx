@@ -177,7 +177,7 @@ export default function LifestyleDetailScreen({
         {/* Share button overlay */}
         <TouchableOpacity
           onPress={() => {
-            const name = typeof program.name === 'string' ? program.name : program.name?.en || 'lifestyle';
+            const name = typeof program.name === 'string' ? program.name : (program.name?.[language] || program.name?.en || 'lifestyle');
             shareLifestyleAsText({ name, language: language as 'en' | 'ru' | 'kk' | 'fr' });
           }}
           style={styles.shareButton}

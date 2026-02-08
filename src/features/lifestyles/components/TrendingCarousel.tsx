@@ -120,11 +120,11 @@ export default function TrendingCarousel({
                 />
               )}
 
-              {/* Gradient overlay for text readability - minimal coverage to show more photo */}
+              {/* Gradient overlay for text readability */}
               {imageSource && (
                 <LinearGradient
-                  colors={['transparent', 'transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
-                  locations={[0, 0.5, 0.75, 1]}
+                  colors={['transparent', 'transparent', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.85)']}
+                  locations={[0, 0.4, 0.7, 1]}
                   style={StyleSheet.absoluteFill}
                 />
               )}
@@ -156,11 +156,9 @@ export default function TrendingCarousel({
   );
 }
 
-// Card dimensions - using 3:4 aspect ratio for better photo display
-// Larger cards for better image quality and less cropping
-const CARD_WIDTH = 200;
-const CARD_ASPECT_RATIO = 3 / 4; // Portrait ratio (0.75) - less extreme than 9:16
-const CARD_HEIGHT = CARD_WIDTH / CARD_ASPECT_RATIO; // ~267
+// Card dimensions - landscape ratio (16:10) for minimal photo cropping
+const CARD_WIDTH = 280;
+const CARD_HEIGHT = 175;
 
 const styles = StyleSheet.create({
   section: {
@@ -184,21 +182,21 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    aspectRatio: CARD_ASPECT_RATIO, // Adaptive height based on aspect ratio
-    borderRadius: 16,
+    height: CARD_HEIGHT,
+    borderRadius: 14,
     overflow: 'hidden',
     justifyContent: 'flex-end',
     // Shadow for iOS
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowRadius: 6,
     // Shadow for Android
     elevation: 4,
   },
   cardContent: {
-    padding: 12,
-    paddingTop: 8, // Smaller top padding to show more photo
+    padding: 10,
+    paddingTop: 6,
   },
   emoji: {
     fontSize: 22,

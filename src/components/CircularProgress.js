@@ -25,7 +25,7 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   useEffect(() => {
     const startValue = animatedRef.current;
     const endValue = displayProgress;
-    const duration = 800;
+    const duration = 400;
     const startTime = Date.now();
 
     const animate = () => {
