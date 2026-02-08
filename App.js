@@ -155,160 +155,160 @@ function AppContent() {
                 }}
               />
 
-            {/* Modal/Detail Screens */}
-            <Stack.Screen
-              name="Camera"
-              component={CameraScreen}
-              options={{
-                presentation: 'fullScreenModal',
-                animationTypeForReplace: 'push',
-              }}
-            />
-            <Stack.Screen
-              name="Gallery"
-              component={GalleryScreen}
-              options={{
-                presentation: 'fullScreenModal',
-                animationTypeForReplace: 'push',
-              }}
-            />
-            <Stack.Screen
-              name="AnalysisResults"
-              component={AnalysisResultsScreen}
-              options={{
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="MealHistory"
-              component={MealHistoryScreen}
-              options={{
-                presentation: 'card',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="ArticleDetail"
-              component={ArticleDetailScreen}
-              options={{
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="LegalDocument"
-              component={LegalDocumentScreen}
-              options={{
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="LegalMenu"
-              component={LegalMenuScreen}
-              options={{
-                presentation: 'card',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="PrivacyPolicy"
-              component={PrivacyPolicyScreen}
-              options={{
-                presentation: 'card',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="TermsOfService"
-              component={TermsOfServiceScreen}
-              options={{
-                presentation: 'card',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="SuggestedFood"
-              component={SuggestedFoodScreen}
-              options={{
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="MedicationSchedule"
-              component={MedicationScheduleScreen}
-              options={{
-                presentation: 'card',
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="Onboarding"
-              component={OnboardingScreen}
-              options={{
-                presentation: 'modal',
-              }}
-            />
-            {/* Experts Marketplace Screens */}
-            <Stack.Screen
-              name="SpecialistList"
-              component={SpecialistListScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="SpecialistProfile"
-              component={SpecialistProfileScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="Chat"
-              component={ChatScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="ConsultationsList"
-              component={ConsultationsListScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="DietProgramsList"
-              component={DietProgramsListScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="DietProgramDetail"
-              component={DietProgramDetailScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="DietProgramProgress"
-              component={DietProgramProgressScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="LifestyleDetail"
-              component={LifestyleDetailScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="Referral"
-              component={ReferralScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="ExpertProfile"
-              component={ExpertProfileScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="ConsultationChat"
-              component={ConsultationChatScreen}
-              options={{ presentation: 'card' }}
-            />
-            <Stack.Screen
-              name="Subscription"
-              component={SubscriptionScreen}
-              options={{ presentation: 'card' }}
-            />
-          </Stack.Navigator>
+              {/* Modal/Detail Screens */}
+              <Stack.Screen
+                name="Camera"
+                component={CameraScreen}
+                options={{
+                  presentation: 'fullScreenModal',
+                  animationTypeForReplace: 'push',
+                }}
+              />
+              <Stack.Screen
+                name="Gallery"
+                component={GalleryScreen}
+                options={{
+                  presentation: 'fullScreenModal',
+                  animationTypeForReplace: 'push',
+                }}
+              />
+              <Stack.Screen
+                name="AnalysisResults"
+                component={AnalysisResultsScreen}
+                options={{
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="MealHistory"
+                component={MealHistoryScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="ArticleDetail"
+                component={ArticleDetailScreen}
+                options={{
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="LegalDocument"
+                component={LegalDocumentScreen}
+                options={{
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="LegalMenu"
+                component={LegalMenuScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="TermsOfService"
+                component={TermsOfServiceScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="SuggestedFood"
+                component={SuggestedFoodScreen}
+                options={{
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="MedicationSchedule"
+                component={MedicationScheduleScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="Onboarding"
+                component={OnboardingScreen}
+                options={{
+                  presentation: 'modal',
+                }}
+              />
+              {/* Experts Marketplace Screens */}
+              <Stack.Screen
+                name="SpecialistList"
+                component={SpecialistListScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="SpecialistProfile"
+                component={SpecialistProfileScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="ConsultationsList"
+                component={ConsultationsListScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="DietProgramsList"
+                component={DietProgramsListScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="DietProgramDetail"
+                component={DietProgramDetailScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="DietProgramProgress"
+                component={DietProgramProgressScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="LifestyleDetail"
+                component={LifestyleDetailScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="Referral"
+                component={ReferralScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="ExpertProfile"
+                component={ExpertProfileScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="ConsultationChat"
+                component={ConsultationChatScreen}
+                options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="Subscription"
+                component={SubscriptionScreen}
+                options={{ presentation: 'card' }}
+              />
+            </Stack.Navigator>
           </>
         )}
       </NavigationContainer>

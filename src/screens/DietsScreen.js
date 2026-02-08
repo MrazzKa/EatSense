@@ -503,6 +503,7 @@ export default function DietsScreen({ navigation }) {
                     text={t('tooltips.lifestyles.text')}
                     arrowPosition="top"
                     arrowHorizontalAlign="right"
+                    arrowOffset={80}
                     style={{ top: 180, left: 16, right: 16 }}
                 />
 
@@ -597,8 +598,17 @@ export default function DietsScreen({ navigation }) {
                 <PaywallModal
                     visible={lockModalVisible}
                     onClose={() => setLockModalVisible(false)}
-                    onSubscribed={() => {
+                    onSubscribed={async () => {
                         setLockModalVisible(false);
+                        // Refresh subscription state so lock statuses update
+                        try {
+                            const sub = await ApiService.getCurrentSubscription();
+                            setSubscription(sub);
+                        } catch (err) {
+                            console.warn('[DietsScreen] Failed to refresh subscription after purchase:', err);
+                        }
+                        // Also reload data to ensure everything is fresh
+                        loadData(true);
                         // After successful subscription, navigate to the program
                         if (selectedProgramForUnlock) {
                             setTimeout(() => {
@@ -607,7 +617,7 @@ export default function DietsScreen({ navigation }) {
                                 } else {
                                     navigation.navigate('DietProgramDetail', { dietId: selectedProgramForUnlock });
                                 }
-                            }, 100);
+                            }, 300);
                         }
                     }}
                     featureName={activeTab === 'lifestyle' ? 'Lifestyle Programs' : 'Premium Diets'}

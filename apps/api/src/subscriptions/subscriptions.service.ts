@@ -30,14 +30,27 @@ export class SubscriptionsService implements OnModuleInit {
     onModuleInit() {
         const rawKeyId = process.env.APPLE_IAP_KEY_ID?.trim();
         const rawIssuerId = process.env.APPLE_IAP_ISSUER_ID?.trim();
-        const rawKey = process.env.APPLE_IAP_KEY?.trim();
-        const bundleId = (process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID || '').trim();
+        let rawKey = process.env.APPLE_IAP_KEY?.trim();
+        const bundleId = (process.env.APPLE_BUNDLE_ID || process.env.APP_BUNDLE_ID || 'ch.eatsense.app').trim();
+
+        // Support base64-encoded PEM keys (useful when env vars don't handle multiline well)
+        if (rawKey && !rawKey.includes('BEGIN') && rawKey.length > 100) {
+            try {
+                const decoded = Buffer.from(rawKey, 'base64').toString('utf8');
+                if (decoded.includes('BEGIN')) {
+                    rawKey = decoded;
+                    this.logger.log('Apple IAP KEY: decoded from base64');
+                }
+            } catch {
+                // Not base64, use as-is
+            }
+        }
 
         this.logger.log(
-            `Apple IAP config: KEY_ID=${rawKeyId ? `SET(${rawKeyId.length})` : 'MISSING'}, ` +
-            `ISSUER_ID=${rawIssuerId ? `SET(${rawIssuerId.length})` : 'MISSING'}, ` +
-            `KEY=${rawKey ? `SET(${rawKey.length})` : 'MISSING'}, ` +
-            `BUNDLE_ID=${bundleId || 'DEFAULT'}`
+            `Apple IAP config: KEY_ID=${rawKeyId ? `SET(len=${rawKeyId.length}, prefix=${rawKeyId.substring(0, 4)}...)` : 'MISSING'}, ` +
+            `ISSUER_ID=${rawIssuerId ? `SET(len=${rawIssuerId.length})` : 'MISSING'}, ` +
+            `KEY=${rawKey ? `SET(len=${rawKey.length}, hasBEGIN=${rawKey.includes('BEGIN')}, hasNewlines=${rawKey.includes('\n')})` : 'MISSING'}, ` +
+            `BUNDLE_ID=${bundleId}`
         );
 
         if (!rawKeyId || !rawIssuerId || !rawKey) {
@@ -320,7 +333,18 @@ export class SubscriptionsService implements OnModuleInit {
 
         try {
             // Parse the private key (PEM format)
-            const keyContent = privateKey.replace(/\\n/g, '\n');
+            // Handle literal \n strings from env vars, and base64-encoded keys
+            let keyContent = privateKey.replace(/\\n/g, '\n');
+            if (!keyContent.includes('BEGIN') && keyContent.length > 100) {
+                try {
+                    const decoded = Buffer.from(keyContent, 'base64').toString('utf8');
+                    if (decoded.includes('BEGIN')) {
+                        keyContent = decoded;
+                    }
+                } catch {
+                    // Not base64, use as-is
+                }
+            }
 
             // Create signature using ECDSA with SHA-256
             const sign = crypto.createSign('SHA256');

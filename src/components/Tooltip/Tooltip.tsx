@@ -44,6 +44,8 @@ interface TooltipProps {
     buttonText?: string;
     // Horizontal offset for arrow (e.g., 'right' to align arrow to right side for right-aligned tooltips)
     arrowHorizontalAlign?: 'left' | 'center' | 'right';
+    // Custom offset in px for arrow position (overrides arrowHorizontalAlign defaults)
+    arrowOffset?: number;
 }
 
 export default function Tooltip({
@@ -52,6 +54,7 @@ export default function Tooltip({
     title,
     arrowPosition = 'bottom',
     arrowHorizontalAlign = 'center',
+    arrowOffset,
     style,
     onDismiss,
     showButton = true,
@@ -119,6 +122,13 @@ export default function Tooltip({
     const getArrowHorizontalStyle = () => {
         if (arrowPosition === 'none' || arrowPosition === 'left' || arrowPosition === 'right') {
             return {}; // Horizontal alignment doesn't apply to left/right arrows or hidden
+        }
+        // Custom offset takes priority
+        if (arrowOffset !== undefined) {
+            if (arrowHorizontalAlign === 'right') {
+                return { left: undefined, right: arrowOffset, marginLeft: 0 };
+            }
+            return { left: arrowOffset, marginLeft: 0 };
         }
         switch (arrowHorizontalAlign) {
             case 'left':

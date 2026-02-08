@@ -857,20 +857,39 @@ const OnboardingScreen = () => {
     };
   });
 
-  // FIX 2026-02-04: Always use device region prices to prevent currency flickering
-  // Same approach as SubscriptionScreen - IAP is used only for purchase, not display
-  // This ensures consistent pricing between Onboarding and Profile screens
+  // FIX 2026-02-08: Load IAP prices for accurate store-region pricing
+  // Falls back to device region prices from currency.ts if IAP unavailable
   useEffect(() => {
-    // Currency is already set from useState initializer using getCurrency()
-    // No need to load IAP prices - they might differ from device region
-    const deviceRegion = getDeviceRegion();
-    const currencyConfig = getCurrency();
-    console.log('[Onboarding] Using device region prices (consistent with Profile):', {
-      region: deviceRegion,
-      currency: currencyConfig.code,
-      symbol: currencyConfig.symbol,
-      note: 'Prices from currency.ts based on device region',
-    });
+    const loadIAPPrices = async () => {
+      try {
+        await IAPService.init();
+        const { subscriptions, products } = await IAPService.getAvailableProducts();
+        const all = [...subscriptions, ...products];
+        if (all.length > 0) {
+          const priceMap = {};
+          all.forEach(p => {
+            if (p.localizedPrice) priceMap[p.productId] = p.localizedPrice;
+          });
+          const monthlyIAP = priceMap[SUBSCRIPTION_SKUS.MONTHLY];
+          const yearlyIAP = priceMap[SUBSCRIPTION_SKUS.YEARLY];
+          const studentIAP = priceMap[SUBSCRIPTION_SKUS.STUDENT];
+          const founderIAP = priceMap[NON_CONSUMABLE_SKUS.FOUNDERS];
+          if (monthlyIAP || yearlyIAP) {
+            setCurrency(prev => ({
+              ...prev,
+              monthlyPrice: monthlyIAP || prev.monthlyPrice,
+              yearlyPrice: yearlyIAP || prev.yearlyPrice,
+              studentPrice: studentIAP || prev.studentPrice,
+              founderPrice: founderIAP || prev.founderPrice,
+            }));
+            console.log('[Onboarding] Updated prices from IAP:', { monthlyIAP, yearlyIAP, studentIAP, founderIAP });
+          }
+        }
+      } catch (err) {
+        console.log('[Onboarding] IAP prices unavailable, using device region fallback:', err.message);
+      }
+    };
+    loadIAPPrices();
   }, []);
 
   const plans = [

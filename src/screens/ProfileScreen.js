@@ -482,9 +482,12 @@ const ProfileScreen = () => {
     }, [loadNotificationPreferences])
   );
 
-  useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+  // Refresh profile & subscription on focus (e.g., after purchase from SubscriptionScreen)
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
 
   const handleSave = async () => {
     setLoading(true);
