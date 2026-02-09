@@ -276,13 +276,12 @@ export default function SubscriptionScreen() {
                 return;
             }
 
-            // FIX 2026-02-08: Use IAP localizedPrice (most accurate - from Apple/Google)
-            // Falls back to device region prices from currency.ts if localizedPrice unavailable
+            // Use expo-localization pricing from currency.ts (region-based)
             const localCurrency = getCurrency();
-            console.log('[SubscriptionScreen] Loading IAP products with localized prices:', {
+            console.log('[SubscriptionScreen] Loading IAP products with region pricing:', {
                 productsCount: all.length,
-                fallbackCurrency: localCurrency.code,
-                products: all.map(p => ({ id: p.productId, price: p.localizedPrice || 'N/A' })),
+                region: getDeviceRegion(),
+                currency: localCurrency.code,
             });
 
             const monthLabel = t('onboarding.plans.month', 'mo');
@@ -323,11 +322,8 @@ export default function SubscriptionScreen() {
                     badge = defaults.badge || null;
                 }
 
-                // FIX 2026-02-08: Use IAP localizedPrice (accurate for user's store region)
-                // Fall back to device region price if IAP doesn't provide localized price
-                const iapPrice = product.localizedPrice;
-                const fallbackPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
-                const displayPrice = iapPrice || fallbackPrice;
+                // Use region-based pricing from expo-localization + PRICING table
+                const displayPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
                 const periodSuffix = isFounders ? '' : (isYearly || isStudent ? `/${yearLabel}` : `/${monthLabel}`);
 
                 return {
@@ -335,8 +331,8 @@ export default function SubscriptionScreen() {
                     name: planType,
                     price: displayPrice,
                     priceFormatted: displayPrice + periodSuffix,
-                    priceNumber: product.price || localCurrency[planType === 'founders' ? 'founder' : planType] || 0,
-                    currency: product.currency || localCurrency.code,
+                    priceNumber: localCurrency[planType === 'founders' ? 'founder' : planType] || 0,
+                    currency: localCurrency.code,
                     title: title,
                     headline: headline,
                     features: features,

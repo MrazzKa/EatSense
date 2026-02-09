@@ -335,6 +335,9 @@
     "typeMessage": "Введите сообщение..."
   },
   "common": {
+    "continue": "Продолжить",
+    "stop": "Стоп",
+    "later": "Позже",
     "edit": "Изменить",
     "next": "Далее",
     "skip": "Пропустить",
@@ -1507,6 +1510,28 @@
     "title": "Блюда"
   },
   "medications": {
+    "dosagePlural": {
+      "tablet_other": "таблеток",
+      "capsule_other": "капсул",
+      "drop_other": "капель",
+      "puff_other": "вдохов",
+      "spray_other": "спреев",
+      "tablet_one": "таблетка",
+      "tablet_few": "таблетки",
+      "tablet_many": "таблеток",
+      "capsule_one": "капсула",
+      "capsule_few": "капсулы",
+      "capsule_many": "капсул",
+      "drop_one": "капля",
+      "drop_few": "капли",
+      "drop_many": "капель",
+      "puff_one": "пшик",
+      "puff_few": "пшика",
+      "puff_many": "пшиков",
+      "spray_one": "впрыск",
+      "spray_few": "впрыска",
+      "spray_many": "впрысков"
+    },
     "error": {
       "invalidTime": "Неверный формат времени",
       "delete": "Не удалось удалить лекарство",
@@ -1583,23 +1608,6 @@
       "later": "Позже",
       "success": "Лекарство отмечено как принятое",
       "error": "Не удалось обновить лекарство"
-    },
-    "dosagePlural": {
-      "tablet_one": "таблетка",
-      "tablet_few": "таблетки",
-      "tablet_many": "таблеток",
-      "capsule_one": "капсула",
-      "capsule_few": "капсулы",
-      "capsule_many": "капсул",
-      "drop_one": "капля",
-      "drop_few": "капли",
-      "drop_many": "капель",
-      "puff_one": "пшик",
-      "puff_few": "пшика",
-      "puff_many": "пшиков",
-      "spray_one": "впрыск",
-      "spray_few": "впрыска",
-      "spray_many": "впрысков"
     },
     "photo": "Фото",
     "addPhoto": "Добавить фото"
@@ -2364,6 +2372,8 @@
     "trialBadge": "{{days}} дня бесплатно",
     "tryFree": "Попробовать {{days}} дня бесплатно",
     "subscribeNow": "Подписаться",
+    "priceAfterTrial": "Затем {{price}}/мес после пробного периода",
+    "priceMonthly": "{{price}}/мес",
     "features": {
       "unlimited": "Безлимитный анализ",
       "diets": "Все диеты и планы",
@@ -3713,5 +3723,16 @@
         "shortDescription": "Бизнес-питание"
       }
     }
-  }
+  },
+  "errorBoundary": {
+    "somethingWentWrong": "Что-то пошло не так",
+    "unexpectedError": "Произошла непредвиденная ошибка",
+    "crashed": "Приложение остановлено",
+    "tryAgain": "Попробовать снова",
+    "debugMessage": "Сообщение об отладке"
+  },
+  "diets_disclaimers_historical": "Историческая диета. Проконсультируйтесь с врачом.",
+  "diets_disclaimers_historical_short": "Историческая диета",
+  "diets_disclaimers_public_figure": "Диета известной личности. Может не подходить всем.",
+  "diets_disclaimers_public_figure_short": "Диета звезды"
 }

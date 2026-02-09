@@ -27,8 +27,8 @@ import { isFreeDiet, isFreeLifestyle, ENABLE_PREMIUM_LOCK } from '../config/free
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
-// Cache TTL for bundle data (5 minutes)
-const CACHE_TTL = 5 * 60 * 1000;
+// Cache TTL for bundle data (30 minutes - content rarely changes)
+const CACHE_TTL = 30 * 60 * 1000;
 
 // In-memory cache for instant access (faster than AsyncStorage)
 let memoryCache = null;
@@ -294,9 +294,12 @@ export default function DietsScreen({ navigation }) {
             };
 
             if (hasCache) {
+                // Cache exists — fetch fresh data and recommendations in background
                 Promise.all([fetchFreshData(), fetchRecommendations()]).catch(() => { });
             } else {
-                await Promise.all([fetchFreshData(), fetchRecommendations()]);
+                // No cache — await bundle first for fast UI, lazy-load recommendations
+                await fetchFreshData();
+                fetchRecommendations().catch(() => { });
             }
 
             // Step 4: Fetch subscription status

@@ -4,6 +4,7 @@ import { MealsService } from '../meals/meals.service';
 import { UsersService } from '../users/users.service';
 import { SuggestionsV2Service } from '../src/suggestions/suggestions-v2.service';
 import { DietsService } from '../src/diets/diets.service';
+import { CacheService } from '../src/cache/cache.service';
 import { SupportedLocale } from '../src/suggestions/suggestions.types';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class DashboardService {
         private readonly usersService: UsersService,
         private readonly suggestionsService: SuggestionsV2Service,
         private readonly dietsService: DietsService,
+        private readonly cacheService: CacheService,
     ) { }
 
     async getDashboardData(userId: string, dateStr?: string, locale: string = 'en') {
@@ -61,23 +63,42 @@ export class DashboardService {
                 this.dietsService.getTodayTracker(userId, locale).catch(e => null),
             ]);
 
-            // Non-critical requests - can timeout or fail without breaking dashboard
-            // FIX #3/#13: Suggestions can be slow (AI processing), increased timeout and improved error handling
-            const suggestionsPromise = this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
-                .catch(e => {
-                    this.logger.error(`Failed to get suggestions: ${e.message}`, e.stack);
-                    return { status: 'error', sections: [], error: e.message };
-                });
+            // Non-critical: suggestions (can be slow due to AI processing)
+            // Check if this user recently timed out — skip suggestions for 5 min to avoid repeated slow calls
+            const skipKey = `suggestions_skip:${userId}`;
+            const cachedSuggestionsKey = `suggestions_result:${userId}`;
+            const shouldSkip = await this.cacheService.get(skipKey, 'suggestions');
+            let suggestions: any;
 
-            // FIX #3/#13: Increased timeout to 20 seconds to reduce timeout warnings
-            // Suggestions are important but non-critical - dashboard should load even if they fail
-            const suggestions = await Promise.race([
-                suggestionsPromise,
-                new Promise(resolve => setTimeout(() => {
-                    this.logger.warn(`Suggestions timeout for user ${userId} after 20s - returning error status`);
-                    resolve({ status: 'timeout', sections: [], message: 'Suggestions are taking longer than expected' });
-                }, 20000)),
-            ]) as any;
+            if (shouldSkip) {
+                // Recently timed out — check for cached successful result or return skip status
+                const cachedResult = await this.cacheService.get<any>(cachedSuggestionsKey, 'suggestions');
+                suggestions = cachedResult
+                    ? cachedResult
+                    : { status: 'skipped', sections: [], message: 'Suggestions temporarily unavailable' };
+            } else {
+                const suggestionsPromise = this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
+                    .catch(e => {
+                        this.logger.warn(`Failed to get suggestions: ${e.message}`);
+                        return { status: 'error', sections: [], error: e.message };
+                    });
+
+                suggestions = await Promise.race([
+                    suggestionsPromise,
+                    new Promise(resolve => setTimeout(() => {
+                        this.logger.warn(`Suggestions timeout for user ${userId} after 8s`);
+                        resolve({ status: 'timeout', sections: [], message: 'Suggestions are taking longer than expected' });
+                    }, 8000)),
+                ]) as any;
+
+                if (suggestions.status === 'timeout') {
+                    // Skip suggestions for this user for 5 minutes
+                    await this.cacheService.set(skipKey, 'true', 'suggestions', 300).catch(() => {});
+                } else if (suggestions.sections?.length > 0) {
+                    // Cache successful result for 5 minutes
+                    await this.cacheService.set(cachedSuggestionsKey, suggestions, 'suggestions', 300).catch(() => {});
+                }
+            }
 
             const duration = Date.now() - start;
             if (duration > 3000) {

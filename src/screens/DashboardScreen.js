@@ -310,12 +310,22 @@ export default function DashboardScreen() {
 
   // Track fetch status to prevent parallel/duplicate requests
   const isFetchingRef = React.useRef(false);
+  // Throttle: minimum 60 seconds between API calls (prevents suggestion spam)
+  const lastFetchTimestampRef = React.useRef(0);
+  const MIN_FETCH_INTERVAL = 60 * 1000; // 60 seconds
 
   // Consolidated data loading
   const loadDashboardData = React.useCallback(async (force = false) => {
     // Prevent duplicate calls if already fetching, unless forced
     if (isFetchingRef.current && !force) {
       if (__DEV__) console.log('[DashboardScreen] Skipping duplicate load request');
+      return;
+    }
+
+    // Throttle: don't re-fetch if we fetched recently (unless force AND not fetching)
+    const now = Date.now();
+    if (!force && (now - lastFetchTimestampRef.current < MIN_FETCH_INTERVAL)) {
+      if (__DEV__) console.log('[DashboardScreen] Throttled - last fetch was', Math.round((now - lastFetchTimestampRef.current) / 1000), 's ago');
       return;
     }
 
@@ -354,6 +364,7 @@ export default function DashboardScreen() {
       }
 
       // 3. Update Cache & State
+      lastFetchTimestampRef.current = Date.now();
       // FIX: Only cache data if it has meals to prevent caching empty data
       if (data?.meals?.length > 0) {
         AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
@@ -388,10 +399,16 @@ export default function DashboardScreen() {
   }, []);
 
   // FIX 2: Reload when screen gets focus (user returns from other screen or app background)
+  // Throttled: only reload if at least 60s since last fetch
   useFocusEffect(
     React.useCallback(() => {
-      if (__DEV__) console.log('[Dashboard] Screen focused, reloading data...');
-      loadDashboardData(true); // Force reload on focus to get fresh data
+      const timeSinceLastFetch = Date.now() - lastFetchTimestampRef.current;
+      if (timeSinceLastFetch >= MIN_FETCH_INTERVAL) {
+        if (__DEV__) console.log('[Dashboard] Screen focused, reloading data (last fetch:', Math.round(timeSinceLastFetch / 1000), 's ago)');
+        loadDashboardData(true);
+      } else {
+        if (__DEV__) console.log('[Dashboard] Screen focused, skipping reload (last fetch:', Math.round(timeSinceLastFetch / 1000), 's ago)');
+      }
     }, [loadDashboardData])
   );
 

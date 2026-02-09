@@ -824,6 +824,37 @@ const ProfileScreen = () => {
     if (!selectedPlan) {
       return;
     }
+
+    // If user selects Free and has a paid subscription, guide them to manage subscription
+    if (planId === 'free' && subscription.planId !== 'free') {
+      Alert.alert(
+        safeT('profile.cancelSubscriptionTitle', 'Switch to Free Plan'),
+        safeT('profile.cancelSubscriptionMessage', 'To switch to the free plan, you need to cancel your current subscription in your device settings. Your premium access will continue until the end of the billing period.'),
+        [
+          { text: safeT('common.cancel', 'Cancel'), style: 'cancel' },
+          {
+            text: safeT('profile.manageSubscription', 'Manage Subscription'),
+            onPress: () => {
+              if (Platform.OS === 'ios') {
+                Linking.openURL('https://apps.apple.com/account/subscriptions');
+              } else {
+                Linking.openURL('https://play.google.com/store/account/subscriptions');
+              }
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    // If user selects a paid plan, navigate to SubscriptionScreen for actual IAP purchase
+    if (planId !== 'free') {
+      setPlanModalVisible(false);
+      navigation.navigate('Subscription');
+      return;
+    }
+
+    // Save free plan preference
     try {
       setPlanSaving(true);
       await ApiService.updateUserProfile({
@@ -855,10 +886,6 @@ const ProfileScreen = () => {
       });
       setPendingPlan(selectedPlan.id);
       setPlanModalVisible(false);
-      Alert.alert(
-        safeT('profile.planUpdatedTitle', 'Plan updated'),
-        safeT('profile.planUpdatedMessage', 'Your subscription preference has been saved.')
-      );
     } catch (error) {
       console.error('Failed to update plan', error);
       Alert.alert(
@@ -1859,8 +1886,8 @@ const ProfileScreen = () => {
                       isCurrentPlan && styles.modalPlanCardCurrent,
                     ]}
                     activeOpacity={0.9}
-                    onPress={() => !planSaving && !isCurrentPlan && setPendingPlan(plan.id)}
-                    disabled={isCurrentPlan}
+                    onPress={() => !planSaving && setPendingPlan(plan.id)}
+                    disabled={planSaving}
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <View style={{ flex: 1 }}>
@@ -1893,7 +1920,11 @@ const ProfileScreen = () => {
                 title={
                   planSaving
                     ? safeT('profile.savingButton', 'Saving...')
-                    : safeT('profile.applyPlan', 'Apply Plan')
+                    : pendingPlan === 'free' && subscription.planId !== 'free'
+                      ? safeT('profile.switchToFree', 'Switch to Free')
+                      : pendingPlan !== 'free'
+                        ? safeT('profile.upgradePlan', 'Upgrade Plan')
+                        : safeT('profile.applyPlan', 'Apply Plan')
                 }
                 onPress={() => handlePlanChange(pendingPlan)}
                 loading={planSaving}

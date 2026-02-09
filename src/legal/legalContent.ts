@@ -23,7 +23,7 @@ This Privacy Policy explains how the EatSense mobile application (“App”, “
 1. Who controls your data
 
 The data controller is:
-TEMONAN Geneva Holdings Sàrl in Avully
+TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva
 Contact email: info@eatsense.ch
 
 2. What data we collect
@@ -172,7 +172,7 @@ We may update this Privacy Policy from time to time. The latest version will alw
 1. Оператор персональных данных
 
 Оператором персональных данных является:
-TEMONAN Geneva Holdings Sàrl in Avully  
+TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva  
 Email для связи: info@eatsense.ch
 
 2. Какие данные мы собираем
@@ -319,7 +319,7 @@ Email для связи: info@eatsense.ch
 1. Деректер үшін жауапты тұлға
 
 Деректер операторы:  
-TEMONAN Geneva Holdings Sàrl in Avully  
+TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva  
 Байланыс email: info@eatsense.ch
 
 2. Қандай деректерді жинаймыз
@@ -547,7 +547,7 @@ After account deletion:
 
 8. Intellectual property
 
-All rights to the App (design, texts, logos, code, databases and other elements), except user content, belong to TEMONAN Geneva Holdings Sàrl in Avully and/or its partners.
+All rights to the App (design, texts, logos, code, databases and other elements), except user content, belong to TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva and/or its partners.
 
 You receive a limited licence to use the App under these Terms. You do not receive ownership of the App or its components.
 
@@ -653,7 +653,7 @@ EatSense помогает отслеживать питание, анализи�
 
 8. Интеллектуальная собственность
 
-Все права на Приложение (дизайн, логотипы, тексты, программный код, базы данных и др.), за исключением пользовательского контента, принадлежат TEMONAN Geneva Holdings Sàrl in Avully и/или нашим партнёрам.
+Все права на Приложение (дизайн, логотипы, тексты, программный код, базы данных и др.), за исключением пользовательского контента, принадлежат TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva и/или нашим партнёрам.
 
 Вы получаете ограниченную лицензию на использование Приложения в рамках этих Условий. Права собственности на Приложение к вам не переходят.
 
@@ -758,7 +758,7 @@ EatSense – тамақтануды бақылауға, тағамдарды т�
 
 8. Зияткерлік меншік
 
-Пайдаланушы контентінен басқа, Қосымшаға (дизайн, логотиптер, мәтіндер, код, дерекқорлар және т.б.) барлық құқықтар TEMONAN Geneva Holdings Sàrl in Avully және/немесе біздің серіктестерімізге тиесілі.
+Пайдаланушы контентінен басқа, Қосымшаға (дизайн, логотиптер, мәтіндер, код, дерекқорлар және т.б.) барлық құқықтар TEMONAN Geneva Holdings Sàrl, Rue Vignier 8, 1205 Geneva және/немесе біздің серіктестерімізге тиесілі.
 
 Сізге осы Шарттарға сәйкес Қосымшаны пайдалануға шектеулі лицензия беріледі. Қосымшаның немесе оның элементтерінің меншік құқығы сізге өтпейді.
 

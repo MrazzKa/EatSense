@@ -62,10 +62,24 @@ export class UserProfilesService {
         planBillingCycle || billingCycle,
       );
 
-      // Recalculate daily calories if relevant fields changed
+      // Recalculate daily calories if relevant fields changed (respecting manual overrides)
       const updatedData = existingProfile ? { ...existingProfile, ...validProfileData } : validProfileData;
-      if (validProfileData.height || validProfileData.weight || validProfileData.age || validProfileData.gender || validProfileData.activityLevel) {
+      const bodyFieldsChanged = validProfileData.height || validProfileData.weight || validProfileData.age || validProfileData.gender || validProfileData.activityLevel;
+      const upsertExistingPrefs = typeof existingProfile?.preferences === 'object' && existingProfile?.preferences !== null
+        ? existingProfile.preferences as Record<string, any>
+        : {};
+
+      if (validProfileData.dailyCalories !== undefined && validProfileData.dailyCalories !== null) {
+        // User explicitly sent dailyCalories — always mark as manual
+        if (mergedPreferences && typeof mergedPreferences === 'object') {
+          (mergedPreferences as any).isManualCalories = true;
+        }
+      } else if (bodyFieldsChanged && !upsertExistingPrefs.isManualCalories) {
+        // Body params changed and no manual override — recalculate
         validProfileData.dailyCalories = this.calculateDailyCalories(updatedData);
+        if (mergedPreferences && typeof mergedPreferences === 'object') {
+          (mergedPreferences as any).isManualCalories = false;
+        }
       }
 
       // Build final data object
@@ -219,10 +233,26 @@ export class UserProfilesService {
         where: { userId },
       });
 
-      // Recalculate daily calories if relevant fields changed
+      // Recalculate daily calories if relevant body fields changed
       const updatedData = existingProfile ? { ...existingProfile, ...normalizedData } : normalizedData;
-      if (normalizedData.height || normalizedData.weight || normalizedData.age || normalizedData.gender || normalizedData.activityLevel) {
+      const bodyFieldsChanged = normalizedData.height || normalizedData.weight || normalizedData.age || normalizedData.gender || normalizedData.activityLevel;
+      const existingPrefs = typeof existingProfile?.preferences === 'object' && existingProfile?.preferences !== null
+        ? existingProfile.preferences as Record<string, any>
+        : {};
+      const mergedPrefs = {
+        ...existingPrefs,
+        ...(normalizedData.preferences && typeof normalizedData.preferences === 'object' ? normalizedData.preferences : {}),
+      };
+
+      if (normalizedData.dailyCalories !== undefined && normalizedData.dailyCalories !== null) {
+        // User explicitly sent dailyCalories — always mark as manual
+        mergedPrefs.isManualCalories = true;
+        normalizedData.preferences = mergedPrefs;
+      } else if (bodyFieldsChanged && !existingPrefs.isManualCalories) {
+        // Body params changed and no manual override — recalculate
         normalizedData.dailyCalories = this.calculateDailyCalories(updatedData);
+        mergedPrefs.isManualCalories = false;
+        normalizedData.preferences = mergedPrefs;
       }
 
       // Only include fields that exist in UserProfile model

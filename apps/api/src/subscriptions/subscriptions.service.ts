@@ -162,7 +162,7 @@ export class SubscriptionsService implements OnModuleInit {
                 where: { appleTransactionId: paymentData.appleTransactionId }
             });
             if (existing) {
-                this.logger.log(`Subscription with transaction ${paymentData.appleTransactionId} already exists`);
+                this.logger.debug(`Duplicate transaction ${paymentData.appleTransactionId} - returning existing subscription`);
                 return existing;
             }
         }
