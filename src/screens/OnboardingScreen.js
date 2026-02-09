@@ -858,7 +858,43 @@ const OnboardingScreen = () => {
   });
 
   // Prices are loaded from expo-localization (region-based pricing table in currency.ts)
-  // No need to load IAP prices separately - currency.ts handles all 175 countries
+  // FIX: Load IAP prices to ensure accuracy with App Store
+  useEffect(() => {
+    const loadIapPrices = async () => {
+      try {
+        await IAPService.init();
+        const { all } = await IAPService.getAvailableProducts();
+
+        if (all.length > 0) {
+          const monthly = all.find(p => p.productId === SUBSCRIPTION_SKUS.MONTHLY);
+          const yearly = all.find(p => p.productId === SUBSCRIPTION_SKUS.YEARLY);
+          const student = all.find(p => p.productId === SUBSCRIPTION_SKUS.STUDENT);
+          const founder = all.find(p => p.productId === NON_CONSUMABLE_SKUS.FOUNDERS);
+
+          // Use currency from the first available product
+          const productCurrency = monthly?.currency || yearly?.currency || founder?.currency;
+
+          setCurrency(prev => ({
+            ...prev,
+            code: productCurrency || prev.code,
+            monthlyPrice: monthly?.localizedPrice || prev.monthlyPrice,
+            yearlyPrice: yearly?.localizedPrice || prev.yearlyPrice,
+            studentPrice: student?.localizedPrice || prev.studentPrice,
+            founderPrice: founder?.localizedPrice || prev.founderPrice,
+          }));
+
+          console.log('[Onboarding] Updated prices from IAP:', {
+            currency: productCurrency,
+            monthly: monthly?.localizedPrice
+          });
+        }
+      } catch (err) {
+        console.warn('[Onboarding] Failed to load IAP prices:', err);
+      }
+    };
+
+    loadIapPrices();
+  }, []);
 
   const plans = [
     {

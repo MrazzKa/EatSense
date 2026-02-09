@@ -602,6 +602,7 @@ export default function DietsScreen({ navigation }) {
                     visible={lockModalVisible}
                     onClose={() => setLockModalVisible(false)}
                     onSubscribed={async () => {
+                        console.log('[DietsScreen] onSubscribed called');
                         setLockModalVisible(false);
                         // Refresh subscription state so lock statuses update
                         try {
