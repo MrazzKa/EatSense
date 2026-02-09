@@ -43,6 +43,22 @@ export default function PaywallModal({
   const { t } = useI18n();
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
+  const [iapPrice, setIapPrice] = useState<string | null>(null);
+
+  // Fetch IAP products on mount to get accurate pricing
+  useEffect(() => {
+    if (visible) {
+      IAPService.init().then(() => {
+        IAPService.getAvailableProducts().then(({ subscriptions }) => {
+          const monthlyPlan = subscriptions.find(s => s.productId === SUBSCRIPTION_SKUS.MONTHLY);
+          if (monthlyPlan) {
+            // @ts-ignore - localizedPrice exists at runtime
+            setIapPrice(monthlyPlan.localizedPrice);
+          }
+        });
+      }).catch(err => console.warn('[Paywall] Failed to load IAP products:', err));
+    }
+  }, [visible]);
   // Introductory offer (free trial) is handled automatically by Apple for new subscribers
   // We still check eligibility to show/hide the "3 days free" badge in the UI
   const [isTrialEligible, setIsTrialEligible] = useState(true);
@@ -126,16 +142,27 @@ export default function PaywallModal({
     setLoading(true);
     try {
       console.log('[Paywall] Starting monthly subscription...');
-      // Introductory offer (3-day free trial) is configured in App Store Connect
-      // Apple automatically applies it for eligible new subscribers
-      // No server-side signing needed - just use regular purchaseSubscription
       await IAPService.init();
+      const { subscriptions } = await IAPService.getAvailableProducts();
+
+      const monthlyPlan = subscriptions.find(s => s.productId === SUBSCRIPTION_SKUS.MONTHLY);
+      if (monthlyPlan) {
+        // @ts-ignore - localizedPrice exists at runtime
+        setIapPrice(monthlyPlan.localizedPrice);
+      }
+
       await IAPService.purchaseSubscription(
         SUBSCRIPTION_SKUS.MONTHLY,
-        async (productId: string) => {
+        (productId: string) => {
           console.log('[Paywall] Subscription successful:', productId);
           setLoading(false);
-          onSubscribed?.();
+          if (onSubscribed) {
+            console.log('[Paywall] Calling onSubscribed prop from Modal');
+            onSubscribed();
+          } else {
+            console.warn('[Paywall] onSubscribed prop is undefined');
+          }
+          console.log('[Paywall] Calling onClose');
           onClose();
         },
         (error: any) => {
@@ -274,8 +301,8 @@ export default function PaywallModal({
           {/* Price info */}
           <Text style={[styles.priceInfo, { color: colors.textSecondary }]}>
             {isTrialEligible
-              ? (t('paywall.priceAfterTrial', { price: formatPrice('monthly') }) || `Then ${formatPrice('monthly')}/month after trial`)
-              : (t('paywall.priceMonthly', { price: formatPrice('monthly') }) || `${formatPrice('monthly')}/month`)}
+              ? (t('paywall.priceAfterTrial', { price: iapPrice || formatPrice('monthly') }) || `Then ${iapPrice || formatPrice('monthly')}/month after trial`)
+              : (t('paywall.priceMonthly', { price: iapPrice || formatPrice('monthly') }) || `${iapPrice || formatPrice('monthly')}/month`)}
           </Text>
 
           {/* Fine print */}

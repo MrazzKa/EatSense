@@ -112,7 +112,10 @@ class IAPService {
                 console.log('[IAP] Transaction finished:', purchase.productId);
 
                 if (this.onPurchaseSuccess) {
+                    console.log('[IAP] Calling onPurchaseSuccess callback');
                     this.onPurchaseSuccess(purchase.productId);
+                } else {
+                    console.warn('[IAP] No onPurchaseSuccess callback defined!');
                 }
             } else {
                 throw new Error('Backend validation failed');
