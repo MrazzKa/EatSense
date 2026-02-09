@@ -857,40 +857,8 @@ const OnboardingScreen = () => {
     };
   });
 
-  // FIX 2026-02-08: Load IAP prices for accurate store-region pricing
-  // Falls back to device region prices from currency.ts if IAP unavailable
-  useEffect(() => {
-    const loadIAPPrices = async () => {
-      try {
-        await IAPService.init();
-        const { subscriptions, products } = await IAPService.getAvailableProducts();
-        const all = [...subscriptions, ...products];
-        if (all.length > 0) {
-          const priceMap = {};
-          all.forEach(p => {
-            if (p.localizedPrice) priceMap[p.productId] = p.localizedPrice;
-          });
-          const monthlyIAP = priceMap[SUBSCRIPTION_SKUS.MONTHLY];
-          const yearlyIAP = priceMap[SUBSCRIPTION_SKUS.YEARLY];
-          const studentIAP = priceMap[SUBSCRIPTION_SKUS.STUDENT];
-          const founderIAP = priceMap[NON_CONSUMABLE_SKUS.FOUNDERS];
-          if (monthlyIAP || yearlyIAP) {
-            setCurrency(prev => ({
-              ...prev,
-              monthlyPrice: monthlyIAP || prev.monthlyPrice,
-              yearlyPrice: yearlyIAP || prev.yearlyPrice,
-              studentPrice: studentIAP || prev.studentPrice,
-              founderPrice: founderIAP || prev.founderPrice,
-            }));
-            console.log('[Onboarding] Updated prices from IAP:', { monthlyIAP, yearlyIAP, studentIAP, founderIAP });
-          }
-        }
-      } catch (err) {
-        console.log('[Onboarding] IAP prices unavailable, using device region fallback:', err.message);
-      }
-    };
-    loadIAPPrices();
-  }, []);
+  // Prices are loaded from expo-localization (region-based pricing table in currency.ts)
+  // No need to load IAP prices separately - currency.ts handles all 175 countries
 
   const plans = [
     {

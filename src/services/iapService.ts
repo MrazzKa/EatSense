@@ -27,6 +27,8 @@ class IAPService {
     private isInitialized = false;
     private onPurchaseSuccess: ((_productId: string) => void) | null = null;
     private onPurchaseError: ((_error: any) => void) | null = null;
+    // Cache verified transaction IDs to avoid duplicate verify calls
+    private verifiedTransactionIds = new Set<string>();
 
     async init(): Promise<boolean> {
         if (this.isInitialized) {
@@ -78,6 +80,16 @@ class IAPService {
             return;
         }
 
+        // Skip if this transaction was already verified
+        const txId = purchase.transactionId;
+        if (txId && this.verifiedTransactionIds.has(txId)) {
+            console.log('[IAP] Transaction already verified, skipping:', txId);
+            if (this.onPurchaseSuccess) {
+                this.onPurchaseSuccess(purchase.productId);
+            }
+            return;
+        }
+
         try {
             const response = await ApiService.verifyPurchase({
                 productId: purchase.productId,
@@ -91,6 +103,11 @@ class IAPService {
                     purchase,
                     isConsumable: false,
                 });
+
+                // Cache verified transaction ID
+                if (txId) {
+                    this.verifiedTransactionIds.add(txId);
+                }
 
                 console.log('[IAP] Transaction finished:', purchase.productId);
 

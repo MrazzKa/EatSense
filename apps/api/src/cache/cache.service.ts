@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { RedisService } from '../../redis/redis.service';
 
 type CacheNamespace =
@@ -34,10 +35,10 @@ export class CacheService {
   private readonly prefix = 'eatsense';
 
   private readonly defaultTtl = parseInt(process.env.CACHE_DEFAULT_TTL_SEC || '900', 10);
-  private readonly usdaTtl = parseInt(process.env.USDA_CACHE_TTL_SEC || '259200', 10);
-  private readonly analysisTtl = parseInt(process.env.ANALYSIS_CACHE_TTL_SEC || '86400', 10);
-  private readonly visionTtl = parseInt(process.env.VISION_CACHE_TTL_SEC || '604800', 10); // 7 days default
-  private readonly nutritionTtl = parseInt(process.env.NUTRITION_CACHE_TTL_SEC || '2592000', 10); // 30 days default
+  private readonly usdaTtl = parseInt(process.env.USDA_CACHE_TTL_SEC || '43200', 10); // 12h (was 24h)
+  private readonly analysisTtl = parseInt(process.env.ANALYSIS_CACHE_TTL_SEC || '43200', 10); // 12h (was 24h)
+  private readonly visionTtl = parseInt(process.env.VISION_CACHE_TTL_SEC || '43200', 10); // 12h (was 24h)
+  private readonly nutritionTtl = parseInt(process.env.NUTRITION_CACHE_TTL_SEC || '604800', 10); // 7 days (was 30 days)
   private readonly articlesFeedTtl = parseInt(process.env.ARTICLES_FEED_CACHE_TTL_SEC || '900', 10);
   private readonly articlesDetailTtl = parseInt(process.env.ARTICLES_DETAIL_CACHE_TTL_SEC || '86400', 10);
 
@@ -261,6 +262,65 @@ export class CacheService {
 
     this.logger.debug(`Invalidating namespace=${namespace} userId=${userId || 'all'} pattern=${pattern}`);
     await this.deleteByPattern(pattern);
+  }
+
+  /**
+   * Cleanup expired cache entries across all namespaces.
+   * Uses SCAN to iterate keys without blocking Redis.
+   * Runs every 2 hours automatically.
+   */
+  @Cron('0 */2 * * *')
+  async cleanupExpired(): Promise<number> {
+    let deletedCount = 0;
+    let totalKeys = 0;
+    try {
+      const client = this.redis.getClient();
+      const stream = client.scanIterator({
+        MATCH: `${this.prefix}:*`,
+        COUNT: 200,
+      });
+
+      const keysToDelete: string[] = [];
+
+      for await (const key of stream as AsyncIterable<string>) {
+        totalKeys++;
+        try {
+          const raw = await this.redis.get(key);
+          if (!raw) continue;
+
+          const entry = JSON.parse(raw) as CacheEntry<unknown>;
+          const expiresAt = entry.storedAt + entry.ttl * 1000;
+          if (Date.now() > expiresAt) {
+            keysToDelete.push(key);
+          }
+        } catch {
+          // Malformed entry — delete it
+          keysToDelete.push(key);
+        }
+
+        // Batch delete
+        if (keysToDelete.length >= 200) {
+          const pipeline = client.multi();
+          keysToDelete.forEach((k) => pipeline.del(k));
+          await pipeline.exec();
+          deletedCount += keysToDelete.length;
+          keysToDelete.length = 0;
+        }
+      }
+
+      // Delete remaining
+      if (keysToDelete.length > 0) {
+        const pipeline = client.multi();
+        keysToDelete.forEach((k) => pipeline.del(k));
+        await pipeline.exec();
+        deletedCount += keysToDelete.length;
+      }
+
+      this.logger.log(`Cleanup: scanned ${totalKeys} keys, deleted ${deletedCount} expired entries`);
+    } catch (error) {
+      this.logger.warn(`Cleanup failed: ${(error as Error).message}`);
+    }
+    return deletedCount;
   }
 
   async healthCheck(): Promise<boolean> {

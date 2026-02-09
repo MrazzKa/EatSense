@@ -115,16 +115,16 @@ export default function TrendingCarousel({
               {imageSource && (
                 <Image
                   source={imageSource}
-                  style={StyleSheet.absoluteFill}
+                  style={styles.cardImage}
                   resizeMode="cover"
                 />
               )}
 
-              {/* Gradient overlay for text readability */}
+              {/* Gradient overlay for text readability - only bottom third */}
               {imageSource && (
                 <LinearGradient
-                  colors={['transparent', 'transparent', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.85)']}
-                  locations={[0, 0.4, 0.7, 1]}
+                  colors={['transparent', 'transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.85)']}
+                  locations={[0, 0.5, 0.75, 1]}
                   style={StyleSheet.absoluteFill}
                 />
               )}
@@ -156,9 +156,9 @@ export default function TrendingCarousel({
   );
 }
 
-// Card dimensions - landscape ratio (16:10) for minimal photo cropping
+// Card dimensions - 3:2 aspect ratio to show more of the image
 const CARD_WIDTH = 280;
-const CARD_HEIGHT = 175;
+const CARD_HEIGHT = Math.round(CARD_WIDTH * 2 / 3); // ≈ 187px
 
 const styles = StyleSheet.create({
   section: {
@@ -193,6 +193,13 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     // Shadow for Android
     elevation: 4,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   cardContent: {
     padding: 10,

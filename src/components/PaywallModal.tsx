@@ -22,11 +22,8 @@ import { TRIAL_DAYS } from '../config/freeContent';
 import IAPService from '../services/iapService';
 import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS } from '../config/subscriptions';
-
-// Promotional offer ID for 3-day free trial
-const TRIAL_OFFER_ID = 'eatsense.monthly.trial';
-
 import { LinearGradient } from 'expo-linear-gradient';
+import { formatPrice } from '../utils/currency';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -46,30 +43,25 @@ export default function PaywallModal({
   const { t } = useI18n();
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [selectedTrial, setSelectedTrial] = useState<number>(TRIAL_DAYS.SHORT);
+  // Introductory offer (free trial) is handled automatically by Apple for new subscribers
+  // We still check eligibility to show/hide the "3 days free" badge in the UI
   const [isTrialEligible, setIsTrialEligible] = useState(true);
-  const [checkingEligibility, setCheckingEligibility] = useState(false);
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const [showModal, setShowModal] = useState(visible);
 
-  // Check trial eligibility when modal opens
+  // Check trial eligibility for UI badge display
   useEffect(() => {
     if (visible) {
-      setCheckingEligibility(true);
       ApiService.checkTrialEligibility()
         .then((result: { eligible: boolean }) => {
           setIsTrialEligible(result.eligible);
         })
-        .catch((err: any) => {
-          console.error('[Paywall] Failed to check eligibility:', err);
-          // Default to eligible on error
+        .catch(() => {
+          // Default to eligible on error - Apple will handle actual eligibility
           setIsTrialEligible(true);
-        })
-        .finally(() => {
-          setCheckingEligibility(false);
         });
     }
   }, [visible]);
@@ -130,81 +122,29 @@ export default function PaywallModal({
     });
   };
 
-  const purchaseRegular = async () => {
-    console.log('[Paywall] Regular subscription (no trial)...');
-    // Ensure IAP is initialized (may have been destroyed by SubscriptionScreen)
-    await IAPService.init();
-    await IAPService.purchaseSubscription(
-      SUBSCRIPTION_SKUS.MONTHLY,
-      async (productId: string) => {
-        // Verification already done in iapService.handlePurchase() with receipt
-        console.log('[Paywall] Subscription successful:', productId);
-        setLoading(false);
-        onSubscribed?.();
-        onClose();
-      },
-      (error: any) => {
-        console.error('[Paywall] Subscription error:', error);
-        setLoading(false);
-      }
-    );
-  };
-
-  const handleStartTrial = async () => {
+  const handleSubscribe = async () => {
     setLoading(true);
     try {
-      // If user is eligible for trial, use promotional offer
-      if (isTrialEligible && Platform.OS === 'ios') {
-        console.log('[Paywall] User eligible for trial, requesting signed offer...');
-
-        try {
-          // Get signed offer from server
-          const offerData = await ApiService.signPromotionalOffer(
-            SUBSCRIPTION_SKUS.MONTHLY,
-            TRIAL_OFFER_ID
-          );
-
-          if (!offerData.success) {
-            throw new Error('Failed to sign promotional offer');
-          }
-
-          console.log('[Paywall] Got signed offer, starting purchase with trial...');
-
-          // Ensure IAP is initialized before purchase
-          await IAPService.init();
-          // Purchase with promotional offer (free trial)
-          await IAPService.purchaseSubscriptionWithOffer(
-            SUBSCRIPTION_SKUS.MONTHLY,
-            {
-              offerId: TRIAL_OFFER_ID,
-              keyIdentifier: offerData.keyIdentifier,
-              nonce: offerData.nonce,
-              timestamp: offerData.timestamp,
-              signature: offerData.signature,
-              applicationUsername: offerData.applicationUsername,
-            },
-            async (productId: string) => {
-              // Verification already done in iapService.handlePurchase() with receipt
-              console.log('[Paywall] Trial subscription successful:', productId);
-              setLoading(false);
-              onSubscribed?.();
-              onClose();
-            },
-            (error: any) => {
-              console.error('[Paywall] Trial subscription error:', error);
-              setLoading(false);
-            }
-          );
-        } catch (signError) {
-          // Sign-offer failed - fall back to regular purchase without trial
-          console.warn('[Paywall] Sign-offer failed, falling back to regular purchase:', signError);
-          await purchaseRegular();
+      console.log('[Paywall] Starting monthly subscription...');
+      // Introductory offer (3-day free trial) is configured in App Store Connect
+      // Apple automatically applies it for eligible new subscribers
+      // No server-side signing needed - just use regular purchaseSubscription
+      await IAPService.init();
+      await IAPService.purchaseSubscription(
+        SUBSCRIPTION_SKUS.MONTHLY,
+        async (productId: string) => {
+          console.log('[Paywall] Subscription successful:', productId);
+          setLoading(false);
+          onSubscribed?.();
+          onClose();
+        },
+        (error: any) => {
+          console.error('[Paywall] Subscription error:', error);
+          setLoading(false);
         }
-      } else {
-        await purchaseRegular();
-      }
+      );
     } catch (error) {
-      console.error('[Paywall] Start trial error:', error);
+      console.error('[Paywall] Subscribe error:', error);
       setLoading(false);
     }
   };
@@ -288,8 +228,8 @@ export default function PaywallModal({
             ))}
           </View>
 
-          {/* Trial badge - shown only if eligible */}
-          {isTrialEligible && !checkingEligibility && (
+          {/* Trial badge - shown only if eligible (Apple handles actual eligibility) */}
+          {isTrialEligible && (
             <View style={[styles.trialBadge, { backgroundColor: colors.primary + '15' }]}>
               <Ionicons name="gift-outline" size={20} color={colors.primary} />
               <Text style={[styles.trialBadgeText, { color: colors.primary }]}>
@@ -301,8 +241,8 @@ export default function PaywallModal({
           {/* CTA Button */}
           <TouchableOpacity
             style={styles.ctaButtonContainer}
-            onPress={handleStartTrial}
-            disabled={loading || checkingEligibility}
+            onPress={handleSubscribe}
+            disabled={loading}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -311,7 +251,7 @@ export default function PaywallModal({
               end={{ x: 1, y: 0 }}
               style={styles.ctaButton}
             >
-              {loading || checkingEligibility ? (
+              {loading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
                 <>
@@ -330,6 +270,13 @@ export default function PaywallModal({
               )}
             </LinearGradient>
           </TouchableOpacity>
+
+          {/* Price info */}
+          <Text style={[styles.priceInfo, { color: colors.textSecondary }]}>
+            {isTrialEligible
+              ? (t('paywall.priceAfterTrial', { price: formatPrice('monthly') }) || `Then ${formatPrice('monthly')}/month after trial`)
+              : (t('paywall.priceMonthly', { price: formatPrice('monthly') }) || `${formatPrice('monthly')}/month`)}
+          </Text>
 
           {/* Fine print */}
           <Text style={[styles.finePrint, { color: colors.textTertiary }]}>
@@ -472,6 +419,12 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  priceInfo: {
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   finePrint: {
     fontSize: 13,

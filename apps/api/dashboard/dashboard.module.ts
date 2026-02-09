@@ -8,6 +8,7 @@ import { SuggestionsModule } from '../src/suggestions/suggestions.module';
 import { DietsModule } from '../src/diets/diets.module';
 import { PrismaModule } from '../prisma.module';
 import { DietProgramsModule } from '../src/diet-programs/diet-programs.module';
+import { CacheModule } from '../src/cache/cache.module';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { DietProgramsModule } from '../src/diet-programs/diet-programs.module';
         DietsModule,
         DietProgramsModule,
         PrismaModule,
+        CacheModule,
     ],
     controllers: [DashboardController],
     providers: [DashboardService],

@@ -102,7 +102,7 @@
     "autoSavedDescription": "Nous avons enregistré ce repas dans vos entrées récentes. Vous pouvez le consulter ou le modifier à tout moment.",
     "autoSavedTitle": "Enregistré automatiquement dans votre journal",
     "calculating": "Calcul",
-    "calories": "calories",
+    "calories": "Calories",
     "carbsShort": "G",
     "errorMessage": "Impossible d'analyser votre repas. Veuillez réessayer.",
     "errorTitle": "Erreur d'analyse",
@@ -153,7 +153,7 @@
     "subtitle": "L'IA identifie les ingrédients et les calories",
     "timeoutMessage": "L'analyse prend plus de temps que prévu. Veuillez réessayer.",
     "timeoutTitle": "Délai d'analyse dépassé",
-    "title": "Analyse terminée",
+    "title": "Analyse",
     "totalNutrition": "Nutrition totale",
     "uploaded": "Téléchargé",
     "viewMeal": "Voir le repas",
@@ -181,7 +181,11 @@
     },
     "tapToView": "Appuyez pour voir",
     "analysisComplete": "Analyse terminée",
-    "deleteError": "Erreur de suppression"
+    "deleteError": "Erreur de suppression",
+    "protein": "Protéines",
+    "carbs": "Glucides",
+    "fat": "Lipides",
+    "fiber": "Fibres"
   },
   "analysisFlow": {
     "analyze": "Analyser",
@@ -406,7 +410,7 @@
     "viewAll": "Voir tout",
     "yes": "Oui",
     "no": "Non",
-    "all": "Tout",
+    "all": "Tous",
     "show": "Afficher",
     "hide": "Masquer",
     "cm": "cm",
@@ -414,12 +418,12 @@
     "normal": "Normal",
     "underweight": "Insuffisance pondérale",
     "overweight": "Surpoids",
-    "obese": "Obésité",
+    "obese": "Obèse",
     "tryAgain": "Réessayer",
     "enabled": "Activé",
     "reset": "Réinitialiser",
-    "saveChanges": "Sauvegarder",
-    "start": "Démarrer",
+    "saveChanges": "Enregistrer les modifications",
+    "start": "Commencer",
     "clear": "Effacer",
     "back": "Retour",
     "loading": "Chargement...",
@@ -441,16 +445,29 @@
     "of": "sur",
     "delete": "Supprimer",
     "confirm": "Confirmer",
-    "errorGeneric": "Une erreur est survenue",
+    "errorGeneric": "Erreur générique",
     "success": "Succès",
     "info": "Infos",
     "gotIt": "Compris",
     "free": "Gratuit",
     "other": "Autre",
     "required": "Requis",
-    "comingSoon": "Prochainement",
-    "daysAgo": "Il y a {{count}} jours",
-    "yesterday": "Hier"
+    "comingSoon": "Bientôt",
+    "daysAgo": "Il y a des jours",
+    "yesterday": "Hier",
+    "noData": "Pas de données",
+    "filter": "Filtrer",
+    "more": "Plus",
+    "less": "Moins",
+    "share": "Partager",
+    "copy": "Copier",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "remove": "Supprimer",
+    "add": "Ajouter",
+    "apply": "Appliquer",
+    "seeAll": "Voir tout",
+    "viewMore": "Voir plus"
   },
   "tooltips": {
     "scanMeal": {
@@ -628,7 +645,10 @@
       "takePhoto": "Prendre une photo",
       "title": "Ajouter un repas"
     },
-    "showAllMeals": "Afficher tous les repas"
+    "showAllMeals": "Afficher tous les repas",
+    "todaysMeals": "Repas du jour",
+    "noMeals": "Pas encore de repas aujourd'hui",
+    "analyzeMeal": "Analyser le repas"
   },
   "mealHistory": {
     "title": "Tous les repas",
@@ -810,6 +830,14 @@
     "tracker_preview_hint": "Suivez vos progrès quotidiens"
   },
   "suggest": {
+    "modal_title": "Suggérer une amélioration",
+    "name_placeholder": "Votre nom",
+    "request_placeholder": "Décrivez votre suggestion ou le problème...",
+    "submit": "Envoyer",
+    "name_required": "Le nom est requis",
+    "request_required": "La suggestion est requise",
+    "contact_success": "Merci ! Nous avons bien reçu votre suggestion.",
+    "error": "Erreur lors de l'envoi. Veuillez réessayer.",
     "subtitle": "Écrivez-nous — nom et demande",
     "success": "Envoyé avec succès",
     "title": "Suggestions"
@@ -1173,6 +1201,18 @@
     "title": "Repas"
   },
   "medications": {
+    "dosagePlural": {
+      "spray_one": "spray",
+      "spray_other": "sprays",
+      "tablet_one": "comprimé",
+      "tablet_other": "comprimés",
+      "capsule_one": "gélule",
+      "capsule_other": "gélules",
+      "drop_one": "goutte",
+      "drop_other": "gouttes",
+      "puff_one": "bouffée",
+      "puff_other": "bouffées"
+    },
     "error": {
       "invalidTime": "Format d'heure invalide",
       "delete": "Échec de la suppression du médicament",
@@ -1250,16 +1290,6 @@
       "success": "Médicament marqué comme pris",
       "error": "Échec de la mise à jour du médicament"
     },
-    "dosagePlural": {
-      "tablet_one": "comprimé",
-      "tablet_other": "comprimés",
-      "capsule_one": "gélule",
-      "capsule_other": "gélules",
-      "drop_one": "goutte",
-      "drop_other": "gouttes",
-      "puff_one": "bouffée",
-      "puff_other": "bouffées"
-    },
     "photo": "Photo",
     "addPhoto": "Ajouter photo"
   },
@@ -1280,13 +1310,13 @@
       "free": {
         "badge": "Inclus",
         "features": [
-          "Analyse alimentaire IA (3/jour)",
-          "Suivi des calories quotidien",
+          "Analyse IA (3/jour)",
+          "Suivi calorique quotidien",
           "Statistiques de base"
         ],
         "headline": "Commencez avec l'essentiel",
         "name": "EatSense Free",
-        "price": "Plan Basique"
+        "price": "0 € pour toujours"
       },
       "proAnnual": {
         "badge": "Économisez 33%",
@@ -1306,21 +1336,21 @@
         "headline": "Facturation flexible",
         "features": [
           "Analyse IA illimitée",
-          "Infos nutritionnelles avancées",
-          "Conseils personnalisés",
+          "Aperçus nutritionnels avancés",
+          "Coaching personnalisé",
           "Support prioritaire"
         ]
       },
       "student": {
-        "name": "Étudiant",
-        "price": "49$ / an",
-        "headline": "Tarif spécial étudiant",
+        "badge": "Étudiant",
         "features": [
           "Analyse IA illimitée",
-          "Infos nutritionnelles avancées",
-          "Carte étudiante requise"
+          "Aperçus nutritionnels avancés",
+          "Carte étudiant requise"
         ],
-        "badge": "Étudiant"
+        "headline": "Prix spécial étudiant",
+        "name": "Étudiant",
+        "price": "49 €/an"
       },
       "founder": {
         "name": "Fondateur",
@@ -1341,7 +1371,7 @@
       "studentBadge": "Étudiant",
       "freeHeadline": "Commencez avec l'essentiel",
       "monthlyHeadline": "Facturation flexible",
-      "yearlyHeadline": "Meilleur rapport qualité-prix — économisez 33%",
+      "yearlyHeadline": "Meilleure offre — économisez 33%",
       "studentHeadline": "Tarif spécial étudiant",
       "founderHeadline": "Accès à vie + Badge exclusif",
       "founderBadge": "Limité",
@@ -1360,10 +1390,27 @@
         "lifetime": "Paiement unique, accès permanent",
         "badge": "Badge Fondateur exclusif",
         "priority": "Contact direct avec le développeur"
+      },
+      "founders": {
+        "badge": "Limité",
+        "features": [
+          "Paiement unique, accès à vie",
+          "Badge exclusif de fondateur",
+          "Accès direct au développeur"
+        ],
+        "headline": "Accès à vie + Badge exclusif",
+        "name": "Fondateur"
+      },
+      "proYearly": {
+        "features": [
+          "Tout du plan mensuel",
+          "Webinaires exclusifs",
+          "Accès anticipé aux fonctionnalités"
+        ]
       }
     },
     "welcome": "Bienvenue sur EatSense",
-    "startFree": "Commencer",
+    "startFree": "Commencer maintenant",
     "subscribe": "S'abonner",
     "activity": "Quel est votre niveau d'activité ?",
     "activityLevels": {
@@ -1428,7 +1475,7 @@
       "female": "Femme",
       "male": "Homme",
       "nonBinary": "Non-binaire",
-      "preferNotToSay": "Je préfère ne pas le dire",
+      "preferNotToSay": "Préfère ne pas dire",
       "other": "Autre"
     },
     "goalTypes": {
@@ -1495,23 +1542,23 @@
     "profileSavedLocally": "Profil enregistré localement. Vous pouvez terminer la configuration plus tard dans les paramètres.",
     "continueFree": "Continuer gratuitement",
     "notificationsEnabledTitle": "Notifications activées !",
-    "notificationsEnabledDescription": "Nous enverrons des rappels sur les repas et des conseils utiles. Vous pouvez modifier les paramètres à tout moment.",
+    "notificationsEnabledDescription": "Nous vous enverrons des rappels de repas et des conseils utiles. Vous pouvez modifier les paramètres à tout moment.",
     "notificationsHint": "Vous pouvez désactiver les notifications dans les paramètres de l'application ou les paramètres système iOS.",
     "notificationsReady": "Prêt !",
     "validation": {
       "goal": "Veuillez sélectionner votre objectif.",
       "gender": "Veuillez sélectionner votre genre.",
       "activity": "Veuillez sélectionner votre niveau d'activité.",
-      "requiredField": "Champ requis",
-      "selectActivity": "Veuillez sélectionner votre niveau d'activité",
-      "selectGender": "Veuillez sélectionner votre genre",
-      "selectGoal": "Veuillez sélectionner un objectif",
+      "requiredField": "Champ obligatoire",
+      "selectActivity": "Veuillez sélectionner votre niveau d'activité.",
+      "selectGender": "Veuillez sélectionner votre genre.",
+      "selectGoal": "Veuillez sélectionner un objectif.",
       "enterName": "Entrez votre nom",
       "enterAge": "Entrez votre âge",
       "enterHeight": "Entrez votre taille",
       "enterWeight": "Entrez votre poids",
       "selectDiet": "Sélectionnez un type de régime",
-      "selectConditions": "Sélectionnez vos conditions de santé"
+      "selectConditions": "Sélectionner les conditions de santé"
     },
     "terms": "Conditions et Confidentialité",
     "termsSubtitle": "Veuillez lire et accepter pour continuer",
@@ -1528,7 +1575,7 @@
     "notificationsEnabled": "Activé !",
     "notificationsSuccess": "Super ! Vous recevrez des rappels utiles.",
     "notificationsDeniedTitle": "Notifications désactivées",
-    "notificationsDeniedDescription": "Vous pouvez activer les notifications plus tard dans les paramètres de l'application ou les paramètres système iOS pour recevoir des rappels de repas et des conseils utiles.",
+    "notificationsDeniedDescription": "Vous pouvez activer les notifications plus tard dans les paramètres de l'application ou les paramètres système iOS pour recevoir des rappels de repas et des conseils utiles",
     "notificationsDeniedHint": "Vous pouvez activer les notifications dans les paramètres de l'application plus tard.",
     "termsDescription": "Lisez nos conditions d'utilisation",
     "privacyDescription": "Découvrez comment nous protégeons vos données",
@@ -1570,7 +1617,7 @@
     "activityLevel": "Niveau d'activité",
     "personalization": "Personnalisation",
     "plan": "Plan",
-    "sync": "Synchronisation",
+    "sync": "Synchroniser",
     "settings": "Paramètres",
     "units": "Unités",
     "savePhotos": "Enregistrer les photos",
@@ -1589,7 +1636,7 @@
       "everythingInProMonthly": "Tout ce qui est dans Pro",
       "annualWebinars": "Webinaires annuels",
       "earlyAccess": "Accès anticipé",
-      "studentDiscount": "Réduction étudiante"
+      "studentDiscount": "Réduction étudiante avec vérification"
     },
     "health": {
       "chronotype": {
@@ -1659,26 +1706,39 @@
       "noData": "Aucune donnée",
       "focusAreas": "Zones d'intérêt",
       "clearData": "Effacer les données",
-      "clearTitle": "Effacer",
-      "clearMessage": "Voulez-vous effacer ?",
-      "cleared": "Effacé"
+      "clearTitle": "Effacer les données de santé",
+      "clearMessage": "Êtes-vous sûr de vouloir effacer tous les paramètres de santé ? Cette action est irréversible.",
+      "cleared": "Données de santé effacées",
+      "bodyFat": "Pourcentage de graisse corporelle",
+      "waistCirc": "Tour de taille",
+      "hipCirc": "Tour de hanches",
+      "glp1": {
+        "title": "Thérapie GLP-1",
+        "isUser": "Utilisateur GLP-1"
+      },
+      "sugarControl": "Contrôle du sucre",
+      "cholesterol": "Cholestérol",
+      "inflammation": "Inflammation",
+      "iron": "Fer",
+      "microbiome": "Microbiome",
+      "hormonalBalance": "Équilibre hormonal"
     },
     "title": "Compte",
-    "section": "Votre Profil",
+    "section": "Votre profil",
     "age": "Âge",
     "weight": "Poids",
     "height": "Taille",
     "unitsMetric": "Métrique",
-    "autoSave": "Sauvegarde auto",
+    "autoSave": "Enregistrement automatique dans la galerie",
     "planPremium": "Premium",
-    "aboutText1": "EatSense est une application d'analyse nutritionnelle basée sur l'IA qui vous aide à suivre votre alimentation et à maintenir un mode de vie sain.",
-    "aboutText2": "Notre technologie d'IA avancée peut identifier les ingrédients et calculer les valeurs nutritionnelles à partir de photos de vos repas.",
+    "aboutText1": "EatSense est une application d'analyse nutritionnelle alimentée par l'IA qui vous aide à suivre votre alimentation et à maintenir un mode de vie sain.",
+    "aboutText2": "Notre technologie IA avancée peut identifier les ingrédients et calculer les valeurs nutritionnelles à partir de photos de vos repas.",
     "faq1q": "Quelle est la précision de l'analyse IA ?",
-    "faq1a": "Notre IA fournit une analyse nutritionnelle très précise basée sur des modèles d'apprentissage automatique avancés.",
-    "faq2q": "Puis-je modifier les résultats ?",
-    "faq2a": "Oui, vous pouvez corriger manuellement tous les résultats d'analyse pour garantir l'exactitude.",
-    "faq3q": "Mes données sont-elles sécurisées ?",
-    "faq3a": "Oui, nous utilisons un cryptage standard pour protéger vos données personnelles.",
+    "faq1a": "Notre IA fournit des analyses nutritionnelles très précises basées sur des modèles d'apprentissage automatique avancés.",
+    "faq2q": "Puis-je modifier les résultats de l'analyse ?",
+    "faq2a": "Oui, vous pouvez corriger manuellement les résultats d'analyse pour garantir la précision.",
+    "faq3q": "Mes données sont-elles en sécurité ?",
+    "faq3a": "Oui, nous utilisons un chiffrement standard de l'industrie pour protéger vos données personnelles.",
     "tabs": {
       "profile": "Profil",
       "personalization": "Personnalisation",
@@ -1692,10 +1752,10 @@
     "notificationsDailyDisabled": "Notifications quotidiennes désactivées",
     "notificationsDailyEnabled": "Notifications quotidiennes activées",
     "notificationsDailyTitle": "Rappel quotidien",
-    "metricHeight": "cm",
-    "metricWeight": "kg",
+    "metricHeight": "Taille",
+    "metricWeight": "Poids",
     "metricAge": "ans",
-    "metricCalories": "kcal",
+    "metricCalories": "Calories",
     "editProfile": "Modifier le profil",
     "preferences": "Préférences",
     "bmiUnderweight": "Insuffisance pondérale",
@@ -1707,7 +1767,7 @@
     "planUpdateError": "Échec de la mise à jour du plan.",
     "metricBmi": "IMC",
     "medications": "Médicaments",
-    "medicationsSubtitle": "Gérer le calendrier",
+    "medicationsSubtitle": "Gérez votre planning",
     "supportLink": "Contacter le support",
     "savingButton": "Enregistrement...",
     "applyPlan": "Appliquer le plan",
@@ -1722,15 +1782,15 @@
     "notificationsChangeTime": "Changer l'heure",
     "notificationsErrorTitle": "Erreur",
     "notificationsErrorMessage": "Erreur de notification",
-    "notificationsPermissionTitle": "Permission requise",
-    "notificationsPermissionMessage": "Veuillez activer les notifications",
+    "notificationsPermissionTitle": "Autorisation requise",
+    "notificationsPermissionMessage": "Veuillez activer les notifications dans les paramètres système pour recevoir des rappels.",
     "savedTitle": "Enregistré",
-    "savedMessage": "Changements enregistrés",
+    "savedMessage": "Profil mis à jour avec succès",
     "errorTitle": "Erreur",
     "errorMessage": "Une erreur est survenue",
     "errors": {
-      "invalidEmail": "Email invalide",
-      "updateFailed": "Mise à jour échouée"
+      "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
+      "updateFailed": "Impossible de mettre à jour le profil. Veuillez réessayer."
     },
     "deleteAccount": "Supprimer le compte",
     "deleteAccountTitle": "Supprimer",
@@ -1786,7 +1846,38 @@
     "advanced": "Avancé",
     "noData": "Aucune donnée",
     "policyError": "Erreur de politique",
-    "termsError": "Erreur de conditions"
+    "termsError": "Erreur de conditions",
+    "deleteConfirmMessage": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+    "signOut": "Se déconnecter",
+    "signOutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
+    "version": "Version",
+    "darkMode": "Mode sombre",
+    "privacy": "Confidentialité",
+    "terms": "Conditions d'utilisation",
+    "feedback": "Donner son avis",
+    "rateApp": "Évaluer l'application",
+    "features": {
+      "limitedAnalyses": "Analyses limitées",
+      "calorieTracking": "Suivi calorique",
+      "basicStats": "Statistiques de base",
+      "unlimitedAnalyses": "Analyses illimitées",
+      "advancedInsights": "Aperçus avancés",
+      "coachingTips": "Conseils de coaching",
+      "everythingInProMonthly": "Tout de Pro Mensuel",
+      "annualWebinars": "Webinaires annuels",
+      "earlyAccess": "Accès anticipé",
+      "studentDiscount": "Réduction étudiante",
+      "lifetimeAccess": "Accès à vie",
+      "founderBadge": "Badge fondateur",
+      "directAccess": "Accès direct"
+    },
+    "badges": {
+      "included": "Inclus",
+      "mostPopular": "Plus populaire",
+      "save33": "Économisez 33%",
+      "studentDiscount": "Réduction étudiante",
+      "limited": "Limité"
+    }
   },
   "recently": {
     "analyzing": "Analyse en cours...",
@@ -1869,7 +1960,7 @@
     "mealDistribution": "Répartition des repas"
   },
   "subscription": {
-    "title": "Premium",
+    "title": "Abonnement",
     "subtitle": "Débloquez toutes les fonctionnalités et profitez d'un accès illimité",
     "loadingPrices": "Chargement des prix...",
     "plan_monthly": "Mensuel",
@@ -1886,8 +1977,8 @@
     "feature_detailed_reports": "Rapports nutritionnels détaillés",
     "feature_ai_chat": "Assistant nutritionnel IA",
     "most_popular": "MEILLEURE OFFRE",
-    "lifetime": "À VIE",
-    "student": "ÉTUDIANT",
+    "lifetime": "À vie",
+    "student": "Étudiant",
     "studentToggle": "Je suis étudiant",
     "studentHint": "Afficher la réduction étudiante",
     "restorePurchases": "Restaurer les achats",
@@ -1895,9 +1986,9 @@
     "purchasesRestored": "Vos achats ont été restaurés.",
     "noPurchases": "Aucun achat",
     "noPurchasesFound": "Aucun achat précédent trouvé.",
-    "restoreFailed": "Impossible de restaurer les achats.",
+    "restoreFailed": "Échec de la restauration",
     "planNotFound": "Plan introuvable",
-    "purchaseFailed": "L'achat a échoué. Veuillez réessayer.",
+    "purchaseFailed": "Achat échoué. Veuillez réessayer.",
     "terms_notice": "Annulez à tout moment dans les paramètres.",
     "billing": {
       "currency": {
@@ -1923,8 +2014,8 @@
     "studentVerificationTitle": "Réduction étudiante",
     "applyPlan": "Appliquer le plan",
     "hideStudent": "Masquer",
-    "perMonth": "par mois",
-    "perYear": "par an",
+    "perMonth": "/mois",
+    "perYear": "/an",
     "included": "Inclus",
     "popular": "Populaire",
     "bestValue": "Meilleur choix",
@@ -1934,7 +2025,15 @@
     "feature_expert_access": "Accès aux experts en nutrition",
     "feature_export_data": "Exportez vos données",
     "plan_weekly": "Hebdomadaire",
-    "restore": "Restaurer les achats"
+    "restore": "Restaurer les achats",
+    "choosePlan": "Choisir un plan",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "founders": "Fondateur",
+    "save": "Économisez",
+    "subscribeCTA": "Choisir le plan",
+    "legalTerms": "Conditions d'utilisation",
+    "legalPrivacy": "Confidentialité"
   },
   "plan_yearly": "Annuel",
   "plan_student": "Étudiant",
@@ -1979,6 +2078,28 @@
     "title": "Conditions d'Utilisation"
   },
   "lifestyles": {
+    "detail": {
+      "share": "Partager",
+      "mantra": "Mantra du jour",
+      "philosophy": "Philosophie",
+      "embrace": "Privilégier",
+      "minimize": "Réduire",
+      "dailyInspiration": "Inspiration quotidienne",
+      "sampleDay": "Journée type",
+      "morning": "Matin",
+      "midday": "Midi",
+      "evening": "Soir",
+      "vibe": "Ambiance",
+      "startProgram": "Commencer le programme",
+      "continueProgram": "Continuer"
+    },
+    "share": {
+      "button": "Partager le programme",
+      "title": "Regarde ce programme !",
+      "textTemplate": "Je commence le programme {{name}} sur EatSense ! 🥑✨",
+      "celebrationTitle": "Programme commencé !",
+      "celebrationSubtitle": "Bonne chance pour ce nouveau voyage !"
+    },
     "categories": {
       "all": "Tout",
       "TRENDING": "Tendances",
@@ -2006,20 +2127,6 @@
       "locked": "Plan Premium",
       "view": "Ouvrir le programme"
     },
-    "detail": {
-      "mantra": "Mantra du jour",
-      "philosophy": "Philosophie",
-      "embrace": "Privilégier",
-      "minimize": "Réduire",
-      "dailyInspiration": "Inspiration quotidienne",
-      "sampleDay": "Journée type",
-      "morning": "Matin",
-      "midday": "Midi",
-      "evening": "Soir",
-      "vibe": "Ambiance",
-      "startProgram": "Commencer le programme",
-      "continueProgram": "Continuer"
-    },
     "search": {
       "placeholder": "Rechercher des programmes..."
     },
@@ -2040,7 +2147,9 @@
     "type_message": "Écrivez un message..."
   },
   "error": {
-    "title": "Erreur"
+    "title": "Erreur",
+    "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "unknown": "Une erreur inconnue s'est produite."
   },
   "diets_tracker_title": "Suivi Quotidien",
   "diets_tracker_daily_checklist": "Checklist Quotidienne",
@@ -2157,32 +2266,34 @@
   "CHAT_CONSULTATION": "Consultation par chat",
   "paywall": {
     "title": "Débloquer l'accès complet",
-    "subtitle": "Profitez au maximum d'EatSense",
+    "subtitle": "Tirez le meilleur parti d'EatSense",
     "unlockFeature": "Débloquer cette fonctionnalité",
-    "freeTrial": "Essai gratuit",
+    "freeTrial": "Commencer l'essai gratuit",
     "recommended": "Recommandé",
-    "startTrial": "Commencer l'essai gratuit de 7 jours",
+    "startTrial": "Commencer l'essai de 7 jours",
     "finePrint": "Annulez à tout moment. Vous ne serez pas facturé pendant la période d'essai.",
-    "finePrintNoTrial": "L'abonnement se renouvelle chaque mois. Annulez à tout moment.",
+    "finePrintNoTrial": "L'abonnement se renouvelle mensuellement. Annulez à tout moment.",
     "trialBadge": "{{days}} jours d'essai gratuit",
     "tryFree": "Essayer gratuitement pendant {{days}} jours",
-    "subscribeNow": "S'abonner",
+    "subscribeNow": "S'abonner maintenant",
     "features": {
-      "unlimited": "Analyse illimitée",
+      "unlimited": "Analyses illimitées",
       "diets": "Tous les régimes et plans",
       "insights": "Aperçus santé",
       "support": "Support prioritaire"
-    }
+    },
+    "priceAfterTrial": "Puis {{price}}/mois après la période d'essai",
+    "priceMonthly": "{{price}}/mois"
   },
   "premium": {
-    "lock_title": "Contenu Premium",
+    "lock_title": "Contenu premium",
     "lock_desc": "Obtenez un accès illimité à tous les régimes, styles de vie et fonctionnalités avec EatSense Pro.",
     "feature": {
       "diets": "Tous les régimes premium",
       "lifestyles": "Programmes de style de vie",
-      "tracker": "Suivi de progression avancé"
+      "tracker": "Suivi avancé des progrès"
     },
-    "start_trial": "Commencer l'essai gratuit de 3 jours",
+    "start_trial": "Commencer l'essai de 3 jours",
     "restore": "Restaurer les achats"
   },
   "usageSummary": {
