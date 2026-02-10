@@ -21,7 +21,7 @@ import LifestyleTabContent from '../features/lifestyles/components/LifestyleTabC
 import SuggestProgramCard from '../components/programs/SuggestProgramCard';
 import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/ProgramProgressStore';
 import seedBundle from '../../assets/dietsBundleSeed.json';
-import { trialService } from '../services/trialService';
+// trialService removed - using Apple Intro Offer only
 import PaywallModal from '../components/PaywallModal';
 import { isFreeDiet, isFreeLifestyle, ENABLE_PREMIUM_LOCK } from '../config/freeContent';
 import Tooltip from '../components/Tooltip/Tooltip';
@@ -197,12 +197,9 @@ export default function DietsScreen({ navigation }) {
     // Track if store has loaded at least once - prevents clearing activeDiet from bundle prematurely
     const storeHasLoadedRef = useRef(false);
 
-    // Initialize trial service on mount
-    useEffect(() => {
-        trialService.init();
-    }, []);
+    // Trial service removed - using Apple Intro Offer only
 
-    // NEW: Check if program is locked
+    // Check if program is locked (Apple Intro Offer only - no local soft trials)
     const checkLockStatus = useCallback((programId) => {
         // 1. Check free list first (diets and lifestyles)
         if (isFreeDiet(programId) || isFreeLifestyle(programId)) return false;
@@ -211,16 +208,9 @@ export default function DietsScreen({ navigation }) {
         if (subscription?.hasSubscription) return false;
 
         // 3. If user has active customized/started this program (activeProgram), NEVER lock
-        // This ensures if they started it, they keep it.
-        // Also check if activeProgram matches the ID?
-        // Ideally if they are running it, it's unlocked.
         if (activeProgram?.programId === programId) return false;
 
-        // 4. Check local soft trial
-        const isTrial = trialService.isTrialActive(programId);
-        if (isTrial) return false;
-
-        // 5. Otherwise Locked
+        // 4. Otherwise Locked - trial handled by Apple Intro Offer via IAP
         return true;
     }, [subscription, activeProgram]);
 
@@ -421,22 +411,10 @@ export default function DietsScreen({ navigation }) {
         }
     };
 
-    // NEW: Unlock handler
-    const handleUnlock = async () => {
+    // Unlock handler - opens PaywallModal for Apple Intro Offer subscription
+    const handleUnlock = () => {
         if (selectedProgramForUnlock) {
-            const success = await trialService.startTrial(selectedProgramForUnlock);
-            if (success) {
-                setLockModalVisible(false);
-                setTick(t => t + 1); // Force re-render/re-check lock status
-
-                setTimeout(() => {
-                    if (activeTab === 'lifestyle') {
-                        navigation.navigate('LifestyleDetail', { id: selectedProgramForUnlock });
-                    } else {
-                        navigation.navigate('DietProgramDetail', { dietId: selectedProgramForUnlock });
-                    }
-                }, 100);
-            }
+            setLockModalVisible(true);
         }
     };
 

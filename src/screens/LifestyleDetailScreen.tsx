@@ -3,9 +3,9 @@
  * Fetches program data from API
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import LifestyleDetailScreenComponent from '../features/lifestyles/components/LifestyleDetailScreen';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
@@ -77,19 +77,21 @@ export default function LifestyleDetailScreen() {
     loadData();
   }, [programId, navigation, t]);
 
-  // Check subscription status
-  useEffect(() => {
-    const checkSubscription = async () => {
-      try {
-        const subscription = await ApiService.getCurrentSubscription();
-        setIsPremiumUser(subscription?.hasSubscription === true);
-      } catch (error) {
-        console.error('[LifestyleDetail] Failed to check subscription:', error);
-        setIsPremiumUser(false);
-      }
-    };
-    checkSubscription();
-  }, []);
+  // Check subscription status on every focus (re-checks after purchase on other screens)
+  useFocusEffect(
+    useCallback(() => {
+      const checkSubscription = async () => {
+        try {
+          const subscription = await ApiService.getCurrentSubscription();
+          setIsPremiumUser(subscription?.hasSubscription === true);
+        } catch (error) {
+          console.error('[LifestyleDetail] Failed to check subscription:', error);
+          setIsPremiumUser(false);
+        }
+      };
+      checkSubscription();
+    }, [])
+  );
 
   // Check subscription status
   const handleStartProgram = async () => {

@@ -245,10 +245,14 @@ export class StatsService {
     fromDate.setHours(0, 0, 0, 0);
     toDate.setHours(23, 59, 59, 999);
 
-    const cacheKey = crypto
+    // FIX: Prefix cache key with userId so invalidateNamespace(namespace, userId) pattern matches
+    // invalidateNamespace builds pattern: eatsense:stats:monthly:${userId}:*
+    // So key must be: ${userId}:${hash} to match ${userId}:*
+    const hashPart = crypto
       .createHash('sha1')
-      .update(`${userId}:${fromDate.toISOString()}:${toDate.toISOString()}`)
+      .update(`${fromDate.toISOString()}:${toDate.toISOString()}`)
       .digest('hex');
+    const cacheKey = `${userId}:${hashPart}`;
 
     const cached = await this.cache.get<any>(cacheKey, 'stats:monthly');
     if (cached) {

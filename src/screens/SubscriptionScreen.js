@@ -17,8 +17,9 @@ import { useI18n } from '../../app/i18n/hooks';
 import { openLegalLink } from '../utils/legal';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import IAPService from '../services/iapService';
+import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
-import { getCurrency, formatPrice, getDeviceRegion, getOriginalPrice } from '../utils/currency';
+import { getCurrency, formatPrice, getDeviceRegion } from '../utils/currency';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Plan descriptions for Apple App Store Review compliance
@@ -111,6 +112,14 @@ export default function SubscriptionScreen() {
     });
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
+    const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+    // Check if user has active subscription (to correctly show Free Plan status)
+    React.useEffect(() => {
+        ApiService.getCurrentSubscription()
+            .then(sub => setHasActiveSubscription(sub?.hasSubscription === true))
+            .catch(() => setHasActiveSubscription(false));
+    }, []);
 
     // Load currency from device region (fallback when IAP unavailable)
     // Use currency utility to get correct currency and prices for all 175 countries
@@ -322,8 +331,11 @@ export default function SubscriptionScreen() {
                     badge = defaults.badge || null;
                 }
 
-                // Use region-based pricing from expo-localization + PRICING table
-                const displayPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
+                // Use IAP localizedPrice (Apple/Google storefront) as primary,
+                // fall back to region-based pricing from expo-localization
+                const iapLocalizedPrice = product.localizedPrice;
+                const fallbackPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
+                const displayPrice = iapLocalizedPrice || fallbackPrice;
                 const periodSuffix = isFounders ? '' : (isYearly || isStudent ? `/${yearLabel}` : `/${monthLabel}`);
 
                 return {
@@ -395,10 +407,13 @@ export default function SubscriptionScreen() {
         const onSuccess = (productId) => {
             console.log('[SubscriptionScreen] Purchase success:', productId);
             setPurchasing(false);
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'MainTabs' }],
-            });
+            // FIX: Don't reset navigation (causes "app restart" effect).
+            // Instead, go back so the previous screen refreshes subscription via useFocusEffect.
+            Alert.alert(
+                t('subscription.success', 'Success'),
+                t('subscription.purchaseComplete', 'Your subscription is now active!'),
+                [{ text: 'OK', onPress: () => navigation.goBack() }]
+            );
         };
 
         const onError = (error) => {
@@ -439,14 +454,13 @@ export default function SubscriptionScreen() {
         try {
             const restored = await IAPService.restorePurchases();
             if (restored) {
+                // FIX: Don't reset navigation (causes "app restart" effect).
+                // Navigate back so previous screen refreshes subscription state via useFocusEffect.
                 Alert.alert(
                     t('subscription.restored', 'Restored'),
-                    t('subscription.purchasesRestored', 'Your purchases have been restored.')
+                    t('subscription.purchasesRestored', 'Your purchases have been restored.'),
+                    [{ text: 'OK', onPress: () => navigation.goBack() }]
                 );
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'MainTabs' }],
-                });
             } else {
                 Alert.alert(
                     t('subscription.noPurchases', 'No Purchases'),
@@ -518,7 +532,9 @@ export default function SubscriptionScreen() {
                                     {t('subscription.freePlan') || 'Free Plan'}
                                 </Text>
                                 <Text style={[styles.freePlanSubtitle, { color: tokens.colors?.textSecondary || '#666' }]}>
-                                    {t('subscription.freePlanIncluded') || 'Currently active'}
+                                    {hasActiveSubscription
+                                        ? (t('subscription.freePlanBaseline') || 'Included with all plans')
+                                        : (t('subscription.freePlanIncluded') || 'Currently active')}
                                 </Text>
                             </View>
                             <View style={[styles.freePlanBadge, { backgroundColor: (tokens.colors?.success || '#4CAF50') + '20' }]}>
@@ -655,31 +671,15 @@ export default function SubscriptionScreen() {
                                         </View>
                                     </View>
 
-                                    {/* Price with optional strike-through */}
+                                    {/* Price - StoreKit localizedPrice is source of truth */}
                                     <View style={styles.priceRow}>
-                                        {(() => {
-                                            const planId = plan.name === 'monthly' ? 'monthly' : plan.name === 'yearly' ? 'yearly' : plan.name === 'student' ? 'student' : 'founder';
-                                            const originalPrice = getOriginalPrice(planId, plan.currency);
-                                            return (
-                                                <>
-                                                    {originalPrice && (
-                                                        <Text style={[
-                                                            styles.originalPrice,
-                                                            { color: tokens.colors?.textSecondary || '#999' }
-                                                        ]}>
-                                                            {originalPrice}
-                                                        </Text>
-                                                    )}
-                                                    <Text style={[
-                                                        styles.planPriceCompact,
-                                                        isSelected && styles.planPriceSelected,
-                                                        { color: tokens.colors?.textPrimary || '#212121' }
-                                                    ]}>
-                                                        {plan.priceFormatted}
-                                                    </Text>
-                                                </>
-                                            );
-                                        })()}
+                                        <Text style={[
+                                            styles.planPriceCompact,
+                                            isSelected && styles.planPriceSelected,
+                                            { color: tokens.colors?.textPrimary || '#212121' }
+                                        ]}>
+                                            {plan.priceFormatted}
+                                        </Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>

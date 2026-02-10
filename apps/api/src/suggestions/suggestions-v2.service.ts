@@ -77,6 +77,7 @@ export class SuggestionsV2Service {
                 },
                 include: { items: true },
                 orderBy: { createdAt: 'desc' },
+                take: 200, // Limit to prevent slow queries on users with many meals
             });
 
             // 3. Calculate stats

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis/redis.service';
+import { CacheService } from '../src/cache/cache.service';
 import { UpdateProfileDto } from './dto';
 import { HealthProfile } from '../src/users/health-profile.types';
 
@@ -11,6 +12,7 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
+    private readonly cache: CacheService,
   ) {}
 
   async getProfile(userId: string) {
@@ -216,6 +218,15 @@ export class UsersService {
           },
         },
       });
+    }
+
+    // Invalidate stats cache so Dashboard picks up new calorie goals immediately
+    try {
+      await this.cache.invalidateNamespace('stats:monthly', userId);
+      await this.cache.invalidateNamespace('stats:daily' as any, userId);
+      this.logger.debug(`Invalidated stats cache for user ${userId} after profile update`);
+    } catch (error: any) {
+      this.logger.warn(`Failed to invalidate stats cache after profile update: ${error?.message || String(error)}`);
     }
 
     // Return updated user with profile

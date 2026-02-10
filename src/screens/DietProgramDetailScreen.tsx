@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,19 +59,21 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
         loadProgram();
     }, [loadProgram]);
 
-    // Check subscription status
-    useEffect(() => {
-        const checkSubscription = async () => {
-            try {
-                const subscription = await ApiService.getCurrentSubscription();
-                setIsPremiumUser(subscription?.hasSubscription === true);
-            } catch (error) {
-                console.error('[DietProgramDetail] Failed to check subscription:', error);
-                setIsPremiumUser(false);
-            }
-        };
-        checkSubscription();
-    }, []);
+    // Check subscription status on every focus (re-checks after purchase on other screens)
+    useFocusEffect(
+        useCallback(() => {
+            const checkSubscription = async () => {
+                try {
+                    const subscription = await ApiService.getCurrentSubscription();
+                    setIsPremiumUser(subscription?.hasSubscription === true);
+                } catch (error) {
+                    console.error('[DietProgramDetail] Failed to check subscription:', error);
+                    setIsPremiumUser(false);
+                }
+            };
+            checkSubscription();
+        }, [])
+    );
 
     // Check if this program is currently active
     const isActive = activeProgram?.programId === program?.id;
