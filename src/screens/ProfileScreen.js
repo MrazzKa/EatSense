@@ -23,7 +23,9 @@ import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
-import { formatAmount, getPriceValue } from '../utils/currency';
+import { formatAmount, getPriceValue, formatPrice } from '../utils/currency';
+import IAPService from '../services/iapService';
+import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
@@ -180,6 +182,8 @@ const ProfileScreen = () => {
     planId: 'free',
     billingCycle: 'lifetime',
   });
+  // IAP prices from StoreKit (source of truth for subscription pricing)
+  const [iapPrices, setIapPrices] = useState({});
   const [goal, setGoal] = useState('maintain_weight');
   const [dietPreferences, setDietPreferences] = useState([]);
   const [healthProfile, setHealthProfile] = useState({
@@ -489,6 +493,29 @@ const ProfileScreen = () => {
     }, [loadProfile])
   );
 
+  // Load IAP prices from StoreKit for plan modal (source of truth for subscription pricing)
+  useEffect(() => {
+    const loadIapPrices = async () => {
+      try {
+        await IAPService.init();
+        const { all } = await IAPService.getAvailableProducts();
+        if (all.length > 0) {
+          const priceMap = {};
+          all.forEach(product => {
+            if (product.productId === SUBSCRIPTION_SKUS.MONTHLY) priceMap.monthly = product.localizedPrice;
+            else if (product.productId === SUBSCRIPTION_SKUS.YEARLY) priceMap.yearly = product.localizedPrice;
+            else if (product.productId === SUBSCRIPTION_SKUS.STUDENT) priceMap.student = product.localizedPrice;
+            else if (product.productId === NON_CONSUMABLE_SKUS.FOUNDERS) priceMap.founders = product.localizedPrice;
+          });
+          setIapPrices(priceMap);
+        }
+      } catch (err) {
+        console.warn('[Profile] Failed to load IAP prices:', err);
+      }
+    };
+    loadIapPrices();
+  }, []);
+
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -653,21 +680,34 @@ const ProfileScreen = () => {
     if (basePlan.id === 'free') {
       priceText = safeT('profile.planFreePrice', 'Free');
     } else if (basePlan.id === 'founders') {
-      priceText = safeT('profile.planFounderPrice', 'One-time payment');
+      // Use IAP price from StoreKit as source of truth, fallback to generic text
+      priceText = iapPrices.founders || safeT('profile.planFounderPrice', 'One-time payment');
     } else if (basePlan.billingCycle === 'monthly') {
-      // FIX: Use currency-aware pricing based on device region
-      const price = basePlan.price !== null ? basePlan.price : getPriceValue('monthly');
-      priceText = safeT('profile.planMonthlyPrice', '{{price}} / month').replace(
-        '{{price}}',
-        formatAmount(price),
-      );
+      // Use IAP price from StoreKit as source of truth
+      const iapPrice = iapPrices.monthly;
+      if (iapPrice) {
+        priceText = iapPrice + ' / ' + safeT('profile.month', 'month');
+      } else {
+        // Fallback to expo-localization pricing
+        const price = basePlan.price !== null ? basePlan.price : getPriceValue('monthly');
+        priceText = safeT('profile.planMonthlyPrice', '{{price}} / month').replace(
+          '{{price}}',
+          formatAmount(price),
+        );
+      }
     } else {
-      // FIX: Use currency-aware pricing based on device region
-      const price = basePlan.price !== null ? basePlan.price : (basePlan.id === 'student' ? getPriceValue('student') : getPriceValue('yearly'));
-      priceText = safeT('profile.planAnnualPrice', '{{price}} / year').replace(
-        '{{price}}',
-        formatAmount(price),
-      );
+      // Use IAP price from StoreKit as source of truth
+      const iapPrice = basePlan.id === 'student' ? iapPrices.student : iapPrices.yearly;
+      if (iapPrice) {
+        priceText = iapPrice + ' / ' + safeT('profile.year', 'year');
+      } else {
+        // Fallback to expo-localization pricing
+        const price = basePlan.price !== null ? basePlan.price : (basePlan.id === 'student' ? getPriceValue('student') : getPriceValue('yearly'));
+        priceText = safeT('profile.planAnnualPrice', '{{price}} / year').replace(
+          '{{price}}',
+          formatAmount(price),
+        );
+      }
     }
 
     const description =
@@ -1891,14 +1931,23 @@ const ProfileScreen = () => {
                   >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.modalPlanName, { fontSize: 18 }]}>{planDetails.name}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Text style={[styles.modalPlanName, { fontSize: 18 }]}>{planDetails.name}</Text>
+                          {isCurrentPlan && (
+                            <View style={{ backgroundColor: tokens.colors.success || '#34C759', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 }}>
+                              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
+                                {safeT('profile.currentPlan', 'Current')}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                         <Text style={[styles.modalPlanPrice, { fontSize: 20, marginTop: 4 }]}>{planDetails.priceText}</Text>
                         <Text style={[styles.modalPlanDescription, { marginTop: 4, fontSize: 13 }]} numberOfLines={2}>
                           {planDetails.description}
                         </Text>
                       </View>
 
-                      {planDetails.badge && (
+                      {planDetails.badge && !isCurrentPlan && (
                         <View style={[styles.modalPlanBadge, { alignSelf: 'flex-start' }]}>
                           <Text style={styles.modalPlanBadgeText}>
                             {planDetails.badge}
@@ -1906,7 +1955,7 @@ const ProfileScreen = () => {
                         </View>
                       )}
 
-                      {isSelected && !planDetails.badge && (
+                      {isSelected && !planDetails.badge && !isCurrentPlan && (
                         <Ionicons name="checkmark-circle" size={24} color={tokens.states.primary.on} />
                       )}
                     </View>

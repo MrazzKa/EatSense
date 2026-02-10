@@ -814,6 +814,7 @@ REVIEW MODE - Be extra careful:
                   'smoked': 'smoked', // FIX: Now valid enum
                   'melted': 'melted', // FIX: Now valid enum
                   'microwaved': 'mixed',
+                  'cooked': 'braised', // Generic "cooked" from Vision → map to braised
                   'fresh': 'raw',
                   'uncooked': 'raw',
                   'none': 'raw',

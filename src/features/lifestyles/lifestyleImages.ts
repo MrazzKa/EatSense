@@ -13,7 +13,8 @@ export const LIFESTYLE_IMAGES: Record<string, any> = {
   'clean_girl': require('../../../assets/lifestyles/Clean girl.jpeg'),
   'soft_life': require('../../../assets/lifestyles/Soft life.jpeg'),
   'french_girl': require('../../../assets/lifestyles/French girl.jpeg'),
-  'coastal_grandmother': require('../../../assets/lifestyles/Coastal grandmother.jpeg'),
+  // 'coastal_grandmother': removed - local portrait photo crops badly in 48px circle
+  // Falls back to Unsplash beach URL from database which renders better
   'old_money': require('../../../assets/lifestyles/Old money.jpeg'),
   'pilates_princess': require('../../../assets/lifestyles/Pilates princess.jpeg'),
   'hot_girl_walk': require('../../../assets/lifestyles/Hot girl walks.jpeg'),

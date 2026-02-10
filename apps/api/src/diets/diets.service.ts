@@ -20,6 +20,9 @@ interface DietFilters {
 // Cache TTL for diets list (5 minutes)
 const DIETS_CACHE_TTL = 300;
 
+// Slugs to hide from all listings (removed programs that are still in DB)
+const HIDDEN_SLUGS = ['ramadan_fasting', 'ramadan'];
+
 @Injectable()
 export class DietsService implements OnModuleInit {
     private readonly logger = new Logger(DietsService.name);
@@ -1272,24 +1275,26 @@ export class DietsService implements OnModuleInit {
 
         try {
             // Prepare parallel requests
+            // FIX: Exclude hidden slugs (e.g., Ramadan removed from lifestyles)
+            const hiddenFilter = HIDDEN_SLUGS.length > 0 ? { slug: { notIn: HIDDEN_SLUGS } } : {};
             const requests: Promise<any>[] = [
                 // Featured diets (type = WEIGHT_LOSS, HEALTH, etc, excluding LIFESTYLE)
                 this.prisma.dietProgram.findMany({
-                    where: { isActive: true, isFeatured: true, type: { not: 'LIFESTYLE' } },
+                    where: { isActive: true, isFeatured: true, type: { not: 'LIFESTYLE' }, ...hiddenFilter },
                     orderBy: { popularityScore: 'desc' },
                     take: 8,
                 }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
 
                 // Featured lifestyles
                 this.prisma.dietProgram.findMany({
-                    where: { isActive: true, isFeatured: true, type: 'LIFESTYLE' },
+                    where: { isActive: true, isFeatured: true, type: 'LIFESTYLE', ...hiddenFilter },
                     orderBy: { popularityScore: 'desc' },
                     take: 8,
                 }).then(diets => diets.map(d => this.localizeDiet(d, locale))),
 
                 // All diets (non-lifestyle) - optimized select (only essential fields)
                 this.prisma.dietProgram.findMany({
-                    where: { isActive: true, type: { not: 'LIFESTYLE' } },
+                    where: { isActive: true, type: { not: 'LIFESTYLE' }, ...hiddenFilter },
                     orderBy: [{ isFeatured: 'desc' }, { popularityScore: 'desc' }],
                     take: 50,
                     select: {
@@ -1303,7 +1308,7 @@ export class DietsService implements OnModuleInit {
 
                 // All lifestyles - optimized select (only essential fields)
                 this.prisma.dietProgram.findMany({
-                    where: { isActive: true, type: 'LIFESTYLE' },
+                    where: { isActive: true, type: 'LIFESTYLE', ...hiddenFilter },
                     orderBy: [{ isFeatured: 'desc' }, { popularityScore: 'desc' }],
                     take: 50,
                     select: {

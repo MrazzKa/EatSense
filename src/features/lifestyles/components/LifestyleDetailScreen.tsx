@@ -207,7 +207,7 @@ export default function LifestyleDetailScreen({
         {/* Mandatory Disclaimer */}
         <DisclaimerBanner />
 
-        {/* Daily Mantra */}
+        {/* Daily Mantra - rotates daily using dailyInspiration array if available */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
             {t('lifestyles.detail.mantra') || 'Мантра дня'}
@@ -220,7 +220,22 @@ export default function LifestyleDetailScreen({
                 { color: colors.textPrimary || '#212121' },
               ]}
             >
-              {getLocalizedText(program.mantra || (program.rules && program.rules.mantra), t)}
+              {(() => {
+                // Check for mantras array (dailyInspiration) for daily rotation
+                const inspiration = program.dailyInspiration || program.rules?.dailyInspiration;
+                if (inspiration) {
+                  const lang = t('_locale') || 'en';
+                  const arr = inspiration[lang] || inspiration.en || (Array.isArray(inspiration) ? inspiration : null);
+                  if (Array.isArray(arr) && arr.length > 1) {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), 0, 0);
+                    const dayOfYear = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                    return arr[dayOfYear % arr.length];
+                  }
+                }
+                // Fallback to single mantra
+                return getLocalizedText(program.mantra || (program.rules && program.rules.mantra), t);
+              })()}
             </Text>
           </View>
         </View>

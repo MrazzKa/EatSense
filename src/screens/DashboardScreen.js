@@ -201,13 +201,36 @@ export default function DashboardScreen() {
   const updateDashboardState = React.useCallback((data) => {
     if (!data) return;
 
-    // 1. Stats
+    // 1. Stats - with client-side fallback from meals if backend stats are 0
     if (data.stats && data.stats.today) {
+      let { calories, protein, carbs, fat } = data.stats.today;
+      calories = calories || 0;
+      protein = protein || 0;
+      carbs = carbs || 0;
+      fat = fat || 0;
+
+      // Fallback: if stats show 0 but meals have data, recalculate from meals
+      if (calories === 0 && Array.isArray(data.meals) && data.meals.length > 0) {
+        const toNum = (v) => Number.isFinite(Number(v)) ? Number(v) : 0;
+        const mealsTotals = data.meals.reduce((acc, meal) => {
+          const items = Array.isArray(meal.items) ? meal.items : [];
+          acc.calories += toNum(meal.totalCalories) || items.reduce((s, i) => s + toNum(i.calories), 0);
+          acc.protein += toNum(meal.totalProtein) || items.reduce((s, i) => s + toNum(i.protein), 0);
+          acc.carbs += toNum(meal.totalCarbs) || items.reduce((s, i) => s + toNum(i.carbs), 0);
+          acc.fat += toNum(meal.totalFat) || items.reduce((s, i) => s + toNum(i.fat), 0);
+          return acc;
+        }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+        calories = Math.max(calories, Math.round(mealsTotals.calories));
+        protein = Math.max(protein, Math.round(mealsTotals.protein));
+        carbs = Math.max(carbs, Math.round(mealsTotals.carbs));
+        fat = Math.max(fat, Math.round(mealsTotals.fat));
+      }
+
       setStats({
-        totalCalories: data.stats.today.calories || 0,
-        totalProtein: data.stats.today.protein || 0,
-        totalCarbs: data.stats.today.carbs || 0,
-        totalFat: data.stats.today.fat || 0,
+        totalCalories: calories,
+        totalProtein: protein,
+        totalCarbs: carbs,
+        totalFat: fat,
         goal: (data.stats.goals && data.stats.goals.calories) || 2000,
       });
     }
@@ -283,10 +306,10 @@ export default function DashboardScreen() {
       });
     }
 
-    // 4. Suggestions
+    // 4. Suggestions — preserve previous value on timeout/error/skip
     if (data.suggestions) {
       const s = data.suggestions;
-      if (s.status === 'ok' || s.status === 'insufficient_data') {
+      if ((s.status === 'ok' || s.status === 'insufficient_data') && s.summary) {
         setSuggestedFoodSummary({
           reason: s.summary,
           category: s.sections?.[0]?.category || 'general',
@@ -295,9 +318,8 @@ export default function DashboardScreen() {
           healthScore: s.health?.score || 50,
           status: s.status,
         });
-      } else {
-        setSuggestedFoodSummary(null);
       }
+      // For timeout/error/skipped — keep previous suggestions visible (don't set null)
     }
 
     // 5. Active Diet - Don't update store from dashboard API
@@ -310,30 +332,42 @@ export default function DashboardScreen() {
 
   // Track fetch status to prevent parallel/duplicate requests
   const isFetchingRef = React.useRef(false);
+  // FIX: If a forced refresh is requested while a fetch is in-flight, queue it
+  const pendingForceRefreshRef = React.useRef(false);
   // Throttle: minimum 60 seconds between API calls (prevents suggestion spam)
   const lastFetchTimestampRef = React.useRef(0);
   const MIN_FETCH_INTERVAL = 60 * 1000; // 60 seconds
 
+  // Request counter to detect stale responses (race condition protection)
+  const fetchIdRef = React.useRef(0);
+
   // Consolidated data loading
   const loadDashboardData = React.useCallback(async (force = false) => {
-    // Prevent duplicate calls if already fetching, unless forced
-    if (isFetchingRef.current && !force) {
-      if (__DEV__) console.log('[DashboardScreen] Skipping duplicate load request');
+    // Prevent duplicate calls — but queue forced refreshes for after current finishes
+    if (isFetchingRef.current) {
+      if (force) {
+        pendingForceRefreshRef.current = true;
+        if (__DEV__) console.log('[Dashboard] Fetch in-flight — queued forced refresh for after completion');
+      } else {
+        if (__DEV__) console.log('[Dashboard] Skipping — fetch already in-flight');
+      }
       return;
     }
 
-    // Throttle: don't re-fetch if we fetched recently (unless force AND not fetching)
+    // Throttle: don't re-fetch if we fetched recently (unless forced)
     const now = Date.now();
     if (!force && (now - lastFetchTimestampRef.current < MIN_FETCH_INTERVAL)) {
-      if (__DEV__) console.log('[DashboardScreen] Throttled - last fetch was', Math.round((now - lastFetchTimestampRef.current) / 1000), 's ago');
+      if (__DEV__) console.log('[Dashboard] Throttled — last fetch', Math.round((now - lastFetchTimestampRef.current) / 1000), 's ago');
       return;
     }
 
     const currentLocale = language || 'en';
     const dateKey = selectedDate.toISOString().split('T')[0];
     const cacheKey = `dashboard_data_${dateKey}_${currentLocale}`;
+    const thisRequestId = ++fetchIdRef.current;
 
     isFetchingRef.current = true;
+    if (__DEV__) console.log(`[Dashboard] fetch #${thisRequestId} started (date=${dateKey}, force=${force})`);
 
     try {
       // 1. Try Cache First (Fast Render)
@@ -359,17 +393,22 @@ export default function DashboardScreen() {
       const data = await ApiService.getDashboardData(selectedDate, currentLocale);
 
       if (!data) {
-        console.warn('[DashboardScreen] API returned null, keeping cached data');
+        console.warn('[Dashboard] API returned null, keeping cached data');
+        return;
+      }
+
+      // Stale response check: if a newer request was started, discard this result
+      if (thisRequestId !== fetchIdRef.current) {
+        if (__DEV__) console.log(`[Dashboard] Discarding stale response #${thisRequestId} (current=#${fetchIdRef.current})`);
         return;
       }
 
       // 3. Update Cache & State
       lastFetchTimestampRef.current = Date.now();
+      if (__DEV__) console.log(`[Dashboard] fetch #${thisRequestId} done — ${data.meals?.length || 0} meals`);
       // FIX: Only cache data if it has meals to prevent caching empty data
       if (data?.meals?.length > 0) {
         AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
-      } else {
-        if (__DEV__) console.log('[Dashboard] Not caching empty meals data');
       }
       updateDashboardState(data);
 
@@ -387,6 +426,13 @@ export default function DashboardScreen() {
       }
     } finally {
       isFetchingRef.current = false;
+      // FIX: If a forced refresh was queued while we were fetching, trigger it now
+      if (pendingForceRefreshRef.current) {
+        pendingForceRefreshRef.current = false;
+        if (__DEV__) console.log('[Dashboard] Processing queued forced refresh');
+        // Small delay to let backend cache invalidation propagate
+        setTimeout(() => loadDashboardData(true), 500);
+      }
     }
   }, [selectedDate, language, updateDashboardState]);
 
@@ -399,16 +445,11 @@ export default function DashboardScreen() {
   }, []);
 
   // FIX 2: Reload when screen gets focus (user returns from other screen or app background)
-  // Throttled: only reload if at least 60s since last fetch
+  // Always force reload on focus to pick up calorie goal changes from Profile, new meals, etc.
   useFocusEffect(
     React.useCallback(() => {
-      const timeSinceLastFetch = Date.now() - lastFetchTimestampRef.current;
-      if (timeSinceLastFetch >= MIN_FETCH_INTERVAL) {
-        if (__DEV__) console.log('[Dashboard] Screen focused, reloading data (last fetch:', Math.round(timeSinceLastFetch / 1000), 's ago)');
-        loadDashboardData(true);
-      } else {
-        if (__DEV__) console.log('[Dashboard] Screen focused, skipping reload (last fetch:', Math.round(timeSinceLastFetch / 1000), 's ago)');
-      }
+      if (__DEV__) console.log('[Dashboard] Screen focused, reloading data');
+      loadDashboardData(true);
     }, [loadDashboardData])
   );
 

@@ -33,7 +33,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
-import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getOriginalPrice, getCurrencySymbolByCode } from '../utils/currency';
+import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getCurrencySymbolByCode } from '../utils/currency';
 
 const { width } = Dimensions.get('window');
 
@@ -1655,21 +1655,9 @@ const OnboardingScreen = () => {
                     </View>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    {(() => {
-                      const originalPrice = getOriginalPrice(plan.billingCycle === 'monthly' ? 'monthly' : plan.billingCycle === 'annual' ? (plan.isStudent ? 'student' : 'yearly') : 'founder', currency.code);
-                      return (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          {originalPrice && (
-                            <Text style={[styles.planPriceOriginal, { color: colors.textSecondary || '#999' }]}>
-                              {originalPrice}
-                            </Text>
-                          )}
-                          <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
-                            {plan.price}
-                          </Text>
-                        </View>
-                      );
-                    })()}
+                    <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                      {plan.price}
+                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -1760,21 +1748,9 @@ const OnboardingScreen = () => {
                     </View>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    {(() => {
-                      const originalPrice = getOriginalPrice(plan.billingCycle === 'monthly' ? 'monthly' : plan.billingCycle === 'annual' ? (plan.isStudent ? 'student' : 'yearly') : 'founder', currency.code);
-                      return (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          {originalPrice && (
-                            <Text style={[styles.planPriceOriginal, { color: colors.textSecondary || '#999' }]}>
-                              {originalPrice}
-                            </Text>
-                          )}
-                          <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
-                            {plan.price}
-                          </Text>
-                        </View>
-                      );
-                    })()}
+                    <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                      {plan.price}
+                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>

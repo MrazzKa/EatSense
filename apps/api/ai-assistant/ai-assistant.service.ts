@@ -263,6 +263,7 @@ export class AiAssistantService {
       es: 'Spanish',
       de: 'German',
       fr: 'French',
+      it: 'Italian',
       ko: 'Korean',
       ja: 'Japanese',
       zh: 'Chinese',
@@ -463,6 +464,7 @@ CRITICAL RULES:
       es: 'Spanish',
       de: 'German',
       fr: 'French',
+      it: 'Italian',
       ko: 'Korean',
       ja: 'Japanese',
       zh: 'Chinese',
@@ -564,6 +566,13 @@ CRITICAL RULES:
       en: 'English',
       ru: 'Russian',
       kk: 'Kazakh',
+      es: 'Spanish',
+      de: 'German',
+      fr: 'French',
+      it: 'Italian',
+      ko: 'Korean',
+      ja: 'Japanese',
+      zh: 'Chinese',
     };
     const responseLanguage = languageMap[userLanguage] || 'English';
 
@@ -697,12 +706,22 @@ CRITICAL RULES:
    * Build a specialized prompt for analyzing lab results from images
    */
   private buildLabResultsImagePrompt(language: string, inputType: 'text' | 'file' = 'file'): string {
-    const langName = language === 'Russian' ? 'Russian' : language === 'Kazakh' ? 'Kazakh' : 'English';
-    const disclaimer = {
+    const langMap: Record<string, string> = {
+      Russian: 'Russian', Kazakh: 'Kazakh', French: 'French',
+      German: 'German', Italian: 'Italian', Spanish: 'Spanish',
+      Korean: 'Korean', Japanese: 'Japanese', Chinese: 'Chinese',
+    };
+    const langName = langMap[language] || 'English';
+    const disclaimer: Record<string, string> = {
       Russian: 'Это не медицинский диагноз. Для решений обратитесь к врачу.',
       Kazakh: 'Бұл медициналық диагноз емес. Шешім қабылдау үшін дәрігерге хабарласыңыз.',
       English: 'This is not a medical diagnosis. Consult a doctor for decisions.',
-    }[langName] || 'This is not a medical diagnosis. Consult a doctor for decisions.';
+      French: 'Ceci n\'est pas un diagnostic médical. Consultez un médecin pour toute décision.',
+      German: 'Dies ist keine medizinische Diagnose. Konsultieren Sie einen Arzt für Entscheidungen.',
+      Italian: 'Questa non è una diagnosi medica. Consultare un medico per le decisioni.',
+      Spanish: 'Esto no es un diagnóstico médico. Consulte a un médico para tomar decisiones.',
+    };
+    const disclaimerText = disclaimer[langName] || disclaimer.English;
 
     // FIX #4: For file uploads, mention that this is from an uploaded document
     const inputContext = inputType === 'file'
@@ -720,7 +739,7 @@ ${inputContext}
 
 === CRITICAL RULES ===
 1. You do NOT diagnose. Use soft language: "may indicate", "could be associated with".
-2. ALWAYS include disclaimer: "${disclaimer}"
+2. ALWAYS include disclaimer: "${disclaimerText}"
 3. If image is blurry/rotated/unreadable, note what you couldn't read.
 4. Respond in ${langName}.
 
@@ -742,17 +761,63 @@ Look for clues:
   * Doctor's handwriting (note if illegible)
   * Stamps, signatures, dates
 
+=== REFERENCE RANGES (WHO/Swiss guidelines) ===
+Use these as sanity-check when the document does NOT provide reference ranges:
+- Hemoglobin (Hb): M 130-175 g/L, F 120-160 g/L
+- WBC: 4.0-10.0 ×10^9/L
+- RBC: M 4.5-5.5, F 3.8-5.0 ×10^12/L
+- Platelets: 150-400 ×10^9/L
+- Glucose (fasting): 3.9-5.6 mmol/L (70-100 mg/dL)
+- HbA1c: <5.7% normal, 5.7-6.4% prediabetes, ≥6.5% diabetes
+- Total Cholesterol: <5.2 mmol/L (<200 mg/dL)
+- LDL: <3.4 mmol/L (<130 mg/dL)
+- HDL: M >1.0, F >1.2 mmol/L
+- Triglycerides: <1.7 mmol/L (<150 mg/dL)
+- TSH: 0.4-4.0 mIU/L
+- ALT: M <41, F <33 U/L
+- AST: M <40, F <32 U/L
+- Creatinine: M 62-106, F 44-80 µmol/L
+- Ferritin: M 30-400, F 13-150 µg/L
+- Vitamin D (25-OH): 75-150 nmol/L (30-60 ng/mL)
+
+=== SANITY CHECK ===
+Flag impossible/suspicious values that may be OCR errors:
+- Hemoglobin > 250 g/L or < 30 g/L
+- Glucose > 50 mmol/L or < 1.0 mmol/L
+- WBC > 100 or < 0.5
+- Platelets > 1500 or < 10
+- If a value seems impossible, note it as "possibly OCR error" and suggest re-checking the original document.
+
+=== UNIT CONVERSIONS ===
+If values are in non-standard units, convert and show both:
+- Glucose: mmol/L × 18 = mg/dL
+- Cholesterol: mmol/L × 38.67 = mg/dL
+- Triglycerides: mmol/L × 88.57 = mg/dL
+- Creatinine: µmol/L × 0.0113 = mg/dL
+- Hemoglobin: g/L ÷ 10 = g/dL
+
+=== FOLLOW-UP RECOMMENDATION ===
+At the end of your analysis, add a brief personalized follow-up message encouraging the user to re-check in 1-3 months. Use the app name "EatSense" naturally:
+- English: "Track your progress with EatSense — re-upload your results in X months to see how your nutrition changes impact your health markers."
+- Russian: "Отслеживайте прогресс с EatSense — загрузите результаты повторно через X месяцев, чтобы увидеть, как изменения в питании влияют на ваши показатели."
+- Kazakh: "EatSense арқылы прогресіңізді қадағалаңыз — X айдан кейін нәтижелерді қайта жүктеңіз."
+- French: "Suivez vos progrès avec EatSense — rechargez vos résultats dans X mois pour voir l'impact de votre alimentation."
+- German: "Verfolgen Sie Ihren Fortschritt mit EatSense — laden Sie Ihre Ergebnisse in X Monaten erneut hoch."
+- Italian: "Monitora i tuoi progressi con EatSense — ricarica i risultati tra X mesi."
+- Spanish: "Sigue tu progreso con EatSense — vuelve a cargar tus resultados en X meses."
+Where X = 1-3 depending on severity of flagged values (more flags = sooner recheck).
+
 === JSON OUTPUT FORMAT (STRICT) ===
 Return ONLY valid JSON:
 {
   "extractedText": "All text extracted from image via OCR",
-  
+
   "document_type": "lab_results|radiology|doctor_consultation|prescription|medical_certificate|xray_image|mixed|unreadable",
   "confidence": "high|medium|low",
   "confidence_reason": "why this confidence level",
-  
+
   "summary": "2-5 line summary in ${langName}",
-  
+
   "details": {
     "metrics": [
       { "name": "...", "value": "...", "unit": "...", "reference": "...", "flag": "low|high|normal|unknown", "explanation": "..." }
@@ -762,13 +827,19 @@ Return ONLY valid JSON:
     "diagnosis": "if present",
     "recommendations": "if present"
   },
-  
+
   "attention_points": ["Items requiring attention"],
   "questions_for_doctor": ["Questions to ask"],
-  
+
+  "next_steps": {
+    "retake_in_months": 1,
+    "retake_tests": ["list of tests to re-check"],
+    "eatsense_message": "personalized follow-up message in ${langName}"
+  },
+
   "missing_data": ["What could not be read or is missing"],
-  
-  "disclaimer": "${disclaimer}"
+
+  "disclaimer": "${disclaimerText}"
 }
 
 If image is completely unreadable:
@@ -776,7 +847,7 @@ If image is completely unreadable:
   "error": "Could not read image",
   "error_type": "blurry|dark|rotated|not_medical|xray_without_report",
   "suggestion": "Please try taking a clearer photo of the document / Please provide the text report instead of the image",
-  "disclaimer": "${disclaimer}"
+  "disclaimer": "${disclaimerText}"
 }
 
 Now analyze the uploaded image and return ONLY the JSON response in ${langName}:`;
@@ -785,12 +856,22 @@ Now analyze the uploaded image and return ONLY the JSON response in ${langName}:
 
 
   private buildLabResultsPrompt(text: string, language: string, inputType: 'text' | 'file' = 'file'): string {
-    const langName = language === 'Russian' ? 'Russian' : language === 'Kazakh' ? 'Kazakh' : 'English';
-    const disclaimer = {
+    const langMap: Record<string, string> = {
+      Russian: 'Russian', Kazakh: 'Kazakh', French: 'French',
+      German: 'German', Italian: 'Italian', Spanish: 'Spanish',
+      Korean: 'Korean', Japanese: 'Japanese', Chinese: 'Chinese',
+    };
+    const langName = langMap[language] || 'English';
+    const disclaimer: Record<string, string> = {
       Russian: 'Это не медицинский диагноз. Для решений обратитесь к врачу.',
       Kazakh: 'Бұл медициналық диагноз емес. Шешім қабылдау үшін дәрігерге хабарласыңыз.',
       English: 'This is not a medical diagnosis. Consult a doctor for decisions.',
-    }[langName] || 'This is not a medical diagnosis. Consult a doctor for decisions.';
+      French: 'Ceci n\'est pas un diagnostic médical. Consultez un médecin pour toute décision.',
+      German: 'Dies ist keine medizinische Diagnose. Konsultieren Sie einen Arzt für Entscheidungen.',
+      Italian: 'Questa non è una diagnosi medica. Consultare un medico per le decisioni.',
+      Spanish: 'Esto no es un diagnóstico médico. Consulte a un médico para tomar decisiones.',
+    };
+    const disclaimerText = disclaimer[langName] || disclaimer.English;
 
     // FIX #4: Different wording for manual text input vs uploaded document
     const inputContext = inputType === 'text' 
@@ -805,7 +886,7 @@ ${inputContext}
 1. You do NOT diagnose, prescribe treatment, or replace a doctor.
 2. You provide cautious interpretation, explaining in understandable terms what is written and what it typically means.
 3. If data is insufficient or unreadable, write: "not found in document / unreadable".
-4. ALWAYS end with disclaimer: "${disclaimer}"
+4. ALWAYS end with disclaimer: "${disclaimerText}"
 5. Use soft language: "may indicate", "could be", "often associated with" - NEVER definitive diagnoses.
 6. Respond in ${langName}.
 
@@ -849,6 +930,52 @@ Explain what each recommendation means (without dosages if not specified).
 For DISCHARGE_SUMMARY:
 Extract: reason for hospitalization, procedures performed, treatment given, condition at discharge, follow-up recommendations.
 
+=== REFERENCE RANGES (WHO/Swiss guidelines) ===
+Use these as sanity-check when the document does NOT provide reference ranges:
+- Hemoglobin (Hb): M 130-175 g/L, F 120-160 g/L
+- WBC: 4.0-10.0 ×10^9/L
+- RBC: M 4.5-5.5, F 3.8-5.0 ×10^12/L
+- Platelets: 150-400 ×10^9/L
+- Glucose (fasting): 3.9-5.6 mmol/L (70-100 mg/dL)
+- HbA1c: <5.7% normal, 5.7-6.4% prediabetes, ≥6.5% diabetes
+- Total Cholesterol: <5.2 mmol/L (<200 mg/dL)
+- LDL: <3.4 mmol/L (<130 mg/dL)
+- HDL: M >1.0, F >1.2 mmol/L
+- Triglycerides: <1.7 mmol/L (<150 mg/dL)
+- TSH: 0.4-4.0 mIU/L
+- ALT: M <41, F <33 U/L
+- AST: M <40, F <32 U/L
+- Creatinine: M 62-106, F 44-80 µmol/L
+- Ferritin: M 30-400, F 13-150 µg/L
+- Vitamin D (25-OH): 75-150 nmol/L (30-60 ng/mL)
+
+=== SANITY CHECK ===
+Flag impossible/suspicious values that may be OCR errors or typos:
+- Hemoglobin > 250 g/L or < 30 g/L
+- Glucose > 50 mmol/L or < 1.0 mmol/L
+- WBC > 100 or < 0.5
+- Platelets > 1500 or < 10
+- If a value seems impossible, note it as "possibly OCR error or typo" and suggest re-checking the original document.
+
+=== UNIT CONVERSIONS ===
+If values are in non-standard units, convert and show both:
+- Glucose: mmol/L × 18 = mg/dL
+- Cholesterol: mmol/L × 38.67 = mg/dL
+- Triglycerides: mmol/L × 88.57 = mg/dL
+- Creatinine: µmol/L × 0.0113 = mg/dL
+- Hemoglobin: g/L ÷ 10 = g/dL
+
+=== FOLLOW-UP RECOMMENDATION ===
+At the end of your analysis, add a brief personalized follow-up message encouraging the user to re-check in 1-3 months. Use the app name "EatSense" naturally:
+- English: "Track your progress with EatSense — re-upload your results in X months to see how your nutrition changes impact your health markers."
+- Russian: "Отслеживайте прогресс с EatSense — загрузите результаты повторно через X месяцев, чтобы увидеть, как изменения в питании влияют на ваши показатели."
+- Kazakh: "EatSense арқылы прогресіңізді қадағалаңыз — X айдан кейін нәтижелерді қайта жүктеңіз."
+- French: "Suivez vos progrès avec EatSense — rechargez vos résultats dans X mois pour voir l'impact de votre alimentation."
+- German: "Verfolgen Sie Ihren Fortschritt mit EatSense — laden Sie Ihre Ergebnisse in X Monaten erneut hoch."
+- Italian: "Monitora i tuoi progressi con EatSense — ricarica i risultati tra X mesi."
+- Spanish: "Sigue tu progreso con EatSense — vuelve a cargar tus resultados en X meses."
+Where X = 1-3 depending on severity of flagged values (more flags = sooner recheck).
+
 === STEP 3: Output Format (STRICT JSON) ===
 
 Return ONLY valid JSON:
@@ -856,9 +983,9 @@ Return ONLY valid JSON:
   "document_type": "lab_results|radiology|doctor_consultation|discharge_summary|prescription|medical_certificate|mixed|image_only",
   "confidence": "high|medium|low",
   "confidence_reason": "why this confidence level",
-  
+
   "summary": "2-5 line summary in ${langName}",
-  
+
   "extracted_data": {
     "document_date": "if found",
     "organization": "if found",
@@ -866,7 +993,7 @@ Return ONLY valid JSON:
     "patient_info": "age/gender if found",
     "main_conclusion": "main finding/diagnosis/conclusion"
   },
-  
+
   "details": {
     "metrics": [
       { "name": "...", "value": "...", "unit": "...", "reference": "...", "flag": "low|high|normal|unknown", "explanation": "..." }
@@ -878,22 +1005,28 @@ Return ONLY valid JSON:
     "diagnosis": "for doctor notes",
     "recommendations": "treatment plan/recommendations"
   },
-  
+
   "attention_points": [
     "3-8 specific items requiring attention, from document text"
   ],
-  
+
   "questions_for_doctor": [
     "3-7 specific questions to ask the doctor"
   ],
-  
+
   "urgent_warning": "Only if document contains urgent indicators, otherwise null",
-  
+
+  "next_steps": {
+    "retake_in_months": 1,
+    "retake_tests": ["list of tests to re-check"],
+    "eatsense_message": "personalized follow-up message in ${langName}"
+  },
+
   "missing_data": [
     "List what could not be read or is missing"
   ],
-  
-  "disclaimer": "${disclaimer}"
+
+  "disclaimer": "${disclaimerText}"
 }
 
 === CRITICAL: Document Type Logic ===

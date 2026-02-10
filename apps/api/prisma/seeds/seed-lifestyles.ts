@@ -273,7 +273,7 @@ const lifestylePrograms: LifestyleProgram[] = [
         emoji: '🐚',
         target: 'female',
         ageRange: '30-65',
-        imageUrl: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80', // Coastal, elegant, fresh seafood
+        imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', // Coastal beach lifestyle, ocean vibes
         color: '#B0BEC5',
     },
     {

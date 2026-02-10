@@ -29,6 +29,12 @@ class IAPService {
     private onPurchaseError: ((_error: any) => void) | null = null;
     // Cache verified transaction IDs to avoid duplicate verify calls
     private verifiedTransactionIds = new Set<string>();
+    // Track in-flight verification to prevent parallel verify calls for same transaction
+    private pendingVerifications = new Set<string>();
+    // FIX: Throttle verify calls per productId to prevent flood from sandbox auto-renewals
+    // In sandbox mode, clearTransactionIOS() replays many pending renewal transactions
+    private lastVerifyTimestamps = new Map<string, number>();
+    private static VERIFY_THROTTLE_MS = 15000; // 15 seconds between verifies for same product
 
     async init(): Promise<boolean> {
         if (this.isInitialized) {
@@ -80,7 +86,7 @@ class IAPService {
             return;
         }
 
-        // Skip if this transaction was already verified
+        // Skip if this transaction was already verified or is currently being verified
         const txId = purchase.transactionId;
         if (txId && this.verifiedTransactionIds.has(txId)) {
             console.log('[IAP] Transaction already verified, skipping:', txId);
@@ -88,6 +94,33 @@ class IAPService {
                 this.onPurchaseSuccess(purchase.productId);
             }
             return;
+        }
+        if (txId && this.pendingVerifications.has(txId)) {
+            console.log('[IAP] Transaction verification already in-flight, skipping:', txId);
+            return;
+        }
+
+        // FIX: Throttle verify calls per productId to prevent flood from sandbox auto-renewals
+        // In sandbox, clearTransactionIOS() replays many pending renewal transactions with unique txIds
+        const productId = purchase.productId;
+        const lastVerify = this.lastVerifyTimestamps.get(productId) || 0;
+        const now = Date.now();
+        if (now - lastVerify < IAPService.VERIFY_THROTTLE_MS) {
+            console.log(`[IAP] Throttling verify for ${productId} — last verified ${Math.round((now - lastVerify) / 1000)}s ago`);
+            // Still finish the transaction to clear it from the queue
+            try {
+                await finishTransaction({ purchase, isConsumable: false });
+            } catch (e) {
+                // ignore
+            }
+            if (this.onPurchaseSuccess) {
+                this.onPurchaseSuccess(productId);
+            }
+            return;
+        }
+
+        if (txId) {
+            this.pendingVerifications.add(txId);
         }
 
         try {
@@ -104,10 +137,11 @@ class IAPService {
                     isConsumable: false,
                 });
 
-                // Cache verified transaction ID
+                // Cache verified transaction ID and update throttle timestamp
                 if (txId) {
                     this.verifiedTransactionIds.add(txId);
                 }
+                this.lastVerifyTimestamps.set(purchase.productId, Date.now());
 
                 console.log('[IAP] Transaction finished:', purchase.productId);
 
@@ -124,6 +158,10 @@ class IAPService {
             console.error('[IAP] Handle purchase error:', error);
             if (this.onPurchaseError) {
                 this.onPurchaseError(error);
+            }
+        } finally {
+            if (txId) {
+                this.pendingVerifications.delete(txId);
             }
         }
     }

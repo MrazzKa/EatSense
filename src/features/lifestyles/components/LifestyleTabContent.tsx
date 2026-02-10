@@ -76,12 +76,25 @@ const hasAccess = (program: LifestyleProgram, subscription: any): boolean => {
   const isFree = program.price === 'free' || program.type === 'free';
   if (isFree) return true;
 
-  // 3. Check subscription
-  const isPremium = subscription && (
-    subscription.planId === 'premium_monthly' ||
-    subscription.planId === 'premium_yearly' ||
-    subscription.status === 'active' ||
-    subscription.isActive === true
+  // 3. Check subscription - use hasSubscription from API (source of truth)
+  if (!subscription) return false;
+
+  // Primary check: API returns { hasSubscription: true } for active subscribers
+  if (subscription.hasSubscription === true) return true;
+
+  // Fallback checks for different subscription object shapes
+  const sub = subscription.subscription || subscription;
+  const isPremium = (
+    sub.status === 'active' ||
+    sub.isActive === true ||
+    sub.planId === 'monthly' ||
+    sub.planId === 'yearly' ||
+    sub.planId === 'student' ||
+    sub.planId === 'founders' ||
+    sub.plan === 'monthly' ||
+    sub.plan === 'yearly' ||
+    sub.plan === 'student' ||
+    sub.plan === 'founders'
   );
 
   return !!isPremium;
