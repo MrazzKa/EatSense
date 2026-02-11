@@ -250,9 +250,9 @@ const lifestylePrograms: LifestyleProgram[] = [
     {
         slug: 'coastal_grandmother',
         name: { en: 'Coastal Grandmother', ru: 'Прибрежная Бабушка', kk: 'Жағалау Анасы', fr: 'Grand-mère côtière' },
-        subtitle: { en: 'Nancy Meyers kitchen energy', ru: 'Энергия кухни Нэнси Мейерс', kk: 'Нэнси Мейерс асхана энергиясы', fr: 'Énergie cuisine Nancy Meyers' },
-        description: { en: 'Diane Keaton lifestyle. Fresh seafood, farmers market vegetables, white wine on the porch.', ru: 'Образ жизни Дианы Китон. Морепродукты, белое вино на веранде.', kk: 'Диана Китон өмір салты.', fr: 'Style Diane Keaton. Fruits de mer, légumes du marché, vin blanc sur la véranda.' },
-        shortDescription: { en: 'Coastal elegance, Nancy Meyers vibes', ru: 'Прибрежная элегантность', kk: 'Жағалау элеганттылығы', fr: 'Élégance côtière, vibes Nancy Meyers' },
+        subtitle: { en: 'Coastal kitchen energy', ru: 'Энергия прибрежной кухни', kk: 'Жағалау асхана энергиясы', fr: 'Énergie cuisine côtière' },
+        description: { en: 'Coastal living lifestyle. Fresh seafood, farmers market vegetables, white wine on the porch.', ru: 'Прибрежный образ жизни. Морепродукты, белое вино на веранде.', kk: 'Жағалау өмір салты.', fr: 'Style de vie côtier. Fruits de mer, légumes du marché, vin blanc sur la véranda.' },
+        shortDescription: { en: 'Coastal elegance, seaside vibes', ru: 'Прибрежная элегантность', kk: 'Жағалау элеганттылығы', fr: 'Élégance côtière, vibes côtières' },
         category: 'trending',
         type: DietType.LIFESTYLE,
         difficulty: DietDifficulty.EASY,

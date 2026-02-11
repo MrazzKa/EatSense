@@ -28,6 +28,7 @@
       "attachPdf": "Joindre PDF",
       "attachPhoto": "Joindre Photo",
       "disclaimer": "Ceci n'est pas un diagnostic médical. Consultez un professionnel de santé pour toute décision médicale.",
+      "questionsForDoctor": "Questions pour votre médecin",
       "emptyError": "Veuillez saisir des résultats ou joindre un fichier",
       "error": "Échec de l'envoi des résultats. Veuillez réessayer.",
       "errors": {
@@ -1840,6 +1841,8 @@
       "limited": "Limité"
     },
     "currentPlan": "Plan actuel",
+    "month": "mois",
+    "year": "an",
     "privacyPolicy": "Politique de confidentialité",
     "politics": "Politique",
     "aboutEatsense": "À propos d'EatSense",
@@ -2472,9 +2475,9 @@
           }
         },
         "name": "Grand-mère côtière",
-        "subtitle": "Énergie cuisine Nancy Meyers",
-        "description": "Style Diane Keaton. Fruits de mer, légumes du marché, vin blanc sur la véranda.",
-        "shortDescription": "Élégance côtière, vibes Nancy Meyers"
+        "subtitle": "Énergie cuisine côtière",
+        "description": "Style de vie côtier. Fruits de mer, légumes du marché, vin blanc sur la véranda.",
+        "shortDescription": "Élégance côtière, vibes côtières"
       },
       "soft_life": {
         "dailyTracker": {

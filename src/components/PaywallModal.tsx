@@ -23,7 +23,7 @@ import IAPService from '../services/iapService';
 import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS } from '../config/subscriptions';
 import { LinearGradient } from 'expo-linear-gradient';
-import { formatPrice } from '../utils/currency';
+import { formatPrice, setIAPCurrency } from '../utils/currency';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -44,19 +44,27 @@ export default function PaywallModal({
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
   const [iapPrice, setIapPrice] = useState<string | null>(null);
+  const [priceLoading, setPriceLoading] = useState(false);
 
   // Fetch IAP products on mount to get accurate pricing
   useEffect(() => {
     if (visible) {
+      setPriceLoading(true);
       IAPService.init().then(() => {
         IAPService.getAvailableProducts().then(({ subscriptions }) => {
           const monthlyPlan = subscriptions.find(s => s.productId === SUBSCRIPTION_SKUS.MONTHLY);
           if (monthlyPlan) {
             // @ts-ignore - localizedPrice exists at runtime
             setIapPrice(monthlyPlan.localizedPrice);
+            // Save IAP currency for accurate fallback pricing
+            // @ts-ignore - currency exists at runtime
+            if (monthlyPlan.currency) setIAPCurrency(monthlyPlan.currency);
           }
-        });
-      }).catch(err => console.warn('[Paywall] Failed to load IAP products:', err));
+        }).finally(() => setPriceLoading(false));
+      }).catch(err => {
+        console.warn('[Paywall] Failed to load IAP products:', err);
+        setPriceLoading(false);
+      });
     }
   }, [visible]);
   // Introductory offer (free trial) is handled automatically by Apple for new subscribers
@@ -299,11 +307,15 @@ export default function PaywallModal({
           </TouchableOpacity>
 
           {/* Price info */}
-          <Text style={[styles.priceInfo, { color: colors.textSecondary }]}>
-            {isTrialEligible
-              ? (t('paywall.priceAfterTrial', { price: iapPrice || formatPrice('monthly') }) || `Then ${iapPrice || formatPrice('monthly')}/month after trial`)
-              : (t('paywall.priceMonthly', { price: iapPrice || formatPrice('monthly') }) || `${iapPrice || formatPrice('monthly')}/month`)}
-          </Text>
+          {priceLoading ? (
+            <ActivityIndicator size="small" color={colors.textSecondary} style={{ marginBottom: 8 }} />
+          ) : (
+            <Text style={[styles.priceInfo, { color: colors.textSecondary }]}>
+              {isTrialEligible
+                ? (t('paywall.priceAfterTrial', { price: iapPrice || formatPrice('monthly') }) || `Then ${iapPrice || formatPrice('monthly')}/month after trial`)
+                : (t('paywall.priceMonthly', { price: iapPrice || formatPrice('monthly') }) || `${iapPrice || formatPrice('monthly')}/month`)}
+            </Text>
+          )}
 
           {/* Fine print */}
           <Text style={[styles.finePrint, { color: colors.textTertiary }]}>

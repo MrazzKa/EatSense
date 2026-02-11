@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -12,7 +13,6 @@ import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/Program
 import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
 import { isFreeDiet } from '../config/freeContent';
 import PaywallModal from '../components/PaywallModal';
-import { trialService } from '../services/trialService';
 
 const STARTING_TIMEOUT_MS = 10000; // 10 second timeout for start operation
 
@@ -36,6 +36,22 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
     const [loading, setLoading] = useState(true);
     const [showPaywall, setShowPaywall] = useState(false);
     const [isPremiumUser, setIsPremiumUser] = useState(false);
+
+    // FIX: Load cached subscription immediately for instant premium detection
+    useEffect(() => {
+        AsyncStorage.getItem('eatsense_subscription_cache')
+            .then(cached => {
+                if (cached) {
+                    try {
+                        const sub = JSON.parse(cached);
+                        if (sub?.hasSubscription === true) {
+                            setIsPremiumUser(true);
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const loadProgram = useCallback(async () => {
         try {
@@ -89,35 +105,19 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
         // Check if user has access to this diet
         const isFree = isFreeDiet(program?.id || '');
-        const hasActiveTrial = trialService.isTrialActive(program?.id || '');
 
-        // 1. If Free or Premium or Active Trial -> ALLOW
-        if (isFree || isPremiumUser || hasActiveTrial) {
+        // FIX: Removed local trialService — Apple Introductory Offer (3-day free trial)
+        // is handled automatically by StoreKit when user subscribes via PaywallModal.
+        // This ensures ALL content unlocks at once (like a regular subscription),
+        // instead of requiring manual per-diet unlock.
+        if (isFree || isPremiumUser) {
             confirmAndStart();
             return;
         }
 
-        // 2. If Trial Used (and not active) -> PAYWALL
-        if (trialService.isTrialUsed(program?.id || '')) {
-            setShowPaywall(true);
-            return;
-        }
-
-        // 3. Offer Trial
-        Alert.alert(
-            t('dietPrograms.startTrialTitle', 'Start 3-Day Free Trial?'),
-            t('dietPrograms.startTrialBody', 'Try this diet program for free for 3 days. You can continue or cancel anytime.'),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: t('common.start'),
-                    onPress: async () => {
-                        await trialService.startTrial(program?.id || '');
-                        confirmAndStart();
-                    }
-                }
-            ]
-        );
+        // Not free and not premium → show PaywallModal (Apple IAP with intro offer)
+        setShowPaywall(true);
+        return;
 
         function confirmAndStart() {
             Alert.alert(
@@ -473,13 +473,23 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                 </TouchableOpacity>
             </View>
 
-            {/* Paywall Modal */}
+            {/* Paywall Modal - Apple IAP with Introductory Offer (3-day free trial) */}
             <PaywallModal
                 visible={showPaywall}
                 onClose={() => setShowPaywall(false)}
-                onSubscribed={() => {
+                onSubscribed={async () => {
                     setIsPremiumUser(true);
                     setShowPaywall(false);
+                    // FIX: Update subscription cache so ALL screens see the new subscription
+                    try {
+                        await new Promise(r => setTimeout(r, 1500)); // Wait for backend to process
+                        const sub = await ApiService.getCurrentSubscription();
+                        if (sub?.hasSubscription) {
+                            AsyncStorage.setItem('eatsense_subscription_cache', JSON.stringify(sub)).catch(() => {});
+                        }
+                    } catch (e) {
+                        console.warn('[DietProgramDetail] Failed to refresh subscription after purchase:', e);
+                    }
                 }}
                 featureName={getLocalizedText(program?.name, language)}
             />

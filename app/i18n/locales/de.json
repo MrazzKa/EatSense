@@ -355,36 +355,37 @@
       "selectPhoto": "Foto zur Analyse auswählen",
       "summary": "Zusammenfassung"
     },
-    "inputPlaceholder": "Type your question...",
+    "inputPlaceholder": "Ihre Frage eingeben...",
     "lab": {
-      "analyzeButton": "Analyze",
-      "attachPdf": "Attach PDF",
-      "attachPhoto": "Attach Photo",
-      "disclaimer": "This is not a medical diagnosis. Consult a healthcare professional for medical decisions.",
-      "emptyError": "Please enter lab results or attach a file",
-      "error": "Failed to send results. Please try again.",
+      "analyzeButton": "Analysieren",
+      "attachPdf": "PDF anhängen",
+      "attachPhoto": "Foto anhängen",
+      "disclaimer": "Dies ist keine medizinische Diagnose. Konsultieren Sie einen Arzt für medizinische Entscheidungen.",
+      "questionsForDoctor": "Fragen für Ihren Arzt",
+      "emptyError": "Bitte Laborergebnisse eingeben oder Datei anhängen",
+      "error": "Ergebnisse konnten nicht gesendet werden. Bitte erneut versuchen.",
       "errors": {
-        "emptyText": "Please enter lab results text first.",
-        "fileNotSupported": "File-based analysis is not yet configured. Please use text mode.",
-        "filePickFailed": "Failed to pick a file.",
-        "generic": "Failed to analyze lab results. Please try again.",
-        "noFile": "Please attach a PDF file first.",
-        "noSummary": "The AI did not return a summary. Please try again.",
-        "fileUploadFailed": "File Upload Failed"
+        "emptyText": "Bitte zuerst Laborergebnis-Text eingeben.",
+        "fileNotSupported": "Dateibasierte Analyse ist noch nicht konfiguriert. Bitte Textmodus verwenden.",
+        "filePickFailed": "Datei konnte nicht ausgewählt werden.",
+        "generic": "Laborergebnisse konnten nicht analysiert werden. Bitte erneut versuchen.",
+        "noFile": "Bitte zuerst eine PDF-Datei anhängen.",
+        "noSummary": "Die KI hat keine Zusammenfassung zurückgegeben. Bitte erneut versuchen.",
+        "fileUploadFailed": "Datei-Upload fehlgeschlagen"
       },
       "fileHint": "PDF- oder Bilddatei mit Ihrem Laborbericht anhängen. Maximale Dateigröße: 10 MB.",
-      "fileLabel": "PDF report",
-      "manualPlaceholder": "Enter your lab results here...",
-      "manualTitle": "Manual Entry",
+      "fileLabel": "PDF-Bericht",
+      "manualPlaceholder": "Laborergebnisse hier eingeben...",
+      "manualTitle": "Manuelle Eingabe",
       "mode": {
-        "file": "PDF file",
+        "file": "PDF-Datei",
         "text": "Text"
       },
-      "pdfAttached": "PDF attached",
-      "photoAttached": "Photo attached",
-      "resultTitle": "AI Interpretation",
-      "submit": "Submit",
-      "submitted": "Lab results submitted successfully",
+      "pdfAttached": "PDF angehängt",
+      "photoAttached": "Foto angehängt",
+      "resultTitle": "KI-Interpretation",
+      "submit": "Absenden",
+      "submitted": "Laborergebnisse erfolgreich gesendet",
       "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
       "success": "Lab results analyzed successfully",
       "textLabel": "Lab results (text)",
@@ -417,7 +418,7 @@
     },
     "tabs": {
       "chat": "Chat",
-      "healthAnalysis": "Health Analysis"
+      "healthAnalysis": "Gesundheitsanalyse"
     },
     "title": "KI-Ernährungsassistent",
     "typing": "Assistent schreibt...",
@@ -1387,6 +1388,8 @@
     "changePlan": "Plan ändern",
     "choosePlan": "Plan wählen",
     "currentPlan": "Aktueller Plan",
+    "month": "Monat",
+    "year": "Jahr",
     "dailyCalories": "Tägliche Kalorien",
     "darkModeSubtitle": "Dunkles Design",
     "defaultName": "Gast",
@@ -2522,9 +2525,9 @@
           }
         },
         "name": "Coastal Grandmother",
-        "subtitle": "Nancy-Meyers-Küchen-Energie",
-        "description": "Diane-Keaton-Lebensstil. Frische Meeresfrüchte, Gemüse vom Markt, Weißwein auf der Veranda.",
-        "shortDescription": "Küsteneleganz, Nancy-Meyers-Vibes"
+        "subtitle": "Küstenküchen-Energie",
+        "description": "Küsten-Lebensstil. Frische Meeresfrüchte, Gemüse vom Markt, Weißwein auf der Veranda.",
+        "shortDescription": "Küsteneleganz, Küsten-Vibes"
       },
       "soft_life": {
         "dailyTracker": {

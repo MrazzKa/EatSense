@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { CacheService } from '../src/cache/cache.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserProfilesService {
   private readonly logger = new Logger(UserProfilesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   async createProfile(userId: string, profileData: any) {
     try {
@@ -278,6 +282,16 @@ export class UserProfilesService {
         },
         update: sanitizedData,
       });
+
+      // FIX: Invalidate stats cache so Dashboard picks up new calorie goals immediately
+      // This is the PRIMARY profile update endpoint (PUT /user-profiles)
+      try {
+        await this.cache.invalidateNamespace('stats:monthly', userId);
+        await this.cache.invalidateNamespace('stats:daily' as any, userId);
+        this.logger.debug(`Invalidated stats cache for user ${userId} after profile update`);
+      } catch (cacheError: any) {
+        this.logger.warn(`Failed to invalidate stats cache: ${cacheError?.message || String(cacheError)}`);
+      }
 
       this.logger.log(
         `[UserProfilesService] updateProfile() succeeded for userId=${userId}, profileId=${profile.id}`,

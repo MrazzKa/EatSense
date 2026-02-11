@@ -741,6 +741,24 @@ export function getOriginalPrice(planId: PlanId, currencyCode: string): string |
 }
 
 /**
+ * Store currency code detected from IAP products (most accurate source)
+ */
+let iapDetectedCurrency: string | null = null;
+
+/**
+ * Save currency code from IAP product data. Call this after loading IAP products.
+ * IAP currency is the most accurate source (based on App Store country).
+ */
+export function setIAPCurrency(code: string): void {
+  if (code && typeof code === 'string' && code.length === 3) {
+    iapDetectedCurrency = code.toUpperCase();
+    if (__DEV__) {
+      console.log(`[currency] IAP currency saved: ${iapDetectedCurrency}`);
+    }
+  }
+}
+
+/**
  * Get currency code based on device region (primary) or language (fallback)
  * FIX: Prioritize region over currencyCode to fix Switzerland showing RUB instead of CHF
  * IMPORTANT: IAP prices are the most accurate source (they use App Store country)
@@ -748,6 +766,11 @@ export function getOriginalPrice(planId: PlanId, currencyCode: string): string |
  */
 export function getCurrencyCode(): string {
   try {
+    // 0. IAP-detected currency has highest priority (App Store country)
+    if (iapDetectedCurrency && PRICING[iapDetectedCurrency]) {
+      return iapDetectedCurrency;
+    }
+
     const region = getDeviceRegion();
 
     // 1. Try device region FIRST (most accurate - fixes Switzerland issue)

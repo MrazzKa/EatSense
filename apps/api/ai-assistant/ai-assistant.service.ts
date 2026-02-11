@@ -499,30 +499,43 @@ CRITICAL RULES:
         },
       });
 
-      // Save metrics
-      if (Array.isArray(parsed.metrics)) {
+      // FIX: Extract metrics from either top-level or nested details.metrics
+      // GPT may place metrics at parsed.details.metrics (per prompt schema) or parsed.metrics
+      const metrics = parsed.details?.metrics || parsed.metrics || [];
+
+      // Save metrics to database
+      if (Array.isArray(metrics) && metrics.length > 0) {
         await Promise.all(
-          parsed.metrics.map((metric: any) =>
+          metrics.map((metric: any) =>
             this.prisma.labMetric.create({
               data: {
                 labResultId: labResult.id,
                 name: metric.name || '',
-                value: metric.value || 0,
+                value: typeof metric.value === 'number' ? metric.value : parseFloat(metric.value) || 0,
                 unit: metric.unit || '',
-                isNormal: metric.isNormal !== false,
-                level: metric.level || 'normal',
-                comment: metric.comment || null,
+                isNormal: metric.flag === 'normal' || metric.isNormal !== false,
+                level: metric.flag || metric.level || 'normal',
+                comment: metric.explanation || metric.comment || null,
               },
             }),
           ),
         );
       }
 
+      // FIX: Return full structured response (not just summary)
       return {
         id: labResult.id,
-        metrics: parsed.metrics || [],
+        metrics,
         summary: parsed.summary || '',
-        recommendation: parsed.recommendation || '',
+        recommendation: parsed.recommendation || parsed.details?.recommendations || '',
+        details: parsed.details || {},
+        attention_points: parsed.attention_points || [],
+        questions_for_doctor: parsed.questions_for_doctor || [],
+        next_steps: parsed.next_steps || null,
+        document_type: parsed.document_type || 'unknown',
+        disclaimer: parsed.disclaimer || '',
+        extracted_data: parsed.extracted_data || null,
+        confidence: parsed.confidence || null,
         rawInterpretation: {
           prompt,
           locale,
@@ -654,30 +667,41 @@ CRITICAL RULES:
         },
       });
 
-      // Save metrics
-      if (Array.isArray(parsed.metrics)) {
+      // FIX: Extract metrics from either top-level or nested details.metrics
+      const metrics = parsed.details?.metrics || parsed.metrics || [];
+
+      // Save metrics to database
+      if (Array.isArray(metrics) && metrics.length > 0) {
         await Promise.all(
-          parsed.metrics.map((metric: any) =>
+          metrics.map((metric: any) =>
             this.prisma.labMetric.create({
               data: {
                 labResultId: labResult.id,
                 name: metric.name || '',
-                value: metric.value || 0,
+                value: typeof metric.value === 'number' ? metric.value : parseFloat(metric.value) || 0,
                 unit: metric.unit || '',
-                isNormal: metric.isNormal !== false,
-                level: metric.level || 'normal',
-                comment: metric.comment || null,
+                isNormal: metric.flag === 'normal' || metric.isNormal !== false,
+                level: metric.flag || metric.level || 'normal',
+                comment: metric.explanation || metric.comment || null,
               },
             }),
           ),
         );
       }
 
+      // FIX: Return full structured response (not just summary)
       return {
         id: labResult.id,
-        metrics: parsed.metrics || [],
+        metrics,
         summary: parsed.summary || '',
-        recommendation: parsed.recommendation || '',
+        recommendation: parsed.recommendation || parsed.details?.recommendations || '',
+        details: parsed.details || {},
+        attention_points: parsed.attention_points || [],
+        questions_for_doctor: parsed.questions_for_doctor || [],
+        next_steps: parsed.next_steps || null,
+        document_type: parsed.document_type || 'unknown',
+        disclaimer: parsed.disclaimer || '',
+        confidence: parsed.confidence || null,
         rawInterpretation: {
           fileId,
           fileName: opts.fileName,
@@ -742,6 +766,9 @@ ${inputContext}
 2. ALWAYS include disclaimer: "${disclaimerText}"
 3. If image is blurry/rotated/unreadable, note what you couldn't read.
 4. Respond in ${langName}.
+5. NEVER suggest specific diseases or infections (like COVID-19, HIV, cancer, etc.) from general blood work. Elevated/lowered values have MANY possible causes. Only mention common benign causes first (stress, diet, dehydration), then say "consult your doctor".
+6. Focus on NUTRITION-related interpretation — this is a nutrition app. Relate findings to dietary recommendations when possible (e.g., low iron → iron-rich foods).
+7. For each abnormal metric, list 2-3 common benign causes BEFORE any serious ones.
 
 === DOCUMENT TYPE IDENTIFICATION ===
 Look for clues:
@@ -888,6 +915,9 @@ ${inputContext}
 3. If data is insufficient or unreadable, write: "not found in document / unreadable".
 4. ALWAYS end with disclaimer: "${disclaimerText}"
 5. Use soft language: "may indicate", "could be", "often associated with" - NEVER definitive diagnoses.
+6. NEVER suggest specific diseases or infections (like COVID-19, HIV, cancer, etc.) from general blood work values. Elevated/lowered values have MANY possible causes. Only mention the most common benign causes first (stress, diet, dehydration, medication effects), then say "consult your doctor for specific diagnosis".
+7. Focus on NUTRITION-related interpretation where possible — this is a nutrition app, not a diagnostic tool. Relate findings to dietary recommendations when appropriate (e.g., low iron → suggest iron-rich foods, high cholesterol → suggest dietary changes).
+8. For each abnormal metric, list 2-3 common benign causes BEFORE any serious ones. Never lead with alarming possibilities.
 6. Respond in ${langName}.
 
 === STEP 1: Identify Document Type ===

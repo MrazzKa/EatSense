@@ -949,6 +949,8 @@
       "limited": "Limited"
     },
     "currentPlan": "Current plan",
+    "month": "month",
+    "year": "year",
     "legal": "Legal",
     "privacyPolicy": "Privacy Policy",
     "policy": "Privacy Policy",
@@ -1556,7 +1558,8 @@
       "emptyError": "Please enter lab results or attach a file",
       "photoAttached": "Photo attached",
       "pdfAttached": "PDF attached",
-      "disclaimer": "This is not a medical diagnosis. Consult a healthcare professional for medical decisions."
+      "disclaimer": "This is not a medical diagnosis. Consult a healthcare professional for medical decisions.",
+      "questionsForDoctor": "Questions for your doctor"
     },
     "unavailable": "AI Assistant temporarily unavailable",
     "unavailableDescription": "We are testing the first version of the app. The assistant section is temporarily disabled, but everything else is working.",
@@ -2285,9 +2288,9 @@
           }
         },
         "name": "Coastal Grandmother",
-        "subtitle": "Nancy Meyers kitchen energy",
-        "description": "Diane Keaton lifestyle. Fresh seafood, farmers market vegetables, white wine on the porch.",
-        "shortDescription": "Coastal elegance, Nancy Meyers vibes"
+        "subtitle": "Coastal kitchen energy",
+        "description": "Coastal living lifestyle. Fresh seafood, farmers market vegetables, white wine on the porch.",
+        "shortDescription": "Coastal elegance, seaside vibes"
       },
       "soft_life": {
         "dailyTracker": {

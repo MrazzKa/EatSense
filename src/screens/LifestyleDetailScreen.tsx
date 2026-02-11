@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import LifestyleDetailScreenComponent from '../features/lifestyles/components/LifestyleDetailScreen';
 import ApiService from '../services/apiService';
@@ -15,7 +16,6 @@ import { useI18n } from '../../app/i18n/hooks';
 import { getLocalizedText } from '../components/programs/types';
 import { isFreeLifestyle } from '../config/freeContent';
 import PaywallModal from '../components/PaywallModal';
-import { trialService } from '../services/trialService';
 
 export default function LifestyleDetailScreen() {
   const route = useRoute();
@@ -32,6 +32,22 @@ export default function LifestyleDetailScreen() {
   const [starting, setStarting] = useState(false);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+
+  // FIX: Load cached subscription immediately for instant premium detection
+  useEffect(() => {
+    AsyncStorage.getItem('eatsense_subscription_cache')
+      .then(cached => {
+        if (cached) {
+          try {
+            const sub = JSON.parse(cached);
+            if (sub?.hasSubscription === true) {
+              setIsPremiumUser(true);
+            }
+          } catch (e) { /* ignore */ }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -99,35 +115,19 @@ export default function LifestyleDetailScreen() {
 
     // Check if user has access to this lifestyle
     const isFree = isFreeLifestyle(program?.id || '');
-    const hasActiveTrial = trialService.isTrialActive(program?.id || '');
 
-    // 1. If Free or Premium or Active Trial -> ALLOW
-    if (isFree || isPremiumUser || hasActiveTrial) {
+    // FIX: Removed local trialService — Apple Introductory Offer (3-day free trial)
+    // is handled automatically by StoreKit when user subscribes via PaywallModal.
+    // This ensures ALL content unlocks at once (like a regular subscription),
+    // instead of requiring manual per-lifestyle unlock.
+    if (isFree || isPremiumUser) {
       await startProgramExecution();
       return;
     }
 
-    // 2. If Trial Used (and not active) -> PAYWALL
-    if (trialService.isTrialUsed(program?.id || '')) {
-      setShowPaywall(true);
-      return;
-    }
-
-    // 3. Offer Trial
-    Alert.alert(
-      t('lifestyles.startTrialTitle', 'Start 3-Day Free Trial?'),
-      t('lifestyles.startTrialBody', 'Try this lifestyle program for free for 3 days. You can continue or cancel anytime.'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.start'),
-          onPress: async () => {
-            await trialService.startTrial(program?.id || '');
-            await startProgramExecution();
-          }
-        }
-      ]
-    );
+    // Not free and not premium → show PaywallModal (Apple IAP with intro offer)
+    setShowPaywall(true);
+    return;
 
     // Helper to run the actual start logic
     async function startProgramExecution() {
@@ -225,12 +225,23 @@ export default function LifestyleDetailScreen() {
           onContinueProgram={isActive ? handleContinueProgram : undefined}
           onBack={handleBack}
         >
+          {/* Paywall Modal - Apple IAP with Introductory Offer (3-day free trial) */}
           <PaywallModal
             visible={showPaywall}
             onClose={() => setShowPaywall(false)}
-            onSubscribed={() => {
+            onSubscribed={async () => {
               setIsPremiumUser(true);
               setShowPaywall(false);
+              // FIX: Update subscription cache so ALL screens see the new subscription
+              try {
+                await new Promise(r => setTimeout(r, 1500));
+                const sub = await ApiService.getCurrentSubscription();
+                if (sub?.hasSubscription) {
+                  AsyncStorage.setItem('eatsense_subscription_cache', JSON.stringify(sub)).catch(() => {});
+                }
+              } catch (e) {
+                console.warn('[LifestyleDetail] Failed to refresh subscription after purchase:', e);
+              }
             }}
             featureName={getLocalizedText(program?.name, language)}
           />

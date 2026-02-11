@@ -857,10 +857,19 @@ const OnboardingScreen = () => {
     };
   });
 
-  // Prices are loaded from expo-localization (region-based pricing table in currency.ts)
-  // FIX: Load IAP prices to ensure accuracy with App Store
+  // Load IAP prices from StoreKit — this is the SOURCE OF TRUTH for subscription pricing.
+  // expo-localization fallback is only shown briefly while IAP loads, or if IAP fails.
   useEffect(() => {
     const loadIapPrices = async () => {
+      // Log the fallback state for debugging (what expo-localization detected)
+      const region = getDeviceRegion();
+      const fallbackCurrency = getCurrency();
+      clientLog('Onboarding:pricingDebug', {
+        deviceRegion: region,
+        fallbackCurrencyCode: fallbackCurrency.code,
+        fallbackMonthly: formatPrice('monthly'),
+      });
+
       try {
         await IAPService.init();
         const { all } = await IAPService.getAvailableProducts();
@@ -871,7 +880,7 @@ const OnboardingScreen = () => {
           const student = all.find(p => p.productId === SUBSCRIPTION_SKUS.STUDENT);
           const founder = all.find(p => p.productId === NON_CONSUMABLE_SKUS.FOUNDERS);
 
-          // Use currency from the first available product
+          // Use currency from the first available product (StoreKit storefront currency)
           const productCurrency = monthly?.currency || yearly?.currency || founder?.currency;
 
           setCurrency(prev => ({
@@ -883,13 +892,27 @@ const OnboardingScreen = () => {
             founderPrice: founder?.localizedPrice || prev.founderPrice,
           }));
 
-          console.log('[Onboarding] Updated prices from IAP:', {
-            currency: productCurrency,
-            monthly: monthly?.localizedPrice
+          // Log what StoreKit returned (will be visible in server logs)
+          clientLog('Onboarding:iapPricesLoaded', {
+            iapProductCount: all.length,
+            iapCurrency: productCurrency,
+            iapMonthly: monthly?.localizedPrice,
+            iapYearly: yearly?.localizedPrice,
+            deviceRegion: region,
+            fallbackCurrency: fallbackCurrency.code,
+          });
+        } else {
+          clientLog('Onboarding:iapNoProducts', {
+            deviceRegion: region,
+            fallbackCurrency: fallbackCurrency.code,
           });
         }
       } catch (err) {
-        console.warn('[Onboarding] Failed to load IAP prices:', err);
+        clientLog('Onboarding:iapFailed', {
+          error: err?.message || String(err),
+          deviceRegion: region,
+          fallbackCurrency: fallbackCurrency.code,
+        });
       }
     };
 

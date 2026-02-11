@@ -159,7 +159,8 @@ export class SubscriptionsService implements OnModuleInit {
         // Prevent duplicate processing of the same transaction
         if (paymentData?.appleTransactionId) {
             const existing = await this.prisma.userSubscription.findFirst({
-                where: { appleTransactionId: paymentData.appleTransactionId }
+                where: { appleTransactionId: paymentData.appleTransactionId },
+                include: { plan: true },
             });
             if (existing) {
                 this.logger.debug(`Duplicate transaction ${paymentData.appleTransactionId} - returning existing subscription`);
