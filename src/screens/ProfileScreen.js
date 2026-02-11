@@ -597,6 +597,21 @@ const ProfileScreen = () => {
       });
       setEditing(false);
 
+      // FIX Bug #4: Invalidate dashboard client cache so calorie goals sync immediately
+      // Remove all dashboard cache keys and set a timestamp so Dashboard knows to force-refresh
+      try {
+        const dateKey = new Date().toISOString().split('T')[0];
+        const keys = await AsyncStorage.getAllKeys();
+        const dashboardKeys = keys.filter(k => k.startsWith('dashboard_data_'));
+        if (dashboardKeys.length > 0) {
+          await AsyncStorage.multiRemove(dashboardKeys);
+        }
+        // Set profile update timestamp for Dashboard to detect
+        await AsyncStorage.setItem('profile_updated_at', Date.now().toString());
+      } catch (e) {
+        console.warn('[ProfileScreen] Failed to invalidate dashboard cache:', e);
+      }
+
       // Reload profile to get updated data and recalculate BMI
       await loadProfile();
       Alert.alert(
@@ -728,7 +743,9 @@ const ProfileScreen = () => {
 
     const badge =
       basePlan.id === 'free'
-        ? safeT('profile.planBadges.included', 'Included')
+        ? (subscription.planId === 'free'
+          ? safeT('profile.currentPlan', 'Current')
+          : safeT('profile.planBadges.included', 'Included'))
         : basePlan.id === 'pro_monthly'
           ? safeT('profile.planBadges.mostPopular', 'Most Popular')
           : basePlan.id === 'founders'
@@ -1911,7 +1928,11 @@ const ProfileScreen = () => {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
             >
-              {(planOptions || []).map((plan) => {
+              {(planOptions || []).filter((plan) => {
+                // Hide free plan card when user is on a paid plan
+                if (plan.id === 'free' && subscription.planId !== 'free') return false;
+                return true;
+              }).map((plan) => {
                 const isSelected = pendingPlan === plan.id;
                 const isCurrentPlan = subscription.planId === plan.id;
                 const planDetails = getPlanDetails(plan.id);

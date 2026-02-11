@@ -37,7 +37,7 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
   const [imageFile, setImageFile] = useState<{ uri: string; name: string; type: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
 
   const resetState = () => {
     setMode('text');
@@ -215,13 +215,25 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
         return;
       }
 
-      if (response?.summary) {
-        setResult(response.summary);
+      // FIX: Store full structured response (metrics, attention_points, questions, etc.)
+      if (response?.summary || response?.details || response?.metrics?.length > 0) {
+        const structuredResult = {
+          summary: response.summary || '',
+          metrics: response.details?.metrics || response.metrics || [],
+          attention_points: response.attention_points || [],
+          questions_for_doctor: response.questions_for_doctor || [],
+          recommendation: response.recommendation || '',
+          next_steps: response.next_steps || null,
+          document_type: response.document_type || 'unknown',
+          disclaimer: response.disclaimer || '',
+          confidence: response.confidence || null,
+        };
+        setResult(structuredResult);
         if (onResult) {
-          onResult({ success: true, summary: response.summary });
+          onResult({ success: true, ...structuredResult });
         }
       } else if (typeof response === 'string') {
-        setResult(response);
+        setResult({ summary: response, metrics: [], attention_points: [], questions_for_doctor: [] });
         if (onResult) {
           onResult({ success: true, summary: response });
         }
@@ -396,20 +408,109 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
           )}
         </TouchableOpacity>
 
-        {/* Result */}
+        {/* Result - Structured display */}
         {result && (
           <ScrollView style={[styles.resultBox, { backgroundColor: colors.card || colors.surface }]}>
+            {/* Summary */}
             <Text style={[styles.resultTitle, { color: colors.textPrimary || colors.text }]}>
-              {t('aiAssistant.lab.resultTitle') || 'Разбор и рекомендации'}
+              {t('aiAssistant.healthAnalysis.summary') || 'Summary'}
             </Text>
             <Text style={[styles.resultText, { color: colors.textSecondary }]}>
-              {result}
+              {result.summary}
             </Text>
+
+            {/* Metrics Table */}
+            {result.metrics && result.metrics.length > 0 && (
+              <View style={styles.metricsSection}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('aiAssistant.healthAnalysis.metrics') || 'Metrics'}
+                </Text>
+                {result.metrics.map((metric: any, index: number) => {
+                  const flag = metric.flag || metric.level || 'normal';
+                  const flagColor = flag === 'high' ? (colors.error || '#FF3B30')
+                    : flag === 'low' ? '#FF9500'
+                    : (colors.success || '#34C759');
+                  const flagIcon = flag === 'high' ? 'arrow-up-circle'
+                    : flag === 'low' ? 'arrow-down-circle'
+                    : 'checkmark-circle';
+
+                  return (
+                    <View key={index} style={[styles.metricRow, { borderBottomColor: colors.border || colors.borderMuted || '#E5E5E5' }]}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.metricName, { color: colors.textPrimary || colors.text }]}>
+                          {metric.name}
+                        </Text>
+                        {metric.explanation && (
+                          <Text style={[styles.metricExplanation, { color: colors.textSecondary }]}>
+                            {metric.explanation}
+                          </Text>
+                        )}
+                      </View>
+                      <View style={styles.metricValueContainer}>
+                        <Text style={[styles.metricValue, { color: flagColor }]}>
+                          {metric.value} {metric.unit}
+                        </Text>
+                        <Ionicons name={flagIcon} size={16} color={flagColor} />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Attention Points */}
+            {result.attention_points && result.attention_points.length > 0 && (
+              <View style={styles.attentionSection}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('aiAssistant.healthAnalysis.keyFindings') || 'Key Findings'}
+                </Text>
+                {result.attention_points.map((point: string, index: number) => (
+                  <View key={index} style={styles.attentionRow}>
+                    <Ionicons name="warning-outline" size={16} color="#FF9500" />
+                    <Text style={[styles.attentionText, { color: colors.textSecondary }]}>
+                      {point}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Questions for Doctor */}
+            {result.questions_for_doctor && result.questions_for_doctor.length > 0 && (
+              <View style={styles.questionsSection}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('aiAssistant.lab.questionsForDoctor') || 'Questions for your doctor'}
+                </Text>
+                {result.questions_for_doctor.map((question: string, index: number) => (
+                  <View key={index} style={styles.questionRow}>
+                    <Text style={[styles.questionNumber, { color: colors.primary }]}>
+                      {index + 1}.
+                    </Text>
+                    <Text style={[styles.questionText, { color: colors.textSecondary }]}>
+                      {question}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Recommendation */}
+            {result.recommendation ? (
+              <View style={styles.recommendationSection}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
+                  {t('aiAssistant.healthAnalysis.recommendation') || 'Recommendations'}
+                </Text>
+                <Text style={[styles.resultText, { color: colors.textSecondary }]}>
+                  {result.recommendation}
+                </Text>
+              </View>
+            ) : null}
+
             {/* Disclaimer */}
             <View style={[styles.disclaimerBox, { backgroundColor: colors.surfaceMuted || colors.surface }]}>
               <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
               <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
-                {t('aiAssistant.lab.disclaimer') || 'Приложение не является заменой профессиональной медицинской консультации. При наличии проблем со здоровьем обратитесь к врачу.'}
+                {result.disclaimer || t('aiAssistant.lab.disclaimer') || 'This is not a medical diagnosis. Consult a doctor for decisions.'}
               </Text>
             </View>
           </ScrollView>
@@ -566,7 +667,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 12,
     padding: 12,
-    maxHeight: 300,
+    maxHeight: 400,
   },
   resultTitle: {
     fontSize: 15,
@@ -577,8 +678,80 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  // Metrics styles
+  metricsSection: {
+    marginTop: 4,
+  },
+  metricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  metricName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  metricExplanation: {
+    fontSize: 12,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  metricValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginLeft: 8,
+  },
+  metricValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Attention points
+  attentionSection: {
+    marginTop: 4,
+  },
+  attentionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 6,
+  },
+  attentionText: {
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
+  },
+  // Questions for doctor
+  questionsSection: {
+    marginTop: 4,
+  },
+  questionRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 6,
+  },
+  questionNumber: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  questionText: {
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
+  },
+  // Recommendation
+  recommendationSection: {
+    marginTop: 4,
+  },
   disclaimerBox: {
-    marginTop: 12,
+    marginTop: 16,
     padding: 12,
     borderRadius: 8,
     flexDirection: 'row',

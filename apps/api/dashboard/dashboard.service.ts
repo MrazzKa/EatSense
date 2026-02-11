@@ -83,17 +83,20 @@ export class DashboardService {
                         return { status: 'error', sections: [], error: e.message };
                     });
 
+                // FIX: Increased timeout from 15s to 25s — suggestions depend on NutritionOrchestrator
+                // which queries external APIs (USDA, OpenFoodFacts) that need up to 10s each.
+                // 15s was consistently too short, causing suggestions to always timeout.
                 suggestions = await Promise.race([
                     suggestionsPromise,
                     new Promise(resolve => setTimeout(() => {
-                        this.logger.warn(`Suggestions timeout for user ${userId} after 8s`);
+                        this.logger.warn(`Suggestions timeout for user ${userId} after 25s`);
                         resolve({ status: 'timeout', sections: [], message: 'Suggestions are taking longer than expected' });
-                    }, 8000)),
+                    }, 25000)),
                 ]) as any;
 
                 if (suggestions.status === 'timeout') {
-                    // Skip suggestions for this user for 5 minutes
-                    await this.cacheService.set(skipKey, 'true', 'suggestions', 300).catch(() => {});
+                    // Skip suggestions for this user for 2 minutes (reduced from 5 to retry faster)
+                    await this.cacheService.set(skipKey, 'true', 'suggestions', 120).catch(() => {});
                 } else if (suggestions.sections?.length > 0) {
                     // Cache successful result for 5 minutes
                     await this.cacheService.set(cachedSuggestionsKey, suggestions, 'suggestions', 300).catch(() => {});

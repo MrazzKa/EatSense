@@ -19,7 +19,8 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import IAPService from '../services/iapService';
 import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
-import { getCurrency, formatPrice, getDeviceRegion } from '../utils/currency';
+import { getCurrency, formatPrice, getDeviceRegion, setIAPCurrency } from '../utils/currency';
+import { clientLog } from '../utils/clientLog';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Plan descriptions for Apple App Store Review compliance
@@ -203,7 +204,7 @@ export default function SubscriptionScreen() {
                     name: 'monthly',
                     price: currency.monthlyPrice,
                     priceFormatted: currency.monthlyPrice + '/' + monthLabel,
-                    priceNumber: 9.99,
+                    priceNumber: getCurrency().monthly || 9.99,
                     currency: currency.code,
                     title: monthlyData.title,
                     headline: monthlyData.headline,
@@ -217,7 +218,7 @@ export default function SubscriptionScreen() {
                     name: 'yearly',
                     price: currency.yearlyPrice,
                     priceFormatted: currency.yearlyPrice + '/' + yearLabel,
-                    priceNumber: 69.99,
+                    priceNumber: getCurrency().yearly || 69.99,
                     currency: currency.code,
                     title: yearlyData.title,
                     headline: yearlyData.headline,
@@ -232,7 +233,7 @@ export default function SubscriptionScreen() {
                     name: 'student',
                     price: currency.studentPrice,
                     priceFormatted: currency.studentPrice + '/' + yearLabel,
-                    priceNumber: 49.00,
+                    priceNumber: getCurrency().student || 49.00,
                     currency: currency.code,
                     title: studentData.title,
                     headline: studentData.headline,
@@ -246,7 +247,7 @@ export default function SubscriptionScreen() {
                     name: 'founders',
                     price: currency.founderPrice,
                     priceFormatted: currency.founderPrice, // One time
-                    priceNumber: 99.99,
+                    priceNumber: getCurrency().founder || 99.99,
                     currency: currency.code,
                     title: foundersData.title,
                     headline: foundersData.headline,
@@ -275,23 +276,44 @@ export default function SubscriptionScreen() {
             await IAPService.init();
 
             // Get products from Apple/Google with localized prices
-            const { all } = await IAPService.getAvailableProducts();
+            let { all } = await IAPService.getAvailableProducts();
             setIapProducts(all);
 
-            // FIX 2026-01-21: If IAP returns 0 products, fallback to backend
+            // FIX 2026-01-21: If IAP returns 0 products, retry once after 2s before fallback
             if (all.length === 0) {
-                console.log('[SubscriptionScreen] IAP returned 0 products, falling back to backend');
-                await loadBackendPlans();
-                return;
+                console.log('[SubscriptionScreen] IAP returned 0 products, retrying in 2s...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const retryResult = await IAPService.getAvailableProducts();
+                if (retryResult.all.length > 0) {
+                    // Use retry result
+                    all = retryResult.all;
+                    setIapProducts(all);
+                    console.log('[SubscriptionScreen] IAP retry succeeded with', all.length, 'products');
+                } else {
+                    console.log('[SubscriptionScreen] IAP retry still 0 products, falling back to backend');
+                    await loadBackendPlans();
+                    return;
+                }
             }
 
             // Use expo-localization pricing from currency.ts (region-based)
             const localCurrency = getCurrency();
-            console.log('[SubscriptionScreen] Loading IAP products with region pricing:', {
-                productsCount: all.length,
-                region: getDeviceRegion(),
-                currency: localCurrency.code,
+            const region = getDeviceRegion();
+
+            // Log diagnostic info to server for debugging currency issues
+            const monthlyProduct = all.find(p => p.productId === SUBSCRIPTION_SKUS.MONTHLY);
+            clientLog('Subscription:iapPricesLoaded', {
+                iapProductCount: all.length,
+                iapCurrency: monthlyProduct?.currency,
+                iapMonthlyPrice: monthlyProduct?.localizedPrice,
+                deviceRegion: region,
+                fallbackCurrency: localCurrency.code,
             });
+
+            // FIX: Save IAP currency as highest-priority source for future getCurrencyCode() calls
+            if (monthlyProduct?.currency) {
+                setIAPCurrency(monthlyProduct.currency);
+            }
 
             const monthLabel = t('onboarding.plans.month', 'mo');
             const yearLabel = t('onboarding.plans.year', 'yr');
@@ -335,7 +357,9 @@ export default function SubscriptionScreen() {
                 // fall back to region-based pricing from expo-localization
                 const iapLocalizedPrice = product.localizedPrice;
                 const fallbackPrice = formatPrice(planType === 'founders' ? 'founder' : planType);
-                const displayPrice = iapLocalizedPrice || fallbackPrice;
+                // FIX: Check for empty or zero IAP price before using it
+                const displayPrice = (iapLocalizedPrice && iapLocalizedPrice !== '$0.00' && iapLocalizedPrice !== '0')
+                    ? iapLocalizedPrice : fallbackPrice;
                 const periodSuffix = isFounders ? '' : (isYearly || isStudent ? `/${yearLabel}` : `/${monthLabel}`);
 
                 return {
@@ -376,6 +400,11 @@ export default function SubscriptionScreen() {
             }
         } catch (error) {
             console.error('[SubscriptionScreen] IAP init error:', error);
+            clientLog('Subscription:iapFailed', {
+                error: error?.message || String(error),
+                deviceRegion: getDeviceRegion(),
+                fallbackCurrency: getCurrency().code,
+            });
             // Fallback to backend plans if IAP fails
             await loadBackendPlans();
         } finally {

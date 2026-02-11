@@ -187,6 +187,7 @@ export default function DietsScreen({ navigation }) {
     const [featuredLifestyles, setFeaturedLifestyles] = useState(seedBundle?.featuredLifestyles || []);
     const [isLoadingLifestyles, setIsLoadingLifestyles] = useState(false);
     const [subscription, setSubscription] = useState(null); // Access control
+    const [subscriptionLoaded, setSubscriptionLoaded] = useState(false); // Track if subscription data is loaded
 
     // NEW: Trial & Lock State
     const [lockModalVisible, setLockModalVisible] = useState(false);
@@ -199,6 +200,25 @@ export default function DietsScreen({ navigation }) {
 
     // Trial service removed - using Apple Intro Offer only
 
+    // FIX: Load cached subscription on mount for instant unlock (prevents lock flash)
+    useEffect(() => {
+        AsyncStorage.getItem('eatsense_subscription_cache')
+            .then(cached => {
+                if (cached) {
+                    try {
+                        const sub = JSON.parse(cached);
+                        if (sub) {
+                            setSubscription(sub);
+                            setSubscriptionLoaded(true);
+                        }
+                    } catch (e) {
+                        console.warn('[DietsScreen] Failed to parse subscription cache:', e);
+                    }
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     // Check if program is locked (Apple Intro Offer only - no local soft trials)
     const checkLockStatus = useCallback((programId) => {
         // 1. Check free list first (diets and lifestyles)
@@ -210,9 +230,12 @@ export default function DietsScreen({ navigation }) {
         // 3. If user has active customized/started this program (activeProgram), NEVER lock
         if (activeProgram?.programId === programId) return false;
 
-        // 4. Otherwise Locked - trial handled by Apple Intro Offer via IAP
+        // 4. FIX: While subscription hasn't loaded yet, don't lock (prevents lock flash)
+        if (!subscriptionLoaded) return false;
+
+        // 5. Otherwise Locked - trial handled by Apple Intro Offer via IAP
         return true;
-    }, [subscription, activeProgram]);
+    }, [subscription, activeProgram, subscriptionLoaded]);
 
     // Load data using bundle API - OPTIMIZED for instant loading
     const loadData = useCallback(async (forceRefresh = false) => {
@@ -292,12 +315,19 @@ export default function DietsScreen({ navigation }) {
                 fetchRecommendations().catch(() => { });
             }
 
-            // Step 4: Fetch subscription status
-            ApiService.getCurrentSubscription()
-                .then(sub => {
-                    if (isMounted) setSubscription(sub);
-                })
-                .catch(err => console.warn('[DietsScreen] Subscription fetch failed:', err));
+            // Step 4: Fetch subscription status (awaited to prevent lock flash)
+            try {
+                const sub = await ApiService.getCurrentSubscription();
+                if (isMounted) {
+                    setSubscription(sub);
+                    setSubscriptionLoaded(true);
+                    // Cache subscription for instant access on next mount
+                    AsyncStorage.setItem('eatsense_subscription_cache', JSON.stringify(sub)).catch(() => {});
+                }
+            } catch (err) {
+                console.warn('[DietsScreen] Subscription fetch failed:', err);
+                if (isMounted) setSubscriptionLoaded(true);
+            }
 
         } catch (error) {
             console.error('[DietsScreen] Load error:', error);
@@ -582,12 +612,26 @@ export default function DietsScreen({ navigation }) {
                     onSubscribed={async () => {
                         console.log('[DietsScreen] onSubscribed called');
                         setLockModalVisible(false);
-                        // Refresh subscription state so lock statuses update
-                        try {
-                            const sub = await ApiService.getCurrentSubscription();
+                        // FIX: Retry logic - Apple needs time to process the purchase
+                        // Wait 1.5s, then retry up to 3 times with 1s delays
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        let sub = null;
+                        for (let attempt = 0; attempt < 3; attempt++) {
+                            try {
+                                sub = await ApiService.getCurrentSubscription();
+                                if (sub?.hasSubscription) {
+                                    console.log('[DietsScreen] Subscription confirmed on attempt', attempt + 1);
+                                    break;
+                                }
+                            } catch (err) {
+                                console.warn('[DietsScreen] Subscription fetch attempt', attempt + 1, 'failed:', err);
+                            }
+                            if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                        if (sub) {
                             setSubscription(sub);
-                        } catch (err) {
-                            console.warn('[DietsScreen] Failed to refresh subscription after purchase:', err);
+                            setSubscriptionLoaded(true);
+                            AsyncStorage.setItem('eatsense_subscription_cache', JSON.stringify(sub)).catch(() => {});
                         }
                         // Also reload data to ensure everything is fresh
                         loadData(true);
