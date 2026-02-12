@@ -105,7 +105,7 @@ We offer the following paid subscription plans:
 PRO features include: unlimited food scans, full meal history, AI nutrition assistant, biomarker tracking, advanced reports, and priority support.
 
 7.3 Free Trial
-New users may be eligible for a 7-day free trial of PRO features. At the end of the trial period, you will be automatically charged for the subscription unless you cancel before the trial ends.
+New users may be eligible for a 3-day free trial of PRO features. At the end of the trial period, you will be automatically charged for the subscription unless you cancel before the trial ends.
 
 7.4 Payment Processing
 All payments are processed through Apple App Store (iOS) or Google Play Store (Android). By purchasing a subscription, you agree to the payment terms of the respective app store.

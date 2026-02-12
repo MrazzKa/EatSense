@@ -499,6 +499,7 @@
     },
     "suggestedFood": {
       "title": "Smart food suggestions",
+      "trustText": "Personal recommendations are formed based on your nutrition data over several days. The longer you use the app, the more accurate the advice.",
       "subtitle": "Here are simple ideas to better match your goal for the next few days.",
       "summary": {
         "title": "Personal recommendation"
@@ -688,7 +689,8 @@
     },
     "tapToView": "Tap to view",
     "analysisComplete": "Analysis complete",
-    "deleteError": "Delete Error"
+    "deleteError": "Delete Error",
+    "trustText": "Analysis accuracy improves with each use — AI learns to recognize your favorite dishes and portion sizes."
   },
   "describeFood": {
     "title": "Describe your meal",

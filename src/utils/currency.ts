@@ -654,16 +654,21 @@ export function getDeviceRegion(): string | null {
       return region.toUpperCase();
     }
 
-    // 2. Try to extract region from languageTag (e.g., 'en-CH' -> 'CH')
-    const languageTag = primaryLocale?.languageTag; // e.g., 'en-CH'
+    // 2. Try to extract region from languageTag (e.g., 'en-CH' -> 'CH', 'ru-Cyrl-CH' -> 'CH')
+    // BCP 47 format: language[-script][-region] — region is always 2 uppercase letters
+    const languageTag = primaryLocale?.languageTag;
     if (languageTag) {
       const localeParts = languageTag.split('-');
-      if (localeParts.length > 1) {
-        const regionFromLocale = localeParts[1].toUpperCase();
-        if (__DEV__) {
-          console.log(`[currency] Detected region from languageTag: ${regionFromLocale}`);
+      // Find the region part: 2-letter code (skip 4-letter script like 'Cyrl')
+      for (let i = 1; i < localeParts.length; i++) {
+        const part = localeParts[i];
+        if (part.length === 2 && /^[A-Za-z]{2}$/.test(part)) {
+          const regionFromLocale = part.toUpperCase();
+          if (__DEV__) {
+            console.log(`[currency] Detected region from languageTag: ${regionFromLocale} (from ${languageTag})`);
+          }
+          return regionFromLocale;
         }
-        return regionFromLocale;
       }
     }
 

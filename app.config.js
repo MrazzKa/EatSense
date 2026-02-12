@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "12",
+      buildNumber: "13",
       developmentTeam: "73T7PB4F99",
       supportsTablet: true,
       infoPlist: {
@@ -58,10 +58,8 @@ export default {
           "EatSense can integrate with HealthKit to sync nutrition data (optional).",
         NSHealthUpdateUsageDescription:
           "EatSense can update HealthKit with your nutrition data (optional).",
-        NSMicrophoneUsageDescription:
-          "Allow EatSense to access your microphone",
-        NSFaceIDUsageDescription:
-          "Allow EatSense to access your Face ID biometric data."
+        // NSMicrophoneUsageDescription — REMOVED (not used, Apple rejects unused permissions)
+        // NSFaceIDUsageDescription — REMOVED (not used, Apple rejects unused permissions)
       },
       associatedDomains: ["applinks:eatsense.app", "applinks:*.eatsense.app"],
       privacyManifests: {
