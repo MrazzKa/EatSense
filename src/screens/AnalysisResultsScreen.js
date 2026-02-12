@@ -1039,6 +1039,12 @@ export default function AnalysisResultsScreen() {
               </TouchableOpacity>
             )}
             <HealthDisclaimer style={{ marginTop: 24, marginHorizontal: 4 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingHorizontal: 4 }}>
+              <Ionicons name="sparkles-outline" size={14} color={colors.textTertiary} style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 12, color: colors.textTertiary, flex: 1 }}>
+                {t('analysis.trustText', 'Analysis accuracy improves with each use — AI learns to recognize your favorite dishes and portion sizes.')}
+              </Text>
+            </View>
           </View>
 
           <View style={{ height: 100 }} />

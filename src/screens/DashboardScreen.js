@@ -1012,6 +1012,12 @@ export default function DashboardScreen() {
                 <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </View>
             </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, marginTop: 8 }}>
+              <Ionicons name="information-circle-outline" size={14} color={colors.textTertiary} style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 12, color: colors.textTertiary, flex: 1 }}>
+                {t('dashboard.suggestedFood.trustText', 'Personal recommendations are formed based on your nutrition data over several days. The longer you use the app, the more accurate the advice.')}
+              </Text>
+            </View>
           </Animated.View>
         )}
 

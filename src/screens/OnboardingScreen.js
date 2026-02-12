@@ -33,6 +33,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
+import { TRIAL_DAYS } from '../config/freeContent';
 import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getCurrencySymbolByCode } from '../utils/currency';
 
 const { width } = Dimensions.get('window');
@@ -947,7 +948,7 @@ const OnboardingScreen = () => {
         t('onboarding.plans.features.coaching', 'Personalized coaching'),
         t('onboarding.plans.features.support', 'Priority support'),
       ],
-      badge: t('onboarding.plans.proMonthly.badge', 'Popular'),
+      badge: t('paywall.trialBadge', { days: TRIAL_DAYS.SHORT }) || `${TRIAL_DAYS.SHORT} days free trial`,
       popular: false,
     },
     {
