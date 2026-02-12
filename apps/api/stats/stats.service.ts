@@ -289,7 +289,7 @@ export class StatsService {
       where: { userId },
     });
 
-    const dailyGoal = calculateDailyCalories(userProfile);
+    const dailyGoal = userProfile?.dailyCalories || calculateDailyCalories(userProfile);
 
     // Also get mealLog for backward compatibility
     const logs = await this.prisma.mealLog.findMany({

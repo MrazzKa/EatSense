@@ -1678,7 +1678,49 @@
     "terms_notice": "Cancel anytime from Settings.",
     "restore": "Restore Purchases",
     "studentVerificationTitle": "Student Discount",
-    "studentVerificationDescription": "Upload a photo of your student ID to get a discount"
+    "studentVerificationDescription": "Upload a photo of your student ID to get a discount",
+    "applyPlan": "Apply Plan",
+    "bestValue": "Best Value",
+    "billing": {
+      "currency": {
+        "default": "$",
+        "kk": "₸",
+        "ru": "₽"
+      },
+      "free": "Basic Plan",
+      "perMonth": "per month",
+      "perYear": "per year"
+    },
+    "choosePlan": "Choose Plan",
+    "continue": "Continue",
+    "feature_expert_access": "Access to nutrition experts",
+    "feature_export_data": "Export your data",
+    "features": {
+      "analyses": "AI analyses per day",
+      "stats": "Advanced statistics",
+      "tracking": "Calorie tracking"
+    },
+    "features_title": "What you get",
+    "founders": "Founder",
+    "hideStudent": "Hide",
+    "included": "Included",
+    "legalPrivacy": "Privacy Policy",
+    "legalTerms": "Terms of Use",
+    "month": "mo",
+    "monthly": "Monthly",
+    "perMonth": "/mo",
+    "perYear": "/yr",
+    "plan": {
+      "free": "EatSense Free",
+      "premium": "EatSense Premium",
+      "pro": "EatSense Pro"
+    },
+    "plan_weekly": "Weekly",
+    "popular": "Popular",
+    "save": "Save",
+    "subscribeCTA": "Choose Plan",
+    "yearly": "Yearly",
+    "freePlanBaseline": "Included with all plans"
   },
   "plan_yearly": "Yearly",
   "plan_student": "Student",

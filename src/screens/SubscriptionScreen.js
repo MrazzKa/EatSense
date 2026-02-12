@@ -22,6 +22,7 @@ import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions'
 import { getCurrency, formatPrice, getDeviceRegion, setIAPCurrency } from '../utils/currency';
 import { clientLog } from '../utils/clientLog';
 import { LinearGradient } from 'expo-linear-gradient';
+import { TRIAL_DAYS } from '../config/freeContent';
 
 // Plan descriptions for Apple App Store Review compliance
 // Each subscription must clearly state what features are included
@@ -114,12 +115,17 @@ export default function SubscriptionScreen() {
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
     const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+    const [isTrialEligible, setIsTrialEligible] = useState(false);
 
-    // Check if user has active subscription (to correctly show Free Plan status)
+    // Check if user has active subscription and trial eligibility
     React.useEffect(() => {
         ApiService.getCurrentSubscription()
             .then(sub => setHasActiveSubscription(sub?.hasSubscription === true))
             .catch(() => setHasActiveSubscription(false));
+
+        ApiService.checkTrialEligibility()
+            .then((result) => setIsTrialEligible(result?.eligible === true))
+            .catch(() => setIsTrialEligible(false));
     }, []);
 
     // Load currency from device region (fallback when IAP unavailable)
@@ -673,6 +679,16 @@ export default function SubscriptionScreen() {
                                                 {plan.headline || ''}
                                             </Text>
 
+                                            {/* Trial badge - monthly plan only */}
+                                            {plan.name === 'monthly' && isTrialEligible && (
+                                                <View style={styles.trialBadgeInline}>
+                                                    <Ionicons name="gift-outline" size={12} color={tokens.colors?.primary || '#4CAF50'} />
+                                                    <Text style={[styles.trialBadgeInlineText, { color: tokens.colors?.primary || '#4CAF50' }]}>
+                                                        {t('paywall.trialBadge', { days: TRIAL_DAYS.SHORT }) || `${TRIAL_DAYS.SHORT} days free trial`}
+                                                    </Text>
+                                                </View>
+                                            )}
+
                                             {/* Features Preview - First 2 */}
                                             <View style={{ marginTop: 6 }}>
                                                 {features.slice(0, 2).map((feature, idx) => (
@@ -913,12 +929,23 @@ export default function SubscriptionScreen() {
                                 <ActivityIndicator color="#FFF" />
                             ) : (
                                 <>
-                                    <Ionicons name="flash" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                                    <Ionicons
+                                        name={(() => {
+                                            const plan = plans.find(p => p.id === selectedPlanId);
+                                            return (plan?.name === 'monthly' && isTrialEligible) ? 'gift-outline' : 'flash';
+                                        })()}
+                                        size={20}
+                                        color="#FFF"
+                                        style={{ marginRight: 8 }}
+                                    />
                                     <Text style={styles.subscribeButtonText}>
                                         {(() => {
                                             const plan = plans.find(p => p.id === selectedPlanId);
                                             if (!plan) return t('subscription.subscribe', 'Subscribe');
                                             if (!plan.isSubscription) return t('subscription.purchaseNow', 'Purchase Now');
+                                            if (plan.name === 'monthly' && isTrialEligible) {
+                                                return t('paywall.tryFree', { days: TRIAL_DAYS.SHORT }) || `Try free for ${TRIAL_DAYS.SHORT} days`;
+                                            }
                                             return t('subscription.subscribeNow', 'Subscribe Now');
                                         })()}
                                     </Text>
@@ -932,6 +959,18 @@ export default function SubscriptionScreen() {
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
+                    {/* Trial fine print */}
+                    {(() => {
+                        const plan = plans.find(p => p.id === selectedPlanId);
+                        if (plan?.name === 'monthly' && isTrialEligible) {
+                            return (
+                                <Text style={styles.trialFinePrint}>
+                                    {t('paywall.priceAfterTrial', { price: plan.price }) || `Then ${plan.price}/month after trial`}
+                                </Text>
+                            );
+                        }
+                        return null;
+                    })()}
                 </View>
             )}
 
@@ -1280,6 +1319,24 @@ const createStyles = (tokens, colors) => {
         },
         planPriceSelected: {
             color: colors?.primary || tokens.colors?.primary || '#4CAF50',
+        },
+        // Trial badge inline (on monthly plan card)
+        trialBadgeInline: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 4,
+            gap: 4,
+        },
+        trialBadgeInlineText: {
+            fontSize: 11,
+            fontWeight: '600',
+        },
+        // Trial fine print below subscribe button
+        trialFinePrint: {
+            textAlign: 'center',
+            fontSize: 12,
+            color: colors?.textSecondary || '#666',
+            marginTop: 8,
         },
         // Strike-through pricing styles
         priceRow: {

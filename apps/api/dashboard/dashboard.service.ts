@@ -34,107 +34,89 @@ export class DashboardService {
         }
 
         try {
-            // FIX: Execute critical requests first, then non-critical in parallel
-            // This prevents "Slow Dashboard Load" from blocking critical data
-            // Critical: stats, meals, userStats, activeDiet
-            // Non-critical: suggestions (can be slow due to AI processing)
-            
-            // Critical requests - these must complete for dashboard to be useful
-            const [stats, meals, userStats, activeDiet, todayTracker] = await Promise.all([
-                // 1. Stats (Calories, Macros for today)
-                this.getStatsForDate(userId, date),
+            // FIX: Run ALL requests in parallel (including suggestions) but with individual timing
+            // Suggestions have their own timeout — they won't block the dashboard response
+            const timed = async <T>(label: string, fn: () => Promise<T>): Promise<{ result: T; ms: number }> => {
+                const t = Date.now();
+                const result = await fn();
+                return { result, ms: Date.now() - t };
+            };
 
-                // 2. Meals
-                this.mealsService.getMeals(userId, date.toISOString()),
-
-                // 3. User Stats (Photos analyzed count etc - mainly for limits)
-                this.usersService.getUserStats(userId).catch(e => {
-                    this.logger.error(`Failed to get user stats: ${e.message}`);
-                    return { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 };
-                }),
-
-                // 5. Active Diet Program (critical - needed for tracker)
-                this.dietsService.getActiveDiet(userId, locale, true).catch(e => {
-                    // It's normal to not have an active diet, expecting null or catch 404
-                    return null;
-                }),
-
-                // 6. Today Tracker (Checklist state) - often needed with Active Diet
-                this.dietsService.getTodayTracker(userId, locale).catch(e => null),
-            ]);
-
-            // Non-critical: suggestions (can be slow due to AI processing)
-            // Check if this user recently timed out — skip suggestions for 5 min to avoid repeated slow calls
+            // Check if suggestions should be skipped (recent timeout)
             const skipKey = `suggestions_skip:${userId}`;
             const cachedSuggestionsKey = `suggestions_result:${userId}`;
             const shouldSkip = await this.cacheService.get(skipKey, 'suggestions');
-            let suggestions: any;
 
-            if (shouldSkip) {
-                // Recently timed out — check for cached successful result or return skip status
-                const cachedResult = await this.cacheService.get<any>(cachedSuggestionsKey, 'suggestions');
-                suggestions = cachedResult
-                    ? cachedResult
-                    : { status: 'skipped', sections: [], message: 'Suggestions temporarily unavailable' };
-            } else {
-                const suggestionsPromise = this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
-                    .catch(e => {
-                        this.logger.warn(`Failed to get suggestions: ${e.message}`);
-                        return { status: 'error', sections: [], error: e.message };
-                    });
-
-                // FIX: Increased timeout from 15s to 25s — suggestions depend on NutritionOrchestrator
-                // which queries external APIs (USDA, OpenFoodFacts) that need up to 10s each.
-                // 15s was consistently too short, causing suggestions to always timeout.
-                suggestions = await Promise.race([
-                    suggestionsPromise,
-                    new Promise(resolve => setTimeout(() => {
-                        this.logger.warn(`Suggestions timeout for user ${userId} after 25s`);
-                        resolve({ status: 'timeout', sections: [], message: 'Suggestions are taking longer than expected' });
-                    }, 25000)),
-                ]) as any;
-
-                if (suggestions.status === 'timeout') {
-                    // Skip suggestions for this user for 2 minutes (reduced from 5 to retry faster)
-                    await this.cacheService.set(skipKey, 'true', 'suggestions', 120).catch(() => {});
-                } else if (suggestions.sections?.length > 0) {
-                    // Cache successful result for 5 minutes
-                    await this.cacheService.set(cachedSuggestionsKey, suggestions, 'suggestions', 300).catch(() => {});
+            // Build suggestions promise (non-blocking, with reduced 12s timeout)
+            const suggestionsPromise = (async () => {
+                if (shouldSkip) {
+                    const cachedResult = await this.cacheService.get<any>(cachedSuggestionsKey, 'suggestions');
+                    return cachedResult
+                        ? cachedResult
+                        : { status: 'skipped', sections: [], message: 'Suggestions temporarily unavailable' };
                 }
-            }
+
+                const result = await Promise.race([
+                    this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
+                        .catch(e => {
+                            this.logger.warn(`Failed to get suggestions: ${e.message}`);
+                            return { status: 'error', sections: [], error: e.message };
+                        }),
+                    new Promise<any>(resolve => setTimeout(() => {
+                        this.logger.warn(`Suggestions timeout for user ${userId} after 12s`);
+                        resolve({ status: 'timeout', sections: [], message: 'Suggestions are taking longer than expected' });
+                    }, 12000)), // Reduced from 25s to 12s — fast path handles new users instantly
+                ]);
+
+                if (result.status === 'timeout') {
+                    // Skip suggestions for this user for 3 minutes
+                    await this.cacheService.set(skipKey, 'true', 'suggestions', 180).catch(() => {});
+                } else if (result.sections?.length > 0) {
+                    // Cache successful result for 5 minutes
+                    await this.cacheService.set(cachedSuggestionsKey, result, 'suggestions', 300).catch(() => {});
+                }
+                return result;
+            })();
+
+            // Run ALL in parallel — suggestions won't delay critical data
+            const [statsT, mealsT, userStatsT, activeDietT, todayTrackerT, suggestionsT] = await Promise.all([
+                timed('stats', () => this.getStatsForDate(userId, date)),
+
+                timed('meals', () => this.mealsService.getMeals(userId, date.toISOString())),
+
+                timed('userStats', () => this.usersService.getUserStats(userId).catch(e => {
+                    this.logger.error(`Failed to get user stats: ${e.message}`);
+                    return { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 };
+                })),
+
+                timed('activeDiet', () => this.dietsService.getActiveDiet(userId, locale, true).catch(e => null)),
+
+                timed('todayTracker', () => this.dietsService.getTodayTracker(userId, locale).catch(e => null)),
+
+                timed('suggestions', () => suggestionsPromise),
+            ]);
 
             const duration = Date.now() - start;
-            if (duration > 3000) {
-                this.logger.warn(`Slow dashboard load: ${duration}ms for user ${userId}`);
-                // FIX: Log which requests are slow to help identify bottlenecks
-                this.logger.debug(`Dashboard timing breakdown for user ${userId}:`, {
-                    total: duration,
-                    // Individual timings would require Promise.allSettled with timing, but that's complex
-                    // For now, just log the warning - frontend will preserve cached activeDiet
-                });
+            if (duration > 2000) {
+                this.logger.warn(`Slow dashboard load: ${duration}ms for user ${userId} — stats=${statsT.ms}ms meals=${mealsT.ms}ms userStats=${userStatsT.ms}ms diet=${activeDietT.ms}ms tracker=${todayTrackerT.ms}ms suggestions=${suggestionsT.ms}ms`);
             }
 
             return {
-                stats,
-                meals,
-                userStats,
-                suggestions,
-                // FIX: Always return activeDiet structure, even if null
-                // This prevents frontend from clearing activeDiet on partial errors
-                // Frontend should preserve previous activeDiet value if this is null (during slow loads)
-                activeDiet: activeDiet ? { ...activeDiet, todayTracker } : null,
+                stats: statsT.result,
+                meals: mealsT.result,
+                userStats: userStatsT.result,
+                suggestions: suggestionsT.result,
+                activeDiet: activeDietT.result ? { ...activeDietT.result, todayTracker: todayTrackerT.result } : null,
             };
 
         } catch (error) {
             this.logger.error(`Error aggregating dashboard data: ${error.message}`, error.stack);
-            // FIX: Return partial data instead of throwing - allows UI to show cached/partial data
-            // This prevents tracker from disappearing during slow loads
             return {
                 stats: { today: {}, goals: {} },
                 meals: [],
                 userStats: { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 },
                 suggestions: { status: 'error', sections: [] },
-                activeDiet: null, // Let frontend preserve previous activeDiet from cache/store
+                activeDiet: null,
             };
         }
     }

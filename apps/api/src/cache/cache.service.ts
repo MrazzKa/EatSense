@@ -12,6 +12,7 @@ type CacheNamespace =
   | 'articles:list'
   | 'articles:detail'
   | 'stats:monthly'
+  | 'stats:daily'
   | 'assistant:session'
   | 'assistant:active'
   | 'health_feedback_ai'

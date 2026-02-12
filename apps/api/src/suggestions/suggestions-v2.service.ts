@@ -39,9 +39,10 @@ export class SuggestionsV2Service {
         locale: SupportedLocale = 'en',
     ): Promise<SuggestedFoodV2Response> {
         const debug = process.env.SUGGESTIONS_DEBUG === 'true';
+        const t0 = Date.now();
 
         try {
-            // Cache check
+            // Cache check (Redis — should be <10ms)
             const cacheKey = `${userId}:${locale}`;
             if (this.cache) {
                 const cached = await this.cache.get<SuggestedFoodV2Response>(cacheKey, 'suggestions');
@@ -50,24 +51,15 @@ export class SuggestionsV2Service {
                     return cached;
                 }
             }
+            const t1 = Date.now();
 
-            // 1. Get user profile
-            const userProfile = await this.prisma.userProfile.findUnique({
-                where: { userId },
-            });
-
-            const goal = (userProfile?.goal as string) || 'maintain_weight';
-            const preferences = (userProfile?.preferences as any) || {};
-            const dietaryPreferences: string[] = preferences.dietaryPreferences || [];
-            const allergies: string[] = preferences.allergies || [];
-            const weight = userProfile?.weight || null;
-
-            // 2. Get meals for last 7 days
+            // FIX: Quick count check BEFORE heavy queries — if user has < 3 meals, skip immediately
+            // This avoids the expensive findMany+include for new users or users with little data
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
             sevenDaysAgo.setHours(0, 0, 0, 0);
 
-            const meals = await this.prisma.meal.findMany({
+            const mealsCount = await this.prisma.meal.count({
                 where: {
                     userId,
                     OR: [
@@ -75,10 +67,41 @@ export class SuggestionsV2Service {
                         { consumedAt: null, createdAt: { gte: sevenDaysAgo } },
                     ],
                 },
-                include: { items: true },
-                orderBy: { createdAt: 'desc' },
-                take: 200, // Limit to prevent slow queries on users with many meals
             });
+            const t2 = Date.now();
+
+            // Fast path: not enough meals → return immediately without loading items
+            if (mealsCount < 3) {
+                this.logger.log(`[SuggestionsV2] Fast path: ${mealsCount} meals for ${userId} (count: ${t2 - t1}ms, total: ${t2 - t0}ms)`);
+                const emptyStats = { mealsCount, daysWithMeals: mealsCount > 0 ? 1 : 0 };
+                return this.buildInsufficientDataResponse(locale, emptyStats as any);
+            }
+
+            // 1. Get user profile + meals in parallel (saves ~200-400ms on proxy DB)
+            const [userProfile, meals] = await Promise.all([
+                this.prisma.userProfile.findUnique({
+                    where: { userId },
+                }),
+                this.prisma.meal.findMany({
+                    where: {
+                        userId,
+                        OR: [
+                            { consumedAt: { gte: sevenDaysAgo } },
+                            { consumedAt: null, createdAt: { gte: sevenDaysAgo } },
+                        ],
+                    },
+                    include: { items: true },
+                    orderBy: { createdAt: 'desc' },
+                    take: 100, // Reduced from 200 — 100 meals is plenty for 7-day analysis
+                }),
+            ]);
+            const t3 = Date.now();
+
+            const goal = (userProfile?.goal as string) || 'maintain_weight';
+            const preferences = (userProfile?.preferences as any) || {};
+            const dietaryPreferences: string[] = preferences.dietaryPreferences || [];
+            const allergies: string[] = preferences.allergies || [];
+            const weight = userProfile?.weight || null;
 
             // 3. Calculate stats
             const stats = this.calculateStats(meals);
@@ -87,7 +110,9 @@ export class SuggestionsV2Service {
                 this.logger.debug(`[SuggestionsV2] userId=${userId} stats:`, stats);
             }
 
-            // 4. Check for insufficient data
+            this.logger.log(`[SuggestionsV2] Loaded data for ${userId}: cache=${t1 - t0}ms, count=${t2 - t1}ms, data=${t3 - t2}ms, meals=${meals.length}`);
+
+            // 4. Check for insufficient data (double check after full load)
             if (stats.mealsCount < 3 || stats.daysWithMeals < 2) {
                 return this.buildInsufficientDataResponse(locale, stats);
             }

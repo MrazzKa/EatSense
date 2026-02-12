@@ -1,6 +1,7 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, OnModuleInit, Inject, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { GeoService } from '../geo/geo.service';
+import { CacheService } from '../cache/cache.service';
 import * as crypto from 'crypto';
 
 export interface PlanWithPrice {
@@ -25,6 +26,7 @@ export class SubscriptionsService implements OnModuleInit {
     constructor(
         private prisma: PrismaService,
         private geoService: GeoService,
+        @Optional() @Inject(CacheService) private readonly cache?: CacheService,
     ) { }
 
     onModuleInit() {
@@ -199,7 +201,7 @@ export class SubscriptionsService implements OnModuleInit {
             endDate.setDate(endDate.getDate() + effectiveDuration);
         }
 
-        return this.prisma.userSubscription.create({
+        const subscription = await this.prisma.userSubscription.create({
             data: {
                 userId,
                 planId: effectivePlanId,
@@ -214,6 +216,25 @@ export class SubscriptionsService implements OnModuleInit {
                 plan: true,
             },
         });
+
+        // FIX: Invalidate caches after subscription creation
+        // Without this, the old dailyLimit (3 for free users) stays cached
+        // and users can't analyze more food even after paying
+        if (this.cache) {
+            try {
+                await Promise.all([
+                    this.cache.invalidateNamespace('suggestions', userId),
+                    this.cache.invalidateNamespace('stats:monthly', userId),
+                    this.cache.invalidateNamespace('stats:daily', userId),
+                    this.cache.invalidateNamespace('meals:diary', userId),
+                ]);
+                this.logger.log(`[Subscriptions] Cache invalidated for user ${userId} after subscription creation`);
+            } catch (e) {
+                this.logger.warn(`[Subscriptions] Failed to invalidate cache: ${e?.message}`);
+            }
+        }
+
+        return subscription;
     }
 
     /**
