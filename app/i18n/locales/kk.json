@@ -1922,7 +1922,49 @@
     "terms_notice": "Кез келген уақытта Реттеулерден бас тартыңыз.",
     "restore": "Сатып алуды қалпына келтіру",
     "studentVerificationTitle": "Студенттік жеңілдік",
-    "studentVerificationDescription": "Жеңілдік алу үшін студенттік куәлігіңіздің фотосын жүктеңіз"
+    "studentVerificationDescription": "Жеңілдік алу үшін студенттік куәлігіңіздің фотосын жүктеңіз",
+    "applyPlan": "Жоспарды қолдану",
+    "bestValue": "Ең тиімді",
+    "billing": {
+      "currency": {
+        "default": "$",
+        "kk": "₸",
+        "ru": "₽"
+      },
+      "free": "Негізгі жоспар",
+      "perMonth": "айына",
+      "perYear": "жылына"
+    },
+    "choosePlan": "Жоспарды таңдау",
+    "continue": "Жалғастыру",
+    "feature_expert_access": "Тамақтану сарапшыларына қол жеткізу",
+    "feature_export_data": "Деректерді экспорттау",
+    "features": {
+      "analyses": "Күніне AI талдауы",
+      "stats": "Кеңейтілген статистика",
+      "tracking": "Калория бақылау"
+    },
+    "features_title": "Сіз не аласыз",
+    "founders": "Негізін қалаушы",
+    "hideStudent": "Жасыру",
+    "included": "Кіреді",
+    "legalPrivacy": "Құпиялық саясаты",
+    "legalTerms": "Пайдалану шарттары",
+    "month": "ай",
+    "monthly": "Айлық",
+    "perMonth": "/ай",
+    "perYear": "/жыл",
+    "plan": {
+      "free": "EatSense Free",
+      "premium": "EatSense Premium",
+      "pro": "EatSense Pro"
+    },
+    "plan_weekly": "Апталық",
+    "popular": "Танымал",
+    "save": "Үнемдеу",
+    "subscribeCTA": "Жоспарды таңдау",
+    "yearly": "Жылдық",
+    "freePlanBaseline": "Барлық жоспарларға кіреді"
   },
   "plan_yearly": "Жылдық",
   "plan_student": "Студент",

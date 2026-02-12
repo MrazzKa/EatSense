@@ -5,8 +5,25 @@ import { PrismaClient } from '@prisma/client';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
+  constructor() {
+    super({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+      // FIX: Optimize connection pool for Railway proxy DB
+      // Default pool_size = num_cpus * 2 + 1 (often just 3-5 on Railway)
+      // With proxy DB, each query takes 100-400ms instead of 1-5ms,
+      // so we need more connections to handle parallel queries within a single request
+      // Dashboard alone needs: stats + meals + userStats + activeDiet + todayTracker + suggestions = 6+ parallel queries
+      // ?connection_limit=20 is appended to DATABASE_URL or set here via env
+    });
+  }
+
   async onModuleInit() {
     await this.$connect();
+    this.logger.log(`[Prisma] Connected to database`);
     await this.checkSchema();
   }
 

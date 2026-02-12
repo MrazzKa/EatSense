@@ -223,7 +223,7 @@ export class UsersService {
     // Invalidate stats cache so Dashboard picks up new calorie goals immediately
     try {
       await this.cache.invalidateNamespace('stats:monthly', userId);
-      await this.cache.invalidateNamespace('stats:daily' as any, userId);
+      await this.cache.invalidateNamespace('stats:daily', userId);
       this.logger.debug(`Invalidated stats cache for user ${userId} after profile update`);
     } catch (error: any) {
       this.logger.warn(`Failed to invalidate stats cache after profile update: ${error?.message || String(error)}`);
@@ -291,18 +291,38 @@ export class UsersService {
 
   async getUserStats(userId: string) {
     try {
-    const stats = await this.prisma.userStats.findUnique({
-      where: { userId },
-    });
+      // FIX: Run stats + subscription queries in parallel to speed up response
+      const [stats, activeSubscription] = await Promise.all([
+        this.prisma.userStats.findUnique({
+          where: { userId },
+        }),
+        this.prisma.userSubscription.findFirst({
+          where: {
+            userId,
+            status: 'ACTIVE',
+            endDate: { gt: new Date() },
+          },
+          include: { plan: true },
+        }),
+      ]);
 
-      // If no stats exist yet, return safe defaults
-    if (!stats) {
-      return {
-        totalPhotosAnalyzed: 0,
-        todayPhotosAnalyzed: 0,
-        dailyLimit: parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10),
-      };
-    }
+      // Determine daily limit from subscription (applies to ALL users, not just those with stats)
+      let dailyLimit = parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10);
+      if (activeSubscription?.plan?.dailyLimit) {
+        dailyLimit = activeSubscription.plan.dailyLimit;
+      } else if (activeSubscription) {
+        // Subscription exists but plan not found or no dailyLimit — use pro default
+        dailyLimit = parseInt(process.env.PRO_DAILY_ANALYSES || '9999', 10);
+      }
+
+      // If no stats exist yet, return safe defaults WITH correct subscription limit
+      if (!stats) {
+        return {
+          totalPhotosAnalyzed: 0,
+          todayPhotosAnalyzed: 0,
+          dailyLimit,
+        };
+      }
 
       // Normalise potentially null values from DB
       const totalPhotosAnalyzed = Number.isFinite(Number(stats.totalPhotosAnalyzed))
@@ -312,46 +332,23 @@ export class UsersService {
         ? Number(stats.todayPhotosAnalyzed)
         : 0;
 
-    // Check if today's count needs reset
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const lastAnalysisDate = stats.lastAnalysisDate
-      ? new Date(stats.lastAnalysisDate)
-      : null;
+      // Check if today's count needs reset
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const lastAnalysisDate = stats.lastAnalysisDate
+        ? new Date(stats.lastAnalysisDate)
+        : null;
 
-    if (!lastAnalysisDate || lastAnalysisDate < today) {
-      // Reset today's count if last analysis was not today
-      todayPhotosAnalyzed = 0;
-    }
+      if (!lastAnalysisDate || lastAnalysisDate < today) {
+        todayPhotosAnalyzed = 0;
+      }
 
-    // Get daily limit based on subscription
-    let dailyLimit = parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10);
-    
-    // Check user's active subscription to get plan-specific limit
-    const activeSubscription = await this.prisma.userSubscription.findFirst({
-      where: {
-        userId,
-        status: 'ACTIVE',
-        endDate: { gt: new Date() },
-      },
-      include: { plan: true },
-    });
-
-    if (activeSubscription?.plan?.dailyLimit) {
-      // Use plan-specific limit (e.g., student: 10, paid: 9999)
-      dailyLimit = activeSubscription.plan.dailyLimit;
-    } else if (activeSubscription && !activeSubscription.plan) {
-      // Subscription exists but plan not found - use pro default
-      dailyLimit = parseInt(process.env.PRO_DAILY_ANALYSES || '9999', 10);
-    }
-
-    return {
+      return {
         totalPhotosAnalyzed,
-      todayPhotosAnalyzed,
-      dailyLimit,
-    };
+        todayPhotosAnalyzed,
+        dailyLimit,
+      };
     } catch (error) {
-      // Never let stats endpoint crash the app – log and return safe defaults
       this.logger.error(`[UsersService] getUserStats failed for user ${userId}: ${error?.message || error}`, error?.stack);
       return {
         totalPhotosAnalyzed: 0,

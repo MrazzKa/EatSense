@@ -3,9 +3,10 @@ import { SubscriptionsController } from './subscriptions.controller';
 import { SubscriptionsService } from './subscriptions.service';
 import { AppleReceiptService } from './apple-receipt.service';
 import { GeoModule } from '../geo/geo.module';
+import { CacheModule } from '../cache/cache.module';
 
 @Module({
-    imports: [GeoModule],
+    imports: [GeoModule, CacheModule],
     controllers: [SubscriptionsController],
     providers: [SubscriptionsService, AppleReceiptService],
     exports: [SubscriptionsService, AppleReceiptService],

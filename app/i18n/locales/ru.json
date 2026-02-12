@@ -2033,7 +2033,49 @@
     "terms_notice": "Отмена в любое время в Настройках.",
     "restore": "Восстановить",
     "studentVerificationTitle": "Студенческая скидка",
-    "studentVerificationDescription": "Загрузите фото студенческого билета для получения скидки"
+    "studentVerificationDescription": "Загрузите фото студенческого билета для получения скидки",
+    "applyPlan": "Применить план",
+    "bestValue": "Лучшее предложение",
+    "billing": {
+      "currency": {
+        "default": "$",
+        "kk": "₸",
+        "ru": "₽"
+      },
+      "free": "Базовый план",
+      "perMonth": "в месяц",
+      "perYear": "в год"
+    },
+    "choosePlan": "Выбрать план",
+    "continue": "Продолжить",
+    "feature_expert_access": "Доступ к экспертам по питанию",
+    "feature_export_data": "Экспорт данных",
+    "features": {
+      "analyses": "AI анализов в день",
+      "stats": "Подробная статистика",
+      "tracking": "Трекер калорий"
+    },
+    "features_title": "Что вы получите",
+    "founders": "Основатель",
+    "hideStudent": "Скрыть",
+    "included": "Включено",
+    "legalPrivacy": "Политика конфиденциальности",
+    "legalTerms": "Условия использования",
+    "month": "мес",
+    "monthly": "Месячный",
+    "perMonth": "/мес",
+    "perYear": "/год",
+    "plan": {
+      "free": "EatSense Free",
+      "premium": "EatSense Premium",
+      "pro": "EatSense Pro"
+    },
+    "plan_weekly": "Недельный",
+    "popular": "Популярный",
+    "save": "Экономия",
+    "subscribeCTA": "Выбрать план",
+    "yearly": "Годовой",
+    "freePlanBaseline": "Входит во все планы"
   },
   "plan_monthly": "Месяц",
   "plan_yearly": "Год",
