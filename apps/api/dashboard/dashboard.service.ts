@@ -61,7 +61,7 @@ export class DashboardService {
             // Saves 2-3 DB queries and ~500-1000ms latency through proxy
             const [statsT, userProfileT] = await Promise.all([
                 timed('stats', async () => {
-                    const meals = mealsT.result;
+                    const meals = mealsT.result as any[];
                     const totals = meals.reduce(
                         (acc, meal) => {
                             const mealTotals = (meal.items || []).reduce(
@@ -162,7 +162,7 @@ export class DashboardService {
                             suggestions = result;
                         } else if (result.sections?.length > 0 || result.status === 'insufficient_data') {
                             // Cache successful result for 10 minutes
-                            await this.cacheService.set(cachedSuggestionsKey, result, 'suggestions', 600).catch(() => {});
+                            await this.cacheService.set(cachedSuggestionsKey, result, 'suggestions', 600).catch(() => { });
                             suggestions = result;
                         } else {
                             suggestions = result;
