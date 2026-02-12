@@ -119,6 +119,9 @@ class IAPService {
             return;
         }
 
+        // Set timestamp BEFORE API call to prevent concurrent verifies for same productId
+        this.lastVerifyTimestamps.set(productId, now);
+
         if (txId) {
             this.pendingVerifications.add(txId);
         }

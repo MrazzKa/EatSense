@@ -802,6 +802,7 @@ const OnboardingScreen = () => {
 
 
   const scrollViewRef = useRef(null);
+  const onboardingCompletedRef = useRef(false);
 
   // Simplified onboarding - only essential data collection slides
   const steps = useMemo(() => [
@@ -1049,6 +1050,11 @@ const OnboardingScreen = () => {
 
   // Complete onboarding after profile is saved (called after purchase success or for free plan)
   const completeOnboarding = useCallback(async () => {
+    if (onboardingCompletedRef.current) {
+      console.log('[OnboardingScreen] completeOnboarding already called, skipping');
+      return;
+    }
+    onboardingCompletedRef.current = true;
     try {
       const onboardingResult = await ApiService.completeOnboarding();
       console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
