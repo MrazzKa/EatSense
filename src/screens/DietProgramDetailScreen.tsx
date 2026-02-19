@@ -13,6 +13,7 @@ import { useProgramProgress, useRefreshProgressOnFocus } from '../stores/Program
 import { getLocalizedText as getLocalizedTextShared } from '../components/programs/types';
 import { isFreeDiet } from '../config/freeContent';
 import PaywallModal from '../components/PaywallModal';
+import HealthDisclaimer from '../components/HealthDisclaimer';
 
 const STARTING_TIMEOUT_MS = 10000; // 10 second timeout for start operation
 
@@ -50,7 +51,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                     } catch (e) { /* ignore */ }
                 }
             })
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const loadProgram = useCallback(async () => {
@@ -454,6 +455,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                             ))}
                         </View>
                     )}
+
+                    {/* Health Disclaimer + Scientific Sources link */}
+                    <HealthDisclaimer style={{ marginTop: 16, marginBottom: 8 }} />
                 </View>
             </ScrollView>
 
@@ -485,7 +489,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                         await new Promise(r => setTimeout(r, 1500)); // Wait for backend to process
                         const sub = await ApiService.getCurrentSubscription();
                         if (sub?.hasSubscription) {
-                            AsyncStorage.setItem('eatsense_subscription_cache', JSON.stringify(sub)).catch(() => {});
+                            AsyncStorage.setItem('eatsense_subscription_cache', JSON.stringify(sub)).catch(() => { });
                         }
                     } catch (e) {
                         console.warn('[DietProgramDetail] Failed to refresh subscription after purchase:', e);

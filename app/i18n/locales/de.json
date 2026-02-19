@@ -1575,6 +1575,7 @@
     "weight": "Gewicht (kg)",
     "welcomeBack": "Willkommen zurück",
     "notificationsDailyEnabled": "Tägliche Benachrichtigungen",
+    "scientificSources": "Wissenschaftliche Quellen und Referenzen",
     "about": "Über",
     "aboutEatsense": "Über EatSense",
     "aboutText1": "EatSense ist eine KI-gestützte Ernährungsanalyse-App, die dir hilft, deine Nahrungsaufnahme zu verfolgen und einen gesunden Lebensstil zu pflegen.",
@@ -2573,9 +2574,9 @@
       "metabolic_reset": {
         "dailyTracker": {},
         "name": "Metabolic Reset",
-        "subtitle": "Starten Sie Ihren Fettverbrennungsmotor neu",
-        "description": "Stoffwechsel-Reparatur durch Vollwertkost, stabilen Blutzucker, strategische Essenszeitfenster.",
-        "shortDescription": "Stoffwechsel zurücksetzen, stabile Energie"
+        "subtitle": "Ihre Energiesysteme neu ausbalancieren",
+        "description": "Stoffwechsel-Unterstützung durch Vollwertkost, stabilen Blutzucker, strategische Essenszeitfenster.",
+        "shortDescription": "Stoffwechsel-Balance, stabile Energie"
       },
       "debloat_detox": {
         "dailyTracker": {},
@@ -2587,7 +2588,7 @@
       "sustainable_slim": {
         "dailyTracker": {},
         "name": "Sustainable Slim",
-        "subtitle": "Abnehmen und dauerhaft schlank bleiben",
+        "subtitle": "Nachhaltige Gewohnheiten für langfristige Ergebnisse",
         "description": "Anti-Jo-Jo-Ansatz. Kleine nachhaltige Veränderungen, Fokus auf Gewohnheiten statt Zahlen.",
         "shortDescription": "Nachhaltiger Gewichtsverlust"
       },
@@ -2621,7 +2622,7 @@
       },
       "glass_skin": {
         "dailyTracker": {},
-        "subtitle": "Koreanische Schönheit beginnt von innen",
+        "subtitle": "Ernährung im Stil koreanischer Schönheit",
         "description": "Darm-Haut-Verbindung. Fermentierte Lebensmittel, Omega-3, Kollagen.",
         "shortDescription": "K-Beauty-Ernährung"
       },
@@ -2635,7 +2636,7 @@
         "dailyTracker": {},
         "subtitle": "Anmutig altern, ewig strahlen",
         "description": "Langlebigkeitsernährung. Antioxidantien, Kollagen, gesunde Fette.",
-        "shortDescription": "Anti-Aging-Ernährung"
+        "shortDescription": "Langlebigkeitsorientierte Ernährung"
       },
       "all_day_energy": {
         "dailyTracker": {},
@@ -2651,8 +2652,8 @@
       },
       "adrenal_recovery": {
         "dailyTracker": {},
-        "subtitle": "Burnout heilen, Vitalität wiederherstellen",
-        "description": "Heilende Ernährung für erschöpfte Systeme.",
+        "subtitle": "Erholung unterstützen, Vitalität fördern",
+        "description": "Ernährung für die Erholung bei aktivem Lebensstil.",
         "shortDescription": "Burnout-Erholung"
       },
       "amalfi_coast": {
@@ -2669,7 +2670,7 @@
       },
       "okinawa_longevity": {
         "dailyTracker": {},
-        "subtitle": "Geheimnisse des 100-jährigen Lebens",
+        "subtitle": "Inspiriert von okinawanischen Traditionen",
         "description": "Blaue-Zone-Weisheit. Hara Hachi Bu — 80 % satt.",
         "shortDescription": "Blaue-Zone-Langlebigkeit"
       },
@@ -2847,8 +2848,8 @@
           }
         },
         "name": "Mediterran",
-        "description": "Ein herzgesunder Ernährungsplan basierend auf der traditionellen Küche der Mittelmeerländer. Reich an Gemüse, Obst, Vollkornprodukten und Olivenöl.",
-        "shortDescription": "Herzgesunde Ernährung reich an Olivenöl, Fisch und Gemüse"
+        "description": "Ein Ernährungsplan inspiriert von der traditionellen Küche der Mittelmeerlandländer. Reich an Gemüse, Obst, Vollkornprodukten und Olivenöl.",
+        "shortDescription": "Mediterran inspirierte Ernährung mit Olivenöl, Fisch und Gemüse"
       },
       "dash": {
         "dailyTracker": {
@@ -2869,8 +2870,8 @@
           }
         },
         "name": "DASH",
-        "description": "Dietary Approaches to Stop Hypertension. Fokus auf Obst, Gemüse, Vollkornprodukte und mageres Protein bei reduziertem Natriumgehalt.",
-        "shortDescription": "Herzgesunde Ernährung zur Blutdrucksenkung"
+        "description": "Inspiriert vom DASH-Ernährungsansatz. Fokus auf Obst, Gemüse, Vollkornprodukte und mageres Protein bei reduziertem Natriumgehalt.",
+        "shortDescription": "Ausgewogene Ernährung mit Fokus auf Vollwertkost und wenig Natrium"
       },
       "mind": {
         "dailyTracker": {
@@ -2891,8 +2892,8 @@
           }
         },
         "name": "MIND",
-        "description": "Mediterranean-DASH Intervention for Neurodegenerative Delay. Kombiniert Mediterran und DASH mit Schwerpunkt auf gehirngesunden Lebensmitteln.",
-        "shortDescription": "Ernährung für Gehirngesundheit und kognitive Funktion"
+        "description": "Ernährungsansatz, der mediterrane und DASH-Prinzipien kombiniert, mit Schwerpunkt auf Lebensmitteln für kognitives Wohlbefinden.",
+        "shortDescription": "Ernährung für kognitives Wohlbefinden"
       },
       "flexitarian": {
         "dailyTracker": {
@@ -3053,7 +3054,7 @@
           }
         },
         "name": "Low-FODMAP (Darm)",
-        "description": "Eliminationsdiät bei Reizdarmsyndrom und Verdauungsbeschwerden. Muss in Phasen mit fachlicher Begleitung durchgeführt werden.",
+        "description": "Eliminationsansatz für Verdauungskomfort. Am besten phasenweise mit fachlicher Begleitung durchgeführt.",
         "shortDescription": "Darmheilende Phasendiät — Begleitung erforderlich"
       },
       "gluten-free": {
@@ -3752,5 +3753,19 @@
         "shortDescription": "Power-Business-Essen"
       }
     }
+  },
+  "citations": {
+    "screenTitle": "Wissenschaftliche Quellen und Referenzen",
+    "bmi": "Basierend auf der BMI-Klassifikation der WHO (WHO, 2000)",
+    "bmr": "Mifflin-St Jeor-Gleichung (Am J Clin Nutr, 1990)",
+    "tdee": "Aktivitätsmultiplikatoren (Ainsworth et al., 2011)",
+    "calories": "Atwater-Allgemeinfaktorsystem (USDA, 1902)",
+    "healthScore": "Basierend auf WHO/FAO-Ernährungsrichtlinien (TRS 916, 2003)",
+    "viewAllSources": "Wissenschaftliche Quellen und Referenzen anzeigen",
+    "sectionCalculations": "Körpermaße und Berechnungen",
+    "sectionHealthScore": "Ernährungs-Gesundheitsbewertung",
+    "sectionDietPrograms": "Diätprogramme",
+    "sectionDisclaimer": "Allgemeiner Haftungsausschluss",
+    "healthScoreMethodology": "Der Gesundheitsscore bewertet Mahlzeiten auf einer Skala von 0-100 basierend auf fünf evidenzbasierten Faktoren: Proteindichte, Ballaststoffgehalt, gesättigte Fette, freie Zucker und Energiedichte."
   }
 }

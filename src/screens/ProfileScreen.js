@@ -1037,6 +1037,11 @@ const ProfileScreen = () => {
                 </View>
               ))}
             </View>
+            {bmi !== null && (
+              <Text style={{ fontSize: 10, color: colors.textTertiary, textAlign: 'center', marginTop: 4, paddingHorizontal: 16 }}>
+                {safeT('citations.bmi', 'Based on WHO BMI Classification (WHO, 2000)')} · {safeT('citations.bmr', 'Mifflin-St Jeor equation (Am J Clin Nutr, 1990)')}
+              </Text>
+            )}
             <PrimaryButton
               title={editing ? safeT('common.save', 'Save') : safeT('profile.editProfile', 'Edit Profile')}
               onPress={editing && typeof handleSave === 'function' ? handleSave : typeof setEditing === 'function' ? () => setEditing(true) : () => { }}
@@ -1869,6 +1874,21 @@ const ProfileScreen = () => {
                 </View>
                 <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
                   {safeT('profile.aboutEatsense', 'About EatSense')}
+                </Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
+
+              <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ScientificSources')}
+                style={styles.legalRow}
+              >
+                <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="library-outline" size={18} color={colors.primary} />
+                </View>
+                <Text style={[styles.legalRowText, { color: colors.textPrimary }]}>
+                  {safeT('profile.scientificSources', 'Scientific Sources & References')}
                 </Text>
                 <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </TouchableOpacity>

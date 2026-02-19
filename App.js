@@ -42,6 +42,7 @@ const ExpertProfileScreen = React.lazy(() => import('./src/screens/ExpertProfile
 const ConsultationChatScreen = React.lazy(() => import('./src/screens/ConsultationChatScreen'));
 const SubscriptionScreen = React.lazy(() => import('./src/screens/SubscriptionScreen'));
 const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScreen'));
+const ScientificSourcesScreen = React.lazy(() => import('./src/screens/ScientificSourcesScreen'));
 
 import { clientLog } from './src/utils/clientLog';
 
@@ -204,6 +205,14 @@ function AppContent() {
               <Stack.Screen
                 name="LegalMenu"
                 component={LegalMenuScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="ScientificSources"
+                component={ScientificSourcesScreen}
                 options={{
                   presentation: 'card',
                   headerShown: false,

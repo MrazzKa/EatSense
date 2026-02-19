@@ -10,10 +10,10 @@
         "fr": "Régime méditerranéen"
       },
       "shortDescription": {
-        "en": "Heart-healthy Mediterranean eating",
-        "ru": "Средиземноморское питание для здоровья сердца",
-        "kk": "Жүрекке пайдалы Жерорта теңізі тамақтануы",
-        "fr": "Alimentation méditerranéenne saine pour le cœur"
+        "en": "Mediterranean-inspired eating",
+        "ru": "Питание в средиземноморском стиле",
+        "kk": "Жерорта теңізі стиліндегі тамақтану",
+        "fr": "Alimentation d'inspiration méditerranéenne"
       },
       "imageUrl": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80",
       "color": "#4CAF50",
@@ -27,6 +27,9 @@
         "heart_healthy",
         "sustainable",
         "evidence_based"
+      ],
+      "sources": [
+        "Estruch R et al. N Engl J Med 2018;378(25):e34 (PREDIMED)"
       ]
     },
     {
@@ -39,10 +42,10 @@
         "fr": "Régime DASH"
       },
       "shortDescription": {
-        "en": "Lower blood pressure naturally",
-        "ru": "Снижение давления естественным путем",
-        "kk": "Қан қысымын табиғи түрде төмендету",
-        "fr": "Réduire la pression artérielle naturellement"
+        "en": "Inspired by the DASH dietary approach",
+        "ru": "На основе диетического подхода DASH",
+        "kk": "DASH диеталық тәсіліне негізделген",
+        "fr": "Inspiré de l'approche diététique DASH"
       },
       "imageUrl": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80",
       "color": "#2196F3",
@@ -56,6 +59,9 @@
         "heart_healthy",
         "blood_pressure",
         "evidence_based"
+      ],
+      "sources": [
+        "Appel LJ et al. N Engl J Med 1997;336(16):1117-1124"
       ]
     },
     {
@@ -85,6 +91,9 @@
         "beginner_friendly",
         "simple",
         "visual"
+      ],
+      "sources": [
+        "USDA MyPlate Guidelines, choosemyplate.gov"
       ]
     },
     {
@@ -114,6 +123,9 @@
         "fasting",
         "popular",
         "flexible"
+      ],
+      "sources": [
+        "de Cabo R, Mattson MP. N Engl J Med 2019;381(26):2541-2551"
       ]
     },
     {
@@ -142,6 +154,9 @@
       "tags": [
         "low_carb",
         "weight_loss"
+      ],
+      "sources": [
+        "Volek JS et al. Lipids 2009;44(4):297-309"
       ]
     }
   ],
@@ -179,6 +194,9 @@
         "trending",
         "aesthetic",
         "wellness"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
       ]
     },
     {
@@ -214,6 +232,9 @@
         "trending",
         "luxury",
         "quality"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
       ]
     },
     {
@@ -248,6 +269,9 @@
       "tags": [
         "aesthetics",
         "french"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
       ]
     },
     {
@@ -282,6 +306,9 @@
       "tags": [
         "destinations",
         "italian"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
       ]
     },
     {
@@ -294,10 +321,10 @@
         "fr": "Glass Skin"
       },
       "subtitle": {
-        "en": "Korean beauty starts from inside",
-        "ru": "Корейская красота начинается изнутри",
-        "kk": "Кореялық сұлулық іштен басталады",
-        "fr": "La beauté K part de l'intérieur"
+        "en": "Korean beauty-inspired nutrition",
+        "ru": "Питание в стиле корейской красоты",
+        "kk": "Кореялық сұлулық стиліндегі тағам",
+        "fr": "Nutrition inspirée de la beauté coréenne"
       },
       "shortDescription": {
         "en": "K-beauty nutrition",
@@ -316,6 +343,9 @@
       "tags": [
         "skin",
         "kbeauty"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
       ]
     },
     {
@@ -328,10 +358,10 @@
         "fr": "Longévité Okinawa"
       },
       "subtitle": {
-        "en": "Secrets of living to 100",
-        "ru": "Секреты жизни до 100",
-        "kk": "100-ге дейін өмір сүру құпиялары",
-        "fr": "Secrets pour vivre jusqu'à 100 ans"
+        "en": "Inspired by Okinawan traditions",
+        "ru": "Вдохновлено традициями Окинавы",
+        "kk": "Окинава дәстүрлерінен шабыттанған",
+        "fr": "Inspiré des traditions okinawaises"
       },
       "shortDescription": {
         "en": "Blue zone longevity",
@@ -350,6 +380,9 @@
       "tags": [
         "destinations",
         "japanese"
+      ],
+      "sources": [
+        "Willcox BJ et al. Ann N Y Acad Sci 2007;1114:434-455"
       ]
     }
   ],

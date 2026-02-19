@@ -278,6 +278,35 @@
             "content": "EatSense est conçu pour vous aider à suivre votre alimentation et à prendre des décisions éclairées concernant votre régime. Cependant, EatSense n'est pas un dispositif médical et ne fournit pas de conseils médicaux.\n\nLes informations fournies par EatSense, y compris l'analyse nutritionnelle générée par l'IA, les aperçus des biomarqueurs et les réponses de l'assistant IA, sont uniquement à des fins d'information générale.\n\nCes informations ne sont pas destinées à remplacer les conseils médicaux professionnels, le diagnostic ou le traitement. Consultez toujours votre médecin ou un autre professionnel de santé qualifié pour toute question concernant une condition médicale.\n\nNe négligez jamais les conseils médicaux professionnels et ne tardez pas à les demander à cause de quelque chose que vous avez lu ou vu dans cette application.\n\nSi vous pensez avoir une urgence médicale, appelez immédiatement votre médecin ou les services d'urgence."
         }
     },
+    "scientific_sources": {
+        "_description": "About Our Sources — shown on the Scientific Sources screen.",
+        "requires_checkbox": false,
+        "show_once": false,
+        "en": {
+            "title": "About Our Sources",
+            "content": "EatSense calculations and recommendations are based on peer-reviewed scientific research and guidelines from internationally recognized health organizations. All references are cited with their original publications. This information is for educational purposes only and does not constitute medical advice."
+        },
+        "ru": {
+            "title": "О наших источниках",
+            "content": "Расчёты и рекомендации EatSense основаны на рецензируемых научных исследованиях и руководствах международно признанных организаций здравоохранения. Все ссылки приведены с указанием оригинальных публикаций. Данная информация носит исключительно образовательный характер и не является медицинской консультацией."
+        },
+        "kk": {
+            "title": "Біздің дереккөздер туралы",
+            "content": "EatSense есептеулері мен ұсыныстары сараптамалық ғылыми зерттеулерге және халықаралық деңгейде мойындалған денсаулық сақтау ұйымдарының нұсқаулықтарына негізделген. Барлық сілтемелер түпнұсқа жарияланымдарымен келтірілген. Бұл ақпарат тек білім беру мақсатында ұсынылады және медициналық кеңес болып табылмайды."
+        },
+        "de": {
+            "title": "Über unsere Quellen",
+            "content": "Die Berechnungen und Empfehlungen von EatSense basieren auf peer-reviewed wissenschaftlicher Forschung und Richtlinien international anerkannter Gesundheitsorganisationen. Alle Referenzen sind mit ihren Originalpublikationen zitiert. Diese Informationen dienen nur zu Bildungszwecken und stellen keine medizinische Beratung dar."
+        },
+        "fr": {
+            "title": "À propos de nos sources",
+            "content": "Les calculs et recommandations d'EatSense sont basés sur des recherches scientifiques évaluées par des pairs et des directives d'organisations de santé internationalement reconnues. Toutes les références sont citées avec leurs publications originales. Ces informations sont uniquement à des fins éducatives et ne constituent pas un avis médical."
+        },
+        "es": {
+            "title": "Sobre nuestras fuentes",
+            "content": "Los cálculos y recomendaciones de EatSense se basan en investigaciones científicas revisadas por pares y directrices de organizaciones de salud reconocidas internacionalmente. Todas las referencias se citan con sus publicaciones originales. Esta información es solo con fines educativos y no constituye asesoramiento médico."
+        }
+    },
     "analysis_results_footer": {
         "_description": "Shown at the bottom of Analysis Results screen in a yellow box.",
         "requires_checkbox": false,
@@ -296,6 +325,9 @@
         },
         "kk": {
             "text": "⚠️ EatSense тағамдық ақпаратты тек білім беру мақсатында ұсынады. Бұл қолданба медициналық құрылғы болып табылмайды және кәсіби медициналық кеңесті алмастырмайды. Диетаңызға айтарлықтай өзгерістер енгізбес бұрын әрқашан денсаулық сақтау маманымен кеңесіңіз."
+        },
+        "es": {
+            "text": "⚠️ EatSense proporciona información nutricional solo con fines educativos. Esta aplicación no es un dispositivo médico y no sustituye el asesoramiento médico profesional. Consulte siempre a un profesional de la salud antes de realizar cambios significativos en su dieta."
         }
     }
 }

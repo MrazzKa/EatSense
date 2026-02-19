@@ -24,6 +24,7 @@ import ApiService from '../services/apiService';
 import { SUBSCRIPTION_SKUS } from '../config/subscriptions';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatPrice, setIAPCurrency } from '../utils/currency';
+import { openLegalLink } from '../utils/legal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -323,6 +324,27 @@ export default function PaywallModal({
               ? (t('paywall.finePrint') || 'Cancel anytime. You won\'t be charged during the trial period.')
               : (t('paywall.finePrintNoTrial') || 'Subscription renews monthly. Cancel anytime.')}
           </Text>
+
+          {/* Legal links - required by Apple Guideline 3.1.2 */}
+          <View style={styles.legalLinkRow}>
+            <TouchableOpacity
+              onPress={() => openLegalLink('terms')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={[styles.legalLinkText, { color: colors.textTertiary }]}>
+                {t('legal.termsLink') || 'Terms of Use'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.legalSeparator, { color: colors.textTertiary }]}> • </Text>
+            <TouchableOpacity
+              onPress={() => openLegalLink('privacy')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={[styles.legalLinkText, { color: colors.textTertiary }]}>
+                {t('legal.privacyLink') || 'Privacy Policy'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </View>
     </Modal>
@@ -470,5 +492,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 24,
+  },
+  legalLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  legalLinkText: {
+    fontSize: 13,
+    textDecorationLine: 'underline',
+  },
+  legalSeparator: {
+    fontSize: 13,
+    marginHorizontal: 8,
   },
 });
