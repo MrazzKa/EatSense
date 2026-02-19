@@ -1456,6 +1456,7 @@
     "weight": "Peso (kg)",
     "welcomeBack": "Bienvenido de nuevo",
     "notificationsDailyEnabled": "Notificaciones Diarias Activadas",
+    "scientificSources": "Fuentes científicas y referencias",
     "about": "Acerca de",
     "aboutEatsense": "Acerca de EatSense",
     "aboutText1": "EatSense es una aplicación de análisis nutricional impulsada por IA que te ayuda a rastrear tu ingesta de alimentos y mantener un estilo de vida saludable.",
@@ -2020,5 +2021,19 @@
       }
     },
     "title": "Términos de Uso"
+  },
+  "citations": {
+    "screenTitle": "Fuentes científicas y referencias",
+    "bmi": "Basado en la clasificación de IMC de la OMS (WHO, 2000)",
+    "bmr": "Ecuación de Mifflin-St Jeor (Am J Clin Nutr, 1990)",
+    "tdee": "Multiplicadores de actividad (Ainsworth et al., 2011)",
+    "calories": "Sistema de factores generales de Atwater (USDA, 1902)",
+    "healthScore": "Basado en las directrices nutricionales OMS/FAO (TRS 916, 2003)",
+    "viewAllSources": "Ver fuentes científicas y referencias",
+    "sectionCalculations": "Medidas corporales y cálculos",
+    "sectionHealthScore": "Puntuación de salud nutricional",
+    "sectionDietPrograms": "Programas dietéticos",
+    "sectionDisclaimer": "Descargo de responsabilidad general",
+    "healthScoreMethodology": "La Puntuación de Salud evalúa las comidas en una escala de 0 a 100 basada en cinco factores nutricionales basados en evidencia: densidad proteica, contenido de fibra, grasas saturadas, azúcares libres y densidad energética."
   }
 }

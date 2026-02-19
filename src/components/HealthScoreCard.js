@@ -246,6 +246,9 @@ export const HealthScoreCard = ({ healthScore, dishName }) => {
           })}
         </View>
       )}
+      <Text style={[styles.citationText, { color: colors.textTertiary }]}>
+        {t('citations.healthScore', 'Based on WHO/FAO nutritional guidelines (TRS 916, 2003)')}
+      </Text>
     </View>
   );
 };
@@ -381,6 +384,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
+  },
+  citationText: {
+    fontSize: 10,
+    marginTop: spacing.sm,
+    textAlign: 'center',
   },
 });
 

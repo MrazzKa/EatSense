@@ -28,6 +28,7 @@ import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
+import HealthDisclaimer from '../components/HealthDisclaimer';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -1057,6 +1058,9 @@ export default function DashboardScreen() {
 
         {/* PART A: Section 5 - Nutrition section */}
         {/* TODO: replaced by Monthly PDF report */}
+
+        {/* Health Disclaimer + Scientific Sources link */}
+        <HealthDisclaimer style={{ marginHorizontal: 20, marginBottom: 24 }} />
       </ScrollView>
 
       {/* Floating Plus Button - Right Side (fixed, non-draggable) */}

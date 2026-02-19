@@ -1752,6 +1752,7 @@
     "termsOfService": "Conditions d'utilisation",
     "notificationsDailyDisabled": "Notifications quotidiennes désactivées",
     "notificationsDailyEnabled": "Notifications quotidiennes activées",
+    "scientificSources": "Sources scientifiques et références",
     "notificationsDailyTitle": "Rappel quotidien",
     "metricHeight": "Taille",
     "metricWeight": "Poids",
@@ -2523,9 +2524,9 @@
       "metabolic_reset": {
         "dailyTracker": {},
         "name": "Reset métabolique",
-        "subtitle": "Redémarrer la machine à brûler les graisses",
-        "description": "Réparer le métabolisme : aliments bruts, glycémie stable, fenêtres alimentaires.",
-        "shortDescription": "Reset métabolisme, énergie stable"
+        "subtitle": "Rééquilibrer vos systèmes énergétiques",
+        "description": "Soutenir le métabolisme : aliments bruts, glycémie stable, fenêtres alimentaires.",
+        "shortDescription": "Équilibre métabolique, énergie stable"
       },
       "debloat_detox": {
         "dailyTracker": {},
@@ -2571,7 +2572,7 @@
       },
       "glass_skin": {
         "dailyTracker": {},
-        "subtitle": "La beauté K part de l'intérieur",
+        "subtitle": "Nutrition inspirée de la beauté coréenne",
         "description": "Lien intestin-peau. Fermentés, oméga-3, collagène.",
         "shortDescription": "Nutrition K-beauty"
       },
@@ -2585,7 +2586,7 @@
         "dailyTracker": {},
         "subtitle": "Vieillir avec grâce, rayonner",
         "description": "Nutrition longévité. Antioxydants, collagène, bonnes graisses.",
-        "shortDescription": "Nutrition anti-âge"
+        "shortDescription": "Nutrition axée sur la longévité"
       },
       "all_day_energy": {
         "dailyTracker": {},
@@ -2601,8 +2602,8 @@
       },
       "adrenal_recovery": {
         "dailyTracker": {},
-        "subtitle": "Guérir le burnout, restaurer la vitalité",
-        "description": "Nutrition guérison pour systèmes épuisés.",
+        "subtitle": "Soutenir la récupération, nourrir la vitalité",
+        "description": "Nutrition de récupération pour les modes de vie actifs.",
         "shortDescription": "Récupération burnout"
       },
       "amalfi_coast": {
@@ -2619,7 +2620,7 @@
       },
       "okinawa_longevity": {
         "dailyTracker": {},
-        "subtitle": "Secrets pour vivre jusqu\\",
+        "subtitle": "Inspiré par les traditions okinawaises",
         "description": "Sagesse zone bleue. Hara hachi bu — 80 % plein.",
         "shortDescription": "Longévité zone bleue"
       },
@@ -2797,8 +2798,8 @@
           }
         },
         "name": "Méditerranéenne",
-        "description": "Régime bon pour le cœur, basé sur la cuisine traditionnelle des pays méditerranéens. Riche en légumes, fruits, céréales complètes et huile d'olive.",
-        "shortDescription": "Régime cœur-santé riche en huile d'olive"
+        "description": "Plan alimentaire inspiré de la cuisine traditionnelle des pays méditerranéens. Riche en légumes, fruits, céréales complètes et huile d'olive.",
+        "shortDescription": "Régime d'inspiration méditerranéenne riche en huile d'olive"
       },
       "dash": {
         "dailyTracker": {
@@ -2819,8 +2820,8 @@
           }
         },
         "name": "DASH",
-        "description": "Approche diététique pour arrêter l'hypertension",
-        "shortDescription": "Régime cœur-santé pour faire baisser la tension"
+        "description": "Inspiré de l'approche diététique DASH. Accent sur les fruits, légumes, céréales complètes et protéines maigres avec réduction du sodium.",
+        "shortDescription": "Régime équilibré axé sur les aliments complets et faible en sodium"
       },
       "mind": {
         "dailyTracker": {
@@ -2841,8 +2842,8 @@
           }
         },
         "name": "MIND",
-        "description": "Intervention Méditerranée-DASH pour le retard neurodégénératif. Combine Méditerranée et DASH, aliments bons pour le cerveau.",
-        "shortDescription": "Régime santé cerveau et cognition"
+        "description": "Approche nutritionnelle combinant les principes méditerranéens et DASH, avec un accent sur les aliments favorisant le bien-être cognitif.",
+        "shortDescription": "Nutrition pour le bien-être cognitif"
       },
       "flexitarian": {
         "dailyTracker": {
@@ -3702,5 +3703,19 @@
         "shortDescription": "Alimentation business power"
       }
     }
+  },
+  "citations": {
+    "screenTitle": "Sources scientifiques et références",
+    "bmi": "Basé sur la classification IMC de l'OMS (WHO, 2000)",
+    "bmr": "Équation de Mifflin-St Jeor (Am J Clin Nutr, 1990)",
+    "tdee": "Multiplicateurs d'activité (Ainsworth et al., 2011)",
+    "calories": "Système de facteurs généraux d'Atwater (USDA, 1902)",
+    "healthScore": "Basé sur les directives nutritionnelles OMS/FAO (TRS 916, 2003)",
+    "viewAllSources": "Voir les sources scientifiques et références",
+    "sectionCalculations": "Mesures corporelles et calculs",
+    "sectionHealthScore": "Score de santé nutritionnelle",
+    "sectionDietPrograms": "Programmes diététiques",
+    "sectionDisclaimer": "Avertissement général",
+    "healthScoreMethodology": "Le Score de Santé évalue les repas sur une échelle de 0 à 100 basée sur cinq facteurs nutritionnels fondés sur des preuves : densité protéique, teneur en fibres, graisses saturées, sucres libres et densité énergétique."
   }
 }

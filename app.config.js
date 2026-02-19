@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "1.0.4",
+    version: "2.0.0",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "15",
+      buildNumber: "17",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -54,10 +54,8 @@ export default {
           "EatSense needs access to save analyzed food photos to your library.",
         NSLocationWhenInUseUsageDescription:
           "EatSense may use your location to provide location-based nutrition recommendations (optional).",
-        NSHealthShareUsageDescription:
-          "EatSense can integrate with HealthKit to sync nutrition data (optional).",
-        NSHealthUpdateUsageDescription:
-          "EatSense can update HealthKit with your nutrition data (optional).",
+        // NSHealthShareUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
+        // NSHealthUpdateUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
         // NSMicrophoneUsageDescription — REMOVED (not used, Apple rejects unused permissions)
         // NSFaceIDUsageDescription — REMOVED (not used, Apple rejects unused permissions)
       },

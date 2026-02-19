@@ -975,7 +975,8 @@
     "noData": "No data",
     "policyError": "Failed to open policy",
     "termsError": "Failed to open terms",
-    "notificationsDailyEnabled": "Notifications Daily Enabled"
+    "notificationsDailyEnabled": "Notifications Daily Enabled",
+    "scientificSources": "Scientific Sources & References"
   },
   "camera": {
     "requestingPermission": "Requesting camera permission...",
@@ -2380,9 +2381,9 @@
       "metabolic_reset": {
         "dailyTracker": {},
         "name": "Metabolic Reset",
-        "subtitle": "Restart your fat-burning engine",
-        "description": "Repair metabolism through whole foods, stable blood sugar, strategic eating windows.",
-        "shortDescription": "Reset metabolism, stable energy"
+        "subtitle": "Rebalance your energy systems",
+        "description": "Support your metabolism through whole foods, stable blood sugar, and strategic eating windows.",
+        "shortDescription": "Metabolic rebalance, stable energy"
       },
       "debloat_detox": {
         "dailyTracker": {},
@@ -2394,7 +2395,7 @@
       "sustainable_slim": {
         "dailyTracker": {},
         "name": "Sustainable Slim",
-        "subtitle": "Lose it and keep it off forever",
+        "subtitle": "Sustainable habits for lasting results",
         "description": "Anti-yo-yo approach. Small sustainable changes, focus on habits not numbers.",
         "shortDescription": "Sustainable weight loss"
       },
@@ -2428,7 +2429,7 @@
       },
       "glass_skin": {
         "dailyTracker": {},
-        "subtitle": "Korean beauty starts from inside",
+        "subtitle": "Korean beauty-inspired nutrition",
         "description": "Gut-skin connection. Fermented foods, omega-3s, collagen.",
         "shortDescription": "K-beauty nutrition"
       },
@@ -2442,7 +2443,7 @@
         "dailyTracker": {},
         "subtitle": "Age gracefully, glow eternally",
         "description": "Longevity nutrition. Antioxidants, collagen, healthy fats.",
-        "shortDescription": "Anti-aging nutrition"
+        "shortDescription": "Longevity-focused nutrition"
       },
       "all_day_energy": {
         "dailyTracker": {},
@@ -2458,8 +2459,8 @@
       },
       "adrenal_recovery": {
         "dailyTracker": {},
-        "subtitle": "Heal burnout, restore vitality",
-        "description": "Healing nutrition for burned-out systems.",
+        "subtitle": "Support recovery, nurture vitality",
+        "description": "Recovery-focused nutrition for busy lifestyles.",
         "shortDescription": "Burnout recovery"
       },
       "amalfi_coast": {
@@ -2476,7 +2477,7 @@
       },
       "okinawa_longevity": {
         "dailyTracker": {},
-        "subtitle": "Secrets of living to 100",
+        "subtitle": "Inspired by Okinawan traditions",
         "description": "Blue Zone wisdom. Hara hachi bu — 80% full.",
         "shortDescription": "Blue zone longevity"
       },
@@ -2654,8 +2655,8 @@
           }
         },
         "name": "Mediterranean",
-        "description": "A heart-healthy eating plan based on traditional cuisine of Mediterranean countries. Rich in vegetables, fruits, whole grains, and olive oil.",
-        "shortDescription": "Heart-healthy diet rich in olive oil, fish, and vegetables"
+        "description": "An eating plan inspired by traditional cuisine of Mediterranean countries. Rich in vegetables, fruits, whole grains, and olive oil.",
+        "shortDescription": "Mediterranean-inspired diet rich in olive oil, fish, and vegetables"
       },
       "dash": {
         "dailyTracker": {
@@ -2676,8 +2677,8 @@
           }
         },
         "name": "DASH",
-        "description": "Dietary Approaches to Stop Hypertension. Focuses on fruits, vegetables, whole grains, and lean proteins while limiting sodium.",
-        "shortDescription": "Heart-healthy diet to lower blood pressure"
+        "description": "Inspired by the DASH dietary approach. Focuses on fruits, vegetables, whole grains, and lean proteins while limiting sodium.",
+        "shortDescription": "Balanced diet focusing on whole foods and low sodium"
       },
       "mind": {
         "dailyTracker": {
@@ -2698,8 +2699,8 @@
           }
         },
         "name": "MIND",
-        "description": "Mediterranean-DASH Intervention for Neurodegenerative Delay. Combines Mediterranean and DASH with emphasis on brain-healthy foods.",
-        "shortDescription": "Diet for brain health and cognitive function"
+        "description": "Nutrition approach combining Mediterranean and DASH principles with emphasis on foods that support cognitive wellness.",
+        "shortDescription": "Nutrition for cognitive wellness"
       },
       "flexitarian": {
         "dailyTracker": {
@@ -2860,7 +2861,7 @@
           }
         },
         "name": "Low-FODMAP (Gut)",
-        "description": "Elimination diet for IBS and digestive issues. Must be done in phases with professional guidance.",
+        "description": "Elimination-style approach for digestive comfort. Best done in phases with professional guidance.",
         "shortDescription": "Gut-healing diet in phases — requires guidance"
       },
       "gluten-free": {
@@ -3635,5 +3636,19 @@
       }
     },
     "title": "Terms of Use"
+  },
+  "citations": {
+    "screenTitle": "Scientific Sources & References",
+    "bmi": "Based on WHO BMI Classification (WHO, 2000)",
+    "bmr": "Mifflin-St Jeor equation (Am J Clin Nutr, 1990)",
+    "tdee": "Activity multipliers (Ainsworth et al., 2011)",
+    "calories": "Atwater general factor system (USDA, 1902)",
+    "healthScore": "Based on WHO/FAO nutritional guidelines (TRS 916, 2003)",
+    "viewAllSources": "View scientific sources & references",
+    "sectionCalculations": "Body Measurements & Calculations",
+    "sectionHealthScore": "Nutrition Health Score",
+    "sectionDietPrograms": "Diet Programs",
+    "sectionDisclaimer": "General Disclaimer",
+    "healthScoreMethodology": "The Health Score evaluates meals on a 0-100 scale based on five evidence-based nutritional factors: protein density, fiber content, saturated fat, free sugars, and energy density."
   }
 }
