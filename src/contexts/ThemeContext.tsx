@@ -3,7 +3,7 @@ import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tokens as baseTokens, palettes } from '../design/tokens';
 
-const ThemeContext = createContext();
+const ThemeContext = createContext<any>(undefined);
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
@@ -17,7 +17,7 @@ export const useTheme = () => {
       tokens: baseTokens,
       toggleTheme: () => { },
       reduceMotion: false,
-      getColor: (key) => palettes.light[key] ?? key,
+      getColor: (key: string) => (palettes.light as any)[key] ?? key,
     };
   }
   return context;
@@ -28,7 +28,7 @@ export const useDesignTokens = () => {
   return tokens;
 };
 
-export const ThemeProvider = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   // const systemColorScheme = useColorScheme(); // Unused
   const [themeMode, setThemeMode] = useState('light'); // 'light', 'dark', 'monochrome'
   const [isDark, setIsDark] = useState(false);
@@ -70,7 +70,7 @@ export const ThemeProvider = ({ children }) => {
 
     loadReduceMotion();
 
-    const handleReduceMotionChange = (enabled) => setReduceMotion(enabled);
+    const handleReduceMotionChange = (enabled: boolean) => setReduceMotion(enabled);
 
     const subscription = AccessibilityInfo.addEventListener?.(
       'reduceMotionChanged',
@@ -80,13 +80,13 @@ export const ThemeProvider = ({ children }) => {
     return () => {
       if (subscription && typeof subscription.remove === 'function') {
         subscription.remove();
-      } else if (AccessibilityInfo.removeEventListener) {
-        AccessibilityInfo.removeEventListener('reduceMotionChanged', handleReduceMotionChange);
+      } else if ((AccessibilityInfo as any).removeEventListener) {
+        (AccessibilityInfo as any).removeEventListener('reduceMotionChanged', handleReduceMotionChange);
       }
     };
   }, []);
 
-  const toggleTheme = async (mode) => {
+  const toggleTheme = async (mode: string) => {
     try {
       setThemeMode(mode);
       await AsyncStorage.setItem('themeMode', mode);
@@ -137,7 +137,7 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [isDark, palette, themeMode]);
 
-  const getColor = (key) => palette[key] ?? key;
+  const getColor = (key: string) => (palette as any)[key] ?? key;
 
   const value = {
     isDark,

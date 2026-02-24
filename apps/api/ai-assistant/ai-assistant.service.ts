@@ -73,7 +73,7 @@ export class AiAssistantService {
       totalPromptTokens,
       totalCompletionTokens,
       averageTokensPerRequest: conversations.length > 0 ? Math.round(totalTokens / conversations.length) : 0,
-      dailyUsage: this.calculateDailyUsage(conversations, days),
+      dailyUsage: this.calculateDailyUsage(conversations),
     };
   }
 

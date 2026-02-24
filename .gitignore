@@ -302,5 +302,7 @@ ios/
 
 
 *.p8
-jwt_rsa_private.b64
-jwt_rsa_public.b64
+jwt_rsa_private*
+jwt_rsa_public*
+*.env.backup
+*.Zone.Identifier
