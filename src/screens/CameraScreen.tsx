@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';

@@ -90,7 +90,7 @@ Hydration influences focus, digestion, and exercise performance. Adults typicall
 ### Workout Considerations
 - Drink 200–300 ml 20 minutes before activity.
 - During workouts longer than 60 minutes, consider electrolyte beverages.
-- Weigh yourself pre/post workout—every 0.5 kg lost ≈ 500 ml fluid deficit.
+- Weigh yourself pre/post workout - every 0.5 kg lost ≈ 500 ml fluid deficit.
     `,
   },
   {
@@ -102,11 +102,11 @@ Hydration influences focus, digestion, and exercise performance. Adults typicall
     sourceName: SOURCE_NAME,
     readingMinutes: 7,
     contentMd: `
-Learning visual cues for portion sizes empowers you to make informed decisions everywhere—restaurants, cafeterias, or home dinners.
+Learning visual cues for portion sizes empowers you to make informed decisions everywhere - restaurants, cafeterias, or home dinners.
 
 ### Quick Reference Guide
-- **Palm:** Protein (fish, chicken) — ~100 g
-- **Fist:** Vegetables or fruit — ~1 cup
+- **Palm:** Protein (fish, chicken) - ~100 g
+- **Fist:** Vegetables or fruit - ~1 cup
 - **Cupped Hand:** Whole grains or legumes — ~½ cup
 - **Thumb:** Nut butter or oils — ~1 tbsp
 

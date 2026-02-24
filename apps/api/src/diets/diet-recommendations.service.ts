@@ -55,10 +55,10 @@ export class DietRecommendationsService {
         const recommendations = await this.getAIRecommendations(userContext, availableDiets, locale);
 
         const recommendedDiets = await this.prisma.dietProgram.findMany({
-            where: { slug: { in: recommendations.map(r => r.slug) } },
+            where: { slug: { in: recommendations.map((r: any) => r.slug) } },
         });
 
-        const result = recommendations.map(rec => {
+        const result = recommendations.map((rec: any) => {
             const diet = recommendedDiets.find(d => d.slug === rec.slug);
             if (!diet) return null;
 
@@ -171,7 +171,7 @@ OUTPUT (strict JSON):
             slug: d.slug,
             matchScore: 80 - i * 10,
             reason: 'Recommended based on your goals',
-            tips: [],
+            tips: [] as any[],
         }));
     }
 

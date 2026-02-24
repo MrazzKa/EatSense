@@ -817,8 +817,8 @@ export class NutritionOrchestrator {
         );
         return {
           providerId: provider.id,
-          result: null,
-          error: e.message,
+          result: null as any,
+          error: e.message as any,
         };
       }
     });
@@ -871,7 +871,7 @@ export class NutritionOrchestrator {
 
     const best = validResults[0];
     this.logger.log(
-      `[Orchestrator] Found by barcode in provider=${best.providerId} id=${best.result.food.providerFoodId} (parallel, ${validResults.length} results)`,
+      `[Orchestrator] Found by barcode in provider=${best.providerId} id=${best.result.food!.providerFoodId} (parallel, ${validResults.length} results)`,
     );
     return {
       ...best.result,

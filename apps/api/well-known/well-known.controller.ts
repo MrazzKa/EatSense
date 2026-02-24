@@ -122,7 +122,7 @@ export class WellKnownController {
   getAppleAppSiteAssociation(@Res() res: Response) {
     const association = {
       applinks: {
-        apps: [],
+        apps: [] as any[],
         details: [
           {
             appID: '73T7PB4F99.ch.eatsense.app',
@@ -145,10 +145,7 @@ export class WellKnownController {
         target: {
           namespace: 'android_app',
           package_name: 'ch.eatsense.app',
-          sha256_cert_fingerprints: [
-            // Add your SHA-256 certificate fingerprints here
-            // 'AA:BB:CC:...',
-          ],
+          sha256_cert_fingerprints: [] as string[],
         },
       },
     ];

@@ -65,7 +65,7 @@ export class DashboardService {
                     const totals = meals.reduce(
                         (acc, meal) => {
                             const mealTotals = (meal.items || []).reduce(
-                                (itemAcc, item) => ({
+                                (itemAcc: any, item: any) => ({
                                     calories: itemAcc.calories + (item.calories || 0),
                                     protein: itemAcc.protein + (item.protein || 0),
                                     fat: itemAcc.fat + (item.fat || 0),
@@ -142,7 +142,7 @@ export class DashboardService {
                             this.suggestionsService.getSuggestionsV2(userId, normalizedLocale)
                                 .catch(e => {
                                     this.logger.warn(`Failed to get suggestions: ${e.message}`);
-                                    return { status: 'error', sections: [], error: e.message };
+                                    return { status: 'error', sections: [] as any[], error: e.message };
                                 }),
                             new Promise<any>(resolve => setTimeout(() => {
                                 this.logger.warn(`Suggestions timeout for user ${userId} after 3s — returning loading state`);
@@ -191,10 +191,10 @@ export class DashboardService {
             this.logger.error(`Error aggregating dashboard data: ${error.message}`, error.stack);
             return {
                 stats: { today: {}, goals: {} },
-                meals: [],
+                meals: [] as any[],
                 userStats: { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 },
-                suggestions: { status: 'error', sections: [] },
-                activeDiet: null,
+                suggestions: { status: 'error', sections: [] as any[] },
+                activeDiet: null as any,
             };
         }
     }

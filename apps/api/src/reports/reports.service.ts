@@ -81,7 +81,7 @@ export class ReportsService {
                 });
             });
 
-            const daysCount = new Set(meals.map(m => m.consumedAt.toISOString().split('T')[0])).size || 1;
+            const daysCount = new Set(meals.map(m => m.consumedAt!.toISOString().split('T')[0])).size || 1;
             const avgCals = Math.round(totalCals / daysCount);
             const avgProtein = Math.round(totalProtein / daysCount);
             const avgCarbs = Math.round(totalCarbs / daysCount);
@@ -146,7 +146,7 @@ export class ReportsService {
             // --- Daily breakdown (compact, only show dates with data) ---
             const mealsByDate: Record<string, { meals: number; calories: number; protein: number; carbs: number; fat: number }> = {};
             meals.forEach(meal => {
-                const dateStr = meal.consumedAt.toISOString().split('T')[0];
+                const dateStr = meal.consumedAt!.toISOString().split('T')[0];
                 if (!mealsByDate[dateStr]) {
                     mealsByDate[dateStr] = { meals: 0, calories: 0, protein: 0, carbs: 0, fat: 0 };
                 }

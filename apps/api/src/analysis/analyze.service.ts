@@ -789,7 +789,7 @@ export class AnalyzeService {
     // STEP 3 FIX: Always log weight provenance (not just when clamped)
     if (debug) {
       debug.components = debug.components || [];
-      debug.components.push({
+      debug.components!.push({
         type: 'weight_provenance',
         componentName: component.name,
         visionEstimateG: component.est_portion_g || null,
@@ -1170,7 +1170,7 @@ export class AnalyzeService {
           };
 
           items.push(fastPathItem);
-          debug.components.push({
+          debug.components!.push({
             type: 'matched',
             vision: component,
             provider: (canonical ? 'canonical_fast_path' : 'gpt_fast_path') as any,
@@ -1253,7 +1253,7 @@ export class AnalyzeService {
         };
 
         items.push(beverageItem);
-        debug.components.push({
+        debug.components!.push({
           type: 'matched',
           vision: component,
           beverageDetected: true,
@@ -1371,7 +1371,7 @@ export class AnalyzeService {
         };
 
         items.push(gptItem);
-        debug.components.push({
+        debug.components!.push({
           type: 'matched',
           vision: component,
           provider: 'gpt_vision_direct' as any,
@@ -1396,7 +1396,7 @@ export class AnalyzeService {
       }
 
       if (!providerResult || !providerResult.food) {
-        debug.components.push({
+        debug.components!.push({
           type: 'no_match',
           vision: component,
           provider: null,
@@ -1466,17 +1466,17 @@ export class AnalyzeService {
       if (nutrients.calories < minExpectedKcal && !isDrink) {
         // Only fallback if Vision has plausible higher value (at least 2x)
         if (visionKcal > nutrients.calories * 2 && visionKcal > minExpectedKcal) {
-          const est = component.estimated_nutrients;
+          const est = component.estimated_nutrients!;
           this.logger.warn(`[AnalyzeService] Provider returned very low calories for "${component.name}": ${nutrients.calories} kcal for ${portionG}g, Vision has ${visionKcal}. Falling back.`);
           nutrients = {
-            calories: est.calories,
+            calories: est.calories!,
             protein: est.protein_g || 0,
             fat: est.fat_g || 0,
             carbs: est.carbs_g || 0,
             fiber: est.fiber_g || 0,
             sugars: 0,
             satFat: 0,
-            energyDensity: (est.calories / portionG) * 100
+            energyDensity: (est.calories! / portionG) * 100
           };
         } else {
           // Log but don't fallback - provider data is likely fine for low-cal foods
@@ -1525,7 +1525,7 @@ export class AnalyzeService {
           );
 
           items.push(item);
-          debug.components.push({
+          debug.components!.push({
             type: 'matched',
             vision: component,
             provider: canonicalFood.providerId,
@@ -1605,7 +1605,7 @@ export class AnalyzeService {
       item.cookingMethodHints = this.extractCookingMethodHints(component);
 
       items.push(item);
-      debug.components.push({
+      debug.components!.push({
         type: 'matched',
         vision: component,
         provider: canonicalFood.providerId,
@@ -1617,7 +1617,7 @@ export class AnalyzeService {
       });
     } catch (error: any) {
       this.logger.error(`Error analyzing component ${component.name}:`, error.message);
-      debug.components.push({ type: 'no_match', vision: component, error: error.message });
+      debug.components!.push({ type: 'no_match', vision: component, error: error.message });
       // Only use fallback for non-beverages
       const componentNameLower = component.name.toLowerCase();
       const isBeverage = this.DRINK_KEYWORDS.some(keyword => componentNameLower.includes(keyword));
@@ -2129,21 +2129,21 @@ export class AnalyzeService {
     const hasVisionDishName = visionDish?.dish_name && visionDish.dish_name_confidence;
     const visionDishNameLower = (visionDish?.dish_name || '').toLowerCase().trim();
     const isGenericName = this.GENERIC_DISH_NAMES.has(visionDishNameLower);
-    const meetsConfidenceThreshold = visionDish?.dish_name_confidence >= 0.75;
+    const meetsConfidenceThreshold = (visionDish?.dish_name_confidence ?? 0) >= 0.75;
     // Lower threshold acceptable for multi-ingredient dishes (3+) to avoid "carrot" for soup
-    const multiIngredientThreshold = items.length >= 3 && visionDish?.dish_name_confidence >= 0.60;
+    const multiIngredientThreshold = items.length >= 3 && (visionDish?.dish_name_confidence ?? 0) >= 0.60;
 
     if (hasVisionDishName && !isGenericName && (meetsConfidenceThreshold || multiIngredientThreshold)) {
-      originalDishName = visionDish.dish_name;
+      originalDishName = visionDish!.dish_name as string;
       dishNameSource = 'vision';
-      dishNameConfidence = visionDish.dish_name_confidence;
+      dishNameConfidence = visionDish!.dish_name_confidence;
       // Use Vision's localized name if available, otherwise localize the English name
-      if ((locale === 'ru' || locale === 'kk' || locale === 'fr') && visionDish.dish_name_local) {
-        dishNameLocalized = visionDish.dish_name_local;
+      if ((locale === 'ru' || locale === 'kk' || locale === 'fr') && visionDish!.dish_name_local) {
+        dishNameLocalized = visionDish!.dish_name_local;
       } else {
         dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
       }
-      this.logger.debug(`[AnalyzeService] Using Vision dish name: "${originalDishName}" -> "${dishNameLocalized}" (conf=${visionDish.dish_name_confidence}, items=${items.length})`);
+      this.logger.debug(`[AnalyzeService] Using Vision dish name: "${originalDishName}" -> "${dishNameLocalized}" (conf=${visionDish!.dish_name_confidence}, items=${items.length})`);
     } else {
       // Fallback to generated name from items
       originalDishName = this.buildDishNameEn(items);
@@ -2209,7 +2209,7 @@ export class AnalyzeService {
     // Evaluate food compatibility
     // Note: metadata is not available in this context, using defaults
     const mealType = 'lunch';
-    const localDateTime = undefined;
+    const localDateTime: any = undefined;
 
     result.foodCompatibility = this.foodCompatibility.evaluateFromAnalysisData(
       result,
@@ -2500,9 +2500,9 @@ export class AnalyzeService {
       protein: this.round((canonical.protein || 0) * scale, 1),
       carbs: this.round((canonical.carbs || 0) * scale, 1),
       fat: this.round((canonical.fat || 0) * scale, 1),
-      fiber: canonical.fiber !== undefined ? this.round(canonical.fiber * scale, 1) : undefined,
-      sugars: canonical.sugars !== undefined ? this.round(canonical.sugars * scale, 1) : undefined,
-      satFat: canonical.satFat !== undefined ? this.round(canonical.satFat * scale, 1) : undefined,
+      fiber: canonical.fiber !== undefined ? this.round(canonical.fiber * scale, 1) : 0,
+      sugars: canonical.sugars !== undefined ? this.round(canonical.sugars * scale, 1) : 0,
+      satFat: canonical.satFat !== undefined ? this.round(canonical.satFat * scale, 1) : 0,
       energyDensity: this.round((canonical.calories || 0), 1),
     };
   }
@@ -2639,7 +2639,7 @@ export class AnalyzeService {
         };
 
         items.push(coffeeTeaItem);
-        debug.components.push({
+        debug.components!.push({
           type: 'vision_fallback',
           vision: component,
           message: 'Added plain coffee/tea from fallback',
@@ -2692,7 +2692,7 @@ export class AnalyzeService {
       };
 
       items.push(fallbackItem);
-      debug.components.push({
+      debug.components!.push({
         type: 'vision_fallback',
         vision: component,
         message: 'Added very conservative fallback for unknown beverage',
@@ -2824,7 +2824,7 @@ export class AnalyzeService {
 
     items.push(fallbackItem);
     debug.components = debug.components || [];
-    debug.components.push({
+    debug.components!.push({
       type: 'vision_fallback',
       vision: component,
       message: `Added fallback item (${fallbackSource}) due to provider match failure`,
@@ -3160,14 +3160,14 @@ export class AnalyzeService {
     ) || 250; // fallback to 250g if no portion data
 
     // Saturated fats - use actual values if available, otherwise estimate from fat
-    const saturatedFat_g = totals.satFat > 0
-      ? totals.satFat
+    const saturatedFat_g = (totals.satFat ?? 0) > 0
+      ? totals.satFat!
       : (fat_g > 0 ? fat_g * 0.4 : 0); // ~40% of fats are saturated
 
     // Sugars - use actual values if available, DO NOT estimate from carbs
     // Unknown sugars should not penalize score (will get neutral score)
     const sugarsKnown = totals.sugars !== null && totals.sugars !== undefined && totals.sugars > 0;
-    const sugars_g = sugarsKnown ? totals.sugars : 0;
+    const sugars_g = sugarsKnown ? totals.sugars! : 0;
 
     const safeCalories = calories > 0 ? calories : 1;
     const safePortion = portion_g > 0 ? portion_g : 1;
@@ -3456,7 +3456,7 @@ export class AnalyzeService {
       },
     };
 
-    const dict = feedbackI18n[locale] || feedbackI18n.en;
+    const dict = (feedbackI18n as Record<string, typeof feedbackI18n.en>)[locale] || feedbackI18n.en;
 
     Object.entries(factors).forEach(([key, factor]) => {
       const label = factor.label || key;
@@ -3815,7 +3815,7 @@ export class AnalyzeService {
           };
 
           items.push(waterItem);
-          debug.components.push({
+          debug.components!.push({
             type: 'matched',
             componentName: name,
             waterDetected: true,
@@ -3850,7 +3850,7 @@ export class AnalyzeService {
           };
 
           items.push(coffeeTeaItem);
-          debug.components.push({
+          debug.components!.push({
             type: 'matched',
             componentName: name,
             plainCoffeeTea: true,
@@ -3931,7 +3931,7 @@ export class AnalyzeService {
           };
 
           items.push(beverageItem);
-          debug.components.push({
+          debug.components!.push({
             type: 'matched',
             componentName: name,
             beverageDetected: true,
@@ -3992,7 +3992,7 @@ export class AnalyzeService {
             };
 
             items.push(fallbackItem);
-            debug.components.push({
+            debug.components!.push({
               type: 'vision_fallback',
               componentName: name,
               message: 'Added conservative fallback for unknown beverage',
@@ -4031,7 +4031,7 @@ export class AnalyzeService {
             };
 
             items.push(fallbackItem);
-            debug.components.push({
+            debug.components!.push({
               type: 'vision_fallback',
               componentName: name,
               message: 'Added fallback for unknown solid food',
@@ -4080,7 +4080,7 @@ export class AnalyzeService {
             item.wasManuallyEdited = true;
 
             items.push(item);
-            debug.components.push({
+            debug.components!.push({
               type: 'matched',
               componentName: name,
               provider: canonicalFood.providerId,
@@ -4106,7 +4106,7 @@ export class AnalyzeService {
         item.wasManuallyEdited = true;
 
         items.push(item);
-        debug.components.push({
+        debug.components!.push({
           type: 'matched',
           componentName: name,
           provider: canonicalFood.providerId,
@@ -4116,7 +4116,7 @@ export class AnalyzeService {
         });
       } catch (error: any) {
         this.logger.error(`Error processing manual component ${component.name}:`, error.message);
-        debug.components.push({
+        debug.components!.push({
           type: 'no_match',
           componentName: component.name,
           error: error.message,

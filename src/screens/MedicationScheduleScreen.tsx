@@ -857,8 +857,8 @@ const MedicationScheduleScreen: React.FC = () => {
                 id={TooltipIds.MEDICATION_SCHEDULE}
                 title={t('tooltips.medications.title')}
                 text={t('tooltips.medications.text')}
-                arrowPosition="top"
-                style={{ top: 60, right: 16 }}
+                arrowPosition="bottom"
+                style={{ top: 30, right: 16 }}
             />
 
             {/* Main Content */}

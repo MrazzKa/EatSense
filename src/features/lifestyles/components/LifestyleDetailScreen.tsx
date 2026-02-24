@@ -224,9 +224,12 @@ export default function LifestyleDetailScreen({
                 // Check for mantras array (dailyInspiration) for daily rotation
                 const inspiration = program.dailyInspiration || program.rules?.dailyInspiration;
                 if (inspiration) {
-                  const lang = t('_locale') || 'en';
-                  const arr = inspiration[lang as 'en' | 'ru' | 'kk' | 'fr'] || inspiration.en || (Array.isArray(inspiration) ? inspiration : null);
-                  if (Array.isArray(arr) && arr.length > 1) {
+                  // API may return a localized array OR a multilang object (from seed)
+                  const lang = language || 'en';
+                  const arr = Array.isArray(inspiration)
+                    ? inspiration
+                    : (inspiration[lang as 'en' | 'ru' | 'kk' | 'fr'] || inspiration.en || null);
+                  if (Array.isArray(arr) && arr.length > 0) {
                     const now = new Date();
                     const start = new Date(now.getFullYear(), 0, 0);
                     const dayOfYear = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));

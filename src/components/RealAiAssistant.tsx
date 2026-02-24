@@ -183,7 +183,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
 
       (async () => {
         try {
-          const contextParts = [];
+          const contextParts: string[] = [];
           if (mealContext.dishName) {
             contextParts.push(`Dish: ${mealContext.dishName}`);
           }
@@ -370,7 +370,7 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
       let response;
       if (mealContext) {
         // Build context string from meal data
-        const contextParts = [];
+        const contextParts: string[] = [];
         if (mealContext.dishName) {
           contextParts.push(`Dish: ${mealContext.dishName}`);
         }

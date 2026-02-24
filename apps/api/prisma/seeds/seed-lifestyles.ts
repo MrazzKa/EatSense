@@ -87,7 +87,7 @@ const lifestylePrograms: LifestyleProgram[] = [
             en: [
                 'The TikTok-born wellness lifestyle: early mornings, matcha lattes, aesthetic meal prep, journaling, and pilates. It\'s about looking and feeling like you have your life together through intentional daily rituals.',
                 'Nutrition centers on photogenic, nutrient-dense foods: smoothie bowls topped with perfectly arranged fruit, overnight oats in mason jars, avocado toast with microgreens, and colorful grain bowls.',
-                'It\'s not about restriction — it\'s about abundance of good things. Green juice accompanies breakfast, not replaces it. The philosophy is \'add more good\' rather than \'cut out bad\'.',
+                'It\'s not about restriction - it\'s about abundance of good things. Green juice accompanies breakfast, not replaces it. The philosophy is \'add more good\' rather than \'cut out bad\'.',
                 'The morning routine is sacred. Waking early, lemon water, movement, shower, healthy breakfast, journaling. This structure creates momentum that carries through the entire day.'
             ],
             ru: [
@@ -99,7 +99,7 @@ const lifestylePrograms: LifestyleProgram[] = [
             kk: [
                 'TikTok-тан шыққан сауықтыру эстетикасы: ерте тұру, матча-латте, әдемі тамақ дайындау, күнделік жүргізу және пилатес. Бұл саналы күнделікті ритуалдар арқылы өміріңіздің өз қолыңызда екенін сезіну.',
                 'Тамақтану фотогеникалық, нәрлі тағамдарға негізделген: жемістері тамаша орналасқан смузи-боулдар, құмырадағы сұлы ботқасы, микрожасыл қосылған авокадо тосттары және түрлі-түсті боулдар.',
-                'Бұл шектеулер туралы емес — бұл пайдалы нәрселердің молынан болуы туралы. Жасыл шырын таңғы асты алмастырмайды, толықтырады. Философия: «зиянын алып тастау» емес, «пайдалысын қосу».',
+                'Бұл шектеулер туралы емес - бұл пайдалы нәрселердің молынан болуы туралы. Жасыл шырын таңғы асты алмастырмайды, толықтырады. Философия: «зиянын алып тастау» емес, «пайдалысын қосу».',
                 'Таңғы ритуал киелі: ерте ояну, лимон қосылған су, жаттығу, душқа түсу, пайдалы таңғы ас және күнделікке жазу. Бұл жүйе күні бойына серпін береді.'
             ],
             fr: [
@@ -205,22 +205,22 @@ const lifestylePrograms: LifestyleProgram[] = [
         streakThreshold: 0.6,
         howItWorks: {
             en: [
-                'Dewy skin, slicked-back hair, gold hoops, and a diet that matches — simple, minimal, effective. Your skin reflects what you eat, and the Clean Girl understands this deeply.',
+                'Dewy skin, slicked-back hair, gold hoops, and a diet that matches - simple, minimal, effective. Your skin reflects what you eat, and the Clean Girl understands this deeply.',
                 'The approach is minimalist: few ingredients, high quality, maximum hydration. Think warm lemon water, simple grain bowls, lots of raw vegetables, herbal tea, and foods rich in omega-3s, zinc, and vitamin E.',
                 'No complicated meal prep, no exotic superfoods, no expensive supplements. Just water, sleep, whole foods, and consistency. The best beauty investment is a full fridge of vegetables and a good night\'s sleep.',
-                'Portion sizes are intuitive — eat when hungry, stop when satisfied. No tracking, no macros. Food should be as close to its natural state as possible.'
+                'Portion sizes are intuitive - eat when hungry, stop when satisfied. No tracking, no macros. Food should be as close to its natural state as possible.'
             ],
             ru: [
-                'Свежая кожа, гладко зачесанные волосы, золотые серьги-кольца и соответствующее питание — простое, минималистичное, эффективное. Состояние вашей кожи отражает то, что вы едите, и «Чистая девушка» это прекрасно понимает.',
+                'Свежая кожа, гладко зачесанные волосы, золотые серьги-кольца и соответствующее питание - простое, минималистичное, эффективное. Состояние вашей кожи отражает то, что вы едите, и «Чистая девушка» это прекрасно понимает.',
                 'Минималистичный подход: минимум ингредиентов, высокое качество, максимальное увлажнение. Теплая вода с лимоном, простые боулы с крупами, много свежих овощей, травяной чай и продукты, богатые омега-3, цинком и витамином Е.',
-                'Никакой сложной готовки, экзотических суперфудов и дорогих добавок. Только вода, сон, цельные продукты и постоянство. Лучшая инвестиция в красоту — полный холодильник овощей и крепкий сон.',
-                'Интуитивный контроль порций — ешьте, когда голодны, останавливайтесь, когда сыты. Никакого подсчета калорий или макронутриентов. Еда должна быть максимально близка к своему естественному состоянию.'
+                'Никакой сложной готовки, экзотических суперфудов и дорогих добавок. Только вода, сон, цельные продукты и постоянство. Лучшая инвестиция в красоту - полный холодильник овощей и крепкий сон.',
+                'Интуитивный контроль порций - ешьте, когда голодны, останавливайтесь, когда сыты. Никакого подсчета калорий или макронутриентов. Еда должна быть максимально близка к своему естественному состоянию.'
             ],
             kk: [
-                'Жарқыраған тері, тегіс таралған шаш, алтын сырғалар және соған сәйкес тамақтану — қарапайым, минималды, тиімді. Теріңіздің жағдайы не жейтініңізді көрсетеді және «Таза қыз» мұны жақсы түсінеді.',
+                'Жарқыраған тері, тегіс таралған шаш, алтын сырғалар және соған сәйкес тамақтану - қарапайым, минималды, тиімді. Теріңіздің жағдайы не жейтініңізді көрсетеді және «Таза қыз» мұны жақсы түсінеді.',
                 'Минималистік тәсіл: аз ғана ингредиенттер, жоғары сапа, барынша ылғалдану. Лимон қосылған жылы су, қарапайым жарма боулдары, көптеген жаңа піскен көкөністер, шөп шайы және омега-3, мырыш, Е витаминіне бай тағамдар.',
-                'Күрделі тамақ дайындау, экзотикалық суперфудтар және қымбат қоспалар жоқ. Тек су, ұйқы, тұтас тағамдар және тұрақтылық. Сұлулыққа салынған ең жақсы инвестиция — көкөністерге толы тоңазытқыш және тыныш ұйқы.',
-                'Порцияларды интуитивті бақылау — қарныңыз ашқанда жеңіз, тойғанда тоқтатыңыз. Калорияларды немесе макронутриенттерді санаудың қажеті жоқ. Тамақ табиғи қалпына барынша жақын болуы керек.'
+                'Күрделі тамақ дайындау, экзотикалық суперфудтар және қымбат қоспалар жоқ. Тек су, ұйқы, тұтас тағамдар және тұрақтылық. Сұлулыққа салынған ең жақсы инвестиция - көкөністерге толы тоңазытқыш және тыныш ұйқы.',
+                'Порцияларды интуитивті бақылау - қарныңыз ашқанда жеңіз, тойғанда тоқтатыңыз. Калорияларды немесе макронутриенттерді санаудың қажеті жоқ. Тамақ табиғи қалпына барынша жақын болуы керек.'
             ],
             fr: [
                 'Peau lumineuse, cheveux lisses, créoles en or et régime à l\'avenant : simple, minimal, efficace. Votre peau reflète ce que vous mangez, et la Clean Girl le comprend profondément.',
@@ -321,19 +321,19 @@ const lifestylePrograms: LifestyleProgram[] = [
                 'Embrace timeless elegance and quality over trends. Old Money aesthetic focuses on classic, high-quality ingredients and proper dining etiquette.',
                 'Think country estate dinners, Sunday brunches at members-only clubs, and seasonal produce from trusted suppliers. The kitchen stocks grass-fed beef, wild-caught fish, artisan bread, and proper butter.',
                 'Meals are unhurried affairs with real tableware, cloth napkins, and conversation. You would never eat standing up, skip breakfast, or consume anything from a plastic container.',
-                'This is not about spending more — it\'s about refusing to compromise. A perfectly roasted heritage chicken with garden vegetables will always outclass a trendy superfood bowl.'
+                'This is not about spending more - it\'s about refusing to compromise. A perfectly roasted heritage chicken with garden vegetables will always outclass a trendy superfood bowl.'
             ],
             ru: [
-                'Выберите вечную элегантность и качество вместо трендов. Эстетика "Старых денег" фокусируется на классических, высококачественных ингредиентах и правильном этикете — никакого фастфуда.',
+                'Выберите вечную элегантность и качество вместо трендов. Эстетика "Старых денег" фокусируется на классических, высококачественных ингредиентах и правильном этикете - никакого фастфуда.',
                 'Представьте ужины в загородном поместье, воскресные бранчи в закрытых клубах и сезонные продукты. На кухне всегда фермерская говядина, дикая рыба, ремесленный хлеб и настоящее масло.',
-                'Ужин — это неспешный процесс с настоящей посудой, тканевыми салфетками и беседой. Вы никогда не едите стоя, не пропускаете завтрак и не едите из пластиковых контейнеров.',
-                'Дело не в том, чтобы тратить больше — дело в бескомпромиссности к качеству. Идеально запеченная фермерская курица с овощами всегда превзойдет модный суперфуд-боул.'
+                'Ужин - это неспешный процесс с настоящей посудой, тканевыми салфетками и беседой. Вы никогда не едите стоя, не пропускаете завтрак и не едите из пластиковых контейнеров.',
+                'Дело не в том, чтобы тратить больше - дело в бескомпромиссности к качеству. Идеально запеченная фермерская курица с овощами всегда превзойдет модный суперфуд-боул.'
             ],
             kk: [
                 'Трендтердің орнына мәңгілік талғампаздық пен сапаны таңдаңыз. «Ескі ақша» эстетикасы классикалық, жоғары сапалы ингредиенттерге және дұрыс этикетке назар аударады.',
                 'Қала сыртындағы кешкі астар мен сенімді жеткізушілердің маусымдық өнімдерін елестетіп көріңіз. Ас үйде әрқашан фермерлік сиыр еті, жабайы балық, қолдан пісірілген нан және нағыз сары май болады.',
-                'Тамақтану — нағыз ыдыс-аяқ, мата майлықтар және жағымды әңгімемен өтетін асықпайтын процесс. Сіз ешқашан түрегеп тұрып тамақтанбайсыз немесе пластик контейнерлерден жемейсіз.',
-                'Бұл көп ақша жұмсау туралы емес — бұл сападан бас тартпау туралы. Көкөністермен тамаша пісірілген тауық сәнді суперфуд-боулдан әрқашан асып түседі.'
+                'Тамақтану - нағыз ыдыс-аяқ, мата майлықтар және жағымды әңгімемен өтетін асықпайтын процесс. Сіз ешқашан түрегеп тұрып тамақтанбайсыз немесе пластик контейнерлерден жемейсіз.',
+                'Бұл көп ақша жұмсау туралы емес - бұл сападан бас тартпау туралы. Көкөністермен тамаша пісірілген тауық сәнді суперфуд-боулдан әрқашан асып түседі.'
             ],
             fr: [
                 'Privilégiez l\'élégance intemporelle et la qualité aux tendances. L\'esthétique Old Money se concentre sur des ingrédients classiques de haute qualité et l\'étiquette à table.',
@@ -890,7 +890,7 @@ const lifestylePrograms: LifestyleProgram[] = [
             ],
             kk: [
                 'Бұлшықет өсуін барынша арттырып, майды азайту үшін калорияның стратегиялық артықшылығы (қалыптыдан 200-350-ге көп). «Лас масса жинауға» қарағанда, таза набор бұлшықет пен майдың арақатынасын оңтайландырады.',
-                'Салмақ қосу жаттыққан адамдар үшін аптасына дене салмағының 0,25-0,5%-нан аспауы керек. Жылдам салмақ қосу — бұлшықет емес, майдың көбеюі.',
+                'Салмақ қосу жаттыққан адамдар үшін аптасына дене салмағының 0,25-0,5%-нан аспауы керек. Жылдам салмақ қосу - бұлшықет емес, майдың көбеюі.',
                 'Прогрессивті жүктеме міндетті: жаттығу көлемін арттырмай, артық калориялар майға айналады.',
                 '14 күндік бағдарлама тұрақты бағалауды қажет ететін құрылымдық кезеңдерден тұрады. Тым тез салмақ қосып жатсыз ба? Профицитті азайтыңыз. Тым баяу ма? Көбейтіңіз.'
             ],
@@ -1364,7 +1364,7 @@ const lifestylePrograms: LifestyleProgram[] = [
             es: `Secretos para vivir hasta los 100`
         },
         description: {
-            en: 'Blue Zone wisdom. Hara hachi bu — 80% full.', ru: 'Мудрость Голубой зоны.', kk: 'Көк аймақ даналығы.', fr: 'Sagesse zone bleue. Hara hachi bu — 80 % plein.',
+            en: 'Blue Zone wisdom. Hara hachi bu - 80% full.', ru: 'Мудрость Голубой зоны.', kk: 'Көк аймақ даналығы.', fr: 'Sagesse zone bleue. Hara hachi bu - 80 % plein.',
             de: `Weisheit der Blauen Zone. Hara hachi bu – 80 % voll.`,
             es: `Sabiduría de la Zona Azul. Hara hachi bu: 80% lleno.`
         },
@@ -1793,19 +1793,19 @@ const lifestylePrograms: LifestyleProgram[] = [
         category: 'warrior_mode', type: DietType.LIFESTYLE, difficulty: DietDifficulty.MODERATE, duration: 14, uiGroup: 'Warrior Mode', streakThreshold: 0.7,
         howItWorks: {
             en: [
-                'For high-performers who treat their body like a company — optimized, measured, and running at peak efficiency. Combines biohacking principles with practical executive nutrition for 14-hour days.',
+                'For high-performers who treat their body like a company - optimized, measured, and running at peak efficiency. Combines biohacking principles with practical executive nutrition for 14-hour days.',
                 'The CEO Warrior tracks biomarkers, uses strategic supplementation, times meals for cognitive performance, and treats nutrition as a competitive advantage. If you\'re outworking everyone, you need to out-fuel everyone.',
                 'Morning protocol: black coffee with MCT oil for fat-fueled focus, delayed first meal until 10-11am (compressed eating window), high-protein lunch for afternoon performance, early light dinner for sleep quality.',
                 'Supplements are strategic, not random: magnesium for sleep, omega-3 for brain, vitamin D for everything, and creatine for both cognitive and physical performance.'
             ],
             ru: [
-                'Для высокоэффективных людей, которые относятся к своему телу как к компании — оптимизируют, измеряют и работают на пике эффективности. Сочетает принципы биохакинга с практичным питанием руководителя.',
+                'Для высокоэффективных людей, которые относятся к своему телу как к компании - оптимизируют, измеряют и работают на пике эффективности. Сочетает принципы биохакинга с практичным питанием руководителя.',
                 'CEO-Воин отслеживает биомаркеры, планирует приемы пищи для когнитивной производительности и считает питание конкурентным преимуществом. Заправляйте организм лучше всех.',
                 'Утренний протокол: черный кофе с МСТ-маслом для фокуса, первый прием пищи в 10-11 утра (сжатое окно питания), высокобелковый обед для продуктивности днем и ранний легкий ужин для качества сна.',
                 'Добавки стратегические, а не случайные: магний для сна, омега-3 для мозга, витамин D для всего и креатин для когнитивной и физической продуктивности.'
             ],
             kk: [
-                'Өз денесіне компания ретінде қарайтын жоғары тиімді адамдарға арналған — оңтайландырылған және ең жоғары тиімділікпен жұмыс істейді. Биохакинг қағидаларын 14 сағаттық жұмыс күніне арналған басшының тамақтануымен біріктіреді.',
+                'Өз денесіне компания ретінде қарайтын жоғары тиімді адамдарға арналған - оңтайландырылған және ең жоғары тиімділікпен жұмыс істейді. Биохакинг қағидаларын 14 сағаттық жұмыс күніне арналған басшының тамақтануымен біріктіреді.',
                 'CEO Жауынгері биомаркерлерді қадағалайды, когнитивті өнімділік үшін тамақтану уақытын жоспарлайды және тамақтануды бәсекелестік артықшылық ретінде қарастырады.',
                 'Таңғы хаттама: назар аудару үшін МСТ майы қосылған қара кофе, алғашқы тамақты 10-11-ге дейін кешіктіру, күндізгі өнімділікке арналған ақуызға бай түскі ас және ұйқы сапасы үшін жеңіл кешкі ас.',
                 'Қоспалар стратегиялық болып табылады: ұйқыға арналған магний, миға арналған омега-3, барлығына арналған D витамині, сондай-ақ креатин.'
