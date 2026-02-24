@@ -16,7 +16,7 @@ export class UserProfilesController {
   @Post()
   @ApiOperation({ summary: 'Create user profile' })
   @ApiResponse({ status: 201, description: 'Profile created successfully' })
-  async createProfile(@Request() req, @Body() profileData: any) {
+  async createProfile(@Request() req: any, @Body() profileData: any) {
     const userId = req.user.id;
     this.logger.log(`[user-profiles] POST create userId=${userId}`);
     return this.userProfilesService.createProfile(userId, profileData);
@@ -25,7 +25,7 @@ export class UserProfilesController {
   @Get()
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: any) {
     const userId = req.user.id;
     this.logger.log(`[user-profiles] GET userId=${userId}`);
     return await this.userProfilesService.getProfile(userId);
@@ -34,7 +34,7 @@ export class UserProfilesController {
   @Put()
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
-  async updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
+  async updateProfile(@Request() req: any, @Body() dto: UpdateProfileDto) {
     const userId = req.user.id;
     this.logger.log(`[user-profiles] PUT update userId=${userId}`);
     return this.userProfilesService.updateProfile(userId, dto);
@@ -43,7 +43,7 @@ export class UserProfilesController {
   @Post('complete-onboarding')
   @ApiOperation({ summary: 'Complete onboarding' })
   @ApiResponse({ status: 200, description: 'Onboarding completed successfully' })
-  async completeOnboarding(@Request() req) {
+  async completeOnboarding(@Request() req: any) {
     const userId = req.user.id;
     this.logger.log(`[user-profiles] POST complete-onboarding userId=${userId}`);
     return this.userProfilesService.completeOnboarding(userId);

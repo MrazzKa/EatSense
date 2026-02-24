@@ -80,7 +80,7 @@ export default function ReportsScreen() {
       let base64Data: string;
 
       // Handle ArrayBuffer (preferred)
-      if (response.data instanceof ArrayBuffer) {
+      if ((response.data as any) instanceof ArrayBuffer) {
         const uint8Array = new Uint8Array(response.data);
 
         // Convert to base64 manually (btoa not available in React Native)
@@ -100,10 +100,10 @@ export default function ReportsScreen() {
           base64 += i - 1 < uint8Array.length ? chars.charAt(bitmap & 63) : '=';
         }
         base64Data = base64;
-      } else if (response.data && typeof response.data.arrayBuffer === 'function') {
+      } else if (response.data && typeof (response.data as any).arrayBuffer === 'function') {
         // Handle Blob with arrayBuffer method
         try {
-          const arrayBuffer = await response.data.arrayBuffer();
+          const arrayBuffer = await (response.data as any).arrayBuffer();
           const uint8Array = new Uint8Array(arrayBuffer);
 
           const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';

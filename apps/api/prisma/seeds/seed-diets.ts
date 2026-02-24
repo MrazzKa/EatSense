@@ -188,32 +188,32 @@ const diets = [
         streakThreshold: 0.7,
         howItWorks: {
             en: [
-                'Sodium target: 1,500-2,300mg/day max. Read every label — sodium hides in bread, sauces, canned foods',
-                '4-5 servings each of fruits AND vegetables daily (not combined — 4-5 of each)',
+                'Sodium target: 1,500-2,300mg/day max. Read every label - sodium hides in bread, sauces, canned foods',
+                '4-5 servings each of fruits AND vegetables daily (not combined - 4-5 of each)',
                 '2-3 servings low-fat dairy daily (milk, yogurt, cheese) for calcium and potassium',
                 'Whole grains 6-8 servings daily (oats, brown rice, whole wheat bread, quinoa)',
                 'Lean proteins: poultry, fish, beans. Limit red meat to 2 small servings/week',
                 'Nuts, seeds, legumes 4-5 times/week. Minimize added fats and sweets',
             ],
             ru: [
-                'Цель по натрию: макс. 1500-2300мг/день. Читайте этикетки — натрий прячется в хлебе, соусах, консервах',
-                '4-5 порций фруктов И овощей ежедневно (не суммарно — 4-5 каждого)',
+                'Цель по натрию: макс. 1500-2300мг/день. Читайте этикетки - натрий прячется в хлебе, соусах, консервах',
+                '4-5 порций фруктов И овощей ежедневно (не суммарно - 4-5 каждого)',
                 '2-3 порции нежирных молочных ежедневно (молоко, йогурт, сыр) для кальция и калия',
                 'Цельные злаки 6-8 порций/день (овсянка, бурый рис, цельнозерновой хлеб, киноа)',
                 'Нежирный белок: птица, рыба, бобовые. Красное мясо макс. 2 порции/нед',
                 'Орехи, семена, бобовые 4-5 раз/нед. Минимизировать добавленные жиры и сладости',
             ],
             kk: [
-                'Натрий мақсаты: күніне макс. 1500-2300мг. Жапсырмаларды оқыңыз — натрий нанда, тұздықтарда жасырылады',
-                'Күн сайын 4-5 порция жеміс ЖӘНЕ көкөніс (біріктірілген емес — әрқайсысынан 4-5)',
+                'Натрий мақсаты: күніне макс. 1500-2300мг. Жапсырмаларды оқыңыз - натрий нанда, тұздықтарда жасырылады',
+                'Күн сайын 4-5 порция жеміс ЖӘНЕ көкөніс (біріктірілген емес - әрқайсысынан 4-5)',
                 'Күн сайын 2-3 порция майсыз сүт өнімдері (сүт, йогурт, ірімшік) кальций мен калий үшін',
                 'Тұтас дәндер күніне 6-8 порция (сұлы, қоңыр күріш, тұтас бидай наны, киноа)',
                 'Майсыз ақуыз: құс, балық, бұршақ. Қызыл ет аптасына макс. 2 порция',
                 'Жаңғақ, тұқым, бұршақ аптасына 4-5 рет. Қосылған майлар мен тәттілерді азайту',
             ],
             fr: [
-                'Objectif sodium : max 1 500-2 300 mg/jour. Vérifier les étiquettes — sodium caché dans pain, sauces, conserves',
-                '4-5 portions de fruits ET de légumes par jour (pas combinés — 4-5 de chaque)',
+                'Objectif sodium : max 1 500-2 300 mg/jour. Vérifier les étiquettes - sodium caché dans pain, sauces, conserves',
+                '4-5 portions de fruits ET de légumes par jour (pas combinés - 4-5 de chaque)',
                 '2-3 portions de laitages allégés/jour (lait, yaourt, fromage) pour calcium et potassium',
                 'Céréales complètes 6-8 portions/jour (flocons d\'avoine, riz complet, pain complet, quinoa)',
                 'Protéines maigres : volaille, poisson, légumineuses. Viande rouge max 2 portions/sem',
@@ -329,32 +329,32 @@ const diets = [
         howItWorks: {
             en: [
                 'Leafy greens at least 6 servings/week (spinach, kale, arugula, Swiss chard, mixed greens)',
-                'Berries at least 2x/week — especially blueberries and strawberries (only fruits specifically emphasized)',
-                'Nuts every day as snack — walnuts preferred (omega-3 ALA), almonds and pecans also good',
+                'Berries at least 2x/week - especially blueberries and strawberries (only fruits specifically emphasized)',
+                'Nuts every day as snack - walnuts preferred (omega-3 ALA), almonds and pecans also good',
                 'Olive oil as primary cooking and dressing fat. Replace butter completely',
                 'Fish at least 1x/week (salmon, sardines, mackerel). Poultry 2+x/week',
                 'Beans and whole grains most days. Limit cheese to max 1x/week, red meat max 3x/week',
             ],
             ru: [
                 'Листовая зелень минимум 6 порций/нед (шпинат, кейл, руккола, мангольд, салатный микс)',
-                'Ягоды минимум 2 р/нед — особенно черника и клубника (единственные фрукты, специально выделяемые)',
-                'Орехи каждый день как перекус — грецкие предпочтительны (ALA омега-3), миндаль и пекан тоже',
+                'Ягоды минимум 2 р/нед - особенно черника и клубника (единственные фрукты, специально выделяемые)',
+                'Орехи каждый день как перекус - грецкие предпочтительны (ALA омега-3), миндаль и пекан тоже',
                 'Оливковое масло как основной жир для готовки и заправки. Полностью заменить сливочное масло',
                 'Рыба минимум 1 р/нед (лосось, сардины, скумбрия). Птица 2+ р/нед',
                 'Бобовые и цельные злаки почти каждый день. Сыр макс. 1 р/нед, красное мясо макс. 3 р/нед',
             ],
             kk: [
                 'Жапырақты жасылдар аптасына кемінде 6 порция (шпинат, кейл, руккола, мангольд)',
-                'Жидектер аптасына кемінде 2 рет — әсіресе көк жидек мен құлпынай',
-                'Күн сайын жаңғақ перекус ретінде — грек жаңғағы жақсы (ALA омега-3)',
+                'Жидектер аптасына кемінде 2 рет - әсіресе көк жидек мен құлпынай',
+                'Күн сайын жаңғақ перекус ретінде - грек жаңғағы жақсы (ALA омега-3)',
                 'Зәйтүн майы негізгі май ретінде пісіруге және тұздықтауға. Сары майды толық ауыстыру',
                 'Балық аптасына кемінде 1 рет (лосось, сардина, скумбрия). Құс 2+ р/апт',
                 'Бұршақ мен тұтас дәндер көп күндерде. Ірімшік макс. 1 р/апт, қызыл ет макс. 3 р/апт',
             ],
             fr: [
                 'Légumes verts feuillus min. 6 portions/sem (épinards, chou frisé, roquette, bette à carde)',
-                'Baies min. 2×/sem — surtout myrtilles et fraises (seuls fruits spécifiquement mis en avant)',
-                'Noix chaque jour en collation — noix de Grenoble préférées (ALA oméga-3)',
+                'Baies min. 2×/sem - surtout myrtilles et fraises (seuls fruits spécifiquement mis en avant)',
+                'Noix chaque jour en collation - noix de Grenoble préférées (ALA oméga-3)',
                 'Huile d\'olive comme graisse principale de cuisson. Remplacer complètement le beurre',
                 'Poisson min. 1×/sem (saumon, sardines, maquereau). Volaille 2+×/sem',
                 'Légumineuses et céréales complètes la plupart des jours. Fromage max 1×/sem, viande rouge max 3×/sem',
@@ -472,15 +472,15 @@ const diets = [
                 'On meat days: animal protein as side dish (quarter plate), vegetables remain the star',
                 'Explore one new plant protein each week (try tempeh, seitan, or black bean burgers)',
                 'Whole grains daily: quinoa, brown rice, farro, whole wheat pasta, oats',
-                'Minimize processed food regardless of origin — vegan cookie is still a cookie',
+                'Minimize processed food regardless of origin - vegan cookie is still a cookie',
             ],
             ru: [
                 '5 растительных дней, 2 дня с мясом/рыбой в неделю. Начните с 3+4 если 5+2 сложно',
                 'Растительные белки: фасоль, чечевица, тофу, темпе, эдамаме, нут, орехи, семена',
-                'В дни с мясом: животный белок как гарнир (четверть тарелки), овощи — главные',
+                'В дни с мясом: животный белок как гарнир (четверть тарелки), овощи - главные',
                 'Пробуйте один новый растительный белок каждую неделю (темпе, сейтан, бургер из чёрной фасоли)',
                 'Цельные злаки ежедневно: киноа, бурый рис, полба, цельнозерновая паста, овсянка',
-                'Минимизировать обработанные продукты независимо от происхождения — веганское печенье всё равно печенье',
+                'Минимизировать обработанные продукты независимо от происхождения - веганское печенье всё равно печенье',
             ],
             kk: [
                 'Аптасына 5 өсімдік күн, 2 ет/балық күн. 5+2 қиын болса 3+4-тен бастаңыз',
@@ -488,7 +488,7 @@ const diets = [
                 'Ет күндерінде: жануар ақуызы ғарнир ретінде (тәрелкенің төрттен бірі), көкөністер негізгі',
                 'Әр апта бір жаңа өсімдік ақуызын сынап көріңіз (темпе, сейтан, қара бұршақ бургер)',
                 'Күн сайын тұтас дәндер: киноа, қоңыр күріш, полба, тұтас бидай пастасы, сұлы',
-                'Өңделген тағамдарды тегіне қарамастан азайту — веган печенье де печенье',
+                'Өңделген тағамдарды тегіне қарамастан азайту - веган печенье де печенье',
             ],
             fr: [
                 '5 jours végétaux, 2 jours viande/poisson par semaine. Commencer 3+4 si 5+2 semble trop',
@@ -496,7 +496,7 @@ const diets = [
                 'Jours viande : protéine animale en accompagnement (quart d\'assiette), légumes restent la vedette',
                 'Essayer une nouvelle protéine végétale chaque semaine (tempeh, seitan, burger aux haricots noirs)',
                 'Céréales complètes quotidien : quinoa, riz complet, épeautre, pâtes complètes, flocons d\'avoine',
-                'Minimiser les aliments transformés peu importe l\'origine — un biscuit végan reste un biscuit',
+                'Minimiser les aliments transformés peu importe l\'origine - un biscuit végan reste un biscuit',
             ],
             de: [
                 `5 pflanzliche Tage, 2 Fleisch-/Fischtage pro Woche. Beginnen Sie mit 3+4, wenn sich 5+2 ehrgeizig anfühlt`,
@@ -593,35 +593,35 @@ const diets = [
         streakThreshold: 0.7,
         howItWorks: {
             en: [
-                'Fatty fish 3-4x/week: salmon, herring, mackerel, sardines — richest omega-3 sources',
+                'Fatty fish 3-4x/week: salmon, herring, mackerel, sardines - richest omega-3 sources',
                 'Root vegetables daily: beetroot, carrots, parsnips, turnips, potatoes, celeriac',
-                'Whole grains daily — especially rye bread (rugbrod), oats, barley. Dark, dense breads preferred',
+                'Whole grains daily - especially rye bread (rugbrod), oats, barley. Dark, dense breads preferred',
                 'Wild/foraged foods when available: berries, mushrooms, herbs. Frozen berries count year-round',
-                'Canola (rapeseed) oil as primary cooking fat — Nordic alternative to olive oil, also omega-3 rich',
+                'Canola (rapeseed) oil as primary cooking fat - Nordic alternative to olive oil, also omega-3 rich',
                 'Game meats and free-range over conventional beef. Organ meats when possible',
             ],
             ru: [
-                'Жирная рыба 3-4 р/нед: лосось, сельдь, скумбрия, сардины — богатейшие источники омега-3',
+                'Жирная рыба 3-4 р/нед: лосось, сельдь, скумбрия, сардины - богатейшие источники омега-3',
                 'Корнеплоды ежедневно: свёкла, морковь, пастернак, репа, картофель, корневой сельдерей',
-                'Цельные злаки ежедневно — особенно ржаной хлеб, овёс, ячмень. Тёмный плотный хлеб предпочтительнее',
+                'Цельные злаки ежедневно - особенно ржаной хлеб, овёс, ячмень. Тёмный плотный хлеб предпочтительнее',
                 'Дикоросы/собранное: ягоды, грибы, травы. Замороженные ягоды считаются круглый год',
-                'Рапсовое масло как основной жир — скандинавская альтернатива оливковому, тоже богато омега-3',
+                'Рапсовое масло как основной жир - скандинавская альтернатива оливковому, тоже богато омега-3',
                 'Дичь и свободный выгул вместо обычной говядины. Субпродукты при возможности',
             ],
             kk: [
-                'Майлы балық 3-4 р/апт: лосось, сельдь, скумбрия, сардина — ең бай омега-3 көздері',
+                'Майлы балық 3-4 р/апт: лосось, сельдь, скумбрия, сардина - ең бай омега-3 көздері',
                 'Күн сайын тамыр көкөністері: қызылша, сәбіз, пастернак, шалқан, картоп',
-                'Күн сайын тұтас дәндер — әсіресе қара бидай наны, сұлы, арпа. Қара, тығыз нандар жақсы',
+                'Күн сайын тұтас дәндер - әсіресе қара бидай наны, сұлы, арпа. Қара, тығыз нандар жақсы',
                 'Жабайы тағамдар: жидектер, саңырауқұлақтар, шөптер. Мұздатылған жидектер бүкіл жыл саналады',
-                'Рапс майы негізгі май — зәйтүн майына скандинавиялық балама, омега-3-ке де бай',
-                'Жабайы ет және еркін күтім — қарапайым сиыр етінен жақсы',
+                'Рапс майы негізгі май - зәйтүн майына скандинавиялық балама, омега-3-ке де бай',
+                'Жабайы ет және еркін күтім - қарапайым сиыр етінен жақсы',
             ],
             fr: [
-                'Poissons gras 3-4×/sem : saumon, hareng, maquereau, sardines — sources les plus riches en oméga-3',
+                'Poissons gras 3-4×/sem : saumon, hareng, maquereau, sardines - sources les plus riches en oméga-3',
                 'Légumes-racines quotidiens : betterave, carottes, panais, navet, pommes de terre, céleri-rave',
-                'Céréales complètes quotidien — surtout pain de seigle, avoine, orge. Pains sombres et denses',
+                'Céréales complètes quotidien - surtout pain de seigle, avoine, orge. Pains sombres et denses',
                 'Aliments sauvages/cueillis : baies, champignons, herbes. Baies surgelées comptent toute l\'année',
-                'Huile de colza comme graisse de cuisson principale — alternative nordique à l\'huile d\'olive',
+                'Huile de colza comme graisse de cuisson principale - alternative nordique à l\'huile d\'olive',
                 'Gibier et élevage en plein air plutôt que bœuf conventionnel. Abats quand possible',
             ],
             de: [
@@ -731,33 +731,33 @@ const diets = [
         streakThreshold: 0.7,
         howItWorks: {
             en: [
-                'Half plate (50%): non-starchy vegetables and fruits — salad, broccoli, peppers, tomatoes, leafy greens',
-                'Quarter plate (25%): lean protein — chicken, fish, tofu, eggs, beans, lentils (palm-sized portion)',
-                'Quarter plate (25%): whole grains or starchy vegetables — brown rice, quinoa, sweet potato, oats',
+                'Half plate (50%): non-starchy vegetables and fruits - salad, broccoli, peppers, tomatoes, leafy greens',
+                'Quarter plate (25%): lean protein - chicken, fish, tofu, eggs, beans, lentils (palm-sized portion)',
+                'Quarter plate (25%): whole grains or starchy vegetables - brown rice, quinoa, sweet potato, oats',
                 'Add thumb-sized healthy fat: olive oil drizzle, quarter avocado, small handful of nuts',
                 'Fruit as dessert or part of veggie/fruit half. Whole fruit over juice',
                 'Water, tea, or coffee. Skip sugary drinks. Apply to every meal including breakfast',
             ],
             ru: [
-                'Половина тарелки (50%): некрахмалистые овощи и фрукты — салат, брокколи, перец, помидоры, зелень',
-                'Четверть тарелки (25%): нежирный белок — курица, рыба, тофу, яйца, фасоль (порция с ладонь)',
-                'Четверть тарелки (25%): цельные злаки или крахмалистые овощи — бурый рис, киноа, батат, овсянка',
+                'Половина тарелки (50%): некрахмалистые овощи и фрукты - салат, брокколи, перец, помидоры, зелень',
+                'Четверть тарелки (25%): нежирный белок - курица, рыба, тофу, яйца, фасоль (порция с ладонь)',
+                'Четверть тарелки (25%): цельные злаки или крахмалистые овощи - бурый рис, киноа, батат, овсянка',
                 'Добавьте здоровый жир размером с большой палец: оливковое масло, четверть авокадо, горсть орехов',
                 'Фрукты на десерт. Целые фрукты вместо соков',
                 'Вода, чай или кофе. Без сладких напитков. Применять к каждому приёму, включая завтрак',
             ],
             kk: [
-                'Тәрелкенің жартысы (50%): крахмалсыз көкөністер мен жемістер — салат, брокколи, бұрыш, қызанақ',
-                'Төрттен бір (25%): майсыз ақуыз — тауық, балық, тофу, жұмыртқа, бұршақ (алақан өлшемі)',
-                'Төрттен бір (25%): тұтас дәндер немесе крахмалды көкөністер — қоңыр күріш, киноа, батат, сұлы',
+                'Тәрелкенің жартысы (50%): крахмалсыз көкөністер мен жемістер - салат, брокколи, бұрыш, қызанақ',
+                'Төрттен бір (25%): майсыз ақуыз - тауық, балық, тофу, жұмыртқа, бұршақ (алақан өлшемі)',
+                'Төрттен бір (25%): тұтас дәндер немесе крахмалды көкөністер - қоңыр күріш, киноа, батат, сұлы',
                 'Пайдалы май қосыңыз: зәйтүн майы, төрттен бір авокадо, аз жаңғақ',
                 'Десертке жемістер. Шырынның орнына тұтас жеміс',
                 'Су, шай немесе кофе. Тәтті сусындарсыз. Таңғы асты қоса әр тамаққа қолдану',
             ],
             fr: [
-                'Moitié assiette (50%) : légumes non féculents et fruits — salade, brocoli, poivrons, tomates',
-                'Quart d\'assiette (25%) : protéine maigre — poulet, poisson, tofu, œufs, haricots (taille paume)',
-                'Quart d\'assiette (25%) : céréales complètes ou féculents — riz complet, quinoa, patate douce',
+                'Moitié assiette (50%) : légumes non féculents et fruits - salade, brocoli, poivrons, tomates',
+                'Quart d\'assiette (25%) : protéine maigre - poulet, poisson, tofu, œufs, haricots (taille paume)',
+                'Quart d\'assiette (25%) : céréales complètes ou féculents - riz complet, quinoa, patate douce',
                 'Ajouter une graisse saine (taille pouce) : filet d\'huile d\'olive, quart d\'avocat, poignée de noix',
                 'Fruits en dessert. Fruits entiers plutôt que jus',
                 'Eau, thé ou café. Pas de boissons sucrées. Appliquer à chaque repas y compris petit-déj',
@@ -863,7 +863,7 @@ const diets = [
             en: [
                 'Choose 10-hour window: e.g., 8am-6pm or 9am-7pm',
                 '14h fast (mostly overnight): water, herbal tea, black coffee only',
-                'Eat 3 balanced meals within window — no need to skip breakfast',
+                'Eat 3 balanced meals within window - no need to skip breakfast',
                 'Food quality focus: works even without changing what you eat, but whole foods amplify results',
                 'Consistent timing daily to align with circadian rhythm',
                 'After 2-3 weeks, optionally narrow to 12h, then 10h, then 8h window',
@@ -871,7 +871,7 @@ const diets = [
             ru: [
                 'Выберите 10-часовое окно: напр. 8:00-18:00 или 9:00-19:00',
                 '14ч голодания (в основном ночью): только вода, травяной чай, чёрный кофе',
-                '3 сбалансированных приёма в окне — не нужно пропускать завтрак',
+                '3 сбалансированных приёма в окне - не нужно пропускать завтрак',
                 'Фокус на качестве еды: работает даже без изменения рациона, но цельные продукты усиливают результат',
                 'Постоянное время каждый день для синхронизации с циркадным ритмом',
                 'Через 2-3 недели можно сузить до 12ч, затем 10ч, затем 8ч',
@@ -879,7 +879,7 @@ const diets = [
             kk: [
                 '10 сағаттық терезе таңдаңыз: мыс. 8:00-18:00 немесе 9:00-19:00',
                 '14с аштық (негізінен түнде): тек су, шөп шай, қара кофе',
-                'Терезеде 3 теңгерімді тамақ — таңғы асты өткізу қажет емес',
+                'Терезеде 3 теңгерімді тамақ - таңғы асты өткізу қажет емес',
                 'Тағам сапасына назар: тұтас өнімдер нәтижені күшейтеді',
                 'Күн сайын тұрақты уақыт циркадтық ритммен үйлесу үшін',
                 '2-3 аптадан кейін қалау бойынша 12с, соң 10с, соң 8с терезеге тарылту',
@@ -887,7 +887,7 @@ const diets = [
             fr: [
                 'Choisir fenêtre de 10h : ex. 8h-18h ou 9h-19h',
                 '14h de jeûne (surtout la nuit) : eau, tisane, café noir uniquement',
-                '3 repas équilibrés dans la fenêtre — pas besoin de sauter le petit-déj',
+                '3 repas équilibrés dans la fenêtre - pas besoin de sauter le petit-déj',
                 'Qualité alimentaire : fonctionne même sans changer ce que vous mangez, aliments complets amplifient',
                 'Horaires constants chaque jour pour le rythme circadien',
                 'Après 2-3 semaines, réduire à 12h, puis 10h, puis 8h optionnellement',
@@ -1019,34 +1019,34 @@ const diets = [
             en: [
                 'Choose 8-hour window: most popular 12pm-8pm. Adjust to your schedule',
                 '16h fast: only water, black coffee, plain herbal tea. Zero calories',
-                'Break fast with protein + healthy fats first (eggs, salmon, avocado) — NOT sugar/carbs',
+                'Break fast with protein + healthy fats first (eggs, salmon, avocado) - NOT sugar/carbs',
                 'Eat 2-3 quality meals within window. No calorie restriction needed but eat whole foods',
                 'Last meal 2-3 hours before bed for sleep quality',
-                'Stay consistent — adaptation takes 1-2 weeks. Morning hunger disappears',
+                'Stay consistent - adaptation takes 1-2 weeks. Morning hunger disappears',
             ],
             ru: [
                 'Выберите 8-часовое окно: популярно 12:00-20:00. Подстройте под себя',
                 '16ч голод: только вода, чёрный кофе, травяной чай. Ноль калорий',
-                'Прерывайте голод белком + здоровыми жирами (яйца, лосось, авокадо) — НЕ сахаром',
+                'Прерывайте голод белком + здоровыми жирами (яйца, лосось, авокадо) - НЕ сахаром',
                 '2-3 качественных приёма в окне. Не нужно ограничивать калории, но ешьте цельные продукты',
                 'Последний приём за 2-3ч до сна для качества сна',
-                'Будьте последовательны — адаптация 1-2 недели. Утренний голод пройдёт',
+                'Будьте последовательны - адаптация 1-2 недели. Утренний голод пройдёт',
             ],
             kk: [
                 '8 сағаттық терезе таңдаңыз: ең танымал 12:00-20:00',
                 '16с аштық: тек су, қара кофе, шөп шай. Нөл калория',
-                'Аштықты ақуыз + пайдалы маймен бұзыңыз (жұмыртқа, лосось, авокадо) — қант ЕМЕС',
+                'Аштықты ақуыз + пайдалы маймен бұзыңыз (жұмыртқа, лосось, авокадо) - қант ЕМЕС',
                 'Терезеде 2-3 сапалы тамақ. Калорияны шектеу қажет емес, бірақ тұтас өнімдер',
                 'Соңғы тамақ ұйқыдан 2-3с бұрын',
-                'Тұрақты болыңыз — бейімделу 1-2 апта. Таңғы аштық өтеді',
+                'Тұрақты болыңыз - бейімделу 1-2 апта. Таңғы аштық өтеді',
             ],
             fr: [
                 'Fenêtre 8h : le plus populaire 12h-20h. Adaptez à votre emploi du temps',
                 '16h de jeûne : eau, café noir, tisane uniquement. Zéro calorie',
-                'Rompre le jeûne avec protéines + graisses saines (œufs, saumon, avocat) — PAS de sucre',
+                'Rompre le jeûne avec protéines + graisses saines (œufs, saumon, avocat) - PAS de sucre',
                 '2-3 repas de qualité dans la fenêtre. Pas de restriction calorique mais aliments complets',
                 'Dernier repas 2-3h avant le coucher',
-                'Soyez constant — adaptation en 1-2 semaines. La faim matinale disparaît',
+                'Soyez constant - adaptation en 1-2 semaines. La faim matinale disparaît',
             ],
             de: [
                 `Wählen Sie ein 8-Stunden-Fenster: am beliebtesten 12:00–20:00 Uhr. Passen Sie sich Ihrem Zeitplan an`,
@@ -1092,10 +1092,10 @@ const diets = [
             } },
         ],
         notFor: {
-            en: ['Same as 14:10 — see above'],
+            en: ['Same as 14:10 - see above'],
             ru: ['См. IF_14_10'],
             kk: ['IF_14_10 қараңыз'],
-            fr: ['Comme 14:10 — voir ci-dessus'],
+            fr: ['Comme 14:10 - voir ci-dessus'],
             de: [
                 `Wie 14:10 – siehe oben`
                 ],
@@ -1111,7 +1111,7 @@ const diets = [
         rules: { fastingWindow: '16 hours', eatingWindow: '8 hours', allowedDuringFast: ['water', 'black_coffee', 'tea'] },
         tips: {
             en: ['Start with 14:10 if new to fasting', 'Stay hydrated', 'Break fast with balanced meal'],
-            ru: ['Если новичок — начните с 14:10', 'Пейте много воды', 'Прерывайте голодание сбалансированной едой'],
+            ru: ['Если новичок - начните с 14:10', 'Пейте много воды', 'Прерывайте голодание сбалансированной едой'],
             kk: ['Жаңа болсаңыз 14:10-дан бастаңыз', 'Көп су ішіңіз', 'Аштықты теңгерімді тамақпен аяқтаңыз'],
             fr: ['Commencez par 14:10 si débutant', 'Restez hydraté', 'Rompez le jeûne avec un repas équilibré'],
             de: [
@@ -1161,7 +1161,7 @@ const diets = [
                 'Protein: 1.6-2.2g/kg bodyweight daily. For 75kg = 120-165g protein/day',
                 'Distribute protein across 4-5 meals (25-40g each) for optimal muscle protein synthesis',
                 'Largest carb intake around workouts: pre-workout (2h before) and post-workout (within 1h)',
-                'Don\'t cut fat below 20% total calories — hormones require adequate fat',
+                'Don\'t cut fat below 20% total calories - hormones require adequate fat',
                 'Weekly refeed at maintenance calories (higher carbs) to prevent metabolic adaptation',
             ],
             ru: [
@@ -1169,7 +1169,7 @@ const diets = [
                 'Белок: 1.6-2.2г/кг веса в день. Для 75кг = 120-165г белка/день',
                 'Распределите белок на 4-5 приёмов (25-40г каждый) для оптимального синтеза белка',
                 'Основные углеводы вокруг тренировок: пре (2ч до) и пост (в течение 1ч)',
-                'Не снижайте жиры ниже 20% калорий — гормонам нужен жир',
+                'Не снижайте жиры ниже 20% калорий - гормонам нужен жир',
                 'Еженедельный рифид на поддержке (больше углеводов) против метаболической адаптации',
             ],
             kk: [
@@ -1177,7 +1177,7 @@ const diets = [
                 'Ақуыз: күніне 1.6-2.2г/кг салмақ. 75кг үшін = 120-165г ақуыз/күн',
                 'Ақуызды 4-5 тамаққа бөліңіз (әрқайсысына 25-40г)',
                 'Негізгі көмірсулар жаттығу айналасында: алдында (2с бұрын) және кейін (1с ішінде)',
-                'Майды калорияның 20%-нан төмендетпеңіз — гормондарға май қажет',
+                'Майды калорияның 20%-нан төмендетпеңіз - гормондарға май қажет',
                 'Апталық рифид (көбірек көмірсу) метаболикалық бейімделуден сақтану',
             ],
             fr: [
@@ -1222,7 +1222,7 @@ const diets = [
                 de: `Ernährung vor/nach dem Training abgeschlossen`,
                 es: `Nutrición pre/post entrenamiento completada`
             } },
-            { key: 'sleep_7h', label: { en: 'Adequate sleep (7+ hours — critical during deficit)', ru: 'Достаточно сна (7+ часов — критично на дефиците)', kk: 'Жеткілікті ұйқы (7+ сағат — тапшылықта маңызды)', fr: 'Sommeil suffisant (7h+ — critique en déficit)',
+            { key: 'sleep_7h', label: { en: 'Adequate sleep (7+ hours - critical during deficit)', ru: 'Достаточно сна (7+ часов - критично на дефиците)', kk: 'Жеткілікті ұйқы (7+ сағат - тапшылықта маңызды)', fr: 'Sommeil suffisant (7h+ - critique en déficit)',
                 de: `Ausreichend Schlaf (7+ Stunden – kritisch bei Defizit)`,
                 es: `Sueño adecuado (más de 7 horas, fundamental durante el déficit)`
             } },
@@ -1232,10 +1232,10 @@ const diets = [
             } },
         ],
         notFor: {
-            en: ['Kidney problems — only with doctor'],
-            ru: ['Проблемы с почками — только с врачом'],
-            kk: ['Бүйрек мәселелері — тек дәрігермен'],
-            fr: ['Problèmes rénaux — uniquement avec médecin'],
+            en: ['Kidney problems - only with doctor'],
+            ru: ['Проблемы с почками - только с врачом'],
+            kk: ['Бүйрек мәселелері - тек дәрігермен'],
+            fr: ['Problèmes rénaux - uniquement avec médecin'],
             de: [
                 `Nierenprobleme – nur beim Arzt`
                 ],
@@ -1451,7 +1451,7 @@ const diets = [
                 'Moderate protein: 20-25% calories (excessive protein → glucose via gluconeogenesis)',
                 'Eliminate: all sugar, bread, pasta, rice, potatoes, most fruits. Berries in small amounts OK',
                 'Supplement electrolytes: 5-7g sodium/day, magnesium and potassium to prevent keto flu',
-                'Drink 3+ liters water daily — ketosis has diuretic effect, dehydration is #1 side effect',
+                'Drink 3+ liters water daily - ketosis has diuretic effect, dehydration is #1 side effect',
             ],
             ru: [
                 'Ограничьте чистые углеводы (всего - клетчатка) до 20-50г/день. Тщательно отслеживайте',
@@ -1459,7 +1459,7 @@ const diets = [
                 'Умеренный белок: 20-25% калорий (избыток белка → глюкоза через глюконеогенез)',
                 'Исключить: сахар, хлеб, пасту, рис, картофель, большинство фруктов. Ягоды немного можно',
                 'Электролиты: 5-7г натрия/день, магний и калий для профилактики кето-гриппа',
-                '3+ литра воды ежедневно — кетоз имеет мочегонный эффект',
+                '3+ литра воды ежедневно - кетоз имеет мочегонный эффект',
             ],
             kk: [
                 'Таза көмірсуларды (барлығы - клетчатка) күніне 20-50г-ға шектеңіз. Мұқият қадағалаңыз',
@@ -1467,7 +1467,7 @@ const diets = [
                 'Қалыпты ақуыз: 20-25% калория (артық ақуыз → глюконеогенез арқылы глюкоза)',
                 'Жою: қант, нан, паста, күріш, картоп, көп жемістер. Жидектер аздап болады',
                 'Электролиттер: күніне 5-7г натрий, магний мен калий кето тұмаудың алдын алу',
-                'Күніне 3+ литр су — кетоздың несеп әсері бар',
+                'Күніне 3+ литр су - кетоздың несеп әсері бар',
             ],
             fr: [
                 'Limiter les glucides nets (à total - fibres) à 20-50g/jour. Suivre attentivement',
@@ -1475,7 +1475,7 @@ const diets = [
                 'Protéines modérées : 20-25% calories (excès → glucose via gluconéogenèse)',
                 'Éliminer : sucre, pain, pâtes, riz, pommes de terre, la plupart des fruits. Baies OK en petites quantités',
                 'Électrolytes : 5-7g sodium/jour, magnésium et potassium pour prévenir la grippe céto',
-                '3+ litres d\'eau par jour — la cétose a un effet diurétique',
+                '3+ litres d\'eau par jour - la cétose a un effet diurétique',
             ],
             de: [
                 `Begrenzen Sie die Nettokohlenhydrate (insgesamt – Ballaststoffe) auf 20–50 g/Tag. Verfolgen Sie sorgfältig, insbesondere in den ersten beiden Wochen`,
@@ -1521,10 +1521,10 @@ const diets = [
             } },
         ],
         notFor: {
-            en: ['Pregnancy/breastfeeding', 'Pancreatitis', 'Liver/gallbladder disease', 'Eating disorders', 'Many endocrine conditions — without doctor'],
-            ru: ['Беременность/ГВ', 'Панкреатит', 'Болезни печени/желчного', 'РПП', 'Многие эндокринные состояния — без врача'],
-            kk: ['Жүктілік/емізу', 'Панкреатит', 'Бауыр/өт қабы аурулары', 'Тамақтану бұзылыстары', 'Көптеген эндокриндік жағдайлар — дәрігерсіз'],
-            fr: ['Grossesse/allaitement', 'Pancréatite', 'Maladies foie/vésicule', 'Troubles alimentaires', 'Nombreuses affections endocriniennes — sans médecin'],
+            en: ['Pregnancy/breastfeeding', 'Pancreatitis', 'Liver/gallbladder disease', 'Eating disorders', 'Many endocrine conditions - without doctor'],
+            ru: ['Беременность/ГВ', 'Панкреатит', 'Болезни печени/желчного', 'РПП', 'Многие эндокринные состояния - без врача'],
+            kk: ['Жүктілік/емізу', 'Панкреатит', 'Бауыр/өт қабы аурулары', 'Тамақтану бұзылыстары', 'Көптеген эндокриндік жағдайлар - дәрігерсіз'],
+            fr: ['Grossesse/allaitement', 'Pancréatite', 'Maladies foie/vésicule', 'Troubles alimentaires', 'Nombreuses affections endocriniennes - sans médecin'],
             de: [
                 `Schwangerschaft/Stillzeit`,
                 `Pankreatitis`,
@@ -1581,7 +1581,7 @@ const diets = [
             de: `Eliminationsdiät bei Reizdarmsyndrom und Verdauungsproblemen. Muss phasenweise unter professioneller Anleitung erfolgen.`,
             es: `Dieta de eliminación para el SII y problemas digestivos. Debe realizarse por fases con orientación profesional.`
         },
-        shortDescription: { en: 'Gut-healing diet in phases — requires guidance', ru: 'Диета для ЖКТ по фазам — требует специалиста', kk: 'Асқазан-ішек үшін кезеңдік диета — маман қажет', fr: 'Régime intestin par phases — suivi requis',
+        shortDescription: { en: 'Gut-healing diet in phases - requires guidance', ru: 'Диета для ЖКТ по фазам - требует специалиста', kk: 'Асқазан-ішек үшін кезеңдік диета - маман қажет', fr: 'Régime intestin par phases - suivi requis',
             de: `Darmheilungsdiät in Phasen – erfordert Anleitung`,
             es: `Dieta curativa del intestino en fases: requiere orientación`
         },
@@ -1598,7 +1598,7 @@ const diets = [
                 'Phase 1 (Wk 1-3): strictly avoid all high-FODMAP foods. Use Monash FODMAP app for safe portions',
                 'Phase 2 (Wk 4-6): test one FODMAP subgroup every 3 days (fructose, lactose, fructans, GOS, polyols)',
                 'Phase 3 (Wk 7+): personalized long-term diet avoiding only YOUR specific triggers',
-                'Keep detailed food + symptom diary every day — rate bloating, pain, gas, bowel habits 1-10',
+                'Keep detailed food + symptom diary every day - rate bloating, pain, gas, bowel habits 1-10',
                 'Eat enough fiber from safe sources (oats, rice, potatoes, banana, kiwi) to avoid constipation',
                 'Strongly recommended: work with FODMAP-trained dietitian. Self-guiding risks unnecessary restriction',
             ],
@@ -1606,7 +1606,7 @@ const diets = [
                 'Фаза 1 (Нед 1-3): строго избегать всех высоко-FODMAP продуктов',
                 'Фаза 2 (Нед 4-6): тест одной FODMAP-группы каждые 3 дня (фруктоза, лактоза, фруктаны, ГОС, полиолы)',
                 'Фаза 3 (Нед 7+): персональная диета, избегая только ВАШИХ триггеров',
-                'Подробный дневник еды + симптомов каждый день — вздутие, боль, газы 1-10',
+                'Подробный дневник еды + симптомов каждый день - вздутие, боль, газы 1-10',
                 'Достаточно клетчатки из безопасных источников (овёс, рис, картофель, банан)',
                 'Настоятельно рекомендуем: работать с FODMAP-специалистом',
             ],
@@ -1614,7 +1614,7 @@ const diets = [
                 '1 кезең (Апт 1-3): барлық жоғары FODMAP тағамдардан қатаң бас тарту',
                 '2 кезең (Апт 4-6): әр 3 күн бір FODMAP тобын тесттеу (фруктоза, лактоза, фруктандар)',
                 '3 кезең (Апт 7+): тек ӨЗІҢІЗДІҢ триггерлеріңізден қашық жеке диета',
-                'Күн сайын тағам + симптом күнделігі — ісіну, ауыру, газ 1-10',
+                'Күн сайын тағам + симптом күнделігі - ісіну, ауыру, газ 1-10',
                 'Қауіпсіз көздерден жеткілікті клетчатка (сұлы, күріш, картоп, банан)',
                 'Нақты ұсынылады: FODMAP-маманмен жұмыс істеу',
             ],
@@ -1622,7 +1622,7 @@ const diets = [
                 'Phase 1 (Sem 1-3) : éviter strictement tous les aliments riches en FODMAP',
                 'Phase 2 (Sem 4-6) : tester un sous-groupe tous les 3 jours (fructose, lactose, fructanes, GOS, polyols)',
                 'Phase 3 (Sem 7+) : régime personnalisé évitant uniquement VOS déclencheurs',
-                'Journal alimentaire + symptômes chaque jour — ballonnements, douleur, gaz 1-10',
+                'Journal alimentaire + symptômes chaque jour - ballonnements, douleur, gaz 1-10',
                 'Assez de fibres de sources sûres (avoine, riz, pommes de terre, banane)',
                 'Fortement recommandé : travailler avec un diététicien formé FODMAP',
             ],
@@ -1735,7 +1735,7 @@ const diets = [
         howItWorks: {
             en: [
                 'Eliminate completely: wheat (all forms), barley, rye, spelt, kamut, triticale',
-                'Oats: ONLY certified Gluten-Free oats — regular oats are cross-contaminated',
+                'Oats: ONLY certified Gluten-Free oats - regular oats are cross-contaminated',
                 'Read EVERY label: wheat, barley, rye, malt, brewer\'s yeast, modified food starch',
                 'Cross-contamination prevention: separate cutting boards, toaster, colander in shared kitchens',
                 'Safe grains: rice, quinoa, buckwheat, millet, corn, potato, sweet potato, tapioca, amaranth, teff',
@@ -1743,7 +1743,7 @@ const diets = [
             ],
             ru: [
                 'Полностью исключить: пшеницу (все формы), ячмень, рожь, спельту, камут, тритикале',
-                'Овёс: ТОЛЬКО сертифицированный «без глютена» — обычный овёс загрязнён',
+                'Овёс: ТОЛЬКО сертифицированный «без глютена» - обычный овёс загрязнён',
                 'Читайте КАЖДУЮ этикетку: пшеница, ячмень, рожь, солод, пивные дрожжи, модифицированный крахмал',
                 'Профилактика перекрёстного загрязнения: отдельные доски, тостер, дуршлаг',
                 'Безопасные злаки: рис, киноа, гречка, пшено, кукуруза, картофель, батат, амарант',
@@ -1751,7 +1751,7 @@ const diets = [
             ],
             kk: [
                 'Толық жою: бидай (барлық түрлері), арпа, қара бидай, спельта, камут',
-                'Сұлы: ТЕК сертификатталған «глютенсіз» — қарапайым сұлы ластанған',
+                'Сұлы: ТЕК сертификатталған «глютенсіз» - қарапайым сұлы ластанған',
                 'ӘР жапсырманы оқыңыз: бидай, арпа, қара бидай, солод, сыра ашытқысы',
                 'Кросс-контаминация алдын алу: бөлек тақталар, тостер, сүзгіш',
                 'Қауіпсіз дәндер: күріш, киноа, гречка, тары, жүгері, картоп, батат, амарант',
@@ -1759,7 +1759,7 @@ const diets = [
             ],
             fr: [
                 'Éliminer complètement : blé (toutes formes), orge, seigle, épeautre, kamut, triticale',
-                'Avoine : UNIQUEMENT certifiée sans gluten — avoine régulière est contaminée',
+                'Avoine : UNIQUEMENT certifiée sans gluten - avoine régulière est contaminée',
                 'Lire CHAQUE étiquette : blé, orge, seigle, malt, levure de bière, amidon modifié',
                 'Prévention contamination croisée : planches, grille-pain, passoire séparés',
                 'Céréales sûres : riz, quinoa, sarrasin, millet, maïs, pomme de terre, patate douce, amarante',
@@ -1809,10 +1809,10 @@ const diets = [
             } },
         ],
         notFor: {
-            en: ['If no indication — not necessary'],
-            ru: ['Если нет показаний — не обязательно'],
-            kk: ['Көрсеткіштер болмаса — міндетті емес'],
-            fr: ['Sans indication — pas nécessaire'],
+            en: ['If no indication - not necessary'],
+            ru: ['Если нет показаний - не обязательно'],
+            kk: ['Көрсеткіштер болмаса - міндетті емес'],
+            fr: ['Sans indication - pas nécessaire'],
             de: [
                 `Wenn keine Angabe – nicht notwendig`
                 ],
@@ -2389,25 +2389,25 @@ const diets = [
             en: [
                 'Base: sweet potatoes, vegetables, tofu, seaweed',
                 'Protein: fish 2-3 times a week, small portions of pork',
-                'Practice "Hara hachi bu" — eat until 80% full',
+                'Practice "Hara hachi bu" - eat until 80% full',
                 'Minimal sugar and processed foods',
             ],
             ru: [
                 'Основа: сладкий картофель, овощи, тофу, водоросли',
                 'Белок: рыба 2-3 раза в неделю, небольшие порции свинины',
-                'Практика "Хара хачи бу" — есть до 80% насыщения',
+                'Практика "Хара хачи бу" - есть до 80% насыщения',
                 'Минимум сахара и обработанных продуктов',
             ],
             kk: [
                 'Негіз: тәтті картоп, көкөністер, тофу, теңіз балдырлары',
                 'Ақуыз: аптасына 2-3 рет балық, аз шошқа еті',
-                '"Хара хачи бу" практикасы — 80% тойғанға дейін жеу',
+                '"Хара хачи бу" практикасы - 80% тойғанға дейін жеу',
                 'Аз қант және өңделген тағамдар',
             ],
             fr: [
                 'Base : patates douces, légumes, tofu, algues',
                 'Protéines : poisson 2–3×/semaine, petites portions de porc',
-                'Pratiquer « Hara hachi bu » — manger jusqu\'à 80 % rassasié',
+                'Pratiquer « Hara hachi bu » - manger jusqu\'à 80 % rassasié',
                 'Sucre et produits transformés minimaux',
             ],
             de: [
@@ -2512,9 +2512,9 @@ const diets = [
                 'Есть: мясо, рыбу, яйца, овощи, фрукты, орехи, семена, здоровые масла',
                 'Избегать: злаки, бобовые, молочные, рафинированный сахар, обработанные',
                 'Белок в каждом приёме: порция с ладонь. Предпочтительно дичь и травяной откорм',
-                'Половина тарелки — овощи в каждом приёме',
+                'Половина тарелки - овощи в каждом приёме',
                 'Фрукты свободно: ягоды, яблоки, цитрусы. Для похудения 2-3 порции/день',
-                'Готовьте дома из простых ингредиентов. Если не можете прочитать состав — не ешьте',
+                'Готовьте дома из простых ингредиентов. Если не можете прочитать состав - не ешьте',
             ],
             kk: [
                 'Жеу: ет, балық, жұмыртқа, көкөніс, жеміс, жаңғақ, тұқым, пайдалы майлар',
@@ -2645,7 +2645,7 @@ Meriendas: bayas, nueces, verduras crudas.`
             en: [
                 '30-day strict elimination: ZERO added sugar, alcohol, grains, legumes, soy, dairy',
                 'Eat: meat, seafood, eggs, vegetables, fruits, natural fats. That\'s the entire list',
-                'No weighing yourself or counting calories for 30 days — focus on food quality only',
+                'No weighing yourself or counting calories for 30 days - focus on food quality only',
                 'Read EVERY label. Sugar hides in 61+ names (dextrose, maltodextrin, "natural flavors")',
                 'No "Paleo-fying" junk food (no Paleo pancakes, almond flour pizza, coconut ice cream)',
                 'After 30 days: structured reintroduction. Add back one food group at a time, 3-day intervals',
@@ -2653,7 +2653,7 @@ Meriendas: bayas, nueces, verduras crudas.`
             ru: [
                 '30 дней строгой элиминации: НОЛЬ добавленного сахара, алкоголя, злаков, бобовых, сои, молочных',
                 'Есть: мясо, морепродукты, яйца, овощи, фрукты, натуральные жиры. Весь список',
-                'He взвешивайтесь и не считайте калории 30 дней — только качество еды',
+                'He взвешивайтесь и не считайте калории 30 дней - только качество еды',
                 'Читайте КАЖДУЮ этикетку. Сахар прячется под 61+ названием',
                 'Не делайте "палео-версии" вредной еды (никаких палео-блинов)',
                 'После 30 дней: структурированная реинтродукция. Одна группа продуктов, интервал 3 дня',
@@ -2661,7 +2661,7 @@ Meriendas: bayas, nueces, verduras crudas.`
             kk: [
                 '30 күн қатаң элиминация: қосылған қант, алкоголь, дәндер, бұршақ, соя, сүт өнімдері НӨЛ',
                 'Жеу: ет, теңіз өнімдері, жұмыртқа, көкөніс, жеміс, табиғи майлар',
-                '30 күн салмақ өлшемеңіз және калория санамаңыз — тек тағам сапасы',
+                '30 күн салмақ өлшемеңіз және калория санамаңыз - тек тағам сапасы',
                 'ӘРБІР жапсырманы оқыңыз. Қант 61+ атпен жасырынады',
                 'Зиянды тағамның "палео-нұсқасын" жасамаңыз',
                 '30 күннен кейін: құрылымды реинтродукция. Бір тағам тобы, 3 күн аралық',
@@ -2669,7 +2669,7 @@ Meriendas: bayas, nueces, verduras crudas.`
             fr: [
                 'Elimination stricte 30 jours : ZÉRO sucre ajouté, alcool, céréales, légumineuses, soja, laitages',
                 'Manger : viande, fruits de mer, œufs, légumes, fruits, graisses naturelles',
-                'Ni pesée ni comptage de calories pendant 30 jours — qualité uniquement',
+                'Ni pesée ni comptage de calories pendant 30 jours - qualité uniquement',
                 'Lire CHAQUE étiquette. Le sucre se cache sous 61+ noms',
                 'Pas de versions "paléo" de junk food (pas de crêpes paléo, pizza farine d\'amande)',
                 'Après 30 jours : réintroduction structurée. Un groupe alimentaire à la fois, intervalles de 3 jours',
@@ -2732,10 +2732,10 @@ Cena: pescado/filete + boniato + ensalada.
 Snacks: frutas, frutos secos, verduras.`
         },
         notFor: {
-            en: ['Eating disorders', 'Pregnancy/breastfeeding', 'Chronic conditions — only with doctor'],
-            ru: ['РПП', 'Беременность/ГВ', 'Хронические болезни — только с врачом'],
-            kk: ['Тамақтану бұзылыстары', 'Жүктілік/емізу', 'Созылмалы аурулар — тек дәрігермен'],
-            fr: ['Troubles alimentaires', 'Grossesse/allaitement', 'Maladies chroniques — uniquement avec médecin'],
+            en: ['Eating disorders', 'Pregnancy/breastfeeding', 'Chronic conditions - only with doctor'],
+            ru: ['РПП', 'Беременность/ГВ', 'Хронические болезни - только с врачом'],
+            kk: ['Тамақтану бұзылыстары', 'Жүктілік/емізу', 'Созылмалы аурулар - тек дәрігермен'],
+            fr: ['Troubles alimentaires', 'Grossesse/allaitement', 'Maladies chroniques - uniquement avec médecin'],
             de: [
                 `Essstörungen`,
                 `Schwangerschaft/Stillzeit`,
@@ -2918,7 +2918,7 @@ Meriendas: yogur de soja, nueces, frutos rojos.`
                 'Limit not eliminate: occasional treats fine, just not the daily baseline',
             ],
             ru: [
-                'Если в составе 5+ незнакомых ингредиентов — не покупайте',
+                'Если в составе 5+ незнакомых ингредиентов - не покупайте',
                 'Готовьте дома 80%+ приёмов пищи',
                 'Цельные злаки вместо рафинированных: бурый рис > белый, цельнозерновой > белый хлеб',
                 'Белок из настоящих источников: курица, рыба, яйца, бобовые, йогурт',
@@ -2926,7 +2926,7 @@ Meriendas: yogur de soja, nueces, frutos rojos.`
                 'Ограничьте, не исключайте: иногда лакомства ок, но не ежедневно',
             ],
             kk: [
-                'Құрамда 5+ танымас ингредиент болса — сатып алмаңыз',
+                'Құрамда 5+ танымас ингредиент болса - сатып алмаңыз',
                 'Тамақтың 80%+ үйде дайындаңыз',
                 'Тұтас дәндер: қоңыр күріш > ақ, тұтас дәнді нан > ақ нан, сұлы > каша',
                 'Ақуыз нақты көздерден: тауық, балық, жұмыртқа, бұршақ, йогурт',
@@ -3005,10 +3005,10 @@ Snacks: fruta, yogur, frutos secos.`
         restrictedFoods: ['processed_foods', 'sugary_drinks', 'fast_food'],
         macroSplit: { protein: 25, carbs: 45, fat: 30 },
         tips: {
-            en: ['Start by cooking one more meal at home per day', 'Read ingredient lists — fewer is often better'],
-            ru: ['Начните с одного дополнительного домашнего приёма пищи в день', 'Читайте состав — чем короче, тем лучше'],
-            kk: ['Күніне бір қосымша үй тамағынан бастаңыз', 'Құрамын оқыңыз — қысқа болған сайын жақсы'],
-            fr: ['Cuisiner un repas de plus par jour', 'Lire les ingrédients — moins c\'est souvent mieux'],
+            en: ['Start by cooking one more meal at home per day', 'Read ingredient lists - fewer is often better'],
+            ru: ['Начните с одного дополнительного домашнего приёма пищи в день', 'Читайте состав - чем короче, тем лучше'],
+            kk: ['Күніне бір қосымша үй тамағынан бастаңыз', 'Құрамын оқыңыз - қысқа болған сайын жақсы'],
+            fr: ['Cuisiner un repas de plus par jour', 'Lire les ingrédients - moins c\'est souvent mieux'],
             de: [
                 `Beginnen Sie damit, täglich eine weitere Mahlzeit zu Hause zuzubereiten`,
                 `Lesen Sie die Zutatenlisten – weniger ist oft besser`
@@ -3032,7 +3032,7 @@ Snacks: fruta, yogur, frutos secos.`
             de: `Flexible Diät (IIFYM)`,
             es: `Dieta flexible (IIFYM)`
         },
-        description: { en: 'If It Fits Your Macros — flexible approach focusing on hitting daily calorie and macro targets.', ru: 'Гибкий подход с фокусом на достижение дневных целей по калориям и БЖУ.', kk: 'Күнделікті калория мен БЖУ мақсаттарына жетуге бағытталған икемді тәсіл.', fr: 'Si ça rentre dans tes macros — objectifs calories et macros, choix flexibles.',
+        description: { en: 'If It Fits Your Macros - flexible approach focusing on hitting daily calorie and macro targets.', ru: 'Гибкий подход с фокусом на достижение дневных целей по калориям и БЖУ.', kk: 'Күнделікті калория мен БЖУ мақсаттарына жетуге бағытталған икемді тәсіл.', fr: 'Si ça rentre dans tes macros - objectifs calories et macros, choix flexibles.',
             de: `Wenn es zu Ihren Makros passt – flexibler Ansatz, der sich auf das Erreichen der täglichen Kalorien- und Makroziele konzentriert.`,
             es: `Si se adapta a sus macros: enfoque flexible que se centra en alcanzar objetivos macro y calóricos diarios.`
         },
@@ -3383,7 +3383,7 @@ Cena: varios platos pequeños + fruta/nueces.`
         tags: ['history', 'feast'],
     },
 
-    // 26) Napoleon — Soldier Style (NAPOLEON_INSPIRED)
+    // 26) Napoleon - Soldier Style (NAPOLEON_INSPIRED)
     {
         slug: 'napoleon-soldier',
         name: { en: 'Napoleon (Soldier-Style, Inspired)', ru: 'Наполеон (солдатская, вдохновл.)', kk: 'Наполеон (сарбазша, шабыт)', fr: 'Napoléon (style soldat, inspiré)',
@@ -4014,7 +4014,7 @@ Snacks: yogur/proteína, frutos secos, fruta.`
             en: [
                 'Warming spices daily: ginger, turmeric, cinnamon, cayenne, black pepper, cumin, cardamom',
                 'Root vegetables as staples: sweet potato, parsnips, carrots, beets, turnips, celeriac',
-                'Soups and stews as main meals 3-4x/week — nutrient-dense, warming, easy to batch cook',
+                'Soups and stews as main meals 3-4x/week - nutrient-dense, warming, easy to batch cook',
                 'Citrus daily for vitamin C: oranges, grapefruit, clementines, lemons',
                 'Warm breakfasts every morning: porridge, warm eggs, sauteed greens',
                 'Vitamin D: fatty fish 2-3x/week, eggs, and consider 1000-2000 IU supplement',
@@ -4022,7 +4022,7 @@ Snacks: yogur/proteína, frutos secos, fruta.`
             ru: [
                 'Согревающие специи ежедневно: имбирь, куркума, корица, кайенский перец, тмин',
                 'Корнеплоды как основа: батат, пастернак, морковь, свёкла, репа',
-                'Супы и рагу как основные блюда 3-4 раза/неделю — питательные и согревающие',
+                'Супы и рагу как основные блюда 3-4 раза/неделю - питательные и согревающие',
                 'Цитрусы ежедневно для витамина C: апельсины, грейпфруты, мандарины',
                 'Тёплый завтрак каждое утро: каша, яйца, тушёная зелень',
                 'Витамин D: жирная рыба 2-3 раза/неделю, яйца, и добавка 1000-2000 МЕ',
@@ -4038,7 +4038,7 @@ Snacks: yogur/proteína, frutos secos, fruta.`
             fr: [
                 'Épices réchauffantes quotidiennes : gingembre, curcuma, cannelle, cayenne',
                 'Légumes-racines : patate douce, panais, carottes, betteraves, navets',
-                'Soupes et ragoûts 3-4x/semaine — nutritifs et réchauffants',
+                'Soupes et ragoûts 3-4x/semaine - nutritifs et réchauffants',
                 'Agrumes quotidiens pour vitamine C : oranges, pamplemousses, clémentines',
                 'Petit-déj chaud chaque matin : porridge, œufs, légumes sautés',
                 'Vitamine D : poisson gras 2-3x/semaine, œufs, supplément 1000-2000 UI',
@@ -4150,7 +4150,7 @@ Snacks: yogur/proteína, frutos secos, fruta.`
         streakThreshold: 0.7,
         howItWorks: {
             en: [
-                'Pumpkin/squash as weekly staples: butternut, acorn, delicata — in soups, roasted, or sides',
+                'Pumpkin/squash as weekly staples: butternut, acorn, delicata - in soups, roasted, or sides',
                 'Apples and pears daily (peak season = maximum nutrition). Eat whole with skin for fiber',
                 'Mushrooms 3-4x/week: shiitake, cremini, portobello, chanterelle. Natural vitamin D source',
                 'Transition cooking: shift from raw salads to roasted, sauteed, slow-cooked dishes',
@@ -4287,7 +4287,7 @@ Snacks: yogur/proteína, frutos secos, fruta.`
         howItWorks: {
             en: [
                 'TDEE + 200-350 calories (not more). More surplus = more fat, not more muscle',
-                'Protein: 1.6-2.2g/kg bodyweight daily — same target as cutting',
+                'Protein: 1.6-2.2g/kg bodyweight daily - same target as cutting',
                 'Carbs are training fuel: fill most surplus with carbs, especially around workouts',
                 'Largest meals pre-workout (2-3h before) and post-workout (within 1h)',
                 'Progressive overload mandatory: track every workout, add reps or weight weekly',
@@ -4295,15 +4295,15 @@ Snacks: yogur/proteína, frutos secos, fruta.`
             ],
             ru: [
                 'TDEE + 200-350 калорий (не больше). Больше профицит = больше жира, не мышц',
-                'Белок: 1.6-2.2г/кг массы тела ежедневно — та же цель, что и на сушке',
-                'Углеводы — топливо для тренировок: заполняйте профицит углеводами, особенно вокруг тренировок',
+                'Белок: 1.6-2.2г/кг массы тела ежедневно - та же цель, что и на сушке',
+                'Углеводы - топливо для тренировок: заполняйте профицит углеводами, особенно вокруг тренировок',
                 'Самые большие приёмы пищи до тренировки (2-3ч) и после (в течение 1ч)',
                 'Прогрессивная нагрузка обязательна: записывайте каждую тренировку, добавляйте объём',
                 'Взвешивайтесь ежедневно (утро, натощак), отслеживайте средний вес за неделю',
             ],
             kk: [
                 'TDEE + 200-350 калория (артық емес). Көп профицит = көп май, бұлшықет емес',
-                'Ақуыз: күніне 1.6-2.2г/кг дене салмағы — кесу кезіндегідей мақсат',
+                'Ақуыз: күніне 1.6-2.2г/кг дене салмағы - кесу кезіндегідей мақсат',
                 'Көмірсулар жаттығу отыны: профицитті көмірсулармен толтырыңыз, әсіресе жаттығу маңында',
                 'Ең үлкен тамақ жаттығуға дейін (2-3 сағ) және кейін (1 сағ ішінде)',
                 'Прогрессивті жүктеме міндетті: әр жаттығуды жазыңыз, көлем қосыңыз',
@@ -4311,7 +4311,7 @@ Snacks: yogur/proteína, frutos secos, fruta.`
             ],
             fr: [
                 'TDEE + 200-350 calories (pas plus). Plus de surplus = plus de gras, pas de muscle',
-                'Protéines : 1.6-2.2g/kg poids corporel quotidien — même cible qu\'en sèche',
+                'Protéines : 1.6-2.2g/kg poids corporel quotidien - même cible qu\'en sèche',
                 'Glucides = carburant : remplir le surplus de glucides, surtout autour des entraînements',
                 'Plus gros repas pré-entraînement (2-3h avant) et post-entraînement (dans 1h)',
                 'Surcharge progressive obligatoire : noter chaque entraînement, ajouter reps ou charge',
@@ -4379,10 +4379,10 @@ Cena: salmón + quinoa + ensalada.
 Merienda: yogur griego + frutos rojos.`
         },
         notFor: {
-            en: ['Diabetes — only with doctor', 'Eating disorders', 'Heart conditions'],
-            ru: ['Диабет — только с врачом', 'РПП', 'Заболевания сердца'],
-            kk: ['Диабет — тек дәрігермен', 'Тамақтану бұзылыстары', 'Жүрек аурулары'],
-            fr: ['Diabète — avec médecin', 'Troubles alimentaires', 'Problèmes cardiaques'],
+            en: ['Diabetes - only with doctor', 'Eating disorders', 'Heart conditions'],
+            ru: ['Диабет - только с врачом', 'РПП', 'Заболевания сердца'],
+            kk: ['Диабет - тек дәрігермен', 'Тамақтану бұзылыстары', 'Жүрек аурулары'],
+            fr: ['Diabète - avec médecin', 'Troubles alimentaires', 'Problèmes cardiaques'],
             de: [
                 `Diabetes – nur beim Arzt`,
                 `Essstörungen`,
@@ -4448,33 +4448,33 @@ Merienda: yogur griego + frutos rojos.`
         howItWorks: {
             en: [
                 'Hydrating foods every meal: cucumber, watermelon, tomatoes, zucchini, berries, citrus',
-                'Lighter portions — respect reduced summer appetite. 3 light meals + snacks',
+                'Lighter portions - respect reduced summer appetite. 3 light meals + snacks',
                 'Raw/cold preparations: salads, smoothie bowls, gazpacho, cold soups, poke',
-                'Grill instead of oven/stove — flavor without heating kitchen',
+                'Grill instead of oven/stove - flavor without heating kitchen',
                 'Seasonal berries and stone fruits daily at peak nutrition',
                 'Hydration: 3+ liters water/day. Add electrolytes if sweating heavily',
             ],
             ru: [
                 'Увлажняющие продукты в каждом приёме: огурцы, арбуз, помидоры, кабачки, ягоды',
-                'Лёгкие порции — уважайте сниженный летний аппетит. 3 лёгких приёма + перекусы',
+                'Лёгкие порции - уважайте сниженный летний аппетит. 3 лёгких приёма + перекусы',
                 'Сырые/холодные блюда: салаты, смузи-боулы, гаспачо, холодные супы',
-                'Гриль вместо духовки/плиты — вкус без перегрева кухни',
+                'Гриль вместо духовки/плиты - вкус без перегрева кухни',
                 'Сезонные ягоды и косточковые фрукты ежедневно на пике питательности',
                 'Гидратация: 3+ литра воды/день. Добавьте электролиты при интенсивном потоотделении',
             ],
             kk: [
                 'Әр тамақта ылғалдандыратын өнімдер: қияр, қарбыз, қызанақ, кабачок, жидек',
-                'Жеңіл порциялар — азайған жазғы тәбетті құрметтеңіз. 3 жеңіл тамақ + тіскебасар',
+                'Жеңіл порциялар - азайған жазғы тәбетті құрметтеңіз. 3 жеңіл тамақ + тіскебасар',
                 'Шикі/суық дайындамалар: салаттар, смузи-боулдар, гаспачо, суық сорпалар',
-                'Пеш/плита орнына гриль — асханаңызды қыздырмай дәм',
+                'Пеш/плита орнына гриль - асханаңызды қыздырмай дәм',
                 'Маусымдық жидек пен сүйекті жемістер күнделікті қорек шыңында',
                 'Гидратация: күніне 3+ литр су. Қатты терлесеңіз электролиттер қосыңыз',
             ],
             fr: [
                 'Aliments hydratants à chaque repas : concombre, pastèque, tomates, courgettes, baies',
-                'Portions légères — respecter l\'appétit réduit en été. 3 repas légers + collations',
+                'Portions légères - respecter l\'appétit réduit en été. 3 repas légers + collations',
                 'Préparations crues/froides : salades, smoothie bowls, gaspacho, soupes froides',
-                'Griller au lieu du four — saveur sans chauffer la cuisine',
+                'Griller au lieu du four - saveur sans chauffer la cuisine',
                 'Baies et fruits à noyau quotidiens en pleine saison',
                 'Hydratation : 3+ litres eau/jour. Ajouter électrolytes si forte transpiration',
             ],
@@ -4542,7 +4542,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
         restrictedFoods: ['heavy_cream_sauces', 'fried_foods', 'hot_stews'],
         macroSplit: { protein: 24, carbs: 50, fat: 26 },
         tips: {
-            en: ['Stay hydrated — drink before you feel thirsty', 'Eat watermelon and cucumber daily for hydration', 'Grill outdoors to keep kitchen cool'],
+            en: ['Stay hydrated - drink before you feel thirsty', 'Eat watermelon and cucumber daily for hydration', 'Grill outdoors to keep kitchen cool'],
             ru: ['Пейте до появления жажды', 'Ешьте арбуз и огурцы ежедневно для гидратации', 'Готовьте на гриле, чтобы не перегревать кухню'],
             kk: ['Шөлдемес бұрын су ішіңіз', 'Гидратация үшін күнделікті қарбыз бен қияр жеңіз', 'Асханаңызды қыздырмау үшін грильде дайындаңыз'],
             fr: ['S\'hydrater avant la soif', 'Pastèque et concombre quotidiens', 'Griller dehors pour garder la cuisine fraîche'],
@@ -4670,9 +4670,9 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
         restrictedFoods: ['processed_foods', 'sugar', 'fried_foods', 'soda'],
         macroSplit: { protein: 20, carbs: 50, fat: 30 },
         tips: {
-            en: ['Drink lemon water in the morning', 'Prep simple meals ahead', 'Focus on presentation — eat from nice dishes'],
-            ru: ['Пейте воду с лимоном утром', 'Готовьте простые блюда заранее', 'Уделяйте внимание подаче — ешьте из красивой посуды'],
-            kk: ['Таңертең лимонды су ішіңіз', 'Қарапайым тағамдарды алдын ала дайындаңыз', 'Безендіруге назар аударыңыз — әдемі ыдыстан жеңіз'],
+            en: ['Drink lemon water in the morning', 'Prep simple meals ahead', 'Focus on presentation - eat from nice dishes'],
+            ru: ['Пейте воду с лимоном утром', 'Готовьте простые блюда заранее', 'Уделяйте внимание подаче - ешьте из красивой посуды'],
+            kk: ['Таңертең лимонды су ішіңіз', 'Қарапайым тағамдарды алдын ала дайындаңыз', 'Безендіруге назар аударыңыз - әдемі ыдыстан жеңіз'],
             fr: ['Eau citronnée le matin', 'Préparer des repas simples', 'Belle présentation, jolie vaisselle'],
             de: [
                 `Trinken Sie morgens Zitronenwasser`,
@@ -4699,7 +4699,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Urlaubsstimmung`,
             es: `Vibraciones de vacaciones`
         },
-        description: { en: 'Balanced eating inspired by Mediterranean vacation style — fresh, colorful, enjoyable. No stress, just pleasure.', ru: 'Сбалансированное питание в стиле средиземноморского отпуска — свежее, яркое, приятное. Без стресса, только удовольствие.', kk: 'Жерорта теңізі демалыс стиліндегі теңгерімді тамақтану — таза, түрлі-түсті, жағымды. Стресссіз, тек рахат.', fr: 'Alimentation type vacances méditerranéennes — frais, coloré, plaisir. Pas de stress.',
+        description: { en: 'Balanced eating inspired by Mediterranean vacation style - fresh, colorful, enjoyable. No stress, just pleasure.', ru: 'Сбалансированное питание в стиле средиземноморского отпуска - свежее, яркое, приятное. Без стресса, только удовольствие.', kk: 'Жерорта теңізі демалыс стиліндегі теңгерімді тамақтану - таза, түрлі-түсті, жағымды. Стресссіз, тек рахат.', fr: 'Alimentation type vacances méditerranéennes - frais, coloré, plaisir. Pas de stress.',
             de: `Ausgewogene Ernährung im mediterranen Urlaubsstil – frisch, farbenfroh, genussvoll. Kein Stress, nur Vergnügen.`,
             es: `Alimentación equilibrada inspirada en el estilo vacacional mediterráneo: fresca, colorida y agradable. Sin estrés, sólo placer.`
         },
@@ -4827,7 +4827,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Old-Money-Klassiker`,
             es: `Clásico del dinero viejo`
         },
-        description: { en: 'Refined eating habits inspired by classic elegance — quality over quantity, proper portions, timeless foods.', ru: 'Изысканные привычки питания в духе классической элегантности — качество важнее количества, правильные порции, вечные продукты.', kk: 'Классикалық талғампаздық рухындағы нәзік тамақтану әдеттері — сан емес сапа, дұрыс порциялар, мәңгілік тағамдар.', fr: 'Qualité avant quantité, portions raisonnables, classiques intemporels.',
+        description: { en: 'Refined eating habits inspired by classic elegance - quality over quantity, proper portions, timeless foods.', ru: 'Изысканные привычки питания в духе классической элегантности - качество важнее количества, правильные порции, вечные продукты.', kk: 'Классикалық талғампаздық рухындағы нәзік тамақтану әдеттері - сан емес сапа, дұрыс порциялар, мәңгілік тағамдар.', fr: 'Qualité avant quantité, portions raisonnables, classiques intemporels.',
             de: `Raffinierte Essgewohnheiten, inspiriert von klassischer Eleganz – Qualität vor Quantität, richtige Portionen, zeitlose Lebensmittel.`,
             es: `Hábitos alimentarios refinados inspirados en la elegancia clásica: calidad sobre cantidad, porciones adecuadas, alimentos atemporales.`
         },
@@ -4974,28 +4974,28 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
                 'Wake up at a consistent, reasonable hour',
                 'Always have a proper sit-down breakfast',
                 'Include protein, fruit, and quality carbs',
-                'No phones during breakfast — read instead',
+                'No phones during breakfast - read instead',
                 'Take your time, never rush',
             ],
             ru: [
                 'Просыпайтесь в одно и то же разумное время',
                 'Всегда завтракайте сидя за столом',
                 'Включайте белок, фрукты и качественные углеводы',
-                'Без телефона за завтраком — лучше читайте',
+                'Без телефона за завтраком - лучше читайте',
                 'Не торопитесь, ешьте спокойно',
             ],
             kk: [
                 'Бір қалыпты, ақылға қонымды уақытта оянсыз',
                 'Әрқашан дастарқан басында отырып таңғы ас ішіңіз',
                 'Ақуыз, жеміс және сапалы көмірсуларды қосыңыз',
-                'Таңғы аста телефонсыз — оның орнына оқыңыз',
+                'Таңғы аста телефонсыз - оның орнына оқыңыз',
                 'Асықпаңыз, тыныш тамақтаныңыз',
             ],
             fr: [
                 'Réveil à heure régulière',
                 'Toujours petit-déj assis à table',
                 'Protéines, fruit, glucides de qualité',
-                'Pas de téléphone — lire à la place',
+                'Pas de téléphone - lire à la place',
                 'Prendre son temps, ne pas se presser',
             ],
             de: [
@@ -5080,7 +5080,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             es: `Brunch dominical`
         },
         description: {
-            en: 'The art of leisurely Sunday brunch — late morning, good company, quality food, no rush.', ru: 'Искусство неспешного воскресного бранча — позднее утро, хорошая компания, качественная еда, без спешки.', kk: 'Баяу жексенбілік бранч өнері — кешкі таң, жақсы серіктестік, сапалы тағам, асықпау.', fr: 'L\'art du brunch dominical tranquille.',
+            en: 'The art of leisurely Sunday brunch - late morning, good company, quality food, no rush.', ru: 'Искусство неспешного воскресного бранча - позднее утро, хорошая компания, качественная еда, без спешки.', kk: 'Баяу жексенбілік бранч өнері - кешкі таң, жақсы серіктестік, сапалы тағам, асықпау.', fr: 'L\'art du brunch dominical tranquille.',
             de: `Die Kunst des gemütlichen Sonntagsbrunchs – am späten Vormittag, in guter Gesellschaft, gutes Essen, keine Hektik.`,
             es: `El arte del tranquilo brunch dominical: tarde en la mañana, buena compañía, comida de calidad, sin prisas.`
         },
@@ -5206,7 +5206,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Yachtwoche`,
             es: `Semana del yate`
         },
-        description: { en: 'Eating inspired by yacht lifestyle — light, fresh, Mediterranean-influenced, always elegant.', ru: 'Питание в духе яхтенного образа жизни — лёгкое, свежее, со средиземноморским влиянием, всегда элегантно.', kk: 'Яхта өмір салтынан шабыт алған тамақтану — жеңіл, таза, Жерорта теңізі әсерімен, әрқашан талғампаз.', fr: 'Style yacht — léger, frais, influence méditerranéenne, toujours élégant.',
+        description: { en: 'Eating inspired by yacht lifestyle - light, fresh, Mediterranean-influenced, always elegant.', ru: 'Питание в духе яхтенного образа жизни - лёгкое, свежее, со средиземноморским влиянием, всегда элегантно.', kk: 'Яхта өмір салтынан шабыт алған тамақтану - жеңіл, таза, Жерорта теңізі әсерімен, әрқашан талғампаз.', fr: 'Style yacht - léger, frais, influence méditerranéenne, toujours élégant.',
             de: `Essen inspiriert vom Yacht-Lifestyle – leicht, frisch, mediterran beeinflusst, immer elegant.`,
             es: `Comer inspirado en el estilo de vida de los yates: ligero, fresco, con influencia mediterránea, siempre elegante.`
         },
@@ -5304,8 +5304,8 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
         macroSplit: { protein: 30, carbs: 40, fat: 30 },
         tips: {
             en: ['White linen is the dress code', 'Fresh, not frozen seafood', 'Sunset dinners are best'],
-            ru: ['Белый лён — дресс-код', 'Свежие, не замороженные морепродукты', 'Ужины на закате — лучшее'],
-            kk: ['Ақ зығыр — дресс-код', 'Таза, мұздатылмаған теңіз өнімдері', 'Күн батысындағы кешкі астар — ең жақсы'],
+            ru: ['Белый лён - дресс-код', 'Свежие, не замороженные морепродукты', 'Ужины на закате - лучшее'],
+            kk: ['Ақ зығыр - дресс-код', 'Таза, мұздатылмаған теңіз өнімдері', 'Күн батысындағы кешкі астар - ең жақсы'],
             fr: ['Lin blanc de rigueur', 'Fruits de mer frais, pas surgelés', 'Dîners au coucher de soleil'],
             de: [
                 `Weißes Leinen ist die Kleiderordnung`,
@@ -5332,7 +5332,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Vorbereitungs-Schulmittagessen`,
             es: `Almuerzo escolar preparatorio`
         },
-        description: { en: 'Inspired by traditional prep school dining — balanced, nutritious, proper. No skipping meals, no junk food.', ru: 'В духе столовых частных школ — сбалансировано, питательно, правильно. Без пропусков еды, без джанк-фуда.', kk: 'Дәстүрлі prep school асханасынан шабыт алған — теңгерімді, қоректі, дұрыс. Тамақты өткізбей, джанк-фудсыз.', fr: 'Style cantine prep school — équilibré, nutritif, correct. Pas de repas sautés, pas de junk.',
+        description: { en: 'Inspired by traditional prep school dining - balanced, nutritious, proper. No skipping meals, no junk food.', ru: 'В духе столовых частных школ - сбалансировано, питательно, правильно. Без пропусков еды, без джанк-фуда.', kk: 'Дәстүрлі prep school асханасынан шабыт алған - теңгерімді, қоректі, дұрыс. Тамақты өткізбей, джанк-фудсыз.', fr: 'Style cantine prep school - équilibré, nutritif, correct. Pas de repas sautés, pas de junk.',
             de: `Inspiriert vom traditionellen Essen in der Vorbereitungsschule – ausgewogen, nahrhaft, richtig. Keine Mahlzeiten auslassen, kein Junk Food.`,
             es: `Inspirado en la comida tradicional de la escuela preparatoria: equilibrada, nutritiva y adecuada. Nada de saltarse comidas, nada de comida chatarra.`
         },
@@ -5429,10 +5429,10 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
         restrictedFoods: ['fast_food', 'soda', 'desk_eating', 'skipping_lunch'],
         macroSplit: { protein: 30, carbs: 45, fat: 25 },
         tips: {
-            en: ['Pack lunch if needed — but make it proper', 'Set a lunch alarm', 'Eat away from work'],
-            ru: ['Берите обед с собой если нужно — но правильный', 'Поставьте напоминание об обеде', 'Ешьте вдали от работы'],
-            kk: ['Қажет болса түскі асты өзіңізбен алыңыз — бірақ дұрыс', 'Түскі ас туралы еске салуды қойыңыз', 'Жұмыстан алыс жеңіз'],
-            fr: ['Préparer son déjeuner si besoin — mais correct', 'Alarme déjeuner', 'Manger loin du travail'],
+            en: ['Pack lunch if needed - but make it proper', 'Set a lunch alarm', 'Eat away from work'],
+            ru: ['Берите обед с собой если нужно - но правильный', 'Поставьте напоминание об обеде', 'Ешьте вдали от работы'],
+            kk: ['Қажет болса түскі асты өзіңізбен алыңыз - бірақ дұрыс', 'Түскі ас туралы еске салуды қойыңыз', 'Жұмыстан алыс жеңіз'],
+            fr: ['Préparer son déjeuner si besoin - mais correct', 'Alarme déjeuner', 'Manger loin du travail'],
             de: [
                 `Packen Sie bei Bedarf ein Mittagessen ein – aber machen Sie es richtig`,
                 `Stellen Sie einen Mittagswecker ein`,
@@ -5459,7 +5459,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             es: `Dieta de la chica francesa`
         },
         description: {
-            en: 'French approach to eating — quality portions, enjoyment, no strict restrictions, natural balance and pleasure.', ru: 'Французский подход к еде — качественные порции, удовольствие, без строгих запретов, естественный баланс и удовольствие.', kk: 'Тамаққа француз көзқарасы — сапалы порциялар, рахат, қатаң тыйымсыз, табиғи тепе-теңдік және рахат.', fr: 'Approche française : portions qualité, plaisir, pas d\'interdits.',
+            en: 'French approach to eating - quality portions, enjoyment, no strict restrictions, natural balance and pleasure.', ru: 'Французский подход к еде - качественные порции, удовольствие, без строгих запретов, естественный баланс и удовольствие.', kk: 'Тамаққа француз көзқарасы - сапалы порциялар, рахат, қатаң тыйымсыз, табиғи тепе-теңдік және рахат.', fr: 'Approche française : portions qualité, plaisir, pas d\'interdits.',
             de: `Französischer Essansatz – hochwertige Portionen, Genuss, keine strengen Einschränkungen, natürliche Ausgewogenheit und Genuss.`,
             es: `Enfoque francés de la alimentación: porciones de calidad, disfrute, sin restricciones estrictas, equilibrio natural y placer.`
         },
@@ -5478,28 +5478,28 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
         howItWorks: {
             en: [
                 'Eat small portions but enjoy every bite',
-                'No forbidden foods — everything in moderation',
+                'No forbidden foods - everything in moderation',
                 'Eat sitting down, never standing or walking',
-                'Quality over quantity — better cheese than more chips',
+                'Quality over quantity - better cheese than more chips',
                 'Listen to hunger cues, stop when satisfied',
             ],
             ru: [
                 'Ешьте небольшие порции, но наслаждайтесь каждым кусочком',
-                'Нет запретных продуктов — всё в меру',
+                'Нет запретных продуктов - всё в меру',
                 'Ешьте сидя, никогда стоя или на ходу',
-                'Качество важнее количества — лучше хороший сыр, чем много чипсов',
+                'Качество важнее количества - лучше хороший сыр, чем много чипсов',
                 'Слушайте сигналы голода, останавливайтесь когда насытились',
             ],
             kk: [
                 'Кішкене порциялар жеңіз, бірақ әр тістемнен ләззат алыңыз',
-                'Тыйым салынған тағам жоқ — бәрі қалыпты',
+                'Тыйым салынған тағам жоқ - бәрі қалыпты',
                 'Отырып жеңіз, тұрып немесе жүре жемеңіз',
-                'Сапа санды маңызды — көп чипстен жақсы ірімшік артық',
+                'Сапа санды маңызды - көп чипстен жақсы ірімшік артық',
                 'Аштық сигналдарын тыңдаңыз, тойғанда тоқтаңыз',
             ],
             fr: [
                 'Petites portions, savourer chaque bouchée',
-                'Aucun aliment interdit — tout avec modération',
+                'Aucun aliment interdit - tout avec modération',
                 'Manger assis, jamais debout ou en marchant',
                 'Qualité avant quantité',
                 'Écouter la faim, s\'arrêter rassasié',
@@ -5587,7 +5587,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Gatsby der 1920er Jahre`,
             es: `Gatsby de los años 20`
         },
-        description: { en: 'Inspired by the roaring twenties — glamorous parties, elegant appetizers, champagne, and indulgent but refined tastes.', ru: 'В духе ревущих двадцатых — гламурные вечеринки, элегантные закуски, шампанское и изысканные, но утончённые вкусы.', kk: 'Жиырмасыншы жылдардан шабыт алған — сәнді кештер, талғампаз тәбет ашарлар, шампанское және нәзік дәмдер.', fr: 'Inspiré des années folles — soirées, canapés, champagne, goûts raffinés.',
+        description: { en: 'Inspired by the roaring twenties - glamorous parties, elegant appetizers, champagne, and indulgent but refined tastes.', ru: 'В духе ревущих двадцатых - гламурные вечеринки, элегантные закуски, шампанское и изысканные, но утончённые вкусы.', kk: 'Жиырмасыншы жылдардан шабыт алған - сәнді кештер, талғампаз тәбет ашарлар, шампанское және нәзік дәмдер.', fr: 'Inspiré des années folles - soirées, canapés, champagne, goûts raffinés.',
             de: `Inspiriert von den wilden Zwanzigern – glamouröse Partys, elegante Vorspeisen, Champagner und verwöhnende, aber raffinierte Geschmäcker.`,
             es: `Inspirado en los locos años veinte: fiestas glamorosas, aperitivos elegantes, champán y gustos indulgentes pero refinados.`
         },
@@ -5713,7 +5713,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Hollywood der 1950er Jahre`,
             es: `Hollywood de los años 50`
         },
-        description: { en: 'Inspired by 1950s Hollywood glamour — balanced, portion-conscious, always camera-ready but enjoying life.', ru: 'В духе голливудского гламура 1950-х — сбалансировано, осознанные порции, всегда готовы к камере, но наслаждаемся жизнью.', kk: '1950-жылдар Голливуд сәнінен шабыт алған — теңгерімді, саналы порциялар, әрқашан камераға дайын, бірақ өмірден ләззат алу.', fr: 'Glamour Hollywood années 50 — équilibré, portions maîtrisées, prêt pour la caméra tout en profitant.',
+        description: { en: 'Inspired by 1950s Hollywood glamour - balanced, portion-conscious, always camera-ready but enjoying life.', ru: 'В духе голливудского гламура 1950-х - сбалансировано, осознанные порции, всегда готовы к камере, но наслаждаемся жизнью.', kk: '1950-жылдар Голливуд сәнінен шабыт алған - теңгерімді, саналы порциялар, әрқашан камераға дайын, бірақ өмірден ләззат алу.', fr: 'Glamour Hollywood années 50 - équilibré, portions maîtrisées, prêt pour la caméra tout en profitant.',
             de: `Inspiriert vom Hollywood-Glamour der 1950er Jahre – ausgewogen, portionbewusst, immer kamerabereit, aber das Leben genießend.`,
             es: `Inspirado en el glamour de Hollywood de los años 50: equilibrado, consciente de las porciones, siempre listo para la cámara pero disfrutando de la vida.`
         },
@@ -5735,21 +5735,21 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
                 'Light breakfast, proper lunch, elegant dinner',
                 'Protein-focused with vegetables',
                 'Limited starches, no bloating foods',
-                'Occasional indulgence — champagne, chocolate',
+                'Occasional indulgence - champagne, chocolate',
             ],
             ru: [
                 'Сбалансированные приёмы пищи, готовые к камере',
                 'Лёгкий завтрак, правильный обед, элегантный ужин',
                 'Белок в приоритете с овощами',
                 'Ограничение крахмала, без продуктов вызывающих вздутие',
-                'Иногда позволяем себе — шампанское, шоколад',
+                'Иногда позволяем себе - шампанское, шоколад',
             ],
             kk: [
                 'Камераға дайын теңгерімді тамақ',
                 'Жеңіл таңғы ас, дұрыс түскі ас, талғампаз кешкі ас',
                 'Көкөністермен бірге ақуызға басымдық',
                 'Крахмалды шектеу, ісіну тудыратын тағамсыз',
-                'Кейде рұқсат — шампанское, шоколад',
+                'Кейде рұқсат - шампанское, шоколад',
             ],
             fr: [
                 'Repas équilibrés, prêts pour la caméra',
@@ -5839,7 +5839,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `1960er-Jahre-Mod`,
             es: `Mod de los años 60`
         },
-        description: { en: 'Inspired by 1960s mod culture — light, youthful, colorful, breaking traditional rules while staying elegant.', ru: 'В духе мод-культуры 1960-х — лёгко, молодёжно, ярко, ломаем традиционные правила, оставаясь элегантными.', kk: '1960-жылдар мод мәдениетінен шабыт алған — жеңіл, жасөспірімдік, түрлі-түсті, дәстүрлі ережелерді бұза отырып, талғампаз қалу.', fr: 'Culture mod années 60 — léger, jeune, coloré, casser les règles en restant élégant.',
+        description: { en: 'Inspired by 1960s mod culture - light, youthful, colorful, breaking traditional rules while staying elegant.', ru: 'В духе мод-культуры 1960-х - лёгко, молодёжно, ярко, ломаем традиционные правила, оставаясь элегантными.', kk: '1960-жылдар мод мәдениетінен шабыт алған - жеңіл, жасөспірімдік, түрлі-түсті, дәстүрлі ережелерді бұза отырып, талғампаз қалу.', fr: 'Culture mod années 60 - léger, jeune, coloré, casser les règles en restant élégant.',
             de: `Inspiriert von der Mod-Kultur der 1960er Jahre – leicht, jugendlich, farbenfroh, bricht mit traditionellen Regeln und bleibt dabei elegant.`,
             es: `Inspirado en la cultura mod de los años 60: ligero, juvenil, colorido, que rompe las reglas tradicionales sin dejar de ser elegante.`
         },
@@ -5965,7 +5965,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Disco der 1970er Jahre`,
             es: `1970s Disco`
         },
-        description: { en: 'Inspired by Studio 54 era — light eating to stay energized for parties, quick bites, champagne, staying slim for dance floor.', ru: 'В духе эпохи Studio 54 — лёгкое питание для энергии на вечеринках, быстрые закуски, шампанское, стройность для танцпола.', kk: 'Studio 54 дәуірінен шабыт алған — кешке қуат үшін жеңіл тамақтану, жылдам тәбет ашарлар, шампанское, би алаңына арықтық.', fr: 'Ère Studio 54 — manger léger pour les soirées, canapés, champagne, rester fine pour la piste.',
+        description: { en: 'Inspired by Studio 54 era - light eating to stay energized for parties, quick bites, champagne, staying slim for dance floor.', ru: 'В духе эпохи Studio 54 - лёгкое питание для энергии на вечеринках, быстрые закуски, шампанское, стройность для танцпола.', kk: 'Studio 54 дәуірінен шабыт алған - кешке қуат үшін жеңіл тамақтану, жылдам тәбет ашарлар, шампанское, би алаңына арықтық.', fr: 'Ère Studio 54 - manger léger pour les soirées, canapés, champagne, rester fine pour la piste.',
             de: `Inspiriert von der Studio 54-Ära – leichtes Essen, um für Partys energiegeladen zu bleiben, schnelle Snacks, Champagner, schlank bleiben für die Tanzfläche.`,
             es: `Inspirado en la era Studio 54: comidas ligeras para mantener la energía en las fiestas, bocadillos rápidos, champán y mantenerse delgado para la pista de baile.`
         },
@@ -6091,7 +6091,7 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             de: `Power-Lunch der 1980er Jahre`,
             es: `Almuerzo energético de los años 80`
         },
-        description: { en: 'Inspired by 1980s corporate culture — power lunches, steak houses, business over meals, confident choices.', ru: 'В духе корпоративной культуры 1980-х — бизнес-ланчи, стейк-хаусы, дела за едой, уверенный выбор.', kk: '1980-жылдар корпоративтік мәдениетінен шабыт алған — бизнес-ланчтар, стейк-хаустар, тамақ үстінде іс, сенімді таңдау.', fr: 'Culture corporate années 80 — power lunches, steak-houses, affaires autour des repas, choix assurés.',
+        description: { en: 'Inspired by 1980s corporate culture - power lunches, steak houses, business over meals, confident choices.', ru: 'В духе корпоративной культуры 1980-х - бизнес-ланчи, стейк-хаусы, дела за едой, уверенный выбор.', kk: '1980-жылдар корпоративтік мәдениетінен шабыт алған - бизнес-ланчтар, стейк-хаустар, тамақ үстінде іс, сенімді таңдау.', fr: 'Culture corporate années 80 - power lunches, steak-houses, affaires autour des repas, choix assurés.',
             de: `Inspiriert von der Unternehmenskultur der 1980er Jahre – Power-Lunches, Steakhäuser, Business-Over-Mahlzeiten, selbstbewusste Entscheidungen.`,
             es: `Inspirado en la cultura corporativa de la década de 1980: almuerzos energéticos, asadores, negocios durante las comidas, opciones seguras.`
         },
@@ -6113,28 +6113,28 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
                 'Quality steakhouses and business restaurants',
                 'Confident, decisive ordering',
                 'Networking during meals',
-                'Balanced indulgence — work hard, eat well',
+                'Balanced indulgence - work hard, eat well',
             ],
             ru: [
                 'Сытные, богатые белком обеды',
                 'Качественные стейк-хаусы и бизнес-рестораны',
                 'Уверенный, решительный заказ',
                 'Нетворкинг во время еды',
-                'Сбалансированное удовольствие — много работай, хорошо ешь',
+                'Сбалансированное удовольствие - много работай, хорошо ешь',
             ],
             kk: [
                 'Ақуызға бай тойымды түскі астар',
                 'Сапалы стейк-хаустар және бизнес мейрамханалар',
                 'Сенімді, батыл тапсырыс',
                 'Тамақ кезінде нетворкинг',
-                'Теңгерімді рахат — көп жұмыс істе, жақсы тамақтан',
+                'Теңгерімді рахат - көп жұмыс істе, жақсы тамақтан',
             ],
             fr: [
                 'Déjeuners substantiels, riches en protéines',
                 'Steak-houses et restaurants d\'affaires de qualité',
                 'Commander avec assurance',
                 'Networking pendant les repas',
-                'Indulgence équilibrée — travailler dur, bien manger',
+                'Indulgence équilibrée - travailler dur, bien manger',
             ],
             de: [
                 `Reichhaltige, proteinreiche Mittagessen`,
@@ -6174,9 +6174,9 @@ Snacks: Sandía, palitos de pepino, cerveza fría.`
             } },
         ],
         sampleDay: {
-            en: 'Breakfast: Continental — coffee, pastry, fruit. Power Lunch: Caesar salad, 8oz steak, steamed vegetables, sparkling water. Dinner: Light — soup, bread, wine.',
-            ru: 'Завтрак: континентальный — кофе, выпечка, фрукты. Бизнес-ланч: салат Цезарь, стейк 250г, овощи на пару, минеральная вода. Ужин: лёгкий — суп, хлеб, вино.',
-            kk: 'Таңғы ас: континенталдық — кофе, тоқаш, жеміс. Бизнес-ланч: Цезарь салаты, 250г стейк, бумен піскен көкөніс, минералды су. Кешкі ас: жеңіл — сорпа, нан, шарап.',
+            en: 'Breakfast: Continental - coffee, pastry, fruit. Power Lunch: Caesar salad, 8oz steak, steamed vegetables, sparkling water. Dinner: Light - soup, bread, wine.',
+            ru: 'Завтрак: континентальный - кофе, выпечка, фрукты. Бизнес-ланч: салат Цезарь, стейк 250г, овощи на пару, минеральная вода. Ужин: лёгкий - суп, хлеб, вино.',
+            kk: 'Таңғы ас: континенталдық - кофе, тоқаш, жеміс. Бизнес-ланч: Цезарь салаты, 250г стейк, бумен піскен көкөніс, минералды су. Кешкі ас: жеңіл - сорпа, нан, шарап.',
             fr: 'Petit-déj continental : café, viennoiserie, fruit. Power lunch : César, steak 250 g, légumes vapeur, eau pétillante. Dîner léger : soupe, pain, vin.',
             de: `Frühstück: Kontinental – Kaffee, Gebäck, Obst. Power-Lunch: Caesar-Salat, 8-Unzen-Steak, gedünstetes Gemüse, Mineralwasser. Abendessen: Leicht – Suppe, Brot, Wein.`,
             es: `Desayuno: Continental: café, pasteles, fruta. Almuerzo energético: ensalada César, bistec de 8 oz, verduras al vapor, agua con gas. Cena: Ligera: sopa, pan, vino.`

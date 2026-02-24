@@ -280,6 +280,7 @@ data/usda/**
 !data/usda/README.md!.tool-versions
 !.nvmrc
 !pnpm-lock.yaml
+content/
 ios/
 android/
 ios/

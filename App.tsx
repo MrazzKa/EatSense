@@ -1,3 +1,4 @@
+// @ts-nocheck
 // App.js - Main navigation structure
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';

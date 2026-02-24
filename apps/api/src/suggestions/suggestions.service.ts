@@ -333,7 +333,7 @@ export class SuggestionsService {
       },
     };
 
-    return reasons[locale]?.[type] || reasons.en[type] || '';
+    return (reasons as Record<string, Record<string, string>>)[locale]?.[type] || (reasons.en as Record<string, string>)[type] || '';
   }
 
   /**
@@ -376,7 +376,7 @@ export class SuggestionsService {
       },
     };
 
-    return tips[locale]?.[category] || tips.en[category] || '';
+    return (tips as Record<string, Record<string, string>>)[locale]?.[category] || (tips.en as Record<string, string>)[category] || '';
   }
 }
 

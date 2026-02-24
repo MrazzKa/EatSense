@@ -18,17 +18,17 @@ export class DietProgramsController {
     }
 
     @Post(':id/start')
-    async startProgram(@Request() req, @Param('id') programId: string) {
+    async startProgram(@Request() req: any, @Param('id') programId: string) {
         return this.dietProgramsService.startProgram(req.user.id, programId);
     }
 
     @Get(':id/progress')
-    async getProgress(@Request() req, @Param('id') programId: string) {
+    async getProgress(@Request() req: any, @Param('id') programId: string) {
         return this.dietProgramsService.getProgress(req.user.id, programId);
     }
 
     @Post(':id/complete-day')
-    async completeDay(@Request() req, @Param('id') programId: string) {
+    async completeDay(@Request() req: any, @Param('id') programId: string) {
         return this.dietProgramsService.completeDay(req.user.id, programId);
     }
 }

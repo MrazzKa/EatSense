@@ -211,7 +211,7 @@ export class FoodProcessor {
       const analyzeStart = Date.now();
       const analysisResult = await this.analyzeService.analyzeImage({
         imageBase64,
-        imageUrl, // Pass imageUrl if available for better cache key generation
+        imageUrl: imageUrl ?? undefined, // Pass imageUrl if available for better cache key generation
         locale,
         foodDescription: foodDescription || undefined, // Pass food description if provided
         skipCache: skipCache || false, // Pass skip-cache flag for debugging
@@ -349,8 +349,8 @@ export class FoodProcessor {
                   type: 'MEAL',
                   consumedAt: new Date().toISOString(), // Set current date/time for the meal
                   items: validItems,
-                  healthScore: analysisResult.healthScore,
-                  imageUri: imageUrl || null, // Include imageUrl when auto-saving meal
+                  healthScore: analysisResult.healthScore ?? undefined,
+                  imageUri: imageUrl ?? undefined, // Include imageUrl when auto-saving meal
                 });
                 metrics.autoSaveTime = Date.now() - autoSaveStart;
                 this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id}, ${metrics.autoSaveTime}ms)`);
@@ -670,8 +670,8 @@ export class FoodProcessor {
                 name: dishName,
                 type: 'MEAL',
                 items: validItems,
-                healthScore: analysisResult.healthScore,
-                imageUri: null, // Text analysis has no image
+                healthScore: analysisResult.healthScore ?? undefined,
+                imageUri: undefined, // Text analysis has no image
               });
               result.autoSave = {
                 mealId: meal.id,

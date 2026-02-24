@@ -363,7 +363,7 @@ export class UserProfilesService {
       extremely_active: 1.9,
     };
 
-    const multiplier = activityMultipliers[activityLevel] || 1.2;
+    const multiplier = (activityMultipliers as Record<string, number>)[activityLevel] || 1.2;
     return Math.round(bmr * multiplier);
   }
 

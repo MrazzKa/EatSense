@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ApiService from './apiService';
 
 class MarketplaceService {

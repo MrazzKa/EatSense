@@ -451,7 +451,7 @@ export class FoodService {
     }
 
     // AutoSave is handled in processor, not in AnalysisData
-    const autoSave = null;
+    const autoSave: any = null;
 
     // BUG 8: Get locale from analysis data for localization
     const locale = raw.locale || 'en';
@@ -586,15 +586,15 @@ export class FoodService {
       };
 
       return {
-        id: item.id,
+        id: item.id || crypto.randomUUID(),
         name: item.name,
         originalName: item.name,
         portion_g: item.portion_g,
         nutrients,
-        source: 'manual',
-        locale: 'en', // TODO: Get from analysis metadata or user profile
+        source: 'manual' as const,
+        locale: 'en' as const, // TODO: Get from analysis metadata or user profile
       };
-    });
+    }) as AnalyzedItem[];
 
     // 3. Build AnalysisTotals from items (same logic as AnalyzeService)
     const total: AnalysisTotals = items.reduce(

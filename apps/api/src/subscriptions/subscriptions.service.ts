@@ -77,7 +77,7 @@ export class SubscriptionsService implements OnModuleInit {
         // If no prices for currency, fallback to USD
         const plansWithFallback = await Promise.all(
             plans.map(async (plan) => {
-                let priceData = plan.prices[0];
+                let priceData: typeof plan.prices[0] | null = plan.prices[0] ?? null;
 
                 if (!priceData) {
                     // Fallback to USD
@@ -204,7 +204,7 @@ export class SubscriptionsService implements OnModuleInit {
         const subscription = await this.prisma.userSubscription.create({
             data: {
                 userId,
-                planId: effectivePlanId,
+                planId: effectivePlanId!,
                 currency,
                 pricePaid,
                 status: 'ACTIVE',

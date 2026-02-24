@@ -49,7 +49,7 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
     };
 
     const renderStars = (rating: number) => {
-        const stars = [];
+        const stars: React.ReactElement[] = [];
         for (let i = 1; i <= 5; i++) {
             stars.push(
                 <Ionicons

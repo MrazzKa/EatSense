@@ -566,7 +566,7 @@ export class DietsService implements OnModuleInit {
             }
 
             if (currentDayData) {
-                todayPlan = currentDayData.meals;
+                todayPlan = (currentDayData as any).meals;
             }
 
             // Get today's log for checklist progress
@@ -1323,7 +1323,7 @@ export class DietsService implements OnModuleInit {
 
             // Add active program request if user is authenticated
             if (userId) {
-                requests.push(this.getActiveDiet(userId, locale).catch(() => null));
+                requests.push(this.getActiveDiet(userId, locale).catch((): any => null));
             } else {
                 requests.push(Promise.resolve(null));
             }

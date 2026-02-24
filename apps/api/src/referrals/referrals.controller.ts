@@ -8,17 +8,17 @@ export class ReferralsController {
     constructor(private referralsService: ReferralsService) { }
 
     @Get('my-code')
-    async getMyCode(@Request() req) {
+    async getMyCode(@Request() req: any) {
         return this.referralsService.getOrCreateCode(req.user.id);
     }
 
     @Get('stats')
-    async getStats(@Request() req) {
+    async getStats(@Request() req: any) {
         return this.referralsService.getStats(req.user.id);
     }
 
     @Get('recent')
-    async getRecent(@Request() req) {
+    async getRecent(@Request() req: any) {
         return this.referralsService.getRecentReferrals(req.user.id);
     }
 }

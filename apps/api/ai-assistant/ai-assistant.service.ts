@@ -358,7 +358,7 @@ Recent Meals:`;
     if (recentMeals.length > 0) {
       recentMeals.forEach((meal) => {
         prompt += `\n- ${meal.name} (${meal.createdAt ? new Date(meal.createdAt).toLocaleDateString('en-US') : 'no date'})`;
-        meal.items.forEach((item) => {
+        meal.items.forEach((item: any) => {
           prompt += `\n  * ${item.name}: ${item.calories} kcal, ${item.protein}g protein, ${item.fat}g fat, ${item.carbs}g carbs`;
         });
       });
@@ -639,8 +639,8 @@ CRITICAL RULES:
         this.logger.warn(`[AiAssistantService] Vision API could not read lab results image:`, errorMessage);
 
         return {
-          id: null,
-          metrics: [],
+          id: null as any,
+          metrics: [] as any[],
           summary: responseLanguage === 'Russian'
             ? `Не удалось распознать текст на изображении. Пожалуйста, убедитесь, что фото четкое, хорошо освещено и текст читаем.`
             : responseLanguage === 'Kazakh'

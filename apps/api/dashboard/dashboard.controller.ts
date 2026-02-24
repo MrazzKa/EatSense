@@ -9,7 +9,7 @@ export class DashboardController {
 
     @Get()
     async getDashboardData(
-        @Request() req,
+        @Request() req: any,
         @Query('date') date?: string,
         @Query('locale') localeQuery?: string,
         @Headers('accept-language') acceptLanguage?: string,

@@ -57,7 +57,7 @@ export class AppleReceiptService {
             const { status, latest_receipt_info } = response.data;
 
             if (status === 0 && latest_receipt_info?.length > 0) {
-                const latestReceipt = latest_receipt_info.sort((a, b) =>
+                const latestReceipt = latest_receipt_info.sort((a: any, b: any) =>
                     parseInt(b.expires_date_ms || '0') - parseInt(a.expires_date_ms || '0')
                 )[0];
 

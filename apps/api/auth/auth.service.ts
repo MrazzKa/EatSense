@@ -448,7 +448,7 @@ export class AuthService {
   }
 
   // Helper method for generating tokens within a transaction
-  private async generateTokensInTransaction(tx: any, userId: string, email: string) {
+  private async generateTokensInTransaction(tx: any, userId: string, email: string): Promise<{ accessToken: string; refreshToken: string }> {
     const jti = crypto.randomUUID();
 
     const payload = { sub: userId, email, jti };
@@ -821,7 +821,7 @@ export class AuthService {
     }
   }
 
-  private async generateTokens(userId: string, email: string) {
+  private async generateTokens(userId: string, email: string): Promise<{ accessToken: string; refreshToken: string }> {
     this.logger.log(`[AuthService] generateTokens() called for userId=${userId}, email=${this.maskEmail(email)}`);
 
     // Generate unique jti (JWT ID) to ensure token uniqueness even with parallel requests
