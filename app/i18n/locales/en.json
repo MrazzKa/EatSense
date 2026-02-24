@@ -2199,6 +2199,7 @@
   "diets_detail": {},
   "diets_disclaimers_general": "This is educational information and not medical advice.",
   "diets_disclaimers_medical": "This diet may have contraindications. Consult a professional.",
+  "diets_disclaimers_medical_short": "Medical",
   "diets_disclaimers_historical": "Historical/inspired reconstruction. Not guaranteed historically accurate.",
   "diets_disclaimers_historical_short": "Historical",
   "diets_disclaimers_public_figure": "Public-figure-inspired template. Not an official program.",

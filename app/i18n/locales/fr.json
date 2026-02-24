@@ -2417,13 +2417,6 @@
     "title": "Fonctionnalités expérimentales",
     "subtitle": "Gérer les expériences"
   },
-  "HEAD": "HEAD",
-  "GET": "GET",
-  "POST": "POST",
-  "PUT": "PUT",
-  "PATCH": "PATCH",
-  "DELETE": "DELETE",
-  "OPTIONS": "OPTIONS",
   "diets_detail": {},
   "title": "Titre",
   "programs": {

@@ -2342,16 +2342,8 @@
     "perPortion": "порцияға",
     "weightNotDetermined": "Салмақ анықталмады"
   },
-  "runtimeFeatureFlagTester": {
-    "title": "Функция жалаушалары",
-    "subtitle": "Runtime конфигурациясы"
-  },
   "diets_detail": {},
   "title": "Тақырып",
-  "PUT": "PUT",
-  "GET": "GET",
-  "DELETE": "DELETE",
-  "HEAD": "HEAD",
   "programs": {
     "lifestyle": {
       "that_girl": {

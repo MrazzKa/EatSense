@@ -677,6 +677,7 @@
   "diets_detail": {},
   "diets_disclaimers_general": "Информация носит ознакомительный характер, не является медицинской рекомендацией.",
   "diets_disclaimers_medical": "Требуется консультация врача.",
+  "diets_disclaimers_medical_short": "Медицинская",
   "diets_tabs_diets": "Диеты",
   "diets_tabs_lifestyle": "Стиль жизни",
   "diets_comingSoon": "Скоро",
@@ -2092,10 +2093,8 @@
     "yearly": "Годовой",
     "freePlanBaseline": "Входит во все планы"
   },
-  "plan_monthly": "Месяц",
   "plan_yearly": "Год",
   "plan_student": "Студент",
-  "plan_founders": "Пожизненный доступ",
   "billing": {
     "currency": {
       "default": "$",

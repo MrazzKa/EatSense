@@ -5,6 +5,18 @@ import i18n from '../../app/i18n/config';
 // Article types are used in JSDoc comments only
 
 class ApiService {
+  baseURL: string;
+  token: string | null;
+  refreshTokenValue: string | null;
+  expoPushToken: string | null;
+  _refreshPromise: Promise<any> | null;
+  _refreshAttempts: number;
+  _maxRefreshAttempts: number;
+  _lastRefreshTime: number;
+  _lastRefreshSuccess: boolean;
+  _refreshGracePeriodMs: number;
+  _refreshResetTimer: any;
+
   constructor() {
     this.baseURL = API_BASE_URL;
     this.token = DEV_TOKEN || null;
@@ -42,7 +54,7 @@ class ApiService {
     }
   }
 
-  async setToken(token, refreshToken) {
+  async setToken(token: any, refreshToken?: any) {
     this.token = token;
     if (refreshToken) {
       this.refreshTokenValue = refreshToken;
@@ -111,8 +123,8 @@ class ApiService {
     }
   }
 
-  getHeaders() {
-    const headers = {
+  getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
@@ -129,7 +141,7 @@ class ApiService {
    * @param {string} url - Relative URL (e.g., "/media/abc123") or absolute URL
    * @returns {string} Absolute URL
    */
-  resolveMediaUrl(url) {
+  resolveMediaUrl(url: any) {
     if (!url) return null;
 
     // If already absolute URL, return as-is
@@ -142,7 +154,7 @@ class ApiService {
     return `${this.baseURL}${normalized}`;
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint: string, options: any = {}) {
     const url = `${this.baseURL}${endpoint}`;
     if (__DEV__) console.log(`[ApiService] Requesting: ${url}`);
 
@@ -153,7 +165,7 @@ class ApiService {
       abortController.abort();
     }, timeoutMs);
 
-    const config = {
+    const config: any = {
       headers: this.getHeaders(),
       ...options,
       signal: abortController.signal,
@@ -179,11 +191,11 @@ class ApiService {
       let response;
       try {
         response = await fetch(url, config);
-      } catch (fetchError) {
+      } catch (fetchError: any) {
         clearTimeout(timeoutId);
         if (__DEV__) console.error(`[ApiService] Fetch error for ${url}:`, fetchError);
         // Re-throw with more context
-        const error = new Error(fetchError.message || 'Network request failed');
+        const error: any = new Error(fetchError.message || 'Network request failed');
         error.name = fetchError.name || 'NetworkError';
         error.cause = fetchError;
         throw error;
@@ -286,13 +298,13 @@ class ApiService {
       }
 
       return await this.parseResponseBody(response);
-    } catch (error) {
+    } catch (error: any) {
       // Clear timeout on error
       clearTimeout(timeoutId);
 
       // Check if error is due to abort (timeout)
       if (error.name === 'AbortError') {
-        const timeoutError = new Error(`Request timeout after ${timeoutMs}ms`);
+        const timeoutError: any = new Error(`Request timeout after ${timeoutMs}ms`);
         timeoutError.name = 'TimeoutError';
         timeoutError.status = 408;
         throw timeoutError;
@@ -306,7 +318,7 @@ class ApiService {
     }
   }
 
-  async parseResponseBody(response) {
+  async parseResponseBody(response: any) {
     const contentType = response.headers.get('content-type') || '';
     if (response.status === 204) {
       return null;
@@ -317,7 +329,7 @@ class ApiService {
     return await response.text();
   }
 
-  async buildHttpError(response) {
+  async buildHttpError(response: any) {
     const contentType = response.headers.get('content-type') || '';
     let payload = null;
     let message = `HTTP error! status: ${response.status}`;
@@ -357,7 +369,7 @@ class ApiService {
       }
     }
 
-    const error = new Error(message);
+    const error: any = new Error(message);
     error.status = response.status;
     error.isServerError = response.status >= 500;
     error.isNetworkError = response.status === 502 || response.status === 503 || response.status === 504;
@@ -371,52 +383,52 @@ class ApiService {
   }
 
   // Generic HTTP methods for services
-  async get(endpoint) {
+  async get(endpoint: string) {
     return this.request(endpoint, { method: 'GET' });
   }
 
-  async post(endpoint, body = null) {
-    const options = { method: 'POST' };
+  async post(endpoint: string, body: any = null) {
+    const options: any = { method: 'POST' };
     if (body) {
       options.body = JSON.stringify(body);
     }
     return options.body ? this.request(endpoint, options) : this.request(endpoint, { method: 'POST' });
   }
 
-  async put(endpoint, body) {
+  async put(endpoint: string, body: any) {
     return this.request(endpoint, {
       method: 'PUT',
       body: JSON.stringify(body),
     });
   }
 
-  async patch(endpoint, body) {
+  async patch(endpoint: string, body: any) {
     return this.request(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(body),
     });
   }
 
-  async delete(endpoint) {
+  async delete(endpoint: string) {
     return this.request(endpoint, { method: 'DELETE' });
   }
 
   // Authentication
-  async register(email) {
+  async register(email: string) {
     return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
   }
 
-  async requestOtp(email) {
+  async requestOtp(email: string) {
     return this.request('/auth/request-otp', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
   }
 
-  async verifyOtp(email, otp) {
+  async verifyOtp(email: string, otp: string) {
     if (__DEV__) console.log('[ApiService] verifyOtp called');
     const response = await this.request('/auth/verify-otp', {
       method: 'POST',
@@ -431,14 +443,14 @@ class ApiService {
     return response;
   }
 
-  async requestMagicLink(email) {
+  async requestMagicLink(email: string) {
     return this.request('/auth/request-magic-link', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
   }
 
-  async login(email, otp) {
+  async login(email: string, otp: string) {
     return this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
@@ -452,7 +464,7 @@ class ApiService {
       return await this.request('/auth/logout', {
         method: 'POST',
       });
-    } catch (error) {
+    } catch (error: any) {
       // Ignore 401 errors on logout - token may already be invalid/expired
       // This is expected behavior when logging out with expired tokens
       if (error.status === 401) {
@@ -628,7 +640,7 @@ class ApiService {
       console.warn('[ApiService] Token refresh failed with status:', refreshRes.status);
       return false;
     } catch (error) {
-      console.warn('[ApiService] Token refresh network error:', error.message);
+      console.warn('[ApiService] Token refresh network error:', (error as any).message);
       // On network error, don't clear tokens (might be temporary)
       return false;
     }
@@ -664,14 +676,14 @@ class ApiService {
     // This is a placeholder - actual implementation depends on app architecture
   }
 
-  async signInWithApple(appleData) {
+  async signInWithApple(appleData: any) {
     return this.request('/auth/apple', {
       method: 'POST',
       body: JSON.stringify(appleData),
     });
   }
 
-  async signInWithGoogle(googleData) {
+  async signInWithGoogle(googleData: any) {
     return this.request('/auth/google', {
       method: 'POST',
       body: JSON.stringify(googleData),
@@ -679,13 +691,13 @@ class ApiService {
   }
 
   // Food Analysis
-  async analyzeImage(imageUri, locale, foodDescription) {
+  async analyzeImage(imageUri: string, locale?: string, foodDescription?: string) {
     const formData = new FormData();
     formData.append('image', {
       uri: imageUri,
       type: 'image/jpeg',
       name: 'food-image.jpg',
-    });
+    } as any);
 
     if (locale) {
       formData.append('locale', locale);
@@ -712,7 +724,7 @@ class ApiService {
    * @param {string} locale - Locale (en/ru/kk)
    * @returns {Promise<{analysisId: string}>} - Returns analysisId for polling or direct navigation
    */
-  async analyzeText(text, locale) {
+  async analyzeText(text: string, locale?: string) {
     const localeParam = locale || 'en';
     const response = await this.request('/food/analyze-text', {
       method: 'POST',
@@ -727,7 +739,7 @@ class ApiService {
     return response;
   }
 
-  async getAnalysisStatus(analysisId) {
+  async getAnalysisStatus(analysisId: string) {
     return this.request(`/food/analysis/${analysisId}/status`);
   }
 
@@ -735,7 +747,7 @@ class ApiService {
     return this.request('/food/analyses/active');
   }
 
-  async getAnalysisResult(analysisId) {
+  async getAnalysisResult(analysisId: string) {
     return this.request(`/food/analysis/${analysisId}/result`);
   }
 
@@ -743,7 +755,7 @@ class ApiService {
    * Reanalyze: recalculate totals, HealthScore and feedback from current items
    * (without changing items or calling Vision/providers)
    */
-  async reanalyzeAnalysis(analysisId) {
+  async reanalyzeAnalysis(analysisId: string) {
     return this.request(`/food/analysis/${analysisId}/reanalyze`, {
       method: 'POST',
       body: JSON.stringify({}),
@@ -754,7 +766,7 @@ class ApiService {
    * Re-analyze with manually edited items (name, portion, macros)
    * Backend will recalculate totals, HealthScore and feedback
    */
-  async manualReanalyzeAnalysis(analysisId, items) {
+  async manualReanalyzeAnalysis(analysisId: string, items: any[]) {
     return this.request(`/food/analysis/${analysisId}/manual-reanalyze`, {
       method: 'POST',
       body: JSON.stringify({
@@ -774,7 +786,7 @@ class ApiService {
   /**
    * Legacy method for backward compatibility
    */
-  async manualReanalyze(analysisId, components) {
+  async manualReanalyze(analysisId: string, components: any[]) {
     return this.manualReanalyzeAnalysis(
       analysisId,
       components.map(comp => ({
@@ -790,7 +802,7 @@ class ApiService {
    * @param {string} analysisId - Analysis ID
    * @param {object} options - Options with mode ('default' | 'review')
    */
-  async reanalyzeFromOriginal(analysisId, options = {}) {
+  async reanalyzeFromOriginal(analysisId: string, options: any = {}) {
     return this.request(`/food/analysis/${analysisId}/reanalyze`, {
       method: 'POST',
       body: JSON.stringify({
@@ -804,7 +816,7 @@ class ApiService {
    * @param {string} analysisId - Analysis ID
    * @param {string} mode - 'default' | 'review'
    */
-  async reanalyzeAnalysisWithMode(analysisId, mode = 'review') {
+  async reanalyzeAnalysisWithMode(analysisId: string, mode = 'review') {
     return this.reanalyzeFromOriginal(analysisId, { mode });
   }
 
@@ -813,7 +825,7 @@ class ApiService {
    * @param {object} params - Parameters: { year, month, locale }
    * @returns {Promise<{status: number, ok: boolean, data: Blob|null}>} - Response with PDF blob or 204 if no data
    */
-  async getMonthlyReport(params = {}) {
+  async getMonthlyReport(params: any = {}) {
     const { year, month, locale } = params;
     const queryParams = new URLSearchParams();
 
@@ -849,8 +861,8 @@ class ApiService {
           try {
             const blob = await response.blob();
             // If blob has _data, extract it
-            if (blob && blob._data) {
-              data = blob._data;
+            if (blob && (blob as any)._data) {
+              data = (blob as any)._data;
             } else {
               data = blob;
             }
@@ -867,7 +879,7 @@ class ApiService {
         headers: response.headers,
         data,
       };
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
         console.error('[ApiService] getMonthlyReport timed out after 90s');
@@ -880,7 +892,7 @@ class ApiService {
   }
 
   // Meals
-  async getMeals(date) {
+  async getMeals(date?: any) {
     try {
       const params = date ? `?date=${date.toISOString().split('T')[0]}` : '';
       const response = await this.request(`/meals${params}`);
@@ -892,27 +904,27 @@ class ApiService {
     }
   }
 
-  async createMeal(mealData) {
+  async createMeal(mealData: any) {
     return this.request('/meals', {
       method: 'POST',
       body: JSON.stringify(mealData),
     });
   }
 
-  async updateMeal(mealId, mealData) {
+  async updateMeal(mealId: string, mealData: any) {
     return this.request(`/meals/${mealId}`, {
       method: 'PUT',
       body: JSON.stringify(mealData),
     });
   }
 
-  async deleteMeal(mealId) {
+  async deleteMeal(mealId: string) {
     return this.request(`/meals/${mealId}`, {
       method: 'DELETE',
     });
   }
 
-  async updateMealItem(mealId, itemId, itemData) {
+  async updateMealItem(mealId: string, itemId: string, itemData: any) {
     return this.request(`/meals/${mealId}/items/${itemId}`, {
       method: 'PUT',
       body: JSON.stringify(itemData),
@@ -923,14 +935,14 @@ class ApiService {
     return this.request('/notifications/preferences');
   }
 
-  async updateNotificationPreferences(preferences) {
+  async updateNotificationPreferences(preferences: any) {
     return this.request('/notifications/preferences', {
       method: 'PUT',
       body: JSON.stringify(preferences),
     });
   }
 
-  async getTokenUsage(userId, days = 30) {
+  async getTokenUsage(userId: string, days = 30) {
     return this.request(`/ai-assistant/token-usage?userId=${encodeURIComponent(userId)}&days=${days}`);
   }
 
@@ -942,7 +954,7 @@ class ApiService {
   }
 
   // Statistics
-  async getStats(date) {
+  async getStats(date?: any) {
     try {
       // align with backend routes
       // Если передана дата, используем /me/stats для получения статистики по дате
@@ -975,7 +987,7 @@ class ApiService {
   /**
    * Get aggregated dashboard data (performance optimization)
    */
-  async getDashboardData(date, locale) {
+  async getDashboardData(date?: any, locale?: string) {
     try {
       const params = new URLSearchParams();
       if (date) {
@@ -992,7 +1004,7 @@ class ApiService {
     }
   }
 
-  async getMonthlyStats(from, to) {
+  async getMonthlyStats(from?: string, to?: string) {
     try {
       const params = new URLSearchParams();
       if (from) {
@@ -1030,7 +1042,7 @@ class ApiService {
    * @param {string} locale - User's locale ('en' | 'ru' | 'kk')
    * @returns {Promise<Array|Object>} Array of suggested food items or object with sections
    */
-  async getSuggestedFoods(locale) {
+  async getSuggestedFoods(locale?: string) {
     try {
       // Pass locale to backend for personalized suggestions
       const params = locale ? `?locale=${encodeURIComponent(locale)}` : '';
@@ -1050,7 +1062,7 @@ class ApiService {
    * @param {string} locale - User's locale ('en' | 'ru' | 'kk')
    * @returns {Promise<Object>} Structured response with status, summary, health, stats, sections
    */
-  async getSuggestedFoodsV2(locale) {
+  async getSuggestedFoodsV2(locale?: string) {
     try {
       const params = locale ? `?locale=${encodeURIComponent(locale)}` : '';
       const response = await this.request(`/suggestions/foods/v2${params}`, { timeout: 90000 });
@@ -1068,13 +1080,13 @@ class ApiService {
   }
 
   // Media
-  async uploadImage(imageUri) {
+  async uploadImage(imageUri: string) {
     const formData = new FormData();
     formData.append('file', {
       uri: imageUri,
       type: 'image/jpeg',
       name: 'upload-image.jpg',
-    });
+    } as any);
 
     return this.request('/media/upload', {
       method: 'POST',
@@ -1092,7 +1104,7 @@ class ApiService {
   }
 
   // User Profiles
-  async createUserProfile(profileData) {
+  async createUserProfile(profileData: any) {
     return this.request('/user-profiles', {
       method: 'POST',
       body: JSON.stringify(profileData),
@@ -1110,7 +1122,7 @@ class ApiService {
     }
   }
 
-  async updateUserProfile(profileData) {
+  async updateUserProfile(profileData: any) {
     return this.request('/user-profiles', {
       method: 'PUT',
       body: JSON.stringify(profileData),
@@ -1132,21 +1144,21 @@ class ApiService {
   }
 
   // AI Assistant
-  async getNutritionAdvice(userId, question, context, language) {
+  async getNutritionAdvice(userId: string, question: string, context: any, language: string) {
     return this.request('/ai-assistant/nutrition-advice', {
       method: 'POST',
       body: JSON.stringify({ userId, question, context, language }),
     });
   }
 
-  async getHealthCheck(userId, question, language) {
+  async getHealthCheck(userId: string, question: string, language: string) {
     return this.request('/ai-assistant/health-check', {
       method: 'POST',
       body: JSON.stringify({ userId, question, language }),
     });
   }
 
-  async getGeneralQuestion(userId, question, language) {
+  async getGeneralQuestion(userId: string, question: string, language: string) {
     return this.request('/ai-assistant/general-question', {
       method: 'POST',
       body: JSON.stringify({ userId, question, language }),
@@ -1159,7 +1171,7 @@ class ApiService {
     throw new Error('sendAiAssistantMessage requires userId - use getGeneralQuestion instead');
   }
 
-  async getConversationHistory(userId, limit = 10) {
+  async getConversationHistory(userId: string, limit = 10) {
     try {
       const result = await this.request(`/ai-assistant/conversation-history?userId=${encodeURIComponent(userId)}&limit=${limit}`);
       // Гарантируем, что всегда возвращается массив
@@ -1174,7 +1186,7 @@ class ApiService {
    * Analyze lab results (text or file)
    * @param {Object} payload - { inputType: 'text' | 'file', text?: string, fileId?: string, fileName?: string, mimeType?: string, locale?: string }
    */
-  async analyzeLabResults(payload) {
+  async analyzeLabResults(payload: any) {
     return this.request('/ai-assistant/lab-results', {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -1185,7 +1197,7 @@ class ApiService {
    * Analyze lab results with multipart/form-data (for file uploads)
    * @param {FormData} formData - FormData with file, inputType, locale
    */
-  async analyzeLabResultsMultipart(formData) {
+  async analyzeLabResultsMultipart(formData: any) {
     const headers = this.getHeaders();
     delete headers['Content-Type']; // Let fetch set it automatically for FormData
 
@@ -1207,7 +1219,7 @@ class ApiService {
    * Legacy method for backward compatibility
    * @deprecated Use analyzeLabResults instead
    */
-  async sendLabResults(payload) {
+  async sendLabResults(payload: any) {
     // Convert old format to new format
     const newPayload = {
       inputType: payload.manualText ? 'text' : 'file',
@@ -1228,7 +1240,7 @@ class ApiService {
     }
   }
 
-  async startAssistantSession(flowId, userId, resume = true) {
+  async startAssistantSession(flowId: string, userId: string, resume = true) {
     try {
       const result = await this.request('/ai-assistant/session', {
         method: 'POST',
@@ -1242,11 +1254,11 @@ class ApiService {
     }
   }
 
-  async resumeAssistantSession(sessionId) {
+  async resumeAssistantSession(sessionId: string) {
     return this.request(`/ai-assistant/session/${encodeURIComponent(sessionId)}`);
   }
 
-  async sendAssistantSessionStep(sessionId, userId, input) {
+  async sendAssistantSessionStep(sessionId: string, userId: string, input: any) {
     try {
       const result = await this.request('/ai-assistant/step', {
         method: 'POST',
@@ -1260,23 +1272,23 @@ class ApiService {
     }
   }
 
-  async cancelAssistantSession(sessionId, userId) {
+  async cancelAssistantSession(sessionId: string, userId: string) {
     return this.request(`/ai-assistant/session/${encodeURIComponent(sessionId)}?userId=${encodeURIComponent(userId)}`, {
       method: 'DELETE',
     });
   }
 
   // Legacy helpers (deprecated)
-  async startAssistantFlow(flowId, userId) {
+  async startAssistantFlow(flowId: string, userId: string) {
     return this.startAssistantSession(flowId, userId, true);
   }
 
-  async sendAssistantFlowStep(flowId, userId, input) {
+  async sendAssistantFlowStep(flowId: string, userId: string, input: any) {
     const session = await this.startAssistantSession(flowId, userId, true);
     return this.sendAssistantSessionStep(session.sessionId, userId, input);
   }
 
-  async cancelAssistantFlow(flowId, userId) {
+  async cancelAssistantFlow(flowId: string, userId: string) {
     const session = await this.startAssistantSession(flowId, userId, true);
     return this.cancelAssistantSession(session.sessionId, userId);
   }
@@ -1315,7 +1327,7 @@ class ApiService {
     }
   }
 
-  async getArticleBySlug(slug, locale = 'ru') {
+  async getArticleBySlug(slug: string, locale = 'ru') {
     try {
       /** @type {import('../types/articles').ArticleDetail} */
       const response = await this.request(`/articles/slug/${slug}?locale=${locale}`);
@@ -1327,7 +1339,7 @@ class ApiService {
     }
   }
 
-  async searchFoods(query, pageSize = 10) {
+  async searchFoods(query: string, pageSize = 10) {
     try {
       const response = await this.request('/v1/integrations/fdc/search', {
         method: 'POST',
@@ -1344,7 +1356,7 @@ class ApiService {
     }
   }
 
-  async getUSDAFoodDetails(fdcId) {
+  async getUSDAFoodDetails(fdcId: string) {
     try {
       const response = await this.request(`/v1/integrations/fdc/food/${fdcId}`);
       return response;
@@ -1354,11 +1366,11 @@ class ApiService {
     }
   }
 
-  async searchUSDAFoods(query, pageSize = 10) {
+  async searchUSDAFoods(query: string, pageSize = 10) {
     return this.searchFoods(query, pageSize);
   }
 
-  async saveAnalysisCorrection(correction) {
+  async saveAnalysisCorrection(correction: any) {
     try {
       const response = await this.request('/food/corrections', {
         method: 'POST',
@@ -1372,7 +1384,7 @@ class ApiService {
     }
   }
 
-  async searchArticles(query, page = 1, pageSize = 20, locale = 'ru') {
+  async searchArticles(query: string, page = 1, pageSize = 20, locale = 'ru') {
     try {
       /** @type {import('../types/articles').ArticleFeed} */
       const response = await this.request(`/articles/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}&locale=${locale}`);
@@ -1393,7 +1405,7 @@ class ApiService {
     }
   }
 
-  async getArticlesByTag(tag, page = 1, pageSize = 20, locale = 'ru') {
+  async getArticlesByTag(tag: string, page = 1, pageSize = 20, locale = 'ru') {
     try {
       /** @type {import('../types/articles').ArticleFeed} */
       const response = await this.request(`/articles/tag/${encodeURIComponent(tag)}?page=${page}&pageSize=${pageSize}&locale=${locale}`);
@@ -1414,7 +1426,7 @@ class ApiService {
     }
   }
 
-  async registerPushToken(token, deviceId, platform, appVersion) {
+  async registerPushToken(token: string, deviceId: string, platform: string, appVersion: string) {
     try {
       await this.request('/notifications/push-token', {
         method: 'POST',
@@ -1438,14 +1450,14 @@ class ApiService {
   /**
    * Create medication
    */
-  async createMedication(payload) {
+  async createMedication(payload: any) {
     return this.request('/medications', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   }
 
-  async updateMedication(id, payload) {
+  async updateMedication(id: string, payload: any) {
     return this.request(`/medications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
@@ -1455,7 +1467,7 @@ class ApiService {
   /**
    * Mark medication as taken (decrement stock)
    */
-  async takeMedication(id) {
+  async takeMedication(id: string) {
     return this.request(`/medications/${id}/take`, {
       method: 'POST',
     });
@@ -1464,7 +1476,7 @@ class ApiService {
   /**
    * Delete medication (soft delete)
    */
-  async deleteMedication(id) {
+  async deleteMedication(id: string) {
     return this.request(`/medications/${id}`, {
       method: 'DELETE',
     });
@@ -1489,7 +1501,7 @@ class ApiService {
   /**
    * Verify purchase after IAP
    */
-  async verifyPurchase(data) {
+  async verifyPurchase(data: any) {
     return this.request('/subscriptions/verify-purchase', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1499,7 +1511,7 @@ class ApiService {
   /**
    * Cancel subscription
    */
-  async cancelSubscription(subscriptionId) {
+  async cancelSubscription(subscriptionId: string) {
     return this.request('/subscriptions/cancel', {
       method: 'POST',
       body: JSON.stringify({ subscriptionId }),
@@ -1513,7 +1525,7 @@ class ApiService {
    * @param {string} offerId - The promotional offer ID (e.g., 'eatsense.monthly.trial')
    * @returns {Promise<{keyIdentifier, nonce, timestamp, signature, productId, offerId, applicationUsername}>}
    */
-  async signPromotionalOffer(productId, offerId) {
+  async signPromotionalOffer(productId: string, offerId: string) {
     return this.request('/subscriptions/sign-offer', {
       method: 'POST',
       body: JSON.stringify({ productId, offerId }),
@@ -1533,7 +1545,7 @@ class ApiService {
   /**
    * Get specialists list with filters
    */
-  async getSpecialists(filters = {}) {
+  async getSpecialists(filters: any = {}) {
     const params = new URLSearchParams();
     if (filters.type) params.append('type', filters.type);
     if (filters.language) params.append('language', filters.language);
@@ -1550,14 +1562,14 @@ class ApiService {
   /**
    * Get specialist by ID
    */
-  async getSpecialist(specialistId) {
+  async getSpecialist(specialistId: string) {
     return this.request(`/specialists/${specialistId}`);
   }
 
   /**
    * Register as specialist
    */
-  async registerAsSpecialist(data) {
+  async registerAsSpecialist(data: any) {
     return this.request('/specialists/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1576,14 +1588,14 @@ class ApiService {
   /**
    * Get consultation by ID
    */
-  async getConsultation(consultationId) {
+  async getConsultation(consultationId: string) {
     return this.request(`/consultations/${consultationId}`);
   }
 
   /**
    * Request consultation with specialist
    */
-  async requestConsultation(specialistId, message) {
+  async requestConsultation(specialistId: string, message: string) {
     return this.request('/consultations', {
       method: 'POST',
       body: JSON.stringify({ specialistId, message }),
@@ -1593,7 +1605,7 @@ class ApiService {
   /**
    * Get messages for consultation
    */
-  async getMessages(consultationId, limit = 50, before = null) {
+  async getMessages(consultationId: string, limit = 50, before: string | null = null) {
     const params = new URLSearchParams({ limit: String(limit) });
     if (before) params.append('before', before);
     return this.request(`/consultations/${consultationId}/messages?${params.toString()}`);
@@ -1602,7 +1614,7 @@ class ApiService {
   /**
    * Send message in consultation
    */
-  async sendMessage(consultationId, content, type = 'text') {
+  async sendMessage(consultationId: string, content: string, type = 'text') {
     return this.request(`/consultations/${consultationId}/messages`, {
       method: 'POST',
       body: JSON.stringify({ content, type }),
@@ -1612,7 +1624,7 @@ class ApiService {
   /**
    * Mark messages as read
    */
-  async markAsRead(consultationId) {
+  async markAsRead(consultationId: string) {
     return this.request(`/consultations/${consultationId}/read`, {
       method: 'POST',
     });
@@ -1630,7 +1642,7 @@ class ApiService {
   /**
    * Get diet programs with filters
    */
-  async getDiets(filters = {}) {
+  async getDiets(filters: any = {}) {
     const params = new URLSearchParams();
     if (filters.type) params.append('type', filters.type);
     if (filters.difficulty) params.append('difficulty', filters.difficulty);
@@ -1685,14 +1697,14 @@ class ApiService {
   /**
    * Get diet by ID or slug
    */
-  async getDiet(idOrSlug) {
+  async getDiet(idOrSlug: string) {
     return this.request(`/diets/${idOrSlug}`);
   }
 
   /**
    * Get full meal plan for diet
    */
-  async getDietMealPlan(dietId) {
+  async getDietMealPlan(dietId: string) {
     return this.request(`/diets/${dietId}/meal-plan`);
   }
 
@@ -1713,7 +1725,7 @@ class ApiService {
   /**
    * Start a diet program
    */
-  async startDiet(dietId, options = {}) {
+  async startDiet(dietId: string, options: any = {}) {
     return this.request(`/diets/${dietId}/start`, {
       method: 'POST',
       body: JSON.stringify(options),
@@ -1723,7 +1735,7 @@ class ApiService {
   /**
    * Log a meal completed
    */
-  async logDietMeal(mealType) {
+  async logDietMeal(mealType: string) {
     return this.request('/diets/log-meal', {
       method: 'POST',
       body: JSON.stringify({ mealType }),
@@ -1763,7 +1775,7 @@ class ApiService {
   /**
    * Suggest a new program or vote for existing
    */
-  async suggestProgram(name, description, type = 'lifestyle') {
+  async suggestProgram(name: string, description: string, type = 'lifestyle') {
     return this.request('/diets/suggest', {
       method: 'POST',
       body: JSON.stringify({ name, description, type }),
@@ -1773,7 +1785,7 @@ class ApiService {
   /**
    * Send contact request from "Предложения" card: userName + request -> email to info@eatsense.ch
    */
-  async sendContactRequest(userName, request) {
+  async sendContactRequest(userName: string, request: string) {
     return this.request('/diets/contact', {
       method: 'POST',
       body: JSON.stringify({ userName, request }),
@@ -1783,7 +1795,7 @@ class ApiService {
   /**
    * Get top suggestions
    */
-  async getSuggestions(type, limit = 20) {
+  async getSuggestions(type?: string, limit = 20) {
     const params = new URLSearchParams();
     if (type) params.append('type', type);
     if (limit) params.append('limit', String(limit));
