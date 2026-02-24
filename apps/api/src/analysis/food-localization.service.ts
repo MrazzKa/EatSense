@@ -132,7 +132,9 @@ export class FoodLocalizationService {
     try {
       const cached = await this.cache.get<string>(cacheKey, 'analysis');
       if (cached) return this.postProcess(cached);
-    } catch { }
+    } catch {
+      // eslint-disable-next-line no-empty
+    }
 
     const results = await this.localizeNamesBatch([trimmed], normalizedLocale);
     return results.get(trimmed) || this.postProcess(trimmed);

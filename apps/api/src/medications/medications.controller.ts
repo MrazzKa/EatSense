@@ -23,7 +23,7 @@ export class MedicationsController {
   @Get()
   @ApiOperation({ summary: 'Get all medication schedules for user' })
   @ApiResponse({ status: 200, description: 'List of medication schedules' })
-  async findAll(@Request() req: any, @Query('includeInactive') includeInactive?: string) {
+  async findAll(@Request() req: any, @Query('includeInactive') _includeInactive?: string) {
     // Use new model by default, fallback to old if needed
     return this.medicationsService.findAllForUser(req.user.id);
   }

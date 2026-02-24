@@ -100,6 +100,10 @@ const DescribeFoodModal: React.FC<DescribeFoodModalProps> = ({
       }
     } catch (err: any) {
       console.error('[DescribeFoodModal] analyzeText error', err);
+      if (err?.response?.status === 429 || err?.status === 429) {
+        setError(t('errors.limitReachedMessage') || 'Daily scan limit reached. Upgrade for unlimited scans.');
+        return;
+      }
       const msg =
         err?.response?.data?.message ||
         err?.message ||

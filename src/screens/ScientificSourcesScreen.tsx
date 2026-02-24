@@ -115,7 +115,7 @@ export default function ScientificSourcesScreen() {
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
   const disclaimerText = useMemo(() => {
-    const data = getDisclaimer('general_health_disclaimer', language);
+    const data = getDisclaimer('general_health_disclaimer', language) as any;
     return data?.content || data?.text || '';
   }, [language]);
 

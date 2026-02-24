@@ -284,7 +284,7 @@ export class DietsService implements OnModuleInit {
     /**
      * Get meal plan for a specific day
      */
-    async getMealPlanForDay(dietId: string, dayNumber: number, locale: string = 'en') {
+    async getMealPlanForDay(dietId: string, dayNumber: number, _locale: string = 'en') {
         const day = await this.prisma.dietProgramDay.findFirst({
             where: { programId: dietId, dayNumber },
             include: {
@@ -613,7 +613,7 @@ export class DietsService implements OnModuleInit {
     /**
      * Get today's meal plan for active diet
      */
-    async getTodayPlan(userId: string, locale: string = 'en') {
+    async getTodayPlan(userId: string, _locale: string = 'en') {
         const userDiet = await this.prisma.userDietProgram.findFirst({
             where: { userId, status: 'active' },
             include: {
@@ -1144,7 +1144,7 @@ export class DietsService implements OnModuleInit {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const updatedLog = await this.prisma.userDietDailyLog.upsert({
+        await this.prisma.userDietDailyLog.upsert({
             where: { userDietId_date: { userDietId: userDiet.id, date: today } },
             create: {
                 userDietId: userDiet.id,

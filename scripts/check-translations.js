@@ -32,7 +32,7 @@ function hasKey(obj, key) {
 function getNutritionKeys(enContent) {
     const nutritionKeys = [];
     const allKeys = getKeys(enContent);
-    
+
     // Keys related to Nutrition section
     const nutritionPrefixes = [
         'diets_',
@@ -40,30 +40,30 @@ function getNutritionKeys(enContent) {
         'lifestyles.',
         'dietPrograms.',
     ];
-    
+
     allKeys.forEach(key => {
         if (nutritionPrefixes.some(prefix => key.startsWith(prefix))) {
             nutritionKeys.push(key);
         }
     });
-    
+
     return nutritionKeys;
 }
 
 function main() {
     console.log('🔍 Checking translations...\n');
-    
+
     // Load English as reference
     const enPath = path.join(LOCALES_DIR, 'en.json');
     const enContent = JSON.parse(fs.readFileSync(enPath, 'utf8'));
     const enKeys = getKeys(enContent);
-    
+
     console.log(`📊 Total keys in English: ${enKeys.length}\n`);
-    
+
     const allMissing = {};
     const allEmpty = {};
     const allUntranslated = {};
-    
+
     // Check each target locale
     TARGET_LOCALES.forEach(locale => {
         const localePath = path.join(LOCALES_DIR, `${locale}.json`);
@@ -71,26 +71,26 @@ function main() {
             console.log(`❌ ${locale.toUpperCase()}: File not found\n`);
             return;
         }
-        
+
         const localeContent = JSON.parse(fs.readFileSync(localePath, 'utf8'));
         const missing = [];
         const empty = [];
         const untranslated = [];
-        
+
         enKeys.forEach(key => {
             if (!hasKey(localeContent, key)) {
                 missing.push(key);
             } else {
                 const value = getValue(localeContent, key);
                 const enValue = getValue(enContent, key);
-                
+
                 if (value === '' || value === null || value === undefined) {
                     empty.push(key);
                 } else if (typeof value === 'string' && typeof enValue === 'string' && value === enValue && value.length > 3) {
                     // Check if it's not a brand name or common term
                     // International terms that are the same in multiple languages
                     const ignoreList = [
-                        'EatSense', 'OK', 'Email', 'ID', 'v1.0', 'All', 'Auto', 'Snack', 
+                        'EatSense', 'OK', 'Email', 'ID', 'v1.0', 'All', 'Auto', 'Snack',
                         'Premium', 'Pro', 'Free', 'Articles', 'Article', 'calories', 'kcal',
                         'Total', 'Dashboard', 'Profile', 'Settings', 'Cancel', 'Save', 'Delete',
                         'Edit', 'Close', 'Back', 'Next', 'Skip', 'Done', 'Loading', 'Error',
@@ -111,7 +111,10 @@ function main() {
                         'Daily Limit Reached', 'No Data Today', 'Unnamed Product', 'Chronotype', 'Inflammation',
                         'Suggestions', 'Nutrition', 'Support', 'Assistance', 'Medications', 'Médicaments', 'Medication schedule', 'Planning des médicaments', '500 mg',
                         'Zoom {{value}}x', 'Calories (kcal)', 'EatSense Pro', 'EatSense Premium', '9. Contact', '10. Contact',
-                        'Horaires', 'Times'
+                        'Horaires', 'Times', 'Old Money', 'Hot Girl Walk', 'Normal', 'Hypertension', 'Allergies', 'Stress',
+                        'Liraglutide', 'Microbiome', 'Sports', 'Brunch', 'Discipline', 'Disco', 'Flexible',
+                        'Gatsby', 'Glamour', 'Hollywood', 'Kazakh', 'Macros', 'Simple', 'Social',
+                        'Notes', 'Photo', 'Portions', 'Soft Life', 'Mob Wife', 'Summer Shred'
                     ];
                     if (!ignoreList.includes(value)) {
                         untranslated.push(key);
@@ -119,11 +122,11 @@ function main() {
                 }
             }
         });
-        
+
         allMissing[locale] = missing;
         allEmpty[locale] = empty;
         allUntranslated[locale] = untranslated;
-        
+
         if (missing.length === 0 && empty.length === 0 && untranslated.length === 0) {
             console.log(`✅ ${locale.toUpperCase()}: All translations present\n`);
         } else {
@@ -143,21 +146,21 @@ function main() {
             console.log('');
         }
     });
-    
+
     // Check Nutrition section specifically
     console.log('🍎 Nutrition Section Check:');
     const nutritionKeys = getNutritionKeys(enContent);
     console.log(`   Total Nutrition keys: ${nutritionKeys.length}`);
-    
+
     TARGET_LOCALES.forEach(locale => {
         const localePath = path.join(LOCALES_DIR, `${locale}.json`);
         if (!fs.existsSync(localePath)) {
             return;
         }
-        
+
         const localeContent = JSON.parse(fs.readFileSync(localePath, 'utf8'));
         const missingNutrition = nutritionKeys.filter(key => !hasKey(localeContent, key));
-        
+
         if (missingNutrition.length === 0) {
             console.log(`   ✅ ${locale.toUpperCase()} Nutrition: All keys present`);
         } else {
@@ -166,18 +169,18 @@ function main() {
         }
     });
     console.log('');
-    
+
     // Summary
     const totalMissing = Object.values(allMissing).reduce((sum, arr) => sum + arr.length, 0);
     const totalEmpty = Object.values(allEmpty).reduce((sum, arr) => sum + arr.length, 0);
     const totalUntranslated = Object.values(allUntranslated).reduce((sum, arr) => sum + arr.length, 0);
-    
+
     console.log('📊 Summary:');
     console.log(`   Missing keys: ${totalMissing}`);
     console.log(`   Empty values: ${totalEmpty}`);
     console.log(`   Translation keys (not translated): ${totalUntranslated}`);
     console.log('');
-    
+
     if (totalMissing === 0 && totalEmpty === 0 && totalUntranslated === 0) {
         console.log('✅ All translations are complete!');
     } else {

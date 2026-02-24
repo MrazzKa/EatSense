@@ -131,7 +131,6 @@ export class DietProgramsService {
         if (!todayLog) {
             // Create today's log if it doesn't exist
             // FIX: Safe access to dailyTracker with null check
-            const dailyTracker = (progress.program?.dailyTracker as any[]) || [];
             todayLog = await this.prisma.userDietDailyLog.create({
                 data: {
                     userDietId: progress.id,
@@ -205,17 +204,17 @@ export class DietProgramsService {
         // Calculate next day based on calendar dates
         const startDate = new Date(progress.startedAt);
         startDate.setHours(0, 0, 0, 0);
-        
+
         // Calculate days from start to tomorrow
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
         const diffTime = tomorrow.getTime() - startDate.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
+
         // TODO: Subtract paused days when pause functionality is implemented
         // const pausedDays = progress.pausedDays || [];
         // const activeDays = diffDays - pausedDays.length;
-        
+
         const nextDay = diffDays + 1; // Day 1 is start date
         const programDuration = progress.program?.duration || 0;
         const isCompleted = nextDay > programDuration;

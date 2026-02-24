@@ -1,0 +1,250 @@
+const fs = require('fs');
+const path = require('path');
+
+const localesPath = path.join(__dirname, '..', 'app', 'i18n', 'locales');
+
+// helper function to deeply set a value
+function set(obj, path, value) {
+    const keys = path.split('.');
+    let curr = obj;
+    for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+        if (!curr[k] || typeof curr[k] !== 'object') curr[k] = {};
+        curr = curr[k];
+    }
+    curr[keys[keys.length - 1]] = value;
+}
+
+const ru = {
+    "onboarding.plans.free.name": "EatSense Бесплатно",
+    "profile.planFreeName": "EatSense Бесплатно",
+    "profile.planStudentName": "Студенческий",
+    "profile.planFounderName": "Founder",
+    "subscription.plan.free": "Базовый план",
+    "diets_groups_old_money": "Стиль Old Money",
+    "programs.lifestyle.that_girl.name": "Стиль That Girl",
+    "programs.lifestyle.clean_girl.name": "Стиль Clean Girl",
+    "programs.lifestyle.old_money.name": "Стиль Old Money",
+    "programs.diet.dash.name": "DASH Диета",
+    "programs.diet.mind.name": "MIND Диета"
+};
+
+const kk = {
+    "errors.limitReachedMessage": "Сіз лимитке жеттіңіз. Жалғастыру үшін жазылымыңызды жаңартыңыз.",
+    "tooltip.bmi.title": "Дене салмағының индексі (ДМИ)",
+    "tooltip.bmi.body": "ДМИ - бұл сіздің бойыңыз бен салмағыңызға негізделген май мөлшерін бағалау.",
+    "tooltip.whr.title": "Бел-жамбас қатынасы",
+    "tooltip.whr.body": "Денсаулыққа қауіп төндіретін майдың таралуын көрсетеді.",
+    "tooltip.glp1.title": "GLP-1 қолдау",
+    "tooltip.glp1.body": "Арықтатуға арналған препараттарды қабылдайтындарға арналған арнайы тамақтану.",
+    "tooltip.kcal.title": "Калория",
+    "tooltip.kcal.body": "Салмақты ұстап тұруға немесе өзгертуге қажетті күнделікті энергия мөлшері.",
+    "tooltip.bmr.title": "Негізгі метаболизм",
+    "tooltip.bmr.body": "Ағзаның тыныштық күйдегі жұмысын қамтамасыз етуге қажетті калория мөлшері.",
+    "onboarding.plans.free.name": "EatSense Тегін",
+    "onboarding.name": "Есіміңіз кім?",
+    "onboarding.nameSubtitle": "Біз сізге қалай жүгінетінімізді білуіміз үшін",
+    "onboarding.namePlaceholder": "Есіміңізді енгізіңіз",
+    "onboarding.formulaExplanation": "Біз мақсаттарыңызға жетудің ең жақсы жолын есептеу үшін ғылыми формулаларды қолданамыз.",
+    "dashboard.suggestedFood.trustText": "Сіздің мақсатыңыз үшін таңдалған",
+    "analysis.trustText": "Визуалды талдау",
+    "analysis.disclaimer": "Бұл нәтижелер визуалды бағалау болып табылады және дәл болмауы мүмкін.",
+    "analysis.viewSources": "Дереккөздерді қарау",
+    "profile.planFreeName": "EatSense Тегін",
+    "profile.planStudentName": "Студент",
+    "profile.planFounderName": "Негізін қалаушы",
+    "diets.tags.bulk": "Масса қосу",
+    "diets.tags.old_money": "Old Money",
+    "subscription.plan.free": "Тегін",
+    "plan.free": "Тегін",
+    "medications.takePhoto": "Суретке түсіру",
+    "medications.chooseFromGallery": "Галереядан таңдау",
+    "medications.cameraPermissionDenied": "Камераға рұқсат қажет",
+    "diets_groups_old_money": "Old Money стилі",
+    "programs.lifestyle.that_girl.name": "That Girl стилі",
+    "programs.lifestyle.hot_girl_walk.name": "Hot Girl Walk",
+    "programs.diet.dash.name": "DASH диетасы",
+    "programs.diet.mind.name": "MIND диетасы",
+    "terms.sections.acceptance.content": "Біздің қызметке кіру немесе пайдалану арқылы сіз осы шарттарды сақтауға келісесіз.",
+    "terms.sections.acceptance.title": "1. Шарттарды қабылдау",
+    "terms.sections.changes.content": "Біз кез келген уақытта осы шарттарды өзгерту немесе ауыстыру құқығын өзімізде қалдырамыз.",
+    "terms.sections.changes.title": "8. Шарттарды өзгерту",
+    "terms.sections.contact.content": "Осы шарттарға қатысты сұрақтарыңыз болса, бізге хабарласыңыз.",
+    "terms.sections.description.content": "EatSense тамақтануды қадағалауға арналған платформа ұсынады.",
+    "terms.sections.description.title": "2. Қызмет сипаттамасы",
+    "terms.sections.intellectual.content": "Қызмет және оның контенті EatSense меншігі болып қала береді.",
+    "terms.sections.intellectual.title": "6. Зияткерлік меншік",
+    "terms.sections.limitation.content": "EatSense медициналық кеңес бермейді.",
+    "terms.sections.limitation.title": "7. Жауапкершілікті шектеу",
+    "terms.sections.prohibited.content": "Сіз қызметті кез келген заңсыз мақсатта пайдаланбауға келісесіз.",
+    "terms.sections.prohibited.title": "5. Тыйым салынған пайдалану",
+    "terms.sections.registration.content": "Есептік жазба жасаған кезде сіз дәл ақпарат ұсынуыңыз керек.",
+    "terms.sections.registration.title": "3. Есептік жазбаны тіркеу",
+    "terms.sections.userContent.content": "Сіз жүктеп салған мазмұнға толық құқықты сақтап қаласыз.",
+    "terms.sections.userContent.title": "4. Пайдаланушы мазмұны"
+};
+
+const fr = {
+    "common.normal": "Normal",
+    "errors.limitReachedMessage": "Vous avez atteint votre limite mensuelle.",
+    "tooltip.bmi.title": "IMC",
+    "tooltip.bmi.body": "Indice de masse corporelle.",
+    "tooltip.whr.title": "Ratio taille-hanches",
+    "tooltip.whr.body": "Indicateur de répartition des graisses.",
+    "tooltip.glp1.title": "Soutien GLP-1",
+    "tooltip.glp1.body": "Nutrition adaptée au traitement GLP-1.",
+    "tooltip.kcal.title": "Calories",
+    "tooltip.kcal.body": "Votre objectif énergétique quotidien.",
+    "tooltip.bmr.title": "TMB",
+    "tooltip.bmr.body": "Taux métabolique de base.",
+    "onboarding.plans.free.name": "EatSense Gratuit",
+    "onboarding.healthConditions.hypertension": "Hypertension",
+    "onboarding.healthConditions.allergies": "Allergies",
+    "onboarding.obstacleTypes.stress": "Stress",
+    "onboarding.name": "Comment vous appelez-vous ?",
+    "onboarding.nameSubtitle": "Pour personnaliser votre expérience",
+    "onboarding.namePlaceholder": "Votre prénom",
+    "onboarding.formulaExplanation": "Basé sur des algorithmes scientifiquement prouvés",
+    "dashboard.suggestedFood.trustText": "Recommandé pour vous",
+    "analysis.trustText": "Aperçu de l'IA",
+    "analysis.disclaimer": "Les analyses sont approximatives",
+    "analysis.viewSources": "Voir les sources",
+    "profile.plan": "Forfait",
+    "profile.bmiNormal": "Normal",
+    "profile.health.drugType.liraglutide": "Liraglutide",
+    "profile.health.focus.microbiome": "Microbiome",
+    "profile.planFreeName": "Gratuit",
+    "profile.planStudentName": "Étudiant",
+    "profile.planFounderName": "Fondateur",
+    "diets.filters.sports": "Sports",
+    "diets.tags.brunch": "Brunch",
+    "diets.tags.bulk": "Prise de masse",
+    "diets.tags.discipline": "Discipline",
+    "diets.tags.disco": "Disco",
+    "diets.tags.flexible": "Flexible",
+    "diets.tags.gatsby": "Gatsby",
+    "diets.tags.glamour": "Glamour",
+    "diets.tags.hollywood": "Hollywood",
+    "diets.tags.kazakh": "Kazakh",
+    "diets.tags.macros": "Macros",
+    "diets.tags.old_money": "Vieux riche",
+    "diets.tags.simple": "Simple",
+    "diets.tags.social": "Social",
+    "diets.tags.sports": "Sports",
+    "dietPrograms.categories.hollywood": "Hollywood",
+    "privacy.sections": "Sections de confidentialité",
+    "subscription.freePlanBaseline": "Forfait gratuit",
+    "medications.notes": "Notes",
+    "medications.dosageUnits.sprays": "Pulvérisations",
+    "medications.dosagePlural.spray_one": "Pulvérisation",
+    "medications.dosagePlural.spray_other": "Pulvérisations",
+    "medications.photo": "Photo",
+    "medications.takePhoto": "Prendre une photo",
+    "medications.chooseFromGallery": "Choisir de la galerie",
+    "medications.cameraPermissionDenied": "Autorisation de la caméra refusée",
+    "gallery.openGallery": "Ouvrir la galerie",
+    "gallery.grantPermission": "Accorder l'autorisation",
+    "gallery.openSettings": "Ouvrir les paramètres",
+    "gallery.tryAgain": "Réessayer",
+    "gallery.selectTitle": "Sélectionnez",
+    "gallery.canceledHint": "Annulé",
+    "gallery.opening": "Ouverture...",
+    "smokeTest.pingApi": "Test API",
+    "smokeTest.openApp": "Ouvrir l'application",
+    "errorBoundary.crashed": "L'application a planté",
+    "errorBoundary.tryAgain": "Réessayer",
+    "errorBoundary.debugMessage": "Message de débogage",
+    "analysisResults.title": "Résultats d'analyse",
+    "analysisResults.portions": "Portions",
+    "analysisResults.healthScore": "Score Santé",
+    "analysisResults.healthScoreLevel.very": "Très sain",
+    "analysisResults.healthScoreLevel.moderately": "Modéré",
+    "analysisResults.healthScoreLevel.less": "Moins sain",
+    "analysisResults.healthScoreLevel.text": "Catégorie",
+    "analysisResults.ingredients": "Ingrédients",
+    "analysisResults.share": "Partager",
+    "analysisResults.correct": "Corriger",
+    "analysisResults.unknownDish": "Plat inconnu",
+    "analysisResults.perPortion": "Par portion",
+    "analysisResults.weightNotDetermined": "Poids non déterminé",
+    "incident.title": "Incident",
+    "incident.detectedTitle": "Incident détecté",
+    "incident.description": "Une erreur de sécurité ou inattendue est survenue.",
+    "incident.detailsTitle": "Détails",
+    "incident.loginAttempt": "Tentative de connexion",
+    "incident.locationUnknown": "Lieu inconnu",
+    "incident.contactSupport": "Contacter le support",
+    "analysisComponent.analysisError": "Erreur d'analyse",
+    "analysisComponent.analysisFailed": "L'analyse a échoué",
+    "analysisComponent.tryAgain": "Réessayer",
+    "analysisComponent.analyzing": "Analyse en cours...",
+    "analysisComponent.analyzingDish": "Analyse du plat...",
+    "analysisComponent.analysisComplete": "Terminé",
+    "analysisComponent.calculatingCalories": "Calcul des calories...",
+    "analysisComponent.uploaded": "Téléchargé avec succès",
+    "usageSummary.title": "Utilisation",
+    "usageSummary.totalToday": "Total aujourd'hui",
+    "usageSummary.remaining": "Restant",
+    "usageSummary.limit": "Limite",
+    "usageSummary.upgrade": "Mettre à niveau",
+    "usageSummary.limitReached": "Limite atteinte",
+    "usageSummary.limitApproaching": "Limite proche",
+    "usageSummary.limitOk": "Limite Ok",
+    "usageSummary.analyses": "Analyses",
+    "diets_sports": "Sports",
+    "programs.lifestyle.that_girl.name": "Style That Girl",
+    "programs.lifestyle.clean_girl.name": "Style Clean Girl",
+    "programs.lifestyle.old_money.name": "Style Old Money",
+    "programs.lifestyle.tomato_girl_summer.name": "Fille Tomate d'Été",
+    "programs.lifestyle.pilates_princess.name": "Princesse Pilates",
+    "programs.lifestyle.soft_life.name": "Soft Life",
+    "programs.lifestyle.mob_wife.name": "Mob Wife",
+    "programs.lifestyle.summer_shred.name": "Summer Shred",
+    "programs.lifestyle.debloat_detox.name": "Détox & Dégonflement",
+    "programs.lifestyle.sustainable_slim.name": "Minceur Durable",
+    "programs.lifestyle.lean_bulk.name": "Prise de Masse Sèche",
+    "programs.lifestyle.functional_fitness.name": "Fitness Fonctionnel",
+    "programs.lifestyle.hot_girl_walk.name": "Hot Girl Walk",
+    "programs.diet.dash.name": "Régime DASH",
+    "programs.diet.mind.name": "Régime MIND",
+    "programs.diet.keto.name": "Céto",
+    "programs.diet.yacht-week.name": "La Semaine Yacht",
+    "terms.sections.acceptance.content": "En accédant au service, vous acceptez ces conditions.",
+    "terms.sections.acceptance.title": "1. Acceptation",
+    "terms.sections.changes.content": "Nous nous réservons le droit de modifier ces conditions.",
+    "terms.sections.changes.title": "8. Modifications",
+    "terms.sections.contact.content": "Si vous avez des questions, contactez-nous.",
+    "terms.sections.description.content": "EatSense fournit des outils de nutrition basés sur l'IA.",
+    "terms.sections.description.title": "2. Description du service",
+    "terms.sections.intellectual.content": "Le service et son contenu appartiennent à EatSense.",
+    "terms.sections.intellectual.title": "6. Propriété intellectuelle",
+    "terms.sections.limitation.content": "EatSense ne remplace pas les conseils médicaux.",
+    "terms.sections.limitation.title": "7. Limite de responsabilité",
+    "terms.sections.prohibited.content": "Vous ne pouvez pas utiliser l'application de façon illégale.",
+    "terms.sections.prohibited.title": "5. Usages interdits",
+    "terms.sections.registration.content": "Vous êtes responsable de votre compte.",
+    "terms.sections.registration.title": "3. Compte",
+    "terms.sections.userContent.content": "Vous gardez les droits sur votre contenu.",
+    "terms.sections.userContent.title": "4. Contenu utilisateur"
+};
+
+const dicts = { ru, kk, fr };
+
+for (const locale of ['ru', 'kk', 'fr']) {
+    const filePath = path.join(localesPath, `${locale}.json`);
+    let data;
+    try {
+        data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (e) { continue; }
+
+    let updatedCount = 0;
+    for (const [key, value] of Object.entries(dicts[locale])) {
+        if (value) {
+            set(data, key, value);
+            updatedCount++;
+        }
+    }
+
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    console.log(`Translated ${updatedCount} warnings in ${locale}.json`);
+}

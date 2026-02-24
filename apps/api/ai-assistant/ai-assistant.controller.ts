@@ -17,7 +17,7 @@ export class AiAssistantController {
   constructor(
     private readonly assistantService: AiAssistantService,
     private readonly orchestrator: AssistantOrchestratorService,
-  ) {}
+  ) { }
 
   @Get('flows')
   listFlows() {
@@ -113,9 +113,9 @@ export class AiAssistantController {
   async getNutritionAdvice(
     @Body() dto: NutritionAdviceDto,
     @Body('userId') userIdFromBody?: string,
-    @Request() req?: any,
+    @Request() _req?: any,
   ) {
-    const userId = dto.userId || userIdFromBody || req?.user?.id;
+    const userId = dto.userId || userIdFromBody || _req?.user?.id;
     if (!userId) {
       throw new BadRequestException('userId is required');
     }
@@ -157,7 +157,7 @@ export class AiAssistantController {
 
       // Re-throw BadRequestException as-is
       if (error instanceof BadRequestException) {
-      throw error;
+        throw error;
       }
 
       // For other errors, throw InternalServerErrorException

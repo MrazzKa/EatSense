@@ -1038,7 +1038,15 @@ export default function AnalysisResultsScreen() {
                 </Text>
               </TouchableOpacity>
             )}
-            <HealthDisclaimer style={{ marginTop: 24, marginHorizontal: 4 }} />
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24, paddingHorizontal: 4 }}
+              onPress={() => navigation.navigate('ScientificSources')}
+            >
+              <Ionicons name="information-circle-outline" size={14} color={colors.textTertiary} style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 12, color: colors.textTertiary }}>
+                {t('analysis.disclaimer', 'This is not medical advice.')} <Text style={{ textDecorationLine: 'underline' }}>{t('analysis.viewSources', 'View scientific sources')}</Text>
+              </Text>
+            </TouchableOpacity>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingHorizontal: 4 }}>
               <Ionicons name="sparkles-outline" size={14} color={colors.textTertiary} style={{ marginRight: 6 }} />
               <Text style={{ fontSize: 12, color: colors.textTertiary, flex: 1 }}>

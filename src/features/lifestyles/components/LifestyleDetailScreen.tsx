@@ -177,7 +177,7 @@ export default function LifestyleDetailScreen({
         {/* Share button overlay */}
         <TouchableOpacity
           onPress={() => {
-            const name = typeof program.name === 'string' ? program.name : (program.name?.[language] || program.name?.en || 'lifestyle');
+            const name = typeof program.name === 'string' ? program.name : (program.name?.[language as Extract<keyof typeof program.name, string>] || program.name?.en || 'lifestyle');
             shareLifestyleAsText({ name, language: language as 'en' | 'ru' | 'kk' | 'fr' });
           }}
           style={styles.shareButton}
@@ -225,7 +225,7 @@ export default function LifestyleDetailScreen({
                 const inspiration = program.dailyInspiration || program.rules?.dailyInspiration;
                 if (inspiration) {
                   const lang = t('_locale') || 'en';
-                  const arr = inspiration[lang] || inspiration.en || (Array.isArray(inspiration) ? inspiration : null);
+                  const arr = inspiration[lang as 'en' | 'ru' | 'kk' | 'fr'] || inspiration.en || (Array.isArray(inspiration) ? inspiration : null);
                   if (Array.isArray(arr) && arr.length > 1) {
                     const now = new Date();
                     const start = new Date(now.getFullYear(), 0, 0);

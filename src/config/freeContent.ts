@@ -19,10 +19,9 @@ export const FREE_DIET_IDS: string[] = [
 
 // Free lifestyle program IDs (3 most popular lifestyles)
 export const FREE_LIFESTYLE_IDS: string[] = [
-  'that_girl',         // Popular "That Girl" aesthetic
-  'clean_girl',        // Clean girl lifestyle
-  'old_money',         // Old Money lifestyle
-  'lean_bulk',         // Lean Bulk (Male focused)
+  'clean_girl',        // Female focused (Neutral/Female)
+  'old_money',         // Neutral lifestyle
+  'ceo_warrior',       // CEO Warrior (Male focused)
 ];
 
 // Number of free analyses per day for non-subscribers

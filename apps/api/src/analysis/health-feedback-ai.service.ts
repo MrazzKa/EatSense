@@ -49,7 +49,7 @@ export class HealthFeedbackAiService {
    * Returns cached result if available.
    */
   async generateFeedback(params: GenerateFeedbackParams): Promise<HealthFeedbackItem[]> {
-    const { dishName, items, totals, healthScore, userGoal, locale, analysisId } = params;
+    const { locale, analysisId } = params;
 
     // Check cache first
     if (analysisId) {

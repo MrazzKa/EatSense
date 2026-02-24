@@ -33,6 +33,7 @@ interface PaywallModalProps {
   onClose: () => void;
   onSubscribed?: () => void;
   featureName?: string;
+  showTrialBadge?: boolean;
 }
 
 export default function PaywallModal({
@@ -40,6 +41,7 @@ export default function PaywallModal({
   onClose,
   onSubscribed,
   featureName,
+  showTrialBadge = true,
 }: PaywallModalProps) {
   const { t } = useI18n();
   const { colors } = useTheme();
@@ -265,7 +267,7 @@ export default function PaywallModal({
           </View>
 
           {/* Trial badge - shown only if eligible (Apple handles actual eligibility) */}
-          {isTrialEligible && (
+          {isTrialEligible && showTrialBadge && (
             <View style={[styles.trialBadge, { backgroundColor: colors.primary + '15' }]}>
               <Ionicons name="gift-outline" size={20} color={colors.primary} />
               <Text style={[styles.trialBadgeText, { color: colors.primary }]}>

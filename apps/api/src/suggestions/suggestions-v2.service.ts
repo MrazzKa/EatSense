@@ -5,7 +5,6 @@ import {
     SuggestedFoodV2Response,
     SuggestionSection,
     SuggestionItem,
-    SuggestionStatus,
     HealthLevel,
     NutrientSeverity,
     NutrientSeverities,
@@ -19,7 +18,6 @@ import {
     getFoodName,
     getRecipeTitle,
     getRecipeDescription,
-    CatalogFood,
 } from './food-catalog';
 
 @Injectable()
@@ -384,7 +382,7 @@ export class SuggestionsV2Service {
      */
     private calculateHealthScore(
         severities: NutrientSeverities,
-        stats: ReturnType<typeof this.calculateStats>,
+        _stats: ReturnType<typeof this.calculateStats>,
     ): number {
         let score = 100;
 
@@ -426,7 +424,7 @@ export class SuggestionsV2Service {
         stats: ReturnType<typeof this.calculateStats>,
         targets: NutritionTargets,
         locale: SupportedLocale,
-        goal: string,
+        _goal: string,
     ): string {
         const issues: string[] = [];
 

@@ -55,7 +55,7 @@ export class MessagesService {
     }
 
     async create(data: CreateMessageDto) {
-        const { conversation } = await this.checkAccess(data.conversationId, data.senderId);
+        await this.checkAccess(data.conversationId, data.senderId);
 
         const message = await this.prisma.message.create({
             data: {

@@ -41,7 +41,6 @@ export class SuggestionsService {
 
     const { totals } = stats;
     const daysCount = 7;
-    const avgCalories = totals.calories / daysCount;
     const avgProtein = totals.protein / daysCount;
     const avgFat = totals.fat / daysCount;
     const avgCarbs = totals.carbs / daysCount;
@@ -266,7 +265,7 @@ export class SuggestionsService {
   /**
    * P2.4: Get localized food names
    */
-  private getLocalizedFoods(locale: 'en' | 'ru' | 'kk', dietaryPreferences: string[], allergies: string[], recentFoods: Set<string>): {
+  private getLocalizedFoods(locale: 'en' | 'ru' | 'kk', _dietaryPreferences: string[], _allergies: string[], _recentFoods: Set<string>): {
     protein: string[];
     healthyFat: string[];
     fiber: string[];

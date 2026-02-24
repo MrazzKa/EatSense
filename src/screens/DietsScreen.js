@@ -230,8 +230,8 @@ export default function DietsScreen({ navigation }) {
         // 3. If user has active customized/started this program (activeProgram), NEVER lock
         if (activeProgram?.programId === programId) return false;
 
-        // 4. FIX: While subscription hasn't loaded yet, don't lock (prevents lock flash)
-        if (!subscriptionLoaded) return false;
+        // 4. While subscription hasn't loaded yet, lock by default (safe approach)
+        if (!subscriptionLoaded) return true;
 
         // 5. Otherwise Locked - trial handled by Apple Intro Offer via IAP
         return true;

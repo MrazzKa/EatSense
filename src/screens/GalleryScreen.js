@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -87,6 +88,12 @@ export default function GalleryScreen() {
       }
     } catch (error) {
       console.error('[GalleryScreen] Error starting background analysis:', error);
+      if (error?.response?.status === 429 || error?.status === 429) {
+        Alert.alert(
+          t('errors.limitReachedTitle') || 'Daily Limit Reached',
+          t('errors.limitReachedMessage') || 'You have reached your daily scan limit. Upgrade to get unlimited scans.'
+        );
+      }
       // On error, still navigate to dashboard - user can retry
       if (navigation && typeof navigation.navigate === 'function') {
         navigation.navigate('MainTabs', { screen: 'Dashboard' });

@@ -142,7 +142,16 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
 
   // Memoized trending programs from featured
   const trendingPrograms = useMemo(() => {
-    return featuredPrograms.slice(0, 8);
+    // Sort featured programs to ensure free lifestyles are ALWAYS at the top
+    const sortedFeatured = [...featuredPrograms].sort((a, b) => {
+      const aIsFree = isFreeLifestyle(a.id || a.slug || '');
+      const bIsFree = isFreeLifestyle(b.id || b.slug || '');
+      if (aIsFree && !bIsFree) return -1;
+      if (!aIsFree && bIsFree) return 1;
+      // Secondary sort: keep original order or sort by popularity
+      return (b.popularityScore || 0) - (a.popularityScore || 0);
+    });
+    return sortedFeatured.slice(0, 8);
   }, [featuredPrograms]);
 
   // Memoized filtered programs

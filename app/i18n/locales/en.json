@@ -99,10 +99,34 @@
     "navigationError": "Navigation error occurred",
     "navigationNotAvailable": "Navigation not available. Please restart the app.",
     "galleryFailed": "Gallery Failed",
-    "title": "Title"
+    "title": "Title",
+    "limitReachedTitle": "Daily Limit Reached",
+    "limitReachedMessage": "You have reached your daily scan limit. Upgrade to get unlimited scans."
   },
   "error": {
     "title": "Error"
+  },
+  "tooltip": {
+    "bmi": {
+      "title": "BMI — Body Mass Index",
+      "body": "BMI is a measure of body fat based on height and weight. It helps assess whether your weight is in a healthy range. Normal BMI is 18.5–24.9."
+    },
+    "whr": {
+      "title": "WHR — Waist-to-Hip Ratio",
+      "body": "WHR measures the ratio of your waist circumference to hip circumference. It indicates fat distribution. A healthy WHR is below 0.85 for women and 0.90 for men."
+    },
+    "glp1": {
+      "title": "GLP-1 — Glucagon-Like Peptide-1",
+      "body": "GLP-1 receptor agonists (e.g., semaglutide, liraglutide) are medications that help regulate blood sugar and appetite. This module adjusts recommendations for GLP-1 users."
+    },
+    "kcal": {
+      "title": "kcal — Kilocalories",
+      "body": "Your daily calorie target is calculated using the Mifflin-St Jeor formula based on your age, gender, height, weight, and activity level. This is your estimated basal metabolic rate adjusted for activity."
+    },
+    "bmr": {
+      "title": "BMR — Basal Metabolic Rate",
+      "body": "BMR is the number of calories your body needs at rest. It is calculated using the Mifflin-St Jeor equation and represents the minimum energy needed for basic body functions."
+    }
   },
   "help": {
     "title": "Help & Support",
@@ -382,6 +406,10 @@
     "weightSubtitle": "Current weight is needed for calorie calculation",
     "weightRate": "Weight change rate",
     "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
+    "name": "What's your name?",
+    "nameSubtitle": "So we can personalize your experience",
+    "namePlaceholder": "Your name",
+    "formulaExplanation": "Calculated using the Mifflin-St Jeor formula based on your age, gender, height, weight, and activity level.",
     "additionalPlans": "Additional Plans",
     "setupComplete": "Setup Complete",
     "profileSavedLocally": "Profile saved locally. You can complete setup later in settings.",
@@ -690,7 +718,9 @@
     "tapToView": "Tap to view",
     "analysisComplete": "Analysis complete",
     "deleteError": "Delete Error",
-    "trustText": "Analysis accuracy improves with each use — AI learns to recognize your favorite dishes and portion sizes."
+    "trustText": "Analysis accuracy improves with each use — AI learns to recognize your favorite dishes and portion sizes.",
+    "disclaimer": "This is not medical advice.",
+    "viewSources": "View scientific sources"
   },
   "describeFood": {
     "title": "Describe your meal",
@@ -991,7 +1021,8 @@
     "switchCamera": "Flip camera",
     "zoomLabel": "Zoom {{value}}x",
     "captureError": "We couldn’t capture the photo. Please try again.",
-    "permissionError": "Permission Error"
+    "permissionError": "Permission Error",
+    "gallery": "Gallery"
   },
   "editFood": {
     "title": "Edit Ingredient",
@@ -1314,6 +1345,7 @@
       "brain_health": "Brain Health",
       "breakfast": "Breakfast",
       "brunch": "Brunch",
+      "bulk": "Bulking",
       "business": "Business",
       "celiac": "Celiac Safe",
       "central_asian": "Central Asian",
@@ -1926,7 +1958,10 @@
       "spray_other": "sprays"
     },
     "photo": "Photo",
-    "addPhoto": "Add photo"
+    "addPhoto": "Add photo",
+    "takePhoto": "Take Photo",
+    "chooseFromGallery": "Choose from Gallery",
+    "cameraPermissionDenied": "Camera permission is required to take photos."
   },
   "foodDescriptionPrompt": {
     "title": "What did you eat?",

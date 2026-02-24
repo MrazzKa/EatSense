@@ -718,6 +718,14 @@ export default function SubscriptionScreen() {
 
                                     {/* Price - StoreKit localizedPrice is source of truth */}
                                     <View style={styles.priceRow}>
+                                        {plan.originalPrice && (
+                                            <Text style={[
+                                                styles.originalPrice,
+                                                { color: tokens.colors?.textSecondary || '#888' }
+                                            ]}>
+                                                {plan.originalPrice}
+                                            </Text>
+                                        )}
                                         <Text style={[
                                             styles.planPriceCompact,
                                             isSelected && styles.planPriceSelected,

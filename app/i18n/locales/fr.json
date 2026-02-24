@@ -186,7 +186,10 @@
     "protein": "Protéines",
     "carbs": "Glucides",
     "fat": "Lipides",
-    "fiber": "Fibres"
+    "fiber": "Fibres",
+    "trustText": "Aperçu de l'IA",
+    "disclaimer": "Les analyses sont approximatives",
+    "viewSources": "Voir les sources"
   },
   "analysisFlow": {
     "analyze": "Analyser",
@@ -312,7 +315,8 @@
     "takePhoto": "Capturer le repas",
     "typeInstead": "Saisir manuellement",
     "zoomLabel": "Zoom {{value}}x",
-    "permissionError": "Erreur de permission"
+    "permissionError": "Erreur de permission",
+    "gallery": "Galerie"
   },
   "carcinogenicRisk": {
     "highRiskItems": "Éléments à consommer avec modération",
@@ -637,7 +641,8 @@
       "summary": {
         "title": "Recommandation personnelle"
       },
-      "title": "Suggestions alimentaires intelligentes"
+      "title": "Suggestions alimentaires intelligentes",
+      "trustText": "Recommandé pour vous"
     },
     "bottomSheet": {
       "describeFood": "Décrire le repas",
@@ -778,7 +783,7 @@
       "muscle": "Prise de muscle",
       "no_dairy": "Sans produits laitiers",
       "no_grains": "Sans céréales",
-      "old_money": "Old Money",
+      "old_money": "Vieux riche",
       "omega3": "Oméga-3",
       "party": "Fête",
       "plant_based": "Végétal",
@@ -814,7 +819,8 @@
       "whole_foods": "Aliments complets",
       "winter": "Hiver",
       "yacht": "Vie de yacht",
-      "youthful": "Jeunesse"
+      "youthful": "Jeunesse",
+      "bulk": "Prise de masse"
     },
     "tracker": {
       "days": "jours"
@@ -938,7 +944,9 @@
     "galleryFailed": "Erreur de galerie",
     "title": "Erreur",
     "stopProgram": "Échec de l'arrêt du programme",
-    "pauseProgram": "Échec de la mise en pause"
+    "pauseProgram": "Échec de la mise en pause",
+    "limitReachedTitle": "Daily Limit Reached",
+    "limitReachedMessage": "Vous avez atteint votre limite mensuelle."
   },
   "experts": {
     "dietitian": {
@@ -1095,19 +1103,19 @@
     "title": "Select Photo",
     "notResponding": "Gallery not responding",
     "timeoutMessage": "Opening gallery is taking too long.",
-    "openGallery": "Open Gallery",
+    "openGallery": "Ouvrir la galerie",
     "selectPhoto": "Select photo from gallery",
     "selectPhotoHint": "Tap the button below to open photo library.",
     "accessRequired": "Gallery access required",
     "accessRequiredHint": "Please allow access to photos.",
-    "grantPermission": "Grant Permission",
-    "openSettings": "Open Settings",
-    "tryAgain": "Try Again",
-    "selectTitle": "Select Photo",
+    "grantPermission": "Accorder l'autorisation",
+    "openSettings": "Ouvrir les paramètres",
+    "tryAgain": "Réessayer",
+    "selectTitle": "Sélectionnez",
     "selectHint": "Select a photo from gallery.",
     "canceled": "Selection canceled",
-    "canceledHint": "You canceled photo selection.",
-    "opening": "Opening..."
+    "canceledHint": "Annulé",
+    "opening": "Ouverture..."
   },
   "healthScore": {
     "title": "Score santé",
@@ -1203,8 +1211,8 @@
   },
   "medications": {
     "dosagePlural": {
-      "spray_one": "spray",
-      "spray_other": "sprays",
+      "spray_one": "Pulvérisation",
+      "spray_other": "Pulvérisations",
       "tablet_one": "comprimé",
       "tablet_other": "comprimés",
       "capsule_one": "gélule",
@@ -1276,7 +1284,7 @@
       "tablets": "comprimés",
       "capsules": "gélules",
       "puffs": "bouffées",
-      "sprays": "sprays",
+      "sprays": "Pulvérisations",
       "IU": "UI"
     },
     "notifications": {
@@ -1292,7 +1300,10 @@
       "error": "Échec de la mise à jour du médicament"
     },
     "photo": "Photo",
-    "addPhoto": "Ajouter photo"
+    "addPhoto": "Ajouter photo",
+    "takePhoto": "Prendre une photo",
+    "chooseFromGallery": "Choisir de la galerie",
+    "cameraPermissionDenied": "Autorisation de la caméra refusée"
   },
   "notifications": {
     "enableFailed": "Impossible d'activer les notifications.",
@@ -1316,7 +1327,7 @@
           "Statistiques de base"
         ],
         "headline": "Commencez avec l'essentiel",
-        "name": "EatSense Free",
+        "name": "EatSense Gratuit",
         "price": "0 € pour toujours"
       },
       "proAnnual": {
@@ -1590,7 +1601,11 @@
     "fatLabel": "Lipides",
     "targetWeightLabel": "Poids cible",
     "specifyCondition": "Veuillez préciser la condition",
-    "specifyDiet": "Veuillez préciser votre régime"
+    "specifyDiet": "Veuillez préciser votre régime",
+    "name": "Comment vous appelez-vous ?",
+    "nameSubtitle": "Pour personnaliser votre expérience",
+    "namePlaceholder": "Votre prénom",
+    "formulaExplanation": "Basé sur des algorithmes scientifiquement prouvés"
   },
   "permissions": {
     "cameraRequired": "L'autorisation de la caméra est requise pour prendre des photos",
@@ -1599,7 +1614,7 @@
     "required": "Autorisation requise"
   },
   "privacy": {
-    "sections": "Sections",
+    "sections": "Sections de confidentialité",
     "intro": "EatSense valorise votre confidentialité. Cette politique décrit comment nous collectons, utilisons et protégeons vos informations.",
     "lastUpdated": "Dernière mise à jour",
     "title": "Politique de Confidentialité"
@@ -1617,7 +1632,7 @@
     "goalValue": "Objectif actuel",
     "activityLevel": "Niveau d'activité",
     "personalization": "Personnalisation",
-    "plan": "Plan",
+    "plan": "Forfait",
     "sync": "Synchroniser",
     "settings": "Paramètres",
     "units": "Unités",
@@ -1824,10 +1839,10 @@
     "billingAnnual": "Annuel",
     "billingMonthly": "Mensuel",
     "billingFree": "Gratuit",
-    "planFreeName": "EatSense Free",
+    "planFreeName": "Gratuit",
     "planProName": "EatSense Pro",
-    "planStudentName": "EatSense Student",
-    "planFounderName": "EatSense Founder",
+    "planStudentName": "Étudiant",
+    "planFounderName": "Fondateur",
     "planFreePrice": "Gratuit",
     "planFounderPrice": "Paiement unique",
     "planStudentDescription": "Pour les étudiants",
@@ -2037,7 +2052,8 @@
     "save": "Économisez",
     "subscribeCTA": "Choisir le plan",
     "legalTerms": "Conditions d'utilisation",
-    "legalPrivacy": "Confidentialité"
+    "legalPrivacy": "Confidentialité",
+    "freePlanBaseline": "Forfait gratuit"
   },
   "plan_yearly": "Annuel",
   "plan_student": "Étudiant",
@@ -2076,7 +2092,44 @@
     "diets": "Nutrition"
   },
   "terms": {
-    "sections": "Sections",
+    "sections": {
+      "acceptance": {
+        "content": "En accédant au service, vous acceptez ces conditions.",
+        "title": "1. Acceptation"
+      },
+      "changes": {
+        "content": "Nous nous réservons le droit de modifier ces conditions.",
+        "title": "8. Modifications"
+      },
+      "contact": {
+        "content": "Si vous avez des questions, contactez-nous.",
+        "title": "9. Contact"
+      },
+      "description": {
+        "content": "EatSense fournit des outils de nutrition basés sur l'IA.",
+        "title": "2. Description du service"
+      },
+      "intellectual": {
+        "content": "Le service et son contenu appartiennent à EatSense.",
+        "title": "6. Propriété intellectuelle"
+      },
+      "limitation": {
+        "content": "EatSense ne remplace pas les conseils médicaux.",
+        "title": "7. Limite de responsabilité"
+      },
+      "prohibited": {
+        "content": "Vous ne pouvez pas utiliser l'application de façon illégale.",
+        "title": "5. Usages interdits"
+      },
+      "registration": {
+        "content": "Vous êtes responsable de votre compte.",
+        "title": "3. Compte"
+      },
+      "userContent": {
+        "content": "Vous gardez les droits sur votre contenu.",
+        "title": "4. Contenu utilisateur"
+      }
+    },
     "intro": "Veuillez lire attentivement ces Conditions d'Utilisation avant d'utiliser EatSense.",
     "lastUpdated": "Dernière mise à jour",
     "title": "Conditions d'Utilisation"
@@ -2301,64 +2354,64 @@
     "restore": "Restaurer les achats"
   },
   "usageSummary": {
-    "title": "Daily Usage",
-    "totalToday": "Total Today",
-    "remaining": "Remaining",
-    "limit": "Limit",
-    "upgrade": "Upgrade for More",
-    "limitReached": "Daily limit reached",
-    "limitApproaching": "Approaching daily limit",
-    "limitOk": "Usage within limits",
-    "analyses": "analyses"
+    "title": "Utilisation",
+    "totalToday": "Total aujourd'hui",
+    "remaining": "Restant",
+    "limit": "Limite",
+    "upgrade": "Mettre à niveau",
+    "limitReached": "Limite atteinte",
+    "limitApproaching": "Limite proche",
+    "limitOk": "Limite Ok",
+    "analyses": "Analyses"
   },
   "analysisComponent": {
-    "analysisError": "Analysis Error",
-    "analysisFailed": "Analysis failed",
-    "tryAgain": "Try Again",
-    "analyzing": "Analyzing...",
-    "analyzingDish": "Analyzing your dish...",
-    "analysisComplete": "Analysis complete!",
-    "calculatingCalories": "Calculating calories",
-    "uploaded": "Uploaded"
+    "analysisError": "Erreur d'analyse",
+    "analysisFailed": "L'analyse a échoué",
+    "tryAgain": "Réessayer",
+    "analyzing": "Analyse en cours...",
+    "analyzingDish": "Analyse du plat...",
+    "analysisComplete": "Terminé",
+    "calculatingCalories": "Calcul des calories...",
+    "uploaded": "Téléchargé avec succès"
   },
   "analysisResults": {
-    "title": "Analysis Result",
+    "title": "Résultats d'analyse",
     "calories": "Calories",
     "portions": "Portions",
-    "healthScore": "Health Score",
+    "healthScore": "Score Santé",
     "healthScoreLevel": {
-      "very": "very healthy",
-      "moderately": "moderately healthy",
-      "less": "less healthy",
-      "text": "This dish is {{level}}."
+      "very": "Très sain",
+      "moderately": "Modéré",
+      "less": "Moins sain",
+      "text": "Catégorie"
     },
-    "ingredients": "Ingredients",
-    "share": "Share",
-    "correct": "Correct",
-    "unknownDish": "Unknown dish",
-    "perPortion": "per portion",
-    "weightNotDetermined": "Weight not determined"
+    "ingredients": "Ingrédients",
+    "share": "Partager",
+    "correct": "Corriger",
+    "unknownDish": "Plat inconnu",
+    "perPortion": "Par portion",
+    "weightNotDetermined": "Poids non déterminé"
   },
   "incident": {
-    "title": "Report Incident",
-    "detectedTitle": "Security Incident Detected",
-    "description": "We've detected unusual activity in your account. For your security, we've temporarily restricted access.",
-    "detailsTitle": "Incident Details:",
-    "loginAttempt": "Unusual login attempt detected",
-    "locationUnknown": "Location: Unknown",
-    "contactSupport": "Contact Support"
+    "title": "Incident",
+    "detectedTitle": "Incident détecté",
+    "description": "Une erreur de sécurité ou inattendue est survenue.",
+    "detailsTitle": "Détails",
+    "loginAttempt": "Tentative de connexion",
+    "locationUnknown": "Lieu inconnu",
+    "contactSupport": "Contacter le support"
   },
   "smokeTest": {
     "title": "Smoke Test",
-    "pingApi": "Ping API",
-    "openApp": "Open App"
+    "pingApi": "Test API",
+    "openApp": "Ouvrir l'application"
   },
   "errorBoundary": {
     "somethingWentWrong": "Quelque chose s'est mal passé",
     "unexpectedError": "Une erreur inattendue est survenue",
-    "crashed": "App crashed",
-    "tryAgain": "Try Again",
-    "debugMessage": "Debug screen. Collecting stack trace."
+    "crashed": "L'application a planté",
+    "tryAgain": "Réessayer",
+    "debugMessage": "Message de débogage"
   },
   "featureFlags": {
     "title": "Fonctionnalités expérimentales",
@@ -2390,7 +2443,7 @@
             "label": "Rester hydraté"
           }
         },
-        "name": "That Girl",
+        "name": "Style That Girl",
         "subtitle": "5h, jus vert, énergie personnage principal",
         "description": "Le bien-être comme esthétique. Smoothies verts, matcha, overnight oats.",
         "shortDescription": "Routine 5h, jus vert, énergie protagoniste"
@@ -2407,7 +2460,7 @@
             "label": "Repas simple et sain"
           }
         },
-        "name": "Clean Girl",
+        "name": "Style Clean Girl",
         "subtitle": "Minimal, lumineux, beauté naturelle",
         "description": "Alimentation sobre et saine. Aliments complets, hydratation max.",
         "shortDescription": "Minimal, lumineux, effortless"
@@ -2424,7 +2477,7 @@
             "label": "Trois repas structurés"
           }
         },
-        "name": "Old Money",
+        "name": "Style Old Money",
         "subtitle": "Luxe discret, élégance intemporelle",
         "description": "La qualité avant tout. Bio, artisanal, pas de chaînes.",
         "shortDescription": "Qualité avant quantité"
@@ -2441,7 +2494,7 @@
             "label": "Heure apéritif"
           }
         },
-        "name": "Tomato Girl Summer",
+        "name": "Fille Tomate d'Été",
         "subtitle": "Rêves méditerranéens, vie ensoleillée",
         "description": "La dolce vita dans l'assiette. Pâtes, vin, plaisir et modération.",
         "shortDescription": "Vibes méditerranéennes, soleil"
@@ -2458,7 +2511,7 @@
             "label": "Repas léger les jours de cours"
           }
         },
-        "name": "Pilates Princess",
+        "name": "Princesse Pilates",
         "subtitle": "Long, fine, force gracieuse",
         "description": "Carburant pour allongement et renforcement. Protéines maigres, collagène.",
         "shortDescription": "Fine, gracieuse, forte"
@@ -2530,21 +2583,21 @@
       },
       "debloat_detox": {
         "dailyTracker": {},
-        "name": "Debloat & Glow",
+        "name": "Détox & Dégonflement",
         "subtitle": "Aplatir, rafraîchir, se sentir léger",
         "description": "Anti-inflammatoire, peu de sodium, intestin-friendly.",
         "shortDescription": "Dégonfler, rafraîchir, légèreté"
       },
       "sustainable_slim": {
         "dailyTracker": {},
-        "name": "Sustainable Slim",
+        "name": "Minceur Durable",
         "subtitle": "Perdre et ne pas reprendre",
         "description": "Approche anti-yo-yo. Petits changements durables, habitudes pas chiffres.",
         "shortDescription": "Perte de poids durable"
       },
       "lean_bulk": {
         "dailyTracker": {},
-        "name": "Lean Bulk",
+        "name": "Prise de Masse Sèche",
         "subtitle": "Prendre du muscle sans gras",
         "description": "Surplus stratégique. Assez de calories pour grossir, assez de protéines.",
         "shortDescription": "Prendre du muscle, rester sec"
@@ -2565,7 +2618,7 @@
       },
       "functional_fitness": {
         "dailyTracker": {},
-        "name": "Functional Fitness",
+        "name": "Fitness Fonctionnel",
         "subtitle": "Fort, capable, prêt à tout",
         "description": "Nutrition performance au quotidien. Macros équilibrés, anti-inflammatoire.",
         "shortDescription": "Nutrition force fonctionnelle"
@@ -2819,7 +2872,7 @@
             "label": "Pas de boissons sucrées"
           }
         },
-        "name": "DASH",
+        "name": "Régime DASH",
         "description": "Inspiré de l'approche diététique DASH. Accent sur les fruits, légumes, céréales complètes et protéines maigres avec réduction du sodium.",
         "shortDescription": "Régime équilibré axé sur les aliments complets et faible en sodium"
       },
@@ -2841,7 +2894,7 @@
             "label": "Limiter sucreries/fritures"
           }
         },
-        "name": "MIND",
+        "name": "Régime MIND",
         "description": "Approche nutritionnelle combinant les principes méditerranéens et DASH, avec un accent sur les aliments favorisant le bien-être cognitif.",
         "shortDescription": "Nutrition pour le bien-être cognitif"
       },
@@ -2987,7 +3040,7 @@
             "label": "Légumes low-carb"
           }
         },
-        "name": "Keto",
+        "name": "Céto",
         "description": "Régime très faible en glucides, riche en lipides (cétose). Supervision médicale recommandée.",
         "shortDescription": "Très faible en glucides pour cétose — prudence requise"
       },
@@ -3544,7 +3597,7 @@
             "label": "Dîner élégant"
           }
         },
-        "name": "Yacht Week",
+        "name": "La Semaine Yacht",
         "description": "Style yacht — léger, frais, influence méditerranéenne, toujours élégant.",
         "shortDescription": "Alimentation élégante bord de mer"
       },
@@ -3717,5 +3770,27 @@
     "sectionDietPrograms": "Programmes diététiques",
     "sectionDisclaimer": "Avertissement général",
     "healthScoreMethodology": "Le Score de Santé évalue les repas sur une échelle de 0 à 100 basée sur cinq facteurs nutritionnels fondés sur des preuves : densité protéique, teneur en fibres, graisses saturées, sucres libres et densité énergétique."
+  },
+  "tooltip": {
+    "bmi": {
+      "title": "IMC",
+      "body": "Indice de masse corporelle."
+    },
+    "whr": {
+      "title": "Ratio taille-hanches",
+      "body": "Indicateur de répartition des graisses."
+    },
+    "glp1": {
+      "title": "Soutien GLP-1",
+      "body": "Nutrition adaptée au traitement GLP-1."
+    },
+    "kcal": {
+      "title": "Calories",
+      "body": "Votre objectif énergétique quotidien."
+    },
+    "bmr": {
+      "title": "TMB",
+      "body": "Taux métabolique de base."
+    }
   }
 }
