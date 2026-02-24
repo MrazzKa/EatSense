@@ -39,6 +39,7 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
     weight: item?.weight?.toString() || '0',
   });
   const [originalWeight, setOriginalWeight] = useState(parseFloat(item?.weight) || 100);
+  const [originalItem, setOriginalItem] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -49,14 +50,16 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
     if (item) {
       const weight = parseFloat(item?.weight) || 100;
       setOriginalWeight(weight);
-      setEditedItem({
+      const itemData = {
         name: item?.name || '',
         calories: item?.calories?.toString() || '0',
         protein: item?.protein?.toString() || '0',
         carbs: item?.carbs?.toString() || '0',
         fat: item?.fat?.toString() || '0',
         weight: weight.toString(),
-      });
+      };
+      setOriginalItem(itemData);
+      setEditedItem(itemData);
     }
   }, [item, visible]);
 
@@ -185,17 +188,17 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
                         ]}
                         onPress={() => {
                           const newWeight = presetWeight.toString();
-                          setEditedItem({ ...editedItem, weight: newWeight });
-                          // Recalculate macros proportionally
+                          // Scale from original values (not current) to avoid compounding
                           const scale = preset.multiplier;
-                          setEditedItem(prev => ({
-                            ...prev,
+                          const base = originalItem || editedItem;
+                          setEditedItem({
+                            ...editedItem,
                             weight: newWeight,
-                            calories: Math.round(parseFloat(prev.calories) * scale).toString(),
-                            protein: (parseFloat(prev.protein) * scale).toFixed(1),
-                            carbs: (parseFloat(prev.carbs) * scale).toFixed(1),
-                            fat: (parseFloat(prev.fat) * scale).toFixed(1),
-                          }));
+                            calories: Math.round(parseFloat(base.calories) * scale).toString(),
+                            protein: (parseFloat(base.protein) * scale).toFixed(1),
+                            carbs: (parseFloat(base.carbs) * scale).toFixed(1),
+                            fat: (parseFloat(base.fat) * scale).toFixed(1),
+                          });
                         }}
                       >
                         <Text
@@ -222,6 +225,21 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
                   style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.input, borderColor: colors.border, marginTop: 12 }]}
                   value={editedItem.weight}
                   onChangeText={(text) => handleNumberChange('weight', text)}
+                  onEndEditing={() => {
+                    const newWeight = parseFloat(editedItem.weight) || 0;
+                    const baseWeight = parseFloat((originalItem || editedItem).weight) || 1;
+                    if (newWeight > 0 && baseWeight > 0) {
+                      const scale = newWeight / baseWeight;
+                      const base = originalItem || editedItem;
+                      setEditedItem(prev => ({
+                        ...prev,
+                        calories: Math.round(parseFloat(base.calories) * scale).toString(),
+                        protein: (parseFloat(base.protein) * scale).toFixed(1),
+                        carbs: (parseFloat(base.carbs) * scale).toFixed(1),
+                        fat: (parseFloat(base.fat) * scale).toFixed(1),
+                      }));
+                    }
+                  }}
                   placeholder="0"
                   placeholderTextColor={colors.textTertiary}
                   keyboardType="decimal-pad"

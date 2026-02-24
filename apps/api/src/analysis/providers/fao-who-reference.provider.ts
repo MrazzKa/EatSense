@@ -74,15 +74,15 @@ export class FaoWhoReferenceProvider implements INutritionProvider {
    * @returns Recommended daily intake in appropriate units (g, mg, mcg, etc.)
    */
   async getRecommendedIntake(
-    nutrient: string,
-    age: number,
-    gender: string,
-    lifeStage?: string,
+    _nutrient: string,
+    _age: number,
+    _gender: string,
+    _lifeStage?: string,
   ): Promise<number | null> {
     // TODO: Parse FAO/WHO PDF or use structured data source
     // Return recommended daily intake for the given nutrient
     this.logger.debug(
-      `[FaoWhoReferenceProvider] getRecommendedIntake not implemented: nutrient=${nutrient}, age=${age}, gender=${gender}`,
+      `[FaoWhoReferenceProvider] getRecommendedIntake not implemented: nutrient=${_nutrient}, age=${_age}, gender=${_gender}`,
     );
     return null;
   }
@@ -93,9 +93,9 @@ export class FaoWhoReferenceProvider implements INutritionProvider {
    * TODO: Implement when reference data is available
    */
   async getUpperLimit(
-    nutrient: string,
-    age: number,
-    gender: string,
+    _nutrient: string,
+    _age: number,
+    _gender: string,
   ): Promise<number | null> {
     // TODO: Return upper safe limit for nutrient
     return null;

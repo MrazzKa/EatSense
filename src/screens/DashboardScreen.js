@@ -411,7 +411,10 @@ export default function DashboardScreen() {
       if (data?.meals?.length > 0) {
         AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
       }
-      updateDashboardState(data);
+      // FIX: Don't overwrite existing meals with empty response (timing race)
+      if (data?.meals?.length > 0 || !recentItems?.length) {
+        updateDashboardState(data);
+      }
 
     } catch (error) {
       console.error('[DashboardScreen] Error loading dashboard data:', error);
@@ -512,9 +515,9 @@ export default function DashboardScreen() {
 
   const handlePlusPress = async () => {
     if (__DEV__) {
-      console.log('[Dashboard] FAB plus button pressed - opening gallery directly');
+      console.log('[Dashboard] FAB plus button pressed - opening camera directly');
     }
-    // Check limit before opening gallery
+    // Check limit before opening camera
     if (hasReachedDailyLimit(userStats)) {
       if (__DEV__) {
         console.log('[Dashboard] Daily limit reached, showing trial popup');
@@ -536,8 +539,10 @@ export default function DashboardScreen() {
       }).start();
     });
 
-    // Show modal with options instead of opening gallery directly
-    setShowModal(true);
+    // Navigate directly to Camera screen
+    if (navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate('Camera');
+    }
   };
 
   const [showModal, setShowModal] = useState(false);
@@ -635,6 +640,10 @@ export default function DashboardScreen() {
       }
     } catch (error) {
       console.error('[Dashboard] Error in gallery flow:', error);
+      if (error?.response?.status === 429 || error?.status === 429) {
+        setShowLimitModal(true);
+        return;
+      }
       Alert.alert(
         t('errors.title') || 'Error',
         t('errors.galleryFailed') || 'Failed to open gallery. Please try again.'
@@ -883,18 +892,30 @@ export default function DashboardScreen() {
           {/* FIX #2: Removed justCompletedItems display - now showing only pendingAnalyses and recentItems */}
           {/* Completed meals - filter out items that are in pendingAnalyses to avoid duplicates */}
           {(() => {
+            const normalizeImageUrl = (url) => {
+              if (!url) return null;
+              try { return url.split('?')[0]; } catch { return url; }
+            };
             const pendingIds = new Set(pendingAnalyses.map(a => a.analysisId));
             const pendingImageUrls = new Set(
               pendingAnalyses
-                .map(a => a.localPreviewUri || a.imageUrl)
+                .map(a => normalizeImageUrl(a.localPreviewUri) || normalizeImageUrl(a.imageUrl))
                 .filter(Boolean)
             );
+            const pendingTimestamps = pendingAnalyses
+              .map(a => a.createdAt ? new Date(a.createdAt).getTime() : null)
+              .filter(Boolean);
             const filteredItems = (recentItems || []).filter(item => {
               // Filter by ID - don't show if already in pendingAnalyses
               if (pendingIds.has(item.analysisId || item.id)) return false;
-              // Filter by image URL (catch duplicates even if IDs differ)
-              const itemImageUrl = item.imageUrl || item.imageUri;
+              // Filter by image URL (catch duplicates even if IDs differ, strip query params)
+              const itemImageUrl = normalizeImageUrl(item.imageUrl || item.imageUri);
               if (itemImageUrl && pendingImageUrls.has(itemImageUrl)) return false;
+              // Filter by timestamp proximity (±60s) to catch duplicates with different IDs/URLs
+              if (item.createdAt) {
+                const itemTs = new Date(item.createdAt).getTime();
+                if (pendingTimestamps.some(pts => Math.abs(itemTs - pts) < 60000)) return false;
+              }
               return true;
             });
             return filteredItems.length > 0 ? (
@@ -1059,8 +1080,7 @@ export default function DashboardScreen() {
         {/* PART A: Section 5 - Nutrition section */}
         {/* TODO: replaced by Monthly PDF report */}
 
-        {/* Health Disclaimer + Scientific Sources link */}
-        <HealthDisclaimer style={{ marginHorizontal: 20, marginBottom: 24 }} />
+        {/* Health Disclaimer removed from Dashboard for cleaner UI */}
       </ScrollView>
 
       {/* Floating Plus Button - Right Side (fixed, non-draggable) */}

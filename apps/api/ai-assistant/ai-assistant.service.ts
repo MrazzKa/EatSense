@@ -330,7 +330,7 @@ Example response format:
     return { systemPrompt: basePrompt, context };
   }
 
-  private calculateDailyUsage(conversations: any[], days: number) {
+  private calculateDailyUsage(conversations: any[]) {
     const dailyMap = new Map<string, number>();
     conversations.forEach((conv) => {
       const date = conv.createdAt.toISOString().split('T')[0];
@@ -901,7 +901,7 @@ Now analyze the uploaded image and return ONLY the JSON response in ${langName}:
     const disclaimerText = disclaimer[langName] || disclaimer.English;
 
     // FIX #4: Different wording for manual text input vs uploaded document
-    const inputContext = inputType === 'text' 
+    const inputContext = inputType === 'text'
       ? 'The user has manually entered the following medical values/text. These are NOT from a scanned document, but directly typed by the user.'
       : 'The user has uploaded a medical document (text/PDF/photo of reports, test results, prescriptions, discharge summaries, etc.).';
 
@@ -1067,9 +1067,9 @@ Return ONLY valid JSON:
 === INPUT TEXT ===
 ${text || '[No text provided - this may be an image-only upload]'}
 
-${inputType === 'text' 
-  ? `IMPORTANT: The user manually entered this text. In your response, use phrases like "You entered", "You provided", or "Based on the values you entered" instead of "The document contains" or "The document shows".`
-  : 'The text below was extracted from an uploaded medical document.'}
+${inputType === 'text'
+        ? `IMPORTANT: The user manually entered this text. In your response, use phrases like "You entered", "You provided", or "Based on the values you entered" instead of "The document contains" or "The document shows".`
+        : 'The text below was extracted from an uploaded medical document.'}
 
 Now analyze and return ONLY the JSON response in ${langName}:`;
   }

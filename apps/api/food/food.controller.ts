@@ -13,9 +13,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { DailyLimitGuard } from '../limits/daily-limit.guard';
+import { DailyLimit } from '../limits/daily-limit.decorator';
 import { FoodService } from './food.service';
 import { AnalyzeImageDto, AnalyzeTextDto, ReanalyzeRequestDto } from './dto';
-import type { Express } from 'express';
 
 @ApiTags('Food Analysis')
 @Controller('food')
@@ -25,6 +26,8 @@ export class FoodController {
   constructor(private readonly foodService: FoodService) { }
 
   @Post('analyze')
+  @UseGuards(DailyLimitGuard)
+  @DailyLimit({ resource: 'food' })
   @UseInterceptors(FileInterceptor('image'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: AnalyzeImageDto })
@@ -41,6 +44,8 @@ export class FoodController {
   }
 
   @Post('analyze-text')
+  @UseGuards(DailyLimitGuard)
+  @DailyLimit({ resource: 'food' })
   @ApiOperation({ summary: 'Analyze food from text description' })
   @ApiResponse({ status: 201, description: 'Analysis started' })
   async analyzeText(

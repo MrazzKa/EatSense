@@ -37,6 +37,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
     const [loading, setLoading] = useState(true);
     const [showPaywall, setShowPaywall] = useState(false);
     const [isPremiumUser, setIsPremiumUser] = useState(false);
+    const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
 
     // FIX: Load cached subscription immediately for instant premium detection
     useEffect(() => {
@@ -50,8 +51,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
                         }
                     } catch (e) { /* ignore */ }
                 }
+                setSubscriptionLoaded(true);
             })
-            .catch(() => { });
+            .catch(() => { setSubscriptionLoaded(true); });
     }, []);
 
     const loadProgram = useCallback(async () => {
@@ -103,6 +105,7 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
     const handleStart = async () => {
         if (isStarting) return; // Prevent double-tap
+        if (!subscriptionLoaded) return; // Wait for subscription data
 
         // Check if user has access to this diet
         const isFree = isFreeDiet(program?.id || '');
@@ -463,9 +466,9 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <TouchableOpacity
-                    style={[styles.startButton, { backgroundColor: colors.primary, opacity: isStarting ? 0.7 : 1 }]}
+                    style={[styles.startButton, { backgroundColor: colors.primary, opacity: (isStarting || (!isActive && !subscriptionLoaded)) ? 0.7 : 1 }]}
                     onPress={isActive ? handleContinue : handleStart}
-                    disabled={isStarting}
+                    disabled={(!isActive && !subscriptionLoaded) || isStarting}
                 >
                     {isStarting ? (
                         <ActivityIndicator size="small" color="#fff" />

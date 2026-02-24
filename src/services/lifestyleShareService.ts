@@ -4,7 +4,7 @@
  */
 
 import { Share } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 const APP_DOWNLOAD_LINK = 'https://eatsense.me/download';

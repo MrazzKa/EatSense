@@ -64,6 +64,22 @@ module.exports = [
       ],
     },
   },
+  // Override для тестов (Jest globals)
+  {
+    files: ['**/*.spec.ts', '**/*.e2e-spec.ts'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        jest: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+      }
+    }
+  },
   // Override для ETL скриптов (CLI/импорты)
   {
     files: ['src/fdc/etl/**/*.ts'],

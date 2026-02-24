@@ -1,0 +1,1371 @@
+[
+  {
+    "name": "Mediterranean Diet",
+    "subtitle": "Heart-healthy Mediterranean eating",
+    "category_tags": "Health  |  Tags: Heart Healthy | Sustainable | Evidence Based",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Strong evidence (PREDIMED, Lyon Diet Heart Study)",
+    "about": [
+      "A heart-healthy eating pattern inspired by the traditional cuisines of Greece, southern Italy, and coastal Spain. Built around olive oil as the primary fat, abundant vegetables and legumes, whole grains, moderate fish and poultry, and limited red meat.",
+      "Consistently ranked #1 overall diet by U.S. News & World Report for seven consecutive years. The PREDIMED trial (7,447 participants) demonstrated a 30% reduction in major cardiovascular events vs. low-fat control.",
+      "Associated with reduced risk of type 2 diabetes, cognitive decline, certain cancers, and depression. One of the most sustainable long-term patterns because nothing is forbidden.",
+      "In EatSense this is the flagship evidence-based program and the gold standard template. All other diets should match this level of UI completeness."
+    ],
+    "howItWorks": [
+      "Base of every plate: non-starchy vegetables + whole grains (farro, bulgur, brown rice) + legumes (chickpeas, lentils, white beans)",
+      "Primary fat: extra-virgin olive oil for cooking and dressing (2-4 tbsp/day). Replace butter and seed oils entirely",
+      "Protein priority: fish/seafood 2-3x/week, poultry 2x/week, red meat max 1-2x/month in small portions",
+      "Daily: nuts/seeds (handful), fresh fruit as dessert, herbs and spices instead of salt",
+      "Moderate dairy: mainly yogurt and cheese (feta, pecorino), not processed dairy products",
+      "Optional: moderate red wine with meals (1 glass women, 1-2 men). Never required",
+      "Daily Tracker Checklist (6 items)",
+      "5+ servings of vegetables and fruits today",
+      "Olive oil used as primary fat (no butter/seed oils)",
+      "Whole grains at every meal (not refined white flour)",
+      "Fish or legumes as main protein source",
+      "No ultra-processed food consumed today",
+      "Minimum 2L of water (not sugary drinks)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Processed/cured meats (salami, hot dogs, bacon)",
+      "Refined grains (white bread, white pasta, pastries)",
+      "Added sugars and sugary beverages",
+      "Seed/vegetable oils (sunflower, canola, soybean)",
+      "Fast food and ultra-processed snacks",
+      "Excess red meat (max 1-2 small servings/month)",
+      "Scientific Sources & References",
+      "Estruch R et al. PREDIMED — Primary Prevention of CVD with Mediterranean Diet. NEJM 2018;378:e34",
+      "de Lorgeril M et al. Lyon Diet Heart Study. Circulation 1999",
+      "Sofi F et al. Mediterranean diet and health status: meta-analysis. BMJ 2008;337:a1344",
+      "WHO/FAO Nutrient Reference Values"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,470 kcal | 97g protein | 92g carbs | 58g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,510 kcal | 79g protein | 108g carbs | 62g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,450 kcal | 76g protein | 168g carbs | 44g fat",
+          "notes": [
+            "Target Macro Split: Carbs 45% | Fat 35% | Protein 20%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "DASH Diet",
+    "subtitle": "Lower blood pressure naturally",
+    "category_tags": "Health  |  Tags: Heart Healthy | Clinical | Evidence Based",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Strong evidence (NIH-funded RCTs)",
+    "about": [
+      "Dietary Approaches to Stop Hypertension — a clinically proven eating plan developed by the U.S. National Institutes of Health. Designed specifically to lower blood pressure without medication, endorsed by the American Heart Association.",
+      "The original DASH trial showed blood pressure reductions within just 2 weeks. The DASH-Sodium trial demonstrated that combining DASH with sodium reduction (1,500mg/day) produced results comparable to first-line antihypertensive drugs.",
+      "Rich in potassium, magnesium, calcium, and fiber — minerals that regulate blood pressure. Emphasizes fruits, vegetables, whole grains, and low-fat dairy while limiting sodium, saturated fat, and added sugars.",
+      "Beyond hypertension, DASH lowers LDL cholesterol, reduces risk of heart failure, kidney stones, and colorectal cancer."
+    ],
+    "howItWorks": [
+      "Sodium target: 1,500-2,300mg/day max. Read every label — sodium hides in bread, sauces, canned foods",
+      "4-5 servings each of fruits AND vegetables daily (not combined — 4-5 of each)",
+      "2-3 servings low-fat dairy daily (milk, yogurt, cheese) for calcium and potassium",
+      "Whole grains 6-8 servings daily (oats, brown rice, whole wheat bread, quinoa)",
+      "Lean proteins: poultry, fish, beans. Limit red meat to 2 small servings/week",
+      "Nuts, seeds, legumes 4-5 times/week. Minimize added fats and sweets",
+      "Daily Tracker Checklist (6 items)",
+      "Sodium intake under 2,300mg (labels checked)",
+      "4-5 servings of fruits consumed",
+      "4-5 servings of vegetables consumed",
+      "Low-fat dairy serving included (yogurt, milk)",
+      "Whole grains at most meals",
+      "No added sugar or sugary drinks today"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "High-sodium foods: canned soups, pickles, soy sauce, deli meats, frozen dinners",
+      "Cured/processed meats: bacon, salami, sausage, hot dogs",
+      "Salty snacks: chips, pretzels, salted nuts, crackers",
+      "Full-fat dairy products and butter",
+      "Sugary beverages: soda, sweetened tea, fruit juice",
+      "Excess alcohol (raises BP): max 1 drink/day women, 2 men",
+      "Scientific Sources & References",
+      "Sacks FM et al. DASH-Sodium. NEJM 2001;344:3-10",
+      "Appel LJ et al. Original DASH Trial. NEJM 1997;336:1117-24",
+      "AHA DASH Diet Recommendations (2024)",
+      "NIH NHLBI Guide to Lowering Blood Pressure with DASH"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,410 kcal | 87g protein | 160g carbs | 38g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,410 kcal | 88g protein | 164g carbs | 36g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,360 kcal | 80g protein | 160g carbs | 34g fat",
+          "notes": [
+            "Target Macro Split: Carbs 55% | Fat 27% | Protein 18%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Flexitarian Diet",
+    "subtitle": "Mostly plants, some meat",
+    "category_tags": "Health  |  Tags: Sustainable | Flexible | Plant-Forward",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Moderate evidence",
+    "about": [
+      "A flexible plant-based approach coined by dietitian Dawn Jackson Blatner. Eat mostly plants but don't eliminate meat entirely. The most popular semi-vegetarian pattern for people who want plant-based health benefits without rigid rules.",
+      "Research shows flexitarian diets are associated with lower body weight, improved metabolic markers, reduced diabetes risk, and lower environmental impact. The EAT-Lancet Commission recommends a similar pattern as optimal for both human and planetary health.",
+      "Structure: aim for 5 plant-based days and 2 days with meat/fish per week. On meat days, animal protein is a side dish (25% of plate), not the main event.",
+      "Ideal starter program for anyone curious about eating more plants. No forbidden foods, no complicated rules — emphasis on addition (more plants) rather than restriction."
+    ],
+    "howItWorks": [
+      "5 plant-based days, 2 meat/fish days per week. Start 3+4 if 5+2 feels ambitious",
+      "Plant-based protein sources: beans, lentils, tofu, tempeh, edamame, chickpeas, nuts, seeds",
+      "On meat days: animal protein as side dish (quarter plate), vegetables remain the star",
+      "Explore one new plant protein each week (try tempeh, seitan, or black bean burgers)",
+      "Whole grains daily: quinoa, brown rice, farro, whole wheat pasta, oats",
+      "Minimize processed food regardless of origin — vegan cookie is still a cookie",
+      "Daily Tracker Checklist (6 items)",
+      "Plant-based protein consumed today (beans, tofu, lentils)",
+      "5+ servings vegetables and fruits",
+      "Whole grains in at least one meal",
+      "New plant food tried this week",
+      "Meat-free meals today (aim for 2+)",
+      "Minimal processed food (plant-based junk counts too)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Factory-farmed meat — choose quality when eating meat (organic, free-range)",
+      "Processed plant-based junk food (vegan hot dogs, fake cheese with additives)",
+      "Excessive dairy — treat as occasional, not daily",
+      "Ultra-processed snacks regardless of 'vegan' label",
+      "Relying on refined carbs to fill the gap when cutting meat",
+      "All-or-nothing thinking — partly plant-based day still counts",
+      "Scientific Sources & References",
+      "Blatner DJ. The Flexitarian Diet. McGraw-Hill, 2009",
+      "Derbyshire EJ. Flexitarian Diets and Health. Front Nutr 2017;3:55",
+      "Willett W et al. EAT-Lancet Commission. Lancet 2019;393:447-492",
+      "Sabate J & Soret S. Sustainability of plant-based diets. AJCN 2014"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,470 kcal | 62g protein | 184g carbs | 48g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,550 kcal | 53g protein | 198g carbs | 52g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,470 kcal | 74g protein | 156g carbs | 50g fat",
+          "notes": [
+            "Target Macro Split: Carbs 50% | Fat 30% | Protein 20%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "MIND Diet",
+    "subtitle": "Brain-boosting nutrition",
+    "category_tags": "Health  |  Tags: Brain Health | Anti-Aging | Evidence Based",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Strong evidence (Rush Memory & Aging Project)",
+    "about": [
+      "Mediterranean-DASH Intervention for Neurodegenerative Delay. Developed by epidemiologist Martha Clare Morris at Rush University. Combines Mediterranean and DASH elements focusing specifically on brain-protective foods.",
+      "The Rush Memory and Aging Project found strict MIND adherence reduced Alzheimer's risk by up to 53%. Even moderate adherence reduced risk by ~35%. No other dietary pattern shows such strong neuroprotective effects.",
+      "Identifies 10 brain-healthy food groups to increase and 5 brain-unhealthy groups to minimize. Uniquely emphasizes berries (especially blueberries — shown to improve memory in clinical trials) and leafy greens (6+ servings/week).",
+      "What makes MIND unique vs. Mediterranean: specifically emphasizes berries and leafy greens while being less strict about overall fruit and fish intake."
+    ],
+    "howItWorks": [
+      "Leafy greens at least 6 servings/week (spinach, kale, arugula, Swiss chard, mixed greens)",
+      "Berries at least 2x/week — especially blueberries and strawberries (only fruits specifically emphasized)",
+      "Nuts every day as snack — walnuts preferred (omega-3 ALA), almonds and pecans also good",
+      "Olive oil as primary cooking and dressing fat. Replace butter completely",
+      "Fish at least 1x/week (salmon, sardines, mackerel). Poultry 2+x/week",
+      "Beans and whole grains most days. Limit cheese to max 1x/week, red meat max 3x/week",
+      "Daily Tracker Checklist (6 items)",
+      "Leafy greens consumed today (spinach, kale, arugula)",
+      "Berries consumed this week (target: 2+ times)",
+      "Nuts eaten as daily snack (preferably walnuts)",
+      "Olive oil used as primary fat",
+      "Whole grains included in meals today",
+      "No fried food or pastries/sweets consumed"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Butter and stick margarine (limit <1 tbsp/day)",
+      "Cheese (limit <1 serving/week — stricter than Mediterranean)",
+      "Red meat (max 3 servings/week, preferably less)",
+      "Fried food and fast food",
+      "Pastries, sweets, candy, sugary beverages",
+      "Ultra-processed snack foods",
+      "Scientific Sources & References",
+      "Morris MC et al. MIND diet and Alzheimer's. Alzheimers Dement 2015;11(9):1007-14",
+      "Morris MC et al. MIND diet slows cognitive decline. Alzheimers Dement 2015;11(9):1015-22",
+      "Devore EE et al. Berries and cognitive decline. Ann Neurol 2012;72:135-143",
+      "Rush Memory and Aging Project (ongoing since 1997)"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,410 kcal | 67g protein | 160g carbs | 48g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,510 kcal | 96g protein | 110g carbs | 68g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,390 kcal | 59g protein | 142g carbs | 56g fat",
+          "notes": [
+            "Target Macro Split: Carbs 48% | Fat 32% | Protein 20%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Nordic Diet",
+    "subtitle": "Scandinavian-style healthy eating",
+    "category_tags": "Health  |  Tags: Sustainable | Seasonal | Anti-Inflammatory",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Moderate evidence (SYSDIET, NORDIET)",
+    "about": [
+      "Developed in 2004 by Danish chef Claus Meyer and University of Copenhagen researchers. Applies Mediterranean health principles using Scandinavian-native foods: fatty fish, root vegetables, rye, berries, canola oil.",
+      "The SYSDIET trial (166 participants) showed significant reduction in inflammation markers and improved cholesterol. The NORDIET trial confirmed improvements in blood lipids.",
+      "Core philosophy: eat locally, seasonally, sustainably. For Northern/Central European users, this is more practical and affordable than Mediterranean — all ingredients are locally available.",
+      "Emphasizes herring, mackerel, salmon, root vegetables, whole rye bread, wild berries, and canola oil as the primary fat."
+    ],
+    "howItWorks": [
+      "Fatty fish 3-4x/week: salmon, herring, mackerel, sardines — richest omega-3 sources",
+      "Root vegetables daily: beetroot, carrots, parsnips, turnips, potatoes, celeriac",
+      "Whole grains daily — especially rye bread (rugbrod), oats, barley. Dark, dense breads preferred",
+      "Wild/foraged foods when available: berries, mushrooms, herbs. Frozen berries count year-round",
+      "Canola (rapeseed) oil as primary cooking fat — Nordic alternative to olive oil, also omega-3 rich",
+      "Game meats and free-range over conventional beef. Organ meats when possible",
+      "Daily Tracker Checklist (6 items)",
+      "Fatty fish consumed (salmon, herring, mackerel)",
+      "Root vegetables in at least one meal",
+      "Whole grain rye bread or oats consumed",
+      "Berries consumed (fresh or frozen)",
+      "Home-cooked meal with seasonal ingredients",
+      "Canola oil or Nordic fat used (not butter as main)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Processed meats and fast food",
+      "White bread and refined grain products",
+      "Tropical fruits as daily staples (prioritize local berries/apples)",
+      "Excessive imported foods with high carbon footprint",
+      "Sugary drinks, candy, processed sweets",
+      "Non-canola seed oils (sunflower, corn, soybean)",
+      "Scientific Sources & References",
+      "Adamsson V et al. NORDIET. J Intern Med 2011;269:150-159",
+      "Uusitupa M et al. SYSDIET. J Intern Med 2013",
+      "Poulsen SK et al. Health effect of New Nordic Diet. Curr Opin Lipidol 2015",
+      "Meyer C. The Nordic Way. 2017"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,390 kcal | 87g protein | 144g carbs | 42g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,400 kcal | 78g protein | 148g carbs | 44g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,410 kcal | 56g protein | 182g carbs | 36g fat",
+          "notes": [
+            "Target Macro Split: Carbs 45% | Fat 33% | Protein 22%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Paleo",
+    "subtitle": "Whole foods, no grains or dairy",
+    "category_tags": "Health  |  Tags: Ancestral | Whole Foods | Anti-Inflammatory",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Moderate  |  Evidence: Moderate evidence",
+    "about": [
+      "Based on foods presumed available during the Paleolithic era (before agriculture). Core idea: our genes are mismatched with modern Western diet, and eating 'ancestrally' reduces inflammation and metabolic disease.",
+      "Multiple RCTs show paleo diets can improve waist circumference, triglycerides, blood pressure, and fasting blood sugar vs. conventional guidelines. Long-term adherence can be challenging due to eliminating grains, legumes, and dairy.",
+      "Emphasizes: meat, fish, eggs, vegetables, fruits, nuts, seeds, healthy oils. Eliminates: all grains, all legumes, all dairy, refined sugar, processed foods.",
+      "Quality matters: grass-fed meat, wild-caught fish, pasture-raised eggs preferred. One of the higher-cost dietary patterns."
+    ],
+    "howItWorks": [
+      "Eat: meat, fish, seafood, eggs, vegetables, fruits, nuts, seeds, healthy oils (olive, avocado, coconut)",
+      "Eliminate completely: all grains, all legumes (beans, lentils, peanuts, soy), all dairy",
+      "No refined sugar, artificial sweeteners, or processed seed oils (canola, sunflower, soybean)",
+      "Prioritize quality: grass-fed beef, wild-caught fish, pasture-raised eggs, organic produce",
+      "No calorie counting — eat whole foods until satisfied. Protein and fat provide natural satiety",
+      "Cook at home — most restaurant/packaged foods contain non-paleo ingredients",
+      "Daily Tracker Checklist (6 items)",
+      "No grains consumed (no bread, rice, oats, pasta, corn)",
+      "No dairy consumed (no milk, cheese, yogurt, butter)",
+      "No legumes consumed (no beans, lentils, peanuts, soy)",
+      "Quality protein at every meal",
+      "Vegetables at every meal (non-starchy preferred)",
+      "Adequate healthy fats from whole sources (avocado, nuts, olive oil)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "All grains: wheat, rice, oats, barley, corn, spelt, kamut (including 'whole grain')",
+      "All legumes: beans, lentils, chickpeas, peanuts, soy products",
+      "All dairy: milk, cheese, yogurt, butter, cream, ice cream",
+      "Refined sugar, HFCS, artificial sweeteners",
+      "Processed seed oils: canola, sunflower, safflower, corn, soybean",
+      "All processed/packaged foods, fast food, alcohol (strict paleo)",
+      "Scientific Sources & References",
+      "Lindeberg S et al. Palaeolithic diet and glucose tolerance. Diabetologia 2007",
+      "Frassetto LA et al. Metabolic improvements from paleolithic diet. Eur J Clin Nutr 2009",
+      "Manheimer EW et al. Paleolithic nutrition meta-analysis. AJCN 2015",
+      "Cordain L. The Paleo Diet. Wiley, 2002"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,650 kcal | 106g protein | 72g carbs | 98g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,620 kcal | 110g protein | 62g carbs | 96g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,600 kcal | 89g protein | 102g carbs | 90g fat",
+          "notes": [
+            "Target Macro Split: Carbs 25% | Fat 40% | Protein 35%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Clean Eating (Simple)",
+    "subtitle": "Whole foods, home cooking",
+    "category_tags": "Health  |  Tags: Beginner Friendly | Whole Foods | Sustainable",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: General consensus (NOVA classification)",
+    "about": [
+      "The simplest healthy eating approach: choose whole, minimally processed foods and cook at home. No macros, no elimination, no calorie counting. If the ingredient list is short and recognizable, it's fine.",
+      "Aligns with the NOVA classification system: eat mostly Group 1 (unprocessed/minimally processed) and Group 2 (culinary ingredients like olive oil), minimize Group 4 (ultra-processed).",
+      "Studies consistently show ultra-processed food consumption correlates with obesity, CVD, diabetes, depression, and all-cause mortality. Simply reducing UPF intake improves health markers without other changes.",
+      "Ideal for absolute beginners or anyone overwhelmed by complex dietary rules. Emphasis on food quality and home cooking rather than restricting nutrients or food groups."
+    ],
+    "howItWorks": [
+      "Choose foods with 5 or fewer recognizable ingredients (or no ingredient list — whole foods)",
+      "The grandmother test: if a 1950s grandmother wouldn't recognize it as food, skip it",
+      "Cook at least one meal at home every single day",
+      "Read labels on everything packaged: avoid artificial colors, preservatives, unpronounceable ingredients",
+      "Eat the rainbow — variety of colorful produce daily (different colors = different nutrients)",
+      "Water, tea, coffee as primary drinks. Eliminate sugary drinks and diet sodas",
+      "Daily Tracker Checklist (6 items)",
+      "Home-cooked meal today (at least one)",
+      "Labels checked on all packaged food",
+      "Avoided foods with 5+ ingredients or artificial additives",
+      "Colorful plate achieved (3+ colors of produce)",
+      "8 glasses of water consumed",
+      "No fast food or ultra-processed meals today"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Ultra-processed foods (NOVA Group 4): soft drinks, packaged snacks, instant noodles, frozen meals",
+      "Artificial sweeteners, colors, preservatives (aspartame, Red 40, BHT)",
+      "Foods with ingredient lists >5 items or unrecognizable names",
+      "Fast food chains",
+      "Refined white flour: white bread, pastries, commercial baked goods",
+      "Sugary beverages including juice from concentrate and diet soda",
+      "Scientific Sources & References",
+      "Monteiro CA et al. Ultra-processed foods: what they are. Public Health Nutr 2019",
+      "Srour B et al. Ultra-processed food and CVD risk. BMJ 2019;365:l1451",
+      "Hall KD et al. Ultra-Processed Diets and Weight Gain (NIH RCT). Cell Metab 2019",
+      "NOVA Food Classification System"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [
+      "CATEGORY: POPULAR"
+    ],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,330 kcal | 80g protein | 148g carbs | 36g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,360 kcal | 81g protein | 134g carbs | 40g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,430 kcal | 73g protein | 142g carbs | 46g fat",
+          "notes": [
+            "Target Macro Split: Carbs 50% | Fat 28% | Protein 22%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Balanced Plate Method",
+    "subtitle": "Simple visual portion guide",
+    "category_tags": "Popular  |  Tags: Beginner Friendly | No Counting | Visual",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Strong evidence (Harvard Healthy Eating Plate)",
+    "about": [
+      "The simplest evidence-based approach: divide your plate visually. Half vegetables/fruits, quarter protein, quarter whole grains. No counting, no scales — just your eyes and a plate.",
+      "Developed by Harvard T.H. Chan School of Public Health as a response to USDA MyPlate. Harvard felt MyPlate was too influenced by the food industry, especially regarding dairy requirements.",
+      "Naturally controls portions and calories without tracking. When half your plate is vegetables, you automatically eat fewer calories while getting more fiber, vitamins, and minerals. It's a behavioral strategy, not just nutritional.",
+      "EatSense's recommended starting point for new users. Many find this method alone sufficient for their goals."
+    ],
+    "howItWorks": [
+      "Half plate (50%): non-starchy vegetables and fruits — salad, broccoli, peppers, tomatoes, leafy greens",
+      "Quarter plate (25%): lean protein — chicken, fish, tofu, eggs, beans, lentils (palm-sized portion)",
+      "Quarter plate (25%): whole grains or starchy vegetables — brown rice, quinoa, sweet potato, oats",
+      "Add thumb-sized healthy fat: olive oil drizzle, quarter avocado, small handful of nuts",
+      "Fruit as dessert or part of veggie/fruit half. Whole fruit over juice",
+      "Water, tea, or coffee. Skip sugary drinks. Apply to every meal including breakfast",
+      "Daily Tracker Checklist (6 items)",
+      "Half plate vegetables/fruits at every meal",
+      "Quarter plate lean protein at every meal",
+      "Quarter plate whole grains at every meal",
+      "Healthy fat included (olive oil, avocado, or nuts)",
+      "Water as main drink (no sugary beverages)",
+      "Portion sizes respected (no oversized plates or seconds)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Oversized portions (one even layer, not piled high)",
+      "Skipping the vegetable half (biggest mistake people make)",
+      "Calorie-dense sauces/dressings (measure them)",
+      "Mindless snacking between meals",
+      "Drinking calories: sugary drinks, fancy coffees, juice",
+      "Treating starchy veg (potatoes, corn) as 'vegetables' — grain quarter",
+      "Scientific Sources & References",
+      "Harvard T.H. Chan School of Public Health — Healthy Eating Plate (2011)",
+      "USDA MyPlate Guidelines (comparison)",
+      "Rolls BJ. Volumetrics Eating Plan. HarperCollins, 2005",
+      "Romagnolo DF & Selmin OI. Mediterranean Diet and Chronic Disease. Nutr Today 2017"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [
+      "CATEGORY: MEDICAL"
+    ],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,490 kcal | 103g protein | 130g carbs | 52g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,480 kcal | 88g protein | 140g carbs | 54g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,490 kcal | 76g protein | 152g carbs | 52g fat",
+          "notes": [
+            "Target Macro Split: Carbs 45% | Fat 30% | Protein 25%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Keto Diet",
+    "subtitle": "Very low-carb, high-fat",
+    "category_tags": "Medical  |  Tags: Ketosis | Therapeutic | Fat Adapted",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Hard  |  Evidence: Strong evidence (epilepsy; moderate for weight loss)",
+    "about": [
+      "Very low-carbohydrate, high-fat diet shifting primary fuel from glucose to ketone bodies. Nutritional ketosis occurs at blood ketones 0.5-3.0 mmol/L, requiring strict carb restriction: 20-50g net carbs/day.",
+      "Originally developed in the 1920s at Mayo Clinic for epilepsy treatment. Now popular for weight loss and metabolic health. Clinical evidence supports improvements in epilepsy, short-term weight loss, and type 2 diabetes markers.",
+      "Long-term adherence is challenging — most studies show high dropout rates beyond 12 months. The 'keto flu' (fatigue, headache, irritability) is common during adaptation (weeks 1-2). Electrolyte supplementation is essential.",
+      "Medical considerations: people with kidney disease, liver disease, pancreatitis, or type 1 diabetes must consult their doctor before starting."
+    ],
+    "howItWorks": [
+      "Limit net carbs (total - fiber) to 20-50g/day. Track carefully, especially first 2 weeks",
+      "70-80% of daily calories from fat: avocado, olive oil, coconut oil, butter, nuts, cheese, fatty fish/meat",
+      "Moderate protein: 20-25% calories (excessive protein → glucose via gluconeogenesis)",
+      "Eliminate: all sugar, bread, pasta, rice, potatoes, most fruits. Berries in small amounts OK",
+      "Supplement electrolytes: 5-7g sodium/day, magnesium and potassium to prevent keto flu",
+      "Drink 3+ liters water daily — ketosis has diuretic effect, dehydration is #1 side effect",
+      "Daily Tracker Checklist (6 items)",
+      "Net carbs under 50g today (weighed and tracked)",
+      "Fat was primary energy source (70-80% calories)",
+      "Electrolytes supplemented (sodium, magnesium, potassium)",
+      "Adequate protein (not too much, not too little)",
+      "No sugar in any form consumed",
+      "Hydration: 3+ liters water"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "All sugar: table sugar, honey, maple, agave, candy (except 90%+ dark chocolate sparingly)",
+      "All grains: bread, pasta, rice, cereal, oats, corn, flour",
+      "Starchy vegetables: potatoes, sweet potatoes, corn, peas, butternut squash",
+      "Most fruits: bananas, apples, oranges, grapes, mango (small berries OK)",
+      "Legumes: beans, lentils, chickpeas, peanuts (PB sparingly)",
+      "Beer, cocktails, sweet wine. Dry wine/spirits in very limited amounts",
+      "Scientific Sources & References",
+      "Paoli A et al. Therapeutic uses of ketogenic diets. Eur J Clin Nutr 2013",
+      "Volek JS & Phinney SD. Art and Science of Low Carb Living. 2011",
+      "Neal EG et al. Ketogenic diet for childhood epilepsy RCT. Lancet Neurol 2008",
+      "Westman EC et al. Low-carb nutrition and metabolism. AJCN 2007"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,840 kcal | 118g protein | 20g net carbs | 146g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,820 kcal | 96g protein | 22g net carbs | 150g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,720 kcal | 106g protein | 24g net carbs | 134g fat",
+          "notes": [
+            "Target Macro Split: Carbs 5% | Fat 75% | Protein 20%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Low-FODMAP (Gut)",
+    "subtitle": "Gut-healing diet in phases",
+    "category_tags": "Medical  |  Tags: IBS Relief | Gut Health | Therapeutic",
+    "duration_level_evidence": "Duration: 42 days  |  Level: Hard  |  Evidence: Strong evidence (Monash University)",
+    "about": [
+      "Three-phase therapeutic elimination diet from Monash University for IBS management. FODMAP = Fermentable Oligosaccharides, Disaccharides, Monosaccharides And Polyols — poorly absorbed short-chain carbohydrates.",
+      "In clinical trials, 50-80% of IBS patients experience significant symptom improvement. Recommended as first-line dietary therapy by the British Dietetic Association and American Gastroenterological Association.",
+      "Phase 1: Elimination (2-6 weeks) removes all high-FODMAP foods. Phase 2: Reintroduction (6-8 weeks) tests one group at a time. Phase 3: Personalization (ongoing) avoids only identified triggers.",
+      "Critical: NOT a permanent diet. Elimination >6 weeks harms gut microbiome diversity. It's a diagnostic tool, not a lifestyle. Work with a FODMAP-trained dietitian for best results."
+    ],
+    "howItWorks": [
+      "Phase 1 (Wk 1-3): strictly avoid all high-FODMAP foods. Use Monash FODMAP app for safe portions",
+      "Phase 2 (Wk 4-6): test one FODMAP subgroup every 3 days (fructose, lactose, fructans, GOS, polyols)",
+      "Phase 3 (Wk 7+): personalized long-term diet avoiding only YOUR specific triggers",
+      "Keep detailed food + symptom diary every day — rate bloating, pain, gas, bowel habits 1-10",
+      "Eat enough fiber from safe sources (oats, rice, potatoes, banana, kiwi) to avoid constipation",
+      "Strongly recommended: work with FODMAP-trained dietitian. Self-guiding risks unnecessary restriction",
+      "Daily Tracker Checklist (6 items)",
+      "All high-FODMAP foods avoided today (Phase 1)",
+      "Food diary updated with all meals and portions",
+      "Symptom diary updated (bloating, pain, gas 1-10)",
+      "Adequate fiber from safe sources (oats, rice, banana)",
+      "Stress management practiced (stress worsens IBS)",
+      "Adequate hydration (2L+ water)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "High-fructose: apples, pears, watermelon, mango, honey, HFCS, agave",
+      "Lactose: regular milk, soft cheese, yogurt, ice cream (lactose-free OK)",
+      "Fructans: ONION, GARLIC (biggest triggers!), wheat, rye, artichoke",
+      "GOS: beans, lentils, chickpeas, soy milk, cashews, pistachios",
+      "Polyols: mushrooms, cauliflower, stone fruits, avocado (large), sugar-free gum",
+      "Note: garlic-INFUSED oil IS safe (fructans not oil-soluble). Garlic pieces are NOT safe",
+      "Scientific Sources & References",
+      "Halmos EP et al. Low FODMAP and IBS. Gastroenterology 2014;146:67-75",
+      "Monash University FODMAP Diet (gold standard reference & app)",
+      "Staudacher HM et al. Low FODMAP mechanisms. Gut 2017;66:1517-1527",
+      "British Dietetic Association Low FODMAP Systematic Review, 2016"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,440 kcal | 84g protein | 174g carbs | 38g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,330 kcal | 78g protein | 116g carbs | 44g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,420 kcal | 76g protein | 172g carbs | 38g fat",
+          "notes": [
+            "Target Macro Split: Carbs 52% | Fat 26% | Protein 22%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Gluten-Free",
+    "subtitle": "For celiac disease or gluten sensitivity",
+    "category_tags": "Medical  |  Tags: Celiac Safe | Allergen-Free | Therapeutic",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Moderate  |  Evidence: Strong evidence (essential for celiac)",
+    "about": [
+      "Completely eliminates gluten (protein in wheat, barley, rye). Medically essential for celiac disease (~1% of population), wheat allergy, and non-celiac gluten sensitivity.",
+      "For celiac patients, even trace amounts (10-50mg — a single breadcrumb) trigger autoimmune damage to intestinal villi, causing malabsorption and systemic symptoms.",
+      "Gluten hides everywhere: soy sauce (contains wheat), seasonings, salad dressings, medications, supplements, even cosmetics. Cross-contamination in shared kitchens is a major risk.",
+      "Focus on naturally GF whole foods (meat, fish, eggs, vegetables, fruit, nuts, rice, quinoa, buckwheat) rather than processed GF substitutes which are often high in sugar and refined starch."
+    ],
+    "howItWorks": [
+      "Eliminate completely: wheat (all forms), barley, rye, spelt, kamut, triticale",
+      "Oats: ONLY certified 'Gluten-Free' oats — regular oats are cross-contaminated",
+      "Read EVERY label: wheat, barley, rye, malt, brewer's yeast, modified food starch",
+      "Cross-contamination prevention: separate cutting boards, toaster, colander in shared kitchens",
+      "Safe grains: rice, quinoa, buckwheat, millet, corn, potato, sweet potato, tapioca, amaranth, teff",
+      "Prioritize naturally GF whole foods over processed GF products",
+      "Daily Tracker Checklist (6 items)",
+      "No gluten consumed (wheat, barley, rye checked)",
+      "Labels checked on ALL packaged food",
+      "Cross-contamination prevented (separate utensils)",
+      "Naturally GF whole foods prioritized over processed GF products",
+      "Adequate fiber intake (GF diets can be low in fiber)",
+      "Iron and B-vitamin intake monitored (common celiac deficiencies)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Wheat: bread, pasta, flour, couscous, bulgur, seitan (pure gluten!)",
+      "Barley: malt, malt vinegar, malt flavoring, many beers",
+      "Rye: rye bread, rye flour, some whiskeys",
+      "Regular oats (cross-contaminated) — only certified GF oats",
+      "Hidden: regular soy sauce, many dressings, gravies with flour, some medications",
+      "Cross-contaminated: shared fryers, shared toasters, bulk bins",
+      "Scientific Sources & References",
+      "Fasano A & Catassi C. Celiac Disease. NEJM 2012;367:2419-2426",
+      "Celiac Disease Foundation Guidelines (celiac.org)",
+      "Biesiekierski JR et al. Gluten and GI symptoms in non-celiac. AJCN 2011",
+      "Codex Alimentarius GF Standard (<20 ppm)"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [
+      "CATEGORY: WEIGHT LOSS"
+    ],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,430 kcal | 69g protein | 182g carbs | 40g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,540 kcal | 73g protein | 162g carbs | 52g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,440 kcal | 75g protein | 150g carbs | 46g fat",
+          "notes": [
+            "Target Macro Split: Carbs 52% | Fat 26% | Protein 22%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Low-Carb Diet",
+    "subtitle": "Reduced carbs for weight management",
+    "category_tags": "Weight Loss  |  Tags: Fat Loss | Blood Sugar Control | Satiety",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Moderate  |  Evidence: Strong evidence",
+    "about": [
+      "Moderate carb restriction (50-130g/day) between standard diet (~250-300g) and strict keto (<50g). Reduces blood sugar spikes, improves insulin sensitivity, promotes fat burning while being more sustainable than very low-carb.",
+      "The A TO Z Study (JAMA 2007) and DIRECT trial (NEJM 2008) showed low-carb produces equal or greater weight loss vs. low-fat, with better triglycerides and HDL cholesterol.",
+      "Particularly effective for insulin resistance, prediabetes, PCOS, metabolic syndrome. For insulin-sensitive, highly active individuals, the advantage over balanced diets may be smaller.",
+      "Unlike keto, does not require ketosis or tracking every gram. Fruits, some whole grains, and starchy vegetables are allowed. Practical for restaurants and long-term adherence."
+    ],
+    "howItWorks": [
+      "Limit total carbs to 50-130g/day (start 100g, adjust based on energy and results)",
+      "Protein at every meal: palm-sized portion. Protein improves satiety and preserves muscle",
+      "Non-starchy vegetables unlimited: leafy greens, broccoli, cauliflower, peppers, zucchini",
+      "Complex carbs when you eat them: sweet potato > bread, berries > bananas, quinoa > white rice",
+      "Healthy fats for satisfaction: olive oil, avocado, nuts. Don't go low-fat AND low-carb",
+      "Front-load carbs earlier in day or around exercise. Lower-carb dinner for sleep and blood sugar",
+      "Daily Tracker Checklist (6 items)",
+      "Total carbs under 130g today",
+      "Protein at every meal (palm-sized minimum)",
+      "Non-starchy vegetables at 3+ meals",
+      "No refined carbs (white bread, pastries, white rice)",
+      "Complex carbs chosen when carbs were eaten",
+      "Healthy fats included for satisfaction"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Bread, bagels, tortillas, baked goods",
+      "Pasta (use zucchini noodles or shirataki)",
+      "White rice and high-starch foods in large portions",
+      "Sugary foods: candy, cookies, cake, dried fruit",
+      "Fruit juice, soda, sweetened coffee, sports drinks",
+      "Cereal and granola (typically 40-60g carbs/serving)",
+      "Scientific Sources & References",
+      "Gardner CD et al. A TO Z Weight Loss Study. JAMA 2007;297:969-77",
+      "Shai I et al. DIRECT trial. NEJM 2008;359:229-41",
+      "Brehm BJ et al. Low-carb diet RCT. J Clin Endocrinol Metab 2003",
+      "Westman EC et al. Low-carb nutrition. AJCN 2007;86:276-84"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,430 kcal | 105g protein | 34g carbs | 96g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,430 kcal | 97g protein | 34g carbs | 98g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,460 kcal | 102g protein | 34g carbs | 100g fat",
+          "notes": [
+            "Target Macro Split: Carbs 20% | Fat 40% | Protein 40%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Intermittent Fasting 16:8",
+    "subtitle": "16h fast, 8h eating window",
+    "category_tags": "Weight Loss  |  Tags: Time-Restricted | Autophagy | Fat Burning",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Moderate  |  Evidence: Strong evidence (NEJM 2019)",
+    "about": [
+      "The most popular intermittent fasting pattern: eat within 8 hours, fast 16 (including sleep). Most skip breakfast, eating 12pm-8pm.",
+      "NEJM review (de Cabo & Mattson 2019) confirms IF improves insulin sensitivity, reduces inflammation, promotes autophagy, and may improve cardiovascular and brain health — partly independent of weight loss.",
+      "Naturally reduces caloric intake 10-20% without conscious restriction. Combined with metabolic fasting benefits, creates favorable fat loss conditions.",
+      "During fast: water, black coffee (no sugar/milk), plain tea. Artificial sweeteners are debated — some may trigger insulin response."
+    ],
+    "howItWorks": [
+      "Choose 8-hour window: most popular 12pm-8pm. Adjust to your schedule",
+      "16h fast: only water, black coffee, plain herbal tea. Zero calories",
+      "Break fast with protein + healthy fats first (eggs, salmon, avocado) — NOT sugar/carbs",
+      "Eat 2-3 quality meals within window. No calorie restriction needed but eat whole foods",
+      "Last meal 2-3 hours before bed for sleep quality",
+      "Stay consistent — adaptation takes 1-2 weeks. Morning hunger disappears",
+      "Daily Tracker Checklist (6 items)",
+      "16-hour fast maintained (no calories consumed)",
+      "No calories during fast (no milk in coffee, no sugar)",
+      "First meal included protein + healthy fats",
+      "Quality whole foods in eating window",
+      "Adequate water during fast (2L+ minimum)",
+      "Last meal finished 2-3h before bed"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Any calories during fast — even splash of milk breaks it",
+      "Breaking fast with sugar/simple carbs (pastries, juice, cereal)",
+      "Late-night eating past window",
+      "Overcompensating with excess food in window",
+      "Sugary drinks and alcohol in window",
+      "Chewing gum with sugar during fast",
+      "Scientific Sources & References",
+      "de Cabo R & Mattson MP. Intermittent Fasting. NEJM 2019;381:2541-2551",
+      "Sutton EF et al. Early TRF and insulin. Cell Metab 2018;27:1212-1221",
+      "Tinsley GM & La Bounty PM. IF and body composition. JISSN 2015;12:1-8",
+      "Anton SD et al. Metabolic switching. Obesity 2018;26:254-268"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,700 kcal | 111g protein | 98g carbs | 88g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,640 kcal | 120g protein | 114g carbs | 62g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,660 kcal | 99g protein | 122g carbs | 66g fat",
+          "notes": [
+            "Target Macro Split: Carbs 35% | Fat 35% | Protein 30%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "14:10 Eating Window",
+    "subtitle": "Gentle fasting: 14h fast, 10h window",
+    "category_tags": "Weight Loss  |  Tags: Beginner Fasting | Gentle | Sustainable",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Easy  |  Evidence: Moderate evidence (Wilkinson 2020)",
+    "about": [
+      "Gentler time-restricted eating: 14h overnight fast, 10h window. Many people are already close to this naturally (8am-6pm). Ideal IF starting point.",
+      "Wilkinson et al. (Cell Metab 2020) found 10-hour eating window improved metabolic markers: reduced body weight, blood pressure, LDL, HbA1c in metabolic syndrome patients — without changing WHAT they ate.",
+      "Benefit comes from extending overnight fast enough to improve insulin sensitivity and allow more 'repair mode' time. Most fasting happens during sleep, making this extremely practical.",
+      "Designed as stepping stone — users comfortable after 2-3 weeks can optionally progress to 16:8. But 14:10 alone provides meaningful benefits."
+    ],
+    "howItWorks": [
+      "Choose 10-hour window: e.g., 8am-6pm or 9am-7pm",
+      "14h fast (mostly overnight): water, herbal tea, black coffee only",
+      "Eat 3 balanced meals within window — no need to skip breakfast",
+      "Food quality focus: works even without changing what you eat, but whole foods amplify results",
+      "Consistent timing daily to align with circadian rhythm",
+      "After 2-3 weeks, optionally narrow to 12h, then 10h, then 8h window",
+      "Daily Tracker Checklist (6 items)",
+      "Eating window respected (all food within 10 hours)",
+      "No late-night eating after window",
+      "3 balanced meals within window",
+      "Adequate hydration (2L+ water)",
+      "No calorie drinks outside window",
+      "Consistent meal timing maintained"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Eating outside 10-hour window (especially late-night snacking)",
+      "Calorie drinks after window closes",
+      "Irregular schedules (shifting window daily reduces benefit)",
+      "Skipping meals to 'save calories'",
+      "Excessive caffeine late in day (coffee before 2pm)",
+      "Compensatory overeating ('window closing soon' panic)",
+      "Scientific Sources & References",
+      "Wilkinson MJ et al. Ten-Hour TRE. Cell Metab 2020;31:92-104",
+      "Longo VD & Panda S. Fasting, Circadian Rhythms, TRF. Cell Metab 2016",
+      "Chaix A et al. TRF as preventative intervention. Cell Metab 2014",
+      "Panda S. The Circadian Code. Rodale Books, 2018"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,550 kcal | 79g protein | 150g carbs | 64g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,450 kcal | 86g protein | 150g carbs | 52g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,420 kcal | 71g protein | 158g carbs | 48g fat",
+          "notes": [
+            "Target Macro Split: Carbs 45% | Fat 30% | Protein 25%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Whole30 (Inspired)",
+    "subtitle": "30-day elimination reset",
+    "category_tags": "Weight Loss  |  Tags: Elimination | Reset | Discipline",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Hard  |  Evidence: Anecdotal / elimination diet evidence",
+    "about": [
+      "Strict 30-day elimination removing sugar, alcohol, grains, legumes, soy, dairy, and additives. Created by Melissa Hartwig Urban to reset eating habits and identify food sensitivities.",
+      "Not primarily about weight loss — designed to break sugar addiction, eliminate mindless snacking, understand food triggers, and discover how foods make you feel.",
+      "Rules are absolute: any restricted food requires restarting from Day 1. 'No recreating junk food with approved ingredients' rule prevents psychological loopholes (no paleo pancakes).",
+      "After Day 30: structured reintroduction adds back one food group every 2-3 days while monitoring body response. This phase is as important as elimination."
+    ],
+    "howItWorks": [
+      "No sugar of any kind: table sugar, honey, maple, stevia, agave, artificial sweeteners — all eliminated",
+      "No alcohol — not even for cooking (wine in sauce, beer batter)",
+      "No grains: wheat, rice, oats, corn, quinoa, buckwheat — all eliminated",
+      "No legumes: beans, lentils, chickpeas, peanuts, soy (tofu, tempeh, soy sauce)",
+      "No dairy: milk, cheese, yogurt, butter, cream. Clarified butter (ghee) IS allowed",
+      "No recreating banned foods with approved ingredients. After Day 30: structured reintroduction",
+      "Daily Tracker Checklist (6 items)",
+      "No sugar today (including honey, maple, stevia, artificial)",
+      "No alcohol (including in cooking)",
+      "No grains (wheat, rice, oats, corn, quinoa)",
+      "No dairy or soy",
+      "No legumes (beans, lentils, peanuts)",
+      "All labels checked (sugar and soy hide everywhere)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "ALL sugar and sweeteners: table sugar, honey, maple, stevia, monk fruit, aspartame",
+      "ALL alcohol: wine, beer, spirits, cooking wine, vanilla extract with alcohol",
+      "ALL grains: wheat, rice, oats, corn, quinoa, buckwheat, millet",
+      "ALL dairy: milk, cheese, yogurt, butter (ghee OK), cream, whey protein",
+      "ALL legumes: beans, chickpeas, lentils, peanuts, PB, soy in all forms",
+      "Carrageenan, MSG, sulfites. No 'paleo treats' recreating banned foods",
+      "Scientific Sources & References",
+      "Hartwig Urban M. The Whole30. Houghton Mifflin Harcourt, 2015",
+      "Whole30.com Official Program Rules",
+      "Elimination diet principles: Brostoff J & Gamlin L. Food Allergies and Intolerance. 2000",
+      "Note: Whole30 is trademarked. EatSense implementation is 'inspired by' the methodology"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [
+      "CATEGORY: PERFORMANCE"
+    ],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,600 kcal | 92g protein | 106g carbs | 82g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,540 kcal | 106g protein | 74g carbs | 84g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,500 kcal | 82g protein | 104g carbs | 80g fat",
+          "notes": [
+            "Target Macro Split: Carbs 28% | Fat 45% | Protein 27%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "High-Protein Cut",
+    "subtitle": "High protein, fat loss, muscle preservation",
+    "category_tags": "Performance  |  Tags: Muscle Preservation | Fat Loss | Sports",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Moderate  |  Evidence: Strong evidence (Phillips, Helms, JISSN)",
+    "about": [
+      "Structured caloric deficit prioritizing protein (1.6-2.2g/kg) to preserve muscle during fat loss. The evidence-based approach for body recomposition used by physique athletes.",
+      "Phillips et al. (2016) and Helms et al. (2014) established optimal protein targets during deficit. Higher protein increases satiety, has 25-30% thermic effect, and reduces muscle loss risk.",
+      "Moderate deficit of 300-500 kcal below TDEE. Aggressive deficits (>750 kcal) increase muscle loss regardless of protein. Target 0.5-1.0% BW loss per week.",
+      "REQUIRES resistance training. Deficit + high protein WITHOUT lifting still causes significant muscle loss. All three combined is what makes cuts effective."
+    ],
+    "howItWorks": [
+      "Calculate TDEE, subtract 300-500 calories for daily target",
+      "Protein: 1.6-2.2g/kg bodyweight daily. For 75kg = 120-165g protein/day",
+      "Distribute protein across 4-5 meals (25-40g each) for optimal muscle protein synthesis",
+      "Largest carb intake around workouts: pre-workout (2h before) and post-workout (within 1h)",
+      "Don't cut fat below 20% total calories — hormones require adequate fat",
+      "Weekly refeed at maintenance calories (higher carbs) to prevent metabolic adaptation",
+      "Daily Tracker Checklist (6 items)",
+      "Protein target hit (1.8g+/kg bodyweight)",
+      "Caloric deficit maintained (300-500 below TDEE)",
+      "4+ protein meals consumed (evenly distributed)",
+      "Pre/post workout nutrition completed",
+      "Adequate sleep (7+ hours — critical during deficit)",
+      "Resistance training session completed"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Alcohol — impairs muscle protein synthesis by up to 37%",
+      "Calorie-dense sauces (200-500 hidden calories)",
+      "Skipping meals — uneven protein distribution increases muscle breakdown",
+      "Aggressive deficit >500 calories (accelerates muscle loss)",
+      "Low-protein meals (<20g) — wasted muscle opportunity",
+      "Relying on cardio alone without resistance training",
+      "Scientific Sources & References",
+      "Phillips SM et al. Protein and muscle retention during deficit. AJCN 2016",
+      "Helms ER et al. Protein during caloric restriction. JISSN 2014;11:20",
+      "Jager R et al. ISSN Position Stand: protein and exercise. JISSN 2017;14:20",
+      "Mero AA. Protein and muscle. J Sports Sci 1999"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,590 kcal | 178g protein | 136g carbs | 28g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,480 kcal | 146g protein | 122g carbs | 36g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,520 kcal | 132g protein | 164g carbs | 28g fat",
+          "notes": [
+            "Target Macro Split: Carbs 30% | Fat 18% | Protein 52%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Flexible Dieting (IIFYM)",
+    "subtitle": "Hit your macros, flexible food choices",
+    "category_tags": "Performance  |  Tags: Macro Counting | Flexible | Sports",
+    "duration_level_evidence": "Duration: 30 days  |  Level: Moderate  |  Evidence: Strong evidence (Aragon & Schoenfeld, JISSN)",
+    "about": [
+      "If It Fits Your Macros — no food is forbidden if you hit daily protein, carb, and fat targets. Body doesn't distinguish 50g carbs from sweet potato vs. cookie at the macro level.",
+      "Aragon & Schoenfeld (2014) confirmed no significant body composition difference between 'clean' and 'flexible' dieting when calories and macros are matched.",
+      "80/20 approach: 80% whole foods (micronutrients, fiber, health), 20% whatever you want (enjoyment, sustainability). Prevents binge-restrict cycle.",
+      "Requires accurate tracking — weigh food on kitchen scale and log everything. Discipline is in tracking, not food selection."
+    ],
+    "howItWorks": [
+      "Calculate TDEE, set target based on goal (deficit/surplus/maintenance)",
+      "Set protein first: 1.6-2.2g/kg athletes, 1.2-1.6g/kg general fitness. Non-negotiable",
+      "Set fat minimum: 20-30% total calories (hormones, cell function)",
+      "Fill remaining calories with carbs (fuel training performance)",
+      "Track everything in EatSense: weigh food, scan barcodes, log every bite",
+      "80/20 rule: 80% whole foods, 20% whatever fits your macros",
+      "Daily Tracker Checklist (6 items)",
+      "All macros hit within 5g of target",
+      "Every food weighed and logged accurately",
+      "80/20 rule followed (majority whole foods)",
+      "Protein target met (highest priority)",
+      "Training performance maintained/improved",
+      "Weekly body weight and measurements tracked"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Guessing portions — weigh everything (first 4-8 weeks minimum)",
+      "Ignoring fiber (aim 25g+/day from whole foods)",
+      "100% junk food even if it 'fits' — micronutrients matter",
+      "Eating-back exercise calories (track separately)",
+      "Comparing your macros to others (individual needs vary)",
+      "Obsessing over daily fluctuations — track weekly trends",
+      "Scientific Sources & References",
+      "Aragon AA & Schoenfeld BJ. Macros and body composition. JISSN 2014;11:36",
+      "Helms ER et al. Natural bodybuilding recommendations. JISSN 2014;11:20",
+      "Stewart TM et al. Rigid vs. flexible dieting. Appetite 2002;38:39-44",
+      "Linardon J. Flexible control and disordered eating. Eat Behav 2017"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,730 kcal | 114g protein | 190g carbs | 52g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,690 kcal | 118g protein | 170g carbs | 54g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,540 kcal | 112g protein | 152g carbs | 48g fat",
+          "notes": [
+            "Target Macro Split: Carbs 42% | Fat 26% | Protein 32% (adjustable)"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Lean Bulk",
+    "subtitle": "Build muscle without the fat",
+    "category_tags": "Performance  |  Tags: Muscle Gain | Bulking | Performance",
+    "duration_level_evidence": "Duration: 14 days  |  Level: Moderate  |  Evidence: Strong evidence (Slater, Iraki, JISSN)",
+    "about": [
+      "Strategic caloric surplus (200-350 above TDEE) to maximize muscle gain while minimizing fat. Unlike dirty bulking, lean bulk optimizes the muscle-to-fat ratio.",
+      "Slater et al. (2019): weight gain should not exceed 0.25-0.5% BW/week for trained individuals. Faster gain = more fat, not more muscle. For 75kg person: 0.2-0.4kg/week.",
+      "Progressive overload is non-negotiable: without increasing training volume/intensity, extra calories become fat. Surplus provides energy; training provides stimulus.",
+      "14-day program — lean bulking in short structured phases with regular assessment. After 14 days: gaining too fast? Reduce surplus. Too slow? Increase."
+    ],
+    "howItWorks": [
+      "TDEE + 200-350 calories (not more). More surplus = more fat, not more muscle",
+      "Protein: 1.6-2.2g/kg bodyweight daily — same target as cutting",
+      "Carbs are training fuel: fill most surplus with carbs, especially around workouts",
+      "Largest meals pre-workout (2-3h before) and post-workout (within 1h)",
+      "Progressive overload mandatory: track every workout, add reps or weight weekly",
+      "Weigh daily (morning, fasted), track weekly average. >0.5% BW/week → reduce surplus",
+      "Daily Tracker Checklist (6 items)",
+      "Protein target hit (1.8g+/kg)",
+      "Caloric surplus maintained (200-350 above TDEE)",
+      "Pre-workout meal eaten (2-3h before)",
+      "Post-workout nutrition consumed (protein + carbs within 1h)",
+      "Resistance training with progressive overload",
+      "Weekly average weight tracked (daily weigh-ins)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Dirty bulking: eating everything leads to excess fat requiring longer cut",
+      "Skipping training sessions: without stimulus, surplus = fat",
+      "Excessive surplus (>500 above TDEE): max muscle growth rate is ~0.5-1kg/month",
+      "Alcohol: impairs muscle protein synthesis by up to 37%",
+      "Ignoring the scale: >0.5% BW/week = reduce intake",
+      "Cutting all cardio: 2-3 light sessions/week supports heart health and nutrient partitioning",
+      "Scientific Sources & References",
+      "Slater GJ et al. Energy surplus and hypertrophy. J Sports Sci 2019;37:2560-2570",
+      "Iraki J et al. Off-season bodybuilding nutrition. JISSN 2019;16:1-14",
+      "Schoenfeld BJ et al. Protein per meal for muscle. JISSN 2018;15:10",
+      "Ribeiro AS et al. Resistance training and health markers. Age 2015"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [
+      "BUG / Implementation Note",
+      "BUG: Tag 'diets.tags.bulk' shows raw i18n key. Daily Tracker has only 1 item. Fix both.",
+      "CATEGORY: SEASONAL"
+    ],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 2,400 kcal | 176g protein | 254g carbs | 64g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 2,340 kcal | 168g protein | 220g carbs | 78g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 2,160 kcal | 144g protein | 220g carbs | 70g fat",
+          "notes": [
+            "Target Macro Split: Carbs 45% | Fat 24% | Protein 31%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Summer Fresh",
+    "subtitle": "Fresh summer eating plan",
+    "category_tags": "Seasonal  |  Tags: Seasonal | Hydrating | Light",
+    "duration_level_evidence": "Duration: 14 days  |  Level: Easy  |  Evidence: Seasonal nutrition principles",
+    "about": [
+      "Light, hydrating meals for hot summer. Built around peak-season produce: berries, stone fruits, tomatoes, zucchini, watermelon, cucumbers, peppers, herbs.",
+      "Summer eating naturally shifts to raw/cold preparations: salads, smoothie bowls, gazpacho, ceviche, grilled foods. These preserve nutrients and keep the kitchen cool.",
+      "Hydration is core focus. Summer fluid needs increase 50-100%. High-water-content foods (watermelon 92% water, cucumber 96%) supplement drinking water.",
+      "Calories intentionally lighter — heat reduces appetite and body needs fewer calories for temperature regulation. Increase portions if very active."
+    ],
+    "howItWorks": [
+      "Hydrating foods every meal: cucumber, watermelon, tomatoes, zucchini, berries, citrus",
+      "Lighter portions — respect reduced summer appetite. 3 light meals + snacks",
+      "Raw/cold preparations: salads, smoothie bowls, gazpacho, cold soups, poke",
+      "Grill instead of oven/stove — flavor without heating kitchen",
+      "Seasonal berries and stone fruits daily at peak nutrition",
+      "Hydration: 3+ liters water/day. Add electrolytes if sweating heavily",
+      "Daily Tracker Checklist (6 items)",
+      "3+ liters water consumed",
+      "Seasonal summer fruit in meals",
+      "Light, hydrating meal consumed",
+      "Raw or lightly cooked vegetables included",
+      "No heavy fried or cream-based dishes",
+      "Outdoor activity or movement completed"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Heavy cream sauces and rich dishes",
+      "Large hot meals (stews, casseroles, heavy baked pasta)",
+      "Dehydrating alcohol (alternate 1:1 with water if drinking)",
+      "Excessive caffeine (increases dehydration in heat)",
+      "Sugary frozen drinks (frappuccinos, slushies, chain smoothies)",
+      "Ignoring dehydration signs: dark urine, headache, fatigue",
+      "Scientific Sources & References",
+      "USDA Seasonal Produce Guide — Summer",
+      "Popkin BM et al. Water, hydration, health. Nutr Rev 2010",
+      "EFSA Dietary Reference Values for Water (2010)",
+      "Seasonal Mediterranean cuisine patterns"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,200 kcal | 60g protein | 144g carbs | 34g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,110 kcal | 44g protein | 130g carbs | 32g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,250 kcal | 67g protein | 122g carbs | 40g fat",
+          "notes": [
+            "Target Macro Split: Carbs 50% | Fat 26% | Protein 24%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Winter Warmth",
+    "subtitle": "Warming winter eating plan",
+    "category_tags": "Seasonal  |  Tags: Seasonal | Comfort | Immune Support",
+    "duration_level_evidence": "Duration: 21 days  |  Level: Easy  |  Evidence: Seasonal & immune support principles",
+    "about": [
+      "Nourishing meals for cold months: root vegetables, squash, citrus, dark leafy greens, warming spices. Soups, stews, roasted dishes that fuel the body through shorter, darker days.",
+      "Immune support is key: vitamin C (citrus, bell peppers, kiwi), zinc (meat, pumpkin seeds), vitamin D (fatty fish, eggs — critical in low-sunlight months), probiotics (fermented foods).",
+      "Calories slightly higher than summer — body expends more energy maintaining core temperature. Hearty winter meals provide the fuel needed.",
+      "Vitamin D supplementation recommended above 40th latitude (most of Europe) November through March."
+    ],
+    "howItWorks": [
+      "Warming spices daily: ginger, turmeric, cinnamon, cayenne, black pepper, cumin, cardamom",
+      "Root vegetables as staples: sweet potato, parsnips, carrots, beets, turnips, celeriac",
+      "Soups and stews as main meals 3-4x/week — nutrient-dense, warming, easy to batch cook",
+      "Citrus daily for vitamin C: oranges, grapefruit, clementines, lemons",
+      "Warm breakfasts every morning: porridge, warm eggs, sauteed greens",
+      "Vitamin D: fatty fish 2-3x/week, eggs, and consider 1000-2000 IU supplement",
+      "Daily Tracker Checklist (6 items)",
+      "Warming spices used in at least one meal",
+      "Root vegetables in at least one meal",
+      "Citrus fruit consumed for vitamin C",
+      "Soup, stew, or warm dish as main meal",
+      "Vitamin D source included (fish, eggs, or supplement)",
+      "Warm breakfast eaten (not cold cereal)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Cold salads as main meals (eat as sides; warm dishes more satiating)",
+      "Excessive holiday sweets (enjoy occasionally, not daily)",
+      "Skipping vitamin D (insufficient sunlight Nov-March in Northern Europe)",
+      "Dehydration (cold reduces thirst but fluid needs remain — drink warm water/tea)",
+      "High-calorie but low-nutrient comfort food (white bread, pastries, fried)",
+      "Ignoring SAD: combine nutrition with light therapy, exercise, social connection",
+      "Scientific Sources & References",
+      "NIH Vitamin D Fact Sheet for Health Professionals (2023)",
+      "Martineau AR et al. Vitamin D and respiratory infections. BMJ 2017",
+      "USDA Seasonal Produce Guide — Winter",
+      "EFSA Vitamin D Tolerable Upper Intake (2012)"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,480 kcal | 61g protein | 172g carbs | 50g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,460 kcal | 81g protein | 108g carbs | 68g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,530 kcal | 65g protein | 176g carbs | 52g fat",
+          "notes": [
+            "Target Macro Split: Carbs 50% | Fat 28% | Protein 22%"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "Autumn Harvest",
+    "subtitle": "Seasonal autumn eating",
+    "category_tags": "Seasonal  |  Tags: Seasonal | Harvest | Transitional",
+    "duration_level_evidence": "Duration: 21 days  |  Level: Easy  |  Evidence: Seasonal nutrition principles",
+    "about": [
+      "Celebrates the autumn harvest — transitioning from summer's light meals to winter's warming comfort. Peak-season produce: pumpkin, squash, apples, pears, Brussels sprouts, mushrooms, cranberries, figs, nuts.",
+      "Autumn is nature's immune preparation peak: mushrooms (vitamin D, beta-glucans), apples (quercetin, fiber), pumpkin (beta-carotene), cruciferous vegetables (sulforaphane).",
+      "Transitions cooking methods: raw salads to roasting, sauteing, slow-cooking. Roasting caramelizes natural sugars making vegetables deeply satisfying without added sugar.",
+      "Warming spices become prominent: cinnamon (insulin sensitivity), ginger (anti-inflammatory), clove (highest antioxidant spice)."
+    ],
+    "howItWorks": [
+      "Pumpkin/squash as weekly staples: butternut, acorn, delicata — in soups, roasted, or sides",
+      "Apples and pears daily (peak season = maximum nutrition). Eat whole with skin for fiber",
+      "Mushrooms 3-4x/week: shiitake, cremini, portobello, chanterelle. Natural vitamin D source",
+      "Transition cooking: shift from raw salads to roasted, sauteed, slow-cooked dishes",
+      "Warming spices daily: cinnamon in oatmeal, ginger in stir-fries, nutmeg in soups",
+      "Begin immune prep: vitamin C (Brussels sprouts, peppers), zinc (pumpkin seeds, meat), vitamin D (mushrooms, fish)",
+      "Daily Tracker Checklist (6 items)",
+      "Seasonal autumn produce used (squash, apples, mushrooms)",
+      "Mushrooms consumed (3-4x/week target)",
+      "Apple or pear eaten today (whole, with skin)",
+      "Warming spices in at least one meal",
+      "Home-cooked roasted or slow-cooked meal",
+      "Vitamin C source consumed (Brussels sprouts, peppers, citrus)"
+    ],
+    "dailyTracker": [],
+    "macroSplit": "",
+    "avoidList": [
+      "Out-of-season imported berries (low quality in autumn — use frozen)",
+      "Excessive pumpkin spice lattes (300-500 kcal sugar — not real pumpkin)",
+      "Halloween candy binges (enjoy mindfully, not the whole bag)",
+      "Heavy cream-based 'autumn' recipes (save for occasional treats)",
+      "Ignoring seasonal transition (stop forcing cold salads when body craves warm food)",
+      "Processed apple products: juice, sauce with sugar — eat whole apples",
+      "Scientific Sources & References",
+      "USDA Seasonal Produce Guide — Autumn",
+      "Cardwell G et al. Mushrooms as Vitamin D Source. Nutrients 2018",
+      "Khan N et al. Cinnamon: Multifaceted Medicinal Plant. ECAM 2014",
+      "European harvest tradition and seasonal eating principles"
+    ],
+    "sources": [],
+    "weeklyShoppingList": [
+      "Implementation Notes",
+      "All text in English — translations handled separately",
+      "About → 'About' card in diet detail screen",
+      "How It Works → bullet point card",
+      "Daily Tracker → checkbox items under 'Daily Tracker Preview'",
+      "Day 1/2/3 → meal cards (Breakfast/Lunch/Dinner/Snack with kcal). Show Day 1 as preview, Days 2-3 unlock with 'Start Program'",
+      "Tags → colored tag chips at bottom of detail screen",
+      "Avoid List → new section or within How It Works",
+      "Sources → 'View scientific sources & references' link",
+      "Shopping List → new feature: show when user taps 'Start Program' or as separate tab",
+      "Fix Lean Bulk bug: 'diets.tags.bulk' → translated tag. Expand tracker to 6 items.",
+      "EatSense | Geneva, Switzerland | February 2026"
+    ],
+    "previewDays": {
+      "Day1": [
+        {
+          "nutrition": "Day 1 Total: 1,440 kcal | 60g protein | 174g carbs | 46g fat"
+        }
+      ],
+      "Day2": [
+        {
+          "nutrition": "Day 2 Total: 1,450 kcal | 64g protein | 168g carbs | 48g fat"
+        }
+      ],
+      "Day3": [
+        {
+          "nutrition": "Day 3 Total: 1,480 kcal | 74g protein | 120g carbs | 62g fat",
+          "notes": [
+            "Target Macro Split: Carbs 50% | Fat 28% | Protein 22%"
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -52,8 +52,8 @@ export class DashboardService {
                     this.logger.error(`Failed to get user stats: ${e.message}`);
                     return { totalPhotosAnalyzed: 0, todayPhotosAnalyzed: 0, dailyLimit: 3 };
                 })),
-                timed('activeDiet', () => this.dietsService.getActiveDiet(userId, locale, true).catch(e => null)),
-                timed('todayTracker', () => this.dietsService.getTodayTracker(userId, locale).catch(e => null)),
+                timed('activeDiet', () => this.dietsService.getActiveDiet(userId, locale, true).catch(_e => null)),
+                timed('todayTracker', () => this.dietsService.getTodayTracker(userId, locale).catch(_e => null)),
             ]);
 
             // Calculate stats from meals (already loaded) + get goals from userProfile

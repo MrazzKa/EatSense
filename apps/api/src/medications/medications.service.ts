@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
@@ -17,7 +17,6 @@ export class MedicationsService {
    */
   async getDueToday(userId: string, timezone: string = 'UTC') {
     const now = DateTime.now().setZone(timezone);
-    const currentTime = now.toFormat('HH:mm');
 
     let medications;
     try {
@@ -203,9 +202,8 @@ export class MedicationsService {
     const calculatedRemainingStock = remainingStock;
 
     // Обновляем сам Medication
-    let updated;
     try {
-      updated = await this.prisma.medication.update({
+      await this.prisma.medication.update({
         where: { id: existing.id },
         data: {
           ...('name' in rest && rest.name !== undefined ? { name: rest.name } : {}),

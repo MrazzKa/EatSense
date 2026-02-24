@@ -86,7 +86,7 @@ export class ReferralsService {
         return referrals;
     }
 
-    private generateCode(userId: string): string {
+    private generateCode(_userId: string): string {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = '';
         for (let i = 0; i < 6; i++) {

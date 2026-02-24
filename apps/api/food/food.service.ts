@@ -341,6 +341,7 @@ export class FoodService {
       const weight = item?.gramsMean ?? item?.weight ?? 100;
 
       // Generate id for legacy items
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const crypto = require('crypto');
       return {
         id: item?.id || crypto.randomUUID(),
@@ -455,7 +456,6 @@ export class FoodService {
     // BUG 8: Get locale from analysis data for localization
     const locale = raw.locale || 'en';
     const withWord = locale === 'ru' ? 'с' : locale === 'kk' ? 'менен' : locale === 'fr' ? 'avec' : 'with';
-    const andMore = locale === 'ru' ? 'и другое' : locale === 'kk' ? 'және басқалары' : locale === 'fr' ? 'et plus' : 'and more';
 
     // Prefer localized dish name if available, otherwise fall back to original / derived
     const dishName =
@@ -736,7 +736,6 @@ export class FoodService {
     const imageUrl = metadata?.imageUrl;
     const textQuery = metadata?.textQuery;
     const locale = metadata?.locale || 'en';
-    const region = metadata?.region;
 
     if (!imageUrl && !textQuery) {
       throw new BadRequestException('Original analysis input (image or text) not found');
@@ -956,8 +955,8 @@ export class FoodService {
       };
     });
 
-    // 4. Пересчитываем totals + healthScore + feedback
-    const { totals, healthScore, feedback } =
+    // 4. Пересчитываем totals + healthScore
+    const { totals, healthScore } =
       await this.recalculateAnalysisFromItems(updatedItems, analysis);
 
     const metadata = (analysis.metadata || {}) as any;
@@ -972,7 +971,7 @@ export class FoodService {
     };
 
     // 5. Создаём новый AnalysisResult
-    const newResult = await this.prisma.analysisResult.create({
+    await this.prisma.analysisResult.create({
       data: {
         analysisId: analysis.id,
         data: newData as any,
@@ -1020,8 +1019,8 @@ export class FoodService {
     const previousData = (lastResult.data || {}) as unknown as AnalysisData;
     const items = previousData.items || [];
 
-    // Пересчитываем totals + healthScore + feedback
-    const { totals, healthScore, feedback } =
+    // Пересчитываем totals + healthScore
+    const { totals, healthScore } =
       await this.recalculateAnalysisFromItems(items, analysis);
 
     const metadata = (analysis.metadata || {}) as any;
@@ -1035,7 +1034,7 @@ export class FoodService {
     };
 
     // Создаём новый AnalysisResult
-    const newResult = await this.prisma.analysisResult.create({
+    await this.prisma.analysisResult.create({
       data: {
         analysisId: analysis.id,
         data: newData as any,

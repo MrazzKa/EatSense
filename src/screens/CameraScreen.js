@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 import Reanimated, {
   useSharedValue,
   useAnimatedProps
@@ -32,6 +33,10 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState('back');
   const [flashMode, setFlashMode] = useState('off');
   const [showDescribeModal, setShowDescribeModal] = useState(false);
+
+  // Camera always has black background — text/icons must always be white
+  // regardless of theme (dark theme has onPrimary: '#0B1120' which is invisible on black)
+  const CAM_TEXT = '#FFFFFF';
 
   // Reanimated Zoom State
   const zoom = useSharedValue(0);
@@ -193,6 +198,53 @@ export default function CameraScreen() {
     setShowDescribeModal(false);
   };
 
+  const handleGalleryPick = async () => {
+    try {
+      let perm = await ImagePicker.getMediaLibraryPermissionsAsync();
+      if (!perm.granted && perm.canAskAgain) {
+        perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 1,
+        selectionLimit: 1,
+        exif: false,
+      });
+
+      if (result.canceled || !result.assets?.[0]) return;
+
+      setIsLoading(true);
+      const asset = result.assets[0];
+      let compressed = asset;
+      if (ImageManipulator && typeof ImageManipulator.manipulateAsync === 'function') {
+        try {
+          compressed = await ImageManipulator.manipulateAsync(
+            asset.uri,
+            [{ resize: { width: 1600 } }],
+            { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+          );
+        } catch {
+          compressed = asset;
+        }
+      }
+      await startAnalysis(compressed.uri);
+    } catch (error) {
+      console.error('[CameraScreen] Gallery error:', error);
+      if (error?.response?.status === 429 || error?.status === 429) {
+        Alert.alert(
+          t('errors.limitReachedTitle') || 'Daily Limit Reached',
+          t('errors.limitReachedMessage') || 'You have reached your daily scan limit.'
+        );
+      } else {
+        Alert.alert(t('common.error') || 'Error', t('errors.galleryFailed') || 'Failed to open gallery.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const startAnalysis = useCallback(async (imageUri) => {
     if (!imageUri) return;
 
@@ -229,6 +281,16 @@ export default function CameraScreen() {
       }
     } catch (error) {
       console.error('[CameraScreen] Error starting background analysis:', error);
+      if (error?.response?.status === 429 || error?.status === 429) {
+        Alert.alert(
+          t('errors.limitReachedTitle') || 'Daily Limit Reached',
+          t('errors.limitReachedMessage') || 'You have reached your daily scan limit. Upgrade to get unlimited scans.'
+        );
+        if (navigation && typeof navigation.navigate === 'function') {
+          navigation.navigate('MainTabs', { screen: 'Dashboard' });
+        }
+        return;
+      }
       // On error, still navigate to dashboard - user can retry
       if (navigation && typeof navigation.navigate === 'function') {
         navigation.navigate('MainTabs', { screen: 'Dashboard' });
@@ -312,9 +374,9 @@ export default function CameraScreen() {
                 style={[styles.header, { paddingTop: tokens.spacing.lg }]}
               >
                 <Pressable style={styles.headerButton} onPress={typeof handleClose === 'function' ? handleClose : () => { }}>
-                  <Ionicons name="close" size={24} color={tokens.colors.onPrimary} />
+                  <Ionicons name="close" size={24} color={CAM_TEXT} />
                 </Pressable>
-                <Text style={[styles.headerTitle, { color: tokens.colors.onPrimary }]}>{t('camera.takePhoto')}</Text>
+                <Text style={[styles.headerTitle, { color: CAM_TEXT }]}>{t('camera.takePhoto')}</Text>
                 <View style={styles.headerButtonPlaceholder} />
               </View>
 
@@ -328,9 +390,9 @@ export default function CameraScreen() {
                         flashMode === 'off' ? 'flash-off' : flashMode === 'on' ? 'flash' : 'flash-outline'
                       }
                       size={24}
-                      color={tokens.colors.onPrimary}
+                      color={CAM_TEXT}
                     />
-                    <Text style={[styles.controlLabel, { color: tokens.colors.onPrimary }]}>{flashLabel}</Text>
+                    <Text style={[styles.controlLabel, { color: CAM_TEXT }]}>{flashLabel}</Text>
                   </Pressable>
 
                   <View style={styles.captureWrapper}>
@@ -340,7 +402,7 @@ export default function CameraScreen() {
                       disabled={isLoading}
                     >
                       {isLoading ? (
-                        <ActivityIndicator size="small" color={tokens.colors.onPrimary} />
+                        <ActivityIndicator size="small" color={CAM_TEXT} />
                       ) : (
                         <View style={[styles.captureButtonInner, { backgroundColor: tokens.colors.primary }]} />
                       )}
@@ -351,22 +413,35 @@ export default function CameraScreen() {
                     style={styles.controlButton}
                     onPress={() => setFacing((prev) => (prev === 'back' ? 'front' : 'back'))}
                   >
-                    <Ionicons name="camera-reverse" size={24} color={tokens.colors.onPrimary} />
-                    <Text style={[styles.controlLabel, { color: tokens.colors.onPrimary }]}>
+                    <Ionicons name="camera-reverse" size={24} color={CAM_TEXT} />
+                    <Text style={[styles.controlLabel, { color: CAM_TEXT }]}>
                       {t('camera.switchCamera')}
                     </Text>
                   </Pressable>
                 </View>
 
-                <Pressable
-                  style={styles.typeButton}
-                  onPress={() => setShowDescribeModal(true)}
-                >
-                  <Ionicons name="create-outline" size={20} color={tokens.colors.onPrimary} />
-                  <Text style={[styles.typeButtonText, { color: tokens.colors.onPrimary }]}>
-                    {t('camera.typeInstead') || 'Type instead'}
-                  </Text>
-                </Pressable>
+                <View style={styles.bottomActions}>
+                  <Pressable
+                    style={styles.typeButton}
+                    onPress={handleGalleryPick}
+                    disabled={isLoading}
+                  >
+                    <Ionicons name="images-outline" size={20} color={CAM_TEXT} />
+                    <Text style={[styles.typeButtonText, { color: CAM_TEXT }]}>
+                      {t('camera.gallery') || 'Gallery'}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.typeButton}
+                    onPress={() => setShowDescribeModal(true)}
+                    disabled={isLoading}
+                  >
+                    <Ionicons name="create-outline" size={20} color={CAM_TEXT} />
+                    <Text style={[styles.typeButtonText, { color: CAM_TEXT }]}>
+                      {t('camera.typeInstead') || 'Type instead'}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             </View>
           </AnimatedCamera>
@@ -490,7 +565,14 @@ const createStyles = (tokens) =>
       fontSize: tokens.typography.bodyStrong.fontSize,
       fontWeight: tokens.typography.bodyStrong.fontWeight,
     },
+    bottomActions: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: tokens.spacing.md,
+      marginTop: tokens.spacing.md,
+    },
     typeButton: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -499,7 +581,6 @@ const createStyles = (tokens) =>
       borderRadius: tokens.radii.lg,
       paddingVertical: tokens.spacing.md,
       paddingHorizontal: tokens.spacing.lg,
-      marginTop: tokens.spacing.md,
     },
     typeButtonText: {
       fontSize: tokens.typography.body.fontSize,

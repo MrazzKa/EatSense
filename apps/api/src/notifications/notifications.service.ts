@@ -98,10 +98,6 @@ export class NotificationsService {
         updateData.lastPushSentAt = null;
       }
 
-      // Get existing preferences for defaults
-      const existing = await this.prisma.notificationPreference.findUnique({
-        where: { userId },
-      });
 
       // Use upsert to handle both create and update cases
       const prefs = await this.prisma.notificationPreference.upsert({

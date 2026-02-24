@@ -7,7 +7,6 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ThrottlerException } from '@nestjs/throttler';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
 import { OtpService } from './otp.service';
@@ -538,7 +537,7 @@ export class AuthService {
 
   async signInWithApple(appleSignInDto: AppleSignInDto) {
     try {
-      const { identityToken, user, email: providedEmail, fullName } = appleSignInDto;
+      const { identityToken, fullName } = appleSignInDto;
 
       if (!identityToken) {
         throw new BadRequestException('Identity token is required');
@@ -619,7 +618,7 @@ export class AuthService {
       const tokenEmail = payload.email as string | undefined;
       const tokenSub = payload.sub as string;
 
-      let email = tokenEmail || providedEmail;
+      let email = tokenEmail;
 
       if (!email) {
         const existingUser = await this.prisma.user.findFirst({
@@ -700,7 +699,7 @@ export class AuthService {
 
   async signInWithGoogle(googleSignInDto: GoogleSignInDto) {
     try {
-      const { idToken, accessToken, email: providedEmail, name, picture } = googleSignInDto;
+      const { idToken, accessToken, name, picture } = googleSignInDto;
 
       let verifiedEmail: string;
       let verifiedName: string | undefined = name;

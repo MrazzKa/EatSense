@@ -405,33 +405,61 @@ const EditMedicationModal = ({
         setDoses(newDoses);
     };
 
-    // FIX 2026-02-04: Photo picker for medication
-    const handlePickPhoto = async () => {
-        try {
-            setUploadingPhoto(true);
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                allowsEditing: true,
-                aspect: [1, 1],
-                quality: 0.8,
-            });
-
-            if (!result.canceled && result.assets[0]) {
-                // Upload image to server
+    // Photo picker with camera and gallery options
+    const processPickedImage = async (result: ImagePicker.ImagePickerResult) => {
+        if (!result.canceled && result.assets[0]) {
+            try {
+                setUploadingPhoto(true);
                 const uploadResult = await ApiService.uploadImage(result.assets[0].uri);
                 if (uploadResult?.url) {
                     setImageUrl(uploadResult.url);
                 } else if (uploadResult?.id) {
-                    // Some APIs return id instead of url
                     setImageUrl(uploadResult.id);
                 }
+            } catch (err) {
+                console.error('[MedicationSchedule] Photo upload error:', err);
+                Alert.alert(t('common.error'), t('medications.error.photoUpload') || 'Failed to upload photo');
+            } finally {
+                setUploadingPhoto(false);
             }
-        } catch (err) {
-            console.error('[MedicationSchedule] Photo pick error:', err);
-            Alert.alert(t('common.error'), t('medications.error.photoUpload') || 'Failed to upload photo');
-        } finally {
-            setUploadingPhoto(false);
         }
+    };
+
+    const handleTakePhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(t('common.error'), t('medications.cameraPermissionDenied') || 'Camera permission is required to take photos.');
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+        await processPickedImage(result);
+    };
+
+    const handleChooseFromGallery = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+        await processPickedImage(result);
+    };
+
+    const handlePickPhoto = () => {
+        Alert.alert(
+            t('medications.addPhoto') || 'Add photo',
+            undefined,
+            [
+                { text: t('medications.takePhoto') || 'Take Photo', onPress: handleTakePhoto },
+                { text: t('medications.chooseFromGallery') || 'Choose from Gallery', onPress: handleChooseFromGallery },
+                { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+            ],
+        );
     };
 
     const handleSaveInternal = async () => {

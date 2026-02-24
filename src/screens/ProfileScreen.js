@@ -980,7 +980,7 @@ const ProfileScreen = () => {
     { label: t('profile.metricWeight'), value: `${profile.weight || '--'} kg`, icon: 'barbell' },
     { label: t('profile.metricHeight'), value: `${profile.height || '--'} cm`, icon: 'body' },
     { label: t('profile.metricAge'), value: `${profile.age || '--'}`, icon: 'calendar' },
-    { label: t('profile.metricCalories'), value: `${profile.dailyCalories || '--'} kcal`, icon: 'flame' },
+    { label: t('profile.metricCalories'), value: `${profile.dailyCalories || '--'} kcal`, icon: 'flame', tooltip: 'kcal' },
   ];
 
   if (bmi !== null) {
@@ -988,8 +988,16 @@ const ProfileScreen = () => {
       label: bmiCategory ? `${safeT('profile.metricBmi', 'BMI')} (${bmiCategory})` : safeT('profile.metricBmi', 'BMI'),
       value: bmi.toFixed(1),
       icon: 'fitness',
+      tooltip: 'bmi',
     });
   }
+
+  const showTooltip = (key) => {
+    Alert.alert(
+      t(`tooltip.${key}.title`, key.toUpperCase()),
+      t(`tooltip.${key}.body`, ''),
+    );
+  };
 
   return (
     <>
@@ -1032,7 +1040,14 @@ const ProfileScreen = () => {
                       <Ionicons name={metric.icon} size={18} color={tokens.colors.primary} />
                     </View>
                     <Text style={styles.metricValue}>{metric.value}</Text>
-                    <Text style={styles.metricLabel}>{metric.label}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.metricLabel}>{metric.label}</Text>
+                      {metric.tooltip && (
+                        <TouchableOpacity onPress={() => showTooltip(metric.tooltip)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                          <Ionicons name="information-circle-outline" size={14} color={colors.textTertiary} style={{ marginLeft: 4 }} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
                 </View>
               ))}
@@ -1062,7 +1077,10 @@ const ProfileScreen = () => {
                     const parts = [];
                     if (healthProfile.metabolic?.bodyFatPercent) parts.push(`${healthProfile.metabolic.bodyFatPercent}% ${safeT('profile.health.fatLabel', 'fat')}`);
                     if (healthProfile.metabolic?.waistCm) parts.push(`${safeT('profile.health.waistLabel', 'Waist')} ${healthProfile.metabolic.waistCm} ${safeT('common.cm', 'cm')}`);
-                    if (healthProfile.sleep?.sleepHours) parts.push(`${safeT('profile.health.sleepLabel', 'Sleep')} ${healthProfile.sleep.sleepHours} ${safeT('common.hoursShort', 'h')}`);
+                    // Only show sleep in summary if user has also filled other health metrics
+                    if (healthProfile.sleep?.sleepHours && (healthProfile.metabolic?.bodyFatPercent || healthProfile.metabolic?.waistCm)) {
+                      parts.push(`${safeT('profile.health.sleepLabel', 'Sleep')} ${healthProfile.sleep.sleepHours} ${safeT('common.hoursShort', 'h')}`);
+                    }
                     const focusAreas = Object.entries(healthProfile.healthFocus || {})
                       .filter(([, val]) => val === true)
                       .map(([key]) => {
@@ -1188,9 +1206,14 @@ const ProfileScreen = () => {
                   />
 
                   <View style={styles.row}>
-                    <Text style={[styles.label, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
-                      {safeT('profile.health.whr', 'WHR')}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={[styles.label, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+                        {safeT('profile.health.whr', 'WHR')}
+                      </Text>
+                      <TouchableOpacity onPress={() => showTooltip('whr')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                        <Ionicons name="information-circle-outline" size={14} color={colors.textTertiary} style={{ marginLeft: 4 }} />
+                      </TouchableOpacity>
+                    </View>
                     <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
                       {healthProfile.metabolic.whr != null
                         ? `${healthProfile.metabolic.whr.toFixed(2)} (${safeT('profile.health.auto', 'auto')})`
@@ -1302,9 +1325,14 @@ const ProfileScreen = () => {
                 </AppCard>
 
                 <AppCard style={styles.healthSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
-                    {safeT('profile.health.glp1Module', 'GLP-1 Module')}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={[styles.sectionTitle, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                      {safeT('profile.health.glp1Module', 'GLP-1 Module')}
+                    </Text>
+                    <TouchableOpacity onPress={() => showTooltip('glp1')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Ionicons name="information-circle-outline" size={16} color={colors.textTertiary} style={{ marginLeft: 6 }} />
+                    </TouchableOpacity>
+                  </View>
 
                   <ProfileSegmentedControl
                     label={safeT('profile.health.isGlp1User', 'GLP-1 User')}
@@ -2271,6 +2299,7 @@ const createStyles = (tokens) =>
       flex: 1,
       // Prevent layout jumps
       minHeight: '100%',
+      backgroundColor: tokens.colors.background,
     },
     editModalHeader: {
       flexDirection: 'row',

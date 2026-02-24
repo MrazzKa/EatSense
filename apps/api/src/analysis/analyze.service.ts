@@ -1090,7 +1090,6 @@ export class AnalyzeService {
     try {
       const {
         name,
-        preparation,
         est_portion_g,
       } = component;
 
@@ -1694,9 +1693,7 @@ export class AnalyzeService {
     // Extract components via Vision (with caching)
     // Use getOrExtractComponents for better cache support with Buffer
     let visionComponents: VisionComponent[];
-    let visionHiddenItems: any[] = [];
-    let visionExtractionStatus: string = 'success';
-    let visionError: { code: string; message: string; details?: any } | undefined;
+
     let visionDish: VisionDish | undefined; // NEW: Dish-level identification from Vision
     const visionStartTime = Date.now();
 
@@ -1713,9 +1710,6 @@ export class AnalyzeService {
     this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms, status: ${visionResult.status}`);
 
     visionComponents = visionResult.components;
-    visionHiddenItems = visionResult.hiddenItems || [];
-    visionExtractionStatus = visionResult.status;
-    visionError = visionResult.error;
     // NEW: Extract dish-level identification from Vision
     visionDish = visionResult.dish;
     if (visionDish?.dish_name) {
@@ -3228,7 +3222,7 @@ export class AnalyzeService {
     // STEP 4 FIX: Calculate total with normalized weights (exclude unknown factors)
     let totalWeight = 0;
     let weightedSum = 0;
-    for (const [key, factor] of Object.entries(factorsDetailed)) {
+    for (const [, factor] of Object.entries(factorsDetailed)) {
       if (!factor.isUnknown) {
         totalWeight += factor.weight;
         weightedSum += factor.value * factor.weight;
@@ -3466,7 +3460,6 @@ export class AnalyzeService {
 
     Object.entries(factors).forEach(([key, factor]) => {
       const label = factor.label || key;
-      const labelLower = label.toLowerCase();
 
       if (penaltyKeys.includes(key)) {
         if (factor.score < 70) {
@@ -3534,9 +3527,8 @@ export class AnalyzeService {
     } else {
       total = 0;
     }
-    const level = 'level' in healthScore ? healthScore.level : (total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'average' : 'poor');
     const factors = healthScore.factors;
-    const { calories, protein, fiber, sugars, satFat } = totals;
+    const { calories, sugars } = totals;
 
     // Приводим locale к базовым ('en' | 'ru' | 'kk' | 'fr')
     const lang = (locale || 'en').split('-')[0] as 'en' | 'ru' | 'kk' | 'fr';
@@ -3561,6 +3553,7 @@ export class AnalyzeService {
           high_energy_density: 'Energy density is high. Such meals are easy to overeat without noticing.',
           caloric_surplus_warning: 'The total calories of this meal are relatively high; watch your overall daily intake.',
           caloric_low_warning: 'Calories are low — this looks more like a snack than a full meal.',
+          too_small_for_score: 'This portion is too small to calculate a meaningful health score.',
         },
         ru: {
           overall_excellent: 'По составу это очень сбалансированный и питательный приём пищи.',
@@ -3579,6 +3572,7 @@ export class AnalyzeService {
           high_energy_density: 'Энергетическая плотность высокая — такие блюда легко переесть, не заметив.',
           caloric_surplus_warning: 'Общая калорийность приёма пищи довольно высокая — следите за суточным потреблением.',
           caloric_low_warning: 'Калорийность невысокая — это больше похоже на перекус, чем на полноценный приём пищи.',
+          too_small_for_score: 'Порция слишком маленькая для расчёта оценки здоровья.',
         },
         kk: {
           overall_excellent: 'Бұл өте теңгерілген және қоректік тамақтану болып көрінеді.',
@@ -3597,6 +3591,7 @@ export class AnalyzeService {
           high_energy_density: 'Энергетикалық тығыздық жоғары — мұндай тағамдарды байқамай-ақ артық жеуге болады.',
           caloric_surplus_warning: 'Бұл тамақтанудың жалпы калориясы жоғары — тәуліктік норманы бақылаңыз.',
           caloric_low_warning: 'Калориясы төмен — бұл толыққанды тамақтанудан гөрі жеңіл жеңілдеу сияқты.',
+          too_small_for_score: 'Бұл порция денсаулық бағасын есептеу үшін тым кішкентай.',
         },
         fr: {
           overall_excellent: 'Ce repas semble très équilibré et riche en nutriments.',
@@ -3615,6 +3610,7 @@ export class AnalyzeService {
           high_energy_density: 'La densité énergétique est élevée. De tels repas sont faciles à surconsommer sans s\'en rendre compte.',
           caloric_surplus_warning: 'Les calories totales de ce repas sont relativement élevées ; surveillez votre apport quotidien global.',
           caloric_low_warning: 'Les calories sont faibles — cela ressemble plus à une collation qu\'à un repas complet.',
+          too_small_for_score: 'Cette portion est trop petite pour calculer un score de santé significatif.',
         },
       };
       return dict[lang]?.[code] ?? dict.en[code] ?? code;
@@ -3622,8 +3618,16 @@ export class AnalyzeService {
 
     const feedback: HealthFeedbackItem[] = [];
 
-    // 1) Общая оценка
-    if (total >= 80) {
+    // Too small for meaningful health score
+    if (calories < 30) {
+      feedback.push({ type: 'warning', code: 'too_small_for_score', message: t('too_small_for_score') });
+      return feedback;
+    }
+
+    // 1) Общая оценка (don't say "balanced/good" for very low calorie items)
+    if (calories < 100) {
+      feedback.push({ type: 'warning', code: 'overall_average', message: t('overall_average') });
+    } else if (total >= 80) {
       feedback.push({ type: 'positive', code: 'overall_excellent', message: t('overall_excellent') });
     } else if (total >= 60) {
       feedback.push({ type: 'positive', code: 'overall_good', message: t('overall_good') });
@@ -3647,14 +3651,14 @@ export class AnalyzeService {
       feedback.push({ type: 'warning', code: 'low_fiber', message: t('low_fiber') });
     }
 
-    // 4) Насыщенные жиры
+    // 4) Насыщенные жиры (only flag if meal has enough calories for it to matter)
     if (factors.saturatedFat >= 70) {
       feedback.push({
         type: 'positive',
         code: 'low_saturated_fat',
         message: t('low_saturated_fat'),
       });
-    } else if (factors.saturatedFat <= 40) {
+    } else if (factors.saturatedFat <= 40 && calories >= 50) {
       feedback.push({
         type: 'warning',
         code: 'high_saturated_fat',
@@ -3662,10 +3666,10 @@ export class AnalyzeService {
       });
     }
 
-    // 5) Сахара
+    // 5) Сахара (only flag if absolute sugar > 5g AND percentage score is poor)
     if (factors.sugars >= 70) {
       feedback.push({ type: 'positive', code: 'low_sugar', message: t('low_sugar') });
-    } else if (factors.sugars <= 40) {
+    } else if (factors.sugars <= 40 && (sugars ?? 0) > 5) {
       feedback.push({ type: 'warning', code: 'high_sugar', message: t('high_sugar') });
     }
 
@@ -3751,7 +3755,7 @@ export class AnalyzeService {
       locale?: 'en' | 'ru' | 'kk' | 'fr';
       region?: 'US' | 'CH' | 'EU' | 'OTHER';
     },
-    userId: string,
+    _userId: string,
   ): Promise<AnalysisData> {
     const locale = input.locale || 'en';
     const region = input.region;

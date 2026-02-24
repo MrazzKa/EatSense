@@ -78,8 +78,6 @@ export class DailyLimitGuard implements CanActivate {
     const resetTime = getResetTime();
 
     if (currentCount >= effectiveLimit) {
-      const secondsUntilReset = Math.floor((resetTime.getTime() - Date.now()) / 1000);
-
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,

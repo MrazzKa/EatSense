@@ -678,6 +678,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
       borderColor: borderMuted,
       minHeight: 120,
       justifyContent: 'center',
+      overflow: 'hidden',
     },
     genderOptionSelected: {
       backgroundColor: colors.primary,
@@ -808,6 +809,7 @@ const OnboardingScreen = () => {
   // Simplified onboarding - only essential data collection slides
   const steps = useMemo(() => [
     { id: 'welcome', title: t('onboarding.welcome', 'Welcome to EatSense') },
+    { id: 'name', title: t('onboarding.name', 'What\'s your name?') },
     { id: 'goals', title: t('onboarding.goals', 'What are your goals?') },
     { id: 'gender', title: t('onboarding.gender', 'What\'s your gender?') },
     { id: 'age', title: t('onboarding.age', 'How old are you?') },
@@ -955,6 +957,7 @@ const OnboardingScreen = () => {
       id: SUBSCRIPTION_SKUS.YEARLY,
       name: t('onboarding.plans.yearly', 'Yearly'),
       price: currency.yearlyPrice + ' / ' + t('onboarding.plans.year', 'yr'),
+      originalPrice: currency.monthlyPrice + ' × 12',
       billingCycle: 'annual',
       headline: t('onboarding.plans.yearlyHeadline', 'Best value — save 33%'),
       features: [
@@ -1153,13 +1156,8 @@ const OnboardingScreen = () => {
 
       clientLog('Onboarding:profileSave:start', { payload: finalPayload });
 
-      // Save profile
-      try {
-        await ApiService.getUserProfile();
-        await ApiService.updateUserProfile(finalPayload);
-      } catch {
-        await ApiService.createUserProfile(finalPayload);
-      }
+      // Save profile (backend uses upsert — single call is sufficient)
+      await ApiService.createUserProfile(finalPayload);
 
       clientLog('Onboarding:profileSave:success');
 
@@ -1296,6 +1294,23 @@ const OnboardingScreen = () => {
           </View>
         </View>
       </View>
+    </View>
+  );
+
+  const renderNameStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>{t('onboarding.name', 'What\'s your name?')}</Text>
+      <Text style={styles.stepSubtitle}>{t('onboarding.nameSubtitle', 'So we can personalize your experience')}</Text>
+      <TextInput
+        style={[styles.otherInput, { marginTop: 24 }]}
+        value={profileData.firstName}
+        onChangeText={(text) => setProfileData({ ...profileData, firstName: text })}
+        placeholder={t('onboarding.namePlaceholder', 'Your name')}
+        placeholderTextColor={colors.textTertiary}
+        autoFocus
+        autoCapitalize="words"
+        returnKeyType="done"
+      />
     </View>
   );
 
@@ -1685,6 +1700,11 @@ const OnboardingScreen = () => {
                     </View>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
+                    {plan.originalPrice && (
+                      <Text style={[styles.planPriceOriginal, { color: isSelected ? onPrimaryColor : colors.textSecondary }]}>
+                        {plan.originalPrice}
+                      </Text>
+                    )}
                     <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
                       {plan.price}
                     </Text>
@@ -1778,6 +1798,11 @@ const OnboardingScreen = () => {
                     </View>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
+                    {plan.originalPrice && (
+                      <Text style={[styles.planPriceOriginal, { color: isSelected ? onPrimaryColor : colors.textSecondary }]}>
+                        {plan.originalPrice}
+                      </Text>
+                    )}
                     <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
                       {plan.price}
                     </Text>
@@ -1916,7 +1941,7 @@ const OnboardingScreen = () => {
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>{t('onboarding.health', 'What should we know about you?')}</Text>
         <Text style={styles.stepSubtitle}>{t('onboarding.healthSubtitle', 'Select your health conditions')}</Text>
-        <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={true}>
           <View style={styles.activityContainer}>
             {conditions.map((condition) => {
               const isSelected = profileData.healthConditions?.includes(condition.id);
@@ -1957,7 +1982,11 @@ const OnboardingScreen = () => {
                       style={[
                         styles.activityLabel,
                         isSelected && styles.activityLabelSelected,
+                        { flex: 1, marginRight: 8 },
                       ]}
+                      numberOfLines={2}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
                     >
                       {condition.label}
                     </Text>
@@ -2123,12 +2152,11 @@ const OnboardingScreen = () => {
               profileData.activityLevel === 'lightly_active' ? 1.375 :
                 profileData.activityLevel === 'moderately_active' ? 1.55 :
                   profileData.activityLevel === 'very_active' ? 1.725 : 1.9;
-            const recommendedCalories = Math.round(
-              (profileData.gender === 'male' ? 88.362 : 447.593) +
-              (13.397 * profileData.weight) +
-              (4.799 * profileData.height) -
-              (5.677 * profileData.age) * activityMultiplier
-            );
+            // Mifflin-St Jeor formula (matches backend)
+            const bmr = profileData.gender === 'male'
+              ? 10 * profileData.weight + 6.25 * profileData.height - 5 * profileData.age + 5
+              : 10 * profileData.weight + 6.25 * profileData.height - 5 * profileData.age - 161;
+            const recommendedCalories = Math.round(bmr * activityMultiplier);
 
             setPlanData({
               recommendedWeight: profileData.targetWeight,
@@ -2394,6 +2422,12 @@ const OnboardingScreen = () => {
                   </View>
                 </View>
               </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingHorizontal: 4 }}>
+                <Ionicons name="information-circle-outline" size={16} color={colors.textTertiary} style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 12, color: colors.textTertiary, flex: 1 }}>
+                  {t('onboarding.formulaExplanation', 'Calculated using the Mifflin-St Jeor formula based on your age, gender, height, weight, and activity level.')}
+                </Text>
+              </View>
               <TouchableOpacity
                 style={[styles.nextButton, { marginTop: 24, width: '100%', justifyContent: 'center' }]}
                 onPress={nextStep}
@@ -2412,21 +2446,20 @@ const OnboardingScreen = () => {
   const renderStep = () => {
     switch (currentStep) {
       case 0: return renderWelcomeStep();
-      case 1: return renderGoalsStep();
-      case 2: return renderGenderStep();
-      case 3: return renderAgeStep();
-      case 4: return renderHeightStep();
-      case 5: return renderWeightStep();
-      case 6: return renderTargetWeightStep();
-      case 7: return renderActivityStep();
-      case 8: return renderDietStep();
-      case 9: return renderHealthConditionsStep();
-      // case 10: return renderNotificationsStep(); // Removed
-      case 10: return renderTermsStep();
-      case 11: return renderLoadingStep();
-      case 12: return renderPlanStep();
+      case 1: return renderNameStep();
+      case 2: return renderGoalsStep();
+      case 3: return renderGenderStep();
+      case 4: return renderAgeStep();
+      case 5: return renderHeightStep();
+      case 6: return renderWeightStep();
+      case 7: return renderTargetWeightStep();
+      case 8: return renderActivityStep();
+      case 9: return renderDietStep();
+      case 10: return renderHealthConditionsStep();
+      case 11: return renderTermsStep();
+      case 12: return renderLoadingStep();
+      case 13: return renderPlanStep();
       default: return renderWelcomeStep();
-
     }
   };
 
