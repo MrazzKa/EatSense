@@ -22,6 +22,8 @@ export interface LocalizedText {
   ru: string;
   kk: string;
   fr?: string;
+  de?: string;
+  es?: string;
 }
 
 export interface LocalizedTextArray {
@@ -29,12 +31,40 @@ export interface LocalizedTextArray {
   ru: string[];
   kk: string[];
   fr?: string[];
+  de?: string[];
+  es?: string[];
 }
 
 export interface SampleDay {
   morning: LocalizedText;
   midday: LocalizedText;
   evening: LocalizedText;
+}
+
+/** One step in morning/evening ritual (icon + text) */
+export interface RitualStep {
+  icon: string;
+  text: LocalizedText;
+}
+
+/** One meal in sample day v2 (dish + description) */
+export interface SampleDayMeal {
+  dish: LocalizedText;
+  description: LocalizedText;
+}
+
+/** Full sample day v2: day number + morning/midday/evening meals */
+export interface SampleDayV2 {
+  day: number;
+  morning: SampleDayMeal;
+  midday: SampleDayMeal;
+  evening: SampleDayMeal;
+}
+
+/** Pairs well with another diet/lifestyle */
+export interface PairsWellWith {
+  label: LocalizedText;
+  description: LocalizedText;
 }
 
 /**
@@ -61,7 +91,22 @@ export interface LifestyleProgram {
   imageUrl?: string;
   category?: string;
   difficulty?: string;
-  rules?: any; // Helper for storing extra JSON data (mantra, philosophy, etc.)
+  rules?: {
+    mantra?: LocalizedText;
+    mantras?: LocalizedTextArray | string[];
+    philosophy?: LocalizedText;
+    embrace?: string[] | LocalizedTextArray;
+    minimize?: string[] | LocalizedTextArray;
+    dailyInspiration?: LocalizedTextArray;
+    sampleDay?: SampleDay;
+    sampleDays?: SampleDayV2[];
+    vibe?: string;
+    morningRitual?: RitualStep[];
+    eveningRitual?: RitualStep[];
+    diningOut?: LocalizedTextArray | string[];
+    pairsWellWith?: PairsWellWith[];
+    [key: string]: any;
+  };
 
   // Alternative/DB fields
   subtitle?: LocalizedText;

@@ -1156,7 +1156,11 @@ const OnboardingScreen = () => {
         ...(planData?.dailyCalories > 0 && !isNaN(planData.dailyCalories) ? { dailyCalories: planData.dailyCalories } : {}),
       };
 
-      clientLog('Onboarding:profileSave:start', { payload: finalPayload });
+      clientLog('Onboarding:profileSave:start', {
+        payload: finalPayload,
+        planDataCalories: planData?.dailyCalories,
+        hasPlanData: !!planData,
+      });
 
       // Save profile (backend uses upsert — single call is sufficient)
       await ApiService.createUserProfile(finalPayload);
@@ -2246,8 +2250,9 @@ const OnboardingScreen = () => {
         });
       }, 50);
       return () => clearInterval(interval);
-    } else {
-      // Reset when leaving loading step
+    } else if (currentStepId !== 'plan') {
+      // Reset when going BACK from loading step (not when advancing to plan step)
+      // Keep planData alive for the plan step so handleComplete can access dailyCalories
       setLoadingProgress(0);
       setPlanData(null);
     }

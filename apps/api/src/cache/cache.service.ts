@@ -36,10 +36,10 @@ export class CacheService {
   private readonly prefix = 'eatsense';
 
   private readonly defaultTtl = parseInt(process.env.CACHE_DEFAULT_TTL_SEC || '900', 10);
-  private readonly usdaTtl = parseInt(process.env.USDA_CACHE_TTL_SEC || '43200', 10); // 12h (was 24h)
-  private readonly analysisTtl = parseInt(process.env.ANALYSIS_CACHE_TTL_SEC || '43200', 10); // 12h (was 24h)
-  private readonly visionTtl = parseInt(process.env.VISION_CACHE_TTL_SEC || '43200', 10); // 12h (was 24h)
-  private readonly nutritionTtl = parseInt(process.env.NUTRITION_CACHE_TTL_SEC || '604800', 10); // 7 days (was 30 days)
+  private readonly usdaTtl = parseInt(process.env.USDA_CACHE_TTL_SEC || '21600', 10); // 6h default (set NUTRITION_CACHE_TTL_SEC etc. in Railway)
+  private readonly analysisTtl = parseInt(process.env.ANALYSIS_CACHE_TTL_SEC || '21600', 10); // 6h
+  private readonly visionTtl = parseInt(process.env.VISION_CACHE_TTL_SEC || '21600', 10); // 6h
+  private readonly nutritionTtl = parseInt(process.env.NUTRITION_CACHE_TTL_SEC || '86400', 10); // 1 day default (was 7 days)
   private readonly articlesFeedTtl = parseInt(process.env.ARTICLES_FEED_CACHE_TTL_SEC || '900', 10);
   private readonly articlesDetailTtl = parseInt(process.env.ARTICLES_DETAIL_CACHE_TTL_SEC || '86400', 10);
 

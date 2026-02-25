@@ -79,7 +79,7 @@ export default function LifestyleDetailScreen({
   };
 
   const getLocalizedText = (
-    text: { en?: string; ru?: string; kk?: string; fr?: string } | string | undefined | null,
+    text: { en?: string; ru?: string; kk?: string; fr?: string; de?: string; es?: string } | string | undefined | null,
     t?: (_key: string) => string
   ): string => {
     if (!text) return '';
@@ -113,12 +113,20 @@ export default function LifestyleDetailScreen({
     }
 
     // Fallback logic
-    const result = text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || '';
+    const result =
+      text[language as keyof typeof text] ||
+      text.en ||
+      text.ru ||
+      text.kk ||
+      text.fr ||
+      text.de ||
+      text.es ||
+      '';
     return translateIfNeeded(result);
   };
 
   const getLocalizedTextArray = (
-    text: { en?: string[]; ru?: string[]; kk?: string[]; fr?: string[] } | undefined | null,
+    text: { en?: string[]; ru?: string[]; kk?: string[]; fr?: string[]; de?: string[]; es?: string[] } | string[] | undefined | null,
     t?: (_key: string) => string
   ): string[] => {
     if (!text) return [];
@@ -135,7 +143,15 @@ export default function LifestyleDetailScreen({
     };
 
     if (Array.isArray(text)) return translateArray(text);
-    const result = text[language as keyof typeof text] || text.en || text.ru || text.kk || text.fr || [];
+    const result =
+      text[language as keyof typeof text] ||
+      text.en ||
+      text.ru ||
+      text.kk ||
+      text.fr ||
+      text.de ||
+      text.es ||
+      [];
     return translateArray(result);
   };
 
@@ -221,14 +237,41 @@ export default function LifestyleDetailScreen({
               ]}
             >
               {(() => {
-                // Check for mantras array (dailyInspiration) for daily rotation
+                // Prefer rules.mantras (can be array or localized array) for daily rotation when present
+                const mantrasRaw = program.rules?.mantras;
+                if (mantrasRaw) {
+                  const lang = language || 'en';
+                  const mantrasArr = Array.isArray(mantrasRaw)
+                    ? mantrasRaw
+                    : (mantrasRaw[lang as keyof typeof mantrasRaw] ||
+                      mantrasRaw.en ||
+                      mantrasRaw.ru ||
+                      mantrasRaw.kk ||
+                      mantrasRaw.fr ||
+                      mantrasRaw.de ||
+                      mantrasRaw.es ||
+                      []);
+
+                  if (Array.isArray(mantrasArr) && mantrasArr.length > 0) {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), 0, 0);
+                    const dayOfYear = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                    return mantrasArr[dayOfYear % mantrasArr.length];
+                  }
+                }
+
+                // Fallback: dailyInspiration array for daily rotation
                 const inspiration = program.dailyInspiration || program.rules?.dailyInspiration;
                 if (inspiration) {
-                  // API may return a localized array OR a multilang object (from seed)
                   const lang = language || 'en';
                   const arr = Array.isArray(inspiration)
                     ? inspiration
-                    : (inspiration[lang as 'en' | 'ru' | 'kk' | 'fr'] || inspiration.en || null);
+                    : (inspiration[lang as keyof typeof inspiration] ||
+                      inspiration.en ||
+                      inspiration.ru ||
+                      inspiration.kk ||
+                      inspiration.fr ||
+                      []);
                   if (Array.isArray(arr) && arr.length > 0) {
                     const now = new Date();
                     const start = new Date(now.getFullYear(), 0, 0);
@@ -236,7 +279,7 @@ export default function LifestyleDetailScreen({
                     return arr[dayOfYear % arr.length];
                   }
                 }
-                // Fallback to single mantra
+
                 return getLocalizedText(program.mantra || (program.rules && program.rules.mantra), t);
               })()}
             </Text>
@@ -308,6 +351,86 @@ export default function LifestyleDetailScreen({
             ))}
           </View>
         </View>
+
+        {/* Morning Ritual - from rules (Old Money, Clean Girl, CEO Warrior) */}
+        {(program.rules?.morningRitual && Array.isArray(program.rules.morningRitual) && program.rules.morningRitual.length > 0) && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
+              {t('lifestyles.detail.morningRitual') || 'Утренний ритуал'}
+            </Text>
+            <View style={styles.listContainer}>
+              {program.rules.morningRitual.map((step: { icon?: string; text: any }, index: number) => (
+                <View key={index} style={[styles.ritualStep, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
+                  <Text style={styles.ritualIcon}>{step.icon || '•'}</Text>
+                  <Text style={[styles.listItemText, { color: colors.textSecondary || '#666', flex: 1 }]}>
+                    {getLocalizedText(step.text, t)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Evening Ritual */}
+        {(program.rules?.eveningRitual && Array.isArray(program.rules.eveningRitual) && program.rules.eveningRitual.length > 0) && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
+              {t('lifestyles.detail.eveningRitual') || 'Вечерний ритуал'}
+            </Text>
+            <View style={styles.listContainer}>
+              {program.rules.eveningRitual.map((step: { icon?: string; text: any }, index: number) => (
+                <View key={index} style={[styles.ritualStep, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
+                  <Text style={styles.ritualIcon}>{step.icon || '•'}</Text>
+                  <Text style={[styles.listItemText, { color: colors.textSecondary || '#666', flex: 1 }]}>
+                    {getLocalizedText(step.text, t)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Dining Out */}
+        {(program.rules?.diningOut &&
+          ((Array.isArray(program.rules.diningOut) && program.rules.diningOut.length > 0) ||
+            (!Array.isArray(program.rules.diningOut) && Object.keys(program.rules.diningOut).length > 0))) && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
+              {t('lifestyles.detail.diningOut') || 'В ресторане'}
+            </Text>
+            <View style={styles.listContainer}>
+              {getLocalizedTextArray(program.rules.diningOut as any, t).map((line, index) => (
+                <View key={index} style={styles.listItem}>
+                  <Ionicons name="restaurant-outline" size={20} color={colors.primary || '#4CAF50'} />
+                  <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
+                    {line}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Pairs Well With */}
+        {(program.rules?.pairsWellWith && Array.isArray(program.rules.pairsWellWith) && program.rules.pairsWellWith.length > 0) && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary || '#212121' }]}>
+              {t('lifestyles.detail.pairsWellWith') || 'Хорошо сочетается с'}
+            </Text>
+            <View style={styles.listContainer}>
+              {program.rules.pairsWellWith.map((item: { label: any; description: any }, index: number) => (
+                <View key={index} style={[styles.pairsItem, { backgroundColor: colors.card || colors.surface || '#FFF' }]}>
+                  <Text style={[styles.pairsLabel, { color: colors.textPrimary || '#212121' }]}>
+                    {getLocalizedText(item.label, t)}
+                  </Text>
+                  <Text style={[styles.listItemText, { color: colors.textSecondary || '#666' }]}>
+                    {getLocalizedText(item.description, t)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Sample Day - only render if sampleDay exists */}
         {(program.sampleDay || (program.rules && program.rules.sampleDay)) && (
@@ -530,6 +653,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+  },
+  ritualStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  ritualIcon: {
+    fontSize: 20,
+  },
+  pairsItem: {
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  pairsLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   listItemText: {
     flex: 1,

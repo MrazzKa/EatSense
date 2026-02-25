@@ -87,7 +87,7 @@ export const ProfileNumberRow: React.FC<ProfileNumberRowProps> = ({
           onChangeText={handleChangeText}
           onBlur={handleBlur}
           keyboardType="decimal-pad"
-          placeholder={`${min ?? 0}${suffix ? ' ' + suffix : ''}`}
+          placeholder="—"
           placeholderTextColor={colors.textTertiary}
         />
         {suffix && (

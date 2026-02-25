@@ -130,21 +130,20 @@ export default function DietsTabContent({
         return diets;
     }, [allDiets, selectedType, selectedDifficulty, searchQuery, language, t]);
 
-    // Group diets by uiGroup, with free diets sorted first in each group
+    // Separate free diets from the rest
+    const freeDietsList = useMemo(() => {
+        return filteredDiets.filter(diet => isFreeDiet(diet.slug || diet.id));
+    }, [filteredDiets]);
+
+    // Group remaining (non-free) diets by uiGroup
     const groupedDiets = useMemo(() => {
         const groups: Record<string, Program[]> = {};
         filteredDiets.forEach(diet => {
+            // Skip free diets — they're shown in their own section
+            if (isFreeDiet(diet.slug || diet.id)) return;
             const group = diet.uiGroup || 'Popular';
             if (!groups[group]) groups[group] = [];
             groups[group].push(diet);
-        });
-        // Sort each group: free diets first
-        Object.keys(groups).forEach(group => {
-            groups[group].sort((a, b) => {
-                const aFree = isFreeDiet(a.slug || a.id) ? 0 : 1;
-                const bFree = isFreeDiet(b.slug || b.id) ? 0 : 1;
-                return aFree - bFree;
-            });
         });
         return groups;
     }, [filteredDiets]);
@@ -327,6 +326,28 @@ export default function DietsTabContent({
                     ))}
                 </View>
             </View>
+
+            {/* Free Diets section — always shown first */}
+            {freeDietsList.length > 0 && (
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Ionicons name="gift" size={18} color="#4CAF50" />
+                        <Text style={styles.sectionTitle}>
+                            {t('diets_groups_free') || 'Free'}
+                        </Text>
+                    </View>
+                    <View style={styles.dietsList}>
+                        {freeDietsList.map((diet) => (
+                            <DietCard
+                                key={diet.id}
+                                diet={diet}
+                                onPress={() => onProgramPress(diet.slug || diet.id)}
+                                isLocked={false}
+                            />
+                        ))}
+                    </View>
+                </View>
+            )}
 
             {/* All Diets grouped by category */}
             {
