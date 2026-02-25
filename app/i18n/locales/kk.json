@@ -2086,6 +2086,7 @@
     },
     "categories": {
       "all": "Барлығы",
+      "FREE": "Тегін",
       "TRENDING": "Трендте",
       "GOAL_LOSE_WEIGHT": "Салмақ тастау",
       "GOAL_BUILD_MUSCLE": "Бұлшықет жинау",
@@ -2269,6 +2270,8 @@
     "trialBadge": "{{days}} күн тегін сынақ",
     "tryFree": "{{days}} күн тегін байқап көру",
     "subscribeNow": "Жазылу",
+    "purchaseNow": "Қазір сатып алу",
+    "purchaseComplete": "Жазылымыңыз белсенді!",
     "priceAfterTrial": "Сынақтан кейін {{price}}/ай",
     "priceMonthly": "{{price}}/ай",
     "features": {

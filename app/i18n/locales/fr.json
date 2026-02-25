@@ -2159,6 +2159,7 @@
     },
     "categories": {
       "all": "Tout",
+      "FREE": "Gratuit",
       "TRENDING": "Tendances",
       "GOAL_LOSE_WEIGHT": "Perte de poids",
       "GOAL_BUILD_MUSCLE": "Prise de muscle",
@@ -2333,6 +2334,8 @@
     "trialBadge": "{{days}} jours d'essai gratuit",
     "tryFree": "Essayer gratuitement pendant {{days}} jours",
     "subscribeNow": "S'abonner maintenant",
+    "purchaseNow": "Acheter maintenant",
+    "purchaseComplete": "Votre abonnement est maintenant actif !",
     "features": {
       "unlimited": "Analyses illimitées",
       "diets": "Tous les régimes et plans",

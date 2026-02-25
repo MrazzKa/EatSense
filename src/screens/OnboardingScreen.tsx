@@ -1152,7 +1152,8 @@ const OnboardingScreen = () => {
         diet: finalDiet,
         preferences: mergedPreferences,
         // FIX: Sync calculated calorie goal from onboarding to profile
-        dailyCalories: planData?.dailyCalories || 0,
+        // Only send if valid (> 0 and not NaN) — otherwise let backend recalculate
+        ...(planData?.dailyCalories > 0 && !isNaN(planData.dailyCalories) ? { dailyCalories: planData.dailyCalories } : {}),
       };
 
       clientLog('Onboarding:profileSave:start', { payload: finalPayload });
@@ -1700,7 +1701,7 @@ const OnboardingScreen = () => {
                       </View>
                     </View>
                   </View>
-                  <View style={{ alignItems: 'flex-end' }}>
+                  <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
                     {plan.originalPrice && (
                       <Text style={[styles.planPriceOriginal, { color: isSelected ? onPrimaryColor : colors.textSecondary }]}>
                         {plan.originalPrice}
@@ -1709,18 +1710,80 @@ const OnboardingScreen = () => {
                     <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
                       {plan.price}
                     </Text>
-                    {plan.popular && (
-                      <Text style={{ fontSize: 11, color: colors.textSecondary || '#666', marginTop: 2 }}>
-                        {t('onboarding.plans.studentLabel', 'Student')}: {currency.studentPrice}/{t('onboarding.plans.year', 'yr')}
-                      </Text>
-                    )}
                   </View>
                 </View>
               </TouchableOpacity>
             );
           })}
 
-          {/* Collapsible Student Plan Section */}
+          {/* Student Plan — rendered directly below yearly */}
+          {(plans || []).filter(plan => plan.isStudent).map((plan) => {
+            const isSelected = profileData.selectedPlan === plan.id;
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={[
+                  styles.planButtonCompact,
+                  styles.planButtonStudent,
+                  isSelected && styles.planButtonSelected,
+                ]}
+                activeOpacity={0.9}
+                onPress={() =>
+                  setProfileData({
+                    ...profileData,
+                    selectedPlan: plan.id,
+                    planBillingCycle: plan.billingCycle,
+                  })
+                }
+              >
+                {plan.badge && (
+                  <View style={[styles.popularBadgeCompact, styles.studentBadge]}>
+                    <Text style={styles.popularTextCompact}>{plan.badge}</Text>
+                  </View>
+                )}
+                <View style={styles.planCompactContent}>
+                  <View style={styles.planCompactLeft}>
+                    <View style={[
+                      styles.radioCircle,
+                      isSelected && styles.radioCircleSelected,
+                    ]}>
+                      {isSelected && <View style={styles.radioCircleInner} />}
+                    </View>
+                    <View style={styles.planCompactInfo}>
+                      <Text style={[styles.planNameCompact, isSelected && styles.planNameSelected]}>
+                        {plan.name}
+                      </Text>
+                      <Text style={styles.planHeadlineCompact} numberOfLines={1}>
+                        {plan.headline}
+                      </Text>
+                      <View style={{ marginTop: 6 }}>
+                        {plan.features.slice(0, 2).map((feature, idx) => (
+                          <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                            <Ionicons name="checkmark" size={12} color={colors.success || '#34C759'} />
+                            <Text style={[styles.planFeatureCompact, { marginLeft: 4 }]} numberOfLines={1}>
+                              {feature}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                    {plan.originalPrice && (
+                      <Text style={[styles.planPriceOriginal, { color: isSelected ? onPrimaryColor : colors.textSecondary }]}>
+                        {plan.originalPrice}
+                      </Text>
+                    )}
+                    <Text style={[styles.planPriceCompact, isSelected && styles.planPriceSelected]}>
+                      {plan.price}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* Collapsible Additional Plans Section (Founder only) */}
           <TouchableOpacity
             style={{
               flexDirection: 'row',
@@ -1745,8 +1808,8 @@ const OnboardingScreen = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* Student & Founder Plans (shown when expanded) */}
-          {showStudentPlan && (plans || []).filter(plan => plan.isStudent || plan.isFounder).map((plan) => {
+          {/* Founder Plans (shown when expanded) */}
+          {showStudentPlan && (plans || []).filter(plan => plan.isFounder).map((plan) => {
             const isSelected = profileData.selectedPlan === plan.id;
             return (
               <TouchableOpacity
@@ -2159,10 +2222,16 @@ const OnboardingScreen = () => {
                 profileData.activityLevel === 'moderately_active' ? 1.55 :
                   profileData.activityLevel === 'very_active' ? 1.725 : 1.9;
             // Mifflin-St Jeor formula (matches backend)
-            const bmr = profileData.gender === 'male'
-              ? 10 * profileData.weight + 6.25 * profileData.height - 5 * profileData.age + 5
-              : 10 * profileData.weight + 6.25 * profileData.height - 5 * profileData.age - 161;
-            const recommendedCalories = Math.round(bmr * activityMultiplier);
+            const weight = Number(profileData.weight);
+            const height = Number(profileData.height);
+            const age = Number(profileData.age);
+            const hasValidParams = weight > 0 && height > 0 && age > 0 && !isNaN(weight) && !isNaN(height) && !isNaN(age);
+            const bmr = hasValidParams
+              ? (profileData.gender === 'male'
+                ? 10 * weight + 6.25 * height - 5 * age + 5
+                : 10 * weight + 6.25 * height - 5 * age - 161)
+              : 0;
+            const recommendedCalories = hasValidParams ? Math.round(bmr * activityMultiplier) : 0;
 
             setPlanData({
               recommendedWeight: profileData.targetWeight,

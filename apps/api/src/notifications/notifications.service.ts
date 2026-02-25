@@ -306,20 +306,39 @@ export class NotificationsService {
     doseTime: string;
     beforeMeal?: boolean;
     afterMeal?: boolean;
+    language?: string;
   }) {
-    const { userId, medicationName, dosage, doseTime, beforeMeal, afterMeal } = params;
+    const { userId, medicationName, dosage, doseTime, beforeMeal, afterMeal, language = 'en' } = params;
 
-    const title = 'Reminder: medication time';
-    let body = `${medicationName} at ${doseTime}`;
+    const TITLES: Record<string, string> = {
+      en: 'Reminder: medication time',
+      ru: 'Напоминание: время лекарства',
+      kk: 'Еске салу: дәрі уақыты',
+      fr: 'Rappel : heure du médicament',
+      de: 'Erinnerung: Medikamentenzeit',
+      es: 'Recordatorio: hora del medicamento',
+    };
+
+    const BEFORE_MEAL: Record<string, string> = {
+      en: 'before meal', ru: 'до еды', kk: 'тамақтан бұрын',
+      fr: 'avant le repas', de: 'vor dem Essen', es: 'antes de comer',
+    };
+    const AFTER_MEAL: Record<string, string> = {
+      en: 'after meal', ru: 'после еды', kk: 'тамақтан кейін',
+      fr: 'après le repas', de: 'nach dem Essen', es: 'después de comer',
+    };
+
+    const title = TITLES[language] || TITLES.en;
+    let body = `${medicationName} — ${doseTime}`;
 
     if (dosage) {
       body += ` (${dosage})`;
     }
 
     if (beforeMeal) {
-      body += ' — before meal';
+      body += ` — ${BEFORE_MEAL[language] || BEFORE_MEAL.en}`;
     } else if (afterMeal) {
-      body += ' — after meal';
+      body += ` — ${AFTER_MEAL[language] || AFTER_MEAL.en}`;
     }
 
     // Используем существующий метод sendPushNotification

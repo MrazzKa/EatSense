@@ -13,6 +13,7 @@ import DietCard from '../DietCard';
 import ActiveDietWidget from '../ActiveDietWidget';
 import type { Program, Recommendation, ActiveDiet } from './types';
 import { getLocalizedText } from './types';
+import { isFreeDiet } from '../../config/freeContent';
 
 const DIETS_UI_GROUPS: Array<{ id: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; labelKey: string }> = [
     { id: 'Popular', icon: 'star', color: '#FFB300', labelKey: 'diets_groups_popular' },
@@ -129,13 +130,21 @@ export default function DietsTabContent({
         return diets;
     }, [allDiets, selectedType, selectedDifficulty, searchQuery, language, t]);
 
-    // Group diets by uiGroup
+    // Group diets by uiGroup, with free diets sorted first in each group
     const groupedDiets = useMemo(() => {
         const groups: Record<string, Program[]> = {};
         filteredDiets.forEach(diet => {
             const group = diet.uiGroup || 'Popular';
             if (!groups[group]) groups[group] = [];
             groups[group].push(diet);
+        });
+        // Sort each group: free diets first
+        Object.keys(groups).forEach(group => {
+            groups[group].sort((a, b) => {
+                const aFree = isFreeDiet(a.slug || a.id) ? 0 : 1;
+                const bFree = isFreeDiet(b.slug || b.id) ? 0 : 1;
+                return aFree - bFree;
+            });
         });
         return groups;
     }, [filteredDiets]);

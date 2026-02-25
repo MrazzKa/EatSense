@@ -907,9 +907,21 @@
       "instructions": "Before dinner, with water",
       "name": "Metformin"
     },
-    "tabTitle": "Medications",
-    "times": "Times",
-    "title": "Medication schedule"
+    "tabTitle": "Medicamentos",
+    "times": "Horarios",
+    "title": "Horario de medicamentos",
+    "notifications": {
+      "title": "Hora de tomar tu medicamento",
+      "body": "{{name}} a las {{time}} ({{dosage}})",
+      "reminder": "Recordatorio de medicamento",
+      "actionTake": "Tomado",
+      "alertTitle": "Recordatorio de medicamento",
+      "alertMessage": "¿Tomaste tu medicamento?",
+      "taken": "Tomado",
+      "later": "Más tarde",
+      "success": "Medicamento marcado como tomado",
+      "error": "Error al actualizar el medicamento"
+    }
   },
   "notifications": {
     "enableFailed": "Could not enable notifications.",
@@ -1779,6 +1791,7 @@
     "disclaimer": "Esto es inspiración de estilo de vida, no consejo médico. Consulta a un profesional de la salud para orientación médica.",
     "categories": {
       "all": "Todos",
+      "FREE": "Gratis",
       "TRENDING": "Tendencia",
       "GOAL_LOSE_WEIGHT": "Pérdida de peso",
       "GOAL_BUILD_MUSCLE": "Ganar músculo",
@@ -1960,6 +1973,8 @@
     "recommended": "Recomendado",
     "startTrial": "Iniciar prueba de 7 días",
     "subscribeNow": "Suscribirse ahora",
+    "purchaseNow": "Comprar ahora",
+    "purchaseComplete": "¡Tu suscripción ya está activa!",
     "subtitle": "Saca el máximo provecho de EatSense",
     "title": "Desbloquear acceso completo",
     "trialBadge": "{{days}} días de prueba gratis",

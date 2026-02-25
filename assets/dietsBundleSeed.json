@@ -10,10 +10,10 @@
         "fr": "Régime méditerranéen"
       },
       "shortDescription": {
-        "en": "Mediterranean-inspired eating",
-        "ru": "Питание в средиземноморском стиле",
-        "kk": "Жерорта теңізі стиліндегі тамақтану",
-        "fr": "Alimentation d'inspiration méditerranéenne"
+        "en": "Heart-healthy Mediterranean eating",
+        "ru": "Полезное средиземноморское питание для сердца",
+        "kk": "Жүрекке пайдалы Жерорта теңізі тамақтануы",
+        "fr": "Alimentation méditerranéenne bonne pour le cœur"
       },
       "imageUrl": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80",
       "color": "#4CAF50",
@@ -42,10 +42,10 @@
         "fr": "Régime DASH"
       },
       "shortDescription": {
-        "en": "Inspired by the DASH dietary approach",
-        "ru": "На основе диетического подхода DASH",
-        "kk": "DASH диеталық тәсіліне негізделген",
-        "fr": "Inspiré de l'approche diététique DASH"
+        "en": "Lower blood pressure naturally",
+        "ru": "Снижение давления естественным путём",
+        "kk": "Қан қысымын табиғи түрде төмендету",
+        "fr": "Réduire la tension artérielle naturellement"
       },
       "imageUrl": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80",
       "color": "#2196F3",
@@ -57,7 +57,7 @@
       "uiGroup": "Health",
       "tags": [
         "heart_healthy",
-        "blood_pressure",
+        "clinical",
         "evidence_based"
       ],
       "sources": [
@@ -89,7 +89,7 @@
       "uiGroup": "Popular",
       "tags": [
         "beginner_friendly",
-        "simple",
+        "no_counting",
         "visual"
       ],
       "sources": [
@@ -120,9 +120,9 @@
       "type": "WEIGHT_LOSS",
       "uiGroup": "Weight loss",
       "tags": [
-        "fasting",
-        "popular",
-        "flexible"
+        "time_restricted",
+        "autophagy",
+        "fat_burning"
       ],
       "sources": [
         "de Cabo R, Mattson MP. N Engl J Med 2019;381(26):2541-2551"
@@ -138,10 +138,10 @@
         "fr": "Régime faible en glucides"
       },
       "shortDescription": {
-        "en": "Fewer carbs, more protein",
-        "ru": "Меньше углеводов, больше белка",
-        "kk": "Аз көмірсу, көп ақуыз",
-        "fr": "Moins de glucides, plus de protéines"
+        "en": "Reduced carbs for weight management",
+        "ru": "Сниженные углеводы для контроля веса",
+        "kk": "Салмақты бақылау үшін азайтылған көмірсулар",
+        "fr": "Glucides réduits pour la gestion du poids"
       },
       "imageUrl": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80",
       "color": "#FF5722",
@@ -152,8 +152,9 @@
       "type": "WEIGHT_LOSS",
       "uiGroup": "Weight loss",
       "tags": [
-        "low_carb",
-        "weight_loss"
+        "fat_loss",
+        "blood_sugar_control",
+        "satiety"
       ],
       "sources": [
         "Volek JS et al. Lipids 2009;44(4):297-309"
@@ -209,10 +210,10 @@
         "fr": "Old Money"
       },
       "subtitle": {
-        "en": "Quiet luxury living",
-        "ru": "Тихая роскошь",
-        "kk": "Тыныш сәнділік",
-        "fr": "Luxe discret"
+        "en": "Timeless elegance lifestyle",
+        "ru": "Образ жизни вечной элегантности",
+        "kk": "Мәңгілік талғампаздық өмір салты",
+        "fr": "Style de vie d'élégance intemporelle"
       },
       "shortDescription": {
         "en": "Timeless elegance lifestyle",
@@ -383,6 +384,82 @@
       ],
       "sources": [
         "Willcox BJ et al. Ann N Y Acad Sci 2007;1114:434-455"
+      ]
+    },
+    {
+      "id": "clean_girl",
+      "slug": "clean_girl",
+      "name": {
+        "en": "Clean Girl",
+        "ru": "Чистая Девушка",
+        "kk": "Таза Қыз",
+        "fr": "Clean Girl"
+      },
+      "subtitle": {
+        "en": "Natural glow lifestyle",
+        "ru": "Образ жизни натурального сияния",
+        "kk": "Табиғи жарқырау өмір салты",
+        "fr": "Style de vie éclat naturel"
+      },
+      "shortDescription": {
+        "en": "Natural glow lifestyle",
+        "ru": "Образ жизни натурального сияния",
+        "kk": "Табиғи жарқырау өмір салты",
+        "fr": "Style de vie éclat naturel"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
+      "color": "#A5D6A7",
+      "difficulty": "EASY",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 93,
+      "emoji": "✨",
+      "uiGroup": "Trending",
+      "tags": [
+        "trending",
+        "minimal",
+        "glow"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
+      ]
+    },
+    {
+      "id": "ceo_warrior",
+      "slug": "ceo_warrior",
+      "name": {
+        "en": "CEO Warrior",
+        "ru": "CEO Воин",
+        "kk": "CEO Жауынгер",
+        "fr": "CEO Warrior"
+      },
+      "subtitle": {
+        "en": "Executive biohacking",
+        "ru": "Биохакинг для руководителей",
+        "kk": "Басшыларға арналған биохакинг",
+        "fr": "Biohacking exécutif"
+      },
+      "shortDescription": {
+        "en": "Executive biohacking",
+        "ru": "Биохакинг для руководителей",
+        "kk": "Басшыларға арналған биохакинг",
+        "fr": "Biohacking exécutif"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+      "color": "#37474F",
+      "difficulty": "MODERATE",
+      "duration": 14,
+      "isFeatured": true,
+      "popularityScore": 90,
+      "emoji": "⚔️",
+      "uiGroup": "Warrior Mode",
+      "tags": [
+        "warrior_mode",
+        "executive",
+        "biohacking"
+      ],
+      "sources": [
+        "Dietary Guidelines for Americans 2020-2025, USDA"
       ]
     }
   ],

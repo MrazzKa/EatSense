@@ -906,6 +906,7 @@
   "lifestyles": {
     "categories": {
       "all": "Все",
+      "FREE": "Бесплатные",
       "TRENDING": "Популярные",
       "GOAL_LOSE_WEIGHT": "Похудение",
       "GOAL_BUILD_MUSCLE": "Набор мышечной массы",
@@ -2491,6 +2492,8 @@
     "trialBadge": "{{days}} дня бесплатно",
     "tryFree": "Попробовать {{days}} дня бесплатно",
     "subscribeNow": "Подписаться",
+    "purchaseNow": "Купить сейчас",
+    "purchaseComplete": "Ваша подписка теперь активна!",
     "priceAfterTrial": "Затем {{price}}/мес после пробного периода",
     "priceMonthly": "{{price}}/мес",
     "features": {

@@ -12,6 +12,7 @@ export interface LifestyleCategory {
 }
 
 export const LIFESTYLE_CATEGORIES: LifestyleCategory[] = [
+  { id: 'FREE', emoji: '🎁', nameKey: 'lifestyles.categories.FREE' },
   { id: 'TRENDING', emoji: '🔥', nameKey: 'lifestyles.categories.TRENDING' },
   { id: 'GOAL_LOSE_WEIGHT', emoji: '🎯', nameKey: 'lifestyles.categories.GOAL_LOSE_WEIGHT' },
   { id: 'GOAL_BUILD_MUSCLE', emoji: '🎯', nameKey: 'lifestyles.categories.GOAL_BUILD_MUSCLE' },

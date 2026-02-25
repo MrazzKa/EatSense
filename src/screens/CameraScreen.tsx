@@ -570,7 +570,8 @@ const createStyles = (tokens) =>
       flexDirection: 'row',
       justifyContent: 'center',
       gap: tokens.spacing.md,
-      marginTop: tokens.spacing.md,
+      marginTop: tokens.spacing.sm,
+      paddingBottom: tokens.spacing.sm,
     },
     typeButton: {
       flex: 1,

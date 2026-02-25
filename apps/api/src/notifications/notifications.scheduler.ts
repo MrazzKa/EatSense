@@ -4,6 +4,25 @@ import { DateTime } from 'luxon';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from './notifications.service';
 
+// Server-side notification translations
+const DAILY_REMINDER_TRANSLATIONS: Record<string, { title: string; body: string }> = {
+  en: { title: 'EatSense Daily Reminder', body: 'Log your meals today to stay on track!' },
+  ru: { title: 'Ежедневное напоминание EatSense', body: 'Запишите приёмы пищи, чтобы быть в форме!' },
+  kk: { title: 'EatSense күнделікті еске салу', body: 'Бүгінгі тамағыңызды жазып, мақсатыңызға жетіңіз!' },
+  fr: { title: 'Rappel quotidien EatSense', body: 'Enregistrez vos repas pour rester sur la bonne voie !' },
+  de: { title: 'EatSense Tägliche Erinnerung', body: 'Erfassen Sie Ihre Mahlzeiten, um auf Kurs zu bleiben!' },
+  es: { title: 'Recordatorio diario EatSense', body: '¡Registra tus comidas para mantener el rumbo!' },
+};
+
+const MEDICATION_REMINDER_TRANSLATIONS: Record<string, { title: string; body: (_name: string, _time: string) => string }> = {
+  en: { title: 'Medication Reminder', body: (name, time) => `Time to take ${name} (${time})` },
+  ru: { title: 'Напоминание о лекарстве', body: (name, time) => `Пора принять ${name} (${time})` },
+  kk: { title: 'Дәрі еске салу', body: (name, time) => `${name} қабылдау уақыты (${time})` },
+  fr: { title: 'Rappel de médicament', body: (name, time) => `Il est temps de prendre ${name} (${time})` },
+  de: { title: 'Medikamentenerinnerung', body: (name, time) => `Zeit, ${name} einzunehmen (${time})` },
+  es: { title: 'Recordatorio de medicamento', body: (name, time) => `Es hora de tomar ${name} (${time})` },
+};
+
 @Injectable()
 export class NotificationsScheduler {
   private readonly logger = new Logger(NotificationsScheduler.name);
@@ -12,6 +31,22 @@ export class NotificationsScheduler {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
   ) { }
+
+  /**
+   * Get user's preferred language from their profile preferences
+   */
+  private async getUserLanguage(userId: string): Promise<string> {
+    try {
+      const profile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+        select: { preferences: true },
+      });
+      const prefs = profile?.preferences as Record<string, any> | null;
+      return prefs?.language || 'en';
+    } catch {
+      return 'en';
+    }
+  }
 
   /**
    * Cron, который проверяет напоминания о таблетках каждую минуту.
@@ -99,6 +134,7 @@ export class NotificationsScheduler {
             localNow.minute === targetMinute
           ) {
             try {
+              const medLang = await this.getUserLanguage(med.userId);
               await this.notificationsService.sendMedicationReminder({
                 userId: med.userId,
                 medicationId: med.id,
@@ -107,6 +143,7 @@ export class NotificationsScheduler {
                 doseTime: dose.timeOfDay,
                 beforeMeal: dose.beforeMeal,
                 afterMeal: dose.afterMeal,
+                language: medLang,
               });
 
               this.logger.debug(
@@ -173,10 +210,12 @@ export class NotificationsScheduler {
       }
 
       try {
+        const lang = await this.getUserLanguage(pref.userId);
+        const translations = DAILY_REMINDER_TRANSLATIONS[lang] || DAILY_REMINDER_TRANSLATIONS.en;
         const result = await this.notificationsService.sendPushNotification(
           pref.userId,
-          'EatSense Daily Reminder',
-          'Log your meals today to stay on track!',
+          translations.title,
+          translations.body,
           { type: 'daily-reminder' },
         );
 
