@@ -71,34 +71,30 @@ export class DailyLimitGuard implements CanActivate {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const key = `daily:${options.resource}:${userId}:${today}`;
 
-    // Get current count
-    const currentCountStr = await this.redisService.get(key);
-    const currentCount = currentCountStr ? parseInt(currentCountStr) : 0;
-
     const resetTime = getResetTime();
 
-    if (currentCount >= effectiveLimit) {
+    // Atomically increment counter before allowing the request
+    const newCount = await this.redisService.incr(key);
+
+    // Set TTL on first increment so the key expires at midnight
+    if (newCount === 1) {
+      const secondsUntilMidnight = Math.ceil(
+        (resetTime.getTime() - Date.now()) / 1000,
+      );
+      await this.redisService.expire(key, secondsUntilMidnight);
+    }
+
+    // Enforce effective limit
+    if (newCount > effectiveLimit) {
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,
-          code: 'DAILY_LIMIT_EXCEEDED',
-          message: `Daily limit reached. You have used ${currentCount} of ${effectiveLimit} ${options.resource === 'food' ? 'photo analyses' : 'chat requests'} today. Limit resets at midnight.`,
+          message: 'Daily scan limit reached',
           limit: effectiveLimit,
-          used: currentCount,
-          remaining: 0,
-          resetAt: resetTime.toISOString(),
         },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-
-    // Store limit info in request for later increment (after successful analysis)
-    request.dailyLimit = {
-      key,
-      currentCount,
-      resetTime,
-      resource: options.resource,
-    };
 
     return true;
   }

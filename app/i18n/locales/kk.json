@@ -2073,6 +2073,10 @@
       "morning": "Таң",
       "midday": "Түс",
       "evening": "Кеш",
+      "morningRitual": "Таңғы ритуал",
+      "eveningRitual": "Кешкі ритуал",
+      "diningOut": "Мейрамханада",
+      "pairsWellWith": "Жақсы үйлеседі",
       "vibe": "Вайб",
       "startProgram": "Бағдарламаны бастау",
       "continueProgram": "Жалғастыру"
@@ -2175,6 +2179,7 @@
   "diets_finishDay": "Күнді аяқтау",
   "diets_dailyPlan": "Күнделікті жоспар",
   "diets_wellbeing": "Әл-ауқат",
+  "diets_groups_free": "Тегін",
   "diets_groups_popular": "Танымал",
   "diets_groups_health": "Денсаулық",
   "diets_groups_weight_loss": "Арықтау",

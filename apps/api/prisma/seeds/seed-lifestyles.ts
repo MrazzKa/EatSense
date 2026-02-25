@@ -1,6 +1,70 @@
 import { PrismaClient, Prisma, DietType, DietDifficulty } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
+
+/** Load content from lifestyle_programms.json for Old Money, Clean Girl, CEO Warrior */
+function loadLifestyleContent(): Record<string, any> {
+    const candidates = [
+        path.join(__dirname, '..', '..', '..', '..', 'content', 'lifestyle_programms.json'),
+        path.join(process.cwd(), '..', '..', 'content', 'lifestyle_programms.json'),
+        path.join(process.cwd(), 'content', 'lifestyle_programms.json'),
+    ];
+    for (const filePath of candidates) {
+        try {
+            if (fs.existsSync(filePath)) {
+                const raw = fs.readFileSync(filePath, 'utf8');
+                const data = JSON.parse(raw);
+                const programs: { slug: string; [key: string]: any }[] = data?.programs ?? [];
+                return Object.fromEntries(programs.map((p) => [p.slug, p]));
+            }
+        } catch {
+            continue;
+        }
+    }
+    return {};
+}
+
+// Helper builders for simple multi-language structures.
+// For now we duplicate English content into all supported languages
+// so that the shape is localized and can be refined later.
+const SUPPORTED_LOCALES = ['en', 'ru', 'kk', 'fr', 'de', 'es'] as const;
+
+function makeLocalizedText(base: string) {
+    const obj: Record<string, string> = {};
+    for (const lang of SUPPORTED_LOCALES) {
+        obj[lang] = base;
+    }
+    return obj;
+}
+
+function makeLocalizedArray(values: string[]) {
+    const obj: Record<string, string[]> = {};
+    for (const lang of SUPPORTED_LOCALES) {
+        obj[lang] = values;
+    }
+    return obj;
+}
+
+function mapSampleDays(sampleDays: any[] | undefined) {
+    if (!Array.isArray(sampleDays)) return undefined;
+    return sampleDays.map((day) => ({
+        day: day.day,
+        morning: {
+            dish: makeLocalizedText(day.morning?.dish || ''),
+            description: makeLocalizedText(day.morning?.description || ''),
+        },
+        midday: {
+            dish: makeLocalizedText(day.midday?.dish || ''),
+            description: makeLocalizedText(day.midday?.description || ''),
+        },
+        evening: {
+            dish: makeLocalizedText(day.evening?.dish || ''),
+            description: makeLocalizedText(day.evening?.description || ''),
+        },
+    }));
+}
 
 // Type definition for lifestyle programs
 type LocalizedText = string | { [key: string]: string };
@@ -2215,9 +2279,11 @@ const lifestylePrograms: LifestyleProgram[] = [
 
 async function main() {
     console.log('🌿 Seeding lifestyle programs...');
+    const contentBySlug = loadLifestyleContent();
 
     for (const program of lifestylePrograms) {
         const id = program.slug;
+        const content = contentBySlug[id];
 
         // Helper to generate content if missing
         const getMantra = (p: LifestyleProgram) => ({
@@ -2271,15 +2337,38 @@ async function main() {
             }
         });
 
-        // Construct rules object with all the lifestyle fields
+        // Construct rules object with all the lifestyle fields.
+        // For Old Money / Clean Girl / CEO Warrior we also enrich from lifestyle_programms.json
+        // and wrap new sections into simple localized structures (same text for all locales by default).
         const rules = {
             mantra: (program as any).mantra || getMantra(program),
             philosophy: (program as any).philosophy || getPhilosophy(program),
-            embrace: program.embrace, // Also keep in rules for easy access
+            embrace: program.embrace,
             minimize: program.minimize,
             dailyInspiration: (program as any).dailyInspiration || getDailyInspiration(program),
             sampleDay: (program as any).sampleDay || getSampleDay(program),
-            vibe: (program as any).vibe || getVibe(program)
+            vibe: (program as any).vibe || getVibe(program),
+            mantras: content?.mantras ? makeLocalizedArray(content.mantras) : undefined,
+            morningRitual: content?.morningRitual
+                ? content.morningRitual.map((step: any) => ({
+                    icon: step.icon,
+                    text: makeLocalizedText(step.text || ''),
+                }))
+                : undefined,
+            eveningRitual: content?.eveningRitual
+                ? content.eveningRitual.map((step: any) => ({
+                    icon: step.icon,
+                    text: makeLocalizedText(step.text || ''),
+                }))
+                : undefined,
+            diningOut: content?.diningOut ? makeLocalizedArray(content.diningOut) : undefined,
+            pairsWellWith: content?.pairsWellWith
+                ? content.pairsWellWith.map((item: any) => ({
+                    label: makeLocalizedText(item.label || ''),
+                    description: makeLocalizedText(item.description || ''),
+                }))
+                : undefined,
+            sampleDays: mapSampleDays(content?.sampleDays),
         };
 
         await prisma.dietProgram.upsert({

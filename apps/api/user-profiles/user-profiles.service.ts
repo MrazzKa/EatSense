@@ -258,9 +258,15 @@ export class UserProfilesService {
         ...(normalizedData.preferences && typeof normalizedData.preferences === 'object' ? normalizedData.preferences : {}),
       };
 
-      if (normalizedData.dailyCalories !== undefined && normalizedData.dailyCalories !== null) {
-        // User explicitly sent dailyCalories — always mark as manual
+      if (normalizedData.dailyCalories !== undefined && normalizedData.dailyCalories !== null && normalizedData.dailyCalories > 0 && !isNaN(normalizedData.dailyCalories)) {
+        // User explicitly sent valid dailyCalories — mark as manual
         mergedPrefs.isManualCalories = true;
+        normalizedData.preferences = mergedPrefs;
+      } else if (normalizedData.dailyCalories !== undefined && (normalizedData.dailyCalories <= 0 || isNaN(normalizedData.dailyCalories))) {
+        // Invalid calorie value — discard and recalculate
+        delete normalizedData.dailyCalories;
+        normalizedData.dailyCalories = this.calculateDailyCalories(updatedData);
+        mergedPrefs.isManualCalories = false;
         normalizedData.preferences = mergedPrefs;
       } else if (bodyFieldsChanged && !existingPrefs.isManualCalories) {
         // Body params changed and no manual override — recalculate

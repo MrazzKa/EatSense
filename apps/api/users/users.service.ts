@@ -328,19 +328,27 @@ export class UsersService {
       const totalPhotosAnalyzed = Number.isFinite(Number(stats.totalPhotosAnalyzed))
         ? Number(stats.totalPhotosAnalyzed)
         : 0;
-      let todayPhotosAnalyzed = Number.isFinite(Number(stats.todayPhotosAnalyzed))
-        ? Number(stats.todayPhotosAnalyzed)
-        : 0;
 
-      // Check if today's count needs reset
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const lastAnalysisDate = stats.lastAnalysisDate
-        ? new Date(stats.lastAnalysisDate)
-        : null;
-
-      if (!lastAnalysisDate || lastAnalysisDate < today) {
-        todayPhotosAnalyzed = 0;
+      // Read today's count from Redis (source of truth, synced with DailyLimitGuard)
+      const todayStr = new Date().toISOString().split('T')[0];
+      const redisKey = `daily:food:${userId}:${todayStr}`;
+      let todayPhotosAnalyzed = 0;
+      try {
+        const redisCount = await this.redisService.get(redisKey);
+        todayPhotosAnalyzed = redisCount ? parseInt(redisCount, 10) : 0;
+      } catch {
+        // Fallback to DB if Redis unavailable
+        todayPhotosAnalyzed = Number.isFinite(Number(stats.todayPhotosAnalyzed))
+          ? Number(stats.todayPhotosAnalyzed)
+          : 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const lastAnalysisDate = stats.lastAnalysisDate
+          ? new Date(stats.lastAnalysisDate)
+          : null;
+        if (!lastAnalysisDate || lastAnalysisDate < today) {
+          todayPhotosAnalyzed = 0;
+        }
       }
 
       return {

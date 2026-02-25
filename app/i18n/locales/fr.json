@@ -2146,6 +2146,10 @@
       "morning": "Matin",
       "midday": "Midi",
       "evening": "Soir",
+      "morningRitual": "Rituel du matin",
+      "eveningRitual": "Rituel du soir",
+      "diningOut": "Au restaurant",
+      "pairsWellWith": "Se marie bien avec",
       "vibe": "Ambiance",
       "startProgram": "Commencer le programme",
       "continueProgram": "Continuer"
@@ -2281,6 +2285,7 @@
   "diets_historical_section_disclaimer_banner": "Ce sont des approximations pour le plaisir, pas des avis médicaux",
   "diets_tabs_diets": "Régimes",
   "diets_tabs_lifestyle": "Style de vie",
+  "diets_groups_free": "Gratuit",
   "diets_groups_popular": "Populaire",
   "diets_groups_health": "Santé",
   "diets_groups_weight_loss": "Perte de poids",

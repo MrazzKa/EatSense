@@ -59,7 +59,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     try {
       await this.client.connect();
-    } catch (error) {
+
+      // Configure Redis eviction policy to avoid out-of-memory issues on Railway
+      try {
+        await this.client.sendCommand(['CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lru']);
+        console.log('[Redis] maxmemory-policy set to allkeys-lru');
+      } catch (configError: any) {
+        console.warn('[Redis] Failed to set maxmemory-policy to allkeys-lru:', configError?.message || configError);
+      }
+    } catch (error: any) {
       console.error('[Redis] Failed to connect:', error.message);
       console.warn('[Redis] Some features may not work (rate limiting, caching, etc.)');
       this.isConnected = false;

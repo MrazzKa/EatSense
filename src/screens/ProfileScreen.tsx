@@ -494,6 +494,30 @@ const ProfileScreen = () => {
     }, [loadProfile])
   );
 
+  // Auto-calculate WHR when waist/hip are loaded from backend but WHR is missing
+  useEffect(() => {
+    const metabolic = healthProfile.metabolic || {};
+    const { waistCm, hipCm, whr } = metabolic as any;
+
+    if (waistCm && hipCm && hipCm > 0 && (whr == null || Number.isNaN(whr))) {
+      setHealthProfile(prev => {
+        const prevMetabolic = prev.metabolic || {};
+        const { waistCm: w, hipCm: h, whr: existingWhr } = prevMetabolic as any;
+        if (!w || !h || h <= 0 || (existingWhr != null && !Number.isNaN(existingWhr))) {
+          return prev;
+        }
+        const nextWhr = Number((w / h).toFixed(2));
+        return {
+          ...prev,
+          metabolic: {
+            ...prevMetabolic,
+            whr: nextWhr,
+          },
+        };
+      });
+    }
+  }, [healthProfile.metabolic.waistCm, healthProfile.metabolic.hipCm]);
+
   // Load IAP prices from StoreKit for plan modal (source of truth for subscription pricing)
   useEffect(() => {
     const loadIapPrices = async () => {
@@ -1206,19 +1230,19 @@ const ProfileScreen = () => {
                     }
                   />
 
-                  <View style={styles.row}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={[styles.label, { color: colors.textSecondary || tokens.colors.textSecondary }]}>
+                  <View style={[styles.row, { flex: 1 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8, flexShrink: 0 }}>
+                      <Text style={[styles.label, { flex: 0, color: colors.textSecondary || tokens.colors.textSecondary }]}>
                         {safeT('profile.health.whr', 'WHR')}
                       </Text>
                       <TouchableOpacity onPress={() => showTooltip('whr')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                         <Ionicons name="information-circle-outline" size={14} color={colors.textTertiary} style={{ marginLeft: 4 }} />
                       </TouchableOpacity>
                     </View>
-                    <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary }]}>
+                    <Text style={[styles.value, { color: colors.textPrimary || tokens.colors.textPrimary, flexShrink: 1, textAlign: 'right' }]}>
                       {healthProfile.metabolic.whr != null
-                        ? `${healthProfile.metabolic.whr.toFixed(2)} (${safeT('profile.health.auto', 'auto')})`
-                        : `— (${safeT('profile.health.auto', 'auto')})`}
+                        ? healthProfile.metabolic.whr.toFixed(2)
+                        : '—'}
                     </Text>
                   </View>
 
@@ -2633,6 +2657,8 @@ const createStyles = (tokens) =>
       fontSize: 14,
       color: tokens.colors.textPrimary,
       fontWeight: '500',
+      flexShrink: 1,
+      textAlign: 'right',
     },
     healthSummaryHeader: {
       flexDirection: 'row',

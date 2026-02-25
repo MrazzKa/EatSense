@@ -481,10 +481,9 @@ export class FoodProcessor {
         },
       });
 
-      // Increment daily limit here (only on successful analysis or valid review)
-      if (finalStatus === 'COMPLETED' || finalStatus === 'NEEDS_REVIEW') {
-        await this.incrementDailyLimit(userId, 'food');
-      }
+      // Redis daily limit is now pre-incremented in DailyLimitGuard (before analysis starts)
+      // to prevent race conditions with concurrent requests.
+      // DB stats (userStats table) are still updated below for frontend display.
 
       // Increment user stats for photo analysis
       if (userId && userId !== 'test-user' && userId !== 'temp-user') {
@@ -695,8 +694,8 @@ export class FoodProcessor {
         },
       });
 
-      // Increment daily limit for text analysis
-      await this.incrementDailyLimit(userId, 'food');
+      // Redis daily limit is pre-incremented in DailyLimitGuard
+      // DB stats updated via userStats below
 
       // Update status to completed
       await this.prisma.analysis.update({
@@ -719,23 +718,4 @@ export class FoodProcessor {
     }
   }
 
-  private async incrementDailyLimit(userId: string, resource: 'food' | 'chat') {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const key = `daily:${resource}:${userId}:${today}`;
-
-      const currentCountStr = await this.redisService.get(key);
-      const currentCount = currentCountStr ? parseInt(currentCountStr) : 0;
-
-      const resetTime = new Date();
-      resetTime.setHours(24, 0, 0, 0);
-      const ttl = Math.floor((resetTime.getTime() - Date.now()) / 1000);
-
-      await this.redisService.set(key, (currentCount + 1).toString(), ttl > 0 ? ttl : 86400);
-      this.logger.debug(`[FoodProcessor] Incremented daily limit for ${userId} (resource: ${resource}, count: ${currentCount + 1})`);
-    } catch (error) {
-      this.logger.error(`[FoodProcessor] Error incrementing daily limit for ${userId}:`, error);
-      // Don't throw - limit increment failure shouldn't block analysis result
-    }
-  }
 }

@@ -1614,8 +1614,6 @@ const createStyles = (tokens) =>
       shadowOpacity: 0.15,
       shadowRadius: 4,
       elevation: 4,
-      borderWidth: 2,
-      borderColor: tokens.colors.surface,
     },
     modalOverlay: {
       flex: 1,
