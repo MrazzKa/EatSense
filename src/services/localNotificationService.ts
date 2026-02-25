@@ -83,6 +83,8 @@ class LocalNotificationService {
                 ru: 'Принял',
                 kk: 'Ішілді',
                 fr: 'Pris',
+                de: 'Eingenommen',
+                es: 'Tomado',
             };
             takeButtonText = takeButtonTexts[locale] || takeButtonTexts.en;
         }
@@ -167,6 +169,8 @@ class LocalNotificationService {
                 ru: 'Время принять лекарство',
                 kk: 'Дәрі ішу уақыты',
                 fr: 'Heure de prendre le médicament',
+                de: 'Zeit, Medikamente einzunehmen',
+                es: 'Hora de tomar el medicamento',
             };
             title = titles[locale] || titles.en;
         }
@@ -187,6 +191,8 @@ class LocalNotificationService {
                 ru: `${medicationName} в ${timeStr}${dosage ? ` (${dosage})` : ''}`,
                 kk: `${medicationName} ${timeStr}${dosage ? ` (${dosage})` : ''}`,
                 fr: `${medicationName} à ${timeStr}${dosage ? ` (${dosage})` : ''}`,
+                de: `${medicationName} um ${timeStr}${dosage ? ` (${dosage})` : ''}`,
+                es: `${medicationName} a las ${timeStr}${dosage ? ` (${dosage})` : ''}`,
             };
             body = bodies[locale] || bodies.en;
         } else {
@@ -219,6 +225,8 @@ class LocalNotificationService {
             ru: 'Не забудьте записать еду!',
             kk: 'Тамақты жазуды ұмытпаңыз!',
             fr: "N'oubliez pas de noter votre repas !",
+            de: 'Vergessen Sie nicht, Ihre Mahlzeit zu erfassen!',
+            es: '¡No olvides registrar tu comida!',
         };
 
         const bodies: Record<string, Record<string, string>> = {
@@ -227,18 +235,24 @@ class LocalNotificationService {
                 ru: 'Как завтрак? Сфотографируйте!',
                 kk: 'Таңғы ас қандай болды? Суретке түсіріңіз!',
                 fr: 'Comment était votre petit-déjeuner ? Prenez une photo !',
+                de: 'Wie war Ihr Frühstück? Machen Sie ein Foto!',
+                es: '¿Qué tal el desayuno? ¡Toma una foto!',
             },
             afternoon: {
                 en: "Time to log your lunch. What did you eat?",
                 ru: 'Время записать обед. Что съели?',
                 kk: 'Түскі асты жазу уақыты. Не жедіңіз?',
                 fr: "C'est l'heure de noter votre déjeuner. Qu'avez-vous mangé ?",
+                de: 'Zeit, Ihr Mittagessen zu erfassen. Was haben Sie gegessen?',
+                es: 'Hora de registrar tu almuerzo. ¿Qué comiste?',
             },
             evening: {
                 en: "How was your dinner? Don't forget to log it.",
                 ru: 'Как ужин? Не забудьте записать.',
                 kk: 'Кешкі ас қандай болды? Жазуды ұмытпаңыз.',
                 fr: "Comment était votre dîner ? N'oubliez pas de le noter.",
+                de: 'Wie war Ihr Abendessen? Vergessen Sie nicht, es zu erfassen.',
+                es: '¿Qué tal la cena? No olvides registrarla.',
             },
         };
 

@@ -1941,9 +1941,10 @@
   "lifestyles": {
     "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
     "categories": {
-      "all": "All",
-      "TRENDING": "Trending",
-      "GOAL_LOSE_WEIGHT": "Weight Loss",
+      "all": "Alle",
+      "FREE": "Kostenlos",
+      "TRENDING": "Im Trend",
+      "GOAL_LOSE_WEIGHT": "Abnehmen",
       "GOAL_BUILD_MUSCLE": "Build Muscle",
       "GOAL_CLEAR_SKIN": "Clear Skin",
       "GOAL_MORE_ENERGY": "More Energy",
@@ -2137,6 +2138,8 @@
     "recommended": "Empfohlen",
     "startTrial": "7-Tage-Testversion starten",
     "subscribeNow": "Jetzt abonnieren",
+    "purchaseNow": "Jetzt kaufen",
+    "purchaseComplete": "Ihr Abonnement ist jetzt aktiv!",
     "subtitle": "Hole das Beste aus EatSense heraus",
     "title": "Vollzugriff freischalten",
     "trialBadge": "{{days}} Tage kostenlos testen",

@@ -103,7 +103,7 @@ export class DashboardService {
 
             // Merge goals into stats
             const userProfile = userProfileT.result;
-            const dailyGoal = userProfile?.dailyCalories || 2000; // Default fallback
+            const dailyGoal = (userProfile?.dailyCalories && userProfile.dailyCalories > 0) ? userProfile.dailyCalories : 2000; // Default fallback
             statsT.result.goals = {
                 calories: dailyGoal,
                 protein: Math.round(dailyGoal * 0.2 / 4), // ~20% of calories from protein

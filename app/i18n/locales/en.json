@@ -2209,6 +2209,7 @@
   "lifestyles": {
     "categories": {
       "all": "All",
+      "FREE": "Free",
       "TRENDING": "Trending",
       "GOAL_LOSE_WEIGHT": "Weight Loss",
       "GOAL_BUILD_MUSCLE": "Build Muscle",
@@ -3617,6 +3618,8 @@
     "trialBadge": "{{days}} days free trial",
     "tryFree": "Try free for {{days}} days",
     "subscribeNow": "Subscribe Now",
+    "purchaseNow": "Purchase Now",
+    "purchaseComplete": "Your subscription is now active!",
     "priceAfterTrial": "Then {{price}}/month after trial",
     "priceMonthly": "{{price}}/month",
     "features": {

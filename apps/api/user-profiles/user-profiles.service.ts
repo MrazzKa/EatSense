@@ -73,10 +73,20 @@ export class UserProfilesService {
         ? existingProfile.preferences as Record<string, any>
         : {};
 
-      if (validProfileData.dailyCalories !== undefined && validProfileData.dailyCalories !== null) {
-        // User explicitly sent dailyCalories — always mark as manual
+      if (validProfileData.dailyCalories !== undefined && validProfileData.dailyCalories !== null && validProfileData.dailyCalories > 0 && !isNaN(validProfileData.dailyCalories)) {
+        // User explicitly sent valid dailyCalories — mark as manual
         if (mergedPreferences && typeof mergedPreferences === 'object') {
           (mergedPreferences as any).isManualCalories = true;
+        }
+      } else if (validProfileData.dailyCalories !== undefined && (validProfileData.dailyCalories <= 0 || isNaN(validProfileData.dailyCalories))) {
+        // Invalid calorie value sent — discard and let backend recalculate
+        delete validProfileData.dailyCalories;
+        const recalculated = this.calculateDailyCalories(updatedData);
+        if (recalculated > 0) {
+          validProfileData.dailyCalories = recalculated;
+        }
+        if (mergedPreferences && typeof mergedPreferences === 'object') {
+          (mergedPreferences as any).isManualCalories = false;
         }
       } else if (bodyFieldsChanged && !upsertExistingPrefs.isManualCalories) {
         // Body params changed and no manual override — recalculate

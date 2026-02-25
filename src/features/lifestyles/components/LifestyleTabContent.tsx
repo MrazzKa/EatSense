@@ -222,9 +222,15 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         data.push({ type: 'empty' });
       }
     } else {
-      // Show all programs grouped by category
+      // Show all programs grouped by category (free lifestyles go to FREE group)
       LIFESTYLE_CATEGORIES.forEach(category => {
         const categoryPrograms = filteredPrograms.filter(p => {
+          const programIsFree = isFreeLifestyle(p.id || p.slug || '');
+          if (category.id === 'FREE') {
+            return programIsFree;
+          }
+          // Non-free programs go to their normal category
+          if (programIsFree) return false;
           const catId = mapUiGroupToCategoryId(p.uiGroup || '');
           return catId === category.id || p.category === category.id.toLowerCase();
         });

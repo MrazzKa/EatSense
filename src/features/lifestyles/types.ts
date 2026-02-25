@@ -4,6 +4,7 @@
  */
 
 export type LifestyleCategoryId =
+  | 'FREE'
   | 'TRENDING'
   | 'GOAL_LOSE_WEIGHT'
   | 'GOAL_BUILD_MUSCLE'
