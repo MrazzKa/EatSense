@@ -158,6 +158,9 @@ importers:
       react-native:
         specifier: 0.81.5
         version: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+      react-native-draggable-flatlist:
+        specifier: ^4.0.3
+        version: 4.0.3(@babel/core@7.28.5)(react-native-gesture-handler@2.28.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native-reanimated@4.1.5(@babel/core@7.28.5)(react-native-worklets@0.5.1(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))
       react-native-gesture-handler:
         specifier: ~2.28.0
         version: 2.28.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -185,6 +188,9 @@ importers:
       react-native-worklets:
         specifier: 0.5.1
         version: 0.5.1(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      rn-emoji-keyboard:
+        specifier: ^1.7.0
+        version: 1.7.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
     devDependencies:
       '@babel/core':
         specifier: ^7.20.0
@@ -6676,6 +6682,13 @@ packages:
     peerDependencies:
       '@babel/runtime': ^7.20.6
 
+  react-native-draggable-flatlist@4.0.3:
+    resolution: {integrity: sha512-2F4x5BFieWdGq9SetD2nSAR7s7oQCSgNllYgERRXXtNfSOuAGAVbDb/3H3lP0y5f7rEyNwabKorZAD/SyyNbDw==}
+    peerDependencies:
+      react-native: '>=0.64.0'
+      react-native-gesture-handler: '>=2.0.0'
+      react-native-reanimated: '>=2.8.0'
+
   react-native-fit-image@1.5.5:
     resolution: {integrity: sha512-Wl3Vq2DQzxgsWKuW4USfck9zS7YzhvLNPpkwUUCF90bL32e1a0zOVQ3WsJILJOwzmPdHfzZmWasiiAUNBkhNkg==}
 
@@ -6923,6 +6936,13 @@ packages:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
     deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
+
+  rn-emoji-keyboard@1.7.0:
+    resolution: {integrity: sha512-Yo5yJB+joYqSgvZx7WX/DMAC6rHUEJOQFYNjevd+jzhON23SSg/8kq2r9MH/kIdkNGdQWwIVBPowWqZwRQdfOA==}
+    engines: {node: '>= 16.0.0'}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   rtl-detect@1.1.2:
     resolution: {integrity: sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==}
@@ -16083,6 +16103,16 @@ snapshots:
       '@babel/runtime': 7.28.4
       dotenv: 16.6.1
 
+  react-native-draggable-flatlist@4.0.3(@babel/core@7.28.5)(react-native-gesture-handler@2.28.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native-reanimated@4.1.5(@babel/core@7.28.5)(react-native-worklets@0.5.1(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)):
+    dependencies:
+      '@babel/preset-typescript': 7.28.5(@babel/core@7.28.5)
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+      react-native-gesture-handler: 2.28.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react-native-reanimated: 4.1.5(@babel/core@7.28.5)(react-native-worklets@0.5.1(@babel/core@7.28.5)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - supports-color
+
   react-native-fit-image@1.5.5:
     dependencies:
       prop-types: 15.8.1
@@ -16404,6 +16434,11 @@ snapshots:
   rimraf@3.0.2:
     dependencies:
       glob: 7.2.3
+
+  rn-emoji-keyboard@1.7.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
 
   rtl-detect@1.1.2: {}
 

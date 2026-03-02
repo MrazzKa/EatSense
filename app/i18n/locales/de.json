@@ -14,6 +14,7 @@
     },
     "medications": {
       "title": "Medikamentenplan",
+      "hintTitle": "Tipp",
       "text": "Fügen Sie Ihre Medikamente hinzu und erhalten Sie Erinnerungen zur Einnahme"
     },
     "assistant": {
@@ -1822,7 +1823,56 @@
     "profile": "Profil",
     "recently": "Kürzlich",
     "reports": "Reports",
-    "diets": "Diets"
+    "diets": "Diets",
+    "myDay": "Mein Tag"
+  },
+  "tracker": {
+    "title": "Mein Tag",
+    "tabs": { "habits": "Gewohnheiten", "shopping": "Einkaufsliste" },
+    "streak": "Tage in Folge",
+    "wave": { "title": "Wöchentlicher Fortschritt" },
+    "habits": {
+      "add": "Hinzufügen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "deleteConfirm": "Möchten Sie diese Gewohnheit wirklich löschen?",
+      "name": "Name",
+      "namePlaceholder": "z.B. Wasser trinken",
+      "emoji": "Emoji",
+      "frequency": "Häufigkeit",
+      "daily": "Täglich",
+      "weekdays": "Werktage",
+      "custom": "Benutzerdefiniert"
+    },
+    "shopping": {
+      "add": "Hinzufügen",
+      "bought": "Gekauft",
+      "clear": "Löschen",
+      "share": "Teilen",
+      "shareTitle": "Einkaufsliste",
+      "recommendations": "Empfehlungen",
+      "emptyState": "Ihre Einkaufsliste ist leer",
+      "namePlaceholder": "Artikelname"
+    },
+    "limit": { "habits": "Unbegrenzte Gewohnheiten", "shopping": "Unbegrenztes Einkaufen" },
+    "stats": { "streak": "Serie", "weekly": "Woche", "total": "Gesamt" },
+    "emptyState": "Noch keine Gewohnheiten",
+    "emptyStateSubtitle": "Fügen Sie Ihre erste Gewohnheit hinzu"
+  },
+  "bestPlaces": {
+    "title": "Beste Orte",
+    "subtitle": "Restaurants & gesunde Lokale in der Nähe",
+    "selectCity": "Ihre Stadt",
+    "searchPlaceholder": "Stadt oder Land suchen...",
+    "noResults": "Keine Städte gefunden",
+    "comingSoonTitle": "Partner-Restaurants & Cafés",
+    "comingSoonWithCity": "Wir finden die besten gesunden Lokale in {{city}}. Bleiben Sie dran!",
+    "comingSoonGeneric": "Wählen Sie Ihre Stadt, um Partner-Restaurants und Gesundheitsläden zu entdecken.",
+    "whatToExpect": "Was Sie erwartet",
+    "feature1": "Gesunde Restaurants und Cafés",
+    "feature2": "Bio- und regionale Läden",
+    "feature3": "Exklusive Rabatte für EatSense-Nutzer",
+    "feature4": "Community-Bewertungen"
   },
   "terms": {
     "intro": "Bitte lesen Sie diese Nutzungsbedingungen sorgfältig, bevor Sie EatSense verwenden.",

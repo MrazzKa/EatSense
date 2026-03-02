@@ -44,6 +44,8 @@ const ConsultationChatScreen = React.lazy(() => import('./src/screens/Consultati
 const SubscriptionScreen = React.lazy(() => import('./src/screens/SubscriptionScreen'));
 const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScreen'));
 const ScientificSourcesScreen = React.lazy(() => import('./src/screens/ScientificSourcesScreen'));
+const ReportsScreen = React.lazy(() => import('./src/screens/ReportsScreen'));
+const BestPlacesScreen = React.lazy(() => import('./src/screens/BestPlacesScreen'));
 
 import { clientLog } from './src/utils/clientLog';
 
@@ -317,6 +319,16 @@ function AppContent() {
                 name="Subscription"
                 component={SubscriptionScreen}
                 options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="Reports"
+                component={ReportsScreen}
+                options={{ presentation: 'card', headerShown: false }}
+              />
+              <Stack.Screen
+                name="BestPlaces"
+                component={BestPlacesScreen}
+                options={{ presentation: 'card', headerShown: false }}
               />
             </Stack.Navigator>
           </>

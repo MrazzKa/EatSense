@@ -855,11 +855,11 @@ const MedicationScheduleScreen: React.FC = () => {
             {/* Onboarding Tooltip for first-time users */}
             <Tooltip
                 id={TooltipIds.MEDICATION_SCHEDULE}
-                title={t('tooltips.medications.title')}
+                title={t('tooltips.medications.hintTitle') || t('tooltips.medications.title')}
                 text={t('tooltips.medications.text')}
                 arrowPosition="top"
                 arrowHorizontalAlign="center"
-                style={{ top: 90, right: 16 }}
+                style={{ top: 120, right: 16 }}
             />
 
             {/* Main Content */}

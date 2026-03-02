@@ -621,7 +621,7 @@ export default function SubscriptionScreen() {
 
                         // Get badge text - show for popular, founders, or custom badges
                         const badgeText = isFounders
-                            ? (plan.badge || t('subscription.lifetime') || 'LIFETIME')
+                            ? (t('subscription.founderBadge') || 'Limited')
                             : isPopular
                                 ? (t('subscription.most_popular') || 'BEST VALUE')
                                 : plan.badge || null;

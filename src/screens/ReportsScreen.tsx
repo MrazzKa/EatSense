@@ -17,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
+import PaywallModal from '../components/PaywallModal';
+import { canUseFeature } from '../utils/subscriptionGuard';
 // import { API_BASE_URL } from '../config/env'; // Unused
 
 const REPORTS_HISTORY_KEY = 'reports:history';
@@ -35,8 +37,29 @@ export default function ReportsScreen() {
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
   const [history, setHistory] = useState<ReportHistoryItem[]>([]);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
+
+  // Load subscription status
+  useEffect(() => {
+    ApiService.getCurrentSubscription()
+      .then((data: any) => {
+        if (data?.hasSubscription && data.subscription?.plan) {
+          setSubscriptionPlan(data.subscription.plan);
+        } else {
+          setSubscriptionPlan('free');
+        }
+      })
+      .catch(() => setSubscriptionPlan('free'));
+  }, []);
 
   const handleDownloadCurrentMonth = async () => {
+    // Check subscription before generating report
+    if (!canUseFeature('reports', subscriptionPlan)) {
+      setShowPaywall(true);
+      return;
+    }
+
     try {
       console.log('[ReportsScreen] Downloading monthly report');
       setLoading(true);
@@ -432,6 +455,16 @@ export default function ReportsScreen() {
           </View>
         )}
       </ScrollView>
+
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onSubscribed={() => {
+          setShowPaywall(false);
+          setSubscriptionPlan('pro');
+        }}
+        featureName={t('paywall.feature.reports') || 'Monthly Reports'}
+      />
     </SafeAreaView>
   );
 }

@@ -50,7 +50,14 @@
     "later": "Later",
     "other": "Other",
     "required": "Required",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "mon": "Mo",
+    "tue": "Tu",
+    "wed": "We",
+    "thu": "Th",
+    "fri": "Fr",
+    "sat": "Sa",
+    "sun": "Su"
   },
   "tooltips": {
     "scanMeal": {
@@ -67,6 +74,7 @@
     },
     "medications": {
       "title": "Medication Schedule",
+      "hintTitle": "Hint",
       "text": "Add your medications and get reminders to take them at the right time"
     },
     "assistant": {
@@ -795,6 +803,12 @@
     "metricBmi": "BMI",
     "medications": "Medications",
     "medicationsSubtitle": "Manage your schedule",
+    "reports": "Reports",
+    "reportsSubtitle": "Monthly nutrition reports",
+    "advancedSettings": {
+      "locked": "Health Settings",
+      "upgrade": "Upgrade to Pro"
+    },
     "supportLink": "Contact Support",
     "savingButton": "Saving...",
     "applyPlan": "Apply Plan",
@@ -1103,7 +1117,68 @@
     "profile": "Profile",
     "experts": "Experts",
     "reports": "Reports",
-    "medications": "Medications"
+    "medications": "Medications",
+    "myDay": "My Day"
+  },
+  "tracker": {
+    "title": "My Day",
+    "tabs": {
+      "habits": "Habits",
+      "shopping": "Shopping"
+    },
+    "streak": "day streak",
+    "wave": {
+      "title": "Weekly Progress"
+    },
+    "habits": {
+      "add": "Add Habit",
+      "edit": "Edit Habit",
+      "delete": "Delete Habit",
+      "deleteConfirm": "Are you sure you want to delete this habit?",
+      "name": "Name",
+      "namePlaceholder": "e.g. Drink water",
+      "emoji": "Emoji",
+      "frequency": "Frequency",
+      "daily": "Daily",
+      "weekdays": "Weekdays",
+      "custom": "Custom"
+    },
+    "shopping": {
+      "add": "Add",
+      "bought": "Bought",
+      "clear": "Clear bought",
+      "share": "Share",
+      "shareTitle": "Shopping List",
+      "recommendations": "Recommended",
+      "emptyState": "Your shopping list is empty",
+      "namePlaceholder": "Item name"
+    },
+    "limit": {
+      "habits": "Unlimited Habits",
+      "shopping": "Unlimited Shopping"
+    },
+    "stats": {
+      "streak": "Streak",
+      "weekly": "Weekly",
+      "total": "Total"
+    },
+    "emptyState": "No habits yet",
+    "emptyStateSubtitle": "Add your first habit to start tracking"
+  },
+  "bestPlaces": {
+    "title": "Best Places",
+    "subtitle": "Restaurants & healthy spots nearby",
+    "selectCity": "Your city",
+    "searchPlaceholder": "Search city or country...",
+    "noResults": "No cities found",
+    "comingSoonTitle": "Partner Restaurants & Cafes",
+    "comingSoonWithCity": "We're finding the best healthy eating spots in {{city}}. Stay tuned!",
+    "comingSoonGeneric": "Select your city to discover partner restaurants, cafes, and health food stores near you.",
+    "whatToExpect": "What to expect",
+    "feature1": "Healthy restaurants and cafes",
+    "feature2": "Organic & farm-to-table shops",
+    "feature3": "Exclusive discounts for EatSense users",
+    "feature4": "Community ratings & reviews"
   },
   "experts": {
     "dietitian": {
@@ -3632,6 +3707,10 @@
       "diets": "All Diets & Plans",
       "insights": "Health Insights",
       "support": "Priority Support"
+    },
+    "feature": {
+      "reports": "Monthly Reports",
+      "advancedSettings": "Advanced Health Settings"
     }
   },
   "featureFlags": {
