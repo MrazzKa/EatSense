@@ -392,6 +392,7 @@
     },
     "medications": {
       "title": "Дәрілер кестесі",
+      "hintTitle": "Кеңес",
       "text": "Дәрілеріңізді қосыңыз және дұрыс уақытта ішу туралы еске салулар алыңыз"
     },
     "assistant": {
@@ -1708,6 +1709,12 @@
     "metricBmi": "ИМТ",
     "medications": "Дәрілер",
     "medicationsSubtitle": "Кесте",
+    "reports": "Есептер",
+    "reportsSubtitle": "Ай сайынғы тамақтану есептері",
+    "advancedSettings": {
+      "locked": "Денсаулық параметрлері",
+      "upgrade": "Pro-ға ауысу"
+    },
     "supportLink": "Қолдау қызметі",
     "savingButton": "Сақталуда...",
     "applyPlan": "Жоспарды қолдану",
@@ -2016,7 +2023,56 @@
     "profile": "Профиль",
     "recently": "Жуырда",
     "reports": "Есептер",
-    "diets": "Тамақтану"
+    "diets": "Тамақтану",
+    "myDay": "Менің күнім"
+  },
+  "tracker": {
+    "title": "Менің күнім",
+    "tabs": { "habits": "Әдеттер", "shopping": "Себет" },
+    "streak": "күн қатарынан",
+    "wave": { "title": "Апталық прогресс" },
+    "habits": {
+      "add": "Әдет қосу",
+      "edit": "Өзгерту",
+      "delete": "Жою",
+      "deleteConfirm": "Бұл әдетті жойғыңыз келе ме?",
+      "name": "Атауы",
+      "namePlaceholder": "мыс. Су ішу",
+      "emoji": "Эмодзи",
+      "frequency": "Жиілік",
+      "daily": "Күнделікті",
+      "weekdays": "Жұмыс күндері",
+      "custom": "Таңдау"
+    },
+    "shopping": {
+      "add": "Қосу",
+      "bought": "Сатып алынды",
+      "clear": "Тазалау",
+      "share": "Бөлісу",
+      "shareTitle": "Сатып алу тізімі",
+      "recommendations": "Ұсыныстар",
+      "emptyState": "Тізім бос",
+      "namePlaceholder": "Өнім атауы"
+    },
+    "limit": { "habits": "Шексіз әдеттер", "shopping": "Шексіз сатып алулар" },
+    "stats": { "streak": "Серия", "weekly": "Апта", "total": "Барлығы" },
+    "emptyState": "Әдеттер жоқ",
+    "emptyStateSubtitle": "Бірінші әдетті қосыңыз"
+  },
+  "bestPlaces": {
+    "title": "Үздік орындар",
+    "subtitle": "Жақын маңдағы мейрамханалар",
+    "selectCity": "Сіздің қалаңыз",
+    "searchPlaceholder": "Қала немесе ел іздеу...",
+    "noResults": "Қала табылмады",
+    "comingSoonTitle": "Серіктес мейрамханалар",
+    "comingSoonWithCity": "{{city}} қаласындағы ең жақсы орындарды іздеудеміз!",
+    "comingSoonGeneric": "Жақын маңдағы серіктес мейрамханаларды табу үшін қалаңызды таңдаңыз.",
+    "whatToExpect": "Не күтуге болады",
+    "feature1": "Салауатты мейрамханалар",
+    "feature2": "Органикалық дүкендер",
+    "feature3": "EatSense пайдаланушыларына жеңілдіктер",
+    "feature4": "Қауымдастық бағалары"
   },
   "terms": {
     "sections": {

@@ -489,6 +489,7 @@
     },
     "medications": {
       "title": "Planning médicaments",
+      "hintTitle": "Astuce",
       "text": "Ajoutez vos médicaments et recevez des rappels pour les prendre au bon moment"
     },
     "assistant": {
@@ -1785,6 +1786,12 @@
     "metricBmi": "IMC",
     "medications": "Médicaments",
     "medicationsSubtitle": "Gérez votre planning",
+    "reports": "Rapports",
+    "reportsSubtitle": "Rapports nutritionnels mensuels",
+    "advancedSettings": {
+      "locked": "Paramètres de santé",
+      "upgrade": "Passer à Pro"
+    },
     "supportLink": "Contacter le support",
     "savingButton": "Enregistrement...",
     "applyPlan": "Appliquer le plan",
@@ -2089,7 +2096,56 @@
     "profile": "Profil",
     "recently": "Récent",
     "reports": "Rapports",
-    "diets": "Nutrition"
+    "diets": "Nutrition",
+    "myDay": "Ma journée"
+  },
+  "tracker": {
+    "title": "Ma journée",
+    "tabs": { "habits": "Habitudes", "shopping": "Courses" },
+    "streak": "jours consécutifs",
+    "wave": { "title": "Progrès hebdomadaire" },
+    "habits": {
+      "add": "Ajouter",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette habitude ?",
+      "name": "Nom",
+      "namePlaceholder": "ex. Boire de l'eau",
+      "emoji": "Emoji",
+      "frequency": "Fréquence",
+      "daily": "Quotidien",
+      "weekdays": "Jours ouvrables",
+      "custom": "Personnalisé"
+    },
+    "shopping": {
+      "add": "Ajouter",
+      "bought": "Acheté",
+      "clear": "Effacer",
+      "share": "Partager",
+      "shareTitle": "Liste de courses",
+      "recommendations": "Recommandations",
+      "emptyState": "Votre liste est vide",
+      "namePlaceholder": "Nom de l'article"
+    },
+    "limit": { "habits": "Habitudes illimitées", "shopping": "Courses illimitées" },
+    "stats": { "streak": "Série", "weekly": "Semaine", "total": "Total" },
+    "emptyState": "Aucune habitude",
+    "emptyStateSubtitle": "Ajoutez votre première habitude"
+  },
+  "bestPlaces": {
+    "title": "Meilleurs endroits",
+    "subtitle": "Restaurants et lieux sains à proximité",
+    "selectCity": "Votre ville",
+    "searchPlaceholder": "Rechercher ville ou pays...",
+    "noResults": "Aucune ville trouvée",
+    "comingSoonTitle": "Restaurants et cafés partenaires",
+    "comingSoonWithCity": "Nous recherchons les meilleurs établissements à {{city}}. Restez à l'écoute !",
+    "comingSoonGeneric": "Sélectionnez votre ville pour découvrir les restaurants et magasins partenaires.",
+    "whatToExpect": "À quoi s'attendre",
+    "feature1": "Restaurants et cafés healthy",
+    "feature2": "Magasins bio et locaux",
+    "feature3": "Réductions exclusives pour les utilisateurs EatSense",
+    "feature4": "Avis et notes de la communauté"
   },
   "terms": {
     "sections": {

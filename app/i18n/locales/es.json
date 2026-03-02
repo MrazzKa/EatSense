@@ -1712,7 +1712,56 @@
     "profile": "Perfil",
     "recently": "Recientes",
     "reports": "Reports",
-    "diets": "[MISSING] Diets"
+    "diets": "[MISSING] Diets",
+    "myDay": "Mi día"
+  },
+  "tracker": {
+    "title": "Mi día",
+    "tabs": { "habits": "Hábitos", "shopping": "Compras" },
+    "streak": "días seguidos",
+    "wave": { "title": "Progreso semanal" },
+    "habits": {
+      "add": "Agregar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Desea eliminar este hábito?",
+      "name": "Nombre",
+      "namePlaceholder": "ej. Beber agua",
+      "emoji": "Emoji",
+      "frequency": "Frecuencia",
+      "daily": "Diario",
+      "weekdays": "Días laborables",
+      "custom": "Personalizado"
+    },
+    "shopping": {
+      "add": "Agregar",
+      "bought": "Comprado",
+      "clear": "Limpiar",
+      "share": "Compartir",
+      "shareTitle": "Lista de compras",
+      "recommendations": "Recomendaciones",
+      "emptyState": "Tu lista está vacía",
+      "namePlaceholder": "Nombre del artículo"
+    },
+    "limit": { "habits": "Hábitos ilimitados", "shopping": "Compras ilimitadas" },
+    "stats": { "streak": "Racha", "weekly": "Semana", "total": "Total" },
+    "emptyState": "Sin hábitos aún",
+    "emptyStateSubtitle": "Agrega tu primer hábito"
+  },
+  "bestPlaces": {
+    "title": "Mejores lugares",
+    "subtitle": "Restaurantes y lugares saludables cerca",
+    "selectCity": "Tu ciudad",
+    "searchPlaceholder": "Buscar ciudad o país...",
+    "noResults": "No se encontraron ciudades",
+    "comingSoonTitle": "Restaurantes y cafés asociados",
+    "comingSoonWithCity": "Estamos buscando los mejores lugares saludables en {{city}}. ¡Mantente atento!",
+    "comingSoonGeneric": "Selecciona tu ciudad para descubrir restaurantes y tiendas asociadas.",
+    "whatToExpect": "Qué esperar",
+    "feature1": "Restaurantes y cafés saludables",
+    "feature2": "Tiendas orgánicas y locales",
+    "feature3": "Descuentos exclusivos para usuarios de EatSense",
+    "feature4": "Calificaciones y reseñas de la comunidad"
   },
   "validation": {
     "requiredField": "Campo requerido",
