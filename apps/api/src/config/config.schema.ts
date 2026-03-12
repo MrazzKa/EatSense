@@ -29,6 +29,7 @@ export const configSchema = Joi.object({
   PRO_DAILY_ANALYSES: Joi.number().integer().min(0).default(25),
   DISABLE_LIMITS: Joi.boolean().default(false),
   ADMIN_BYPASS_LIMITS: Joi.boolean().default(false),
+  ADMIN_SECRET: Joi.string().optional().allow(''),
   ASSISTANT_FLOWS_ENABLED: Joi.boolean().default(true),
   SENDGRID_API_KEY: Joi.string().optional().allow(''),
   MAIL_PROVIDER: Joi.string().valid('SMTP', 'SENDGRID').default('SMTP'),

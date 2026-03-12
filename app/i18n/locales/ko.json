@@ -1767,5 +1767,52 @@
   "lifestyles.filters_target_female": "Women",
   "diets_status_active": "Active",
   "diets_status_completed": "Completed",
-  "diets_lifestyle_label": "[MISSING] Lifestyle"
+  "diets_lifestyle_label": "[MISSING] Lifestyle",
+  "tracker": {
+    "shopping": {
+      "namePlaceholder": "아이템 이름",
+      "addAll": "모두 추가"
+    },
+    "todo": {
+      "title": "할 일",
+      "add": "할 일 추가",
+      "placeholder": "새로운 할 일...",
+      "empty": "오늘 할 일이 없습니다",
+      "today": "오늘",
+      "tomorrow": "내일"
+    },
+    "presets": {
+      "title": "습관 추가",
+      "createCustom": "맞춤 습관 만들기",
+      "drinkWater": "물 마시기",
+      "exercise": "운동",
+      "meditate": "명상",
+      "read": "독서",
+      "vitamins": "비타민 먹기",
+      "eatHealthy": "건강하게 먹기",
+      "sleepEarly": "일찍 자기",
+      "walk": "만 보 걷기",
+      "cleanUp": "청소",
+      "floss": "치실",
+      "journal": "일기",
+      "gratitude": "감사",
+      "eatFruit": "과일 먹기",
+      "morningRoutine": "아침 루틴",
+      "eveningRoutine": "저녁 루틴",
+      "noPhone": "자기 전 폰 금지",
+      "gym": "헬스장",
+      "noSugar": "단 음료 금지",
+      "skincare": "스킨케어",
+      "outdoors": "밖에 나가기",
+      "stretching": "스트레칭",
+      "practice": "악기 연습",
+      "learn": "새로운 것 배우기",
+      "breathing": "호흡 운동",
+      "healthySnack": "건강한 간식",
+      "familyTime": "가족 시간",
+      "noAlcohol": "금주",
+      "screenLimit": "스크린 타임 제한",
+      "makeBed": "이불 정리"
+    }
+  }
 }

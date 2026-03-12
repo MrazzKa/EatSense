@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Habit, HabitCompletion } from '../../types/tracker';
@@ -14,7 +14,7 @@ interface HabitWaveProps {
 
 export default function HabitWave({ habits, weekDates, today, completions, isActiveOnDate }: HabitWaveProps) {
   const { colors, tokens } = useTheme();
-  const [width, setWidth] = useState(300);
+  const [width, setWidth] = useState(0);
   const height = 120;
   const paddingH = 16;
   const paddingV = 20;
@@ -33,25 +33,39 @@ export default function HabitWave({ habits, weekDates, today, completions, isAct
   const chartH = height - paddingV * 2;
   const step = chartW / 6;
 
-  const points = rates.map((rate, i) => {
-    if (rate === null) return null;
-    return { x: paddingH + i * step, y: paddingV + chartH * (1 - rate) };
-  }).filter(Boolean) as { x: number; y: number }[];
+  // Build points with original index mapping (no O(n^2))
+  const pointsWithIndex: { x: number; y: number; dateIdx: number }[] = [];
+  rates.forEach((rate, i) => {
+    if (rate !== null) {
+      pointsWithIndex.push({
+        x: paddingH + i * step,
+        y: paddingV + chartH * (1 - rate),
+        dateIdx: i,
+      });
+    }
+  });
 
   let pathD = '';
-  if (points.length >= 2) {
-    pathD = `M${points[0].x},${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
+  if (pointsWithIndex.length >= 2) {
+    pathD = `M${pointsWithIndex[0].x},${pointsWithIndex[0].y}`;
+    for (let i = 1; i < pointsWithIndex.length; i++) {
+      const prev = pointsWithIndex[i - 1];
+      const curr = pointsWithIndex[i];
       const cpx = (prev.x + curr.x) / 2;
       pathD += ` C${cpx},${prev.y} ${cpx},${curr.y} ${curr.x},${curr.y}`;
     }
   }
 
-  const fillD = pathD
-    ? `${pathD} L${points[points.length - 1].x},${paddingV + chartH} L${points[0].x},${paddingV + chartH} Z`
+  const last = pointsWithIndex[pointsWithIndex.length - 1];
+  const first = pointsWithIndex[0];
+  const fillD = pathD && last && first
+    ? `${pathD} L${last.x},${paddingV + chartH} L${first.x},${paddingV + chartH} Z`
     : '';
+
+  // Don't render SVG until we have measured width
+  if (width === 0) {
+    return <View style={styles.container} onLayout={e => setWidth(e.nativeEvent.layout.width)} />;
+  }
 
   return (
     <View style={styles.container} onLayout={e => setWidth(e.nativeEvent.layout.width)}>
@@ -64,16 +78,11 @@ export default function HabitWave({ habits, weekDates, today, completions, isAct
         </Defs>
         {fillD ? <Path d={fillD} fill="url(#waveGrad)" /> : null}
         {pathD ? <Path d={pathD} stroke={colors.primary} strokeWidth={2.5} fill="none" /> : null}
-        {points.map((p, i) => {
-          const dateIdx = rates.findIndex((r, j) => {
-            let count = 0;
-            for (let k = 0; k <= j; k++) if (rates[k] !== null) count++;
-            return count === i + 1;
-          });
-          const isToday = weekDates[dateIdx] === today;
+        {pointsWithIndex.map((p) => {
+          const isToday = weekDates[p.dateIdx] === today;
           return (
             <Circle
-              key={i}
+              key={p.dateIdx}
               cx={p.x}
               cy={p.y}
               r={isToday ? 5 : 3.5}
@@ -95,5 +104,6 @@ const createStyles = (tokens: any, colors: any) =>
       backgroundColor: colors.surfaceSecondary || colors.surface,
       overflow: 'hidden',
       marginVertical: tokens.spacing.sm,
+      minHeight: 120,
     },
   });

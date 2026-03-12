@@ -7,9 +7,10 @@ import { DietsCacheWarmerService } from './diets-cache-warmer.service';
 import { PrismaModule } from '../../prisma.module';
 import { CacheModule } from '../cache/cache.module';
 import { MailerModule } from '../../mailer/mailer.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-    imports: [ConfigModule, PrismaModule, CacheModule, MailerModule],
+    imports: [ConfigModule, PrismaModule, CacheModule, MailerModule, NotificationsModule],
     controllers: [DietsController],
     providers: [DietsService, DietRecommendationsService, DietsCacheWarmerService],
     exports: [DietsService, DietRecommendationsService],

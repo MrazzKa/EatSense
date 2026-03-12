@@ -424,6 +424,7 @@
     "underweight": "Insuffisance pondérale",
     "overweight": "Surpoids",
     "obese": "Obèse",
+    "optional": "facultatif",
     "tryAgain": "Réessayer",
     "enabled": "Activé",
     "reset": "Réinitialiser",
@@ -448,6 +449,7 @@
     "goBack": "Retour",
     "goTo": "Aller à",
     "of": "sur",
+    "add": "Ajouter",
     "delete": "Supprimer",
     "confirm": "Confirmer",
     "errorGeneric": "Erreur générique",
@@ -838,17 +840,27 @@
     "tracker_preview_hint": "Suivez vos progrès quotidiens"
   },
   "suggest": {
-    "modal_title": "Suggérer une amélioration",
-    "name_placeholder": "Votre nom",
-    "request_placeholder": "Décrivez votre suggestion ou le problème...",
+    "title": "Suggestions communautaires",
+    "subtitle": "Écrivez-nous — nom et demande",
+    "subtitle_count": "{{count}} idées — votez ou proposez la vôtre !",
+    "subtitle_empty": "Proposez un style de vie — la communauté vote !",
+    "modal_title": "Suggestions communautaires",
+    "name_placeholder": "Nom du programme",
+    "description_placeholder": "Décrivez votre idée...",
+    "request_placeholder": "Votre suggestion...",
     "submit": "Envoyer",
-    "name_required": "Le nom est requis",
+    "add_new": "Proposer un programme",
+    "name_required": "Entrez un nom",
     "request_required": "La suggestion est requise",
     "contact_success": "Merci ! Nous avons bien reçu votre suggestion.",
-    "error": "Erreur lors de l'envoi. Veuillez réessayer.",
-    "subtitle": "Écrivez-nous — nom et demande",
-    "success": "Envoyé avec succès",
-    "title": "Suggestions"
+    "success": "Votre suggestion a été envoyée !",
+    "voted": "Vote comptabilisé !",
+    "already_voted": "Vous avez déjà voté pour ceci",
+    "leader": "En tête des votes",
+    "empty": "Pas encore de suggestions. Soyez le premier !",
+    "reward_title": "6 mois de PRO gratuits !",
+    "reward_info": "Les suggestions les plus votées sont réalisées ! L'auteur reçoit 6 mois de PRO gratuits !",
+    "error": "Erreur lors de l'envoi. Veuillez réessayer."
   },
   "validation": {
     "requiredField": "Champ requis",
@@ -1945,7 +1957,13 @@
     "step3": "Vous recevez tous les deux 7 jours PRO !",
     "title": "Inviter des amis",
     "yourCode": "Votre code de parrainage",
-    "shareMessage": "Salut ! Profite de 7 jours de Pro offerts : {{link}}"
+    "shareMessage": "Salut ! Profite de 7 jours de Pro offerts : {{link}}",
+    "haveFriendCode": "Vous avez un code ami ?",
+    "enterCode": "Entrez le code",
+    "applyCode": "Appliquer le code",
+    "success": "Succès !",
+    "codeApplied": "Code de parrainage appliqué ! Vous recevez tous les deux 7 jours PRO.",
+    "invalidCode": "Code invalide ou déjà utilisé"
   },
   "reports": {
     "error": {
@@ -1955,6 +1973,10 @@
       "openFailed": "Échec de l'ouverture."
     },
     "deleteConfirm": "Supprimer ce rapport de l'historique ?",
+    "upgradeBanner": {
+      "title": "Débloquer les rapports",
+      "subtitle": "Commencez un essai gratuit pour télécharger vos rapports nutritionnels mensuels"
+    },
     "downloaded": "Rapport téléchargé avec succès",
     "fileSaved": "Rapport enregistré",
     "history": {
@@ -2121,11 +2143,66 @@
       "add": "Ajouter",
       "bought": "Acheté",
       "clear": "Effacer",
+      "clearTitle": "Effacer les achats",
+      "clearConfirm": "Voulez-vous supprimer tous les articles achetés ?",
       "share": "Partager",
       "shareTitle": "Liste de courses",
       "recommendations": "Recommandations",
       "emptyState": "Votre liste est vide",
-      "namePlaceholder": "Nom de l'article"
+      "namePlaceholder": "Nom de l'article",
+      "addAll": "Tout ajouter",
+      "addItem": "Ajouter un produit",
+      "cat": {
+        "protein": "Protéines",
+        "veg": "Légumes",
+        "dairy": "Produits laitiers",
+        "fat": "Matières grasses",
+        "grain": "Céréales",
+        "other": "Autre"
+      }
+    },
+    "todo": {
+      "title": "À FAIRE",
+      "add": "Ajouter une tâche",
+      "placeholder": "Nouvelle tâche...",
+      "empty": "Pas de tâches pour aujourd'hui",
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "reminder": "Rappel",
+      "selectTime": "Choisir l'heure"
+    },
+    "presets": {
+      "title": "Ajouter des habitudes",
+      "createCustom": "Créer une habitude",
+      "drinkWater": "Boire de l'eau",
+      "exercise": "Exercice",
+      "meditate": "Méditer",
+      "read": "Lire",
+      "vitamins": "Prendre des vitamines",
+      "eatHealthy": "Manger sainement",
+      "sleepEarly": "Se coucher tôt",
+      "walk": "10 000 pas",
+      "cleanUp": "Ranger",
+      "floss": "Fil dentaire",
+      "journal": "Journal",
+      "gratitude": "Gratitude",
+      "eatFruit": "Manger un fruit",
+      "morningRoutine": "Routine matinale",
+      "eveningRoutine": "Routine du soir",
+      "noPhone": "Pas de téléphone avant de dormir",
+      "gym": "Aller à la salle",
+      "noSugar": "Pas de boissons sucrées",
+      "skincare": "Soin de la peau",
+      "outdoors": "Sortir dehors",
+      "stretching": "Étirements",
+      "practice": "Pratiquer un instrument",
+      "learn": "Apprendre quelque chose",
+      "breathing": "Exercice de respiration",
+      "healthySnack": "Collation saine",
+      "familyTime": "Temps en famille",
+      "noAlcohol": "Pas d'alcool",
+      "screenLimit": "Limiter les écrans",
+      "makeBed": "Faire le lit"
     },
     "limit": { "habits": "Habitudes illimitées", "shopping": "Courses illimitées" },
     "stats": { "streak": "Série", "weekly": "Semaine", "total": "Total" },
@@ -3848,6 +3925,65 @@
     "bmr": {
       "title": "TMB",
       "body": "Taux métabolique de base."
+    }
+  },
+  "pharmacy": {
+    "title": "Ma pharmacie",
+    "subtitle": "Connectez votre pharmacie et commandez vos médicaments",
+    "bannerText": "Connectez votre pharmacie et commandez",
+    "connectedPharmacies": "Pharmacies connectées",
+    "noPharmacy": "Aucune pharmacie connectée",
+    "connectPharmacy": "Connecter une pharmacie",
+    "editPharmacy": "Modifier la pharmacie",
+    "disconnect": "Déconnecter",
+    "disconnectTitle": "Déconnecter la pharmacie",
+    "disconnectConfirm": "Voulez-vous vraiment vous déconnecter de cette pharmacie ?",
+    "orderMedications": "Commander des médicaments",
+    "selectPharmacy": "Sélectionner une pharmacie",
+    "medications": "Médicaments",
+    "addMedication": "Ajouter un médicament",
+    "prescription": "Ordonnance",
+    "addPrescription": "Ajouter une photo d'ordonnance",
+    "prescriptionAttached": "Ordonnance jointe",
+    "removePrescription": "Supprimer",
+    "prescriptionPhotoPrompt": "Ajouter une photo d'ordonnance",
+    "notes": "Notes",
+    "submitOrder": "Envoyer la commande",
+    "orderHistory": "Historique des commandes",
+    "orderSentTitle": "Commande envoyée !",
+    "orderSentMessage": "Votre commande a été envoyée. Nous informerons la pharmacie.",
+    "fields": {
+      "name": "Nom de la pharmacie",
+      "code": "Code pharmacie",
+      "address": "Adresse",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "dosage": "Dosage",
+      "quantity": "Quantité"
+    },
+    "placeholders": {
+      "name": "ex. Pharmacie Amavita",
+      "code": "ex. AMA-1234",
+      "address": "ex. Marktgasse 12, 3011 Bern",
+      "phone": "+41 31 311 22 33",
+      "email": "pharmacie@exemple.ch",
+      "medicationName": "Nom du médicament",
+      "notes": "Notes supplémentaires..."
+    },
+    "status": {
+      "pending": "En attente",
+      "sent": "Envoyée",
+      "processing": "En cours",
+      "ready": "Prête",
+      "completed": "Terminée"
+    },
+    "error": {
+      "nameRequired": "Le nom de la pharmacie est requis",
+      "connect": "Échec de la connexion à la pharmacie",
+      "order": "Échec de l'envoi de la commande",
+      "noItems": "Ajoutez au moins un médicament",
+      "photoUpload": "Échec du téléchargement de la photo",
+      "cameraPermission": "L'autorisation de la caméra est requise"
     }
   }
 }

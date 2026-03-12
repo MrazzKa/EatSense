@@ -1767,5 +1767,52 @@
   "lifestyles.filters_target_female": "Women",
   "diets_status_active": "Active",
   "diets_status_completed": "Completed",
-  "diets_lifestyle_label": "[MISSING] Lifestyle"
+  "diets_lifestyle_label": "[MISSING] Lifestyle",
+  "tracker": {
+    "shopping": {
+      "namePlaceholder": "商品名称",
+      "addAll": "全部添加"
+    },
+    "todo": {
+      "title": "待办事项",
+      "add": "添加任务",
+      "placeholder": "新任务...",
+      "empty": "今天没有任务",
+      "today": "今天",
+      "tomorrow": "明天"
+    },
+    "presets": {
+      "title": "添加习惯",
+      "createCustom": "创建自定义习惯",
+      "drinkWater": "喝水",
+      "exercise": "锻炼",
+      "meditate": "冥想",
+      "read": "阅读",
+      "vitamins": "吃维生素",
+      "eatHealthy": "健康饮食",
+      "sleepEarly": "早睡",
+      "walk": "走一万步",
+      "cleanUp": "打扫",
+      "floss": "用牙线",
+      "journal": "写日记",
+      "gratitude": "感恩",
+      "eatFruit": "吃水果",
+      "morningRoutine": "早间习惯",
+      "eveningRoutine": "晚间习惯",
+      "noPhone": "睡前不看手机",
+      "gym": "去健身房",
+      "noSugar": "不喝甜饮料",
+      "skincare": "护肤",
+      "outdoors": "出去走走",
+      "stretching": "拉伸",
+      "practice": "练习乐器",
+      "learn": "学习新东西",
+      "breathing": "呼吸练习",
+      "healthySnack": "健康零食",
+      "familyTime": "家庭时间",
+      "noAlcohol": "不喝酒",
+      "screenLimit": "限制屏幕时间",
+      "makeBed": "整理床铺"
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit, HabitCompletion } from '../types/tracker';
 
@@ -25,7 +25,7 @@ function getWeekDates(): string[] {
 }
 
 function isHabitActiveOnDate(habit: Habit, dateStr: string): boolean {
-  const date = new Date(dateStr);
+  const date = new Date(dateStr + 'T12:00:00');
   const jsDay = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
   const day = (jsDay + 6) % 7; // convert to 0=Mon, ..., 6=Sun
 
@@ -43,8 +43,14 @@ export function useHabits() {
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const weekDates = getWeekDates();
-  const today = getDateString();
+  // Ref to always have latest habits for streak calculation & callbacks
+  const habitsRef = useRef<Habit[]>(habits);
+  habitsRef.current = habits;
+
+  // Memoize weekDates and today so they don't recalculate on every render
+  const weekDates = useMemo(() => getWeekDates(), []);
+  const today = useMemo(() => getDateString(), []);
+  const weekDatesKey = useMemo(() => weekDates.join(','), [weekDates]);
 
   const loadHabits = useCallback(async () => {
     try {
@@ -72,36 +78,68 @@ export function useHabits() {
     } catch {
       return {};
     }
-  }, [weekDates.join(',')]);
+  }, [weekDatesKey]);
 
+  // Batch read completions for streak — up to 365 days in one multiGet
   const calculateStreak = useCallback(async (currentHabits: Habit[]) => {
     if (currentHabits.length === 0) {
       setStreak(0);
       return;
     }
 
-    let count = 0;
+    // Build all date keys we might need (max 365, starting from yesterday)
+    const dateKeys: string[] = [];
     const d = new Date();
-    // Start from yesterday (today is still in progress)
     d.setDate(d.getDate() - 1);
-
     for (let i = 0; i < 365; i++) {
-      const dateStr = getDateString(d);
-      const activeHabits = currentHabits.filter(h => isHabitActiveOnDate(h, dateStr));
-      if (activeHabits.length === 0) {
-        d.setDate(d.getDate() - 1);
-        continue;
+      dateKeys.push(getDateString(d));
+      d.setDate(d.getDate() - 1);
+    }
+
+    // Batch read in chunks of 50
+    const allCompletions: Record<string, HabitCompletion[]> = {};
+    const CHUNK = 50;
+    for (let start = 0; start < dateKeys.length; start += CHUNK) {
+      const chunk = dateKeys.slice(start, start + CHUNK);
+      const storageKeys = chunk.map(dk => COMPLETIONS_PREFIX + dk);
+      try {
+        const pairs = await AsyncStorage.multiGet(storageKeys);
+        for (const [key, value] of pairs) {
+          const date = key.replace(COMPLETIONS_PREFIX, '');
+          allCompletions[date] = value ? JSON.parse(value) : [];
+        }
+      } catch {
+        break;
       }
 
-      const raw = await AsyncStorage.getItem(COMPLETIONS_PREFIX + dateStr);
-      const dayCompletions: HabitCompletion[] = raw ? JSON.parse(raw) : [];
-      const allDone = activeHabits.every(h =>
-        dayCompletions.some(c => c.habitId === h.id && c.completed)
-      );
+      // Check streak so far — if already broken, no need to fetch more
+      let brokenInChunk = false;
+      for (const dk of chunk) {
+        const activeHabits = currentHabits.filter(h => isHabitActiveOnDate(h, dk));
+        if (activeHabits.length === 0) continue;
+        const dayC = allCompletions[dk] || [];
+        const allDone = activeHabits.every(h =>
+          dayC.some(c => c.habitId === h.id && c.completed)
+        );
+        if (!allDone) {
+          brokenInChunk = true;
+          break;
+        }
+      }
+      if (brokenInChunk) break;
+    }
 
+    // Calculate final streak count
+    let count = 0;
+    for (const dk of dateKeys) {
+      const activeHabits = currentHabits.filter(h => isHabitActiveOnDate(h, dk));
+      if (activeHabits.length === 0) continue;
+      const dayC = allCompletions[dk] || [];
+      const allDone = activeHabits.every(h =>
+        dayC.some(c => c.habitId === h.id && c.completed)
+      );
       if (allDone) {
         count++;
-        d.setDate(d.getDate() - 1);
       } else {
         break;
       }
@@ -124,27 +162,28 @@ export function useHabits() {
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }, []);
 
+  // Use functional updates via setHabits to avoid stale closures
   const addHabit = useCallback(async (habit: Omit<Habit, 'id' | 'createdAt' | 'order'>) => {
     const newHabit: Habit = {
       ...habit,
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       createdAt: new Date().toISOString(),
-      order: habits.length,
+      order: habitsRef.current.length,
     };
-    const updated = [...habits, newHabit];
+    const updated = [...habitsRef.current, newHabit];
     await saveHabits(updated);
     return newHabit;
-  }, [habits, saveHabits]);
+  }, [saveHabits]);
 
   const updateHabit = useCallback(async (id: string, changes: Partial<Habit>) => {
-    const updated = habits.map(h => h.id === id ? { ...h, ...changes } : h);
+    const updated = habitsRef.current.map(h => h.id === id ? { ...h, ...changes } : h);
     await saveHabits(updated);
-  }, [habits, saveHabits]);
+  }, [saveHabits]);
 
   const deleteHabit = useCallback(async (id: string) => {
-    const updated = habits.filter(h => h.id !== id);
+    const updated = habitsRef.current.filter(h => h.id !== id);
     await saveHabits(updated);
-  }, [habits, saveHabits]);
+  }, [saveHabits]);
 
   const reorderHabits = useCallback(async (reordered: Habit[]) => {
     const updated = reordered.map((h, i) => ({ ...h, order: i }));
@@ -168,10 +207,12 @@ export function useHabits() {
 
     await AsyncStorage.setItem(key, JSON.stringify(updated));
     setCompletions(prev => ({ ...prev, [date]: updated }));
-    await calculateStreak(habits);
-  }, [habits, calculateStreak]);
+    // Use ref to get latest habits for streak
+    await calculateStreak(habitsRef.current);
+  }, [calculateStreak]);
 
-  const weeklyPercentage = (() => {
+  // Memoize weeklyPercentage
+  const weeklyPercentage = useMemo(() => {
     if (habits.length === 0) return 0;
     let total = 0;
     let done = 0;
@@ -183,7 +224,7 @@ export function useHabits() {
       done += active.filter(h => dayC.some(c => c.habitId === h.id && c.completed)).length;
     }
     return total > 0 ? Math.round((done / total) * 100) : 0;
-  })();
+  }, [habits, weekDates, today, completions]);
 
   return {
     habits,

@@ -18,8 +18,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
 import PaywallModal from '../components/PaywallModal';
-import { canUseFeature } from '../utils/subscriptionGuard';
-// import { API_BASE_URL } from '../config/env'; // Unused
+import { canUseFeature, isPro } from '../utils/subscriptionGuard';
 
 const REPORTS_HISTORY_KEY = 'reports:history';
 
@@ -351,6 +350,28 @@ export default function ReportsScreen() {
           </Text>
         </View>
 
+        {/* Upgrade banner for free users */}
+        {subscriptionPlan !== null && !isPro(subscriptionPlan) && (
+          <TouchableOpacity
+            onPress={() => setShowPaywall(true)}
+            activeOpacity={0.8}
+            style={[styles.upgradeBanner, { backgroundColor: colors.primaryTint || (colors.primary + '12') }]}
+          >
+            <View style={styles.upgradeBannerContent}>
+              <Ionicons name="lock-open-outline" size={20} color={colors.primary} />
+              <View style={styles.upgradeBannerText}>
+                <Text style={[styles.upgradeBannerTitle, { color: colors.textPrimary }]}>
+                  {t('reports.upgradeBanner.title') || 'Unlock Reports'}
+                </Text>
+                <Text style={[styles.upgradeBannerSubtitle, { color: colors.textSecondary }]}>
+                  {t('reports.upgradeBanner.subtitle') || 'Start a free trial to download monthly nutrition reports'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+            </View>
+          </TouchableOpacity>
+        )}
+
         <View style={[styles.card, { backgroundColor: colors.surface || colors.card, borderColor: colors.border || colors.borderMuted }]}>
           <View style={styles.cardHeader}>
             <View style={[styles.cardIcon, { backgroundColor: colors.primaryTint || colors.primary + '20' }]}>
@@ -481,7 +502,29 @@ const createStyles = (tokens: any) =>
       padding: tokens.spacing.xl || 16,
     },
     header: {
-      marginBottom: tokens.spacing.xl || 24,
+      marginBottom: tokens.spacing.lg || 16,
+    },
+    upgradeBanner: {
+      borderRadius: tokens.radii.lg || 16,
+      padding: tokens.spacing.lg || 16,
+      marginBottom: tokens.spacing.lg || 16,
+    },
+    upgradeBannerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.md || 12,
+    },
+    upgradeBannerText: {
+      flex: 1,
+    },
+    upgradeBannerTitle: {
+      fontSize: tokens.typography.bodyStrong?.fontSize || 15,
+      fontWeight: tokens.typography.bodyStrong?.fontWeight || '600',
+      marginBottom: 2,
+    },
+    upgradeBannerSubtitle: {
+      fontSize: tokens.typography.caption?.fontSize || 13,
+      lineHeight: tokens.typography.caption?.lineHeight || 18,
     },
     title: {
       fontSize: tokens.typography.headingL?.fontSize || 28,

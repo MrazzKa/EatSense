@@ -1767,5 +1767,52 @@
   "lifestyles.filters_target_female": "Women",
   "diets_status_active": "Active",
   "diets_status_completed": "Completed",
-  "diets_lifestyle_label": "[MISSING] Lifestyle"
+  "diets_lifestyle_label": "[MISSING] Lifestyle",
+  "tracker": {
+    "shopping": {
+      "namePlaceholder": "アイテム名",
+      "addAll": "すべて追加"
+    },
+    "todo": {
+      "title": "やること",
+      "add": "タスクを追加",
+      "placeholder": "新しいタスク...",
+      "empty": "今日のタスクはありません",
+      "today": "今日",
+      "tomorrow": "明日"
+    },
+    "presets": {
+      "title": "習慣を追加",
+      "createCustom": "カスタム習慣を作成",
+      "drinkWater": "水を飲む",
+      "exercise": "運動",
+      "meditate": "瞑想",
+      "read": "読書",
+      "vitamins": "ビタミンを飲む",
+      "eatHealthy": "健康的な食事",
+      "sleepEarly": "早く寝る",
+      "walk": "1万歩",
+      "cleanUp": "掃除",
+      "floss": "フロス",
+      "journal": "日記",
+      "gratitude": "感謝",
+      "eatFruit": "果物を食べる",
+      "morningRoutine": "朝のルーティン",
+      "eveningRoutine": "夜のルーティン",
+      "noPhone": "寝る前にスマホなし",
+      "gym": "ジム",
+      "noSugar": "甘い飲み物なし",
+      "skincare": "スキンケア",
+      "outdoors": "外に出る",
+      "stretching": "ストレッチ",
+      "practice": "楽器の練習",
+      "learn": "新しいことを学ぶ",
+      "breathing": "呼吸エクササイズ",
+      "healthySnack": "ヘルシーおやつ",
+      "familyTime": "家族の時間",
+      "noAlcohol": "お酒なし",
+      "screenLimit": "スクリーンタイム制限",
+      "makeBed": "ベッドメイキング"
+    }
+  }
 }

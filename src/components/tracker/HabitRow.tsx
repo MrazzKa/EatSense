@@ -38,19 +38,21 @@ export default function HabitRow({ habit, weekDates, today, completions, onToggl
               disabled={isFuture || !isActive}
               style={[
                 styles.cell,
-                completed && { backgroundColor: colors.success + '30' },
-                missed && { backgroundColor: colors.error + '20' },
+                completed && { backgroundColor: colors.primaryTint || (colors.primary + '30') },
+                missed && { backgroundColor: colors.errorTint || (colors.error + '20') },
                 isFuture && { opacity: 0.3 },
                 isToday && { borderColor: colors.primary, borderWidth: 2 },
               ]}
             >
               <Text style={[
                 styles.cellText,
-                completed && { color: colors.success },
+                completed && { color: colors.primary },
                 missed && { color: colors.error },
                 isFuture && { color: colors.textTertiary },
+                // Today active but not completed: show a tappable dot
+                isToday && !completed && !missed && isActive && { color: colors.textTertiary },
               ]}>
-                {completed ? '✓' : missed ? '✗' : isFuture ? '·' : ''}
+                {completed ? '✓' : missed ? '✗' : isFuture ? '·' : isActive ? '·' : ''}
               </Text>
             </TouchableOpacity>
           );

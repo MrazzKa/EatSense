@@ -1167,6 +1167,18 @@ const OnboardingScreen = () => {
 
       clientLog('Onboarding:profileSave:success');
 
+      // Apply referral code if provided
+      if (profileData.referralCode?.trim()) {
+        try {
+          const ReferralsService = (await import('../services/referralsService')).default;
+          await ReferralsService.applyReferralCode(profileData.referralCode.trim());
+          clientLog('Onboarding:referral:applied', { code: profileData.referralCode });
+        } catch (e) {
+          clientLog('Onboarding:referral:failed', { error: e?.message });
+          // Don't block onboarding for referral failure
+        }
+      }
+
       // Direct purchase on onboarding
       if (selectedPlan && selectedPlan !== 'free') {
         console.log('[OnboardingScreen] Paid plan selected, initiating purchase:', selectedPlan);
@@ -1885,6 +1897,51 @@ const OnboardingScreen = () => {
             );
           })}
         </View>
+        {/* Referral Code Input */}
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 12,
+            marginTop: 12,
+          }}
+          onPress={() => setProfileData(prev => ({ ...prev, showReferralInput: !prev.showReferralInput }))}
+        >
+          <Ionicons name="gift-outline" size={18} color={colors.primary} />
+          <Text style={{ marginLeft: 6, color: colors.primary, fontSize: 14, fontWeight: '500' }}>
+            {t('referral.haveFriendCode', "Have a friend's code?")}
+          </Text>
+        </TouchableOpacity>
+        {profileData.showReferralInput && (
+          <View style={{
+            marginTop: 8,
+            paddingHorizontal: 16,
+          }}>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 8,
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                fontSize: 18,
+                fontWeight: '600',
+                letterSpacing: 2,
+                textAlign: 'center',
+                color: colors.textPrimary,
+                backgroundColor: colors.surface,
+              }}
+              value={profileData.referralCode || ''}
+              onChangeText={(text) => setProfileData(prev => ({ ...prev, referralCode: text.toUpperCase() }))}
+              placeholder={t('referral.enterCode', 'Enter code')}
+              placeholderTextColor={colors.textTertiary}
+              autoCapitalize="characters"
+              maxLength={8}
+            />
+          </View>
+        )}
+
         <View style={[styles.planFinePrint, { marginTop: 16 }]}>
           <Ionicons name="information-circle" size={14} color={colors.textTertiary || '#999'} />
           <Text style={styles.planFinePrintText}>
@@ -2230,10 +2287,12 @@ const OnboardingScreen = () => {
             const height = Number(profileData.height);
             const age = Number(profileData.age);
             const hasValidParams = weight > 0 && height > 0 && age > 0 && !isNaN(weight) && !isNaN(height) && !isNaN(age);
+            // Mifflin-St Jeor: male +5, female -161, non-binary/other use average (-78)
+            const genderOffset = profileData.gender === 'male' ? 5
+              : profileData.gender === 'female' ? -161
+              : -78; // average of male/female for non_binary, prefer_not_to_say, other
             const bmr = hasValidParams
-              ? (profileData.gender === 'male'
-                ? 10 * weight + 6.25 * height - 5 * age + 5
-                : 10 * weight + 6.25 * height - 5 * age - 161)
+              ? 10 * weight + 6.25 * height - 5 * age + genderOffset
               : 0;
             const recommendedCalories = hasValidParams ? Math.round(bmr * activityMultiplier) : 0;
 

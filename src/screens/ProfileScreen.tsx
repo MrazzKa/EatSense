@@ -246,10 +246,6 @@ const ProfileScreen = () => {
   );
   const [notificationLoading, setNotificationLoading] = useState(true);
   const [notificationSaving, setNotificationSaving] = useState(false);
-  const [location, setLocation] = useState({
-    country: 'ch',
-    city: 'Zurich',
-  });
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [showHealthDetails, setShowHealthDetails] = useState(false);
@@ -1030,32 +1026,6 @@ const ProfileScreen = () => {
     );
   };
 
-  const locationPresets: Record<string, { label: string; cities: string[] }> = {
-    ch: {
-      label: 'Switzerland',
-      cities: ['Zurich', 'Geneva', 'Lausanne'],
-    },
-    kz: {
-      label: 'Kazakhstan',
-      cities: ['Almaty', 'Astana'],
-    },
-    ru: {
-      label: 'Russia',
-      cities: ['Moscow', 'Saint Petersburg'],
-    },
-  };
-
-  const currentLocationConfig = locationPresets[location.country] || locationPresets.ch;
-  const countryOptions = Object.entries(locationPresets).map(([value, cfg]) => ({
-    value,
-    label: cfg.label,
-  }));
-  const cityOptions =
-    (currentLocationConfig.cities || []).map((name) => ({
-      value: name,
-      label: name,
-    })) || [];
-
   return (
     <>
       <SafeAreaView style={styles.safeArea}>
@@ -1561,28 +1531,50 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           </AppCard>
 
-          {/* Best Places Section */}
+          {/* Pharmacy Section */}
           <AppCard style={styles.medicationsCard}>
             <TouchableOpacity
               onPress={() => {
                 if (navigation && typeof navigation.navigate === 'function') {
-                  navigation.navigate('BestPlaces');
+                  navigation.navigate('Pharmacy');
                 }
               }}
               activeOpacity={0.8}
             >
               <View style={styles.cardContent}>
-                <Ionicons name="location-outline" size={24} color={colors.primary} />
+                <Ionicons name="storefront-outline" size={24} color={colors.primary} />
                 <View style={styles.cardTextContainer}>
                   <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
-                    {safeT('bestPlaces.title', 'Best Places')}
+                    {safeT('pharmacy.title', 'My Pharmacy')}
                   </Text>
                   <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                    {safeT('bestPlaces.subtitle', 'Restaurants & healthy spots nearby')}
+                    {safeT('pharmacy.subtitle', 'Connect pharmacy & order medications')}
                   </Text>
                 </View>
-                <View style={{ backgroundColor: colors.success, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginRight: 8 }}>
-                  <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '700' }}>{safeT('common.comingSoon', 'Soon')}</Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </View>
+            </TouchableOpacity>
+          </AppCard>
+
+          {/* Referral Section */}
+          <AppCard style={styles.medicationsCard}>
+            <TouchableOpacity
+              onPress={() => {
+                if (navigation && typeof navigation.navigate === 'function') {
+                  navigation.navigate('Referral');
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardContent}>
+                <Ionicons name="gift-outline" size={24} color={colors.primary} />
+                <View style={styles.cardTextContainer}>
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                    {safeT('referral.title', 'Invite Friends')}
+                  </Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    {safeT('referral.heroSubtitle', 'Invite friends and both get 7 days PRO free!')}
+                  </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
               </View>
@@ -1896,54 +1888,6 @@ const ProfileScreen = () => {
                 </TouchableOpacity>
               </View>
             </View>
-            <View style={styles.preferenceRow}>
-              <View style={styles.notificationCopy}>
-                <Text style={styles.preferenceLabel}>
-                  {safeT('profile.location.title', 'Your city')}
-                </Text>
-                <Text style={styles.notificationDescription}>
-                  {safeT(
-                    'profile.location.subtitle',
-                    'Soon we will start recommending the best places and partnerships in your city.',
-                  )}
-                </Text>
-                <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.xs }}>
-                  <View style={styles.timeChip}>
-                    <Ionicons name="time-outline" size={14} color={tokens.colors.primary} />
-                    <Text style={styles.notificationTimeText}>
-                      {safeT('profile.location.soon', 'Soon')}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            <ProfileSegmentedControl
-              label={safeT('profile.location.country', 'Country')}
-              value={location.country}
-              options={countryOptions}
-              onChange={(value) => {
-                const cfg = locationPresets[value] || locationPresets.ch;
-                const nextCity =
-                  (cfg.cities && cfg.cities.length > 0 ? cfg.cities[0] : location.city) || location.city;
-                setLocation({
-                  country: value,
-                  city: nextCity,
-                });
-              }}
-            />
-
-            <ProfileSegmentedControl
-              label={safeT('profile.location.city', 'City')}
-              value={location.city}
-              options={cityOptions}
-              onChange={(value) =>
-                setLocation((prev) => ({
-                  ...prev,
-                  city: value,
-                }))
-              }
-            />
             <View style={styles.preferenceRow}>
               <View style={styles.notificationCopy}>
                 <Text style={styles.preferenceLabel}>{t('profile.notificationsDailyTitle')}</Text>

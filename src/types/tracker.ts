@@ -26,3 +26,12 @@ export interface ShoppingItem {
   bought: boolean;
   createdAt: string;
 }
+
+export interface TodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  date: string; // YYYY-MM-DD
+  reminder?: string; // ISO datetime for notification
+  createdAt: string;
+}

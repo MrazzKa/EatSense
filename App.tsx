@@ -46,6 +46,7 @@ const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScre
 const ScientificSourcesScreen = React.lazy(() => import('./src/screens/ScientificSourcesScreen'));
 const ReportsScreen = React.lazy(() => import('./src/screens/ReportsScreen'));
 const BestPlacesScreen = React.lazy(() => import('./src/screens/BestPlacesScreen'));
+const PharmacyScreen = React.lazy(() => import('./src/screens/PharmacyScreen'));
 
 import { clientLog } from './src/utils/clientLog';
 
@@ -247,6 +248,14 @@ function AppContent() {
               <Stack.Screen
                 name="MedicationSchedule"
                 component={MedicationScheduleScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="Pharmacy"
+                component={PharmacyScreen}
                 options={{
                   presentation: 'card',
                   headerShown: false,

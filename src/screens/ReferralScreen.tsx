@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 // import * as Clipboard from 'expo-clipboard'; // Package not installed
@@ -17,6 +17,8 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+    const [friendCode, setFriendCode] = useState('');
+    const [applying, setApplying] = useState(false);
 
     useEffect(() => {
         loadStats();
@@ -46,14 +48,35 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
 
     const handleShare = useCallback(async () => {
         if (!stats?.code || stats.code === '---') return;
-        const message = t('referral.shareMessage')?.replace('{code}', stats.code) ||
-            `Join me on EatSense! Use my code ${stats.code} and we both get 7 days PRO free! Download: https://eatsense.app`;
+        const shareLink = `https://eatsense.app/r/${stats.code}`;
+        const message = t('referral.shareMessage')?.replace('{{link}}', shareLink) ||
+            `Join me on EatSense! Use my code ${stats.code} and we both get 7 days PRO free! Download: ${shareLink}`;
         try {
             await Share.share({ message });
         } catch (error) {
             console.error('Share failed:', error);
         }
     }, [stats?.code, t]);
+
+    const handleApplyCode = useCallback(async () => {
+        const code = friendCode.trim();
+        if (!code) return;
+        setApplying(true);
+        try {
+            const result = await ReferralsService.applyReferralCode(code);
+            Alert.alert(
+                t('referral.success', 'Success!'),
+                result.message || t('referral.codeApplied', 'Referral code applied! You both get 7 days PRO.'),
+            );
+            setFriendCode('');
+            loadStats(); // Refresh stats
+        } catch (error: any) {
+            const msg = error?.message || error?.data?.message || t('referral.invalidCode', 'Invalid or already used referral code');
+            Alert.alert(t('common.error', 'Error'), msg);
+        } finally {
+            setApplying(false);
+        }
+    }, [friendCode, t]);
 
     if (loading) {
         return (
@@ -97,6 +120,42 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
                     <TouchableOpacity style={[styles.shareButton, { backgroundColor: colors.primary }]} onPress={handleShare}>
                         <Ionicons name="share-social" size={20} color="#fff" />
                         <Text style={styles.shareButtonText}>{t('referral.share')}</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Apply Friend's Code */}
+                <View style={[styles.codeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Text style={[styles.codeLabel, { color: colors.textSecondary }]}>
+                        {t('referral.haveFriendCode', "Have a friend's code?")}
+                    </Text>
+                    <View style={styles.codeRow}>
+                        <TextInput
+                            style={[styles.codeInput, { color: colors.textPrimary, borderColor: colors.border }]}
+                            value={friendCode}
+                            onChangeText={setFriendCode}
+                            placeholder={t('referral.enterCode', 'Enter code')}
+                            placeholderTextColor={colors.textTertiary}
+                            autoCapitalize="characters"
+                            maxLength={8}
+                        />
+                    </View>
+                    <TouchableOpacity
+                        style={[styles.shareButton, {
+                            backgroundColor: friendCode.trim() ? colors.primary : colors.border,
+                        }]}
+                        onPress={handleApplyCode}
+                        disabled={!friendCode.trim() || applying}
+                    >
+                        {applying ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <>
+                                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                                <Text style={styles.shareButtonText}>
+                                    {t('referral.applyCode', 'Apply Code')}
+                                </Text>
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
 
@@ -234,6 +293,17 @@ const styles = StyleSheet.create({
     },
     copyButton: {
         padding: 8,
+    },
+    codeInput: {
+        flex: 1,
+        fontSize: 20,
+        fontWeight: '600',
+        letterSpacing: 2,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderWidth: 1,
+        borderRadius: 8,
+        textAlign: 'center',
     },
     shareButton: {
         flexDirection: 'row',

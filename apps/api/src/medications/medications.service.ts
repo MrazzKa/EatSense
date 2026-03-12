@@ -1,16 +1,20 @@
-import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ServiceUnavailableException, Inject, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { DateTime } from 'luxon';
 import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PharmacyService } from '../pharmacy/pharmacy.service';
 
 @Injectable()
 export class MedicationsService {
   private readonly logger = new Logger(MedicationsService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() @Inject(PharmacyService) private readonly pharmacyService?: PharmacyService,
+  ) { }
 
   /**
    * P3.1: Get medications due for today (using new Medication model)
@@ -286,6 +290,7 @@ export class MedicationsService {
   }
   /**
    * Decrement usage count (Safe Take)
+   * Sends low stock alert email when remaining stock falls below threshold
    */
   async decrementStock(userId: string, id: string) {
     const existing = await this.findOneForUser(userId, id);
@@ -296,8 +301,9 @@ export class MedicationsService {
     }
 
     const newStock = Math.max(0, existing.remainingStock - 1);
+    const threshold = existing.lowStockThreshold || 7;
 
-    return await this.prisma.medication.update({
+    const updated = await this.prisma.medication.update({
       where: { id },
       data: {
         remainingStock: newStock,
@@ -305,6 +311,24 @@ export class MedicationsService {
       },
       include: { doses: true },
     });
+
+    // Send low stock alert when crossing threshold
+    if (newStock <= threshold && newStock > 0 && existing.remainingStock > threshold && this.pharmacyService) {
+      try {
+        await this.pharmacyService.sendLowStockAlert(
+          userId,
+          existing.name,
+          existing.dosage,
+          newStock,
+          threshold,
+        );
+        this.logger.log(`[Medications] Low stock alert sent for ${existing.name} (${newStock} remaining)`);
+      } catch (err) {
+        this.logger.error(`[Medications] Failed to send low stock alert:`, err);
+      }
+    }
+
+    return updated;
   }
 }
 

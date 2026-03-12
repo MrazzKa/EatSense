@@ -16,7 +16,7 @@ export class MailerService {
 
   constructor() {
     const configuredFrom = (process.env.MAIL_FROM || '').trim();
-    this.fromAddress = configuredFrom || 'EatSense <timur.kamaraev@eatsense.ch>';
+    this.fromAddress = configuredFrom || 'EatSense <info@eatsense.ch>';
     this.mailDisabled = (process.env.MAIL_DISABLE || 'false').toLowerCase() === 'true';
     this.ignoreErrors = (process.env.AUTH_DEV_IGNORE_MAIL_ERRORS || 'false').toLowerCase() === 'true';
 

@@ -53,8 +53,10 @@ export class DailyLimitGuard implements CanActivate {
 
     const isFreeUser = !activeSubscription;
 
-    // Get limits from environment variables
-    const freeDailyAnalyses = parseInt(process.env.FREE_DAILY_ANALYSES || '3', 10);
+    // Get limits from environment variables (platform-aware: Android=1, iOS=2)
+    const platform = request.body?.platform || request.headers?.['x-platform'] || 'ios';
+    const defaultFreeLimit = platform === 'android' ? 1 : 2;
+    const freeDailyAnalyses = parseInt(process.env.FREE_DAILY_ANALYSES || String(defaultFreeLimit), 10);
     const proDailyAnalyses = parseInt(process.env.PRO_DAILY_ANALYSES || '9999', 10);
 
     // Use plan-specific limit if available, otherwise use env defaults

@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Platform,
   ScrollView,
+  KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -20,6 +22,7 @@ interface ShoppingListProps {
   activeItems: ShoppingItem[];
   boughtItems: ShoppingItem[];
   onAdd: (item: { name: string; category: ShoppingCategory; emoji?: string }) => void;
+  onAddAll?: (items: { name: string; category: ShoppingCategory; emoji?: string }[]) => void;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
   onClearBought: () => void;
@@ -29,15 +32,18 @@ interface ShoppingListProps {
   insufficientData: boolean;
   canAddMore: boolean;
   onLimitReached: () => void;
+  shoppingLimit?: number | null;
+  currentCount?: number;
+  compact?: boolean;
 }
 
-const CATEGORIES: { key: ShoppingCategory; label: string }[] = [
-  { key: 'protein', label: 'Protein' },
-  { key: 'veg', label: 'Vegetables' },
-  { key: 'dairy', label: 'Dairy' },
-  { key: 'fat', label: 'Fats' },
-  { key: 'grain', label: 'Grains' },
-  { key: 'other', label: 'Other' },
+const CATEGORY_KEYS: { key: ShoppingCategory; i18nKey: string; fallback: string }[] = [
+  { key: 'protein', i18nKey: 'tracker.shopping.cat.protein', fallback: 'Protein' },
+  { key: 'veg', i18nKey: 'tracker.shopping.cat.veg', fallback: 'Vegetables' },
+  { key: 'dairy', i18nKey: 'tracker.shopping.cat.dairy', fallback: 'Dairy' },
+  { key: 'fat', i18nKey: 'tracker.shopping.cat.fat', fallback: 'Fats' },
+  { key: 'grain', i18nKey: 'tracker.shopping.cat.grain', fallback: 'Grains' },
+  { key: 'other', i18nKey: 'tracker.shopping.cat.other', fallback: 'Other' },
 ];
 
 export default function ShoppingList({
@@ -53,6 +59,10 @@ export default function ShoppingList({
   insufficientData,
   canAddMore,
   onLimitReached,
+  shoppingLimit,
+  currentCount,
+  compact,
+  onAddAll,
 }: ShoppingListProps) {
   const { colors, tokens } = useTheme();
   const { t } = useI18n();
@@ -79,37 +89,100 @@ export default function ShoppingList({
     onAdd({ name: rec.name, category: rec.category, emoji: rec.emoji });
   };
 
+  // Add All respects remaining capacity
+  const handleAddAll = () => {
+    if (!canAddMore) {
+      onLimitReached();
+      return;
+    }
+    const count = currentCount ?? activeItems.length;
+    const remaining = shoppingLimit != null ? Math.max(0, shoppingLimit - count) : 12;
+    const recsToAdd = recommendations.slice(0, Math.min(12, remaining)).map(rec => ({
+      name: rec.name,
+      category: rec.category,
+      emoji: rec.emoji,
+    }));
+    if (recsToAdd.length === 0) {
+      onLimitReached();
+      return;
+    }
+    if (onAddAll) {
+      onAddAll(recsToAdd);
+    } else {
+      recsToAdd.forEach(rec => onAdd(rec));
+    }
+  };
+
+  const handleClearBought = () => {
+    Alert.alert(
+      t('tracker.shopping.clearTitle') || 'Clear Bought Items',
+      t('tracker.shopping.clearConfirm') || 'Are you sure you want to remove all bought items?',
+      [
+        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+        { text: t('common.delete') || 'Delete', style: 'destructive', onPress: onClearBought },
+      ]
+    );
+  };
+
   return (
     <View>
-      {/* Recommendations chips */}
+      {/* Recommendations */}
       {!insufficientData && recommendations.length > 0 && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            {t('tracker.shopping.recommendations') || 'Recommended'}
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.chipsRow}>
-              {recommendations.slice(0, 12).map((rec, i) => (
+          <View style={styles.recHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              {t('tracker.shopping.recommendations') || 'Recommended'}
+            </Text>
+            {compact && recommendations.length > 1 && (
+              <TouchableOpacity
+                onPress={handleAddAll}
+                style={[styles.addAllBtn, { backgroundColor: colors.primaryTint || (colors.primary + '15') }]}
+              >
+                <Text style={[styles.addAllText, { color: colors.primary }]}>
+                  {t('tracker.shopping.addAll') || 'Add All'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {compact ? (
+            <View style={styles.recList}>
+              {recommendations.slice(0, 8).map((rec) => (
                 <TouchableOpacity
-                  key={i}
+                  key={rec.name}
                   onPress={() => handleAddRecommendation(rec)}
-                  style={[styles.chip, { backgroundColor: colors.primary + '12' }]}
+                  style={[styles.recRow, { borderBottomColor: colors.border }]}
                 >
                   <Text style={styles.chipEmoji}>{rec.emoji}</Text>
-                  <Text style={[styles.chipText, { color: colors.textPrimary }]}>{rec.name}</Text>
-                  <Ionicons name="add" size={14} color={colors.primary} />
+                  <Text style={[styles.chipText, { color: colors.textPrimary, flex: 1 }]}>{rec.name}</Text>
+                  <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
                 </TouchableOpacity>
               ))}
             </View>
-          </ScrollView>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.chipsRow}>
+                {recommendations.slice(0, 12).map((rec) => (
+                  <TouchableOpacity
+                    key={rec.name}
+                    onPress={() => handleAddRecommendation(rec)}
+                    style={[styles.chip, { backgroundColor: colors.primaryTint || (colors.primary + '12') }]}
+                  >
+                    <Text style={styles.chipEmoji}>{rec.emoji}</Text>
+                    <Text style={[styles.chipText, { color: colors.textPrimary }]}>{rec.name}</Text>
+                    <Ionicons name="add" size={14} color={colors.primary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          )}
         </View>
       )}
 
       {/* Active items */}
       <AppCard style={styles.card}>
         {activeItems.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={{ fontSize: 32 }}>🛒</Text>
+          <View style={[styles.emptyState, compact && styles.emptyStateCompact]}>
+            <Text style={{ fontSize: compact ? 24 : 32 }}>🛒</Text>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               {t('tracker.shopping.emptyState') || 'Your shopping list is empty'}
             </Text>
@@ -133,8 +206,8 @@ export default function ShoppingList({
             setShowAddModal(true);
           }}
         >
-          <Ionicons name="add" size={18} color="#FFF" />
-          <Text style={styles.actionBtnText}>{t('tracker.shopping.add') || 'Add'}</Text>
+          <Ionicons name="add" size={18} color={colors.onPrimary || '#FFF'} />
+          <Text style={[styles.actionBtnText, { color: colors.onPrimary || '#FFF' }]}>{t('tracker.shopping.add') || 'Add'}</Text>
         </TouchableOpacity>
         {activeItems.length > 0 && (
           <TouchableOpacity
@@ -170,7 +243,7 @@ export default function ShoppingList({
               {boughtItems.map(item => (
                 <ShoppingItemRow key={item.id} item={item} onToggle={onToggle} onRemove={onRemove} />
               ))}
-              <TouchableOpacity onPress={onClearBought} style={styles.clearBtn}>
+              <TouchableOpacity onPress={handleClearBought} style={styles.clearBtn}>
                 <Ionicons name="trash-outline" size={16} color={colors.error} />
                 <Text style={[styles.clearText, { color: colors.error }]}>
                   {t('tracker.shopping.clear') || 'Clear bought'}
@@ -183,19 +256,26 @@ export default function ShoppingList({
 
       {/* Add modal */}
       <Modal
-          visible={showAddModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowAddModal(false)}
+        visible={showAddModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <TouchableOpacity
             style={styles.modalOverlay}
             activeOpacity={1}
             onPress={() => setShowAddModal(false)}
           >
-            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+            <View
+              style={[styles.modalContent, { backgroundColor: colors.background }]}
+              onStartShouldSetResponder={() => true}
+            >
               <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-                {t('tracker.shopping.add') || 'Add Item'}
+                {t('tracker.shopping.addItem') || 'Add Item'}
               </Text>
               <TextInput
                 style={[styles.input, { color: colors.textPrimary, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
@@ -206,17 +286,17 @@ export default function ShoppingList({
                 autoFocus
               />
               <View style={styles.categoryRow}>
-                {CATEGORIES.map(cat => (
+                {CATEGORY_KEYS.map(cat => (
                   <TouchableOpacity
                     key={cat.key}
                     onPress={() => setNewCategory(cat.key)}
                     style={[
                       styles.categoryBtn,
-                      newCategory === cat.key && { backgroundColor: colors.primary + '20', borderColor: colors.primary },
+                      newCategory === cat.key && { backgroundColor: colors.primaryTint || (colors.primary + '20'), borderColor: colors.primary },
                     ]}
                   >
                     <Text style={[styles.categoryText, { color: newCategory === cat.key ? colors.primary : colors.textSecondary }]}>
-                      {cat.label}
+                      {t(cat.i18nKey) || cat.fallback}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -230,7 +310,8 @@ export default function ShoppingList({
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
-        </Modal>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -274,6 +355,34 @@ const createStyles = (tokens: any, colors: any) =>
       paddingVertical: 24,
       gap: 8,
     },
+    emptyStateCompact: {
+      paddingVertical: 14,
+    },
+    recHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 0,
+    },
+    addAllBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: 12,
+    },
+    addAllText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    recList: {
+      marginTop: 8,
+    },
+    recRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      gap: 10,
+    },
     emptyText: {
       fontSize: 14,
     },
@@ -291,7 +400,6 @@ const createStyles = (tokens: any, colors: any) =>
       gap: 6,
     },
     actionBtnText: {
-      color: '#FFF',
       fontSize: 14,
       fontWeight: '600',
     },
@@ -361,7 +469,7 @@ const createStyles = (tokens: any, colors: any) =>
       alignItems: 'center',
     },
     addBtnText: {
-      color: '#FFF',
+      color: colors.onPrimary || '#FFF',
       fontSize: 16,
       fontWeight: '600',
     },

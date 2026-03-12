@@ -31,7 +31,7 @@ export default function ShoppingItemRow({ item, onToggle, onRemove }: ShoppingIt
     <View style={[styles.row, item.bought && styles.boughtRow]}>
       <TouchableOpacity onPress={() => onToggle(item.id)} style={styles.checkArea}>
         <View style={[styles.checkbox, item.bought && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
-          {item.bought && <Ionicons name="checkmark" size={14} color="#FFF" />}
+          {item.bought && <Ionicons name="checkmark" size={14} color={colors.onPrimary || '#FFF'} />}
         </View>
       </TouchableOpacity>
       <View style={[styles.dot, { backgroundColor: dotColor }]} />

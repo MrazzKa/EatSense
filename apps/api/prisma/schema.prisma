@@ -54,6 +54,10 @@ model User {
   userDietPrograms    UserDietProgram[]
   dietRatings         DietProgramRating[] @relation("UserDietRatings")
 
+  // Pharmacy
+  pharmacyConnections PharmacyConnection[] @relation("UserPharmacies")
+  pharmacyOrders      PharmacyOrder[]      @relation("UserPharmacyOrders")
+
   // Referral System
   referralCode        ReferralCode?  @relation("UserReferralCode")
   referralsMade       Referral[]     @relation("ReferrerUser")
@@ -525,6 +529,46 @@ model MedicationDose {
   updatedAt DateTime @updatedAt
 
   @@map("medication_doses")
+}
+
+// ==================== PHARMACY ====================
+
+model PharmacyConnection {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("UserPharmacies", fields: [userId], references: [id], onDelete: Cascade)
+  pharmacyName    String   @map("pharmacy_name")
+  pharmacyCode    String?  @map("pharmacy_code")
+  pharmacyAddress String?  @map("pharmacy_address")
+  pharmacyPhone   String?  @map("pharmacy_phone")
+  pharmacyEmail   String?  @map("pharmacy_email")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  orders PharmacyOrder[]
+
+  @@index([userId, isActive])
+  @@map("pharmacy_connections")
+}
+
+model PharmacyOrder {
+  id                   String              @id @default(cuid())
+  userId               String
+  user                 User                @relation("UserPharmacyOrders", fields: [userId], references: [id], onDelete: Cascade)
+  pharmacyConnectionId String?             @map("pharmacy_connection_id")
+  pharmacyConnection   PharmacyConnection? @relation(fields: [pharmacyConnectionId], references: [id])
+  status               String              @default("pending") // pending, sent, processing, ready, completed
+  statusToken          String?             @unique @map("status_token") // Unique token for email status update links
+  items                Json                // [{name, dosage, quantity}]
+  prescriptionUrl      String?             @map("prescription_url")
+  notes                String?
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([pharmacyConnectionId])
+  @@map("pharmacy_orders")
 }
 
 model LabResult {

@@ -495,7 +495,7 @@ Return ONLY valid JSON:
       "name_local": "локализованное название",
       "display_name": "English Title",
       "display_name_local": "Локальный Заголовок",
-      "est_portion_g": 100,
+      "est_portion_g": 150,
       "category_hint": "protein|grain|veg|fruit|fat|dairy|sauce|drink|other",
       "cooking_method": "raw|boiled|steamed|baked|grilled|fried|deep_fried|mixed",
       "confidence": 0.0-1.0,
@@ -536,11 +536,23 @@ Proteins:
 4. DO NOT hallucinate invisible ingredients
 5. Composite dishes (soup, curry) = SINGLE item with itemType: "composite_dish"
 
-## PORTION REFERENCE
-- Palm-sized meat = 100g
-- Fist-sized rice/pasta = 150g
-- Cup = 200ml, Glass = 250ml
-- Round to nearest 10g
+## PORTION ESTIMATION (CRITICAL - estimate REALISTIC weights, NOT 100g for everything!)
+You MUST estimate the actual visible portion weight based on the photo. Do NOT default to 100g.
+Use these visual cues:
+- Plate coverage: full plate ~300-400g total food, half plate ~150-200g
+- Palm-sized meat/fish = 100-120g
+- Fist-sized portion of rice/pasta/grains = 150-200g cooked
+- Side salad = 80-120g, large salad bowl = 200-300g
+- Bread slice = 30-40g, bread roll = 60-80g
+- Egg = 50-60g each
+- Vegetables side = 80-150g
+- Soup bowl = 300-400ml
+- Cup = 200ml, Glass = 250ml, Mug = 300ml
+- Sauce/dressing = 15-30g
+- Cheese slice = 20-30g
+- Handful of nuts = 25-35g
+- Round to nearest 5g for items <50g, nearest 10g for items 50-200g, nearest 25g for items >200g
+- NEVER return exactly 100g unless the item truly appears to be ~100g
 
 ## COOKING ADJUSTMENTS
 - fried: +20% cal, +30% fat
