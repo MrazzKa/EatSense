@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException, ConflictExc
 import { PrismaService } from '../../prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { MailerService } from '../../mailer/mailer.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { DietType, DietDifficulty } from '@prisma/client';
 import * as crypto from 'crypto';
 
@@ -31,6 +32,7 @@ export class DietsService implements OnModuleInit {
         private readonly prisma: PrismaService,
         private readonly cacheService: CacheService,
         private readonly mailerService: MailerService,
+        private readonly notificationsService: NotificationsService,
     ) { }
 
     async onModuleInit() {
@@ -1506,8 +1508,8 @@ ID: ${userId}
         }
     }
 
-    async getSuggestions(type?: 'diet' | 'lifestyle', limit = 20) {
-        return this.prisma.programSuggestion.findMany({
+    async getSuggestions(type?: 'diet' | 'lifestyle', limit = 20, currentUserId?: string) {
+        const suggestions = await this.prisma.programSuggestion.findMany({
             where: {
                 status: 'pending',
                 ...(type ? { type } : {}),
@@ -1520,8 +1522,168 @@ ID: ${userId}
                 description: true,
                 type: true,
                 votes: true,
+                voters: true,
                 createdAt: true,
             },
         });
+
+        return suggestions.map(({ voters, ...rest }) => ({
+            ...rest,
+            hasVoted: currentUserId ? voters.includes(currentUserId) : false,
+        }));
+    }
+
+    /**
+     * Admin: approve a suggestion — grant author 6 months PRO + notify
+     */
+    async approveSuggestion(id: string) {
+        const suggestion = await this.prisma.programSuggestion.findUnique({
+            where: { id },
+        });
+
+        if (!suggestion) {
+            throw new NotFoundException('Suggestion not found');
+        }
+
+        if (suggestion.status !== 'pending') {
+            throw new BadRequestException(`Suggestion already ${suggestion.status}`);
+        }
+
+        // Update status
+        await this.prisma.programSuggestion.update({
+            where: { id },
+            data: { status: 'approved' },
+        });
+
+        // Grant 6 months PRO to the author
+        const REWARD_DAYS = 180;
+        const authorId = suggestion.createdBy;
+        await this.grantProDays(authorId, REWARD_DAYS);
+
+        // Send push notification to the author
+        try {
+            await this.notificationsService.sendPushNotification(
+                authorId,
+                '🎉 Your suggestion won!',
+                `Your suggestion "${suggestion.name}" was approved! You've been rewarded with 6 months of PRO.`,
+                { type: 'suggestion_approved', suggestionId: id },
+            );
+        } catch (err) {
+            this.logger.error(`Failed to send approval notification: ${err.message}`);
+        }
+
+        // Send email notification
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: { id: authorId },
+                select: { email: true },
+            });
+            if (user?.email) {
+                await this.mailerService.sendEmail({
+                    to: user.email,
+                    subject: `🎉 Your EatSense suggestion "${suggestion.name}" was approved!`,
+                    text: `Congratulations!\n\nYour suggestion "${suggestion.name}" received enough community votes and has been approved for implementation.\n\nAs a reward, you've received 6 months of EatSense PRO — completely free!\n\nThank you for contributing to the EatSense community.\n\n— The EatSense Team`,
+                });
+            }
+        } catch (err) {
+            this.logger.error(`Failed to send approval email: ${err.message}`);
+        }
+
+        return { success: true, status: 'approved', rewardDays: REWARD_DAYS };
+    }
+
+    /**
+     * Admin: reject a suggestion
+     */
+    async rejectSuggestion(id: string) {
+        const suggestion = await this.prisma.programSuggestion.findUnique({
+            where: { id },
+        });
+
+        if (!suggestion) {
+            throw new NotFoundException('Suggestion not found');
+        }
+
+        await this.prisma.programSuggestion.update({
+            where: { id },
+            data: { status: 'rejected' },
+        });
+
+        return { success: true, status: 'rejected' };
+    }
+
+    /**
+     * Admin: get all pending suggestions with full details
+     */
+    async getPendingSuggestions() {
+        return this.prisma.programSuggestion.findMany({
+            where: { status: 'pending' },
+            orderBy: { votes: 'desc' },
+            take: 100,
+        });
+    }
+
+    /**
+     * Grant PRO days to a user (extend existing or create new subscription)
+     */
+    private async grantProDays(userId: string, days: number) {
+        const now = new Date();
+
+        // Check for existing active subscription
+        const existing = await this.prisma.userSubscription.findFirst({
+            where: {
+                userId,
+                status: 'ACTIVE',
+                endDate: { gt: now },
+            },
+        });
+
+        if (existing) {
+            // Extend existing subscription
+            const currentEnd = new Date(existing.endDate);
+            const newEnd = new Date(currentEnd.getTime() + days * 24 * 60 * 60 * 1000);
+            await this.prisma.userSubscription.update({
+                where: { id: existing.id },
+                data: { endDate: newEnd },
+            });
+            this.logger.log(`Extended subscription for user ${userId} by ${days} days until ${newEnd.toISOString()}`);
+            return;
+        }
+
+        // Find or create a reward plan
+        let rewardPlan = await this.prisma.subscriptionPlan.findFirst({
+            where: { name: 'community-reward' },
+        });
+
+        if (!rewardPlan) {
+            rewardPlan = await this.prisma.subscriptionPlan.create({
+                data: {
+                    name: 'community-reward',
+                    basePriceUsd: 0,
+                    durationDays: days,
+                    dailyLimit: 9999,
+                    features: ['Unlimited AI analysis', 'All diets & lifestyles', 'Advanced insights'],
+                    displayOrder: 99,
+                    isActive: false, // Hidden from purchase UI
+                },
+            });
+        }
+
+        // Create new subscription
+        const endDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+        await this.prisma.userSubscription.create({
+            data: {
+                userId,
+                planId: rewardPlan.id,
+                currency: 'USD',
+                pricePaid: 0,
+                status: 'ACTIVE',
+                startDate: now,
+                endDate,
+                autoRenew: false,
+            },
+        });
+
+        this.logger.log(`Created ${days}-day reward subscription for user ${userId} until ${endDate.toISOString()}`);
     }
 }

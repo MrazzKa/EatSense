@@ -239,6 +239,109 @@ export class DietsController {
         return this.dietsService.getUserDietHistory(user.id, locale);
     }
 
+    // ==================== PROGRAM SUGGESTIONS ====================
+    // NOTE: These routes MUST be defined before the :idOrSlug wildcard
+
+    /**
+     * Admin: list pending suggestions
+     */
+    @Get('suggestions/pending')
+    async getPendingSuggestions(
+        @Headers('x-admin-secret') adminSecret: string,
+    ) {
+        const expectedSecret = process.env.ADMIN_SECRET;
+        if (!expectedSecret || adminSecret !== expectedSecret) {
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+        return this.dietsService.getPendingSuggestions();
+    }
+
+    /**
+     * Get top suggestions (optionally returns hasVoted if authenticated)
+     */
+    @Get('suggestions')
+    @UseGuards(OptionalAuthGuard)
+    async getSuggestions(
+        @CurrentUser() user: any,
+        @Query('type') type?: 'diet' | 'lifestyle',
+        @Query('limit') limit?: string,
+    ) {
+        return this.dietsService.getSuggestions(type, parseInt(limit || '20', 10), user?.id);
+    }
+
+    /**
+     * Suggest a new program (or vote for existing)
+     */
+    @Post('suggest')
+    @UseGuards(JwtAuthGuard)
+    async suggestProgram(
+        @CurrentUser() user: any,
+        @Body() dto: { name: string; description?: string; type: 'diet' | 'lifestyle' },
+    ) {
+        if (!dto.name?.trim()) {
+            throw new BadRequestException('Name is required');
+        }
+        return this.dietsService.createSuggestion(user.id, {
+            name: dto.name.trim(),
+            description: dto.description?.trim(),
+            type: dto.type || 'lifestyle',
+        });
+    }
+
+    /**
+     * Admin: approve a suggestion — grants author 6 months PRO + sends push notification
+     */
+    @Patch('suggestions/:id/approve')
+    async approveSuggestion(
+        @Param('id') id: string,
+        @Headers('x-admin-secret') adminSecret: string,
+    ) {
+        const expectedSecret = process.env.ADMIN_SECRET;
+        if (!expectedSecret || adminSecret !== expectedSecret) {
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+        return this.dietsService.approveSuggestion(id);
+    }
+
+    /**
+     * Admin: reject a suggestion
+     */
+    @Patch('suggestions/:id/reject')
+    async rejectSuggestion(
+        @Param('id') id: string,
+        @Headers('x-admin-secret') adminSecret: string,
+    ) {
+        const expectedSecret = process.env.ADMIN_SECRET;
+        if (!expectedSecret || adminSecret !== expectedSecret) {
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+        return this.dietsService.rejectSuggestion(id);
+    }
+
+    /**
+     * Send contact/suggestion request
+     */
+    @Post('contact')
+    @UseGuards(JwtAuthGuard)
+    async sendContactRequest(
+        @CurrentUser() user: any,
+        @Body() dto: { userName: string; request: string },
+    ) {
+        if (!dto.userName?.trim()) {
+            throw new BadRequestException('Name is required');
+        }
+        if (!dto.request?.trim()) {
+            throw new BadRequestException('Request is required');
+        }
+        await this.dietsService.sendContactRequest(user.id, {
+            userName: dto.userName.trim(),
+            request: dto.request.trim(),
+        });
+        return { success: true };
+    }
+
+    // ==================== WILDCARD (must be last) ====================
+
     /**
      * Get diet by ID/slug
      */
@@ -336,61 +439,6 @@ export class DietsController {
     @UseGuards(JwtAuthGuard)
     async abandonDiet(@CurrentUser() user: any) {
         return this.dietsService.abandonDiet(user.id);
-    }
-
-    // ==================== PROGRAM SUGGESTIONS ====================
-
-    /**
-     * Suggest a new program (or vote for existing)
-     */
-    @Post('suggest')
-    @UseGuards(JwtAuthGuard)
-    async suggestProgram(
-        @CurrentUser() user: any,
-        @Body() dto: { name: string; description?: string; type: 'diet' | 'lifestyle' },
-    ) {
-        if (!dto.name?.trim()) {
-            throw new BadRequestException('Name is required');
-        }
-        return this.dietsService.createSuggestion(user.id, {
-            name: dto.name.trim(),
-            description: dto.description?.trim(),
-            type: dto.type || 'lifestyle',
-        });
-    }
-
-    /**
-     * Send contact/suggestion request: user name + request -> email to info@eatsense.ch
-     * Same mailer as login (Infomaniac/SendGrid); here we send TO info instead of FROM.
-     */
-    @Post('contact')
-    @UseGuards(JwtAuthGuard)
-    async sendContactRequest(
-        @CurrentUser() user: any,
-        @Body() dto: { userName: string; request: string },
-    ) {
-        if (!dto.userName?.trim()) {
-            throw new BadRequestException('Name is required');
-        }
-        if (!dto.request?.trim()) {
-            throw new BadRequestException('Request is required');
-        }
-        await this.dietsService.sendContactRequest(user.id, {
-            userName: dto.userName.trim(),
-            request: dto.request.trim(),
-        });
-        return { success: true };
-    }
-
-    /**
-     * Get top suggestions (public)
-     */
-    @Get('suggestions')
-    async getSuggestions(
-        @Query('type') type?: 'diet' | 'lifestyle',
-        @Query('limit') limit?: string,
-    ) {
-        return this.dietsService.getSuggestions(type, parseInt(limit || '20', 10));
     }
 
     private parseLocale(acceptLanguage?: string): string {

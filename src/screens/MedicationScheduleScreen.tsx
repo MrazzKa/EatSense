@@ -862,6 +862,31 @@ const MedicationScheduleScreen: React.FC = () => {
                 style={{ top: 120, right: 16 }}
             />
 
+            {/* Pharmacy Banner */}
+            <TouchableOpacity
+                onPress={() => navigation.navigate('Pharmacy' as never)}
+                activeOpacity={0.8}
+                style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginHorizontal: 16,
+                    marginTop: 8,
+                    marginBottom: 4,
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                    backgroundColor: colors.primary + '10',
+                    borderWidth: 1,
+                    borderColor: colors.primary + '25',
+                }}
+            >
+                <Ionicons name="storefront-outline" size={20} color={colors.primary} />
+                <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: '500', color: colors.primary }}>
+                    {t('pharmacy.bannerText', 'Connect your pharmacy & order meds')}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+
             {/* Main Content */}
             {loading && medications.length === 0 ? (
                 <View style={styles.centerLoading}>

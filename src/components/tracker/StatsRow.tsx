@@ -16,7 +16,7 @@ export default function StatsRow({ streak, weeklyPercentage, totalHabits }: Stat
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
   const stats = [
-    { icon: '🔥', value: `${streak}`, label: t('tracker.stats.streak') || 'Streak' },
+    { icon: '🔥', value: streak > 0 ? `${streak}` : '—', label: t('tracker.stats.streak') || 'Streak' },
     { icon: '📊', value: `${weeklyPercentage}%`, label: t('tracker.stats.weekly') || 'Weekly' },
     { icon: '📋', value: `${totalHabits}`, label: t('tracker.stats.total') || 'Total' },
   ];

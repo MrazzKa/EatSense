@@ -45,6 +45,7 @@ import { ReportsModule } from './src/reports/reports.module';
 import { SafetyModule } from './src/safety/safety.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
+import { PharmacyModule } from './src/pharmacy/pharmacy.module';
 
 @Module({
   imports: [
@@ -123,6 +124,7 @@ import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
     SafetyModule,
     DashboardModule,
     SubscriptionsModule,
+    PharmacyModule,
   ],
   controllers: [HealthController],
 })

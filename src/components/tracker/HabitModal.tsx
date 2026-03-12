@@ -24,7 +24,8 @@ interface HabitModalProps {
 }
 
 const DEFAULT_EMOJIS = ['💧', '🏃', '🧘', '📖', '💊', '🥗', '😴', '🧹'];
-const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DAY_KEYS = ['common.mon', 'common.tue', 'common.wed', 'common.thu', 'common.fri', 'common.sat', 'common.sun'];
+const DAY_FALLBACKS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 export default function HabitModal({ visible, onClose, onSave, editHabit }: HabitModalProps) {
   const { colors, tokens } = useTheme();
@@ -106,7 +107,7 @@ export default function HabitModal({ visible, onClose, onSave, editHabit }: Habi
                   onPress={() => setEmoji(e)}
                   style={[
                     styles.emojiBtn,
-                    emoji === e && { backgroundColor: colors.primary + '20', borderColor: colors.primary },
+                    emoji === e && { backgroundColor: colors.primaryTint || (colors.primary + '20'), borderColor: colors.primary },
                   ]}
                 >
                   <Text style={styles.emojiText}>{e}</Text>
@@ -144,7 +145,7 @@ export default function HabitModal({ visible, onClose, onSave, editHabit }: Habi
                 >
                   <Text style={[
                     styles.segmentText,
-                    { color: frequency === opt.key ? '#FFF' : colors.textPrimary },
+                    { color: frequency === opt.key ? (colors.onPrimary || '#FFF') : colors.textPrimary },
                   ]}>
                     {opt.label}
                   </Text>
@@ -152,10 +153,10 @@ export default function HabitModal({ visible, onClose, onSave, editHabit }: Habi
               ))}
             </View>
 
-            {/* Custom days */}
+            {/* Custom days — localized */}
             {frequency === 'custom' && (
               <View style={styles.daysRow}>
-                {DAY_LABELS.map((label, i) => (
+                {DAY_KEYS.map((dayKey, i) => (
                   <TouchableOpacity
                     key={i}
                     onPress={() => toggleDay(i)}
@@ -166,9 +167,9 @@ export default function HabitModal({ visible, onClose, onSave, editHabit }: Habi
                   >
                     <Text style={[
                       styles.dayText,
-                      { color: customDays.includes(i) ? '#FFF' : colors.textPrimary },
+                      { color: customDays.includes(i) ? (colors.onPrimary || '#FFF') : colors.textPrimary },
                     ]}>
-                      {label}
+                      {t(dayKey) || DAY_FALLBACKS[i]}
                     </Text>
                   </TouchableOpacity>
                 ))}

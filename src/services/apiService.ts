@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { Platform } from 'react-native';
 import { API_BASE_URL, DEV_TOKEN, DEV_REFRESH_TOKEN } from '../config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
@@ -707,6 +708,8 @@ class ApiService {
     if (foodDescription) {
       formData.append('foodDescription', foodDescription);
     }
+
+    formData.append('platform', Platform.OS);
 
     // Get headers with token, but remove Content-Type for FormData
     const headers = this.getHeaders();
@@ -1802,6 +1805,53 @@ class ApiService {
     if (limit) params.append('limit', String(limit));
     const query = params.toString();
     return this.request(`/diets/suggestions${query ? `?${query}` : ''}`);
+  }
+  // ========== Pharmacy Methods ==========
+
+  async getPharmacyConnections() {
+    return this.request('/pharmacy/connections');
+  }
+
+  async connectPharmacy(payload: {
+    pharmacyName: string;
+    pharmacyCode?: string;
+    pharmacyAddress?: string;
+    pharmacyPhone?: string;
+    pharmacyEmail?: string;
+  }) {
+    return this.request('/pharmacy/connections', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updatePharmacyConnection(id: string, payload: any) {
+    return this.request(`/pharmacy/connections/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async disconnectPharmacy(id: string) {
+    return this.request(`/pharmacy/connections/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getPharmacyOrders() {
+    return this.request('/pharmacy/orders');
+  }
+
+  async createPharmacyOrder(payload: {
+    pharmacyConnectionId?: string;
+    items: Array<{ name: string; dosage?: string; quantity?: string }>;
+    prescriptionUrl?: string;
+    notes?: string;
+  }) {
+    return this.request('/pharmacy/orders', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   }
 }
 

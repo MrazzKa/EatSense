@@ -143,6 +143,22 @@ export class AnalyzeService {
     return this.SIMPLE_PRODUCTS.some(p => nameLower.includes(p));
   }
 
+  // Category-based default portions (grams) when Vision doesn't provide est_portion_g
+  private getCategoryDefaultPortion(categoryHint?: string): number {
+    switch (categoryHint) {
+      case 'protein': return 130; // typical meat/fish serving
+      case 'grain': return 180;   // cooked rice/pasta
+      case 'veg': return 100;     // side vegetables
+      case 'fruit': return 120;   // medium fruit
+      case 'fat': return 25;      // oils, butter
+      case 'seeds': return 30;    // handful
+      case 'sauce': return 20;    // condiment
+      case 'dairy': return 40;    // cheese slice / yogurt portion
+      case 'drink': return 250;   // standard glass
+      default: return 120;        // reasonable average instead of 100
+    }
+  }
+
   // FIX 5: Canonical nutrition values for common items (per 100g)
   // Used to override suspicious provider results or fill missing data
   // FIX 2026-01-19: Expanded for speed optimization - skip provider lookups for common items
@@ -1116,7 +1132,7 @@ export class AnalyzeService {
         const canonical = this.getCanonicalNutrition(name);
 
         if (isSimple && (hasGoodEstimate || canonical)) {
-          const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
+          const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : this.getCategoryDefaultPortion((component as any).category_hint);
           const localizedName = await this.foodLocalization.localizeName(name, locale);
 
           // Use canonical if available, otherwise GPT estimate
@@ -1320,8 +1336,9 @@ export class AnalyzeService {
 
       if (useGptOnlyNutrition && hasGptEstimates) {
         // Use GPT Vision estimates directly without calling nutrition providers
-        const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : 100;
-        const gptPortion = component.est_portion_g || 100;
+        const categoryDefault = this.getCategoryDefaultPortion((component as any).category_hint);
+        const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : categoryDefault;
+        const gptPortion = component.est_portion_g || categoryDefault;
         const portionScale = portionG / gptPortion;
 
         const gptNutrients: Nutrients = {
@@ -2712,7 +2729,7 @@ export class AnalyzeService {
 
     if (gptEstimate && (gptEstimate.calories || gptEstimate.protein_g || gptEstimate.carbs_g || gptEstimate.fat_g)) {
       // Use GPT-estimated nutrients (already for the estimated portion)
-      const gptPortion = component.est_portion_g || 100;
+      const gptPortion = component.est_portion_g || this.getCategoryDefaultPortion((component as any).category_hint);
       const portionScale = fallbackPortion / gptPortion;
 
       fallbackNutrients = {
