@@ -1,10 +1,11 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CommunityPostType } from '@prisma/client';
 
 export class CreatePostDto {
-  @ApiProperty({ example: 'text' })
-  @IsEnum(['TEXT', 'PHOTO', 'DIET_SHARE', 'ACHIEVEMENT', 'EVENT', 'RECOMMENDATION'])
-  type: string;
+  @ApiProperty({ example: 'TEXT', enum: CommunityPostType })
+  @IsEnum(CommunityPostType)
+  type: CommunityPostType;
 
   @ApiProperty({ example: 'Check out this healthy recipe!' })
   @IsString()
