@@ -92,6 +92,8 @@ export default {
     plugins: [
       [
         "expo-build-properties",
+        "expo-font",
+        "expo-web-browser",
         {
           ios: {
             deploymentTarget: "15.1"
