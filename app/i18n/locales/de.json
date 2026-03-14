@@ -1838,7 +1838,8 @@
     "recently": "Kürzlich",
     "reports": "Reports",
     "diets": "Diets",
-    "myDay": "Mein Tag"
+    "myDay": "Mein Tag",
+    "community": "Community"
   },
   "tracker": {
     "title": "Mein Tag",
@@ -3959,6 +3960,74 @@
       "noItems": "Fügen Sie mindestens ein Medikament hinzu",
       "photoUpload": "Foto-Upload fehlgeschlagen",
       "cameraPermission": "Kameraberechtigung erforderlich"
+    }
+  },
+  "community": {
+    "title": "Community",
+    "myFeed": "Mein Feed",
+    "groups": "Gruppen",
+    "members": "Mitglieder",
+    "join": "Beitreten",
+    "joined": "Beigetreten",
+    "leave": "Verlassen",
+    "createPost": "Beitrag erstellen",
+    "createGroup": "Gruppe erstellen",
+    "postType": {
+      "text": "Text",
+      "photo": "Foto",
+      "dietShare": "Diät teilen",
+      "achievement": "Erfolg",
+      "event": "Veranstaltung",
+      "recommendation": "Empfehlung"
+    },
+    "feed": {
+      "empty": "Noch keine Beiträge. Tritt Gruppen bei, um Beiträge in deinem Feed zu sehen!",
+      "emptyGroup": "Noch keine Beiträge in dieser Gruppe. Sei der Erste!"
+    },
+    "post": {
+      "placeholder": "Was denkst du gerade?",
+      "submit": "Posten",
+      "delete": "Beitrag löschen",
+      "deleteConfirm": "Möchtest du diesen Beitrag wirklich löschen?"
+    },
+    "comment": {
+      "placeholder": "Kommentar schreiben...",
+      "submit": "Senden",
+      "delete": "Löschen",
+      "empty": "Noch keine Kommentare"
+    },
+    "group": {
+      "name": "Gruppenname",
+      "description": "Beschreibung",
+      "create": "Erstellen",
+      "selectGroup": "Gruppe auswählen",
+      "custom": "Eigene Gruppen",
+      "city": "Stadtgruppen"
+    },
+    "event": {
+      "title": "Veranstaltungstitel",
+      "date": "Datum",
+      "time": "Uhrzeit",
+      "location": "Ort"
+    },
+    "attend": "Ich gehe hin",
+    "attending": "Teilnehmen",
+    "report": {
+      "title": "Melden",
+      "reason": "Grund",
+      "submit": "Meldung absenden",
+      "success": "Meldung eingereicht"
+    },
+    "city": {
+      "title": "Wähle deine Stadt",
+      "detect": "Meinen Standort erkennen",
+      "detecting": "Wird erkannt...",
+      "search": "Städte suchen...",
+      "prompt": "Lege deine Stadt fest, um der lokalen Community beizutreten",
+      "set": "Stadt festlegen"
+    },
+    "premium": {
+      "dietShareLocked": "Upgrade auf Premium, um deine Diätprogramme zu teilen"
     }
   }
 }

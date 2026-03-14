@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -474,7 +475,10 @@ export default function DietsScreen({ navigation }) {
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{t('diets_title') || 'Diets'}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={styles.headerTitle}>{t('diets_title') || 'Diets'}</Text>
+                        <ProfileAvatarButton />
+                    </View>
                     <Text style={styles.headerSubtitle}>
                         {t('diets_subtitle') || 'Find the perfect nutrition plan for you'}
                     </Text>

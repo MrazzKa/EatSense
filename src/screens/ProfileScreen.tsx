@@ -1531,7 +1531,7 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           </AppCard>
 
-          {/* Pharmacy Section */}
+          {/* Pharmacy Section - hidden for now
           <AppCard style={styles.medicationsCard}>
             <TouchableOpacity
               onPress={() => {
@@ -1555,6 +1555,7 @@ const ProfileScreen = () => {
               </View>
             </TouchableOpacity>
           </AppCard>
+          */}
 
           {/* Referral Section */}
           <AppCard style={styles.medicationsCard}>

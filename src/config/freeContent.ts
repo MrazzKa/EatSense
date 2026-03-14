@@ -3,8 +3,6 @@
  * Defines which diets and lifestyles are available for free users
  */
 
-import { Platform } from 'react-native';
-
 // ============================================================================
 // FEATURE FLAG: Premium Lock System
 // Set to false to disable all premium locks (all content available to everyone)
@@ -26,8 +24,8 @@ export const FREE_LIFESTYLE_IDS: string[] = [
   'ceo_warrior',       // CEO Warrior (Male focused)
 ];
 
-// Number of free analyses per day for non-subscribers (platform-specific)
-export const FREE_DAILY_ANALYSES = Platform.OS === 'android' ? 1 : 2;
+// Number of free analyses per day for non-subscribers
+export const FREE_DAILY_ANALYSES = 2;
 
 // Trial period days
 export const TRIAL_DAYS = {

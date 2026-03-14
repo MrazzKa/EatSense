@@ -47,6 +47,12 @@ const ScientificSourcesScreen = React.lazy(() => import('./src/screens/Scientifi
 const ReportsScreen = React.lazy(() => import('./src/screens/ReportsScreen'));
 const BestPlacesScreen = React.lazy(() => import('./src/screens/BestPlacesScreen'));
 const PharmacyScreen = React.lazy(() => import('./src/screens/PharmacyScreen'));
+const ProfileScreen = React.lazy(() => import('./src/screens/ProfileScreen'));
+const CommunityGroupScreen = React.lazy(() => import('./src/screens/CommunityGroupScreen'));
+const CommunityPostDetailScreen = React.lazy(() => import('./src/screens/CommunityPostDetailScreen'));
+const CreateCommunityPostScreen = React.lazy(() => import('./src/screens/CreateCommunityPostScreen'));
+const CreateCommunityGroupScreen = React.lazy(() => import('./src/screens/CreateCommunityGroupScreen'));
+const CitySelectorScreen = React.lazy(() => import('./src/screens/CitySelectorScreen'));
 
 import { clientLog } from './src/utils/clientLog';
 
@@ -338,6 +344,38 @@ function AppContent() {
                 name="BestPlaces"
                 component={BestPlacesScreen}
                 options={{ presentation: 'card', headerShown: false }}
+              />
+              {/* Profile (moved from tabs to stack) */}
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{ presentation: 'card', headerShown: false }}
+              />
+              {/* Community Screens */}
+              <Stack.Screen
+                name="CommunityGroup"
+                component={CommunityGroupScreen}
+                options={{ presentation: 'card', headerShown: false }}
+              />
+              <Stack.Screen
+                name="CommunityPostDetail"
+                component={CommunityPostDetailScreen}
+                options={{ presentation: 'card', headerShown: false }}
+              />
+              <Stack.Screen
+                name="CreateCommunityPost"
+                component={CreateCommunityPostScreen}
+                options={{ presentation: 'modal', headerShown: false }}
+              />
+              <Stack.Screen
+                name="CreateCommunityGroup"
+                component={CreateCommunityGroupScreen}
+                options={{ presentation: 'modal', headerShown: false }}
+              />
+              <Stack.Screen
+                name="CitySelector"
+                component={CitySelectorScreen}
+                options={{ presentation: 'modal', headerShown: false }}
               />
             </Stack.Navigator>
           </>

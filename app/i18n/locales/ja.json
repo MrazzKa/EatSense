@@ -1483,7 +1483,8 @@
     "profile": "プロフィール",
     "recently": "最近",
     "reports": "Reports",
-    "diets": "[MISSING] Diets"
+    "diets": "[MISSING] Diets",
+    "community": "コミュニティ"
   },
   "terms": {
     "intro": "EatSenseを使用する前に、これらの利用規約を注意深くお読みください。",
@@ -1813,6 +1814,74 @@
       "noAlcohol": "お酒なし",
       "screenLimit": "スクリーンタイム制限",
       "makeBed": "ベッドメイキング"
+    }
+  },
+  "community": {
+    "title": "コミュニティ",
+    "myFeed": "マイフィード",
+    "groups": "グループ",
+    "members": "メンバー",
+    "join": "参加",
+    "joined": "参加済み",
+    "leave": "退出",
+    "createPost": "投稿を作成",
+    "createGroup": "グループを作成",
+    "postType": {
+      "text": "テキスト",
+      "photo": "写真",
+      "dietShare": "ダイエットを共有",
+      "achievement": "達成",
+      "event": "イベント",
+      "recommendation": "おすすめ"
+    },
+    "feed": {
+      "empty": "まだ投稿がありません。グループに参加してフィードに投稿を表示しましょう！",
+      "emptyGroup": "このグループにはまだ投稿がありません。最初の投稿をしましょう！"
+    },
+    "post": {
+      "placeholder": "何を考えていますか？",
+      "submit": "投稿",
+      "delete": "投稿を削除",
+      "deleteConfirm": "この投稿を削除してもよろしいですか？"
+    },
+    "comment": {
+      "placeholder": "コメントを書く...",
+      "submit": "送信",
+      "delete": "削除",
+      "empty": "まだコメントはありません"
+    },
+    "group": {
+      "name": "グループ名",
+      "description": "説明",
+      "create": "作成",
+      "selectGroup": "グループを選択",
+      "custom": "カスタムグループ",
+      "city": "シティグループ"
+    },
+    "event": {
+      "title": "イベントタイトル",
+      "date": "日付",
+      "time": "時間",
+      "location": "場所"
+    },
+    "attend": "参加する",
+    "attending": "参加予定",
+    "report": {
+      "title": "報告",
+      "reason": "理由",
+      "submit": "報告を送信",
+      "success": "報告が送信されました"
+    },
+    "city": {
+      "title": "あなたの都市を選択",
+      "detect": "現在地を検出",
+      "detecting": "検出中...",
+      "search": "都市を検索...",
+      "prompt": "都市を設定してローカルコミュニティに参加しましょう",
+      "set": "都市を設定"
+    },
+    "premium": {
+      "dietShareLocked": "ダイエットプログラムを共有するにはプレミアムにアップグレードしてください"
     }
   }
 }

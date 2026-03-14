@@ -13,6 +13,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useHabits } from '../hooks/useHabits';
@@ -214,9 +215,12 @@ export default function TrackerScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>
-          {t('tracker.title') || 'My Day'}
-        </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {t('tracker.title') || 'My Day'}
+          </Text>
+          <ProfileAvatarButton />
+        </View>
         <Text style={[styles.date, { color: colors.textSecondary }]}>{dateStr}</Text>
       </View>
 

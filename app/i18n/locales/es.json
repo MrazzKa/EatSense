@@ -1727,7 +1727,8 @@
     "recently": "Recientes",
     "reports": "Reports",
     "diets": "[MISSING] Diets",
-    "myDay": "Mi día"
+    "myDay": "Mi día",
+    "community": "Comunidad"
   },
   "tracker": {
     "title": "Mi día",
@@ -2241,6 +2242,74 @@
       "noItems": "Añade al menos un medicamento",
       "photoUpload": "Error al subir la foto",
       "cameraPermission": "Se requiere permiso de cámara"
+    }
+  },
+  "community": {
+    "title": "Comunidad",
+    "myFeed": "Mi Feed",
+    "groups": "Grupos",
+    "members": "miembros",
+    "join": "Unirse",
+    "joined": "Unido",
+    "leave": "Salir",
+    "createPost": "Crear publicación",
+    "createGroup": "Crear grupo",
+    "postType": {
+      "text": "Texto",
+      "photo": "Foto",
+      "dietShare": "Compartir dieta",
+      "achievement": "Logro",
+      "event": "Evento",
+      "recommendation": "Recomendación"
+    },
+    "feed": {
+      "empty": "Aún no hay publicaciones. ¡Únete a grupos para ver publicaciones en tu feed!",
+      "emptyGroup": "Aún no hay publicaciones en este grupo. ¡Sé el primero en compartir!"
+    },
+    "post": {
+      "placeholder": "¿Qué estás pensando?",
+      "submit": "Publicar",
+      "delete": "Eliminar publicación",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar esta publicación?"
+    },
+    "comment": {
+      "placeholder": "Escribe un comentario...",
+      "submit": "Enviar",
+      "delete": "Eliminar",
+      "empty": "Aún no hay comentarios"
+    },
+    "group": {
+      "name": "Nombre del grupo",
+      "description": "Descripción",
+      "create": "Crear",
+      "selectGroup": "Seleccionar grupo",
+      "custom": "Grupos personalizados",
+      "city": "Grupos de ciudad"
+    },
+    "event": {
+      "title": "Título del evento",
+      "date": "Fecha",
+      "time": "Hora",
+      "location": "Ubicación"
+    },
+    "attend": "Iré",
+    "attending": "Asistiré",
+    "report": {
+      "title": "Reportar",
+      "reason": "Motivo",
+      "submit": "Enviar reporte",
+      "success": "Reporte enviado"
+    },
+    "city": {
+      "title": "Selecciona tu ciudad",
+      "detect": "Detectar mi ubicación",
+      "detecting": "Detectando...",
+      "search": "Buscar ciudades...",
+      "prompt": "Configura tu ciudad para unirte a la comunidad local",
+      "set": "Establecer ciudad"
+    },
+    "premium": {
+      "dietShareLocked": "Actualiza a Premium para compartir tus programas de dieta"
     }
   }
 }

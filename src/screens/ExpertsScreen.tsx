@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 
 /**
  * ExpertsScreen - "Coming Soon" placeholder
@@ -19,6 +20,9 @@ export default function ExpertsScreen({ navigation: _navigation }: { navigation:
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+      <View style={{ position: 'absolute', top: 12, right: 16, zIndex: 10 }}>
+        <ProfileAvatarButton />
+      </View>
       <View style={styles.content}>
         {/* Illustration */}
         <View style={[styles.illustrationContainer, { backgroundColor: colors.primary + '15' }]}>

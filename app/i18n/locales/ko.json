@@ -1483,7 +1483,8 @@
     "profile": "프로필",
     "recently": "최근",
     "reports": "Reports",
-    "diets": "[MISSING] Diets"
+    "diets": "[MISSING] Diets",
+    "community": "커뮤니티"
   },
   "terms": {
     "intro": "EatSense를 사용하기 전에 이러한 서비스 약관을 주의 깊게 읽어주세요.",
@@ -1813,6 +1814,74 @@
       "noAlcohol": "금주",
       "screenLimit": "스크린 타임 제한",
       "makeBed": "이불 정리"
+    }
+  },
+  "community": {
+    "title": "커뮤니티",
+    "myFeed": "내 피드",
+    "groups": "그룹",
+    "members": "멤버",
+    "join": "가입",
+    "joined": "가입됨",
+    "leave": "나가기",
+    "createPost": "게시물 작성",
+    "createGroup": "그룹 만들기",
+    "postType": {
+      "text": "텍스트",
+      "photo": "사진",
+      "dietShare": "다이어트 공유",
+      "achievement": "달성",
+      "event": "이벤트",
+      "recommendation": "추천"
+    },
+    "feed": {
+      "empty": "아직 게시물이 없습니다. 그룹에 가입하여 피드에서 게시물을 확인하세요!",
+      "emptyGroup": "이 그룹에는 아직 게시물이 없습니다. 첫 번째로 공유해 보세요!"
+    },
+    "post": {
+      "placeholder": "무슨 생각을 하고 있나요?",
+      "submit": "게시",
+      "delete": "게시물 삭제",
+      "deleteConfirm": "이 게시물을 삭제하시겠습니까?"
+    },
+    "comment": {
+      "placeholder": "댓글을 작성하세요...",
+      "submit": "보내기",
+      "delete": "삭제",
+      "empty": "아직 댓글이 없습니다"
+    },
+    "group": {
+      "name": "그룹 이름",
+      "description": "설명",
+      "create": "만들기",
+      "selectGroup": "그룹 선택",
+      "custom": "맞춤 그룹",
+      "city": "도시 그룹"
+    },
+    "event": {
+      "title": "이벤트 제목",
+      "date": "날짜",
+      "time": "시간",
+      "location": "장소"
+    },
+    "attend": "참석할게요",
+    "attending": "참석 예정",
+    "report": {
+      "title": "신고",
+      "reason": "사유",
+      "submit": "신고 제출",
+      "success": "신고가 접수되었습니다"
+    },
+    "city": {
+      "title": "도시를 선택하세요",
+      "detect": "내 위치 감지",
+      "detecting": "감지 중...",
+      "search": "도시 검색...",
+      "prompt": "도시를 설정하여 지역 커뮤니티에 참여하세요",
+      "set": "도시 설정"
+    },
+    "premium": {
+      "dietShareLocked": "다이어트 프로그램을 공유하려면 프리미엄으로 업그레이드하세요"
     }
   }
 }

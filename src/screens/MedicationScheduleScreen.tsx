@@ -862,7 +862,7 @@ const MedicationScheduleScreen: React.FC = () => {
                 style={{ top: 120, right: 16 }}
             />
 
-            {/* Pharmacy Banner */}
+            {/* Pharmacy Banner - hidden for now
             <TouchableOpacity
                 onPress={() => navigation.navigate('Pharmacy' as never)}
                 activeOpacity={0.8}
@@ -886,6 +886,7 @@ const MedicationScheduleScreen: React.FC = () => {
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
+            */}
 
             {/* Main Content */}
             {loading && medications.length === 0 ? (

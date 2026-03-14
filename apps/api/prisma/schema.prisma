@@ -63,6 +63,15 @@ model User {
   referralsMade       Referral[]     @relation("ReferrerUser")
   referredBy          Referral?      @relation("ReferredUser")
 
+  // Community
+  communityGroups       CommunityGroup[]      @relation("CreatedGroups")
+  communityMemberships  CommunityMembership[]
+  communityPosts        CommunityPost[]
+  communityLikes        CommunityLike[]
+  communityComments     CommunityComment[]
+  communityReports      CommunityReport[]
+  eventAttendances      EventAttendee[]
+
   @@map("users")
 }
 
@@ -86,6 +95,8 @@ model UserProfile {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cityGroupId           String?
+  cityGroup             CommunityGroup?  @relation(fields: [cityGroupId], references: [id])
 
   @@map("user_profiles")
 }
@@ -1230,4 +1241,141 @@ model ProgramSuggestion {
   @@index([status, votes])
   @@index([type, status])
   @@map("program_suggestions")
+}
+
+// ==================== COMMUNITY ====================
+
+enum CommunityGroupType {
+  CITY
+  CUSTOM
+}
+
+enum CommunityMemberRole {
+  MEMBER
+  ADMIN
+}
+
+enum CommunityPostType {
+  TEXT
+  PHOTO
+  DIET_SHARE
+  ACHIEVEMENT
+  EVENT
+  RECOMMENDATION
+}
+
+enum CommunityReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+model CommunityGroup {
+  id          String             @id @default(cuid())
+  name        String
+  slug        String             @unique
+  description String?
+  imageUrl    String?
+  type        CommunityGroupType
+  city        String?
+  country     String?
+  isSeeded    Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  createdById String?
+  createdBy   User?              @relation("CreatedGroups", fields: [createdById], references: [id])
+  memberships CommunityMembership[]
+  posts       CommunityPost[]
+  userProfiles UserProfile[]
+
+  @@map("community_groups")
+}
+
+model CommunityMembership {
+  id        String              @id @default(cuid())
+  userId    String
+  groupId   String
+  role      CommunityMemberRole @default(MEMBER)
+  createdAt DateTime            @default(now())
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("community_memberships")
+}
+
+model CommunityPost {
+  id         String            @id @default(cuid())
+  authorId   String
+  groupId    String
+  type       CommunityPostType @default(TEXT)
+  content    String
+  imageUrl   String?
+  metadata   Json?
+  likesCount Int               @default(0)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  author     User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group      CommunityGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  likes      CommunityLike[]
+  comments   CommunityComment[]
+  reports    CommunityReport[] @relation("PostReports")
+  attendees  EventAttendee[]
+
+  @@map("community_posts")
+}
+
+model CommunityLike {
+  id        String        @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("community_likes")
+}
+
+model CommunityComment {
+  id        String        @id @default(cuid())
+  authorId  String
+  postId    String
+  content   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reports   CommunityReport[] @relation("CommentReports")
+
+  @@map("community_comments")
+}
+
+model CommunityReport {
+  id        String                @id @default(cuid())
+  userId    String
+  postId    String?
+  commentId String?
+  reason    String
+  status    CommunityReportStatus @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost?        @relation("PostReports", fields: [postId], references: [id], onDelete: Cascade)
+  comment   CommunityComment?     @relation("CommentReports", fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@map("community_reports")
+}
+
+model EventAttendee {
+  id        String        @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("event_attendees")
 }
