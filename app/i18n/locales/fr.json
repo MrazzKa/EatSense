@@ -2119,7 +2119,8 @@
     "recently": "Récent",
     "reports": "Rapports",
     "diets": "Nutrition",
-    "myDay": "Ma journée"
+    "myDay": "Ma journée",
+    "community": "Communauté"
   },
   "tracker": {
     "title": "Ma journée",
@@ -3984,6 +3985,74 @@
       "noItems": "Ajoutez au moins un médicament",
       "photoUpload": "Échec du téléchargement de la photo",
       "cameraPermission": "L'autorisation de la caméra est requise"
+    }
+  },
+  "community": {
+    "title": "Communauté",
+    "myFeed": "Mon fil",
+    "groups": "Groupes",
+    "members": "membres",
+    "join": "Rejoindre",
+    "joined": "Membre",
+    "leave": "Quitter",
+    "createPost": "Créer un post",
+    "createGroup": "Créer un groupe",
+    "postType": {
+      "text": "Texte",
+      "photo": "Photo",
+      "dietShare": "Partager un régime",
+      "achievement": "Réussite",
+      "event": "Événement",
+      "recommendation": "Recommandation"
+    },
+    "feed": {
+      "empty": "Pas encore de posts. Rejoignez des groupes pour voir des posts dans votre fil !",
+      "emptyGroup": "Pas encore de posts dans ce groupe. Soyez le premier !"
+    },
+    "post": {
+      "placeholder": "Quoi de neuf ?",
+      "submit": "Publier",
+      "delete": "Supprimer le post",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce post ?"
+    },
+    "comment": {
+      "placeholder": "Écrire un commentaire...",
+      "submit": "Envoyer",
+      "delete": "Supprimer",
+      "empty": "Pas encore de commentaires"
+    },
+    "group": {
+      "name": "Nom du groupe",
+      "description": "Description",
+      "create": "Créer",
+      "selectGroup": "Sélectionner un groupe",
+      "custom": "Groupes personnalisés",
+      "city": "Groupes de ville"
+    },
+    "event": {
+      "title": "Titre de l'événement",
+      "date": "Date",
+      "time": "Heure",
+      "location": "Lieu"
+    },
+    "attend": "J'irai",
+    "attending": "J'y vais",
+    "report": {
+      "title": "Signaler",
+      "reason": "Raison",
+      "submit": "Envoyer le signalement",
+      "success": "Signalement envoyé"
+    },
+    "city": {
+      "title": "Sélectionnez votre ville",
+      "detect": "Détecter ma position",
+      "detecting": "Détection...",
+      "search": "Rechercher des villes...",
+      "prompt": "Définissez votre ville pour rejoindre la communauté locale",
+      "set": "Définir la ville"
+    },
+    "premium": {
+      "dietShareLocked": "Passez à Premium pour partager vos programmes alimentaires"
     }
   }
 }

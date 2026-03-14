@@ -1853,6 +1853,106 @@ class ApiService {
       body: JSON.stringify(payload),
     });
   }
+  // ========== Community ==========
+
+  async getCommunityGroups(params?: { type?: string; search?: string }) {
+    const query = new URLSearchParams();
+    if (params?.type) query.append('type', params.type);
+    if (params?.search) query.append('search', params.search);
+    const qs = query.toString();
+    return this.request(`/community/groups${qs ? `?${qs}` : ''}`);
+  }
+
+  async getCommunityGroup(id: string) {
+    return this.request(`/community/groups/${id}`);
+  }
+
+  async getCommunityPost(id: string) {
+    return this.request(`/community/posts/${id}`);
+  }
+
+  async getCityCommunityGroups() {
+    return this.request('/community/groups?type=CITY');
+  }
+
+  async createCommunityGroup(data: { name: string; description?: string }) {
+    return this.request('/community/groups', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async joinCommunityGroup(groupId: string) {
+    return this.request(`/community/groups/${groupId}/join`, { method: 'POST' });
+  }
+
+  async leaveCommunityGroup(groupId: string) {
+    return this.request(`/community/groups/${groupId}/leave`, { method: 'DELETE' });
+  }
+
+  async getCommunityFeed(page = 1, limit = 20) {
+    return this.request(`/community/feed?page=${page}&limit=${limit}`);
+  }
+
+  async getCommunityGroupPosts(groupId: string, page = 1, limit = 20) {
+    return this.request(`/community/groups/${groupId}/posts?page=${page}&limit=${limit}`);
+  }
+
+  async createCommunityPost(data: { type: string; content: string; groupId: string; imageUrl?: string; metadata?: any }) {
+    return this.request('/community/posts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCommunityPost(postId: string) {
+    return this.request(`/community/posts/${postId}`, { method: 'DELETE' });
+  }
+
+  async toggleCommunityLike(postId: string) {
+    return this.request(`/community/posts/${postId}/like`, { method: 'POST' });
+  }
+
+  async getCommunityComments(postId: string, page = 1, limit = 20) {
+    return this.request(`/community/posts/${postId}/comments?page=${page}&limit=${limit}`);
+  }
+
+  async createCommunityComment(postId: string, data: { content: string }) {
+    return this.request(`/community/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCommunityComment(commentId: string) {
+    return this.request(`/community/comments/${commentId}`, { method: 'DELETE' });
+  }
+
+  async reportCommunityContent(data: { postId?: string; commentId?: string; reason: string }) {
+    return this.request('/community/report', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async toggleEventAttendance(postId: string) {
+    return this.request(`/community/posts/${postId}/attend`, { method: 'POST' });
+  }
+
+  async getMyCommunityGroups() {
+    return this.request('/community/my-groups');
+  }
+
+  async getMyCity() {
+    return this.request('/community/my-city');
+  }
+
+  async setMyCity(groupId: string) {
+    return this.request('/community/my-city', {
+      method: 'PUT',
+      body: JSON.stringify({ groupId }),
+    });
+  }
 }
 
 export default new ApiService();

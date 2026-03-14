@@ -1483,7 +1483,8 @@
     "profile": "个人资料",
     "recently": "最近",
     "reports": "Reports",
-    "diets": "[MISSING] Diets"
+    "diets": "[MISSING] Diets",
+    "community": "社区"
   },
   "terms": {
     "intro": "使用EatSense前，请仔细阅读这些服务条款。",
@@ -1813,6 +1814,74 @@
       "noAlcohol": "不喝酒",
       "screenLimit": "限制屏幕时间",
       "makeBed": "整理床铺"
+    }
+  },
+  "community": {
+    "title": "社区",
+    "myFeed": "我的动态",
+    "groups": "群组",
+    "members": "成员",
+    "join": "加入",
+    "joined": "已加入",
+    "leave": "退出",
+    "createPost": "发布帖子",
+    "createGroup": "创建群组",
+    "postType": {
+      "text": "文字",
+      "photo": "照片",
+      "dietShare": "分享饮食",
+      "achievement": "成就",
+      "event": "活动",
+      "recommendation": "推荐"
+    },
+    "feed": {
+      "empty": "还没有帖子。加入群组即可在动态中查看帖子！",
+      "emptyGroup": "该群组还没有帖子。成为第一个分享的人！"
+    },
+    "post": {
+      "placeholder": "你在想什么？",
+      "submit": "发布",
+      "delete": "删除帖子",
+      "deleteConfirm": "确定要删除这篇帖子吗？"
+    },
+    "comment": {
+      "placeholder": "写评论...",
+      "submit": "发送",
+      "delete": "删除",
+      "empty": "暂无评论"
+    },
+    "group": {
+      "name": "群组名称",
+      "description": "描述",
+      "create": "创建",
+      "selectGroup": "选择群组",
+      "custom": "自定义群组",
+      "city": "城市群组"
+    },
+    "event": {
+      "title": "活动标题",
+      "date": "日期",
+      "time": "时间",
+      "location": "地点"
+    },
+    "attend": "我要去",
+    "attending": "将参加",
+    "report": {
+      "title": "举报",
+      "reason": "原因",
+      "submit": "提交举报",
+      "success": "举报已提交"
+    },
+    "city": {
+      "title": "选择你的城市",
+      "detect": "检测我的位置",
+      "detecting": "检测中...",
+      "search": "搜索城市...",
+      "prompt": "设置你的城市以加入当地社区",
+      "set": "设置城市"
+    },
+    "premium": {
+      "dietShareLocked": "升级到高级版以分享你的饮食计划"
     }
   }
 }

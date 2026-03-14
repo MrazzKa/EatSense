@@ -9,10 +9,10 @@ import ApiService from '../services/apiService';
 // Import screens
 import DashboardScreen from '../screens/DashboardScreen';
 import DietsScreen from '../screens/DietsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
 import TrackerScreen from '../screens/TrackerScreen';
-// MedicationScheduleScreen moved to ProfileScreen
+import CommunityScreen from '../screens/CommunityScreen';
+// ProfileScreen moved to stack navigator
 
 const Tab = createBottomTabNavigator();
 
@@ -127,12 +127,12 @@ export function MainTabsNavigator() {
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="Community"
+        component={CommunityScreen}
         options={{
-          tabBarLabel: t('tabs.profile'),
+          tabBarLabel: t('tabs.community') || 'Community',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size || 24} color={color} />
+            <Ionicons name="people-outline" size={size || 24} color={color} />
           ),
         }}
       />

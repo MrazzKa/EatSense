@@ -23,6 +23,7 @@ import { clientLog } from '../utils/clientLog';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
 import { formatMacro, formatMacroInt, formatCalories } from '../utils/nutritionFormat';
+import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
 import LabResultsModal from '../components/LabResultsModal';
 import DescribeFoodModal from '../components/DescribeFoodModal';
@@ -697,6 +698,9 @@ export default function DashboardScreen() {
         }}
         onClose={() => setShowLimitModal(false)}
       />
+      <View style={{ position: 'absolute', top: 12, right: 16, zIndex: 10 }}>
+        <ProfileAvatarButton />
+      </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Calendar */}
         <View style={styles.calendarContainer}>
