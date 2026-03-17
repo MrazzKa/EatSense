@@ -63,7 +63,7 @@ const ConnectPharmacyModal: React.FC<{
   onClose: () => void;
   onSave: (data: any) => void;
   colors: any;
-  t: (key: string, fallback?: string) => string;
+  t: any;
   editing?: PharmacyConnection | null;
 }> = ({ visible, onClose, onSave, colors, t, editing }) => {
   const [name, setName] = useState('');
@@ -220,7 +220,7 @@ const OrderModal: React.FC<{
   pharmacies: PharmacyConnection[];
   medications: Medication[];
   colors: any;
-  t: (key: string, fallback?: string) => string;
+  t: any;
 }> = ({ visible, onClose, onSubmit, pharmacies, medications, colors, t }) => {
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([{ name: '', dosage: '', quantity: '' }]);

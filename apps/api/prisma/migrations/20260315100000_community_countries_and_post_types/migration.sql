@@ -1,0 +1,9 @@
+-- Add COUNTRY to CommunityGroupType enum
+ALTER TYPE "CommunityGroupType" ADD VALUE IF NOT EXISTS 'COUNTRY';
+
+-- Add new post types to CommunityPostType enum
+ALTER TYPE "CommunityPostType" ADD VALUE IF NOT EXISTS 'LIFESTYLE';
+ALTER TYPE "CommunityPostType" ADD VALUE IF NOT EXISTS 'BEST_PLACES';
+ALTER TYPE "CommunityPostType" ADD VALUE IF NOT EXISTS 'RECIPE';
+ALTER TYPE "CommunityPostType" ADD VALUE IF NOT EXISTS 'QUESTION';
+ALTER TYPE "CommunityPostType" ADD VALUE IF NOT EXISTS 'CHALLENGE';

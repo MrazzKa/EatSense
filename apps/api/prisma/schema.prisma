@@ -72,6 +72,9 @@ model User {
   communityReports      CommunityReport[]
   eventAttendances      EventAttendee[]
 
+  // Mascot
+  mascot                UserMascot?
+
   @@map("users")
 }
 
@@ -1247,6 +1250,7 @@ model ProgramSuggestion {
 
 enum CommunityGroupType {
   CITY
+  COUNTRY
   CUSTOM
 }
 
@@ -1262,6 +1266,11 @@ enum CommunityPostType {
   ACHIEVEMENT
   EVENT
   RECOMMENDATION
+  LIFESTYLE
+  BEST_PLACES
+  RECIPE
+  QUESTION
+  CHALLENGE
 }
 
 enum CommunityReportStatus {
@@ -1378,4 +1387,28 @@ model EventAttendee {
 
   @@unique([userId, postId])
   @@map("event_attendees")
+}
+
+// ==================== MASCOT ====================
+
+enum MascotType {
+  CAT
+  DOG
+  PANDA
+  FOX
+  ROBOT
+}
+
+model UserMascot {
+  id         String     @id @default(cuid())
+  userId     String     @unique
+  mascotType MascotType
+  name       String
+  xp         Int        @default(0)
+  level      Int        @default(1)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_mascots")
 }

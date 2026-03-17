@@ -1049,7 +1049,7 @@
       "founderHeadline": "[MISSING] Lifetime access + Exclusive badge",
       "founderBadge": "[MISSING] Limited",
       "features": {
-        "analysis3": "[MISSING] AI food analysis (3/day)",
+        "analysis3": "AI 음식 분석 (1일 1회)",
         "tracking": "[MISSING] Daily calorie tracking",
         "basicStats": "[MISSING] Basic statistics",
         "unlimited": "[MISSING] Unlimited AI analysis",
@@ -1303,7 +1303,7 @@
       "coachingTips": "Personalized coaching tips",
       "earlyAccess": "Early access to new features",
       "everythingInProMonthly": "Everything in Pro Monthly",
-      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "limitedAnalyses": "하루 1회 AI 분석",
       "unlimitedAnalyses": "Unlimited AI food analysis"
     },
     "planFreeDescription": "Start tracking meals with essential features.",
@@ -1447,7 +1447,7 @@
     "freePlan": "[MISSING] Free Plan",
     "freePlanIncluded": "[MISSING] Currently active",
     "free": "[MISSING] Free",
-    "freeFeature1": "하루 3회 분석",
+    "freeFeature1": "하루 1회 분석",
     "freeFeature2": "[MISSING] Basic nutrition tracking",
     "upgradeToPremium": "[MISSING] Upgrade to Premium",
     "month": "[MISSING] mo",
@@ -1661,7 +1661,10 @@
     "subtitle": "[MISSING] Subtitle",
     "success": "[MISSING] Success",
     "title": "[MISSING] Title",
-    "voted": "[MISSING] Voted"
+    "voted": "[MISSING] Voted",
+    "round_info": "월간 투표 라운드",
+    "days_left": "일 남음",
+    "approved": "승인됨"
   },
   "diets_title": "[MISSING] Diets",
   "diets_subtitle": "[MISSING] Find the perfect nutrition plan for you",
@@ -1882,6 +1885,56 @@
     },
     "premium": {
       "dietShareLocked": "다이어트 프로그램을 공유하려면 프리미엄으로 업그레이드하세요"
+    },
+    "attachPhoto": "사진 추가",
+    "challengeLabel": "챌린지",
+    "joinChallenge": "챌린지 참가",
+    "participants": "참가자",
+    "days": "일",
+    "challenge": "챌린지",
+    "tour": {
+      "skip": "건너뛰기",
+      "step1": {
+        "title": "그룹에 가입",
+        "desc": "여러분의 나라 그룹을 찾거나 같은 목표를 가진 사람들과 소통할 그룹을 만드세요.",
+        "action": "그룹 보기"
+      },
+      "step2": {
+        "title": "경험 공유",
+        "desc": "식사, 성과를 게시하거나 커뮤니티에 조언을 구하세요. 사진 환영!",
+        "action": "게시물 작성"
+      },
+      "step3": {
+        "title": "서로 응원",
+        "desc": "좋아요와 댓글로 멤버들을 응원하세요!",
+        "action": "알겠습니다!"
+      }
+    }
+  },
+  "mascot": {
+    "setup": {
+      "title": "동반자를 선택하세요",
+      "choose": "마스코트를 선택하세요",
+      "nameLabel": "이름을 지어주세요",
+      "namePlaceholder": "이름 입력...",
+      "nameRequired": "이름을 입력해주세요",
+      "nameTooLong": "이름은 20자 이하여야 합니다",
+      "create": "동반자 입양",
+      "createFailed": "마스코트 생성 실패"
+    },
+    "type": {
+      "cat": "고양이",
+      "dog": "강아지",
+      "panda": "판다",
+      "fox": "여우",
+      "robot": "로봇"
+    },
+    "phrase": {
+      "greeting": "오늘 건강하게 먹자!",
+      "encouragement": "잘하고 있어, 계속해!",
+      "healthy": "건강한 선택이 나를 성장시켜!",
+      "streak": "우리는 멋진 팀이야!",
+      "levelUp": "정말 자랑스러워!"
     }
   }
 }

@@ -53,6 +53,7 @@ const CommunityPostDetailScreen = React.lazy(() => import('./src/screens/Communi
 const CreateCommunityPostScreen = React.lazy(() => import('./src/screens/CreateCommunityPostScreen'));
 const CreateCommunityGroupScreen = React.lazy(() => import('./src/screens/CreateCommunityGroupScreen'));
 const CitySelectorScreen = React.lazy(() => import('./src/screens/CitySelectorScreen'));
+const MascotSetupScreen = React.lazy(() => import('./src/screens/MascotSetupScreen'));
 
 import { clientLog } from './src/utils/clientLog';
 
@@ -375,6 +376,11 @@ function AppContent() {
               <Stack.Screen
                 name="CitySelector"
                 component={CitySelectorScreen}
+                options={{ presentation: 'modal', headerShown: false }}
+              />
+              <Stack.Screen
+                name="MascotSetup"
+                component={MascotSetupScreen}
                 options={{ presentation: 'modal', headerShown: false }}
               />
             </Stack.Navigator>

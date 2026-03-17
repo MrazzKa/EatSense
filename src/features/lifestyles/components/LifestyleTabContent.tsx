@@ -70,7 +70,7 @@ const hasAccess = (program: LifestyleProgram, subscription: any): boolean => {
   if (!ENABLE_PREMIUM_LOCK) return true;
 
   // 1. Check free list first
-  if (isFreeLifestyle(program.id || program.slug || '')) return true;
+  if (isFreeLifestyle(program.slug || program.id || '')) return true;
 
   // 2. Check if explicitly free
   const isFree = program.price === 'free' || program.type === 'free';
@@ -144,8 +144,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
   const trendingPrograms = useMemo(() => {
     // Sort featured programs to ensure free lifestyles are ALWAYS at the top
     const sortedFeatured = [...featuredPrograms].sort((a, b) => {
-      const aIsFree = isFreeLifestyle(a.id || a.slug || '');
-      const bIsFree = isFreeLifestyle(b.id || b.slug || '');
+      const aIsFree = isFreeLifestyle(a.slug || a.id || '');
+      const bIsFree = isFreeLifestyle(b.slug || b.id || '');
       if (aIsFree && !bIsFree) return -1;
       if (!aIsFree && bIsFree) return 1;
       // Secondary sort: keep original order or sort by popularity
@@ -225,7 +225,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       // Show all programs grouped by category (free lifestyles go to FREE group)
       LIFESTYLE_CATEGORIES.forEach(category => {
         const categoryPrograms = filteredPrograms.filter(p => {
-          const programIsFree = isFreeLifestyle(p.id || p.slug || '');
+          const programIsFree = isFreeLifestyle(p.slug || p.id || '');
           if (category.id === 'FREE') {
             return programIsFree;
           }
@@ -314,8 +314,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
             <ActiveDietWidget
               activeDiet={item.data}
               onOpenTracker={() => {
-                if (item.data?.diet?.id) {
-                  onProgramPress(item.data.diet.id);
+                if (item.data?.diet?.slug || item.data?.diet?.id) {
+                  onProgramPress(item.data.diet.slug || item.data.diet.id);
                 }
               }}
               onBrowseDiets={() => { }}
@@ -327,8 +327,8 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
         return (
           <LifestyleCard
             program={item.data}
-            isLocked={checkLockStatus ? checkLockStatus(item.data.id || item.data.slug) : !hasAccess(item.data, subscription)}
-            onPress={() => onProgramPress(item.data.id || item.data.slug)}
+            isLocked={checkLockStatus ? checkLockStatus(item.data.slug || item.data.id) : !hasAccess(item.data, subscription)}
+            onPress={() => onProgramPress(item.data.slug || item.data.id)}
           />
         );
 

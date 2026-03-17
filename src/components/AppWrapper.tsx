@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { AnalysisProvider } from '../contexts/AnalysisContext';
+import { MascotProvider } from '../contexts/MascotContext';
 import { ProgramProgressProvider } from '../stores/ProgramProgressStore';
 import { TooltipProvider } from './Tooltip';
 import { usePushNotifications } from '../hooks/usePushNotifications';
@@ -56,10 +57,12 @@ export function AppWrapper({ children }) {
             <TooltipProvider>
               <ProgramProgressProvider>
                 <AnalysisProvider>
-                  {(() => {
-                    console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
-                    return <AppContent>{children}</AppContent>;
-                  })()}
+                  <MascotProvider>
+                    {(() => {
+                      console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
+                      return <AppContent>{children}</AppContent>;
+                    })()}
+                  </MascotProvider>
                 </AnalysisProvider>
               </ProgramProgressProvider>
             </TooltipProvider>

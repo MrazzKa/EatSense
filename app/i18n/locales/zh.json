@@ -1049,7 +1049,7 @@
       "founderHeadline": "[MISSING] Lifetime access + Exclusive badge",
       "founderBadge": "[MISSING] Limited",
       "features": {
-        "analysis3": "[MISSING] AI food analysis (3/day)",
+        "analysis3": "AI食物分析（每日1次）",
         "tracking": "[MISSING] Daily calorie tracking",
         "basicStats": "[MISSING] Basic statistics",
         "unlimited": "[MISSING] Unlimited AI analysis",
@@ -1303,7 +1303,7 @@
       "coachingTips": "Personalized coaching tips",
       "earlyAccess": "Early access to new features",
       "everythingInProMonthly": "Everything in Pro Monthly",
-      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "limitedAnalyses": "每日1次AI分析",
       "unlimitedAnalyses": "Unlimited AI food analysis"
     },
     "planFreeDescription": "Start tracking meals with essential features.",
@@ -1447,7 +1447,7 @@
     "freePlan": "[MISSING] Free Plan",
     "freePlanIncluded": "[MISSING] Currently active",
     "free": "[MISSING] Free",
-    "freeFeature1": "每日3次分析",
+    "freeFeature1": "每日1次分析",
     "freeFeature2": "[MISSING] Basic nutrition tracking",
     "upgradeToPremium": "[MISSING] Upgrade to Premium",
     "month": "[MISSING] mo",
@@ -1661,7 +1661,10 @@
     "subtitle": "[MISSING] Subtitle",
     "success": "[MISSING] Success",
     "title": "[MISSING] Title",
-    "voted": "[MISSING] Voted"
+    "voted": "[MISSING] Voted",
+    "round_info": "月度投票轮次",
+    "days_left": "天剩余",
+    "approved": "已批准"
   },
   "diets_title": "[MISSING] Diets",
   "diets_subtitle": "[MISSING] Find the perfect nutrition plan for you",
@@ -1882,6 +1885,56 @@
     },
     "premium": {
       "dietShareLocked": "升级到高级版以分享你的饮食计划"
+    },
+    "attachPhoto": "添加照片",
+    "challengeLabel": "挑战",
+    "joinChallenge": "加入挑战",
+    "participants": "参与者",
+    "days": "天",
+    "challenge": "挑战",
+    "tour": {
+      "skip": "跳过",
+      "step1": {
+        "title": "加入群组",
+        "desc": "找到您所在国家的群组或创建自己的群组，与志同道合的人交流。",
+        "action": "浏览群组"
+      },
+      "step2": {
+        "title": "分享您的经历",
+        "desc": "发布您的餐食、成就或向社区寻求建议。欢迎上传照片！",
+        "action": "创建帖子"
+      },
+      "step3": {
+        "title": "支持他人",
+        "desc": "点赞和评论帖子以鼓励社区成员！",
+        "action": "明白了！"
+      }
+    }
+  },
+  "mascot": {
+    "setup": {
+      "title": "选择你的伙伴",
+      "choose": "选择一个吉祥物",
+      "nameLabel": "给它起个名字",
+      "namePlaceholder": "输入名字...",
+      "nameRequired": "请输入名字",
+      "nameTooLong": "名字不能超过20个字符",
+      "create": "领养伙伴",
+      "createFailed": "创建吉祥物失败"
+    },
+    "type": {
+      "cat": "猫",
+      "dog": "狗",
+      "panda": "熊猫",
+      "fox": "狐狸",
+      "robot": "机器人"
+    },
+    "phrase": {
+      "greeting": "今天吃得健康吧！",
+      "encouragement": "你做得很好，继续加油！",
+      "healthy": "健康的选择让我成长！",
+      "streak": "我们是很棒的团队！",
+      "levelUp": "我为你感到骄傲！"
     }
   }
 }

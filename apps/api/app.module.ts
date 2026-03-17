@@ -47,6 +47,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SubscriptionsModule } from './src/subscriptions/subscriptions.module';
 import { PharmacyModule } from './src/pharmacy/pharmacy.module';
 import { CommunityModule } from './src/community/community.module';
+import { MascotModule } from './src/mascot/mascot.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { CommunityModule } from './src/community/community.module';
     SubscriptionsModule,
     PharmacyModule,
     CommunityModule,
+    MascotModule,
   ],
   controllers: [HealthController],
 })

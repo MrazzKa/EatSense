@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +21,10 @@ import ApiService from '../services/apiService';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { CommunityPostCard } from '../components/community/CommunityPostCard';
 import { EventCard } from '../components/community/EventCard';
+import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard } from '../components/community/GroupCard';
+import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
+import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 
 type TabKey = 'feed' | 'groups';
 
@@ -29,6 +34,7 @@ export default function CommunityScreen() {
   const tokens = useDesignTokens();
   const { t } = useI18n();
   const { user } = useAuth();
+  const isInitialLoad = useRef(true);
 
   const [activeTab, setActiveTab] = useState<TabKey>('feed');
   const [posts, setPosts] = useState([]);
@@ -36,6 +42,14 @@ export default function CommunityScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hasCity, setHasCity] = useState(false);
+
+  // Search
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Author profile sheet
+  const [authorSheetVisible, setAuthorSheetVisible] = useState(false);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
@@ -67,9 +81,12 @@ export default function CommunityScreen() {
   }, []);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    if (isInitialLoad.current) {
+      setLoading(true);
+    }
     await Promise.all([loadFeed(), loadGroups(), checkCity()]);
     setLoading(false);
+    isInitialLoad.current = false;
   }, [loadFeed, loadGroups, checkCity]);
 
   const onRefresh = useCallback(async () => {
@@ -88,15 +105,18 @@ export default function CommunityScreen() {
     setHasCity(!!user?.cityGroupId);
   }, [user?.cityGroupId]);
 
-  const handleLike = useCallback(async (postId: string) => {
+  // --- Handlers ---
+
+  const handleLike = useCallback(async (postId: string, type?: string) => {
     try {
-      await ApiService.toggleCommunityLike(postId);
+      await ApiService.toggleCommunityLike(postId, type);
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
             ? {
                 ...p,
                 isLiked: !p.isLiked,
+                reactionType: p.isLiked ? null : (type || 'LIKE'),
                 likesCount: p.isLiked ? (p.likesCount || 1) - 1 : (p.likesCount || 0) + 1,
               }
             : p,
@@ -131,6 +151,16 @@ export default function CommunityScreen() {
     }
   }, []);
 
+  const handleDeletePost = useCallback(async (postId: string) => {
+    try {
+      await ApiService.deleteCommunityPost(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch (err) {
+      console.warn('Failed to delete post:', err);
+      Alert.alert(t('common.error', 'Error'), t('community.deleteFailed', 'Failed to delete'));
+    }
+  }, [t]);
+
   const handleJoinGroup = useCallback(async (groupId: string) => {
     try {
       if (groups.find(g => g.id === groupId)?.isMember) {
@@ -159,6 +189,36 @@ export default function CommunityScreen() {
     }
   }, [groups]);
 
+  const handleAuthorPress = useCallback((authorId: string) => {
+    if (!authorId) return;
+    setSelectedAuthorId(authorId);
+    setAuthorSheetVisible(true);
+  }, []);
+
+  // --- Filtered data ---
+  const filteredPosts = useMemo(() => {
+    if (!searchQuery.trim()) return posts;
+    const q = searchQuery.toLowerCase();
+    return posts.filter((p) => {
+      const content = (p.content || '').toLowerCase();
+      const author = `${p.author?.userProfile?.firstName || ''} ${p.author?.userProfile?.lastName || ''}`.toLowerCase();
+      return content.includes(q) || author.includes(q);
+    });
+  }, [posts, searchQuery]);
+
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return groups;
+    const q = searchQuery.toLowerCase();
+    return groups.filter((g) => (g.name || '').toLowerCase().includes(q));
+  }, [groups, searchQuery]);
+
+  // Recommended groups (non-member groups for empty feed state)
+  const recommendedGroups = useMemo(() => {
+    return groups.filter((g) => !g.isMember).slice(0, 4);
+  }, [groups]);
+
+  // --- Render helpers ---
+
   const renderPostItem = useCallback(
     ({ item }) => {
       if (item.type === 'EVENT') {
@@ -170,16 +230,29 @@ export default function CommunityScreen() {
           />
         );
       }
+      if (item.type === 'CHALLENGE') {
+        return (
+          <ChallengeCard
+            post={item}
+            onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+            onJoin={() => handleAttend(item.id)}
+            onLike={() => handleLike(item.id)}
+          />
+        );
+      }
       return (
         <CommunityPostCard
           post={item}
+          currentUserId={user?.id}
           onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
-          onLike={() => handleLike(item.id)}
+          onLike={(type) => handleLike(item.id, type)}
           onComment={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+          onDelete={handleDeletePost}
+          onAuthorPress={handleAuthorPress}
         />
       );
     },
-    [navigation, handleLike, handleAttend],
+    [navigation, handleLike, handleAttend, handleDeletePost, handleAuthorPress, user?.id],
   );
 
   const renderGroupItem = useCallback(
@@ -204,7 +277,7 @@ export default function CommunityScreen() {
       >
         <Ionicons name="location-outline" size={20} color={colors.primary} />
         <Text style={[styles.cityBannerText, { color: colors.primary }]}>
-          {t('community.setCity', 'Set your city to connect with locals')}
+          {t('community.setCountry', 'Set your country to connect with locals')}
         </Text>
         <Ionicons name="chevron-forward" size={18} color={colors.primary} />
       </TouchableOpacity>
@@ -220,6 +293,24 @@ export default function CommunityScreen() {
       <Text style={[styles.emptySubtitle, { color: colors.textTertiary }]}>
         {t('community.emptyFeedDesc', 'Join groups and be the first to share!')}
       </Text>
+
+      {/* Recommended groups */}
+      {recommendedGroups.length > 0 && (
+        <View style={styles.recommendedSection}>
+          <Text style={[styles.recommendedTitle, { color: colors.textPrimary || colors.text }]}>
+            {t('community.recommendedGroups', 'Recommended for you')}
+          </Text>
+          {recommendedGroups.map((group) => (
+            <GroupCard
+              key={group.id}
+              group={group}
+              isMember={false}
+              onPress={() => navigation.navigate('CommunityGroup', { groupId: group.id, groupName: group.name })}
+              onJoin={() => handleJoinGroup(group.id)}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 
@@ -235,8 +326,17 @@ export default function CommunityScreen() {
     </View>
   );
 
+  const handleTourStep = useCallback((stepIndex: number) => {
+    if (stepIndex === 0) {
+      setActiveTab('groups');
+    } else if (stepIndex === 1) {
+      navigation.navigate('CreateCommunityPost');
+    }
+  }, [navigation]);
+
   const feedHeader = () => (
     <>
+      <CommunityGuidedTour onStepAction={handleTourStep} />
       {renderCityBanner()}
     </>
   );
@@ -261,8 +361,36 @@ export default function CommunityScreen() {
         <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
           {t('community.title', 'Community')}
         </Text>
-        <ProfileAvatarButton />
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            onPress={() => { setSearchVisible((v) => !v); if (searchVisible) setSearchQuery(''); }}
+            style={styles.searchToggle}
+          >
+            <Ionicons name={searchVisible ? 'close' : 'search'} size={22} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <ProfileAvatarButton />
+        </View>
       </View>
+
+      {/* Search bar */}
+      {searchVisible && (
+        <View style={[styles.searchBar, { borderBottomColor: colors.border }]}>
+          <Ionicons name="search" size={18} color={colors.textTertiary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.textPrimary || colors.text }]}
+            placeholder={t('community.searchPlaceholder', 'Search posts and groups...')}
+            placeholderTextColor={colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {/* Tabs */}
       <View style={[styles.tabBar, { borderBottomColor: colors.border }]}>
@@ -303,7 +431,7 @@ export default function CommunityScreen() {
         </View>
       ) : activeTab === 'feed' ? (
         <FlatList
-          data={posts}
+          data={filteredPosts}
           keyExtractor={(item) => item.id}
           renderItem={renderPostItem}
           ListHeaderComponent={feedHeader}
@@ -316,7 +444,7 @@ export default function CommunityScreen() {
         />
       ) : (
         <FlatList
-          data={groups}
+          data={filteredGroups}
           keyExtractor={(item) => item.id}
           renderItem={renderGroupItem}
           ListHeaderComponent={groupsHeader}
@@ -337,6 +465,13 @@ export default function CommunityScreen() {
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
+
+      {/* Author Profile Sheet */}
+      <AuthorProfileSheet
+        visible={authorSheetVisible}
+        authorId={selectedAuthorId}
+        onClose={() => setAuthorSheetVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -356,6 +491,27 @@ const createStyles = (tokens: any, colors: any) =>
     headerTitle: {
       fontSize: 28,
       fontWeight: '700',
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    searchToggle: {
+      padding: 4,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      gap: 8,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      paddingVertical: 4,
     },
     tabBar: {
       flexDirection: 'row',
@@ -407,7 +563,7 @@ const createStyles = (tokens: any, colors: any) =>
     emptyContainer: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingTop: 80,
+      paddingTop: 60,
       paddingHorizontal: 32,
     },
     emptyTitle: {
@@ -419,6 +575,17 @@ const createStyles = (tokens: any, colors: any) =>
       fontSize: 14,
       textAlign: 'center',
       marginTop: 6,
+    },
+    recommendedSection: {
+      width: '100%',
+      marginTop: 24,
+      paddingHorizontal: 0,
+    },
+    recommendedTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 12,
+      textAlign: 'left',
     },
     createGroupBtn: {
       flexDirection: 'row',

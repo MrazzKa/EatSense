@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,8 @@ import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
+import MascotWidget from '../components/MascotWidget';
+import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
@@ -62,6 +64,7 @@ export default function DashboardScreen() {
   const { t, language } = useI18n();
   // Load active diet for dashboard widget from store
   const { activeProgram, loadProgress } = useProgramProgress();
+  const { mascot, addXp } = useMascot();
 
   // FIX: Define missing variable used by the widget
   // Ensure diet object has proper name structure for ActiveDietWidget
@@ -149,6 +152,38 @@ export default function DashboardScreen() {
     recent: new Animated.Value(0),
     suggested: new Animated.Value(0),
   }));
+
+  // Award mascot XP when an analysis completes
+  const completedIdsRef = useRef(new Set());
+  useEffect(() => {
+    if (!mascot || !addXp) return;
+    for (const analysis of pendingAnalyses) {
+      if (analysis.status === 'completed' && !completedIdsRef.current.has(analysis.analysisId)) {
+        completedIdsRef.current.add(analysis.analysisId);
+        const baseXp = 10;
+        const bonusXp = (analysis.healthScore && analysis.healthScore > 70) ? 5 : 0;
+        addXp(baseXp + bonusXp, 'food_analysis');
+      }
+    }
+  }, [pendingAnalyses, mascot, addXp]);
+
+  // Award mascot XP for daily login (once per day)
+  const dailyXpRef = useRef(false);
+  useEffect(() => {
+    if (!mascot || !addXp || dailyXpRef.current) return;
+    const checkDailyXp = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const lastXpDay = await AsyncStorage.getItem('mascot_daily_xp_date');
+        if (lastXpDay !== today) {
+          await AsyncStorage.setItem('mascot_daily_xp_date', today);
+          addXp(5, 'daily_login');
+          dailyXpRef.current = true;
+        }
+      } catch {}
+    };
+    checkDailyXp();
+  }, [mascot, addXp]);
 
   // Animate plus button on mount
   useEffect(() => {
@@ -698,37 +733,38 @@ export default function DashboardScreen() {
         }}
         onClose={() => setShowLimitModal(false)}
       />
-      <View style={{ position: 'absolute', top: 12, right: 16, zIndex: 10 }}>
-        <ProfileAvatarButton />
-      </View>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Calendar */}
-        <View style={styles.calendarContainer}>
-          <TouchableOpacity
-            style={styles.calendarButton}
-            onPress={() => navigateToDate(-1)}
-          >
-            <Ionicons name="chevron-back" size={24} color={colors.primary} />
-          </TouchableOpacity>
+        {/* Calendar header with avatar */}
+        <View style={styles.calendarHeaderRow}>
+          <View style={{ width: 32 }} />
+          <View style={styles.calendarContainer}>
+            <TouchableOpacity
+              style={styles.calendarButton}
+              onPress={() => navigateToDate(-1)}
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.primary} />
+            </TouchableOpacity>
 
-          <View style={styles.calendarDate}>
-            <Text style={styles.calendarDateText}>
-              {selectedDate.toLocaleDateString(language || 'en', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </Text>
-            <Text style={styles.calendarYearText}>
-              {selectedDate.getFullYear()}
-            </Text>
+            <View style={styles.calendarDate}>
+              <Text style={styles.calendarDateText}>
+                {selectedDate.toLocaleDateString(language || 'en', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </Text>
+              <Text style={styles.calendarYearText}>
+                {selectedDate.getFullYear()}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.calendarButton}
+              onPress={() => navigateToDate(1)}
+            >
+              <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={styles.calendarButton}
-            onPress={() => navigateToDate(1)}
-          >
-            <Ionicons name="chevron-forward" size={24} color={colors.primary} />
-          </TouchableOpacity>
+          <ProfileAvatarButton />
         </View>
 
         {/* Calories Circle with Progress and Macros - Compact Layout */}
@@ -842,6 +878,11 @@ export default function DashboardScreen() {
             }
           }}
         />
+
+        {/* Mascot Widget */}
+        {mascot && (
+          <MascotWidget onPress={() => navigation.navigate('MascotSetup' as never)} />
+        )}
 
         {/* Medical Analysis / "Медицинские анализы" - placed above Дневник */}
         <Animated.View
@@ -1249,7 +1290,15 @@ const createStyles = (tokens) =>
       fontSize: 16,
       color: tokens.colors.textSecondary,
     },
+    calendarHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingTop: tokens.spacing.md || 12,
+    },
     calendarContainer: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',

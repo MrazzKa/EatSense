@@ -35,7 +35,7 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
     const handleStartConversation = async (offerId?: string) => {
         try {
             const conversation = await MarketplaceService.startConversation(specialist.id, offerId);
-            navigation.navigate('ConversationChat', { conversationId: conversation.id });
+            navigation.navigate('ConsultationChat', { conversationId: conversation.id });
         } catch {
             Alert.alert(t('common.error'), t('errors.startConsultation', 'Failed to start conversation'));
         }

@@ -932,7 +932,7 @@ const OnboardingScreen = () => {
       billingCycle: 'lifetime',
       headline: t('onboarding.plans.freeHeadline', 'Get started with the essentials'),
       features: [
-        t('onboarding.plans.features.analysis3', 'AI food analysis (3/day)'),
+        t('onboarding.plans.features.analysis3', 'AI food analysis (1/day)'),
         t('onboarding.plans.features.tracking', 'Daily calorie tracking'),
         t('onboarding.plans.features.basicStats', 'Basic statistics'),
       ],

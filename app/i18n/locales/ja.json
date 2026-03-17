@@ -1049,7 +1049,7 @@
       "founderHeadline": "[MISSING] Lifetime access + Exclusive badge",
       "founderBadge": "[MISSING] Limited",
       "features": {
-        "analysis3": "[MISSING] AI food analysis (3/day)",
+        "analysis3": "AI食品分析（1日1回）",
         "tracking": "[MISSING] Daily calorie tracking",
         "basicStats": "[MISSING] Basic statistics",
         "unlimited": "[MISSING] Unlimited AI analysis",
@@ -1303,7 +1303,7 @@
       "coachingTips": "Personalized coaching tips",
       "earlyAccess": "Early access to new features",
       "everythingInProMonthly": "Everything in Pro Monthly",
-      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "limitedAnalyses": "1日1回のAI分析",
       "unlimitedAnalyses": "Unlimited AI food analysis"
     },
     "planFreeDescription": "Start tracking meals with essential features.",
@@ -1447,7 +1447,7 @@
     "freePlan": "[MISSING] Free Plan",
     "freePlanIncluded": "[MISSING] Currently active",
     "free": "[MISSING] Free",
-    "freeFeature1": "1日3回の分析",
+    "freeFeature1": "1日1回の分析",
     "freeFeature2": "[MISSING] Basic nutrition tracking",
     "upgradeToPremium": "[MISSING] Upgrade to Premium",
     "month": "[MISSING] mo",
@@ -1661,7 +1661,10 @@
     "subtitle": "[MISSING] Subtitle",
     "success": "[MISSING] Success",
     "title": "[MISSING] Title",
-    "voted": "[MISSING] Voted"
+    "voted": "[MISSING] Voted",
+    "round_info": "月間投票ラウンド",
+    "days_left": "日残り",
+    "approved": "承認済み"
   },
   "diets_title": "[MISSING] Diets",
   "diets_subtitle": "[MISSING] Find the perfect nutrition plan for you",
@@ -1882,6 +1885,56 @@
     },
     "premium": {
       "dietShareLocked": "ダイエットプログラムを共有するにはプレミアムにアップグレードしてください"
+    },
+    "attachPhoto": "写真を追加",
+    "challengeLabel": "チャレンジ",
+    "joinChallenge": "チャレンジに参加",
+    "participants": "参加者",
+    "days": "日間",
+    "challenge": "チャレンジ",
+    "tour": {
+      "skip": "スキップ",
+      "step1": {
+        "title": "グループに参加",
+        "desc": "あなたの国のグループを見つけるか、同じ目標を持つ人とつながるためにグループを作成しましょう。",
+        "action": "グループを見る"
+      },
+      "step2": {
+        "title": "体験を共有",
+        "desc": "食事、達成したことを投稿したり、コミュニティにアドバイスを求めましょう。写真歓迎！",
+        "action": "投稿を作成"
+      },
+      "step3": {
+        "title": "仲間を応援",
+        "desc": "いいねやコメントでメンバーを励ましましょう！",
+        "action": "わかった！"
+      }
+    }
+  },
+  "mascot": {
+    "setup": {
+      "title": "パートナーを選ぼう",
+      "choose": "マスコットを選んでね",
+      "nameLabel": "名前をつけてね",
+      "namePlaceholder": "名前を入力...",
+      "nameRequired": "名前を入力してください",
+      "nameTooLong": "名前は20文字以内にしてください",
+      "create": "パートナーを迎える",
+      "createFailed": "マスコットの作成に失敗しました"
+    },
+    "type": {
+      "cat": "ネコ",
+      "dog": "イヌ",
+      "panda": "パンダ",
+      "fox": "キツネ",
+      "robot": "ロボット"
+    },
+    "phrase": {
+      "greeting": "今日も健康的に食べよう！",
+      "encouragement": "頑張ってるね、その調子！",
+      "healthy": "健康的な選択で成長するよ！",
+      "streak": "最高のチームだね！",
+      "levelUp": "すごく誇りに思うよ！"
     }
   }
 }

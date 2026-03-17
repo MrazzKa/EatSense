@@ -242,7 +242,7 @@
       "founderHeadline": "Lifetime access + Exclusive badge",
       "founderBadge": "Limited",
       "features": {
-        "analysis3": "AI food analysis (3/day)",
+        "analysis3": "AI food analysis (1/day)",
         "tracking": "Daily calorie tracking",
         "basicStats": "Basic statistics",
         "unlimited": "Unlimited AI analysis",
@@ -465,7 +465,10 @@
     "empty": "No suggestions yet. Be the first!",
     "reward_title": "6 months PRO free!",
     "reward_info": "Top-voted suggestions get implemented! The author receives 6 months of PRO free!",
-    "error": "Failed to send request"
+    "error": "Failed to send request",
+    "round_info": "Monthly voting round",
+    "days_left": "days left",
+    "approved": "Approved"
   },
   "dashboard": {
     "activeDiet": {
@@ -824,6 +827,15 @@
     },
     "supportLink": "Contact Support",
     "savingButton": "Saving...",
+    "avatar": {
+      "title": "Profile Photo",
+      "camera": "Take Photo",
+      "gallery": "Choose from Gallery",
+      "preset": "Choose Avatar",
+      "remove": "Remove Photo",
+      "cameraPermission": "Camera permission is required",
+      "uploadFailed": "Failed to upload photo"
+    },
     "applyPlan": "Apply Plan",
     "selectTime": "Select Time",
     "tabs": {
@@ -989,7 +1001,7 @@
     "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
     "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
     "planFeatures": {
-      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "limitedAnalyses": "1 AI analysis per day",
       "calorieTracking": "Calorie tracking",
       "basicStats": "Basic statistics",
       "unlimitedAnalyses": "Unlimited AI food analysis",
@@ -1841,7 +1853,7 @@
     "freePlan": "Free Plan",
     "freePlanIncluded": "Currently active",
     "free": "Free",
-    "freeFeature1": "3 analyses per day",
+    "freeFeature1": "1 analysis per day",
     "freeFeature2": "Basic nutrition tracking",
     "upgradeToPremium": "Upgrade to Premium",
     "feature_unlimited_analyses": "Unlimited food analysis",
@@ -3922,13 +3934,46 @@
     "leave": "Leave",
     "createPost": "Create Post",
     "createGroup": "Create Group",
+    "postTitle": "Post",
+    "newPost": "New Post",
+    "setCountry": "Set your country to connect with locals",
+    "selectCountry": "Select Your Country",
+    "searchCountry": "Search countries...",
+    "noCountriesFound": "No countries match your search",
+    "noCountries": "No countries available",
+    "countryNotFound": "Country Not Found",
+    "countryNotFoundDesc": "Your country is not available yet. Please select manually.",
+    "setCountryFailed": "Failed to set your country",
+    "selectGroupLabel": "Post to group",
+    "whatOnMind": "What's on your mind?",
+    "noGroups": "Join a group first to post",
+    "emptyContent": "Please write something",
+    "postFailed": "Failed to create post",
+    "eventDetails": "Event Details",
+    "eventTitle": "Event title",
+    "eventDate": "Date (e.g. March 20, 2026)",
+    "eventTime": "Time (e.g. 14:00)",
+    "eventLocation": "Location",
+    "noComments": "No comments yet. Be the first!",
+    "writeComment": "Write a comment...",
+    "comments": "Comments",
+    "emptyFeed": "No posts yet",
+    "emptyFeedDesc": "Join groups and be the first to share!",
+    "emptyGroups": "No groups found",
+    "emptyGroupsDesc": "Create a group to get started!",
+    "error": "Error",
     "postType": {
       "text": "Text",
       "photo": "Photo",
       "dietShare": "Share Diet",
       "achievement": "Achievement",
       "event": "Event",
-      "recommendation": "Recommendation"
+      "recommendation": "Recommendation",
+      "lifestyle": "Lifestyle",
+      "bestPlaces": "Best Places",
+      "recipe": "Recipe",
+      "question": "Question",
+      "challenge": "Challenge"
     },
     "feed": {
       "empty": "No posts yet. Join groups to see posts in your feed!",
@@ -3952,7 +3997,8 @@
       "create": "Create",
       "selectGroup": "Select Group",
       "custom": "Custom Groups",
-      "city": "City Groups"
+      "city": "City Groups",
+      "country": "Country Groups"
     },
     "event": {
       "title": "Event Title",
@@ -3978,6 +4024,84 @@
     },
     "premium": {
       "dietShareLocked": "Upgrade to Premium to share your diet programs"
+    },
+    "attachPhoto": "Add photo",
+    "challengeLabel": "CHALLENGE",
+    "joinChallenge": "Join Challenge",
+    "participants": "joined",
+    "days": "days",
+    "challenge": "Challenge",
+    "tour": {
+      "skip": "Skip tour",
+      "step1": {
+        "title": "Join a Group",
+        "desc": "Find a group in your country or create your own to connect with people who share your goals.",
+        "action": "Browse Groups"
+      },
+      "step2": {
+        "title": "Share Your Journey",
+        "desc": "Post about your meals, achievements, or ask the community for advice. Photos welcome!",
+        "action": "Create a Post"
+      },
+      "step3": {
+        "title": "Support Others",
+        "desc": "Like and comment on posts to encourage fellow members. Community thrives on support!",
+        "action": "Got it!"
+      }
+    },
+    "deleteCommentConfirm": "Are you sure you want to delete this comment?",
+    "deleteFailed": "Failed to delete",
+    "recommendedGroups": "Recommended for you",
+    "searchPlaceholder": "Search posts and groups...",
+    "profile": {
+      "posts": "Posts",
+      "joined": "Joined",
+      "notFound": "Profile not found"
+    },
+    "recipe": {
+      "details": "Recipe Details",
+      "name": "Recipe name",
+      "ingredients": "Ingredients",
+      "steps": "Steps",
+      "prepTime": "Prep time",
+      "servings": "Servings",
+      "servingsShort": "servings"
+    },
+    "question": {
+      "solved": "Solved",
+      "markSolved": "Mark Solved"
+    },
+    "bestPlaces": {
+      "details": "Place Details",
+      "placeName": "Place name",
+      "address": "Address",
+      "rating": "Rating"
+    }
+  },
+  "mascot": {
+    "setup": {
+      "title": "Choose Your Companion",
+      "choose": "Choose a mascot",
+      "nameLabel": "Give it a name",
+      "namePlaceholder": "Enter name...",
+      "nameRequired": "Please enter a name",
+      "nameTooLong": "Name must be 20 characters or less",
+      "create": "Adopt Companion",
+      "createFailed": "Failed to create mascot"
+    },
+    "type": {
+      "cat": "Cat",
+      "dog": "Dog",
+      "panda": "Panda",
+      "fox": "Fox",
+      "robot": "Robot"
+    },
+    "phrase": {
+      "greeting": "Let's eat healthy today!",
+      "encouragement": "You're doing great, keep going!",
+      "healthy": "Healthy choices make me grow!",
+      "streak": "We're an amazing team!",
+      "levelUp": "I'm so proud of you!"
     }
   }
 }
