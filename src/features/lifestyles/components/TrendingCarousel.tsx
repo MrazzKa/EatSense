@@ -108,7 +108,7 @@ export default function TrendingCarousel({
                 styles.card,
                 { backgroundColor: imageSource ? 'transparent' : (colors.primary || '#4CAF50') },
               ]}
-              onPress={() => onProgramPress(program.id)}
+              onPress={() => onProgramPress(program.slug || program.id)}
               activeOpacity={0.85}
             >
               {/* Background Image - prefer local assets */}

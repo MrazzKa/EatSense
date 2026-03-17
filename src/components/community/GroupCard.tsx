@@ -24,7 +24,7 @@ export function GroupCard({ group, onPress, onJoin, isMember }: GroupCardProps) 
     >
       <View style={[styles.iconCircle, { backgroundColor: colors.primary + '15' }]}>
         <Ionicons
-          name={group.type === 'CITY' ? 'location' : 'people'}
+          name={group.type === 'COUNTRY' ? 'flag' : group.type === 'CITY' ? 'location' : 'people'}
           size={22}
           color={colors.primary}
         />

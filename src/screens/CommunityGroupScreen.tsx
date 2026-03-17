@@ -17,6 +17,9 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import { CommunityPostCard } from '../components/community/CommunityPostCard';
 import { EventCard } from '../components/community/EventCard';
+import { ChallengeCard } from '../components/community/ChallengeCard';
+import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CommunityGroupScreen() {
   const navigation = useNavigation();
@@ -31,6 +34,9 @@ export default function CommunityGroupScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const { user } = useAuth();
+  const [authorSheetVisible, setAuthorSheetVisible] = useState(false);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
@@ -89,9 +95,9 @@ export default function CommunityGroupScreen() {
     }
   }, [groupId, isMember]);
 
-  const handleLike = useCallback(async (postId: string) => {
+  const handleLike = useCallback(async (postId: string, type?: string) => {
     try {
-      await ApiService.toggleCommunityLike(postId);
+      await ApiService.toggleCommunityLike(postId, type);
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
@@ -132,6 +138,21 @@ export default function CommunityGroupScreen() {
     }
   }, []);
 
+  const handleDeletePost = useCallback(async (postId: string) => {
+    try {
+      await ApiService.deleteCommunityPost(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch (err) {
+      console.warn('Failed to delete post:', err);
+    }
+  }, []);
+
+  const handleAuthorPress = useCallback((authorId: string) => {
+    if (!authorId) return;
+    setSelectedAuthorId(authorId);
+    setAuthorSheetVisible(true);
+  }, []);
+
   const renderPostItem = useCallback(
     ({ item }) => {
       if (item.type === 'EVENT') {
@@ -143,16 +164,29 @@ export default function CommunityGroupScreen() {
           />
         );
       }
+      if (item.type === 'CHALLENGE') {
+        return (
+          <ChallengeCard
+            post={item}
+            onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+            onJoin={() => handleAttend(item.id)}
+            onLike={() => handleLike(item.id)}
+          />
+        );
+      }
       return (
         <CommunityPostCard
           post={item}
+          currentUserId={user?.id}
           onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
-          onLike={() => handleLike(item.id)}
+          onLike={(type) => handleLike(item.id, type)}
           onComment={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+          onDelete={handleDeletePost}
+          onAuthorPress={handleAuthorPress}
         />
       );
     },
-    [navigation, handleLike, handleAttend],
+    [navigation, handleLike, handleAttend, handleDeletePost, handleAuthorPress, user?.id],
   );
 
   const renderHeader = () => (
@@ -247,6 +281,12 @@ export default function CommunityGroupScreen() {
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+      />
+
+      <AuthorProfileSheet
+        visible={authorSheetVisible}
+        authorId={selectedAuthorId}
+        onClose={() => setAuthorSheetVisible(false)}
       />
     </SafeAreaView>
   );

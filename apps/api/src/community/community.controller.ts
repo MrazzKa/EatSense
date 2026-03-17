@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -107,10 +108,24 @@ export class CommunityController {
     return this.communityService.deletePost(req.user.id, id);
   }
 
+  @Patch('posts/:id')
+  @ApiOperation({ summary: 'Update post metadata' })
+  async updatePost(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { metadata?: any },
+  ) {
+    return this.communityService.updatePost(id, req.user.id, body);
+  }
+
   @Post('posts/:id/like')
   @ApiOperation({ summary: 'Toggle like on a post' })
-  async toggleLike(@Request() req: any, @Param('id') id: string) {
-    return this.communityService.toggleLike(req.user.id, id);
+  async toggleLike(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { type?: string },
+  ) {
+    return this.communityService.toggleLike(req.user.id, id, body?.type);
   }
 
   @Get('posts/:id/comments')
@@ -171,5 +186,11 @@ export class CommunityController {
   @ApiOperation({ summary: 'Set the current user city group' })
   async setMyCity(@Request() req: any, @Body() body: { groupId: string }) {
     return this.communityService.setMyCity(req.user.id, body.groupId);
+  }
+
+  @Get('users/:id/profile')
+  @ApiOperation({ summary: 'Get author mini-profile' })
+  async getUserProfile(@Request() req: any, @Param('id') id: string) {
+    return this.communityService.getUserProfile(id, req.user.id);
   }
 }

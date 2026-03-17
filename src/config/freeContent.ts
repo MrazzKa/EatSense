@@ -25,7 +25,7 @@ export const FREE_LIFESTYLE_IDS: string[] = [
 ];
 
 // Number of free analyses per day for non-subscribers
-export const FREE_DAILY_ANALYSES = 2;
+export const FREE_DAILY_ANALYSES = 1;
 
 // Trial period days
 export const TRIAL_DAYS = {

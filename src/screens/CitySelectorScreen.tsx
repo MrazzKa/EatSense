@@ -26,7 +26,7 @@ export default function CitySelectorScreen() {
   const { t } = useI18n();
   const { refreshUser } = useAuth();
 
-  const [cities, setCities] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [detecting, setDetecting] = useState(false);
@@ -35,24 +35,41 @@ export default function CitySelectorScreen() {
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
   useEffect(() => {
-    const loadCities = async () => {
+    const loadCountries = async () => {
       try {
-        const data = await ApiService.getCityCommunityGroups();
-        setCities(Array.isArray(data) ? data : data?.data || []);
+        const data = await ApiService.getCountryCommunityGroups();
+        setCountries(Array.isArray(data) ? data : data?.data || []);
       } catch (err) {
-        console.warn('Failed to load city groups:', err);
+        console.warn('Failed to load country groups:', err);
       } finally {
         setLoading(false);
       }
     };
-    loadCities();
+    loadCountries();
   }, []);
 
-  const filteredCities = useMemo(() => {
-    if (!searchQuery.trim()) return cities;
+  const filteredCountries = useMemo(() => {
+    if (!searchQuery.trim()) return countries;
     const query = searchQuery.toLowerCase();
-    return cities.filter((city: any) => city.name?.toLowerCase().includes(query));
-  }, [cities, searchQuery]);
+    return countries.filter((c: any) => c.name?.toLowerCase().includes(query));
+  }, [countries, searchQuery]);
+
+  const selectCountry = useCallback(
+    async (countryGroupId: string) => {
+      setSelecting(countryGroupId);
+      try {
+        await ApiService.setMyCity(countryGroupId);
+        await refreshUser();
+        navigation.goBack();
+      } catch (err) {
+        console.warn('Failed to set country:', err);
+        Alert.alert(t('community.error', 'Error'), t('community.setCountryFailed', 'Failed to set your country'));
+      } finally {
+        setSelecting(null);
+      }
+    },
+    [navigation, refreshUser, t],
+  );
 
   const handleDetectLocation = useCallback(async () => {
     setDetecting(true);
@@ -61,7 +78,7 @@ export default function CitySelectorScreen() {
       if (status !== 'granted') {
         Alert.alert(
           t('community.locationDenied', 'Location Access'),
-          t('community.locationDeniedDesc', 'Please enable location access in Settings to detect your city.'),
+          t('community.locationDeniedDesc', 'Please enable location access in Settings to detect your country.'),
         );
         setDetecting(false);
         return;
@@ -77,18 +94,17 @@ export default function CitySelectorScreen() {
       });
 
       if (reverseGeocode.length > 0) {
-        const cityName = reverseGeocode[0].city || reverseGeocode[0].subregion || reverseGeocode[0].region;
-        if (cityName) {
-          // Try to find a matching city group
-          const match = cities.find(
-            (c: any) => c.name?.toLowerCase() === cityName.toLowerCase(),
+        const isoCountryCode = reverseGeocode[0].isoCountryCode;
+        if (isoCountryCode) {
+          const match = countries.find(
+            (c: any) => c.country?.toUpperCase() === isoCountryCode.toUpperCase(),
           );
           if (match) {
-            await selectCity(match.id);
+            await selectCountry(match.id);
           } else {
             Alert.alert(
-              t('community.cityNotFound', 'City Not Found'),
-              t('community.cityNotFoundDesc', `We detected "${cityName}" but it's not available yet. Please select manually.`),
+              t('community.countryNotFound', 'Country Not Found'),
+              t('community.countryNotFoundDesc', 'Your country is not available yet. Please select manually.'),
             );
           }
         }
@@ -102,34 +118,17 @@ export default function CitySelectorScreen() {
     } finally {
       setDetecting(false);
     }
-  }, [cities, navigation, refreshUser, t]);
+  }, [countries, selectCountry, t]);
 
-  const selectCity = useCallback(
-    async (cityGroupId: string) => {
-      setSelecting(cityGroupId);
-      try {
-        await ApiService.setMyCity(cityGroupId);
-        await refreshUser();
-        navigation.goBack();
-      } catch (err) {
-        console.warn('Failed to set city:', err);
-        Alert.alert(t('community.error', 'Error'), t('community.setCityFailed', 'Failed to set your city'));
-      } finally {
-        setSelecting(null);
-      }
-    },
-    [navigation, refreshUser, t],
-  );
-
-  const renderCityItem = useCallback(
+  const renderCountryItem = useCallback(
     ({ item }: any) => (
       <TouchableOpacity
         style={[styles.cityItem, { borderBottomColor: colors.border }]}
-        onPress={() => selectCity(item.id)}
+        onPress={() => selectCountry(item.id)}
         disabled={selecting === item.id}
         activeOpacity={0.6}
       >
-        <Ionicons name="location" size={20} color={colors.primary} />
+        <Ionicons name="flag" size={20} color={colors.primary} />
         <View style={styles.cityInfo}>
           <Text style={[styles.cityName, { color: colors.textPrimary || colors.text }]}>{item.name}</Text>
           <Text style={[styles.cityMembers, { color: colors.textTertiary }]}>
@@ -143,7 +142,7 @@ export default function CitySelectorScreen() {
         )}
       </TouchableOpacity>
     ),
-    [colors, selecting, selectCity, t, styles],
+    [colors, selecting, selectCountry, t, styles],
   );
 
   return (
@@ -154,7 +153,7 @@ export default function CitySelectorScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary || colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
-          {t('community.selectCity', 'Select Your City')}
+          {t('community.selectCountry', 'Select Your Country')}
         </Text>
         <View style={styles.backBtn} />
       </View>
@@ -183,7 +182,7 @@ export default function CitySelectorScreen() {
         <Ionicons name="search" size={18} color={colors.textTertiary} />
         <TextInput
           style={[styles.searchInput, { color: colors.textPrimary || colors.text }]}
-          placeholder={t('community.searchCity', 'Search cities...')}
+          placeholder={t('community.searchCountry', 'Search countries...')}
           placeholderTextColor={colors.textTertiary}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -196,22 +195,22 @@ export default function CitySelectorScreen() {
         )}
       </View>
 
-      {/* City list */}
+      {/* Country list */}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
-          data={filteredCities}
+          data={filteredCountries}
           keyExtractor={(item) => item.id}
-          renderItem={renderCityItem}
+          renderItem={renderCountryItem}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
                 {searchQuery
-                  ? t('community.noCitiesFound', 'No cities match your search')
-                  : t('community.noCities', 'No cities available')}
+                  ? t('community.noCountriesFound', 'No countries match your search')
+                  : t('community.noCountries', 'No countries available')}
               </Text>
             </View>
           }

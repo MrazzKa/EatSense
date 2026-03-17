@@ -20,7 +20,8 @@ export default function ExpertsScreen({ navigation: _navigation }: { navigation:
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-      <View style={{ position: 'absolute', top: 12, right: 16, zIndex: 10 }}>
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }} />
         <ProfileAvatarButton />
       </View>
       <View style={styles.content}>
@@ -83,10 +84,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 16,
     alignItems: 'center',
   },
   illustrationContainer: {

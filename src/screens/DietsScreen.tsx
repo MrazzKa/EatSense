@@ -223,8 +223,18 @@ export default function DietsScreen({ navigation }) {
 
     // Check if program is locked (Apple Intro Offer only - no local soft trials)
     const checkLockStatus = useCallback((programId) => {
-        // 1. Check free list first (diets and lifestyles)
+        // 1. Check free list first (diets and lifestyles) — check both programId and slug
         if (isFreeDiet(programId) || isFreeLifestyle(programId)) return false;
+
+        // Also look up the program in ALL available data to check by slug (programId may be a UUID)
+        // Search in both allDiets and featuredDiets (seed data may only have featured)
+        const matchedDiet = allDiets.find(d => d.id === programId || d.slug === programId)
+            || featuredDiets.find(d => d.id === programId || d.slug === programId);
+        if (matchedDiet?.slug && isFreeDiet(matchedDiet.slug)) return false;
+
+        const matchedLifestyle = lifestylePrograms.find(l => l.id === programId || l.slug === programId)
+            || featuredLifestyles.find(l => l.id === programId || l.slug === programId);
+        if (matchedLifestyle?.slug && isFreeLifestyle(matchedLifestyle.slug)) return false;
 
         // 2. If user has active subscription, NEVER lock
         if (subscription?.hasSubscription) return false;
@@ -237,7 +247,7 @@ export default function DietsScreen({ navigation }) {
 
         // 5. Otherwise Locked - trial handled by Apple Intro Offer via IAP
         return true;
-    }, [subscription, activeProgram, subscriptionLoaded]);
+    }, [subscription, activeProgram, subscriptionLoaded, allDiets, lifestylePrograms, featuredDiets, featuredLifestyles]);
 
     // Load data using bundle API - OPTIMIZED for instant loading
     const loadData = useCallback(async (forceRefresh = false) => {

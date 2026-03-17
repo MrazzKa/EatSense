@@ -587,7 +587,7 @@ export default function SubscriptionScreen() {
                             <View style={styles.freePlanFeatureRow}>
                                 <Ionicons name="checkmark-circle" size={16} color={tokens.colors?.success || '#4CAF50'} />
                                 <Text style={[styles.freePlanFeatureText, { color: tokens.colors?.textSecondary || '#666' }]}>
-                                    {t('subscription.freeFeature1') || '3 analyses per day'}
+                                    {t('subscription.freeFeature1') || '1 analysis per day'}
                                 </Text>
                             </View>
                             <View style={styles.freePlanFeatureRow}>

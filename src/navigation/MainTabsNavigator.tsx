@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
@@ -16,14 +18,37 @@ import CommunityScreen from '../screens/CommunityScreen';
 
 const Tab = createBottomTabNavigator();
 
+const COMMUNITY_LAST_SEEN_KEY = 'community_last_seen_ts';
+
 export function MainTabsNavigator() {
   const { colors } = useTheme();
   const { t, language } = useI18n();
   const insets = useSafeAreaInsets();
+  const [communityHasNew, setCommunityHasNew] = useState(false);
 
   // Calculate safe tab bar height
   const tabBarPaddingBottom = Math.max(insets.bottom, 8);
   const tabBarHeight = 56 + tabBarPaddingBottom;
+
+  // Check for new community posts
+  useEffect(() => {
+    const checkNewPosts = async () => {
+      try {
+        const lastSeen = await AsyncStorage.getItem(COMMUNITY_LAST_SEEN_KEY);
+        const feed = await ApiService.getCommunityFeed(1, 1);
+        const posts = feed?.data || feed || [];
+        if (posts.length > 0 && lastSeen) {
+          const latestTs = new Date(posts[0].createdAt).getTime();
+          const lastSeenTs = parseInt(lastSeen, 10);
+          setCommunityHasNew(latestTs > lastSeenTs);
+        } else if (posts.length > 0 && !lastSeen) {
+          setCommunityHasNew(true);
+        }
+      } catch {}
+    };
+    const timer = setTimeout(checkNewPosts, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Preload diets bundle when navigator mounts (background, non-blocking)
   useEffect(() => {
@@ -33,7 +58,6 @@ export function MainTabsNavigator() {
       try {
         // Check if we already have cache
         const cacheKey = 'diets_bundle_cache_v1';
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
         const cached = await AsyncStorage.getItem(cacheKey);
         
         // Only preload if cache is missing or expired (older than 4 minutes)
@@ -132,11 +156,36 @@ export function MainTabsNavigator() {
         options={{
           tabBarLabel: t('tabs.community') || 'Community',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size || 24} color={color} />
+            <View>
+              <Ionicons name="people-outline" size={size || 24} color={color} />
+              {communityHasNew && (
+                <View style={badgeStyles.dot} />
+              )}
+            </View>
           ),
+        }}
+        listeners={{
+          tabPress: () => {
+            if (communityHasNew) {
+              setCommunityHasNew(false);
+              AsyncStorage.setItem(COMMUNITY_LAST_SEEN_KEY, String(Date.now())).catch(() => {});
+            }
+          },
         }}
       />
     </Tab.Navigator>
   );
 }
+
+const badgeStyles = StyleSheet.create({
+  dot: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
+  },
+});
 

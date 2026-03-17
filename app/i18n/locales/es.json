@@ -1110,7 +1110,7 @@
       "founderHeadline": "Acceso de por vida + Insignia exclusiva",
       "founderBadge": "Limitado",
       "features": {
-        "analysis3": "Análisis IA (3/día)",
+        "analysis3": "Análisis IA (1/día)",
         "tracking": "Seguimiento diario calorías",
         "basicStats": "Estadísticas básicas",
         "unlimited": "Análisis IA ilimitado",
@@ -1442,7 +1442,7 @@
       "coachingTips": "Personalized coaching tips",
       "earlyAccess": "Early access to new features",
       "everythingInProMonthly": "Everything in Pro Monthly",
-      "limitedAnalyses": "Up to 3 AI analyses per day",
+      "limitedAnalyses": "1 AI analysis per day",
       "unlimitedAnalyses": "Unlimited AI food analysis",
       "studentDiscount": "Descuento estudiantil con verificación"
     },
@@ -1679,7 +1679,7 @@
     "freePlan": "Plan gratuito",
     "freePlanIncluded": "Actualmente activo",
     "free": "Gratis",
-    "freeFeature1": "3 análisis por día",
+    "freeFeature1": "1 análisis por día",
     "freeFeature2": "Seguimiento nutricional básico",
     "upgradeToPremium": "Mejorar a Premium",
     "month": "mes",
@@ -1984,7 +1984,10 @@
     "empty": "Aún no hay sugerencias. ¡Sé el primero!",
     "reward_title": "¡6 meses de PRO gratis!",
     "reward_info": "¡Las sugerencias más votadas se implementan! El autor recibe 6 meses de PRO gratis!",
-    "error": "Error al enviar sugerencia"
+    "error": "Error al enviar sugerencia",
+    "round_info": "Ronda de votación mensual",
+    "days_left": "días restantes",
+    "approved": "Aprobado"
   },
   "diets_title": "Nutrición",
   "diets_subtitle": "Encuentra el plan de nutrición perfecto para ti",
@@ -2254,13 +2257,46 @@
     "leave": "Salir",
     "createPost": "Crear publicación",
     "createGroup": "Crear grupo",
+    "postTitle": "Publicación",
+    "newPost": "Nueva publicación",
+    "setCountry": "Indica tu país para conectar con gente local",
+    "selectCountry": "Selecciona tu país",
+    "searchCountry": "Buscar países...",
+    "noCountriesFound": "No se encontraron países",
+    "noCountries": "No hay países disponibles",
+    "countryNotFound": "País no encontrado",
+    "countryNotFoundDesc": "Tu país aún no está disponible. Selecciona manualmente.",
+    "setCountryFailed": "No se pudo establecer tu país",
+    "selectGroupLabel": "Publicar en grupo",
+    "whatOnMind": "¿Qué estás pensando?",
+    "noGroups": "Únete a un grupo primero para publicar",
+    "emptyContent": "Escribe algo",
+    "postFailed": "No se pudo crear la publicación",
+    "eventDetails": "Detalles del evento",
+    "eventTitle": "Título del evento",
+    "eventDate": "Fecha (ej. 20 de marzo 2026)",
+    "eventTime": "Hora (ej. 14:00)",
+    "eventLocation": "Ubicación",
+    "noComments": "Aún no hay comentarios. ¡Sé el primero!",
+    "writeComment": "Escribe un comentario...",
+    "comments": "Comentarios",
+    "emptyFeed": "Aún no hay publicaciones",
+    "emptyFeedDesc": "¡Únete a grupos y sé el primero en compartir!",
+    "emptyGroups": "No se encontraron grupos",
+    "emptyGroupsDesc": "¡Crea un grupo para empezar!",
+    "error": "Error",
     "postType": {
       "text": "Texto",
       "photo": "Foto",
       "dietShare": "Compartir dieta",
       "achievement": "Logro",
       "event": "Evento",
-      "recommendation": "Recomendación"
+      "recommendation": "Recomendación",
+      "lifestyle": "Estilo de vida",
+      "bestPlaces": "Mejores lugares",
+      "recipe": "Receta",
+      "question": "Pregunta",
+      "challenge": "Desafío"
     },
     "feed": {
       "empty": "Aún no hay publicaciones. ¡Únete a grupos para ver publicaciones en tu feed!",
@@ -2284,7 +2320,8 @@
       "create": "Crear",
       "selectGroup": "Seleccionar grupo",
       "custom": "Grupos personalizados",
-      "city": "Grupos de ciudad"
+      "city": "Grupos de ciudad",
+      "country": "Grupos por país"
     },
     "event": {
       "title": "Título del evento",
@@ -2310,6 +2347,84 @@
     },
     "premium": {
       "dietShareLocked": "Actualiza a Premium para compartir tus programas de dieta"
+    },
+    "attachPhoto": "Añadir foto",
+    "challengeLabel": "DESAFÍO",
+    "joinChallenge": "Unirse al desafío",
+    "participants": "participantes",
+    "days": "días",
+    "challenge": "Desafío",
+    "tour": {
+      "skip": "Omitir",
+      "step1": {
+        "title": "Únete a un grupo",
+        "desc": "Encuentra un grupo en tu país o crea el tuyo para conectar con personas que comparten tus objetivos.",
+        "action": "Ver grupos"
+      },
+      "step2": {
+        "title": "Comparte tu experiencia",
+        "desc": "Publica tus comidas, logros o pide consejo a la comunidad. ¡Las fotos son bienvenidas!",
+        "action": "Crear publicación"
+      },
+      "step3": {
+        "title": "Apoya a los demás",
+        "desc": "Dale like y comenta las publicaciones para animar a los miembros. ¡La comunidad se nutre del apoyo!",
+        "action": "¡Entendido!"
+      }
+    },
+    "deleteCommentConfirm": "¿Estás seguro de que quieres eliminar este comentario?",
+    "deleteFailed": "Error al eliminar",
+    "recommendedGroups": "Recomendado para ti",
+    "searchPlaceholder": "Buscar publicaciones y grupos...",
+    "profile": {
+      "posts": "Publicaciones",
+      "joined": "Miembro desde",
+      "notFound": "Perfil no encontrado"
+    },
+    "recipe": {
+      "details": "Detalles de la receta",
+      "name": "Nombre de la receta",
+      "ingredients": "Ingredientes",
+      "steps": "Pasos",
+      "prepTime": "Tiempo de preparación",
+      "servings": "Porciones",
+      "servingsShort": "porciones"
+    },
+    "question": {
+      "solved": "Resuelto",
+      "markSolved": "Marcar como resuelto"
+    },
+    "bestPlaces": {
+      "details": "Detalles del lugar",
+      "placeName": "Nombre del lugar",
+      "address": "Dirección",
+      "rating": "Calificación"
+    }
+  },
+  "mascot": {
+    "setup": {
+      "title": "Elige tu compañero",
+      "choose": "Elige una mascota",
+      "nameLabel": "Ponle un nombre",
+      "namePlaceholder": "Ingresa un nombre...",
+      "nameRequired": "Por favor ingresa un nombre",
+      "nameTooLong": "El nombre debe tener 20 caracteres o menos",
+      "create": "Adoptar compañero",
+      "createFailed": "Error al crear la mascota"
+    },
+    "type": {
+      "cat": "Gato",
+      "dog": "Perro",
+      "panda": "Panda",
+      "fox": "Zorro",
+      "robot": "Robot"
+    },
+    "phrase": {
+      "greeting": "¡Comamos sano hoy!",
+      "encouragement": "¡Lo estás haciendo genial, sigue así!",
+      "healthy": "¡Las elecciones saludables me hacen crecer!",
+      "streak": "¡Somos un equipo increíble!",
+      "levelUp": "¡Estoy muy orgulloso de ti!"
     }
   }
 }

@@ -298,7 +298,7 @@ export class CommunityService {
     return { message: 'Post deleted successfully' };
   }
 
-  async toggleLike(userId: string, postId: string) {
+  async toggleLike(userId: string, postId: string, type: string = 'LIKE') {
     const existing = await this.prisma.communityLike.findUnique({
       where: {
         userId_postId: { userId, postId },
@@ -306,6 +306,10 @@ export class CommunityService {
     });
 
     if (existing) {
+      // TODO: use type field after migration
+      // If existing like with same type → delete (un-react)
+      // If existing like with different type → update type only, don't change likesCount
+      // For now, without the type column, always toggle off
       await this.prisma.communityLike.delete({
         where: { userId_postId: { userId, postId } },
       });
@@ -315,7 +319,7 @@ export class CommunityService {
         data: { likesCount: { decrement: 1 } },
       });
 
-      return { liked: false };
+      return { liked: false, type };
     } else {
       await this.prisma.communityLike.create({
         data: { userId, postId },
@@ -326,7 +330,7 @@ export class CommunityService {
         data: { likesCount: { increment: 1 } },
       });
 
-      return { liked: true };
+      return { liked: true, type };
     }
   }
 
@@ -497,6 +501,63 @@ export class CommunityService {
     await this.joinGroup(userId, groupId);
 
     return { message: 'City updated successfully', groupId };
+  }
+
+  async updatePost(postId: string, userId: string, data: { metadata?: any }) {
+    const post = await this.prisma.communityPost.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    if (post.authorId !== userId) {
+      throw new ForbiddenException('You can only update your own posts');
+    }
+
+    return this.prisma.communityPost.update({
+      where: { id: postId },
+      data: { metadata: data.metadata },
+      include: {
+        author: authorInclude,
+      },
+    });
+  }
+
+  async getUserProfile(targetUserId: string, currentUserId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      include: {
+        userProfile: {
+          select: { firstName: true, lastName: true, avatarUrl: true },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [postCount, cityMembership] = await Promise.all([
+      this.prisma.communityPost.count({
+        where: { authorId: targetUserId },
+      }),
+      this.prisma.communityMembership.findFirst({
+        where: { userId: targetUserId, group: { type: 'CITY' } },
+        include: { group: { select: { name: true } } },
+      }),
+    ]);
+
+    return {
+      id: user.id,
+      firstName: user.userProfile?.firstName ?? null,
+      lastName: user.userProfile?.lastName ?? null,
+      avatarUrl: user.userProfile?.avatarUrl ?? null,
+      cityGroup: cityMembership?.group?.name ?? null,
+      postCount,
+      memberSince: user.createdAt,
+    };
   }
 
   // Helper: enrich posts with isLiked and isAttending for current user

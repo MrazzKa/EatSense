@@ -480,7 +480,7 @@ export default function LifestyleDetailScreen({
               {t('lifestyles.detail.vibe') || 'Вайб'}
             </Text>
             <View style={styles.vibeContainer}>
-              {(program.vibe || program.rules.vibe).split(',').map((keyword: string, index: number) => (
+              {(program.vibe || program.rules?.vibe || '').split(',').filter(Boolean).map((keyword: string, index: number) => (
                 <View
                   key={index}
                   style={[

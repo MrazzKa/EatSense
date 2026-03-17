@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking, Image, ActionSheetIOS } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -24,6 +24,7 @@ import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
+import * as ImagePicker from 'expo-image-picker';
 import { formatAmount, getPriceValue, formatPrice } from '../utils/currency';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
@@ -33,12 +34,73 @@ import { canUseFeature } from '../utils/subscriptionGuard';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
+const PRESET_AVATARS = [
+  { icon: 'nutrition-outline', bg: '#FF6B6B', label: 'Apple' },
+  { icon: 'leaf-outline', bg: '#4CAF50', label: 'Leaf' },
+  { icon: 'fitness-outline', bg: '#2196F3', label: 'Fitness' },
+  { icon: 'heart-outline', bg: '#E91E63', label: 'Heart' },
+  { icon: 'flame-outline', bg: '#FF9800', label: 'Flame' },
+  { icon: 'sunny-outline', bg: '#FFC107', label: 'Sun' },
+  { icon: 'water-outline', bg: '#00BCD4', label: 'Water' },
+  { icon: 'flower-outline', bg: '#9C27B0', label: 'Flower' },
+  { icon: 'star-outline', bg: '#FFD700', label: 'Star' },
+  { icon: 'planet-outline', bg: '#3F51B5', label: 'Planet' },
+  { icon: 'rocket-outline', bg: '#F44336', label: 'Rocket' },
+  { icon: 'diamond-outline', bg: '#00ACC1', label: 'Diamond' },
+];
+
+export function parsePresetAvatar(url: string | null | undefined): { icon: string; bg: string } | null {
+  if (!url?.startsWith('preset://')) return null;
+  const parts = url.replace('preset://', '').split('|');
+  if (parts.length === 2) return { icon: parts[0], bg: parts[1] };
+  return null;
+}
+
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { t } = useI18n(); // FIX: Removed changeLanguage, availableLanguages, and language - language is auto-detected
   const themeContext = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, user, setUser } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [presetModalVisible, setPresetModalVisible] = useState(false);
+  const [healthProfile, setHealthProfile] = useState({
+    metabolic: {
+      bodyFatPercent: undefined,
+      waistCm: undefined,
+      hipCm: undefined,
+      whr: undefined,
+      fatDistributionType: 'visceral',
+    },
+    eatingBehavior: {
+      mealsPerDay: 3,
+      snackingTendency: 'medium',
+      eveningAppetite: true,
+    },
+    sleep: {
+      sleepHours: 7.5,
+      chronotype: 'late',
+    },
+    glp1Module: {
+      isGlp1User: false,
+      drugType: 'semaglutide',
+      therapyGoal: 'preserve_muscle',
+    },
+    healthFocus: {
+      sugarControl: false,
+      cholesterol: false,
+      inflammation: false,
+      iron: false,
+      microbiome: false,
+      hormonalBalance: false,
+    },
+  });
+
+  const safeT = useCallback((key, fallback) => {
+    const value = t(key);
+    return value && value !== key ? value : fallback;
+  }, [t]);
 
   const handleClearHealthData = useCallback(() => {
     Alert.alert(
@@ -103,7 +165,7 @@ const ProfileScreen = () => {
     );
   }, [safeT]);
 
-  const tokens = useMemo(() => themeContext?.tokens || {}, [themeContext?.tokens]);
+  const tokens = useMemo(() => themeContext?.tokens || { colors: {}, spacing: {}, borderRadius: {}, fontSize: {} }, [themeContext?.tokens]);
   const colors = themeContext?.colors || {};
   const isDark = themeContext?.isDark || false;
   const themeMode = themeContext?.themeMode || 'light';
@@ -116,11 +178,6 @@ const ProfileScreen = () => {
 
 
   const styles = useMemo(() => createStyles(tokens), [tokens]);
-
-  const safeT = useCallback((key, fallback) => {
-    const value = t(key);
-    return value && value !== key ? value : fallback;
-  }, [t]);
 
   /* Delete Account Logic */
   const handleDeleteAccount = useCallback(async () => {
@@ -189,37 +246,6 @@ const ProfileScreen = () => {
   const [iapPrices, setIapPrices] = useState({});
   const [goal, setGoal] = useState('maintain_weight');
   const [dietPreferences, setDietPreferences] = useState([]);
-  const [healthProfile, setHealthProfile] = useState({
-    metabolic: {
-      bodyFatPercent: undefined,
-      waistCm: undefined,
-      hipCm: undefined,
-      whr: undefined,
-      fatDistributionType: 'visceral',
-    },
-    eatingBehavior: {
-      mealsPerDay: 3,
-      snackingTendency: 'medium',
-      eveningAppetite: true,
-    },
-    sleep: {
-      sleepHours: 7.5,
-      chronotype: 'late',
-    },
-    glp1Module: {
-      isGlp1User: false,
-      drugType: 'semaglutide',
-      therapyGoal: 'preserve_muscle',
-    },
-    healthFocus: {
-      sugarControl: false,
-      cholesterol: false,
-      inflammation: false,
-      iron: false,
-      microbiome: false,
-      hormonalBalance: false,
-    },
-  });
   const [planModalVisible, setPlanModalVisible] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
@@ -265,6 +291,113 @@ const ProfileScreen = () => {
       .join('')
       .slice(0, 2);
   }, [profile.firstName, profile.lastName, profile.email]);
+
+  // Initialize avatarUrl from user context
+  useEffect(() => {
+    if (user?.avatarUrl) setAvatarUrl(user.avatarUrl);
+  }, [user?.avatarUrl]);
+
+  const handleAvatarOption = useCallback(async (index: number) => {
+    const pickerOpts: ImagePicker.ImagePickerOptions = {
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    };
+
+    let result: ImagePicker.ImagePickerResult | null = null;
+
+    if (index === 0) {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(safeT('common.error', 'Error'), safeT('profile.avatar.cameraPermission', 'Camera permission is required'));
+        return;
+      }
+      result = await ImagePicker.launchCameraAsync(pickerOpts);
+    } else if (index === 1) {
+      result = await ImagePicker.launchImageLibraryAsync(pickerOpts);
+    } else if (index === 2) {
+      // Open preset avatar modal
+      setPresetModalVisible(true);
+      return;
+    } else if (avatarUrl && index === 3) {
+      // Remove photo
+      try {
+        setAvatarUploading(true);
+        await ApiService.updateUserProfile({ avatarUrl: null });
+        setAvatarUrl(null);
+        if (user) setUser({ ...user, avatarUrl: null });
+      } catch (err) {
+        console.error('[ProfileScreen] Failed to remove avatar:', err);
+      } finally {
+        setAvatarUploading(false);
+      }
+      return;
+    } else {
+      return; // Cancel
+    }
+
+    if (result && !result.canceled && result.assets?.[0]?.uri) {
+      try {
+        setAvatarUploading(true);
+        const uploadResult = await ApiService.uploadImage(result.assets[0].uri);
+        const url = uploadResult?.url || uploadResult?.imageUrl;
+        if (url) {
+          await ApiService.updateUserProfile({ avatarUrl: url });
+          setAvatarUrl(url);
+          if (user) setUser({ ...user, avatarUrl: url });
+        }
+      } catch (err) {
+        console.error('[ProfileScreen] Avatar upload failed:', err);
+        Alert.alert(safeT('common.error', 'Error'), safeT('profile.avatar.uploadFailed', 'Failed to upload photo'));
+      } finally {
+        setAvatarUploading(false);
+      }
+    }
+  }, [avatarUrl, user, safeT, setUser]);
+
+  const handleAvatarPress = useCallback(() => {
+    const options = [
+      safeT('profile.avatar.camera', 'Take Photo'),
+      safeT('profile.avatar.gallery', 'Choose from Gallery'),
+      safeT('profile.avatar.preset', 'Choose Avatar'),
+      ...(avatarUrl ? [safeT('profile.avatar.remove', 'Remove Photo')] : []),
+      safeT('common.cancel', 'Cancel'),
+    ];
+    const cancelIndex = options.length - 1;
+    const destructiveIndex = avatarUrl ? options.length - 2 : undefined;
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: cancelIndex, destructiveButtonIndex: destructiveIndex },
+        (index) => handleAvatarOption(index),
+      );
+    } else {
+      Alert.alert(
+        safeT('profile.avatar.title', 'Profile Photo'),
+        undefined,
+        options.map((label, index) => ({
+          text: label,
+          style: index === destructiveIndex ? 'destructive' : index === cancelIndex ? 'cancel' : 'default',
+          onPress: () => handleAvatarOption(index),
+        })),
+      );
+    }
+  }, [avatarUrl, safeT, handleAvatarOption]);
+
+  const handleSelectPreset = useCallback(async (preset: typeof PRESET_AVATARS[0]) => {
+    const presetUrl = `preset://${preset.icon}|${preset.bg}`;
+    try {
+      setAvatarUploading(true);
+      await ApiService.updateUserProfile({ avatarUrl: presetUrl });
+      setAvatarUrl(presetUrl);
+      if (user) setUser({ ...user, avatarUrl: presetUrl });
+    } catch (err) {
+      console.error('[ProfileScreen] Failed to set preset avatar:', err);
+    } finally {
+      setAvatarUploading(false);
+      setPresetModalVisible(false);
+    }
+  }, [user]);
 
   const bmi = useMemo(() => {
     if (profile.height > 0 && profile.weight > 0) {
@@ -1045,9 +1178,27 @@ const ProfileScreen = () => {
           />
           <AppCard style={styles.heroCard} padding="xl">
             <View style={styles.heroHeader}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{initials}</Text>
-              </View>
+              <TouchableOpacity onPress={handleAvatarPress} activeOpacity={0.7} style={styles.avatarWrapper}>
+                <View style={styles.avatar}>
+                  {(() => {
+                    const preset = parsePresetAvatar(avatarUrl);
+                    if (preset) {
+                      return (
+                        <View style={[styles.avatarImage, { backgroundColor: preset.bg, alignItems: 'center', justifyContent: 'center' }]}>
+                          <Ionicons name={preset.icon} size={32} color="#FFF" />
+                        </View>
+                      );
+                    }
+                    if (avatarUrl) {
+                      return <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />;
+                    }
+                    return <Text style={styles.avatarText}>{initials}</Text>;
+                  })()}
+                </View>
+                <View style={styles.avatarCameraBadge}>
+                  <Ionicons name="camera" size={12} color="#FFF" />
+                </View>
+              </TouchableOpacity>
               <View style={styles.heroInfo}>
                 <Text style={styles.heroEyebrow}>{safeT('profile.welcomeBack', 'Welcome back')}</Text>
                 <Text style={styles.heroTitle}>
@@ -2223,6 +2374,41 @@ const ProfileScreen = () => {
         )}
 
       {/* Disclaimer Modal */}
+      {/* Preset Avatar Modal */}
+      <Modal visible={presetModalVisible} transparent animationType="slide" statusBarTranslucent>
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setPresetModalVisible(false)}
+        >
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{safeT('profile.avatar.preset', 'Choose Avatar')}</Text>
+              <TouchableOpacity onPress={() => setPresetModalVisible(false)}>
+                <Ionicons name="close" size={24} color={tokens.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.presetGrid}>
+              {PRESET_AVATARS.map((preset) => (
+                <TouchableOpacity
+                  key={preset.icon + preset.bg}
+                  style={[
+                    styles.presetItem,
+                    avatarUrl === `preset://${preset.icon}|${preset.bg}` && { borderColor: tokens.colors.primary, borderWidth: 2.5 },
+                  ]}
+                  onPress={() => handleSelectPreset(preset)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.presetCircle, { backgroundColor: preset.bg }]}>
+                    <Ionicons name={preset.icon} size={28} color="#FFF" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <DisclaimerModal
         disclaimerKey="biomarkers"
         visible={showBiomarkerDisclaimer}
@@ -2528,10 +2714,51 @@ const createStyles = (tokens) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    avatarWrapper: {
+      position: 'relative',
+    },
+    avatarImage: {
+      width: 64,
+      height: 64,
+      borderRadius: tokens.radii.full,
+    },
+    avatarCameraBadge: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: tokens.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: tokens.colors.background,
+    },
     avatarText: {
       fontSize: tokens.typography.headingM.fontSize,
       fontWeight: tokens.typography.headingM.fontWeight,
       color: tokens.colors.primary,
+    },
+    presetGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: 12,
+      paddingVertical: 16,
+    },
+    presetItem: {
+      borderRadius: 30,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      padding: 3,
+    },
+    presetCircle: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     formCard: {
       gap: tokens.spacing.lg,

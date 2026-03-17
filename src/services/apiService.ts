@@ -1102,6 +1102,25 @@ class ApiService {
     });
   }
 
+  // Mascot
+  async getMascot() {
+    return this.request('/mascot');
+  }
+
+  async createMascot(mascotType: string, name: string) {
+    return this.request('/mascot', {
+      method: 'POST',
+      body: JSON.stringify({ mascotType, name }),
+    });
+  }
+
+  async addMascotXp(amount: number, reason?: string) {
+    return this.request('/mascot/xp', {
+      method: 'PATCH',
+      body: JSON.stringify({ amount, reason }),
+    });
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');
@@ -1875,6 +1894,10 @@ class ApiService {
     return this.request('/community/groups?type=CITY');
   }
 
+  async getCountryCommunityGroups() {
+    return this.request('/community/groups?type=COUNTRY');
+  }
+
   async createCommunityGroup(data: { name: string; description?: string }) {
     return this.request('/community/groups', {
       method: 'POST',
@@ -1909,8 +1932,22 @@ class ApiService {
     return this.request(`/community/posts/${postId}`, { method: 'DELETE' });
   }
 
-  async toggleCommunityLike(postId: string) {
-    return this.request(`/community/posts/${postId}/like`, { method: 'POST' });
+  async toggleCommunityLike(postId: string, type?: string) {
+    return this.request(`/community/posts/${postId}/like`, {
+      method: 'POST',
+      body: type ? JSON.stringify({ type }) : undefined,
+    });
+  }
+
+  async updateCommunityPost(postId: string, data: { metadata?: any }) {
+    return this.request(`/community/posts/${postId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCommunityUserProfile(userId: string) {
+    return this.request(`/community/users/${userId}/profile`);
   }
 
   async getCommunityComments(postId: string, page = 1, limit = 20) {

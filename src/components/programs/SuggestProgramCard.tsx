@@ -31,10 +31,23 @@ interface Suggestion {
     votes: number;
     createdAt: string;
     hasVoted?: boolean;
+    status?: 'pending' | 'approved' | 'rejected';
 }
 
 interface SuggestProgramCardProps {
     type?: 'diet' | 'lifestyle';
+}
+
+// Get days remaining in current voting round (end of month)
+function getDaysRemaining(): number {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return Math.max(1, lastDay.getDate() - now.getDate());
+}
+
+function getCurrentRoundLabel(): string {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
 export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgramCardProps) {
@@ -151,9 +164,19 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                             </Text>
                         </View>
                         <View style={styles.suggestionInfo}>
-                            <Text style={[styles.suggestionName, { color: colors.textPrimary }]} numberOfLines={1}>
-                                {item.name}
-                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <Text style={[styles.suggestionName, { color: colors.textPrimary }]} numberOfLines={1}>
+                                    {item.name}
+                                </Text>
+                                {item.status === 'approved' && (
+                                    <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' + '20' }]}>
+                                        <Ionicons name="checkmark-circle" size={10} color="#4CAF50" />
+                                        <Text style={{ fontSize: 9, color: '#4CAF50', fontWeight: '600', marginLeft: 2 }}>
+                                            {t('suggest.approved', 'Approved')}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                             {item.description ? (
                                 <Text style={[styles.suggestionDesc, { color: colors.textSecondary }]} numberOfLines={2}>
                                     {item.description}
@@ -223,6 +246,9 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                                 : t('suggest.subtitle_empty', 'Suggest a lifestyle — community votes!')
                             }
                         </Text>
+                        <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 2 }}>
+                            {getDaysRemaining()} {t('suggest.days_left', 'days left')} · {getCurrentRoundLabel()}
+                        </Text>
                     </View>
                     <View style={[styles.badge, { backgroundColor: colors.primary }]}>
                         <Ionicons name="arrow-up" size={14} color="#fff" />
@@ -263,6 +289,29 @@ export default function SuggestProgramCard({ type = 'lifestyle' }: SuggestProgra
                                     {t('suggest.reward_info', 'Top-voted suggestions get implemented! The author receives 6 months of PRO free!')}
                                 </Text>
                             </View>
+                        </View>
+                    </View>
+
+                    {/* Round timer */}
+                    <View style={[styles.roundBanner, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                        <View style={styles.roundLeft}>
+                            <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+                            <View style={{ marginLeft: 8 }}>
+                                <Text style={[styles.roundLabel, { color: colors.textPrimary }]}>
+                                    {getCurrentRoundLabel()}
+                                </Text>
+                                <Text style={[styles.roundSub, { color: colors.textSecondary }]}>
+                                    {t('suggest.round_info', 'Monthly voting round')}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={[styles.daysLeftBadge, { backgroundColor: colors.primary + '15' }]}>
+                            <Text style={[styles.daysLeftNum, { color: colors.primary }]}>
+                                {getDaysRemaining()}
+                            </Text>
+                            <Text style={[styles.daysLeftLabel, { color: colors.primary }]}>
+                                {t('suggest.days_left', 'days left')}
+                            </Text>
                         </View>
                     </View>
 
@@ -459,6 +508,44 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 18,
     },
+    roundBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginHorizontal: 16,
+        marginTop: 12,
+        padding: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+    },
+    roundLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    roundLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    roundSub: {
+        fontSize: 11,
+        marginTop: 1,
+    },
+    daysLeftBadge: {
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    daysLeftNum: {
+        fontSize: 18,
+        fontWeight: '800',
+    },
+    daysLeftLabel: {
+        fontSize: 9,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -519,6 +606,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 2,
         lineHeight: 16,
+    },
+    statusBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
     },
     voteButton: {
         flexDirection: 'row',
