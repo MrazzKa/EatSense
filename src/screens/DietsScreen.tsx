@@ -240,7 +240,13 @@ export default function DietsScreen({ navigation }) {
         if (subscription?.hasSubscription) return false;
 
         // 3. If user has active customized/started this program (activeProgram), NEVER lock
+        // Check both by ID and by slug (programId passed here is usually a slug)
         if (activeProgram?.programId === programId) return false;
+        const activeMatch = allDiets.find(d => d.id === activeProgram?.programId)
+            || featuredDiets.find(d => d.id === activeProgram?.programId)
+            || lifestylePrograms.find(l => l.id === activeProgram?.programId)
+            || featuredLifestyles.find(l => l.id === activeProgram?.programId);
+        if (activeMatch && (activeMatch.slug === programId || activeMatch.id === programId)) return false;
 
         // 4. While subscription hasn't loaded yet, lock by default (safe approach)
         if (!subscriptionLoaded) return true;

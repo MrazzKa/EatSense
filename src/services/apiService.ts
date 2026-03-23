@@ -1114,10 +1114,23 @@ class ApiService {
     });
   }
 
+  async updateMascot(data: { mascotType?: string; name?: string }) {
+    return this.request('/mascot', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
   async addMascotXp(amount: number, reason?: string) {
     return this.request('/mascot/xp', {
       method: 'PATCH',
       body: JSON.stringify({ amount, reason }),
+    });
+  }
+
+  async deleteMascot() {
+    return this.request('/mascot', {
+      method: 'DELETE',
     });
   }
 
@@ -1911,6 +1924,14 @@ class ApiService {
 
   async leaveCommunityGroup(groupId: string) {
     return this.request(`/community/groups/${groupId}/leave`, { method: 'DELETE' });
+  }
+
+  async acceptCommunityGuidelines(groupId: string) {
+    return this.request(`/community/groups/${groupId}/accept-guidelines`, { method: 'POST' });
+  }
+
+  async getCommunityGuidelinesStatus(groupId: string) {
+    return this.request(`/community/groups/${groupId}/guidelines-status`);
   }
 
   async getCommunityFeed(page = 1, limit = 20) {

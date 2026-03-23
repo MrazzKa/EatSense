@@ -4097,7 +4097,8 @@
     "profile": {
       "posts": "Beiträge",
       "joined": "Beigetreten",
-      "notFound": "Profil nicht gefunden"
+      "notFound": "Profil nicht gefunden",
+      "anonymousUser": "Benutzer"
     },
     "recipe": {
       "details": "Rezept-Details",
@@ -4122,13 +4123,22 @@
   "mascot": {
     "setup": {
       "title": "Wähle deinen Begleiter",
+      "editTitle": "Mein Begleiter",
       "choose": "Wähle ein Maskottchen",
+      "changeType": "Maskottchen wechseln",
       "nameLabel": "Gib ihm einen Namen",
+      "rename": "Umbenennen",
       "namePlaceholder": "Name eingeben...",
       "nameRequired": "Bitte gib einen Namen ein",
       "nameTooLong": "Der Name darf maximal 20 Zeichen lang sein",
       "create": "Begleiter adoptieren",
-      "createFailed": "Maskottchen konnte nicht erstellt werden"
+      "save": "Änderungen speichern",
+      "createFailed": "Maskottchen konnte nicht erstellt werden",
+      "updateFailed": "Maskottchen konnte nicht aktualisiert werden",
+      "delete": "Begleiter freilassen",
+      "deleteTitle": "Begleiter freilassen",
+      "deleteConfirm": "Bist du sicher? Dein Begleiter und aller Fortschritt gehen verloren. Du kannst danach einen neuen adoptieren.",
+      "deleteFailed": "Begleiter konnte nicht freigelassen werden"
     },
     "type": {
       "cat": "Katze",
@@ -4143,6 +4153,35 @@
       "healthy": "Gesunde Entscheidungen lassen mich wachsen!",
       "streak": "Wir sind ein tolles Team!",
       "levelUp": "Ich bin so stolz auf dich!"
+    },
+    "stage": {
+      "egg": "Ei",
+      "baby": "Baby",
+      "teen": "Teenager",
+      "adult": "Erwachsen",
+      "master": "Meister"
+    },
+    "invite": {
+      "title": "Adoptiere einen Begleiter!",
+      "subtitle": "Wähle ein Maskottchen, das mit deinen gesunden Essgewohnheiten wächst"
+    },
+    "growth": {
+      "title": "So wächst dein Begleiter",
+      "description": "Sammle XP durch die Nutzung der App. Dein Begleiter entwickelt sich durch 5 Stufen weiter!",
+      "stages": "Entwicklungsstufen"
+    },
+    "levelUp": {
+      "title": "Level Up!",
+      "evolved": "hat sich entwickelt!",
+      "keepGoing": "Ernähre dich weiter gesund, um die nächste Stufe freizuschalten!",
+      "awesome": "Toll!"
+    },
+    "xpSource": {
+      "analysis": "Essensfoto analysieren",
+      "dailyLogin": "Tägliche Anmeldung",
+      "communityPost": "Community-Beitrag erstellen",
+      "streak": "Täglicher Streak-Bonus",
+      "quest": "Aufgabe abschließen"
     }
   }
 }

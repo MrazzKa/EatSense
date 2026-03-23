@@ -4122,7 +4122,8 @@
     "profile": {
       "posts": "Publications",
       "joined": "Membre depuis",
-      "notFound": "Profil non trouvé"
+      "notFound": "Profil non trouvé",
+      "anonymousUser": "Utilisateur"
     },
     "recipe": {
       "details": "Détails de la recette",
@@ -4147,13 +4148,22 @@
   "mascot": {
     "setup": {
       "title": "Choisissez votre compagnon",
+      "editTitle": "Mon compagnon",
       "choose": "Choisissez une mascotte",
+      "changeType": "Changer de mascotte",
       "nameLabel": "Donnez-lui un nom",
+      "rename": "Renommer",
       "namePlaceholder": "Entrez un nom...",
       "nameRequired": "Veuillez entrer un nom",
       "nameTooLong": "Le nom doit contenir 20 caractères ou moins",
       "create": "Adopter un compagnon",
-      "createFailed": "Échec de la création de la mascotte"
+      "save": "Enregistrer",
+      "createFailed": "Échec de la création de la mascotte",
+      "updateFailed": "Échec de la mise à jour de la mascotte",
+      "delete": "Libérer le compagnon",
+      "deleteTitle": "Libérer le compagnon",
+      "deleteConfirm": "Êtes-vous sûr ? Votre compagnon et toute sa progression seront perdus. Vous pourrez en adopter un nouveau.",
+      "deleteFailed": "Échec de la libération du compagnon"
     },
     "type": {
       "cat": "Chat",
@@ -4168,6 +4178,35 @@
       "healthy": "Les choix sains me font grandir !",
       "streak": "Nous sommes une super équipe !",
       "levelUp": "Je suis si fier de toi !"
+    },
+    "stage": {
+      "egg": "Œuf",
+      "baby": "Bébé",
+      "teen": "Ado",
+      "adult": "Adulte",
+      "master": "Maître"
+    },
+    "invite": {
+      "title": "Adoptez un compagnon !",
+      "subtitle": "Choisissez une mascotte qui grandit avec vos habitudes alimentaires saines"
+    },
+    "growth": {
+      "title": "Comment grandit votre compagnon",
+      "description": "Gagnez des XP en utilisant l'appli. Votre compagnon évolue à travers 5 étapes en montant de niveau !",
+      "stages": "Étapes d'évolution"
+    },
+    "levelUp": {
+      "title": "Niveau supérieur !",
+      "evolved": "a évolué !",
+      "keepGoing": "Continuez à manger sainement pour débloquer l'étape suivante !",
+      "awesome": "Génial !"
+    },
+    "xpSource": {
+      "analysis": "Analyser une photo de repas",
+      "dailyLogin": "Connexion quotidienne",
+      "communityPost": "Créer un post communautaire",
+      "streak": "Bonus de série quotidienne",
+      "quest": "Compléter une quête"
     }
   }
 }

@@ -290,6 +290,13 @@ export class FoodProcessor {
                     weight: Math.max(1, Math.round(weight)),
                   };
                 })
+                .map(item => {
+                  // FIX: If item has no valid name but has nutrition data, use dishName as fallback
+                  if ((!item.name || item.name === 'Unknown Food') && (item.calories > 0 || item.protein > 0 || item.fat > 0 || item.carbs > 0)) {
+                    return { ...item, name: dishName || item.name };
+                  }
+                  return item;
+                })
                 .filter(item => {
                   // Accept if: has valid name AND (has calories OR has macros OR has reasonable portion)
                   const hasValidName = item.name && item.name !== 'Unknown Food';

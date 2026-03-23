@@ -1,7 +1,9 @@
 // @ts-nocheck
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import ApiService from '../services/apiService';
 import { useAuth } from './AuthContext';
+import { LevelUpModal } from '../components/LevelUpModal';
+import localNotificationService from '../services/localNotificationService';
 
 export type MascotType = 'CAT' | 'DOG' | 'PANDA' | 'FOX' | 'ROBOT';
 export type MascotSize = 'small' | 'medium' | 'large';
@@ -20,6 +22,8 @@ interface MascotContextType {
   mascot: Mascot | null;
   loading: boolean;
   createMascot: (type: MascotType, name: string) => Promise<Mascot | null>;
+  updateMascot: (data: { mascotType?: MascotType; name?: string }) => Promise<Mascot | null>;
+  deleteMascot: () => Promise<boolean>;
   addXp: (amount: number, reason?: string) => Promise<{ leveledUp: boolean } | null>;
   refreshMascot: () => Promise<void>;
 }
@@ -28,6 +32,8 @@ const MascotContext = createContext<MascotContextType>({
   mascot: null,
   loading: true,
   createMascot: async () => null,
+  updateMascot: async () => null,
+  deleteMascot: async () => false,
   addXp: async () => null,
   refreshMascot: async () => {},
 });
@@ -36,11 +42,17 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [mascot, setMascot] = useState<Mascot | null>(null);
   const [loading, setLoading] = useState(true);
+  const [levelUpVisible, setLevelUpVisible] = useState(false);
+  const [levelUpLevel, setLevelUpLevel] = useState(1);
 
   const refreshMascot = useCallback(async () => {
     try {
       const result = await ApiService.getMascot();
       setMascot(result || null);
+      // Schedule mascot notifications when mascot exists
+      if (result?.name) {
+        localNotificationService.scheduleMascotNotifications(result.name).catch(() => {});
+      }
     } catch (err) {
       console.warn('[MascotContext] Failed to load mascot:', err);
     } finally {
@@ -60,7 +72,10 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
   const createMascot = useCallback(async (type: MascotType, name: string) => {
     try {
       const result = await ApiService.createMascot(type, name);
-      if (result) setMascot(result);
+      if (result) {
+        setMascot(result);
+        localNotificationService.scheduleMascotNotifications(name).catch(() => {});
+      }
       return result;
     } catch (err) {
       console.error('[MascotContext] Failed to create mascot:', err);
@@ -68,12 +83,40 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const updateMascot = useCallback(async (data: { mascotType?: MascotType; name?: string }) => {
+    try {
+      const result = await ApiService.updateMascot(data);
+      if (result) setMascot(result);
+      return result;
+    } catch (err) {
+      console.error('[MascotContext] Failed to update mascot:', err);
+      return null;
+    }
+  }, []);
+
+  const deleteMascot = useCallback(async () => {
+    try {
+      await ApiService.deleteMascot();
+      setMascot(null);
+      localNotificationService.cancelMascotNotifications().catch(() => {});
+      return true;
+    } catch (err) {
+      console.error('[MascotContext] Failed to delete mascot:', err);
+      return false;
+    }
+  }, []);
+
   const addXp = useCallback(async (amount: number, reason?: string) => {
     try {
       const result = await ApiService.addMascotXp(amount, reason);
       if (result) {
+        const didLevelUp = result.leveledUp || false;
         setMascot(result);
-        return { leveledUp: result.leveledUp || false };
+        if (didLevelUp) {
+          setLevelUpLevel(result.level);
+          setLevelUpVisible(true);
+        }
+        return { leveledUp: didLevelUp };
       }
       return null;
     } catch (err) {
@@ -83,8 +126,13 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <MascotContext.Provider value={{ mascot, loading, createMascot, addXp, refreshMascot }}>
+    <MascotContext.Provider value={{ mascot, loading, createMascot, updateMascot, deleteMascot, addXp, refreshMascot }}>
       {children}
+      <LevelUpModal
+        visible={levelUpVisible}
+        newLevel={levelUpLevel}
+        onClose={() => setLevelUpVisible(false)}
+      />
     </MascotContext.Provider>
   );
 }

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EatSense Admin Panel</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2d3148;
+      --text: #e4e8f7;
+      --text2: #8b91a8;
+      --primary: #6366f1;
+      --primary-hover: #818cf8;
+      --green: #22c55e;
+      --green-bg: #22c55e22;
+      --red: #ef4444;
+      --red-bg: #ef444422;
+      --yellow: #f59e0b;
+      --yellow-bg: #f59e0b22;
+      --blue: #3b82f6;
+      --blue-bg: #3b82f622;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== LOGIN ===== */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 380px;
+      text-align: center;
+    }
+    .login-card h1 { font-size: 22px; margin-bottom: 6px; }
+    .login-card p { color: var(--text2); font-size: 14px; margin-bottom: 24px; }
+    .login-card input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    .login-card input:focus { border-color: var(--primary); }
+    .login-card .url-input { margin-bottom: 12px; }
+
+    /* ===== LAYOUT ===== */
+    #app { display: none; }
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar h1 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .topbar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      padding: 10px 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text2);
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .content { padding: 24px 28px; max-width: 1200px; margin: 0 auto; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green)44; }
+    .btn-green:hover { background: var(--green); color: #fff; }
+    .btn-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red)44; }
+    .btn-red:hover { background: var(--red); color: #fff; }
+    .btn-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow)44; }
+    .btn-yellow:hover { background: var(--yellow); color: #fff; }
+    .btn-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue)44; }
+    .btn-blue:hover { background: var(--blue); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+    .btn-outline:hover { color: var(--text); border-color: var(--text2); }
+
+    .btn:disabled { opacity: 0.5; pointer-events: none; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .card-title { font-size: 15px; font-weight: 600; }
+    .card-meta { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .card-body { font-size: 14px; color: var(--text2); line-height: 1.6; }
+    .card-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-pending { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-votes { background: var(--blue-bg); color: var(--blue); }
+    .badge-diet { background: var(--green-bg); color: var(--green); }
+    .badge-lifestyle { background: var(--primary); color: #fff; opacity: 0.85; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text2);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+    .stat-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      min-width: 140px;
+    }
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    .report-content {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .report-content .label { color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .filter-bar .btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      z-index: 1000;
+      animation: slideIn .3s ease;
+    }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .loading { text-align: center; padding: 40px; color: var(--text2); }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <h1>🍏 EatSense Admin</h1>
+      <p>Enter API URL and admin secret to continue</p>
+      <input type="text" id="api-url" class="url-input" placeholder="API URL (e.g. https://your-api.onrender.com)" />
+      <input type="password" id="admin-secret" placeholder="Admin Secret" />
+      <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="login()">Sign In</button>
+      <p id="login-error" style="color:var(--red);margin-top:12px;display:none;font-size:13px;"></p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app">
+    <div class="topbar">
+      <h1><span class="dot"></span> EatSense Admin</h1>
+      <div class="topbar-right">
+        <span id="api-url-display" style="font-size:12px;color:var(--text2)"></span>
+        <button class="btn btn-outline btn-sm" onclick="logout()">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="suggestions" onclick="switchTab('suggestions')">📋 Suggestions</div>
+      <div class="tab" data-tab="reports" onclick="switchTab('reports')">🚩 Reports</div>
+    </div>
+
+    <div class="content">
+      <!-- SUGGESTIONS TAB -->
+      <div id="tab-suggestions">
+        <div class="stat-bar" id="suggestions-stats"></div>
+        <div id="suggestions-list"><div class="loading">Loading suggestions...</div></div>
+      </div>
+
+      <!-- REPORTS TAB -->
+      <div id="tab-reports" style="display:none">
+        <div class="filter-bar" id="reports-filter">
+          <button class="btn btn-outline btn-sm active" onclick="filterReports('')">All</button>
+          <button class="btn btn-outline btn-sm" onclick="filterReports('PENDING')">Pending</button>
+          <button class="btn btn-outline btn-sm" onclick="filterReports('RESOLVED')">Resolved</button>
+          <button class="btn btn-outline btn-sm" onclick="filterReports('DISMISSED')">Dismissed</button>
+        </div>
+        <div class="stat-bar" id="reports-stats"></div>
+        <div id="reports-list"><div class="loading">Loading reports...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let API_URL = '';
+    let ADMIN_SECRET = '';
+    let currentReportsFilter = '';
+
+    // ===== AUTH =====
+    function login() {
+      const url = document.getElementById('api-url').value.trim().replace(/\/+$/, '');
+      const secret = document.getElementById('admin-secret').value.trim();
+      if (!url || !secret) {
+        showLoginError('Please enter both API URL and Admin Secret');
+        return;
+      }
+      API_URL = url;
+      ADMIN_SECRET = secret;
+
+      // Test connection
+      fetchAPI('/diets/suggestions/pending')
+        .then(() => {
+          sessionStorage.setItem('api_url', url);
+          sessionStorage.setItem('admin_secret', secret);
+          showApp();
+        })
+        .catch(err => {
+          showLoginError('Invalid credentials or API URL: ' + err.message);
+        });
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      location.reload();
+    }
+
+    function showLoginError(msg) {
+      const el = document.getElementById('login-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function showApp() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('api-url-display').textContent = API_URL;
+      loadSuggestions();
+      loadReports();
+    }
+
+    // Auto-login from session
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUrl = sessionStorage.getItem('api_url');
+      const savedSecret = sessionStorage.getItem('admin_secret');
+      if (savedUrl && savedSecret) {
+        API_URL = savedUrl;
+        ADMIN_SECRET = savedSecret;
+        document.getElementById('api-url').value = savedUrl;
+        showApp();
+      }
+    });
+
+    // ===== API =====
+    async function fetchAPI(path, options = {}) {
+      const res = await fetch(API_URL + path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': ADMIN_SECRET,
+          ...(options.headers || {}),
+        },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+      return res.json();
+    }
+
+    // ===== TABS =====
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.getElementById('tab-suggestions').style.display = tab === 'suggestions' ? 'block' : 'none';
+      document.getElementById('tab-reports').style.display = tab === 'reports' ? 'block' : 'none';
+    }
+
+    // ===== SUGGESTIONS =====
+    async function loadSuggestions() {
+      try {
+        const data = await fetchAPI('/diets/suggestions/pending');
+        renderSuggestions(data);
+      } catch (err) {
+        document.getElementById('suggestions-list').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>Error: ${err.message}</div>`;
+      }
+    }
+
+    function renderSuggestions(suggestions) {
+      const stats = document.getElementById('suggestions-stats');
+      const list = document.getElementById('suggestions-list');
+
+      const total = suggestions.length;
+      const diets = suggestions.filter(s => s.type === 'diet').length;
+      const lifestyles = suggestions.filter(s => s.type === 'lifestyle').length;
+      const totalVotes = suggestions.reduce((acc, s) => acc + s.votes, 0);
+
+      stats.innerHTML = `
+        <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Pending</div></div>
+        <div class="stat"><div class="stat-value">${diets}</div><div class="stat-label">Diets</div></div>
+        <div class="stat"><div class="stat-value">${lifestyles}</div><div class="stat-label">Lifestyles</div></div>
+        <div class="stat"><div class="stat-value">${totalVotes}</div><div class="stat-label">Total Votes</div></div>
+      `;
+
+      if (total === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">✅</div>No pending suggestions</div>';
+        return;
+      }
+
+      list.innerHTML = suggestions.map(s => `
+        <div class="card" id="suggestion-${s.id}">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${escapeHtml(s.name)}</div>
+              <div class="card-meta">
+                <span class="badge ${s.type === 'diet' ? 'badge-diet' : 'badge-lifestyle'}">${s.type}</span>
+                <span class="badge badge-votes">🗳 ${s.votes} vote${s.votes !== 1 ? 's' : ''}</span>
+                ${s.createdAt ? `<span style="margin-left:8px">📅 ${new Date(s.createdAt).toLocaleDateString()}</span>` : ''}
+              </div>
+            </div>
+            <span class="badge badge-pending">pending</span>
+          </div>
+          ${s.description ? `<div class="card-body">${escapeHtml(s.description)}</div>` : ''}
+          <div class="card-actions">
+            <button class="btn btn-green btn-sm" onclick="approveSuggestion('${s.id}')">✓ Approve (6mo PRO)</button>
+            <button class="btn btn-red btn-sm" onclick="rejectSuggestion('${s.id}')">✗ Reject</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function approveSuggestion(id) {
+      if (!confirm('Approve this suggestion? The author will receive 6 months PRO.')) return;
+      try {
+        await fetchAPI(`/diets/suggestions/${id}/approve`, { method: 'PATCH' });
+        toast('✅ Suggestion approved! Author rewarded with 6mo PRO.');
+        document.getElementById(`suggestion-${id}`)?.remove();
+        loadSuggestions();
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    async function rejectSuggestion(id) {
+      if (!confirm('Reject this suggestion?')) return;
+      try {
+        await fetchAPI(`/diets/suggestions/${id}/reject`, { method: 'PATCH' });
+        toast('Suggestion rejected');
+        document.getElementById(`suggestion-${id}`)?.remove();
+        loadSuggestions();
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    // ===== REPORTS =====
+    async function loadReports(status) {
+      try {
+        const query = status ? `?status=${status}` : '';
+        const data = await fetchAPI(`/community/admin/reports${query}`);
+        renderReports(data);
+      } catch (err) {
+        document.getElementById('reports-list').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>Error: ${err.message}</div>`;
+      }
+    }
+
+    function filterReports(status) {
+      currentReportsFilter = status;
+      document.querySelectorAll('#reports-filter .btn').forEach(b => {
+        b.classList.toggle('active', (status === '' && b.textContent.includes('All')) || b.textContent.includes(status));
+      });
+      loadReports(status);
+    }
+
+    function renderReports(reports) {
+      const stats = document.getElementById('reports-stats');
+      const list = document.getElementById('reports-list');
+
+      const pending = reports.filter(r => r.status === 'PENDING').length;
+      const resolved = reports.filter(r => r.status === 'RESOLVED').length;
+      const dismissed = reports.filter(r => r.status === 'DISMISSED').length;
+
+      stats.innerHTML = `
+        <div class="stat"><div class="stat-value">${reports.length}</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--yellow)">${pending}</div><div class="stat-label">Pending</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--green)">${resolved}</div><div class="stat-label">Resolved</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--text2)">${dismissed}</div><div class="stat-label">Dismissed</div></div>
+      `;
+
+      if (reports.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">🎉</div>No reports found</div>';
+        return;
+      }
+
+      list.innerHTML = reports.map(r => {
+        const reporterName = getUserName(r.user);
+        const isPending = r.status === 'PENDING';
+        let contentHtml = '';
+
+        if (r.post) {
+          const authorName = getUserName(r.post.author);
+          contentHtml = `
+            <div class="report-content">
+              <div class="label">Reported Post (by ${escapeHtml(authorName)} in ${escapeHtml(r.post.group?.name || '?')})</div>
+              <div>${escapeHtml(r.post.content?.substring(0, 300))}${(r.post.content?.length || 0) > 300 ? '...' : ''}</div>
+            </div>`;
+        }
+
+        if (r.comment) {
+          const authorName = getUserName(r.comment.author);
+          contentHtml += `
+            <div class="report-content">
+              <div class="label">Reported Comment (by ${escapeHtml(authorName)})</div>
+              <div>${escapeHtml(r.comment.content?.substring(0, 300))}${(r.comment.content?.length || 0) > 300 ? '...' : ''}</div>
+            </div>`;
+        }
+
+        return `
+          <div class="card" id="report-${r.id}">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Report from ${escapeHtml(reporterName)}</div>
+                <div class="card-meta">
+                  Reason: <strong>${escapeHtml(r.reason)}</strong>
+                  &nbsp;·&nbsp; ${new Date(r.createdAt).toLocaleString()}
+                </div>
+              </div>
+              <span class="badge ${r.status === 'PENDING' ? 'badge-pending' : ''}">${r.status}</span>
+            </div>
+            ${contentHtml}
+            ${isPending ? `
+              <div class="card-actions">
+                <button class="btn btn-green btn-sm" onclick="resolveReport('${r.id}', false)">✓ Resolve (keep content)</button>
+                <button class="btn btn-red btn-sm" onclick="resolveReport('${r.id}', true)">🗑 Resolve & Delete</button>
+                <button class="btn btn-yellow btn-sm" onclick="dismissReport('${r.id}')">✗ Dismiss</button>
+                ${r.post ? `<button class="btn btn-red btn-sm" onclick="adminDeletePost('${r.post.id}')">🗑 Delete Post</button>` : ''}
+                ${r.comment ? `<button class="btn btn-red btn-sm" onclick="adminDeleteComment('${r.comment.id}')">🗑 Delete Comment</button>` : ''}
+              </div>
+            ` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    async function resolveReport(id, deleteContent) {
+      const msg = deleteContent ? 'Resolve and DELETE the reported content?' : 'Resolve this report (keep content)?';
+      if (!confirm(msg)) return;
+      try {
+        await fetchAPI(`/community/admin/reports/${id}/resolve`, {
+          method: 'PATCH',
+          body: JSON.stringify({ deleteContent }),
+        });
+        toast(deleteContent ? '✅ Report resolved, content deleted' : '✅ Report resolved');
+        loadReports(currentReportsFilter);
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    async function dismissReport(id) {
+      if (!confirm('Dismiss this report?')) return;
+      try {
+        await fetchAPI(`/community/admin/reports/${id}/dismiss`, { method: 'PATCH' });
+        toast('Report dismissed');
+        loadReports(currentReportsFilter);
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    async function adminDeletePost(postId) {
+      if (!confirm('Delete this post permanently?')) return;
+      try {
+        await fetchAPI(`/community/admin/posts/${postId}`, { method: 'DELETE' });
+        toast('🗑 Post deleted');
+        loadReports(currentReportsFilter);
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    async function adminDeleteComment(commentId) {
+      if (!confirm('Delete this comment permanently?')) return;
+      try {
+        await fetchAPI(`/community/admin/comments/${commentId}`, { method: 'DELETE' });
+        toast('🗑 Comment deleted');
+        loadReports(currentReportsFilter);
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    // ===== HELPERS =====
+    function getUserName(user) {
+      if (!user) return 'Unknown';
+      const profile = user.userProfile;
+      if (profile?.firstName) return [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+      return user.email || 'Unknown';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function toast(msg) {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+  </script>
+</body>
+</html>

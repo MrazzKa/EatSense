@@ -138,8 +138,63 @@ export class SubscriptionsController {
         }
 
         if (dto.platform === 'android') {
-            // TODO: Implement Google Play validation
-            throw new BadRequestException('Android purchases not yet supported');
+            if (!dto.purchaseToken) {
+                throw new BadRequestException('purchaseToken is required for Android purchases');
+            }
+
+            // Validate with Google Play Developer API
+            const { google } = await import('googleapis');
+            const packageName = 'ch.eatsense.app';
+
+            try {
+                const auth = new google.auth.GoogleAuth({
+                    keyFile: process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY || './google-play-service-account.json',
+                    scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+                });
+
+                const androidpublisher = google.androidpublisher({ version: 'v3', auth });
+
+                const subscriptionResult = await androidpublisher.purchases.subscriptions.get({
+                    packageName,
+                    subscriptionId: productId,
+                    token: dto.purchaseToken,
+                });
+
+                const subscriptionData = subscriptionResult.data;
+
+                if (!subscriptionData.expiryTimeMillis) {
+                    throw new BadRequestException('Invalid subscription: no expiry time');
+                }
+
+                const expiresDate = new Date(parseInt(subscriptionData.expiryTimeMillis));
+                const isCanceled = subscriptionData.cancelReason !== undefined;
+                const durationDays = this.getDurationByProductId(productId);
+
+                const subscription = await this.subscriptionsService.createSubscription(
+                    user.id,
+                    productId,
+                    'USD',
+                    0,
+                    { googlePurchaseToken: dto.purchaseToken },
+                    expiresDate,
+                    durationDays,
+                );
+
+                this.logger.log(`Android subscription created for user ${user.id}: ${subscription.id}`);
+
+                return {
+                    success: true,
+                    subscription: {
+                        id: subscription.id,
+                        productId,
+                        expiresDate: subscription.endDate,
+                        isTrial: subscriptionData.paymentState === 2,
+                    },
+                };
+            } catch (err) {
+                this.logger.error(`Google Play validation failed for user ${user.id}:`, err);
+                throw new BadRequestException('Failed to validate Android purchase');
+            }
         }
 
         throw new BadRequestException('Invalid platform');

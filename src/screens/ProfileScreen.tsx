@@ -1162,6 +1162,34 @@ const ProfileScreen = () => {
   return (
     <>
       <SafeAreaView style={styles.safeArea}>
+        {/* Close button header */}
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 4,
+        }}>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary || '#212121' }}>
+            {t('profile.title', 'Profile')}
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: (colors.textPrimary || '#212121') + '08',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="close" size={22} color={colors.textPrimary || '#212121'} />
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}

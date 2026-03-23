@@ -28,6 +28,7 @@ import { FdcIntegrationsModule } from './src/fdc/integrations/fdc-integrations.m
 import { FdcSchedulerModule } from './src/fdc/scheduler/fdc-scheduler.module';
 import { ArticlesModule } from './articles/articles.module';
 import { HealthController } from './health.controller';
+import { AdminPanelController } from './admin-panel.controller';
 import { configSchema } from './src/config/config.schema';
 import { NotificationsModule } from './src/notifications/notifications.module';
 import { DebugModule } from './src/debug/debug.module';
@@ -130,6 +131,6 @@ import { MascotModule } from './src/mascot/mascot.module';
     CommunityModule,
     MascotModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, AdminPanelController],
 })
 export class AppModule { }

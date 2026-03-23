@@ -107,8 +107,8 @@ export default function DietProgramDetailScreen({ navigation, route }: DietProgr
         if (isStarting) return; // Prevent double-tap
         if (!subscriptionLoaded) return; // Wait for subscription data
 
-        // Check if user has access to this diet
-        const isFree = isFreeDiet(program?.id || '');
+        // Check if user has access to this diet (prefer slug over id for free check)
+        const isFree = isFreeDiet(program?.slug || program?.id || '');
 
         // FIX: Removed local trialService — Apple Introductory Offer (3-day free trial)
         // is handled automatically by StoreKit when user subscribes via PaywallModal.

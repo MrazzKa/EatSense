@@ -60,6 +60,18 @@ export class CommunityController {
     return this.communityService.leaveGroup(req.user.id, id);
   }
 
+  @Post('groups/:id/accept-guidelines')
+  @ApiOperation({ summary: 'Accept community guidelines for a group' })
+  async acceptGuidelines(@Request() req: any, @Param('id') id: string) {
+    return this.communityService.acceptGuidelines(req.user.id, id);
+  }
+
+  @Get('groups/:id/guidelines-status')
+  @ApiOperation({ summary: 'Get guidelines acceptance status' })
+  async getGuidelinesStatus(@Request() req: any, @Param('id') id: string) {
+    return this.communityService.getGuidelinesStatus(req.user.id, id);
+  }
+
   @Get('groups/:id/posts')
   @ApiOperation({ summary: 'Get posts in a group' })
   async getGroupPosts(

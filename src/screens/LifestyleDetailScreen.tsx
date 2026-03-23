@@ -113,8 +113,8 @@ export default function LifestyleDetailScreen() {
   const handleStartProgram = async () => {
     if (starting) return;
 
-    // Check if user has access to this lifestyle
-    const isFree = isFreeLifestyle(program?.id || '');
+    // Check if user has access to this lifestyle (prefer slug over id for free check)
+    const isFree = isFreeLifestyle(program?.slug || program?.id || '');
 
     // FIX: Removed local trialService — Apple Introductory Offer (3-day free trial)
     // is handled automatically by StoreKit when user subscribes via PaywallModal.
