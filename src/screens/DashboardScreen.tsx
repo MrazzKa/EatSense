@@ -160,14 +160,15 @@ export default function DashboardScreen() {
     for (const analysis of pendingAnalyses) {
       if (analysis.status === 'completed' && !completedIdsRef.current.has(analysis.analysisId)) {
         completedIdsRef.current.add(analysis.analysisId);
-        const baseXp = 10;
-        const bonusXp = (analysis.healthScore && analysis.healthScore > 70) ? 5 : 0;
-        addXp(baseXp + bonusXp, 'food_analysis');
+        // XP based on food healthiness: 80+ = 20XP, 60-80 = 10XP, <60 = 2XP
+        const score = analysis.healthScore || 0;
+        const xpAmount = score >= 80 ? 20 : score >= 60 ? 10 : 2;
+        addXp(xpAmount, 'food_analysis');
       }
     }
   }, [pendingAnalyses, mascot, addXp]);
 
-  // Award mascot XP for daily login (once per day)
+  // Award mascot XP for daily login with streak bonus
   const dailyXpRef = useRef(false);
   useEffect(() => {
     if (!mascot || !addXp || dailyXpRef.current) return;
@@ -176,8 +177,19 @@ export default function DashboardScreen() {
         const today = new Date().toISOString().split('T')[0];
         const lastXpDay = await AsyncStorage.getItem('mascot_daily_xp_date');
         if (lastXpDay !== today) {
+          // Calculate streak
+          const storedStreak = await AsyncStorage.getItem('mascot_streak_count');
+          const lastDate = lastXpDay ? new Date(lastXpDay) : null;
+          const todayDate = new Date(today);
+          const diffDays = lastDate ? Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000) : 0;
+
+          let streak = diffDays === 1 ? (parseInt(storedStreak || '0') + 1) : 1;
           await AsyncStorage.setItem('mascot_daily_xp_date', today);
-          addXp(5, 'daily_login');
+          await AsyncStorage.setItem('mascot_streak_count', String(streak));
+
+          // Base 5 XP + streak bonus: +5 at 3 days, +10 at 7 days, +20 at 14+ days
+          const streakBonus = streak >= 14 ? 20 : streak >= 7 ? 10 : streak >= 3 ? 5 : 0;
+          addXp(5 + streakBonus, streak >= 3 ? 'daily_streak' : 'daily_login');
           dailyXpRef.current = true;
         }
       } catch {}
@@ -879,9 +891,61 @@ export default function DashboardScreen() {
           }}
         />
 
-        {/* Mascot Widget */}
-        {mascot && (
+        {/* Mascot Widget — show mascot or invitation card */}
+        {mascot ? (
           <MascotWidget onPress={() => navigation.navigate('MascotSetup' as never)} />
+        ) : (
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: colors.surface || colors.card || '#FFF',
+              borderRadius: 16,
+              padding: 16,
+              marginHorizontal: 16,
+              marginVertical: 8,
+              borderWidth: 1.5,
+              borderColor: (colors.primary || '#4CAF50') + '25',
+              borderStyle: 'dashed',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
+            onPress={() => navigation.navigate('MascotSetup' as never)}
+            activeOpacity={0.8}
+          >
+            <View style={{
+              width: 56,
+              height: 56,
+              borderRadius: 16,
+              backgroundColor: (colors.primary || '#4CAF50') + '12',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 12,
+            }}>
+              <Ionicons name="paw" size={28} color={colors.primary || '#4CAF50'} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 15,
+                fontWeight: '700',
+                color: colors.textPrimary || '#212121',
+                marginBottom: 3,
+              }}>
+                {t('mascot.invite.title', 'Get a Companion!')}
+              </Text>
+              <Text style={{
+                fontSize: 13,
+                color: colors.textSecondary || '#666',
+                lineHeight: 18,
+              }}>
+                {t('mascot.invite.subtitle', 'Choose a cute mascot that grows with your healthy eating habits')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || '#999'} />
+          </TouchableOpacity>
         )}
 
         {/* Medical Analysis / "Медицинские анализы" - placed above Дневник */}

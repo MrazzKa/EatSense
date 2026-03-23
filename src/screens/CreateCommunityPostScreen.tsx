@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -37,6 +37,8 @@ const POST_TYPES = [
 
 export default function CreateCommunityPostScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const preselectedGroupId = (route.params as any)?.groupId || null;
   const { colors } = useTheme();
   const tokens = useDesignTokens();
   const { t } = useI18n();
@@ -44,7 +46,7 @@ export default function CreateCommunityPostScreen() {
 
   const [postType, setPostType] = useState('TEXT');
   const [content, setContent] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(preselectedGroupId);
   const [groups, setGroups] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export default function CreateCommunityPostScreen() {
         // Show only groups user is a member of
         const myGroups = allGroups.filter((g: any) => g.isMember);
         setGroups(myGroups);
-        if (myGroups.length > 0 && !selectedGroupId) {
+        if (myGroups.length > 0 && !preselectedGroupId && !selectedGroupId) {
           setSelectedGroupId(myGroups[0].id);
         }
       } catch (err) {

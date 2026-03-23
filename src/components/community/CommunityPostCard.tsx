@@ -13,6 +13,21 @@ const REACTION_TYPES = [
   { type: 'CLAP', emoji: '👏' },
 ];
 
+// Map DB post types (UPPER_SNAKE) to i18n keys (camelCase)
+const POST_TYPE_I18N_MAP: Record<string, string> = {
+  TEXT: 'text',
+  PHOTO: 'photo',
+  DIET_SHARE: 'dietShare',
+  ACHIEVEMENT: 'achievement',
+  EVENT: 'event',
+  RECOMMENDATION: 'recommendation',
+  LIFESTYLE: 'lifestyle',
+  BEST_PLACES: 'bestPlaces',
+  RECIPE: 'recipe',
+  QUESTION: 'question',
+  CHALLENGE: 'challenge',
+};
+
 interface CommunityPostCardProps {
   post: any;
   currentUserId?: string;
@@ -167,7 +182,7 @@ export function CommunityPostCard({
       {post.type && post.type !== 'TEXT' && (
         <View style={[styles.typeBadge, { backgroundColor: getTypeBadgeColor(post.type) + '15' }]}>
           <Text style={[styles.typeBadgeText, { color: getTypeBadgeColor(post.type) }]}>
-            {t(`community.postType.${post.type.toLowerCase()}`, post.type)}
+            {t(`community.postType.${POST_TYPE_I18N_MAP[post.type] || post.type.toLowerCase()}`, post.type)}
           </Text>
         </View>
       )}

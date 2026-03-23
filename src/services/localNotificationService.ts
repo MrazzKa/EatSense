@@ -27,6 +27,7 @@ export const NotificationCategories = {
     MEAL_REMINDER: 'meal_reminder',
     MEDICATION_REMINDER: 'medication_reminder',
     DAILY_TIP: 'daily_tip',
+    MASCOT: 'mascot',
 } as const;
 
 // Action identifiers for actionable notifications
@@ -59,6 +60,14 @@ class LocalNotificationService {
                 importance: Notifications.AndroidImportance.MAX,
                 vibrationPattern: [0, 500, 250, 500],
                 lightColor: '#FF5722',
+                sound: 'default',
+            });
+
+            await Notifications.setNotificationChannelAsync('mascot', {
+                name: 'Companion',
+                importance: Notifications.AndroidImportance.DEFAULT,
+                vibrationPattern: [0, 250],
+                lightColor: '#4CAF50',
                 sound: 'default',
             });
         }
@@ -281,6 +290,77 @@ class LocalNotificationService {
         }
 
         return identifiers;
+    }
+
+    /**
+     * Schedule mascot engagement notifications (Duolingo-style)
+     * Call this when mascot is created or app is opened
+     */
+    async scheduleMascotNotifications(mascotName: string): Promise<string[]> {
+        await this.cancelNotificationsByCategory(NotificationCategories.MASCOT);
+
+        const locale = i18n.language || 'en';
+        const identifiers: string[] = [];
+
+        const messages = {
+            missYou: {
+                title: { en: `${mascotName} misses you!`, ru: `${mascotName} скучает!`, kk: `${mascotName} сағынды!`, fr: `${mascotName} vous manque !`, de: `${mascotName} vermisst dich!`, es: `¡${mascotName} te extraña!` },
+                body: { en: "It's been a while! Come back and analyze some food together.", ru: 'Давно не виделись! Вернитесь и проанализируем еду вместе.', kk: 'Көптен бері кездеспедік! Оралыңыз, бірге тағамды талдайық.', fr: "Ça fait un moment ! Revenez analyser un repas ensemble.", de: 'Es ist eine Weile her! Komm zurück und analysiere etwas Essen.', es: '¡Ha pasado un tiempo! Vuelve y analicemos comida juntos.' },
+            },
+            hungry: {
+                title: { en: `${mascotName} is hungry!`, ru: `${mascotName} голоден!`, kk: `${mascotName} аш!`, fr: `${mascotName} a faim !`, de: `${mascotName} hat Hunger!`, es: `¡${mascotName} tiene hambre!` },
+                body: { en: 'Feed me healthy food to help me grow!', ru: 'Покорми меня полезной едой, чтобы я рос!', kk: 'Өсуім үшін маған пайдалы тағам беріңіз!', fr: 'Nourris-moi de bons aliments pour que je grandisse !', de: 'Füttere mich mit gesundem Essen, damit ich wachse!', es: '¡Aliméntame con comida sana para que crezca!' },
+            },
+            streak: {
+                title: { en: "Don't break your streak!", ru: 'Не прерывайте серию!', kk: 'Серияңызды үзбеңіз!', fr: 'Ne brisez pas votre série !', de: 'Unterbrich deinen Streak nicht!', es: '¡No rompas tu racha!' },
+                body: { en: `${mascotName} is counting on you! Open the app to keep your daily streak.`, ru: `${mascotName} рассчитывает на вас! Откройте приложение, чтобы сохранить серию.`, kk: `${mascotName} сізге сенеді! Серияны жалғастыру үшін қолданбаны ашыңыз.`, fr: `${mascotName} compte sur vous ! Ouvrez l'app pour maintenir votre série.`, de: `${mascotName} zählt auf dich! Öffne die App, um deinen Streak zu halten.`, es: `¡${mascotName} cuenta contigo! Abre la app para mantener tu racha.` },
+            },
+        };
+
+        // Schedule "miss you" — next day at 18:00
+        const missId = await this.scheduleDailyNotification(
+            {
+                title: messages.missYou.title[locale] || messages.missYou.title.en,
+                body: messages.missYou.body[locale] || messages.missYou.body.en,
+                data: { type: 'mascot', action: 'miss_you' },
+                categoryIdentifier: NotificationCategories.MASCOT,
+            },
+            18, 0,
+        );
+        identifiers.push(missId);
+
+        // Schedule "hungry" — daily at 12:00
+        const hungryId = await this.scheduleDailyNotification(
+            {
+                title: messages.hungry.title[locale] || messages.hungry.title.en,
+                body: messages.hungry.body[locale] || messages.hungry.body.en,
+                data: { type: 'mascot', action: 'hungry' },
+                categoryIdentifier: NotificationCategories.MASCOT,
+            },
+            12, 0,
+        );
+        identifiers.push(hungryId);
+
+        // Schedule "streak reminder" — daily at 20:00
+        const streakId = await this.scheduleDailyNotification(
+            {
+                title: messages.streak.title[locale] || messages.streak.title.en,
+                body: messages.streak.body[locale] || messages.streak.body.en,
+                data: { type: 'mascot', action: 'streak_reminder' },
+                categoryIdentifier: NotificationCategories.MASCOT,
+            },
+            20, 0,
+        );
+        identifiers.push(streakId);
+
+        return identifiers;
+    }
+
+    /**
+     * Cancel mascot notifications (e.g., when mascot is deleted)
+     */
+    async cancelMascotNotifications(): Promise<void> {
+        await this.cancelNotificationsByCategory(NotificationCategories.MASCOT);
     }
 
     /**

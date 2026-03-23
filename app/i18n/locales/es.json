@@ -2379,7 +2379,8 @@
     "profile": {
       "posts": "Publicaciones",
       "joined": "Miembro desde",
-      "notFound": "Perfil no encontrado"
+      "notFound": "Perfil no encontrado",
+      "anonymousUser": "Usuario"
     },
     "recipe": {
       "details": "Detalles de la receta",
@@ -2404,13 +2405,22 @@
   "mascot": {
     "setup": {
       "title": "Elige tu compañero",
+      "editTitle": "Mi compañero",
       "choose": "Elige una mascota",
+      "changeType": "Cambiar mascota",
       "nameLabel": "Ponle un nombre",
+      "rename": "Renombrar",
       "namePlaceholder": "Ingresa un nombre...",
       "nameRequired": "Por favor ingresa un nombre",
       "nameTooLong": "El nombre debe tener 20 caracteres o menos",
       "create": "Adoptar compañero",
-      "createFailed": "Error al crear la mascota"
+      "save": "Guardar cambios",
+      "createFailed": "Error al crear la mascota",
+      "updateFailed": "Error al actualizar la mascota",
+      "delete": "Liberar compañero",
+      "deleteTitle": "Liberar compañero",
+      "deleteConfirm": "¿Estás seguro? Tu compañero y todo el progreso se perderán. Podrás adoptar uno nuevo después.",
+      "deleteFailed": "Error al liberar al compañero"
     },
     "type": {
       "cat": "Gato",
@@ -2425,6 +2435,35 @@
       "healthy": "¡Las elecciones saludables me hacen crecer!",
       "streak": "¡Somos un equipo increíble!",
       "levelUp": "¡Estoy muy orgulloso de ti!"
+    },
+    "stage": {
+      "egg": "Huevo",
+      "baby": "Bebé",
+      "teen": "Adolescente",
+      "adult": "Adulto",
+      "master": "Maestro"
+    },
+    "invite": {
+      "title": "¡Adopta un compañero!",
+      "subtitle": "Elige una mascota que crece con tus hábitos alimenticios saludables"
+    },
+    "growth": {
+      "title": "Cómo crece tu compañero",
+      "description": "Gana XP usando la app. ¡Tu compañero evoluciona a través de 5 etapas mientras sube de nivel!",
+      "stages": "Etapas de evolución"
+    },
+    "levelUp": {
+      "title": "¡Subiste de nivel!",
+      "evolved": "¡ha evolucionado!",
+      "keepGoing": "¡Sigue comiendo sano para desbloquear la siguiente etapa!",
+      "awesome": "¡Genial!"
+    },
+    "xpSource": {
+      "analysis": "Analizar una foto de comida",
+      "dailyLogin": "Inicio de sesión diario",
+      "communityPost": "Crear un post en la comunidad",
+      "streak": "Bonus por racha diaria",
+      "quest": "Completar una misión"
     }
   }
 }

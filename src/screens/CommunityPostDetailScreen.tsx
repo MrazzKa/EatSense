@@ -18,6 +18,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
+
+const POST_TYPE_I18N_MAP: Record<string, string> = {
+  TEXT: 'text', PHOTO: 'photo', DIET_SHARE: 'dietShare', ACHIEVEMENT: 'achievement',
+  EVENT: 'event', RECOMMENDATION: 'recommendation', LIFESTYLE: 'lifestyle',
+  BEST_PLACES: 'bestPlaces', RECIPE: 'recipe', QUESTION: 'question', CHALLENGE: 'challenge',
+};
 import { useAuth } from '../contexts/AuthContext';
 import ApiService from '../services/apiService';
 import { CommentItem } from '../components/community/CommentItem';
@@ -195,7 +201,7 @@ export default function CommunityPostDetailScreen() {
         {post.type && post.type !== 'TEXT' && (
           <View style={[styles.typeBadge, { backgroundColor: getTypeBadgeColor(post.type) + '15' }]}>
             <Text style={[styles.typeBadgeText, { color: getTypeBadgeColor(post.type) }]}>
-              {t(`community.postType.${post.type.toLowerCase()}`, post.type)}
+              {t(`community.postType.${POST_TYPE_I18N_MAP[post.type] || post.type.toLowerCase()}`, post.type)}
             </Text>
           </View>
         )}

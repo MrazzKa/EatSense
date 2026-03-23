@@ -3,12 +3,19 @@ import { PrismaService } from '../../prisma.service';
 import { MascotType } from '@prisma/client';
 
 const XP_THRESHOLDS = [0, 100, 300, 600, 1000];
+const MAX_LEVEL = XP_THRESHOLDS.length; // 5
+const MAX_XP = XP_THRESHOLDS[MAX_LEVEL - 1]; // 1000
 
 function calculateLevel(xp: number): number {
   for (let i = XP_THRESHOLDS.length - 1; i >= 0; i--) {
     if (xp >= XP_THRESHOLDS[i]) return i + 1;
   }
   return 1;
+}
+
+function getNextLevelXp(level: number): number | null {
+  if (level >= MAX_LEVEL) return null; // Max level reached
+  return XP_THRESHOLDS[level] ?? null;
 }
 
 function getMascotSize(level: number): 'small' | 'medium' | 'large' {
@@ -29,7 +36,7 @@ export class MascotService {
     return {
       ...mascot,
       size: getMascotSize(mascot.level),
-      nextLevelXp: XP_THRESHOLDS[mascot.level] || null,
+      nextLevelXp: getNextLevelXp(mascot.level),
     };
   }
 
@@ -47,8 +54,50 @@ export class MascotService {
     return {
       ...mascot,
       size: getMascotSize(mascot.level),
-      nextLevelXp: XP_THRESHOLDS[1],
+      nextLevelXp: getNextLevelXp(mascot.level),
     };
+  }
+
+  async updateMascot(userId: string, data: { mascotType?: MascotType; name?: string }) {
+    const mascot = await this.prisma.userMascot.findUnique({
+      where: { userId },
+    });
+    if (!mascot) {
+      throw new NotFoundException('Mascot not found');
+    }
+
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.mascotType !== undefined) updateData.mascotType = data.mascotType;
+
+    if (Object.keys(updateData).length === 0) {
+      return { ...mascot, size: getMascotSize(mascot.level), nextLevelXp: getNextLevelXp(mascot.level) };
+    }
+
+    const updated = await this.prisma.userMascot.update({
+      where: { userId },
+      data: updateData,
+    });
+    return {
+      ...updated,
+      size: getMascotSize(updated.level),
+      nextLevelXp: getNextLevelXp(updated.level),
+    };
+  }
+
+  async deleteMascot(userId: string) {
+    const mascot = await this.prisma.userMascot.findUnique({
+      where: { userId },
+    });
+    if (!mascot) {
+      throw new NotFoundException('Mascot not found');
+    }
+
+    await this.prisma.userMascot.delete({
+      where: { userId },
+    });
+
+    return { deleted: true };
   }
 
   async addXp(userId: string, amount: number) {
@@ -59,8 +108,19 @@ export class MascotService {
       throw new NotFoundException('Mascot not found');
     }
 
-    const newXp = mascot.xp + amount;
+    // Cap XP at max level threshold to prevent unbounded growth
+    const newXp = Math.min(mascot.xp + amount, MAX_XP);
     const newLevel = calculateLevel(newXp);
+
+    // Skip DB update if already at max and XP unchanged
+    if (newXp === mascot.xp && newLevel === mascot.level) {
+      return {
+        ...mascot,
+        size: getMascotSize(mascot.level),
+        nextLevelXp: getNextLevelXp(mascot.level),
+        leveledUp: false,
+      };
+    }
 
     const updated = await this.prisma.userMascot.update({
       where: { userId },
@@ -70,7 +130,7 @@ export class MascotService {
     return {
       ...updated,
       size: getMascotSize(updated.level),
-      nextLevelXp: XP_THRESHOLDS[updated.level] || null,
+      nextLevelXp: getNextLevelXp(updated.level),
       leveledUp: newLevel > mascot.level,
     };
   }

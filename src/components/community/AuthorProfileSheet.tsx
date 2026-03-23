@@ -30,7 +30,7 @@ export function AuthorProfileSheet({ visible, authorId, onClose }: AuthorProfile
   }, [visible, authorId]);
 
   const name = visible && profile
-    ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'User'
+    ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || t('community.profile.anonymousUser', 'User')
     : '';
   const initials = name ? name[0].toUpperCase() : '?';
 

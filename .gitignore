@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+
+# Google Play service account key (sensitive)
+google-play-service-account.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -307,3 +310,19 @@ jwt_rsa_private*
 jwt_rsa_public*
 *.env.backup
 *.Zone.Identifier
+
+# AI assistants / IDE tools
+.claude/
+.cursor/
+.gemini/
+.copilot/
+.windsurf/
+.aider/
+.agent/
+.agents/
+.codex/
+.codeium/
+.tabnine/
+
+# Antigravity brain (Gemini agent artifacts)
+.gemini/antigravity/

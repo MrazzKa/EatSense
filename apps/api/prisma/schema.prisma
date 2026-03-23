@@ -1302,13 +1302,15 @@ model CommunityGroup {
 }
 
 model CommunityMembership {
-  id        String              @id @default(cuid())
-  userId    String
-  groupId   String
-  role      CommunityMemberRole @default(MEMBER)
-  createdAt DateTime            @default(now())
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group     CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id                  String              @id @default(cuid())
+  userId              String
+  groupId             String
+  role                CommunityMemberRole @default(MEMBER)
+  guidelinesAccepted  Boolean             @default(false)
+  guidelinesVersion   Int                 @default(1)
+  createdAt           DateTime            @default(now())
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group               CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
   @@map("community_memberships")
@@ -1336,12 +1338,13 @@ model CommunityPost {
 }
 
 model CommunityLike {
-  id        String        @id @default(cuid())
-  userId    String
-  postId    String
-  createdAt DateTime      @default(now())
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  userId       String
+  postId       String
+  reactionType String        @default("LIKE")
+  createdAt    DateTime      @default(now())
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post         CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@map("community_likes")

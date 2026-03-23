@@ -4056,7 +4056,8 @@
     "profile": {
       "posts": "Posts",
       "joined": "Joined",
-      "notFound": "Profile not found"
+      "notFound": "Profile not found",
+      "anonymousUser": "User"
     },
     "recipe": {
       "details": "Recipe Details",
@@ -4081,13 +4082,22 @@
   "mascot": {
     "setup": {
       "title": "Choose Your Companion",
+      "editTitle": "My Companion",
       "choose": "Choose a mascot",
+      "changeType": "Change mascot",
       "nameLabel": "Give it a name",
+      "rename": "Rename",
       "namePlaceholder": "Enter name...",
       "nameRequired": "Please enter a name",
       "nameTooLong": "Name must be 20 characters or less",
       "create": "Adopt Companion",
-      "createFailed": "Failed to create mascot"
+      "save": "Save Changes",
+      "createFailed": "Failed to create mascot",
+      "updateFailed": "Failed to update mascot",
+      "delete": "Release Companion",
+      "deleteTitle": "Release Companion",
+      "deleteConfirm": "Are you sure? Your companion and all progress will be lost. You can adopt a new one afterwards.",
+      "deleteFailed": "Failed to release companion"
     },
     "type": {
       "cat": "Cat",
@@ -4102,6 +4112,35 @@
       "healthy": "Healthy choices make me grow!",
       "streak": "We're an amazing team!",
       "levelUp": "I'm so proud of you!"
+    },
+    "stage": {
+      "egg": "Egg",
+      "baby": "Baby",
+      "teen": "Teen",
+      "adult": "Adult",
+      "master": "Master"
+    },
+    "invite": {
+      "title": "Get a Companion!",
+      "subtitle": "Choose a cute mascot that grows with your healthy eating habits"
+    },
+    "growth": {
+      "title": "How your companion grows",
+      "description": "Earn XP by using the app. Your companion evolves through 5 stages as it levels up!",
+      "stages": "Evolution stages"
+    },
+    "levelUp": {
+      "title": "Level Up!",
+      "evolved": "has evolved!",
+      "keepGoing": "Keep eating healthy to unlock the next stage!",
+      "awesome": "Awesome!"
+    },
+    "xpSource": {
+      "analysis": "Analyze a meal photo",
+      "dailyLogin": "Daily login",
+      "communityPost": "Create a community post",
+      "streak": "Daily streak bonus",
+      "quest": "Complete a quest"
     }
   }
 }

@@ -24,9 +24,17 @@ const PHRASES_KEYS = [
 
 function getMood(mascot: any): 'happy' | 'sad' | 'sleeping' | 'excited' {
   if (!mascot) return 'happy';
-  // Excited when just leveled up or high XP progress
-  if (mascot.nextLevelXp && mascot.xp / mascot.nextLevelXp > 0.8) return 'excited';
-  // Level 4+ is always happy/excited
+  // Max level mascots are always excited
+  if (mascot.level >= 5) return 'excited';
+  // Excited when close to leveling up (>80% within current level)
+  if (mascot.nextLevelXp) {
+    const thresholds = [0, 100, 300, 600, 1000];
+    const currentThreshold = thresholds[mascot.level - 1] || 0;
+    const range = mascot.nextLevelXp - currentThreshold;
+    const progress = mascot.xp - currentThreshold;
+    if (range > 0 && progress / range > 0.8) return 'excited';
+  }
+  // Level 4+ is always happy
   if (mascot.level >= 4) return 'happy';
   return 'happy';
 }
@@ -64,15 +72,20 @@ export default function MascotWidget({ onPress }: { onPress?: () => void }) {
   const mascotColors = MASCOT_COLORS[mascot.mascotType] || { primary: colors.primary, light: colors.primary + '15' };
   const mood = getMood(mascot);
 
+  // XP thresholds must match backend: [0, 100, 300, 600, 1000]
+  const XP_THRESHOLDS = [0, 100, 300, 600, 1000];
+  const currentLevelXp = XP_THRESHOLDS[Math.min(mascot.level - 1, XP_THRESHOLDS.length - 1)] || 0;
+  const xpInLevel = mascot.xp - currentLevelXp;
+  const xpNeededForLevel = mascot.nextLevelXp ? mascot.nextLevelXp - currentLevelXp : 1;
   const xpProgress = mascot.nextLevelXp
-    ? (mascot.xp / mascot.nextLevelXp) * 100
+    ? (xpInLevel / xpNeededForLevel) * 100
     : 100;
 
   const phraseKey = PHRASES_KEYS[Math.min(mascot.level - 1, PHRASES_KEYS.length - 1)] || PHRASES_KEYS[0];
   const phrase = t(phraseKey, getDefaultPhrase(mascot.level));
 
   // Stage labels
-  const stageLabel = getStageLabel(mascot.level);
+  const stageLabel = getStageLabel(mascot.level, t);
 
   return (
     <TouchableOpacity
@@ -101,7 +114,9 @@ export default function MascotWidget({ onPress }: { onPress?: () => void }) {
           <View style={[styles.xpBarFill, { width: `${Math.min(xpProgress, 100)}%`, backgroundColor: mascotColors.primary }]} />
         </View>
         <Text style={styles.xpText}>
-          {mascot.xp}{mascot.nextLevelXp ? ` / ${mascot.nextLevelXp}` : ''} XP
+          {mascot.nextLevelXp
+            ? `${mascot.xp} / ${mascot.nextLevelXp} XP`
+            : `${mascot.xp} XP ★`}
         </Text>
 
         {/* Speech bubble */}
@@ -123,14 +138,13 @@ function getDefaultPhrase(level: number): string {
   }
 }
 
-function getStageLabel(level: number): string {
-  switch (level) {
-    case 1: return 'Egg';
-    case 2: return 'Baby';
-    case 3: return 'Teen';
-    case 4: return 'Adult';
-    default: return 'Master';
-  }
+const STAGE_KEYS = ['', 'mascot.stage.egg', 'mascot.stage.baby', 'mascot.stage.teen', 'mascot.stage.adult', 'mascot.stage.master'];
+const STAGE_DEFAULTS = ['', 'Egg', 'Baby', 'Teen', 'Adult', 'Master'];
+
+function getStageLabel(level: number, t?: (key: string, fallback: string) => string): string {
+  const idx = Math.min(level, 5);
+  if (t) return t(STAGE_KEYS[idx], STAGE_DEFAULTS[idx]);
+  return STAGE_DEFAULTS[idx] || 'Master';
 }
 
 const createStyles = (tokens: any, colors: any) =>

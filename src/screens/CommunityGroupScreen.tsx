@@ -34,6 +34,7 @@ export default function CommunityGroupScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [guidelinesAccepted, setGuidelinesAccepted] = useState(false);
   const { user } = useAuth();
   const [authorSheetVisible, setAuthorSheetVisible] = useState(false);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export default function CommunityGroupScreen() {
       setGroup(groupData);
       setPosts(postsData?.data || postsData || []);
       setIsMember(groupData?.isMember || false);
+      setGuidelinesAccepted(groupData?.guidelinesAccepted || false);
     } catch (err) {
       console.warn('Failed to load group data:', err);
     } finally {
@@ -72,28 +74,45 @@ export default function CommunityGroupScreen() {
     try {
       if (isMember) {
         await ApiService.leaveCommunityGroup(groupId);
+        setIsMember(false);
+        setGuidelinesAccepted(false);
+        setGroup((prev) =>
+          prev
+            ? {
+                ...prev,
+                isMember: false,
+                _count: {
+                  ...prev._count,
+                  memberships: (prev._count?.memberships || 1) - 1,
+                },
+              }
+            : prev,
+        );
       } else {
         await ApiService.joinCommunityGroup(groupId);
+        setIsMember(true);
+        setGroup((prev) =>
+          prev
+            ? {
+                ...prev,
+                isMember: true,
+                _count: {
+                  ...prev._count,
+                  memberships: (prev._count?.memberships || 0) + 1,
+                },
+              }
+            : prev,
+        );
+        // Navigate to guidelines screen after joining
+        navigation.navigate('CommunityGuidelines', {
+          groupId,
+          groupName: group?.name || groupName,
+        });
       }
-      setIsMember((prev) => !prev);
-      setGroup((prev) =>
-        prev
-          ? {
-              ...prev,
-              isMember: !prev.isMember,
-              _count: {
-                ...prev._count,
-                memberships: isMember
-                  ? (prev._count?.memberships || 1) - 1
-                  : (prev._count?.memberships || 0) + 1,
-              },
-            }
-          : prev,
-      );
     } catch (err) {
       console.warn('Failed to toggle membership:', err);
     }
-  }, [groupId, isMember]);
+  }, [groupId, isMember, group, groupName, navigation]);
 
   const handleLike = useCallback(async (postId: string, type?: string) => {
     try {
@@ -283,6 +302,25 @@ export default function CommunityGroupScreen() {
         showsVerticalScrollIndicator={false}
       />
 
+      {isMember && (
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          onPress={() => {
+            if (!guidelinesAccepted) {
+              navigation.navigate('CommunityGuidelines', {
+                groupId,
+                groupName: group?.name || groupName,
+              });
+              return;
+            }
+            navigation.navigate('CreateCommunityPost', { groupId });
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+      )}
+
       <AuthorProfileSheet
         visible={authorSheetVisible}
         authorId={selectedAuthorId}
@@ -370,5 +408,20 @@ const createStyles = (tokens: any, colors: any) =>
     emptyText: {
       fontSize: 15,
       marginTop: 10,
+    },
+    fab: {
+      position: 'absolute',
+      bottom: 24,
+      right: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
     },
   });

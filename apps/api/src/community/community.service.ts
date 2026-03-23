@@ -80,6 +80,7 @@ export class CommunityService {
     return {
       ...group,
       isMember: !!membership,
+      guidelinesAccepted: membership?.guidelinesAccepted ?? false,
     };
   }
 
@@ -126,7 +127,7 @@ export class CommunityService {
       throw new NotFoundException('Group not found');
     }
 
-    return this.prisma.communityMembership.upsert({
+    const membership = await this.prisma.communityMembership.upsert({
       where: {
         userId_groupId: { userId, groupId },
       },
@@ -134,9 +135,49 @@ export class CommunityService {
         userId,
         groupId,
         role: 'MEMBER',
+        guidelinesAccepted: false,
       },
       update: {},
     });
+
+    return {
+      ...membership,
+      guidelinesAccepted: membership.guidelinesAccepted,
+    };
+  }
+
+  async acceptGuidelines(userId: string, groupId: string) {
+    const membership = await this.prisma.communityMembership.findUnique({
+      where: { userId_groupId: { userId, groupId } },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('You are not a member of this group');
+    }
+
+    return this.prisma.communityMembership.update({
+      where: { userId_groupId: { userId, groupId } },
+      data: {
+        guidelinesAccepted: true,
+        guidelinesVersion: 1,
+      },
+    });
+  }
+
+  async getGuidelinesStatus(userId: string, groupId: string) {
+    const membership = await this.prisma.communityMembership.findUnique({
+      where: { userId_groupId: { userId, groupId } },
+    });
+
+    if (!membership) {
+      return { isMember: false, guidelinesAccepted: false };
+    }
+
+    return {
+      isMember: true,
+      guidelinesAccepted: membership.guidelinesAccepted,
+      guidelinesVersion: membership.guidelinesVersion,
+    };
   }
 
   async leaveGroup(userId: string, groupId: string) {
@@ -255,6 +296,19 @@ export class CommunityService {
   }
 
   async createPost(userId: string, dto: CreatePostDto) {
+    // Check guidelines acceptance
+    const membership = await this.prisma.communityMembership.findUnique({
+      where: { userId_groupId: { userId, groupId: dto.groupId } },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('You must join this group before posting');
+    }
+
+    if (!membership.guidelinesAccepted) {
+      throw new ForbiddenException('You must accept community guidelines before posting');
+    }
+
     if (dto.type === 'DIET_SHARE') {
       const subscription = await this.subscriptionsService.getActiveSubscription(userId);
       if (!subscription) {
@@ -306,10 +360,16 @@ export class CommunityService {
     });
 
     if (existing) {
-      // TODO: use type field after migration
-      // If existing like with same type → delete (un-react)
-      // If existing like with different type → update type only, don't change likesCount
-      // For now, without the type column, always toggle off
+      if (existing.reactionType !== type) {
+        // Different reaction type → update reaction, keep like count
+        await this.prisma.communityLike.update({
+          where: { userId_postId: { userId, postId } },
+          data: { reactionType: type },
+        });
+        return { liked: true, type };
+      }
+
+      // Same reaction type → un-react
       await this.prisma.communityLike.delete({
         where: { userId_postId: { userId, postId } },
       });
@@ -322,7 +382,7 @@ export class CommunityService {
       return { liked: false, type };
     } else {
       await this.prisma.communityLike.create({
-        data: { userId, postId },
+        data: { userId, postId, reactionType: type },
       });
 
       await this.prisma.communityPost.update({
@@ -558,6 +618,104 @@ export class CommunityService {
       postCount,
       memberSince: user.createdAt,
     };
+  }
+
+  // ==================== ADMIN MODERATION ====================
+
+  async getReports(status?: string) {
+    return this.prisma.communityReport.findMany({
+      where: status ? { status: status as any } : {},
+      include: {
+        user: {
+          select: { id: true, email: true, userProfile: { select: { firstName: true, lastName: true } } },
+        },
+        post: {
+          select: { id: true, content: true, authorId: true, groupId: true, type: true, createdAt: true,
+            author: { select: { id: true, email: true, userProfile: { select: { firstName: true, lastName: true } } } },
+            group: { select: { id: true, name: true } },
+          },
+        },
+        comment: {
+          select: { id: true, content: true, authorId: true, createdAt: true,
+            author: { select: { id: true, email: true, userProfile: { select: { firstName: true, lastName: true } } } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
+  async resolveReport(reportId: string, deleteContent: boolean = false) {
+    const report = await this.prisma.communityReport.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
+
+    // Optionally delete the reported content
+    if (deleteContent) {
+      if (report.postId) {
+        await this.prisma.communityPost.delete({ where: { id: report.postId } }).catch(() => {});
+      }
+      if (report.commentId) {
+        await this.prisma.communityComment.delete({ where: { id: report.commentId } }).catch(() => {});
+      }
+    }
+
+    await this.prisma.communityReport.update({
+      where: { id: reportId },
+      data: { status: 'RESOLVED' },
+    });
+
+    return { success: true, status: 'RESOLVED', contentDeleted: deleteContent };
+  }
+
+  async dismissReport(reportId: string) {
+    const report = await this.prisma.communityReport.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
+
+    await this.prisma.communityReport.update({
+      where: { id: reportId },
+      data: { status: 'DISMISSED' },
+    });
+
+    return { success: true, status: 'DISMISSED' };
+  }
+
+  async adminDeletePost(postId: string) {
+    const post = await this.prisma.communityPost.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    await this.prisma.communityPost.delete({ where: { id: postId } });
+
+    return { success: true, message: 'Post deleted by admin' };
+  }
+
+  async adminDeleteComment(commentId: string) {
+    const comment = await this.prisma.communityComment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    await this.prisma.communityComment.delete({ where: { id: commentId } });
+
+    return { success: true, message: 'Comment deleted by admin' };
   }
 
   // Helper: enrich posts with isLiked and isAttending for current user
