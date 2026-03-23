@@ -658,7 +658,7 @@ const ProfileScreen = () => {
     const loadIapPrices = async () => {
       try {
         await IAPService.init();
-        const { all } = await IAPService.getAvailableProducts();
+        const { all = [] } = await IAPService.getAvailableProducts() || {};
         if (all.length > 0) {
           const priceMap = {};
           all.forEach(product => {

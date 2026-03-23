@@ -8,11 +8,9 @@ const { width, height } = Dimensions.get('window');
 const FullScreenImageModal = ({ visible, imageUri, onClose }) => {
     // const { colors } = useTheme(); // Unused
 
-    if (!visible || !imageUri) return null;
-
     return (
         <Modal
-            visible={visible}
+            visible={visible && !!imageUri}
             transparent={true}
             animationType="fade"
             onRequestClose={onClose}

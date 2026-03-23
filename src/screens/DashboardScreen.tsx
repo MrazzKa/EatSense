@@ -179,8 +179,8 @@ export default function DashboardScreen() {
         if (lastXpDay !== today) {
           // Calculate streak
           const storedStreak = await AsyncStorage.getItem('mascot_streak_count');
-          const lastDate = lastXpDay ? new Date(lastXpDay) : null;
-          const todayDate = new Date(today);
+          const lastDate = lastXpDay ? new Date(lastXpDay + 'T00:00:00') : null;
+          const todayDate = new Date(today + 'T00:00:00');
           const diffDays = lastDate ? Math.floor((todayDate.getTime() - lastDate.getTime()) / 86400000) : 0;
 
           let streak = diffDays === 1 ? (parseInt(storedStreak || '0') + 1) : 1;
@@ -664,11 +664,25 @@ export default function DashboardScreen() {
       if (__DEV__) console.log('[Dashboard] Image selected, compressing...');
 
       // Compress the image for AI analysis
-      const compressedImage = await ImageManipulator.manipulateAsync(
-        asset.uri,
-        [{ resize: { width: 1600 } }],
-        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
-      );
+      let compressedImage = asset;
+      if (ImageManipulator) {
+        try {
+          if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
+            const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
+            context.resize({ width: 1600 });
+            const imageRef = await context.renderAsync();
+            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: 'jpeg' });
+          } else if (typeof ImageManipulator.manipulateAsync === 'function') {
+            compressedImage = await ImageManipulator.manipulateAsync(
+              asset.uri,
+              [{ resize: { width: 1600 } }],
+              { compress: 0.9, format: 'jpeg' }
+            );
+          }
+        } catch {
+          compressedImage = asset;
+        }
+      }
 
       if (__DEV__) console.log('[Dashboard] Starting analysis...');
 

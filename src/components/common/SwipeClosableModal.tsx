@@ -80,10 +80,6 @@ export const SwipeClosableModal: React.FC<SwipeClosableModalProps> = ({
     }
   }, [visible, translateY]);
 
-  if (!visible) {
-    return null;
-  }
-
   return (
     <Modal
       visible={visible}

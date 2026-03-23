@@ -132,6 +132,8 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
         visible={levelUpVisible}
         newLevel={levelUpLevel}
         onClose={() => setLevelUpVisible(false)}
+        mascotType={mascot?.mascotType}
+        mascotName={mascot?.name}
       />
     </MascotContext.Provider>
   );

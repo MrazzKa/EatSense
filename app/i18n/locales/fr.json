@@ -4143,6 +4143,25 @@
       "placeName": "Nom du lieu",
       "address": "Adresse",
       "rating": "Note"
+    },
+    "guidelines": {
+      "title": "Règles de la communauté",
+      "heading": "Bienvenue dans {{group}} !",
+      "subtitle": "Veuillez lire et accepter les règles de la communauté avant de participer.",
+      "respectTitle": "Soyez respectueux",
+      "respectText": "Traitez tout le monde avec gentillesse. Aucun harcèlement, discours de haine ou attaque personnelle.",
+      "topicTitle": "Restez dans le sujet",
+      "topicText": "Les discussions doivent rester pertinentes au thème du groupe. Les messages hors sujet peuvent être supprimés.",
+      "safetyTitle": "Pas de conseils dangereux",
+      "safetyText": "Ne partagez pas de conseils de santé dangereux. Recommandez toujours de consulter des professionnels.",
+      "spamTitle": "Pas de spam ni d'autopromotion",
+      "spamText": "Évitez l'autopromotion excessive, la publicité ou le contenu répétitif.",
+      "privacyTitle": "Respectez la vie privée",
+      "privacyText": "Ne partagez pas les informations personnelles d'autrui sans leur consentement.",
+      "reportTitle": "Signalez les violations",
+      "reportText": "Si vous voyez du contenu enfreignant ces règles, utilisez la fonction de signalement. Notre équipe examine tous les signalements.",
+      "note": "La violation de ces règles peut entraîner la suppression du contenu ou la suspension de la communauté.",
+      "accept": "J'accepte et je continue"
     }
   },
   "mascot": {

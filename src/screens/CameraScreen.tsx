@@ -126,18 +126,24 @@ export default function CameraScreen() {
         throw new Error('Photo capture returned invalid result');
       }
 
-      // Compress the image - check if ImageManipulator.manipulateAsync exists
+      // Compress the image - use new SDK-55 object-oriented API
       let compressedImage = photo;
-      if (ImageManipulator && typeof ImageManipulator.manipulateAsync === 'function') {
+      if (ImageManipulator) {
         try {
-          compressedImage = await ImageManipulator.manipulateAsync(
-            photo.uri,
-            [{ resize: { width: 1024 } }],
-            { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
-          );
+          if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
+            const context = ImageManipulator.ImageManipulator.manipulate(photo.uri);
+            context.resize({ width: 1024 });
+            const imageRef = await context.renderAsync();
+            compressedImage = await imageRef.saveAsync({ compress: 0.8, format: 'jpeg' });
+          } else if (typeof ImageManipulator.manipulateAsync === 'function') {
+            compressedImage = await ImageManipulator.manipulateAsync(
+              photo.uri,
+              [{ resize: { width: 1024 } }],
+              { compress: 0.8, format: 'jpeg' },
+            );
+          }
         } catch (compressError) {
           console.warn('[CameraScreen] Image compression failed, using original:', compressError);
-          // Use original photo if compression fails
           compressedImage = photo;
         }
       }
@@ -219,13 +225,20 @@ export default function CameraScreen() {
       setIsLoading(true);
       const asset = result.assets[0];
       let compressed = asset;
-      if (ImageManipulator && typeof ImageManipulator.manipulateAsync === 'function') {
+      if (ImageManipulator) {
         try {
-          compressed = await ImageManipulator.manipulateAsync(
-            asset.uri,
-            [{ resize: { width: 1600 } }],
-            { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
-          );
+          if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
+            const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
+            context.resize({ width: 1600 });
+            const imageRef = await context.renderAsync();
+            compressed = await imageRef.saveAsync({ compress: 0.9, format: 'jpeg' });
+          } else if (typeof ImageManipulator.manipulateAsync === 'function') {
+            compressed = await ImageManipulator.manipulateAsync(
+              asset.uri,
+              [{ resize: { width: 1600 } }],
+              { compress: 0.9, format: 'jpeg' }
+            );
+          }
         } catch {
           compressed = asset;
         }

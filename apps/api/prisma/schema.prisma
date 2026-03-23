@@ -1313,6 +1313,8 @@ model CommunityMembership {
   group               CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
   @@map("community_memberships")
 }
 
@@ -1334,6 +1336,8 @@ model CommunityPost {
   reports    CommunityReport[] @relation("PostReports")
   attendees  EventAttendee[]
 
+  @@index([groupId, createdAt(sort: Desc)])
+  @@index([authorId])
   @@map("community_posts")
 }
 
@@ -1347,6 +1351,7 @@ model CommunityLike {
   post         CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId])
   @@map("community_likes")
 }
 
@@ -1361,6 +1366,7 @@ model CommunityComment {
   post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   reports   CommunityReport[] @relation("CommentReports")
 
+  @@index([postId, createdAt])
   @@map("community_comments")
 }
 
@@ -1377,6 +1383,9 @@ model CommunityReport {
   post      CommunityPost?        @relation("PostReports", fields: [postId], references: [id], onDelete: Cascade)
   comment   CommunityComment?     @relation("CommentReports", fields: [commentId], references: [id], onDelete: Cascade)
 
+  @@index([status])
+  @@index([postId])
+  @@index([commentId])
   @@map("community_reports")
 }
 

@@ -105,6 +105,7 @@ export class CommunityService {
           create: {
             userId,
             role: 'ADMIN',
+            guidelinesAccepted: true,
           },
         },
       },
@@ -521,6 +522,7 @@ export class CommunityService {
       ...m.group,
       role: m.role,
       isMember: true,
+      guidelinesAccepted: m.guidelinesAccepted,
     }));
   }
 
@@ -558,7 +560,12 @@ export class CommunityService {
       data: { cityGroupId: groupId },
     });
 
-    await this.joinGroup(userId, groupId);
+    // Join the city group and auto-accept guidelines (city groups don't require manual acceptance)
+    await this.prisma.communityMembership.upsert({
+      where: { userId_groupId: { userId, groupId } },
+      create: { userId, groupId, role: 'MEMBER', guidelinesAccepted: true },
+      update: { guidelinesAccepted: true },
+    });
 
     return { message: 'City updated successfully', groupId };
   }

@@ -173,12 +173,26 @@ export default function GalleryScreen() {
 
       if (__DEV__) console.log('[GalleryScreen] Image selected, compressing...');
 
-      // Compress the image - use higher quality for better AI analysis
-      const compressedImage = await ImageManipulator.manipulateAsync(
-        asset.uri,
-        [{ resize: { width: 1600 } }],
-        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
-      );
+      // Compress the image - use new SDK-55 object-oriented API
+      let compressedImage = asset;
+      if (ImageManipulator) {
+        try {
+          if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
+            const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
+            context.resize({ width: 1600 });
+            const imageRef = await context.renderAsync();
+            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: 'jpeg' });
+          } else if (typeof ImageManipulator.manipulateAsync === 'function') {
+            compressedImage = await ImageManipulator.manipulateAsync(
+              asset.uri,
+              [{ resize: { width: 1600 } }],
+              { compress: 0.9, format: 'jpeg' }
+            );
+          }
+        } catch {
+          compressedImage = asset;
+        }
+      }
 
       if (__DEV__) console.log('[GalleryScreen] Image compressed, starting analysis...');
       setState(STATE.READY);

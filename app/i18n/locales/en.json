@@ -4077,6 +4077,25 @@
       "placeName": "Place name",
       "address": "Address",
       "rating": "Rating"
+    },
+    "guidelines": {
+      "title": "Community Guidelines",
+      "heading": "Welcome to {{group}}!",
+      "subtitle": "Please review and accept the community guidelines before participating.",
+      "respectTitle": "Be Respectful",
+      "respectText": "Treat everyone with kindness. No harassment, hate speech, or personal attacks.",
+      "topicTitle": "Stay On Topic",
+      "topicText": "Keep discussions relevant to the group theme. Off-topic posts may be removed.",
+      "safetyTitle": "No Harmful Advice",
+      "safetyText": "Do not share dangerous health advice. Always recommend consulting professionals for medical decisions.",
+      "spamTitle": "No Spam or Self-Promotion",
+      "spamText": "Avoid excessive self-promotion, advertisements, or repetitive content.",
+      "privacyTitle": "Respect Privacy",
+      "privacyText": "Do not share personal information of others without their consent.",
+      "reportTitle": "Report Violations",
+      "reportText": "If you see content that violates these guidelines, use the report feature. Our team reviews all reports.",
+      "note": "Violating these guidelines may result in content removal or suspension from the community.",
+      "accept": "I Agree & Continue"
     }
   },
   "mascot": {

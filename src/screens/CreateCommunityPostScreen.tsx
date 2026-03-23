@@ -181,8 +181,14 @@ export default function CreateCommunityPostScreen() {
       // Award mascot XP for community activity
       if (addXp) addXp(8, 'community_post').catch(() => {});
       navigation.goBack();
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Failed to create post:', err);
+      const status = err?.status || err?.response?.status;
+      if (status === 403 && selectedGroupId) {
+        // Guidelines not accepted — navigate to guidelines screen
+        navigation.navigate('CommunityGuidelines', { groupId: selectedGroupId, groupName: '' });
+        return;
+      }
       Alert.alert(t('community.error', 'Error'), t('community.postFailed', 'Failed to create post'));
     } finally {
       setSubmitting(false);

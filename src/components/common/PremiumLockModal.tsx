@@ -17,8 +17,6 @@ export default function PremiumLockModal({ visible, onClose, onUnlock }: Premium
     const { colors, isDark } = useTheme();
     const { t } = useI18n();
 
-    if (!visible) return null;
-
     return (
         <Modal
             visible={visible}

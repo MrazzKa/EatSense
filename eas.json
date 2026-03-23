@@ -8,7 +8,7 @@
       "distribution": "internal",
       "ios": {
         "simulator": true,
-        "image": "macos-sequoia-15.4-xcode-26.2",
+        "image": "macos-sequoia-15.6-xcode-26.2",
         "resourceClass": "m-medium"
       },
       "env": {
@@ -19,7 +19,7 @@
       "distribution": "internal",
       "ios": {
         "simulator": false,
-        "image": "macos-sequoia-15.4-xcode-26.2",
+        "image": "macos-sequoia-15.6-xcode-26.2",
         "resourceClass": "m-medium"
       },
       "android": {
@@ -40,7 +40,7 @@
       "distribution": "store",
       "credentialsSource": "local",
       "ios": {
-        "image": "macos-sequoia-15.4-xcode-26.2",
+        "image": "macos-sequoia-15.6-xcode-26.2",
         "resourceClass": "m-medium",
         "cocoapods": "1.16.2",
         "cache": {

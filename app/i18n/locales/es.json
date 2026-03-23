@@ -2400,6 +2400,25 @@
       "placeName": "Nombre del lugar",
       "address": "Dirección",
       "rating": "Calificación"
+    },
+    "guidelines": {
+      "title": "Normas de la comunidad",
+      "heading": "¡Bienvenido a {{group}}!",
+      "subtitle": "Por favor, lee y acepta las normas de la comunidad antes de participar.",
+      "respectTitle": "Sé respetuoso",
+      "respectText": "Trata a todos con amabilidad. No se toleran el acoso, el discurso de odio ni los ataques personales.",
+      "topicTitle": "Mantente en el tema",
+      "topicText": "Las discusiones deben ser relevantes al tema del grupo. Las publicaciones fuera de tema pueden ser eliminadas.",
+      "safetyTitle": "Sin consejos dañinos",
+      "safetyText": "No compartas consejos de salud peligrosos. Siempre recomienda consultar a profesionales.",
+      "spamTitle": "Sin spam ni autopromoción",
+      "spamText": "Evita la autopromoción excesiva, la publicidad o el contenido repetitivo.",
+      "privacyTitle": "Respeta la privacidad",
+      "privacyText": "No compartas información personal de otros sin su consentimiento.",
+      "reportTitle": "Reporta las violaciones",
+      "reportText": "Si ves contenido que viola estas normas, usa la función de reporte. Nuestro equipo revisa todos los reportes.",
+      "note": "Violar estas normas puede resultar en la eliminación de contenido o suspensión de la comunidad.",
+      "accept": "Acepto y continuar"
     }
   },
   "mascot": {

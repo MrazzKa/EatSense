@@ -1,4 +1,4 @@
-// Expo SDK 54 with RN 0.81.5 + React 19.1 - expo-dev-client is compatible
+// Expo SDK 55 with RN 0.83.2 + React 19.2 - expo-dev-client is compatible
 export default {
   expo: {
     name: "EatSense",

@@ -10,6 +10,7 @@ import { TooltipProvider } from './Tooltip';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import ApiService from '../services/apiService';
 import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 
 function AppContent({ children }) {
   const { isDark } = useTheme();
@@ -19,7 +20,7 @@ function AppContent({ children }) {
   // Register push token when available and user is authenticated
   useEffect(() => {
     if (expoPushToken && user?.id) {
-      const deviceId = Constants.deviceId || Constants.installationId || 'unknown';
+      const deviceId = (Platform.OS === 'android' ? Application.getAndroidId?.() : null) || Application.applicationId || 'unknown';
       const appVersion = Constants.expoConfig?.version || Constants.nativeAppVersion || '1.0.0';
       const platform = Platform.OS;
 

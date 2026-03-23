@@ -20,41 +20,50 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 
 // Lazy load all other screens - they'll be loaded only when navigated to
-const CameraScreen = React.lazy(() => import('./src/screens/CameraScreen'));
-const GalleryScreen = React.lazy(() => import('./src/screens/GalleryScreen'));
-const AnalysisResultsScreen = React.lazy(() => import('./src/screens/AnalysisResultsScreen'));
-const ArticleDetailScreen = React.lazy(() => import('./src/screens/ArticleDetailScreen'));
-const LegalDocumentScreen = React.lazy(() => import('./src/screens/LegalDocumentScreen'));
-const PrivacyPolicyScreen = React.lazy(() => import('./src/screens/PrivacyPolicyScreen'));
-const TermsOfServiceScreen = React.lazy(() => import('./src/screens/TermsOfServiceScreen'));
-const LegalMenuScreen = React.lazy(() => import('./src/screens/LegalMenuScreen'));
-const SuggestedFoodScreen = React.lazy(() => import('./src/screens/SuggestedFoodScreen'));
-const MedicationScheduleScreen = React.lazy(() => import('./src/screens/MedicationScheduleScreen'));
-const SpecialistListScreen = React.lazy(() => import('./src/screens/SpecialistListScreen'));
-const SpecialistProfileScreen = React.lazy(() => import('./src/screens/SpecialistProfileScreen'));
-const ChatScreen = React.lazy(() => import('./src/screens/ChatScreen'));
-const ConsultationsListScreen = React.lazy(() => import('./src/screens/ConsultationsListScreen'));
-const DietProgramsListScreen = React.lazy(() => import('./src/screens/DietProgramsListScreen'));
-const DietProgramDetailScreen = React.lazy(() => import('./src/screens/DietProgramDetailScreen'));
-const DietProgramProgressScreen = React.lazy(() => import('./src/screens/DietProgramProgressScreen'));
-const LifestyleDetailScreen = React.lazy(() => import('./src/screens/LifestyleDetailScreen'));
-const ReferralScreen = React.lazy(() => import('./src/screens/ReferralScreen'));
-const ExpertProfileScreen = React.lazy(() => import('./src/screens/ExpertProfileScreen'));
-const ConsultationChatScreen = React.lazy(() => import('./src/screens/ConsultationChatScreen'));
-const SubscriptionScreen = React.lazy(() => import('./src/screens/SubscriptionScreen'));
-const MealHistoryScreen = React.lazy(() => import('./src/screens/MealHistoryScreen'));
-const ScientificSourcesScreen = React.lazy(() => import('./src/screens/ScientificSourcesScreen'));
-const ReportsScreen = React.lazy(() => import('./src/screens/ReportsScreen'));
-const BestPlacesScreen = React.lazy(() => import('./src/screens/BestPlacesScreen'));
-const PharmacyScreen = React.lazy(() => import('./src/screens/PharmacyScreen'));
-const ProfileScreen = React.lazy(() => import('./src/screens/ProfileScreen'));
-const CommunityGroupScreen = React.lazy(() => import('./src/screens/CommunityGroupScreen'));
-const CommunityPostDetailScreen = React.lazy(() => import('./src/screens/CommunityPostDetailScreen'));
-const CreateCommunityPostScreen = React.lazy(() => import('./src/screens/CreateCommunityPostScreen'));
-const CreateCommunityGroupScreen = React.lazy(() => import('./src/screens/CreateCommunityGroupScreen'));
-const CitySelectorScreen = React.lazy(() => import('./src/screens/CitySelectorScreen'));
-const MascotSetupScreen = React.lazy(() => import('./src/screens/MascotSetupScreen'));
-const CommunityGuidelinesScreen = React.lazy(() => import('./src/screens/CommunityGuidelinesScreen'));
+import { Suspense } from 'react';
+
+// Wrapper to prevent "undefined is not a function" and suspense crashes
+const withSuspense = (Component) => (props) => (
+  <Suspense fallback={<EmptySplash />}>
+    <Component {...props} />
+  </Suspense>
+);
+
+const CameraScreen = withSuspense(React.lazy(() => import('./src/screens/CameraScreen')));
+const GalleryScreen = withSuspense(React.lazy(() => import('./src/screens/GalleryScreen')));
+const AnalysisResultsScreen = withSuspense(React.lazy(() => import('./src/screens/AnalysisResultsScreen')));
+const ArticleDetailScreen = withSuspense(React.lazy(() => import('./src/screens/ArticleDetailScreen')));
+const LegalDocumentScreen = withSuspense(React.lazy(() => import('./src/screens/LegalDocumentScreen')));
+const PrivacyPolicyScreen = withSuspense(React.lazy(() => import('./src/screens/PrivacyPolicyScreen')));
+const TermsOfServiceScreen = withSuspense(React.lazy(() => import('./src/screens/TermsOfServiceScreen')));
+const LegalMenuScreen = withSuspense(React.lazy(() => import('./src/screens/LegalMenuScreen')));
+const SuggestedFoodScreen = withSuspense(React.lazy(() => import('./src/screens/SuggestedFoodScreen')));
+const MedicationScheduleScreen = withSuspense(React.lazy(() => import('./src/screens/MedicationScheduleScreen')));
+const SpecialistListScreen = withSuspense(React.lazy(() => import('./src/screens/SpecialistListScreen')));
+const SpecialistProfileScreen = withSuspense(React.lazy(() => import('./src/screens/SpecialistProfileScreen')));
+const ChatScreen = withSuspense(React.lazy(() => import('./src/screens/ChatScreen')));
+const ConsultationsListScreen = withSuspense(React.lazy(() => import('./src/screens/ConsultationsListScreen')));
+const DietProgramsListScreen = withSuspense(React.lazy(() => import('./src/screens/DietProgramsListScreen')));
+const DietProgramDetailScreen = withSuspense(React.lazy(() => import('./src/screens/DietProgramDetailScreen')));
+const DietProgramProgressScreen = withSuspense(React.lazy(() => import('./src/screens/DietProgramProgressScreen')));
+const LifestyleDetailScreen = withSuspense(React.lazy(() => import('./src/screens/LifestyleDetailScreen')));
+const ReferralScreen = withSuspense(React.lazy(() => import('./src/screens/ReferralScreen')));
+const ExpertProfileScreen = withSuspense(React.lazy(() => import('./src/screens/ExpertProfileScreen')));
+const ConsultationChatScreen = withSuspense(React.lazy(() => import('./src/screens/ConsultationChatScreen')));
+const SubscriptionScreen = withSuspense(React.lazy(() => import('./src/screens/SubscriptionScreen')));
+const MealHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/MealHistoryScreen')));
+const ScientificSourcesScreen = withSuspense(React.lazy(() => import('./src/screens/ScientificSourcesScreen')));
+const ReportsScreen = withSuspense(React.lazy(() => import('./src/screens/ReportsScreen')));
+const BestPlacesScreen = withSuspense(React.lazy(() => import('./src/screens/BestPlacesScreen')));
+const PharmacyScreen = withSuspense(React.lazy(() => import('./src/screens/PharmacyScreen')));
+const ProfileScreen = withSuspense(React.lazy(() => import('./src/screens/ProfileScreen')));
+const CommunityGroupScreen = withSuspense(React.lazy(() => import('./src/screens/CommunityGroupScreen')));
+const CommunityPostDetailScreen = withSuspense(React.lazy(() => import('./src/screens/CommunityPostDetailScreen')));
+const CreateCommunityPostScreen = withSuspense(React.lazy(() => import('./src/screens/CreateCommunityPostScreen')));
+const CreateCommunityGroupScreen = withSuspense(React.lazy(() => import('./src/screens/CreateCommunityGroupScreen')));
+const CitySelectorScreen = withSuspense(React.lazy(() => import('./src/screens/CitySelectorScreen')));
+const MascotSetupScreen = withSuspense(React.lazy(() => import('./src/screens/MascotSetupScreen')));
+const CommunityGuidelinesScreen = withSuspense(React.lazy(() => import('./src/screens/CommunityGuidelinesScreen')));
 
 import { clientLog } from './src/utils/clientLog';
 

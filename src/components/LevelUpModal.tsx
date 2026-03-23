@@ -12,7 +12,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import { useMascot } from '../contexts/MascotContext';
 import { MASCOT_COMPONENTS, MASCOT_COLORS } from '../assets/mascots';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -60,12 +59,13 @@ interface LevelUpModalProps {
   visible: boolean;
   newLevel: number;
   onClose: () => void;
+  mascotType?: string;
+  mascotName?: string;
 }
 
-export function LevelUpModal({ visible, newLevel, onClose }: LevelUpModalProps) {
+export function LevelUpModal({ visible, newLevel, onClose, mascotType, mascotName }: LevelUpModalProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
-  const { mascot } = useMascot();
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -83,10 +83,10 @@ export function LevelUpModal({ visible, newLevel, onClose }: LevelUpModalProps) 
     }
   }, [visible]);
 
-  if (!mascot) return null;
+  if (!mascotType) return null;
 
-  const MascotComp = MASCOT_COMPONENTS[mascot.mascotType];
-  const mascotColor = MASCOT_COLORS[mascot.mascotType]?.primary || colors.primary;
+  const MascotComp = MASCOT_COMPONENTS[mascotType];
+  const mascotColor = MASCOT_COLORS[mascotType]?.primary || colors.primary;
   const stageKey = STAGE_KEYS[Math.min(newLevel, 5)];
   const stageDefault = STAGE_DEFAULTS[Math.min(newLevel, 5)];
 
@@ -128,7 +128,7 @@ export function LevelUpModal({ visible, newLevel, onClose }: LevelUpModalProps) 
           </View>
 
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {mascot.name} {t('mascot.levelUp.evolved', 'has evolved!')}
+            {mascotName || 'Mascot'} {t('mascot.levelUp.evolved', 'has evolved!')}
           </Text>
 
           <Text style={[styles.message, { color: colors.textTertiary }]}>

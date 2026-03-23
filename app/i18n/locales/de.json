@@ -4118,6 +4118,25 @@
       "placeName": "Name des Ortes",
       "address": "Adresse",
       "rating": "Bewertung"
+    },
+    "guidelines": {
+      "title": "Community-Richtlinien",
+      "heading": "Willkommen bei {{group}}!",
+      "subtitle": "Bitte lesen und akzeptieren Sie die Community-Richtlinien, bevor Sie teilnehmen.",
+      "respectTitle": "Sei respektvoll",
+      "respectText": "Behandle alle mit Freundlichkeit. Keine Belästigung, Hassrede oder persönliche Angriffe.",
+      "topicTitle": "Beim Thema bleiben",
+      "topicText": "Diskussionen sollten zum Gruppenthema passen. Themenfremde Beiträge können entfernt werden.",
+      "safetyTitle": "Keine schädlichen Ratschläge",
+      "safetyText": "Teile keine gefährlichen Gesundheitsratschläge. Empfehle immer die Konsultation von Fachleuten.",
+      "spamTitle": "Kein Spam oder Eigenwerbung",
+      "spamText": "Vermeide übermäßige Eigenwerbung, Werbung oder sich wiederholende Inhalte.",
+      "privacyTitle": "Privatsphäre respektieren",
+      "privacyText": "Teile keine persönlichen Informationen anderer ohne deren Zustimmung.",
+      "reportTitle": "Verstöße melden",
+      "reportText": "Wenn du Inhalte siehst, die gegen diese Richtlinien verstoßen, nutze die Meldefunktion. Unser Team prüft alle Meldungen.",
+      "note": "Verstöße gegen diese Richtlinien können zur Entfernung von Inhalten oder Sperrung in der Community führen.",
+      "accept": "Ich stimme zu & weiter"
     }
   },
   "mascot": {

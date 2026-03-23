@@ -88,11 +88,25 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
       if (!pickerResult.canceled && pickerResult.assets[0]) {
         // Convert to JPEG to avoid HEIF/HEIC format issues on backend
         // This handles iOS photos that are often in HEIF format
-        const manipulated = await ImageManipulator.manipulateAsync(
-          pickerResult.assets[0].uri,
-          [], // No transformations needed, just format conversion
-          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-        );
+        let manipulated = pickerResult.assets[0];
+        if (ImageManipulator) {
+          try {
+            if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
+              const context = ImageManipulator.ImageManipulator.manipulate(pickerResult.assets[0].uri);
+              // No transformations needed, just format conversion
+              const imageRef = await context.renderAsync();
+              manipulated = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
+            } else if (typeof ImageManipulator.manipulateAsync === 'function') {
+              manipulated = await (ImageManipulator as any).manipulateAsync(
+                pickerResult.assets[0].uri,
+                [],
+                { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+              );
+            }
+          } catch {
+            manipulated = pickerResult.assets[0];
+          }
+        }
 
         setImageFile({
           uri: manipulated.uri,
