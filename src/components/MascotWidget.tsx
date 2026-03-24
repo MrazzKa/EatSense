@@ -50,8 +50,8 @@ export default function MascotWidget({ onPress }: { onPress?: () => void }) {
   useEffect(() => {
     breathe.value = withRepeat(
       withSequence(
-        withTiming(1.04, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.04, { duration: 1500, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
+        withTiming(1, { duration: 1500, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
       ),
       -1,
       false,
