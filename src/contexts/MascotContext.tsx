@@ -4,6 +4,7 @@ import ApiService from '../services/apiService';
 import { useAuth } from './AuthContext';
 import { LevelUpModal } from '../components/LevelUpModal';
 import localNotificationService from '../services/localNotificationService';
+import { clientLog } from '../utils/clientLog';
 
 export type MascotType = 'CAT' | 'DOG' | 'PANDA' | 'FOX' | 'ROBOT';
 export type MascotSize = 'small' | 'medium' | 'large';
@@ -47,14 +48,24 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
 
   const refreshMascot = useCallback(async () => {
     try {
+      clientLog('MascotContext:fetchStart').catch(() => {});
       const result = await ApiService.getMascot();
+      clientLog('MascotContext:fetchDone', { hasMascot: !!result }).catch(() => {});
       setMascot(result || null);
       // Schedule mascot notifications when mascot exists
       if (result?.name) {
-        localNotificationService.scheduleMascotNotifications(result.name).catch(() => {});
+        try {
+          clientLog('MascotContext:scheduleNotifStart').catch(() => {});
+          await localNotificationService.scheduleMascotNotifications(result.name);
+          clientLog('MascotContext:scheduleNotifDone').catch(() => {});
+        } catch (notifErr) {
+          console.warn('[MascotContext] scheduleMascotNotifications failed:', notifErr);
+          clientLog('MascotContext:scheduleNotifError', { message: String(notifErr?.message || notifErr) }).catch(() => {});
+        }
       }
     } catch (err) {
       console.warn('[MascotContext] Failed to load mascot:', err);
+      clientLog('MascotContext:fetchError', { message: String(err?.message || err) }).catch(() => {});
     } finally {
       setLoading(false);
     }

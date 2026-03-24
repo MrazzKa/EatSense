@@ -14,6 +14,60 @@ try {
   console.error('[index.js] Failed to import clientLog:', error);
 }
 
+// GLOBAL ERROR HANDLER: Catch unhandled JS errors and send to server
+// This catches async errors that ErrorBoundary misses (setTimeout, promises, etc.)
+const originalHandler = ErrorUtils.getGlobalHandler();
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  try {
+    const errorMessage = error?.message || String(error);
+    const errorStack = String(error?.stack || '').substring(0, 1500);
+    console.error(`[GLOBAL_ERROR] ${isFatal ? 'FATAL' : 'NON-FATAL'}: ${errorMessage}`);
+
+    // Send to backend for debugging
+    if (clientLog) {
+      clientLog('GLOBAL_JS_ERROR', {
+        message: errorMessage,
+        stack: errorStack,
+        isFatal,
+        name: error?.name || 'Error',
+      }).catch(() => {});
+    }
+  } catch {
+    // Don't crash in the error handler
+  }
+
+  // Call original handler
+  if (originalHandler) {
+    originalHandler(error, isFatal);
+  }
+});
+
+// Also catch unhandled promise rejections
+try {
+  const tracking = require('promise/setimmediate/rejection-tracking');
+  tracking.enable({
+    allRejections: true,
+    onUnhandled: (id, error) => {
+      try {
+        const errorMessage = error?.message || String(error);
+        const errorStack = String(error?.stack || '').substring(0, 1500);
+        console.error(`[UNHANDLED_PROMISE] ${errorMessage}`);
+        if (clientLog) {
+          clientLog('UNHANDLED_PROMISE_REJECTION', {
+            message: errorMessage,
+            stack: errorStack,
+            name: error?.name || 'Error',
+          }).catch(() => {});
+        }
+      } catch {
+        // Don't crash in the error handler
+      }
+    },
+  });
+} catch {
+  // Module not available - skip promise rejection tracking
+}
+
 import { registerRootComponent } from 'expo';
 import React from 'react';
 import { View, Text } from 'react-native';

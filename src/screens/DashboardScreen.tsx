@@ -59,6 +59,9 @@ function getItemImageUrl(item) {
 }
 
 export default function DashboardScreen() {
+  // Log every render to trace crash timing
+  clientLog('Dashboard:render').catch(() => {});
+
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
@@ -102,8 +105,11 @@ export default function DashboardScreen() {
   // This ensures program data is available for the widget
   useEffect(() => {
     if (!activeProgram) {
-      loadProgress().catch(() => {
-        // Silent fail - widget will just not show if no program
+      clientLog('Dashboard:loadProgressStart').catch(() => {});
+      loadProgress().then(() => {
+        clientLog('Dashboard:loadProgressDone').catch(() => {});
+      }).catch((err) => {
+        clientLog('Dashboard:loadProgressError', { message: String(err?.message || err) }).catch(() => {});
       });
     }
   }, [activeProgram, loadProgress]);
@@ -157,14 +163,20 @@ export default function DashboardScreen() {
   const completedIdsRef = useRef(new Set());
   useEffect(() => {
     if (!mascot || !addXp) return;
-    for (const analysis of pendingAnalyses) {
-      if (analysis.status === 'completed' && !completedIdsRef.current.has(analysis.analysisId)) {
-        completedIdsRef.current.add(analysis.analysisId);
-        // XP based on food healthiness: 80+ = 20XP, 60-80 = 10XP, <60 = 2XP
-        const score = analysis.healthScore || 0;
-        const xpAmount = score >= 80 ? 20 : score >= 60 ? 10 : 2;
-        addXp(xpAmount, 'food_analysis');
+    try {
+      for (const analysis of pendingAnalyses) {
+        if (analysis.status === 'completed' && !completedIdsRef.current.has(analysis.analysisId)) {
+          completedIdsRef.current.add(analysis.analysisId);
+          const score = analysis.healthScore || 0;
+          const xpAmount = score >= 80 ? 20 : score >= 60 ? 10 : 2;
+          addXp(xpAmount, 'food_analysis').catch((err) => {
+            console.warn('[Dashboard] addXp food_analysis failed:', err);
+          });
+        }
       }
+    } catch (err) {
+      console.warn('[Dashboard] XP award error:', err);
+      clientLog('Dashboard:xpAwardError', { message: String(err?.message || err) }).catch(() => {});
     }
   }, [pendingAnalyses, mascot, addXp]);
 
@@ -177,7 +189,6 @@ export default function DashboardScreen() {
         const today = new Date().toISOString().split('T')[0];
         const lastXpDay = await AsyncStorage.getItem('mascot_daily_xp_date');
         if (lastXpDay !== today) {
-          // Calculate streak
           const storedStreak = await AsyncStorage.getItem('mascot_streak_count');
           const lastDate = lastXpDay ? new Date(lastXpDay + 'T00:00:00') : null;
           const todayDate = new Date(today + 'T00:00:00');
@@ -187,12 +198,14 @@ export default function DashboardScreen() {
           await AsyncStorage.setItem('mascot_daily_xp_date', today);
           await AsyncStorage.setItem('mascot_streak_count', String(streak));
 
-          // Base 5 XP + streak bonus: +5 at 3 days, +10 at 7 days, +20 at 14+ days
           const streakBonus = streak >= 14 ? 20 : streak >= 7 ? 10 : streak >= 3 ? 5 : 0;
-          addXp(5 + streakBonus, streak >= 3 ? 'daily_streak' : 'daily_login');
+          await addXp(5 + streakBonus, streak >= 3 ? 'daily_streak' : 'daily_login');
           dailyXpRef.current = true;
         }
-      } catch {}
+      } catch (err) {
+        console.warn('[Dashboard] checkDailyXp error:', err);
+        clientLog('Dashboard:dailyXpError', { message: String(err?.message || err) }).catch(() => {});
+      }
     };
     checkDailyXp();
   }, [mascot, addXp]);
@@ -216,28 +229,33 @@ export default function DashboardScreen() {
 
   // Animate cards on mount and when stats change
   useEffect(() => {
-    Animated.stagger(100, [
-      Animated.timing(cardAnimations.calories, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(cardAnimations.stats, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(cardAnimations.recent, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(cardAnimations.suggested, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    try {
+      Animated.stagger(100, [
+        Animated.timing(cardAnimations.calories, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardAnimations.stats, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardAnimations.recent, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardAnimations.suggested, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } catch (err) {
+      console.error('[Dashboard] Animated.stagger error:', err);
+      clientLog('Dashboard:animationError', { message: String(err?.message || err) }).catch(() => {});
+    }
   }, [
     stats.totalCalories,
     cardAnimations.calories,
@@ -250,6 +268,7 @@ export default function DashboardScreen() {
   // FIX: Moved before loadDashboardData to fix "accessed before declaration" error
   const updateDashboardState = React.useCallback((data) => {
     if (!data) return;
+    try {
 
     // 1. Stats - with client-side fallback from meals if backend stats are 0
     if (data.stats && data.stats.today) {
@@ -378,6 +397,10 @@ export default function DashboardScreen() {
     // Store should be updated via refreshProgress() or programProgressService, not from dashboard
     // This prevents tracker from disappearing when dashboard API is slow or returns null
     // Store will be updated via refreshProgress() which is called on focus
+    } catch (err) {
+      console.error('[Dashboard] updateDashboardState error:', err);
+      clientLog('Dashboard:updateStateError', { message: String(err?.message || err), stack: String(err?.stack || '').substring(0, 500) }).catch(() => {});
+    }
   }, []);
 
   // Track fetch status to prevent parallel/duplicate requests
@@ -439,8 +462,9 @@ export default function DashboardScreen() {
       }
 
       // 2. Fetch Fresh Data (Network)
-      if (__DEV__) console.log('[DashboardScreen] Loading dashboard data from API...');
+      clientLog('Dashboard:apiFetchStart').catch(() => {});
       const data = await ApiService.getDashboardData(selectedDate, currentLocale);
+      clientLog('Dashboard:apiFetchDone', { hasMeals: !!data?.meals?.length, hasStats: !!data?.stats }).catch(() => {});
 
       if (!data) {
         console.warn('[Dashboard] API returned null, keeping cached data');
@@ -449,24 +473,25 @@ export default function DashboardScreen() {
 
       // Stale response check: if a newer request was started, discard this result
       if (thisRequestId !== fetchIdRef.current) {
-        if (__DEV__) console.log(`[Dashboard] Discarding stale response #${thisRequestId} (current=#${fetchIdRef.current})`);
         return;
       }
 
       // 3. Update Cache & State
       lastFetchTimestampRef.current = Date.now();
-      if (__DEV__) console.log(`[Dashboard] fetch #${thisRequestId} done — ${data.meals?.length || 0} meals`);
       // FIX: Only cache data if it has meals to prevent caching empty data
       if (data?.meals?.length > 0) {
         AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
       }
       // FIX: Don't overwrite existing meals with empty response (timing race)
       if (data?.meals?.length > 0 || !recentItems?.length) {
+        clientLog('Dashboard:updateStateStart').catch(() => {});
         updateDashboardState(data);
+        clientLog('Dashboard:updateStateDone').catch(() => {});
       }
 
     } catch (error) {
       console.error('[DashboardScreen] Error loading dashboard data:', error);
+      clientLog('Dashboard:loadError', { message: String(error?.message || error) }).catch(() => {});
       // Fallback to cache if request failed and we haven't loaded it yet
       try {
         const cached = await AsyncStorage.getItem(cacheKey);

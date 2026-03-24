@@ -28,9 +28,13 @@ export class ErrorBoundary extends Component<Props, State> {
     // Логируем в консоль и сохраняем для отображения
     console.error('[EBOUNDARY]', error, errorInfo);
     try {
-      // Опционально: отправить в API (можно раскомментировать)
-      // const { default: ApiService } = require('../services/apiService');
-      // ApiService.request('/logs/client', { method: 'POST', body: { error: String(error), stack: error?.stack, info: errorInfo }}).catch(() => {});
+      // Send to backend for debugging
+      const { clientLog } = require('../utils/clientLog');
+      clientLog('ERROR_BOUNDARY_CAUGHT', {
+        message: error?.message || String(error),
+        stack: String(error?.stack || '').substring(0, 1000),
+        componentStack: String(errorInfo?.componentStack || '').substring(0, 500),
+      }).catch(() => {});
     } catch {
       // Ignore errors in error handler
     }
