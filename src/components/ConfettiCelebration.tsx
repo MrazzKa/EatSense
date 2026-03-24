@@ -1,13 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-} from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const COLORS = ['#4CAF50', '#FFD700', '#FF6B6B', '#4ECDC4', '#FFA500', '#9C27B0'];
@@ -33,40 +26,49 @@ function ConfettiParticle({
   duration,
   delay,
 }: ConfettiParticleProps) {
-  const y = useSharedValue(initialY);
+  const y = useRef(new Animated.Value(initialY)).current;
   const [initialRotation] = useState(() => Math.random() * 360);
-  const rotation = useSharedValue(initialRotation);
-  const opacity = useSharedValue(1);
+  const rotation = useRef(new Animated.Value(initialRotation)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    y.value = withDelay(
-      delay,
-      withTiming(SCREEN_HEIGHT + 100, {
-        duration,
-        easing: Easing.out(Easing.quad),
-      })
-    );
-    rotation.value = withDelay(
-      delay,
-      withTiming(rotation.value + 360 * (2 + Math.random() * 2), {
-        duration,
-        easing: Easing.linear,
-      })
-    );
-    opacity.value = withDelay(
-      delay + duration * 0.7,
-      withTiming(0, { duration: duration * 0.3 })
-    );
-  }, [delay, duration, y, rotation, opacity]);
+    const animations = [
+      Animated.delay(delay),
+    ];
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateY: y.value },
-        { rotate: `${rotation.value}deg` },
-      ],
-      opacity: opacity.value,
-    };
+    Animated.parallel([
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(y, {
+          toValue: SCREEN_HEIGHT + 100,
+          duration,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(rotation, {
+          toValue: initialRotation + 360 * (2 + Math.random() * 2),
+          duration,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.delay(delay + duration * 0.7),
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: duration * 0.3,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, [delay, duration]);
+
+  const rotateInterpolate = rotation.interpolate({
+    inputRange: [0, 360],
+    outputRange: ['0deg', '360deg'],
   });
 
   const renderShape = () => {
@@ -98,8 +100,12 @@ function ConfettiParticle({
           left: x,
           width: size,
           height: size,
+          transform: [
+            { translateY: y },
+            { rotate: rotateInterpolate },
+          ],
+          opacity,
         },
-        animatedStyle,
       ]}
     >
       <Svg width={size} height={size}>

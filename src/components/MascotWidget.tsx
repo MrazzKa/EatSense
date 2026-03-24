@@ -1,14 +1,6 @@
 // @ts-nocheck
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useMascot } from '../contexts/MascotContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -45,22 +37,28 @@ export default function MascotWidget({ onPress }: { onPress?: () => void }) {
   const tokens = useDesignTokens();
   const { t } = useI18n();
 
-  // Breathing animation
-  const breathe = useSharedValue(1);
+  // Breathing animation (using RN Animated for SDK 55 compatibility)
+  const breatheAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    breathe.value = withRepeat(
-      withSequence(
-        withTiming(1.04, { duration: 1500, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
-        withTiming(1, { duration: 1500, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
-      ),
-      -1,
-      false,
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, {
+          toValue: 1.04,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(breatheAnim, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
     );
+    animation.start();
+    return () => animation.stop();
   }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: breathe.value }],
-  }));
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
@@ -94,7 +92,7 @@ export default function MascotWidget({ onPress }: { onPress?: () => void }) {
       activeOpacity={0.8}
       disabled={!onPress}
     >
-      <Animated.View style={[styles.mascotContainer, animatedStyle, { backgroundColor: mascotColors.light }]}>
+      <Animated.View style={[styles.mascotContainer, { backgroundColor: mascotColors.light, transform: [{ scale: breatheAnim }] }]}>
         <MascotComponent size={mascot.size} level={mascot.level} mood={mood} />
       </Animated.View>
 
