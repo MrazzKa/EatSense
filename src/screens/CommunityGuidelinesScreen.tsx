@@ -18,7 +18,7 @@ import ApiService from '../services/apiService';
 export default function CommunityGuidelinesScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { groupId, groupName } = route.params as any;
+  const { groupId = '', groupName = '' } = (route.params as any) || {};
   const { colors } = useTheme();
   const tokens = useDesignTokens();
   const { t } = useI18n();

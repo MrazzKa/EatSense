@@ -317,19 +317,7 @@ class LocalNotificationService {
             },
         };
 
-        // Schedule "miss you" — next day at 18:00
-        const missId = await this.scheduleDailyNotification(
-            {
-                title: messages.missYou.title[locale] || messages.missYou.title.en,
-                body: messages.missYou.body[locale] || messages.missYou.body.en,
-                data: { type: 'mascot', action: 'miss_you' },
-                categoryIdentifier: NotificationCategories.MASCOT,
-            },
-            18, 0,
-        );
-        identifiers.push(missId);
-
-        // Schedule "hungry" — daily at 12:00
+        // Schedule "hungry" — daily at 11:00 (before 13:00 meal reminder)
         const hungryId = await this.scheduleDailyNotification(
             {
                 title: messages.hungry.title[locale] || messages.hungry.title.en,
@@ -337,11 +325,23 @@ class LocalNotificationService {
                 data: { type: 'mascot', action: 'hungry' },
                 categoryIdentifier: NotificationCategories.MASCOT,
             },
-            12, 0,
+            11, 0,
         );
         identifiers.push(hungryId);
 
-        // Schedule "streak reminder" — daily at 20:00
+        // Schedule "miss you" — daily at 16:00 (between meal reminders)
+        const missId = await this.scheduleDailyNotification(
+            {
+                title: messages.missYou.title[locale] || messages.missYou.title.en,
+                body: messages.missYou.body[locale] || messages.missYou.body.en,
+                data: { type: 'mascot', action: 'miss_you' },
+                categoryIdentifier: NotificationCategories.MASCOT,
+            },
+            16, 0,
+        );
+        identifiers.push(missId);
+
+        // Schedule "streak reminder" — daily at 21:00 (after 19:00 meal reminder)
         const streakId = await this.scheduleDailyNotification(
             {
                 title: messages.streak.title[locale] || messages.streak.title.en,
@@ -349,7 +349,7 @@ class LocalNotificationService {
                 data: { type: 'mascot', action: 'streak_reminder' },
                 categoryIdentifier: NotificationCategories.MASCOT,
             },
-            20, 0,
+            21, 0,
         );
         identifiers.push(streakId);
 

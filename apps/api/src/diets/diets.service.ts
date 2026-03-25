@@ -1609,6 +1609,18 @@ ID: ${userId}
             data: { status: 'rejected' },
         });
 
+        // Send push notification to the author
+        try {
+            await this.notificationsService.sendPushNotification(
+                suggestion.createdBy,
+                'Suggestion update',
+                `Your suggestion "${suggestion.name}" was not selected this time. Thank you for contributing — keep suggesting!`,
+                { type: 'suggestion_rejected', suggestionId: id },
+            );
+        } catch (err) {
+            this.logger.error(`Failed to send rejection notification: ${err.message}`);
+        }
+
         return { success: true, status: 'rejected' };
     }
 

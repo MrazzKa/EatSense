@@ -194,7 +194,7 @@ export default function SubscriptionScreen() {
                     badge,
                     badgeColor: config.badgeColor,
                     originalPrice: config.originalPrice
-                        ? formatAmount(config.originalPrice[getCurrencyCode()] || config.originalPrice['USD'])
+                        ? formatAmount(config.originalPrice[getCurrencyCode()] || config.originalPrice['USD'] || 0)
                         : null,
                 };
             };
@@ -384,7 +384,7 @@ export default function SubscriptionScreen() {
                     isSubscription: !isFounders,
                     // Strike-through pricing support
                     originalPrice: config.originalPrice
-                        ? formatAmount(config.originalPrice[getCurrencyCode()] || config.originalPrice['USD'])
+                        ? formatAmount(config.originalPrice[getCurrencyCode()] || config.originalPrice['USD'] || 0)
                         : null,
                     badge: badge,
                     badgeColor: config.badgeColor,

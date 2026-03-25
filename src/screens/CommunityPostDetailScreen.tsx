@@ -33,7 +33,7 @@ import { REACTION_TYPES, getReactionEmoji } from '../components/community/Reacti
 export default function CommunityPostDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { postId } = route.params as any;
+  const { postId = '' } = (route.params as any) || {};
   const { colors } = useTheme();
   const tokens = useDesignTokens();
   const { t } = useI18n();
@@ -336,8 +336,8 @@ export default function CommunityPostDetailScreen() {
           {post.metadata.address && (
             <Text style={[styles.metaDetail, { color: colors.textSecondary }]}>{post.metadata.address}</Text>
           )}
-          {post.metadata.rating && (
-            <Text style={styles.metaStars}>{'⭐'.repeat(Math.min(post.metadata.rating, 5))}</Text>
+          {post.metadata?.rating > 0 && (
+            <Text style={styles.metaStars}>{'⭐'.repeat(Math.min(Number(post.metadata.rating) || 0, 5))}</Text>
           )}
         </View>
       );

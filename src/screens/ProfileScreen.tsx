@@ -15,6 +15,7 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 // FIX: Language selector removed - language is now auto-detected from device
 // import { clientLog } from '../utils/clientLog'; // Unused
+import { useMascot } from '../contexts/MascotContext';
 import AppCard from '../components/common/AppCard';
 import PrimaryButton from '../components/common/PrimaryButton';
 import { ProfileNumberRow } from '../components/ProfileNumberRow';
@@ -59,9 +60,10 @@ export function parsePresetAvatar(url: string | null | undefined): { icon: strin
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { t } = useI18n(); // FIX: Removed changeLanguage, availableLanguages, and language - language is auto-detected
+  const { t } = useI18n();
   const themeContext = useTheme();
   const { signOut, user, setUser } = useAuth();
+  const { mascot } = useMascot();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [presetModalVisible, setPresetModalVisible] = useState(false);
@@ -569,12 +571,10 @@ const ProfileScreen = () => {
     try {
       setNotificationLoading(true);
       const prefs = await ApiService.getNotificationPreferences();
-      // SYNC: Check actual system permissions
       const hasPermission = await localNotificationService.checkPermissions();
 
       if (prefs) {
-        // FIX: Show backend state if permission exists, otherwise always show disabled
-        // If user has system permission but backend shows disabled, sync to enable
+        // Respect user's explicit choice — do NOT auto-enable
         const shouldBeEnabled = hasPermission && !!prefs.dailyPushEnabled;
 
         setNotificationPreferences({
@@ -583,30 +583,9 @@ const ProfileScreen = () => {
           dailyPushMinute: typeof prefs.dailyPushMinute === 'number' ? prefs.dailyPushMinute : 0,
           timezone: prefs.timezone || deviceTimezone,
         });
-
-        // FIX: If user has system permission but backend is not synced, sync it
-        if (hasPermission && !prefs.dailyPushEnabled) {
-          // Auto-enable on backend since user has granted permission
-          try {
-            await ApiService.updateNotificationPreferences({
-              dailyPushEnabled: true,
-              dailyPushHour: typeof prefs.dailyPushHour === 'number' ? prefs.dailyPushHour : 8,
-              dailyPushMinute: typeof prefs.dailyPushMinute === 'number' ? prefs.dailyPushMinute : 0,
-              timezone: prefs.timezone || deviceTimezone,
-            });
-            setNotificationPreferences(prev => ({ ...prev, dailyPushEnabled: true }));
-          } catch (syncError) {
-            console.warn('Failed to sync notification preferences with backend', syncError);
-          }
-        }
-      } else if (hasPermission) {
-        // No backend prefs but has permission - set default enabled state
-        setNotificationPreferences({
-          dailyPushEnabled: true,
-          dailyPushHour: 8,
-          dailyPushMinute: 0,
-          timezone: deviceTimezone,
-        });
+      } else {
+        // No backend prefs — show as disabled, let user enable explicitly
+        setNotificationPreferences(prev => ({ ...prev, timezone: deviceTimezone }));
       }
     } catch (error) {
       console.warn('Unable to load notification preferences', error);
@@ -936,20 +915,18 @@ const ProfileScreen = () => {
   const handleNotificationToggle = async (value) => {
     try {
       setNotificationSaving(true);
-      // Ensure all values are properly typed
       const payload = {
         dailyPushEnabled: Boolean(value),
         timezone: (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
         dailyPushHour: Number(notificationPreferences.dailyPushHour) || 8,
       };
 
-      // Validate dailyPushHour is between 0-23
       if (payload.dailyPushHour < 0 || payload.dailyPushHour > 23) {
         payload.dailyPushHour = 8;
       }
 
-      // SYNC: Request system permissions if enabling
       if (value) {
+        // Request system permissions if enabling
         const hasPermission = await localNotificationService.checkPermissions();
         if (!hasPermission) {
           const granted = await localNotificationService.requestPermissions();
@@ -958,9 +935,19 @@ const ProfileScreen = () => {
               safeT('profile.notificationsPermissionTitle', 'Permission Required'),
               safeT('profile.notificationsPermissionMessage', 'Please enable notifications in system settings to receive reminders.')
             );
-            return; // Do not update backend state
+            return;
           }
         }
+        // Re-schedule local meal reminders (3x/day)
+        try { await localNotificationService.scheduleMealReminders(3); } catch {}
+        // Re-schedule mascot notifications if mascot exists
+        if (mascot?.name) {
+          try { await localNotificationService.scheduleMascotNotifications(mascot.name); } catch {}
+        }
+      } else {
+        // Cancel all local reminders when user disables notifications
+        try { await localNotificationService.cancelNotificationsByCategory('meal_reminder'); } catch {}
+        try { await localNotificationService.cancelMascotNotifications(); } catch {}
       }
 
       const updated = await ApiService.updateNotificationPreferences(payload);

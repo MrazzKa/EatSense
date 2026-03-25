@@ -113,7 +113,7 @@ export default function MascotSetupScreen() {
     );
   };
 
-  const SelectedMascot = MASCOT_COMPONENTS[selectedType];
+  const SelectedMascot = MASCOT_COMPONENTS[selectedType] || MASCOT_COMPONENTS['CAT'];
   const mascotColor = MASCOT_COLORS[selectedType]?.primary || colors.primary;
   const mascotLight = MASCOT_COLORS[selectedType]?.light || '#F5F5F5';
 

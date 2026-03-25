@@ -176,36 +176,6 @@ export default function TrackerScreen() {
     }
   }, []);
 
-  // Swipe reveals delete button — user must tap it to confirm
-  const renderDeleteAction = useCallback((
-    progress: Animated.AnimatedInterpolation<number>,
-    _dragX: Animated.AnimatedInterpolation<number>,
-    swipeable: Swipeable,
-  ) => {
-    const opacity = progress.interpolate({
-      inputRange: [0, 0.5, 1],
-      outputRange: [0, 0.8, 1],
-    });
-    return (
-      <Animated.View style={[styles.swipeDeleteContainer, { opacity }]}>
-        <TouchableOpacity
-          style={styles.swipeDeleteBtn}
-          onPress={() => {
-            // Find habit from the swipeable's parent context
-            const habit = habits.find(h => {
-              // Match by checking the swipeable ref
-              return true; // Will be handled by wrapper
-            });
-            swipeable.close();
-            openSwipeableRef.current = null;
-          }}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="trash" size={20} color="#FFF" />
-        </TouchableOpacity>
-      </Animated.View>
-    );
-  }, [styles, habits]);
 
   const canAddMoreShopping = shoppingLimit === null || activeItems.length < shoppingLimit;
 

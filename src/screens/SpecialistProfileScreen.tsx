@@ -19,14 +19,14 @@ export default function SpecialistProfileScreen({ navigation, route }: Specialis
 
     const loadSpecialist = useCallback(async () => {
         try {
-            const data = await MarketplaceService.getExpert(route.params.id);
+            const data = await MarketplaceService.getExpert(route.params?.id);
             setSpecialist(data);
         } catch (error) {
             console.error('Failed to load specialist:', error);
         } finally {
             setLoading(false);
         }
-    }, [route.params.id]);
+    }, [route.params?.id]);
 
     useEffect(() => {
         loadSpecialist();

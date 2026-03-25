@@ -471,7 +471,6 @@
     "today": "Aujourd'hui",
     "tomorrow": "Demain",
     "remove": "Supprimer",
-    "add": "Ajouter",
     "apply": "Appliquer",
     "seeAll": "Voir tout",
     "viewMore": "Voir plus"
@@ -2127,9 +2126,14 @@
   },
   "tracker": {
     "title": "Ma journée",
-    "tabs": { "habits": "Habitudes", "shopping": "Courses" },
+    "tabs": {
+      "habits": "Habitudes",
+      "shopping": "Courses"
+    },
     "streak": "jours consécutifs",
-    "wave": { "title": "Progrès hebdomadaire" },
+    "wave": {
+      "title": "Progrès hebdomadaire"
+    },
     "habits": {
       "add": "Ajouter",
       "edit": "Modifier",
@@ -2208,8 +2212,15 @@
       "screenLimit": "Limiter les écrans",
       "makeBed": "Faire le lit"
     },
-    "limit": { "habits": "Habitudes illimitées", "shopping": "Courses illimitées" },
-    "stats": { "streak": "Série", "weekly": "Semaine", "total": "Total" },
+    "limit": {
+      "habits": "Habitudes illimitées",
+      "shopping": "Courses illimitées"
+    },
+    "stats": {
+      "streak": "Série",
+      "weekly": "Semaine",
+      "total": "Total"
+    },
     "emptyState": "Aucune habitude",
     "emptyStateSubtitle": "Ajoutez votre première habitude"
   },
@@ -2226,7 +2237,24 @@
     "feature1": "Restaurants et cafés healthy",
     "feature2": "Magasins bio et locaux",
     "feature3": "Réductions exclusives pour les utilisateurs EatSense",
-    "feature4": "Avis et notes de la communauté"
+    "feature4": "Avis et notes de la communauté",
+    "countries": {
+      "switzerland": "Suisse",
+      "germany": "Allemagne",
+      "france": "France",
+      "uk": "Royaume-Uni",
+      "usa": "États-Unis",
+      "spain": "Espagne",
+      "italy": "Italie",
+      "netherlands": "Pays-Bas",
+      "austria": "Autriche",
+      "russia": "Russie",
+      "kazakhstan": "Kazakhstan",
+      "uae": "EAU",
+      "japan": "Japon",
+      "singapore": "Singapour",
+      "southKorea": "Corée du Sud"
+    }
   },
   "terms": {
     "sections": {

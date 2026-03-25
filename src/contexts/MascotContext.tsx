@@ -97,7 +97,13 @@ export function MascotProvider({ children }: { children: React.ReactNode }) {
   const updateMascot = useCallback(async (data: { mascotType?: MascotType; name?: string }) => {
     try {
       const result = await ApiService.updateMascot(data);
-      if (result) setMascot(result);
+      if (result) {
+        setMascot(result);
+        // Reschedule mascot notifications if name changed (notifications include mascot name)
+        if (data.name) {
+          localNotificationService.scheduleMascotNotifications(result.name).catch(() => {});
+        }
+      }
       return result;
     } catch (err) {
       console.error('[MascotContext] Failed to update mascot:', err);

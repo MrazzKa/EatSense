@@ -23,7 +23,7 @@ import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
  * ExpertProfileScreen - Detailed view of a specialist
  */
 export default function ExpertProfileScreen({ route, navigation }) {
-    const { specialistId } = route.params;
+    const { specialistId } = route.params || {};
     const { t } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();

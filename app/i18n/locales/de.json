@@ -331,7 +331,11 @@
       "goal": "Bitte wählen Sie Ihr Ziel.",
       "gender": "Bitte wählen Sie Ihr Geschlecht.",
       "activity": "Bitte wählen Sie Ihr Aktivitätslevel."
-    }
+    },
+    "formulaExplanation": "Berechnet mit der Mifflin-St-Jeor-Formel basierend auf Ihrem Alter, Geschlecht, Größe, Gewicht und Aktivitätsniveau.",
+    "name": "Wie heißen Sie?",
+    "namePlaceholder": "Ihr Name",
+    "nameSubtitle": "Damit wir Ihr Erlebnis personalisieren können"
   },
   "aiAssistant": {
     "attach": {
@@ -520,7 +524,10 @@
     "protein": "Protein",
     "carbs": "Kohlenhydrate",
     "fat": "Fett",
-    "fiber": "Ballaststoffe"
+    "fiber": "Ballaststoffe",
+    "disclaimer": "Dies ist kein medizinischer Rat.",
+    "trustText": "Die Analysegenauigkeit verbessert sich mit jeder Nutzung — die KI lernt, Ihre Lieblingsgerichte und Portionsgrößen zu erkennen.",
+    "viewSources": "Wissenschaftliche Quellen anzeigen"
   },
   "analysisFlow": {
     "analyze": "Analysieren",
@@ -646,7 +653,8 @@
     "takePhoto": "Mahlzeit aufnehmen",
     "typeInstead": "Type instead",
     "zoomLabel": "Zoom {{value}}x",
-    "permissionError": "Permission Error"
+    "permissionError": "Permission Error",
+    "gallery": "Galerie"
   },
   "carcinogenicRisk": {
     "highRiskItems": "Items to keep in moderation",
@@ -736,10 +744,16 @@
     "today": "Heute",
     "tomorrow": "Morgen",
     "remove": "Entfernen",
-    "add": "Hinzufügen",
     "apply": "Anwenden",
     "seeAll": "Alle anzeigen",
-    "viewMore": "Mehr anzeigen"
+    "viewMore": "Mehr anzeigen",
+    "mon": "Mo",
+    "tue": "Di",
+    "wed": "Mi",
+    "thu": "Do",
+    "fri": "Fr",
+    "sat": "Sa",
+    "sun": "So"
   },
   "dashboard": {
     "addFood": {
@@ -868,7 +882,8 @@
       "summary": {
         "title": "Personal recommendation"
       },
-      "title": "Smart food suggestions"
+      "title": "Smart food suggestions",
+      "trustText": "Persönliche Empfehlungen basieren auf Ihren Ernährungsdaten über mehrere Tage. Je länger Sie die App nutzen, desto genauer werden die Ratschläge."
     },
     "title": "Dashboard",
     "activeDiet": {
@@ -998,7 +1013,9 @@
     "requestTimeout": "Zeitüberschreitung. Bitte versuchen Sie es erneut.",
     "networkConnection": "Verbindungsfehler. Bitte überprüfen Sie Ihre Netzwerkverbindung.",
     "navigationError": "Navigationsfehler aufgetreten",
-    "navigationNotAvailable": "Navigation nicht verfügbar. Bitte starten Sie die App neu."
+    "navigationNotAvailable": "Navigation nicht verfügbar. Bitte starten Sie die App neu.",
+    "limitReachedTitle": "Tageslimit erreicht",
+    "limitReachedMessage": "Sie haben Ihr tägliches Scanlimit erreicht. Upgraden Sie für unbegrenzte Scans."
   },
   "experts": {
     "about": "About",
@@ -1324,7 +1341,8 @@
     "photo": "Foto",
     "addPhoto": "Foto hinzufügen",
     "takePhoto": "Foto aufnehmen",
-    "chooseFromGallery": "Aus Galerie wählen"
+    "chooseFromGallery": "Aus Galerie wählen",
+    "cameraPermissionDenied": "Kameraberechtigung ist erforderlich, um Fotos aufzunehmen."
   },
   "notifications": {
     "enableFailed": "Benachrichtigungen konnten nicht aktiviert werden.",
@@ -1340,48 +1358,7 @@
   "privacy": {
     "intro": "EatSense schätzt Ihre Privatsphäre. Diese Richtlinie beschreibt, wie wir Ihre Informationen sammeln, verwenden und schützen.",
     "lastUpdated": "Zuletzt aktualisiert",
-    "sections": {
-      "changes": {
-        "content": "Wir informieren dich rechtzeitig über wesentliche Änderungen dieser Datenschutzrichtlinie in der App oder per E-Mail, bevor sie wirksam werden.",
-        "title": "5. Änderungen dieser Richtlinie"
-      },
-      "children": {
-        "content": "EatSense richtet sich nicht an Kinder unter 13 Jahren. Wir erheben wissentlich keine Daten von Kindern und löschen sie umgehend, falls dies doch passiert.",
-        "title": "7. Datenschutz von Kindern"
-      },
-      "choices": {
-        "content": "Du kannst deine Privatsphäre-Einstellungen in der App verwalten. Du kannst jederzeit eine Kopie oder die Löschung deiner Daten anfordern.",
-        "title": "9. Deine Auswahl"
-      },
-      "collection": {
-        "content": "Wir sammeln Informationen, die Sie bei der Registrierung und Nutzung der Anwendung bereitstellen, einschließlich personenbezogener Daten, Ernährungsinformationen und Lebensmittelfotos.",
-        "title": "1. Informationssammlung"
-      },
-      "contact": {
-        "content": "Bei Datenschutzfragen wende dich an privacy@eatsense.ch",
-        "title": "10. Kontakt"
-      },
-      "cookies": {
-        "content": "Wir verwenden Cookies und ähnliche Technologien, um Einstellungen zu speichern, Leistung zu messen und das Erlebnis zu verbessern. Du kannst Cookies in den Geräteeinstellungen steuern.",
-        "title": "6. Cookies und Tracking"
-      },
-      "protection": {
-        "content": "Wir verwenden moderne Verschlüsselungs- und sichere Datenspeicherungsmethoden zum Schutz Ihrer persönlichen Informationen.",
-        "title": "3. Datenschutz"
-      },
-      "rights": {
-        "content": "Je nach Region kannst du den Zugriff auf deine Daten anfordern, sie aktualisieren, löschen oder die Verarbeitung einschränken. Kontaktiere uns, um diese Rechte auszuüben.",
-        "title": "8. Deine Rechte"
-      },
-      "sharing": {
-        "content": "Wir verkaufen deine personenbezogenen Daten nicht. Wir können anonymisierte Daten mit Partnern teilen, um unsere Dienste zu verbessern.",
-        "title": "4. Weitergabe von Daten"
-      },
-      "usage": {
-        "content": "Ihre Informationen werden verwendet, um personalisierte Ernährungsempfehlungen, Lebensmittelanalyse und zur Verbesserung der Anwendung bereitzustellen.",
-        "title": "2. Informationsnutzung"
-      }
-    },
+    "sections": "Abschnitte",
     "title": "Datenschutzrichtlinie"
   },
   "profile": {
@@ -1661,7 +1638,22 @@
       "settings": "Einstellungen"
     },
     "units": "Einheiten",
-    "unitsMetric": "Metrisch"
+    "unitsMetric": "Metrisch",
+    "advancedSettings": {
+      "locked": "Gesundheitseinstellungen",
+      "upgrade": "Auf Pro upgraden"
+    },
+    "avatar": {
+      "camera": "Foto aufnehmen",
+      "cameraPermission": "Kameraberechtigung erforderlich",
+      "gallery": "Aus Galerie wählen",
+      "preset": "Avatar wählen",
+      "remove": "Foto entfernen",
+      "title": "Profilfoto",
+      "uploadFailed": "Foto konnte nicht hochgeladen werden"
+    },
+    "reports": "Berichte",
+    "reportsSubtitle": "Monatliche Ernährungsberichte"
   },
   "recently": {
     "analyzing": "Analyzing...",
@@ -1827,7 +1819,8 @@
     "legalTerms": "Nutzungsbedingungen",
     "legalPrivacy": "Datenschutz",
     "loadingPrices": "Preise laden...",
-    "plan_founders": "Gründer"
+    "plan_founders": "Gründer",
+    "freePlanBaseline": "In allen Plänen enthalten"
   },
   "tabs": {
     "articles": "Artikel",
@@ -1843,9 +1836,14 @@
   },
   "tracker": {
     "title": "Mein Tag",
-    "tabs": { "habits": "Gewohnheiten", "shopping": "Einkaufsliste" },
+    "tabs": {
+      "habits": "Gewohnheiten",
+      "shopping": "Einkaufsliste"
+    },
     "streak": "Tage in Folge",
-    "wave": { "title": "Wöchentlicher Fortschritt" },
+    "wave": {
+      "title": "Wöchentlicher Fortschritt"
+    },
     "habits": {
       "add": "Hinzufügen",
       "edit": "Bearbeiten",
@@ -1924,8 +1922,15 @@
       "screenLimit": "Bildschirmzeit begrenzen",
       "makeBed": "Bett machen"
     },
-    "limit": { "habits": "Unbegrenzte Gewohnheiten", "shopping": "Unbegrenztes Einkaufen" },
-    "stats": { "streak": "Serie", "weekly": "Woche", "total": "Gesamt" },
+    "limit": {
+      "habits": "Unbegrenzte Gewohnheiten",
+      "shopping": "Unbegrenztes Einkaufen"
+    },
+    "stats": {
+      "streak": "Serie",
+      "weekly": "Woche",
+      "total": "Gesamt"
+    },
     "emptyState": "Noch keine Gewohnheiten",
     "emptyStateSubtitle": "Fügen Sie Ihre erste Gewohnheit hinzu"
   },
@@ -1942,7 +1947,24 @@
     "feature1": "Gesunde Restaurants und Cafés",
     "feature2": "Bio- und regionale Läden",
     "feature3": "Exklusive Rabatte für EatSense-Nutzer",
-    "feature4": "Community-Bewertungen"
+    "feature4": "Community-Bewertungen",
+    "countries": {
+      "switzerland": "Schweiz",
+      "germany": "Deutschland",
+      "france": "Frankreich",
+      "uk": "Vereinigtes Königreich",
+      "usa": "Vereinigte Staaten",
+      "spain": "Spanien",
+      "italy": "Italien",
+      "netherlands": "Niederlande",
+      "austria": "Österreich",
+      "russia": "Russland",
+      "kazakhstan": "Kasachstan",
+      "uae": "VAE",
+      "japan": "Japan",
+      "singapore": "Singapur",
+      "southKorea": "Südkorea"
+    }
   },
   "terms": {
     "intro": "Bitte lesen Sie diese Nutzungsbedingungen sorgfältig, bevor Sie EatSense verwenden.",
@@ -2281,7 +2303,11 @@
     "tryFree": "{{days}} Tage kostenlos testen",
     "unlockFeature": "Diese Funktion freischalten",
     "priceAfterTrial": "Dann {{price}}/Monat nach der Testphase",
-    "priceMonthly": "{{price}}/Monat"
+    "priceMonthly": "{{price}}/Monat",
+    "feature": {
+      "advancedSettings": "Erweiterte Gesundheitseinstellungen",
+      "reports": "Monatliche Berichte"
+    }
   },
   "premium": {
     "feature": {
@@ -2358,6 +2384,7 @@
       "brain_health": "Gehirngesundheit",
       "breakfast": "Frühstück",
       "brunch": "Brunch",
+      "bulk": "Masseaufbau",
       "business": "Business",
       "celiac": "Zöliakiesicher",
       "central_asian": "Zentralasiatisch",
@@ -4201,6 +4228,28 @@
       "communityPost": "Community-Beitrag erstellen",
       "streak": "Täglicher Streak-Bonus",
       "quest": "Aufgabe abschließen"
+    }
+  },
+  "tooltip": {
+    "bmi": {
+      "title": "BMI — Body-Mass-Index",
+      "body": "Der BMI ist ein Maß für das Körperfett basierend auf Größe und Gewicht. Er hilft einzuschätzen, ob Ihr Gewicht in einem gesunden Bereich liegt. Ein normaler BMI liegt bei 18,5–24,9."
+    },
+    "bmr": {
+      "title": "BMR — Grundumsatz",
+      "body": "Der BMR ist die Anzahl der Kalorien, die Ihr Körper in Ruhe benötigt. Er wird mit der Mifflin-St-Jeor-Gleichung berechnet und stellt die minimale Energie für grundlegende Körperfunktionen dar."
+    },
+    "glp1": {
+      "title": "GLP-1 — Glucagon-ähnliches Peptid-1",
+      "body": "GLP-1-Rezeptoragonisten (z. B. Semaglutid, Liraglutid) sind Medikamente zur Regulierung von Blutzucker und Appetit. Dieses Modul passt die Empfehlungen für GLP-1-Nutzer an."
+    },
+    "kcal": {
+      "title": "kcal — Kilokalorien",
+      "body": "Ihr tägliches Kalorienziel wird mit der Mifflin-St-Jeor-Formel berechnet, basierend auf Alter, Geschlecht, Größe, Gewicht und Aktivitätsniveau. Dies ist Ihr geschätzter Grundumsatz angepasst an Ihre Aktivität."
+    },
+    "whr": {
+      "title": "WHR — Taille-Hüft-Verhältnis",
+      "body": "WHR misst das Verhältnis von Taillenumfang zu Hüftumfang. Es zeigt die Fettverteilung an. Ein gesunder WHR liegt unter 0,85 für Frauen und 0,90 für Männer."
     }
   }
 }

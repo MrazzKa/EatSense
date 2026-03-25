@@ -35,18 +35,18 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
     const loadData = useCallback(async () => {
         try {
             const [consultationData, messagesData] = await Promise.all([
-                MarketplaceService.getConsultation(route.params.consultationId),
-                MarketplaceService.getMessages(route.params.consultationId),
+                MarketplaceService.getConsultation(route.params?.consultationId),
+                MarketplaceService.getMessages(route.params?.consultationId),
             ]);
             setConsultation(consultationData);
             setMessages(Array.isArray(messagesData) ? messagesData : []);
-            await MarketplaceService.markAsRead(route.params.consultationId);
+            await MarketplaceService.markAsRead(route.params?.consultationId);
         } catch {
             console.error('Failed to load chat');
         } finally {
             setLoading(false);
         }
-    }, [route.params.consultationId]);
+    }, [route.params?.consultationId]);
 
     useEffect(() => {
         loadData();
@@ -56,7 +56,7 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
         if (!text.trim() || sending) return;
         setSending(true);
         try {
-            const newMessage = await MarketplaceService.sendMessage(route.params.consultationId, text.trim());
+            const newMessage = await MarketplaceService.sendMessage(route.params?.consultationId, text.trim());
             setMessages((prev) => [...prev, newMessage]);
             setText('');
             setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
@@ -65,7 +65,7 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
         } finally {
             setSending(false);
         }
-    }, [text, sending, route.params.consultationId, t]);
+    }, [text, sending, route.params?.consultationId, t]);
 
     const handleShareMeals = useCallback(async () => {
         Alert.alert(t('chat.shareMeals'), t('chat.shareMealsConfirm'), [
@@ -77,7 +77,7 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
                         const toDate = new Date();
                         const fromDate = new Date(toDate.getTime() - 7 * 24 * 60 * 60 * 1000);
                         const newMessage = await MarketplaceService.shareMeals(
-                            route.params.consultationId,
+                            route.params?.consultationId,
                             fromDate.toISOString(),
                             toDate.toISOString()
                         );
@@ -88,7 +88,7 @@ export default function ChatScreen({ navigation, route }: ChatScreenProps) {
                 },
             },
         ]);
-    }, [route.params.consultationId, t]);
+    }, [route.params?.consultationId, t]);
 
     const getDaysRemaining = () => {
         if (!consultation) return 0;

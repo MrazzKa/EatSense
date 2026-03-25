@@ -179,7 +179,7 @@ export default function CreateCommunityPostScreen() {
 
       await ApiService.createCommunityPost(payload);
       // Award mascot XP for community activity
-      if (addXp) addXp(8, 'community_post').catch(() => {});
+      if (addXp) { try { await addXp(8, 'community_post'); } catch {} }
       navigation.goBack();
     } catch (err: any) {
       console.warn('Failed to create post:', err);
@@ -319,37 +319,7 @@ export default function CreateCommunityPostScreen() {
             autoFocus
           />
 
-          {/* Image attachment */}
-          <View style={styles.attachRow}>
-            <TouchableOpacity
-              style={[styles.attachBtn, { borderColor: colors.border }]}
-              onPress={handlePickImage}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="image-outline" size={20} color={colors.primary} />
-              <Text style={[styles.attachBtnText, { color: colors.primary }]}>
-                {t('community.attachPhoto', 'Add photo')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {imageUri && (
-            <View style={styles.imagePreviewWrap}>
-              <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-              <TouchableOpacity
-                style={styles.removeImageBtn}
-                onPress={() => setImageUri(null)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="close-circle" size={24} color="#FF5252" />
-              </TouchableOpacity>
-              {uploadingImage && (
-                <View style={styles.uploadOverlay}>
-                  <ActivityIndicator color="#FFF" />
-                </View>
-              )}
-            </View>
-          )}
+          {/* Image attachment — temporarily disabled */}
 
           {/* Event fields */}
           {postType === 'EVENT' && (

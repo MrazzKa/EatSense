@@ -24,7 +24,7 @@ import ApiService from '../services/apiService';
  * ConsultationChatScreen - Real-time chat with specialist
  */
 export default function ConsultationChatScreen({ route, navigation }) {
-    const { consultationId } = route.params;
+    const { consultationId } = route.params || {};
     const { t } = useI18n();
     const { user } = useAuth();
     const themeContext = useTheme();

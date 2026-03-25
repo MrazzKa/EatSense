@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,10 +7,6 @@ import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import Reanimated, {
-  useSharedValue,
-  useAnimatedProps
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,8 +16,6 @@ import DescribeFoodModal from '../components/DescribeFoodModal';
 import ApiService from '../services/apiService';
 import { mapLanguageToLocale } from '../utils/locale';
 import { useAnalysis } from '../contexts/AnalysisContext';
-
-const AnimatedCamera = Reanimated.createAnimatedComponent(CameraView);
 
 export default function CameraScreen() {
   const navigation = useNavigation();
@@ -39,33 +33,24 @@ export default function CameraScreen() {
   // regardless of theme (dark theme has onPrimary: '#0B1120' which is invisible on black)
   const CAM_TEXT = '#FFFFFF';
 
-  // Reanimated Zoom State
-  const zoom = useSharedValue(0);
-  const baseZoom = useSharedValue(0);
+  // Zoom state (plain React state — no reanimated to avoid native crash with CameraView)
+  const [zoomValue, setZoomValue] = useState(0);
+  const zoomRef = useRef(0);
+  const baseZoomRef = useRef(0);
 
-  const pinchGesture = Gesture.Pinch()
+  // Keep ref in sync with state for gesture callbacks
+  useEffect(() => { zoomRef.current = zoomValue; }, [zoomValue]);
+
+  const pinchGesture = useMemo(() => Gesture.Pinch()
     .onStart(() => {
-      baseZoom.value = zoom.value;
+      baseZoomRef.current = zoomRef.current;
     })
     .onUpdate((e) => {
-      // Zoom logic: additive scale
-      // e.scale starts at 1. We treat (scale - 1) as the delta to add to base zoom
-      // Multiplier 0.02 helps control sensitivity
-      // Logic from similar functional implementations:
-      const ROUGH_SENSITIVITY = 1.5;
-      // standard pinch scale behaves exponentially, so we linearize it roughly
-      // newZoom = base + (scale - 1)
       const delta = (e.scale - 1);
-
-      // Clamp between 0 and 1
-      zoom.value = Math.min(Math.max(baseZoom.value + delta * 0.5, 0), 1);
-    });
-
-  const animatedProps = useAnimatedProps(() => {
-    return {
-      zoom: zoom.value,
-    };
-  });
+      const newZoom = Math.min(Math.max(baseZoomRef.current + delta * 0.5, 0), 1);
+      zoomRef.current = newZoom;
+      setZoomValue(newZoom);
+    }), []);
 
   // Safe requestPermission wrapper
   const handleRequestPermission = async () => {
@@ -98,9 +83,6 @@ export default function CameraScreen() {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const takePicture = async () => {
-    // Access the real camera ref from the animated component
-    // Reanimated wraps the ref, so we might need to exact it or pass it through?
-    // createAnimatedComponent forwards refs, so cameraRef.current should work directly if it points to CameraView instance
     if (!cameraRef.current || isLoading) {
       await clientLog('Camera:takePictureNoRef').catch(() => { });
       return;
@@ -369,12 +351,12 @@ export default function CameraScreen() {
     <View style={[styles.container, { backgroundColor: '#000000' }]}>
       <GestureDetector gesture={pinchGesture}>
         <View style={StyleSheet.absoluteFill}>
-          <AnimatedCamera
+          <CameraView
             style={StyleSheet.absoluteFill}
             facing={facing}
             ref={cameraRef}
-            animatedProps={animatedProps}
-            enableZoomGesture={false} // Use our Gesture Detector
+            zoom={zoomValue}
+            enableZoomGesture={false}
             flash={flashMode}
           >
             <LinearGradient
@@ -458,7 +440,7 @@ export default function CameraScreen() {
                 </View>
               </View>
             </View>
-          </AnimatedCamera>
+          </CameraView>
         </View>
       </GestureDetector>
 

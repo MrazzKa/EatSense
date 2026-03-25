@@ -169,69 +169,21 @@ export class NotificationsScheduler {
     }
   }
 
-  @Cron('0 */15 * * * *')
+  /**
+   * Server-side daily reminders are DISABLED.
+   * Reason: Local notifications on the client already handle meal reminders
+   * (3x/day at 9:00, 13:00, 19:00, fully localized). Server push was causing
+   * duplicate notifications — one from server and three from client.
+   *
+   * The dailyPushEnabled preference flag is now used by the client to control
+   * whether local meal reminders are scheduled.
+   *
+   * To re-enable server push: uncomment the @Cron decorator and method body.
+   */
+  // @Cron('0 */15 * * * *')
   async handleDailyReminders() {
-    const start = DateTime.utc();
-    const preferences = await this.prisma.notificationPreference.findMany({
-      where: {
-        dailyPushEnabled: true,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    if (!preferences.length) {
-      return;
-    }
-
-    for (const pref of preferences) {
-      const timezone = pref.timezone || 'UTC';
-      let localNow = start.setZone(timezone, { keepLocalTime: false });
-      if (!localNow.isValid) {
-        this.logger.warn(`Invalid timezone="${timezone}" for user=${pref.userId}, defaulting to UTC`);
-        localNow = start;
-      }
-
-      if (localNow.hour !== pref.dailyPushHour || localNow.minute >= 15) {
-        continue;
-      }
-
-      const lastSent = pref.lastPushSentAt
-        ? DateTime.fromJSDate(pref.lastPushSentAt).setZone(timezone)
-        : null;
-
-      if (lastSent && lastSent.startOf('day').equals(localNow.startOf('day'))) {
-        continue;
-      }
-
-      try {
-        const lang = await this.getUserLanguage(pref.userId);
-        const translations = DAILY_REMINDER_TRANSLATIONS[lang] || DAILY_REMINDER_TRANSLATIONS.en;
-        const result = await this.notificationsService.sendPushNotification(
-          pref.userId,
-          translations.title,
-          translations.body,
-          { type: 'daily-reminder' },
-        );
-
-        if (result.success) {
-          await this.prisma.notificationPreference.update({
-            where: { userId: pref.userId },
-            data: {
-              lastPushSentAt: start.toJSDate(),
-            },
-          });
-          this.logger.debug(`dailyReminder=sent userId=${pref.userId}`);
-        }
-      } catch (error: any) {
-        this.logger.warn(`dailyReminder=failed userId=${pref.userId} reason=${error.message}`);
-      }
-    }
+    // Disabled — local notifications handle this
+    return;
   }
 }
 

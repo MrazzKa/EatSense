@@ -20,71 +20,72 @@ const SELECTED_CITY_KEY = 'bestPlaces:selectedCity';
 
 // Popular cities for autocomplete suggestions
 // Organized by country, covers key markets
-const CITIES_DB: { city: string; country: string; emoji: string }[] = [
+// Country names use i18n keys (bestPlaces.countries.*)
+const CITIES_DB: { city: string; countryKey: string; emoji: string }[] = [
   // Switzerland
-  { city: 'Zürich', country: 'Switzerland', emoji: '🇨🇭' },
-  { city: 'Geneva', country: 'Switzerland', emoji: '🇨🇭' },
-  { city: 'Basel', country: 'Switzerland', emoji: '🇨🇭' },
-  { city: 'Bern', country: 'Switzerland', emoji: '🇨🇭' },
-  { city: 'Lausanne', country: 'Switzerland', emoji: '🇨🇭' },
-  { city: 'Lucerne', country: 'Switzerland', emoji: '🇨🇭' },
+  { city: 'Zürich', countryKey: 'switzerland', emoji: '🇨🇭' },
+  { city: 'Geneva', countryKey: 'switzerland', emoji: '🇨🇭' },
+  { city: 'Basel', countryKey: 'switzerland', emoji: '🇨🇭' },
+  { city: 'Bern', countryKey: 'switzerland', emoji: '🇨🇭' },
+  { city: 'Lausanne', countryKey: 'switzerland', emoji: '🇨🇭' },
+  { city: 'Lucerne', countryKey: 'switzerland', emoji: '🇨🇭' },
   // Germany
-  { city: 'Berlin', country: 'Germany', emoji: '🇩🇪' },
-  { city: 'Munich', country: 'Germany', emoji: '🇩🇪' },
-  { city: 'Hamburg', country: 'Germany', emoji: '🇩🇪' },
-  { city: 'Frankfurt', country: 'Germany', emoji: '🇩🇪' },
-  { city: 'Cologne', country: 'Germany', emoji: '🇩🇪' },
-  { city: 'Düsseldorf', country: 'Germany', emoji: '🇩🇪' },
-  { city: 'Stuttgart', country: 'Germany', emoji: '🇩🇪' },
+  { city: 'Berlin', countryKey: 'germany', emoji: '🇩🇪' },
+  { city: 'Munich', countryKey: 'germany', emoji: '🇩🇪' },
+  { city: 'Hamburg', countryKey: 'germany', emoji: '🇩🇪' },
+  { city: 'Frankfurt', countryKey: 'germany', emoji: '🇩🇪' },
+  { city: 'Cologne', countryKey: 'germany', emoji: '🇩🇪' },
+  { city: 'Düsseldorf', countryKey: 'germany', emoji: '🇩🇪' },
+  { city: 'Stuttgart', countryKey: 'germany', emoji: '🇩🇪' },
   // France
-  { city: 'Paris', country: 'France', emoji: '🇫🇷' },
-  { city: 'Lyon', country: 'France', emoji: '🇫🇷' },
-  { city: 'Marseille', country: 'France', emoji: '🇫🇷' },
-  { city: 'Nice', country: 'France', emoji: '🇫🇷' },
-  { city: 'Bordeaux', country: 'France', emoji: '🇫🇷' },
-  { city: 'Toulouse', country: 'France', emoji: '🇫🇷' },
+  { city: 'Paris', countryKey: 'france', emoji: '🇫🇷' },
+  { city: 'Lyon', countryKey: 'france', emoji: '🇫🇷' },
+  { city: 'Marseille', countryKey: 'france', emoji: '🇫🇷' },
+  { city: 'Nice', countryKey: 'france', emoji: '🇫🇷' },
+  { city: 'Bordeaux', countryKey: 'france', emoji: '🇫🇷' },
+  { city: 'Toulouse', countryKey: 'france', emoji: '🇫🇷' },
   // UK
-  { city: 'London', country: 'UK', emoji: '🇬🇧' },
-  { city: 'Manchester', country: 'UK', emoji: '🇬🇧' },
-  { city: 'Birmingham', country: 'UK', emoji: '🇬🇧' },
-  { city: 'Edinburgh', country: 'UK', emoji: '🇬🇧' },
+  { city: 'London', countryKey: 'uk', emoji: '🇬🇧' },
+  { city: 'Manchester', countryKey: 'uk', emoji: '🇬🇧' },
+  { city: 'Birmingham', countryKey: 'uk', emoji: '🇬🇧' },
+  { city: 'Edinburgh', countryKey: 'uk', emoji: '🇬🇧' },
   // USA
-  { city: 'New York', country: 'USA', emoji: '🇺🇸' },
-  { city: 'Los Angeles', country: 'USA', emoji: '🇺🇸' },
-  { city: 'San Francisco', country: 'USA', emoji: '🇺🇸' },
-  { city: 'Miami', country: 'USA', emoji: '🇺🇸' },
-  { city: 'Chicago', country: 'USA', emoji: '🇺🇸' },
-  { city: 'Austin', country: 'USA', emoji: '🇺🇸' },
+  { city: 'New York', countryKey: 'usa', emoji: '🇺🇸' },
+  { city: 'Los Angeles', countryKey: 'usa', emoji: '🇺🇸' },
+  { city: 'San Francisco', countryKey: 'usa', emoji: '🇺🇸' },
+  { city: 'Miami', countryKey: 'usa', emoji: '🇺🇸' },
+  { city: 'Chicago', countryKey: 'usa', emoji: '🇺🇸' },
+  { city: 'Austin', countryKey: 'usa', emoji: '🇺🇸' },
   // Spain
-  { city: 'Madrid', country: 'Spain', emoji: '🇪🇸' },
-  { city: 'Barcelona', country: 'Spain', emoji: '🇪🇸' },
-  { city: 'Valencia', country: 'Spain', emoji: '🇪🇸' },
+  { city: 'Madrid', countryKey: 'spain', emoji: '🇪🇸' },
+  { city: 'Barcelona', countryKey: 'spain', emoji: '🇪🇸' },
+  { city: 'Valencia', countryKey: 'spain', emoji: '🇪🇸' },
   // Italy
-  { city: 'Milan', country: 'Italy', emoji: '🇮🇹' },
-  { city: 'Rome', country: 'Italy', emoji: '🇮🇹' },
-  { city: 'Florence', country: 'Italy', emoji: '🇮🇹' },
+  { city: 'Milan', countryKey: 'italy', emoji: '🇮🇹' },
+  { city: 'Rome', countryKey: 'italy', emoji: '🇮🇹' },
+  { city: 'Florence', countryKey: 'italy', emoji: '🇮🇹' },
   // Netherlands
-  { city: 'Amsterdam', country: 'Netherlands', emoji: '🇳🇱' },
-  { city: 'Rotterdam', country: 'Netherlands', emoji: '🇳🇱' },
+  { city: 'Amsterdam', countryKey: 'netherlands', emoji: '🇳🇱' },
+  { city: 'Rotterdam', countryKey: 'netherlands', emoji: '🇳🇱' },
   // Austria
-  { city: 'Vienna', country: 'Austria', emoji: '🇦🇹' },
-  { city: 'Salzburg', country: 'Austria', emoji: '🇦🇹' },
+  { city: 'Vienna', countryKey: 'austria', emoji: '🇦🇹' },
+  { city: 'Salzburg', countryKey: 'austria', emoji: '🇦🇹' },
   // CIS
-  { city: 'Moscow', country: 'Russia', emoji: '🇷🇺' },
-  { city: 'Saint Petersburg', country: 'Russia', emoji: '🇷🇺' },
-  { city: 'Almaty', country: 'Kazakhstan', emoji: '🇰🇿' },
-  { city: 'Astana', country: 'Kazakhstan', emoji: '🇰🇿' },
-  { city: 'Dubai', country: 'UAE', emoji: '🇦🇪' },
-  { city: 'Abu Dhabi', country: 'UAE', emoji: '🇦🇪' },
+  { city: 'Moscow', countryKey: 'russia', emoji: '🇷🇺' },
+  { city: 'Saint Petersburg', countryKey: 'russia', emoji: '🇷🇺' },
+  { city: 'Almaty', countryKey: 'kazakhstan', emoji: '🇰🇿' },
+  { city: 'Astana', countryKey: 'kazakhstan', emoji: '🇰🇿' },
+  { city: 'Dubai', countryKey: 'uae', emoji: '🇦🇪' },
+  { city: 'Abu Dhabi', countryKey: 'uae', emoji: '🇦🇪' },
   // Asia
-  { city: 'Tokyo', country: 'Japan', emoji: '🇯🇵' },
-  { city: 'Singapore', country: 'Singapore', emoji: '🇸🇬' },
-  { city: 'Seoul', country: 'South Korea', emoji: '🇰🇷' },
+  { city: 'Tokyo', countryKey: 'japan', emoji: '🇯🇵' },
+  { city: 'Singapore', countryKey: 'singapore', emoji: '🇸🇬' },
+  { city: 'Seoul', countryKey: 'southKorea', emoji: '🇰🇷' },
 ];
 
 interface SelectedCity {
   city: string;
-  country: string;
+  countryKey: string;
   emoji: string;
 }
 
@@ -100,17 +101,23 @@ export default function BestPlacesScreen() {
 
   useEffect(() => {
     AsyncStorage.getItem(SELECTED_CITY_KEY).then(raw => {
-      if (raw) setSelectedCity(JSON.parse(raw));
+      if (raw) {
+        try { setSelectedCity(JSON.parse(raw)); } catch {}
+      }
     }).catch(() => {});
   }, []);
+
+  const getCountryName = useCallback((key: string) => {
+    return t(`bestPlaces.countries.${key}`, key);
+  }, [t]);
 
   const filteredCities = useMemo(() => {
     if (!search.trim()) return CITIES_DB;
     const q = search.toLowerCase().trim();
     return CITIES_DB.filter(c =>
-      c.city.toLowerCase().includes(q) || c.country.toLowerCase().includes(q)
+      c.city.toLowerCase().includes(q) || getCountryName(c.countryKey).toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, getCountryName]);
 
   const handleSelectCity = useCallback(async (city: SelectedCity) => {
     setSelectedCity(city);
@@ -156,7 +163,7 @@ export default function BestPlacesScreen() {
                 {selectedCity.city}
               </Text>
               <Text style={[styles.chipCountry, { color: colors.textSecondary }]}>
-                {selectedCity.country}
+                {getCountryName(selectedCity.countryKey)}
               </Text>
             </View>
             <TouchableOpacity onPress={handleClearCity} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
@@ -190,7 +197,7 @@ export default function BestPlacesScreen() {
           <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <FlatList
               data={filteredCities}
-              keyExtractor={item => `${item.city}-${item.country}`}
+              keyExtractor={item => `${item.city}-${item.countryKey}`}
               keyboardShouldPersistTaps="handled"
               style={{ maxHeight: 250 }}
               renderItem={({ item }) => (
@@ -204,7 +211,7 @@ export default function BestPlacesScreen() {
                       {item.city}
                     </Text>
                     <Text style={[styles.suggestionCountry, { color: colors.textTertiary }]}>
-                      {item.country}
+                      {getCountryName(item.countryKey)}
                     </Text>
                   </View>
                 </TouchableOpacity>

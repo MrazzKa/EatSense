@@ -124,6 +124,68 @@ export class ReviewsService {
         return updated;
     }
 
+    async findAll(limit = 50) {
+        return this.prisma.review.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        email: true,
+                        userProfile: { select: { firstName: true, lastName: true, avatarUrl: true } },
+                    },
+                },
+                expert: {
+                    select: {
+                        id: true,
+                        displayName: true,
+                        avatarUrl: true,
+                    },
+                },
+            },
+        });
+    }
+
+    async adminDelete(reviewId: string) {
+        const review = await this.prisma.review.findUnique({
+            where: { id: reviewId },
+        });
+
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        }
+
+        const expertId = review.expertId;
+
+        await this.prisma.review.delete({
+            where: { id: reviewId },
+        });
+
+        await this.expertsService.updateRating(expertId);
+
+        return { success: true };
+    }
+
+    async adminToggleVisibility(reviewId: string) {
+        const review = await this.prisma.review.findUnique({
+            where: { id: reviewId },
+        });
+
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        }
+
+        const updated = await this.prisma.review.update({
+            where: { id: reviewId },
+            data: { isVisible: !review.isVisible },
+        });
+
+        await this.expertsService.updateRating(review.expertId);
+
+        return { success: true, isVisible: updated.isVisible };
+    }
+
     async delete(reviewId: string, clientId: string) {
         const review = await this.prisma.review.findUnique({
             where: { id: reviewId },

@@ -24,7 +24,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function CommunityGroupScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { groupId, groupName } = route.params as any;
+  const { groupId = '', groupName = '' } = (route.params as any) || {};
   const { colors } = useTheme();
   const tokens = useDesignTokens();
   const { t } = useI18n();

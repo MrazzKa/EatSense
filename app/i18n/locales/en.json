@@ -1259,7 +1259,24 @@
     "feature1": "Healthy restaurants and cafes",
     "feature2": "Organic & farm-to-table shops",
     "feature3": "Exclusive discounts for EatSense users",
-    "feature4": "Community ratings & reviews"
+    "feature4": "Community ratings & reviews",
+    "countries": {
+      "switzerland": "Switzerland",
+      "germany": "Germany",
+      "france": "France",
+      "uk": "United Kingdom",
+      "usa": "United States",
+      "spain": "Spain",
+      "italy": "Italy",
+      "netherlands": "Netherlands",
+      "austria": "Austria",
+      "russia": "Russia",
+      "kazakhstan": "Kazakhstan",
+      "uae": "UAE",
+      "japan": "Japan",
+      "singapore": "Singapore",
+      "southKorea": "South Korea"
+    }
   },
   "experts": {
     "dietitian": {

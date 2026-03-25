@@ -237,6 +237,7 @@
     <div class="tabs">
       <div class="tab active" data-tab="suggestions" onclick="switchTab('suggestions')">📋 Suggestions</div>
       <div class="tab" data-tab="reports" onclick="switchTab('reports')">🚩 Reports</div>
+      <div class="tab" data-tab="reviews" onclick="switchTab('reviews')">⭐ Reviews</div>
     </div>
 
     <div class="content">
@@ -244,6 +245,12 @@
       <div id="tab-suggestions">
         <div class="stat-bar" id="suggestions-stats"></div>
         <div id="suggestions-list"><div class="loading">Loading suggestions...</div></div>
+      </div>
+
+      <!-- REVIEWS TAB -->
+      <div id="tab-reviews" style="display:none">
+        <div class="stat-bar" id="reviews-stats"></div>
+        <div id="reviews-list"><div class="loading">Loading reviews...</div></div>
       </div>
 
       <!-- REPORTS TAB -->
@@ -341,6 +348,8 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
       document.getElementById('tab-suggestions').style.display = tab === 'suggestions' ? 'block' : 'none';
       document.getElementById('tab-reports').style.display = tab === 'reports' ? 'block' : 'none';
+      document.getElementById('tab-reviews').style.display = tab === 'reviews' ? 'block' : 'none';
+      if (tab === 'reviews') loadReviews();
     }
 
     // ===== SUGGESTIONS =====
@@ -541,6 +550,82 @@
         await fetchAPI(`/community/admin/comments/${commentId}`, { method: 'DELETE' });
         toast('🗑 Comment deleted');
         loadReports(currentReportsFilter);
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    // ===== REVIEWS =====
+    async function loadReviews() {
+      try {
+        const data = await fetchAPI('/reviews/admin');
+        renderReviews(data);
+      } catch (err) {
+        document.getElementById('reviews-list').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>Error: ${err.message}</div>`;
+      }
+    }
+
+    function renderReviews(reviews) {
+      const stats = document.getElementById('reviews-stats');
+      const list = document.getElementById('reviews-list');
+
+      const total = reviews.length;
+      const visible = reviews.filter(r => r.isVisible !== false).length;
+      const hidden = total - visible;
+      const avgRating = total > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / total).toFixed(1) : '—';
+
+      stats.innerHTML = `
+        <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Total Reviews</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--green)">${visible}</div><div class="stat-label">Visible</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--red)">${hidden}</div><div class="stat-label">Hidden</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--yellow)">${avgRating}</div><div class="stat-label">Avg Rating</div></div>
+      `;
+
+      if (total === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">⭐</div>No reviews yet</div>';
+        return;
+      }
+
+      list.innerHTML = reviews.map(r => {
+        const clientName = getUserName(r.client);
+        const expertName = r.expert?.displayName || 'Unknown Expert';
+        const stars = '⭐'.repeat(Math.min(r.rating || 0, 5));
+        const isHidden = r.isVisible === false;
+
+        return `
+          <div class="card" id="review-${r.id}" ${isHidden ? 'style="opacity:0.6"' : ''}>
+            <div class="card-header">
+              <div>
+                <div class="card-title">${stars} (${r.rating}/5)</div>
+                <div class="card-meta">
+                  By <strong>${escapeHtml(clientName)}</strong> about <strong>${escapeHtml(expertName)}</strong>
+                  &nbsp;·&nbsp; ${new Date(r.createdAt).toLocaleString()}
+                  ${isHidden ? ' &nbsp;·&nbsp; <span style="color:var(--red)">HIDDEN</span>' : ''}
+                </div>
+              </div>
+              <span class="badge ${isHidden ? 'badge-pending' : 'badge-diet'}">${isHidden ? 'hidden' : 'visible'}</span>
+            </div>
+            ${r.comment ? `<div class="card-body">${escapeHtml(r.comment)}</div>` : '<div class="card-body" style="font-style:italic">No comment</div>'}
+            <div class="card-actions">
+              <button class="btn ${isHidden ? 'btn-green' : 'btn-yellow'} btn-sm" onclick="toggleReviewVisibility('${r.id}')">${isHidden ? '👁 Show' : '🙈 Hide'}</button>
+              <button class="btn btn-red btn-sm" onclick="adminDeleteReview('${r.id}')">🗑 Delete</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function toggleReviewVisibility(id) {
+      try {
+        await fetchAPI(`/reviews/admin/${id}/toggle-visibility`, { method: 'PATCH' });
+        toast('Review visibility toggled');
+        loadReviews();
+      } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    async function adminDeleteReview(id) {
+      if (!confirm('Delete this review permanently?')) return;
+      try {
+        await fetchAPI(`/reviews/admin/${id}`, { method: 'DELETE' });
+        toast('🗑 Review deleted');
+        loadReviews();
       } catch (err) { toast('❌ ' + err.message); }
     }
 
