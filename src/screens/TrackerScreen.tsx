@@ -6,10 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Animated,
   ActivityIndicator,
 } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,8 +21,6 @@ import { useShoppingRecommendations } from '../hooks/useShoppingRecommendations'
 import { getFeatureLimit } from '../utils/subscriptionGuard';
 import ApiService from '../services/apiService';
 import HabitGrid from '../components/tracker/HabitGrid';
-import HabitWave from '../components/tracker/HabitWave';
-import StatsRow from '../components/tracker/StatsRow';
 import HabitModal from '../components/tracker/HabitModal';
 import PresetHabitsModal from '../components/tracker/PresetHabitsModal';
 import TodoSection from '../components/tracker/TodoSection';
@@ -74,7 +70,6 @@ export default function TrackerScreen() {
     habits,
     completions,
     streak,
-    weeklyPercentage,
     weekDates,
     today,
     loading: habitsLoading,
@@ -167,16 +162,6 @@ export default function TrackerScreen() {
     setShowHabitModal(true);
   }, []);
 
-  const openSwipeableRef = useRef<Swipeable | null>(null);
-
-  const closeOpenSwipeable = useCallback(() => {
-    if (openSwipeableRef.current) {
-      openSwipeableRef.current.close();
-      openSwipeableRef.current = null;
-    }
-  }, []);
-
-
   const canAddMoreShopping = shoppingLimit === null || activeItems.length < shoppingLimit;
 
   const isLoading = habitsLoading || todosLoading || shoppingLoading;
@@ -216,18 +201,7 @@ export default function TrackerScreen() {
               {t('tracker.tabs.habits') || 'HABITS'}
             </Text>
 
-            {/* Wave chart */}
-            {habits.length > 0 && (
-              <View style={styles.section}>
-                <HabitWave
-                  habits={habits}
-                  weekDates={weekDates}
-                  today={today}
-                  completions={completions}
-                  isActiveOnDate={isHabitActiveOnDate}
-                />
-              </View>
-            )}
+            {/* Wave chart removed for minimalism */}
 
             {/* Habit grid */}
             {habits.length > 0 ? (
@@ -238,6 +212,7 @@ export default function TrackerScreen() {
                 completions={completions}
                 onToggle={toggleCompletion}
                 isActiveOnDate={isHabitActiveOnDate}
+                onEdit={handleEditHabit}
               />
             ) : (
               <AppCard style={styles.emptyCard}>
@@ -253,71 +228,7 @@ export default function TrackerScreen() {
               </AppCard>
             )}
 
-            {/* Stats */}
-            {habits.length > 0 && (
-              <StatsRow
-                streak={streak}
-                weeklyPercentage={weeklyPercentage}
-                totalHabits={habits.length}
-              />
-            )}
-
-            {/* Habits list with swipe-to-delete */}
-            {habits.length > 0 && (
-              <View style={styles.habitsList}>
-                {habits.map(habit => (
-                  <Swipeable
-                    key={habit.id}
-                    renderRightActions={(progress, dragX) => {
-                      const opacity = progress.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.8, 1],
-                      });
-                      return (
-                        <Animated.View style={[styles.swipeDeleteContainer, { opacity }]}>
-                          <TouchableOpacity
-                            style={styles.swipeDeleteBtn}
-                            onPress={() => {
-                              closeOpenSwipeable();
-                              handleDeleteHabit(habit);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons name="trash" size={20} color="#FFF" />
-                          </TouchableOpacity>
-                        </Animated.View>
-                      );
-                    }}
-                    onSwipeableWillOpen={() => {
-                      closeOpenSwipeable();
-                    }}
-                    onSwipeableOpen={(_direction, swipeable) => {
-                      openSwipeableRef.current = swipeable;
-                    }}
-                    onSwipeableClose={() => {
-                      openSwipeableRef.current = null;
-                    }}
-                    overshootRight={false}
-                    friction={2}
-                  >
-                    <TouchableOpacity
-                      onPress={() => handleEditHabit(habit)}
-                      style={[styles.habitListItem, { borderBottomColor: colors.border, backgroundColor: colors.background }]}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.habitEmoji}>{habit.emoji}</Text>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.habitName, { color: colors.textPrimary }]}>{habit.name}</Text>
-                        <Text style={[styles.habitFreq, { color: colors.textTertiary }]}>
-                          {t(`tracker.habits.${habit.frequency}`) || habit.frequency}
-                        </Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-                    </TouchableOpacity>
-                  </Swipeable>
-                ))}
-              </View>
-            )}
+            {/* Swipeable list removed for minimalism */}
 
             {/* Add habit button */}
             <TouchableOpacity onPress={handleAddHabit} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
@@ -336,6 +247,7 @@ export default function TrackerScreen() {
               onAdd={addTodo}
               onToggle={toggleTodo}
               onDelete={deleteTodo}
+              compact
             />
           </View>
 
@@ -380,6 +292,7 @@ export default function TrackerScreen() {
         visible={showHabitModal}
         onClose={() => setShowHabitModal(false)}
         onSave={handleSaveHabit}
+        onDelete={handleDeleteHabit}
         editHabit={editingHabit}
       />
 

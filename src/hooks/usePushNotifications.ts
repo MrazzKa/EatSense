@@ -90,8 +90,8 @@ export function usePushNotifications(): PushNotificationState {
     });
 
     return () => {
-      subscription.remove();
-      responseSubscription.remove();
+      subscription?.remove();
+      responseSubscription?.remove();
     };
   }, [registerForPushNotificationsAsync]);
 

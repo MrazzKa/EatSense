@@ -12,9 +12,6 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸' },
   { code: 'de', label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪' },
   { code: 'fr', label: 'French', nativeLabel: 'Français', flag: '🇫🇷' },
-  { code: 'ko', label: 'Korean', nativeLabel: '한국어', flag: '🇰🇷' },
-  { code: 'ja', label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵' },
-  { code: 'zh', label: 'Chinese', nativeLabel: '中文', flag: '🇨🇳' },
 ];
 
 export const findLanguageOption = (code: string) =>

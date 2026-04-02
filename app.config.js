@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.17",
+    version: "2.0.18",
     orientation: "default",
     // EAS Update configuration
     updates: {

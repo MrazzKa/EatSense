@@ -59,7 +59,7 @@ export interface AnalyzedItem {
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)
   // Locale used for localization (optional, for debug)
-  locale?: 'en' | 'ru' | 'kk' | 'fr';
+  locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
   // Flag indicating if nutrition data is available (false = no data, show "No nutrition data")
   hasNutrition?: boolean;
   /** Food category from Vision or provider */
@@ -311,7 +311,7 @@ export interface AnalysisData {
   isSuspicious?: boolean; // флаг сомнительных результатов
   needsReview?: boolean; // флаг: все макросы нулевые или анализ не уверен
   // Preferred locale used during analysis / localization
-  locale?: 'en' | 'ru' | 'kk' | 'fr';
+  locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
 
   // =====================================================
   // DISH NAME FIELDS (STEP 2: Stabilized naming)

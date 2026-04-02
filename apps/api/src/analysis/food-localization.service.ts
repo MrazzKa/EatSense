@@ -15,12 +15,14 @@ export class FoodLocalizationService {
     });
   }
 
-  private normalizeLocale(locale?: string): 'en' | 'ru' | 'kk' | 'fr' {
+  private normalizeLocale(locale?: string): 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' {
     if (!locale) return 'en';
     const lower = locale.toLowerCase();
     if (lower === 'ru' || lower.startsWith('ru')) return 'ru';
     if (lower === 'kk' || lower.startsWith('kk') || lower.startsWith('kz')) return 'kk';
     if (lower === 'fr' || lower.startsWith('fr')) return 'fr';
+    if (lower === 'de' || lower.startsWith('de')) return 'de';
+    if (lower === 'es' || lower.startsWith('es')) return 'es';
     return 'en';
   }
 
@@ -28,7 +30,7 @@ export class FoodLocalizationService {
    * Batch translate multiple names in ONE API call
    * Saves 5+ seconds vs individual calls
    */
-  async localizeNamesBatch(names: string[], locale?: 'en' | 'ru' | 'kk' | 'fr'): Promise<Map<string, string>> {
+  async localizeNamesBatch(names: string[], locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'): Promise<Map<string, string>> {
     const normalizedLocale = this.normalizeLocale(locale);
     const results = new Map<string, string>();
 
@@ -80,8 +82,12 @@ export class FoodLocalizationService {
     return results;
   }
 
-  private async batchTranslate(names: string[], locale: 'ru' | 'kk' | 'fr'): Promise<Map<string, string>> {
-    const languageName = locale === 'ru' ? 'Russian' : locale === 'kk' ? 'Kazakh' : 'French';
+  private async batchTranslate(names: string[], locale: 'ru' | 'kk' | 'fr' | 'de' | 'es'): Promise<Map<string, string>> {
+    const languageName = locale === 'ru' ? 'Russian' : 
+                         locale === 'kk' ? 'Kazakh' : 
+                         locale === 'fr' ? 'French' : 
+                         locale === 'de' ? 'German' : 
+                         'Spanish';
     const results = new Map<string, string>();
     const numberedList = names.map((name, i) => `${i + 1}. ${name}`).join('\n');
 
@@ -120,7 +126,7 @@ export class FoodLocalizationService {
     return `food:translation:${locale}:${createHash('sha1').update(name.trim()).digest('hex')}`;
   }
 
-  async localizeName(baseName: string, locale?: 'en' | 'ru' | 'kk' | 'fr'): Promise<string> {
+  async localizeName(baseName: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'): Promise<string> {
     const normalizedLocale = this.normalizeLocale(locale);
     const trimmed = (baseName || '').trim();
 
@@ -143,8 +149,8 @@ export class FoodLocalizationService {
   private postProcess(name: string): string {
     if (!name) return '';
     const normalized = name.replace(/\s+/g, ' ').trim();
-    if (normalized.length <= 50) return normalized;
-    const cut = normalized.slice(0, 50);
+    if (normalized.length <= 80) return normalized;
+    const cut = normalized.slice(0, 80);
     const lastSpace = cut.lastIndexOf(' ');
     return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim() + '…';
   }

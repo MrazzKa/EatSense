@@ -124,7 +124,7 @@ function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
 const MIN_POLL_INTERVAL_MS = 2000;
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
-    const [pendingAnalyses, setPendingAnalyses] = useState<Map<string, PendingAnalysis>>(new Map());
+    const [pendingAnalyses, setPendingAnalyses] = useState<Map<string, PendingAnalysis>>(() => new Map());
     const [isPolling, setIsPolling] = useState(false);
     const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const pollRecursionRef = useRef<() => (void | Promise<void>) | undefined>(undefined); // Ref to hold the poll function for safe recursion

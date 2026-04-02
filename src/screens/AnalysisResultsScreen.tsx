@@ -865,7 +865,7 @@ export default function AnalysisResultsScreen() {
           <TouchableOpacity onPress={navigateToDashboard}>
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('analysis.title')}</Text>
+          <Text style={styles.headerTitle}>{t('analysis.analyzingStep')}</Text>
           <View style={styles.headerButton} />
         </View>
 
@@ -1067,7 +1067,7 @@ export default function AnalysisResultsScreen() {
           onPress={handleAsk}
           activeOpacity={0.8}
         >
-          <Ionicons name="chatbubble-ellipses-outline" size={24} color="#FFF" style={{ marginRight: 8 }} />
+          <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.onPrimary || '#FFF'} style={{ marginRight: 8 }} />
           <Text style={styles.primaryButtonText}>
             {t('analysis.askAi') || 'Ask AI About This Dish'}
           </Text>
@@ -1191,7 +1191,7 @@ const createStyles = (tokens) =>
       color: '#FFFFFF',
       fontSize: 32,
       fontWeight: '800',
-      textShadowColor: 'rgba(0,0,0,0.5)',
+      textShadowColor: 'rgba(0,0,0,0.7)',
       textShadowOffset: { width: 0, height: 2 },
       textShadowRadius: 4,
     },
@@ -1246,8 +1246,8 @@ const createStyles = (tokens) =>
       padding: 20,
       paddingBottom: 34,
       borderTopWidth: 1,
-      borderTopColor: 'rgba(0,0,0,0.05)',
-      shadowColor: '#000',
+      borderTopColor: tokens.colors.border || 'rgba(0,0,0,0.05)',
+      shadowColor: tokens.colors.textPrimary || '#000',
       shadowOffset: { width: 0, height: -4 },
       shadowOpacity: 0.05,
       shadowRadius: 8,
@@ -1259,14 +1259,14 @@ const createStyles = (tokens) =>
       justifyContent: 'center',
       paddingVertical: 16,
       borderRadius: 16,
-      shadowColor: '#000',
+      shadowColor: tokens.colors.textPrimary || '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.2,
       shadowRadius: 8,
       elevation: 4,
     },
     primaryButtonText: {
-      color: '#FFFFFF',
+      color: tokens.colors.onPrimary || '#FFFFFF',
       fontSize: 16,
       fontWeight: '700',
     },
@@ -1287,7 +1287,7 @@ const createStyles = (tokens) =>
       position: 'absolute',
       top: 16,
       right: 16,
-      backgroundColor: 'rgba(255,255,255,0.9)',
+      backgroundColor: tokens.colors.surface + 'E6',
       borderRadius: 20,
       padding: 4,
     },
@@ -1318,7 +1318,7 @@ const createStyles = (tokens) =>
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      backgroundColor: tokens.colors.background + 'B3',
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1000,

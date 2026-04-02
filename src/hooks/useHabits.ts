@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { Habit, HabitCompletion } from '../types/tracker';
 
 const HABITS_KEY = 'tracker:habits';
 const COMPLETIONS_PREFIX = 'tracker:completions:';
 
+/** Returns local date string YYYY-MM-DD (not UTC) */
 function getDateString(date: Date = new Date()): string {
-  return date.toISOString().split('T')[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function getWeekDates(): string[] {
@@ -47,9 +52,18 @@ export function useHabits() {
   const habitsRef = useRef<Habit[]>(habits);
   habitsRef.current = habits;
 
-  // Memoize weekDates and today so they don't recalculate on every render
-  const weekDates = useMemo(() => getWeekDates(), []);
-  const today = useMemo(() => getDateString(), []);
+  // Track current date — refreshes on screen focus to handle midnight crossing
+  const [dateKey, setDateKey] = useState(() => getDateString());
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = getDateString();
+      setDateKey(prev => prev !== now ? now : prev);
+    }, [])
+  );
+
+  const weekDates = useMemo(() => getWeekDates(), [dateKey]);
+  const today = useMemo(() => getDateString(), [dateKey]);
   const weekDatesKey = useMemo(() => weekDates.join(','), [weekDates]);
 
   const loadHabits = useCallback(async () => {
@@ -155,7 +169,7 @@ export function useHabits() {
       await calculateStreak(h);
       setLoading(false);
     })();
-  }, []);
+  }, [dateKey]);
 
   const saveHabits = useCallback(async (updated: Habit[]) => {
     setHabits(updated);

@@ -16,7 +16,7 @@ export class LocalFoodService {
    * Search for food in local database by name
    * Uses fuzzy matching on normalized names
    */
-  async findLocalFood(query: string, locale: 'en' | 'ru' | 'kk' | 'fr' = 'en'): Promise<CanonicalFood | null> {
+  async findLocalFood(query: string, locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en'): Promise<CanonicalFood | null> {
     try {
       const normalizedQuery = this.normalizeName(query);
 
@@ -96,7 +96,7 @@ export class LocalFoodService {
   /**
    * Get localized display name
    */
-  private getDisplayName(localFood: any, locale: 'en' | 'ru' | 'kk' | 'fr'): string {
+  private getDisplayName(localFood: any, locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'): string {
     if (locale === 'ru' && localFood.nameRu) {
       return localFood.nameRu;
     }

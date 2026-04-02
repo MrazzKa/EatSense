@@ -9,7 +9,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DietsService } from './diets.service';
 
 // Locales to pre-warm
-const LOCALES = ['en', 'ru', 'kk', 'fr'];
+const LOCALES = ['en', 'ru', 'kk', 'fr', 'de', 'es'];
 
 @Injectable()
 export class DietsCacheWarmerService implements OnModuleInit {

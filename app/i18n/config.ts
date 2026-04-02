@@ -8,10 +8,6 @@ import kk from './locales/kk.json';
 import es from './locales/es.json';
 import de from './locales/de.json';
 import fr from './locales/fr.json';
-import ko from './locales/ko.json';
-import ja from './locales/ja.json';
-import zh from './locales/zh.json';
-
 // FIX: Removed language storage - language is now auto-detected from device and cannot be changed
 // const STORAGE_KEY = '@eatsense:language'; // No longer used
 
@@ -19,7 +15,7 @@ import zh from './locales/zh.json';
 const DEFAULT_FALLBACK = String(process.env.EXPO_PUBLIC_DEFAULT_LOCALE || 'en').trim() || 'en';
 
 const SUPPORTED_LOCALES_RAW = String(
-  process.env.EXPO_PUBLIC_SUPPORTED_LOCALES || 'en,ru,kk,es,de,fr,ko,ja,zh',
+  process.env.EXPO_PUBLIC_SUPPORTED_LOCALES || 'en,ru,kk,es,de,fr',
 ).trim();
 const SUPPORTED_LOCALES = SUPPORTED_LOCALES_RAW
   .split(',')
@@ -33,9 +29,6 @@ const resources = {
   es: { translation: es },
   de: { translation: de },
   fr: { translation: fr },
-  ko: { translation: ko },
-  ja: { translation: ja },
-  zh: { translation: zh },
 } as const;
 
 const resolveSupportedLocale = (candidate?: string) => {

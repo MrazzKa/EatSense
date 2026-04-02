@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +21,7 @@ interface HabitModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (habit: { emoji: string; name: string; frequency: HabitFrequency; customDays?: number[] }) => void;
+  onDelete?: (habit: Habit) => void;
   editHabit?: Habit | null;
 }
 
@@ -27,7 +29,7 @@ const DEFAULT_EMOJIS = ['💧', '🏃', '🧘', '📖', '💊', '🥗', '😴', 
 const DAY_KEYS = ['common.mon', 'common.tue', 'common.wed', 'common.thu', 'common.fri', 'common.sat', 'common.sun'];
 const DAY_FALLBACKS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-export default function HabitModal({ visible, onClose, onSave, editHabit }: HabitModalProps) {
+export default function HabitModal({ visible, onClose, onSave, onDelete, editHabit }: HabitModalProps) {
   const { colors, tokens } = useTheme();
   const { t } = useI18n();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
@@ -175,6 +177,28 @@ export default function HabitModal({ visible, onClose, onSave, editHabit }: Habi
                 ))}
               </View>
             )}
+
+            {/* Delete button (only when editing) */}
+            {editHabit && onDelete && (
+              <TouchableOpacity
+                style={[styles.deleteBtn, { backgroundColor: colors.errorTint || (colors.error + '20') }]}
+                onPress={() => {
+                  Alert.alert(
+                    t('tracker.habits.deleteTitle') || 'Delete Habit',
+                    t('tracker.habits.deleteMessage') || 'Are you sure you want to delete this habit? This cannot be undone.',
+                    [
+                      { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+                      { text: t('common.delete') || 'Delete', style: 'destructive', onPress: () => { onDelete(editHabit); onClose(); } },
+                    ]
+                  );
+                }}
+              >
+                <Ionicons name="trash" size={18} color={colors.error} />
+                <Text style={[styles.deleteText, { color: colors.error }]}>
+                  {t('common.delete') || 'Delete'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -270,6 +294,20 @@ const createStyles = (tokens: any, colors: any) =>
     },
     dayText: {
       fontSize: 13,
+      fontWeight: '600',
+    },
+    deleteBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 14,
+      borderRadius: tokens.radii.md || 12,
+      marginTop: 24,
+      marginBottom: 32,
+      gap: 8,
+    },
+    deleteText: {
+      fontSize: 15,
       fontWeight: '600',
     },
   });

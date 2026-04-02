@@ -400,6 +400,7 @@ export class VisionService {
       imageBase64: imageBase64 || (imageBuffer ? imageBuffer.toString('base64') : undefined),
       mode,
       foodDescription,
+      locale,
     });
 
     // Cache successful results with correct key (including version) - even if skipCache was used for read
@@ -425,8 +426,8 @@ export class VisionService {
    *
    * Returns VisionExtractionResult with explicit status for all outcomes
    */
-  private async extractComponentsInternal(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review'; foodDescription?: string }): Promise<VisionExtractionResult> {
-    const { imageUrl, imageBase64, mode = 'default', foodDescription } = params;
+  private async extractComponentsInternal(params: { imageUrl?: string; imageBase64?: string; mode?: 'default' | 'review'; foodDescription?: string; locale?: string }): Promise<VisionExtractionResult> {
+    const { imageUrl, imageBase64, mode = 'default', foodDescription, locale: paramLocale } = params;
 
     if (!imageUrl && !imageBase64) {
       return {
@@ -473,9 +474,9 @@ export class VisionService {
       `[VisionService] Calling OpenAI Vision with base64=${Boolean(imageBase64)}, url=${imageBase64 ? 'data:image/jpeg;base64,...' : finalImageUrl}`,
     );
 
-    // Enhanced system prompt - EatSense OMEGA v4.0 fast, accurate food recognition
+    // Enhanced system prompt - EatSense OMEGA v5.0 fast, accurate food recognition
     // Locale is passed from getOrExtractComponents params
-    const locale = params.imageUrl ? 'ru' : 'en'; // Default, actual locale should be passed through
+    const locale = paramLocale || 'en';
 
     let systemPrompt = `You are EatSense OMEGA v5.0 — fast, accurate food recognition.
 
@@ -567,6 +568,9 @@ Use these visual cues:
 ## LOCALIZATION (locale: ${locale})
 - ru: "лосось", "рис", "курица", "борщ"
 - kk: "балық", "күріш", "тауық"
+- fr: "saumon", "riz", "poulet"
+- es: "salmón", "arroz", "pollo"
+- de: "Lachs", "Reis", "Hähnchen"
 - en: default English names
 
 ## DISH NAMING

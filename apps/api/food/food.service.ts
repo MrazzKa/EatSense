@@ -24,7 +24,7 @@ export class FoodService {
     private readonly analyzeService: AnalyzeService,
   ) { }
 
-  async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk' | 'fr', foodDescription?: string, skipCache?: boolean) {
+  async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es', foodDescription?: string, skipCache?: boolean) {
     try {
       if (!file) {
         throw new BadRequestException('No image file provided');
@@ -57,7 +57,7 @@ export class FoodService {
       }
 
       // PART 3.1: Get user language from profile if locale not provided
-      let effectiveLocale: 'en' | 'ru' | 'kk' | 'fr' = locale || 'en';
+      let effectiveLocale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = locale || 'en';
       if (!locale) {
         try {
           const userProfile = await this.prisma.userProfile.findUnique({
@@ -65,8 +65,8 @@ export class FoodService {
             select: { preferences: true },
           });
           const userLanguage = (userProfile?.preferences as any)?.language;
-          if (userLanguage && ['en', 'ru', 'kk', 'fr'].includes(userLanguage)) {
-            effectiveLocale = userLanguage as 'en' | 'ru' | 'kk' | 'fr';
+          if (userLanguage && ['en', 'ru', 'kk', 'fr', 'de', 'es'].includes(userLanguage)) {
+            effectiveLocale = userLanguage as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
           }
         } catch (error) {
           // If profile fetch fails, use default 'en'
@@ -151,13 +151,13 @@ export class FoodService {
     }
   }
 
-  async analyzeText(description: string, userId: string, locale?: 'en' | 'ru' | 'kk' | 'fr', skipCache?: boolean) {
+  async analyzeText(description: string, userId: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es', skipCache?: boolean) {
     if (!description || description.trim().length === 0) {
       throw new BadRequestException('Description cannot be empty');
     }
 
     // PART 3.1: Get user language from profile if locale not provided
-    let effectiveLocale: 'en' | 'ru' | 'kk' | 'fr' = locale || 'en';
+    let effectiveLocale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = locale || 'en';
     if (!locale) {
       try {
         const userProfile = await this.prisma.userProfile.findUnique({
@@ -165,8 +165,8 @@ export class FoodService {
           select: { preferences: true },
         });
         const userLanguage = (userProfile?.preferences as any)?.language;
-        if (userLanguage && ['en', 'ru', 'kk', 'fr'].includes(userLanguage)) {
-          effectiveLocale = userLanguage as 'en' | 'ru' | 'kk' | 'fr';
+        if (userLanguage && ['en', 'ru', 'kk', 'fr', 'de', 'es'].includes(userLanguage)) {
+          effectiveLocale = userLanguage as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
         }
       } catch (error) {
         // If profile fetch fails, use default 'en'
@@ -632,7 +632,7 @@ export class FoodService {
     const locale = metadata?.locale || 'en';
 
     // 5. Compute HealthScore using AnalyzeService (reuse existing logic)
-    const healthScore = this.analyzeService.computeHealthScore(total, total.portion_g, items, locale as 'en' | 'ru' | 'kk' | 'fr');
+    const healthScore = this.analyzeService.computeHealthScore(total, total.portion_g, items, locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es');
 
     // 6. Run sanity check
     const debug: any = {};
@@ -678,7 +678,7 @@ export class FoodService {
       items,
       total,
       healthScore,
-      locale: locale as 'en' | 'ru' | 'kk' | 'fr',
+      locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
       dishNameLocalized: dishNameLocalized || originalDishName,
       originalDishName,
       isSuspicious,
@@ -749,14 +749,14 @@ export class FoodService {
       this.logger.log(`[FoodService] Re-analyzing image from original URL for analysis ${analysisId}`);
       newAnalysisData = await this.analyzeService.analyzeImage({
         imageUrl,
-        locale: locale as 'en' | 'ru' | 'kk' | 'fr',
+        locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
         mode,
       });
     } else if (textQuery) {
       this.logger.log(`[FoodService] Re-analyzing text from original query for analysis ${analysisId}`);
       newAnalysisData = await this.analyzeService.analyzeText(
         textQuery,
-        locale as 'en' | 'ru' | 'kk' | 'fr',
+        locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
       );
     } else {
       throw new BadRequestException('No valid input found for re-analysis');
@@ -967,7 +967,7 @@ export class FoodService {
       items: updatedItems,
       total: totals,
       healthScore,
-      locale: locale as 'en' | 'ru' | 'kk' | 'fr',
+      locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     };
 
     // 5. Создаём новый AnalysisResult
@@ -1030,7 +1030,7 @@ export class FoodService {
       ...previousData,
       total: totals,
       healthScore,
-      locale: locale as 'en' | 'ru' | 'kk' | 'fr',
+      locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     };
 
     // Создаём новый AnalysisResult
@@ -1143,11 +1143,6 @@ export class FoodService {
         include: { items: true },
         orderBy: { createdAt: 'desc' },
       });
-
-      if (!meal) {
-        this.logger.debug(`[FoodService] No Meal found for analysisId=${analysisId}, skipping meal update`);
-        return;
-      }
 
       if (!meal) {
         this.logger.debug(`[FoodService] No Meal found for analysisId=${analysisId}, skipping meal update`);

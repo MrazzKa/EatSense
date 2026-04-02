@@ -20,12 +20,17 @@ interface TodoSectionProps {
   onAdd: (text: string, date?: string, reminder?: string) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  compact?: boolean;
 }
 
+/** Returns local date string YYYY-MM-DD (not UTC) */
 function getDateString(offset: number = 0): string {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function formatTime(hours: number, minutes: number): string {
@@ -34,10 +39,12 @@ function formatTime(hours: number, minutes: number): string {
   return `${h}:${m}`;
 }
 
-export default function TodoSection({ items, onAdd, onToggle, onDelete }: TodoSectionProps) {
+export default function TodoSection({ items, onAdd, onToggle, onDelete, compact = false }: TodoSectionProps) {
   const { colors, tokens } = useTheme();
   const { t } = useI18n();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
+
+  const [expanded, setExpanded] = useState(false);
 
   const [showInput, setShowInput] = useState(false);
   const [text, setText] = useState('');
@@ -108,7 +115,7 @@ export default function TodoSection({ items, onAdd, onToggle, onDelete }: TodoSe
           </TouchableOpacity>
         ) : (
           <>
-            {items.map(item => (
+            {(compact && !expanded ? items.slice(0, 3) : items).map(item => (
               <View key={item.id} style={[styles.todoRow, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity
                   onPress={() => onToggle(item.id)}
@@ -150,6 +157,17 @@ export default function TodoSection({ items, onAdd, onToggle, onDelete }: TodoSe
                 </TouchableOpacity>
               </View>
             ))}
+
+            {compact && items.length > 3 && (
+              <TouchableOpacity
+                style={styles.expandRow}
+                onPress={() => setExpanded(!expanded)}
+              >
+                <Text style={[styles.expandText, { color: colors.primary }]}>
+                  {expanded ? (t('common.showLess') || 'Show Less') : (t('common.viewAll') || `View All (${items.length})`)}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {/* Inline add */}
             {showInput ? (
@@ -450,6 +468,16 @@ const createStyles = (tokens: any, colors: any) =>
     },
     pickerDone: {
       fontSize: 16,
+      fontWeight: '600',
+    },
+    expandRow: {
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: 'transparent',
+    },
+    expandText: {
+      fontSize: 14,
       fontWeight: '600',
     },
   });

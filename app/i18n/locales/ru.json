@@ -350,6 +350,7 @@
     "rerun": "Перезапустить",
     "search": "Поиск",
     "viewAll": "Смотреть все",
+    "showLess": "Свернуть",
     "ok": "ОК",
     "yes": "Да",
     "no": "Нет",
@@ -392,7 +393,14 @@
     "comingSoon": "Скоро",
     "show": "Показать",
     "hide": "Скрыть",
-    "hoursShort": "ч"
+    "hoursShort": "ч",
+    "mon": "Пн",
+    "tue": "Вт",
+    "wed": "Ср",
+    "thu": "Чт",
+    "fri": "Пт",
+    "sat": "Сб",
+    "sun": "Вс"
   },
   "tooltips": {
     "scanMeal": {
@@ -678,7 +686,6 @@
   "diets_evidence_low": "Ограниченные доказательства",
   "diets_medical_note": "Эта диета может иметь противопоказания. Проконсультируйтесь с врачом перед началом.",
   "diets_how_it_works": "Как это работает",
-  "diets_detail": {},
   "diets_disclaimers_general": "Информация носит ознакомительный характер, не является медицинской рекомендацией.",
   "diets_disclaimers_medical": "Требуется консультация врача.",
   "diets_disclaimers_medical_short": "Медицинская",
@@ -2174,6 +2181,8 @@
       "edit": "Редактировать",
       "delete": "Удалить привычку",
       "deleteConfirm": "Вы уверены, что хотите удалить эту привычку?",
+      "deleteTitle": "Удалить привычку",
+      "deleteMessage": "Вы уверены, что хотите удалить эту привычку? Это действие нельзя отменить.",
       "name": "Название",
       "namePlaceholder": "напр. Пить воду",
       "emoji": "Эмодзи",
@@ -2405,9 +2414,6 @@
     "days_left": "дней осталось",
     "approved": "Одобрено"
   },
-  "lifestyles.filters_target_all": "Все",
-  "lifestyles.filters_target_male": "Мужчины",
-  "lifestyles.filters_target_female": "Женщины",
   "CHAT_CONSULTATION": "Чат-консультация",
   "profile": {
     "planMonthlyPrice": "{{price}} / месяц",
@@ -2680,6 +2686,10 @@
       "diets": "Все диеты и планы",
       "insights": "Инсайты здоровья",
       "support": "Приоритетная поддержка"
+    },
+    "feature": {
+      "reports": "Ежемесячные отчеты",
+      "advancedSettings": "Расширенные настройки здоровья"
     }
   },
   "premium": {
@@ -2836,213 +2846,179 @@
         "shortDescription": "Итальянская роскошь, смелые выборы"
       },
       "summer_shred": {
-        "dailyTracker": {},
         "name": "Летняя Сушка",
         "subtitle": "Стройное, рельефное, готовое к пляжу",
         "description": "Стратегическая потеря жира при сохранении мышц.",
         "shortDescription": "Стройное, рельефное"
       },
       "metabolic_reset": {
-        "dailyTracker": {},
         "name": "Метаболический Сброс",
         "subtitle": "Перебалансируйте свою энергию",
         "description": "Поддержите метаболизм через цельные продукты.",
         "shortDescription": "Перебалансировка метаболизма"
       },
       "debloat_detox": {
-        "dailyTracker": {},
         "name": "Убрать Отёки",
         "subtitle": "Сплющить, освежить, почувствовать лёгкость",
         "description": "Противовоспалительное, низконатриевое питание.",
         "shortDescription": "Убрать отёки, освежиться"
       },
       "sustainable_slim": {
-        "dailyTracker": {},
         "name": "Устойчивая Стройность",
         "subtitle": "Устойчивые привычки для долгосрочного результата",
         "description": "Подход против йо-йо. Небольшие устойчивые изменения.",
         "shortDescription": "Устойчивое похудение"
       },
       "lean_bulk": {
-        "dailyTracker": {},
         "name": "Чистый Набор",
         "subtitle": "Набрать мышцы без жира",
         "description": "Стратегический профицит. Достаточно калорий для роста.",
         "shortDescription": "Набрать мышцы, остаться стройным"
       },
       "strength_athlete": {
-        "dailyTracker": {},
         "name": "Силовой Атлет",
         "subtitle": "Топливо для силы и производительности",
         "description": "Спортивное питание для лифтеров.",
         "shortDescription": "Топливо для силы"
       },
       "athletic_performance": {
-        "dailyTracker": {},
         "name": "Спортивная Форма",
         "subtitle": "Тренируйся усердно, ешь умно",
         "description": "Спортивное питание для соревновательных атлетов.",
         "shortDescription": "Спортивное питание"
       },
       "functional_fitness": {
-        "dailyTracker": {},
         "name": "Функциональный Фитнес",
         "subtitle": "Сильный, способный, готов ко всему",
         "description": "Питание для реальной производительности.",
         "shortDescription": "Питание для функциональной силы"
       },
       "glass_skin": {
-        "dailyTracker": {},
         "subtitle": "Питание в стиле корейской красоты",
         "description": "Связь кишечника и кожи.",
         "shortDescription": "К-бьюти питание"
       },
       "acne_clear": {
-        "dailyTracker": {},
         "subtitle": "Успокоить воспаление, очистить высыпания",
         "description": "Противовоспалительное, низкогликемическое питание.",
         "shortDescription": "Питание для чистой кожи"
       },
       "anti_aging_glow": {
-        "dailyTracker": {},
         "subtitle": "Стареть красиво, сиять вечно",
         "description": "Питание для долголетия кожи.",
         "shortDescription": "Питание для долголетия"
       },
       "all_day_energy": {
-        "dailyTracker": {},
         "subtitle": "Никаких спадов, просто вперёд",
         "description": "Стабильность сахара для устойчивой энергии.",
         "shortDescription": "Стабильная энергия весь день"
       },
       "brain_fuel": {
-        "dailyTracker": {},
         "subtitle": "Фокус, ясность, умственное преимущество",
         "description": "Ноотропное питание.",
         "shortDescription": "Питание для мозга"
       },
       "adrenal_recovery": {
-        "dailyTracker": {},
         "subtitle": "Поддержать восстановление, укрепить энергию",
         "description": "Питание для восстановления при активном образе жизни.",
         "shortDescription": "Восстановление от выгорания"
       },
       "amalfi_coast": {
-        "dailyTracker": {},
         "subtitle": "Закаты с лимончелло",
         "description": "Южно-итальянская прибрежная жизнь.",
         "shortDescription": "Итальянское прибрежное питание"
       },
       "greek_islands": {
-        "dailyTracker": {},
         "subtitle": "Закаты Санторини на тарелке",
         "description": "Оригинальная средиземноморская диета.",
         "shortDescription": "Греческое средиземноморское питание"
       },
       "okinawa_longevity": {
-        "dailyTracker": {},
         "subtitle": "Вдохновлено традициями Окинавы",
         "description": "Мудрость Голубой зоны.",
         "shortDescription": "Долголетие синей зоны"
       },
       "tokyo_energy": {
-        "dailyTracker": {},
         "subtitle": "Город в быстром темпе, сбалансированное питание",
         "description": "Японская эффективность встречается с питанием.",
         "shortDescription": "Японское эффективное питание"
       },
       "scandi_hygge": {
-        "dailyTracker": {},
         "subtitle": "Уютно, сбалансированно, счастливо",
         "description": "Скандинавское питание встречается с хюгге.",
         "shortDescription": "Скандинавское уютное питание"
       },
       "1950s_bombshell": {
-        "dailyTracker": {},
         "subtitle": "Изгибы, уверенность, классическая красота",
         "description": "Настоящая еда, настоящие формы.",
         "shortDescription": "Питание для классических форм"
       },
       "prima_ballerina": {
-        "dailyTracker": {},
         "subtitle": "Грация, дисциплина, элегантная сила",
         "description": "Питание для производительности и грации.",
         "shortDescription": "Питание танцора"
       },
       "french_girl": {
-        "dailyTracker": {},
         "subtitle": "Необъяснимое очарование",
         "description": "Оригинальное интуитивное питание.",
         "shortDescription": "Французское интуитивное питание"
       },
       "pin_up_retro": {
-        "dailyTracker": {},
         "subtitle": "Винтажные изгибы",
         "description": "Домашние блюда, цельные ингредиенты.",
         "shortDescription": "Ретро бодипозитивное питание"
       },
       "minimalist_zen": {
-        "dailyTracker": {},
         "subtitle": "Меньше беспорядка, больше ясности",
         "description": "Японский минимализм.",
         "shortDescription": "Минималистичное питание"
       },
       "spartan_warrior": {
-        "dailyTracker": {},
         "subtitle": "ЭТО. ЕСТЬ. ДИСЦИПЛИНА.",
         "description": "Древнее топливо воина.",
         "shortDescription": "Спартанская дисциплина"
       },
       "viking_raider": {
-        "dailyTracker": {},
         "subtitle": "Топливо для завоеваний",
         "description": "Скандинавское топливо.",
         "shortDescription": "Питание силы викинга"
       },
       "navy_seal": {
-        "dailyTracker": {},
         "subtitle": "Элитное топливо",
         "description": "Спортивное питание, без ерунды.",
         "shortDescription": "Элитное спортивное питание"
       },
       "mma_fighter": {
-        "dailyTracker": {},
         "subtitle": "Сбросить вес, остаться сильным",
         "description": "Питание бойцовского лагеря.",
         "shortDescription": "Питание бойца"
       },
       "ceo_warrior": {
-        "dailyTracker": {},
         "subtitle": "Доминируй в зале заседаний",
         "description": "Биохакинг встречается с руководителем.",
         "shortDescription": "Биохакинг руководителя"
       },
       "stoic_monk": {
-        "dailyTracker": {},
         "subtitle": "Управляй телом, управляй умом",
         "description": "Добровольная простота.",
         "shortDescription": "Стоическая простота"
       },
       "summer_beach_body": {
-        "dailyTracker": {},
         "subtitle": "4 недели до уверенного лета",
         "description": "Лёгкое, чистое питание для пляжной уверенности.",
         "shortDescription": "Подготовка пляжного тела"
       },
       "new_year_reset": {
-        "dailyTracker": {},
         "subtitle": "Новое начало, чистый лист",
         "description": "Мягкое обновление после излишеств.",
         "shortDescription": "Новогоднее обновление"
       },
       "wedding_ready": {
-        "dailyTracker": {},
         "subtitle": "Сияющая, уверенная, идеальная",
         "description": "Постепенный подход к особому дню.",
         "shortDescription": "Питание для подготовки к свадьбе"
       },
       "holiday_balance": {
-        "dailyTracker": {},
         "subtitle": "Наслаждайтесь сезоном без сожалений",
         "description": "Навигация по праздникам без набора веса.",
         "shortDescription": "Праздничный баланс"

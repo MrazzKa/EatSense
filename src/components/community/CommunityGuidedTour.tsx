@@ -3,7 +3,7 @@
  * CommunityGuidedTour — Step-by-step onboarding for first-time community visitors
  * Shows 3 steps: Join a group → Create first post → Like & comment
  */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -68,7 +68,7 @@ export default function CommunityGuidedTour({ onStepAction, onDismiss }: Props) 
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     AsyncStorage.getItem(TOUR_STORAGE_KEY).then(val => {

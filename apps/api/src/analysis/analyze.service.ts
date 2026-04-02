@@ -866,7 +866,7 @@ export class AnalyzeService {
         foodDescription.toLowerCase().trim(),
         {
           originalQuery: foodDescription,
-          locale: locale as 'en' | 'ru' | 'kk' | 'fr',
+          locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
           region: 'OTHER',
           expectedCategory: 'solid',
         }
@@ -1098,7 +1098,7 @@ export class AnalyzeService {
    */
   private async processComponentAsync(
     component: VisionComponent,
-    locale: 'en' | 'ru' | 'kk' | 'fr',
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     debug: AnalysisDebug,
   ): Promise<AnalyzedItem[]> {
     const items: AnalyzedItem[] = [];
@@ -1650,7 +1650,7 @@ export class AnalyzeService {
    * Analyze image and return normalized nutrition data.
    * Wrapper around internal implementation to handle request coalescing (locking).
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
     // Check for pending request to prevent double analysis (Race Condition Fix)
     // This uses a memory lock so that simultaneous requests for the same image Wait for the first one
     const imageHash = this.hashImage(params);
@@ -1674,9 +1674,9 @@ export class AnalyzeService {
     }
   }
 
-  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
-    const locale = (params.locale as 'en' | 'ru' | 'kk' | 'fr' | undefined) || 'en';
+    const locale = (params.locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' | undefined) || 'en';
     const mode = params.mode || 'default';
     const skipCache = params.skipCache || false;
 
@@ -1792,7 +1792,12 @@ export class AnalyzeService {
         needsReview: true,
         locale,
         originalDishName: 'Analysis Failed',
-        dishNameLocalized: locale === 'ru' ? 'Ошибка анализа' : 'Analysis Failed',
+        dishNameLocalized: locale === 'ru' ? 'Ошибка анализа'
+          : locale === 'kk' ? 'Талдау қатесі'
+          : locale === 'fr' ? 'Échec de l\'analyse'
+          : locale === 'es' ? 'Error de análisis'
+          : locale === 'de' ? 'Analysefehler'
+          : 'Analysis Failed',
         debug: {
           timestamp: new Date().toISOString(),
           model: process.env.OPENAI_MODEL || 'gpt-4o',
@@ -1825,7 +1830,12 @@ export class AnalyzeService {
         needsReview: true,
         locale,
         originalDishName: 'Parse Error',
-        dishNameLocalized: locale === 'ru' ? 'Ошибка распознавания' : 'Parse Error',
+        dishNameLocalized: locale === 'ru' ? 'Ошибка распознавания'
+          : locale === 'kk' ? 'Тану қатесі'
+          : locale === 'fr' ? 'Erreur de reconnaissance'
+          : locale === 'es' ? 'Error de reconocimiento'
+          : locale === 'de' ? 'Erkennungsfehler'
+          : 'Parse Error',
         debug: {
           timestamp: new Date().toISOString(),
           model: process.env.OPENAI_MODEL || 'gpt-4o',
@@ -1857,7 +1867,12 @@ export class AnalyzeService {
         needsReview: true,
         locale,
         originalDishName: 'No Food Detected',
-        dishNameLocalized: locale === 'ru' ? 'Еда не обнаружена' : 'No Food Detected',
+        dishNameLocalized: locale === 'ru' ? 'Еда не обнаружена'
+          : locale === 'kk' ? 'Тамақ табылмады'
+          : locale === 'fr' ? 'Aucun aliment détecté'
+          : locale === 'es' ? 'No se detectó comida'
+          : locale === 'de' ? 'Keine Lebensmittel erkannt'
+          : 'No Food Detected',
         debug: {
           timestamp: new Date().toISOString(),
           model: process.env.OPENAI_MODEL || 'gpt-4o',
@@ -1901,6 +1916,17 @@ export class AnalyzeService {
       after: uniqueComponents.length,
       removed: visionComponents.length - uniqueComponents.length,
     };
+
+    // Pre-warm localization cache: batch translate ALL component names in ONE API call
+    // This prevents N individual OpenAI calls during processComponentAsync
+    if (locale !== 'en') {
+      const allNames = uniqueComponents.map(c => (c as any).display_name || c.name).filter(Boolean);
+      try {
+        await this.foodLocalization.localizeNamesBatch(allNames, locale);
+      } catch (e) {
+        this.logger.warn('[AnalyzeService] Batch localization pre-warm failed, will fall back per-component');
+      }
+    }
 
     // Analyze each component in parallel
     const items: AnalyzedItem[] = [];
@@ -2155,7 +2181,7 @@ export class AnalyzeService {
       dishNameSource = 'vision';
       dishNameConfidence = visionDish!.dish_name_confidence;
       // Use Vision's localized name if available, otherwise localize the English name
-      if ((locale === 'ru' || locale === 'kk' || locale === 'fr') && visionDish!.dish_name_local) {
+      if (locale !== 'en' && visionDish!.dish_name_local) {
         dishNameLocalized = visionDish!.dish_name_local;
       } else {
         dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, locale);
@@ -2178,6 +2204,18 @@ export class AnalyzeService {
             break;
           case 'kk':
             dishNameLocalized = 'Тамақтану';
+            originalDishName = 'Meal';
+            break;
+          case 'fr':
+            dishNameLocalized = 'Repas';
+            originalDishName = 'Meal';
+            break;
+          case 'es':
+            dishNameLocalized = 'Comida';
+            originalDishName = 'Meal';
+            break;
+          case 'de':
+            dishNameLocalized = 'Mahlzeit';
             originalDishName = 'Meal';
             break;
           default:
@@ -2303,10 +2341,10 @@ export class AnalyzeService {
   /**
    * Analyze text description
    */
-  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk' | 'fr', skipCache?: boolean): Promise<AnalysisData> {
+  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es', skipCache?: boolean): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     // Normalize locale
-    const normalizedLocale: 'en' | 'ru' | 'kk' | 'fr' =
+    const normalizedLocale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' =
       (locale as any) || 'en';
 
     // Log skip-cache mode if enabled
@@ -2332,6 +2370,16 @@ export class AnalyzeService {
       timestamp: new Date().toISOString(),
       model: 'text-input',
     };
+
+    // Pre-warm localization cache: batch translate ALL component names in ONE API call
+    if (normalizedLocale !== 'en') {
+      const allNames = components.map(c => c.name).filter(Boolean);
+      try {
+        await this.foodLocalization.localizeNamesBatch(allNames, normalizedLocale);
+      } catch (e) {
+        this.logger.warn('[AnalyzeService] Batch localization pre-warm failed for text analysis');
+      }
+    }
 
     // Use the same processing logic as analyzeImage for consistency
     const items: AnalyzedItem[] = [];
@@ -2478,14 +2526,24 @@ export class AnalyzeService {
     // Build English base dish name from original names
     const originalDishName = this.buildDishNameEn(items);
     const dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, normalizedLocale);
+    const displayName = dishNameLocalized || originalDishName || 'Meal';
+
+    // Enrich health score with AI-generated feedback (same as image analysis)
+    const enrichedHealthScore = await this.enrichHealthScoreWithAiFeedback(
+      healthScore,
+      displayName,
+      items,
+      total,
+      normalizedLocale,
+    );
 
     return {
       items,
       total,
-      healthScore,
+      healthScore: enrichedHealthScore,
       debug: isDebugMode ? debug : undefined,
       locale: normalizedLocale,
-      dishNameLocalized: dishNameLocalized || originalDishName,
+      dishNameLocalized: displayName,
       originalDishName,
       isSuspicious,
       needsReview,
@@ -2532,7 +2590,7 @@ export class AnalyzeService {
     canonicalFood: CanonicalFood,
     portionG: number,
     nutrients: Nutrients,
-    locale: 'en' | 'ru' | 'kk' | 'fr',
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     source: string,
     usedVisionFallback: boolean = false,
   ): Promise<AnalyzedItem & { baseName?: string; displayNameLocalized?: string; providerId?: string }> {
@@ -2600,7 +2658,7 @@ export class AnalyzeService {
     component: VisionComponent,
     items: AnalyzedItem[],
     debug: AnalysisDebug,
-    locale: 'en' | 'ru' | 'kk' | 'fr' = 'en',
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en',
     isBeverage: boolean = false,
   ): Promise<void> {
     // Если Vision уверен (confidence >= 0.7) и имя не слишком общее
@@ -3285,7 +3343,7 @@ export class AnalyzeService {
    * Compute health score from totals and items
    * Public method for re-analysis use cases
    */
-  public computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' | 'fr' = 'en'): HealthScore {
+  public computeHealthScore(total: AnalysisTotals, totalPortion: number, items?: AnalyzedItem[], locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en'): HealthScore {
     // Use new internal method for proper calculation
     const itemsArray = items || [];
     const totalsForInternal = {
@@ -3327,7 +3385,7 @@ export class AnalyzeService {
     dishName: string,
     items: AnalyzedItem[],
     totals: AnalysisTotals,
-    locale: 'en' | 'ru' | 'kk' | 'fr' = 'en',
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en',
     analysisId?: string,
   ): Promise<HealthScore> {
     // Check if AI is enabled
@@ -3443,7 +3501,7 @@ export class AnalyzeService {
 
   private buildFeedback(
     factors: Record<string, { label: string; score: number; weight: number }>,
-    locale: 'en' | 'ru' | 'kk' | 'fr' = 'en',
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en',
   ): Array<{ key: string; label: string; action: 'celebrate' | 'increase' | 'reduce' | 'monitor'; message: string }> {
     const entries: Array<{ key: string; label: string; action: 'celebrate' | 'increase' | 'reduce' | 'monitor'; message: string }> = [];
     const penaltyKeys = ['satFat', 'sugar', 'energyDensity'];
@@ -3516,7 +3574,7 @@ export class AnalyzeService {
     return entries;
   }
 
-  private translateLabel(label: string, locale: 'en' | 'ru' | 'kk' | 'fr'): string {
+  private translateLabel(label: string, locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'): string {
     const translations: Record<string, Record<string, string>> = {
       Protein: { ru: 'Белок', kk: 'Ақуыз', fr: 'Protéines' },
       Fiber: { ru: 'Клетчатка', kk: 'Талшық', fr: 'Fibres' },
@@ -3547,8 +3605,8 @@ export class AnalyzeService {
     const factors = healthScore.factors;
     const { calories, sugars } = totals;
 
-    // Приводим locale к базовым ('en' | 'ru' | 'kk' | 'fr')
-    const lang = (locale || 'en').split('-')[0] as 'en' | 'ru' | 'kk' | 'fr';
+    // Приводим locale к базовым ('en' | 'ru' | 'kk' | 'fr' | 'de' | 'es')
+    const lang = (locale || 'en').split('-')[0] as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
 
     // Хелпер для текстов
     const t = (code: string): string => {
@@ -3628,6 +3686,44 @@ export class AnalyzeService {
           caloric_surplus_warning: 'Les calories totales de ce repas sont relativement élevées ; surveillez votre apport quotidien global.',
           caloric_low_warning: 'Les calories sont faibles — cela ressemble plus à une collation qu\'à un repas complet.',
           too_small_for_score: 'Cette portion est trop petite pour calculer un score de santé significatif.',
+        },
+        de: {
+          overall_excellent: 'Diese Mahlzeit sieht sehr ausgewogen und nährstoffreich aus.',
+          overall_good: 'Insgesamt sieht diese Mahlzeit recht ausgewogen aus.',
+          overall_average: 'Diese Mahlzeit ist in Ordnung, aber es gibt Verbesserungspotenzial.',
+          overall_poor: 'Diese Mahlzeit ist recht unausgewogen. Versuchen Sie es beim nächsten Mal besser.',
+          high_protein: 'Guter Proteingehalt — das hilft, die Muskelmasse zu erhalten.',
+          low_protein: 'Der Proteingehalt ist relativ niedrig. Erwägen Sie Fleisch, Fisch, Eier oder Hülsenfrüchte.',
+          high_fiber: 'Gute Ballaststoffmenge — gut für die Verdauung und Blutzuckerkontrolle.',
+          low_fiber: 'Ballaststoffe sind niedrig. Versuchen Sie, Gemüse, Obst oder Vollkornprodukte hinzuzufügen.',
+          low_saturated_fat: 'Gesättigte Fette liegen im vertretbaren Rahmen.',
+          high_saturated_fat: 'Gesättigte Fette sind hoch. Reduzieren Sie fettes Fleisch, Butter oder Gebäck.',
+          low_sugar: 'Freier Zucker liegt im vernünftigen Bereich.',
+          high_sugar: 'Freier Zucker ist relativ hoch — Vorsicht bei Süßigkeiten und zuckerhaltigen Getränken.',
+          low_energy_density: 'Die Energiedichte ist niedrig — das bedeutet mehr Volumen für weniger Kalorien.',
+          high_energy_density: 'Die Energiedichte ist hoch. Solche Mahlzeiten lassen sich leicht überessen.',
+          caloric_surplus_warning: 'Die Gesamtkalorien dieser Mahlzeit sind relativ hoch — achten Sie auf Ihre tägliche Gesamtzufuhr.',
+          caloric_low_warning: 'Der Kaloriengehalt ist niedrig — das ähnelt eher einem Snack als einer Mahlzeit.',
+          too_small_for_score: 'Diese Portion ist zu klein für eine aussagekräftige Gesundheitsbewertung.',
+        },
+        es: {
+          overall_excellent: 'Esta comida parece muy equilibrada y nutritiva.',
+          overall_good: 'En general, esta comida parece bastante equilibrada.',
+          overall_average: 'Esta comida está bien, pero hay margen de mejora.',
+          overall_poor: 'Esta comida es bastante desequilibrada. Intente mejorarla la próxima vez.',
+          high_protein: 'Buen contenido de proteínas — ayuda a preservar la masa muscular.',
+          low_protein: 'Las proteínas son relativamente bajas. Considere agregar carne, pescado, huevos o legumbres.',
+          high_fiber: 'Buena cantidad de fibra — bueno para la digestión y el control del azúcar en sangre.',
+          low_fiber: 'La fibra es baja. Intente agregar verduras, frutas o cereales integrales.',
+          low_saturated_fat: 'Las grasas saturadas están dentro de límites razonables.',
+          high_saturated_fat: 'Las grasas saturadas son altas. Intente reducir carnes grasas, mantequilla o repostería.',
+          low_sugar: 'El azúcar libre está en un rango razonable.',
+          high_sugar: 'El azúcar libre es relativamente alto — cuidado con los dulces y las bebidas azucaradas.',
+          low_energy_density: 'La densidad energética es baja, lo que generalmente significa más volumen por menos calorías.',
+          high_energy_density: 'La densidad energética es alta. Estas comidas son fáciles de comer en exceso sin notarlo.',
+          caloric_surplus_warning: 'Las calorías totales de esta comida son relativamente altas; vigile su ingesta diaria.',
+          caloric_low_warning: 'Las calorías son bajas — esto parece más un snack que una comida completa.',
+          too_small_for_score: 'Esta porción es demasiado pequeña para calcular una puntuación de salud significativa.',
         },
       };
       return dict[lang]?.[code] ?? dict.en[code] ?? code;
@@ -3769,7 +3865,7 @@ export class AnalyzeService {
     input: {
       analysisId: string;
       components: Array<{ id: string; name: string; portion_g: number }>;
-      locale?: 'en' | 'ru' | 'kk' | 'fr';
+      locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
       region?: 'US' | 'CH' | 'EU' | 'OTHER';
     },
     _userId: string,

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking, Image, ActionSheetIOS } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -278,7 +278,7 @@ const ProfileScreen = () => {
   const [editing, setEditing] = useState(false);
   const [showHealthDetails, setShowHealthDetails] = useState(false);
   const [showBiomarkerDisclaimer, setShowBiomarkerDisclaimer] = useState(false);
-  const [chevronRotation] = useState(new Animated.Value(0));
+  const chevronRotation = useRef(new Animated.Value(0)).current;
 
   const initials = useMemo(() => {
     const parts = [profile.firstName, profile.lastName].filter(Boolean);

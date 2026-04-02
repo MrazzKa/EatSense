@@ -116,12 +116,12 @@ export default function CameraScreen() {
             const context = ImageManipulator.ImageManipulator.manipulate(photo.uri);
             context.resize({ width: 1024 });
             const imageRef = await context.renderAsync();
-            compressedImage = await imageRef.saveAsync({ compress: 0.8, format: 'jpeg' });
+            compressedImage = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               photo.uri,
               [{ resize: { width: 1024 } }],
-              { compress: 0.8, format: 'jpeg' },
+              { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
             );
           }
         } catch (compressError) {
@@ -177,14 +177,16 @@ export default function CameraScreen() {
     }
   };
 
-  const handleDescribeFood = (description) => {
-    if (navigation && typeof navigation.navigate === 'function') {
-      navigation.navigate('AnalysisResults', {
-        description,
-        source: 'text',
-      });
+  const handleDescribeFoodCompleted = (analysisId) => {
+    // Add to pending analyses so it appears as processing card on Dashboard
+    if (analysisId) {
+      addPendingAnalysis(analysisId);
     }
     setShowDescribeModal(false);
+    // Navigate to Dashboard where the processing card will show
+    if (navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate('MainTabs', { screen: 'Dashboard' });
+    }
   };
 
   const handleGalleryPick = async () => {
@@ -213,12 +215,12 @@ export default function CameraScreen() {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
             context.resize({ width: 1600 });
             const imageRef = await context.renderAsync();
-            compressed = await imageRef.saveAsync({ compress: 0.9, format: 'jpeg' });
+            compressed = await imageRef.saveAsync({ compress: 0.9, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressed = await ImageManipulator.manipulateAsync(
               asset.uri,
               [{ resize: { width: 1600 } }],
-              { compress: 0.9, format: 'jpeg' }
+              { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
             );
           }
         } catch {
@@ -287,7 +289,11 @@ export default function CameraScreen() {
         }
         return;
       }
-      // On error, still navigate to dashboard - user can retry
+      // Show error to user, then navigate to dashboard
+      Alert.alert(
+        t('common.error') || 'Error',
+        error?.message || t('errors.analysisFailed') || 'Analysis failed. Please try again.',
+      );
       if (navigation && typeof navigation.navigate === 'function') {
         navigation.navigate('MainTabs', { screen: 'Dashboard' });
       }
@@ -447,7 +453,7 @@ export default function CameraScreen() {
       <DescribeFoodModal
         visible={showDescribeModal}
         onClose={() => setShowDescribeModal(false)}
-        onAnalyze={handleDescribeFood}
+        onAnalysisCompleted={handleDescribeFoodCompleted}
       />
 
     </View>

@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { TodoItem } from '../types/tracker';
 import { localNotificationService } from '../services/localNotificationService';
 
 const TODOS_KEY = 'tracker:todos';
 const NOTIFICATION_MAP_KEY = 'tracker:todo_notifications';
 
+/** Returns local date string YYYY-MM-DD (not UTC) */
 function getDateString(date: Date = new Date()): string {
-  return date.toISOString().split('T')[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function generateId(): string {
@@ -34,7 +39,17 @@ export function useTodos() {
   const todosRef = useRef<TodoItem[]>(todos);
   todosRef.current = todos;
 
-  const today = useMemo(() => getDateString(), []);
+  // Refresh today/tomorrow on screen focus (handles midnight crossing)
+  const [dateKey, setDateKey] = useState(() => getDateString());
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = getDateString();
+      setDateKey(prev => prev !== now ? now : prev);
+    }, [])
+  );
+
+  const today = useMemo(() => getDateString(), [dateKey]);
 
   useEffect(() => {
     (async () => {
@@ -115,7 +130,7 @@ export function useTodos() {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return getDateString(d);
-  }, []);
+  }, [dateKey]);
 
   const todayItems = useMemo(() =>
     todos.filter(t => t.date === today || t.date === tomorrowDate).sort((a, b) => {

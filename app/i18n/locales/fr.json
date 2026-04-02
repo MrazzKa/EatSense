@@ -413,6 +413,7 @@
     "skip": "Passer",
     "search": "Rechercher",
     "viewAll": "Voir tout",
+    "showLess": "Voir moins",
     "yes": "Oui",
     "no": "Non",
     "all": "Tous",
@@ -473,7 +474,14 @@
     "remove": "Supprimer",
     "apply": "Appliquer",
     "seeAll": "Voir tout",
-    "viewMore": "Voir plus"
+    "viewMore": "Voir plus",
+    "mon": "Lu",
+    "tue": "Ma",
+    "wed": "Me",
+    "thu": "Je",
+    "fri": "Ve",
+    "sat": "Sa",
+    "sun": "Di"
   },
   "tooltips": {
     "scanMeal": {
@@ -1917,6 +1925,15 @@
       "save33": "Économisez 33%",
       "studentDiscount": "Réduction étudiante",
       "limited": "Limité"
+    },
+    "avatar": {
+      "title": "Photo de Profil",
+      "camera": "Prendre une Photo",
+      "gallery": "Choisir dans la Galerie",
+      "preset": "Choisir un Avatar",
+      "remove": "Supprimer la Photo",
+      "cameraPermission": "La permission de la caméra est requise",
+      "uploadFailed": "Échec du téléchargement de la photo"
     }
   },
   "recently": {
@@ -2139,6 +2156,8 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette habitude ?",
+      "deleteTitle": "Supprimer l'habitude",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer cette habitude ? Cette action est irréversible.",
       "name": "Nom",
       "namePlaceholder": "ex. Boire de l'eau",
       "emoji": "Emoji",
@@ -2513,7 +2532,11 @@
       "support": "Support prioritaire"
     },
     "priceAfterTrial": "Puis {{price}}/mois après la période d'essai",
-    "priceMonthly": "{{price}}/mois"
+    "priceMonthly": "{{price}}/mois",
+    "feature": {
+      "reports": "Rapports Mensuels",
+      "advancedSettings": "Paramètres de Santé Avancés"
+    }
   },
   "premium": {
     "lock_title": "Contenu premium",
@@ -2590,7 +2613,6 @@
     "title": "Fonctionnalités expérimentales",
     "subtitle": "Gérer les expériences"
   },
-  "diets_detail": {},
   "title": "Titre",
   "programs": {
     "lifestyle": {
@@ -2734,213 +2756,179 @@
         "shortDescription": "Luxe italien, choix audacieux"
       },
       "summer_shred": {
-        "dailyTracker": {},
         "name": "Summer Shred",
         "subtitle": "Sèche, définie, prête plage",
         "description": "Perte de gras stratégique, préserver le muscle. Protéines, légumes.",
         "shortDescription": "Sèche, définie, prête plage"
       },
       "metabolic_reset": {
-        "dailyTracker": {},
         "name": "Reset métabolique",
         "subtitle": "Rééquilibrer vos systèmes énergétiques",
         "description": "Soutenir le métabolisme : aliments bruts, glycémie stable, fenêtres alimentaires.",
         "shortDescription": "Équilibre métabolique, énergie stable"
       },
       "debloat_detox": {
-        "dailyTracker": {},
         "name": "Détox & Dégonflement",
         "subtitle": "Aplatir, rafraîchir, se sentir léger",
         "description": "Anti-inflammatoire, peu de sodium, intestin-friendly.",
         "shortDescription": "Dégonfler, rafraîchir, légèreté"
       },
       "sustainable_slim": {
-        "dailyTracker": {},
         "name": "Minceur Durable",
         "subtitle": "Perdre et ne pas reprendre",
         "description": "Approche anti-yo-yo. Petits changements durables, habitudes pas chiffres.",
         "shortDescription": "Perte de poids durable"
       },
       "lean_bulk": {
-        "dailyTracker": {},
         "name": "Prise de Masse Sèche",
         "subtitle": "Prendre du muscle sans gras",
         "description": "Surplus stratégique. Assez de calories pour grossir, assez de protéines.",
         "shortDescription": "Prendre du muscle, rester sec"
       },
       "strength_athlete": {
-        "dailyTracker": {},
         "name": "Athlète force",
         "subtitle": "Carburant force et performance",
         "description": "Nutrition performance pour haltérophiles. Protéines, glucides stratégiques.",
         "shortDescription": "Carburant force"
       },
       "athletic_performance": {
-        "dailyTracker": {},
         "name": "Performance athlétique",
         "subtitle": "S\\",
         "description": "Nutrition sportive pour athlètes compétitifs.",
         "shortDescription": "Nutrition performance athlétique"
       },
       "functional_fitness": {
-        "dailyTracker": {},
         "name": "Fitness Fonctionnel",
         "subtitle": "Fort, capable, prêt à tout",
         "description": "Nutrition performance au quotidien. Macros équilibrés, anti-inflammatoire.",
         "shortDescription": "Nutrition force fonctionnelle"
       },
       "glass_skin": {
-        "dailyTracker": {},
         "subtitle": "Nutrition inspirée de la beauté coréenne",
         "description": "Lien intestin-peau. Fermentés, oméga-3, collagène.",
         "shortDescription": "Nutrition K-beauty"
       },
       "acne_clear": {
-        "dailyTracker": {},
         "subtitle": "Apaiser l'esprit",
         "description": "Anti-inflammatoire, alimentation low-glycémique.",
         "shortDescription": "Nutrition peau nette"
       },
       "anti_aging_glow": {
-        "dailyTracker": {},
         "subtitle": "Vieillir avec grâce, rayonner",
         "description": "Nutrition longévité. Antioxydants, collagène, bonnes graisses.",
         "shortDescription": "Nutrition axée sur la longévité"
       },
       "all_day_energy": {
-        "dailyTracker": {},
         "subtitle": "Pas de coup de barre, en avant",
         "description": "Glycémie stable pour énergie durable.",
         "shortDescription": "Énergie stable toute la journée"
       },
       "brain_fuel": {
-        "dailyTracker": {},
         "subtitle": "Focus, clarté, acuité mentale",
         "description": "Nutrition nootropique. Oméga-3, glucose stable.",
         "shortDescription": "Nutrition cerveau"
       },
       "adrenal_recovery": {
-        "dailyTracker": {},
         "subtitle": "Soutenir la récupération, nourrir la vitalité",
         "description": "Nutrition de récupération pour les modes de vie actifs.",
         "shortDescription": "Récupération burnout"
       },
       "amalfi_coast": {
-        "dailyTracker": {},
         "subtitle": "Couchers limoncello, rêves italiens",
         "description": "Vie côtière sud italien.",
         "shortDescription": "Alimentation côtière italienne"
       },
       "greek_islands": {
-        "dailyTracker": {},
         "subtitle": "Couchers Santorin dans l'assiette",
         "description": "Le régime méditerranéen originel.",
         "shortDescription": "Alimentation grecque méditerranéenne"
       },
       "okinawa_longevity": {
-        "dailyTracker": {},
         "subtitle": "Inspiré par les traditions okinawaises",
         "description": "Sagesse zone bleue. Hara hachi bu — 80 % plein.",
         "shortDescription": "Longévité zone bleue"
       },
       "tokyo_energy": {
-        "dailyTracker": {},
         "subtitle": "Ville rapide, alimentation équilibrée",
         "description": "Efficacité japonaise et nutrition.",
         "shortDescription": "Alimentation japonaise efficace"
       },
       "scandi_hygge": {
-        "dailyTracker": {},
         "subtitle": "Cocooning, équilibré, durablement heureux",
         "description": "Alimentation nordique et hygge.",
         "shortDescription": "Alimentation nordique cocooning"
       },
       "1950s_bombshell": {
-        "dailyTracker": {},
         "subtitle": "Courbes, confiance, beauté classique",
         "description": "Vraie nourriture, vraies courbes. Protéines, ingrédients bruts.",
         "shortDescription": "Nutrition courbes classiques"
       },
       "prima_ballerina": {
-        "dailyTracker": {},
         "subtitle": "Grâce, discipline, force élégante",
         "description": "Manger pour performance et grâce. Glucides énergie, protéines force.",
         "shortDescription": "Nutrition danseur"
       },
       "french_girl": {
-        "dailyTracker": {},
         "subtitle": "Je ne sais quoi à chaque bouchée",
         "description": "Manger intuitif originel. Trois repas, pas de grignotage, vin au dîner.",
         "shortDescription": "Alimentation intuitive française"
       },
       "pin_up_retro": {
-        "dailyTracker": {},
         "subtitle": "Courbes vintage, confiance moderne",
         "description": "Repas maison, ingrédients bruts, sans culpabilité.",
         "shortDescription": "Alimentation rétro body-positive"
       },
       "minimalist_zen": {
-        "dailyTracker": {},
         "subtitle": "Moins de désordre, plus de clarté",
         "description": "Minimalisme inspiré du Japon. Peu d'ingrédients, haute qualité.",
         "shortDescription": "Alimentation minimaliste"
       },
       "spartan_warrior": {
-        "dailyTracker": {},
         "subtitle": "CECI. EST. LA DISCIPLINE.",
         "description": "Carburant guerrier antique. Aliments simples, pas de luxe.",
         "shortDescription": "Discipline spartiate"
       },
       "viking_raider": {
-        "dailyTracker": {},
         "subtitle": "Carburant conquête et froid",
         "description": "Carburant nordique. Gras, protéines, fermentés.",
         "shortDescription": "Alimentation force viking"
       },
       "navy_seal": {
-        "dailyTracker": {},
         "subtitle": "Carburant élite pour performance élite",
         "description": "Nutrition performance, pas de bêtises. Calories pour output élevé.",
         "shortDescription": "Nutrition performance élite"
       },
       "mma_fighter": {
-        "dailyTracker": {},
         "subtitle": "Sèche, reste fort, domine",
         "description": "Nutrition camp d'entraînement",
         "shortDescription": "Nutrition combattant"
       },
       "ceo_warrior": {
-        "dailyTracker": {},
         "subtitle": "Domine la salle de réunion",
         "description": "Biohacking dirigeant. Jeûne intermittent, principes keto.",
         "shortDescription": "Biohacking dirigeant"
       },
       "stoic_monk": {
-        "dailyTracker": {},
         "subtitle": "Maîtrise corps et esprit",
         "description": "Simplicité volontaire. Manger peu, ne rien désirer.",
         "shortDescription": "Simplicité stoïque"
       },
       "summer_beach_body": {
-        "dailyTracker": {},
         "subtitle": "4 semaines vers l'objectif",
         "description": "Manger léger et sain pour confiance plage.",
         "shortDescription": "Prépa corps plage"
       },
       "new_year_reset": {
-        "dailyTracker": {},
         "subtitle": "Nouveau départ, page blanche",
         "description": "Reset doux après les excès.",
         "shortDescription": "Reset Nouvel An"
       },
       "wedding_ready": {
-        "dailyTracker": {},
         "subtitle": "Lumineuse, confiante, parfaite en photo",
         "description": "Approche graduelle et durable pour le grand jour.",
         "shortDescription": "Nutrition prépa mariage"
       },
       "holiday_balance": {
-        "dailyTracker": {},
         "subtitle": "Profiter des fêtes sans regret",
         "description": "Traverser les fêtes sans prendre ni se priver.",
         "shortDescription": "Équilibre fêtes"

@@ -228,7 +228,7 @@ export class AiAssistantService {
         status: error?.status,
         responseStatus: error?.response?.status,
         responseData: error?.response?.data,
-        model: process.env.OPENAI_MODEL || 'gpt-4.1',
+        model: process.env.OPENAI_MODEL || 'gpt-4o',
         type,
         userId,
       });
@@ -476,7 +476,7 @@ CRITICAL RULES:
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o', // Use GPT-4o for better medical text analysis
+        model: process.env.OPENAI_MODEL || 'gpt-4o',
         messages: [
           { role: 'system', content: prompt },
           { role: 'user', content: `Analyze these lab results:\n\n${text}` },
@@ -595,7 +595,7 @@ CRITICAL RULES:
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o', // Use GPT-4o for Vision analysis of medical docs
+        model: process.env.OPENAI_MODEL || 'gpt-4o',
 
         messages: [
           { role: 'system', content: imagePrompt },

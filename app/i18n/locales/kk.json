@@ -339,6 +339,7 @@
     "rerun": "Қайта қосу",
     "search": "Іздеу",
     "viewAll": "Барлығын көру",
+    "showLess": "Жасыру",
     "ok": "ОК",
     "yes": "Иә",
     "no": "Жоқ",
@@ -377,7 +378,14 @@
     "hoursShort": "сағ",
     "stop": "Тоқтату",
     "goBack": "Артқа қайту",
-    "gotIt": "Түсіндім"
+    "gotIt": "Түсіндім",
+    "mon": "Дс",
+    "tue": "Сс",
+    "wed": "Ср",
+    "thu": "Бс",
+    "fri": "Жм",
+    "sat": "Сн",
+    "sun": "Жс"
   },
   "tooltips": {
     "scanMeal": {
@@ -1195,7 +1203,7 @@
     "description": "Толық мүмкіндіктер алу үшін жаңартыңыз",
     "resetsAt": "Жаңартылатын уақыт",
     "tryFreeTrial": "Тегін байқап көріңіз",
-    "tryFreeTrialMessage": "Шексіз мүмкіндіктерді тегін байқап көріңіз",
+    "tryFreeTrialMessage": "{{price}} үшін байқап көріңіз",
     "unlimitedBenefit": "Шексіз пайда",
     "upgradeToPremium": "Премиумға өту"
   },
@@ -1621,8 +1629,8 @@
     "systemTheme": "Жүйелік",
     "notifications": "Хабарламалар",
     "notificationsInfo": "Ақпарат",
-    "notificationsDailyDescription": "Күнделікті еске салғыштар",
-    "notificationsChangeTime": "Уақытты өзгерту",
+    "notificationsDailyDescription": "Күн сайын {{time}} уақытта еске саламыз.",
+    "notificationsChangeTime": "Уақытты өзгерту (қазір {{time}})",
     "notificationsErrorTitle": "Қате",
     "notificationsErrorMessage": "Хабарлама қатесі",
     "savedTitle": "Сақталды",
@@ -1845,7 +1853,16 @@
     "metricAge": "жас",
     "metricCalories": "ккал",
     "editProfile": "Профильді өңдеу",
-    "preferences": "Басымдықтар"
+    "preferences": "Басымдықтар",
+    "avatar": {
+      "title": "Профиль суреті",
+      "camera": "Сурет түсіру",
+      "gallery": "Галереядан таңдау",
+      "preset": "Аватарды таңдау",
+      "remove": "Суретті жою",
+      "cameraPermission": "Камераға рұқсат қажет",
+      "uploadFailed": "Суретті жүктеу сәтсіз аяқталды"
+    }
   },
   "recently": {
     "title": "Жуырда",
@@ -2067,6 +2084,8 @@
       "edit": "Өзгерту",
       "delete": "Жою",
       "deleteConfirm": "Бұл әдетті жойғыңыз келе ме?",
+      "deleteTitle": "Әдетті жою",
+      "deleteMessage": "Бұл әдетті жойғыңыз келе ме? Бұл әрекетті кері қайтару мүмкін емес.",
       "name": "Атауы",
       "namePlaceholder": "мыс. Су ішу",
       "emoji": "Эмодзи",
@@ -2450,6 +2469,10 @@
       "diets": "Барлық диеталар",
       "insights": "Денсаулық инсайттары",
       "support": "Басым қолдау"
+    },
+    "feature": {
+      "reports": "Айлық есептер",
+      "advancedSettings": "Кеңейтілген денсаулық параметрлері"
     }
   },
   "premium": {
@@ -2516,7 +2539,6 @@
     "perPortion": "порцияға",
     "weightNotDetermined": "Салмақ анықталмады"
   },
-  "diets_detail": {},
   "title": "Тақырып",
   "programs": {
     "lifestyle": {
@@ -2660,213 +2682,179 @@
         "shortDescription": "Италиялық сәнділік"
       },
       "summer_shred": {
-        "dailyTracker": {},
         "name": "Жаздық Сушка",
         "subtitle": "Арық, анықталған, пляжқа дайын",
         "description": "Бұлшық етті сақтай отырып стратегиялық май жоғалту.",
         "shortDescription": "Арық, анықталған"
       },
       "metabolic_reset": {
-        "dailyTracker": {},
         "name": "Метаболизмдік Қалпына Келтіру",
         "subtitle": "Энергия жүйелеріңізді теңгерімдеңіз",
         "description": "Толық тағамдар арқылы метаболизмді қолдау.",
         "shortDescription": "Метаболизмді теңгерімдеу"
       },
       "debloat_detox": {
-        "dailyTracker": {},
         "name": "Ісінуді Алып Тастау",
         "subtitle": "Тегістеу, жаңарту, жеңіл сезіну",
         "description": "Қабынуға қарсы, төмен натрийлі тағам.",
         "shortDescription": "Ісінуді алу, жаңарту"
       },
       "sustainable_slim": {
-        "dailyTracker": {},
         "name": "Тұрақты Арықтық",
         "subtitle": "Ұзақ мерзімді нәтижеге тұрақты әдеттер",
         "description": "Йо-йоға қарсы тәсіл.",
         "shortDescription": "Тұрақты арықтау"
       },
       "lean_bulk": {
-        "dailyTracker": {},
         "name": "Таза Қосылу",
         "subtitle": "Майсыз бұлшық ет қосу",
         "description": "Стратегиялық артықшылық.",
         "shortDescription": "Бұлшық ет қосу, арық қалу"
       },
       "strength_athlete": {
-        "dailyTracker": {},
         "name": "Күш Атлеті",
         "subtitle": "Күш пен өнімділік үшін отын",
         "description": "Көтерушілерге арналған тағам.",
         "shortDescription": "Күш үшін отын"
       },
       "athletic_performance": {
-        "dailyTracker": {},
         "name": "Спорттық Форма",
         "subtitle": "Қатты жаттығу, ақылды жеу",
         "description": "Бәсекелес атлеттерге арналған тағам.",
         "shortDescription": "Спорттық тағам"
       },
       "functional_fitness": {
-        "dailyTracker": {},
         "name": "Функционалдық Фитнес",
         "subtitle": "Күшті, қабілетті, кез келген нәрсеге дайын",
         "description": "Нақты өмір өнімділігіне арналған тағам.",
         "shortDescription": "Функционалдық күш тағамы"
       },
       "glass_skin": {
-        "dailyTracker": {},
         "subtitle": "Кореялық сұлулық стиліндегі тағам",
         "description": "Ішек-тері байланысы.",
         "shortDescription": "К-бьюти тағам"
       },
       "acne_clear": {
-        "dailyTracker": {},
         "subtitle": "Қабынуды тыныштандыру",
         "description": "Қабынуға қарсы тағам.",
         "shortDescription": "Таза тері тағамы"
       },
       "anti_aging_glow": {
-        "dailyTracker": {},
         "subtitle": "Әдемі қартаю, мәңгі жарқырау",
         "description": "Теріге арналған ұзақ өмір тағамы.",
         "shortDescription": "Ұзақ өмірге арналған тағам"
       },
       "all_day_energy": {
-        "dailyTracker": {},
         "subtitle": "Төмендеу жоқ, тек алға",
         "description": "Тұрақты энергия үшін қан қантының тұрақтылығы.",
         "shortDescription": "Күн бойы тұрақты энергия"
       },
       "brain_fuel": {
-        "dailyTracker": {},
         "subtitle": "Назар, анықтық",
         "description": "Ноотроптық тағам.",
         "shortDescription": "Миға арналған тағам"
       },
       "adrenal_recovery": {
-        "dailyTracker": {},
         "subtitle": "Қалпына келтіруді қолдау, энергияны нығайту",
         "description": "Белсенді өмір салтына арналған қалпына келтіру тағамы.",
         "shortDescription": "Күйіп қалудан қалпына келтіру"
       },
       "amalfi_coast": {
-        "dailyTracker": {},
         "subtitle": "Лимончелло күн батулары",
         "description": "Оңтүстік италиялық жағалау өмірі.",
         "shortDescription": "Италиялық жағалау тағамы"
       },
       "greek_islands": {
-        "dailyTracker": {},
         "subtitle": "Санторини күн батулары табақта",
         "description": "Түпнұсқа Жерорта теңізі диетасы.",
         "shortDescription": "Грек Жерорта теңізі тағамы"
       },
       "okinawa_longevity": {
-        "dailyTracker": {},
         "subtitle": "Окинава дәстүрлерінен шабыттанған",
         "description": "Көк аймақ даналығы.",
         "shortDescription": "Көк аймақ ұзақ өмір"
       },
       "tokyo_energy": {
-        "dailyTracker": {},
         "subtitle": "Жылдам қала, теңгерімді тағам",
         "description": "Жапон тиімділігі тағаммен кездеседі.",
         "shortDescription": "Жапон тиімді тағамы"
       },
       "scandi_hygge": {
-        "dailyTracker": {},
         "subtitle": "Жайлы, теңгерімді, бақытты",
         "description": "Скандинавиялық тағам хюгге өмір салтымен.",
         "shortDescription": "Скандинавиялық жайлы тағам"
       },
       "1950s_bombshell": {
-        "dailyTracker": {},
         "subtitle": "Иілмелер, сенімділік",
         "description": "Нағыз тағам, нағыз иілмелер.",
         "shortDescription": "Классикалық иілмелер тағамы"
       },
       "prima_ballerina": {
-        "dailyTracker": {},
         "subtitle": "Сәнділік, тәртіп",
         "description": "Өнер көрсету және сәнділік үшін тағам.",
         "shortDescription": "Биші тағамы"
       },
       "french_girl": {
-        "dailyTracker": {},
         "subtitle": "Түсіндірілмейтін сүйкімділік",
         "description": "Түпнұсқа интуитивті тағам.",
         "shortDescription": "Француз интуитивті тағамы"
       },
       "pin_up_retro": {
-        "dailyTracker": {},
         "subtitle": "Винтаждық иілмелер",
         "description": "Үйде дайындалған тағамдар.",
         "shortDescription": "Ретро дене-позитивті тағам"
       },
       "minimalist_zen": {
-        "dailyTracker": {},
         "subtitle": "Азырақ шатасу, көбірек анықтық",
         "description": "Жапонға шабыттанған минимализм.",
         "shortDescription": "Минималистік тағам"
       },
       "spartan_warrior": {
-        "dailyTracker": {},
         "subtitle": "БҰЛ. БОЛЫП ТАБЫЛАДЫ. ТӘРТІП.",
         "description": "Ежелгі жауынгер отыны.",
         "shortDescription": "Спартандық тәртіп"
       },
       "viking_raider": {
-        "dailyTracker": {},
         "subtitle": "Басып алу үшін отын",
         "description": "Норвегиялық отын.",
         "shortDescription": "Викинг күші тағамы"
       },
       "navy_seal": {
-        "dailyTracker": {},
         "subtitle": "Элиталық отын",
         "description": "Өнер көрсету тағамы, мағынасыз нәрсе жоқ.",
         "shortDescription": "Элиталық спорт тағамы"
       },
       "mma_fighter": {
-        "dailyTracker": {},
         "subtitle": "Салмақты азайту, күшті қалу",
         "description": "Жауынгер лагері тағамы.",
         "shortDescription": "Жауынгер тағамы"
       },
       "ceo_warrior": {
-        "dailyTracker": {},
         "subtitle": "Кеңседе басым бол",
         "description": "Биохакинг басшымен кездеседі.",
         "shortDescription": "Басшы биохакингі"
       },
       "stoic_monk": {
-        "dailyTracker": {},
         "subtitle": "Денеңізді басқарыңыз",
         "description": "Ерікті қарапайымдылық.",
         "shortDescription": "Стоик қарапайымдылығы"
       },
       "summer_beach_body": {
-        "dailyTracker": {},
         "subtitle": "Ең сенімді жазға 4 апта",
         "description": "Пляж сенімділігі үшін жеңіл тағам.",
         "shortDescription": "Пляж денесін дайындау"
       },
       "new_year_reset": {
-        "dailyTracker": {},
         "subtitle": "Жаңа бастау, таза парақ",
         "description": "Ләззат кезеңдерінен кейінгі жұмсақ қалпына келтіру.",
         "shortDescription": "Жаңа жылдық қалпына келтіру"
       },
       "wedding_ready": {
-        "dailyTracker": {},
         "subtitle": "Жарқыраған, сенімді",
         "description": "Ерекше күніңізге арналған біртіндеп тәсіл.",
         "shortDescription": "Үйленуге дайындық тағамы"
       },
       "holiday_balance": {
-        "dailyTracker": {},
         "subtitle": "Мерекесіз кешірімсіз ләззат алыңыз",
         "description": "Салмақ қоспай мерекелерді басқару.",
         "shortDescription": "Мерекелік теңгерім"

@@ -37,6 +37,7 @@ import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
+import { formatPrice } from '../utils/currency';
 import LimitReachedModal from '../components/LimitReachedModal';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
@@ -133,8 +134,8 @@ export default function DashboardScreen() {
 
   // Removed unused currentTime and now state variables
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [plusScale] = useState(new Animated.Value(1));
-  const [plusOpacity] = useState(new Animated.Value(0));
+  const plusScale = useRef(new Animated.Value(1)).current;
+  const plusOpacity = useRef(new Animated.Value(0)).current;
   const [stats, setStats] = useState({
     totalCalories: 0,
     totalProtein: 0,
@@ -143,6 +144,8 @@ export default function DashboardScreen() {
     goal: 2000,
   });
   const [recentItems, setRecentItems] = useState([]);
+  const recentItemsRef = useRef(recentItems);
+  recentItemsRef.current = recentItems;
   const pendingAnalyses = usePendingAnalyses();
   const { retryAnalysis, removePendingAnalysis, addPendingAnalysis } = useAnalysis();
   const [userStats, setUserStats] = useState({
@@ -152,12 +155,12 @@ export default function DashboardScreen() {
   });
   const [suggestedFoodSummary, setSuggestedFoodSummary] = useState(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [cardAnimations] = useState(() => ({
+  const cardAnimations = useRef({
     calories: new Animated.Value(0),
     stats: new Animated.Value(0),
     recent: new Animated.Value(0),
     suggested: new Animated.Value(0),
-  }));
+  }).current;
 
   // Award mascot XP when an analysis completes
   const completedIdsRef = useRef(new Set());
@@ -483,7 +486,7 @@ export default function DashboardScreen() {
         AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
       }
       // FIX: Don't overwrite existing meals with empty response (timing race)
-      if (data?.meals?.length > 0 || !recentItems?.length) {
+      if (data?.meals?.length > 0 || !recentItemsRef.current?.length) {
         clientLog('Dashboard:updateStateStart').catch(() => {});
         updateDashboardState(data);
         clientLog('Dashboard:updateStateDone').catch(() => {});
@@ -576,7 +579,7 @@ export default function DashboardScreen() {
   const showTrialPopup = () => {
     Alert.alert(
       t('limits.title') || 'Лимит исчерпан',
-      t('limits.tryFreeTrialMessage') || 'Попробуйте 7 дней бесплатно без ограничений!',
+      t('limits.tryFreeTrialMessage', { price: formatPrice('monthly') }) || 'Попробуйте 7 дней бесплатно без ограничений!',
       [
         { text: t('common.later') || 'Позже', style: 'cancel' },
         {
@@ -696,12 +699,12 @@ export default function DashboardScreen() {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
             context.resize({ width: 1600 });
             const imageRef = await context.renderAsync();
-            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: 'jpeg' });
+            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               asset.uri,
               [{ resize: { width: 1600 } }],
-              { compress: 0.9, format: 'jpeg' }
+              { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
             );
           }
         } catch {
@@ -734,7 +737,7 @@ export default function DashboardScreen() {
       }
       Alert.alert(
         t('errors.title') || 'Error',
-        t('errors.galleryFailed') || 'Failed to open gallery. Please try again.'
+        error?.message || t('errors.analysisFailed') || 'Analysis failed. Please try again.',
       );
     }
   };

@@ -181,12 +181,12 @@ export default function GalleryScreen() {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
             context.resize({ width: 1600 });
             const imageRef = await context.renderAsync();
-            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: 'jpeg' });
+            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               asset.uri,
               [{ resize: { width: 1600 } }],
-              { compress: 0.9, format: 'jpeg' }
+              { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
             );
           }
         } catch {

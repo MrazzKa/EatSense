@@ -12,12 +12,13 @@ interface HabitGridProps {
   completions: Record<string, HabitCompletion[]>;
   onToggle: (habitId: string, date: string) => void;
   isActiveOnDate: (habit: Habit, date: string) => boolean;
+  onEdit?: (habit: Habit) => void;
 }
 
 const DAY_KEYS = ['common.mon', 'common.tue', 'common.wed', 'common.thu', 'common.fri', 'common.sat', 'common.sun'];
 const DAY_FALLBACKS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-export default function HabitGrid({ habits, weekDates, today, completions, onToggle, isActiveOnDate }: HabitGridProps) {
+export default function HabitGrid({ habits, weekDates, today, completions, onToggle, isActiveOnDate, onEdit }: HabitGridProps) {
   const { colors, tokens } = useTheme();
   const { t } = useI18n();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
@@ -55,6 +56,7 @@ export default function HabitGrid({ habits, weekDates, today, completions, onTog
           completions={completions}
           onToggle={onToggle}
           isActiveOnDate={isActiveOnDate}
+          onEdit={onEdit}
         />
       ))}
     </View>
@@ -78,7 +80,7 @@ const createStyles = (tokens: any, colors: any) =>
       gap: 4,
     },
     headerCell: {
-      width: 32,
+      flex: 1,
       alignItems: 'center',
     },
     headerText: {

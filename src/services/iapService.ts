@@ -346,16 +346,28 @@ class IAPService {
 
     destroy() {
         console.log('[IAP] Destroying service...');
-        if (this.purchaseUpdateSubscription) {
-            this.purchaseUpdateSubscription.remove();
-            this.purchaseUpdateSubscription = null;
+        try {
+            if (this.purchaseUpdateSubscription) {
+                this.purchaseUpdateSubscription.remove();
+                this.purchaseUpdateSubscription = null;
+            }
+        } catch (e) {
+            console.warn('[IAP] Error removing purchase update listener:', e);
         }
-        if (this.purchaseErrorSubscription) {
-            this.purchaseErrorSubscription.remove();
-            this.purchaseErrorSubscription = null;
+        try {
+            if (this.purchaseErrorSubscription) {
+                this.purchaseErrorSubscription.remove();
+                this.purchaseErrorSubscription = null;
+            }
+        } catch (e) {
+            console.warn('[IAP] Error removing purchase error listener:', e);
         }
         this.isInitialized = false;
-        endConnection();
+        try {
+            endConnection();
+        } catch (e) {
+            console.warn('[IAP] Error ending connection:', e);
+        }
     }
 }
 
