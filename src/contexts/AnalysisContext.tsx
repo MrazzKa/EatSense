@@ -315,8 +315,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             } catch (error: any) {
                 console.error(`[AnalysisContext] Poll error for ${analysis.analysisId}:`, error);
 
-                // Don't mark as failed immediately on network errors
-                if (error.isNetworkError || error.isServerError) {
+                if (error.status === 401) {
+                    console.warn(`[AnalysisContext] 401 Unauthorized during polling. User logged out or token expired. Stopping...`);
+                    setIsPolling(false);
+                    setPendingAnalyses(new Map());
+                    break;
+                } else if (error.isNetworkError || error.isServerError) {
                     updateAnalysis(analysis.analysisId, {
                         pollAttempts: analysis.pollAttempts + 1,
                     });

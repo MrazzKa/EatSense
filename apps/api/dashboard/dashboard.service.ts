@@ -145,9 +145,9 @@ export class DashboardService {
                                     return { status: 'error', sections: [] as any[], error: e.message };
                                 }),
                             new Promise<any>(resolve => setTimeout(() => {
-                                this.logger.warn(`Suggestions timeout for user ${userId} after 3s — returning loading state`);
+                                this.logger.warn(`Suggestions timeout for user ${userId} after 8s — returning loading state`);
                                 resolve({ status: 'loading', sections: [] }); // Return loading, not timeout
-                            }, 3000)), // 3s timeout — fast path handles new users instantly
+                            }, 8000)), // 8s timeout — openAI model might take 4-5s
                         ]);
 
                         const suggestionsMs = Date.now() - suggestionsStart;

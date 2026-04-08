@@ -40,6 +40,14 @@ export class AuthService {
   private applePublicKeys: jose.JWTVerifyGetKey | null = null;
   private googleClient: OAuth2Client | null = null;
 
+  /**
+   * Per-process in-memory fallback for rate-limit counters when Redis is down.
+   * Prevents fail-open OTP/magic-link flooding during Redis outages.
+   * Note: this is per-instance (won't share state across multiple Railway replicas),
+   * but it bounds the damage and is much better than the previous silent fail-open.
+   */
+  private readonly fallbackCounters = new Map<string, { count: number; expiresAt: number }>();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -962,28 +970,105 @@ export class AuthService {
     }
   }
 
+  /**
+   * Increments an in-memory fallback counter. Used when Redis is unavailable.
+   * Cleans expired entries opportunistically on each call to bound memory.
+   */
+  private incrFallbackCounter(key: string, ttlSeconds: number): number {
+    const now = Date.now();
+
+    // Opportunistic cleanup: drop expired entries (cheap, runs every call).
+    if (this.fallbackCounters.size > 1000) {
+      for (const [k, v] of this.fallbackCounters) {
+        if (v.expiresAt <= now) {
+          this.fallbackCounters.delete(k);
+        }
+      }
+    }
+
+    const existing = this.fallbackCounters.get(key);
+    if (!existing || existing.expiresAt <= now) {
+      this.fallbackCounters.set(key, { count: 1, expiresAt: now + ttlSeconds * 1000 });
+      return 1;
+    }
+    existing.count += 1;
+    return existing.count;
+  }
+
+  private fallbackCounterTtl(key: string): number {
+    const entry = this.fallbackCounters.get(key);
+    if (!entry) return -1;
+    const remaining = Math.ceil((entry.expiresAt - Date.now()) / 1000);
+    return remaining > 0 ? remaining : -1;
+  }
+
   private async ensureCooldown(email: string) {
     const key = this.cooldownKey(email);
     const acquired = await this.redisService.setNx(key, '1', OTP_EMAIL_COOLDOWN_SECONDS);
 
-    if (!acquired) {
-      const ttl = await this.redisService.ttl(key);
-      if (ttl > 0) {
-        throw new HttpException(
-          {
-            message: 'Too many requests. Wait a moment before trying again.',
-            retryAfter: ttl,
-            code: 'OTP_RATE_LIMIT',
-          },
-          HttpStatus.TOO_MANY_REQUESTS,
-        );
-      }
+    if (acquired) {
+      return; // Lock acquired in Redis — proceed.
+    }
+
+    // setNx returned false. Two possible reasons:
+    //   (a) cooldown is genuinely active in Redis → ttl > 0
+    //   (b) Redis is down/errored → ttl <= 0 (fail-open in original code)
+    // We disambiguate via ttl. If ttl <= 0 we fall back to the in-memory counter
+    // so the cooldown still works during a Redis outage.
+    const ttl = await this.redisService.ttl(key);
+    if (ttl > 0) {
+      throw new HttpException(
+        {
+          message: 'Too many requests. Wait a moment before trying again.',
+          retryAfter: ttl,
+          code: 'OTP_RATE_LIMIT',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    // Redis appears unavailable — use in-memory fallback per process.
+    this.logger.warn(
+      `[AuthService] Redis unavailable for cooldown key=${key}. Falling back to in-memory cooldown.`,
+    );
+    const fallbackCount = this.incrFallbackCounter(key, OTP_EMAIL_COOLDOWN_SECONDS);
+    if (fallbackCount > 1) {
+      const fallbackTtl = this.fallbackCounterTtl(key);
+      throw new HttpException(
+        {
+          message: 'Too many requests. Wait a moment before trying again.',
+          retryAfter: fallbackTtl > 0 ? fallbackTtl : OTP_EMAIL_COOLDOWN_SECONDS,
+          code: 'OTP_RATE_LIMIT',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
   }
 
   private async ensureHourlyLimit(limit: number, key: string) {
     const count = await this.redisService.incr(key);
+
+    // FAIL-CLOSED on Redis outage. A real Redis INCR always returns >= 1; the only
+    // way to get 0 is RedisService.incr() catching an error or unconnected client.
+    // Previously this returned silently → OTP/magic-link flood was possible during
+    // any Redis hiccup. Now we fall back to a per-process in-memory counter so the
+    // attacker is bounded even when Redis is down.
     if (count <= 0) {
+      this.logger.error(
+        `[AuthService] Redis unavailable for hourly-limit key=${key} (incr returned ${count}). ` +
+        `Falling back to in-memory counter.`,
+      );
+      const fallbackCount = this.incrFallbackCounter(key, 60 * 60);
+      if (fallbackCount > limit) {
+        throw new HttpException(
+          {
+            message: 'Too many requests. Please try again later.',
+            retryAfter: this.fallbackCounterTtl(key) || 60 * 60,
+            code: 'OTP_RATE_LIMIT',
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
       return;
     }
 
