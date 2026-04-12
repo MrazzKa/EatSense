@@ -1,5 +1,6 @@
 import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 interface CreateMessageDto {
     conversationId: string;
@@ -13,7 +14,10 @@ interface CreateMessageDto {
 export class MessagesService {
     private readonly logger = new Logger(MessagesService.name);
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notifications: NotificationsService,
+    ) { }
 
     private async checkAccess(conversationId: string, userId: string) {
         const conversation = await this.prisma.conversation.findUnique({
@@ -83,6 +87,11 @@ export class MessagesService {
 
         this.logger.log(`Message sent: conversation=${data.conversationId}, sender=${data.senderId}`);
 
+        // Send push notification to the other party (fire-and-forget)
+        this.sendMessagePush(data.conversationId, data.senderId, message).catch((err) =>
+            this.logger.error(`Push notification failed: ${err.message}`),
+        );
+
         return message;
     }
 
@@ -133,6 +142,45 @@ export class MessagesService {
             asClient: unreadAsClient,
             asExpert: unreadAsExpert,
         };
+    }
+
+    private async sendMessagePush(conversationId: string, senderId: string, message: any) {
+        const conversation = await this.prisma.conversation.findUnique({
+            where: { id: conversationId },
+            include: {
+                expert: { select: { userId: true, displayName: true } },
+                client: {
+                    select: {
+                        id: true,
+                        userProfile: { select: { firstName: true } },
+                    },
+                },
+            },
+        });
+
+        if (!conversation) return;
+
+        const isClient = conversation.clientId === senderId;
+        const recipientUserId = isClient ? conversation.expert.userId : conversation.clientId;
+
+        const senderName = isClient
+            ? (conversation.client.userProfile?.firstName || 'Client')
+            : (conversation.expert.displayName || 'Expert');
+
+        const body = message.type === 'text'
+            ? (message.content.length > 100 ? message.content.slice(0, 100) + '…' : message.content)
+            : message.type === 'photo' ? '📷 Photo' : 'New message';
+
+        await this.notifications.sendPushNotification(
+            recipientUserId,
+            senderName,
+            body,
+            {
+                type: 'new_message',
+                conversationId,
+                messageId: message.id,
+            },
+        );
     }
 
     async shareMeals(conversationId: string, senderId: string, fromDate: Date, toDate: Date) {

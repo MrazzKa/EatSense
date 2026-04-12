@@ -14,184 +14,255 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
-import ApiService from '../services/apiService';
-
+import MarketplaceService from '../services/marketplaceService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 
-/**
- * ExpertProfileScreen - Detailed view of a specialist
- */
+const LANGUAGE_LABELS = {
+    en: 'English', ru: 'Русский', kk: 'Қазақша', fr: 'Français', de: 'Deutsch', es: 'Español',
+};
+
 export default function ExpertProfileScreen({ route, navigation }) {
     const { specialistId } = route.params || {};
     const { t } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
+    const colors = themeContext?.colors || {};
 
-    const [specialist, setSpecialist] = useState(null);
+    const [expert, setExpert] = useState(null);
     const [loading, setLoading] = useState(true);
     const [requesting, setRequesting] = useState(false);
     const [showDisclaimer, setShowDisclaimer] = useState(false);
 
-    const loadSpecialist = useCallback(async () => {
+    const loadExpert = useCallback(async () => {
         try {
-            const response = await ApiService.getSpecialist(specialistId);
+            const response = await MarketplaceService.getExpert(specialistId);
             if (response) {
-                setSpecialist(response);
+                setExpert(response);
             }
         } catch (error) {
             console.error('[ExpertProfileScreen] Failed to load:', error);
-            Alert.alert(t('common.error') || 'Error', t('experts.load_error') || 'Failed to load specialist');
+            Alert.alert(t('common.error') || 'Error', t('experts.load_error') || 'Failed to load expert profile');
         } finally {
             setLoading(false);
         }
     }, [specialistId, t]);
 
     useEffect(() => {
-        loadSpecialist();
-    }, [loadSpecialist]);
+        loadExpert();
+    }, [loadExpert]);
 
     const initChatRequest = async () => {
-        // Check if we need to show disclaimer
         const show = await shouldShowDisclaimer('data_sharing_consent');
         if (show) {
             setShowDisclaimer(true);
         } else {
-            handleRequestConsultation();
+            handleStartConversation();
         }
     };
 
     const handleDisclaimerAccept = () => {
         setShowDisclaimer(false);
-        handleRequestConsultation();
+        handleStartConversation();
     };
 
-    const handleRequestConsultation = async () => {
+    const handleStartConversation = async () => {
         setRequesting(true);
         try {
-            const consultation = await ApiService.requestConsultation(specialistId);
-            if (consultation?.id) {
-                navigation.navigate('ConsultationChat', { consultationId: consultation.id });
+            const conversation = await MarketplaceService.startConversation(specialistId);
+            if (conversation?.id) {
+                navigation.navigate('Chat', { conversationId: conversation.id });
             }
         } catch (error) {
-            console.error('[ExpertProfileScreen] Request failed:', error);
+            console.error('[ExpertProfileScreen] Start conversation failed:', error);
             Alert.alert(
                 t('common.error') || 'Error',
-                t('experts.request_error') || 'Failed to request consultation'
+                t('experts.request_error') || 'Failed to start conversation'
             );
         } finally {
             setRequesting(false);
         }
     };
 
-    const styles = useMemo(() => {
-        const colors = themeContext?.colors || {};
-        return createStyles(tokens, colors);
-    }, [tokens, themeContext?.colors]);
+    const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
     if (loading) {
         return (
             <SafeAreaView style={styles.loadingContainer} edges={['top']}>
-                <ActivityIndicator size="large" color={tokens.colors?.primary || '#4CAF50'} />
+                <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
             </SafeAreaView>
         );
     }
 
-    if (!specialist) {
+    if (!expert) {
         return (
             <SafeAreaView style={styles.errorContainer} edges={['top']}>
-                <Text style={styles.errorText}>{t('experts.not_found') || 'Specialist not found'}</Text>
+                <Text style={styles.errorText}>{t('experts.not_found') || 'Expert not found'}</Text>
+                <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
+                    <Text style={styles.backLinkText}>{t('common.goBack') || 'Go back'}</Text>
+                </TouchableOpacity>
             </SafeAreaView>
         );
     }
 
-    const priceLabel = specialist.pricePerWeek === 0 || !specialist.pricePerWeek
-        ? t('experts.free') || 'Free Consultation'
-        : `${specialist.currency || '$'}${specialist.pricePerWeek}/${t('experts.week') || 'week'}`;
+    const typeKey = expert.type === 'DIETITIAN' ? 'experts.typeDietitian' : 'experts.typeNutritionist';
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicons name="arrow-back" size={24} color={tokens.colors?.textPrimary || '#212121'} />
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary || '#212121'} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{t('experts.profile') || 'Profile'}</Text>
+                <Text style={styles.headerTitle} numberOfLines={1}>{expert.displayName}</Text>
                 <View style={styles.headerPlaceholder} />
             </View>
 
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-                {/* Avatar & Basic Info */}
-                <View style={styles.profileHeader}>
-                    {specialist.avatarUrl ? (
-                        <Image source={{ uri: specialist.avatarUrl }} style={styles.avatar} />
+                {/* Hero Section */}
+                <View style={styles.heroSection}>
+                    {expert.avatarUrl ? (
+                        <Image source={{ uri: expert.avatarUrl }} style={styles.avatar} />
                     ) : (
                         <View style={[styles.avatar, styles.avatarPlaceholder]}>
                             <Ionicons name="person" size={48} color="#9CA3AF" />
                         </View>
                     )}
 
-                    <View style={styles.nameContainer}>
-                        <Text style={styles.name}>{specialist.displayName}</Text>
-                        {specialist.isVerified && (
-                            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" style={styles.verifiedIcon} />
+                    <View style={styles.nameRow}>
+                        <Text style={styles.name}>{expert.displayName}</Text>
+                        {expert.isVerified && (
+                            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" style={{ marginLeft: 6 }} />
                         )}
                     </View>
 
-                    <Text style={styles.type}>
-                        {specialist.type === 'dietitian'
-                            ? t('experts.dietitian.title') || 'Dietitian'
-                            : t('experts.nutritionist.title') || 'Nutritionist'}
-                    </Text>
+                    {expert.title && (
+                        <Text style={styles.titleText}>{expert.title}</Text>
+                    )}
 
-                    {/* Rating */}
-                    <View style={styles.ratingContainer}>
-                        <Ionicons name="star" size={18} color="#FFC107" />
-                        <Text style={styles.rating}>{specialist.rating?.toFixed(1) || '5.0'}</Text>
-                        <Text style={styles.reviewCount}>
-                            ({specialist.reviewCount || 0} {t('experts.reviews') || 'reviews'})
-                        </Text>
+                    <Text style={styles.typeText}>{t(typeKey) || expert.type}</Text>
+
+                    {/* Stats Row */}
+                    <View style={styles.statsRow}>
+                        <View style={styles.statItem}>
+                            <Ionicons name="star" size={16} color="#FFC107" />
+                            <Text style={styles.statValue}>{expert.rating?.toFixed(1) || '—'}</Text>
+                            <Text style={styles.statLabel}>
+                                ({expert.reviewCount || expert._count?.reviews || 0})
+                            </Text>
+                        </View>
+                        {expert.experienceYears > 0 && (
+                            <View style={styles.statItem}>
+                                <Ionicons name="briefcase-outline" size={16} color={colors.textSecondary || '#6B7280'} />
+                                <Text style={styles.statValue}>{expert.experienceYears}</Text>
+                                <Text style={styles.statLabel}>{t('experts.yearsExp') || 'years'}</Text>
+                            </View>
+                        )}
+                        {expert.consultationCount > 0 && (
+                            <View style={styles.statItem}>
+                                <Ionicons name="chatbubbles-outline" size={16} color={colors.textSecondary || '#6B7280'} />
+                                <Text style={styles.statValue}>{expert.consultationCount}</Text>
+                                <Text style={styles.statLabel}>{t('experts.consultations') || 'consultations'}</Text>
+                            </View>
+                        )}
                     </View>
                 </View>
 
-                {/* Bio */}
-                {specialist.bio && (
+                {/* About / Bio */}
+                {expert.bio && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.about') || 'About'}</Text>
-                        <Text style={styles.bioText}>{specialist.bio}</Text>
+                        <Text style={styles.bioText}>{expert.bio}</Text>
                     </View>
                 )}
 
-                {/* Credentials */}
-                {specialist.credentials && (
+                {/* Education */}
+                {expert.education && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>{t('experts.credentials') || 'Credentials'}</Text>
-                        <Text style={styles.credentialsText}>{specialist.credentials}</Text>
+                        <Text style={styles.sectionTitle}>{t('experts.education') || 'Education'}</Text>
+                        <Text style={styles.bioText}>{expert.education}</Text>
                     </View>
                 )}
 
-                {/* Languages */}
-                {specialist.languages?.length > 0 && (
+                {/* Specializations */}
+                {expert.specializations?.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>{t('experts.languages') || 'Languages'}</Text>
-                        <View style={styles.languagesContainer}>
-                            {specialist.languages.map((lang, idx) => (
-                                <View key={idx} style={styles.languageChip}>
-                                    <Text style={styles.languageText}>{lang.toUpperCase()}</Text>
+                        <Text style={styles.sectionTitle}>{t('experts.specializations') || 'Specializations'}</Text>
+                        <View style={styles.chipsContainer}>
+                            {expert.specializations.map((spec) => (
+                                <View key={spec} style={styles.chip}>
+                                    <Text style={styles.chipText}>
+                                        {t(`experts.spec_${spec}`) || spec}
+                                    </Text>
                                 </View>
                             ))}
                         </View>
                     </View>
                 )}
 
-                {/* Reviews */}
-                {specialist.reviews?.length > 0 && (
+                {/* Languages */}
+                {expert.languages?.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>{t('experts.reviews') || 'Reviews'}</Text>
-                        {specialist.reviews.slice(0, 3).map((review) => (
+                        <Text style={styles.sectionTitle}>{t('experts.languages') || 'Languages'}</Text>
+                        <View style={styles.chipsContainer}>
+                            {expert.languages.map((lang) => (
+                                <View key={lang} style={[styles.chip, styles.langChip]}>
+                                    <Text style={styles.chipText}>
+                                        {LANGUAGE_LABELS[lang] || lang.toUpperCase()}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                {/* Credentials */}
+                {expert.credentials?.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.credentials') || 'Credentials'}</Text>
+                        {expert.credentials.map((cred) => (
+                            <View key={cred.id} style={styles.credentialCard}>
+                                <Ionicons name="ribbon-outline" size={20} color={colors.primary || '#4CAF50'} />
+                                <View style={styles.credentialInfo}>
+                                    <Text style={styles.credentialName}>{cred.name}</Text>
+                                    {cred.issuer && (
+                                        <Text style={styles.credentialIssuer}>{cred.issuer}</Text>
+                                    )}
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Offers */}
+                {expert.offers?.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.services') || 'Services'}</Text>
+                        {expert.offers.map((offer) => {
+                            const offerName = typeof offer.name === 'object' ? (offer.name.en || Object.values(offer.name)[0]) : offer.name;
+                            const offerDesc = typeof offer.description === 'object' ? (offer.description?.en || Object.values(offer.description || {})[0]) : offer.description;
+                            return (
+                                <View key={offer.id} style={styles.offerCard}>
+                                    <Text style={styles.offerName}>{offerName}</Text>
+                                    {offerDesc && <Text style={styles.offerDesc}>{offerDesc}</Text>}
+                                    <Text style={styles.offerPrice}>
+                                        {offer.priceType === 'FREE'
+                                            ? (t('experts.free') || 'Free')
+                                            : `${offer.currency || '$'}${offer.priceAmount}`}
+                                    </Text>
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
+
+                {/* Reviews */}
+                {expert.reviews?.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>
+                            {t('experts.reviews') || 'Reviews'} ({expert.reviewCount || expert.reviews.length})
+                        </Text>
+                        {expert.reviews.map((review) => (
                             <View key={review.id} style={styles.reviewCard}>
                                 <View style={styles.reviewHeader}>
                                     <View style={styles.reviewRating}>
@@ -208,6 +279,9 @@ export default function ExpertProfileScreen({ route, navigation }) {
                                         {new Date(review.createdAt).toLocaleDateString()}
                                     </Text>
                                 </View>
+                                {review.client?.userProfile?.firstName && (
+                                    <Text style={styles.reviewAuthor}>{review.client.userProfile.firstName}</Text>
+                                )}
                                 {review.comment && (
                                     <Text style={styles.reviewText}>{review.comment}</Text>
                                 )}
@@ -216,17 +290,12 @@ export default function ExpertProfileScreen({ route, navigation }) {
                     </View>
                 )}
 
-                {/* Spacer for button */}
+                {/* Spacer for bottom CTA */}
                 <View style={{ height: 100 }} />
             </ScrollView>
 
             {/* Bottom CTA */}
             <View style={styles.bottomContainer}>
-                <View style={styles.priceContainer}>
-                    <Text style={styles.priceLabel}>{t('experts.consultation') || 'Consultation'}</Text>
-                    <Text style={styles.priceValue}>{priceLabel}</Text>
-                </View>
-
                 <TouchableOpacity
                     style={[styles.ctaButton, requesting && styles.ctaButtonDisabled]}
                     onPress={initChatRequest}
@@ -238,13 +307,13 @@ export default function ExpertProfileScreen({ route, navigation }) {
                         <>
                             <Ionicons name="chatbubbles" size={20} color="#FFF" />
                             <Text style={styles.ctaButtonText}>
-                                {t('experts.start_chat') || 'Start Chat'}
+                                {t('experts.messageExpert') || 'Message Expert'}
                             </Text>
                         </>
                     )}
                 </TouchableOpacity>
             </View>
-            {/* Disclaimer Modal */}
+
             <DisclaimerModal
                 disclaimerKey="data_sharing_consent"
                 visible={showDisclaimer}
@@ -255,26 +324,37 @@ export default function ExpertProfileScreen({ route, navigation }) {
     );
 }
 
-const createStyles = (tokens, _colors) => StyleSheet.create({
+const createStyles = (tokens, colors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: tokens.colors?.background || '#FAFAFA',
+        backgroundColor: colors.background || '#FAFAFA',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: tokens.colors?.background || '#FAFAFA',
+        backgroundColor: colors.background || '#FAFAFA',
     },
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: tokens.colors?.background || '#FAFAFA',
+        backgroundColor: colors.background || '#FAFAFA',
+        padding: 24,
     },
     errorText: {
         fontSize: 16,
-        color: tokens.colors?.textSecondary || '#666',
+        color: colors.textSecondary || '#666',
+        marginBottom: 16,
+    },
+    backLink: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+    },
+    backLinkText: {
+        fontSize: 15,
+        color: colors.primary || '#4CAF50',
+        fontWeight: '500',
     },
     header: {
         flexDirection: 'row',
@@ -282,9 +362,9 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: tokens.colors?.surface || '#FFF',
+        backgroundColor: colors.surface || '#FFF',
         borderBottomWidth: 1,
-        borderBottomColor: tokens.colors?.border || '#E0E0E0',
+        borderBottomColor: colors.border || '#E0E0E0',
     },
     backButton: {
         width: 40,
@@ -293,9 +373,11 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         alignItems: 'center',
     },
     headerTitle: {
+        flex: 1,
         fontSize: 18,
         fontWeight: '600',
-        color: tokens.colors?.textPrimary || '#212121',
+        color: colors.textPrimary || '#212121',
+        textAlign: 'center',
     },
     headerPlaceholder: {
         width: 40,
@@ -304,24 +386,28 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
         flex: 1,
     },
     content: {
-        padding: 16,
+        paddingBottom: 16,
     },
-    profileHeader: {
+    // Hero
+    heroSection: {
         alignItems: 'center',
-        marginBottom: 24,
+        paddingVertical: 24,
+        paddingHorizontal: 16,
+        backgroundColor: colors.surface || '#FFF',
+        marginBottom: 8,
     },
     avatar: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        marginBottom: 12,
+        marginBottom: 16,
     },
     avatarPlaceholder: {
         backgroundColor: '#F3F4F6',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    nameContainer: {
+    nameRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 4,
@@ -329,125 +415,173 @@ const createStyles = (tokens, _colors) => StyleSheet.create({
     name: {
         fontSize: 24,
         fontWeight: '700',
-        color: tokens.colors?.textPrimary || '#212121',
+        color: colors.textPrimary || '#212121',
     },
-    verifiedIcon: {
-        marginLeft: 8,
+    titleText: {
+        fontSize: 15,
+        color: colors.textSecondary || '#6B7280',
+        marginBottom: 4,
+        textAlign: 'center',
     },
-    type: {
-        fontSize: 16,
-        color: tokens.colors?.primary || '#4CAF50',
+    typeText: {
+        fontSize: 14,
+        color: colors.primary || '#4CAF50',
         fontWeight: '500',
-        marginBottom: 8,
+        marginBottom: 12,
     },
-    ratingContainer: {
+    statsRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 20,
     },
-    rating: {
-        fontSize: 16,
+    statItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    statValue: {
+        fontSize: 15,
         fontWeight: '600',
-        color: tokens.colors?.textPrimary || '#212121',
-        marginLeft: 4,
+        color: colors.textPrimary || '#212121',
     },
-    reviewCount: {
-        fontSize: 14,
-        color: tokens.colors?.textSecondary || '#6B7280',
-        marginLeft: 4,
+    statLabel: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
     },
+    // Sections
     section: {
-        marginBottom: 24,
+        padding: 16,
+        backgroundColor: colors.surface || '#FFF',
+        marginBottom: 8,
     },
     sectionTitle: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
-        color: tokens.colors?.textSecondary || '#6B7280',
+        color: colors.textSecondary || '#6B7280',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
-        marginBottom: 8,
+        marginBottom: 12,
     },
     bioText: {
         fontSize: 15,
-        color: tokens.colors?.textPrimary || '#374151',
+        color: colors.textPrimary || '#374151',
         lineHeight: 22,
     },
-    credentialsText: {
-        fontSize: 14,
-        color: tokens.colors?.textSecondary || '#6B7280',
-        lineHeight: 20,
-    },
-    languagesContainer: {
+    // Chips
+    chipsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
     },
-    languageChip: {
-        backgroundColor: tokens.colors?.surfaceSecondary || '#F3F4F6',
+    chip: {
+        backgroundColor: (colors.primary || '#4CAF50') + '15',
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12,
+        borderRadius: 16,
     },
-    languageText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: tokens.colors?.textPrimary || '#374151',
+    langChip: {
+        backgroundColor: colors.surfaceSecondary || '#F3F4F6',
     },
-    reviewCard: {
-        backgroundColor: tokens.colors?.surface || '#FFF',
+    chipText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: colors.textPrimary || '#374151',
+    },
+    // Credentials
+    credentialCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
         padding: 12,
-        borderRadius: 8,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
         marginBottom: 8,
-        borderWidth: 1,
-        borderColor: tokens.colors?.border || '#E5E7EB',
+    },
+    credentialInfo: {
+        marginLeft: 12,
+        flex: 1,
+    },
+    credentialName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textPrimary || '#374151',
+    },
+    credentialIssuer: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 2,
+    },
+    // Offers
+    offerCard: {
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        marginBottom: 8,
+    },
+    offerName: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.textPrimary || '#374151',
+    },
+    offerDesc: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 4,
+    },
+    offerPrice: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.primary || '#4CAF50',
+        marginTop: 6,
+    },
+    // Reviews
+    reviewCard: {
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        marginBottom: 8,
     },
     reviewHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     reviewRating: {
         flexDirection: 'row',
     },
     reviewDate: {
         fontSize: 12,
-        color: tokens.colors?.textSecondary || '#9CA3AF',
+        color: colors.textSecondary || '#9CA3AF',
+    },
+    reviewAuthor: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: colors.textSecondary || '#6B7280',
+        marginBottom: 4,
     },
     reviewText: {
         fontSize: 14,
-        color: tokens.colors?.textPrimary || '#374151',
+        color: colors.textPrimary || '#374151',
         lineHeight: 20,
     },
+    // Bottom CTA
     bottomContainer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        flexDirection: 'row',
-        alignItems: 'center',
         padding: 16,
-        backgroundColor: tokens.colors?.surface || '#FFF',
+        paddingBottom: 24,
+        backgroundColor: colors.surface || '#FFF',
         borderTopWidth: 1,
-        borderTopColor: tokens.colors?.border || '#E0E0E0',
-    },
-    priceContainer: {
-        flex: 1,
-    },
-    priceLabel: {
-        fontSize: 12,
-        color: tokens.colors?.textSecondary || '#6B7280',
-    },
-    priceValue: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: tokens.colors?.textPrimary || '#212121',
+        borderTopColor: colors.border || '#E0E0E0',
     },
     ctaButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: tokens.colors?.primary || '#4CAF50',
-        paddingHorizontal: 24,
-        paddingVertical: 14,
+        justifyContent: 'center',
+        backgroundColor: colors.primary || '#4CAF50',
+        paddingVertical: 16,
         borderRadius: 12,
     },
     ctaButtonDisabled: {

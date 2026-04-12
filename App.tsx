@@ -39,8 +39,6 @@ const TermsOfServiceScreen = withSuspense(React.lazy(() => import('./src/screens
 const LegalMenuScreen = withSuspense(React.lazy(() => import('./src/screens/LegalMenuScreen')));
 const SuggestedFoodScreen = withSuspense(React.lazy(() => import('./src/screens/SuggestedFoodScreen')));
 const MedicationScheduleScreen = withSuspense(React.lazy(() => import('./src/screens/MedicationScheduleScreen')));
-const SpecialistListScreen = withSuspense(React.lazy(() => import('./src/screens/SpecialistListScreen')));
-const SpecialistProfileScreen = withSuspense(React.lazy(() => import('./src/screens/SpecialistProfileScreen')));
 const ChatScreen = withSuspense(React.lazy(() => import('./src/screens/ChatScreen')));
 const ConsultationsListScreen = withSuspense(React.lazy(() => import('./src/screens/ConsultationsListScreen')));
 const DietProgramsListScreen = withSuspense(React.lazy(() => import('./src/screens/DietProgramsListScreen')));
@@ -49,7 +47,7 @@ const DietProgramProgressScreen = withSuspense(React.lazy(() => import('./src/sc
 const LifestyleDetailScreen = withSuspense(React.lazy(() => import('./src/screens/LifestyleDetailScreen')));
 const ReferralScreen = withSuspense(React.lazy(() => import('./src/screens/ReferralScreen')));
 const ExpertProfileScreen = withSuspense(React.lazy(() => import('./src/screens/ExpertProfileScreen')));
-const ConsultationChatScreen = withSuspense(React.lazy(() => import('./src/screens/ConsultationChatScreen')));
+const BecomeExpertScreen = withSuspense(React.lazy(() => import('./src/screens/expert/BecomeExpertScreen')));
 const SubscriptionScreen = withSuspense(React.lazy(() => import('./src/screens/SubscriptionScreen')));
 const MealHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/MealHistoryScreen')));
 const ScientificSourcesScreen = withSuspense(React.lazy(() => import('./src/screens/ScientificSourcesScreen')));
@@ -287,16 +285,6 @@ function AppContent() {
               />
               {/* Experts Marketplace Screens */}
               <Stack.Screen
-                name="SpecialistList"
-                component={SpecialistListScreen}
-                options={{ presentation: 'card' }}
-              />
-              <Stack.Screen
-                name="SpecialistProfile"
-                component={SpecialistProfileScreen}
-                options={{ presentation: 'card' }}
-              />
-              <Stack.Screen
                 name="Chat"
                 component={ChatScreen}
                 options={{ presentation: 'card' }}
@@ -337,8 +325,8 @@ function AppContent() {
                 options={{ presentation: 'card' }}
               />
               <Stack.Screen
-                name="ConsultationChat"
-                component={ConsultationChatScreen}
+                name="BecomeExpert"
+                component={BecomeExpertScreen}
                 options={{ presentation: 'card' }}
               />
               <Stack.Screen

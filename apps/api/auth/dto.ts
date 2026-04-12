@@ -43,6 +43,11 @@ export class RequestMagicLinkDto {
   @IsNotEmpty()
   @Transform(({ value }) => (value || '').toString().trim().toLowerCase())
   email!: string;
+
+  @ApiProperty({ example: 'https://experts.eatsense.ch/auth/callback', required: false })
+  @IsOptional()
+  @IsString()
+  redirectUrl?: string;
 }
 
 export class VerifyOtpDto {

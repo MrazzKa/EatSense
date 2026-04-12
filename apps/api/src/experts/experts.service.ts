@@ -147,7 +147,7 @@ export class ExpertsService {
             data: { expertsRole: 'EXPERT' },
         });
 
-        return this.prisma.expertProfile.create({
+        const profile = await this.prisma.expertProfile.create({
             data: {
                 userId,
                 type: dto.type,
@@ -162,6 +162,21 @@ export class ExpertsService {
                 contactPolicy: dto.contactPolicy,
             },
         });
+
+        // Auto-create a free "Chat Consultation" offer for MVP
+        await this.prisma.expertOffer.create({
+            data: {
+                expertId: profile.id,
+                name: { en: 'Free Chat Consultation', ru: 'Бесплатная консультация в чате', kk: 'Тегін чат кеңесі', fr: 'Consultation gratuite par chat', de: 'Kostenlose Chat-Beratung', es: 'Consulta gratuita por chat' },
+                description: { en: 'Free nutrition consultation via chat', ru: 'Бесплатная консультация по питанию в чате', kk: 'Чат арқылы тегін тамақтану кеңесі', fr: 'Consultation nutrition gratuite par chat', de: 'Kostenlose Ernährungsberatung per Chat', es: 'Consulta de nutrición gratuita por chat' },
+                format: 'CHAT_CONSULTATION',
+                priceType: 'FREE',
+                isPublished: true,
+                sortOrder: 0,
+            },
+        });
+
+        return profile;
     }
 
     async updateProfile(userId: string, dto: UpdateExpertProfileDto) {

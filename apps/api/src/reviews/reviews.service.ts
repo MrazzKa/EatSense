@@ -77,6 +77,10 @@ export class ReviewsService {
             if (conversation.clientId !== data.clientId || conversation.expertId !== data.expertId) {
                 throw new ForbiddenException('Invalid conversation for this review');
             }
+
+            if (conversation.status !== 'completed') {
+                throw new ForbiddenException('Can only review completed consultations');
+            }
         }
 
         const review = await this.prisma.review.create({

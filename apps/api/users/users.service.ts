@@ -22,6 +22,7 @@ export class UsersService {
         id: true,
         email: true,
         profile: true,
+        expertsRole: true,
         createdAt: true,
         updatedAt: true,
         userProfile: {

@@ -237,6 +237,63 @@ export class ConversationsService {
         });
     }
 
+    async getClientData(conversationId: string, userId: string) {
+        const conversation = await this.findById(conversationId, userId);
+
+        // Only the expert side can view client data
+        if (!conversation.isExpert) {
+            throw new ForbiddenException('Only experts can view client data');
+        }
+
+        if (!conversation.reportsShared) {
+            throw new ForbiddenException('Client has not granted access to data');
+        }
+
+        const clientId = conversation.clientId;
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const [meals, labResults, userProfile] = await Promise.all([
+            this.prisma.meal.findMany({
+                where: {
+                    userId: clientId,
+                    createdAt: { gte: thirtyDaysAgo },
+                },
+                include: { items: true },
+                orderBy: { createdAt: 'desc' },
+                take: 100,
+            }),
+            this.prisma.labResult.findMany({
+                where: { userId: clientId },
+                include: { metrics: true },
+                orderBy: { createdAt: 'desc' },
+                take: 20,
+            }),
+            this.prisma.userProfile.findUnique({
+                where: { userId: clientId },
+                select: {
+                    firstName: true,
+                    age: true,
+                    height: true,
+                    weight: true,
+                    gender: true,
+                    activityLevel: true,
+                    goal: true,
+                    targetWeight: true,
+                    dailyCalories: true,
+                    healthProfile: true,
+                    preferences: true,
+                },
+            }),
+        ]);
+
+        return {
+            meals,
+            labResults,
+            healthProfile: userProfile,
+            periodDays: 30,
+        };
+    }
+
     async getUnreadCount(userId: string) {
         const expertProfile = await this.prisma.expertProfile.findUnique({
             where: { userId },

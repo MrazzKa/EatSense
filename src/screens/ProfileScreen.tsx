@@ -2123,6 +2123,31 @@ const ProfileScreen = () => {
             </Text>
           </AppCard>
 
+          {/* Expert Section */}
+          <AppCard style={styles.resetCard}>
+            <TouchableOpacity
+              onPress={() => {
+                if (user?.expertsRole === 'EXPERT') {
+                  // Already an expert — could link to web portal in the future
+                  Alert.alert(
+                    safeT('experts.expertRole', 'Expert'),
+                    safeT('experts.pendingReview', 'Your profile is under review'),
+                  );
+                } else {
+                  navigation.navigate('BecomeExpert' as never);
+                }
+              }}
+              style={[styles.resetButton, { backgroundColor: (colors.primary || '#007AFF') + '10', borderWidth: 1, borderColor: (colors.primary || '#007AFF') + '30' }]}
+            >
+              <Ionicons name="school-outline" size={20} color={colors.primary || '#007AFF'} />
+              <Text style={[styles.resetButtonText, { color: colors.primary || '#007AFF' }]}>
+                {user?.expertsRole === 'EXPERT'
+                  ? safeT('experts.expertRole', 'Expert Profile')
+                  : safeT('experts.becomeExpert', 'Become an Expert')}
+              </Text>
+            </TouchableOpacity>
+          </AppCard>
+
           {/* Delete Account Button - Always Visible */}
           <AppCard style={styles.resetCard}>
             <TouchableOpacity

@@ -46,6 +46,11 @@ export class ConversationsController {
         return this.conversationsService.start(req.user.id, dto);
     }
 
+    @Get(':id/client-data')
+    async getClientData(@Request() req: any, @Param('id') id: string) {
+        return this.conversationsService.getClientData(id, req.user.id);
+    }
+
     @Patch(':id')
     async update(
         @Request() req: any,

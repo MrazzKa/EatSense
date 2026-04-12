@@ -193,8 +193,14 @@ export class AuthService {
       },
     });
 
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
-    const magicLinkUrl = `${baseUrl}/v1/auth/magic-link?token=${token}`;
+    let magicLinkUrl: string;
+    if (requestMagicLinkDto.redirectUrl) {
+      const sep = requestMagicLinkDto.redirectUrl.includes('?') ? '&' : '?';
+      magicLinkUrl = `${requestMagicLinkDto.redirectUrl}${sep}token=${token}`;
+    } else {
+      const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+      magicLinkUrl = `${baseUrl}/v1/auth/magic-link?token=${token}`;
+    }
 
     try {
       await this.mailerService.sendMagicLinkEmail(user.email, magicLinkUrl);
@@ -437,6 +443,7 @@ export class AuthService {
           user: {
             id: result.user.id,
             email: result.user.email,
+            expertsRole: result.user.expertsRole,
           },
           profile,
         };

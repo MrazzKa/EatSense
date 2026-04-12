@@ -104,6 +104,10 @@ class MarketplaceService {
         return ApiService.patch(`/conversations/${id}`, data);
     }
 
+    async getClientData(conversationId) {
+        return ApiService.get(`/conversations/${conversationId}/client-data`);
+    }
+
     async getConversationUnreadCount() {
         try {
             return await ApiService.get('/conversations/unread-count');
@@ -199,25 +203,6 @@ class MarketplaceService {
         return ApiService.delete(`/blocks/${blockedId}`);
     }
 
-    // ==================== BACKWARD COMPATIBILITY ====================
-    // These methods are kept for backward compatibility with old code
-
-    async getSpecialists(filters = {}) {
-        return this.getExperts(filters);
-    }
-
-    async getSpecialist(id) {
-        return this.getExpert(id);
-    }
-
-    async getMyConsultations() {
-        const result = await this.getConversations();
-        return result?.asClient || [];
-    }
-
-    async getConsultation(id) {
-        return this.getConversation(id);
-    }
 }
 
 export default new MarketplaceService();

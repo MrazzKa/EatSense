@@ -238,6 +238,7 @@
       <div class="tab active" data-tab="suggestions" onclick="switchTab('suggestions')">📋 Suggestions</div>
       <div class="tab" data-tab="reports" onclick="switchTab('reports')">🚩 Reports</div>
       <div class="tab" data-tab="reviews" onclick="switchTab('reviews')">⭐ Reviews</div>
+      <div class="tab" data-tab="experts" onclick="switchTab('experts')">👨‍⚕️ Experts</div>
     </div>
 
     <div class="content">
@@ -263,6 +264,18 @@
         </div>
         <div class="stat-bar" id="reports-stats"></div>
         <div id="reports-list"><div class="loading">Loading reports...</div></div>
+      </div>
+
+      <!-- EXPERTS TAB -->
+      <div id="tab-experts" style="display:none">
+        <div class="filter-bar" id="experts-filter">
+          <button class="btn btn-outline btn-sm active" onclick="filterExperts('')">All</button>
+          <button class="btn btn-outline btn-sm" onclick="filterExperts('pending')">Pending</button>
+          <button class="btn btn-outline btn-sm" onclick="filterExperts('approved')">Approved</button>
+          <button class="btn btn-outline btn-sm" onclick="filterExperts('rejected')">Rejected</button>
+        </div>
+        <div class="stat-bar" id="experts-stats"></div>
+        <div id="experts-list"><div class="loading">Loading experts...</div></div>
       </div>
     </div>
   </div>
@@ -346,10 +359,11 @@
     // ===== TABS =====
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-      document.getElementById('tab-suggestions').style.display = tab === 'suggestions' ? 'block' : 'none';
-      document.getElementById('tab-reports').style.display = tab === 'reports' ? 'block' : 'none';
-      document.getElementById('tab-reviews').style.display = tab === 'reviews' ? 'block' : 'none';
+      ['suggestions', 'reports', 'reviews', 'experts'].forEach(t => {
+        document.getElementById('tab-' + t).style.display = tab === t ? 'block' : 'none';
+      });
       if (tab === 'reviews') loadReviews();
+      if (tab === 'experts') loadExperts();
     }
 
     // ===== SUGGESTIONS =====
@@ -627,6 +641,126 @@
         toast('🗑 Review deleted');
         loadReviews();
       } catch (err) { toast('❌ ' + err.message); }
+    }
+
+    // ===== EXPERTS =====
+    let expertsFilter = '';
+
+    function filterExperts(status) {
+      expertsFilter = status;
+      document.querySelectorAll('#experts-filter .btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(status || 'all')));
+      loadExperts();
+    }
+
+    async function loadExperts() {
+      try {
+        const url = expertsFilter ? `/admin/experts?status=${expertsFilter}` : '/admin/experts';
+        const data = await fetchAPI(url);
+        renderExperts(data);
+      } catch (err) {
+        document.getElementById('experts-list').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>Error: ${err.message}</div>`;
+      }
+    }
+
+    function renderExperts(experts) {
+      const stats = document.getElementById('experts-stats');
+      const list = document.getElementById('experts-list');
+
+      const total = experts.length;
+      const pending = experts.filter(e => !e.isPublished && e.isActive).length;
+      const approved = experts.filter(e => e.isPublished && e.isVerified).length;
+
+      stats.innerHTML = `
+        <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-value">${pending}</div><div class="stat-label">Pending</div></div>
+        <div class="stat"><div class="stat-value">${approved}</div><div class="stat-label">Approved</div></div>
+      `;
+
+      if (total === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">👨‍⚕️</div>No experts found</div>';
+        return;
+      }
+
+      list.innerHTML = experts.map(expert => {
+        const isPending = !expert.isPublished && expert.isActive;
+        const isApproved = expert.isPublished && expert.isVerified;
+        const isRejected = !expert.isActive;
+        const statusBadge = isApproved
+          ? '<span class="badge badge-green">Approved</span>'
+          : isPending
+            ? '<span class="badge badge-yellow">Pending</span>'
+            : '<span class="badge badge-red">Rejected</span>';
+
+        const userName = getUserName(expert.user);
+        const email = expert.user?.email || '';
+        const credCount = expert.credentials?.length || 0;
+        const pendingCreds = (expert.credentials || []).filter(c => c.status === 'pending').length;
+
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${escapeHtml(expert.displayName)} ${statusBadge}</div>
+                <div class="card-subtitle">${escapeHtml(expert.type)} · ${escapeHtml(email)} · ${expert.experienceYears || 0}y exp</div>
+              </div>
+              <div style="font-size:12px;color:var(--text2)">${new Date(expert.createdAt).toLocaleDateString()}</div>
+            </div>
+            <div class="card-body">
+              ${expert.bio ? `<p style="margin-bottom:8px;color:var(--text2);font-size:13px">${escapeHtml(expert.bio.substring(0, 200))}${expert.bio.length > 200 ? '...' : ''}</p>` : ''}
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                ${(expert.specializations || []).map(s => `<span class="badge" style="background:var(--blue-bg);color:var(--blue)">${s}</span>`).join('')}
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                ${(expert.languages || []).map(l => `<span class="badge">${l.toUpperCase()}</span>`).join('')}
+              </div>
+              <p style="font-size:13px;color:var(--text2)">📄 ${credCount} credentials${pendingCreds > 0 ? ` (${pendingCreds} pending)` : ''} · ⭐ ${expert.rating?.toFixed(1) || '—'} · 💬 ${expert._count?.conversations || 0} conversations</p>
+              ${credCount > 0 ? `
+                <div style="margin-top:8px">
+                  ${expert.credentials.map(c => `
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                      <span style="font-size:13px">${escapeHtml(c.name)}</span>
+                      <span class="badge ${c.status === 'approved' ? 'badge-green' : c.status === 'pending' ? 'badge-yellow' : 'badge-red'}">${c.status}</span>
+                      ${c.fileUrl ? `<a href="${c.fileUrl}" target="_blank" style="color:var(--primary);font-size:12px">View</a>` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+            ${isPending ? `
+              <div class="card-actions" style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn btn-green btn-sm" onclick="approveExpert('${expert.id}')">✅ Approve</button>
+                <button class="btn btn-red btn-sm" onclick="rejectExpert('${expert.id}')">❌ Reject</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approveExpert(id) {
+      if (!confirm('Approve this expert? Their profile will become public.')) return;
+      try {
+        await fetchAPI(`/admin/experts/${id}/approve`, { method: 'POST' });
+        toast('Expert approved');
+        loadExperts();
+      } catch (err) {
+        toast('Error: ' + err.message);
+      }
+    }
+
+    async function rejectExpert(id) {
+      const reason = prompt('Rejection reason (optional):');
+      if (reason === null) return; // cancelled
+      try {
+        await fetchAPI(`/admin/experts/${id}/reject`, {
+          method: 'POST',
+          body: JSON.stringify({ reason: reason || undefined }),
+        });
+        toast('Expert rejected');
+        loadExperts();
+      } catch (err) {
+        toast('Error: ' + err.message);
+      }
     }
 
     // ===== HELPERS =====
