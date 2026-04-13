@@ -199,7 +199,7 @@ export class AuthService {
       magicLinkUrl = `${requestMagicLinkDto.redirectUrl}${sep}token=${token}`;
     } else {
       const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
-      magicLinkUrl = `${baseUrl}/v1/auth/magic-link?token=${token}`;
+      magicLinkUrl = `${baseUrl}/auth/magic-link?token=${token}`;
     }
 
     try {
