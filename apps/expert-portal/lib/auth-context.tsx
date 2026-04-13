@@ -52,14 +52,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const data = await apiFetch('/users/me/profile');
-      setUser({
-        id: data.user?.id || data.id,
-        email: data.user?.email || data.email,
-        expertsRole: data.user?.expertsRole || data.expertsRole,
-        profile: data.profile || data.userProfile,
-        expertProfile: data.expertProfile,
-      });
+      const data = await apiFetch('/users/profile');
+
+      const userObj: User = {
+        id: data.id,
+        email: data.email,
+        expertsRole: data.expertsRole,
+        profile: data.userProfile,
+      };
+
+      // Load expert profile separately if user is an expert
+      if (data.expertsRole === 'EXPERT') {
+        try {
+          const expertData = await apiFetch('/experts/me/profile');
+          userObj.expertProfile = expertData;
+        } catch {
+          // Expert profile may not exist yet
+        }
+      }
+
+      setUser(userObj);
     } catch {
       setUser(null);
       localStorage.removeItem('accessToken');
