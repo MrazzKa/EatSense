@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || 'http://localhost:3001';
 
 export default function LoginPage() {

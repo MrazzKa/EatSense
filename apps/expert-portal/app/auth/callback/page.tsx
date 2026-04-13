@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 function CallbackContent() {
   const searchParams = useSearchParams();
