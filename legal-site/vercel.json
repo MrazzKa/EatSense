@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/experts/:path*",
+      "destination": "https://expert-portal-pi.vercel.app/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/experts",
+      "destination": "https://expert-portal-pi.vercel.app",
+      "permanent": false
+    }
+  ]
+}

@@ -412,7 +412,9 @@ export default function ChatScreen({ navigation, route }) {
                             <TouchableOpacity style={styles.allowButton} onPress={handleGrantAccess}>
                                 <Text style={styles.allowButtonText}>{t('experts.allowAccess') || 'Allow'}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.denyButton}>
+                            <TouchableOpacity style={styles.denyButton} onPress={() => {
+                                Alert.alert(t('experts.accessDenied') || 'Denied', t('experts.accessDeniedDesc') || 'Data access was not granted.');
+                            }}>
                                 <Text style={styles.denyButtonText}>{t('experts.denyAccess') || 'Deny'}</Text>
                             </TouchableOpacity>
                         </View>

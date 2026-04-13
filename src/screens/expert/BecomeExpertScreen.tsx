@@ -100,6 +100,11 @@ export default function BecomeExpertScreen({ navigation }: any) {
     }, []);
 
     const pickDocument = useCallback(async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Please allow access to your photo library to upload credentials.');
+            return;
+        }
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             quality: 0.8,
