@@ -1,0 +1,10 @@
+# Cloudflare Workers — static assets deployment for the landing site.
+# Used only if you deploy via the "Workers Builds" (Git) flow instead of Pages.
+# If you use Pages (recommended), this file is ignored.
+
+name = "eatsense-landing"
+compatibility_date = "2025-04-01"
+
+[assets]
+directory = "./public"
+not_found_handling = "404-page"
