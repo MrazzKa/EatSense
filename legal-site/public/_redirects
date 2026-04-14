@@ -1,0 +1,2 @@
+/experts       https://expert-portal-pi.vercel.app   302
+/experts/*     https://expert-portal-pi.vercel.app/:splat   302

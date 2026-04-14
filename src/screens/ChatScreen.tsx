@@ -113,19 +113,33 @@ export default function ChatScreen({ navigation, route }) {
 
     const handleSend = useCallback(async () => {
         if (!text.trim() || sending) return;
+        const body = text.trim();
+        const tempId = `tmp-${Date.now()}`;
+        const optimistic = {
+            id: tempId,
+            content: body,
+            type: 'text',
+            senderId: user?.id,
+            createdAt: new Date().toISOString(),
+            isRead: false,
+            _optimistic: true,
+        };
+        setMessages((prev) => [...prev, optimistic]);
+        setText('');
+        setTimeout(() => flatListRef.current?.scrollToEnd(), 50);
         setSending(true);
         try {
-            const newMessage = await MarketplaceService.sendMessage(conversationId, text.trim());
-            setMessages((prev) => [...prev, newMessage]);
+            const newMessage = await MarketplaceService.sendMessage(conversationId, body);
+            setMessages((prev) => prev.map((m) => (m.id === tempId ? newMessage : m)));
             lastMessageIdRef.current = newMessage.id;
-            setText('');
-            setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
         } catch {
+            setMessages((prev) => prev.filter((m) => m.id !== tempId));
+            setText(body);
             Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to send message');
         } finally {
             setSending(false);
         }
-    }, [text, sending, conversationId, t]);
+    }, [text, sending, conversationId, user?.id, t]);
 
     const handleSendPhoto = useCallback(async () => {
         try {

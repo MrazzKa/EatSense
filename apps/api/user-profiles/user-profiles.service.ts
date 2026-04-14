@@ -169,7 +169,13 @@ export class UserProfilesService {
         this.logger.log(`[UserProfilesService] Created default profile for userId=${userId}, id=${profile.id}`);
       }
 
-      return profile;
+      // Include expertsRole from User model so the mobile app can check expert status
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { expertsRole: true },
+      });
+
+      return { ...profile, expertsRole: user?.expertsRole ?? null };
     } catch (error) {
       this.logger.error(
         `[UserProfilesService] getProfile() failed for userId=${userId}`,

@@ -27,7 +27,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
     const sanitizedPath = this.sanitizePath(request.url);
     
     this.logger.error(
-      `HTTP ${status} ${request.method} ${sanitizedPath}`,
+      `HTTP ${status} ${request.method} ${sanitizedPath} — ${(exception as Error)?.message || 'Unknown error'}`,
       isProduction ? undefined : (exception as Error).stack,
     );
 

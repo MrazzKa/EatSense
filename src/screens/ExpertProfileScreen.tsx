@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import MarketplaceService from '../services/marketplaceService';
+import ApiService from '../services/apiService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 
@@ -105,7 +106,8 @@ export default function ExpertProfileScreen({ route, navigation }) {
         );
     }
 
-    const typeKey = expert.type === 'DIETITIAN' ? 'experts.typeDietitian' : 'experts.typeNutritionist';
+    const normalizedType = (expert.type || '').toLowerCase();
+    const typeKey = normalizedType === 'dietitian' ? 'experts.typeDietitian' : 'experts.typeNutritionist';
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -122,7 +124,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     {expert.avatarUrl ? (
-                        <Image source={{ uri: expert.avatarUrl }} style={styles.avatar} />
+                        <Image source={{ uri: ApiService.resolveMediaUrl(expert.avatarUrl) }} style={styles.avatar} />
                     ) : (
                         <View style={[styles.avatar, styles.avatarPlaceholder]}>
                             <Ionicons name="person" size={48} color="#9CA3AF" />
@@ -192,7 +194,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                             {expert.specializations.map((spec) => (
                                 <View key={spec} style={styles.chip}>
                                     <Text style={styles.chipText}>
-                                        {t(`experts.spec_${spec}`) || spec}
+                                        {t(`experts.specializations.${spec}`) || spec}
                                     </Text>
                                 </View>
                             ))}

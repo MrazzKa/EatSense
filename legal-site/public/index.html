@@ -242,6 +242,29 @@
             color: var(--text-muted);
             font-size: 0.9rem;
         }
+        .hero-phone-img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 40px;
+        }
+        .nav-link-experts {
+            color: var(--forest);
+            font-weight: 500;
+        }
+        .nav-link-experts::before {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            vertical-align: -2px;
+            background: currentColor;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>") center / contain no-repeat;
+            -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>") center / contain no-repeat;
+        }
         .screen-placeholder { text-align: center; padding: 2rem; }
         .screen-placeholder svg { width: 48px; height: 48px; color: var(--border); margin-bottom: 1rem; }
 
@@ -637,6 +660,7 @@
                 <a href="#programs" class="nav-link" data-i18n="nav.programs">Programs</a>
                 <a href="#pricing" class="nav-link" data-i18n="nav.pricing">Pricing</a>
                 <a href="#influencers" class="nav-link" data-i18n="nav.influencers">For Creators</a>
+                <a href="/experts" class="nav-link nav-link-experts" data-i18n="nav.experts">For Experts</a>
                 <div class="lang-dropdown">
                     <button class="lang-switcher">
                         <span id="currentLang">EN</span>
@@ -675,7 +699,8 @@
                 <div class="hero-phone">
                     <div class="hero-phone-notch"></div>
                     <div class="hero-phone-screen">
-                        <div class="screen-placeholder">
+                        <img src="/images/eatsense.png" alt="EatSense app" class="hero-phone-img" loading="eager" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <div class="screen-placeholder" style="display:none">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15L16 10L5 21"/></svg>
                             <p>App screenshot</p>
                         </div>
@@ -938,7 +963,7 @@
                 </div>
                 <div class="footer-column">
                     <h4>Company</h4>
-                    <ul><li><a href="#">About</a></li><li><a href="#influencers">For Creators</a></li><li><a href="mailto:hello@eatsense.ch">Contact</a></li></ul>
+                    <ul><li><a href="#">About</a></li><li><a href="#influencers">For Creators</a></li><li><a href="/experts">For Experts</a></li><li><a href="mailto:hello@eatsense.ch">Contact</a></li></ul>
                 </div>
                 <div class="footer-column">
                     <h4>Legal</h4>
@@ -956,7 +981,7 @@
     </footer>
 
     <script>
-        const translations={en:{"nav.features":"Features","nav.programs":"Programs","nav.pricing":"Pricing","nav.influencers":"For Creators","nav.download":"Download App","hero.badge":"Made in Switzerland","hero.title":"Nutrition that <em>understands</em> you","hero.subtitle":"AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.","hero.cta.primary":"Download for iOS","hero.cta.secondary":"Learn more","features.tag":"Why EatSense","features.title":"Smart nutrition, effortlessly","features.subtitle":"Snap a photo. Get instant insights. Make better choices.","features.ai.title":"AI Food Analysis","features.ai.desc":"Photograph any meal and receive detailed nutritional breakdown in seconds. Calories, macros, vitamins — all calculated instantly.","features.biomarkers.title":"Biomarker Integration","features.biomarkers.desc":"Connect your blood test results with your nutrition data. Understand how what you eat affects your health markers.","features.experts.title":"Expert Marketplace","features.experts.desc":"Connect with certified nutritionists who can see your real data — not just what you remember eating.","programs.tag":"Lifestyle Programs","programs.title":"Find your way of eating","programs.subtitle":"Curated nutrition philosophies inspired by cultures, warriors, and iconic lifestyles.","programs.counter":"unique lifestyle programs"},de:{"nav.features":"Funktionen","nav.programs":"Programme","nav.pricing":"Preise","nav.influencers":"Für Creator","nav.download":"App Laden","hero.badge":"Made in Switzerland","hero.title":"Ernährung, die dich <em>versteht</em>","hero.subtitle":"KI-gestützte Lebensmittelanalyse trifft personalisierte Lifestyle-Programme. Entdecke 47 Wege, gut zu essen, mit Schweizer Präzision.","hero.cta.primary":"Für iOS laden","hero.cta.secondary":"Mehr erfahren","features.tag":"Warum EatSense","features.title":"Smarte Ernährung, mühelos","features.subtitle":"Foto machen. Sofort Einblicke erhalten. Bessere Entscheidungen treffen.","features.ai.title":"KI-Lebensmittelanalyse","features.ai.desc":"Fotografiere jede Mahlzeit und erhalte in Sekunden eine detaillierte Nährwertanalyse.","features.biomarkers.title":"Biomarker-Integration","features.biomarkers.desc":"Verbinde deine Blutwerte mit deinen Ernährungsdaten.","features.experts.title":"Experten-Marktplatz","features.experts.desc":"Verbinde dich mit zertifizierten Ernährungsberatern.","programs.tag":"Lifestyle-Programme","programs.title":"Finde deine Art zu essen","programs.subtitle":"Kuratierte Ernährungsphilosophien.","programs.counter":"einzigartige Programme"},fr:{"nav.features":"Fonctionnalités","nav.programs":"Programmes","nav.pricing":"Tarifs","nav.influencers":"Pour Créateurs","nav.download":"Télécharger","hero.badge":"Made in Switzerland","hero.title":"Une nutrition qui vous <em>comprend</em>","hero.subtitle":"L'analyse alimentaire par IA rencontre les programmes lifestyle personnalisés. Découvrez 47 façons de bien manger.","hero.cta.primary":"Télécharger pour iOS","hero.cta.secondary":"En savoir plus","features.tag":"Pourquoi EatSense","features.title":"Nutrition intelligente, sans effort","features.subtitle":"Prenez une photo. Obtenez des insights instantanés.","features.ai.title":"Analyse IA des Aliments","features.ai.desc":"Photographiez n'importe quel repas et recevez une analyse nutritionnelle détaillée.","features.biomarkers.title":"Intégration Biomarqueurs","features.biomarkers.desc":"Connectez vos résultats sanguins à vos données nutritionnelles.","features.experts.title":"Marketplace d'Experts","features.experts.desc":"Connectez-vous avec des nutritionnistes certifiés.","programs.tag":"Programmes Lifestyle","programs.title":"Trouvez votre façon de manger","programs.subtitle":"Des philosophies nutritionnelles inspirées.","programs.counter":"programmes uniques"}};
+        const translations={en:{"nav.features":"Features","nav.programs":"Programs","nav.pricing":"Pricing","nav.influencers":"For Creators","nav.experts":"For Experts","nav.download":"Download App","hero.badge":"Made in Switzerland","hero.title":"Nutrition that <em>understands</em> you","hero.subtitle":"AI-powered food analysis meets personalized lifestyle programs. Discover 47 ways to eat well, backed by Swiss precision.","hero.cta.primary":"Download for iOS","hero.cta.secondary":"Learn more","features.tag":"Why EatSense","features.title":"Smart nutrition, effortlessly","features.subtitle":"Snap a photo. Get instant insights. Make better choices.","features.ai.title":"AI Food Analysis","features.ai.desc":"Photograph any meal and receive detailed nutritional breakdown in seconds. Calories, macros, vitamins — all calculated instantly.","features.biomarkers.title":"Biomarker Integration","features.biomarkers.desc":"Connect your blood test results with your nutrition data. Understand how what you eat affects your health markers.","features.experts.title":"Expert Marketplace","features.experts.desc":"Connect with certified nutritionists who can see your real data — not just what you remember eating.","programs.tag":"Lifestyle Programs","programs.title":"Find your way of eating","programs.subtitle":"Curated nutrition philosophies inspired by cultures, warriors, and iconic lifestyles.","programs.counter":"unique lifestyle programs"},de:{"nav.features":"Funktionen","nav.programs":"Programme","nav.pricing":"Preise","nav.influencers":"Für Creator","nav.experts":"Für Experten","nav.download":"App Laden","hero.badge":"Made in Switzerland","hero.title":"Ernährung, die dich <em>versteht</em>","hero.subtitle":"KI-gestützte Lebensmittelanalyse trifft personalisierte Lifestyle-Programme. Entdecke 47 Wege, gut zu essen, mit Schweizer Präzision.","hero.cta.primary":"Für iOS laden","hero.cta.secondary":"Mehr erfahren","features.tag":"Warum EatSense","features.title":"Smarte Ernährung, mühelos","features.subtitle":"Foto machen. Sofort Einblicke erhalten. Bessere Entscheidungen treffen.","features.ai.title":"KI-Lebensmittelanalyse","features.ai.desc":"Fotografiere jede Mahlzeit und erhalte in Sekunden eine detaillierte Nährwertanalyse.","features.biomarkers.title":"Biomarker-Integration","features.biomarkers.desc":"Verbinde deine Blutwerte mit deinen Ernährungsdaten.","features.experts.title":"Experten-Marktplatz","features.experts.desc":"Verbinde dich mit zertifizierten Ernährungsberatern.","programs.tag":"Lifestyle-Programme","programs.title":"Finde deine Art zu essen","programs.subtitle":"Kuratierte Ernährungsphilosophien.","programs.counter":"einzigartige Programme"},fr:{"nav.features":"Fonctionnalités","nav.programs":"Programmes","nav.pricing":"Tarifs","nav.influencers":"Pour Créateurs","nav.experts":"Pour les Experts","nav.download":"Télécharger","hero.badge":"Made in Switzerland","hero.title":"Une nutrition qui vous <em>comprend</em>","hero.subtitle":"L'analyse alimentaire par IA rencontre les programmes lifestyle personnalisés. Découvrez 47 façons de bien manger.","hero.cta.primary":"Télécharger pour iOS","hero.cta.secondary":"En savoir plus","features.tag":"Pourquoi EatSense","features.title":"Nutrition intelligente, sans effort","features.subtitle":"Prenez une photo. Obtenez des insights instantanés.","features.ai.title":"Analyse IA des Aliments","features.ai.desc":"Photographiez n'importe quel repas et recevez une analyse nutritionnelle détaillée.","features.biomarkers.title":"Intégration Biomarqueurs","features.biomarkers.desc":"Connectez vos résultats sanguins à vos données nutritionnelles.","features.experts.title":"Marketplace d'Experts","features.experts.desc":"Connectez-vous avec des nutritionnistes certifiés.","programs.tag":"Programmes Lifestyle","programs.title":"Trouvez votre façon de manger","programs.subtitle":"Des philosophies nutritionnelles inspirées.","programs.counter":"programmes uniques"}};
         let currentLang='en';
         function setLanguage(lang){currentLang=lang;document.documentElement.lang=lang;document.getElementById('currentLang').textContent=lang.toUpperCase();document.querySelectorAll('.lang-option').forEach(opt=>opt.classList.toggle('active',opt.dataset.lang===lang));document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(translations[lang]&&translations[lang][key])el.innerHTML=translations[lang][key];});localStorage.setItem('eatsense-lang',lang);}
         document.addEventListener('DOMContentLoaded',()=>{const savedLang=localStorage.getItem('eatsense-lang');const browserLang=navigator.language.slice(0,2);setLanguage(savedLang||(['en','de','fr'].includes(browserLang)?browserLang:'en'));});

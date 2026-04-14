@@ -112,11 +112,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
 
     const hasFilters = filterSpec || filterLang;
 
-    const getAvatarUrl = (expert: any) => {
-        if (!expert.avatarUrl) return null;
-        if (expert.avatarUrl.startsWith('http')) return expert.avatarUrl;
-        return ApiService.getMediaUrl(expert.avatarUrl);
-    };
+    const getAvatarUrl = (expert: any) => ApiService.resolveMediaUrl(expert?.avatarUrl);
 
     const renderExpertCard = useCallback(({ item }: { item: any }) => (
         <TouchableOpacity
@@ -139,7 +135,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                             <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
                         )}
                     </View>
-                    <Text style={styles.cardType}>{t(`experts.${item.type}.title`, item.type)}</Text>
+                    <Text style={styles.cardType}>{t(`experts.${(item.type || '').toLowerCase()}.title`, item.type)}</Text>
                     <View style={styles.cardMeta}>
                         {item.rating > 0 && (
                             <View style={styles.ratingBadge}>
@@ -195,7 +191,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                             )}
                             <Text style={styles.recommendedName} numberOfLines={1}>{expert.displayName}</Text>
                             <Text style={styles.recommendedType} numberOfLines={1}>
-                                {t(`experts.${expert.type}.title`, expert.type)}
+                                {t(`experts.${(expert.type || '').toLowerCase()}.title`, expert.type)}
                             </Text>
                             {expert.rating > 0 && (
                                 <View style={styles.ratingBadge}>
@@ -215,8 +211,8 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         return (
             <View style={styles.emptyContainer}>
                 <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
-                <Text style={styles.emptyTitle}>{t('experts.noResults')}</Text>
-                <Text style={styles.emptySubtitle}>{t('experts.noResultsSub')}</Text>
+                <Text style={styles.emptyTitle}>{t('experts.noResults') || 'No experts found'}</Text>
+                <Text style={styles.emptySubtitle}>{t('experts.noResultsSub') || 'Try adjusting your filters or search'}</Text>
                 {hasFilters && (
                     <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
                         <Text style={styles.clearButtonText}>{t('common.clear') || 'Clear filters'}</Text>

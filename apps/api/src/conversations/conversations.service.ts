@@ -18,11 +18,14 @@ export class ConversationsService {
     constructor(private prisma: PrismaService) { }
 
     async start(clientId: string, dto: StartConversationDto) {
+        this.logger.log(`Starting conversation: client=${clientId}, expertId=${dto.expertId}, offerId=${dto.offerId || 'none'}`);
+
         const expert = await this.prisma.expertProfile.findUnique({
             where: { id: dto.expertId },
         });
 
         if (!expert || !expert.isActive || !expert.isPublished) {
+            this.logger.warn(`Expert not available: id=${dto.expertId}, found=${!!expert}, active=${expert?.isActive}, published=${expert?.isPublished}`);
             throw new NotFoundException('Expert not found or not available');
         }
 
@@ -57,43 +60,48 @@ export class ConversationsService {
             }
         }
 
-        const conversation = await this.prisma.conversation.create({
-            data: {
-                clientId,
-                expertId: dto.expertId,
-                offerId: dto.offerId,
-                status: 'active',
-            },
-            include: {
-                expert: {
-                    select: {
-                        id: true,
-                        userId: true,
-                        displayName: true,
-                        avatarUrl: true,
-                        type: true,
-                        isVerified: true,
+        try {
+            const conversation = await this.prisma.conversation.create({
+                data: {
+                    clientId,
+                    expertId: dto.expertId,
+                    offerId: dto.offerId,
+                    status: 'active',
+                },
+                include: {
+                    expert: {
+                        select: {
+                            id: true,
+                            userId: true,
+                            displayName: true,
+                            avatarUrl: true,
+                            type: true,
+                            isVerified: true,
+                        },
+                    },
+                    offer: {
+                        select: {
+                            id: true,
+                            name: true,
+                            format: true,
+                        },
                     },
                 },
-                offer: {
-                    select: {
-                        id: true,
-                        name: true,
-                        format: true,
-                    },
-                },
-            },
-        });
+            });
 
-        // Increment expert's consultation count
-        await this.prisma.expertProfile.update({
-            where: { id: dto.expertId },
-            data: { consultationCount: { increment: 1 } },
-        });
+            // Increment expert's consultation count
+            await this.prisma.expertProfile.update({
+                where: { id: dto.expertId },
+                data: { consultationCount: { increment: 1 } },
+            });
 
-        this.logger.log(`Conversation started: client=${clientId}, expert=${dto.expertId}`);
+            this.logger.log(`Conversation started: client=${clientId}, expert=${dto.expertId}`);
 
-        return conversation;
+            return conversation;
+        } catch (error) {
+            this.logger.error(`Failed to create conversation: client=${clientId}, expert=${dto.expertId}`, (error as Error).stack);
+            throw error;
+        }
     }
 
     async findByUserId(userId: string) {

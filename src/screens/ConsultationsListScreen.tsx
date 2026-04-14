@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import MarketplaceService from '../services/marketplaceService';
+import ApiService from '../services/apiService';
 
 export default function ConsultationsListScreen({ navigation }) {
     const themeContext = useTheme();
@@ -96,7 +97,7 @@ export default function ConsultationsListScreen({ navigation }) {
             >
                 <View style={styles.cardRow}>
                     {expert.avatarUrl ? (
-                        <Image source={{ uri: expert.avatarUrl }} style={styles.avatar} />
+                        <Image source={{ uri: ApiService.resolveMediaUrl(expert.avatarUrl) }} style={styles.avatar} />
                     ) : (
                         <View style={[styles.avatar, styles.avatarPlaceholder]}>
                             <Ionicons name="person" size={22} color="#9CA3AF" />
