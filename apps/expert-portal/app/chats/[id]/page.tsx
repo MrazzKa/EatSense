@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { ArrowLeft, CheckCheck, Lock, LockOpen, ShieldAlert, Utensils } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n/context';
 import Link from 'next/link';
 
 interface Message {
@@ -33,10 +35,19 @@ interface Conversation {
 
 const POLL_INTERVAL = 4000;
 
+const TEMPLATE_KEYS = [
+  { label: 'templateGreetingLabel', body: 'templateGreeting' },
+  { label: 'templateGoalsLabel', body: 'templateGoals' },
+  { label: 'templateAllergiesLabel', body: 'templateAllergies' },
+  { label: 'templateTypicalDayLabel', body: 'templateTypicalDay' },
+  { label: 'templateNextStepsLabel', body: 'templateNextSteps' },
+  { label: 'templateFollowUpLabel', body: 'templateFollowUp' },
+] as const;
+
 export default function ChatPage() {
   const params = useParams();
-  const router = useRouter();
   const { user } = useAuth();
+  const { t } = useI18n();
   const convId = params.id as string;
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -46,11 +57,20 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<string>('');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isAtBottomRef = useRef(true);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - (el.scrollTop + el.clientHeight);
+    isAtBottomRef.current = distance < 80;
   }, []);
 
   const loadMessages = useCallback(async () => {
@@ -60,9 +80,12 @@ export default function ChatPage() {
       const lastId = list[list.length - 1]?.id || '';
 
       if (lastId !== lastMessageIdRef.current) {
+        const wasAtBottom = isAtBottomRef.current;
         setMessages(list);
         lastMessageIdRef.current = lastId;
-        setTimeout(scrollToBottom, 100);
+        if (wasAtBottom) {
+          setTimeout(scrollToBottom, 100);
+        }
 
         // Mark as read
         apiFetch(`/messages/conversation/${convId}/read`, { method: 'POST' }).catch(() => {});
@@ -86,11 +109,31 @@ export default function ChatPage() {
     })();
   }, [convId, loadMessages]);
 
-  // Polling
+  // Polling — pause while tab is hidden, resume on focus
   useEffect(() => {
-    pollRef.current = setInterval(loadMessages, POLL_INTERVAL);
+    const startPolling = () => {
+      if (pollRef.current) return;
+      pollRef.current = setInterval(loadMessages, POLL_INTERVAL);
+    };
+    const stopPolling = () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        loadMessages();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+    if (document.visibilityState === 'visible') startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      stopPolling();
     };
   }, [loadMessages]);
 
@@ -114,7 +157,7 @@ export default function ChatPage() {
   }
 
   async function handleComplete() {
-    if (!confirm('Complete this consultation? The client will be able to leave a review.')) return;
+    if (!confirm(t('chats', 'confirmComplete'))) return;
     try {
       await apiFetch(`/conversations/${convId}`, {
         method: 'PATCH',
@@ -127,11 +170,11 @@ export default function ChatPage() {
   }
 
   async function handleRequestData() {
-    if (!confirm('Request access to client nutrition and health data?')) return;
+    if (!confirm(t('chats', 'confirmRequestData'))) return;
     try {
       await apiFetch(`/messages/conversation/${convId}`, {
         method: 'POST',
-        body: JSON.stringify({ content: 'I would like to access your nutrition data and health reports to better assist you. Please grant access if you agree.', type: 'report_request' }),
+        body: JSON.stringify({ content: t('chats', 'requestDataMessage'), type: 'report_request' }),
       });
       await loadMessages();
     } catch (err) {
@@ -140,12 +183,12 @@ export default function ChatPage() {
   }
 
   function getClientName() {
-    if (!conversation) return 'Client';
+    if (!conversation) return t('chats', 'clientFallback');
     const p = conversation.client?.userProfile;
     if (p?.firstName || p?.lastName) {
       return [p.firstName, p.lastName].filter(Boolean).join(' ');
     }
-    return conversation.client?.email || 'Client';
+    return conversation.client?.email || t('chats', 'clientFallback');
   }
 
   function formatTime(dateStr: string) {
@@ -161,10 +204,13 @@ export default function ChatPage() {
 
     // System messages
     if (['report_grant', 'report_revoke'].includes(msg.type)) {
+      const granted = msg.type === 'report_grant';
+      const Icon = granted ? LockOpen : Lock;
       return (
         <div key={msg.id} className="flex justify-center my-2">
-          <span className="text-xs text-[var(--text2)] bg-[var(--surface2)] px-3 py-1 rounded-full">
-            {msg.type === 'report_grant' ? '🔓 Client granted data access' : '🔒 Client revoked data access'}
+          <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text2)] bg-[var(--surface2)] px-3 py-1 rounded-full">
+            <Icon size={12} />
+            {granted ? t('chats', 'grantedDataAccess') : t('chats', 'revokedDataAccess')}
           </span>
         </div>
       );
@@ -179,20 +225,26 @@ export default function ChatPage() {
         }`}>
           {/* Special message types */}
           {msg.type === 'photo' && (
-            <img src={msg.content} alt="Photo" className="max-w-full rounded-lg mb-1" style={{ maxHeight: 300 }} />
+            <img src={msg.content} alt={t('chats', 'photo')} className="max-w-full rounded-lg mb-1" style={{ maxHeight: 300 }} />
           )}
           {msg.type === 'meal_share' && (
-            <div className="flex items-center gap-2 mb-1 opacity-80 text-xs">🍽 Shared meals</div>
+            <div className="flex items-center gap-1.5 mb-1 opacity-80 text-xs">
+              <Utensils size={12} />
+              <span>{t('chats', 'sharedMeals')}</span>
+            </div>
           )}
           {msg.type === 'report_request' && (
-            <div className="flex items-center gap-2 mb-1 opacity-80 text-xs">🔐 Data access request</div>
+            <div className="flex items-center gap-1.5 mb-1 opacity-80 text-xs">
+              <ShieldAlert size={12} />
+              <span>{t('chats', 'dataAccessRequest')}</span>
+            </div>
           )}
 
           {msg.type !== 'photo' && <p>{msg.content}</p>}
 
           <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'opacity-70' : 'text-[var(--text2)]'}`}>
             <span>{formatTime(msg.createdAt)}</span>
-            {isMe && msg.isRead && <span>✓✓</span>}
+            {isMe && msg.isRead && <CheckCheck size={12} />}
           </div>
         </div>
       </div>
@@ -228,15 +280,18 @@ export default function ChatPage() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
           <div className="flex items-center gap-3">
-            <Link href="/chats" className="text-[var(--text2)] hover:text-[var(--text)] transition mr-1">
-              ←
+            <Link href="/chats" className="text-[var(--text2)] hover:text-[var(--text)] transition mr-1" aria-label={t('common', 'back')}>
+              <ArrowLeft size={18} />
             </Link>
             <div className="w-9 h-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-sm">
               {getClientName().charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="font-medium text-sm">{getClientName()}</div>
-              <div className="text-xs text-[var(--text2)] capitalize">{conversation?.status || ''}</div>
+              <div className="text-xs text-[var(--text2)]">
+                {conversation?.status === 'completed' && t('chats', 'complete')}
+                {conversation?.status === 'cancelled' && t('chats', 'cancelled')}
+              </div>
             </div>
           </div>
 
@@ -246,7 +301,7 @@ export default function ChatPage() {
                 href={`/clients/${convId}`}
                 className="px-3 py-1.5 text-xs font-medium bg-[#22c55e22] text-[var(--green)] rounded-lg hover:bg-[#22c55e33] transition"
               >
-                View Data
+                {t('chats', 'viewData')}
               </Link>
             )}
             {conversation?.status === 'active' && (
@@ -256,14 +311,14 @@ export default function ChatPage() {
                     onClick={handleRequestData}
                     className="px-3 py-1.5 text-xs font-medium bg-[var(--surface2)] text-[var(--text2)] rounded-lg hover:bg-[var(--border)] transition cursor-pointer"
                   >
-                    Request Data
+                    {t('chats', 'requestData')}
                   </button>
                 )}
                 <button
                   onClick={handleComplete}
                   className="px-3 py-1.5 text-xs font-medium bg-[#ef444422] text-[var(--red)] rounded-lg hover:bg-[#ef444433] transition cursor-pointer"
                 >
-                  Complete
+                  {t('chats', 'completeBtn')}
                 </button>
               </>
             )}
@@ -271,14 +326,14 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg)]">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg)]">
           {loading ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
             </div>
           ) : messages.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-[var(--text2)]">No messages yet. Start the conversation!</p>
+              <p className="text-[var(--text2)]">{t('chats', 'startConversation')}</p>
             </div>
           ) : (
             <>
@@ -291,28 +346,46 @@ export default function ChatPage() {
         {/* Completed banner */}
         {conversation?.status === 'completed' && (
           <div className="px-6 py-3 bg-[var(--surface)] border-t border-[var(--border)] text-center text-sm text-[var(--text2)]">
-            This consultation has been completed.
+            {t('chats', 'completedBanner')}
           </div>
         )}
 
         {/* Input */}
         {conversation?.status === 'active' && (
-          <form onSubmit={handleSend} className="flex items-center gap-3 px-6 py-4 border-t border-[var(--border)] bg-[var(--surface)] shrink-0">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-1 px-4 py-2.5 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text)] placeholder:text-[var(--text2)] outline-none focus:border-[var(--primary)] transition"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || sending}
-              className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-40 text-white text-sm font-medium rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
-            >
-              Send
-            </button>
-          </form>
+          <div className="border-t border-[var(--border)] bg-[var(--surface)] shrink-0">
+            {/* Quick-action templates */}
+            <div className="flex gap-2 px-6 pt-3 overflow-x-auto scrollbar-none">
+              <span className="text-[11px] uppercase tracking-wider text-[var(--text2)] self-center shrink-0 pr-1">
+                {t('chats', 'templates')}
+              </span>
+              {TEMPLATE_KEYS.map((tpl) => (
+                <button
+                  key={tpl.label}
+                  type="button"
+                  onClick={() => setInput(t('chats', tpl.body))}
+                  className="shrink-0 px-3 py-1 text-xs rounded-full bg-[var(--surface2)] text-[var(--text2)] hover:bg-[var(--border)] hover:text-[var(--text)] transition cursor-pointer"
+                >
+                  {t('chats', tpl.label)}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={handleSend} className="flex items-center gap-3 px-6 py-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={t('chats', 'typeMessage')}
+                className="flex-1 px-4 py-2.5 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text)] placeholder:text-[var(--text2)] outline-none focus:border-[var(--primary)] transition"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || sending}
+                className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-40 text-white text-sm font-medium rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
+              >
+                {t('chats', 'send')}
+              </button>
+            </form>
+          </div>
         )}
       </div>
     </AppShell>

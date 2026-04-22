@@ -74,13 +74,28 @@ export default function ConsultationsListScreen({ navigation }) {
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
-    const getLastMessagePreview = (conv) => {
+    const MESSAGE_PREVIEW_ICON = {
+        photo: { name: 'camera-outline', label: t('experts.photo') || 'Photo' },
+        meal_share: { name: 'restaurant-outline', label: t('experts.sharedMeals') || 'Shared meals' },
+        report_share: { name: 'document-text-outline', label: t('experts.sharedReport') || 'Shared report' },
+    };
+
+    const renderLastMessagePreview = (conv, textStyle) => {
         const lastMsg = conv.messages?.[0];
-        if (!lastMsg) return t('experts.noMessages') || 'No messages yet';
-        if (lastMsg.type === 'photo') return '📷 ' + (t('experts.photo') || 'Photo');
-        if (lastMsg.type === 'meal_share') return '🍽 ' + (t('experts.sharedMeals') || 'Shared meals');
-        if (lastMsg.type === 'report_share') return '📊 ' + (t('experts.sharedReport') || 'Shared report');
-        return lastMsg.content?.length > 60 ? lastMsg.content.slice(0, 60) + '…' : lastMsg.content;
+        if (!lastMsg) {
+            return <Text style={textStyle} numberOfLines={1}>{t('experts.noMessages') || 'No messages yet'}</Text>;
+        }
+        const typed = MESSAGE_PREVIEW_ICON[lastMsg.type];
+        if (typed) {
+            return (
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                    <Ionicons name={typed.name} size={14} color={colors.textSecondary || '#9CA3AF'} style={{ marginRight: 4 }} />
+                    <Text style={textStyle} numberOfLines={1}>{typed.label}</Text>
+                </View>
+            );
+        }
+        const preview = lastMsg.content?.length > 60 ? lastMsg.content.slice(0, 60) + '…' : lastMsg.content;
+        return <Text style={textStyle} numberOfLines={1}>{preview}</Text>;
     };
 
     const renderConversation = ({ item }) => {
@@ -116,12 +131,7 @@ export default function ConsultationsListScreen({ navigation }) {
                         </View>
 
                         <View style={styles.previewRow}>
-                            <Text
-                                style={[styles.previewText, unreadCount > 0 && styles.previewTextUnread]}
-                                numberOfLines={1}
-                            >
-                                {getLastMessagePreview(item)}
-                            </Text>
+                            {renderLastMessagePreview(item, [styles.previewText, unreadCount > 0 && styles.previewTextUnread])}
                             {unreadCount > 0 && (
                                 <View style={styles.unreadBadge}>
                                     <Text style={styles.unreadText}>

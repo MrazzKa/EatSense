@@ -93,6 +93,14 @@ export class ExpertsController {
         return this.expertsService.deleteCredential(req.user.id, id);
     }
 
+    // ==================== MY REVIEWS ENDPOINTS ====================
+
+    @Get('me/reviews')
+    @UseGuards(JwtAuthGuard)
+    async getMyReviews(@Request() req: any) {
+        return this.expertsService.getMyReviews(req.user.id);
+    }
+
     // ==================== MY OFFERS ENDPOINTS ====================
 
     @Get('me/offers')

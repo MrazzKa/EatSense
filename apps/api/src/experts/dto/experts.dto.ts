@@ -1,91 +1,113 @@
-import { IsString, IsOptional, IsArray, IsInt, Min, Max, IsBoolean, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsInt, Min, Max, IsBoolean, IsEnum, IsIn, IsNumber, MaxLength, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export const SUPPORTED_LANGUAGES = ['en', 'ru', 'kk', 'fr', 'de', 'es'] as const;
+
 export class CreateExpertProfileDto {
-    @IsString()
+    @IsIn(['dietitian', 'nutritionist'])
     type: 'dietitian' | 'nutritionist';
 
     @IsString()
+    @MaxLength(100)
     displayName: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(200)
     title?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(4000)
     bio?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(1000)
     avatarUrl?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(2000)
     education?: string;
 
     @IsOptional()
     @IsInt()
     @Min(0)
+    @Max(70)
     experienceYears?: number;
 
     @IsOptional()
     @IsArray()
+    @ArrayMaxSize(20)
     @IsString({ each: true })
+    @MaxLength(50, { each: true })
     specializations?: string[];
 
     @IsOptional()
     @IsArray()
-    @IsString({ each: true })
+    @ArrayMaxSize(10)
+    @IsIn(SUPPORTED_LANGUAGES as unknown as string[], { each: true })
     languages?: string[];
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     contactPolicy?: string;
 }
 
 export class UpdateExpertProfileDto {
     @IsOptional()
-    @IsString()
+    @IsIn(['dietitian', 'nutritionist'])
     type?: 'dietitian' | 'nutritionist';
 
     @IsOptional()
     @IsString()
+    @MaxLength(100)
     displayName?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(200)
     title?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(4000)
     bio?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(1000)
     avatarUrl?: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(2000)
     education?: string;
 
     @IsOptional()
     @IsInt()
     @Min(0)
+    @Max(70)
     experienceYears?: number;
 
     @IsOptional()
     @IsArray()
+    @ArrayMaxSize(20)
     @IsString({ each: true })
+    @MaxLength(50, { each: true })
     specializations?: string[];
 
     @IsOptional()
     @IsArray()
-    @IsString({ each: true })
+    @ArrayMaxSize(10)
+    @IsIn(SUPPORTED_LANGUAGES as unknown as string[], { each: true })
     languages?: string[];
 
     @IsOptional()
     @IsString()
+    @MaxLength(500)
     contactPolicy?: string;
 
     @IsOptional()
@@ -142,10 +164,12 @@ export class ExpertFiltersDto {
 
 export class CreateCredentialDto {
     @IsString()
+    @MaxLength(200)
     name: string;
 
     @IsOptional()
     @IsString()
+    @MaxLength(200)
     issuer?: string;
 
     @IsOptional()
@@ -158,10 +182,11 @@ export class CreateCredentialDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(2000)
     fileUrl?: string;
 
     @IsOptional()
-    @IsString()
+    @IsIn(['pdf', 'image'])
     fileType?: string;
 }
 
@@ -196,16 +221,21 @@ export class CreateOfferDto {
     priceType?: PriceType;
 
     @IsOptional()
+    @IsNumber()
+    @Min(0)
+    @Max(1_000_000)
     @Type(() => Number)
     priceAmount?: number;
 
     @IsOptional()
     @IsString()
+    @MaxLength(8)
     currency?: string;
 
     @IsOptional()
     @IsInt()
     @Min(1)
+    @Max(3650)
     @Type(() => Number)
     durationDays?: number;
 
@@ -219,6 +249,7 @@ export class CreateOfferDto {
     @IsOptional()
     @IsInt()
     @Min(0)
+    @Max(1000)
     @Type(() => Number)
     sortOrder?: number;
 }

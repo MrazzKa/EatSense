@@ -8,16 +8,26 @@ import {
     UseGuards,
     Request,
 } from '@nestjs/common';
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
 import { ConversationsService } from './conversations.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 class StartConversationDto {
+    @IsString()
     expertId: string;
+
+    @IsOptional()
+    @IsString()
     offerId?: string;
 }
 
 class UpdateConversationDto {
+    @IsOptional()
+    @IsIn(['active', 'completed', 'cancelled'])
     status?: 'active' | 'completed' | 'cancelled';
+
+    @IsOptional()
+    @IsBoolean()
     reportsShared?: boolean;
 }
 

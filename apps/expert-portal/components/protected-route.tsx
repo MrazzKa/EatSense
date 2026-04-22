@@ -1,12 +1,15 @@
 'use client';
 
+import { Ban } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n/context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -28,16 +31,16 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 text-center">
-          <div className="text-4xl mb-4">🚫</div>
-          <h2 className="text-lg font-semibold mb-2">Not an expert</h2>
+          <Ban size={40} strokeWidth={1.5} className="mx-auto mb-4 text-[var(--red)]" />
+          <h2 className="text-lg font-semibold mb-2">{t('login', 'notExpert')}</h2>
           <p className="text-sm text-[var(--text2)] mb-6">
-            This portal is for registered experts only. Register as an expert in the EatSense app first.
+            {t('login', 'notExpertBody')}
           </p>
           <button
             onClick={() => { localStorage.clear(); window.location.href = '/'; }}
             className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition cursor-pointer"
           >
-            Sign out
+            {t('nav', 'signOut')}
           </button>
         </div>
       </div>

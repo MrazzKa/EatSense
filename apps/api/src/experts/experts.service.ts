@@ -84,8 +84,8 @@ export class ExpertsService {
     }
 
     async findById(id: string) {
-        const expert = await this.prisma.expertProfile.findUnique({
-            where: { id },
+        const expert = await this.prisma.expertProfile.findFirst({
+            where: { id, isActive: true, isPublished: true },
             include: {
                 offers: {
                     where: { isPublished: true },
@@ -312,6 +312,29 @@ export class ExpertsService {
         });
     }
 
+    async getMyReviews(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        return this.prisma.review.findMany({
+            where: { expertId: expert.id },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        userProfile: { select: { firstName: true, lastName: true, avatarUrl: true } },
+                    },
+                },
+            },
+        });
+    }
+
     async createOffer(userId: string, dto: CreateOfferDto) {
         const expert = await this.prisma.expertProfile.findUnique({
             where: { userId },
@@ -321,7 +344,14 @@ export class ExpertsService {
             throw new NotFoundException('Expert profile not found');
         }
 
-        const defaultName = { en: 'Consultation', ru: 'Консультация', kk: 'Кеңес' };
+        const defaultName = {
+            en: 'Consultation',
+            ru: 'Консультация',
+            kk: 'Кеңес',
+            fr: 'Consultation',
+            de: 'Beratung',
+            es: 'Consulta',
+        };
 
         return this.prisma.expertOffer.create({
             data: {

@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useTheme, useDesignTokens } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../../app/i18n/hooks';
@@ -64,15 +65,45 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const [displayName, setDisplayName] = useState('');
     const [type, setType] = useState<'dietitian' | 'nutritionist'>('nutritionist');
     const [bio, setBio] = useState('');
-    const [education, setEducation] = useState('');
+    type EducationEntry = { degree: string; institution: string; year: string };
+    const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([
+        { degree: '', institution: '', year: '' },
+    ]);
     const [experienceYears, setExperienceYears] = useState('');
+
+    const composedEducation = useMemo(() => {
+        return educationEntries
+            .filter(e => e.degree.trim() || e.institution.trim())
+            .map(e => {
+                const main = [e.degree.trim(), e.institution.trim()].filter(Boolean).join(', ');
+                return e.year.trim() ? `${main} (${e.year.trim()})` : main;
+            })
+            .join('\n');
+    }, [educationEntries]);
+
+    const updateEducationEntry = useCallback((index: number, field: keyof EducationEntry, value: string) => {
+        setEducationEntries(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
+    }, []);
+    const addEducationEntry = useCallback(() => {
+        setEducationEntries(prev => [...prev, { degree: '', institution: '', year: '' }]);
+    }, []);
+    const removeEducationEntry = useCallback((index: number) => {
+        setEducationEntries(prev => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
+    }, []);
 
     // Step 3: Specializations & languages
     const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
     const [selectedLangs, setSelectedLangs] = useState<string[]>(['en']);
 
     // Step 4: Documents
-    const [documents, setDocuments] = useState<Array<{ uri: string; name: string; uploadedUrl?: string }>>([]);
+    type PickedDocument = {
+        uri: string;
+        name: string;
+        mimeType: string;
+        kind: 'image' | 'pdf';
+    };
+    const [documents, setDocuments] = useState<PickedDocument[]>([]);
+    const [pickerOpen, setPickerOpen] = useState(false);
 
     const [profileCreated, setProfileCreated] = useState(false);
 
@@ -81,11 +112,11 @@ export default function BecomeExpertScreen({ navigation }: any) {
             case 1: return disclaimerAccepted;
             case 2: return displayName.trim().length > 0 && bio.trim().length >= 50;
             case 3: return selectedSpecs.length > 0 && selectedLangs.length > 0;
-            case 4: return true; // documents optional for now
+            case 4: return documents.length >= 1;
             case 5: return true; // preview
             default: return false;
         }
-    }, [step, disclaimerAccepted, displayName, bio, selectedSpecs, selectedLangs]);
+    }, [step, disclaimerAccepted, displayName, bio, selectedSpecs, selectedLangs, documents.length]);
 
     const toggleSpec = useCallback((spec: string) => {
         setSelectedSpecs(prev =>
@@ -99,21 +130,67 @@ export default function BecomeExpertScreen({ navigation }: any) {
         );
     }, []);
 
-    const pickDocument = useCallback(async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const pickFromCamera = useCallback(async () => {
+        setPickerOpen(false);
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission needed', 'Please allow access to your photo library to upload credentials.');
+            Alert.alert(t('common.permissionNeeded') || 'Permission', t('experts.onboarding.cameraPermission'));
             return;
         }
-        const result = await ImagePicker.launchImageLibraryAsync({
+        const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ['images'],
-            quality: 0.8,
+            quality: 0.85,
         });
         if (!result.canceled && result.assets?.[0]) {
             const asset = result.assets[0];
             setDocuments(prev => [...prev, {
                 uri: asset.uri,
                 name: asset.fileName || `document_${prev.length + 1}.jpg`,
+                mimeType: asset.mimeType || 'image/jpeg',
+                kind: 'image',
+            }]);
+        }
+    }, [t]);
+
+    const pickFromGallery = useCallback(async () => {
+        setPickerOpen(false);
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(
+                t('common.permissionNeeded') || 'Permission',
+                t('experts.onboarding.galleryPermission') || 'Please allow access to your photo library.',
+            );
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 0.85,
+        });
+        if (!result.canceled && result.assets?.[0]) {
+            const asset = result.assets[0];
+            setDocuments(prev => [...prev, {
+                uri: asset.uri,
+                name: asset.fileName || `document_${prev.length + 1}.jpg`,
+                mimeType: asset.mimeType || 'image/jpeg',
+                kind: 'image',
+            }]);
+        }
+    }, [t]);
+
+    const pickPdf = useCallback(async () => {
+        setPickerOpen(false);
+        const result = await DocumentPicker.getDocumentAsync({
+            type: 'application/pdf',
+            multiple: false,
+            copyToCacheDirectory: true,
+        });
+        if (!result.canceled && result.assets?.[0]) {
+            const asset = result.assets[0];
+            setDocuments(prev => [...prev, {
+                uri: asset.uri,
+                name: asset.name || `document_${prev.length + 1}.pdf`,
+                mimeType: asset.mimeType || 'application/pdf',
+                kind: 'pdf',
             }]);
         }
     }, []);
@@ -123,38 +200,60 @@ export default function BecomeExpertScreen({ navigation }: any) {
     }, []);
 
     const handleSubmit = useCallback(async () => {
+        if (documents.length === 0) {
+            Alert.alert(t('experts.onboarding.uploadFailed'), t('experts.onboarding.documentsRequired'));
+            return;
+        }
+
         setLoading(true);
         try {
             // 1. Create expert profile
-            const profile = await MarketplaceService.createExpertProfile({
+            await MarketplaceService.createExpertProfile({
                 type,
                 displayName: displayName.trim(),
                 bio: bio.trim(),
-                education: education.trim() || undefined,
+                education: composedEducation || undefined,
                 experienceYears: parseInt(experienceYears) || 0,
                 specializations: selectedSpecs,
                 languages: selectedLangs,
             });
 
-            // 2. Upload documents as credentials
+            // 2. Upload documents — fail the whole submission if any fail
+            const failures: string[] = [];
             for (const doc of documents) {
                 try {
-                    const uploadResult = await ApiService.uploadImage(doc.uri);
-                    if (uploadResult?.url) {
-                        await MarketplaceService.uploadCredential({
-                            name: doc.name,
-                            fileUrl: uploadResult.url,
-                            fileType: 'image',
-                        });
+                    const uploadResult = await ApiService.uploadDocument(doc.uri, doc.mimeType, doc.name);
+                    if (!uploadResult?.url) {
+                        throw new Error('No URL returned from upload');
                     }
-                } catch (err) {
-                    console.warn('Failed to upload credential:', err);
+                    await MarketplaceService.uploadCredential({
+                        name: doc.name,
+                        fileUrl: uploadResult.url,
+                        fileType: doc.kind,
+                    });
+                } catch (err: any) {
+                    console.warn('Credential upload failed:', doc.name, err?.message);
+                    failures.push(doc.name);
                 }
             }
 
-            // 3. Refresh user to get updated expertsRole
-            await refreshUser();
+            if (failures.length === documents.length && documents.length > 0) {
+                Alert.alert(
+                    t('experts.onboarding.uploadFailed'),
+                    (t('experts.onboarding.allCredentialsFailed') as string)
+                        || 'All documents failed to upload. Without credentials the admin will likely reject your profile. Please retry.',
+                );
+                return;
+            }
 
+            if (failures.length > 0) {
+                Alert.alert(
+                    t('experts.onboarding.uploadFailed'),
+                    t('experts.onboarding.uploadFailedMessage') + '\n\n' + failures.join(', '),
+                );
+            }
+
+            await refreshUser();
             setProfileCreated(true);
             setStep(6);
         } catch (error: any) {
@@ -165,7 +264,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
         } finally {
             setLoading(false);
         }
-    }, [type, displayName, bio, education, experienceYears, selectedSpecs, selectedLangs, documents, refreshUser, t]);
+    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, refreshUser, t]);
 
     const handleNext = useCallback(() => {
         if (step === 5) {
@@ -255,7 +354,9 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 ))}
             </View>
 
-            <Text style={styles.label}>{t('experts.edit.bio')} ({bio.length}/50 min)</Text>
+            <Text style={styles.label}>
+                {t('experts.edit.bio')} ({t('experts.onboarding.bioMinHint', { count: bio.length }) || `${bio.length}/50 min`})
+            </Text>
             <TextInput
                 style={[styles.input, styles.textArea]}
                 value={bio}
@@ -268,13 +369,49 @@ export default function BecomeExpertScreen({ navigation }: any) {
             />
 
             <Text style={styles.label}>{t('experts.edit.education')}</Text>
-            <TextInput
-                style={styles.input}
-                value={education}
-                onChangeText={setEducation}
-                placeholder={t('experts.edit.educationPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-            />
+            {educationEntries.map((entry, index) => (
+                <View key={index} style={styles.educationEntry}>
+                    <TextInput
+                        style={styles.input}
+                        value={entry.degree}
+                        onChangeText={(v) => updateEducationEntry(index, 'degree', v)}
+                        placeholder={t('experts.edit.educationDegreePlaceholder') || 'Degree (e.g. MSc Nutrition)'}
+                        placeholderTextColor={colors.textTertiary}
+                    />
+                    <TextInput
+                        style={[styles.input, { marginTop: tokens.spacing.sm }]}
+                        value={entry.institution}
+                        onChangeText={(v) => updateEducationEntry(index, 'institution', v)}
+                        placeholder={t('experts.edit.educationInstitutionPlaceholder') || 'Institution (e.g. ETH Zürich)'}
+                        placeholderTextColor={colors.textTertiary}
+                    />
+                    <View style={styles.educationYearRow}>
+                        <TextInput
+                            style={[styles.input, { flex: 1 }]}
+                            value={entry.year}
+                            onChangeText={(v) => updateEducationEntry(index, 'year', v)}
+                            placeholder={t('experts.edit.educationYearPlaceholder') || 'Year (e.g. 2020)'}
+                            placeholderTextColor={colors.textTertiary}
+                            keyboardType="numeric"
+                            maxLength={9}
+                        />
+                        {educationEntries.length > 1 && (
+                            <TouchableOpacity
+                                onPress={() => removeEducationEntry(index)}
+                                style={styles.educationRemoveBtn}
+                            >
+                                <Ionicons name="close-circle" size={24} color={colors.error || '#FF3B30'} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            ))}
+            <TouchableOpacity onPress={addEducationEntry} style={styles.educationAddBtn}>
+                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                <Text style={styles.educationAddText}>
+                    {t('experts.edit.addEducation') || 'Add another entry'}
+                </Text>
+            </TouchableOpacity>
 
             <Text style={styles.label}>{t('experts.edit.experienceYears')}</Text>
             <TextInput
@@ -332,7 +469,13 @@ export default function BecomeExpertScreen({ navigation }: any) {
 
             {documents.map((doc, index) => (
                 <View key={index} style={styles.documentRow}>
-                    <Image source={{ uri: doc.uri }} style={styles.documentThumb} />
+                    {doc.kind === 'pdf' ? (
+                        <View style={[styles.documentThumb, styles.pdfThumb]}>
+                            <Ionicons name="document-text" size={24} color={colors.primary} />
+                        </View>
+                    ) : (
+                        <Image source={{ uri: doc.uri }} style={styles.documentThumb} />
+                    )}
                     <Text style={styles.documentName} numberOfLines={1}>{doc.name}</Text>
                     <TouchableOpacity onPress={() => removeDocument(index)}>
                         <Ionicons name="close-circle" size={24} color={colors.error || '#FF3B30'} />
@@ -340,10 +483,42 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 </View>
             ))}
 
-            <TouchableOpacity style={styles.uploadButton} onPress={pickDocument}>
+            <TouchableOpacity style={styles.uploadButton} onPress={() => setPickerOpen(true)}>
                 <Ionicons name="cloud-upload-outline" size={24} color={colors.primary} />
                 <Text style={styles.uploadButtonText}>{t('experts.onboarding.uploadDocument')}</Text>
             </TouchableOpacity>
+
+            {documents.length === 0 && (
+                <Text style={styles.helperText}>{t('experts.onboarding.documentsRequired')}</Text>
+            )}
+
+            {pickerOpen && (
+                <>
+                    <TouchableOpacity
+                        style={styles.pickerBackdrop}
+                        activeOpacity={1}
+                        onPress={() => setPickerOpen(false)}
+                    />
+                    <View style={styles.pickerSheet}>
+                        <Text style={styles.pickerTitle}>{t('experts.onboarding.chooseDocumentSource')}</Text>
+                        <TouchableOpacity style={styles.pickerOption} onPress={pickFromCamera}>
+                            <Ionicons name="camera-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceCamera')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerOption} onPress={pickFromGallery}>
+                            <Ionicons name="images-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceGallery')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerOption} onPress={pickPdf}>
+                            <Ionicons name="document-text-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourcePdf')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setPickerOpen(false)}>
+                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
         </ScrollView>
     );
 
@@ -366,16 +541,16 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 <Text style={styles.previewSectionTitle}>{t('experts.about')}</Text>
                 <Text style={styles.previewText}>{bio}</Text>
 
-                {education ? (
+                {composedEducation ? (
                     <>
                         <Text style={styles.previewSectionTitle}>{t('experts.edit.education')}</Text>
-                        <Text style={styles.previewText}>{education}</Text>
+                        <Text style={styles.previewText}>{composedEducation}</Text>
                     </>
                 ) : null}
 
                 {experienceYears ? (
                     <Text style={styles.previewMeta}>
-                        {t('experts.yearsExperience', { count: experienceYears })}
+                        {t('experts.yearsExperience', { count: parseInt(experienceYears) || 0 })}
                     </Text>
                 ) : null}
 
@@ -678,6 +853,65 @@ const createStyles = (tokens: any, colors: any) =>
             color: colors.primary,
             fontWeight: '500',
         },
+        pdfThumb: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: colors.primary + '15',
+        },
+        helperText: {
+            marginTop: tokens.spacing.sm,
+            fontSize: 13,
+            color: colors.textSecondary,
+            textAlign: 'center',
+        },
+        pickerBackdrop: {
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.4)',
+        },
+        pickerSheet: {
+            position: 'absolute',
+            left: tokens.spacing.lg,
+            right: tokens.spacing.lg,
+            bottom: tokens.spacing.lg,
+            backgroundColor: colors.surface,
+            borderRadius: tokens.radii.md,
+            padding: tokens.spacing.md,
+        },
+        pickerTitle: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: colors.textSecondary,
+            textAlign: 'center',
+            paddingVertical: tokens.spacing.sm,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+        },
+        pickerOption: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: tokens.spacing.md,
+            paddingVertical: tokens.spacing.lg,
+            paddingHorizontal: tokens.spacing.md,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+        },
+        pickerOptionText: {
+            fontSize: 16,
+            color: colors.text,
+        },
+        pickerCancel: {
+            marginTop: tokens.spacing.sm,
+            paddingVertical: tokens.spacing.md,
+            alignItems: 'center',
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+        },
+        pickerCancelText: {
+            fontSize: 16,
+            color: colors.primary,
+            fontWeight: '600',
+        },
         previewCard: {
             backgroundColor: colors.surface,
             borderRadius: tokens.radii.sm,
@@ -748,5 +982,33 @@ const createStyles = (tokens: any, colors: any) =>
             fontSize: 16,
             fontWeight: '600',
             color: '#FFFFFF',
+        },
+        educationEntry: {
+            backgroundColor: colors.surface,
+            borderRadius: tokens.radii.sm,
+            padding: tokens.spacing.md,
+            marginBottom: tokens.spacing.sm,
+        },
+        educationYearRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: tokens.spacing.sm,
+            marginTop: tokens.spacing.sm,
+        },
+        educationRemoveBtn: {
+            padding: tokens.spacing.xs,
+        },
+        educationAddBtn: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: tokens.spacing.sm,
+            paddingVertical: tokens.spacing.md,
+            marginTop: tokens.spacing.xs,
+        },
+        educationAddText: {
+            fontSize: 14,
+            color: colors.primary,
+            fontWeight: '500',
         },
     });

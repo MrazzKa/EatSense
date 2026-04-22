@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import * as sharp from 'sharp';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -164,6 +164,110 @@ export class MediaService {
     };
   }
 
+  async uploadDocument(file: any, userId: string): Promise<UploadResult> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const isImage = file.mimetype?.startsWith('image/');
+    const isPdf = file.mimetype === 'application/pdf';
+
+    if (!isImage && !isPdf) {
+      throw new BadRequestException('File must be an image or PDF');
+    }
+
+    const maxSize = 15 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new BadRequestException('File size must be less than 15MB');
+    }
+
+    let payload: Buffer;
+    let storedMimetype: string;
+
+    if (isImage) {
+      try {
+        payload = await sharp(file.buffer, { failOnError: false })
+          .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 85, mozjpeg: true })
+          .toBuffer();
+        storedMimetype = 'image/jpeg';
+      } catch (sharpError: any) {
+        this.logger.error(`[MediaService] Image processing failed: ${sharpError.message}`);
+        if (sharpError.message?.includes('heif') || file.mimetype?.includes('heic')) {
+          throw new BadRequestException('HEIF/HEIC not supported. Convert to JPEG or PNG.');
+        }
+        throw new BadRequestException(`Image processing failed: ${sharpError.message}`);
+      }
+    } else {
+      payload = file.buffer;
+      storedMimetype = 'application/pdf';
+    }
+
+    const s3ExplicitlyDisabled = process.env.S3_ENABLED === 'false';
+    if (!s3ExplicitlyDisabled && this.s3Enabled && this.s3Client && this.s3Bucket) {
+      try {
+        const key = this.buildObjectKey(userId, file.originalname);
+        await this.s3Client.send(
+          new PutObjectCommand({
+            Bucket: this.s3Bucket,
+            Key: key,
+            Body: payload,
+            ContentType: storedMimetype,
+            Metadata: { originalname: file.originalname, uploadedBy: userId },
+          }),
+        );
+
+        const media = await this.prisma.media.create({
+          data: {
+            userId,
+            filename: file.originalname,
+            mimetype: storedMimetype,
+            size: payload.length,
+            storageKey: key,
+            storageBucket: this.s3Bucket,
+            storageProvider: 's3',
+          },
+        });
+
+        return {
+          id: media.id,
+          filename: media.filename,
+          mimetype: media.mimetype,
+          size: media.size,
+          url: this.makePublicUrl(`/media/credential/${media.id}`),
+          storageProvider: 's3',
+        };
+      } catch (error) {
+        const errorMsg = `S3 upload failed, falling back to DB: ${(error as Error).message}`;
+        if (process.env.NODE_ENV === 'development') {
+          this.logger.debug(errorMsg);
+        } else {
+          this.logger.warn(errorMsg);
+        }
+      }
+    }
+
+    const media = await this.prisma.media.create({
+      data: {
+        userId,
+        filename: file.originalname,
+        mimetype: storedMimetype,
+        size: payload.length,
+        data: new Uint8Array(payload),
+        storageProvider: 'database',
+      },
+    });
+
+    return {
+      id: media.id,
+      filename: media.filename,
+      mimetype: media.mimetype,
+      size: media.size,
+      url: this.makePublicUrl(`/media/credential/${media.id}`),
+      storageProvider: 'database',
+    };
+  }
+
   private buildObjectKey(userId: string, originalName: string): string {
     const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, '-');
     return `media/${userId}/${Date.now()}-${randomUUID()}-${safeName}`;
@@ -225,10 +329,64 @@ export class MediaService {
     }
 
     if (media.data) {
-      // Serve from database
-      res.set('Content-Type', 'image/jpeg'); // All images are converted to JPEG on upload
+      // Serve from database with stored mimetype (images, PDFs, etc.)
+      res.set('Content-Type', media.mimetype || 'application/octet-stream');
       res.set('Content-Length', media.size.toString());
       res.set('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+      res.send(Buffer.from(media.data));
+      return;
+    }
+
+    throw new NotFoundException('Media content not available');
+  }
+
+  /**
+   * Serve a credential media file — only the uploader or admin can view.
+   */
+  async serveCredential(
+    id: string,
+    requesterUserId: string | null,
+    isAdmin: boolean,
+    res: import('express').Response,
+  ): Promise<void> {
+    const media = await this.prisma.media.findUnique({ where: { id } });
+    if (!media) {
+      throw new NotFoundException('Media not found');
+    }
+
+    const isOwner = !!requesterUserId && media.userId === requesterUserId;
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    if (media.storageProvider === 's3' && media.storageKey && this.s3Client && this.s3Bucket) {
+      try {
+        const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+        const response = await this.s3Client.send(
+          new GetObjectCommand({ Bucket: this.s3Bucket, Key: media.storageKey }),
+        );
+        if (response.Body) {
+          const chunks: Uint8Array[] = [];
+          for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+            chunks.push(chunk);
+          }
+          const buffer = Buffer.concat(chunks);
+          res.set('Content-Type', media.mimetype || 'application/octet-stream');
+          res.set('Content-Length', buffer.length.toString());
+          res.set('Cache-Control', 'private, max-age=0, no-store');
+          res.send(buffer);
+          return;
+        }
+      } catch (error: any) {
+        this.logger.error(`[MediaService] Failed to stream credential from S3: ${error.message}`);
+        throw new NotFoundException('Media content not available');
+      }
+    }
+
+    if (media.data) {
+      res.set('Content-Type', media.mimetype || 'application/octet-stream');
+      res.set('Content-Length', media.size.toString());
+      res.set('Cache-Control', 'private, max-age=0, no-store');
       res.send(Buffer.from(media.data));
       return;
     }

@@ -326,3 +326,14 @@ jwt_rsa_public*
 
 # Antigravity brain (Gemini agent artifacts)
 .gemini/antigravity/
+
+# Internal docs / plans — local only
+docs/
+
+# Python caches (ML worker, any scripts)
+__pycache__/
+*.pyc
+*.pyo
+
+# EAS local credentials file (contains p12 password)
+credentials.json

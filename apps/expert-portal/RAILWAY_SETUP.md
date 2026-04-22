@@ -26,6 +26,7 @@ Add in Service → Variables:
 | Key | Value |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | `https://<your-api-service>.up.railway.app` (or `api.eatsense.ch`) |
+| `NEXT_PUBLIC_PORTAL_URL` | `https://experts.eatsense.ch` (used as magic-link redirect target) |
 | `PORT` | `3000` (Railway auto-injects if omitted, but safe to set) |
 | `NODE_ENV` | `production` |
 

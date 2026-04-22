@@ -1,6 +1,34 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+
+class CreateMessageDto {
+    @IsOptional()
+    @IsIn(['text', 'photo', 'meal_share', 'report_share', 'report_request', 'report_grant', 'report_revoke'])
+    type?: 'text' | 'photo' | 'meal_share' | 'report_share' | 'report_request' | 'report_grant' | 'report_revoke';
+
+    @IsString()
+    @MinLength(1)
+    @MaxLength(4000)
+    content: string;
+
+    @IsOptional()
+    metadata?: any;
+}
+
+class ShareMealsDto {
+    @IsString()
+    fromDate: string;
+
+    @IsString()
+    toDate: string;
+}
+
+class ShareReportDto {
+    @IsOptional()
+    reportData?: any;
+}
 
 @Controller('messages')
 @UseGuards(JwtAuthGuard)
@@ -19,7 +47,7 @@ export class MessagesController {
     async create(
         @Request() req: any,
         @Param('conversationId') conversationId: string,
-        @Body() body: { type?: string; content: string; metadata?: any },
+        @Body() body: CreateMessageDto,
     ) {
         return this.messagesService.create({
             conversationId,

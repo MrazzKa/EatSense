@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Globe, Leaf, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useI18n } from '@/lib/i18n/context';
+import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 import { useRouter } from 'next/navigation';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -10,6 +13,7 @@ const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || 'http://localhost:3001'
 export default function LoginPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t, locale, setLocale } = useI18n();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -62,22 +66,22 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 text-center">
-        <div className="text-3xl mb-2">🍏</div>
-        <h1 className="text-xl font-bold mb-1">EatSense Expert Portal</h1>
-        <p className="text-sm text-[var(--text2)] mb-8">Sign in to manage your expert profile</p>
+        <Leaf size={32} className="mx-auto mb-2 text-[var(--primary)]" strokeWidth={2.25} />
+        <h1 className="text-xl font-bold mb-1">{t('login', 'title')}</h1>
+        <p className="text-sm text-[var(--text2)] mb-8">{t('login', 'subtitle')}</p>
 
         {sent ? (
           <div>
-            <div className="text-4xl mb-4">📧</div>
-            <h2 className="text-lg font-semibold mb-2">Check your email</h2>
+            <Mail size={40} strokeWidth={1.5} className="mx-auto mb-4 text-[var(--primary)]" />
+            <h2 className="text-lg font-semibold mb-2">{t('login', 'checkEmail')}</h2>
             <p className="text-sm text-[var(--text2)] mb-4">
-              We sent a magic link to <strong className="text-[var(--text)]">{email}</strong>. Click the link to sign in.
+              {t('login', 'sentTo')} <strong className="text-[var(--text)]">{email}</strong>.
             </p>
             <button
               onClick={() => { setSent(false); setEmail(''); }}
               className="text-sm text-[var(--primary)] hover:text-[var(--primary-hover)] cursor-pointer"
             >
-              Use a different email
+              {t('login', 'useDifferent')}
             </button>
           </div>
         ) : (
@@ -86,7 +90,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
+              placeholder={t('login', 'emailPlaceholder')}
               required
               className="w-full px-4 py-3 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder:text-[var(--text2)] outline-none focus:border-[var(--primary)] transition mb-4"
             />
@@ -100,10 +104,26 @@ export default function LoginPage() {
               disabled={submitting || !email}
               className="w-full py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
             >
-              {submitting ? 'Sending...' : 'Send Magic Link'}
+              {submitting ? t('login', 'sending') : t('login', 'send')}
             </button>
           </form>
         )}
+
+        <div className="mt-6 pt-6 border-t border-[var(--border)] flex items-center justify-center gap-2 text-xs text-[var(--text2)]">
+          <Globe size={12} />
+          <select
+            value={locale}
+            onChange={(e) => setLocale(e.target.value as Locale)}
+            className="bg-transparent outline-none cursor-pointer"
+            aria-label={t('common', 'language')}
+          >
+            {LOCALES.map((l) => (
+              <option key={l} value={l}>
+                {LOCALE_LABELS[l]}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );

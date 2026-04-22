@@ -1,6 +1,38 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+
+class CreateReviewBody {
+    @IsString()
+    expertId: string;
+
+    @IsString()
+    conversationId: string;
+
+    @IsInt()
+    @Min(1)
+    @Max(5)
+    rating: number;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    comment?: string;
+}
+
+class UpdateReviewBody {
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    @Max(5)
+    rating?: number;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    comment?: string;
+}
 
 @Controller('reviews')
 @UseGuards(JwtAuthGuard)
@@ -15,7 +47,7 @@ export class ReviewsController {
     @Post()
     async create(
         @Request() req: any,
-        @Body() body: { expertId: string; rating: number; comment?: string; conversationId?: string },
+        @Body() body: CreateReviewBody,
     ) {
         return this.reviewsService.create({
             expertId: body.expertId,
@@ -30,7 +62,7 @@ export class ReviewsController {
     async update(
         @Request() req: any,
         @Param('id') id: string,
-        @Body() body: { rating?: number; comment?: string },
+        @Body() body: UpdateReviewBody,
     ) {
         return this.reviewsService.update(id, req.user.id, body);
     }

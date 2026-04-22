@@ -20,6 +20,10 @@ export class ConversationsService {
     async start(clientId: string, dto: StartConversationDto) {
         this.logger.log(`Starting conversation: client=${clientId}, expertId=${dto.expertId}, offerId=${dto.offerId || 'none'}`);
 
+        if (!dto.expertId || typeof dto.expertId !== 'string') {
+            throw new BadRequestException('expertId is required');
+        }
+
         const expert = await this.prisma.expertProfile.findUnique({
             where: { id: dto.expertId },
         });
@@ -32,6 +36,21 @@ export class ConversationsService {
         // Check if client is not the expert themselves
         if (expert.userId === clientId) {
             throw new BadRequestException('Cannot start conversation with yourself');
+        }
+
+        // Check for mutual blocks between client and expert user
+        const block = await this.prisma.userBlock.findFirst({
+            where: {
+                OR: [
+                    { blockerId: clientId, blockedId: expert.userId },
+                    { blockerId: expert.userId, blockedId: clientId },
+                ],
+            },
+        });
+
+        if (block) {
+            this.logger.warn(`Block prevents conversation: client=${clientId}, expert=${expert.userId}`);
+            throw new ForbiddenException('Cannot start conversation with this user');
         }
 
         // Check for existing conversation
@@ -87,12 +106,6 @@ export class ConversationsService {
                         },
                     },
                 },
-            });
-
-            // Increment expert's consultation count
-            await this.prisma.expertProfile.update({
-                where: { id: dto.expertId },
-                data: { consultationCount: { increment: 1 } },
             });
 
             this.logger.log(`Conversation started: client=${clientId}, expert=${dto.expertId}`);
@@ -235,7 +248,21 @@ export class ConversationsService {
             throw new ForbiddenException('Only clients can toggle report sharing');
         }
 
-        return this.prisma.conversation.update({
+        if (dto.status !== undefined) {
+            if (conversation.status === 'completed' || conversation.status === 'cancelled') {
+                throw new BadRequestException('Conversation has already ended');
+            }
+
+            if (dto.status === 'active') {
+                throw new BadRequestException('Cannot reset conversation to active');
+            }
+
+            if (dto.status === 'completed' && !conversation.isExpert) {
+                throw new ForbiddenException('Only the expert can mark a conversation as completed');
+            }
+        }
+
+        const updated = await this.prisma.conversation.update({
             where: { id },
             data: {
                 status: dto.status,
@@ -243,6 +270,16 @@ export class ConversationsService {
                 endedAt: dto.status === 'completed' || dto.status === 'cancelled' ? new Date() : undefined,
             },
         });
+
+        // Increment expert's consultation count only on transition to 'completed'
+        if (dto.status === 'completed' && conversation.status !== 'completed') {
+            await this.prisma.expertProfile.update({
+                where: { id: conversation.expertId },
+                data: { consultationCount: { increment: 1 } },
+            });
+        }
+
+        return updated;
     }
 
     async getClientData(conversationId: string, userId: string) {

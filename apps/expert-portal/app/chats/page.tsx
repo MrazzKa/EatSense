@@ -1,9 +1,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {
+  Camera,
+  CircleCheck,
+  FileBarChart,
+  Lock,
+  LockOpen,
+  MessageSquare,
+  ShieldAlert,
+  Utensils,
+  type LucideIcon,
+} from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
+import { useI18n } from '@/lib/i18n/context';
 import Link from 'next/link';
+
+const MESSAGE_TYPE_ICON: Record<string, LucideIcon> = {
+  photo: Camera,
+  meal_share: Utensils,
+  report_share: FileBarChart,
+  report_request: ShieldAlert,
+  report_grant: CircleCheck,
+  report_revoke: Lock,
+};
 
 interface Conversation {
   id: string;
@@ -29,8 +50,22 @@ interface Conversation {
 }
 
 export default function ChatsPage() {
+  const { t } = useI18n();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const previewLabel = (type: string): string => {
+    switch (type) {
+      case 'photo': return t('chats', 'photo');
+      case 'meal_share': return t('chats', 'sharedMeals');
+      case 'report_share': return t('chats', 'sharedReport');
+      case 'report_request': return t('chats', 'reportRequest');
+      case 'report_grant': return t('chats', 'reportGrant');
+      case 'report_revoke': return t('chats', 'reportRevoke');
+      default:
+        return '';
+    }
+  };
 
   useEffect(() => {
     loadConversations();
@@ -53,20 +88,22 @@ export default function ChatsPage() {
     if (p?.firstName || p?.lastName) {
       return [p.firstName, p.lastName].filter(Boolean).join(' ');
     }
-    return conv.client?.email || 'Client';
+    return conv.client?.email || t('chats', 'clientFallback');
   }
 
-  function getLastMessagePreview(conv: Conversation) {
-    if (!conv.lastMessage) return 'No messages yet';
-    switch (conv.lastMessage.type) {
-      case 'photo': return '📷 Photo';
-      case 'meal_share': return '🍽 Shared meals';
-      case 'report_share': return '📊 Shared report';
-      case 'report_request': return '🔐 Data access request';
-      case 'report_grant': return '✅ Access granted';
-      case 'report_revoke': return '🔒 Access revoked';
-      default: return conv.lastMessage.content?.slice(0, 60) || 'New message';
+  function renderLastMessagePreview(conv: Conversation) {
+    if (!conv.lastMessage) return <span className="truncate">{t('chats', 'noMessages')}</span>;
+    const Icon = MESSAGE_TYPE_ICON[conv.lastMessage.type];
+    const label = previewLabel(conv.lastMessage.type);
+    if (Icon && label) {
+      return (
+        <span className="inline-flex items-center gap-1.5 truncate">
+          <Icon size={14} className="shrink-0" />
+          <span className="truncate">{label}</span>
+        </span>
+      );
     }
+    return <span className="truncate">{conv.lastMessage.content?.slice(0, 60) || ''}</span>;
   }
 
   function formatTime(dateStr: string) {
@@ -76,7 +113,7 @@ export default function ChatsPage() {
     const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffDays === 0) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (diffDays === 1) return 'Yesterday';
+    if (diffDays === 1) return t('chats', 'yesterday');
     if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'short' });
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
@@ -84,7 +121,7 @@ export default function ChatsPage() {
   return (
     <AppShell>
       <div className="p-8 max-w-3xl">
-        <h1 className="text-2xl font-bold mb-6">Chats</h1>
+        <h1 className="text-2xl font-bold mb-6">{t('chats', 'title')}</h1>
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -92,8 +129,8 @@ export default function ChatsPage() {
           </div>
         ) : conversations.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-4xl mb-4">💬</div>
-            <p className="text-[var(--text2)]">No conversations yet. Clients will appear here when they message you.</p>
+            <MessageSquare size={48} strokeWidth={1.5} className="mx-auto mb-4 text-[var(--text2)]" />
+            <p className="text-[var(--text2)]">{t('chats', 'empty')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -114,7 +151,7 @@ export default function ChatsPage() {
                     <span className="font-medium text-sm truncate">
                       {getClientName(conv)}
                       {conv.status === 'completed' && (
-                        <span className="ml-2 text-xs text-[var(--text2)]">Completed</span>
+                        <span className="ml-2 text-xs text-[var(--text2)]">{t('chats', 'complete')}</span>
                       )}
                     </span>
                     {conv.lastMessage && (
@@ -124,8 +161,8 @@ export default function ChatsPage() {
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-[var(--text2)] truncate">
-                      {getLastMessagePreview(conv)}
+                    <p className="text-sm text-[var(--text2)] truncate min-w-0">
+                      {renderLastMessagePreview(conv)}
                     </p>
                     {(conv._count?.messages || 0) > 0 && (
                       <span className="ml-2 shrink-0 bg-[var(--primary)] text-white text-xs font-bold px-2 py-0.5 rounded-full">
@@ -137,7 +174,7 @@ export default function ChatsPage() {
 
                 {/* Data access indicator */}
                 {conv.reportsShared && (
-                  <span title="Data access granted" className="text-sm">🔓</span>
+                  <LockOpen size={16} className="text-[var(--green)]" aria-label={t('chats', 'dataAccessGranted')} />
                 )}
               </Link>
             ))}

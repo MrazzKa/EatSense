@@ -13,6 +13,7 @@ import {
     Alert,
     Image,
     ActionSheetIOS,
+    AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +28,9 @@ import ReviewModal from '../components/common/ReviewModal';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 
-const POLL_INTERVAL = 4000; // 4 seconds
+const POLL_FAST_MS = 4000;
+const POLL_SLOW_MS = 8000;
+const IDLE_THRESHOLD_MS = 30000;
 
 export default function ChatScreen({ navigation, route }) {
     const themeContext = useTheme();
@@ -49,6 +52,11 @@ export default function ChatScreen({ navigation, route }) {
     const pollingRef = useRef(null);
     const lastMessageIdRef = useRef(null);
     const disclaimerCheckedRef = useRef(false);
+    const lastActivityRef = useRef(Date.now());
+    const isAtBottomRef = useRef(true);
+    const bumpActivity = useCallback(() => {
+        lastActivityRef.current = Date.now();
+    }, []);
 
     const loadData = useCallback(async () => {
         try {
@@ -84,10 +92,13 @@ export default function ChatScreen({ navigation, route }) {
         }
     }, [loading, conversation]);
 
-    // Polling: start when focused, stop when blurred
+    // Polling: start when focused, stop when blurred or app backgrounded.
+    // Slows from 4s → 8s after 30s of no user activity to reduce battery drain on idle screens.
     useFocusEffect(
         useCallback(() => {
-            const poll = async () => {
+            let cancelled = false;
+
+            const tick = async () => {
                 try {
                     const messagesData = await MarketplaceService.getMessages(conversationId);
                     const msgs = Array.isArray(messagesData) ? messagesData : [];
@@ -96,6 +107,7 @@ export default function ChatScreen({ navigation, route }) {
                         if (latestId !== lastMessageIdRef.current) {
                             setMessages(msgs);
                             lastMessageIdRef.current = latestId;
+                            lastActivityRef.current = Date.now();
                             await MarketplaceService.markAsRead(conversationId).catch(() => {});
                         }
                     }
@@ -104,9 +116,39 @@ export default function ChatScreen({ navigation, route }) {
                 }
             };
 
-            pollingRef.current = setInterval(poll, POLL_INTERVAL);
+            const schedule = () => {
+                if (cancelled) return;
+                const idleFor = Date.now() - lastActivityRef.current;
+                const delay = idleFor > IDLE_THRESHOLD_MS ? POLL_SLOW_MS : POLL_FAST_MS;
+                pollingRef.current = setTimeout(async () => {
+                    await tick();
+                    schedule();
+                }, delay);
+            };
+
+            const stop = () => {
+                if (pollingRef.current) {
+                    clearTimeout(pollingRef.current);
+                    pollingRef.current = null;
+                }
+            };
+
+            lastActivityRef.current = Date.now();
+            schedule();
+
+            const sub = AppState.addEventListener('change', (state) => {
+                if (state === 'active') {
+                    lastActivityRef.current = Date.now();
+                    if (!pollingRef.current) schedule();
+                } else {
+                    stop();
+                }
+            });
+
             return () => {
-                if (pollingRef.current) clearInterval(pollingRef.current);
+                cancelled = true;
+                stop();
+                sub.remove();
             };
         }, [conversationId])
     );
@@ -126,6 +168,7 @@ export default function ChatScreen({ navigation, route }) {
         };
         setMessages((prev) => [...prev, optimistic]);
         setText('');
+        bumpActivity();
         setTimeout(() => flatListRef.current?.scrollToEnd(), 50);
         setSending(true);
         try {
@@ -141,18 +184,11 @@ export default function ChatScreen({ navigation, route }) {
         }
     }, [text, sending, conversationId, user?.id, t]);
 
-    const handleSendPhoto = useCallback(async () => {
+    const uploadAndSendPhoto = useCallback(async (uri: string) => {
+        bumpActivity();
+        setSending(true);
         try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                quality: 0.7,
-                allowsEditing: false,
-            });
-
-            if (result.canceled || !result.assets?.[0]) return;
-
-            setSending(true);
-            const uploadResult = await ApiService.uploadImage(result.assets[0].uri);
+            const uploadResult = await ApiService.uploadImage(uri);
             if (uploadResult?.url) {
                 const newMessage = await MarketplaceService.sendMessage(
                     conversationId,
@@ -169,6 +205,37 @@ export default function ChatScreen({ navigation, route }) {
             setSending(false);
         }
     }, [conversationId, t]);
+
+    const pickFromCamera = useCallback(async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(t('common.permissionNeeded') || 'Permission', t('experts.onboarding.cameraPermission') || 'Camera access is needed.');
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.7 });
+        if (!result.canceled && result.assets?.[0]) {
+            await uploadAndSendPhoto(result.assets[0].uri);
+        }
+    }, [t, uploadAndSendPhoto]);
+
+    const pickFromGallery = useCallback(async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+        if (!result.canceled && result.assets?.[0]) {
+            await uploadAndSendPhoto(result.assets[0].uri);
+        }
+    }, [uploadAndSendPhoto]);
+
+    const handleSendPhoto = useCallback(() => {
+        Alert.alert(
+            t('experts.onboarding.chooseDocumentSource') || 'Choose source',
+            undefined,
+            [
+                { text: t('experts.onboarding.sourceCamera') || 'Camera', onPress: pickFromCamera },
+                { text: t('experts.onboarding.sourceGallery') || 'Gallery', onPress: pickFromGallery },
+                { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+            ],
+        );
+    }, [t, pickFromCamera, pickFromGallery]);
 
     const handleShareMeals = useCallback(async () => {
         Alert.alert(
@@ -198,7 +265,10 @@ export default function ChatScreen({ navigation, route }) {
         );
     }, [conversationId, t]);
 
+    const requestDataInFlightRef = useRef(false);
     const handleRequestData = useCallback(async () => {
+        if (requestDataInFlightRef.current) return;
+        requestDataInFlightRef.current = true;
         try {
             const newMessage = await MarketplaceService.sendMessage(
                 conversationId,
@@ -209,6 +279,8 @@ export default function ChatScreen({ navigation, route }) {
             lastMessageIdRef.current = newMessage.id;
         } catch {
             Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
+        } finally {
+            setTimeout(() => { requestDataInFlightRef.current = false; }, 1500);
         }
     }, [conversationId, t]);
 
@@ -494,7 +566,15 @@ export default function ChatScreen({ navigation, route }) {
                 renderItem={renderMessage}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={messages.length === 0 ? styles.emptyMessagesList : styles.messagesList}
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+                onContentSizeChange={() => {
+                    if (isAtBottomRef.current) flatListRef.current?.scrollToEnd({ animated: false });
+                }}
+                onScroll={(e) => {
+                    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+                    const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+                    isAtBottomRef.current = distanceFromBottom < 80;
+                }}
+                scrollEventThrottle={100}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="chatbubble-ellipses-outline" size={48} color={colors.textSecondary || '#9CA3AF'} />

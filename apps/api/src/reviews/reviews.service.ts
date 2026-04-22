@@ -7,7 +7,7 @@ interface CreateReviewDto {
     clientId: string;
     rating: number;
     comment?: string;
-    conversationId?: string;
+    conversationId: string;
 }
 
 interface UpdateReviewDto {
@@ -40,6 +40,23 @@ export class ReviewsService {
     }
 
     async create(data: CreateReviewDto) {
+        // Reviews always require a completed conversation
+        const conversation = await this.prisma.conversation.findUnique({
+            where: { id: data.conversationId },
+        });
+
+        if (!conversation) {
+            throw new NotFoundException('Conversation not found');
+        }
+
+        if (conversation.clientId !== data.clientId || conversation.expertId !== data.expertId) {
+            throw new ForbiddenException('Invalid conversation for this review');
+        }
+
+        if (conversation.status !== 'completed') {
+            throw new ForbiddenException('Can only review completed consultations');
+        }
+
         // Check if review already exists for this client-expert pair
         const existing = await this.prisma.review.findUnique({
             where: {
@@ -62,25 +79,6 @@ export class ReviewsService {
 
             await this.expertsService.updateRating(data.expertId);
             return updated;
-        }
-
-        // Validate conversation if provided
-        if (data.conversationId) {
-            const conversation = await this.prisma.conversation.findUnique({
-                where: { id: data.conversationId },
-            });
-
-            if (!conversation) {
-                throw new NotFoundException('Conversation not found');
-            }
-
-            if (conversation.clientId !== data.clientId || conversation.expertId !== data.expertId) {
-                throw new ForbiddenException('Invalid conversation for this review');
-            }
-
-            if (conversation.status !== 'completed') {
-                throw new ForbiddenException('Can only review completed consultations');
-            }
         }
 
         const review = await this.prisma.review.create({

@@ -1,2 +1,2 @@
-/experts       https://expert-portal-pi.vercel.app   302
-/experts/*     https://expert-portal-pi.vercel.app/:splat   302
+/experts       https://experts.eatsense.ch         302
+/experts/*     https://experts.eatsense.ch/:splat  302

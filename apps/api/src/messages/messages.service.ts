@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -28,7 +28,7 @@ export class MessagesService {
         });
 
         if (!conversation) {
-            throw new ForbiddenException('Conversation not found');
+            throw new NotFoundException('Conversation not found');
         }
 
         const isClient = conversation.clientId === userId;
@@ -144,6 +144,19 @@ export class MessagesService {
         };
     }
 
+    private async getUserLanguage(userId: string): Promise<string> {
+        try {
+            const profile = await this.prisma.userProfile.findUnique({
+                where: { userId },
+                select: { preferences: true },
+            });
+            const prefs = profile?.preferences as Record<string, any> | null;
+            return prefs?.language || 'en';
+        } catch {
+            return 'en';
+        }
+    }
+
     private async sendMessagePush(conversationId: string, senderId: string, message: any) {
         const conversation = await this.prisma.conversation.findUnique({
             where: { id: conversationId },
@@ -163,13 +176,64 @@ export class MessagesService {
         const isClient = conversation.clientId === senderId;
         const recipientUserId = isClient ? conversation.expert.userId : conversation.clientId;
 
-        const senderName = isClient
-            ? (conversation.client.userProfile?.firstName || 'Client')
-            : (conversation.expert.displayName || 'Expert');
+        const language = await this.getUserLanguage(recipientUserId);
 
-        const body = message.type === 'text'
-            ? (message.content.length > 100 ? message.content.slice(0, 100) + '…' : message.content)
-            : message.type === 'photo' ? '📷 Photo' : 'New message';
+        const FALLBACK_CLIENT: Record<string, string> = {
+            en: 'Client', ru: 'Клиент', kk: 'Клиент',
+            fr: 'Client', de: 'Klient', es: 'Cliente',
+        };
+        const FALLBACK_EXPERT: Record<string, string> = {
+            en: 'Expert', ru: 'Эксперт', kk: 'Сарапшы',
+            fr: 'Expert', de: 'Experte', es: 'Experto',
+        };
+        const LABEL_PHOTO: Record<string, string> = {
+            en: 'Photo', ru: 'Фото', kk: 'Фото',
+            fr: 'Photo', de: 'Foto', es: 'Foto',
+        };
+        const LABEL_NEW_MESSAGE: Record<string, string> = {
+            en: 'New message', ru: 'Новое сообщение', kk: 'Жаңа хабарлама',
+            fr: 'Nouveau message', de: 'Neue Nachricht', es: 'Nuevo mensaje',
+        };
+        const LABEL_SHARED_MEALS: Record<string, string> = {
+            en: 'Shared meals', ru: 'Поделился приёмами пищи', kk: 'Тамақтар бөлісті',
+            fr: 'Repas partagés', de: 'Mahlzeiten geteilt', es: 'Comidas compartidas',
+        };
+        const LABEL_SHARED_REPORT: Record<string, string> = {
+            en: 'Shared nutrition report', ru: 'Поделился отчётом', kk: 'Есеп бөлісті',
+            fr: 'Rapport partagé', de: 'Bericht geteilt', es: 'Informe compartido',
+        };
+        const LABEL_REPORT_REQUEST: Record<string, string> = {
+            en: 'Requested nutrition report', ru: 'Запросил отчёт', kk: 'Есеп сұрады',
+            fr: 'Rapport demandé', de: 'Bericht angefragt', es: 'Informe solicitado',
+        };
+        const LABEL_REPORT_GRANT: Record<string, string> = {
+            en: 'Granted report access', ru: 'Предоставил доступ к отчёту', kk: 'Есепке рұқсат берді',
+            fr: 'Accès au rapport accordé', de: 'Berichtzugriff gewährt', es: 'Acceso al informe concedido',
+        };
+        const LABEL_REPORT_REVOKE: Record<string, string> = {
+            en: 'Revoked report access', ru: 'Отозвал доступ к отчёту', kk: 'Есеп рұқсатын кері алды',
+            fr: 'Accès au rapport révoqué', de: 'Berichtzugriff entzogen', es: 'Acceso al informe revocado',
+        };
+
+        const pickLabel = (dict: Record<string, string>) => dict[language] || dict.en;
+
+        const senderName = isClient
+            ? (conversation.client.userProfile?.firstName || pickLabel(FALLBACK_CLIENT))
+            : (conversation.expert.displayName || pickLabel(FALLBACK_EXPERT));
+
+        let body: string;
+        switch (message.type) {
+            case 'text':
+                body = message.content.length > 100 ? message.content.slice(0, 100) + '…' : message.content;
+                break;
+            case 'photo': body = pickLabel(LABEL_PHOTO); break;
+            case 'meal_share': body = pickLabel(LABEL_SHARED_MEALS); break;
+            case 'report_share': body = pickLabel(LABEL_SHARED_REPORT); break;
+            case 'report_request': body = pickLabel(LABEL_REPORT_REQUEST); break;
+            case 'report_grant': body = pickLabel(LABEL_REPORT_GRANT); break;
+            case 'report_revoke': body = pickLabel(LABEL_REPORT_REVOKE); break;
+            default: body = pickLabel(LABEL_NEW_MESSAGE);
+        }
 
         await this.notifications.sendPushNotification(
             recipientUserId,
@@ -199,8 +263,8 @@ export class MessagesService {
             conversationId,
             senderId,
             type: 'meal_share',
-            content: `Shared ${meals.length} meals`,
-            metadata: { meals, fromDate, toDate },
+            content: `meal_share:${meals.length}`,
+            metadata: { meals, fromDate, toDate, count: meals.length },
         });
     }
 
@@ -211,7 +275,7 @@ export class MessagesService {
             conversationId,
             senderId,
             type: 'report_share',
-            content: 'Shared nutrition report',
+            content: 'report_share',
             metadata: reportData,
         });
     }

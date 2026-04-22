@@ -23,9 +23,18 @@ const LANGUAGE_LABELS = {
     en: 'English', ru: 'Русский', kk: 'Қазақша', fr: 'Français', de: 'Deutsch', es: 'Español',
 };
 
+const pickLocalized = (value: any, locale: string): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+        return value[locale] || value.en || value.ru || Object.values(value).find(Boolean) || '';
+    }
+    return '';
+};
+
 export default function ExpertProfileScreen({ route, navigation }) {
     const { specialistId } = route.params || {};
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
     const colors = themeContext?.colors || {};
@@ -68,9 +77,14 @@ export default function ExpertProfileScreen({ route, navigation }) {
     };
 
     const handleStartConversation = async () => {
+        const expertIdToUse = expert?.id || specialistId;
+        if (!expertIdToUse) {
+            Alert.alert(t('common.error') || 'Error', t('experts.not_found') || 'Expert not found');
+            return;
+        }
         setRequesting(true);
         try {
-            const conversation = await MarketplaceService.startConversation(specialistId);
+            const conversation = await MarketplaceService.startConversation(expertIdToUse);
             if (conversation?.id) {
                 navigation.navigate('Chat', { conversationId: conversation.id });
             }
@@ -241,14 +255,14 @@ export default function ExpertProfileScreen({ route, navigation }) {
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.services') || 'Services'}</Text>
                         {expert.offers.map((offer) => {
-                            const offerName = typeof offer.name === 'object' ? (offer.name.en || Object.values(offer.name)[0]) : offer.name;
-                            const offerDesc = typeof offer.description === 'object' ? (offer.description?.en || Object.values(offer.description || {})[0]) : offer.description;
+                            const offerName = pickLocalized(offer.name, language);
+                            const offerDesc = pickLocalized(offer.description, language);
                             return (
                                 <View key={offer.id} style={styles.offerCard}>
                                     <Text style={styles.offerName}>{offerName}</Text>
                                     {offerDesc && <Text style={styles.offerDesc}>{offerDesc}</Text>}
                                     <Text style={styles.offerPrice}>
-                                        {offer.priceType === 'FREE'
+                                        {offer.priceType === 'FREE' || offer.priceAmount == null
                                             ? (t('experts.free') || 'Free')
                                             : `${offer.currency || '$'}${offer.priceAmount}`}
                                     </Text>

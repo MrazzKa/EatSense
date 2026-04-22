@@ -1102,6 +1102,24 @@ class ApiService {
     });
   }
 
+  async uploadDocument(uri: string, mimeType: string, fileName: string) {
+    const formData = new FormData();
+    formData.append('file', {
+      uri,
+      type: mimeType,
+      name: fileName,
+    } as any);
+
+    return this.request('/media/upload-document', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      },
+      body: formData,
+    });
+  }
+
   // Mascot
   async getMascot() {
     return this.request('/mascot');

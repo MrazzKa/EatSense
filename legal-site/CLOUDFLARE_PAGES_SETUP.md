@@ -1,120 +1,120 @@
-# Cloudflare — Deploy the Landing Site
+# Cloudflare Pages — Step-by-step (from zero)
 
-Two paths — pick one. **Option A (Pages) is simpler for a pure static site.** Option B (Workers Builds) is what the newer CF dashboard defaults to when you click "Connect to Git" from the Workers section.
-
----
-
-## Option A — Cloudflare Pages (recommended)
-
-### 1. Find the Pages UI
-
-In the CF dashboard the Pages entry is nested:
-
-- **Dashboard → Compute (Workers) → [Workers & Pages] → Create → Pages tab → Connect to Git**
-
-If you land in a form titled **"Set up your application"** with fields like "Build command / Deploy command / `npx wrangler deploy`" — you are in the **Workers Builds** flow, not Pages. Go back and pick the Pages tab. Or use Option B below.
-
-### 2. Configure the Pages project
-
-- **Project name:** `eatsense-landing`
-- **Production branch:** `main`
-- **Framework preset:** `None`
-- **Build command:** *(leave empty)*
-- **Build output directory:** `legal-site/public`
-- **Root directory (advanced):** *(leave empty)*
-
-### 3. Deploy
-
-Click **Save and Deploy** → first build takes ~30 s. URL: `eatsense-landing.pages.dev`.
-
-### 4. Custom domain
-
-Project → **Custom domains** → add `eatsense.ch` and `www.eatsense.ch`. If DNS is in Cloudflare, it auto-configures. Otherwise add `CNAME eatsense.ch → eatsense-landing.pages.dev`.
+Project name on Cloudflare: **`eatsense`** (not `eatsense-landing`).
 
 ---
 
-## Option B — Workers Builds (if you're already in this form)
+## Step 1 — Open the Pages UI (the exact clicks)
 
-The form you're seeing expects a `wrangler.toml`. I've added one at `legal-site/wrangler.toml`. Fill in the form as follows:
+The dashboard has two similar flows ("Workers Builds" and "Pages"). You want **Pages**.
+
+1. Go to https://dash.cloudflare.com
+2. Left sidebar → **Compute (Workers)** → click it
+3. You land on **Workers & Pages** overview
+4. At the top you'll see **Overview** with two tabs: **Workers** | **Pages**
+5. Click the **Pages** tab
+6. Click **Create application** → then the sub-tab **Pages** → **Connect to Git**
+
+**Check:** the page title should say **"Create a project"** and the button panel should offer GitHub / GitLab. If the page says **"Set up your application"** with a "Deploy command" field — you are in Workers Builds. Go back and select the **Pages** tab.
+
+---
+
+## Step 2 — Connect GitHub
+
+1. Click **Connect GitHub account** → authorize Cloudflare
+2. In "Select a repository" → pick your `eatsense` repo (grant access to just that repo if asked)
+3. Click **Begin setup**
+
+---
+
+## Step 3 — Fill the build form
+
+Enter exactly these values:
 
 | Field | Value |
 |---|---|
-| **Project name** | `eatsense-landing` |
+| **Project name** | `eatsense` |
+| **Production branch** | `main` |
+| **Framework preset** | `None` |
 | **Build command** | *(leave empty)* |
-| **Deploy command** | `npx wrangler deploy` |
-| **Non-production branch deploy command** | `npx wrangler versions upload` |
-| **Path** | `legal-site` |
-| **API token** | Leave as is — CF creates it automatically |
-| **Variables** | None needed |
+| **Build output directory** | `legal-site/public` |
+| **Root directory (advanced)** | *(leave empty)* |
+| **Environment variables** | *(none)* |
 
-### What the `wrangler.toml` does
+Then click **Save and Deploy**.
 
-```toml
-name = "eatsense-landing"
-compatibility_date = "2025-04-01"
+First build takes ~20–40 s. When done, your URL is:
+`https://eatsense.pages.dev`
 
-[assets]
-directory = "./public"
-not_found_handling = "404-page"
-```
-
-- `[assets] directory` — serves everything in `legal-site/public/` as static files
-- `not_found_handling = "404-page"` — falls back to a `404.html` if present; otherwise returns 404
-- No Worker script needed — pure static
-
-### First deploy
-
-After saving, CF will:
-1. Clone the repo
-2. `cd legal-site`
-3. Run `npx wrangler deploy` — which reads `wrangler.toml`, uploads `public/` as assets
-4. Expose it at `eatsense-landing.<your-subdomain>.workers.dev`
-
-### Custom domain
-
-Worker → **Settings → Domains & Routes → Add → Custom Domain** → `eatsense.ch`.
+Open it — you should see the landing page. `/privacy`, `/terms`, `/support` should all load.
 
 ---
 
-## Redirects (both options)
+## Step 4 — Add the custom domain `eatsense.ch`
 
-Already configured in `public/_redirects`:
+In Pages project → **Custom domains** tab → **Set up a custom domain**.
 
-```
-/experts       https://expert-portal-pi.vercel.app   302
-/experts/*     https://expert-portal-pi.vercel.app/:splat   302
-```
+Because DNS stays at **Infomaniak** (not Cloudflare), you'll use CNAME, not the automatic flow.
 
-**Note:** `_redirects` is a **Pages-only** feature. If you go with **Option B (Workers)**, the `_redirects` file is ignored — you'd need to handle `/experts` redirect differently:
+### 4a. What to enter in Cloudflare
 
-- Simplest: add a `legal-site/public/experts/index.html` with a meta refresh / JS redirect
-- Cleaner: switch to Option A (Pages) which supports `_redirects` natively
+- Domain: `www.eatsense.ch` → Save
+- Domain: `experts.eatsense.ch` → Save (for the expert portal later)
 
-When the expert portal is later moved to Railway at `experts.eatsense.ch`, update the redirect target accordingly.
+Cloudflare will display records you need to add. For each one it shows a **target** like `eatsense.pages.dev`.
 
-## Security headers (both options)
+### 4b. What to add in Infomaniak DNS
 
-`public/_headers` works on Pages; on Workers you'd need to set them via the Worker script. For now, CF's default security is adequate.
+Log in to Infomaniak → **Domains → eatsense.ch → DNS Zone**.
 
-## After deploy — checklist
+Add **one CNAME**:
 
-- [ ] `https://eatsense.ch/` loads landing page
-- [ ] `https://eatsense.ch/experts` redirects to portal (Pages only)
-- [ ] `https://eatsense.ch/privacy`, `/terms`, `/support` open their respective pages
-- [ ] Hero phone shows `eatsense.png` (upload to `legal-site/public/images/eatsense.png` first)
-- [ ] **Remove** the old Vercel project for the landing site
-- [ ] Lower DNS TTL before switching, raise back to normal after confirmed working
+| Type | Name | Target | TTL |
+|---|---|---|---|
+| CNAME | `www` | `eatsense.pages.dev` | 3600 |
+
+**Do NOT** add a CNAME on the bare apex (`eatsense.ch` / `@`) — it will break your email MX/TXT records.
+
+### 4c. Make the bare `eatsense.ch` redirect to `www`
+
+In Infomaniak → **Domains → eatsense.ch → Web Redirects** (or "Redirections"):
+
+- Source: `eatsense.ch` (or `@`)
+- Destination: `https://www.eatsense.ch`
+- Type: `301 Permanent`
+
+That's the only way to keep email working on the apex while the site is hosted elsewhere.
+
+### 4d. Verify
+
+After ~5–15 min (DNS propagation):
+- `https://www.eatsense.ch` → shows landing page
+- `https://eatsense.ch` → 301 redirects to `www.eatsense.ch`
+- `https://www.eatsense.ch/experts` → 302 to `https://experts.eatsense.ch` (from `_redirects`)
+
+---
+
+## Step 5 — Remove the old Vercel landing project
+
+Only after Step 4d verification passes:
+
+1. Vercel dashboard → `eatsense` (landing) project → **Settings → General → Delete Project**
+2. Keep the `expert-portal` Vercel project running until Railway cutover is complete.
+
+---
+
+## What's already in the repo
+
+- `legal-site/public/_redirects` — routes `/experts` → `https://experts.eatsense.ch`
+- `legal-site/public/_headers` — CSP/security headers + image caching
+- `legal-site/wrangler.toml` — only used if you (later) switch to Workers Builds; Pages ignores it
 
 ## Rollback
 
-- **Pages:** every deploy is retained → one-click rollback in the Deployments list
-- **Workers Builds:** use `npx wrangler rollback` or re-deploy a previous commit
+Every Pages deploy is retained. Project → **Deployments** → pick previous → **Rollback**. One click.
 
-## My recommendation
+## Notes
 
-**Go with Option A (Pages).** Back out of the current form:
-1. Dashboard → Workers & Pages
-2. Look for the tabs **Workers | Pages** at the top
-3. Click **Pages → Create → Connect to Git**
-
-The Pages flow has `_redirects`, `_headers`, and preview deployments out-of-the-box — exactly what a static site needs.
+- `_redirects` and `_headers` are Pages-only. Keep them in `legal-site/public/`.
+- Preview deploys: every non-`main` branch pushed to GitHub gets a preview URL automatically.
+- Don't touch `wrangler.toml` unless you deliberately switch to Workers Builds — Pages doesn't read it.

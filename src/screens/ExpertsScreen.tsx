@@ -41,6 +41,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [loadError, setLoadError] = useState(false);
 
     // Search & filters
     const [search, setSearch] = useState('');
@@ -48,9 +49,6 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const [filterSpec, setFilterSpec] = useState<string | null>(null);
     const [filterLang, setFilterLang] = useState<string | null>(null);
     const [filtersVisible, setFiltersVisible] = useState(false);
-
-    // Recommended
-    const [recommended, setRecommended] = useState<any[]>([]);
 
     // Debounce search
     useEffect(() => {
@@ -75,20 +73,21 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 setExperts(list);
             }
             setTotal(count);
+            setLoadError(false);
         } catch (err) {
             console.error('[ExpertsScreen] Load error:', err);
+            if (!append) {
+                setExperts([]);
+                setTotal(0);
+            }
+            setLoadError(true);
         }
     }, [searchDebounced, filterSpec, filterLang]);
 
-    // Initial load + recommended
+    // Backend default orderBy is [isVerified desc, rating desc, consultationCount desc].
     useEffect(() => {
         setLoading(true);
-        Promise.all([
-            loadExperts(0),
-            MarketplaceService.getExperts({ limit: 5 }).then(r => {
-                setRecommended(r?.experts || r || []);
-            }).catch(() => {}),
-        ]).finally(() => setLoading(false));
+        loadExperts(0).finally(() => setLoading(false));
     }, [loadExperts]);
 
     const handleRefresh = useCallback(async () => {
@@ -111,6 +110,12 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     }, []);
 
     const hasFilters = filterSpec || filterLang;
+
+    const handleRetry = useCallback(async () => {
+        setLoading(true);
+        await loadExperts(0);
+        setLoading(false);
+    }, [loadExperts]);
 
     const getAvatarUrl = (expert: any) => ApiService.resolveMediaUrl(expert?.avatarUrl);
 
@@ -135,7 +140,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                             <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
                         )}
                     </View>
-                    <Text style={styles.cardType}>{t(`experts.${(item.type || '').toLowerCase()}.title`, item.type)}</Text>
+                    <Text style={styles.cardType}>{String(t(`experts.${(item.type || '').toLowerCase()}.title`, { defaultValue: item.type }) ?? item.type ?? '')}</Text>
                     <View style={styles.cardMeta}>
                         {item.rating > 0 && (
                             <View style={styles.ratingBadge}>
@@ -169,45 +174,20 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         </TouchableOpacity>
     ), [styles, colors, t, navigation]);
 
-    const renderRecommended = () => {
-        if (recommended.length === 0 || searchDebounced || hasFilters) return null;
-        return (
-            <View style={styles.recommendedSection}>
-                <Text style={styles.sectionTitle}>{t('experts.recommended')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recommendedList}>
-                    {recommended.map(expert => (
-                        <TouchableOpacity
-                            key={expert.id}
-                            style={styles.recommendedCard}
-                            onPress={() => navigation.navigate('ExpertProfile', { specialistId: expert.id })}
-                            activeOpacity={0.7}
-                        >
-                            {getAvatarUrl(expert) ? (
-                                <Image source={{ uri: getAvatarUrl(expert) }} style={styles.recommendedAvatar} />
-                            ) : (
-                                <View style={[styles.recommendedAvatar, styles.avatarPlaceholder]}>
-                                    <Ionicons name="person" size={20} color={colors.textSecondary} />
-                                </View>
-                            )}
-                            <Text style={styles.recommendedName} numberOfLines={1}>{expert.displayName}</Text>
-                            <Text style={styles.recommendedType} numberOfLines={1}>
-                                {t(`experts.${(expert.type || '').toLowerCase()}.title`, expert.type)}
-                            </Text>
-                            {expert.rating > 0 && (
-                                <View style={styles.ratingBadge}>
-                                    <Ionicons name="star" size={10} color="#FFB800" />
-                                    <Text style={[styles.ratingText, { fontSize: 11 }]}>{expert.rating.toFixed(1)}</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
-        );
-    };
-
     const renderEmpty = () => {
         if (loading) return null;
+        if (loadError) {
+            return (
+                <View style={styles.emptyContainer}>
+                    <Ionicons name="cloud-offline-outline" size={48} color={colors.textTertiary} />
+                    <Text style={styles.emptyTitle}>{t('experts.loadError') || 'Couldn\'t load experts'}</Text>
+                    <Text style={styles.emptySubtitle}>{t('experts.loadErrorSub') || 'Check your connection and try again'}</Text>
+                    <TouchableOpacity style={styles.clearButton} onPress={handleRetry}>
+                        <Text style={styles.clearButtonText}>{t('common.retry') || 'Retry'}</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
         return (
             <View style={styles.emptyContainer}>
                 <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
@@ -222,14 +202,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         );
     };
 
-    const renderHeader = () => (
-        <>
-            {renderRecommended()}
-            {experts.length > 0 && !searchDebounced && !hasFilters && (
-                <Text style={styles.sectionTitle}>{t('experts.allExperts')}</Text>
-            )}
-        </>
-    );
+    const renderHeader = () => null;
 
     const renderFooter = () => (
         <>
