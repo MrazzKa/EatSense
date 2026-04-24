@@ -953,7 +953,11 @@
       "contactSection": "Байланыс саясаты",
       "contactPolicy": "Жауап беру уақыты мен қолжетімділік",
       "contactPolicyPlaceholder": "Мысалы: Жұмыс күндері 24 сағат ішінде жауап беремін",
-      "nameRequired": "Атауды енгізу міндетті"
+      "nameRequired": "Атауды енгізу міндетті",
+      "addEducation": "Тағы жазба қосу",
+      "educationDegreePlaceholder": "Дәреже (мыс. MSc Nutrition)",
+      "educationInstitutionPlaceholder": "Оқу орны (мыс. ҚазҰУ)",
+      "educationYearPlaceholder": "Жыл (мыс. 2020)"
     },
     "client": "Клиент",
     "consultation": "Кеңес",
@@ -1023,7 +1027,13 @@
       "documentUploaded": "Құжат жүктелді",
       "removeDocument": "Жою",
       "submitForReview": "Тексеруге жіберу",
-      "profileSubmitted": "Профиль тексеруге жіберілді"
+      "profileSubmitted": "Профиль тексеруге жіберілді",
+      "educationDocumentHint": "Әр жазбаға диплом тіркеңіз (PDF, JPG немесе PNG, 10 МБ-қа дейін).",
+      "attachDocument": "Құжат тіркеу",
+      "educationIncomplete": "Әр білім жазбасында дәреже, оқу орны және тіркелген құжат болуы керек.",
+      "fileTooLarge": "Файл тым үлкен",
+      "fileTooLargeMessage": "Файлдың максималды өлшемі — {{mb}} МБ.",
+      "profileCreateFailed": "Профильді құру сәтсіз аяқталды. Қайталап көріңіз."
     },
     "specializations": {
       "weightManagement": "Салмақты басқару",

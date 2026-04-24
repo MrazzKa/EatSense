@@ -1367,7 +1367,11 @@
       "contactSection": "Contact Policy",
       "contactPolicy": "Response Time & Availability",
       "contactPolicyPlaceholder": "e.g. I reply within 24 hours on weekdays",
-      "nameRequired": "Display name is required"
+      "nameRequired": "Display name is required",
+      "addEducation": "Add another entry",
+      "educationDegreePlaceholder": "Degree (e.g. MSc Nutrition)",
+      "educationInstitutionPlaceholder": "Institution (e.g. ETH Zürich)",
+      "educationYearPlaceholder": "Year (e.g. 2020)"
     },
     "client": "Client",
     "consultation": "Consultation",
@@ -1447,7 +1451,13 @@
       "documentUploaded": "Document uploaded",
       "removeDocument": "Remove",
       "submitForReview": "Submit for Review",
-      "profileSubmitted": "Profile submitted for review"
+      "profileSubmitted": "Profile submitted for review",
+      "educationDocumentHint": "Attach a diploma (PDF, JPG or PNG, up to 10 MB) for each entry.",
+      "attachDocument": "Attach document",
+      "educationIncomplete": "Each education entry requires a degree, institution and an attached document.",
+      "fileTooLarge": "File too large",
+      "fileTooLargeMessage": "Maximum file size is {{mb}} MB.",
+      "profileCreateFailed": "Failed to create profile. Please try again."
     },
     "specializations": {
       "weightManagement": "Weight Management",

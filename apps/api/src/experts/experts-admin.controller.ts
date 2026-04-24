@@ -52,6 +52,9 @@ export class ExpertsAdminController {
             orderBy: { createdAt: 'desc' },
             include: {
                 credentials: true,
+                educationEntries: {
+                    orderBy: { createdAt: 'asc' },
+                },
                 offers: {
                     orderBy: { sortOrder: 'asc' },
                 },
@@ -82,6 +85,9 @@ export class ExpertsAdminController {
             where: { id },
             include: {
                 credentials: true,
+                educationEntries: {
+                    orderBy: { createdAt: 'asc' },
+                },
                 offers: true,
                 user: {
                     select: {

@@ -316,6 +316,7 @@
       alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
       party: '<path d="M5.8 11.3L2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="M22 2l-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="M22 13l-1.26-.26a1.88 1.88 0 0 0-2.26 1.25a1.87 1.87 0 0 1-2.25 1.25L15 15.5"/><path d="M3 14l2.06.54a2 2 0 0 0 2.4-2.34l-.53-2a2 2 0 0 1 2.4-2.34L11 8"/>',
       users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     };
     function ic(name, size = 14) {
       const d = ICON_PATHS[name] || '';
@@ -785,9 +786,32 @@
                 <button class="btn btn-outline btn-sm" onclick="toggleExpertDetails('${expert.id}')">${ic('eye')} Details</button>
               </div>
               <div id="expert-details-${expert.id}" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border-radius:6px;font-size:13px">
-                ${expert.education ? `<div style="margin-bottom:6px"><strong>Education:</strong> ${escapeHtml(expert.education)}</div>` : ''}
-                ${expert.experienceYears != null ? `<div style="margin-bottom:6px"><strong>Experience:</strong> ${expert.experienceYears} years</div>` : ''}
+                ${(expert.educationEntries || []).length > 0 ? `
+                  <div style="margin-bottom:8px"><strong>Education (${expert.educationEntries.length}):</strong></div>
+                  ${expert.educationEntries.map(e => `
+                    <div style="padding:6px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                      <div>
+                        <div>${escapeHtml(e.degree)} · ${escapeHtml(e.institution)}${e.year ? ` (${escapeHtml(e.year)})` : ''}</div>
+                        ${e.documentName ? `<div style="color:var(--text2);font-size:12px">${escapeHtml(e.documentName)}</div>` : ''}
+                      </div>
+                      ${e.documentUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(e.documentUrl)}" target="_blank" rel="noopener noreferrer" download>${ic('download')} Download</a>` : '<span style="color:var(--red);font-size:12px">No file</span>'}
+                    </div>
+                  `).join('')}
+                ` : (expert.education ? `<div style="margin-bottom:6px"><strong>Education:</strong> ${escapeHtml(expert.education)}</div>` : '')}
+                ${expert.experienceYears != null ? `<div style="margin:8px 0 6px"><strong>Experience:</strong> ${expert.experienceYears} years</div>` : ''}
                 ${expert.contactPolicy ? `<div style="margin-bottom:6px"><strong>Contact policy:</strong> ${escapeHtml(expert.contactPolicy)}</div>` : ''}
+                ${(expert.credentials || []).length > 0 ? `
+                  <div style="margin-top:8px"><strong>Credentials (${expert.credentials.length}):</strong></div>
+                  ${expert.credentials.map(c => `
+                    <div style="padding:4px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                      <div>
+                        <div>${escapeHtml(c.name)} <span class="badge ${c.status === 'approved' ? 'badge-green' : c.status === 'pending' ? 'badge-yellow' : 'badge-red'}">${c.status}</span></div>
+                        ${c.issuer ? `<div style="color:var(--text2);font-size:12px">${escapeHtml(c.issuer)}</div>` : ''}
+                      </div>
+                      ${c.fileUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(c.fileUrl)}" target="_blank" rel="noopener noreferrer" download>${ic('download')} Download</a>` : ''}
+                    </div>
+                  `).join('')}
+                ` : ''}
                 ${offers.length > 0 ? `
                   <div style="margin-top:8px"><strong>Offers (${offers.length}):</strong></div>
                   ${offers.map(o => {
@@ -797,6 +821,9 @@
                     return `<div style="padding:4px 0;border-bottom:1px dashed var(--border)">${escapeHtml(String(firstName))} · ${escapeHtml(o.format || '')} · ${escapeHtml(priceLabel)} · ${o.isPublished ? 'published' : 'hidden'}</div>`;
                   }).join('')}
                 ` : '<div style="color:var(--text2)">No offers</div>'}
+                <div style="margin-top:10px">
+                  <button class="btn btn-outline btn-sm" onclick="exportExpertProfile('${expert.id}')">${ic('download')} Export profile (PDF)</button>
+                </div>
               </div>
             </div>
             <div class="card-actions" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -820,6 +847,83 @@
       const el = document.getElementById(`expert-details-${id}`);
       if (!el) return;
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function exportExpertProfile(id) {
+      try {
+        const expert = await fetchAPI(`/admin/experts/${id}`);
+        if (!expert) { toast('Expert not found'); return; }
+
+        const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        const edu = expert.educationEntries || [];
+        const creds = expert.credentials || [];
+        const offers = expert.offers || [];
+        const user = expert.user || {};
+        const name = [user?.userProfile?.firstName, user?.userProfile?.lastName].filter(Boolean).join(' ') || '';
+        const created = expert.createdAt ? new Date(expert.createdAt).toLocaleString() : '';
+
+        const html = `<!doctype html>
+<html><head><meta charset="utf-8"><title>Expert Profile — ${esc(expert.displayName)}</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 800px; margin: 24px auto; padding: 0 16px; color: #111; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 20px 0 6px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 12px; }
+  .row { padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 13px; }
+  .row:last-child { border-bottom: none; }
+  .label { color: #555; font-size: 12px; }
+  ul { margin: 4px 0 0 18px; padding: 0; font-size: 13px; }
+  .badge { display:inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; margin-left: 6px; background:#eef; }
+  .footer { margin-top: 32px; font-size: 11px; color: #999; text-align: center; }
+  @media print { .no-print { display:none; } }
+  button { padding: 6px 14px; margin: 8px 0; cursor: pointer; }
+</style></head><body>
+  <div class="no-print"><button onclick="window.print()">Print / Save as PDF</button> <button onclick="window.close()">Close</button></div>
+  <h1>${esc(expert.displayName)}</h1>
+  <div class="meta">
+    ${esc(expert.type)}${expert.title ? ' · ' + esc(expert.title) : ''}<br>
+    ${esc(user.email || '')}${name ? ' · ' + esc(name) : ''}<br>
+    Experience: ${expert.experienceYears || 0} years · Created: ${esc(created)}
+  </div>
+
+  ${expert.bio ? `<h2>Bio</h2><div class="row">${esc(expert.bio)}</div>` : ''}
+
+  ${edu.length ? `<h2>Education (${edu.length})</h2>` + edu.map(e => `
+    <div class="row">
+      <div><strong>${esc(e.degree)}</strong> — ${esc(e.institution)}${e.year ? ' (' + esc(e.year) + ')' : ''}</div>
+      ${e.documentUrl ? `<div class="label">Document: <a href="${esc(e.documentUrl)}" target="_blank" rel="noopener">${esc(e.documentName || e.documentUrl)}</a></div>` : '<div class="label" style="color:#b00">No document attached</div>'}
+    </div>`).join('') : (expert.education ? `<h2>Education</h2><div class="row">${esc(expert.education)}</div>` : '')}
+
+  ${creds.length ? `<h2>Credentials (${creds.length})</h2>` + creds.map(c => `
+    <div class="row">
+      <div><strong>${esc(c.name)}</strong><span class="badge">${esc(c.status)}</span></div>
+      ${c.issuer ? `<div class="label">Issuer: ${esc(c.issuer)}</div>` : ''}
+      ${c.fileUrl ? `<div class="label">Document: <a href="${esc(c.fileUrl)}" target="_blank" rel="noopener">${esc(c.fileUrl)}</a></div>` : ''}
+    </div>`).join('') : ''}
+
+  <h2>Specializations</h2>
+  <div class="row">${(expert.specializations || []).map(esc).join(', ') || '—'}</div>
+
+  <h2>Languages</h2>
+  <div class="row">${(expert.languages || []).map(l => esc(String(l).toUpperCase())).join(', ') || '—'}</div>
+
+  ${offers.length ? `<h2>Offers (${offers.length})</h2>` + offers.map(o => {
+    const nameMap = o.name || {};
+    const oName = nameMap.en || nameMap.ru || Object.values(nameMap)[0] || '—';
+    const price = o.priceType === 'FREE' ? 'Free' : `${esc(o.currency || '$')}${o.priceAmount ?? '—'}`;
+    return `<div class="row"><strong>${esc(oName)}</strong> · ${esc(o.format || '')} · ${price} · ${o.isPublished ? 'published' : 'hidden'}</div>`;
+  }).join('') : ''}
+
+  <div class="footer">EatSense — expert application export · ${new Date().toISOString()}</div>
+</body></html>`;
+
+        const w = window.open('', '_blank');
+        if (!w) { toast('Popup blocked — allow popups for this site'); return; }
+        w.document.write(html);
+        w.document.close();
+      } catch (err) {
+        toast('Export failed: ' + err.message);
+      }
     }
 
     async function approveExpert(id) {

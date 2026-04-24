@@ -1052,7 +1052,11 @@
       "contactSection": "Politique de contact",
       "contactPolicy": "Temps de réponse et disponibilité",
       "contactPolicyPlaceholder": "ex. Je réponds sous 24h en semaine",
-      "nameRequired": "Le nom d'affichage est requis"
+      "nameRequired": "Le nom d'affichage est requis",
+      "addEducation": "Ajouter une entrée",
+      "educationDegreePlaceholder": "Diplôme (ex. MSc Nutrition)",
+      "educationInstitutionPlaceholder": "Établissement (ex. EPFL)",
+      "educationYearPlaceholder": "Année (ex. 2020)"
     },
     "client": "Client",
     "consultation": "Consultation",
@@ -1122,7 +1126,13 @@
       "documentUploaded": "Document téléchargé",
       "removeDocument": "Supprimer",
       "submitForReview": "Soumettre pour vérification",
-      "profileSubmitted": "Profil soumis pour vérification"
+      "profileSubmitted": "Profil soumis pour vérification",
+      "educationDocumentHint": "Joignez un diplôme (PDF, JPG ou PNG, jusqu'à 10 Mo) pour chaque entrée.",
+      "attachDocument": "Joindre un document",
+      "educationIncomplete": "Chaque formation nécessite un diplôme, un établissement et un document joint.",
+      "fileTooLarge": "Fichier trop volumineux",
+      "fileTooLargeMessage": "La taille maximale du fichier est de {{mb}} Mo.",
+      "profileCreateFailed": "Échec de la création du profil. Veuillez réessayer."
     },
     "specializations": {
       "weightManagement": "Gestion du poids",

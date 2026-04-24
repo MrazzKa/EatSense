@@ -5,6 +5,8 @@ import {
     UpdateExpertProfileDto,
     ExpertFiltersDto,
     CreateCredentialDto,
+    CreateEducationDto,
+    UpdateEducationDto,
     CreateOfferDto,
     UpdateOfferDto,
 } from './dto/experts.dto';
@@ -94,6 +96,9 @@ export class ExpertsService {
                 credentials: {
                     where: { status: 'approved' },
                 },
+                educationEntries: {
+                    orderBy: { createdAt: 'asc' },
+                },
                 reviews: {
                     where: { isVisible: true },
                     take: 10,
@@ -124,6 +129,9 @@ export class ExpertsService {
             where: { userId },
             include: {
                 credentials: true,
+                educationEntries: {
+                    orderBy: { createdAt: 'asc' },
+                },
                 offers: {
                     orderBy: { sortOrder: 'asc' },
                 },
@@ -280,6 +288,97 @@ export class ExpertsService {
 
         return this.prisma.expertCredential.delete({
             where: { id: credentialId },
+        });
+    }
+
+    // ==================== EDUCATION ====================
+
+    async getEducation(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        return this.prisma.expertEducation.findMany({
+            where: { expertId: expert.id },
+            orderBy: { createdAt: 'asc' },
+        });
+    }
+
+    async createEducation(userId: string, dto: CreateEducationDto) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        return this.prisma.expertEducation.create({
+            data: {
+                expertId: expert.id,
+                institution: dto.institution,
+                degree: dto.degree,
+                year: dto.year,
+                documentUrl: dto.documentUrl,
+                documentType: dto.documentType,
+                documentName: dto.documentName,
+            },
+        });
+    }
+
+    async updateEducation(userId: string, educationId: string, dto: UpdateEducationDto) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        const entry = await this.prisma.expertEducation.findUnique({
+            where: { id: educationId },
+        });
+
+        if (!entry || entry.expertId !== expert.id) {
+            throw new ForbiddenException('Not allowed to update this education entry');
+        }
+
+        return this.prisma.expertEducation.update({
+            where: { id: educationId },
+            data: {
+                institution: dto.institution,
+                degree: dto.degree,
+                year: dto.year,
+                documentUrl: dto.documentUrl,
+                documentType: dto.documentType,
+                documentName: dto.documentName,
+            },
+        });
+    }
+
+    async deleteEducation(userId: string, educationId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        const entry = await this.prisma.expertEducation.findUnique({
+            where: { id: educationId },
+        });
+
+        if (!entry || entry.expertId !== expert.id) {
+            throw new ForbiddenException('Not allowed to delete this education entry');
+        }
+
+        return this.prisma.expertEducation.delete({
+            where: { id: educationId },
         });
     }
 

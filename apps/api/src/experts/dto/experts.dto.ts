@@ -162,6 +162,66 @@ export class ExpertFiltersDto {
     search?: string;
 }
 
+export class CreateEducationDto {
+    @IsString()
+    @MaxLength(200)
+    institution: string;
+
+    @IsString()
+    @MaxLength(200)
+    degree: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(20)
+    year?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    documentUrl?: string;
+
+    @IsOptional()
+    @IsIn(['pdf', 'image'])
+    documentType?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    documentName?: string;
+}
+
+export class UpdateEducationDto {
+    @IsOptional()
+    @IsString()
+    @MaxLength(200)
+    institution?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(200)
+    degree?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(20)
+    year?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    documentUrl?: string;
+
+    @IsOptional()
+    @IsIn(['pdf', 'image'])
+    documentType?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    documentName?: string;
+}
+
 export class CreateCredentialDto {
     @IsString()
     @MaxLength(200)

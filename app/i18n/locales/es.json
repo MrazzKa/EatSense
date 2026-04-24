@@ -753,7 +753,11 @@
       "contactSection": "Política de Contacto",
       "contactPolicy": "Tiempo de Respuesta y Disponibilidad",
       "contactPolicyPlaceholder": "p. ej. Respondo dentro de 24 horas en días laborables",
-      "nameRequired": "Se requiere un nombre para mostrar"
+      "nameRequired": "Se requiere un nombre para mostrar",
+      "addEducation": "Añadir otra entrada",
+      "educationDegreePlaceholder": "Título (p. ej. MSc Nutrición)",
+      "educationInstitutionPlaceholder": "Institución (p. ej. Universidad de Barcelona)",
+      "educationYearPlaceholder": "Año (p. ej. 2020)"
     },
     "client": "Cliente",
     "consultation": "Consulta",
@@ -825,7 +829,13 @@
       "documentUploaded": "Documento subido",
       "removeDocument": "Eliminar",
       "submitForReview": "Enviar para revisión",
-      "profileSubmitted": "Perfil enviado para revisión"
+      "profileSubmitted": "Perfil enviado para revisión",
+      "educationDocumentHint": "Adjunta un diploma (PDF, JPG o PNG, hasta 10 MB) en cada entrada.",
+      "attachDocument": "Adjuntar documento",
+      "educationIncomplete": "Cada entrada de formación requiere un título, una institución y un documento adjunto.",
+      "fileTooLarge": "Archivo demasiado grande",
+      "fileTooLargeMessage": "El tamaño máximo del archivo es {{mb}} MB.",
+      "profileCreateFailed": "Error al crear el perfil. Inténtalo de nuevo."
     },
     "specializations": {
       "weightManagement": "Control de peso",

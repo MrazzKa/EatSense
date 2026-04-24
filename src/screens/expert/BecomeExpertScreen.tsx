@@ -65,11 +65,26 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const [displayName, setDisplayName] = useState('');
     const [type, setType] = useState<'dietitian' | 'nutritionist'>('nutritionist');
     const [bio, setBio] = useState('');
-    type EducationEntry = { degree: string; institution: string; year: string };
+    type EducationDocument = {
+        uri: string;
+        name: string;
+        mimeType: string;
+        kind: 'image' | 'pdf';
+    };
+    type EducationEntry = {
+        degree: string;
+        institution: string;
+        year: string;
+        document: EducationDocument | null;
+    };
     const [educationEntries, setEducationEntries] = useState<EducationEntry[]>([
-        { degree: '', institution: '', year: '' },
+        { degree: '', institution: '', year: '', document: null },
     ]);
     const [experienceYears, setExperienceYears] = useState('');
+    const [educationPickerIndex, setEducationPickerIndex] = useState<number | null>(null);
+
+    const MAX_EDUCATION_ENTRIES = 5;
+    const EDUCATION_FILE_MAX_MB = 10;
 
     const composedEducation = useMemo(() => {
         return educationEntries
@@ -81,14 +96,21 @@ export default function BecomeExpertScreen({ navigation }: any) {
             .join('\n');
     }, [educationEntries]);
 
-    const updateEducationEntry = useCallback((index: number, field: keyof EducationEntry, value: string) => {
+    const updateEducationEntry = useCallback((index: number, field: keyof Omit<EducationEntry, 'document'>, value: string) => {
         setEducationEntries(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
     }, []);
     const addEducationEntry = useCallback(() => {
-        setEducationEntries(prev => [...prev, { degree: '', institution: '', year: '' }]);
+        setEducationEntries(prev =>
+            prev.length < MAX_EDUCATION_ENTRIES
+                ? [...prev, { degree: '', institution: '', year: '', document: null }]
+                : prev
+        );
     }, []);
     const removeEducationEntry = useCallback((index: number) => {
         setEducationEntries(prev => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
+    }, []);
+    const setEducationDocument = useCallback((index: number, doc: EducationDocument | null) => {
+        setEducationEntries(prev => prev.map((e, i) => i === index ? { ...e, document: doc } : e));
     }, []);
 
     // Step 3: Specializations & languages
@@ -110,13 +132,22 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const canGoNext = useMemo(() => {
         switch (step) {
             case 1: return disclaimerAccepted;
-            case 2: return displayName.trim().length > 0 && bio.trim().length >= 50;
+            case 2: {
+                if (displayName.trim().length === 0) return false;
+                if (bio.trim().length < 50) return false;
+                // Every education entry must have degree, institution and an attached document.
+                for (const entry of educationEntries) {
+                    if (!entry.degree.trim() || !entry.institution.trim()) return false;
+                    if (!entry.document) return false;
+                }
+                return true;
+            }
             case 3: return selectedSpecs.length > 0 && selectedLangs.length > 0;
             case 4: return documents.length >= 1;
             case 5: return true; // preview
             default: return false;
         }
-    }, [step, disclaimerAccepted, displayName, bio, selectedSpecs, selectedLangs, documents.length]);
+    }, [step, disclaimerAccepted, displayName, bio, educationEntries, selectedSpecs, selectedLangs, documents.length]);
 
     const toggleSpec = useCallback((spec: string) => {
         setSelectedSpecs(prev =>
@@ -129,6 +160,65 @@ export default function BecomeExpertScreen({ navigation }: any) {
             prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
         );
     }, []);
+
+    const pickEducationImage = useCallback(async (index: number) => {
+        setEducationPickerIndex(null);
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert(
+                t('common.permissionNeeded') || 'Permission',
+                t('experts.onboarding.galleryPermission') || 'Please allow access to your photo library.',
+            );
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 0.85,
+        });
+        if (!result.canceled && result.assets?.[0]) {
+            const asset = result.assets[0];
+            if (asset.fileSize && asset.fileSize > EDUCATION_FILE_MAX_MB * 1024 * 1024) {
+                Alert.alert(
+                    t('experts.onboarding.fileTooLarge') || 'File too large',
+                    (t('experts.onboarding.fileTooLargeMessage', { mb: EDUCATION_FILE_MAX_MB }) as string)
+                        || `Maximum file size is ${EDUCATION_FILE_MAX_MB} MB.`,
+                );
+                return;
+            }
+            setEducationDocument(index, {
+                uri: asset.uri,
+                name: asset.fileName || `education_${index + 1}.jpg`,
+                mimeType: asset.mimeType || 'image/jpeg',
+                kind: 'image',
+            });
+        }
+    }, [t, setEducationDocument]);
+
+    const pickEducationPdf = useCallback(async (index: number) => {
+        setEducationPickerIndex(null);
+        const result = await DocumentPicker.getDocumentAsync({
+            type: 'application/pdf',
+            multiple: false,
+            copyToCacheDirectory: true,
+        });
+        if (!result.canceled && result.assets?.[0]) {
+            const asset = result.assets[0];
+            if (asset.size && asset.size > EDUCATION_FILE_MAX_MB * 1024 * 1024) {
+                Alert.alert(
+                    t('experts.onboarding.fileTooLarge') || 'File too large',
+                    (t('experts.onboarding.fileTooLargeMessage', { mb: EDUCATION_FILE_MAX_MB }) as string)
+                        || `Maximum file size is ${EDUCATION_FILE_MAX_MB} MB.`,
+                );
+                return;
+            }
+            setEducationDocument(index, {
+                uri: asset.uri,
+                name: asset.name || `education_${index + 1}.pdf`,
+                mimeType: asset.mimeType || 'application/pdf',
+                kind: 'pdf',
+            });
+        }
+    }, [t, setEducationDocument]);
 
     const pickFromCamera = useCallback(async () => {
         setPickerOpen(false);
@@ -205,6 +295,17 @@ export default function BecomeExpertScreen({ navigation }: any) {
             return;
         }
 
+        // Validate all education entries have a document (defence in depth — UI already blocks submit)
+        for (const entry of educationEntries) {
+            if (!entry.degree.trim() || !entry.institution.trim() || !entry.document) {
+                Alert.alert(
+                    t('experts.onboarding.uploadFailed') || 'Upload failed',
+                    t('experts.onboarding.educationIncomplete') || 'Each education entry requires a degree, institution and an attached document.',
+                );
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             // 1. Create expert profile
@@ -218,8 +319,31 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 languages: selectedLangs,
             });
 
-            // 2. Upload documents — fail the whole submission if any fail
-            const failures: string[] = [];
+            // 2. Upload education documents + create structured education entries
+            const educationFailures: string[] = [];
+            for (const entry of educationEntries) {
+                if (!entry.document) continue;
+                try {
+                    const uploadResult = await ApiService.uploadDocument(entry.document.uri, entry.document.mimeType, entry.document.name);
+                    if (!uploadResult?.url) {
+                        throw new Error('No URL returned from upload');
+                    }
+                    await MarketplaceService.createEducation({
+                        institution: entry.institution.trim(),
+                        degree: entry.degree.trim(),
+                        year: entry.year.trim() || undefined,
+                        documentUrl: uploadResult.url,
+                        documentType: entry.document.kind,
+                        documentName: entry.document.name,
+                    });
+                } catch (err: any) {
+                    console.warn('Education upload failed:', entry.document.name, err?.message);
+                    educationFailures.push(entry.document.name);
+                }
+            }
+
+            // 3. Upload credentials (diplomas/licenses from step 4)
+            const credentialFailures: string[] = [];
             for (const doc of documents) {
                 try {
                     const uploadResult = await ApiService.uploadDocument(doc.uri, doc.mimeType, doc.name);
@@ -233,11 +357,12 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     });
                 } catch (err: any) {
                     console.warn('Credential upload failed:', doc.name, err?.message);
-                    failures.push(doc.name);
+                    credentialFailures.push(doc.name);
                 }
             }
 
-            if (failures.length === documents.length && documents.length > 0) {
+            const allFailed = credentialFailures.length === documents.length && educationFailures.length === educationEntries.length;
+            if (allFailed) {
                 Alert.alert(
                     t('experts.onboarding.uploadFailed'),
                     (t('experts.onboarding.allCredentialsFailed') as string)
@@ -246,10 +371,11 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 return;
             }
 
-            if (failures.length > 0) {
+            const allFailures = [...educationFailures, ...credentialFailures];
+            if (allFailures.length > 0) {
                 Alert.alert(
                     t('experts.onboarding.uploadFailed'),
-                    t('experts.onboarding.uploadFailedMessage') + '\n\n' + failures.join(', '),
+                    t('experts.onboarding.uploadFailedMessage') + '\n\n' + allFailures.join(', '),
                 );
             }
 
@@ -259,12 +385,12 @@ export default function BecomeExpertScreen({ navigation }: any) {
         } catch (error: any) {
             Alert.alert(
                 t('common.error'),
-                error?.message || 'Failed to create profile',
+                error?.message || t('experts.onboarding.profileCreateFailed') || 'Failed to create profile',
             );
         } finally {
             setLoading(false);
         }
-    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, refreshUser, t]);
+    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, educationEntries, refreshUser, t]);
 
     const handleNext = useCallback(() => {
         if (step === 5) {
@@ -369,6 +495,9 @@ export default function BecomeExpertScreen({ navigation }: any) {
             />
 
             <Text style={styles.label}>{t('experts.edit.education')}</Text>
+            <Text style={styles.helperText}>
+                {t('experts.onboarding.educationDocumentHint') || 'Attach a diploma (PDF, JPG or PNG, up to 10 MB) for each entry.'}
+            </Text>
             {educationEntries.map((entry, index) => (
                 <View key={index} style={styles.educationEntry}>
                     <TextInput
@@ -404,14 +533,68 @@ export default function BecomeExpertScreen({ navigation }: any) {
                             </TouchableOpacity>
                         )}
                     </View>
+
+                    {/* Document attachment */}
+                    {entry.document ? (
+                        <View style={styles.educationDocumentRow}>
+                            {entry.document.kind === 'pdf' ? (
+                                <View style={[styles.documentThumb, styles.pdfThumb]}>
+                                    <Ionicons name="document-text" size={20} color={colors.primary} />
+                                </View>
+                            ) : (
+                                <Image source={{ uri: entry.document.uri }} style={styles.documentThumb} />
+                            )}
+                            <Text style={styles.documentName} numberOfLines={1}>{entry.document.name}</Text>
+                            <TouchableOpacity onPress={() => setEducationDocument(index, null)}>
+                                <Ionicons name="close-circle" size={22} color={colors.error || '#FF3B30'} />
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <TouchableOpacity
+                            style={styles.educationAttachBtn}
+                            onPress={() => setEducationPickerIndex(index)}
+                        >
+                            <Ionicons name="attach-outline" size={18} color={colors.primary} />
+                            <Text style={styles.educationAttachText}>
+                                {t('experts.onboarding.attachDocument') || 'Attach document'}
+                                {'  *'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             ))}
-            <TouchableOpacity onPress={addEducationEntry} style={styles.educationAddBtn}>
-                <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-                <Text style={styles.educationAddText}>
-                    {t('experts.edit.addEducation') || 'Add another entry'}
-                </Text>
-            </TouchableOpacity>
+            {educationEntries.length < MAX_EDUCATION_ENTRIES && (
+                <TouchableOpacity onPress={addEducationEntry} style={styles.educationAddBtn}>
+                    <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                    <Text style={styles.educationAddText}>
+                        {t('experts.edit.addEducation') || 'Add another entry'}
+                    </Text>
+                </TouchableOpacity>
+            )}
+
+            {educationPickerIndex !== null && (
+                <>
+                    <TouchableOpacity
+                        style={styles.pickerBackdrop}
+                        activeOpacity={1}
+                        onPress={() => setEducationPickerIndex(null)}
+                    />
+                    <View style={styles.pickerSheet}>
+                        <Text style={styles.pickerTitle}>{t('experts.onboarding.chooseDocumentSource') || 'Choose source'}</Text>
+                        <TouchableOpacity style={styles.pickerOption} onPress={() => pickEducationImage(educationPickerIndex)}>
+                            <Ionicons name="images-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceGallery')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerOption} onPress={() => pickEducationPdf(educationPickerIndex)}>
+                            <Ionicons name="document-text-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourcePdf')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setEducationPickerIndex(null)}>
+                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
 
             <Text style={styles.label}>{t('experts.edit.experienceYears')}</Text>
             <TextInput
@@ -541,10 +724,31 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 <Text style={styles.previewSectionTitle}>{t('experts.about')}</Text>
                 <Text style={styles.previewText}>{bio}</Text>
 
-                {composedEducation ? (
+                {educationEntries.some(e => e.degree.trim() || e.institution.trim()) ? (
                     <>
                         <Text style={styles.previewSectionTitle}>{t('experts.edit.education')}</Text>
-                        <Text style={styles.previewText}>{composedEducation}</Text>
+                        {educationEntries
+                            .filter(e => e.degree.trim() || e.institution.trim())
+                            .map((e, idx) => (
+                                <View key={idx} style={{ marginBottom: tokens.spacing.xs }}>
+                                    <Text style={styles.previewText}>
+                                        {[e.degree.trim(), e.institution.trim()].filter(Boolean).join(', ')}
+                                        {e.year.trim() ? ` (${e.year.trim()})` : ''}
+                                    </Text>
+                                    {e.document && (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                            <Ionicons
+                                                name={e.document.kind === 'pdf' ? 'document-text-outline' : 'image-outline'}
+                                                size={14}
+                                                color={colors.primary}
+                                            />
+                                            <Text style={[styles.previewText, { fontSize: 12, color: colors.primary }]} numberOfLines={1}>
+                                                {e.document.name}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                            ))}
                     </>
                 ) : null}
 
@@ -1010,5 +1214,33 @@ const createStyles = (tokens: any, colors: any) =>
             fontSize: 14,
             color: colors.primary,
             fontWeight: '500',
+        },
+        educationAttachBtn: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: tokens.spacing.xs,
+            paddingVertical: tokens.spacing.sm,
+            paddingHorizontal: tokens.spacing.sm,
+            marginTop: tokens.spacing.sm,
+            borderRadius: tokens.radii.xs,
+            borderWidth: 1,
+            borderColor: colors.primary,
+            borderStyle: 'dashed',
+            alignSelf: 'flex-start',
+        },
+        educationAttachText: {
+            fontSize: 13,
+            color: colors.primary,
+            fontWeight: '500',
+        },
+        educationDocumentRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: tokens.spacing.sm,
+            marginTop: tokens.spacing.sm,
+            paddingHorizontal: tokens.spacing.sm,
+            paddingVertical: tokens.spacing.xs,
+            backgroundColor: colors.background,
+            borderRadius: tokens.radii.xs,
         },
     });

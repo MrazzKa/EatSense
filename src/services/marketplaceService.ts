@@ -58,6 +58,24 @@ class MarketplaceService {
         return ApiService.delete(`/experts/me/credentials/${id}`);
     }
 
+    // ==================== MY EDUCATION ====================
+
+    async getMyEducation() {
+        return ApiService.get('/experts/me/education');
+    }
+
+    async createEducation(data) {
+        return ApiService.post('/experts/me/education', data);
+    }
+
+    async updateEducation(id, data) {
+        return ApiService.patch(`/experts/me/education/${id}`, data);
+    }
+
+    async deleteEducation(id) {
+        return ApiService.delete(`/experts/me/education/${id}`);
+    }
+
     // ==================== MY OFFERS ====================
 
     async getMyOffers() {

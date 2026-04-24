@@ -1264,7 +1264,11 @@
       "contactSection": "Правила связи",
       "contactPolicy": "Время ответа",
       "contactPolicyPlaceholder": "Например, отвечаю в течение 24 часов",
-      "nameRequired": "Имя обязательно"
+      "nameRequired": "Имя обязательно",
+      "addEducation": "Добавить запись",
+      "educationDegreePlaceholder": "Степень (напр. MSc Nutrition)",
+      "educationInstitutionPlaceholder": "Учреждение (напр. МГУ)",
+      "educationYearPlaceholder": "Год (напр. 2020)"
     },
     "client": "Клиент",
     "consultation": "Консультация",
@@ -1334,7 +1338,13 @@
       "documentUploaded": "Документ загружен",
       "removeDocument": "Удалить",
       "submitForReview": "Отправить на проверку",
-      "profileSubmitted": "Профиль отправлен на проверку"
+      "profileSubmitted": "Профиль отправлен на проверку",
+      "educationDocumentHint": "Приложите диплом (PDF, JPG или PNG, до 10 МБ) к каждой записи.",
+      "attachDocument": "Приложить документ",
+      "educationIncomplete": "Для каждой записи об образовании нужны степень, учреждение и приложенный документ.",
+      "fileTooLarge": "Файл слишком большой",
+      "fileTooLargeMessage": "Максимальный размер файла — {{mb}} МБ.",
+      "profileCreateFailed": "Не удалось создать профиль. Попробуйте ещё раз."
     },
     "specializations": {
       "weightManagement": "Управление весом",

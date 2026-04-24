@@ -705,15 +705,34 @@ model ExpertProfile {
   
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   credentials       ExpertCredential[]
+  educationEntries  ExpertEducation[]
   offers            ExpertOffer[]
   conversations     Conversation[]
   reviews           Review[]
   articles          Article[]
-  
+
   @@index([type, isActive, isPublished])
   @@index([isVerified, isActive])
   @@index([rating])
   @@map("expert_profiles")
+}
+
+model ExpertEducation {
+  id           String   @id @default(cuid())
+  expertId     String   @map("expert_id")
+  institution  String
+  degree       String
+  year         String?
+  documentUrl  String?  @map("document_url")
+  documentType String?  @map("document_type")
+  documentName String?  @map("document_name")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  expert       ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@index([expertId])
+  @@map("expert_education")
 }
 
 model ExpertCredential {

@@ -18,6 +18,8 @@ import {
     PublishProfileDto,
     ExpertFiltersDto,
     CreateCredentialDto,
+    CreateEducationDto,
+    UpdateEducationDto,
     CreateOfferDto,
     UpdateOfferDto,
     PublishOfferDto,
@@ -91,6 +93,36 @@ export class ExpertsController {
     @UseGuards(JwtAuthGuard)
     async deleteCredential(@Request() req: any, @Param('id') id: string) {
         return this.expertsService.deleteCredential(req.user.id, id);
+    }
+
+    // ==================== MY EDUCATION ENDPOINTS ====================
+
+    @Get('me/education')
+    @UseGuards(JwtAuthGuard)
+    async getMyEducation(@Request() req: any) {
+        return this.expertsService.getEducation(req.user.id);
+    }
+
+    @Post('me/education')
+    @UseGuards(JwtAuthGuard)
+    async createEducation(@Request() req: any, @Body() dto: CreateEducationDto) {
+        return this.expertsService.createEducation(req.user.id, dto);
+    }
+
+    @Patch('me/education/:id')
+    @UseGuards(JwtAuthGuard)
+    async updateEducation(
+        @Request() req: any,
+        @Param('id') id: string,
+        @Body() dto: UpdateEducationDto,
+    ) {
+        return this.expertsService.updateEducation(req.user.id, id, dto);
+    }
+
+    @Delete('me/education/:id')
+    @UseGuards(JwtAuthGuard)
+    async deleteEducation(@Request() req: any, @Param('id') id: string) {
+        return this.expertsService.deleteEducation(req.user.id, id);
     }
 
     // ==================== MY REVIEWS ENDPOINTS ====================
