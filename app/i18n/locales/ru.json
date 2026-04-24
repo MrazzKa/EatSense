@@ -400,7 +400,8 @@
     "thu": "Чт",
     "fri": "Пт",
     "sat": "Сб",
-    "sun": "Вс"
+    "sun": "Вс",
+    "permissionNeeded": "Требуется разрешение"
   },
   "tooltips": {
     "scanMeal": {

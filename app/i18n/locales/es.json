@@ -416,7 +416,8 @@
     "thu": "Jue",
     "fri": "Vie",
     "sat": "Sáb",
-    "sun": "Dom"
+    "sun": "Dom",
+    "permissionNeeded": "Permiso necesario"
   },
   "dashboard": {
     "addFood": {
@@ -727,7 +728,7 @@
       "expertTitle": "Soy un especialista certificado",
       "expertDescription": "Crea un perfil y ayuda a los clientes"
     },
-    "expert": "[MISSING] Expert",
+    "expert": "Experto",
     "edit": {
       "createProfile": "Crear Perfil",
       "editProfile": "Editar Perfil",
@@ -775,8 +776,12 @@
     "tab_my_chats": "Pestaña_mis_chats",
     "tab_specialists": "Pestaña_especialistas",
     "week": "Semana",
-    "dietitian": "[MISSING] Dietitian",
-    "nutritionist": "[MISSING] Nutritionist",
+    "dietitian": {
+      "title": "Dietista"
+    },
+    "nutritionist": {
+      "title": "Nutricionista"
+    },
     "expertLabel": "Experto",
     "becomeExpert": "Convertirse en experto",
     "becomeExpertDescription": "¿Eres nutricionista o dietista? Regístrate como experto y ayuda a las personas a mejorar su alimentación.",

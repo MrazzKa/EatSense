@@ -385,7 +385,8 @@
     "thu": "Бс",
     "fri": "Жм",
     "sat": "Сн",
-    "sun": "Жс"
+    "sun": "Жс",
+    "permissionNeeded": "Рұқсат қажет"
   },
   "tooltips": {
     "scanMeal": {

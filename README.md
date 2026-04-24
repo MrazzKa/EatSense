@@ -1,286 +1,343 @@
 # EatSense
 
-AI-assisted nutrition tracker with a NestJS + Prisma backend and an Expo/React Native client.
+AI-assisted nutrition tracker with an Experts Marketplace. Swiss-made, currently live on the App Store: [apps.apple.com/app/eatsense](https://apps.apple.com/us/app/eatsense/id6755033261).
 
-## Monorepo Structure
+**Current release:** Mobile `v2.0.24` (iOS build 42 / Android versionCode 79) · API on Railway · Expert portal on Vercel (→ Railway planned) · Landing on Cloudflare Pages.
 
-- `apps/api` – NestJS API (PostgreSQL, Prisma, Redis, BullMQ, SendGrid, MinIO/S3)
-- `src/` / `App.js` – Expo-managed mobile client
-- `docs/` – Deployment runbooks and smoke-checklists
+---
 
-The project is managed with **pnpm** workspaces (`pnpm-workspace.yaml`). Always use `pnpm` commands from the repo root unless a guide explicitly says otherwise.
+## What lives where
+
+This is a **pnpm workspaces monorepo**. Four separate deployables plus a bunch of shared TypeScript:
+
+| Path | What it is | Deploy target |
+|---|---|---|
+| `src/`, `app/`, `App.tsx`, `app.config.js` | Expo / React Native mobile app (iOS + Android) | EAS Build → App Store / Play Store |
+| `apps/api/` | NestJS 11 API. Prisma on PostgreSQL, BullMQ on Redis, S3/MinIO for media, Expo Push, magic-link auth, rate limiting | Railway (Dockerfile) |
+| `apps/expert-portal/` | Next.js 15 dashboard for certified nutritionists — magic-link auth, chat with clients, offers, reviews, profile editor | Vercel (`expert-portal-pi.vercel.app`), custom domain `experts.eatsense.ch` |
+| `apps/admin/` | Single-file `index.html` admin panel for operators — approve experts, moderate suggestions, diet programs, pharmacy cities, community | Static hosting (Railway / any CDN) |
+| `legal-site/` | Marketing landing + legal pages (Privacy / Terms / Support). Static HTML + CSS, 6-language switcher | Cloudflare Pages, served at `eatsense.ch` / `www.eatsense.ch` |
+| `docs/plans/` | Private planning docs (`.gitignored`) — design decisions, audits, migration roadmaps |  |
+
+Always run `pnpm` commands from the repo root unless a guide says otherwise.
+
+---
 
 ## Prerequisites
 
-| Tool | Version |
-| --- | --- |
-| Node.js | 20.19+ |
-| pnpm | 9.x |
-| PostgreSQL | 15+ |
-| Redis | 7+ |
-| MinIO (optional locally) | latest |
-| Expo CLI / EAS CLI | latest |
+| Tool | Version | Notes |
+|---|---|---|
+| Node.js | 20.19+ | Expo SDK 55 + Nest 11 require Node 20 |
+| pnpm | 9.x | Workspaces are pnpm-native |
+| PostgreSQL | 15+ | Prisma client is generated from the schema |
+| Redis | 7+ | Used by BullMQ queue + rate limits + refresh-token blacklist |
+| MinIO / S3 | any | Image storage for analyses, chat photos, expert credentials |
+| Expo CLI / EAS CLI | latest | `npx eas-cli@latest` is fine |
 
-> **Why Node 20?** Expo SDK 51+ and modern Nest builds expect Node 20. Using older versions results in `EBADENGINE` warnings and build failures on EAS.
+---
 
-## Quick Start (Local)
-
-1. **Install dependencies**
-   ```bash
-   pnpm install
-   pnpm --filter eatsense-api install
-   ```
-
-2. **Bootstrap backend environment files**
-   ```bash
-   cd apps/api
-   pnpm run setup:env   # creates .env and .env.example if missing
-   ```
-
-3. **Configure root `.env`**
-
-   Create a root `.env` file (copy from `.env.example`):
-   ```bash
-   cp .env.example .env
-   ```
-
-   Update `.env` with your API URL:
-   ```env
-   # For local development on same machine
-   EXPO_PUBLIC_API_BASE_URL=http://localhost:3000
-   
-   # For mobile device on same network (replace 192.168.168.201 with your machine's IP)
-   # Find your IP: ifconfig (Linux/Mac) or ipconfig (Windows)
-   # EXPO_PUBLIC_API_BASE_URL=http://192.168.168.201:3000
-   
-   EXPO_PUBLIC_ENV=development
-   EXPO_PUBLIC_DEV_TOKEN=
-   EXPO_PUBLIC_DEV_REFRESH_TOKEN=
-   ```
-
-   **Important:** If running the mobile app on a physical device, use your machine's IP address instead of `localhost`. The IP address is shown when you start the backend (look for `🌐 Accessible on:` in the console output).
-
-4. **Run database & cache** (local docker example)
-   ```bash
-   docker compose -f docker-compose.prod.yml up -d postgres redis minio
-   ```
-
-5. **Start the API**
-   ```bash
-   cd apps/api
-   pnpm run start:dev
-   ```
-
-6. **Start the Expo client**
-
-   For local development on the same machine:
-   ```bash
-   pnpm run start:lan
-   ```
-
-   For development with a specific IP (if your IP changed):
-   ```bash
-   pnpm run start:dev
-   ```
-
-   **Note:** If you're using Expo Go and see SDK version mismatch, you'll need to use a Development Build instead. See deployment docs for details.
-
-## Linting & Tests
+## Quick Start — local dev
 
 ```bash
-pnpm lint             # mobile lint rules
-pnpm test             # mobile unit tests (jest)
-pnpm --filter eatsense-api lint
-pnpm --filter eatsense-api test
+# 1. Install everything
+pnpm install
+
+# 2. Bootstrap backend env
+cd apps/api && pnpm run setup:env && cd -
+
+# 3. Root .env (mobile)
+cp .env.example .env
+# Edit:
+#   EXPO_PUBLIC_API_BASE_URL=http://localhost:3000      # simulator / same machine
+#   EXPO_PUBLIC_API_BASE_URL=http://192.168.X.X:3000    # physical device on LAN
+#   EXPO_PUBLIC_ENV=development
+
+# 4. Stand up Postgres + Redis + MinIO
+docker compose -f docker-compose.prod.yml up -d postgres redis minio
+
+# 5. Apply migrations, start the API
+cd apps/api
+pnpm run prisma:migrate:deploy
+pnpm run start:dev
+
+# 6. In a second terminal — start the mobile app
+pnpm run start:lan       # LAN mode (physical device)
+# or
+pnpm run start           # tunnel mode
 ```
 
-## Deployment Runbooks
+### Expert portal (optional, locally)
 
-The full deployment checklist lives in `docs/deployment/README.md` and is split into:
+```bash
+cd apps/expert-portal
+pnpm install
+cp .env.example .env.local   # set NEXT_PUBLIC_API_URL=http://localhost:3000
+pnpm dev                     # http://localhost:3001
+```
 
-- Railway web-service deployment (`docs/deployment/railway.md`)
-- Expo EAS build & TestFlight submission (`docs/deployment/eas.md`)
-- Post-deploy smoke tests (`docs/deployment/smoke-checklist.md`)
+### Admin panel (optional, locally)
 
-Refer to those documents for environment variable matrices, command sequences, and infrastructure notes.
+`apps/admin/index.html` is self-contained. Open it in a browser; it prompts for API URL + admin secret and stores them in `sessionStorage`.
 
-## Environment Variable Overview
+### Landing (optional, locally)
 
-### Backend (`apps/api/.env` or Railway variables)
+```bash
+cd legal-site
+pnpm run dev    # serves legal-site/public on :3000
+```
+
+---
+
+## Features
+
+### Mobile app (`src/`)
+- AI-powered photo analysis (OpenAI Vision) + USDA FoodData Central lookups
+- 47 curated lifestyle programs ("diets") with daily tracker
+- Biomarker tracking (lab results → nutrition correlation)
+- Medication schedule with actionable push notifications (Take / Later)
+- Community (posts, groups, reactions, moderation)
+- **Experts Marketplace** — find a nutritionist, chat, share meals / nutrition reports, leave reviews
+- 6 languages, 175+ countries of pricing
+- Apple Sign-In, Google Sign-In, magic-link email auth
+- Apple Introductory Offer for free trials
+
+### Experts Marketplace (end-to-end)
+- **Client side:** `/experts` browsing with filters, expert profile page, chat, data-sharing flow (grant/revoke access to meal logs + nutrition reports)
+- **Expert side:** 6-step onboarding in the mobile app with structured education entries + document uploads (PDF / JPG / PNG), specializations, languages, bio, credentials. Admin review + approve/reject with localized push.
+- **Expert portal** (Next.js): dashboard, chats, offers (per-language tabs), reviews, profile editor
+- **Admin panel:** approve / unpublish / re-publish / reject experts, per-document download, full profile PDF export for legal archival
+- Push notifications for new messages open directly into the chat (foreground, background, cold-start)
+
+### API (`apps/api/`)
+- NestJS 11, Prisma, BullMQ, Zod, class-validator
+- Rate limiting via Redis (daily analyses, OTP cooldown)
+- Expo Push SDK with multi-language templates
+- Magic-link authentication (JWT access + refresh, rotation, blacklist)
+- S3/MinIO for media with signed / guarded downloads
+- Localized push notifications in 6 languages
+
+---
+
+## Authentication
+
+### Sign-in methods
+- **Apple Sign-In** (iOS only)
+- **Google Sign-In** (all platforms)
+- **Magic link / OTP email** (fallback)
+- **Expert portal** uses magic link only — no password
+
+### Token management
+- Access token: 45 min (configurable via `JWT_ACCESS_TOKEN_EXPIRATION_TIME`)
+- Refresh token: 30 days, stored in Keychain / Keystore (`expo-secure-store`)
+- Refresh rotation on every refresh; revoked tokens blacklisted in Redis (`auth:refresh:blacklist:*`)
+
+### Account deletion
+- `DELETE /users/me` — cascade delete across all user data, refresh tokens revoked, Redis entries purged. Required for App Store compliance.
+
+---
+
+## Localization (i18n)
+
+**Active languages (6):** `en`, `ru`, `kk`, `fr`, `de`, `es`
+
+Locale files live in `app/i18n/locales/{lang}.json`. Expert portal uses `apps/expert-portal/lib/i18n/messages.ts`. Landing has its own inline translations (61 keys × 6 langs).
+
+The files `ja.json`, `ko.json`, `zh.json` exist in the locales folder as legacy from an earlier scope — **not wired into the app** and not maintained. Safe to ignore.
+
+Scripts:
+
+```bash
+pnpm i18n:extract          # scan code for new t() keys
+pnpm i18n:verify           # verify all locales have every used key
+pnpm i18n:check            # fast coverage report
+pnpm i18n:check-all        # full scan
+```
+
+---
+
+## Rate limits
+
+| Limit | Free | Pro |
+|---|---|---|
+| Photo analyses / day | 3 | 25 |
+
+- Configurable: `FREE_DAILY_ANALYSES`, `PRO_DAILY_ANALYSES`
+- Override for local testing: `DISABLE_LIMITS=true`
+- Reset: midnight UTC
+- Counter key in Redis: `daily:food:{userId}:{yyyy-mm-dd}`
+
+**OTP:**
+- 60 s cooldown between OTP requests per email
+- 5 / hour per email, 40 / hour per IP
+
+---
+
+## Environment variables
+
+### Backend (`apps/api/.env` or Railway Variables)
 
 | Key | Required | Notes |
-| --- | --- | --- |
-| `NODE_ENV` | ✅ | Use `production` on Railway |
-| `PORT` | ✅ | Railway expects `8080` |
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `REDIS_URL` | ✅ | Railway Redis variable reference |
-| `API_BASE_URL` | ✅ | Public API (e.g. `https://api.eatsense.app`) |
-| `APP_BASE_URL` | ✅ | Expo web deep-link host |
-| `CORS_ORIGINS` | ✅ | Comma-separated whitelist of origins |
-| `JWT_SECRET`, `JWT_REFRESH_SECRET` | ✅ | Auth token secrets |
-| `OPENAI_API_KEY`, `FDC_API_KEY` | ✅ | External API keys |
-| `MAIL_PROVIDER` | ✅ | `SMTP` (default) or `SENDGRID` |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | ✅ | Infomaniak SMTP credentials |
-| `MAIL_FROM` | ✅ | Verified sender, e.g. `EatSense <timur.kamaraev@eatsense.ch>` |
-| `SENDGRID_API_KEY` | optional | Only if using SendGrid fallback |
-| `FREE_DAILY_ANALYSES`, `PRO_DAILY_ANALYSES` | ✅ | Rate limits (default: 3 free, 25 pro) |
-| `DISABLE_LIMITS` | optional | Set to `true` to disable all rate limits (testing only) |
-| `REDIS_BLACKLIST_PREFIX` | optional | Prefix for refresh token blacklist (default: `auth:refresh:blacklist:`) |
-| `S3_*` | ✅ | MinIO/S3 connection (endpoint, bucket, credentials) |
-| `CACHE_*`, `ASSISTANT_SESSION_TTL_SEC` | ✅ | Cache tuning |
-| `JWT_ACCESS_TOKEN_EXPIRATION_TIME` | optional | Access token expiration (default: `45m`) |
+|---|---|---|
+| `NODE_ENV` | ✓ | `production` on Railway |
+| `PORT` | ✓ | Railway injects; local default `3000` |
+| `DATABASE_URL` | ✓ | PostgreSQL connection string |
+| `REDIS_URL` | ✓ | Railway Redis variable reference |
+| `API_BASE_URL` | ✓ | Public API (e.g. `https://api.eatsense.ch`) |
+| `APP_BASE_URL` | ✓ | Expo web deep-link host |
+| `CORS_ORIGINS` | ✓ | Comma-separated: `https://eatsense.ch,https://www.eatsense.ch,https://experts.eatsense.ch` |
+| `JWT_SECRET`, `JWT_REFRESH_SECRET` | ✓ | Auth token secrets |
+| `JWT_ACCESS_TOKEN_EXPIRATION_TIME` | — | Default `45m` |
+| `ADMIN_SECRET` | ✓ | Required by admin panel to call `/admin/*` endpoints |
+| `OPENAI_API_KEY` | ✓ | Vision + assistant |
+| `FDC_API_KEY` | ✓ | USDA FoodData Central lookups |
+| `MAIL_PROVIDER` | ✓ | `SMTP` (Infomaniak) or `SENDGRID` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | ✓ if SMTP | Infomaniak creds |
+| `MAIL_FROM` | ✓ | e.g. `EatSense <timur.kamaraev@eatsense.ch>` |
+| `SENDGRID_API_KEY` | — | Fallback / alternative provider |
+| `FREE_DAILY_ANALYSES`, `PRO_DAILY_ANALYSES` | ✓ | Defaults 3 / 25 |
+| `DISABLE_LIMITS` | — | `true` for testing only |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`, `S3_FORCE_PATH_STYLE` | ✓ | MinIO / S3 config |
+| `EXPO_ACCESS_TOKEN` | ✓ | Required by Expo Push SDK for server-authenticated sends |
 
-See `apps/api/env.template` for defaults and descriptions.
+See `apps/api/env.template` for full list with defaults.
 
 ### Mobile (`.env` at project root)
 
 | Key | Required | Notes |
-| --- | --- | --- |
-| `EXPO_PUBLIC_API_BASE_URL` | ✅ | Same host as Railway deployment (e.g. `https://api.eatsense.app`) |
-| `EXPO_PUBLIC_ENV` | optional | `production` when building TestFlight |
-| `EXPO_PUBLIC_APP_NAME` | optional | App name (default: `EatSense`) |
-| `EXPO_PUBLIC_APP_SCHEME` | optional | URL scheme (default: `eatsense`) |
-| `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | optional | Google OAuth Client ID for sign-in |
-| `EXPO_PUBLIC_DEV_TOKEN`, `EXPO_PUBLIC_DEV_REFRESH_TOKEN` | optional | QA helper tokens |
+|---|---|---|
+| `EXPO_PUBLIC_API_BASE_URL` | ✓ | e.g. `https://eatsense-api.up.railway.app` or `http://192.168.X.X:3000` in dev |
+| `EXPO_PUBLIC_ENV` | — | `production` for TestFlight builds |
+| `EXPO_PUBLIC_APP_NAME` | — | Default `EatSense` |
+| `EXPO_PUBLIC_APP_SCHEME` | — | Default `eatsense` |
+| `EXPO_PUBLIC_GOOGLE_CLIENT_ID` (and `_IOS_` / `_ANDROID_` / `_WEB_` variants) | — | For Google sign-in |
+| `EXPO_PUBLIC_DEV_TOKEN`, `EXPO_PUBLIC_DEV_REFRESH_TOKEN` | — | QA helper tokens |
 
-## Common Scripts
+### Expert portal (`apps/expert-portal/.env.local` or Vercel)
 
+| Key | Notes |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Points at the API, e.g. `https://eatsense-api.up.railway.app` |
+| `NEXT_PUBLIC_PORTAL_URL` | Self URL (used in magic-link redirects), e.g. `https://experts.eatsense.ch` |
+
+---
+
+## Deployment
+
+### Backend — Railway
+1. GitHub push → auto-deploy. `Dockerfile` in `apps/api/`.
+2. Prisma migrations are applied on startup via `prisma migrate deploy`. Watch build logs for `_add_expert_education` style names to confirm.
+3. After changing env vars → Redeploy.
+
+### Expert portal — Vercel (currently)
+- Project: `expert-portal-pi`
+- Custom domain: `experts.eatsense.ch` (CNAME `dae319a41cc0d267.vercel-dns-017.com` in Infomaniak)
+- Railway migration planned — see `apps/expert-portal/RAILWAY_SETUP.md`
+
+### Admin panel — static
+- Single HTML file. Deploy `apps/admin/index.html` to any static host. No build step.
+
+### Landing — Cloudflare Pages
+- Connected to `main` branch. Auto-rebuilds on push.
+- Custom domain: `www.eatsense.ch` (CNAME → `eatsense.pages.dev`)
+- Apex `eatsense.ch` → 301 redirect to `www` (handled by Infomaniak)
+
+### Mobile — EAS Build + TestFlight
 ```bash
-pnpm -r build                    # runs API build (+ placeholder for mobile)
-pnpm --filter eatsense-api prisma migrate dev
-node apps/api/test-api.js usda:search "greek yogurt"
-node apps/api/test-api.js analyze-text "oatmeal 60g with milk"
-```
-
-> `pnpm -r build` now works due to workspace setup and scripts. For mobile releases use the EAS profiles described in the deployment docs.
-
-## Authentication & Security
-
-### OAuth Sign-In
-- **Apple Sign-In**: Available on iOS devices (requires Apple Developer account)
-- **Google Sign-In**: Available on all platforms (requires Google OAuth Client ID)
-- **Email/OTP**: Traditional email-based authentication with one-time passwords
-
-### Token Management
-- **Access Tokens**: Valid for 45 minutes (configurable via `JWT_ACCESS_TOKEN_EXPIRATION_TIME`)
-- **Refresh Tokens**: Valid for 30 days, stored in Secure Storage (Keychain/Keystore)
-- **Token Rotation**: Refresh tokens are rotated on each refresh
-- **Token Blacklist**: Revoked refresh tokens are blacklisted in Redis until expiration
-
-### Account Deletion
-- Users can delete their accounts via `DELETE /users/me`
-- All user data is deleted (cascade delete in database)
-- All refresh tokens are revoked and blacklisted
-- Redis cache entries are cleaned up
-
-## Rate Limits
-
-### Daily Limits
-- **Free Users**: 3 photo analyses per day (configurable via `FREE_DAILY_ANALYSES`)
-- **Pro Users**: 25 photo analyses per day (configurable via `PRO_DAILY_ANALYSES`)
-- Limits reset at midnight (UTC)
-- Limits can be disabled via `DISABLE_LIMITS=true` (testing only)
-
-### OTP Rate Limits
-- **Email Cooldown**: 60 seconds between OTP requests
-- **Hourly Limit**: 5 OTP requests per email per hour
-- **IP Limit**: 40 OTP requests per IP per hour
-
-## App Store Requirements
-
-### Privacy & Legal
-- **Terms of Service**: Available in-app via `TermsOfServiceScreen`
-- **Privacy Policy**: Available in-app via `PrivacyPolicyScreen`
-- **Account Deletion**: Implemented via `DELETE /users/me` endpoint
-- **Privacy Descriptions**: Configured in `app.config.js` iOS `infoPlist`
-
-### App Icons
-- **Icon**: Uses `assets/logo/Logo.jpeg` (Expo auto-generates required sizes)
-- **No Transparency**: App icons must not have transparency for App Store submission
-- **Splash Screen**: Uses `assets/splash.png`
-
-## Localization (i18n)
-
-### Supported Languages
-- English (en) - Default
-- Spanish (es)
-- German (de)
-- French (fr)
-- Korean (ko)
-- Japanese (ja)
-- Chinese (zh)
-
-> **Note**: Russian (ru) has been removed from the bundle as requested.
-
-### Configuration
-- Default locale: `en`
-- Supported locales: `en,es,de,fr,ko,ja,zh`
-- Language preference is stored in AsyncStorage
-- Translations are stored in `app/i18n/locales/`
-
-## Development Workflow
-
-### Local Development
-1. Install dependencies: `pnpm install`
-2. Generate Prisma Client: `pnpm --filter eatsense-api exec prisma generate`
-3. Run database migrations: `pnpm --filter eatsense-api prisma migrate dev`
-4. Start backend: `pnpm --filter eatsense-api start:dev`
-5. Start mobile app: `pnpm start`
-
-### Testing
-```bash
-# Backend tests
-cd apps/api
-pnpm test
-
-# Mobile tests
-pnpm test
-
-# E2E tests (if configured)
-pnpm test:e2e
-```
-
-### Building for Production
-```bash
-# Build backend
-pnpm --filter eatsense-api build
-
-# Build iOS (EAS)
-pnpm dlx eas-cli@latest build -p ios --profile production
-
-# Submit to TestFlight
+pnpm build:ios              # creates production build
 pnpm dlx eas-cli@latest submit -p ios --profile production --latest
 ```
 
+Bump `version`, `buildNumber`, `versionCode` in `app.config.js` for every TestFlight / Play Store release.
+
+### DNS / domains reference
+| Host | Target | Provider |
+|---|---|---|
+| `eatsense.ch` | A `84.16.66.164` → 301 `www.eatsense.ch` | Infomaniak |
+| `www.eatsense.ch` | CNAME → `eatsense.pages.dev` | Cloudflare Pages |
+| `experts.eatsense.ch` | CNAME → `dae319a41cc0d267.vercel-dns-017.com` | Vercel |
+
+---
+
+## Common scripts
+
+### Root
+```bash
+pnpm lint                 # mobile lint
+pnpm type-check           # mobile tsc --noEmit
+pnpm test                 # mobile jest
+pnpm test:e2e             # detox
+pnpm pre-commit           # lint + type-check + test
+pnpm i18n:verify          # all locales have every used key
+```
+
+### API
+```bash
+pnpm --filter eatsense-api start:dev
+pnpm --filter eatsense-api build
+pnpm --filter eatsense-api exec prisma generate
+pnpm --filter eatsense-api prisma:migrate:deploy
+pnpm --filter eatsense-api test
+```
+
+### Expert portal
+```bash
+cd apps/expert-portal
+pnpm dev
+pnpm build
+pnpm exec tsc --noEmit
+```
+
+---
+
+## Testing
+
+**Backend:** `pnpm --filter eatsense-api test` (Jest)
+**Mobile unit:** `pnpm test` (Jest)
+**Mobile E2E:** `pnpm test:e2e` (Detox — config in `detox.config.js`)
+
+E2E tests for the Experts Marketplace flow are **not yet automated** — manual smoke-checklist lives in the latest `docs/plans/experts-audit-*.md`.
+
+---
+
 ## Troubleshooting
 
-### Common Issues
+### Backend won't start
+- `node --version` must be ≥ 20.19
+- Check `DATABASE_URL` and `REDIS_URL` in `apps/api/.env`
+- `pnpm --filter eatsense-api exec prisma generate` — refresh client after schema changes
+- On Railway: check build logs for migration failures
 
-#### Backend won't start
-- Check Node.js version: `node --version` (should be 20.19+)
-- Check database connection: `DATABASE_URL` in `apps/api/.env`
-- Check Redis connection: `REDIS_URL` in `apps/api/.env`
-- Run Prisma generate: `pnpm --filter eatsense-api exec prisma generate`
+### Mobile app shows SDK mismatch in Expo Go
+- You need a **Development Build** (not Expo Go) for SDK 55+. Run `pnpm dlx eas-cli@latest build --profile development` or `pnpm ios`.
 
-#### Mobile app won't build
-- Check Expo CLI version: `npx expo --version`
-- Clear cache: `pnpm start --clear`
-- Check `.env` file: Ensure `EXPO_PUBLIC_API_BASE_URL` is set
-- Check `app.config.js`: Ensure `bundleIdentifier` is `ch.eatsense.app`
+### OAuth sign-in fails
+- `EXPO_PUBLIC_GOOGLE_CLIENT_ID` (and iOS/Android variants) must match values in Google Cloud Console
+- Apple Sign-In needs matching `bundleIdentifier: ch.eatsense.app` on the Apple Developer account
+- Check `/auth/google`, `/auth/apple` endpoint logs
 
-#### OAuth sign-in fails
-- Check Google Client ID: `EXPO_PUBLIC_GOOGLE_CLIENT_ID` in `.env`
-- Check Apple Sign-In: Requires Apple Developer account and proper configuration
-- Check backend endpoints: Ensure `/auth/apple` and `/auth/google` are working
+### Expert portal → "No experts" / blank
+- Check `CORS_ORIGINS` in API Railway env — must include `https://experts.eatsense.ch`
+- Check `NEXT_PUBLIC_API_URL` in Vercel — must be the live API URL
+- Open browser devtools → Network → verify 200s on API calls
 
-#### Rate limits not working
-- Check Redis connection: `REDIS_URL` in `apps/api/.env`
-- Check `DISABLE_LIMITS`: Should be `false` in production
-- Check daily limit counters in Redis: `daily:food:${userId}:${today}`
+### Push notification doesn't open chat on tap
+- Build must be ≥ `v2.0.24` — deep-link handler was added in this release
+- For cold-start: `Notifications.getLastNotificationResponseAsync()` is replayed automatically; if still not working, check app logs for `[NotificationActions] Cold-start response replay`
 
-## Support & Contact
+### Rate limits "disabled"
+- `DISABLE_LIMITS` should be `false` (or unset) in production
+- Redis connection — if Redis is down, the `DailyLimitGuard` currently fails open (documented bug, see `docs/plans/` backlog)
 
-- **Technical questions**: support@eatsense.ch
-- **Incidents / outages**: ops@eatsense.ch
-- **Legal / Privacy**: legal@eatsense.ch, privacy@eatsense.ch
-- **Feature requests**: open a GitHub issue
+---
+
+## Contacts
+
+- **Technical / incidents:** support@eatsense.ch
+- **Ops / infrastructure:** ops@eatsense.ch
+- **Legal / privacy:** legal@eatsense.ch, privacy@eatsense.ch
+- **Creator / expert partnerships:** creators@eatsense.ch
+- **Feature requests:** open a GitHub issue
+
+---
+
+*Updated 2026-04-24. For the most recent audit and fix log, see `docs/plans/experts-audit-2026-04-24.md`.*

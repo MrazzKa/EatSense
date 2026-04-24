@@ -60,7 +60,8 @@
     "thu": "Th",
     "fri": "Fr",
     "sat": "Sa",
-    "sun": "Su"
+    "sun": "Su",
+    "permissionNeeded": "Permission needed"
   },
   "tooltips": {
     "scanMeal": {

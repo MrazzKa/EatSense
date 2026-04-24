@@ -93,9 +93,10 @@ const getLocalizedStrings = () => {
 };
 
 // Optional navigation callback for external navigation
-let navigationCallback: ((screen: string) => void) | null = null;
+type NavigationCallback = (screen: string, params?: Record<string, unknown>) => void;
+let navigationCallback: NavigationCallback | null = null;
 
-export function setNotificationNavigationCallback(callback: (screen: string) => void) {
+export function setNotificationNavigationCallback(callback: NavigationCallback | null) {
     navigationCallback = callback;
 }
 
@@ -165,53 +166,86 @@ export function useNotificationActions() {
      */
     const handleNotificationResponse = useCallback(async (response: Notifications.NotificationResponse) => {
         const { notification, actionIdentifier } = response;
-        const data = notification.request.content.data;
+        const data = (notification.request.content.data || {}) as Record<string, unknown>;
+        const categoryIdentifier = notification.request.content.categoryIdentifier;
 
         console.log('[NotificationActions] Response received:', {
             actionIdentifier,
-            categoryIdentifier: notification.request.content.categoryIdentifier,
+            categoryIdentifier,
             data,
         });
 
-        // Only handle medication notifications
-        if (notification.request.content.categoryIdentifier !== NotificationCategories.MEDICATION_REMINDER) {
-            return;
-        }
+        // ===== Medication reminders =====
+        if (categoryIdentifier === NotificationCategories.MEDICATION_REMINDER) {
+            const medicationId = data.medicationId as string | undefined;
+            const medicationName = data.medicationName as string | undefined;
 
-        const medicationId = data?.medicationId as string | undefined;
-        const medicationName = data?.medicationName as string | undefined;
+            if (!medicationId) {
+                console.warn('[NotificationActions] No medicationId in notification data');
+                return;
+            }
 
-        if (!medicationId) {
-            console.warn('[NotificationActions] No medicationId in notification data');
-            return;
-        }
+            if (actionIdentifier === NotificationActions.MEDICATION_TAKE) {
+                const success = await takeMedication(medicationId);
+                if (!success) Alert.alert('', strings.error);
+                return;
+            }
 
-        // Handle action button press
-        if (actionIdentifier === NotificationActions.MEDICATION_TAKE) {
-            // User pressed "Take" button - decrement stock directly
-            console.log('[NotificationActions] Take button pressed for medication:', medicationId);
-            const success = await takeMedication(medicationId);
-            if (!success) {
-                // Show error only if action failed
-                Alert.alert('', strings.error);
+            if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
+                showTakeAlert(medicationId, medicationName);
+                return;
             }
             return;
         }
 
-        // Handle default tap (opened notification)
-        if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
-            // User tapped the notification itself - show confirmation alert
-            console.log('[NotificationActions] Notification tapped for medication:', medicationId);
-            showTakeAlert(medicationId, medicationName);
+        // ===== Server-sent push routing =====
+        // These pushes come from apps/api/src/messages/messages.service.ts and
+        // apps/api/src/experts/experts-admin.controller.ts. We only act on
+        // the default tap — action-button handling is category-specific.
+        if (actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+
+        const type = data.type as string | undefined;
+
+        if (type === 'new_message') {
+            const conversationId = data.conversationId as string | undefined;
+            if (!conversationId) {
+                console.warn('[NotificationActions] new_message push without conversationId');
+                return;
+            }
+            if (navigationCallback) {
+                navigationCallback('Chat', { conversationId });
+            }
+            return;
+        }
+
+        if (type === 'expert_approved' || type === 'expert_rejected') {
+            if (navigationCallback) navigationCallback('Profile');
+            return;
+        }
+
+        if (type === 'meal_reminder' || type === 'diet_reminder') {
+            if (navigationCallback) navigationCallback('MainTabs');
             return;
         }
     }, [takeMedication, showTakeAlert, strings]);
 
     useEffect(() => {
-        // Listen for notification responses
+        // Listen for notification responses (foreground/background)
         responseListener.current = Notifications.addNotificationResponseReceivedListener(
             handleNotificationResponse
         );
+
+        // Cold start: if the app was killed and the user tapped a push to open it,
+        // the tap event is already fired by the time the listener is registered.
+        // Replay it explicitly so navigation still happens.
+        Notifications.getLastNotificationResponseAsync()
+            .then((response) => {
+                if (response) {
+                    console.log('[NotificationActions] Cold-start response replay');
+                    handleNotificationResponse(response);
+                }
+            })
+            .catch((err) => console.warn('[NotificationActions] cold-start replay failed', err));
 
         console.log('[NotificationActions] Response listener registered');
 

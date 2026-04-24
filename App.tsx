@@ -76,8 +76,12 @@ function NotificationActionsHandler() {
 
   // Register navigation callback for notification actions
   useEffect(() => {
-    setNotificationNavigationCallback((screen) => {
-      navigation.navigate(screen);
+    setNotificationNavigationCallback((screen, params) => {
+      if (params) {
+        navigation.navigate(screen, params);
+      } else {
+        navigation.navigate(screen);
+      }
     });
 
     return () => {

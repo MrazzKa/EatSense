@@ -19,11 +19,17 @@ export class ExpertsService {
 
     // ==================== EXPERT PROFILES ====================
 
-    async findAll(filters: ExpertFiltersDto) {
+    async findAll(filters: ExpertFiltersDto, currentUserId?: string) {
         const where: any = {
             isActive: true,
             isPublished: true,
         };
+
+        // Hide the caller's own expert profile — they should never see or
+        // start a conversation with themselves (self-conversation guard would reject it anyway).
+        if (currentUserId) {
+            where.userId = { not: currentUserId };
+        }
 
         if (filters.type) {
             where.type = filters.type;
@@ -85,9 +91,13 @@ export class ExpertsService {
         };
     }
 
-    async findById(id: string) {
+    async findById(id: string, currentUserId?: string) {
+        const baseWhere: any = { id, isActive: true, isPublished: true };
+        if (currentUserId) {
+            baseWhere.userId = { not: currentUserId };
+        }
         const expert = await this.prisma.expertProfile.findFirst({
-            where: { id, isActive: true, isPublished: true },
+            where: baseWhere,
             include: {
                 offers: {
                     where: { isPublished: true },

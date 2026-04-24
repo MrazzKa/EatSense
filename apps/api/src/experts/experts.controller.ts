@@ -33,14 +33,14 @@ export class ExpertsController {
 
     @Get()
     @UseGuards(JwtAuthGuard)
-    async findAll(@Query() filters: ExpertFiltersDto) {
-        return this.expertsService.findAll(filters);
+    async findAll(@Request() req: any, @Query() filters: ExpertFiltersDto) {
+        return this.expertsService.findAll(filters, req.user.id);
     }
 
     @Get(':id')
     @UseGuards(JwtAuthGuard)
-    async findById(@Param('id') id: string) {
-        return this.expertsService.findById(id);
+    async findById(@Param('id') id: string, @Request() req: any) {
+        return this.expertsService.findById(id, req.user.id);
     }
 
     @Get(':id/offers')
