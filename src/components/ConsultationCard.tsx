@@ -8,7 +8,7 @@ import { useI18n } from '../../app/i18n/hooks';
  * ConsultationCard - Displays consultation/chat summary
  */
 export default function ConsultationCard({ consultation, onPress }) {
-    const { t } = useI18n();
+    const { t, language } = useI18n();
 
     const specialist = consultation.specialist;
     const lastMessage = consultation.messages?.[0];
@@ -34,13 +34,13 @@ export default function ConsultationCard({ consultation, onPress }) {
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
         if (diffDays === 0) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit' });
         } else if (diffDays === 1) {
             return t('common.yesterday') || 'Yesterday';
         } else if (diffDays < 7) {
-            return date.toLocaleDateString([], { weekday: 'short' });
+            return date.toLocaleDateString(language, { weekday: 'short' });
         } else {
-            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            return date.toLocaleDateString(language, { month: 'short', day: 'numeric' });
         }
     };
 

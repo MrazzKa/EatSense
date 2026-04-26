@@ -18,18 +18,39 @@ import MarketplaceService from '../services/marketplaceService';
 import ApiService from '../services/apiService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
+import { formatAmountInCurrency } from '../utils/currency';
 
 const LANGUAGE_LABELS = {
     en: 'English', ru: 'Русский', kk: 'Қазақша', fr: 'Français', de: 'Deutsch', es: 'Español',
+};
+
+// Map of expert.type → i18n key. Default to 'specialist' for unknown types so we don't
+// silently mislabel future expert types (psychologist, coach, etc.) as "Nutritionist".
+const TYPE_KEYS: Record<string, string> = {
+    nutritionist: 'experts.typeNutritionist',
+    dietitian: 'experts.typeDietitian',
 };
 
 const pickLocalized = (value: any, locale: string): string => {
     if (!value) return '';
     if (typeof value === 'string') return value;
     if (typeof value === 'object') {
-        return value[locale] || value.en || value.ru || Object.values(value).find(Boolean) || '';
+        return value[locale] || value.en || Object.values(value).find(Boolean) || '';
     }
     return '';
+};
+
+const formatReviewDate = (iso: string, locale: string): string => {
+    if (!iso) return '';
+    try {
+        return new Date(iso).toLocaleDateString(locale, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        });
+    } catch {
+        return new Date(iso).toLocaleDateString();
+    }
 };
 
 export default function ExpertProfileScreen({ route, navigation }) {
@@ -121,7 +142,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
     }
 
     const normalizedType = (expert.type || '').toLowerCase();
-    const typeKey = normalizedType === 'dietitian' ? 'experts.typeDietitian' : 'experts.typeNutritionist';
+    const typeKey = TYPE_KEYS[normalizedType] ?? 'experts.specialist';
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -192,11 +213,37 @@ export default function ExpertProfileScreen({ route, navigation }) {
                     </View>
                 )}
 
-                {/* Education */}
-                {expert.education && (
+                {/* Education — prefer structured educationEntries, fall back to legacy string */}
+                {(expert.educationEntries?.length > 0 || expert.education) && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.education') || 'Education'}</Text>
-                        <Text style={styles.bioText}>{expert.education}</Text>
+                        {expert.educationEntries?.length > 0 ? (
+                            expert.educationEntries.map((entry: any) => (
+                                <View key={entry.id} style={styles.educationItem}>
+                                    <Ionicons name="school-outline" size={18} color={colors.primary || '#4CAF50'} />
+                                    <View style={styles.educationInfo}>
+                                        <Text style={styles.educationDegree}>{entry.degree}</Text>
+                                        <Text style={styles.educationMeta}>
+                                            {entry.institution}{entry.year ? ` · ${entry.year}` : ''}
+                                        </Text>
+                                        {entry.documentUrl ? (
+                                            <View style={styles.educationDoc}>
+                                                <Ionicons
+                                                    name={entry.documentType === 'pdf' ? 'document-attach-outline' : 'image-outline'}
+                                                    size={14}
+                                                    color={colors.textSecondary || '#6B7280'}
+                                                />
+                                                <Text style={styles.educationDocText} numberOfLines={1}>
+                                                    {entry.documentName || (t('experts.diplomaAttached') || 'Diploma attached')}
+                                                </Text>
+                                            </View>
+                                        ) : null}
+                                    </View>
+                                </View>
+                            ))
+                        ) : (
+                            <Text style={styles.bioText}>{expert.education}</Text>
+                        )}
                     </View>
                 )}
 
@@ -264,7 +311,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                                     <Text style={styles.offerPrice}>
                                         {offer.priceType === 'FREE' || offer.priceAmount == null
                                             ? (t('experts.free') || 'Free')
-                                            : `${offer.currency || '$'}${offer.priceAmount}`}
+                                            : formatAmountInCurrency(offer.priceAmount, offer.currency || 'USD')}
                                     </Text>
                                 </View>
                             );
@@ -292,7 +339,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                                         ))}
                                     </View>
                                     <Text style={styles.reviewDate}>
-                                        {new Date(review.createdAt).toLocaleDateString()}
+                                        {formatReviewDate(review.createdAt, language)}
                                     </Text>
                                 </View>
                                 {review.client?.userProfile?.firstName && (
@@ -502,6 +549,40 @@ const createStyles = (tokens, colors) => StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
         color: colors.textPrimary || '#374151',
+    },
+    // Education
+    educationItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        marginBottom: 8,
+        gap: 10,
+    },
+    educationInfo: {
+        flex: 1,
+    },
+    educationDegree: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textPrimary || '#374151',
+    },
+    educationMeta: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 2,
+    },
+    educationDoc: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 6,
+    },
+    educationDocText: {
+        fontSize: 12,
+        color: colors.textSecondary || '#6B7280',
+        flex: 1,
     },
     // Credentials
     credentialCard: {

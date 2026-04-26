@@ -993,8 +993,13 @@
     "freeConsultation": "Тегін",
     "rating": "Рейтинг",
     "yearsExperience": "{{count}} жыл тәжірибе",
+    "yearsExperience_one": "{{count}} жыл тәжірибе",
+    "yearsExperience_other": "{{count}} жыл тәжірибе",
     "completedConsultations": "{{count}} кеңес",
+    "completedConsultations_one": "{{count}} кеңес",
+    "completedConsultations_other": "{{count}} кеңес",
     "writeToExpert": "Маманға жазу",
+    "diplomaAttached": "Диплом тіркелген",
     "onboarding": {
       "step1Title": "Қош келдіңіз",
       "step1Sub": "Тамақтану мамандарының желісіне қосылыңыз",
@@ -1325,7 +1330,7 @@
     "description": "Толық мүмкіндіктер алу үшін жаңартыңыз",
     "resetsAt": "Жаңартылатын уақыт",
     "tryFreeTrial": "Тегін байқап көріңіз",
-    "tryFreeTrialMessage": "{{price}} үшін байқап көріңіз",
+    "tryFreeTrialMessage": "7 күн тегін, содан кейін {{price}}/ай",
     "unlimitedBenefit": "Шексіз пайда",
     "upgradeToPremium": "Премиумға өту"
   },
@@ -4056,6 +4061,12 @@
   },
   "community": {
     "title": "Қоғамдастық",
+    "time": {
+      "justNow": "жаңа ғана",
+      "minutesShort": "{{count}} мин",
+      "hoursShort": "{{count}} сағ",
+      "daysShort": "{{count}} күн"
+    },
     "myFeed": "Менің лентам",
     "groups": "Топтар",
     "members": "мүше",

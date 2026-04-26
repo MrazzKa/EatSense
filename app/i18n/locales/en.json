@@ -1407,8 +1407,13 @@
     "freeConsultation": "Free",
     "rating": "Rating",
     "yearsExperience": "{{count}} years experience",
+    "yearsExperience_one": "{{count}} year experience",
+    "yearsExperience_other": "{{count}} years experience",
     "completedConsultations": "{{count}} consultations",
+    "completedConsultations_one": "{{count}} consultation",
+    "completedConsultations_other": "{{count}} consultations",
     "writeToExpert": "Message Expert",
+    "diplomaAttached": "Diploma attached",
     "activeConsultation": "Active",
     "findExpertHint": "Find an expert to start a consultation",
     "noMessages": "No messages yet",
@@ -2107,12 +2112,12 @@
   "limits": {
     "title": "Daily Limit Reached",
     "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow.",
-    "description": "Description",
-    "resetsAt": "Resets At",
-    "tryFreeTrial": "Try Free Trial",
-    "tryFreeTrialMessage": "Try for {{price}}",
-    "unlimitedBenefit": "Unlimited Benefit",
-    "upgradeToPremium": "Upgrade To Premium"
+    "description": "Upgrade to Premium to remove limits",
+    "resetsAt": "Resets at",
+    "tryFreeTrial": "Try free",
+    "tryFreeTrialMessage": "7 days free, then {{price}}/month",
+    "unlimitedBenefit": "Unlimited analyses",
+    "upgradeToPremium": "Get Premium"
   },
   "statistics": {
     "title": "Statistics",
@@ -4078,6 +4083,12 @@
   },
   "community": {
     "title": "Community",
+    "time": {
+      "justNow": "just now",
+      "minutesShort": "{{count}}m",
+      "hoursShort": "{{count}}h",
+      "daysShort": "{{count}}d"
+    },
     "myFeed": "My Feed",
     "groups": "Groups",
     "members": "members",

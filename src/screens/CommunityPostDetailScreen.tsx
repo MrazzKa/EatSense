@@ -36,7 +36,7 @@ export default function CommunityPostDetailScreen() {
   const { postId = '' } = (route.params as any) || {};
   const { colors } = useTheme();
   const tokens = useDesignTokens();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { user } = useAuth();
   const inputRef = useRef<TextInput>(null);
 
@@ -191,7 +191,7 @@ export default function CommunityPostDetailScreen() {
                 {authorName}
               </Text>
               <Text style={[styles.timeText, { color: colors.textTertiary }]}>
-                {new Date(post.createdAt).toLocaleDateString()}
+                {new Date(post.createdAt).toLocaleDateString(language, { day: 'numeric', month: 'short', year: 'numeric' })}
               </Text>
             </View>
           </TouchableOpacity>

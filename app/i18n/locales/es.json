@@ -799,8 +799,13 @@
     "freeConsultation": "Gratis",
     "rating": "Calificación",
     "yearsExperience": "{{count}} años de experiencia",
+    "yearsExperience_one": "{{count}} año de experiencia",
+    "yearsExperience_other": "{{count}} años de experiencia",
     "completedConsultations": "{{count}} consultas",
+    "completedConsultations_one": "{{count}} consulta",
+    "completedConsultations_other": "{{count}} consultas",
     "writeToExpert": "Escribir al experto",
+    "diplomaAttached": "Diploma adjuntado",
     "onboarding": {
       "step1Title": "Bienvenido",
       "step1Sub": "Únete a nuestra red de profesionales de nutrición",
@@ -1048,12 +1053,12 @@
   "limits": {
     "dailyLimitReached": "Has alcanzado tu límite diario de {{count}} análisis. Inténtalo de nuevo mañana.",
     "title": "Límite diario alcanzado",
-    "description": "Has alcanzado tu límite por hoy.",
-    "resetsAt": "Se restablece en",
-    "tryFreeTrial": "Prueba Gratuita",
-    "tryFreeTrialMessage": "Prueba Premium gratis para análisis ilimitados.",
-    "unlimitedBenefit": "Beneficio Ilimitado",
-    "upgradeToPremium": "Mejorar a Premium"
+    "description": "Mejora a Premium para eliminar los límites",
+    "resetsAt": "Se restablece a las",
+    "tryFreeTrial": "Probar gratis",
+    "tryFreeTrialMessage": "7 días gratis, luego {{price}}/mes",
+    "unlimitedBenefit": "Análisis ilimitados",
+    "upgradeToPremium": "Obtener Premium"
   },
   "meals": {
     "addMeal": "Agregar comida",
@@ -2550,6 +2555,12 @@
   },
   "community": {
     "title": "Comunidad",
+    "time": {
+      "justNow": "ahora mismo",
+      "minutesShort": "{{count}} min",
+      "hoursShort": "{{count}} h",
+      "daysShort": "{{count}} d"
+    },
     "myFeed": "Mi Feed",
     "groups": "Grupos",
     "members": "miembros",

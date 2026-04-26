@@ -1139,8 +1139,13 @@
     "freeConsultation": "Kostenlos",
     "rating": "Bewertung",
     "yearsExperience": "{{count}} Jahre Erfahrung",
+    "yearsExperience_one": "{{count}} Jahr Erfahrung",
+    "yearsExperience_other": "{{count}} Jahre Erfahrung",
     "completedConsultations": "{{count}} Beratungen",
+    "completedConsultations_one": "{{count}} Beratung",
+    "completedConsultations_other": "{{count}} Beratungen",
     "writeToExpert": "Experten kontaktieren",
+    "diplomaAttached": "Diplom beigefügt",
     "onboarding": {
       "step1Title": "Willkommen",
       "step1Sub": "Treten Sie unserem Netzwerk von Ernährungsexperten bei",
@@ -1358,10 +1363,10 @@
   "limits": {
     "dailyLimitReached": "Sie haben Ihr Tageslimit von {{count}} Analysen erreicht. Bitte versuchen Sie es morgen erneut.",
     "title": "Tageslimit erreicht",
-    "description": "Sie haben Ihr Limit für heute erreicht.",
+    "description": "Wechseln Sie zu Premium, um die Limits aufzuheben",
     "resetsAt": "Wird zurückgesetzt am",
     "tryFreeTrial": "Kostenlos testen",
-    "tryFreeTrialMessage": "Testen Sie Premium kostenlos für unbegrenzte Analysen.",
+    "tryFreeTrialMessage": "7 Tage kostenlos, dann {{price}}/Monat",
     "unlimitedBenefit": "Unbegrenzte Analysen",
     "upgradeToPremium": "Zu Premium wechseln"
   },
@@ -4119,6 +4124,12 @@
   },
   "community": {
     "title": "Community",
+    "time": {
+      "justNow": "gerade eben",
+      "minutesShort": "{{count}} Min",
+      "hoursShort": "{{count}} Std",
+      "daysShort": "{{count}} T"
+    },
     "myFeed": "Mein Feed",
     "groups": "Gruppen",
     "members": "Mitglieder",

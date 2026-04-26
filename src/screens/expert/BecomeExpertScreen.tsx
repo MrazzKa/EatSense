@@ -308,16 +308,59 @@ export default function BecomeExpertScreen({ navigation }: any) {
 
         setLoading(true);
         try {
-            // 1. Create expert profile
-            await MarketplaceService.createExpertProfile({
-                type,
-                displayName: displayName.trim(),
-                bio: bio.trim(),
-                education: composedEducation || undefined,
-                experienceYears: parseInt(experienceYears) || 0,
-                specializations: selectedSpecs,
-                languages: selectedLangs,
-            });
+            // 1. Create or reuse expert profile.
+            // If the user retries submit after a previous partial failure (uploads failed
+            // but profile got created), skip profile creation and just retry uploads.
+            // Without this, retries hit `BadRequestException('Expert profile already exists')`.
+            let profileExists = false;
+            try {
+                const existingProfile = await MarketplaceService.getMyExpertProfile();
+                profileExists = !!existingProfile?.id;
+            } catch {
+                profileExists = false; // 404 → no profile yet, proceed with create
+            }
+
+            if (!profileExists) {
+                await MarketplaceService.createExpertProfile({
+                    type,
+                    displayName: displayName.trim(),
+                    bio: bio.trim(),
+                    education: composedEducation || undefined,
+                    experienceYears: parseInt(experienceYears) || 0,
+                    specializations: selectedSpecs,
+                    languages: selectedLangs,
+                });
+            } else {
+                // Update existing profile with the latest form values.
+                await MarketplaceService.updateExpertProfile({
+                    type,
+                    displayName: displayName.trim(),
+                    bio: bio.trim(),
+                    education: composedEducation || undefined,
+                    experienceYears: parseInt(experienceYears) || 0,
+                    specializations: selectedSpecs,
+                    languages: selectedLangs,
+                });
+                // Wipe existing education entries + credentials so retry doesn't pile up
+                // duplicates (e.g. retrying with 3 educations when 2 were already uploaded
+                // would otherwise create 5 entries total).
+                try {
+                    const [existingEducation, existingCredentials] = await Promise.all([
+                        MarketplaceService.getMyEducation().catch(() => []),
+                        MarketplaceService.getMyCredentials().catch(() => []),
+                    ]);
+                    await Promise.all([
+                        ...((existingEducation || []) as any[]).map((e) =>
+                            MarketplaceService.deleteEducation(e.id).catch(() => {}),
+                        ),
+                        ...((existingCredentials || []) as any[]).map((c) =>
+                            MarketplaceService.deleteCredential(c.id).catch(() => {}),
+                        ),
+                    ]);
+                } catch (cleanupErr) {
+                    console.warn('[BecomeExpert] Cleanup before retry failed:', cleanupErr);
+                }
+            }
 
             // 2. Upload education documents + create structured education entries
             const educationFailures: string[] = [];

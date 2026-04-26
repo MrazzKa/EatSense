@@ -48,14 +48,14 @@ export function CommunityPostCard({
   onAuthorPress,
 }: CommunityPostCardProps) {
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [showReactions, setShowReactions] = useState(false);
 
   const authorName = post.author?.userProfile
     ? `${post.author.userProfile.firstName || ''} ${post.author.userProfile.lastName || ''}`.trim()
     : post.author?.email?.split('@')[0] || 'Anonymous';
 
-  const timeAgo = getTimeAgo(post.createdAt);
+  const timeAgo = getTimeAgo(post.createdAt, t, language);
   const isOwn = currentUserId && (post.authorId === currentUserId || post.author?.id === currentUserId);
   const avatarUrl = post.author?.userProfile?.avatarUrl || post.author?.avatarUrl;
   const preset = parsePresetAvatar(avatarUrl);
@@ -264,18 +264,19 @@ function getTypeBadgeColor(type: string): string {
   return map[type] || '#666';
 }
 
-function getTimeAgo(dateStr: string): string {
+function getTimeAgo(dateStr: string, t?: (_key: string, _fallback?: string) => string, language?: string): string {
   const now = new Date();
   const date = new Date(dateStr);
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m`;
+  const tt = t || ((_k: string, fb?: string) => fb || _k);
+  if (diffMins < 1) return tt('community.time.justNow', 'just now');
+  if (diffMins < 60) return tt('community.time.minutesShort', '{{count}}m').replace('{{count}}', String(diffMins));
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h`;
+  if (diffHours < 24) return tt('community.time.hoursShort', '{{count}}h').replace('{{count}}', String(diffHours));
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d`;
-  return date.toLocaleDateString();
+  if (diffDays < 7) return tt('community.time.daysShort', '{{count}}d').replace('{{count}}', String(diffDays));
+  return date.toLocaleDateString(language, { day: 'numeric', month: 'short' });
 }
 
 const styles = StyleSheet.create({

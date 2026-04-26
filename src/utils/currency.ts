@@ -860,6 +860,19 @@ function needsDecimals(code: string): boolean {
 }
 
 /**
+ * Format an arbitrary amount in a specific currency (used for expert offer prices,
+ * which may be quoted in a currency different from the user's device locale).
+ */
+export function formatAmountInCurrency(amount: number, currencyCode: string): string {
+    const code = (currencyCode || 'USD').toUpperCase();
+    const config = PRICING[code];
+    const symbol = config?.symbol || getCurrencySymbolByCode(code);
+    const position = config?.position || (code === 'USD' || code === 'GBP' || code === 'CAD' || code === 'AUD' || code === 'CHF' ? 'before' : 'after');
+    const formatted = needsDecimals(code) ? amount.toFixed(2) : Math.round(amount).toString();
+    return position === 'before' ? `${symbol}${formatted}` : `${formatted} ${symbol}`;
+}
+
+/**
  * Get raw price value for a plan
  */
 export function getPriceValue(planId: PlanId): number {
@@ -930,6 +943,7 @@ export default {
   getCurrencySymbol,
   getCurrencySymbolByCode,
   formatAmount,
+  formatAmountInCurrency,
   getDetectedRegion,
   getOriginalPrice,
 };

@@ -1304,8 +1304,16 @@
     "freeConsultation": "Бесплатно",
     "rating": "Рейтинг",
     "yearsExperience": "{{count}} лет опыта",
+    "yearsExperience_one": "{{count}} год опыта",
+    "yearsExperience_few": "{{count}} года опыта",
+    "yearsExperience_many": "{{count}} лет опыта",
+    "yearsExperience_other": "{{count}} лет опыта",
     "completedConsultations": "{{count}} консультаций",
+    "completedConsultations_one": "{{count}} консультация",
+    "completedConsultations_few": "{{count}} консультации",
+    "completedConsultations_many": "{{count}} консультаций",
     "writeToExpert": "Написать эксперту",
+    "diplomaAttached": "Диплом приложен",
     "onboarding": {
       "step1Title": "Добро пожаловать",
       "step1Sub": "Присоединяйтесь к нашей сети специалистов по питанию",
@@ -4209,6 +4217,12 @@
   },
   "community": {
     "title": "Сообщество",
+    "time": {
+      "justNow": "только что",
+      "minutesShort": "{{count}} мин",
+      "hoursShort": "{{count}} ч",
+      "daysShort": "{{count}} дн"
+    },
     "myFeed": "Моя лента",
     "groups": "Группы",
     "members": "участников",

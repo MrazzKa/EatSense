@@ -30,14 +30,12 @@ import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
-import HealthDisclaimer from '../components/HealthDisclaimer';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
 import MascotWidget from '../components/MascotWidget';
 import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
-import { formatPrice } from '../utils/currency';
 import LimitReachedModal from '../components/LimitReachedModal';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
@@ -575,31 +573,18 @@ export default function DashboardScreen() {
     return stats.todayPhotosAnalyzed >= limit;
   };
 
-  // Show Free Trial popup when limit is reached
-  const showTrialPopup = () => {
-    Alert.alert(
-      t('limits.title') || 'Лимит исчерпан',
-      t('limits.tryFreeTrialMessage', { price: formatPrice('monthly') }) || 'Попробуйте 7 дней бесплатно без ограничений!',
-      [
-        { text: t('common.later') || 'Позже', style: 'cancel' },
-        {
-          text: t('limits.tryFreeTrial') || 'Попробовать',
-          onPress: () => navigation.navigate('Subscription', { trial: true })
-        }
-      ]
-    );
-  };
-
   const handlePlusPress = async () => {
     if (__DEV__) {
       console.log('[Dashboard] FAB plus button pressed - opening camera directly');
     }
-    // Check limit before opening camera
+    // Check limit before opening camera. Use the same LimitReachedModal as gallery/camera
+    // pickers — keeps UX consistent and removes the legacy `Alert.alert` path that caused
+    // the `{{price}}` interpolation bug.
     if (hasReachedDailyLimit(userStats)) {
       if (__DEV__) {
-        console.log('[Dashboard] Daily limit reached, showing trial popup');
+        console.log('[Dashboard] Daily limit reached, showing limit modal');
       }
-      showTrialPopup();
+      setShowLimitModal(true);
       return;
     }
 

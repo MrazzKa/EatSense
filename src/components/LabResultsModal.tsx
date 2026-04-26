@@ -144,7 +144,10 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
     setLoading(true);
 
     try {
-      const locale = language === 'ru' ? 'ru' : language === 'kk' ? 'kk' : 'en';
+      // Backend accepts en, ru, kk, es, de, fr, it, ko, ja, zh — pass user's language through.
+      // Fallback to 'en' only if language is unrecognised, NOT for de/es/fr (those work).
+      const SUPPORTED_LAB_LOCALES = ['en', 'ru', 'kk', 'es', 'de', 'fr'];
+      const locale = SUPPORTED_LAB_LOCALES.includes(language) ? language : 'en';
       let response;
 
       if (mode === 'text') {

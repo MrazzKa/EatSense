@@ -1092,8 +1092,13 @@
     "freeConsultation": "Gratuit",
     "rating": "Note",
     "yearsExperience": "{{count}} ans d'expérience",
+    "yearsExperience_one": "{{count}} an d'expérience",
+    "yearsExperience_other": "{{count}} ans d'expérience",
     "completedConsultations": "{{count}} consultations",
+    "completedConsultations_one": "{{count}} consultation",
+    "completedConsultations_other": "{{count}} consultations",
     "writeToExpert": "Écrire à l'expert",
+    "diplomaAttached": "Diplôme joint",
     "onboarding": {
       "step1Title": "Bienvenue",
       "step1Sub": "Rejoignez notre réseau de professionnels de la nutrition",
@@ -4130,6 +4135,12 @@
   },
   "community": {
     "title": "Communauté",
+    "time": {
+      "justNow": "à l'instant",
+      "minutesShort": "{{count}} min",
+      "hoursShort": "{{count}} h",
+      "daysShort": "{{count}} j"
+    },
     "myFeed": "Mon fil",
     "groups": "Groupes",
     "members": "membres",

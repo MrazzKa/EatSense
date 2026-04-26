@@ -167,7 +167,6 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                     )}
                 </View>
                 <View style={styles.cardRight}>
-                    <Text style={styles.freeLabel}>{t('experts.freeConsultation')}</Text>
                     <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
                 </View>
             </View>
@@ -395,23 +394,6 @@ const createStyles = (tokens: any, colors: any) =>
         filterChipText: { fontSize: 13, color: colors.primary, fontWeight: '500' },
         listContent: { paddingHorizontal: tokens.spacing.lg, paddingBottom: tokens.spacing.xxxl },
         loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-        // Recommended
-        recommendedSection: { marginBottom: tokens.spacing.xl },
-        sectionTitle: {
-            fontSize: 18, fontWeight: '700', color: colors.text,
-            marginBottom: tokens.spacing.md,
-        },
-        recommendedList: { gap: tokens.spacing.md },
-        recommendedCard: {
-            width: 130, backgroundColor: colors.surface, borderRadius: tokens.radii.sm,
-            padding: tokens.spacing.md, alignItems: 'center',
-            borderWidth: 1, borderColor: colors.border,
-        },
-        recommendedAvatar: {
-            width: 48, height: 48, borderRadius: 24, backgroundColor: colors.border, marginBottom: tokens.spacing.sm,
-        },
-        recommendedName: { fontSize: 13, fontWeight: '600', color: colors.text, textAlign: 'center' },
-        recommendedType: { fontSize: 11, color: colors.textSecondary, marginTop: 2, textAlign: 'center' },
         // Card
         card: {
             backgroundColor: colors.surface, borderRadius: tokens.radii.sm,
@@ -435,8 +417,7 @@ const createStyles = (tokens: any, colors: any) =>
             borderRadius: tokens.radii.pill, backgroundColor: colors.primary + '10',
         },
         specChipText: { fontSize: 11, color: colors.primary },
-        cardRight: { alignItems: 'flex-end', justifyContent: 'space-between', marginLeft: tokens.spacing.sm },
-        freeLabel: { fontSize: 12, fontWeight: '600', color: colors.success || '#34C759' },
+        cardRight: { alignItems: 'center', justifyContent: 'center', marginLeft: tokens.spacing.sm },
         // Empty
         emptyContainer: { alignItems: 'center', paddingVertical: tokens.spacing.xxxl },
         emptyTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginTop: tokens.spacing.lg },
