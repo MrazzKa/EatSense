@@ -341,7 +341,9 @@
     "consultationEnded": "Consultation terminée",
     "daysRemaining": "jours restants",
     "shareMeals": "Partager les repas",
-    "shareMealsConfirm": "Partager vos repas des 7 derniers jours ?"
+    "shareMealsConfirm": "Partager vos repas des 7 derniers jours ?",
+    "activeConsultation": "Actif",
+    "findExpertHint": "Trouvez un expert pour démarrer une consultation"
   },
   "disclaimer": {
     "title": "Note Importante",
@@ -482,7 +484,8 @@
     "fri": "Ve",
     "sat": "Sa",
     "sun": "Di",
-    "permissionNeeded": "Autorisation requise"
+    "permissionNeeded": "Autorisation requise",
+    "options": "Options"
   },
   "tooltips": {
     "scanMeal": {
@@ -1040,7 +1043,7 @@
       "type": "Type de spécialiste",
       "title": "Titre professionnel",
       "titlePlaceholder": "ex. Diététicien certifié",
-      "bio": "Bio",
+      "bio": "Biographie",
       "bioPlaceholder": "Parlez de vous aux clients...",
       "experience": "Expérience",
       "education": "Éducation",
@@ -1061,21 +1064,21 @@
     },
     "client": "Client",
     "consultation": "Consultation",
-    "filter_all": "Tout",
+    "filter_all": "Tous",
     "find_expert": "Trouver un expert",
     "free": "Gratuit",
     "free_consultation": "Consultation gratuite",
-    "load_error": "Erreur de chargement",
+    "load_error": "Échec du chargement",
     "noSpecialists": "Aucun spécialiste",
-    "no_consultations": "Aucune consultation",
+    "no_consultations": "Aucune consultation pour le moment",
     "no_experts_found": "Aucun expert trouvé",
     "not_found": "Introuvable",
-    "request_error": "Erreur de demande",
+    "request_error": "Échec de la requête",
     "specialist": "Spécialiste",
-    "start_chat": "Démarrer le chat",
-    "tab_my_chats": "Mes chats",
+    "start_chat": "Démarrer la discussion",
+    "tab_my_chats": "Mes discussions",
     "tab_specialists": "Spécialistes",
-    "week": "Semaine",
+    "week": "semaine",
     "becomeExpert": "Devenir expert",
     "becomeExpertDescription": "Vous êtes nutritionniste ou diététicien(ne) ? Inscrivez-vous comme expert et aidez les gens à améliorer leur alimentation.",
     "becomeExpertBanner": "Vous êtes spécialiste ?",
@@ -1162,7 +1165,7 @@
     "submitReview": "Envoyer l'avis",
     "reviewSubmitted": "Avis envoyé",
     "shareData": "Partager vos données",
-    "shareDataRequest": "L'expert a demandé l'accès à vos données de santé",
+    "shareDataRequest": "J'aimerais accéder à vos données nutritionnelles pour fournir de meilleures recommandations. Veuillez autoriser l'accès.",
     "shareDataConfirm": "Cela permettra à l'expert de voir vos journaux alimentaires, analyses et profil de santé.",
     "allowAccess": "Autoriser l'accès",
     "denyAccess": "Refuser",
@@ -1178,7 +1181,7 @@
     "typeNutritionist": "Nutritionniste",
     "yearsExp": "ans",
     "services": "Services",
-    "activeConsultation": "Active",
+    "activeConsultation": "Actif",
     "sharedMeals": "Repas partagés",
     "sharedReport": "Rapport partagé",
     "noMessages": "Aucun message",
@@ -1190,14 +1193,16 @@
     "photo": "Photo",
     "requestDataAccess": "Demander l'accès aux données",
     "dataAccessRequest": "Demande d'accès aux données",
-    "accessGranted": "Accès aux données nutritionnelles accordé",
+    "accessGranted": "Accès accordé",
     "accessRevoked": "Accès aux données nutritionnelles révoqué",
     "reviewSubmittedDesc": "Votre avis a été soumis.",
     "ratingExcellent": "Excellent",
     "ratingGood": "Bon",
     "ratingAverage": "Moyen",
     "ratingBelowAverage": "En dessous de la moyenne",
-    "ratingPoor": "Mauvais"
+    "ratingPoor": "Mauvais",
+    "accessDenied": "Accès refusé",
+    "accessDeniedDesc": "L'accès aux données n'a pas été accordé."
   },
   "feedbackScreen": {
     "alerts": {
@@ -2272,7 +2277,8 @@
     "title": "Ma journée",
     "tabs": {
       "habits": "Habitudes",
-      "shopping": "Courses"
+      "shopping": "Courses",
+      "health": "SANTÉ"
     },
     "streak": "jours consécutifs",
     "wave": {
@@ -4311,7 +4317,20 @@
       "reportText": "Si vous voyez du contenu enfreignant ces règles, utilisez la fonction de signalement. Notre équipe examine tous les signalements.",
       "note": "La violation de ces règles peut entraîner la suppression du contenu ou la suspension de la communauté.",
       "accept": "J'accepte et je continue"
-    }
+    },
+    "limitReachedTitle": "Limite de communauté atteinte",
+    "limitReachedMessage": "Vous ne pouvez créer qu'une seule communauté. Supprimez votre communauté existante pour en créer une nouvelle.",
+    "openExisting": "Ouvrir ma communauté",
+    "deleteCommunity": "Supprimer la communauté",
+    "deleteCommunityConfirm": "Êtes-vous sûr de vouloir supprimer cette communauté ? Tous les posts, commentaires et membres seront supprimés. Cette action est irréversible.",
+    "newGroup": "Nouveau groupe",
+    "groupName": "Nom du groupe",
+    "groupNamePlaceholder": "Ex. Cuisine saine",
+    "groupDescription": "Description (optionnel)",
+    "groupDescPlaceholder": "De quoi parle ce groupe ?",
+    "groupFailed": "Échec de création du groupe",
+    "emptyGroupName": "Veuillez entrer un nom de groupe",
+    "noGroupPosts": "Aucune publication dans ce groupe"
   },
   "mascot": {
     "setup": {

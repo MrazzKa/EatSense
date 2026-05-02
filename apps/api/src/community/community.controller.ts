@@ -188,6 +188,18 @@ export class CommunityController {
     return this.communityService.getMyGroups(req.user.id);
   }
 
+  @Get('my-owned-community')
+  @ApiOperation({ summary: 'Get the custom community owned by the current user (or null if none)' })
+  async getMyOwnedCommunity(@Request() req: any) {
+    return this.communityService.getMyOwnedCommunity(req.user.id);
+  }
+
+  @Delete('groups/:id')
+  @ApiOperation({ summary: 'Delete a custom community owned by the current user' })
+  async deleteOwnedCommunity(@Request() req: any, @Param('id') id: string) {
+    return this.communityService.deleteOwnedCommunity(req.user.id, id);
+  }
+
   @Get('my-city')
   @ApiOperation({ summary: 'Get the current user city group' })
   async getMyCity(@Request() req: any) {

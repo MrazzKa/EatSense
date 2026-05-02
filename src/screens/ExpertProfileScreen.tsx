@@ -66,6 +66,11 @@ export default function ExpertProfileScreen({ route, navigation }) {
     const [showDisclaimer, setShowDisclaimer] = useState(false);
 
     const loadExpert = useCallback(async () => {
+        if (!specialistId) {
+            console.warn('[ExpertProfileScreen] Missing specialistId in route params');
+            setLoading(false);
+            return;
+        }
         try {
             const response = await MarketplaceService.getExpert(specialistId);
             if (response) {

@@ -61,7 +61,8 @@
     "fri": "Fr",
     "sat": "Sa",
     "sun": "Su",
-    "permissionNeeded": "Permission needed"
+    "permissionNeeded": "Permission needed",
+    "options": "Options"
   },
   "tooltips": {
     "scanMeal": {
@@ -1152,7 +1153,8 @@
     "title": "My Day",
     "tabs": {
       "habits": "Habits",
-      "shopping": "Shopping"
+      "shopping": "Shopping",
+      "health": "HEALTH"
     },
     "streak": "day streak",
     "wave": {
@@ -1376,21 +1378,21 @@
     },
     "client": "Client",
     "consultation": "Consultation",
-    "filter_all": "Filter_all",
-    "find_expert": "Find_expert",
+    "filter_all": "All",
+    "find_expert": "Find Expert",
     "free": "Free",
-    "free_consultation": "Free_consultation",
-    "load_error": "Load_error",
+    "free_consultation": "Free consultation",
+    "load_error": "Failed to load",
     "noSpecialists": "No Specialists",
-    "no_consultations": "No_consultations",
-    "no_experts_found": "No_experts_found",
-    "not_found": "Not_found",
-    "request_error": "Request_error",
+    "no_consultations": "No consultations yet",
+    "no_experts_found": "No experts found",
+    "not_found": "Not found",
+    "request_error": "Request failed",
     "specialist": "Specialist",
-    "start_chat": "Start_chat",
-    "tab_my_chats": "Tab_my_chats",
-    "tab_specialists": "Tab_specialists",
-    "week": "Week",
+    "start_chat": "Start chat",
+    "tab_my_chats": "My Chats",
+    "tab_specialists": "Specialists",
+    "week": "week",
     "becomeExpert": "Become an Expert",
     "becomeExpertDescription": "Are you a nutritionist or dietitian? Register as an expert and help people improve their nutrition.",
     "becomeExpertBanner": "Are you a specialist?",
@@ -1493,21 +1495,23 @@
     "ratingBelowAverage": "Below Average",
     "ratingPoor": "Poor",
     "shareData": "Share Your Data",
-    "shareDataRequest": "Expert has requested access to your health data",
+    "shareDataRequest": "I would like to access your nutrition data to provide better recommendations. Please allow access.",
     "shareDataConfirm": "This will share your nutrition logs, lab results, and health profile with the expert.",
     "allowAccess": "Allow Access",
     "denyAccess": "Deny",
     "revokeAccess": "Revoke Data Access",
     "requestDataAccess": "Request Data Access",
     "dataAccessRequest": "Data Access Request",
-    "accessGranted": "Access to nutrition data granted",
+    "accessGranted": "Access granted",
     "accessRevoked": "Access to nutrition data revoked",
     "dataShared": "Data shared with expert",
     "dataRevoked": "Data access revoked",
     "pendingReview": "Pending Review",
     "profileApproved": "Profile Approved",
     "profileRejected": "Profile Rejected",
-    "rejectionReason": "Reason: {{reason}}"
+    "rejectionReason": "Reason: {{reason}}",
+    "accessDenied": "Access denied",
+    "accessDeniedDesc": "Data access was not granted."
   },
   "offers": {
     "noOffers": "No services yet",
@@ -4259,7 +4263,20 @@
       "reportText": "If you see content that violates these guidelines, use the report feature. Our team reviews all reports.",
       "note": "Violating these guidelines may result in content removal or suspension from the community.",
       "accept": "I Agree & Continue"
-    }
+    },
+    "limitReachedTitle": "Community limit reached",
+    "limitReachedMessage": "You can create only one community. Delete your existing community to create a new one.",
+    "openExisting": "Open my community",
+    "deleteCommunity": "Delete community",
+    "deleteCommunityConfirm": "Are you sure you want to delete this community? All posts, comments and members will be removed. This cannot be undone.",
+    "newGroup": "New Group",
+    "groupName": "Group Name",
+    "groupNamePlaceholder": "e.g. Healthy Cooking Club",
+    "groupDescription": "Description (optional)",
+    "groupDescPlaceholder": "What is this group about?",
+    "groupFailed": "Failed to create group",
+    "emptyGroupName": "Please enter a group name",
+    "noGroupPosts": "No posts in this group yet"
   },
   "mascot": {
     "setup": {

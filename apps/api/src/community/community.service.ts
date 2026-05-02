@@ -1,4 +1,4 @@
-import { Injectable, Logger, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -85,6 +85,19 @@ export class CommunityService {
   }
 
   async createGroup(userId: string, dto: CreateGroupDto) {
+    const existingOwned = await this.prisma.communityGroup.findFirst({
+      where: { createdById: userId, type: 'CUSTOM' },
+      select: { id: true, name: true },
+    });
+    if (existingOwned) {
+      throw new ConflictException({
+        code: 'COMMUNITY_LIMIT_REACHED',
+        message: 'You can create only one community. Delete your existing community to create a new one.',
+        existingGroupId: existingOwned.id,
+        existingGroupName: existingOwned.name,
+      });
+    }
+
     const slug = dto.name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -502,6 +515,31 @@ export class CommunityService {
       });
       return { attending: true };
     }
+  }
+
+  async getMyOwnedCommunity(userId: string) {
+    const group = await this.prisma.communityGroup.findFirst({
+      where: { createdById: userId, type: 'CUSTOM' },
+      include: {
+        _count: { select: { memberships: true, posts: true } },
+      },
+    });
+    return group;
+  }
+
+  async deleteOwnedCommunity(userId: string, groupId: string) {
+    const group = await this.prisma.communityGroup.findUnique({
+      where: { id: groupId },
+      select: { id: true, createdById: true, type: true },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+    if (group.type !== 'CUSTOM' || group.createdById !== userId) {
+      throw new ForbiddenException('Only the creator can delete a custom community');
+    }
+    await this.prisma.communityGroup.delete({ where: { id: groupId } });
+    return { success: true };
   }
 
   async getMyGroups(userId: string) {

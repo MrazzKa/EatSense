@@ -42,6 +42,7 @@ export default function CommunityScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hasCity, setHasCity] = useState(false);
+  const [myOwnedCommunity, setMyOwnedCommunity] = useState<{ id: string; name: string } | null>(null);
 
   // Search
   const [searchVisible, setSearchVisible] = useState(false);
@@ -80,20 +81,29 @@ export default function CommunityScreen() {
     }
   }, []);
 
+  const loadOwnedCommunity = useCallback(async () => {
+    try {
+      const owned = await ApiService.getMyOwnedCommunity();
+      setMyOwnedCommunity(owned?.id ? { id: owned.id, name: owned.name || '' } : null);
+    } catch {
+      setMyOwnedCommunity(null);
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
     if (isInitialLoad.current) {
       setLoading(true);
     }
-    await Promise.all([loadFeed(), loadGroups(), checkCity()]);
+    await Promise.all([loadFeed(), loadGroups(), checkCity(), loadOwnedCommunity()]);
     setLoading(false);
     isInitialLoad.current = false;
-  }, [loadFeed, loadGroups, checkCity]);
+  }, [loadFeed, loadGroups, checkCity, loadOwnedCommunity]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeed(), loadGroups(), checkCity()]);
+    await Promise.all([loadFeed(), loadGroups(), checkCity(), loadOwnedCommunity()]);
     setRefreshing(false);
-  }, [loadFeed, loadGroups, checkCity]);
+  }, [loadFeed, loadGroups, checkCity, loadOwnedCommunity]);
 
   useFocusEffect(
     useCallback(() => {
@@ -341,18 +351,34 @@ export default function CommunityScreen() {
     </>
   );
 
-  const groupsHeader = () => (
-    <TouchableOpacity
-      style={[styles.createGroupBtn, { borderColor: colors.border }]}
-      onPress={() => navigation.navigate('CreateCommunityGroup')}
-      activeOpacity={0.7}
-    >
-      <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
-      <Text style={[styles.createGroupText, { color: colors.primary }]}>
-        {t('community.createGroup', 'Create a new group')}
-      </Text>
-    </TouchableOpacity>
-  );
+  const groupsHeader = () => {
+    if (myOwnedCommunity) {
+      return (
+        <TouchableOpacity
+          style={[styles.createGroupBtn, { borderColor: colors.border }]}
+          onPress={() => navigation.navigate('CommunityGroup', { groupId: myOwnedCommunity.id, groupName: myOwnedCommunity.name })}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="people-circle-outline" size={22} color={colors.primary} />
+          <Text style={[styles.createGroupText, { color: colors.primary }]}>
+            {t('community.openExisting', 'Open my community')}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity
+        style={[styles.createGroupBtn, { borderColor: colors.border }]}
+        onPress={() => navigation.navigate('CreateCommunityGroup')}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
+        <Text style={[styles.createGroupText, { color: colors.primary }]}>
+          {t('community.createGroup', 'Create a new group')}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>

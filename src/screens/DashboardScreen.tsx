@@ -24,14 +24,11 @@ import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
 import { StatisticsModal } from '../components/StatisticsModal';
 import { formatMacro, formatMacroInt, formatCalories } from '../utils/nutritionFormat';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
-import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
-import LabResultsModal from '../components/LabResultsModal';
 import DescribeFoodModal from '../components/DescribeFoodModal';
 import { PendingMealCard } from '../components/PendingMealCard';
 import { usePendingAnalyses, useAnalysis } from '../contexts/AnalysisContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
 import ActiveDietWidget from '../components/dashboard/ActiveDietWidget';
-import MascotWidget from '../components/MascotWidget';
 import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -734,14 +731,7 @@ export default function DashboardScreen() {
     setShowAiAssistant(true);
   };
 
-  const [showLabResultsModal, setShowLabResultsModal] = useState(false);
   const [showDescribeFoodModal, setShowDescribeFoodModal] = useState(false);
-
-  const handleOpenManualAnalysis = () => {
-    console.log('[Dashboard] Opening manual analysis modal (Lab Results)');
-    setShowModal(false);
-    setShowLabResultsModal(true);
-  };
 
   const handleDescribeFood = () => {
     console.log('[Dashboard] Opening Describe Food modal');
@@ -918,79 +908,7 @@ export default function DashboardScreen() {
           }}
         />
 
-        {/* Mascot Widget — show mascot or invitation card */}
-        {mascot ? (
-          <MascotWidget onPress={() => navigation.navigate('MascotSetup' as never)} />
-        ) : (
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.surface || colors.card || '#FFF',
-              borderRadius: 16,
-              padding: 16,
-              marginHorizontal: 16,
-              marginVertical: 8,
-              borderWidth: 1.5,
-              borderColor: (colors.primary || '#4CAF50') + '25',
-              borderStyle: 'dashed',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 2,
-            }}
-            onPress={() => navigation.navigate('MascotSetup' as never)}
-            activeOpacity={0.8}
-          >
-            <View style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              backgroundColor: (colors.primary || '#4CAF50') + '12',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 12,
-            }}>
-              <Ionicons name="paw" size={28} color={colors.primary || '#4CAF50'} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: colors.textPrimary || '#212121',
-                marginBottom: 3,
-              }}>
-                {t('mascot.invite.title', 'Get a Companion!')}
-              </Text>
-              <Text style={{
-                fontSize: 13,
-                color: colors.textSecondary || '#666',
-                lineHeight: 18,
-              }}>
-                {t('mascot.invite.subtitle', 'Choose a cute mascot that grows with your healthy eating habits')}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || '#999'} />
-          </TouchableOpacity>
-        )}
-
-        {/* Medical Analysis / "Медицинские анализы" - placed above Дневник */}
-        <Animated.View
-          style={[
-            styles.section,
-            {
-              opacity: cardAnimations.suggested,
-            },
-          ]}
-        >
-          <ManualAnalysisCard onPressAddManual={() => {
-            if (__DEV__) {
-              console.log('[Dashboard] Opening manual analysis modal');
-            }
-            handleOpenManualAnalysis();
-          }} />
-        </Animated.View>
+        {/* Mascot moved to Profile, Medical Analysis moved to Tracker (Твой день). */}
 
         {/* PART A: Section 2 - Recent meals (short list) */}
         <Animated.View
@@ -1171,12 +1089,6 @@ export default function DashboardScreen() {
                 <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </View>
             </TouchableOpacity>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, marginTop: 8 }}>
-              <Ionicons name="information-circle-outline" size={14} color={colors.textTertiary} style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12, color: colors.textTertiary, flex: 1 }}>
-                {t('dashboard.suggestedFood.trustText', 'Personal recommendations are formed based on your nutrition data over several days. The longer you use the app, the more accurate the advice.')}
-              </Text>
-            </View>
           </Animated.View>
         )}
 
@@ -1328,12 +1240,6 @@ export default function DashboardScreen() {
       <StatisticsModal
         visible={showStatistics}
         onClose={() => setShowStatistics(false)}
-      />
-
-      {/* Lab Results Modal */}
-      <LabResultsModal
-        visible={showLabResultsModal}
-        onClose={() => setShowLabResultsModal(false)}
       />
 
       {/* Describe Food Modal */}

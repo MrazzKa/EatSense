@@ -8,6 +8,7 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -157,6 +158,34 @@ export default function CommunityGroupScreen() {
     }
   }, []);
 
+  const handleDeleteGroup = useCallback(() => {
+    Alert.alert(
+      t('community.deleteCommunity', 'Delete community'),
+      t('community.deleteCommunityConfirm', 'Are you sure you want to delete this community? All posts, comments and members will be removed. This cannot be undone.'),
+      [
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+        {
+          text: t('community.deleteCommunity', 'Delete community'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await ApiService.deleteOwnedCommunity(groupId);
+              navigation.goBack();
+            } catch (err) {
+              console.warn('Failed to delete community:', err);
+              Alert.alert(
+                t('community.error', 'Error'),
+                t('community.groupFailed', 'Failed to delete community'),
+              );
+            }
+          },
+        },
+      ],
+    );
+  }, [groupId, navigation, t]);
+
+  const isOwner = !!user?.id && !!group?.createdById && user.id === group.createdById && group?.type === 'CUSTOM';
+
   const handleDeletePost = useCallback(async (postId: string) => {
     try {
       await ApiService.deleteCommunityPost(postId);
@@ -245,6 +274,18 @@ export default function CommunityGroupScreen() {
           {isMember ? t('community.leave', 'Leave Group') : t('community.join', 'Join')}
         </Text>
       </TouchableOpacity>
+      {isOwner && (
+        <TouchableOpacity
+          style={[styles.deleteGroupBtn, { borderColor: colors.error || '#FF3B30' }]}
+          onPress={handleDeleteGroup}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="trash-outline" size={16} color={colors.error || '#FF3B30'} />
+          <Text style={[styles.deleteGroupText, { color: colors.error || '#FF3B30' }]}>
+            {t('community.deleteCommunity', 'Delete community')}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -399,6 +440,20 @@ const createStyles = (tokens: any, colors: any) =>
     },
     joinLeaveText: {
       fontSize: 15,
+      fontWeight: '600',
+    },
+    deleteGroupBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      marginTop: 10,
+    },
+    deleteGroupText: {
+      fontSize: 13,
       fontWeight: '600',
     },
     emptyContainer: {

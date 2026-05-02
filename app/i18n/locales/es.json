@@ -329,7 +329,7 @@
     "title": "Long-term risk factors"
   },
   "chat": {
-    "consultationEnded": "Consultation ended",
+    "consultationEnded": "Consulta finalizada",
     "daysRemaining": "days remaining",
     "shareMeals": "Share Meals",
     "shareMealsConfirm": "Share your meals from the last 7 days?",
@@ -341,7 +341,9 @@
     "typeMessage": "Escribe un mensaje...",
     "conversationEnded": "Esta conversación ha terminado",
     "mealShared": "Datos de la comida compartidos",
-    "reportShared": "Informe compartido"
+    "reportShared": "Informe compartido",
+    "activeConsultation": "Activo",
+    "findExpertHint": "Encuentra un experto para iniciar una consulta"
   },
   "common": {
     "all": "Todos",
@@ -417,7 +419,8 @@
     "fri": "Vie",
     "sat": "Sáb",
     "sun": "Dom",
-    "permissionNeeded": "Permiso necesario"
+    "permissionNeeded": "Permiso necesario",
+    "options": "Opciones"
   },
   "dashboard": {
     "addFood": {
@@ -666,7 +669,7 @@
     "selectFailed": "Failed to select image",
     "sendMessage": "Failed to send message",
     "shareMeals": "Failed to share meals",
-    "startConsultation": "Failed to start consultation",
+    "startConsultation": "No se pudo iniciar la consulta",
     "startProgram": "Failed to start program",
     "takePictureFailed": "Failed to take picture",
     "stopProgram": "Error al detener el programa",
@@ -682,20 +685,20 @@
     "limitReachedMessage": "Has alcanzado tu límite diario de escaneos. Actualiza para obtener escaneos ilimitados."
   },
   "experts": {
-    "about": "About",
-    "credentials": "Credentials",
-    "findSpecialist": "Find a Specialist",
-    "languages": "Languages",
-    "myConsultations": "My Consultations",
+    "about": "Acerca de",
+    "credentials": "Credenciales",
+    "findSpecialist": "Buscar un especialista",
+    "languages": "Idiomas",
+    "myConsultations": "Mis consultas",
     "noSpecialists": "No specialists available",
-    "profile": "Profile",
-    "recentReviews": "Recent Reviews",
-    "reviews": "reviews",
+    "profile": "Perfil",
+    "recentReviews": "Reseñas recientes",
+    "reviews": "reseñas",
     "subtitle": "The team that helps you work with nutrition",
     "title": "Experts",
-    "verified": "Verified",
-    "viewAll": "View All Specialists",
-    "viewChats": "View your active chats",
+    "verified": "Verificado",
+    "viewAll": "Ver todos los especialistas",
+    "viewChats": "Ver tus chats activos",
     "comingSoonTitle": "Consultas de expertos",
     "comingSoonDescription": "Conéctate con dietistas y nutricionistas certificados para consultas personalizadas. ¡Esta función llegará pronto!",
     "findExperts": "Encuentra especialistas verificados",
@@ -728,7 +731,9 @@
       "expertTitle": "Soy un especialista certificado",
       "expertDescription": "Crea un perfil y ayuda a los clientes"
     },
-    "expert": "Experto",
+    "expert": {
+      "myOffers": "Mis ofertas"
+    },
     "edit": {
       "createProfile": "Crear Perfil",
       "editProfile": "Editar Perfil",
@@ -762,20 +767,20 @@
     },
     "client": "Cliente",
     "consultation": "Consulta",
-    "filter_all": "Filtrar_todo",
-    "find_expert": "Encontrar_experto",
+    "filter_all": "Todos",
+    "find_expert": "Buscar experto",
     "free": "Gratis",
-    "free_consultation": "Consulta_gratuita",
-    "load_error": "Error_de_carga",
-    "no_consultations": "No_hay_consultas",
-    "no_experts_found": "No_se_encontraron_expertos",
-    "not_found": "No_encontrado",
-    "request_error": "Error_de_solicitud",
+    "free_consultation": "Consulta gratuita",
+    "load_error": "Error al cargar",
+    "no_consultations": "Aún no hay consultas",
+    "no_experts_found": "No se encontraron expertos",
+    "not_found": "No encontrado",
+    "request_error": "Error en la solicitud",
     "specialist": "Especialista",
-    "start_chat": "Iniciar_chat",
-    "tab_my_chats": "Pestaña_mis_chats",
-    "tab_specialists": "Pestaña_especialistas",
-    "week": "Semana",
+    "start_chat": "Iniciar chat",
+    "tab_my_chats": "Mis chats",
+    "tab_specialists": "Especialistas",
+    "week": "semana",
     "dietitian": {
       "title": "Dietista"
     },
@@ -869,7 +874,7 @@
     "submitReview": "Enviar reseña",
     "reviewSubmitted": "Reseña enviada",
     "shareData": "Compartir tus datos",
-    "shareDataRequest": "El experto ha solicitado acceso a tus datos de salud",
+    "shareDataRequest": "Me gustaría acceder a tus datos nutricionales para ofrecer mejores recomendaciones. Por favor, permite el acceso.",
     "shareDataConfirm": "Esto permitirá al experto ver tus registros de alimentación, análisis y perfil de salud.",
     "allowAccess": "Permitir acceso",
     "denyAccess": "Denegar",
@@ -897,14 +902,16 @@
     "photo": "Foto",
     "requestDataAccess": "Solicitar acceso a datos",
     "dataAccessRequest": "Solicitud de acceso a datos",
-    "accessGranted": "Acceso a datos nutricionales concedido",
+    "accessGranted": "Acceso concedido",
     "accessRevoked": "Acceso a datos nutricionales revocado",
     "reviewSubmittedDesc": "Tu reseña ha sido enviada.",
     "ratingExcellent": "Excelente",
     "ratingGood": "Bueno",
     "ratingAverage": "Promedio",
     "ratingBelowAverage": "Por debajo del promedio",
-    "ratingPoor": "Malo"
+    "ratingPoor": "Malo",
+    "accessDenied": "Acceso denegado",
+    "accessDeniedDesc": "No se concedió el acceso a los datos."
   },
   "feedbackScreen": {
     "alerts": {
@@ -1990,7 +1997,8 @@
     "title": "Mi día",
     "tabs": {
       "habits": "Hábitos",
-      "shopping": "Compras"
+      "shopping": "Compras",
+      "health": "SALUD"
     },
     "streak": "días seguidos",
     "wave": {
@@ -2731,7 +2739,20 @@
       "reportText": "Si ves contenido que viola estas normas, usa la función de reporte. Nuestro equipo revisa todos los reportes.",
       "note": "Violar estas normas puede resultar en la eliminación de contenido o suspensión de la comunidad.",
       "accept": "Acepto y continuar"
-    }
+    },
+    "limitReachedTitle": "Límite de comunidad alcanzado",
+    "limitReachedMessage": "Solo puedes crear una comunidad. Elimina tu comunidad existente para crear una nueva.",
+    "openExisting": "Abrir mi comunidad",
+    "deleteCommunity": "Eliminar comunidad",
+    "deleteCommunityConfirm": "¿Estás seguro de que quieres eliminar esta comunidad? Se eliminarán todas las publicaciones, comentarios y miembros. Esto no se puede deshacer.",
+    "newGroup": "Nuevo grupo",
+    "groupName": "Nombre del grupo",
+    "groupNamePlaceholder": "Ej. Club de cocina saludable",
+    "groupDescription": "Descripción (opcional)",
+    "groupDescPlaceholder": "¿De qué trata este grupo?",
+    "groupFailed": "Error al crear el grupo",
+    "emptyGroupName": "Introduce un nombre de grupo",
+    "noGroupPosts": "Aún no hay publicaciones en este grupo"
   },
   "mascot": {
     "setup": {

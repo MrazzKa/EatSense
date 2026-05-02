@@ -1839,6 +1839,14 @@ class ApiService {
     });
   }
 
+  async getMyOwnedCommunity() {
+    return this.request('/community/my-owned-community');
+  }
+
+  async deleteOwnedCommunity(groupId: string) {
+    return this.request(`/community/groups/${groupId}`, { method: 'DELETE' });
+  }
+
   async joinCommunityGroup(groupId: string) {
     return this.request(`/community/groups/${groupId}/join`, { method: 'POST' });
   }

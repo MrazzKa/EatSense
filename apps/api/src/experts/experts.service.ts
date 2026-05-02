@@ -233,6 +233,17 @@ export class ExpertsService {
             throw new NotFoundException('Expert profile not found');
         }
 
+        if (isPublished) {
+            const credentialCount = await this.prisma.expertCredential.count({
+                where: { expertId: expert.id },
+            });
+            if (credentialCount < 1) {
+                throw new BadRequestException(
+                    'At least one credential (diploma, license, or certificate) must be uploaded before publishing.',
+                );
+            }
+        }
+
         return this.prisma.expertProfile.update({
             where: { userId },
             data: { isPublished },

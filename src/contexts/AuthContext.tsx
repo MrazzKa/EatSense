@@ -6,7 +6,24 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApiService from '../services/apiService';
+
+const SUBSCRIPTION_CACHE_KEY = 'eatsense_subscription_cache';
+
+// Pre-fetch subscription as soon as user profile loads, so paid users don't see
+// premium-locks flash on a cold-start when DietsScreen loads before its own
+// subscription fetch completes. Fire-and-forget — failures are non-blocking.
+async function prefetchSubscription(): Promise<void> {
+  try {
+    const sub = await ApiService.getCurrentSubscription();
+    if (sub) {
+      await AsyncStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify(sub));
+    }
+  } catch {
+    // Network/auth error — let DietsScreen handle its own retry path.
+  }
+}
 
 interface AuthContextValue {
   user: any;
@@ -32,6 +49,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (profile && profile.id) {
         // Profile exists - use it directly
         setUser(profile);
+        // Fire-and-forget subscription pre-fetch so DietsScreen / LifestyleDetailScreen /
+        // DietProgramDetailScreen find a fresh cache instead of locking premium content
+        // on cold-start.
+        prefetchSubscription();
       } else if (profile === null || (result && result.profile === null)) {
         // Profile doesn't exist yet - user is authenticated but needs onboarding
         // Create minimal user object to trigger onboarding flow

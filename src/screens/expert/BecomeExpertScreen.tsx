@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -16,11 +16,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, useDesignTokens } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useI18n } from '../../../app/i18n/hooks';
 import MarketplaceService from '../../services/marketplaceService';
 import ApiService from '../../services/apiService';
+
+const DRAFT_STORAGE_KEY = 'expert_application_draft_v1';
 
 const SPECIALIZATIONS = [
     'weightManagement',
@@ -127,7 +130,67 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const [documents, setDocuments] = useState<PickedDocument[]>([]);
     const [pickerOpen, setPickerOpen] = useState(false);
 
-    const [profileCreated, setProfileCreated] = useState(false);
+    // Draft auto-save: hydrate on mount, save on changes, clear on successful submit.
+    const [draftHydrated, setDraftHydrated] = useState(false);
+    const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const raw = await AsyncStorage.getItem(DRAFT_STORAGE_KEY);
+                if (!cancelled && raw) {
+                    const draft = JSON.parse(raw);
+                    if (typeof draft.step === 'number') setStep(draft.step);
+                    if (typeof draft.disclaimerAccepted === 'boolean') setDisclaimerAccepted(draft.disclaimerAccepted);
+                    if (typeof draft.displayName === 'string') setDisplayName(draft.displayName);
+                    if (draft.type === 'dietitian' || draft.type === 'nutritionist') setType(draft.type);
+                    if (typeof draft.bio === 'string') setBio(draft.bio);
+                    if (Array.isArray(draft.educationEntries) && draft.educationEntries.length > 0) {
+                        setEducationEntries(draft.educationEntries);
+                    }
+                    if (typeof draft.experienceYears === 'string') setExperienceYears(draft.experienceYears);
+                    if (Array.isArray(draft.selectedSpecs)) setSelectedSpecs(draft.selectedSpecs);
+                    if (Array.isArray(draft.selectedLangs) && draft.selectedLangs.length > 0) setSelectedLangs(draft.selectedLangs);
+                    if (Array.isArray(draft.documents)) setDocuments(draft.documents);
+                }
+            } catch (err) {
+                console.warn('[BecomeExpert] Failed to hydrate draft:', err);
+            } finally {
+                if (!cancelled) setDraftHydrated(true);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    useEffect(() => {
+        if (!draftHydrated) return;
+        if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
+        draftSaveTimer.current = setTimeout(() => {
+            const draft = {
+                step,
+                disclaimerAccepted,
+                displayName,
+                type,
+                bio,
+                educationEntries,
+                experienceYears,
+                selectedSpecs,
+                selectedLangs,
+                documents,
+            };
+            AsyncStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft)).catch((err) =>
+                console.warn('[BecomeExpert] Failed to save draft:', err),
+            );
+        }, 500);
+        return () => {
+            if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
+        };
+    }, [draftHydrated, step, disclaimerAccepted, displayName, type, bio, educationEntries, experienceYears, selectedSpecs, selectedLangs, documents]);
+
+    const clearDraft = useCallback(() => {
+        AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
+    }, []);
 
     const canGoNext = useMemo(() => {
         switch (step) {
@@ -220,6 +283,14 @@ export default function BecomeExpertScreen({ navigation }: any) {
         }
     }, [t, setEducationDocument]);
 
+    const showFileTooLarge = useCallback(() => {
+        Alert.alert(
+            t('experts.onboarding.fileTooLarge') || 'File too large',
+            (t('experts.onboarding.fileTooLargeMessage', { mb: EDUCATION_FILE_MAX_MB }) as string)
+                || `Maximum file size is ${EDUCATION_FILE_MAX_MB} MB.`,
+        );
+    }, [t]);
+
     const pickFromCamera = useCallback(async () => {
         setPickerOpen(false);
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -233,6 +304,10 @@ export default function BecomeExpertScreen({ navigation }: any) {
         });
         if (!result.canceled && result.assets?.[0]) {
             const asset = result.assets[0];
+            if (asset.fileSize && asset.fileSize > EDUCATION_FILE_MAX_MB * 1024 * 1024) {
+                showFileTooLarge();
+                return;
+            }
             setDocuments(prev => [...prev, {
                 uri: asset.uri,
                 name: asset.fileName || `document_${prev.length + 1}.jpg`,
@@ -240,7 +315,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 kind: 'image',
             }]);
         }
-    }, [t]);
+    }, [t, showFileTooLarge]);
 
     const pickFromGallery = useCallback(async () => {
         setPickerOpen(false);
@@ -258,6 +333,10 @@ export default function BecomeExpertScreen({ navigation }: any) {
         });
         if (!result.canceled && result.assets?.[0]) {
             const asset = result.assets[0];
+            if (asset.fileSize && asset.fileSize > EDUCATION_FILE_MAX_MB * 1024 * 1024) {
+                showFileTooLarge();
+                return;
+            }
             setDocuments(prev => [...prev, {
                 uri: asset.uri,
                 name: asset.fileName || `document_${prev.length + 1}.jpg`,
@@ -265,7 +344,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 kind: 'image',
             }]);
         }
-    }, [t]);
+    }, [t, showFileTooLarge]);
 
     const pickPdf = useCallback(async () => {
         setPickerOpen(false);
@@ -276,6 +355,10 @@ export default function BecomeExpertScreen({ navigation }: any) {
         });
         if (!result.canceled && result.assets?.[0]) {
             const asset = result.assets[0];
+            if (asset.size && asset.size > EDUCATION_FILE_MAX_MB * 1024 * 1024) {
+                showFileTooLarge();
+                return;
+            }
             setDocuments(prev => [...prev, {
                 uri: asset.uri,
                 name: asset.name || `document_${prev.length + 1}.pdf`,
@@ -283,7 +366,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 kind: 'pdf',
             }]);
         }
-    }, []);
+    }, [showFileTooLarge]);
 
     const removeDocument = useCallback((index: number) => {
         setDocuments(prev => prev.filter((_, i) => i !== index));
@@ -423,7 +506,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             }
 
             await refreshUser();
-            setProfileCreated(true);
+            clearDraft();
             setStep(6);
         } catch (error: any) {
             Alert.alert(
@@ -433,7 +516,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
         } finally {
             setLoading(false);
         }
-    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, educationEntries, refreshUser, t]);
+    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, educationEntries, refreshUser, t, clearDraft]);
 
     const handleNext = useCallback(() => {
         if (step === 5) {
@@ -709,13 +792,20 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 </View>
             ))}
 
-            <TouchableOpacity style={styles.uploadButton} onPress={() => setPickerOpen(true)}>
+            <TouchableOpacity
+                style={[styles.uploadButton, documents.length === 0 && styles.uploadButtonRequired]}
+                onPress={() => setPickerOpen(true)}
+            >
                 <Ionicons name="cloud-upload-outline" size={24} color={colors.primary} />
-                <Text style={styles.uploadButtonText}>{t('experts.onboarding.uploadDocument')}</Text>
+                <Text style={styles.uploadButtonText}>
+                    {t('experts.onboarding.uploadDocument')}{documents.length === 0 ? '  *' : ''}
+                </Text>
             </TouchableOpacity>
 
             {documents.length === 0 && (
-                <Text style={styles.helperText}>{t('experts.onboarding.documentsRequired')}</Text>
+                <Text style={[styles.helperText, styles.helperTextRequired]}>
+                    {t('experts.onboarding.documentsRequired')}
+                </Text>
             )}
 
             {pickerOpen && (
@@ -1110,6 +1200,13 @@ const createStyles = (tokens: any, colors: any) =>
             fontSize: 13,
             color: colors.textSecondary,
             textAlign: 'center',
+        },
+        helperTextRequired: {
+            color: colors.error || '#FF3B30',
+            fontWeight: '500',
+        },
+        uploadButtonRequired: {
+            borderColor: colors.error || '#FF3B30',
         },
         pickerBackdrop: {
             position: 'absolute',

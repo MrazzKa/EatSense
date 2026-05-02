@@ -16,6 +16,7 @@ import { useI18n } from '../../app/i18n/hooks';
 // FIX: Language selector removed - language is now auto-detected from device
 // import { clientLog } from '../utils/clientLog'; // Unused
 import { useMascot } from '../contexts/MascotContext';
+import MascotWidget from '../components/MascotWidget';
 import AppCard from '../components/common/AppCard';
 import PrimaryButton from '../components/common/PrimaryButton';
 import { ProfileNumberRow } from '../components/ProfileNumberRow';
@@ -1257,6 +1258,58 @@ const ProfileScreen = () => {
               style={styles.heroButton}
             />
           </AppCard >
+
+          {/* Mascot — moved here from Dashboard */}
+          {mascot ? (
+            <MascotWidget onPress={() => navigation.navigate('MascotSetup' as never)} />
+          ) : (
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.surface || colors.card || '#FFF',
+                borderRadius: 16,
+                padding: 16,
+                marginHorizontal: 16,
+                marginVertical: 8,
+                borderWidth: 1.5,
+                borderColor: (colors.primary || '#4CAF50') + '25',
+                borderStyle: 'dashed',
+              }}
+              onPress={() => navigation.navigate('MascotSetup' as never)}
+              activeOpacity={0.8}
+            >
+              <View style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                backgroundColor: (colors.primary || '#4CAF50') + '12',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12,
+              }}>
+                <Ionicons name="paw" size={28} color={colors.primary || '#4CAF50'} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: colors.textPrimary || '#212121',
+                  marginBottom: 3,
+                }}>
+                  {safeT('mascot.invite.title', 'Get a Companion!')}
+                </Text>
+                <Text style={{
+                  fontSize: 13,
+                  color: colors.textSecondary || '#666',
+                  lineHeight: 18,
+                }}>
+                  {safeT('mascot.invite.subtitle', 'Choose a cute mascot that grows with your healthy eating habits')}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || '#999'} />
+            </TouchableOpacity>
+          )}
 
           {/* Health Profile Summary - Under Edit Profile */}
           < AppCard style={styles.healthSection} >

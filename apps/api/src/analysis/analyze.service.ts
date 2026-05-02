@@ -1679,6 +1679,12 @@ export class AnalyzeService {
     const locale = (params.locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' | undefined) || 'en';
     const mode = params.mode || 'default';
     const skipCache = params.skipCache || false;
+    const profileStart = Date.now();
+    const phaseTimings: Record<string, number> = {};
+    const markPhase = (name: string) => {
+      const prevTotal = Object.values(phaseTimings).reduce((a, b) => a + b, 0);
+      phaseTimings[name] = Date.now() - profileStart - prevTotal;
+    };
 
     // Calculate cache key for this analysis
     const imageHash = this.hashImage(params);
@@ -1725,6 +1731,7 @@ export class AnalyzeService {
 
     const visionDuration = Date.now() - visionStartTime;
     this.logger.debug(`[AnalyzeService] Vision extraction took ${visionDuration}ms, status: ${visionResult.status}`);
+    markPhase('vision');
 
     visionComponents = visionResult.components;
     // NEW: Extract dish-level identification from Vision
@@ -2049,6 +2056,7 @@ export class AnalyzeService {
     } else {
       healthScore = this.computeHealthScore(total, total.portion_g, items, locale);
     }
+    markPhase('components_and_score');
 
     // Q1: Run sanity check
     const sanity = this.runSanityCheck({ items, total, healthScore, debug });
@@ -2242,6 +2250,7 @@ export class AnalyzeService {
       total,
       locale,
     );
+    markPhase('ai_health_feedback');
 
     const result: AnalysisData = {
       items,
@@ -2286,6 +2295,10 @@ export class AnalyzeService {
       const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
       await this.cache.set(cacheKey, result, 'analysis');
     }
+    markPhase('post_processing');
+
+    const totalMs = Date.now() - profileStart;
+    this.logger.log(`[AnalyzeProfile] total=${totalMs}ms ${Object.entries(phaseTimings).map(([k, v]) => `${k}=${v}ms`).join(' ')}`);
 
     // =====================================================
     // OBSERVABILITY: Structured log of final analysis result

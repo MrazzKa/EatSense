@@ -7,6 +7,7 @@ import {
     Headers,
     Query,
     UnauthorizedException,
+    BadRequestException,
     Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
@@ -130,6 +131,15 @@ export class ExpertsAdminController {
     ) {
         this.validateAdmin(adminSecret);
 
+        const credentialCount = await this.prisma.expertCredential.count({
+            where: { expertId: id },
+        });
+        if (credentialCount < 1) {
+            throw new BadRequestException(
+                'Cannot approve expert without at least one uploaded credential. Reject and ask the expert to re-submit with documents.',
+            );
+        }
+
         const expert = await this.prisma.expertProfile.update({
             where: { id },
             data: {
@@ -252,6 +262,15 @@ export class ExpertsAdminController {
         @Param('id') id: string,
     ) {
         this.validateAdmin(adminSecret);
+
+        const credentialCount = await this.prisma.expertCredential.count({
+            where: { expertId: id },
+        });
+        if (credentialCount < 1) {
+            throw new BadRequestException(
+                'Cannot publish expert without at least one uploaded credential.',
+            );
+        }
 
         const expert = await this.prisma.expertProfile.update({
             where: { id },

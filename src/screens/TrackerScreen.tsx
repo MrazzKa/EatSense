@@ -27,6 +27,8 @@ import TodoSection from '../components/tracker/TodoSection';
 import ShoppingList from '../components/tracker/ShoppingList';
 import PaywallModal from '../components/PaywallModal';
 import AppCard from '../components/common/AppCard';
+import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
+import LabResultsModal from '../components/LabResultsModal';
 import { Habit } from '../types/tracker';
 
 export default function TrackerScreen() {
@@ -39,6 +41,7 @@ export default function TrackerScreen() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState('');
+  const [showLabResultsModal, setShowLabResultsModal] = useState(false);
 
   // Refresh date when screen is focused (handles midnight crossover)
   const [dateStr, setDateStr] = useState(() =>
@@ -251,6 +254,14 @@ export default function TrackerScreen() {
             />
           </View>
 
+          {/* ── HEALTH ANALYSIS ── (moved from Dashboard) */}
+          <View style={styles.sectionBlock}>
+            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+              {t('tracker.tabs.health') || 'HEALTH'}
+            </Text>
+            <ManualAnalysisCard onPressAddManual={() => setShowLabResultsModal(true)} />
+          </View>
+
           {/* ── SHOPPING LIST ── */}
           <View style={styles.sectionBlock}>
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
@@ -302,6 +313,12 @@ export default function TrackerScreen() {
         onClose={() => setShowPaywall(false)}
         onSubscribed={() => setShowPaywall(false)}
         featureName={paywallFeature}
+      />
+
+      {/* Lab Results Modal (moved from Dashboard) */}
+      <LabResultsModal
+        visible={showLabResultsModal}
+        onClose={() => setShowLabResultsModal(false)}
       />
     </SafeAreaView>
   );
