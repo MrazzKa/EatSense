@@ -487,6 +487,7 @@ export default function DietsScreen({ navigation }) {
             <ScrollView
                 ref={scrollViewRef}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                contentContainerStyle={{ paddingBottom: 110 }}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Header */}

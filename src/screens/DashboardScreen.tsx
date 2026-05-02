@@ -763,7 +763,11 @@ export default function DashboardScreen() {
         }}
         onClose={() => setShowLimitModal(false)}
       />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: 110 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Calendar header with avatar */}
         <View style={styles.calendarHeaderRow}>
           <View style={{ width: 32 }} />
@@ -1675,7 +1679,7 @@ const createStyles = (tokens) =>
     },
     plusButtonContainer: {
       position: 'absolute',
-      bottom: tokens.spacing.xxl,
+      bottom: 96,
       right: tokens.spacing.xl,
       zIndex: 10,
     },

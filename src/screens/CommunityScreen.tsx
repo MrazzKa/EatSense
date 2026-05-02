@@ -569,7 +569,7 @@ const createStyles = (tokens: any, colors: any) =>
     },
     listContent: {
       paddingTop: 12,
-      paddingBottom: 100,
+      paddingBottom: 110,
     },
     cityBanner: {
       flexDirection: 'row',
@@ -630,7 +630,7 @@ const createStyles = (tokens: any, colors: any) =>
     },
     fab: {
       position: 'absolute',
-      bottom: 24,
+      bottom: 96,
       right: 20,
       width: 56,
       height: 56,

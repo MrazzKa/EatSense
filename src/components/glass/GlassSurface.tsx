@@ -17,8 +17,8 @@ interface GlassSurfaceProps extends ViewProps {
 
 const INTENSITY_MAP: Record<GlassIntensity, { ios: number; android: number; tintAlpha: number }> = {
     subtle: { ios: 24, android: 14, tintAlpha: 0.55 },
-    medium: { ios: 40, android: 22, tintAlpha: 0.7 },
-    strong: { ios: 60, android: 32, tintAlpha: 0.82 },
+    medium: { ios: 50, android: 26, tintAlpha: 0.7 },
+    strong: { ios: 90, android: 40, tintAlpha: 0.78 },
 };
 
 /**

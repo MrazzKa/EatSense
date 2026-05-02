@@ -392,7 +392,7 @@ const createStyles = (tokens: any, colors: any) =>
             borderWidth: 1, borderColor: colors.primary + '30',
         },
         filterChipText: { fontSize: 13, color: colors.primary, fontWeight: '500' },
-        listContent: { paddingHorizontal: tokens.spacing.lg, paddingBottom: tokens.spacing.xxxl },
+        listContent: { paddingHorizontal: tokens.spacing.lg, paddingBottom: 110 },
         loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
         // Card
         card: {

@@ -5,63 +5,74 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
 
-const TAB_BAR_HEIGHT = 56;
+const TAB_BAR_HEIGHT = 62;
+const HORIZONTAL_INSET = 14;
+const BOTTOM_GAP = 6;
+
+/** Total vertical space the floating bar reserves at the bottom of the screen. */
+export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 8;
 
 /**
- * Bottom tab bar rendered as an inline glass surface.
- * - iOS: BlurView + systemMaterial (auto-Liquid Glass on iOS 26+).
- * - Android: tinted fallback with experimental dimezis blur.
- * - Inline (not floating) so screen content doesn't need extra paddingBottom.
+ * Floating glass pill at the bottom — modeled after Telegram / Apple system style.
+ * - iOS: BlurView with strong systemMaterial — Liquid Glass on iOS 26+ via expo-blur 55.
+ * - Android: dimezisBlurView + tinted fallback for older versions.
+ * - Active tab gets a brand-tinted pill behind the icon with spring animation.
  */
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
     const { colors, isDark } = useTheme();
 
-    const bottom = Math.max(insets.bottom, 8);
+    const bottom = Math.max(insets.bottom, BOTTOM_GAP);
+    const outline = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.06)';
 
     return (
-        <View style={[styles.container, { paddingBottom: bottom }]}>
-            <GlassSurface
-                intensity="strong"
-                style={[styles.bar, { borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)' }]}
-                contentStyle={styles.row}
-            >
-                {state.routes.map((route, index) => {
-                    const { options } = descriptors[route.key];
-                    const focused = state.index === index;
-                    const label = (options.tabBarLabel as string) ?? options.title ?? route.name;
+        <View
+            pointerEvents="box-none"
+            style={[styles.container, { paddingBottom: bottom, paddingHorizontal: HORIZONTAL_INSET }]}
+        >
+            <View style={styles.shadow}>
+                <GlassSurface
+                    intensity="strong"
+                    style={[styles.bar, { borderColor: outline }]}
+                    contentStyle={styles.row}
+                >
+                    {state.routes.map((route, index) => {
+                        const { options } = descriptors[route.key];
+                        const focused = state.index === index;
+                        const label = (options.tabBarLabel as string) ?? options.title ?? route.name;
 
-                    const onPress = () => {
-                        const event = navigation.emit({
-                            type: 'tabPress',
-                            target: route.key,
-                            canPreventDefault: true,
-                        });
-                        if (!focused && !event.defaultPrevented) {
-                            navigation.navigate(route.name as never);
-                        }
-                    };
+                        const onPress = () => {
+                            const event = navigation.emit({
+                                type: 'tabPress',
+                                target: route.key,
+                                canPreventDefault: true,
+                            });
+                            if (!focused && !event.defaultPrevented) {
+                                navigation.navigate(route.name as never);
+                            }
+                        };
 
-                    const onLongPress = () => {
-                        navigation.emit({ type: 'tabLongPress', target: route.key });
-                    };
+                        const onLongPress = () => {
+                            navigation.emit({ type: 'tabLongPress', target: route.key });
+                        };
 
-                    return (
-                        <TabItem
-                            key={route.key}
-                            focused={focused}
-                            label={label}
-                            renderIcon={options.tabBarIcon}
-                            activeColor={colors.primary || '#4CAF50'}
-                            inactiveColor={colors.textTertiary || '#8E8E93'}
-                            onPress={onPress}
-                            onLongPress={onLongPress}
-                            accessibilityLabel={options.tabBarAccessibilityLabel ?? `${label} tab`}
-                            accessibilityState={focused ? { selected: true } : { selected: false }}
-                        />
-                    );
-                })}
-            </GlassSurface>
+                        return (
+                            <TabItem
+                                key={route.key}
+                                focused={focused}
+                                label={label}
+                                renderIcon={options.tabBarIcon}
+                                activeColor={colors.primary || '#4CAF50'}
+                                inactiveColor={isDark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)'}
+                                onPress={onPress}
+                                onLongPress={onLongPress}
+                                accessibilityLabel={options.tabBarAccessibilityLabel ?? `${label} tab`}
+                                accessibilityState={focused ? { selected: true } : { selected: false }}
+                            />
+                        );
+                    })}
+                </GlassSurface>
+            </View>
         </View>
     );
 }
@@ -89,18 +100,25 @@ function TabItem({
     accessibilityLabel,
     accessibilityState,
 }: TabItemProps) {
-    const scale = useRef(new Animated.Value(focused ? 1 : 0.92)).current;
+    const indicatorScale = useRef(new Animated.Value(focused ? 1 : 0.7)).current;
+    const indicatorOpacity = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
     useEffect(() => {
-        Animated.spring(scale, {
-            toValue: focused ? 1 : 0.92,
-            useNativeDriver: true,
-            speed: 24,
-            bounciness: 8,
-        }).start();
-    }, [focused, scale]);
+        Animated.parallel([
+            Animated.spring(indicatorScale, {
+                toValue: focused ? 1 : 0.7,
+                useNativeDriver: true,
+                speed: 22,
+                bounciness: 6,
+            }),
+            Animated.timing(indicatorOpacity, {
+                toValue: focused ? 1 : 0,
+                useNativeDriver: true,
+                duration: 180,
+            }),
+        ]).start();
+    }, [focused, indicatorScale, indicatorOpacity]);
 
-    const tintedBg = withAlpha(activeColor, focused ? 0.16 : 0);
     const color = focused ? activeColor : inactiveColor;
 
     return (
@@ -111,11 +129,22 @@ function TabItem({
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
             style={({ pressed }) => [styles.itemBase, pressed && styles.itemPressed]}
-            hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
         >
-            <Animated.View style={[styles.indicator, { backgroundColor: tintedBg, transform: [{ scale }] }]}>
+            <View style={styles.iconWrap}>
+                <Animated.View
+                    pointerEvents="none"
+                    style={[
+                        styles.indicator,
+                        {
+                            backgroundColor: withAlpha(activeColor, 0.18),
+                            opacity: indicatorOpacity,
+                            transform: [{ scale: indicatorScale }],
+                        },
+                    ]}
+                />
                 {renderIcon?.({ focused, color, size: 22 })}
-            </Animated.View>
+            </View>
             <Text numberOfLines={1} style={[styles.label, { color }]}>
                 {label}
             </Text>
@@ -134,22 +163,30 @@ function withAlpha(hex: string, alpha: number): string {
 
 const styles = StyleSheet.create({
     container: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
         backgroundColor: 'transparent',
+    },
+    shadow: {
+        borderRadius: 999,
+        ...Platform.select({
+            ios: {
+                shadowColor: 'rgba(15,23,42,0.22)',
+                shadowOpacity: 1,
+                shadowRadius: 28,
+                shadowOffset: { width: 0, height: 14 },
+            },
+            android: {
+                elevation: 14,
+            },
+        }),
     },
     bar: {
         height: TAB_BAR_HEIGHT,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        ...Platform.select({
-            ios: {
-                shadowColor: 'rgba(15,23,42,0.10)',
-                shadowOpacity: 1,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: -4 },
-            },
-            android: {
-                elevation: 8,
-            },
-        }),
+        borderRadius: 999,
+        borderWidth: StyleSheet.hairlineWidth,
     },
     row: {
         flex: 1,
@@ -162,21 +199,26 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 4,
+        paddingVertical: 6,
         gap: 2,
     },
     itemPressed: {
-        opacity: 0.7,
+        opacity: 0.6,
     },
-    indicator: {
-        width: 44,
+    iconWrap: {
+        width: 48,
         height: 30,
-        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
+    indicator: {
+        position: 'absolute',
+        width: 48,
+        height: 30,
+        borderRadius: 16,
+    },
     label: {
-        fontSize: 10.5,
+        fontSize: 10,
         fontWeight: '600',
         letterSpacing: 0.2,
     },

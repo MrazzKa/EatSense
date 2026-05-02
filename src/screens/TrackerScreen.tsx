@@ -305,7 +305,7 @@ const createStyles = (tokens: any, colors: any) =>
     },
     scrollContent: {
       paddingHorizontal: tokens.spacing.lg,
-      paddingBottom: 40,
+      paddingBottom: 110,
     },
     loadingContainer: {
       flex: 1,
