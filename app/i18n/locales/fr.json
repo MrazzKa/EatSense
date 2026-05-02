@@ -4395,5 +4395,9 @@
       "streak": "Bonus de série quotidienne",
       "quest": "Compléter une quête"
     }
+  },
+  "health": {
+    "title": "Ma santé",
+    "subtitle": "Suivez vos analyses médicales et obtenez des analyses IA"
   }
 }

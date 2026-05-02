@@ -4406,5 +4406,9 @@
       "title": "WHR — Taille-Hüft-Verhältnis",
       "body": "WHR misst das Verhältnis von Taillenumfang zu Hüftumfang. Es zeigt die Fettverteilung an. Ein gesunder WHR liegt unter 0,85 für Frauen und 0,90 für Männer."
     }
+  },
+  "health": {
+    "title": "Meine Gesundheit",
+    "subtitle": "Verfolgen Sie Ihre medizinischen Tests mit KI-Analyse"
   }
 }

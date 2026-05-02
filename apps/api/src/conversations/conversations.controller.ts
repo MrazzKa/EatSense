@@ -5,8 +5,11 @@ import {
     Patch,
     Param,
     Body,
+    Query,
     UseGuards,
     Request,
+    DefaultValuePipe,
+    ParseIntPipe,
 } from '@nestjs/common';
 import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
 import { ConversationsService } from './conversations.service';
@@ -37,8 +40,15 @@ export class ConversationsController {
     constructor(private conversationsService: ConversationsService) { }
 
     @Get()
-    async findAll(@Request() req: any) {
-        return this.conversationsService.findByUserId(req.user.id);
+    async findAll(
+        @Request() req: any,
+        @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+        @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
+    ) {
+        // Cap limit to prevent unbounded queries even if client sends a huge value.
+        const safeLimit = Math.min(Math.max(limit, 1), 100);
+        const safeOffset = Math.max(offset, 0);
+        return this.conversationsService.findByUserId(req.user.id, safeLimit, safeOffset);
     }
 
     @Get('unread-count')

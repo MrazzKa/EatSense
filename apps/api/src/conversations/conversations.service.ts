@@ -117,7 +117,7 @@ export class ConversationsService {
         }
     }
 
-    async findByUserId(userId: string) {
+    async findByUserId(userId: string, limit = 50, offset = 0) {
         // Get user's expert profile if exists
         const expertProfile = await this.prisma.expertProfile.findUnique({
             where: { userId },
@@ -127,6 +127,8 @@ export class ConversationsService {
         const asClient = await this.prisma.conversation.findMany({
             where: { clientId: userId },
             orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
+            take: limit,
+            skip: offset,
             include: {
                 expert: {
                     select: {
@@ -161,6 +163,8 @@ export class ConversationsService {
             asExpert = await this.prisma.conversation.findMany({
                 where: { expertId: expertProfile.id },
                 orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
+                take: limit,
+                skip: offset,
                 include: {
                     client: {
                         select: {

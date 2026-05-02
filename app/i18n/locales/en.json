@@ -4341,5 +4341,9 @@
       "streak": "Daily streak bonus",
       "quest": "Complete a quest"
     }
+  },
+  "health": {
+    "title": "My Health",
+    "subtitle": "Track your medical tests and get AI-powered insights"
   }
 }

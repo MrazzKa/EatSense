@@ -36,6 +36,7 @@ import { mapLanguageToLocale } from '../utils/locale';
 import LimitReachedModal from '../components/LimitReachedModal';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
+import { GlassCard } from '../components/glass';
 
 // Helper function to get image URL from item (handles various field names and resolves relative URLs)
 function getItemImageUrl(item) {
@@ -825,10 +826,10 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* Quick Stats */}
+        {/* Quick Stats — unified glass card with 3 macros */}
         <Animated.View
           style={[
-            styles.statsContainer,
+            styles.statsOuter,
             {
               opacity: cardAnimations.stats,
               transform: [{
@@ -840,18 +841,24 @@ export default function DashboardScreen() {
             },
           ]}
         >
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatMacroInt(stats.totalProtein)}</Text>
-            <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatMacroInt(stats.totalCarbs)}</Text>
-            <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{formatMacroInt(stats.totalFat)}</Text>
-            <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
-          </View>
+          <GlassCard padding="lg">
+            <View style={styles.statsRow}>
+              <View style={styles.statCell}>
+                <Text style={styles.statNumber}>{formatMacroInt(stats.totalProtein)}</Text>
+                <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statCell}>
+                <Text style={styles.statNumber}>{formatMacroInt(stats.totalCarbs)}</Text>
+                <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statCell}>
+                <Text style={styles.statNumber}>{formatMacroInt(stats.totalFat)}</Text>
+                <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
+              </View>
+            </View>
+          </GlassCard>
         </Animated.View>
 
         {/* Active Diet Widget */}
@@ -1378,6 +1385,26 @@ const createStyles = (tokens) =>
       paddingVertical: tokens.spacing.lg || 16,
       gap: tokens.spacing.md,
       marginBottom: tokens.spacing.lg || 16, // Consistent spacing after macros
+    },
+    statsOuter: {
+      paddingHorizontal: tokens.spacing.lg,
+      marginBottom: tokens.spacing.lg || 16,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    statCell: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 2,
+    },
+    statDivider: {
+      width: StyleSheet.hairlineWidth,
+      alignSelf: 'stretch',
+      backgroundColor: tokens.colors.borderMuted,
+      marginHorizontal: 4,
     },
     statsContainerCompact: {
       flex: 1,

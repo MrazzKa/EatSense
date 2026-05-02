@@ -31,6 +31,7 @@ import { formatAmount, getPriceValue, formatPrice } from '../utils/currency';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import { GlassCard } from '../components/glass';
 import LockedFeatureOverlay from '../components/profile/LockedFeatureOverlay';
 import { canUseFeature } from '../utils/subscriptionGuard';
 import Tooltip from '../components/Tooltip/Tooltip';
@@ -1310,6 +1311,37 @@ const ProfileScreen = () => {
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || '#999'} />
             </TouchableOpacity>
           )}
+
+          {/* My Health — link to medical analyses screen */}
+          <GlassCard padding={null} style={{ marginHorizontal: 16, marginVertical: 8 }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Health' as never)}
+              activeOpacity={0.7}
+              accessibilityLabel={safeT('health.title', 'My Health')}
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 16 }}
+            >
+              <View style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                backgroundColor: (colors.primary || '#4CAF50') + '15',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12,
+              }}>
+                <Ionicons name="pulse-outline" size={22} color={colors.primary || '#4CAF50'} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textPrimary || '#212121', marginBottom: 2 }}>
+                  {safeT('health.title', 'My Health')}
+                </Text>
+                <Text style={{ fontSize: 13, color: colors.textSecondary || '#666' }}>
+                  {safeT('health.subtitle', 'Track your medical tests and get AI-powered insights')}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || '#999'} />
+            </TouchableOpacity>
+          </GlassCard>
 
           {/* Health Profile Summary - Under Edit Profile */}
           < AppCard style={styles.healthSection} >

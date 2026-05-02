@@ -2,11 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ApiService from '../services/apiService';
+import { GlassTabBar } from './GlassTabBar';
 
 // Import screens
 import DashboardScreen from '../screens/DashboardScreen';
@@ -21,14 +20,8 @@ const Tab = createBottomTabNavigator();
 const COMMUNITY_LAST_SEEN_KEY = 'community_last_seen_ts';
 
 export function MainTabsNavigator() {
-  const { colors } = useTheme();
   const { t, language } = useI18n();
-  const insets = useSafeAreaInsets();
   const [communityHasNew, setCommunityHasNew] = useState(false);
-
-  // Calculate safe tab bar height
-  const tabBarPaddingBottom = Math.max(insets.bottom, 8);
-  const tabBarHeight = 56 + tabBarPaddingBottom;
 
   // Check for new community posts
   useEffect(() => {
@@ -79,26 +72,9 @@ export function MainTabsNavigator() {
 
   return (
     <Tab.Navigator
+      tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary || '#007AFF',
-        tabBarInactiveTintColor: colors.textTertiary || '#8E8E93',
-        tabBarStyle: {
-          backgroundColor: colors.surface || '#FFFFFF',
-          borderTopColor: colors.border || '#E5E5EA',
-          borderTopWidth: 1,
-          paddingBottom: tabBarPaddingBottom,
-          paddingTop: 5,
-          height: tabBarHeight,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-          marginBottom: 2,
-        },
-        tabBarIconStyle: {
-          marginTop: 4,
-        },
       }}
     >
       <Tab.Screen

@@ -55,6 +55,7 @@ const ReportsScreen = withSuspense(React.lazy(() => import('./src/screens/Report
 const BestPlacesScreen = withSuspense(React.lazy(() => import('./src/screens/BestPlacesScreen')));
 const PharmacyScreen = withSuspense(React.lazy(() => import('./src/screens/PharmacyScreen')));
 const ProfileScreen = withSuspense(React.lazy(() => import('./src/screens/ProfileScreen')));
+const HealthScreen = withSuspense(React.lazy(() => import('./src/screens/HealthScreen')));
 const CommunityGroupScreen = withSuspense(React.lazy(() => import('./src/screens/CommunityGroupScreen')));
 const CommunityPostDetailScreen = withSuspense(React.lazy(() => import('./src/screens/CommunityPostDetailScreen')));
 const CreateCommunityPostScreen = withSuspense(React.lazy(() => import('./src/screens/CreateCommunityPostScreen')));
@@ -352,6 +353,11 @@ function AppContent() {
               <Stack.Screen
                 name="Profile"
                 component={ProfileScreen}
+                options={{ presentation: 'card', headerShown: false }}
+              />
+              <Stack.Screen
+                name="Health"
+                component={HealthScreen}
                 options={{ presentation: 'card', headerShown: false }}
               />
               {/* Community Screens */}

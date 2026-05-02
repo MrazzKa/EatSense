@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,19 +16,15 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useHabits } from '../hooks/useHabits';
 import { useShopping } from '../hooks/useShopping';
-import { useTodos } from '../hooks/useTodos';
 import { useShoppingRecommendations } from '../hooks/useShoppingRecommendations';
 import { getFeatureLimit } from '../utils/subscriptionGuard';
 import ApiService from '../services/apiService';
 import HabitGrid from '../components/tracker/HabitGrid';
 import HabitModal from '../components/tracker/HabitModal';
 import PresetHabitsModal from '../components/tracker/PresetHabitsModal';
-import TodoSection from '../components/tracker/TodoSection';
 import ShoppingList from '../components/tracker/ShoppingList';
 import PaywallModal from '../components/PaywallModal';
-import AppCard from '../components/common/AppCard';
-import { ManualAnalysisCard } from '../components/ManualAnalysisCard';
-import LabResultsModal from '../components/LabResultsModal';
+import { GlassCard } from '../components/glass';
 import { Habit } from '../types/tracker';
 
 export default function TrackerScreen() {
@@ -41,7 +37,6 @@ export default function TrackerScreen() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState('');
-  const [showLabResultsModal, setShowLabResultsModal] = useState(false);
 
   // Refresh date when screen is focused (handles midnight crossover)
   const [dateStr, setDateStr] = useState(() =>
@@ -95,14 +90,6 @@ export default function TrackerScreen() {
     clearBought,
     shareList,
   } = useShopping();
-
-  const {
-    todayItems: todoItems,
-    loading: todosLoading,
-    addTodo,
-    toggleTodo,
-    deleteTodo,
-  } = useTodos();
 
   const {
     recommendations,
@@ -167,7 +154,7 @@ export default function TrackerScreen() {
 
   const canAddMoreShopping = shoppingLimit === null || activeItems.length < shoppingLimit;
 
-  const isLoading = habitsLoading || todosLoading || shoppingLoading;
+  const isLoading = habitsLoading || shoppingLoading;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -190,12 +177,14 @@ export default function TrackerScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Streak badge */}
           {streak > 0 && (
-            <AppCard style={[styles.streakCard, { backgroundColor: colors.primaryTint || (colors.primary + '10') }]}>
-              <Text style={styles.streakEmoji}>🔥</Text>
-              <Text style={[styles.streakText, { color: colors.primary }]}>
-                {streak} {t('tracker.streak') || 'day streak'}
-              </Text>
-            </AppCard>
+            <GlassCard branded intensity="subtle" padding={null} style={styles.streakCard}>
+              <View style={styles.streakRow}>
+                <Text style={styles.streakEmoji}>🔥</Text>
+                <Text style={[styles.streakText, { color: colors.primary }]}>
+                  {streak} {t('tracker.streak') || 'day streak'}
+                </Text>
+              </View>
+            </GlassCard>
           )}
 
           {/* ── HABITS ── */}
@@ -218,7 +207,7 @@ export default function TrackerScreen() {
                 onEdit={handleEditHabit}
               />
             ) : (
-              <AppCard style={styles.emptyCard}>
+              <GlassCard style={styles.emptyCard}>
                 <View style={styles.emptyState}>
                   <Text style={{ fontSize: 36 }}>📋</Text>
                   <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
@@ -228,7 +217,7 @@ export default function TrackerScreen() {
                     {t('tracker.emptyStateSubtitle') || 'Add your first habit to start tracking'}
                   </Text>
                 </View>
-              </AppCard>
+              </GlassCard>
             )}
 
             {/* Swipeable list removed for minimalism */}
@@ -238,28 +227,6 @@ export default function TrackerScreen() {
               <Ionicons name="add" size={20} color={colors.onPrimary || '#FFF'} />
               <Text style={[styles.addBtnText, { color: colors.onPrimary || '#FFF' }]}>{t('tracker.habits.add') || 'Add Habit'}</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* ── TO-DO ── */}
-          <View style={styles.sectionBlock}>
-            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-              {t('tracker.todo.title') || 'TO-DO'}
-            </Text>
-            <TodoSection
-              items={todoItems}
-              onAdd={addTodo}
-              onToggle={toggleTodo}
-              onDelete={deleteTodo}
-              compact
-            />
-          </View>
-
-          {/* ── HEALTH ANALYSIS ── (moved from Dashboard) */}
-          <View style={styles.sectionBlock}>
-            <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-              {t('tracker.tabs.health') || 'HEALTH'}
-            </Text>
-            <ManualAnalysisCard onPressAddManual={() => setShowLabResultsModal(true)} />
           </View>
 
           {/* ── SHOPPING LIST ── */}
@@ -314,12 +281,6 @@ export default function TrackerScreen() {
         onSubscribed={() => setShowPaywall(false)}
         featureName={paywallFeature}
       />
-
-      {/* Lab Results Modal (moved from Dashboard) */}
-      <LabResultsModal
-        visible={showLabResultsModal}
-        onClose={() => setShowLabResultsModal(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -352,14 +313,15 @@ const createStyles = (tokens: any, colors: any) =>
       alignItems: 'center',
     },
     streakCard: {
+      alignSelf: 'flex-start',
+      marginBottom: tokens.spacing.lg,
+    },
+    streakRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'flex-start',
       paddingHorizontal: 16,
       paddingVertical: 10,
-      borderRadius: 20,
       gap: 8,
-      marginBottom: tokens.spacing.lg,
     },
     streakEmoji: {
       fontSize: 18,
@@ -378,9 +340,6 @@ const createStyles = (tokens: any, colors: any) =>
       letterSpacing: 1,
       marginBottom: tokens.spacing.sm,
     },
-    section: {
-      marginBottom: tokens.spacing.sm,
-    },
     emptyCard: {
       marginVertical: tokens.spacing.sm,
     },
@@ -396,41 +355,6 @@ const createStyles = (tokens: any, colors: any) =>
     emptySubtitle: {
       fontSize: 14,
       textAlign: 'center',
-    },
-    habitsList: {
-      marginTop: tokens.spacing.sm,
-    },
-    habitListItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 4,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      gap: 12,
-    },
-    swipeDeleteContainer: {
-      justifyContent: 'center',
-      alignItems: 'flex-end',
-      width: 70,
-    },
-    swipeDeleteBtn: {
-      backgroundColor: '#EF4444',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: 56,
-      height: '100%',
-      borderRadius: tokens.radii.md || 12,
-    },
-    habitEmoji: {
-      fontSize: 24,
-    },
-    habitName: {
-      fontSize: 15,
-      fontWeight: '500',
-    },
-    habitFreq: {
-      fontSize: 12,
-      marginTop: 2,
     },
     addBtn: {
       flexDirection: 'row',

@@ -4430,5 +4430,9 @@
   "featureFlags": {
     "title": "Banderas de características",
     "subtitle": "Gestionar características experimentales"
+  },
+  "health": {
+    "title": "Mi salud",
+    "subtitle": "Sigue tus análisis médicos con análisis con IA"
   }
 }
