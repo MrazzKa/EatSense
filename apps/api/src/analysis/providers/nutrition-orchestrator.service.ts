@@ -85,9 +85,16 @@ export class NutritionOrchestrator {
     const region = this.determineRegion(context);
     const contextWithRegion = { ...context, region };
 
+    // Allow disabling slow providers via env, e.g. DISABLED_NUTRITION_PROVIDERS=openfoodfacts,usda
+    const disabled = (process.env.DISABLED_NUTRITION_PROVIDERS || '')
+      .split(',')
+      .map((p) => p.trim().toLowerCase())
+      .filter(Boolean);
+
     const available: Array<{ provider: INutritionProvider; priority: number }> = [];
 
     for (const provider of this.providers) {
+      if (disabled.includes(provider.id.toLowerCase())) continue;
       const isAvail = await provider.isAvailable(contextWithRegion);
       if (isAvail) {
         const priority = provider.getPriority(contextWithRegion);

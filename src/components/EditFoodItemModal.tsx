@@ -65,16 +65,30 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
   }, [item, visible]);
 
   const handleSave = () => {
-    // Формируем payload в формате, который ожидает backend
+    const trimmedName = editedItem.name.trim();
+    const portionG = parseFloat(editedItem.weight);
+
+    // Validate name & portion before submitting — backend rejects empty name and
+    // portion_g < 1 (would otherwise divide by zero in the reanalyze pipeline).
+    if (!trimmedName) {
+      // eslint-disable-next-line no-undef
+      alert(t('editFood.nameRequired', 'Please enter a name for this ingredient.'));
+      return;
+    }
+    if (!portionG || portionG < 1) {
+      // eslint-disable-next-line no-undef
+      alert(t('editFood.portionRequired', 'Please enter a portion of at least 1 gram.'));
+      return;
+    }
+
     const updatedItem = {
       id: item?.id || String(index),
-      name: editedItem.name.trim(),
-      portion_g: parseFloat(editedItem.weight) || item?.portion_g || item?.weight || 0,
-      calories: parseFloat(editedItem.calories) || item?.calories || item?.nutrients?.calories || 0,
-      protein_g: parseFloat(editedItem.protein) || item?.protein || item?.nutrients?.protein || 0,
-      carbs_g: parseFloat(editedItem.carbs) || item?.carbs || item?.nutrients?.carbs || 0,
-      fat_g: parseFloat(editedItem.fat) || item?.fat || item?.nutrients?.fat || 0,
-      // Include original values for feedback loop
+      name: trimmedName,
+      portion_g: portionG,
+      calories: Math.max(0, parseFloat(editedItem.calories) || 0),
+      protein_g: Math.max(0, parseFloat(editedItem.protein) || 0),
+      carbs_g: Math.max(0, parseFloat(editedItem.carbs) || 0),
+      fat_g: Math.max(0, parseFloat(editedItem.fat) || 0),
       originalValues: {
         name: item?.name,
         portion_g: item?.weight || item?.portion_g,

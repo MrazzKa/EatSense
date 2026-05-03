@@ -685,6 +685,9 @@ model ExpertProfile {
   experienceYears   Int      @default(0) @map("experience_years")
   specializations   String[] @default([])
   languages         String[] @default(["en"])
+
+  // Location
+  country           String?  // ISO 3166-1 alpha-2 code (e.g. "KZ", "DE")
   
   // Verification
   isVerified        Boolean  @default(false) @map("is_verified")
@@ -1051,6 +1054,8 @@ model UserDietProgram {
   currentStreak   Int       @default(0) @map("current_streak") // Current consecutive days meeting threshold
   longestStreak   Int       @default(0) @map("longest_streak") // Best streak ever
   lastStreakDate  DateTime? @map("last_streak_date") // Last date streak was updated
+
+  updatedAt       DateTime? @updatedAt @map("updated_at")
 
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   program         DietProgram @relation(fields: [programId], references: [id], onDelete: Cascade)

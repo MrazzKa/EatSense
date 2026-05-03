@@ -1867,6 +1867,14 @@ class ApiService {
     return this.request(`/community/feed?page=${page}&limit=${limit}`);
   }
 
+  async getBestPlaces(page = 1, limit = 20, groupId?: string) {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+    if (groupId) params.append('groupId', groupId);
+    return this.request(`/community/best-places?${params.toString()}`);
+  }
+
   async getCommunityGroupPosts(groupId: string, page = 1, limit = 20) {
     return this.request(`/community/groups/${groupId}/posts?page=${page}&limit=${limit}`);
   }

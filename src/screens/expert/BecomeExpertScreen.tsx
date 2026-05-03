@@ -85,6 +85,24 @@ export default function BecomeExpertScreen({ navigation }: any) {
     ]);
     const [experienceYears, setExperienceYears] = useState('');
     const [educationPickerIndex, setEducationPickerIndex] = useState<number | null>(null);
+    const [country, setCountry] = useState<string>(''); // ISO 3166-1 alpha-2
+    const [countryPickerOpen, setCountryPickerOpen] = useState(false);
+
+    const COUNTRY_OPTIONS: Array<{ code: string; name: string }> = [
+        { code: 'KZ', name: 'Kazakhstan' },
+        { code: 'RU', name: 'Russia' },
+        { code: 'UA', name: 'Ukraine' },
+        { code: 'UZ', name: 'Uzbekistan' },
+        { code: 'DE', name: 'Germany' },
+        { code: 'FR', name: 'France' },
+        { code: 'IT', name: 'Italy' },
+        { code: 'ES', name: 'Spain' },
+        { code: 'CH', name: 'Switzerland' },
+        { code: 'GB', name: 'United Kingdom' },
+        { code: 'US', name: 'United States' },
+        { code: 'AE', name: 'United Arab Emirates' },
+        { code: 'TR', name: 'Turkey' },
+    ];
 
     const MAX_EDUCATION_ENTRIES = 5;
     const EDUCATION_FILE_MAX_MB = 10;
@@ -153,6 +171,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     if (Array.isArray(draft.selectedSpecs)) setSelectedSpecs(draft.selectedSpecs);
                     if (Array.isArray(draft.selectedLangs) && draft.selectedLangs.length > 0) setSelectedLangs(draft.selectedLangs);
                     if (Array.isArray(draft.documents)) setDocuments(draft.documents);
+                    if (typeof draft.country === 'string') setCountry(draft.country);
                 }
             } catch (err) {
                 console.warn('[BecomeExpert] Failed to hydrate draft:', err);
@@ -178,6 +197,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 selectedSpecs,
                 selectedLangs,
                 documents,
+                country,
             };
             AsyncStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft)).catch((err) =>
                 console.warn('[BecomeExpert] Failed to save draft:', err),
@@ -186,7 +206,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
         return () => {
             if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
         };
-    }, [draftHydrated, step, disclaimerAccepted, displayName, type, bio, educationEntries, experienceYears, selectedSpecs, selectedLangs, documents]);
+    }, [draftHydrated, step, disclaimerAccepted, displayName, type, bio, educationEntries, experienceYears, selectedSpecs, selectedLangs, documents, country]);
 
     const clearDraft = useCallback(() => {
         AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
@@ -199,6 +219,9 @@ export default function BecomeExpertScreen({ navigation }: any) {
             case 2: {
                 if (displayName.trim().length === 0) {
                     return t('experts.onboarding.errorDisplayNameRequired') || 'Please enter your display name.';
+                }
+                if (!country) {
+                    return t('experts.onboarding.errorCountryRequired') || 'Please select your country.';
                 }
                 if (bio.trim().length < 50) {
                     return (t('experts.onboarding.errorBioTooShort', { count: 50 - bio.trim().length }) as string)
@@ -230,7 +253,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             default:
                 return 'Invalid step';
         }
-    }, [step, disclaimerAccepted, displayName, bio, educationEntries, selectedSpecs, selectedLangs, documents.length, t]);
+    }, [step, disclaimerAccepted, displayName, country, bio, educationEntries, selectedSpecs, selectedLangs, documents.length, t]);
 
     const canGoNext = validationError === null;
 
@@ -434,6 +457,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     experienceYears: parseInt(experienceYears) || 0,
                     specializations: selectedSpecs,
                     languages: selectedLangs,
+                    country: country || undefined,
                 });
             } else {
                 // Update existing profile with the latest form values.
@@ -445,6 +469,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     experienceYears: parseInt(experienceYears) || 0,
                     specializations: selectedSpecs,
                     languages: selectedLangs,
+                    country: country || undefined,
                 });
                 // Wipe existing education entries + credentials so retry doesn't pile up
                 // duplicates (e.g. retrying with 3 educations when 2 were already uploaded
@@ -635,6 +660,19 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 ))}
             </View>
 
+            <Text style={styles.label}>{t('experts.edit.country') || 'Country'}</Text>
+            <TouchableOpacity
+                style={styles.input}
+                onPress={() => setCountryPickerOpen(true)}
+                activeOpacity={0.7}
+            >
+                <Text style={{ color: country ? colors.text : colors.textTertiary, paddingVertical: 4 }}>
+                    {country
+                        ? COUNTRY_OPTIONS.find(c => c.code === country)?.name || country
+                        : (t('experts.edit.countryPlaceholder') || 'Select your country')}
+                </Text>
+            </TouchableOpacity>
+
             <Text style={styles.label}>
                 {t('experts.edit.bio')} ({t('experts.onboarding.bioMinHint', { count: bio.length }) || `${bio.length}/50 min`})
             </Text>
@@ -760,6 +798,38 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 placeholderTextColor={colors.textTertiary}
                 keyboardType="numeric"
             />
+
+            {countryPickerOpen && (
+                <>
+                    <TouchableOpacity
+                        style={styles.pickerBackdrop}
+                        activeOpacity={1}
+                        onPress={() => setCountryPickerOpen(false)}
+                    />
+                    <View style={styles.pickerSheet}>
+                        <Text style={styles.pickerTitle}>{t('experts.edit.countryPlaceholder') || 'Select your country'}</Text>
+                        <ScrollView style={{ maxHeight: 360 }}>
+                            {COUNTRY_OPTIONS.map(opt => (
+                                <TouchableOpacity
+                                    key={opt.code}
+                                    style={styles.pickerOption}
+                                    onPress={() => { setCountry(opt.code); setCountryPickerOpen(false); }}
+                                >
+                                    <Ionicons
+                                        name={country === opt.code ? 'radio-button-on' : 'radio-button-off'}
+                                        size={20}
+                                        color={colors.primary}
+                                    />
+                                    <Text style={styles.pickerOptionText}>{opt.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryPickerOpen(false)}>
+                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </>
+            )}
         </ScrollView>
     );
 
@@ -880,6 +950,11 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     <View style={styles.previewInfo}>
                         <Text style={styles.previewName}>{displayName}</Text>
                         <Text style={styles.previewType}>{t(`experts.${type}.title`)}</Text>
+                        {country ? (
+                            <Text style={[styles.previewType, { fontSize: 12 }]}>
+                                {`${COUNTRY_OPTIONS.find(c => c.code === country)?.name || country}`}
+                            </Text>
+                        ) : null}
                     </View>
                 </View>
 

@@ -1207,7 +1207,13 @@
     "chat": "Чат и видеоконсультации",
     "mealPlans": "Персональные планы питания",
     "viewArticles": "Смотреть статьи о питании",
-    "comingSoon": "Скоро",
+    "comingSoon": {
+      "title": "Эксперты — скоро",
+      "subtitle": "Мы вручную отбираем сертифицированных нутрициологов и диетологов. Маркетплейс откроется уже скоро — следите за обновлениями!",
+      "feature1": "Проверенные документы",
+      "feature2": "Чат-консультации напрямую",
+      "feature3": "Безопасный обмен данными"
+    },
     "browseArticles": "Смотреть статьи о питании",
     "subtitleExpert": "Управление профилем эксперта",
     "myConsultations": "Мои консультации",
@@ -1274,7 +1280,9 @@
       "addEducation": "Добавить запись",
       "educationDegreePlaceholder": "Степень (напр. MSc Nutrition)",
       "educationInstitutionPlaceholder": "Учреждение (напр. МГУ)",
-      "educationYearPlaceholder": "Год (напр. 2020)"
+      "educationYearPlaceholder": "Год (напр. 2020)",
+      "country": "Страна",
+      "countryPlaceholder": "Выберите страну"
     },
     "client": "Клиент",
     "consultation": "Консультация",
@@ -1368,7 +1376,8 @@
       "errorEducationDocRequired": "Прикрепите документ к каждой записи об образовании.",
       "errorSpecsRequired": "Выберите хотя бы одну специализацию.",
       "errorLangsRequired": "Выберите хотя бы один язык.",
-      "errorDocsRequired": "Прикрепите хотя бы один документ."
+      "errorDocsRequired": "Прикрепите хотя бы один документ.",
+      "errorCountryRequired": "Выберите страну."
     },
     "specializations": {
       "weightManagement": "Управление весом",
@@ -4393,8 +4402,14 @@
       "details": "Данные о месте",
       "placeName": "Название места",
       "address": "Адрес",
-      "rating": "Рейтинг"
+      "rating": "Рейтинг",
+      "untitled": "Без названия",
+      "review": "отзыв",
+      "reviews": "отзывов"
     },
+    "places": "Места",
+    "emptyPlaces": "Мест пока нет",
+    "emptyPlacesDesc": "Будьте первым, кто поделится классным местом!",
     "guidelines": {
       "title": "Правила сообщества",
       "heading": "Добро пожаловать в {{group}}!",

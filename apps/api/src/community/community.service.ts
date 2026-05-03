@@ -763,6 +763,83 @@ export class CommunityService {
     return { success: true, message: 'Comment deleted by admin' };
   }
 
+  // ==================== BEST PLACES ====================
+
+  async getBestPlaces(userId: string, page: number, limit: number, groupId?: string) {
+    const skip = (page - 1) * limit;
+
+    const where: any = { type: 'BEST_PLACES' as any };
+
+    if (groupId) {
+      where.groupId = groupId;
+    } else {
+      // If no groupId, show posts from user's groups
+      const memberships = await this.prisma.communityMembership.findMany({
+        where: { userId },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+      if (groupIds.length > 0) {
+        where.groupId = { in: groupIds };
+      }
+    }
+
+    const [posts, total] = await Promise.all([
+      this.prisma.communityPost.findMany({
+        where,
+        include: {
+          author: authorInclude,
+          group: {
+            select: { id: true, name: true, slug: true },
+          },
+          _count: {
+            select: { comments: true, likes: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.communityPost.count({ where }),
+    ]);
+
+    const enriched = await this.enrichPostsWithUserState(userId, posts);
+
+    // Aggregate average ratings per place name
+    const placeRatings = new Map<string, { total: number; count: number }>();
+    for (const post of enriched) {
+      const meta = post.metadata as any;
+      const placeName = meta?.placeName;
+      const rating = meta?.rating;
+      if (placeName && typeof rating === 'number' && rating > 0) {
+        const existing = placeRatings.get(placeName) || { total: 0, count: 0 };
+        existing.total += rating;
+        existing.count += 1;
+        placeRatings.set(placeName, existing);
+      }
+    }
+
+    // Enrich posts with avgRating for the place
+    const enrichedWithRatings = enriched.map((post) => {
+      const meta = post.metadata as any;
+      const placeName = meta?.placeName;
+      const stats = placeName ? placeRatings.get(placeName) : null;
+      return {
+        ...post,
+        placeAvgRating: stats ? Math.round((stats.total / stats.count) * 10) / 10 : null,
+        placeReviewCount: stats ? stats.count : 0,
+      };
+    });
+
+    return {
+      data: enrichedWithRatings,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
   // Helper: enrich posts with isLiked and isAttending for current user
   private async enrichPostsWithUserState(userId: string, posts: any[]) {
     if (posts.length === 0) return posts;

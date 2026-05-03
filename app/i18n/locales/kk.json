@@ -891,7 +891,13 @@
     "chat": "Чат және бейне кеңестер",
     "mealPlans": "Жеке тамақтану жоспарлары",
     "viewArticles": "Тамақтану мақалаларын қарау",
-    "comingSoon": "Жақында",
+    "comingSoon": {
+      "title": "Сарапшылар жақында",
+      "subtitle": "Біз сертификатталған нутрициологтар мен диетологтарды қолмен таңдап жатырмыз. Маркетплейс жуырда ашылады!",
+      "feature1": "Тексерілген құжаттар",
+      "feature2": "Чатпен тікелей кеңестер",
+      "feature3": "Қауіпсіз деректермен бөлісу"
+    },
     "feature1": "Тексерілген мамандарды табыңыз",
     "feature2": "Чат және бейне кеңестер",
     "feature3": "Жеке тамақтану жоспарлары",
@@ -961,7 +967,9 @@
       "addEducation": "Тағы жазба қосу",
       "educationDegreePlaceholder": "Дәреже (мыс. MSc Nutrition)",
       "educationInstitutionPlaceholder": "Оқу орны (мыс. ҚазҰУ)",
-      "educationYearPlaceholder": "Жыл (мыс. 2020)"
+      "educationYearPlaceholder": "Жыл (мыс. 2020)",
+      "country": "Ел",
+      "countryPlaceholder": "Еліңізді таңдаңыз"
     },
     "client": "Клиент",
     "consultation": "Кеңес",
@@ -1052,7 +1060,8 @@
       "errorEducationDocRequired": "Әр білім жазбасына құжат тіркеңіз.",
       "errorSpecsRequired": "Кемінде бір мамандандыруды таңдаңыз.",
       "errorLangsRequired": "Кемінде бір тілді таңдаңыз.",
-      "errorDocsRequired": "Кемінде бір құжат тіркеңіз."
+      "errorDocsRequired": "Кемінде бір құжат тіркеңіз.",
+      "errorCountryRequired": "Еліңізді таңдаңыз."
     },
     "specializations": {
       "weightManagement": "Салмақты басқару",
@@ -4236,7 +4245,10 @@
       "details": "Орын мәліметтері",
       "placeName": "Орын атауы",
       "address": "Мекенжай",
-      "rating": "Рейтинг"
+      "rating": "Рейтинг",
+      "untitled": "Аты жоқ орын",
+      "review": "пікір",
+      "reviews": "пікір"
     },
     "guidelines": {
       "title": "Қауымдастық ережелері",
@@ -4269,7 +4281,11 @@
     "groupDescPlaceholder": "Бұл топ не туралы?",
     "groupFailed": "Топ құру мүмкін болмады",
     "emptyGroupName": "Топ атауын енгізіңіз",
-    "noGroupPosts": "Бұл топта әлі жазбалар жоқ"
+    "noGroupPosts": "Бұл топта әлі жазбалар жоқ",
+    "places": "Орындар",
+    "emptyPlaces": "Әзірге орындар жоқ",
+    "emptyPlacesDesc": "Тамаша орынмен бөліскен бірінші болыңыз!",
+    "anonymous": "Қолданушы"
   },
   "mascot": {
     "setup": {

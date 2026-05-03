@@ -11,8 +11,13 @@ import { GlassTabBar } from './GlassTabBar';
 import DashboardScreen from '../screens/DashboardScreen';
 import DietsScreen from '../screens/DietsScreen';
 import ExpertsScreen from '../screens/ExpertsScreen';
+import ExpertsComingSoonScreen from '../screens/ExpertsComingSoonScreen';
 import TrackerScreen from '../screens/TrackerScreen';
 import CommunityScreen from '../screens/CommunityScreen';
+
+// Feature flag — when false, the Experts tab shows a Coming Soon screen instead
+// of the full marketplace. Toggle in eas.json / .env without a code change.
+const EXPERTS_ENABLED = (process.env.EXPO_PUBLIC_ENABLE_EXPERTS ?? 'false') === 'true';
 // ProfileScreen moved to stack navigator
 
 const Tab = createBottomTabNavigator();
@@ -108,7 +113,7 @@ export function MainTabsNavigator() {
       />
       <Tab.Screen
         name="Experts"
-        component={ExpertsScreen}
+        component={EXPERTS_ENABLED ? ExpertsScreen : ExpertsComingSoonScreen}
         options={{
           tabBarLabel: t('tabs.experts'),
           tabBarIcon: ({ color, size }) => (

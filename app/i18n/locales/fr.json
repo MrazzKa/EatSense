@@ -991,7 +991,13 @@
     "chat": "Consultations par chat et vidéo",
     "mealPlans": "Plans de repas personnels",
     "viewArticles": "Voir les articles sur la nutrition",
-    "comingSoon": "Bientôt disponible",
+    "comingSoon": {
+      "title": "Experts — bientôt",
+      "subtitle": "Nous sélectionnons à la main des nutritionnistes et diététiciens certifiés. Le marketplace ouvre bientôt !",
+      "feature1": "Diplômes vérifiés",
+      "feature2": "Consultations directes par chat",
+      "feature3": "Partage de données sécurisé"
+    },
     "feature1": "Trouver des spécialistes vérifiés",
     "feature2": "Consultations par chat et vidéo",
     "feature3": "Plans de repas personnalisés",
@@ -1061,7 +1067,9 @@
       "addEducation": "Ajouter une entrée",
       "educationDegreePlaceholder": "Diplôme (ex. MSc Nutrition)",
       "educationInstitutionPlaceholder": "Établissement (ex. EPFL)",
-      "educationYearPlaceholder": "Année (ex. 2020)"
+      "educationYearPlaceholder": "Année (ex. 2020)",
+      "country": "Pays",
+      "countryPlaceholder": "Sélectionnez votre pays"
     },
     "client": "Client",
     "consultation": "Consultation",
@@ -1152,7 +1160,8 @@
       "errorEducationDocRequired": "Veuillez joindre un document à chaque formation.",
       "errorSpecsRequired": "Veuillez sélectionner au moins une spécialisation.",
       "errorLangsRequired": "Veuillez sélectionner au moins une langue.",
-      "errorDocsRequired": "Veuillez joindre au moins un document."
+      "errorDocsRequired": "Veuillez joindre au moins un document.",
+      "errorCountryRequired": "Veuillez sélectionner votre pays."
     },
     "specializations": {
       "weightManagement": "Gestion du poids",
@@ -4309,7 +4318,10 @@
       "details": "Détails du lieu",
       "placeName": "Nom du lieu",
       "address": "Adresse",
-      "rating": "Note"
+      "rating": "Note",
+      "untitled": "Lieu sans nom",
+      "review": "avis",
+      "reviews": "avis"
     },
     "guidelines": {
       "title": "Règles de la communauté",
@@ -4342,7 +4354,11 @@
     "groupDescPlaceholder": "De quoi parle ce groupe ?",
     "groupFailed": "Échec de création du groupe",
     "emptyGroupName": "Veuillez entrer un nom de groupe",
-    "noGroupPosts": "Aucune publication dans ce groupe"
+    "noGroupPosts": "Aucune publication dans ce groupe",
+    "places": "Lieux",
+    "emptyPlaces": "Aucun lieu pour le moment",
+    "emptyPlacesDesc": "Soyez le premier à partager un super lieu !",
+    "anonymous": "Utilisateur"
   },
   "mascot": {
     "setup": {

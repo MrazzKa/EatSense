@@ -1044,7 +1044,13 @@
     "chat": "Chat- und Videoberatungen",
     "mealPlans": "Persönliche Ernährungspläne",
     "viewArticles": "Ernährungsartikel ansehen",
-    "comingSoon": "Demnächst verfügbar",
+    "comingSoon": {
+      "title": "Experten — bald verfügbar",
+      "subtitle": "Wir wählen handverlesen zertifizierte Ernährungsberater und Diätassistenten aus. Der Marktplatz startet bald!",
+      "feature1": "Geprüfte Qualifikationen",
+      "feature2": "Direkte Chat-Beratungen",
+      "feature3": "Sicherer Datenaustausch"
+    },
     "feature1": "Verifizierte Spezialisten finden",
     "feature2": "Chat- und Videoberatungen",
     "feature3": "Personalisierte Ernährungspläne",
@@ -1102,7 +1108,9 @@
       "addEducation": "Weiteren Eintrag hinzufügen",
       "educationDegreePlaceholder": "Abschluss (z. B. MSc Ernährung)",
       "educationInstitutionPlaceholder": "Institution (z. B. ETH Zürich)",
-      "educationYearPlaceholder": "Jahr (z. B. 2020)"
+      "educationYearPlaceholder": "Jahr (z. B. 2020)",
+      "country": "Land",
+      "countryPlaceholder": "Wählen Sie Ihr Land"
     },
     "client": "Kunde",
     "consultation": "Beratung",
@@ -1199,7 +1207,8 @@
       "errorEducationDocRequired": "Bitte hänge zu jedem Ausbildungseintrag ein Dokument an.",
       "errorSpecsRequired": "Bitte wähle mindestens eine Spezialisierung.",
       "errorLangsRequired": "Bitte wähle mindestens eine Sprache.",
-      "errorDocsRequired": "Bitte hänge mindestens ein Dokument an."
+      "errorDocsRequired": "Bitte hänge mindestens ein Dokument an.",
+      "errorCountryRequired": "Bitte wähle dein Land."
     },
     "specializations": {
       "weightManagement": "Gewichtsmanagement",
@@ -4298,7 +4307,10 @@
       "details": "Ort-Details",
       "placeName": "Name des Ortes",
       "address": "Adresse",
-      "rating": "Bewertung"
+      "rating": "Bewertung",
+      "untitled": "Unbenannter Ort",
+      "review": "Bewertung",
+      "reviews": "Bewertungen"
     },
     "guidelines": {
       "title": "Community-Richtlinien",
@@ -4331,7 +4343,11 @@
     "groupDescPlaceholder": "Worum geht es in dieser Gruppe?",
     "groupFailed": "Gruppe konnte nicht erstellt werden",
     "emptyGroupName": "Bitte einen Gruppennamen eingeben",
-    "noGroupPosts": "Noch keine Beiträge in dieser Gruppe"
+    "noGroupPosts": "Noch keine Beiträge in dieser Gruppe",
+    "places": "Orte",
+    "emptyPlaces": "Noch keine Orte",
+    "emptyPlacesDesc": "Sei der Erste, der einen tollen Ort teilt!",
+    "anonymous": "Benutzer"
   },
   "mascot": {
     "setup": {

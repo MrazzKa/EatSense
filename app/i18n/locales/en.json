@@ -1301,7 +1301,13 @@
     "chat": "Chat and video consultations",
     "mealPlans": "Personal meal plans",
     "viewArticles": "View nutrition articles",
-    "comingSoon": "Coming soon",
+    "comingSoon": {
+      "title": "Experts Coming Soon",
+      "subtitle": "We're hand-picking certified nutritionists and dietitians for you. The marketplace launches soon — stay tuned!",
+      "feature1": "Verified credentials",
+      "feature2": "Direct chat consultations",
+      "feature3": "Secure data sharing"
+    },
     "feature1": "Find verified specialists",
     "feature2": "Chat & video consultations",
     "feature3": "Personalized meal plans",
@@ -1376,7 +1382,9 @@
       "addEducation": "Add another entry",
       "educationDegreePlaceholder": "Degree (e.g. MSc Nutrition)",
       "educationInstitutionPlaceholder": "Institution (e.g. ETH Zürich)",
-      "educationYearPlaceholder": "Year (e.g. 2020)"
+      "educationYearPlaceholder": "Year (e.g. 2020)",
+      "country": "Country",
+      "countryPlaceholder": "Select your country"
     },
     "client": "Client",
     "consultation": "Consultation",
@@ -1477,7 +1485,8 @@
       "errorEducationDocRequired": "Please attach a document for each education entry.",
       "errorSpecsRequired": "Please select at least one specialization.",
       "errorLangsRequired": "Please select at least one language.",
-      "errorDocsRequired": "Please attach at least one document."
+      "errorDocsRequired": "Please attach at least one document.",
+      "errorCountryRequired": "Please select your country."
     },
     "specializations": {
       "weightManagement": "Weight Management",
@@ -4256,7 +4265,10 @@
       "details": "Place Details",
       "placeName": "Place name",
       "address": "Address",
-      "rating": "Rating"
+      "rating": "Rating",
+      "untitled": "Unnamed place",
+      "review": "review",
+      "reviews": "reviews"
     },
     "guidelines": {
       "title": "Community Guidelines",
@@ -4289,7 +4301,11 @@
     "groupDescPlaceholder": "What is this group about?",
     "groupFailed": "Failed to create group",
     "emptyGroupName": "Please enter a group name",
-    "noGroupPosts": "No posts in this group yet"
+    "noGroupPosts": "No posts in this group yet",
+    "places": "Places",
+    "emptyPlaces": "No places yet",
+    "emptyPlacesDesc": "Be the first to share a great place!",
+    "anonymous": "User"
   },
   "mascot": {
     "setup": {

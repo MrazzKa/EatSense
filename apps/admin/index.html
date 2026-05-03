@@ -221,11 +221,16 @@
   <div id="login-screen">
     <div class="login-card">
       <h1 style="display:flex;align-items:center;justify-content:center;gap:8px"><span id="login-logo-slot"></span>EatSense Admin</h1>
-      <p>Enter API URL and admin secret to continue</p>
+      <p>Enter admin secret to continue</p>
       <script>document.getElementById('login-logo-slot').innerHTML = ic('leaf', 22);</script>
-      <input type="text" id="api-url" class="url-input" placeholder="API URL (e.g. https://your-api.onrender.com)" />
-      <input type="password" id="admin-secret" placeholder="Admin Secret" />
+      <!-- API URL is auto-detected from current origin. Hidden by default; click "Use different API" to override. -->
+      <input type="text" id="api-url" class="url-input" style="display:none" />
+      <input type="password" id="admin-secret" placeholder="Admin Secret" autofocus />
       <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="login()">Sign In</button>
+      <p style="margin-top:8px;font-size:11px;color:var(--text2);text-align:center;">
+        Using API: <span id="login-api-display"></span>
+        <a href="#" onclick="toggleApiOverride(event)" style="color:var(--accent);margin-left:6px;">change</a>
+      </p>
       <p id="login-error" style="color:var(--red);margin-top:12px;display:none;font-size:13px;"></p>
     </div>
   </div>
@@ -242,9 +247,9 @@
 
     <div class="tabs">
       <div class="tab active icon-inline" data-tab="suggestions" onclick="switchTab('suggestions')" id="tabbtn-suggestions">Suggestions</div>
-      <div class="tab icon-inline" data-tab="reports" onclick="switchTab('reports')" id="tabbtn-reports">Reports</div>
-      <div class="tab icon-inline" data-tab="reviews" onclick="switchTab('reviews')" id="tabbtn-reviews">Reviews</div>
-      <div class="tab icon-inline" data-tab="experts" onclick="switchTab('experts')" id="tabbtn-experts">Experts</div>
+      <div class="tab icon-inline" data-tab="reports" onclick="switchTab('reports')" id="tabbtn-reports" title="Жалобы пользователей на посты, комментарии и аккаунты в коммьюнити">Reports</div>
+      <div class="tab icon-inline" data-tab="reviews" onclick="switchTab('reviews')" id="tabbtn-reviews" title="Отзывы клиентов на экспертов">Reviews</div>
+      <div class="tab icon-inline" data-tab="experts" onclick="switchTab('experts')" id="tabbtn-experts" title="Заявки на роль эксперта: проверка документов и одобрение">Experts</div>
     </div>
     <script>
       document.getElementById('tabbtn-suggestions').insertAdjacentHTML('afterbegin', ic('list', 14) + ' ');
@@ -336,11 +341,27 @@
     }
 
     // ===== AUTH =====
+    function toggleApiOverride(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('api-url');
+      input.style.display = input.style.display === 'none' ? 'block' : 'none';
+      if (input.style.display === 'block' && !input.value) {
+        input.value = window.location.origin;
+        input.focus();
+      }
+    }
+
+    function getEffectiveApiUrl() {
+      const overrideEl = document.getElementById('api-url');
+      const override = overrideEl && overrideEl.style.display !== 'none' ? overrideEl.value.trim() : '';
+      return (override || window.location.origin).replace(/\/+$/, '');
+    }
+
     function login() {
-      const url = document.getElementById('api-url').value.trim().replace(/\/+$/, '');
+      const url = getEffectiveApiUrl();
       const secret = document.getElementById('admin-secret').value.trim();
-      if (!url || !secret) {
-        showLoginError('Please enter both API URL and Admin Secret');
+      if (!secret) {
+        showLoginError('Please enter Admin Secret');
         return;
       }
       API_URL = url;
@@ -377,14 +398,16 @@
       loadReports();
     }
 
-    // Auto-login from session
+    // Auto-login from session — API URL defaults to current origin so the admin
+    // does not need to type it. Sessions still store an override URL if used.
     window.addEventListener('DOMContentLoaded', () => {
-      const savedUrl = sessionStorage.getItem('api_url');
+      const defaultUrl = window.location.origin.replace(/\/+$/, '');
+      document.getElementById('login-api-display').textContent = defaultUrl;
+      const savedUrl = sessionStorage.getItem('api_url') || defaultUrl;
       const savedSecret = sessionStorage.getItem('admin_secret');
-      if (savedUrl && savedSecret) {
+      if (savedSecret) {
         API_URL = savedUrl;
         ADMIN_SECRET = savedSecret;
-        document.getElementById('api-url').value = savedUrl;
         showApp();
       }
     });
@@ -802,16 +825,38 @@
                 ${expert.contactPolicy ? `<div style="margin-bottom:6px"><strong>Contact policy:</strong> ${escapeHtml(expert.contactPolicy)}</div>` : ''}
                 ${(expert.credentials || []).length > 0 ? `
                   <div style="margin-top:8px"><strong>Credentials (${expert.credentials.length}):</strong></div>
-                  ${expert.credentials.map(c => `
-                    <div style="padding:4px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-                      <div>
-                        <div>${escapeHtml(c.name)} <span class="badge ${c.status === 'approved' ? 'badge-green' : c.status === 'pending' ? 'badge-yellow' : 'badge-red'}">${c.status}</span></div>
-                        ${c.issuer ? `<div style="color:var(--text2);font-size:12px">${escapeHtml(c.issuer)}</div>` : ''}
+                  ${expert.credentials.map((c, i) => {
+                    const isImage = c.fileType && /^image\//i.test(c.fileType);
+                    const isPdf = c.fileType && /pdf/i.test(c.fileType);
+                    const previewId = `cred-preview-${expert.id}-${i}`;
+                    return `
+                    <div style="padding:6px 0;border-bottom:1px dashed var(--border)">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                        <div>
+                          <div>${escapeHtml(c.name)} <span class="badge ${c.status === 'approved' ? 'badge-green' : c.status === 'pending' ? 'badge-yellow' : 'badge-red'}">${c.status}</span></div>
+                          ${c.issuer ? `<div style="color:var(--text2);font-size:12px">${escapeHtml(c.issuer)}</div>` : ''}
+                        </div>
+                        ${c.fileUrl ? `
+                          <div style="display:flex;gap:6px">
+                            <button class="btn btn-outline btn-sm" onclick="togglePreview('${previewId}')">${ic('eye')} Preview</button>
+                            <a class="btn btn-outline btn-sm" href="${escapeHtml(c.fileUrl)}" target="_blank" rel="noopener noreferrer" download>${ic('download')} Download</a>
+                          </div>
+                        ` : '<span style="color:var(--red);font-size:12px">No file</span>'}
                       </div>
-                      ${c.fileUrl ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(c.fileUrl)}" target="_blank" rel="noopener noreferrer" download>${ic('download')} Download</a>` : ''}
+                      ${c.fileUrl ? `
+                        <div id="${previewId}" style="display:none;margin-top:8px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff">
+                          ${isImage
+                            ? `<img src="${escapeHtml(c.fileUrl)}" alt="${escapeHtml(c.name)}" style="display:block;max-width:100%;max-height:600px;margin:0 auto" />`
+                            : isPdf
+                            ? `<iframe src="${escapeHtml(c.fileUrl)}" style="width:100%;height:600px;border:0"></iframe>`
+                            : `<div style="padding:12px;color:var(--text2);font-size:12px">Preview unavailable for this file type. Use Download.</div>`
+                          }
+                        </div>
+                      ` : ''}
                     </div>
-                  `).join('')}
-                ` : ''}
+                  `;
+                  }).join('')}
+                ` : '<div style="color:var(--red);margin-top:8px">⚠️ No credentials uploaded — verify before approving.</div>'}
                 ${offers.length > 0 ? `
                   <div style="margin-top:8px"><strong>Offers (${offers.length}):</strong></div>
                   ${offers.map(o => {
@@ -845,6 +890,12 @@
 
     function toggleExpertDetails(id) {
       const el = document.getElementById(`expert-details-${id}`);
+      if (!el) return;
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function togglePreview(previewId) {
+      const el = document.getElementById(previewId);
       if (!el) return;
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
     }

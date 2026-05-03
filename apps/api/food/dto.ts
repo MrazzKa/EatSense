@@ -142,3 +142,54 @@ export class ReanalyzeRequestDto {
   @IsIn(['default', 'review'])
   mode?: 'default' | 'review';
 }
+
+export class ManualReanalyzeItemDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
+  @ApiProperty({ example: 'Grilled Chicken Breast' })
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  // Min 1 g — anything less almost certainly indicates a UI bug or empty input
+  // and would lead to division-by-zero in the reanalyze pipeline.
+  @ApiProperty({ example: 150, description: 'Portion in grams (min 1)' })
+  @IsNumber()
+  @Min(1)
+  portion_g!: number;
+
+  @ApiProperty({ required: false, example: 165 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  calories?: number;
+
+  @ApiProperty({ required: false, example: 31 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  protein_g?: number;
+
+  @ApiProperty({ required: false, example: 0 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  carbs_g?: number;
+
+  @ApiProperty({ required: false, example: 3.6 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  fat_g?: number;
+}
+
+export class ManualReanalyzeItemsDto {
+  @ApiProperty({ type: [ManualReanalyzeItemDto], description: 'List of manually edited items' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ManualReanalyzeItemDto)
+  items!: ManualReanalyzeItemDto[];
+}

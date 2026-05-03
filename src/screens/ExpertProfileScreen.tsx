@@ -184,6 +184,13 @@ export default function ExpertProfileScreen({ route, navigation }) {
 
                     <Text style={styles.typeText}>{t(typeKey) || expert.type}</Text>
 
+                    {expert.country ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 }}>
+                            <Ionicons name="location-outline" size={14} color={colors.textSecondary || '#6B7280'} />
+                            <Text style={[styles.typeText, { fontSize: 13 }]}>{expert.country}</Text>
+                        </View>
+                    ) : null}
+
                     {/* Stats Row */}
                     <View style={styles.statsRow}>
                         <View style={styles.statItem}>

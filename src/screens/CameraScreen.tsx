@@ -279,24 +279,32 @@ export default function CameraScreen() {
       }
     } catch (error) {
       console.error('[CameraScreen] Error starting background analysis:', error);
-      if (error?.response?.status === 429 || error?.status === 429) {
-        Alert.alert(
-          t('errors.limitReachedTitle') || 'Daily Limit Reached',
-          t('errors.limitReachedMessage') || 'You have reached your daily scan limit. Upgrade to get unlimited scans.'
-        );
+      const status = error?.response?.status || error?.status;
+      const navigateBack = () => {
         if (navigation && typeof navigation.navigate === 'function') {
           navigation.navigate('MainTabs', { screen: 'Dashboard' });
         }
+      };
+      if (status === 429) {
+        Alert.alert(
+          t('errors.limitReachedTitle') || 'Daily Limit Reached',
+          error?.message
+            || t('errors.limitReachedMessage')
+            || 'You have reached your daily scan limit. Upgrade to get unlimited scans.',
+          [{ text: 'OK', onPress: navigateBack }],
+        );
         return;
       }
-      // Show error to user, then navigate to dashboard
+      // Show detailed error so the user understands why calories did not change.
+      const detail = error?.response?.data?.message || error?.message || 'Analysis failed.';
       Alert.alert(
         t('common.error') || 'Error',
-        error?.message || t('errors.analysisFailed') || 'Analysis failed. Please try again.',
+        `${detail}\n\n${t('errors.analysisHint') || 'Try a clearer photo with the dish well-lit and centered.'}`,
+        [
+          { text: t('common.cancel') || 'Cancel', style: 'cancel', onPress: navigateBack },
+          { text: t('common.tryAgain') || 'Try again', onPress: () => startAnalysis(imageUri) },
+        ],
       );
-      if (navigation && typeof navigation.navigate === 'function') {
-        navigation.navigate('MainTabs', { screen: 'Dashboard' });
-      }
     } finally {
       // setCapturedImageUri(null); // State removed
     }

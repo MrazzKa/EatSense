@@ -54,6 +54,11 @@ export class CreateExpertProfileDto {
     @IsString()
     @MaxLength(500)
     contactPolicy?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2)
+    country?: string; // ISO 3166-1 alpha-2 (e.g. "KZ")
 }
 
 export class UpdateExpertProfileDto {
@@ -109,6 +114,11 @@ export class UpdateExpertProfileDto {
     @IsString()
     @MaxLength(500)
     contactPolicy?: string;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2)
+    country?: string;
 
     @IsOptional()
     @IsBoolean()

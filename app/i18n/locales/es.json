@@ -706,7 +706,13 @@
     "chat": "Consultas por chat y video",
     "mealPlans": "Planes de comidas personalizados",
     "viewArticles": "Ver artículos de nutrición",
-    "comingSoon": "Próximamente",
+    "comingSoon": {
+      "title": "Expertos — próximamente",
+      "subtitle": "Estamos seleccionando a mano nutricionistas y dietistas certificados. El marketplace abrirá pronto.",
+      "feature1": "Credenciales verificadas",
+      "feature2": "Consultas directas por chat",
+      "feature3": "Compartición segura de datos"
+    },
     "feature1": "Encuentra especialistas verificados",
     "feature2": "Consultas por chat y video",
     "feature3": "Planes de comidas personalizados",
@@ -764,7 +770,9 @@
       "addEducation": "Añadir otra entrada",
       "educationDegreePlaceholder": "Título (p. ej. MSc Nutrición)",
       "educationInstitutionPlaceholder": "Institución (p. ej. Universidad de Barcelona)",
-      "educationYearPlaceholder": "Año (p. ej. 2020)"
+      "educationYearPlaceholder": "Año (p. ej. 2020)",
+      "country": "País",
+      "countryPlaceholder": "Seleccione su país"
     },
     "client": "Cliente",
     "consultation": "Consulta",
@@ -861,7 +869,8 @@
       "errorEducationDocRequired": "Adjunta un documento a cada formación.",
       "errorSpecsRequired": "Selecciona al menos una especialización.",
       "errorLangsRequired": "Selecciona al menos un idioma.",
-      "errorDocsRequired": "Adjunta al menos un documento."
+      "errorDocsRequired": "Adjunta al menos un documento.",
+      "errorCountryRequired": "Seleccione su país."
     },
     "specializations": {
       "weightManagement": "Control de peso",
@@ -2731,7 +2740,10 @@
       "details": "Detalles del lugar",
       "placeName": "Nombre del lugar",
       "address": "Dirección",
-      "rating": "Calificación"
+      "rating": "Calificación",
+      "untitled": "Lugar sin nombre",
+      "review": "reseña",
+      "reviews": "reseñas"
     },
     "guidelines": {
       "title": "Normas de la comunidad",
@@ -2764,7 +2776,11 @@
     "groupDescPlaceholder": "¿De qué trata este grupo?",
     "groupFailed": "Error al crear el grupo",
     "emptyGroupName": "Introduce un nombre de grupo",
-    "noGroupPosts": "Aún no hay publicaciones en este grupo"
+    "noGroupPosts": "Aún no hay publicaciones en este grupo",
+    "places": "Lugares",
+    "emptyPlaces": "Aún no hay lugares",
+    "emptyPlacesDesc": "¡Sé el primero en compartir un buen lugar!",
+    "anonymous": "Usuario"
   },
   "mascot": {
     "setup": {

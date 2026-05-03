@@ -20,13 +20,14 @@ import { useAuth } from '../contexts/AuthContext';
 import ApiService from '../services/apiService';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { CommunityPostCard } from '../components/community/CommunityPostCard';
+import { BestPlaceCard } from '../components/community/BestPlaceCard';
 import { EventCard } from '../components/community/EventCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard } from '../components/community/GroupCard';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 
-type TabKey = 'feed' | 'groups';
+type TabKey = 'feed' | 'groups' | 'places';
 
 export default function CommunityScreen() {
   const navigation = useNavigation();
@@ -43,6 +44,7 @@ export default function CommunityScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [hasCity, setHasCity] = useState(false);
   const [myOwnedCommunity, setMyOwnedCommunity] = useState<{ id: string; name: string } | null>(null);
+  const [bestPlaces, setBestPlaces] = useState([]);
 
   // Search
   const [searchVisible, setSearchVisible] = useState(false);
@@ -90,20 +92,29 @@ export default function CommunityScreen() {
     }
   }, []);
 
+  const loadBestPlaces = useCallback(async () => {
+    try {
+      const data = await ApiService.getBestPlaces(1, 50);
+      setBestPlaces(data?.data || data || []);
+    } catch (err) {
+      console.warn('Failed to load best places:', err);
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
     if (isInitialLoad.current) {
       setLoading(true);
     }
-    await Promise.all([loadFeed(), loadGroups(), checkCity(), loadOwnedCommunity()]);
+    await Promise.all([loadFeed(), loadGroups(), checkCity(), loadOwnedCommunity(), loadBestPlaces()]);
     setLoading(false);
     isInitialLoad.current = false;
-  }, [loadFeed, loadGroups, checkCity, loadOwnedCommunity]);
+  }, [loadFeed, loadGroups, checkCity, loadOwnedCommunity, loadBestPlaces]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeed(), loadGroups(), checkCity(), loadOwnedCommunity()]);
+    await Promise.all([loadFeed(), loadGroups(), checkCity(), loadOwnedCommunity(), loadBestPlaces()]);
     setRefreshing(false);
-  }, [loadFeed, loadGroups, checkCity, loadOwnedCommunity]);
+  }, [loadFeed, loadGroups, checkCity, loadOwnedCommunity, loadBestPlaces]);
 
   useFocusEffect(
     useCallback(() => {
@@ -227,6 +238,18 @@ export default function CommunityScreen() {
     return groups.filter((g) => !g.isMember).slice(0, 4);
   }, [groups]);
 
+  const filteredPlaces = useMemo(() => {
+    if (!searchQuery.trim()) return bestPlaces;
+    const q = searchQuery.toLowerCase();
+    return bestPlaces.filter((p) => {
+      const meta = (p as any).metadata || {};
+      const content = ((p as any).content || '').toLowerCase();
+      const name = (meta.placeName || '').toLowerCase();
+      const addr = (meta.address || '').toLowerCase();
+      return content.includes(q) || name.includes(q) || addr.includes(q);
+    });
+  }, [bestPlaces, searchQuery]);
+
   // --- Render helpers ---
 
   const renderPostItem = useCallback(
@@ -275,6 +298,20 @@ export default function CommunityScreen() {
       />
     ),
     [navigation, handleJoinGroup],
+  );
+
+  const renderBestPlaceItem = useCallback(
+    ({ item }) => (
+      <BestPlaceCard
+        post={item}
+        currentUserId={user?.id}
+        onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+        onLike={(type) => handleLike(item.id, type)}
+        onComment={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+        onAuthorPress={handleAuthorPress}
+      />
+    ),
+    [navigation, handleLike, handleAuthorPress, user?.id],
   );
 
   const renderCityBanner = () => {
@@ -332,6 +369,18 @@ export default function CommunityScreen() {
       </Text>
       <Text style={[styles.emptySubtitle, { color: colors.textTertiary }]}>
         {t('community.emptyGroupsDesc', 'Create a group to get started!')}
+      </Text>
+    </View>
+  );
+
+  const renderEmptyPlaces = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="location-outline" size={48} color={colors.textTertiary} />
+      <Text style={[styles.emptyTitle, { color: colors.textPrimary || colors.text }]}>
+        {t('community.emptyPlaces', 'No places yet')}
+      </Text>
+      <Text style={[styles.emptySubtitle, { color: colors.textTertiary }]}>
+        {t('community.emptyPlacesDesc', 'Be the first to share a great place!')}
       </Text>
     </View>
   );
@@ -439,6 +488,20 @@ export default function CommunityScreen() {
           </Text>
           {activeTab === 'groups' && <View style={[styles.tabIndicator, { backgroundColor: colors.primary }]} />}
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'places' && styles.tabActive]}
+          onPress={() => setActiveTab('places')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              { color: activeTab === 'places' ? colors.primary : colors.textTertiary },
+            ]}
+          >
+            {t('community.places', 'Places')}
+          </Text>
+          {activeTab === 'places' && <View style={[styles.tabIndicator, { backgroundColor: colors.primary }]} />}
+        </TouchableOpacity>
       </View>
 
       {/* Content */}
@@ -459,13 +522,25 @@ export default function CommunityScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
-      ) : (
+      ) : activeTab === 'groups' ? (
         <FlatList
           data={filteredGroups}
           keyExtractor={(item) => item.id}
           renderItem={renderGroupItem}
           ListHeaderComponent={groupsHeader}
           ListEmptyComponent={renderEmptyGroups}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <FlatList
+          data={filteredPlaces}
+          keyExtractor={(item) => item.id}
+          renderItem={renderBestPlaceItem}
+          ListEmptyComponent={renderEmptyPlaces}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
           }

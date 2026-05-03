@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DailyLimitGuard } from '../limits/daily-limit.guard';
 import { DailyLimit } from '../limits/daily-limit.decorator';
 import { FoodService } from './food.service';
-import { AnalyzeImageDto, AnalyzeTextDto, ReanalyzeRequestDto } from './dto';
+import { AnalyzeImageDto, AnalyzeTextDto, ReanalyzeRequestDto, ManualReanalyzeItemsDto } from './dto';
 
 @ApiTags('Food Analysis')
 @Controller('food')
@@ -81,8 +81,13 @@ export class FoodController {
   @Post('analysis/:id/manual-reanalyze')
   @ApiOperation({ summary: 'Re-analyze with manually edited items' })
   @ApiResponse({ status: 200, description: 'Re-analysis completed' })
-  async manualReanalyze(@Param('id') id: string, @Body() body: any, @Request() req: any) {
-    return this.foodService.manualReanalyze(id, req.user.id, body.items);
+  async manualReanalyze(
+    @Param('id') id: string,
+    @Body() body: ManualReanalyzeItemsDto,
+    @Request() req: any,
+  ) {
+    // Service expects { items: [...] }, not the bare array — pass the validated DTO.
+    return this.foodService.manualReanalyze(id, req.user.id, body);
   }
 
   @Get('analyses/active')

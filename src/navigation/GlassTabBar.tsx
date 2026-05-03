@@ -6,11 +6,12 @@ import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
 
 const TAB_BAR_HEIGHT = 62;
-const HORIZONTAL_INSET = 14;
-const BOTTOM_GAP = 6;
+const HORIZONTAL_INSET = 18;
+// Lift the pill above the screen edge so it visibly floats over content.
+const BOTTOM_GAP = 14;
 
 /** Total vertical space the floating bar reserves at the bottom of the screen. */
-export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 8;
+export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 12;
 
 /**
  * Floating glass pill at the bottom — modeled after Telegram / Apple system style.
@@ -173,13 +174,15 @@ const styles = StyleSheet.create({
         borderRadius: 999,
         ...Platform.select({
             ios: {
-                shadowColor: 'rgba(15,23,42,0.22)',
-                shadowOpacity: 1,
-                shadowRadius: 28,
-                shadowOffset: { width: 0, height: 14 },
+                // Soft, large shadow + small offset = clear "floating" look without
+                // looking heavy. Drop the pill ~16px to enhance the levitation.
+                shadowColor: '#000',
+                shadowOpacity: 0.18,
+                shadowRadius: 32,
+                shadowOffset: { width: 0, height: 16 },
             },
             android: {
-                elevation: 14,
+                elevation: 16,
             },
         }),
     },
