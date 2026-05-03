@@ -460,6 +460,7 @@
     "info": "Infos",
     "gotIt": "Compris",
     "free": "Gratuit",
+    "premium": "Premium",
     "other": "Autre",
     "required": "Requis",
     "comingSoon": "Bientôt",
@@ -1141,7 +1142,17 @@
       "educationIncomplete": "Chaque formation nécessite un diplôme, un établissement et un document joint.",
       "fileTooLarge": "Fichier trop volumineux",
       "fileTooLargeMessage": "La taille maximale du fichier est de {{mb}} Mo.",
-      "profileCreateFailed": "Échec de la création du profil. Veuillez réessayer."
+      "profileCreateFailed": "Échec de la création du profil. Veuillez réessayer.",
+      "cannotProceed": "Presque terminé",
+      "errorAcceptDisclaimer": "Veuillez accepter la clause pour continuer.",
+      "errorDisplayNameRequired": "Veuillez saisir votre nom d'affichage.",
+      "errorBioTooShort": "Décrivez-vous davantage — il manque {{count}} caractères.",
+      "errorEducationRequired": "Veuillez ajouter au moins une formation.",
+      "errorEducationIncomplete": "Veuillez remplir le diplôme et l'établissement pour chaque formation.",
+      "errorEducationDocRequired": "Veuillez joindre un document à chaque formation.",
+      "errorSpecsRequired": "Veuillez sélectionner au moins une spécialisation.",
+      "errorLangsRequired": "Veuillez sélectionner au moins une langue.",
+      "errorDocsRequired": "Veuillez joindre au moins un document."
     },
     "specializations": {
       "weightManagement": "Gestion du poids",
@@ -1412,6 +1423,7 @@
     "noDoses": "Aucun horaire spécifié",
     "placeholders": {
       "dosage": "500 mg",
+      "dosageAmount": "500",
       "instructions": "Avant le dîner, avec de l'eau",
       "name": "Metformine",
       "quantity": "30",

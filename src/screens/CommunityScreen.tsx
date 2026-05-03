@@ -352,6 +352,8 @@ export default function CommunityScreen() {
   );
 
   const groupsHeader = () => {
+    // User-created custom groups are disabled — only country-based groups are available.
+    // We still show "Open my community" if the user already owns one (legacy data).
     if (myOwnedCommunity) {
       return (
         <TouchableOpacity
@@ -366,18 +368,7 @@ export default function CommunityScreen() {
         </TouchableOpacity>
       );
     }
-    return (
-      <TouchableOpacity
-        style={[styles.createGroupBtn, { borderColor: colors.border }]}
-        onPress={() => navigation.navigate('CreateCommunityGroup')}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
-        <Text style={[styles.createGroupText, { color: colors.primary }]}>
-          {t('community.createGroup', 'Create a new group')}
-        </Text>
-      </TouchableOpacity>
-    );
+    return null;
   };
 
   return (

@@ -346,6 +346,7 @@
     "all": "Барлығы",
     "daysAgo": "күн бұрын",
     "free": "Тегін",
+    "premium": "Премиум",
     "other": "Басқа",
     "required": "Міндетті",
     "optional": "міндетті емес",
@@ -356,6 +357,7 @@
     "saveChanges": "Сақтау",
     "start": "Бастау",
     "clear": "Тазалау",
+    "apply": "Қолдану",
     "back": "Артқа",
     "cancel": "Бас тарту",
     "close": "Жабу",
@@ -1040,7 +1042,17 @@
       "educationIncomplete": "Әр білім жазбасында дәреже, оқу орны және тіркелген құжат болуы керек.",
       "fileTooLarge": "Файл тым үлкен",
       "fileTooLargeMessage": "Файлдың максималды өлшемі — {{mb}} МБ.",
-      "profileCreateFailed": "Профильді құру сәтсіз аяқталды. Қайталап көріңіз."
+      "profileCreateFailed": "Профильді құру сәтсіз аяқталды. Қайталап көріңіз.",
+      "cannotProceed": "Аздап қалды",
+      "errorAcceptDisclaimer": "Жалғастыру үшін келісімді қабылдаңыз.",
+      "errorDisplayNameRequired": "Көрсетілетін атыңызды енгізіңіз.",
+      "errorBioTooShort": "Өзіңіз туралы көбірек жазыңыз — тағы {{count}} таңба қажет.",
+      "errorEducationRequired": "Кемінде бір білім туралы жазба қосыңыз.",
+      "errorEducationIncomplete": "Әр жазба үшін дәреже мен мекемені толтырыңыз.",
+      "errorEducationDocRequired": "Әр білім жазбасына құжат тіркеңіз.",
+      "errorSpecsRequired": "Кемінде бір мамандандыруды таңдаңыз.",
+      "errorLangsRequired": "Кемінде бір тілді таңдаңыз.",
+      "errorDocsRequired": "Кемінде бір құжат тіркеңіз."
     },
     "specializations": {
       "weightManagement": "Салмақты басқару",
@@ -1401,6 +1413,7 @@
     "placeholders": {
       "name": "Метформин",
       "dosage": "500 мг",
+      "dosageAmount": "500",
       "instructions": "Тамақ алдында, сумен",
       "quantity": "30",
       "remainingStock": "Автоматты есептеледі"

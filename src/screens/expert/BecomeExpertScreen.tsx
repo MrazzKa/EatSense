@@ -192,25 +192,47 @@ export default function BecomeExpertScreen({ navigation }: any) {
         AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
     }, []);
 
-    const canGoNext = useMemo(() => {
+    const validationError = useMemo<string | null>(() => {
         switch (step) {
-            case 1: return disclaimerAccepted;
+            case 1:
+                return disclaimerAccepted ? null : (t('experts.onboarding.errorAcceptDisclaimer') || 'Please accept the disclaimer to continue.');
             case 2: {
-                if (displayName.trim().length === 0) return false;
-                if (bio.trim().length < 50) return false;
-                // Every education entry must have degree, institution and an attached document.
-                for (const entry of educationEntries) {
-                    if (!entry.degree.trim() || !entry.institution.trim()) return false;
-                    if (!entry.document) return false;
+                if (displayName.trim().length === 0) {
+                    return t('experts.onboarding.errorDisplayNameRequired') || 'Please enter your display name.';
                 }
-                return true;
+                if (bio.trim().length < 50) {
+                    return (t('experts.onboarding.errorBioTooShort', { count: 50 - bio.trim().length }) as string)
+                        || `Please write at least 50 characters about yourself (need ${50 - bio.trim().length} more).`;
+                }
+                // Validate only filled education entries; ignore empty placeholder rows.
+                const filled = educationEntries.filter(e => e.degree.trim() || e.institution.trim() || e.document);
+                if (filled.length === 0) {
+                    return t('experts.onboarding.errorEducationRequired') || 'Please add at least one education entry.';
+                }
+                for (const entry of filled) {
+                    if (!entry.degree.trim() || !entry.institution.trim()) {
+                        return t('experts.onboarding.errorEducationIncomplete') || 'Please fill degree and institution for each education entry.';
+                    }
+                    if (!entry.document) {
+                        return t('experts.onboarding.errorEducationDocRequired') || 'Please attach a document for each education entry.';
+                    }
+                }
+                return null;
             }
-            case 3: return selectedSpecs.length > 0 && selectedLangs.length > 0;
-            case 4: return documents.length >= 1;
-            case 5: return true; // preview
-            default: return false;
+            case 3:
+                if (selectedSpecs.length === 0) return t('experts.onboarding.errorSpecsRequired') || 'Please select at least one specialization.';
+                if (selectedLangs.length === 0) return t('experts.onboarding.errorLangsRequired') || 'Please select at least one language.';
+                return null;
+            case 4:
+                return documents.length >= 1 ? null : (t('experts.onboarding.errorDocsRequired') || 'Please attach at least one document.');
+            case 5:
+                return null;
+            default:
+                return 'Invalid step';
         }
-    }, [step, disclaimerAccepted, displayName, bio, educationEntries, selectedSpecs, selectedLangs, documents.length]);
+    }, [step, disclaimerAccepted, displayName, bio, educationEntries, selectedSpecs, selectedLangs, documents.length, t]);
+
+    const canGoNext = validationError === null;
 
     const toggleSpec = useCallback((spec: string) => {
         setSelectedSpecs(prev =>
@@ -519,12 +541,19 @@ export default function BecomeExpertScreen({ navigation }: any) {
     }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, educationEntries, refreshUser, t, clearDraft]);
 
     const handleNext = useCallback(() => {
+        if (validationError) {
+            Alert.alert(
+                t('experts.onboarding.cannotProceed') || 'Almost there',
+                validationError,
+            );
+            return;
+        }
         if (step === 5) {
             handleSubmit();
         } else {
             setStep(s => s + 1);
         }
-    }, [step, handleSubmit]);
+    }, [step, handleSubmit, validationError, t]);
 
     const handleBack = useCallback(() => {
         if (step === 1) {
@@ -968,10 +997,16 @@ export default function BecomeExpertScreen({ navigation }: any) {
             {/* Bottom buttons */}
             {step < 6 && (
                 <View style={styles.bottomBar}>
+                    {validationError && (
+                        <Text style={styles.validationHint} numberOfLines={2}>
+                            {validationError}
+                        </Text>
+                    )}
                     <TouchableOpacity
                         style={[styles.primaryButton, !canGoNext && styles.primaryButtonDisabled]}
                         onPress={handleNext}
-                        disabled={!canGoNext || loading}
+                        disabled={loading}
+                        activeOpacity={canGoNext ? 0.8 : 1}
                     >
                         {loading ? (
                             <ActivityIndicator color="#FFFFFF" />
@@ -1321,6 +1356,12 @@ const createStyles = (tokens: any, colors: any) =>
         },
         primaryButtonDisabled: {
             opacity: 0.5,
+        },
+        validationHint: {
+            fontSize: 13,
+            color: colors.error || '#FF3B30',
+            marginBottom: tokens.spacing.sm,
+            textAlign: 'center',
         },
         primaryButtonText: {
             fontSize: 16,

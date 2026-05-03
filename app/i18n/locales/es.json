@@ -384,6 +384,7 @@
     "daysAgo": "Hace días",
     "errorGeneric": "Error genérico",
     "free": "Gratis",
+    "premium": "Premium",
     "gotIt": "Entendido",
     "later": "Más tarde",
     "other": "Otro",
@@ -850,7 +851,17 @@
       "educationIncomplete": "Cada entrada de formación requiere un título, una institución y un documento adjunto.",
       "fileTooLarge": "Archivo demasiado grande",
       "fileTooLargeMessage": "El tamaño máximo del archivo es {{mb}} MB.",
-      "profileCreateFailed": "Error al crear el perfil. Inténtalo de nuevo."
+      "profileCreateFailed": "Error al crear el perfil. Inténtalo de nuevo.",
+      "cannotProceed": "Casi listo",
+      "errorAcceptDisclaimer": "Acepta el aviso para continuar.",
+      "errorDisplayNameRequired": "Introduce tu nombre visible.",
+      "errorBioTooShort": "Cuéntanos más sobre ti — faltan {{count}} caracteres.",
+      "errorEducationRequired": "Añade al menos una formación.",
+      "errorEducationIncomplete": "Completa el título y la institución para cada formación.",
+      "errorEducationDocRequired": "Adjunta un documento a cada formación.",
+      "errorSpecsRequired": "Selecciona al menos una especialización.",
+      "errorLangsRequired": "Selecciona al menos un idioma.",
+      "errorDocsRequired": "Adjunta al menos un documento."
     },
     "specializations": {
       "weightManagement": "Control de peso",
@@ -1105,6 +1116,7 @@
     "noDoses": "No times specified",
     "placeholders": {
       "dosage": "500 mg",
+      "dosageAmount": "500",
       "instructions": "Before dinner, with water",
       "name": "Metformin",
       "quantity": "30",

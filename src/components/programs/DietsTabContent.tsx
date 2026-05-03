@@ -66,6 +66,8 @@ export default function DietsTabContent({
 
     const typeFilters: Array<{ id: string | null; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = [
         { id: null, label: t('diets_all') || 'All', icon: 'apps' },
+        { id: 'FREE', label: t('common.free') || 'Free', icon: 'gift' },
+        { id: 'PREMIUM', label: t('common.premium') || 'Premium', icon: 'star' },
         { id: 'WEIGHT_LOSS', label: t('diets_weight_loss') || 'Weight Loss', icon: 'trending-down' },
         { id: 'HEALTH', label: t('diets_health') || 'Health', icon: 'heart' },
         { id: 'SPORTS', label: t('diets_sports') || 'Sports', icon: 'fitness' },
@@ -97,10 +99,13 @@ export default function DietsTabContent({
             return DIETS_UI_GROUPS.some(g => g.id === group);
         });
 
-        // FIX: Apply type filter (WEIGHT_LOSS, HEALTH, SPORTS, MEDICAL)
-        if (selectedType) {
+        // FIX: Apply type filter (FREE, PREMIUM, WEIGHT_LOSS, HEALTH, SPORTS, MEDICAL)
+        if (selectedType === 'FREE') {
+            diets = diets.filter(diet => isFreeDiet(diet.slug || diet.id));
+        } else if (selectedType === 'PREMIUM') {
+            diets = diets.filter(diet => !isFreeDiet(diet.slug || diet.id));
+        } else if (selectedType) {
             diets = diets.filter(diet => {
-                // Normalize type comparison - handle both uppercase and lowercase
                 const dietType = (diet.type || '').toUpperCase();
                 const filterType = selectedType.toUpperCase();
                 return dietType === filterType;

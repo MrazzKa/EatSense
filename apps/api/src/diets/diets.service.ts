@@ -880,9 +880,15 @@ export class DietsService implements OnModuleInit {
             const completedItems = Object.values(checklist).filter(Boolean).length;
             const completionPercent = totalItems > 0 ? completedItems / totalItems : 0;
 
-            // Update or create today's log with transaction for atomicity
+            // Streak threshold/calc done before transaction to keep tx short.
+            const threshold = userDiet.program?.streakThreshold || 0.7;
+            const meetsThreshold = completionPercent >= threshold;
+
+            // Atomically upsert daily log AND update streak in one transaction.
+            // Re-read userDietProgram inside the transaction so concurrent fast taps
+            // see the latest currentStreak/lastStreakDate (avoids lost streak updates).
             const updatedLog = await this.prisma.$transaction(async (tx) => {
-                return tx.userDietDailyLog.upsert({
+                const log = await tx.userDietDailyLog.upsert({
                     where: { userDietId_date: { userDietId: userDiet.id, date: today } },
                     create: {
                         userDietId: userDiet.id,
@@ -898,35 +904,35 @@ export class DietsService implements OnModuleInit {
                         completionPercent,
                     },
                 });
+
+                if (meetsThreshold) {
+                    const fresh = await tx.userDietProgram.findUnique({
+                        where: { id: userDiet.id },
+                        select: { currentStreak: true, longestStreak: true, lastStreakDate: true },
+                    });
+                    const todayStr = today.toISOString().split('T')[0];
+                    const lastStreakStr = fresh?.lastStreakDate?.toISOString().split('T')[0];
+
+                    if (lastStreakStr !== todayStr) {
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = yesterday.toISOString().split('T')[0];
+                        const isConsecutive = lastStreakStr === yesterdayStr || !fresh?.lastStreakDate;
+                        const newStreak = isConsecutive ? (fresh?.currentStreak ?? 0) + 1 : 1;
+
+                        await tx.userDietProgram.update({
+                            where: { id: userDiet.id },
+                            data: {
+                                currentStreak: newStreak,
+                                longestStreak: Math.max(newStreak, fresh?.longestStreak ?? 0),
+                                lastStreakDate: today,
+                            },
+                        });
+                    }
+                }
+
+                return log;
             });
-
-            // Update streak if completion meets threshold
-            const threshold = userDiet.program?.streakThreshold || 0.7;
-            const meetsThreshold = completionPercent >= threshold;
-
-            // Check if we need to update streak (only once per day)
-            const lastStreakDate = userDiet.lastStreakDate;
-            const todayStr = today.toISOString().split('T')[0];
-            const lastStreakStr = lastStreakDate?.toISOString().split('T')[0];
-
-            if (meetsThreshold && lastStreakStr !== todayStr) {
-                // Calculate if it's consecutive (yesterday or first day)
-                const yesterday = new Date(today);
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                const isConsecutive = lastStreakStr === yesterdayStr || !lastStreakDate;
-                const newStreak = isConsecutive ? userDiet.currentStreak + 1 : 1;
-
-                await this.prisma.userDietProgram.update({
-                    where: { id: userDiet.id },
-                    data: {
-                        currentStreak: newStreak,
-                        longestStreak: Math.max(newStreak, userDiet.longestStreak),
-                        lastStreakDate: today,
-                    },
-                });
-            }
 
             this.logger.log(`User ${userId} updated checklist: ${completedItems}/${totalItems} (${Math.round(completionPercent * 100)}%)`);
 

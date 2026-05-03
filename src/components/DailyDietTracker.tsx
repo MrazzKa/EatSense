@@ -178,31 +178,27 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     }, [updateChecklist, trackerData, onUpdate]);
 
     const handleChecklistToggle = useCallback((key: string) => {
-        if (!trackerData || !program || !trackerData.dailyTracker || trackerData.dailyTracker.length === 0) return;
+        if (!program) return;
 
-        // Build new checklist state
-        const newChecklist: Record<string, boolean> = {};
-        trackerData.dailyTracker.forEach(item => {
-            newChecklist[item.key] = item.key === key ? !item.checked : item.checked;
-        });
-
-        // Optimistic UI update (immediate)
+        // Optimistic UI update + collect the latest checklist snapshot from the
+        // current (post-toggle) state. Using the functional setter guarantees we
+        // see every prior toggle even when taps fire faster than React commits.
         setTrackerData(prev => {
-            if (!prev) return prev;
-            return {
-                ...prev,
-                dailyTracker: prev.dailyTracker.map(item =>
-                    item.key === key ? { ...item, checked: !item.checked } : item
-                ),
-            };
+            if (!prev || !prev.dailyTracker || prev.dailyTracker.length === 0) return prev;
+            const updatedTracker = prev.dailyTracker.map(item =>
+                item.key === key ? { ...item, checked: !item.checked } : item
+            );
+            const snapshot: Record<string, boolean> = {};
+            updatedTracker.forEach(item => { snapshot[item.key] = item.checked; });
+            // Stash the latest snapshot for the debounced sync.
+            pendingChecklistRef.current = snapshot;
+            return { ...prev, dailyTracker: updatedTracker };
         });
 
-        // Debounce the backend sync
+        // Debounce the backend sync — coalesces rapid taps into one request.
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
-
-        pendingChecklistRef.current = newChecklist;
         debounceTimerRef.current = setTimeout(() => {
             const checklistToSync = pendingChecklistRef.current;
             if (checklistToSync) {
@@ -211,7 +207,7 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
                 syncChecklistToBackend(checklistToSync).finally(() => setSaving(false));
             }
         }, DEBOUNCE_MS);
-    }, [trackerData, program, syncChecklistToBackend]);
+    }, [program, syncChecklistToBackend]);
 
     const handleSymptomChange = async (symptom: string, value: number) => {
         if (!trackerData || saving) return;

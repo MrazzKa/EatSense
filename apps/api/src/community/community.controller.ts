@@ -10,6 +10,7 @@ import {
   Query,
   Request,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -43,9 +44,11 @@ export class CommunityController {
   }
 
   @Post('groups')
-  @ApiOperation({ summary: 'Create a new group' })
+  @ApiOperation({ summary: 'Create a new group (disabled — only seeded country groups allowed)' })
   async createGroup(@Request() req: any, @Body() dto: CreateGroupDto) {
-    return this.communityService.createGroup(req.user.id, dto);
+    // User-created groups are disabled. Only seeded country groups are exposed via getGroups.
+    // Admins can still seed groups via community-admin.controller.
+    throw new ForbiddenException('Creating new groups is disabled. Please join an existing country group.');
   }
 
   @Post('groups/:id/join')

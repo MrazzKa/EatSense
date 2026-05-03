@@ -359,6 +359,7 @@
     "all": "Все",
     "daysAgo": "дней назад",
     "free": "Бесплатно",
+    "premium": "Премиум",
     "other": "Другое",
     "required": "Обязательно",
     "optional": "необязательно",
@@ -369,6 +370,7 @@
     "saveChanges": "Сохранить",
     "start": "Начать",
     "clear": "Очистить",
+    "apply": "Применить",
     "back": "Назад",
     "cancel": "Отмена",
     "done": "Готово",
@@ -1356,7 +1358,17 @@
       "educationIncomplete": "Для каждой записи об образовании нужны степень, учреждение и приложенный документ.",
       "fileTooLarge": "Файл слишком большой",
       "fileTooLargeMessage": "Максимальный размер файла — {{mb}} МБ.",
-      "profileCreateFailed": "Не удалось создать профиль. Попробуйте ещё раз."
+      "profileCreateFailed": "Не удалось создать профиль. Попробуйте ещё раз.",
+      "cannotProceed": "Ещё немного",
+      "errorAcceptDisclaimer": "Подтвердите согласие, чтобы продолжить.",
+      "errorDisplayNameRequired": "Укажите имя, под которым вас увидят клиенты.",
+      "errorBioTooShort": "Расскажите о себе подробнее — нужно ещё {{count}} символов.",
+      "errorEducationRequired": "Добавьте хотя бы одну запись об образовании.",
+      "errorEducationIncomplete": "Заполните степень и учреждение для каждой записи.",
+      "errorEducationDocRequired": "Прикрепите документ к каждой записи об образовании.",
+      "errorSpecsRequired": "Выберите хотя бы одну специализацию.",
+      "errorLangsRequired": "Выберите хотя бы один язык.",
+      "errorDocsRequired": "Прикрепите хотя бы один документ."
     },
     "specializations": {
       "weightManagement": "Управление весом",
@@ -1729,6 +1741,7 @@
     "noDoses": "Время приёма не указано",
     "placeholders": {
       "dosage": "500 мг",
+      "dosageAmount": "500",
       "instructions": "Перед ужином, с водой",
       "name": "Метформин",
       "quantity": "30",

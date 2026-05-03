@@ -6,6 +6,7 @@
     "saveChanges": "Save Changes",
     "start": "Start",
     "clear": "Clear",
+    "apply": "Apply",
     "save": "Save",
     "cancel": "Cancel",
     "add": "Add",
@@ -45,6 +46,7 @@
     "daysAgo": "Days Ago",
     "errorGeneric": "Error Generic",
     "free": "Free",
+    "premium": "Premium",
     "gotIt": "Got It",
     "normal": "Normal",
     "underweight": "Underweight",
@@ -1465,7 +1467,17 @@
       "educationIncomplete": "Each education entry requires a degree, institution and an attached document.",
       "fileTooLarge": "File too large",
       "fileTooLargeMessage": "Maximum file size is {{mb}} MB.",
-      "profileCreateFailed": "Failed to create profile. Please try again."
+      "profileCreateFailed": "Failed to create profile. Please try again.",
+      "cannotProceed": "Almost there",
+      "errorAcceptDisclaimer": "Please accept the disclaimer to continue.",
+      "errorDisplayNameRequired": "Please enter your display name.",
+      "errorBioTooShort": "Please write more about yourself — need {{count}} more characters.",
+      "errorEducationRequired": "Please add at least one education entry.",
+      "errorEducationIncomplete": "Please fill degree and institution for each education entry.",
+      "errorEducationDocRequired": "Please attach a document for each education entry.",
+      "errorSpecsRequired": "Please select at least one specialization.",
+      "errorLangsRequired": "Please select at least one language.",
+      "errorDocsRequired": "Please attach at least one document."
     },
     "specializations": {
       "weightManagement": "Weight Management",
@@ -2230,6 +2242,7 @@
     "placeholders": {
       "name": "Metformin",
       "dosage": "500 mg",
+      "dosageAmount": "500",
       "instructions": "Before dinner, with water",
       "quantity": "30",
       "remainingStock": "Auto-calculated"

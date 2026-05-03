@@ -722,6 +722,7 @@
     "daysAgo": "Vor Tagen",
     "errorGeneric": "Allgemeiner Fehler",
     "free": "Kostenlos",
+    "premium": "Premium",
     "gotIt": "Verstanden",
     "later": "Later",
     "other": "Other",
@@ -1188,7 +1189,17 @@
       "educationIncomplete": "Jeder Bildungseintrag benötigt einen Abschluss, eine Institution und ein angehängtes Dokument.",
       "fileTooLarge": "Datei zu groß",
       "fileTooLargeMessage": "Die maximale Dateigröße beträgt {{mb}} MB.",
-      "profileCreateFailed": "Profil konnte nicht erstellt werden. Bitte erneut versuchen."
+      "profileCreateFailed": "Profil konnte nicht erstellt werden. Bitte erneut versuchen.",
+      "cannotProceed": "Fast geschafft",
+      "errorAcceptDisclaimer": "Bitte akzeptiere den Hinweis, um fortzufahren.",
+      "errorDisplayNameRequired": "Bitte gib deinen Anzeigenamen ein.",
+      "errorBioTooShort": "Bitte schreibe mehr über dich — noch {{count}} Zeichen erforderlich.",
+      "errorEducationRequired": "Bitte füge mindestens einen Ausbildungseintrag hinzu.",
+      "errorEducationIncomplete": "Bitte fülle Abschluss und Institution für jeden Eintrag aus.",
+      "errorEducationDocRequired": "Bitte hänge zu jedem Ausbildungseintrag ein Dokument an.",
+      "errorSpecsRequired": "Bitte wähle mindestens eine Spezialisierung.",
+      "errorLangsRequired": "Bitte wähle mindestens eine Sprache.",
+      "errorDocsRequired": "Bitte hänge mindestens ein Dokument an."
     },
     "specializations": {
       "weightManagement": "Gewichtsmanagement",
@@ -1413,6 +1424,7 @@
     "noDoses": "Keine Zeiten angegeben",
     "placeholders": {
       "dosage": "500 mg",
+      "dosageAmount": "500",
       "instructions": "Vor dem Essen, mit Wasser",
       "name": "Metformin",
       "quantity": "30",
