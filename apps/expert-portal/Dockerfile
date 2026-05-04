@@ -20,7 +20,15 @@ COPY --from=deps /repo/apps/expert-portal/node_modules ./apps/expert-portal/node
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/expert-portal ./apps/expert-portal
 WORKDIR /repo/apps/expert-portal
+
+# NEXT_PUBLIC_* must be available at build time — Next.js inlines them into the
+# client bundle. Railway passes service Variables as build args when ARG is declared.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_PORTAL_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_PORTAL_URL=$NEXT_PUBLIC_PORTAL_URL
 ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN pnpm run build
 
 # --- runtime ---

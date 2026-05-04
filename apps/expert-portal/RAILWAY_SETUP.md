@@ -26,7 +26,7 @@ Add in Service → Variables:
 | Key | Value |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | `https://<your-api-service>.up.railway.app` (or `api.eatsense.ch`) |
-| `NEXT_PUBLIC_PORTAL_URL` | `https://expert.eatsense.app` (used as magic-link redirect target) |
+| `NEXT_PUBLIC_PORTAL_URL` | `https://experts.eatsense.ch` (used as magic-link redirect target) |
 | `PORT` | `3000` (Railway auto-injects if omitted, but safe to set) |
 | `NODE_ENV` | `production` |
 
@@ -35,26 +35,26 @@ Check `apps/expert-portal/lib/api.ts` for any other `NEXT_PUBLIC_*` variables th
 ### 3. Domain
 
 1. Service → **Settings** → **Networking** → **Generate Domain** (gives you a `*.up.railway.app` URL to test)
-2. Once verified → **Custom Domain** → add `expert.eatsense.app`
-3. Update DNS: `CNAME expert.eatsense.app → <railway domain>`
+2. Once verified → **Custom Domain** → add `experts.eatsense.ch`
+3. Update DNS: `CNAME experts.eatsense.ch → <railway domain>`
 
 ### 4. API CORS
 
 Add the new domain to the API's `CORS_ORIGINS` env var:
 
 ```
-https://eatsense.ch,https://www.eatsense.ch,https://expert.eatsense.app
+https://eatsense.ch,https://www.eatsense.ch,https://experts.eatsense.ch
 ```
 
 Redeploy the API service after changing.
 
 ### 5. Update the landing redirect
 
-Once the Railway portal is live at `expert.eatsense.app`, update `legal-site/public/_redirects`:
+Once the Railway portal is live at `experts.eatsense.ch`, update `legal-site/public/_redirects`:
 
 ```
-/experts       https://expert.eatsense.app         302
-/experts/*     https://expert.eatsense.app/:splat  302
+/experts       https://experts.eatsense.ch         302
+/experts/*     https://experts.eatsense.ch/:splat  302
 ```
 
 Push → Cloudflare Pages redeploys automatically.
@@ -64,7 +64,7 @@ Push → Cloudflare Pages redeploys automatically.
 Inside the portal code, magic link login passes a `redirectUrl` to the API. Make sure any hardcoded URLs reference the new domain. Search for occurrences:
 
 ```bash
-grep -rn "expert-portal-pi.vercel.app\|expert.eatsense.app" apps/expert-portal/
+grep -rn "expert-portal-pi.vercel.app\|experts.eatsense.ch" apps/expert-portal/
 ```
 
 Update as needed and set via env var if possible.
