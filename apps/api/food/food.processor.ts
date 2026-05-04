@@ -358,6 +358,7 @@ export class FoodProcessor {
                   items: validItems,
                   healthScore: analysisResult.healthScore ?? undefined,
                   imageUri: imageUrl ?? undefined, // Include imageUrl when auto-saving meal
+                  analysisId,
                 });
                 metrics.autoSaveTime = Date.now() - autoSaveStart;
                 this.logger.log(`[FoodProcessor] Auto-saved analysis ${analysisId} to meals (mealId: ${meal.id}, ${metrics.autoSaveTime}ms)`);
@@ -443,11 +444,20 @@ export class FoodProcessor {
           status: visionStatus,
         } : null,
       };
-      await this.prisma.analysisResult.create({
+      const savedAnalysisResult = await this.prisma.analysisResult.create({
         data: {
           analysisId,
           data: resultDataWithImage as any,
         },
+      });
+      this.enqueueAiHealthFeedbackUpdate({
+        analysisId,
+        analysisResultId: savedAnalysisResult.id,
+        dishName: analysisResult.displayName || analysisResult.dishNameLocalized || analysisResult.originalDishName || 'Meal',
+        items: analysisResult.items || [],
+        totals: analysisResult.total,
+        healthScore: analysisResult.healthScore,
+        locale: locale || analysisResult.locale || 'en',
       });
 
       // Determine final status based on vision result and items
@@ -678,6 +688,7 @@ export class FoodProcessor {
                 items: validItems,
                 healthScore: analysisResult.healthScore ?? undefined,
                 imageUri: undefined, // Text analysis has no image
+                analysisId,
               });
               result.autoSave = {
                 mealId: meal.id,
@@ -694,11 +705,20 @@ export class FoodProcessor {
       }
 
       // Save results
-      await this.prisma.analysisResult.create({
+      const savedAnalysisResult = await this.prisma.analysisResult.create({
         data: {
           analysisId,
           data: result as any,
         },
+      });
+      this.enqueueAiHealthFeedbackUpdate({
+        analysisId,
+        analysisResultId: savedAnalysisResult.id,
+        dishName: analysisResult.displayName || analysisResult.dishNameLocalized || analysisResult.originalDishName || 'Meal',
+        items: analysisResult.items || [],
+        totals: analysisResult.total,
+        healthScore: analysisResult.healthScore,
+        locale: locale || analysisResult.locale || 'en',
       });
 
       // Redis daily limit is pre-incremented in DailyLimitGuard
@@ -725,4 +745,60 @@ export class FoodProcessor {
     }
   }
 
+  private enqueueAiHealthFeedbackUpdate(params: {
+    analysisId: string;
+    analysisResultId: string;
+    dishName: string;
+    items: any[];
+    totals: any;
+    healthScore: any;
+    locale: string;
+  }) {
+    const { analysisId, analysisResultId, dishName, items, totals, healthScore, locale } = params;
+    if (!healthScore || !totals || !Array.isArray(items) || items.length === 0) {
+      return;
+    }
+
+    void (async () => {
+      const enrichedHealthScore = await this.analyzeService.enrichHealthScoreWithAiFeedback(
+        healthScore,
+        dishName,
+        items,
+        totals,
+        locale as any,
+        analysisId,
+      );
+
+      if (enrichedHealthScore === healthScore) {
+        return;
+      }
+
+      const latestResult = await this.prisma.analysisResult.findFirst({
+        where: { analysisId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!latestResult || latestResult.id !== analysisResultId) {
+        this.logger.debug(`[FoodProcessor] Skipping async AI feedback update for ${analysisId}: result is no longer latest`);
+        return;
+      }
+
+      const currentData = (latestResult.data || {}) as any;
+      await this.prisma.analysisResult.update({
+        where: { id: analysisResultId },
+        data: {
+          data: {
+            ...currentData,
+            healthScore: enrichedHealthScore,
+          },
+        },
+      });
+
+      this.logger.log(`[FoodProcessor] Async AI health feedback updated for analysis ${analysisId}`);
+    })().catch((error: any) => {
+      this.logger.warn(
+        `[FoodProcessor] Async AI health feedback failed for analysis ${analysisId}: ${error?.message || String(error)}`,
+      );
+    });
+  }
 }

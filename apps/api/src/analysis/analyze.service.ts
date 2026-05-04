@@ -2242,20 +2242,10 @@ export class AnalyzeService {
     // STEP 2 FIX: Set displayName as the single source of truth for UI
     const displayName = dishNameLocalized || originalDishName || 'Meal';
 
-    // STEP 3: Enrich health score with AI-generated feedback (if enabled)
-    const enrichedHealthScore = await this.enrichHealthScoreWithAiFeedback(
-      healthScore,
-      displayName,
-      items,
-      total,
-      locale,
-    );
-    markPhase('ai_health_feedback');
-
     const result: AnalysisData = {
       items,
       total,
-      healthScore: enrichedHealthScore,
+      healthScore,
       debug: isDebugMode ? debug : undefined,
       locale,
       // STEP 2: displayName is the preferred field for UI
@@ -2541,19 +2531,10 @@ export class AnalyzeService {
     const dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, normalizedLocale);
     const displayName = dishNameLocalized || originalDishName || 'Meal';
 
-    // Enrich health score with AI-generated feedback (same as image analysis)
-    const enrichedHealthScore = await this.enrichHealthScoreWithAiFeedback(
-      healthScore,
-      displayName,
-      items,
-      total,
-      normalizedLocale,
-    );
-
     return {
       items,
       total,
-      healthScore: enrichedHealthScore,
+      healthScore,
       debug: isDebugMode ? debug : undefined,
       locale: normalizedLocale,
       dishNameLocalized: displayName,
@@ -4411,4 +4392,3 @@ export class AnalyzeService {
     };
   }
 }
-

@@ -139,11 +139,13 @@ model Meal {
   healthGrade    String?    @map("health_grade")
   healthInsights Json?      @map("health_insights")
   imageUri       String?    @map("image_uri")
+  analysisId     String?    @map("analysis_id")
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   items          MealItem[]
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([analysisId])
   @@index([userId, consumedAt])
   @@index([userId, createdAt])
   @@map("meals")

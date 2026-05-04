@@ -26,6 +26,7 @@ import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard } from '../components/community/GroupCard';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
+import { FLOATING_TAB_BAR_RESERVED } from '../navigation/GlassTabBar';
 
 type TabKey = 'feed' | 'groups' | 'places';
 
@@ -555,7 +556,7 @@ export default function CommunityScreen() {
         onPress={() => navigation.navigate('CreateCommunityPost')}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={28} color="#fff" />
+        <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
 
       {/* Author Profile Sheet */}
@@ -696,11 +697,11 @@ const createStyles = (tokens: any, colors: any) =>
     },
     fab: {
       position: 'absolute',
-      bottom: 96,
-      right: 20,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      bottom: FLOATING_TAB_BAR_RESERVED + 28,
+      right: tokens.spacing.xl,
+      width: 64,
+      height: 64,
+      borderRadius: 32,
       alignItems: 'center',
       justifyContent: 'center',
       elevation: 6,

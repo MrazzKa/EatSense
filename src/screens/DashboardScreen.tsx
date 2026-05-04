@@ -33,6 +33,7 @@ import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
+import { FLOATING_TAB_BAR_RESERVED } from '../navigation/GlassTabBar';
 import LimitReachedModal from '../components/LimitReachedModal';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
@@ -327,7 +328,7 @@ export default function DashboardScreen() {
 
         return {
           id: meal.id,
-          analysisId: meal.analysisId || meal.id,
+          analysisId: meal.analysisId || null,
           name: meal.name || 'Meal',
           dishName: meal.name || 'Meal',
           totalCalories,
@@ -973,7 +974,7 @@ export default function DashboardScreen() {
               .filter(Boolean);
             const filteredItems = (recentItems || []).filter(item => {
               // Filter by ID - don't show if already in pendingAnalyses
-              if (pendingIds.has(item.analysisId || item.id)) return false;
+              if (item.analysisId && pendingIds.has(item.analysisId)) return false;
               // Filter by image URL (catch duplicates even if IDs differ, strip query params)
               const itemImageUrl = normalizeImageUrl(item.imageUrl || item.imageUri);
               if (itemImageUrl && pendingImageUrls.has(itemImageUrl)) return false;
@@ -1679,7 +1680,7 @@ const createStyles = (tokens) =>
     },
     plusButtonContainer: {
       position: 'absolute',
-      bottom: 96,
+      bottom: FLOATING_TAB_BAR_RESERVED + 28,
       right: tokens.spacing.xl,
       zIndex: 10,
     },

@@ -53,6 +53,11 @@ export class CreateMealDto {
   @IsOptional()
   imageUri?: string;
 
+  @ApiProperty({ example: 'cmoqvtmav0007o80dqbfysmjd', required: false })
+  @IsString()
+  @IsOptional()
+  analysisId?: string;
+
   @ApiProperty({ 
     example: [
       {

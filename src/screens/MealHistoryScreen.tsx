@@ -43,7 +43,7 @@ function normalizeMeals(meals) {
     const totalFat = Math.round(getVal('fat'));
     return {
       id: meal.id,
-      analysisId: meal.analysisId || meal.id,
+      analysisId: meal.analysisId || null,
       name: meal.name || 'Meal',
       dishName: meal.name || 'Meal',
       totalCalories,

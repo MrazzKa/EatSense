@@ -702,7 +702,7 @@ export class FoodService {
     }
 
     // 10. Return updated data in frontend-compatible format
-    return this.mapAnalysisResult(updatedAnalysisData);
+    return { ...this.mapAnalysisResult(updatedAnalysisData), analysisId: analysis.id };
   }
 
   /**
@@ -784,7 +784,7 @@ export class FoodService {
     }
 
     // 6. Return updated data in frontend-compatible format
-    return this.mapAnalysisResult(newAnalysisData);
+    return { ...this.mapAnalysisResult(newAnalysisData), analysisId: analysis.id };
   }
 
   /**
@@ -845,7 +845,7 @@ export class FoodService {
       await this.updateMealFromAnalysisResult(dto.analysisId, newAnalysisData);
 
       // 5. Return updated data in frontend-compatible format
-      return this.mapAnalysisResult(newAnalysisData);
+      return { ...this.mapAnalysisResult(newAnalysisData), analysisId: dto.analysisId };
     } catch (error: any) {
       this.logger.error(
         `[FoodService] reanalyzeWithManualComponents() failed for analysisId=${dto.analysisId}`,
@@ -986,7 +986,7 @@ export class FoodService {
     );
 
     // 7. Возвращаем в формате для фронта
-    return this.mapAnalysisResult(newData);
+    return { ...this.mapAnalysisResult(newData), analysisId: analysis.id };
   }
 
   /**
@@ -1048,7 +1048,7 @@ export class FoodService {
       `[reanalyze] Analysis ${analysisId} reanalyzed for user ${userId}`,
     );
 
-    return this.mapAnalysisResult(newData);
+    return { ...this.mapAnalysisResult(newData), analysisId: analysis.id };
   }
 
   /**
@@ -1129,19 +1129,12 @@ export class FoodService {
         return;
       }
 
-      // Try to find meal by userId and recent date (within last 24 hours)
-      const recentDate = new Date();
-      recentDate.setHours(recentDate.getHours() - 24);
-
       const meal = await this.prisma.meal.findFirst({
         where: {
           userId: analysis.userId,
-          createdAt: {
-            gte: recentDate,
-          },
+          analysisId,
         },
         include: { items: true },
-        orderBy: { createdAt: 'desc' },
       });
 
       if (!meal) {

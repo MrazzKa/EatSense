@@ -259,7 +259,7 @@ export default function AnalysisResultsScreen() {
 
       return {
         id: raw.id || raw.analysisId || null,
-        analysisId: raw.analysisId || raw.id || routeParams.analysisId || null,
+        analysisId: raw.analysisId || raw.data?.analysisId || routeParams.analysisId || null,
         dishName: (() => {
           // STEP 2 FIX: Use displayName as the single source of truth
           // Priority: displayName > dishNameLocalized > originalDishName > dishName > name
@@ -584,7 +584,7 @@ export default function AnalysisResultsScreen() {
   };
 
   const handleDeleteItem = async (itemIdOrIndex) => {
-    const analysisId = routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    const analysisId = routeParams.analysisId || analysisResult?.analysisId;
 
     if (!analysisId) {
       Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
@@ -656,7 +656,7 @@ export default function AnalysisResultsScreen() {
   };
 
   const handleSaveEdit = async (updatedItem, index) => {
-    const analysisId = routeParams.analysisId || analysisResult?.analysisId || analysisResult?.id;
+    const analysisId = routeParams.analysisId || analysisResult?.analysisId;
 
     if (!analysisId) {
       Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
