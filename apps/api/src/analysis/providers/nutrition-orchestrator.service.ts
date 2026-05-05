@@ -14,16 +14,13 @@ export const NUTRITION_PROVIDERS = 'NUTRITION_PROVIDERS';
 // Version for cache key - increment when validation logic or providers change
 const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
 
-// Per-provider timeout configuration (ms)
-// FIX 7: Significantly increased timeouts (2026-02-11) - all providers were timing out for basic ingredients
-// Root cause: network latency to external APIs under load. These timeouts must be generous enough
-// to handle slow responses rather than failing silently.
+// Per-provider timeout configuration (ms).
+// Nutrition lookup now intentionally uses USDA + local catalog only. Older
+// experimental providers were removed from the active pipeline to avoid slow
+// timeout chains and inconsistent matches.
 const PROVIDER_TIMEOUTS: Record<string, number> = {
   'local': 1000,           // Local embeddings - fast but give buffer
-  'swiss-food': 5000,      // Swiss API - increased from 1500
-  'openfoodfacts': 8000,   // OFF - increased from 4500 (was timing out on basic foods)
   'usda': 10000,           // USDA - increased from 5000 (most reliable but slowest)
-  'rag': 4000,             // RAG - increased from 2000
 };
 const DEFAULT_PROVIDER_TIMEOUT = 8000; // Increased from 4000
 
@@ -85,7 +82,7 @@ export class NutritionOrchestrator {
     const region = this.determineRegion(context);
     const contextWithRegion = { ...context, region };
 
-    // Allow disabling slow providers via env, e.g. DISABLED_NUTRITION_PROVIDERS=openfoodfacts,usda
+    // Allow disabling providers via env, e.g. DISABLED_NUTRITION_PROVIDERS=usda
     const disabled = (process.env.DISABLED_NUTRITION_PROVIDERS || '')
       .split(',')
       .map((p) => p.trim().toLowerCase())
@@ -625,8 +622,6 @@ export class NutritionOrchestrator {
   private getDefaultConfidence(providerId: string): number {
     const defaults: Record<string, number> = {
       'usda': 0.78,
-      'swiss-food': 0.80,
-      'openfoodfacts': 0.60,
       'local': 0.95,
     };
     return defaults[providerId] ?? 0.65;
@@ -637,9 +632,6 @@ export class NutritionOrchestrator {
    */
   private extractConfidenceScore(data: any, provider: string): number | undefined {
     // Simple heuristic: if provider returns score or matchConfidence, use it
-    if (provider === 'openfoodfacts' && typeof data?.score === 'number') {
-      return data.score / 100; // Normalize to 0-1 if needed
-    }
     if (typeof data?.matchConfidence === 'number') {
       return data.matchConfidence;
     }

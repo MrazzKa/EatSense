@@ -173,20 +173,20 @@ export default function GalleryScreen() {
 
       if (__DEV__) console.log('[GalleryScreen] Image selected, compressing...');
 
-      // Compress the image - use new SDK-55 object-oriented API
+      // Unified compression: 1024px / q=0.8 keeps vision quality while cutting upload size.
       let compressedImage = asset;
       if (ImageManipulator) {
         try {
           if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
-            context.resize({ width: 1600 });
+            context.resize({ width: 1024 });
             const imageRef = await context.renderAsync();
-            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: ImageManipulator.SaveFormat.JPEG });
+            compressedImage = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               asset.uri,
-              [{ resize: { width: 1600 } }],
-              { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+              [{ resize: { width: 1024 } }],
+              { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
             );
           }
         } catch {

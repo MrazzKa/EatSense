@@ -115,7 +115,34 @@ export const EditFoodItemModal = ({ visible, onClose, item, onSave, index }) => 
     const cleanedValue = parts.length > 2
       ? parts[0] + '.' + parts.slice(1).join('')
       : numericValue;
-    setEditedItem({ ...editedItem, [field]: cleanedValue });
+
+    // Live recalc rules — keeps everything proportional/consistent so users
+    // do not see stale numbers after editing one field.
+    const next = { ...editedItem, [field]: cleanedValue };
+
+    // 1) Weight changed → scale macros from original values, like presets do.
+    if (field === 'weight' && originalItem) {
+      const w = parseFloat(cleanedValue);
+      if (Number.isFinite(w) && w > 0 && originalWeight > 0) {
+        const scale = w / originalWeight;
+        next.calories = Math.round(parseFloat(originalItem.calories || '0') * scale).toString();
+        next.protein = (parseFloat(originalItem.protein || '0') * scale).toFixed(1);
+        next.carbs = (parseFloat(originalItem.carbs || '0') * scale).toFixed(1);
+        next.fat = (parseFloat(originalItem.fat || '0') * scale).toFixed(1);
+      }
+    }
+
+    // 2) Macro changed → keep calories in sync with macros formula
+    //    (replaces the standalone "Calculate calories" button).
+    if (field === 'protein' || field === 'carbs' || field === 'fat') {
+      const p = parseFloat(field === 'protein' ? cleanedValue : next.protein) || 0;
+      const c = parseFloat(field === 'carbs' ? cleanedValue : next.carbs) || 0;
+      const f = parseFloat(field === 'fat' ? cleanedValue : next.fat) || 0;
+      const fromMacros = Math.round(p * 4 + c * 4 + f * 9);
+      if (fromMacros > 0) next.calories = String(fromMacros);
+    }
+
+    setEditedItem(next);
   };
 
   const calculateCalories = () => {

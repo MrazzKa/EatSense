@@ -24,6 +24,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
 import { getDisclaimer } from '../legal/disclaimerUtils';
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import HealthImpactCard from '../components/HealthImpactCard';
 
 import FullScreenImageModal from '../components/common/FullScreenImageModal';
 import { clientLog } from '../utils/clientLog';
@@ -260,6 +261,8 @@ export default function AnalysisResultsScreen() {
       return {
         id: raw.id || raw.analysisId || null,
         analysisId: raw.analysisId || raw.data?.analysisId || routeParams.analysisId || null,
+        // mealId is preserved separately so we can fall back to /meals/:id/edit-items for legacy meals
+        mealId: raw.mealId || raw.autoSave?.mealId || raw.savedMeal?.mealId || (raw.id && !raw.analysisId ? raw.id : null) || null,
         dishName: (() => {
           // STEP 2 FIX: Use displayName as the single source of truth
           // Priority: displayName > dishNameLocalized > originalDishName > dishName > name
@@ -350,6 +353,8 @@ export default function AnalysisResultsScreen() {
         needsReview,
         isSuspicious,
         consumedAt: raw.consumedAt || raw.date || raw.createdAt || null,
+        // Body-systems impact panel from backend (4 systems, Premium-gated UI).
+        bodySystems: raw.bodySystems || raw.data?.bodySystems || null,
       };
     },
     [routeParams.analysisId, routeParams.source, t],
@@ -380,7 +385,7 @@ export default function AnalysisResultsScreen() {
         // For now, just log.
         if (prevResult?.analysisId === normalized.analysisId && prevResult?.ingredients?.length === normalized.ingredients?.length) {
           console.log('[AnalysisResultsScreen] Skipping duplicate result update (ID match)');
-          // Note: This might prevent legitimate updates if content changed but ID didn't. 
+          // Note: This might prevent legitimate updates if content changed but ID didn't.
           // Better to rely on deep check or just ID for now to stop the crash.
           // If we need to force update, we should clear state first.
           return prevResult;
@@ -388,6 +393,46 @@ export default function AnalysisResultsScreen() {
         console.log('[AnalysisResultsScreen] Setting new analysisResult:', normalized.analysisId);
         return normalized;
       });
+
+      // Allergy hard-warning: backend tags ingredients with userFlags.allergyMatch
+      // when the user's profile contains those allergens. Surface a confirmation
+      // dialog (only first time per result; we use a ref guard to avoid loops).
+      const allergyHits: string[] = [];
+      const dietHits: string[] = [];
+      for (const ing of normalized.ingredients || []) {
+        const u = (ing as any).userFlags;
+        if (u?.allergyMatch?.length) allergyHits.push(...u.allergyMatch);
+        if (u?.dietViolation?.length) dietHits.push(...u.dietViolation);
+      }
+      if ((allergyHits.length || dietHits.length) && !allergyAlertShownRef.current) {
+        allergyAlertShownRef.current = true;
+        const uniqueAllergies = Array.from(new Set(allergyHits.map(s => String(s))));
+        const uniqueDiet = Array.from(new Set(dietHits.map(s => String(s))));
+        const messageParts: string[] = [];
+        if (uniqueAllergies.length) messageParts.push(t('analysis.allergyWarning.body', { list: uniqueAllergies.join(', ') }));
+        if (uniqueDiet.length) messageParts.push(t('analysis.dietViolation.body', { list: uniqueDiet.join(', ') }));
+        const mealIdToDelete = normalized.mealId || normalized.autoSave?.mealId;
+        Alert.alert(
+          t('analysis.allergyWarning.title') || 'Heads up',
+          messageParts.join('\n\n'),
+          [
+            {
+              text: t('analysis.allergyWarning.keep') || 'Keep',
+              style: 'default',
+            },
+            {
+              text: t('analysis.allergyWarning.removeFromDiary') || 'Remove from diary',
+              style: 'destructive',
+              onPress: async () => {
+                if (mealIdToDelete) {
+                  try { await ApiService.request(`/meals/${mealIdToDelete}`, { method: 'DELETE' }); } catch {}
+                }
+              },
+            },
+          ],
+          { cancelable: true },
+        );
+      }
 
       setIsAnalyzing(false);
 
@@ -407,6 +452,8 @@ export default function AnalysisResultsScreen() {
     lastImageUri: null,
     lastDescription: null,
   });
+  // Show allergy/diet warning at most once per screen mount.
+  const allergyAlertShownRef = useRef(false);
 
   // Effect 1: Handle Initial Analysis Param (passed directly)
   useEffect(() => {
@@ -585,8 +632,9 @@ export default function AnalysisResultsScreen() {
 
   const handleDeleteItem = async (itemIdOrIndex) => {
     const analysisId = routeParams.analysisId || analysisResult?.analysisId;
+    const mealId = analysisResult?.mealId || (routeParams.analysisResult?.mealId);
 
-    if (!analysisId) {
+    if (!analysisId && !mealId) {
       Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
       return;
     }
@@ -605,14 +653,16 @@ export default function AnalysisResultsScreen() {
         return;
       }
 
-      // 2. Сохраняем исправление для Feedback Loop
-      await ApiService.saveAnalysisCorrection({
-        analysisId,
-        itemId: itemToDelete.id || String(itemIdOrIndex),
-        originalName: itemToDelete.name,
-        correctionType: 'item_delete',
-        foodCategory: detectFoodCategory(itemToDelete.name),
-      }).catch(() => { }); // Non-critical
+      // 2. Сохраняем исправление для Feedback Loop (only when we have analysisId)
+      if (analysisId) {
+        await ApiService.saveAnalysisCorrection({
+          analysisId,
+          itemId: itemToDelete.id || String(itemIdOrIndex),
+          originalName: itemToDelete.name,
+          correctionType: 'item_delete',
+          foodCategory: detectFoodCategory(itemToDelete.name),
+        }).catch(() => { }); // Non-critical
+      }
 
       // 3. Удаляем элемент из списка
       const updatedItems = currentItems
@@ -630,9 +680,14 @@ export default function AnalysisResultsScreen() {
           carbs_g: item.carbs || item.nutrients?.carbs || 0,
         }));
 
-      // 4. Вызываем manualReanalyze на бэке
-      const newResult = await ApiService.manualReanalyzeAnalysis(analysisId, updatedItems);
-      console.log('[AnalysisResultsScreen] Manual reanalyze after delete response:', newResult);
+      // 4. Сохраняем правку (Analysis path or Meal-fallback path)
+      const newResult = await ApiService.saveIngredientEdit({
+        analysisId,
+        mealId,
+        items: updatedItems,
+        locale: language,
+      });
+      console.log('[AnalysisResultsScreen] Save edit (delete) response:', newResult);
 
       // 5. Обновляем стейт локально
       if (newResult) {
@@ -657,8 +712,9 @@ export default function AnalysisResultsScreen() {
 
   const handleSaveEdit = async (updatedItem, index) => {
     const analysisId = routeParams.analysisId || analysisResult?.analysisId;
+    const mealId = analysisResult?.mealId || (routeParams.analysisResult?.mealId);
 
-    if (!analysisId) {
+    if (!analysisId && !mealId) {
       Alert.alert(t('common.error'), t('analysis.noAnalysisId') || 'Analysis ID not found');
       return;
     }
@@ -670,8 +726,8 @@ export default function AnalysisResultsScreen() {
       const currentItems = analysisResult?.data?.items || analysisResult?.ingredients || [];
       const originalItem = currentItems[index] || currentItems.find((item, idx) => (item.id || String(idx)) === (updatedItem.id || String(index)));
 
-      // 2. Сохраняем исправление для Feedback Loop
-      if (originalItem) {
+      // 2. Сохраняем исправление для Feedback Loop (only when we have analysisId)
+      if (originalItem && analysisId) {
         await ApiService.saveAnalysisCorrection({
           analysisId,
           itemId: originalItem.id || String(index),
@@ -710,15 +766,17 @@ export default function AnalysisResultsScreen() {
           }
         ];
 
-        // Log correction for new item (item_add)
-        await ApiService.saveAnalysisCorrection({
-          analysisId,
-          itemId: `new-${Date.now()}`,
-          originalName: '',
-          correctedName: updatedItem.name,
-          correctionType: 'item_add',
-          foodCategory: detectFoodCategory(updatedItem.name),
-        }).catch(() => { });
+        // Log correction for new item (item_add) only when analysisId exists
+        if (analysisId) {
+          await ApiService.saveAnalysisCorrection({
+            analysisId,
+            itemId: `new-${Date.now()}`,
+            originalName: '',
+            correctedName: updatedItem.name,
+            correctionType: 'item_add',
+            foodCategory: detectFoodCategory(updatedItem.name),
+          }).catch(() => { });
+        }
 
       } else {
         // Edit existing
@@ -753,9 +811,14 @@ export default function AnalysisResultsScreen() {
         });
       }
 
-      // 4. Вызываем manualReanalyze на бэке
-      const newResult = await ApiService.manualReanalyzeAnalysis(analysisId, updatedItems);
-      console.log('[AnalysisResultsScreen] Manual reanalyze response:', newResult);
+      // 4. Сохраняем правку (Analysis path or Meal-fallback path)
+      const newResult = await ApiService.saveIngredientEdit({
+        analysisId,
+        mealId,
+        items: updatedItems,
+        locale: language,
+      });
+      console.log('[AnalysisResultsScreen] Save edit response:', newResult);
 
       // 5. Обновляем стейт локально
       if (newResult) {
@@ -1039,6 +1102,9 @@ export default function AnalysisResultsScreen() {
                 </Text>
               </TouchableOpacity>
             )}
+
+            {/* Health impact panel — settings-aware (4 body systems), Premium-gated */}
+            <HealthImpactCard bodySystems={analysisResult?.bodySystems || analysisResult?.data?.bodySystems || null} />
             <TouchableOpacity
               style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24, paddingHorizontal: 4 }}
               onPress={() => navigation.navigate('ScientificSources')}

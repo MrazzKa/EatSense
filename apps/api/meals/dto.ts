@@ -91,3 +91,51 @@ export class CreateMealDto {
   @IsObject()
   healthScore?: Record<string, any>;
 }
+
+export class EditMealItemDto {
+  @ApiProperty({ example: 'item-1', required: false })
+  @IsString()
+  @IsOptional()
+  id?: string;
+
+  @ApiProperty({ example: 'Chicken Breast' })
+  @IsString()
+  name!: string;
+
+  @ApiProperty({ example: 150 })
+  @IsNumber()
+  portion_g!: number;
+
+  @ApiProperty({ example: 165, required: false })
+  @IsNumber()
+  @IsOptional()
+  calories?: number;
+
+  @ApiProperty({ example: 31, required: false })
+  @IsNumber()
+  @IsOptional()
+  protein_g?: number;
+
+  @ApiProperty({ example: 3.6, required: false })
+  @IsNumber()
+  @IsOptional()
+  fat_g?: number;
+
+  @ApiProperty({ example: 0, required: false })
+  @IsNumber()
+  @IsOptional()
+  carbs_g?: number;
+}
+
+export class EditMealItemsDto {
+  @ApiProperty({ type: [EditMealItemDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => EditMealItemDto)
+  items!: EditMealItemDto[];
+
+  @ApiProperty({ example: 'en', required: false })
+  @IsString()
+  @IsOptional()
+  locale?: string;
+}

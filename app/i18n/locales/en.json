@@ -749,7 +749,37 @@
     "deleteError": "Delete Error",
     "trustText": "Analysis accuracy improves with each use — AI learns to recognize your favorite dishes and portion sizes.",
     "disclaimer": "This is not medical advice.",
-    "viewSources": "View scientific sources"
+    "viewSources": "View scientific sources",
+    "allergyWarning": {
+      "title": "Check this meal",
+      "body": "This meal may contain: {{list}}. These match your allergy settings.",
+      "keep": "Keep",
+      "removeFromDiary": "Remove from diary"
+    },
+    "dietViolation": {
+      "body": "This meal may not fit your diet settings: {{list}}."
+    },
+    "healthImpact": {
+      "lockedTitle": "Want to see how this meal may affect your health?",
+      "lockedSubtitle": "Unlock a personalized breakdown for your heart, blood sugar, iron status, and gut health.",
+      "unlock": "Unlock",
+      "title": "Health impact",
+      "subtitle": "Based on this meal and your profile settings.",
+      "focusPill": "Your focus",
+      "systems": {
+        "cardiovascular": "Heart and vessels",
+        "bloodSugar": "Blood sugar",
+        "bloodIron": "Blood and iron",
+        "gut": "Gut health"
+      },
+      "levels": {
+        "veryPositive": "Strong support",
+        "positive": "Supportive",
+        "neutral": "Neutral",
+        "negative": "Caution",
+        "veryNegative": "High load"
+      }
+    }
   },
   "describeFood": {
     "title": "Describe your meal",

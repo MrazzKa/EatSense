@@ -1,10 +1,5 @@
 export type NutritionProviderId =
   | 'usda'
-  | 'swiss'
-  | 'openfoodfacts'
-  | 'rag'
-  | 'eurofir'
-  | 'fao_who_ref'
   | 'local_food';
 
 export type NutritionCategory = 'drink' | 'solid' | 'unknown';
@@ -22,7 +17,7 @@ export interface CanonicalNutrients {
 
 export interface CanonicalFood {
   providerId: NutritionProviderId;
-  providerFoodId: string; // fdcId, swiss DBID, OFF barcode и т.п.
+  providerFoodId: string; // fdcId or local catalog id
   // Строка, максимально похожая на то, что видит пользователь
   displayName: string;
   // Оригинальное название из Vision / текста

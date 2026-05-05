@@ -189,7 +189,37 @@
     "fiber": "Fibres",
     "trustText": "Aperçu de l'IA",
     "disclaimer": "Les analyses sont approximatives",
-    "viewSources": "Voir les sources"
+    "viewSources": "Voir les sources",
+    "allergyWarning": {
+      "title": "Vérifiez ce repas",
+      "body": "Ce repas peut contenir : {{list}}. Cela correspond à vos paramètres d'allergies.",
+      "keep": "Garder",
+      "removeFromDiary": "Retirer du journal"
+    },
+    "dietViolation": {
+      "body": "Ce repas peut ne pas correspondre à vos paramètres alimentaires : {{list}}."
+    },
+    "healthImpact": {
+      "lockedTitle": "Vous voulez voir comment ce repas peut agir sur votre santé ?",
+      "lockedSubtitle": "Débloquez une analyse personnalisée pour le cœur, la glycémie, le fer et l'intestin.",
+      "unlock": "Débloquer",
+      "title": "Impact sur la santé",
+      "subtitle": "Basé sur ce repas et les réglages de votre profil.",
+      "focusPill": "Votre priorité",
+      "systems": {
+        "cardiovascular": "Cœur et vaisseaux",
+        "bloodSugar": "Glycémie",
+        "bloodIron": "Sang et fer",
+        "gut": "Santé intestinale"
+      },
+      "levels": {
+        "veryPositive": "Fort soutien",
+        "positive": "Favorable",
+        "neutral": "Neutre",
+        "negative": "Attention",
+        "veryNegative": "Charge élevée"
+      }
+    }
   },
   "analysisFlow": {
     "analyze": "Analyser",

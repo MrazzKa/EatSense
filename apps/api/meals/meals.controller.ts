@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Request, Put, Delete, Param, Qu
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MealsService } from './meals.service';
-import { CreateMealDto, UpdateMealItemDto } from './dto';
+import { CreateMealDto, UpdateMealItemDto, EditMealItemsDto } from './dto';
 
 @ApiTags('Meals')
 @Controller('meals')
@@ -47,6 +47,17 @@ export class MealsController {
     @Request() req: any,
   ) {
     return this.mealsService.deleteMeal(req.user.id, id);
+  }
+
+  @Post(':id/edit-items')
+  @ApiOperation({ summary: 'Replace all items of a meal (legacy meals without analysisId)' })
+  @ApiResponse({ status: 200, description: 'Meal items replaced and totals recomputed' })
+  async editMealItems(
+    @Param('id') mealId: string,
+    @Body() dto: EditMealItemsDto,
+    @Request() req: any,
+  ) {
+    return this.mealsService.editMealItems(req.user.id, mealId, dto);
   }
 
   @Put(':id/items/:itemId')

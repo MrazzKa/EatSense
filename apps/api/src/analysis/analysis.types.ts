@@ -54,7 +54,7 @@ export interface AnalyzedItem {
   label?: string;
   portion_g: number;   // фактический вес порции в граммах
   nutrients: Nutrients;
-  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'swiss' | 'openfoodfacts' | 'rag' | 'eurofir' | 'reanalysis' | 'canonical_beverage' | 'hidden_ingredient' | 'gpt_trusted' | 'generic_fallback' | 'fao_who_ref' | 'local' | 'fallback';
+  source: 'fdc' | 'vision_fallback' | 'manual' | 'canonical_water' | 'canonical_plain_coffee' | 'canonical_plain_tea' | 'canonical_milk_coffee_fallback' | 'unknown_drink_low_calorie_fallback' | 'usda' | 'reanalysis' | 'canonical_beverage' | 'hidden_ingredient' | 'gpt_trusted' | 'generic_fallback' | 'local' | 'fallback';
   fdcId?: string | number;
   fdcScore?: number;
   dataType?: string;   // USDA dataType (Branded, Foundation, etc.)
@@ -67,7 +67,7 @@ export interface AnalyzedItem {
   /** Confidence score from Vision/provider (0-1) */
   confidence?: number;
   /** Provider that supplied nutrition data */
-  provider?: 'usda' | 'openfoodfacts' | 'swiss' | 'vision' | 'hybrid' | 'gpt' | 'unknown';
+  provider?: 'usda' | 'vision' | 'hybrid' | 'gpt' | 'unknown';
   /** Flag if this item has suspicious/implausible nutrition values */
   isSuspicious?: boolean;
   /** Flag if Vision fallback was used (provider match rejected) */
@@ -102,6 +102,16 @@ export interface AnalyzedItem {
     hasSauceOrDressing?: boolean;
     looksSugary?: boolean;
     hasBreadingOrBatter?: boolean;
+  };
+  /**
+   * Per-item flags computed by analyze.service when a userProfile is supplied.
+   * Used by frontend to render allergy/diet badges.
+   */
+  userFlags?: {
+    /** Allergen tokens from user.preferences.allergies that match this item (e.g., ['nuts']) */
+    allergyMatch?: string[];
+    /** Dietary preference violations (e.g., ['vegan'] when item contains meat) */
+    dietViolation?: string[];
   };
 }
 
@@ -336,5 +346,29 @@ export interface AnalysisData {
   foodCompatibility?: FoodCompatibilityResult;
   // Эвристическая оценка канцерогенного риска по составу блюда
   carcinogenicRisk?: CarcinogenicRiskResult;
+
+  // ─────────────────────────────────────────────────────────
+  // BODY SYSTEMS impact (4-system breakdown).
+  // Free users see locked teaser; Premium sees full breakdown.
+  // ─────────────────────────────────────────────────────────
+  bodySystems?: BodySystemsImpact;
 }
 
+export interface BodySystemImpact {
+  // 'cardiovascular' | 'bloodSugar' | 'bloodIron' | 'gut'
+  id: 'cardiovascular' | 'bloodSugar' | 'bloodIron' | 'gut';
+  // -2 (very negative), -1 (negative), 0 (neutral), 1 (positive), 2 (very positive)
+  level: -2 | -1 | 0 | 1 | 2;
+  // Human-readable single-line summary in user's locale.
+  summary: string;
+  // Reasons (e.g., "high satFat", "low fiber", "iron-rich"); machine-friendly.
+  signals: string[];
+  // Whether user marked this focus area in their healthFocus.
+  userFocus?: boolean;
+}
+
+export interface BodySystemsImpact {
+  systems: BodySystemImpact[];
+  // Optional AI-written headline (1-2 sentences) summarizing the meal's holistic impact.
+  aiSummary?: string;
+}

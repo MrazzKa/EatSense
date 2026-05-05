@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger, Inject, Optional } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, Inject, Optional, ForbiddenException } from '@nestjs/common';
 import { MealLogMealType } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import { CreateMealDto, UpdateMealItemDto } from './dto';
+import { CreateMealDto, UpdateMealItemDto, EditMealItemsDto } from './dto';
 import { CacheService } from '../src/cache/cache.service';
+import { AnalyzeService } from '../src/analysis/analyze.service';
 
 @Injectable()
 export class MealsService {
@@ -10,8 +11,150 @@ export class MealsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly analyzeService: AnalyzeService,
     @Optional() @Inject(CacheService) private readonly cache?: CacheService,
   ) { }
+
+  /**
+   * Edit items of a meal that has no underlying Analysis (legacy meals).
+   * Replaces mealItem rows, recomputes totals + health score directly.
+   * For meals with analysisId, the frontend should call /food/analysis/:id/manual-reanalyze instead.
+   */
+  async editMealItems(userId: string, mealId: string, dto: EditMealItemsDto) {
+    const meal = await this.prisma.meal.findFirst({
+      where: { id: mealId, userId },
+      include: { items: true },
+    });
+    if (!meal) {
+      throw new ForbiddenException('Meal not found or access denied');
+    }
+    if (!Array.isArray(dto.items) || dto.items.length === 0) {
+      throw new BadRequestException('Meal must have at least one item');
+    }
+
+    const locale = (dto.locale as any) || 'en';
+
+    // Build analyzed items shape for health score computation
+    // For ingredients with all-zero macros, attempt USDA lookup (same as manualReanalyze).
+    const analyzedItems = await Promise.all(dto.items.map(async (it, idx) => {
+      const portion = Math.max(1, Number(it.portion_g) || 1);
+      let calories = Math.max(0, Number(it.calories) || 0);
+      let protein = Math.max(0, Number(it.protein_g) || 0);
+      let fat = Math.max(0, Number(it.fat_g) || 0);
+      let carbs = Math.max(0, Number(it.carbs_g) || 0);
+      let fiber = 0, sugars = 0, satFat = 0;
+
+      const allZero = calories === 0 && protein === 0 && fat === 0 && carbs === 0;
+      if (allZero && it.name) {
+        const looked = await this.analyzeService.lookupNutritionForName(it.name, portion, locale);
+        if (looked) {
+          calories = looked.calories;
+          protein = looked.protein;
+          carbs = looked.carbs;
+          fat = looked.fat;
+          fiber = looked.fiber;
+          sugars = looked.sugars;
+          satFat = looked.satFat;
+          this.logger.log(`[editMealItems] Auto-filled nutrition for "${it.name}" via ${looked.provider}`);
+        }
+      }
+
+      return {
+        id: it.id || `meal-item-${idx}`,
+        name: it.name,
+        originalName: it.name,
+        portion_g: portion,
+        nutrients: {
+          calories,
+          protein,
+          carbs,
+          fat,
+          fiber,
+          sugars,
+          satFat,
+          energyDensity: portion > 0 ? (calories / portion) * 100 : 0,
+        },
+        source: 'manual' as const,
+        locale,
+      };
+    }));
+
+    const totals = analyzedItems.reduce(
+      (acc, it) => {
+        acc.calories += it.nutrients.calories;
+        acc.protein += it.nutrients.protein;
+        acc.carbs += it.nutrients.carbs;
+        acc.fat += it.nutrients.fat;
+        acc.portion_g += it.portion_g;
+        return acc;
+      },
+      { calories: 0, protein: 0, carbs: 0, fat: 0, portion_g: 0, fiber: 0, sugars: 0, satFat: 0 } as any,
+    );
+
+    let healthScore: any = null;
+    try {
+      healthScore = this.analyzeService.computeHealthScore(totals as any, totals.portion_g, analyzedItems as any, locale);
+    } catch (e: any) {
+      this.logger.warn(`[editMealItems] computeHealthScore failed: ${e?.message}`);
+    }
+
+    // Replace items (use resolved nutrients from analyzedItems, not raw DTO,
+    // so USDA-auto-filled values land in DB).
+    await this.prisma.mealItem.deleteMany({ where: { mealId } });
+    await this.prisma.meal.update({
+      where: { id: mealId },
+      data: {
+        healthScore: healthScore?.score ?? healthScore?.total ?? null,
+        healthGrade: healthScore?.grade ?? null,
+        healthInsights: healthScore ?? null,
+        items: {
+          create: analyzedItems.map((it) => ({
+            name: it.name || 'Unknown',
+            calories: Math.round(it.nutrients.calories),
+            protein: Math.round(it.nutrients.protein * 10) / 10,
+            fat: Math.round(it.nutrients.fat * 10) / 10,
+            carbs: Math.round(it.nutrients.carbs * 10) / 10,
+            weight: Math.round(it.portion_g),
+          })),
+        },
+      },
+    });
+
+    // Invalidate caches
+    if (this.cache) {
+      try {
+        await this.cache.invalidateNamespace('stats:monthly', userId);
+        await this.cache.invalidateNamespace('stats:daily' as any, userId);
+        await this.cache.invalidateNamespace('meals:diary', userId);
+      } catch {}
+    }
+
+    // Return shape compatible with frontend normalizeAnalysis (mirrors mapAnalysisResult shape)
+    const ingredients = analyzedItems.map((it) => ({
+      id: it.id,
+      name: it.name,
+      calories: it.nutrients.calories,
+      protein: it.nutrients.protein,
+      carbs: it.nutrients.carbs,
+      fat: it.nutrients.fat,
+      weight: it.portion_g,
+      hasNutrition: true,
+    }));
+
+    return {
+      mealId,
+      analysisId: meal.analysisId || null,
+      dishName: meal.name,
+      totalCalories: Math.round(totals.calories),
+      totalProtein: Math.round(totals.protein * 10) / 10,
+      totalCarbs: Math.round(totals.carbs * 10) / 10,
+      totalFat: Math.round(totals.fat * 10) / 10,
+      ingredients,
+      data: { items: ingredients, total: totals, healthScore },
+      healthScore,
+      imageUrl: meal.imageUri || null,
+    };
+  }
 
   async getMeals(userId: string, date?: string) {
     const cacheKey = `${userId}:${date || 'latest'}`;

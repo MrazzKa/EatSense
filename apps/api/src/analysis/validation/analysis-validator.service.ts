@@ -18,7 +18,7 @@ interface RawAnalyzedItem {
   reasoning?: string;
   // Source info for provider bypass
   hasNutrition?: boolean;
-  provider?: 'usda' | 'openfoodfacts' | 'swiss' | 'vision' | 'hybrid' | 'unknown';
+  provider?: 'usda' | 'vision' | 'hybrid' | 'unknown';
   sourceInfo?: { nutrients: 'provider' | 'vision' | 'derived' };
 }
 
@@ -304,7 +304,7 @@ export class AnalysisValidatorService {
   ): { issue?: ValidationIssue; correctedItem?: RawAnalyzedItem } {
     // BYPASS: Don't correct calories from trusted providers (USDA, OFF, Swiss)
     // Only apply corrections to generic estimates / fallback
-    const trustedProviders = ['usda', 'openfoodfacts', 'swiss', 'hybrid'];
+    const trustedProviders = ['usda', 'hybrid'];
     if (item.hasNutrition && item.provider && trustedProviders.includes(item.provider)) {
       // Trust provider data - skip calorie range validation
       return {};
@@ -750,7 +750,7 @@ export class AnalysisValidatorService {
     // FIX #4: PROVIDER DATA TRUST MODE
     // ============================================
     // If data comes from trusted provider, only sanitize obvious errors
-    const trustedProviders = ['usda', 'openfoodfacts', 'swiss', 'hybrid', 'provider'];
+    const trustedProviders = ['usda', 'hybrid', 'provider'];
     const isProviderData = source && trustedProviders.includes(source.toLowerCase());
 
     if (isProviderData) {

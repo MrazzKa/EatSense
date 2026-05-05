@@ -478,107 +478,41 @@ export class VisionService {
     // Locale is passed from getOrExtractComponents params
     const locale = paramLocale || 'en';
 
-    let systemPrompt = `You are EatSense OMEGA v5.0 — fast, accurate food recognition.
+    let systemPrompt = `You are EatSense OMEGA v5.3 — fast, accurate food recognition.
 
-## OUTPUT FORMAT
-Return ONLY valid JSON:
+## OUTPUT (JSON only)
 {
-  "imageQuality": "good" | "medium" | "poor",
-  "dish": {
-    "name": "string or null",
-    "name_local": "string or null", 
-    "confidence": 0.0-1.0
-  },
-  "visible_items": [
-    {
-      "id": "A",
-      "name": "english name, lowercase",
-      "name_local": "локализованное название",
-      "display_name": "English Title",
-      "display_name_local": "Локальный Заголовок",
-      "est_portion_g": 150,
-      "category_hint": "protein|grain|veg|fruit|fat|dairy|sauce|drink|other",
-      "cooking_method": "raw|boiled|steamed|baked|grilled|fried|deep_fried|mixed",
-      "confidence": 0.0-1.0,
-      "estimated_nutrients": {
-        "calories": 0,
-        "protein_g": 0,
-        "fat_g": 0,
-        "carbs_g": 0
-      }
-    }
-  ],
-  "totals": { "kcal": 0, "protein": 0, "fat": 0, "carbs": 0 }
+ "imageQuality":"good|medium|poor",
+ "dish":{"name":"string|null","name_local":"string|null","confidence":0.0-1.0},
+ "visible_items":[{
+  "id":"A","name":"english lowercase","name_local":"localized","display_name":"English Title","display_name_local":"Localized Title",
+  "est_portion_g":150,"category_hint":"protein|grain|veg|fruit|fat|dairy|sauce|drink|other",
+  "cooking_method":"raw|boiled|steamed|baked|grilled|fried|deep_fried|mixed","confidence":0.0-1.0,
+  "estimated_nutrients":{"calories":0,"protein_g":0,"fat_g":0,"carbs_g":0}
+ }],
+ "totals":{"kcal":0,"protein":0,"fat":0,"carbs":0}
 }
 
-## CALORIE REFERENCE (per 100g) - USE THESE VALUES!
-Vegetables (raw/steamed):
-- Bell pepper: 26 kcal, 1g protein, 6g carbs, 0g fat
-- Broccoli: 34 kcal, 3g protein, 7g carbs, 0g fat
-- Tomato: 18 kcal, 1g protein, 4g carbs, 0g fat
-- Cucumber: 15 kcal, 1g protein, 3g carbs, 0g fat
-- Onion: 40 kcal, 1g protein, 9g carbs, 0g fat
-- Carrot: 41 kcal, 1g protein, 10g carbs, 0g fat
-- Zucchini: 17 kcal, 1g protein, 3g carbs, 0g fat
-- Basil/herbs: 23 kcal, 3g protein, 3g carbs, 0g fat
-- Olives: 115 kcal, 1g protein, 6g carbs, 11g fat
-- Capers: 23 kcal, 2g protein, 5g carbs, 0g fat
-
-Proteins:
-- Chicken breast: 165 kcal, 31g protein, 0g carbs, 4g fat
-- Beef: 250 kcal, 26g protein, 0g carbs, 15g fat
-- Salmon: 208 kcal, 20g protein, 0g carbs, 13g fat
-- Egg: 155 kcal, 13g protein, 1g carbs, 11g fat
-
 ## RULES
-1. Identify ALL visible food items
-2. Use CALORIE REFERENCE values above for vegetables!
-3. confidence < 0.7 → use generic name ("fish" not "salmon")
-4. DO NOT hallucinate invisible ingredients
-5. Composite dishes (soup, curry) = SINGLE item with itemType: "composite_dish"
+1. Identify ALL visible food items. confidence<0.7 → use generic name (e.g. "fish" not "salmon").
+2. DO NOT hallucinate invisible ingredients.
+3. Composite dishes (soup/curry/stew) = SINGLE item with itemType "composite_dish".
+4. estimated_nutrients are REALISTIC per-100g averages from common nutrition databases (USDA-grade), NOT round numbers — provider lookup will refine.
+5. Apply cooking adjustments to estimated_nutrients: fried +20% kcal +30% fat; deep_fried +35% kcal +50% fat; grilled/baked +5% kcal.
 
-## PORTION ESTIMATION (CRITICAL - estimate REALISTIC weights, NOT 100g for everything!)
-You MUST estimate the actual visible portion weight based on the photo. Do NOT default to 100g.
-Use these visual cues:
-- Plate coverage: full plate ~300-400g total food, half plate ~150-200g
-- Palm-sized meat/fish = 100-120g
-- Fist-sized portion of rice/pasta/grains = 150-200g cooked
-- Side salad = 80-120g, large salad bowl = 200-300g
-- Bread slice = 30-40g, bread roll = 60-80g
-- Egg = 50-60g each
-- Vegetables side = 80-150g
-- Soup bowl = 300-400ml
-- Cup = 200ml, Glass = 250ml, Mug = 300ml
-- Sauce/dressing = 15-30g
-- Cheese slice = 20-30g
-- Handful of nuts = 25-35g
-- Round to nearest 5g for items <50g, nearest 10g for items 50-200g, nearest 25g for items >200g
-- NEVER return exactly 100g unless the item truly appears to be ~100g
-
-## COOKING ADJUSTMENTS
-- fried: +20% cal, +30% fat
-- deep_fried: +35% cal, +50% fat
-- grilled/baked: +5% cal
+## PORTION ESTIMATION (CRITICAL — never default to 100g)
+Plate full ~300-400g, half ~150-200g. Palm-sized meat/fish = 100-120g. Fist-sized rice/pasta = 150-200g cooked. Side salad 80-120g. Bread slice 30-40g, roll 60-80g. Egg 50-60g. Soup bowl 300-400ml. Cup 200ml/Glass 250ml/Mug 300ml. Sauce 15-30g. Cheese slice 20-30g. Nuts handful 25-35g. Round: <50g→5g, 50-200g→10g, >200g→25g.
 
 ## QUALITY CAPS
-- good: confidence up to 1.0
-- medium: max 0.85
-- poor: max 0.75
+good→up to 1.0, medium→max 0.85, poor→max 0.75.
 
 ## LOCALIZATION (locale: ${locale})
-- ru: "лосось", "рис", "курица", "борщ"
-- kk: "балық", "күріш", "тауық"
-- fr: "saumon", "riz", "poulet"
-- es: "salmón", "arroz", "pollo"
-- de: "Lachs", "Reis", "Hähnchen"
-- en: default English names
+ru: "лосось","рис","курица"; kk: "балық","күріш","тауық"; fr: "saumon","riz","poulet"; es: "salmón","arroz","pollo"; de: "Lachs","Reis","Hähnchen"; en: default English.
 
 ## DISH NAMING
-1. Recognizable dish (≥80% match): use canonical name
-2. Unclear dish: use descriptive name like "Grilled chicken with rice"
-3. Single item: dish.name = null, use visible_items[0].display_name
+Recognizable (≥80% match) → canonical name. Unclear → descriptive ("Grilled chicken with rice"). Single item → dish.name=null, use visible_items[0].display_name.
 
-Remember: Output ONLY valid JSON. No markdown, no text outside JSON.`;
+Output ONLY valid JSON. No markdown, no prose outside JSON.`;
 
     // Add review mode instructions
     if (mode === 'review') {
@@ -638,7 +572,7 @@ REVIEW MODE - Be extra careful:
                 ],
               },
             ],
-            max_completion_tokens: 1200, // OMEGA v5.2: Balanced for quality (was 1000)
+            max_completion_tokens: 900, // OMEGA v5.3: Trimmed prompt + cap allows ~25% faster responses without quality loss
             temperature: 0.1, // OMEGA v4: Lower for consistency
             response_format: { type: 'json_object' },
           }, {

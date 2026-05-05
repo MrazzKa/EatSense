@@ -78,10 +78,9 @@ interface BeverageDetectionResult {
  * Main service for analyzing food images and text descriptions.
  * Orchestrates Vision extraction, FDC matching, portion estimation, and HealthScore calculation.
  * 
- * TODO: Future enhancement - barcode-based product lookup:
- * - When a barcode is detected in an image or provided by user, use OpenFoodFactsService
- *   to look up product data directly, bypassing vision/FDC matching for known products.
- * - This would provide more accurate nutrition data for packaged foods.
+ * Nutrition matching is intentionally USDA/local-first. Packaged-food lookup
+ * providers are kept out of the active meal-analysis path to avoid slow,
+ * low-confidence fallbacks.
  */
 @Injectable()
 export class AnalyzeService {
@@ -1650,7 +1649,7 @@ export class AnalyzeService {
    * Analyze image and return normalized nutrition data.
    * Wrapper around internal implementation to handle request coalescing (locking).
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean; userProfile?: any }): Promise<AnalysisData> {
     // Check for pending request to prevent double analysis (Race Condition Fix)
     // This uses a memory lock so that simultaneous requests for the same image Wait for the first one
     const imageHash = this.hashImage(params);
@@ -1674,7 +1673,7 @@ export class AnalyzeService {
     }
   }
 
-  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean }): Promise<AnalysisData> {
+  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean; userProfile?: any }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' | undefined) || 'en';
     const mode = params.mode || 'default';
@@ -2242,6 +2241,15 @@ export class AnalyzeService {
     // STEP 2 FIX: Set displayName as the single source of truth for UI
     const displayName = dishNameLocalized || originalDishName || 'Meal';
 
+    // ──────────────────────────────────────────────────────────────────────
+    // USER PROFILE → ANALYSIS coupling
+    // Adjusts health score, flags items by allergies/diet, computes body systems.
+    // ──────────────────────────────────────────────────────────────────────
+    if (params.userProfile) {
+      this.applyUserProfileAdjustments(items, total, healthScore, params.userProfile, locale);
+    }
+    const bodySystems = this.computeBodySystems(items, total, params.userProfile);
+
     const result: AnalysisData = {
       items,
       total,
@@ -2258,7 +2266,8 @@ export class AnalyzeService {
       needsReview,
       imageUrl: params.imageUrl,
       imageUri: params.imageUrl, // For backward compatibility
-    };
+      bodySystems,
+    } as any;
 
     // Evaluate food compatibility
     // Note: metadata is not available in this context, using defaults
@@ -2344,7 +2353,7 @@ export class AnalyzeService {
   /**
    * Analyze text description
    */
-  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es', skipCache?: boolean): Promise<AnalysisData> {
+  public async analyzeText(text: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es', skipCache?: boolean, opts?: { userProfile?: any }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     // Normalize locale
     const normalizedLocale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' =
@@ -2531,6 +2540,12 @@ export class AnalyzeService {
     const dishNameLocalized = await this.foodLocalization.localizeName(originalDishName, normalizedLocale);
     const displayName = dishNameLocalized || originalDishName || 'Meal';
 
+    // USER PROFILE coupling (text path)
+    if (opts?.userProfile) {
+      this.applyUserProfileAdjustments(items, total, healthScore, opts.userProfile, normalizedLocale);
+    }
+    const bodySystemsText = this.computeBodySystems(items, total, opts?.userProfile);
+
     return {
       items,
       total,
@@ -2541,7 +2556,8 @@ export class AnalyzeService {
       originalDishName,
       isSuspicious,
       needsReview,
-    };
+      bodySystems: bodySystemsText,
+    } as any;
   }
 
   /**
@@ -2609,9 +2625,6 @@ export class AnalyzeService {
     // Map provider id to provider type
     const providerMap: Record<string, AnalyzedItem['provider']> = {
       'usda': 'usda',
-      'openfoodfacts': 'openfoodfacts',
-      'swiss': 'swiss',
-      'swiss-food': 'swiss',
       'local_food': 'hybrid',
     };
 
@@ -3381,6 +3394,7 @@ export class AnalyzeService {
     totals: AnalysisTotals,
     locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en',
     analysisId?: string,
+    userProfile?: any,
   ): Promise<HealthScore> {
     // Check if AI is enabled
     if (!this.healthFeedbackAi.isEnabled()) {
@@ -3395,7 +3409,8 @@ export class AnalyzeService {
         healthScore,
         locale,
         analysisId,
-      });
+        userProfile,
+      } as any);
 
       if (aiFeedback.length > 0) {
         this.logger.debug(`[HealthScore] AI generated ${aiFeedback.length} feedback items`);
@@ -3813,6 +3828,251 @@ export class AnalyzeService {
     // Можно ограничить вывод, чтобы не перегружать пользователя
     // Например, показать не больше 6 сообщений
     return feedback.slice(0, 6);
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // USER PROFILE → ANALYSIS coupling
+  // Settings (allergies, diet, healthFocus, goal, GLP-1) modulate the
+  // analysis result: tagging items, adjusting health score, building
+  // body-systems impact panel.
+  // ════════════════════════════════════════════════════════════════════
+
+  /**
+   * Mutates `items`/`healthScore` in place: tags allergy/diet matches and adjusts score.
+   */
+  public applyUserProfileAdjustments(
+    items: AnalyzedItem[],
+    total: AnalysisTotals,
+    healthScore: HealthScore | null,
+    userProfile: any,
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
+  ): void {
+    if (!userProfile) return;
+
+    const prefs = (userProfile.preferences || {}) as { allergies?: string[]; dietaryPreferences?: string[] };
+    const allergies = (prefs.allergies || []).map((a: string) => String(a).toLowerCase().trim()).filter(Boolean);
+    const diets = (prefs.dietaryPreferences || []).map((d: string) => String(d).toLowerCase().trim()).filter(Boolean);
+    const healthFocus = (userProfile.healthProfile?.healthFocus || {}) as Record<string, boolean>;
+    const goal = String(userProfile.goal || '').toLowerCase();
+    const dailyCalories = Number(userProfile.dailyCalories) || 0;
+
+    // 1. Tag items with allergy/diet matches
+    for (const item of items) {
+      const haystack = `${item.name || ''} ${item.originalName || ''} ${item.label || ''}`.toLowerCase();
+      const matched: string[] = [];
+      for (const a of allergies) {
+        if (a && haystack.includes(a)) matched.push(a);
+      }
+      const dietViolations: string[] = [];
+      for (const d of diets) {
+        if (d === 'vegan' && this.isAnimalIngredient(item)) dietViolations.push('vegan');
+        else if (d === 'vegetarian' && this.isMeatOrFishIngredient(item)) dietViolations.push('vegetarian');
+        else if (d === 'halal' && /pork|bacon|ham|свин|шпик/i.test(haystack)) dietViolations.push('halal');
+        else if (d === 'kosher' && /pork|bacon|shrimp|свин|креветк/i.test(haystack)) dietViolations.push('kosher');
+        else if (d === 'gluten-free' && /wheat|bread|pasta|barley|rye|пшениц|хлеб|макарон/i.test(haystack)) dietViolations.push('gluten-free');
+        else if (d === 'lactose-free' && /milk|cheese|yogurt|butter|cream|молок|сыр|йогурт|сметан/i.test(haystack)) dietViolations.push('lactose-free');
+      }
+      if (matched.length || dietViolations.length) {
+        item.userFlags = {
+          ...(item.userFlags || {}),
+          ...(matched.length ? { allergyMatch: matched } : {}),
+          ...(dietViolations.length ? { dietViolation: dietViolations } : {}),
+        };
+      }
+    }
+
+    if (!healthScore) return;
+    const baseTotal = healthScore.total ?? healthScore.score ?? 0;
+    let newTotal = baseTotal;
+    const adjustments: string[] = [];
+
+    // 2. Apply healthFocus adjustments
+    const totalSugars = Number((total as any).sugars) || 0;
+    const totalSatFat = Number((total as any).satFat) || 0;
+    const totalFiber = Number((total as any).fiber) || 0;
+    const totalProtein = Number(total.protein) || 0;
+
+    if (healthFocus.sugarControl) {
+      // Penalize ×1.5 for sugar over 10g per meal
+      if (totalSugars > 10) {
+        const penalty = Math.min(15, Math.round((totalSugars - 10) * 0.7));
+        newTotal -= penalty;
+        adjustments.push(`sugar_focus_penalty:-${penalty}`);
+      }
+    }
+    if (healthFocus.cholesterol) {
+      if (totalSatFat > 5) {
+        const penalty = Math.min(15, Math.round((totalSatFat - 5) * 1.5));
+        newTotal -= penalty;
+        adjustments.push(`cholesterol_focus_penalty:-${penalty}`);
+      }
+    }
+    if (healthFocus.microbiome || healthFocus.inflammation) {
+      // Bonus for fibre-rich
+      if (totalFiber >= 5) {
+        const bonus = Math.min(10, Math.round((totalFiber - 5) * 1.5));
+        newTotal += bonus;
+        adjustments.push(`microbiome_focus_bonus:+${bonus}`);
+      }
+    }
+    if (healthFocus.iron) {
+      const ironRich = items.filter(it => this.isIronRich(it));
+      if (ironRich.length > 0) {
+        newTotal += 5;
+        adjustments.push(`iron_focus_bonus:+5`);
+      }
+    }
+
+    // 3. Goal-based adjustment
+    if (goal.includes('weight_loss') && dailyCalories > 0) {
+      const ratio = total.calories / dailyCalories;
+      if (ratio > 0.5) {
+        const penalty = Math.min(15, Math.round((ratio - 0.5) * 30));
+        newTotal -= penalty;
+        adjustments.push(`weight_loss_meal_size_penalty:-${penalty}`);
+      }
+    }
+
+    // 4. GLP-1: emphasize protein
+    const glp1 = userProfile.healthProfile?.glp1Module;
+    if (glp1?.isGlp1User && glp1?.therapyGoal === 'preserve_muscle') {
+      // Need ≥0.3g protein per kg per meal — without weight, use heuristic ≥25g
+      if (totalProtein < 20) {
+        newTotal -= 8;
+        adjustments.push(`glp1_low_protein_penalty:-8`);
+      } else if (totalProtein >= 30) {
+        newTotal += 5;
+        adjustments.push(`glp1_high_protein_bonus:+5`);
+      }
+    }
+
+    // 5. Clamp + write back
+    newTotal = Math.max(0, Math.min(100, newTotal));
+    healthScore.total = newTotal;
+    if ((healthScore as any).score !== undefined) (healthScore as any).score = newTotal;
+    if (typeof (healthScore as any).grade === 'string') (healthScore as any).grade = this.deriveGrade(newTotal);
+    (healthScore as any).profileAdjustments = adjustments;
+  }
+
+  private isAnimalIngredient(item: AnalyzedItem): boolean {
+    const t = `${item.name || ''} ${item.originalName || ''}`.toLowerCase();
+    return /chicken|beef|pork|fish|salmon|tuna|egg|milk|cheese|yogurt|butter|cream|honey|курица|говядин|свинин|рыба|лосос|тунец|яйц|молок|сыр|йогурт|мёд/i.test(t);
+  }
+  private isMeatOrFishIngredient(item: AnalyzedItem): boolean {
+    const t = `${item.name || ''} ${item.originalName || ''}`.toLowerCase();
+    return /chicken|beef|pork|fish|salmon|tuna|shrimp|bacon|ham|sausage|курица|говядин|свинин|рыба|лосос|тунец|креветк|бекон|ветчин|колбас/i.test(t);
+  }
+  private isIronRich(item: AnalyzedItem): boolean {
+    const t = `${item.name || ''} ${item.originalName || ''}`.toLowerCase();
+    return /beef|liver|spinach|lentil|chickpea|tofu|kidney bean|red meat|говядин|печен|шпинат|чечевиц|нут|тофу|фасол/i.test(t);
+  }
+
+  /**
+   * Compute 4-system body impact based on item composition + totals.
+   * Order is dynamic: systems where userProfile.healthFocus is true come first.
+   */
+  public computeBodySystems(
+    items: AnalyzedItem[],
+    total: AnalysisTotals,
+    userProfile?: any,
+  ): import('./analysis.types').BodySystemsImpact {
+    const focus = (userProfile?.healthProfile?.healthFocus || {}) as Record<string, boolean>;
+
+    const totalSugars = Number((total as any).sugars) || 0;
+    const totalSatFat = Number((total as any).satFat) || 0;
+    const totalFiber = Number((total as any).fiber) || 0;
+    const totalCarbs = Number(total.carbs) || 0;
+    const totalCalories = Number(total.calories) || 0;
+    const ironRichCount = items.filter(i => this.isIronRich(i)).length;
+    const fermentedCount = items.filter(i => /yogurt|kefir|kimchi|sauerkraut|kombucha|miso|tempeh|йогурт|кефир|кимчи|кваш|комбуч/i.test(`${i.name} ${i.originalName || ''}`)).length;
+    const processedCount = items.filter(i => /sausage|bacon|ham|hot dog|nugget|колбас|сосиск|бекон|ветчин|наггетс/i.test(`${i.name} ${i.originalName || ''}`)).length;
+    const sodiumProxy = items.filter(i => /salt|soy sauce|broth|сол|соевый|бульон/i.test(`${i.name} ${i.originalName || ''}`)).length;
+
+    // Cardiovascular
+    let cardioLevel: -2 | -1 | 0 | 1 | 2 = 0;
+    const cardioSignals: string[] = [];
+    if (totalSatFat > 10) { cardioLevel = -2; cardioSignals.push('high_sat_fat'); }
+    else if (totalSatFat > 5) { cardioLevel = -1; cardioSignals.push('moderate_sat_fat'); }
+    if (processedCount > 0) { cardioLevel = Math.max(-2, cardioLevel - 1) as any; cardioSignals.push('processed_meat'); }
+    if (sodiumProxy > 1) { cardioSignals.push('high_sodium'); cardioLevel = Math.max(-2, cardioLevel - 1) as any; }
+    if (totalFiber >= 7 && totalSatFat <= 3) { cardioLevel = Math.min(2, cardioLevel + 1) as any; cardioSignals.push('heart_friendly_fiber'); }
+
+    // Blood sugar
+    let sugarLevel: -2 | -1 | 0 | 1 | 2 = 0;
+    const sugarSignals: string[] = [];
+    if (totalSugars > 25) { sugarLevel = -2; sugarSignals.push('very_high_sugar'); }
+    else if (totalSugars > 12) { sugarLevel = -1; sugarSignals.push('high_sugar'); }
+    if (totalCarbs > 60 && totalFiber < 5) { sugarLevel = Math.max(-2, sugarLevel - 1) as any; sugarSignals.push('high_glycemic_load'); }
+    if (totalFiber >= 7 && totalSugars < 8) { sugarLevel = Math.min(2, sugarLevel + 1) as any; sugarSignals.push('balanced_carbs'); }
+
+    // Blood / iron
+    let bloodLevel: -2 | -1 | 0 | 1 | 2 = 0;
+    const bloodSignals: string[] = [];
+    if (ironRichCount > 0) { bloodLevel = 1; bloodSignals.push('iron_source'); }
+    if (ironRichCount >= 2) { bloodLevel = 2; bloodSignals.push('rich_iron_meal'); }
+
+    // Gut (microbiome)
+    let gutLevel: -2 | -1 | 0 | 1 | 2 = 0;
+    const gutSignals: string[] = [];
+    if (totalFiber >= 7) { gutLevel = 2; gutSignals.push('high_fiber'); }
+    else if (totalFiber >= 4) { gutLevel = 1; gutSignals.push('moderate_fiber'); }
+    else if (totalFiber < 2) { gutLevel = -1; gutSignals.push('low_fiber'); }
+    if (fermentedCount > 0) { gutLevel = Math.min(2, gutLevel + 1) as any; gutSignals.push('fermented_food'); }
+    if (processedCount > 0) { gutLevel = Math.max(-2, gutLevel - 1) as any; gutSignals.push('processed_food'); }
+
+    const summaryFor = (level: number, kind: string): string => {
+      // English placeholders; localization happens at AI-feedback step or i18n on frontend
+      if (level >= 2) return `Strongly supports ${kind}`;
+      if (level === 1) return `Supports ${kind}`;
+      if (level === 0) return `Neutral impact on ${kind}`;
+      if (level === -1) return `May stress ${kind}`;
+      return `High burden on ${kind}`;
+    };
+
+    const all: import('./analysis.types').BodySystemImpact[] = [
+      { id: 'cardiovascular', level: cardioLevel, summary: summaryFor(cardioLevel, 'heart & vessels'), signals: cardioSignals, userFocus: !!focus.cholesterol },
+      { id: 'bloodSugar', level: sugarLevel, summary: summaryFor(sugarLevel, 'blood sugar'), signals: sugarSignals, userFocus: !!focus.sugarControl },
+      { id: 'bloodIron', level: bloodLevel, summary: summaryFor(bloodLevel, 'blood & iron'), signals: bloodSignals, userFocus: !!focus.iron },
+      { id: 'gut', level: gutLevel, summary: summaryFor(gutLevel, 'gut'), signals: gutSignals, userFocus: !!focus.microbiome },
+    ];
+
+    // Reorder: systems with userFocus=true first (preserving stable order within group).
+    const focused = all.filter(s => s.userFocus);
+    const rest = all.filter(s => !s.userFocus);
+    const systems = [...focused, ...rest];
+
+    return { systems };
+  }
+
+  /**
+   * Public helper: look up nutrition data for a free-text food name and scale to a given portion (g).
+   * Used by manual-reanalyze when a user adds a new ingredient without filling macros.
+   * Returns null if no provider found a match.
+   */
+  public async lookupNutritionForName(
+    name: string,
+    portion_g: number,
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en',
+  ): Promise<{ calories: number; protein: number; carbs: number; fat: number; fiber: number; sugars: number; satFat: number; provider: string } | null> {
+    if (!name || !name.trim()) return null;
+    const portion = Math.max(1, Number(portion_g) || 100);
+    try {
+      const result = await this.nutrition.findNutrition(name.trim(), { locale });
+      if (!result?.food) return null;
+      const per100 = result.food.per100g || {};
+      const scale = portion / 100;
+      const calories = Math.max(0, Math.round((per100.calories || 0) * scale));
+      const protein = Math.max(0, Math.round((per100.protein || 0) * scale * 10) / 10);
+      const carbs = Math.max(0, Math.round((per100.carbs || 0) * scale * 10) / 10);
+      const fat = Math.max(0, Math.round((per100.fat || 0) * scale * 10) / 10);
+      const fiber = Math.max(0, Math.round((per100.fiber || 0) * scale * 10) / 10);
+      const sugars = Math.max(0, Math.round((per100.sugars || 0) * scale * 10) / 10);
+      const satFat = Math.max(0, Math.round((per100.satFat || 0) * scale * 10) / 10);
+      return { calories, protein, carbs, fat, fiber, sugars, satFat, provider: result.food.providerId };
+    } catch (e: any) {
+      this.logger.warn(`[lookupNutritionForName] failed for "${name}": ${e?.message || e}`);
+      return null;
+    }
   }
 
   /**

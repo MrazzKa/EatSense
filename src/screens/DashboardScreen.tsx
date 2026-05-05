@@ -56,6 +56,143 @@ function getItemImageUrl(item) {
   return ApiService.resolveMediaUrl(rawUrl);
 }
 
+const DASHBOARD_CACHE_PREFIX = 'dashboard_data_';
+const DASHBOARD_CACHE_VERSION = 2;
+const DASHBOARD_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const DASHBOARD_CACHE_MAX_KEYS = 14;
+
+function getDashboardCacheKey(dateKey, locale) {
+  return `${DASHBOARD_CACHE_PREFIX}${dateKey}_${locale}`;
+}
+
+function getDashboardCacheDateMs(dateKey) {
+  const time = new Date(`${dateKey}T00:00:00`).getTime();
+  return Number.isFinite(time) ? time : null;
+}
+
+function isDashboardCacheDateInWindow(dateKey, now = Date.now()) {
+  const dateMs = getDashboardCacheDateMs(dateKey);
+  if (!dateMs) return false;
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  return dateMs >= today.getTime() - DASHBOARD_CACHE_TTL_MS;
+}
+
+function parseDashboardCacheKey(key) {
+  const match = /^dashboard_data_(\d{4}-\d{2}-\d{2})_(.+)$/.exec(key);
+  if (!match) return null;
+  return { dateKey: match[1], locale: match[2] };
+}
+
+function parseDashboardCachePayload(raw, key) {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed?.__cacheVersion === DASHBOARD_CACHE_VERSION && parsed?.data) {
+      return parsed;
+    }
+
+    const keyInfo = parseDashboardCacheKey(key);
+    if (!keyInfo) return null;
+
+    return {
+      __cacheVersion: DASHBOARD_CACHE_VERSION,
+      cachedAt: Date.now(),
+      lastAccessed: Date.now(),
+      dateKey: keyInfo.dateKey,
+      locale: keyInfo.locale,
+      data: parsed,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function readDashboardCache(cacheKey) {
+  const raw = await AsyncStorage.getItem(cacheKey);
+  const entry = parseDashboardCachePayload(raw, cacheKey);
+  if (!entry) {
+    if (raw) await AsyncStorage.removeItem(cacheKey).catch(() => {});
+    return null;
+  }
+
+  const now = Date.now();
+  const expiredByAge = now - Number(entry.cachedAt || 0) > DASHBOARD_CACHE_TTL_MS;
+  const expiredByDate = !isDashboardCacheDateInWindow(entry.dateKey, now);
+  if (expiredByAge || expiredByDate) {
+    await AsyncStorage.removeItem(cacheKey).catch(() => {});
+    return null;
+  }
+
+  const touched = { ...entry, lastAccessed: now };
+  await AsyncStorage.setItem(cacheKey, JSON.stringify(touched)).catch(() => {});
+  return touched.data;
+}
+
+async function writeDashboardCache(cacheKey, dateKey, locale, data) {
+  if (!data?.meals?.length || !isDashboardCacheDateInWindow(dateKey)) {
+    return;
+  }
+
+  const now = Date.now();
+  await AsyncStorage.setItem(
+    cacheKey,
+    JSON.stringify({
+      __cacheVersion: DASHBOARD_CACHE_VERSION,
+      cachedAt: now,
+      lastAccessed: now,
+      dateKey,
+      locale,
+      data,
+    }),
+  ).catch(() => {});
+}
+
+async function pruneDashboardCache() {
+  const keys = await AsyncStorage.getAllKeys();
+  const dashKeys = keys.filter(k => k.startsWith(DASHBOARD_CACHE_PREFIX));
+  if (dashKeys.length === 0) return 0;
+
+  const now = Date.now();
+  const entries = await Promise.all(
+    dashKeys.map(async (key) => {
+      const raw = await AsyncStorage.getItem(key).catch(() => null);
+      const parsed = parseDashboardCachePayload(raw, key);
+      return { key, parsed };
+    }),
+  );
+
+  const toDelete = new Set();
+  const liveEntries = [];
+
+  for (const { key, parsed } of entries) {
+    if (!parsed) {
+      toDelete.add(key);
+      continue;
+    }
+
+    const expiredByAge = now - Number(parsed.cachedAt || 0) > DASHBOARD_CACHE_TTL_MS;
+    const expiredByDate = !isDashboardCacheDateInWindow(parsed.dateKey, now);
+    if (expiredByAge || expiredByDate) {
+      toDelete.add(key);
+      continue;
+    }
+
+    liveEntries.push({ key, lastAccessed: Number(parsed.lastAccessed || parsed.cachedAt || 0) });
+  }
+
+  liveEntries
+    .sort((a, b) => b.lastAccessed - a.lastAccessed)
+    .slice(DASHBOARD_CACHE_MAX_KEYS)
+    .forEach(entry => toDelete.add(entry.key));
+
+  if (toDelete.size > 0) {
+    await AsyncStorage.multiRemove(Array.from(toDelete));
+  }
+
+  return toDelete.size;
+}
+
 export default function DashboardScreen() {
   // Log every render to trace crash timing
   clientLog('Dashboard:render').catch(() => {});
@@ -436,7 +573,7 @@ export default function DashboardScreen() {
 
     const currentLocale = language || 'en';
     const dateKey = selectedDate.toISOString().split('T')[0];
-    const cacheKey = `dashboard_data_${dateKey}_${currentLocale}`;
+    const cacheKey = getDashboardCacheKey(dateKey, currentLocale);
     const thisRequestId = ++fetchIdRef.current;
 
     isFetchingRef.current = true;
@@ -446,9 +583,8 @@ export default function DashboardScreen() {
       // 1. Try Cache First (Fast Render)
       // FIX: Only show cache if it has meals to prevent showing empty diary
       try {
-        const cached = await AsyncStorage.getItem(cacheKey);
-        if (cached) {
-          const data = JSON.parse(cached);
+        const data = await readDashboardCache(cacheKey);
+        if (data) {
           // FIX: Only use cache if it has actual meals data
           if (data?.meals?.length > 0) {
             if (__DEV__) console.log('[Dashboard] Loaded from cache with', data.meals.length, 'meals');
@@ -480,7 +616,7 @@ export default function DashboardScreen() {
       lastFetchTimestampRef.current = Date.now();
       // FIX: Only cache data if it has meals to prevent caching empty data
       if (data?.meals?.length > 0) {
-        AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => { });
+        writeDashboardCache(cacheKey, dateKey, currentLocale, data).catch(() => { });
       }
       // FIX: Don't overwrite existing meals with empty response (timing race)
       if (data?.meals?.length > 0 || !recentItemsRef.current?.length) {
@@ -494,9 +630,8 @@ export default function DashboardScreen() {
       clientLog('Dashboard:loadError', { message: String(error?.message || error) }).catch(() => {});
       // Fallback to cache if request failed and we haven't loaded it yet
       try {
-        const cached = await AsyncStorage.getItem(cacheKey);
-        if (cached) {
-          const data = JSON.parse(cached);
+        const data = await readDashboardCache(cacheKey);
+        if (data) {
           updateDashboardState(data);
         }
       } catch {
@@ -519,6 +654,13 @@ export default function DashboardScreen() {
   // FIX 1: Load data on first mount
   useEffect(() => {
     loadDashboardData();
+    pruneDashboardCache()
+      .then((removed) => {
+        if (__DEV__ && removed > 0) console.log('[Dashboard] Pruned', removed, 'stale/LRU cache keys');
+      })
+      .catch((e) => {
+        if (__DEV__) console.warn('[Dashboard] Cache prune failed:', e);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -675,20 +817,20 @@ export default function DashboardScreen() {
 
       if (__DEV__) console.log('[Dashboard] Image selected, compressing...');
 
-      // Compress the image for AI analysis
+      // Unified compression: 1024px / q=0.8 keeps vision quality while cutting upload size.
       let compressedImage = asset;
       if (ImageManipulator) {
         try {
           if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
-            context.resize({ width: 1600 });
+            context.resize({ width: 1024 });
             const imageRef = await context.renderAsync();
-            compressedImage = await imageRef.saveAsync({ compress: 0.9, format: ImageManipulator.SaveFormat.JPEG });
+            compressedImage = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               asset.uri,
-              [{ resize: { width: 1600 } }],
-              { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+              [{ resize: { width: 1024 } }],
+              { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
             );
           }
         } catch {

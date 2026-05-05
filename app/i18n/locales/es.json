@@ -189,7 +189,37 @@
     "fiber": "Fibra",
     "trustText": "La precisión del análisis mejora con cada uso: la IA aprende a reconocer tus platos y tamaños de porción favoritos.",
     "disclaimer": "Esto no es un consejo médico.",
-    "viewSources": "Ver fuentes científicas"
+    "viewSources": "Ver fuentes científicas",
+    "allergyWarning": {
+      "title": "Revisa esta comida",
+      "body": "Esta comida puede contener: {{list}}. Coincide con tus ajustes de alergias.",
+      "keep": "Mantener",
+      "removeFromDiary": "Eliminar del diario"
+    },
+    "dietViolation": {
+      "body": "Esta comida puede no ajustarse a tus preferencias alimentarias: {{list}}."
+    },
+    "healthImpact": {
+      "lockedTitle": "¿Quieres ver cómo esta comida puede afectar tu salud?",
+      "lockedSubtitle": "Desbloquea un desglose personalizado para corazón, azúcar en sangre, hierro e intestino.",
+      "unlock": "Desbloquear",
+      "title": "Impacto en la salud",
+      "subtitle": "Basado en esta comida y los ajustes de tu perfil.",
+      "focusPill": "Tu enfoque",
+      "systems": {
+        "cardiovascular": "Corazón y vasos",
+        "bloodSugar": "Azúcar en sangre",
+        "bloodIron": "Sangre y hierro",
+        "gut": "Salud intestinal"
+      },
+      "levels": {
+        "veryPositive": "Apoyo fuerte",
+        "positive": "Favorable",
+        "neutral": "Neutral",
+        "negative": "Precaución",
+        "veryNegative": "Carga alta"
+      }
+    }
   },
   "analysisFlow": {
     "analyze": "Analizar",

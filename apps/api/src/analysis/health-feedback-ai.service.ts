@@ -17,6 +17,12 @@ interface GenerateFeedbackParams {
   userGoal?: string;
   locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
   analysisId?: string;
+  /**
+   * UserProfile snapshot — when provided, the AI prompt receives the user's
+   * health focus toggles, allergies, dietary preferences, GLP-1 status, daily
+   * calorie target. The prompt then tailors feedback specifically for them.
+   */
+  userProfile?: any;
 }
 
 /**
@@ -83,7 +89,7 @@ export class HealthFeedbackAiService {
   }
 
   private async callOpenAI(params: GenerateFeedbackParams): Promise<HealthFeedbackItem[]> {
-    const { dishName, items, totals, healthScore, userGoal, locale } = params;
+    const { dishName, items, totals, healthScore, userGoal, locale, userProfile } = params;
 
     // Build ingredient list
     const ingredientsList = items
@@ -107,8 +113,9 @@ export class HealthFeedbackAiService {
       totals,
       healthScore,
       factorsDesc,
-      userGoal,
+      userGoal: userGoal || userProfile?.goal,
       locale,
+      userProfile,
     });
 
     const response = await this.openai.chat.completions.create({
@@ -158,8 +165,9 @@ CODES TO USE:
     factorsDesc: string;
     userGoal?: string;
     locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
+    userProfile?: any;
   }): string {
-    const { dishName, ingredientsList, totals, healthScore, factorsDesc, userGoal, locale } = params;
+    const { dishName, ingredientsList, totals, healthScore, factorsDesc, userGoal, locale, userProfile } = params;
 
     const langHint = locale === 'ru' ? 'Respond in Russian.'
       : locale === 'kk' ? 'Respond in Kazakh.'
@@ -168,6 +176,24 @@ CODES TO USE:
       : locale === 'de' ? 'Respond in German.'
       : 'Respond in English.';
 
+    // Personalization block — only when profile present
+    let personalization = '';
+    if (userProfile) {
+      const focus = (userProfile.healthProfile?.healthFocus || {}) as Record<string, boolean>;
+      const focusList = Object.entries(focus).filter(([, v]) => v).map(([k]) => k).join(', ');
+      const allergies = (userProfile.preferences?.allergies || []).join(', ');
+      const diets = (userProfile.preferences?.dietaryPreferences || []).join(', ');
+      const glp1 = userProfile.healthProfile?.glp1Module;
+      const dailyKcal = userProfile.dailyCalories;
+      const lines: string[] = [];
+      if (focusList) lines.push(`HEALTH FOCUS: ${focusList} (prioritize these in your feedback)`);
+      if (allergies) lines.push(`ALLERGIES: ${allergies} (warn if present)`);
+      if (diets) lines.push(`DIET: ${diets} (warn if violated)`);
+      if (glp1?.isGlp1User) lines.push(`GLP-1 USER: ${glp1.drugType || 'unknown'} (goal: ${glp1.therapyGoal || 'preserve_muscle'}). Emphasize protein adequacy.`);
+      if (dailyKcal) lines.push(`DAILY CALORIE TARGET: ${dailyKcal} kcal — note if this meal is unusually large`);
+      if (lines.length) personalization = '\nUSER CONTEXT:\n' + lines.join('\n');
+    }
+
     return `Analyze this meal and provide personalized feedback.
 
 MEAL: ${dishName}
@@ -175,7 +201,7 @@ INGREDIENTS: ${ingredientsList}
 TOTAL NUTRIENTS: ${Math.round(totals.calories)} kcal, ${Math.round(totals.protein)}g protein, ${Math.round(totals.carbs)}g carbs, ${Math.round(totals.fat)}g fat, ${Math.round(totals.fiber || 0)}g fiber
 HEALTH SCORE: ${healthScore.total}/100 (${healthScore.level})
 FACTORS: ${factorsDesc}
-USER GOAL: ${userGoal || 'general health'}
+USER GOAL: ${userGoal || 'general health'}${personalization}
 
 ${langHint}
 

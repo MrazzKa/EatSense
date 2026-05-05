@@ -527,7 +527,37 @@
     "fiber": "Ballaststoffe",
     "disclaimer": "Dies ist kein medizinischer Rat.",
     "trustText": "Die Analysegenauigkeit verbessert sich mit jeder Nutzung — die KI lernt, Ihre Lieblingsgerichte und Portionsgrößen zu erkennen.",
-    "viewSources": "Wissenschaftliche Quellen anzeigen"
+    "viewSources": "Wissenschaftliche Quellen anzeigen",
+    "allergyWarning": {
+      "title": "Mahlzeit prüfen",
+      "body": "Diese Mahlzeit kann enthalten: {{list}}. Das passt zu Ihren Allergie-Einstellungen.",
+      "keep": "Behalten",
+      "removeFromDiary": "Aus dem Tagebuch entfernen"
+    },
+    "dietViolation": {
+      "body": "Diese Mahlzeit passt möglicherweise nicht zu Ihren Ernährungseinstellungen: {{list}}."
+    },
+    "healthImpact": {
+      "lockedTitle": "Möchten Sie sehen, wie diese Mahlzeit Ihre Gesundheit beeinflussen kann?",
+      "lockedSubtitle": "Schalten Sie eine persönliche Analyse für Herz, Blutzucker, Eisenstatus und Darmgesundheit frei.",
+      "unlock": "Freischalten",
+      "title": "Gesundheitliche Wirkung",
+      "subtitle": "Basierend auf dieser Mahlzeit und Ihren Profileinstellungen.",
+      "focusPill": "Ihr Fokus",
+      "systems": {
+        "cardiovascular": "Herz und Gefäße",
+        "bloodSugar": "Blutzucker",
+        "bloodIron": "Blut und Eisen",
+        "gut": "Darmgesundheit"
+      },
+      "levels": {
+        "veryPositive": "Starke Unterstützung",
+        "positive": "Unterstützend",
+        "neutral": "Neutral",
+        "negative": "Achtung",
+        "veryNegative": "Hohe Belastung"
+      }
+    }
   },
   "analysisFlow": {
     "analyze": "Analysieren",

@@ -788,6 +788,42 @@ class ApiService {
   }
 
   /**
+   * Fallback for legacy meals without analysisId — replaces meal items and recomputes totals/healthScore.
+   */
+  async editMealItems(mealId: string, items: any[], locale?: string) {
+    return this.request(`/meals/${mealId}/edit-items`, {
+      method: 'POST',
+      body: JSON.stringify({
+        locale,
+        items: items.map(item => ({
+          id: item.id,
+          name: (item.name || '').trim(),
+          portion_g: Number(item.portion_g) || 0,
+          calories: item.calories !== undefined ? Number(item.calories) : undefined,
+          protein_g: item.protein_g !== undefined ? Number(item.protein_g) : undefined,
+          fat_g: item.fat_g !== undefined ? Number(item.fat_g) : undefined,
+          carbs_g: item.carbs_g !== undefined ? Number(item.carbs_g) : undefined,
+        })),
+      }),
+    });
+  }
+
+  /**
+   * Smart save: prefers manualReanalyze on Analysis when analysisId is known,
+   * otherwise edits the Meal directly. Returns the same shape as manualReanalyze.
+   */
+  async saveIngredientEdit(opts: { analysisId?: string | null; mealId?: string | null; items: any[]; locale?: string }) {
+    const { analysisId, mealId, items, locale } = opts;
+    if (analysisId) {
+      return this.manualReanalyzeAnalysis(analysisId, items);
+    }
+    if (mealId) {
+      return this.editMealItems(mealId, items, locale);
+    }
+    throw new Error('saveIngredientEdit: need analysisId or mealId');
+  }
+
+  /**
    * Legacy method for backward compatibility
    */
   async manualReanalyze(analysisId: string, components: any[]) {

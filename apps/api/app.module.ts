@@ -33,7 +33,6 @@ import { configSchema } from './src/config/config.schema';
 import { NotificationsModule } from './src/notifications/notifications.module';
 import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
-import { OpenFoodFactsModule } from './src/openfoodfacts/openfoodfacts.module';
 import { MedicationsModule } from './src/medications/medications.module';
 import { ExpertsModule } from './src/experts/experts.module';
 import { ConversationsModule } from './src/conversations/conversations.module';
@@ -114,7 +113,6 @@ import { MascotModule } from './src/mascot/mascot.module';
     NotificationsModule,
     DebugModule,
     SuggestionsModule,
-    OpenFoodFactsModule,
     MedicationsModule,
     ExpertsModule,
     ConversationsModule,

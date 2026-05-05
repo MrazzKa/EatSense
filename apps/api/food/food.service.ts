@@ -394,6 +394,9 @@ export class FoodService {
           isFallback: item.isFallback || false,
           needsReview: item.isSuspicious || false,
         },
+        // Per-item user flags (allergy/diet matches) — computed by AnalyzeService
+        // when userProfile is supplied at analysis time.
+        userFlags: item.userFlags || undefined,
       };
     });
 
@@ -491,6 +494,9 @@ export class FoodService {
         isSuspicious: raw.isSuspicious || false,
         needsReview: raw.needsReview || false,
       },
+      // Body systems impact panel (4 systems: cardio / blood sugar / blood-iron / gut).
+      // Frontend renders this as the "health impact" teaser/Premium card.
+      bodySystems: raw.bodySystems || null,
     };
     return result;
   }
@@ -901,29 +907,59 @@ export class FoodService {
       }
     });
 
+    const metadataForLocale = (analysis.metadata || {}) as any;
+    const lookupLocale = (metadataForLocale.locale || 'en') as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
+
     // 3. Строим новый список items с учётом dto
-    const updatedItems: AnalyzedItem[] = dto.items.map((incoming, index) => {
+    const updatedItems: AnalyzedItem[] = await Promise.all(dto.items.map(async (incoming, index) => {
       const key = incoming.id || String(index);
       const original = itemsById.get(key);
 
       if (!original) {
-        // Если не нашли исходный — создаём новый элемент
-        const portion = incoming.portion_g;
+        // Новый ингредиент — если КБЖУ пустые, дотягиваем из USDA/Local/GPT-fallback
+        const portion = Math.max(1, Number(incoming.portion_g) || 100);
+        const userCalories = incoming.calories ?? 0;
+        const userProtein = incoming.protein_g ?? 0;
+        const userCarbs = incoming.carbs_g ?? 0;
+        const userFat = incoming.fat_g ?? 0;
+        const allZero = userCalories === 0 && userProtein === 0 && userCarbs === 0 && userFat === 0;
+
+        let nutrients: Nutrients = {
+          calories: userCalories,
+          protein: userProtein,
+          carbs: userCarbs,
+          fat: userFat,
+          fiber: 0,
+          sugars: 0,
+          satFat: 0,
+          energyDensity: userCalories && portion > 0 ? (userCalories / portion) * 100 : 0,
+        };
+
+        if (allZero) {
+          const looked = await this.analyzeService.lookupNutritionForName(incoming.name, portion, lookupLocale);
+          if (looked) {
+            this.logger.log(`[manualReanalyze] Auto-filled nutrition for "${incoming.name}" via ${looked.provider}`);
+            nutrients = {
+              calories: looked.calories,
+              protein: looked.protein,
+              carbs: looked.carbs,
+              fat: looked.fat,
+              fiber: looked.fiber,
+              sugars: looked.sugars,
+              satFat: looked.satFat,
+              energyDensity: portion > 0 ? (looked.calories / portion) * 100 : 0,
+            };
+          } else {
+            this.logger.warn(`[manualReanalyze] No nutrition data found for new item "${incoming.name}" — saving with zeros`);
+          }
+        }
+
         return {
           id: incoming.id || `manual-${index}`,
           name: incoming.name,
           originalName: incoming.name,
           portion_g: portion,
-          nutrients: {
-            calories: incoming.calories ?? 0,
-            protein: incoming.protein_g ?? 0,
-            carbs: incoming.carbs_g ?? 0,
-            fat: incoming.fat_g ?? 0,
-            fiber: 0,
-            sugars: 0,
-            satFat: 0,
-            energyDensity: incoming.calories && portion > 0 ? (incoming.calories / portion) * 100 : 0,
-          },
+          nutrients,
           source: 'manual' as AnalyzedItem['source'],
         };
       }
@@ -953,7 +989,7 @@ export class FoodService {
         },
         source: 'manual' as AnalyzedItem['source'],
       };
-    });
+    }));
 
     // 4. Пересчитываем totals + healthScore
     const { totals, healthScore } =

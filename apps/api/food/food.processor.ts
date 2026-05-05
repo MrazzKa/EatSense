@@ -205,7 +205,24 @@ export class FoodProcessor {
       // Convert ANALYSIS buffer to base64 (compressed for speed)
       const imageBase64 = analysisBuffer.toString('base64');
 
-      // Use new AnalyzeService with USDA + RAG
+      // Fetch userProfile so analysis can personalize the result based on
+      // allergies / diet / healthFocus / goal / GLP-1.
+      let userProfile: any = null;
+      try {
+        userProfile = await this.prisma.userProfile.findUnique({
+          where: { userId: jobUserId },
+          select: {
+            goal: true,
+            dailyCalories: true,
+            preferences: true,
+            healthProfile: true,
+          },
+        });
+      } catch (e: any) {
+        this.logger.warn(`[FoodProcessor] Failed to load userProfile for ${jobUserId}: ${e.message}`);
+      }
+
+      // Use new AnalyzeService with USDA + local catalog
       // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
       // can also accept imageBuffer directly for better caching
       const analyzeStart = Date.now();
@@ -215,6 +232,7 @@ export class FoodProcessor {
         locale,
         foodDescription: foodDescription || undefined, // Pass food description if provided
         skipCache: skipCache || false, // Pass skip-cache flag for debugging
+        userProfile,
       });
       metrics.analyzeTime = Date.now() - analyzeStart;
 
@@ -458,6 +476,7 @@ export class FoodProcessor {
         totals: analysisResult.total,
         healthScore: analysisResult.healthScore,
         locale: locale || analysisResult.locale || 'en',
+        userProfile,
       });
 
       // Determine final status based on vision result and items
@@ -627,8 +646,17 @@ export class FoodProcessor {
 
       this.logger.debug(`[FoodProcessor] Text analysis ${analysisId} status updated to PROCESSING`);
 
+      // Fetch userProfile to thread personalization (settings → analysis)
+      let textUserProfile: any = null;
+      try {
+        textUserProfile = await this.prisma.userProfile.findUnique({
+          where: { userId },
+          select: { goal: true, dailyCalories: true, preferences: true, healthProfile: true },
+        });
+      } catch {}
+
       // Use new AnalyzeService for text analysis
-      const analysisResult = await this.analyzeService.analyzeText(description, locale, skipCache);
+      const analysisResult = await this.analyzeService.analyzeText(description, locale, skipCache, { userProfile: textUserProfile });
 
       this.logger.log(`[FoodProcessor] Text analysis ${analysisId} completed, items count: ${analysisResult.items?.length || 0}`);
 
@@ -719,6 +747,7 @@ export class FoodProcessor {
         totals: analysisResult.total,
         healthScore: analysisResult.healthScore,
         locale: locale || analysisResult.locale || 'en',
+        userProfile: textUserProfile,
       });
 
       // Redis daily limit is pre-incremented in DailyLimitGuard
@@ -753,8 +782,9 @@ export class FoodProcessor {
     totals: any;
     healthScore: any;
     locale: string;
+    userProfile?: any;
   }) {
-    const { analysisId, analysisResultId, dishName, items, totals, healthScore, locale } = params;
+    const { analysisId, analysisResultId, dishName, items, totals, healthScore, locale, userProfile } = params;
     if (!healthScore || !totals || !Array.isArray(items) || items.length === 0) {
       return;
     }
@@ -767,6 +797,7 @@ export class FoodProcessor {
         totals,
         locale as any,
         analysisId,
+        userProfile,
       );
 
       if (enrichedHealthScore === healthScore) {
