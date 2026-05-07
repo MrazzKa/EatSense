@@ -24,7 +24,7 @@ import { CommunityPostCard } from '../components/community/CommunityPostCard';
 import { BestPlaceCard } from '../components/community/BestPlaceCard';
 import { EventCard } from '../components/community/EventCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
-import { GroupCard } from '../components/community/GroupCard';
+import { GroupCard, resolveGroupName } from '../components/community/GroupCard';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 import { FLOATING_TAB_BAR_RESERVED } from '../navigation/GlassTabBar';
@@ -365,7 +365,7 @@ export default function CommunityScreen() {
               key={group.id}
               group={group}
               isMember={false}
-              onPress={() => navigation.navigate('CommunityGroup', { groupId: group.id, groupName: group.name })}
+              onPress={() => navigation.navigate('CommunityGroup', { groupId: group.id, groupName: resolveGroupName(group, t) })}
               onJoin={() => handleJoinGroup(group.id)}
             />
           ))}

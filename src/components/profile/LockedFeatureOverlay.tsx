@@ -32,19 +32,28 @@ export default function LockedFeatureOverlay({ isLocked, featureName, onUpgrade,
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.contentWrapper}>
+      {/* `pointerEvents="none"` blocks taps from reaching the dimmed content
+          underneath. Without this RN passes touches straight through the
+          absolute overlay (which has no own handler outside the CTA) to the
+          interactive children below — so the locked health profile fields
+          could be edited on the free plan. */}
+      <View style={styles.contentWrapper} pointerEvents="none">
         {children}
       </View>
-      <View style={styles.overlay}>
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={handleUpgrade}
+      >
         <Ionicons name="lock-closed" size={32} color="#FFF" />
         <Text style={styles.lockText}>{featureName}</Text>
-        <TouchableOpacity onPress={handleUpgrade} style={styles.ctaBtn}>
+        <View style={styles.ctaBtn}>
           <Ionicons name="star" size={16} color="#FFF" style={{ marginRight: 6 }} />
           <Text style={styles.ctaText}>
             {t('profile.advancedSettings.upgrade') || 'Upgrade to Pro'}
           </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }

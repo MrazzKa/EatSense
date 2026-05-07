@@ -21,6 +21,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import { useMascot } from '../contexts/MascotContext';
+import { resolveGroupName } from '../components/community/GroupCard';
 
 const POST_TYPES = [
   { key: 'TEXT', icon: 'chatbubble-outline', labelKey: 'community.postType.text' },
@@ -297,7 +298,7 @@ export default function CreateCommunityPostScreen() {
                     { color: selectedGroupId === group.id ? colors.primary : colors.textSecondary },
                   ]}
                 >
-                  {group.name}
+                  {resolveGroupName(group, t)}
                 </Text>
               </TouchableOpacity>
             ))}

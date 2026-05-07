@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useDesignTokens } from '../../contexts/ThemeContext';
 import { useI18n } from '../../../app/i18n/hooks';
+import { resolveGroupName } from './GroupCard';
 
 interface BestPlaceCardProps {
   post: any;
@@ -35,7 +36,7 @@ export function BestPlaceCard({
   const reviewCount = post.placeReviewCount || 0;
 
   const authorName = `${post.author?.userProfile?.firstName || ''} ${post.author?.userProfile?.lastName || ''}`.trim() || t('community.anonymous', 'User');
-  const groupName = post.group?.name || '';
+  const groupName = post.group ? resolveGroupName(post.group, t) : '';
 
   const renderStars = (value: number, size = 14) => {
     return (

@@ -2110,9 +2110,27 @@ const OnboardingScreen = () => {
     );
   };
 
+  // Pre-fill country from device locale region (e.g. "KZ" from ru-KZ) when the
+  // user lands on the country step without an explicit selection. `steps` is
+  // intentionally NOT in deps — it's a fresh array on every render of the
+  // parent which would cause this effect to fire each paint. We only care
+  // about currentStep and the existing country.
+  useEffect(() => {
+    if (steps[currentStep]?.id !== 'country') return;
+    if (profileData.country) return;
+    let detected: string | null = null;
+    try {
+      detected = (Localization.getLocales()?.[0]?.regionCode || '').toUpperCase() || null;
+    } catch {
+      detected = null;
+    }
+    if (detected) {
+      setProfileData(prev => prev.country ? prev : { ...prev, country: detected });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, profileData.country]);
+
   const renderCountryStep = () => {
-    // Pre-fill from device locale region (e.g. "KZ" from ru-KZ).
-    // expo-localization v55 uses getLocales()[0].regionCode (Localization.region was deprecated).
     let detectedRegion: string | null = null;
     try {
       detectedRegion = (Localization.getLocales()?.[0]?.regionCode || '').toUpperCase() || null;
@@ -2121,7 +2139,7 @@ const OnboardingScreen = () => {
     }
     const presetCountry = profileData.country || detectedRegion;
     return (
-      <View style={styles.stepContent}>
+      <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>{t('country.title', 'Select country')}</Text>
         <Text style={styles.stepSubtitle}>{t('country.onboardingSubtitle', 'We use this to put you in the right community.')}</Text>
         <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
@@ -2136,7 +2154,7 @@ const OnboardingScreen = () => {
 
   const renderAllergiesStep = () => {
     return (
-      <View style={styles.stepContent}>
+      <View style={styles.stepContainer}>
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}

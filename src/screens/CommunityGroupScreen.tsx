@@ -17,6 +17,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import { CommunityPostCard } from '../components/community/CommunityPostCard';
+import { resolveGroupName } from '../components/community/GroupCard';
 import { EventCard } from '../components/community/EventCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
@@ -247,7 +248,7 @@ export default function CommunityGroupScreen() {
         />
       </View>
       <Text style={[styles.groupName, { color: colors.textPrimary || colors.text }]}>
-        {group?.name || groupName}
+        {group ? resolveGroupName(group, t) : groupName}
       </Text>
       {group?.description ? (
         <Text style={[styles.groupDescription, { color: colors.textSecondary }]}>

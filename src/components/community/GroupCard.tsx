@@ -12,6 +12,20 @@ interface GroupCardProps {
   isMember?: boolean;
 }
 
+/**
+ * Resolves a localized name for a community group. COUNTRY groups are seeded
+ * with a raw English name like "Community KZ" — we override that with the
+ * `country.${code}` translation so RU/KK/etc users don't see English.
+ */
+export function resolveGroupName(group: any, t: any): string {
+  if (group?.type === 'COUNTRY' && group?.country) {
+    const code = String(group.country).toUpperCase();
+    const localized = t(`country.${code}`);
+    if (localized && localized !== `country.${code}`) return localized;
+  }
+  return group?.name || '';
+}
+
 export function GroupCard({ group, onPress, onJoin, isMember }: GroupCardProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
@@ -30,7 +44,7 @@ export function GroupCard({ group, onPress, onJoin, isMember }: GroupCardProps) 
         />
       </View>
       <View style={styles.info}>
-        <Text style={[styles.name, { color: colors.textPrimary || colors.text }]}>{group.name}</Text>
+        <Text style={[styles.name, { color: colors.textPrimary || colors.text }]}>{resolveGroupName(group, t)}</Text>
         <Text style={[styles.members, { color: colors.textTertiary }]}>
           {group._count?.memberships || 0} {t('community.members', 'members')}
         </Text>
