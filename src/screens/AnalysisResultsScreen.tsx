@@ -381,14 +381,29 @@ export default function AnalysisResultsScreen() {
       fadeAnim.setValue(0);
 
       setAnalysisResult(prevResult => {
-        // Simple guard: if IDs match and basic structure is same, skip update?
-        // For now, just log.
         if (prevResult?.analysisId === normalized.analysisId && prevResult?.ingredients?.length === normalized.ingredients?.length) {
-          console.log('[AnalysisResultsScreen] Skipping duplicate result update (ID match)');
-          // Note: This might prevent legitimate updates if content changed but ID didn't.
-          // Better to rely on deep check or just ID for now to stop the crash.
-          // If we need to force update, we should clear state first.
-          return prevResult;
+          const prevBodySystems = prevResult?.bodySystems || prevResult?.data?.bodySystems || null;
+          const nextBodySystems = normalized?.bodySystems || normalized?.data?.bodySystems || null;
+          const prevFeedbackSig = JSON.stringify(prevResult?.healthScore?.feedback || prevResult?.data?.healthScore?.feedback || null);
+          const nextFeedbackSig = JSON.stringify(normalized?.healthScore?.feedback || normalized?.data?.healthScore?.feedback || null);
+
+          if (!nextBodySystems && prevFeedbackSig === nextFeedbackSig) {
+            console.log('[AnalysisResultsScreen] Skipping duplicate result update (ID match)');
+            return prevResult;
+          }
+
+          console.log('[AnalysisResultsScreen] Merging enriched result update:', normalized.analysisId);
+          return {
+            ...prevResult,
+            healthScore: normalized.healthScore ?? prevResult.healthScore,
+            bodySystems: nextBodySystems ?? prevBodySystems,
+            data: {
+              ...(prevResult.data || {}),
+              ...(normalized.data || {}),
+              healthScore: normalized.healthScore ?? normalized.data?.healthScore ?? prevResult.data?.healthScore,
+              bodySystems: nextBodySystems ?? prevBodySystems,
+            },
+          };
         }
         console.log('[AnalysisResultsScreen] Setting new analysisResult:', normalized.analysisId);
         return normalized;
@@ -466,8 +481,24 @@ export default function AnalysisResultsScreen() {
       setTimeout(() => {
         applyResult(initialAnalysisParam, baseImageUri);
       }, 0);
+
+      const fullAnalysisId = initialAnalysisParam.analysisId || routeParams.analysisId || null;
+      const hasBodySystems = Boolean(initialAnalysisParam.bodySystems || initialAnalysisParam.data?.bodySystems);
+      if (fullAnalysisId && !hasBodySystems) {
+        let cancelled = false;
+        ApiService.getAnalysisResult(fullAnalysisId)
+          .then((fullResult) => {
+            if (!cancelled) {
+              applyResult(fullResult, null, fullAnalysisId);
+            }
+          })
+          .catch((error) => {
+            console.warn('[AnalysisResultsScreen] Failed to hydrate full analysis result', error);
+          });
+        return () => { cancelled = true; };
+      }
     }
-  }, [initialAnalysisParam, baseImageUri, applyResult]);
+  }, [initialAnalysisParam, baseImageUri, routeParams.analysisId, applyResult]);
 
   // Effect 2: Handle Route Analysis ID (Polling for existing/shared analysis)
   useEffect(() => {

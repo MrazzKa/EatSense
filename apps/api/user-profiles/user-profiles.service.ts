@@ -485,25 +485,33 @@ export class UserProfilesService {
 
   /**
    * Ensure the user is a member of the country-level community group.
-   * Idempotent: upsert by slug `country-${code}`, removes user from any other
-   * COUNTRY group, then upsert membership. Single COUNTRY membership invariant.
+   * Prefer seeded groups by ISO country code; older seed scripts used slugs
+   * like `country-kazakhstan`, so slug-only lookup is intentionally avoided.
+   * Single COUNTRY membership invariant.
    */
   private async ensureCountryCommunityMembership(userId: string, countryCode: string) {
     const code = String(countryCode || '').toUpperCase().slice(0, 2);
     if (!code || code.length !== 2) return;
 
-    const slug = `country-${code.toLowerCase()}`;
-    const group = await (this.prisma as any).communityGroup.upsert({
-      where: { slug },
-      update: {},
-      create: {
-        name: `Community ${code}`,
-        slug,
-        type: 'COUNTRY' as any,
-        country: code,
-        isSeeded: true,
-      },
+    let group = await (this.prisma as any).communityGroup.findFirst({
+      where: { type: 'COUNTRY' as any, country: code },
+      orderBy: [{ isSeeded: 'desc' }, { createdAt: 'asc' }],
     });
+
+    if (!group) {
+      const slug = `country-${code.toLowerCase()}`;
+      group = await (this.prisma as any).communityGroup.upsert({
+        where: { slug },
+        update: { country: code, type: 'COUNTRY' as any },
+        create: {
+          name: `Community ${code}`,
+          slug,
+          type: 'COUNTRY' as any,
+          country: code,
+          isSeeded: true,
+        },
+      });
+    }
 
     try {
       await (this.prisma as any).communityMembership.deleteMany({
@@ -518,8 +526,13 @@ export class UserProfilesService {
 
     await (this.prisma as any).communityMembership.upsert({
       where: { userId_groupId: { userId, groupId: group.id } },
-      update: {},
-      create: { userId, groupId: group.id },
+      update: { guidelinesAccepted: true },
+      create: { userId, groupId: group.id, guidelinesAccepted: true },
+    });
+
+    await (this.prisma as any).userProfile.updateMany({
+      where: { userId },
+      data: { country: code, cityGroupId: group.id },
     });
   }
 }

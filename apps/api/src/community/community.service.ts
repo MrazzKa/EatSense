@@ -27,11 +27,68 @@ export class CommunityService {
     @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
+  private async ensureUserCountryCommunity(userId: string) {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { country: true, cityGroupId: true },
+    });
+    const code = String(profile?.country || '').toUpperCase().slice(0, 2);
+    if (!code || code.length !== 2) return null;
+
+    let group = await this.prisma.communityGroup.findFirst({
+      where: { type: 'COUNTRY' as any, country: code },
+      orderBy: [{ isSeeded: 'desc' }, { createdAt: 'asc' }],
+    });
+
+    if (!group) {
+      const slug = `country-${code.toLowerCase()}`;
+      group = await this.prisma.communityGroup.upsert({
+        where: { slug },
+        update: { country: code, type: 'COUNTRY' as any },
+        create: {
+          name: `Community ${code}`,
+          slug,
+          type: 'COUNTRY' as any,
+          country: code,
+          isSeeded: true,
+        },
+      });
+    }
+
+    await this.prisma.communityMembership.deleteMany({
+      where: {
+        userId,
+        group: { type: 'COUNTRY' as any, NOT: { id: group.id } },
+      },
+    });
+
+    await this.prisma.communityMembership.upsert({
+      where: { userId_groupId: { userId, groupId: group.id } },
+      create: { userId, groupId: group.id, role: 'MEMBER', guidelinesAccepted: true },
+      update: { guidelinesAccepted: true },
+    });
+
+    if (profile?.cityGroupId !== group.id) {
+      await this.prisma.userProfile.update({
+        where: { userId },
+        data: { cityGroupId: group.id },
+      });
+    }
+
+    return group;
+  }
+
   async listGroups(userId: string, query: { type?: string; search?: string }) {
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
     const where: any = {};
 
     if (query.type) {
       where.type = query.type;
+    }
+
+    if (countryGroup && (!query.type || query.type === 'COUNTRY')) {
+      where.id = countryGroup.id;
+      where.type = 'COUNTRY';
     }
 
     if (query.search) {
@@ -265,6 +322,7 @@ export class CommunityService {
 
   async getFeed(userId: string, page: number, limit: number) {
     const skip = (page - 1) * limit;
+    await this.ensureUserCountryCommunity(userId);
 
     const memberships = await this.prisma.communityMembership.findMany({
       where: { userId },
@@ -351,9 +409,12 @@ export class CommunityService {
   }
 
   async createPost(userId: string, dto: CreatePostDto) {
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    const targetGroupId = countryGroup?.id || dto.groupId;
+
     // Check guidelines acceptance
     const membership = await this.prisma.communityMembership.findUnique({
-      where: { userId_groupId: { userId, groupId: dto.groupId } },
+      where: { userId_groupId: { userId, groupId: targetGroupId } },
     });
 
     if (!membership) {
@@ -384,7 +445,7 @@ export class CommunityService {
       data: {
         type: dto.type,
         content: dto.content,
-        groupId: dto.groupId,
+        groupId: targetGroupId,
         authorId: userId,
         imageUrl: dto.imageUrl,
         metadata: metadataWithModeration,
@@ -593,6 +654,8 @@ export class CommunityService {
   }
 
   async getMyGroups(userId: string) {
+    await this.ensureUserCountryCommunity(userId);
+
     const memberships = await this.prisma.communityMembership.findMany({
       where: { userId },
       include: {
@@ -615,6 +678,18 @@ export class CommunityService {
   }
 
   async getMyCity(userId: string) {
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    if (countryGroup) {
+      return this.prisma.communityGroup.findUnique({
+        where: { id: countryGroup.id },
+        include: {
+          _count: {
+            select: { memberships: true },
+          },
+        },
+      });
+    }
+
     const profile = await this.prisma.userProfile.findUnique({
       where: { userId },
       select: { cityGroupId: true },
@@ -884,6 +959,7 @@ export class CommunityService {
 
   async getBestPlaces(userId: string, page: number, limit: number, groupId?: string, city?: string) {
     const skip = (page - 1) * limit;
+    await this.ensureUserCountryCommunity(userId);
 
     const where: any = { type: 'BEST_PLACES' as any };
 

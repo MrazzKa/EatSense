@@ -328,20 +328,7 @@ export default function CommunityScreen() {
   );
 
   const renderCityBanner = () => {
-    if (hasCity) return null;
-    return (
-      <TouchableOpacity
-        style={[styles.cityBanner, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}
-        onPress={() => navigation.navigate('CitySelector')}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="location-outline" size={20} color={colors.primary} />
-        <Text style={[styles.cityBannerText, { color: colors.primary }]}>
-          {t('community.setCountry', 'Set your country to connect with locals')}
-        </Text>
-        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-      </TouchableOpacity>
-    );
+    return null;
   };
 
   const renderEmptyFeed = () => (

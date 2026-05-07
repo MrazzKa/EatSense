@@ -270,44 +270,18 @@ export default function CreateCommunityPostScreen() {
             ))}
           </ScrollView>
 
-          {/* Group selector */}
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {t('community.selectGroupLabel', 'Post to group')}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.groupChipsContainer}
-          >
-            {groups.map((group: any) => (
-              <TouchableOpacity
-                key={group.id}
-                style={[
-                  styles.groupChip,
-                  {
-                    backgroundColor: selectedGroupId === group.id ? colors.primary + '15' : colors.surfaceSecondary || colors.surface,
-                    borderColor: selectedGroupId === group.id ? colors.primary : colors.border,
-                  },
-                ]}
-                onPress={() => setSelectedGroupId(group.id)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.groupChipText,
-                    { color: selectedGroupId === group.id ? colors.primary : colors.textSecondary },
-                  ]}
-                >
-                  {resolveGroupName(group, t)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            {groups.length === 0 && (
-              <Text style={[styles.noGroupsText, { color: colors.textTertiary }]}>
-                {t('community.noGroups', 'Join a group first to post')}
+          {groups[0] ? (
+            <View style={[styles.groupChip, styles.groupChipStatic, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
+              <Ionicons name="flag-outline" size={16} color={colors.primary} />
+              <Text style={[styles.groupChipText, { color: colors.primary }]}>
+                {resolveGroupName(groups[0], t)}
               </Text>
-            )}
-          </ScrollView>
+            </View>
+          ) : (
+            <Text style={[styles.noGroupsText, { color: colors.textTertiary }]}>
+              {t('community.noGroups', 'Join a group first to post')}
+            </Text>
+          )}
 
           {/* Content input */}
           <TextInput
@@ -536,10 +510,17 @@ const createStyles = (tokens: any, colors: any) =>
       gap: 8,
     },
     groupChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
       paddingHorizontal: 14,
       paddingVertical: 8,
       borderRadius: 20,
       borderWidth: 1,
+    },
+    groupChipStatic: {
+      alignSelf: 'flex-start',
+      marginBottom: 16,
     },
     groupChipText: {
       fontSize: 14,
