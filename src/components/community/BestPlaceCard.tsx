@@ -80,6 +80,38 @@ export function BestPlaceCard({
         )}
       </View>
 
+      {/* Moderation badge — author sees their own pending/rejected posts */}
+      {meta.moderationStatus && meta.moderationStatus !== 'approved' && (
+        <View
+          style={{
+            alignSelf: 'flex-start',
+            marginTop: 6,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 10,
+            backgroundColor:
+              meta.moderationStatus === 'rejected'
+                ? (colors.errorSubtle || 'rgba(220,53,69,0.15)')
+                : (colors.warningSubtle || 'rgba(255,160,0,0.16)'),
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '600',
+              color:
+                meta.moderationStatus === 'rejected'
+                  ? (colors.error || '#b32d3a')
+                  : (colors.warning || '#cc7a00'),
+            }}
+          >
+            {meta.moderationStatus === 'rejected'
+              ? t('community.moderation.rejected', 'Rejected')
+              : t('community.moderation.pending', 'Pending review')}
+          </Text>
+        </View>
+      )}
+
       {/* Content / Review text */}
       {post.content ? (
         <Text style={[styles.content, { color: colors.textSecondary }]} numberOfLines={3}>

@@ -107,6 +107,15 @@ export class UsersService {
     if (updateProfileDto.isOnboardingCompleted !== undefined) {
       updateData.isOnboardingCompleted = updateProfileDto.isOnboardingCompleted;
     }
+    // Country is a top-level UserProfile column. Frontend may also send it
+    // inside preferences.country during the rollout window — accept either.
+    const incomingCountryRaw =
+      (updateProfileDto as any).country ||
+      (updateProfileDto.preferences as any)?.country ||
+      null;
+    if (incomingCountryRaw && typeof incomingCountryRaw === 'string') {
+      updateData.country = incomingCountryRaw.toUpperCase().slice(0, 2);
+    }
 
     // Handle healthProfile merge
     if (updateProfileDto.healthProfile !== undefined) {
@@ -172,9 +181,9 @@ export class UsersService {
     // Sanitize updateData: remove any fields that don't exist in UserProfile model
     // UserProfile fields: id, userId, firstName, lastName, age, height, weight, gender, activityLevel, goal, targetWeight, dailyCalories, preferences, healthProfile, isOnboardingCompleted, createdAt, updatedAt
     const allowedFields = [
-      'firstName', 'lastName', 'age', 'height', 'weight', 'gender', 
-      'activityLevel', 'goal', 'targetWeight', 'dailyCalories', 
-      'preferences', 'healthProfile', 'isOnboardingCompleted'
+      'firstName', 'lastName', 'age', 'height', 'weight', 'gender',
+      'activityLevel', 'goal', 'targetWeight', 'dailyCalories',
+      'preferences', 'healthProfile', 'isOnboardingCompleted', 'country'
     ];
     const sanitizedUpdateData: any = {};
     for (const key of allowedFields) {
@@ -192,6 +201,17 @@ export class UsersService {
         ...sanitizedUpdateData,
       },
     });
+
+    // If country was just set/changed, ensure user is auto-joined to the
+    // country-level community group. Failure here must not break profile save.
+    if (sanitizedUpdateData.country) {
+      try {
+        await this.ensureCountryCommunityMembership(userId, sanitizedUpdateData.country);
+      } catch (e: any) {
+        // eslint-disable-next-line no-console
+        console.warn('[UsersService] country auto-join failed:', e?.message || e);
+      }
+    }
 
     // Also update JSON profile field for backward compatibility
     const userProfile = await this.prisma.userProfile.findUnique({
@@ -434,5 +454,46 @@ export class UsersService {
         ? `${labResults.length} lab result(s) analyzed in this period.`
         : null,
     };
+  }
+
+  /**
+   * Ensure the user is a member of the country-level community group.
+   * Creates the group on first use (idempotent upsert by slug).
+   * Removes membership from any other country group the user may have been in.
+   */
+  private async ensureCountryCommunityMembership(userId: string, countryCode: string) {
+    const code = String(countryCode || '').toUpperCase().slice(0, 2);
+    if (!code || code.length !== 2) return;
+
+    const slug = `country-${code.toLowerCase()}`;
+    const group = await (this.prisma as any).communityGroup.upsert({
+      where: { slug },
+      update: {},
+      create: {
+        name: `Community ${code}`,
+        slug,
+        type: 'COUNTRY' as any,
+        country: code,
+        isSeeded: true,
+      },
+    });
+
+    // Drop the user from any other COUNTRY group so they only belong to one.
+    try {
+      await (this.prisma as any).communityMembership.deleteMany({
+        where: {
+          userId,
+          group: { type: 'COUNTRY' as any, NOT: { id: group.id } },
+        },
+      });
+    } catch {
+      // ignore — older deployments may not have type=COUNTRY rows
+    }
+
+    await (this.prisma as any).communityMembership.upsert({
+      where: { userId_groupId: { userId, groupId: group.id } },
+      update: {},
+      create: { userId, groupId: group.id },
+    });
   }
 }

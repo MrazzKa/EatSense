@@ -1,6 +1,7 @@
-import { Injectable, Logger, ForbiddenException, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException, NotFoundException, BadRequestException, ConflictException, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -23,6 +24,7 @@ export class CommunityService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly subscriptionsService: SubscriptionsService,
+    @Optional() private readonly notifications?: NotificationsService,
   ) {}
 
   async listGroups(userId: string, query: { type?: string; search?: string }) {
@@ -202,12 +204,41 @@ export class CommunityService {
     return { message: 'Left group successfully' };
   }
 
+  /**
+   * Visibility filter for moderation: hides "pending" and "rejected" posts
+   * from non-authors. Legacy posts without `moderationStatus` are treated as
+   * visible (don't break old content). Authors always see their own posts.
+   */
+  private moderationVisibilityWhere(userId: string) {
+    return {
+      OR: [
+        // Author always sees their own posts (any status).
+        { authorId: userId },
+        // Everyone else: must be neither pending nor rejected.
+        // Legacy posts without `moderationStatus` are visible (Prisma JSON path
+        // equality returns false when the path is missing, so neither AND clause
+        // negation excludes them).
+        {
+          AND: [
+            { NOT: { metadata: { path: ['moderationStatus'], equals: 'pending' } } },
+            { NOT: { metadata: { path: ['moderationStatus'], equals: 'rejected' } } },
+          ],
+        },
+      ],
+    };
+  }
+
   async getGroupPosts(userId: string, groupId: string, page: number, limit: number) {
     const skip = (page - 1) * limit;
 
+    const where: any = {
+      groupId,
+      ...this.moderationVisibilityWhere(userId),
+    };
+
     const [posts, total] = await Promise.all([
       this.prisma.communityPost.findMany({
-        where: { groupId },
+        where,
         include: {
           author: authorInclude,
           _count: {
@@ -218,7 +249,7 @@ export class CommunityService {
         skip,
         take: limit,
       }),
-      this.prisma.communityPost.count({ where: { groupId } }),
+      this.prisma.communityPost.count({ where }),
     ]);
 
     const enriched = await this.enrichPostsWithUserState(userId, posts);
@@ -246,9 +277,14 @@ export class CommunityService {
       return { data: [], total: 0, page, limit, totalPages: 0 };
     }
 
+    const where: any = {
+      groupId: { in: groupIds },
+      ...this.moderationVisibilityWhere(userId),
+    };
+
     const [posts, total] = await Promise.all([
       this.prisma.communityPost.findMany({
-        where: { groupId: { in: groupIds } },
+        where,
         include: {
           author: authorInclude,
           group: {
@@ -262,9 +298,7 @@ export class CommunityService {
         skip,
         take: limit,
       }),
-      this.prisma.communityPost.count({
-        where: { groupId: { in: groupIds } },
-      }),
+      this.prisma.communityPost.count({ where }),
     ]);
 
     const enriched = await this.enrichPostsWithUserState(userId, posts);
@@ -289,6 +323,13 @@ export class CommunityService {
     });
 
     if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    // Hide pending/rejected posts from non-authors. 404 (not 403) so admins'
+    // workflow doesn't leak the post's existence.
+    const status = (post.metadata as any)?.moderationStatus;
+    if ((status === 'pending' || status === 'rejected') && post.authorId !== userId) {
       throw new NotFoundException('Post not found');
     }
 
@@ -330,6 +371,15 @@ export class CommunityService {
       }
     }
 
+    // Moderation: every new post enters as "pending" and is hidden from public
+    // feeds until an admin approves it. Author still sees it in their own views.
+    // Stored under metadata to avoid a Prisma migration; admin endpoints flip it.
+    const metadataWithModeration = {
+      ...(dto.metadata || {}),
+      moderationStatus: 'pending',
+      moderationSubmittedAt: new Date().toISOString(),
+    };
+
     return this.prisma.communityPost.create({
       data: {
         type: dto.type,
@@ -337,7 +387,7 @@ export class CommunityService {
         groupId: dto.groupId,
         authorId: userId,
         imageUrl: dto.imageUrl,
-        metadata: dto.metadata,
+        metadata: metadataWithModeration,
         likesCount: 0,
       },
       include: {
@@ -749,6 +799,73 @@ export class CommunityService {
     return { success: true, message: 'Post deleted by admin' };
   }
 
+  // ==================== POST MODERATION ====================
+
+  async listPendingPosts(type?: string, page = 1, limit = 50) {
+    const where: any = {
+      metadata: { path: ['moderationStatus'], equals: 'pending' },
+    };
+    if (type) where.type = type;
+
+    const [data, total] = await Promise.all([
+      this.prisma.communityPost.findMany({
+        where,
+        include: {
+          author: authorInclude,
+          group: { select: { id: true, name: true, slug: true } },
+        },
+        orderBy: { createdAt: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.communityPost.count({ where }),
+    ]);
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async moderatePost(postId: string, decision: 'approve' | 'reject', reason?: string) {
+    const post = await this.prisma.communityPost.findUnique({ where: { id: postId } });
+    if (!post) throw new NotFoundException('Post not found');
+
+    const newStatus = decision === 'approve' ? 'approved' : 'rejected';
+    const meta = (post.metadata as any) || {};
+
+    await this.prisma.communityPost.update({
+      where: { id: postId },
+      data: {
+        metadata: {
+          ...meta,
+          moderationStatus: newStatus,
+          moderationDecidedAt: new Date().toISOString(),
+          moderationReason: reason || null,
+        },
+      },
+    });
+
+    // Notify the author. Push if available, otherwise the status simply
+    // updates the next time the author opens the app (in-app banner).
+    if (this.notifications) {
+      try {
+        const title = decision === 'approve'
+          ? 'Your post was approved'
+          : 'Your post was rejected';
+        const body = decision === 'approve'
+          ? 'It is now visible to the community.'
+          : reason || 'Please review community guidelines and try again.';
+        await this.notifications.sendPushNotification(post.authorId, title, body, {
+          type: 'post_moderation',
+          postId,
+          decision: newStatus,
+        });
+      } catch (e: any) {
+        this.logger.warn(`[CommunityService] Failed to push moderation notification: ${e?.message}`);
+      }
+    }
+
+    return { success: true, postId, status: newStatus };
+  }
+
   async adminDeleteComment(commentId: string) {
     const comment = await this.prisma.communityComment.findUnique({
       where: { id: commentId },
@@ -765,7 +882,7 @@ export class CommunityService {
 
   // ==================== BEST PLACES ====================
 
-  async getBestPlaces(userId: string, page: number, limit: number, groupId?: string) {
+  async getBestPlaces(userId: string, page: number, limit: number, groupId?: string, city?: string) {
     const skip = (page - 1) * limit;
 
     const where: any = { type: 'BEST_PLACES' as any };
@@ -782,6 +899,17 @@ export class CommunityService {
       if (groupIds.length > 0) {
         where.groupId = { in: groupIds };
       }
+    }
+
+    // Apply unified moderation visibility (same as feed/group): hide pending
+    // and rejected from non-authors; legacy posts without the field stay visible.
+    Object.assign(where, this.moderationVisibilityWhere(userId));
+
+    // Optional city filter — stored in metadata.city. Combined via AND.
+    if (city && city.trim()) {
+      where.AND = [
+        { metadata: { path: ['city'], equals: city.trim() } },
+      ];
     }
 
     const [posts, total] = await Promise.all([

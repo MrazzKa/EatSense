@@ -117,7 +117,8 @@ export class ReferralsService {
 
         const BONUS_DAYS = 7;
 
-        // Create referral record
+        // Create referral record. Only the referrer (inviter) earns the bonus —
+        // referred user gets 0 to keep the system simple and prevent abuse.
         await prismaAny.referral.create({
             data: {
                 referralCodeId: referralCode.id,
@@ -125,7 +126,7 @@ export class ReferralsService {
                 referredId: userId,
                 status: 'completed',
                 referrerBonus: BONUS_DAYS,
-                referredBonus: BONUS_DAYS,
+                referredBonus: 0,
             },
         });
 
@@ -187,14 +188,13 @@ export class ReferralsService {
             }
         };
 
-        // Run sequentially to avoid race condition on plan creation
-        await grantTrialDays(referralCode.userId); // Referrer gets bonus
-        await grantTrialDays(userId);               // Referred user gets bonus
+        // Only the referrer receives the bonus (per product decision 2026-05-06).
+        await grantTrialDays(referralCode.userId);
 
         return {
             success: true,
             bonusDays: BONUS_DAYS,
-            message: `Both you and your friend received ${BONUS_DAYS} days of PRO!`,
+            message: `Your friend received ${BONUS_DAYS} days of PRO. Thanks for joining!`,
         };
     }
 

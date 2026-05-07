@@ -114,13 +114,13 @@ export default function CameraScreen() {
         try {
           if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
             const context = ImageManipulator.ImageManipulator.manipulate(photo.uri);
-            context.resize({ width: 1024 });
+            context.resize({ width: 768 });
             const imageRef = await context.renderAsync();
             compressedImage = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               photo.uri,
-              [{ resize: { width: 1024 } }],
+              [{ resize: { width: 768 } }],
               { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
             );
           }
@@ -211,17 +211,17 @@ export default function CameraScreen() {
       let compressed = asset;
       if (ImageManipulator) {
         try {
-          // Unified compression: 1024px / q=0.8 — saves bandwidth and analysis cost
+          // Unified compression: 768px / q=0.8 — saves bandwidth and analysis cost
           // without measurable quality loss for vision recognition.
           if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
-            context.resize({ width: 1024 });
+            context.resize({ width: 768 });
             const imageRef = await context.renderAsync();
             compressed = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressed = await ImageManipulator.manipulateAsync(
               asset.uri,
-              [{ resize: { width: 1024 } }],
+              [{ resize: { width: 768 } }],
               { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
             );
           }

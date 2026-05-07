@@ -148,7 +148,7 @@ Disputes between users and Experts should first be resolved directly between the
 Our referral program rewards users for inviting friends to EatSense.
 
 9.1 How It Works
-Each user receives a unique referral code. When a new user signs up using your referral code, both you and the new user receive 7 days of free PRO access.
+Each user receives a unique referral code. When a new user signs up using your referral code, you (the inviter) receive 7 days of free PRO access.
 
 9.2 Eligibility
 Referral rewards are available to users with active accounts in good standing. We reserve the right to modify or terminate the referral program at any time.

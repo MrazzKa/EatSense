@@ -1903,11 +1903,12 @@ class ApiService {
     return this.request(`/community/feed?page=${page}&limit=${limit}`);
   }
 
-  async getBestPlaces(page = 1, limit = 20, groupId?: string) {
+  async getBestPlaces(page = 1, limit = 20, groupId?: string, city?: string) {
     const params = new URLSearchParams();
     params.append('page', String(page));
     params.append('limit', String(limit));
     if (groupId) params.append('groupId', groupId);
+    if (city) params.append('city', city);
     return this.request(`/community/best-places?${params.toString()}`);
   }
 

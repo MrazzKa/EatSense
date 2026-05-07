@@ -510,6 +510,44 @@ export default function AnalysisResultsScreen() {
                 if (!cancelled) {
                   applyResult(result, null); // Image handled by result.imageUrl
                 }
+
+                // Phase-2 streaming: AI health-feedback runs as a background
+                // job on the API and overwrites healthScore.feedback a few
+                // seconds later (replaces deterministic with personalized).
+                // We poll up to 3 times and apply ONLY the changed slice
+                // (healthScore + bodySystems) so the rest of the screen
+                // doesn't re-render or fade — that's what caused the flicker.
+                const initialFeedbackSig = JSON.stringify(
+                  result?.data?.healthScore?.feedback ?? result?.healthScore?.feedback ?? null,
+                );
+                const enrichmentDelays = [4000, 4000, 6000]; // 4s, +4s, +6s = up to ~14s
+                const tryEnrich = async (attempt: number, lastSig: string) => {
+                  if (cancelled || attempt >= enrichmentDelays.length) return;
+                  try {
+                    const enriched = await ApiService.getAnalysisResult(analysisIdFromRoute);
+                    const enrichedFb = enriched?.data?.healthScore?.feedback ?? enriched?.healthScore?.feedback ?? null;
+                    const enrichedSig = JSON.stringify(enrichedFb);
+                    if (enrichedSig !== lastSig && !cancelled) {
+                      // Targeted merge — keep ingredients/totals/image untouched.
+                      const newHs = enriched?.data?.healthScore ?? enriched?.healthScore ?? null;
+                      const newBs = enriched?.data?.bodySystems ?? enriched?.bodySystems ?? null;
+                      setAnalysisResult(prev => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          healthScore: newHs ?? prev.healthScore,
+                          bodySystems: newBs ?? prev.bodySystems,
+                          data: { ...(prev.data || {}), healthScore: newHs ?? prev.data?.healthScore, bodySystems: newBs ?? prev.data?.bodySystems },
+                        };
+                      });
+                      return; // done
+                    }
+                    setTimeout(() => tryEnrich(attempt + 1, enrichedSig), enrichmentDelays[attempt + 1] ?? 0);
+                  } catch (e) {
+                    // best-effort enrichment, ignore
+                  }
+                };
+                setTimeout(() => tryEnrich(0, initialFeedbackSig), enrichmentDelays[0]);
               } else if (currentStatus === 'FAILED') {
                 console.error(`[AnalysisResultsScreen] Analysis ${analysisIdFromRoute} failed`);
                 if (!cancelled) {
@@ -518,8 +556,12 @@ export default function AnalysisResultsScreen() {
               } else if (currentStatus === 'PROCESSING' || currentStatus === 'PENDING') {
                 if (attempts < maxAttempts) {
                   attempts += 1;
-                  // STEP 7: Progressive polling interval (2.5s base, up to 4s after many attempts)
-                  const pollInterval = Math.min(2500 + attempts * 50, 4000);
+                  // Aggressive early polling — first 4 polls at 1s/1.5s/2s/2.5s,
+                  // then ramp to 4s. Earlier polling tightens the perceived "wait"
+                  // window once vision returns.
+                  const pollInterval = attempts <= 4
+                    ? 1000 + attempts * 500
+                    : Math.min(2500 + attempts * 50, 4000);
                   setTimeout(poll, pollInterval);
                 } else {
                   console.error(`[AnalysisResultsScreen] Timeout after ${maxAttempts} attempts`);

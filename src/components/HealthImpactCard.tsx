@@ -113,6 +113,7 @@ export default function HealthImpactCard({ bodySystems }: Props) {
         >
           <Text style={styles.unlockButtonText}>{t('analysis.healthImpact.unlock')}</Text>
         </TouchableOpacity>
+        <Text style={styles.disclaimer}>{t('analysis.healthImpact.disclaimer')}</Text>
       </GlassCard>
     );
   }
@@ -129,6 +130,7 @@ export default function HealthImpactCard({ bodySystems }: Props) {
           <SystemRow key={sys.id} system={sys} t={t} colors={colors} tokens={tokens} />
         ))}
       </View>
+      <Text style={styles.disclaimer}>{t('analysis.healthImpact.disclaimer')}</Text>
     </GlassCard>
   );
 }
@@ -281,5 +283,12 @@ const createStyles = (tokens: any, colors: any) => StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '600',
+  },
+  disclaimer: {
+    marginTop: 14,
+    fontSize: 11,
+    lineHeight: 16,
+    color: colors.textSecondary || '#888',
+    fontStyle: 'italic',
   },
 });

@@ -173,19 +173,19 @@ export default function GalleryScreen() {
 
       if (__DEV__) console.log('[GalleryScreen] Image selected, compressing...');
 
-      // Unified compression: 1024px / q=0.8 keeps vision quality while cutting upload size.
+      // Unified compression: 768px / q=0.8 keeps vision quality while cutting upload size.
       let compressedImage = asset;
       if (ImageManipulator) {
         try {
           if (ImageManipulator.ImageManipulator && typeof ImageManipulator.ImageManipulator.manipulate === 'function') {
             const context = ImageManipulator.ImageManipulator.manipulate(asset.uri);
-            context.resize({ width: 1024 });
+            context.resize({ width: 768 });
             const imageRef = await context.renderAsync();
             compressedImage = await imageRef.saveAsync({ compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
           } else if (typeof ImageManipulator.manipulateAsync === 'function') {
             compressedImage = await ImageManipulator.manipulateAsync(
               asset.uri,
-              [{ resize: { width: 1024 } }],
+              [{ resize: { width: 768 } }],
               { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
             );
           }

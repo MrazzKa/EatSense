@@ -218,7 +218,74 @@
         "neutral": "Neutre",
         "negative": "Attention",
         "veryNegative": "Charge élevée"
-      }
+      },
+      "disclaimer": "Ces informations sont fournies à titre indicatif et ne remplacent pas l'avis d'un professionnel de santé. En cas de doute ou de problème de santé, veuillez consulter un spécialiste qualifié."
+    }
+  },
+  "country": {
+    "title": "Pays",
+    "placeholder": "Sélectionner un pays",
+    "search": "Rechercher…",
+    "required": "Veuillez sélectionner votre pays.",
+    "onboardingSubtitle": "Cela nous permet de vous placer dans la bonne communauté.",
+    "RU": "Russie",
+    "KZ": "Kazakhstan",
+    "UA": "Ukraine",
+    "BY": "Biélorussie",
+    "US": "États-Unis",
+    "DE": "Allemagne",
+    "FR": "France",
+    "ES": "Espagne",
+    "IT": "Italie",
+    "GB": "Royaume-Uni",
+    "PL": "Pologne",
+    "TR": "Turquie",
+    "NL": "Pays-Bas",
+    "CZ": "Tchéquie",
+    "KG": "Kirghizistan",
+    "UZ": "Ouzbékistan",
+    "AZ": "Azerbaïdjan",
+    "GE": "Géorgie",
+    "AM": "Arménie",
+    "MD": "Moldavie",
+    "EE": "Estonie",
+    "LV": "Lettonie",
+    "LT": "Lituanie",
+    "IL": "Israël",
+    "AE": "Émirats arabes unis",
+    "CA": "Canada",
+    "AU": "Australie",
+    "BR": "Brésil",
+    "JP": "Japon",
+    "KR": "Corée du Sud",
+    "OTHER": "Autre"
+  },
+  "allergies": {
+    "title": "Allergies",
+    "subtitle": "Indiquez vos allergies — nous vous alerterons sur les plats qui peuvent en contenir.",
+    "none": "Je n'ai pas d'allergies",
+    "noneSet": "Aucune allergie indiquée",
+    "addOther": "Ajouter autre",
+    "otherLabel": "Autre",
+    "otherPlaceholder": "Listez d'autres allergènes, séparés par des virgules",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "selectedCount": "{{count}} sélectionné(s)",
+    "items": {
+      "gluten": "Gluten (blé, seigle, orge)",
+      "crustaceans": "Crustacés",
+      "eggs": "Œufs",
+      "fish": "Poisson",
+      "peanuts": "Arachides",
+      "soy": "Soja",
+      "milk": "Lait / lactose",
+      "nuts": "Fruits à coque",
+      "celery": "Céleri",
+      "mustard": "Moutarde",
+      "sesame": "Sésame",
+      "sulfites": "Sulfites",
+      "lupin": "Lupin",
+      "molluscs": "Mollusques"
     }
   },
   "analysisFlow": {
@@ -1252,7 +1319,11 @@
     "ratingBelowAverage": "En dessous de la moyenne",
     "ratingPoor": "Mauvais",
     "accessDenied": "Accès refusé",
-    "accessDeniedDesc": "L'accès aux données n'a pas été accordé."
+    "accessDeniedDesc": "L'accès aux données n'a pas été accordé.",
+    "approvedHint": "Votre profil d'expert est en ligne. Gérez les offres et les discussions depuis le portail expert.",
+    "rejectedHint": "Votre candidature n'a pas été approuvée. Mettez à jour votre profil et soumettez à nouveau.",
+    "expertPending": "Candidature en attente",
+    "expertRejected": "Soumettre à nouveau"
   },
   "feedbackScreen": {
     "alerts": {
@@ -2148,23 +2219,24 @@
   },
   "referral": {
     "earnedDays": "Jours gagnés",
-    "heroSubtitle": "Invitez des amis et obtenez tous les deux 7 jours de PRO gratuits !",
-    "heroTitle": "Donnez 7 jours, Recevez 7 jours",
+    "heroSubtitle": "Invitez des amis et gagnez 7 jours de PRO pour chacun qui s'inscrit.",
+    "heroTitle": "7 jours PRO par ami",
     "history": "Invitations récentes",
     "howItWorks": "Comment ça marche",
     "invited": "Amis invités",
     "share": "Partager avec des amis",
     "step1": "Partagez votre code avec vos amis",
     "step2": "Ils s'inscrivent avec votre code",
-    "step3": "Vous recevez tous les deux 7 jours PRO !",
+    "step3": "Vous gagnez 7 jours de PRO pour chaque ami qui rejoint !",
     "title": "Inviter des amis",
     "yourCode": "Votre code de parrainage",
-    "shareMessage": "Salut ! Profite de 7 jours de Pro offerts : {{link}}",
+    "shareMessage": "Salut ! Rejoins-moi sur EatSense — utilise mon code pour me soutenir : {{link}}",
     "haveFriendCode": "Vous avez un code ami ?",
+    "paste": "Coller",
     "enterCode": "Entrez le code",
     "applyCode": "Appliquer le code",
     "success": "Succès !",
-    "codeApplied": "Code de parrainage appliqué ! Vous recevez tous les deux 7 jours PRO.",
+    "codeApplied": "Code appliqué ! Votre ami a gagné 7 jours de PRO. Bienvenue !",
     "invalidCode": "Code invalide ou déjà utilisé"
   },
   "reports": {
@@ -4192,6 +4264,11 @@
   },
   "community": {
     "title": "Communauté",
+    "moderation": {
+      "pending": "En modération",
+      "rejected": "Rejeté",
+      "approved": "Approuvé"
+    },
     "time": {
       "justNow": "à l'instant",
       "minutesShort": "{{count}} min",
@@ -4351,7 +4428,8 @@
       "rating": "Note",
       "untitled": "Lieu sans nom",
       "review": "avis",
-      "reviews": "avis"
+      "reviews": "avis",
+      "city": "Ville"
     },
     "guidelines": {
       "title": "Règles de la communauté",

@@ -1649,11 +1649,13 @@ export class AnalyzeService {
    * Analyze image and return normalized nutrition data.
    * Wrapper around internal implementation to handle request coalescing (locking).
    */
-  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean; userProfile?: any }): Promise<AnalysisData> {
+  async analyzeImage(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean; userProfile?: any; userId?: string }): Promise<AnalysisData> {
     // Check for pending request to prevent double analysis (Race Condition Fix)
     // This uses a memory lock so that simultaneous requests for the same image Wait for the first one
     const imageHash = this.hashImage(params);
-    const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+    // Include userId so personalized adjustments are not leaked across users via cache
+    const userScope = params.userId ? `u${params.userId}` : 'anon';
+    const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${userScope}:${imageHash}`;
 
     if (this.pendingRequests.has(cacheKey)) {
       this.logger.debug(`[AnalyzeService] Joining pending request for ${cacheKey.substring(0, 20)}...`);
@@ -1673,7 +1675,7 @@ export class AnalyzeService {
     }
   }
 
-  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean; userProfile?: any }): Promise<AnalysisData> {
+  private async analyzeImageInternal(params: { imageUrl?: string; imageBase64?: string; locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es'; mode?: 'default' | 'review'; foodDescription?: string; skipCache?: boolean; userProfile?: any; userId?: string }): Promise<AnalysisData> {
     const isDebugMode = process.env.ANALYSIS_DEBUG === 'true';
     const locale = (params.locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' | undefined) || 'en';
     const mode = params.mode || 'default';
@@ -2117,7 +2119,8 @@ export class AnalyzeService {
     if (allItemsZeroCalories) {
       // imageHash and cacheKey are defined earlier in analyzeImage method
       const imageHash = this.hashImage({ imageUrl: params.imageUrl, imageBase64: params.imageBase64 });
-      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+      const userScope = params.userId ? `u${params.userId}` : 'anon';
+      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${userScope}:${imageHash}`;
       this.logger.error('[AnalyzeService] All items have zero calories - analysis needs review', {
         imageHash,
         cacheKey,
@@ -2291,7 +2294,8 @@ export class AnalyzeService {
     // Cache for 24 hours (only if not in review mode)
     if (mode !== 'review') {
       const imageHash = this.hashImage(params);
-      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${imageHash}`;
+      const userScope = params.userId ? `u${params.userId}` : 'anon';
+      const cacheKey = `${this.ANALYSIS_CACHE_VERSION}:${userScope}:${imageHash}`;
       await this.cache.set(cacheKey, result, 'analysis');
     }
     markPhase('post_processing');

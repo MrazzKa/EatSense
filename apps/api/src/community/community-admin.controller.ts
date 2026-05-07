@@ -74,4 +74,43 @@ export class CommunityAdminController {
     this.validateAdmin(adminSecret);
     return this.communityService.adminDeleteComment(id);
   }
+
+  // -------------------- Post moderation queue --------------------
+
+  @Get('pending')
+  @ApiOperation({ summary: 'Admin: list pending posts (best-places & general)' })
+  async listPendingPosts(
+    @Headers('x-admin-secret') adminSecret: string,
+    @Query('type') type?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
+  ) {
+    this.validateAdmin(adminSecret);
+    return this.communityService.listPendingPosts(
+      type,
+      parseInt(page, 10) || 1,
+      parseInt(limit, 10) || 50,
+    );
+  }
+
+  @Patch('posts/:id/approve')
+  @ApiOperation({ summary: 'Admin: approve a pending post' })
+  async approvePost(
+    @Headers('x-admin-secret') adminSecret: string,
+    @Param('id') id: string,
+  ) {
+    this.validateAdmin(adminSecret);
+    return this.communityService.moderatePost(id, 'approve');
+  }
+
+  @Patch('posts/:id/reject')
+  @ApiOperation({ summary: 'Admin: reject a pending post' })
+  async rejectPost(
+    @Headers('x-admin-secret') adminSecret: string,
+    @Param('id') id: string,
+    @Body() body: { reason?: string },
+  ) {
+    this.validateAdmin(adminSecret);
+    return this.communityService.moderatePost(id, 'reject', body?.reason);
+  }
 }

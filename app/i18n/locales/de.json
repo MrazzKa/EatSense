@@ -556,7 +556,74 @@
         "neutral": "Neutral",
         "negative": "Achtung",
         "veryNegative": "Hohe Belastung"
-      }
+      },
+      "disclaimer": "Diese Informationen dienen nur zur allgemeinen Orientierung und ersetzen keine professionelle medizinische Beratung. Bei gesundheitlichen Beschwerden oder Bedenken wenden Sie sich bitte an eine qualifizierte Fachkraft."
+    }
+  },
+  "country": {
+    "title": "Land",
+    "placeholder": "Land auswählen",
+    "search": "Suchen…",
+    "required": "Bitte wählen Sie Ihr Land aus.",
+    "onboardingSubtitle": "Damit ordnen wir Sie der richtigen Community zu.",
+    "RU": "Russland",
+    "KZ": "Kasachstan",
+    "UA": "Ukraine",
+    "BY": "Belarus",
+    "US": "Vereinigte Staaten",
+    "DE": "Deutschland",
+    "FR": "Frankreich",
+    "ES": "Spanien",
+    "IT": "Italien",
+    "GB": "Vereinigtes Königreich",
+    "PL": "Polen",
+    "TR": "Türkei",
+    "NL": "Niederlande",
+    "CZ": "Tschechien",
+    "KG": "Kirgisistan",
+    "UZ": "Usbekistan",
+    "AZ": "Aserbaidschan",
+    "GE": "Georgien",
+    "AM": "Armenien",
+    "MD": "Moldau",
+    "EE": "Estland",
+    "LV": "Lettland",
+    "LT": "Litauen",
+    "IL": "Israel",
+    "AE": "Vereinigte Arabische Emirate",
+    "CA": "Kanada",
+    "AU": "Australien",
+    "BR": "Brasilien",
+    "JP": "Japan",
+    "KR": "Südkorea",
+    "OTHER": "Andere"
+  },
+  "allergies": {
+    "title": "Allergien",
+    "subtitle": "Geben Sie Ihre Allergien an — wir warnen Sie vor Mahlzeiten, die diese enthalten könnten.",
+    "none": "Ich habe keine Allergien",
+    "noneSet": "Keine Allergien angegeben",
+    "addOther": "Andere hinzufügen",
+    "otherLabel": "Andere",
+    "otherPlaceholder": "Andere Allergene durch Komma getrennt auflisten",
+    "save": "Speichern",
+    "edit": "Bearbeiten",
+    "selectedCount": "{{count}} ausgewählt",
+    "items": {
+      "gluten": "Gluten (Weizen, Roggen, Gerste)",
+      "crustaceans": "Krebstiere",
+      "eggs": "Eier",
+      "fish": "Fisch",
+      "peanuts": "Erdnüsse",
+      "soy": "Soja",
+      "milk": "Milch / Laktose",
+      "nuts": "Schalenfrüchte",
+      "celery": "Sellerie",
+      "mustard": "Senf",
+      "sesame": "Sesam",
+      "sulfites": "Sulfite",
+      "lupin": "Lupinen",
+      "molluscs": "Weichtiere"
     }
   },
   "analysisFlow": {
@@ -1299,7 +1366,11 @@
     "ratingBelowAverage": "Unterdurchschnittlich",
     "ratingPoor": "Schlecht",
     "accessDenied": "Zugriff verweigert",
-    "accessDeniedDesc": "Der Datenzugriff wurde nicht gewährt."
+    "accessDeniedDesc": "Der Datenzugriff wurde nicht gewährt.",
+    "approvedHint": "Ihr Expertenprofil ist aktiv. Verwalten Sie Angebote und Chats über das Expertenportal.",
+    "rejectedHint": "Ihre Bewerbung wurde nicht genehmigt. Aktualisieren Sie Ihr Profil und reichen Sie es erneut ein.",
+    "expertPending": "Bewerbung wird geprüft",
+    "expertRejected": "Erneut einreichen"
   },
   "feedbackScreen": {
     "alerts": {
@@ -1868,23 +1939,24 @@
   },
   "referral": {
     "earnedDays": "Verdiente Tage",
-    "heroSubtitle": "Laden Sie Freunde ein und beide erhalten 7 Tage PRO kostenlos!",
-    "heroTitle": "7 Tage geben, 7 Tage bekommen",
+    "heroSubtitle": "Laden Sie Freunde ein und erhalten Sie 7 Tage PRO für jeden, der sich anmeldet.",
+    "heroTitle": "7 Tage PRO pro Freund",
     "history": "Letzte Einladungen",
     "howItWorks": "So funktioniert es",
     "invited": "Eingeladene Freunde",
     "share": "Mit Freunden teilen",
     "step1": "Teilen Sie Ihren Code mit Freunden",
     "step2": "Sie melden sich mit Ihrem Code an",
-    "step3": "Beide erhalten 7 Tage PRO kostenlos!",
+    "step3": "Sie erhalten 7 Tage PRO für jeden Freund, der beitritt!",
     "title": "Freunde einladen",
     "yourCode": "Ihr Empfehlungscode",
-    "shareMessage": "Hey! Ich schenke dir 7 Tage Pro: {{link}}",
+    "shareMessage": "Hey! Komm zu EatSense — mit meinem Code unterstützt du mich: {{link}}",
     "haveFriendCode": "Haben Sie einen Code eines Freundes?",
+    "paste": "Einfügen",
     "enterCode": "Code eingeben",
     "applyCode": "Code anwenden",
     "success": "Erfolg!",
-    "codeApplied": "Empfehlungscode angewendet! Beide erhalten 7 Tage PRO.",
+    "codeApplied": "Code angewendet! Ihr Freund hat 7 Tage PRO erhalten. Willkommen!",
     "invalidCode": "Ungültiger oder bereits verwendeter Code"
   },
   "reports": {
@@ -4181,6 +4253,11 @@
   },
   "community": {
     "title": "Community",
+    "moderation": {
+      "pending": "In Prüfung",
+      "rejected": "Abgelehnt",
+      "approved": "Genehmigt"
+    },
     "time": {
       "justNow": "gerade eben",
       "minutesShort": "{{count}} Min",
@@ -4340,7 +4417,8 @@
       "rating": "Bewertung",
       "untitled": "Unbenannter Ort",
       "review": "Bewertung",
-      "reviews": "Bewertungen"
+      "reviews": "Bewertungen",
+      "city": "Stadt"
     },
     "guidelines": {
       "title": "Community-Richtlinien",

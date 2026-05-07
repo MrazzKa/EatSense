@@ -98,12 +98,14 @@ export class CommunityController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
     @Query('groupId') groupId?: string,
+    @Query('city') city?: string,
   ) {
     return this.communityService.getBestPlaces(
       req.user.id,
       parseInt(page, 10) || 1,
       parseInt(limit, 10) || 20,
       groupId,
+      city,
     );
   }
 

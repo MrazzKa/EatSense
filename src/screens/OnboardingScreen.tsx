@@ -32,6 +32,8 @@ import { useI18n } from '../../app/i18n/hooks';
 // import { legalDocuments } from '../legal/legalContent';
 
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import AllergiesSelector, { serializeAllergies } from '../components/AllergiesSelector';
+import CountryPicker from '../components/CountryPicker';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import { TRIAL_DAYS } from '../config/freeContent';
@@ -788,7 +790,11 @@ const OnboardingScreen = () => {
     healthConditionOther: '', // Added for health 'other' input
     termsAccepted: false, // Terms and Privacy acceptance
     privacyAccepted: false,
+    allergies: [] as string[],
+    allergiesNone: false,
+    country: null as string | null,
   });
+  const [allergiesState, setAllergiesState] = useState({ selected: [] as string[], hasNone: false, otherText: '' });
   const [unitSystem, setUnitSystem] = useState('metric'); // 'metric' or 'imperial'
   const [loadingProgress, setLoadingProgress] = useState(0); // Loading step progress
   const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Notifications permission state
@@ -811,6 +817,7 @@ const OnboardingScreen = () => {
   const steps = useMemo(() => [
     { id: 'welcome', title: t('onboarding.welcome', 'Welcome to EatSense') },
     { id: 'name', title: t('onboarding.name', 'What\'s your name?') },
+    { id: 'country', title: t('country.title', 'Select country') },
     { id: 'goals', title: t('onboarding.goals', 'What are your goals?') },
     { id: 'gender', title: t('onboarding.gender', 'What\'s your gender?') },
     { id: 'age', title: t('onboarding.age', 'How old are you?') },
@@ -819,6 +826,7 @@ const OnboardingScreen = () => {
     { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') },
     { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
     { id: 'diet', title: t('onboarding.diet', 'Are you following any diet?') },
+    { id: 'allergies', title: t('allergies.title', 'Allergies') },
     { id: 'health', title: t('onboarding.health', 'What should we know about you?') },
     // Notifications step removed
     { id: 'terms', title: t('onboarding.terms', 'Terms & Privacy') },
@@ -1031,6 +1039,22 @@ const OnboardingScreen = () => {
         Alert.alert(t('common.required', 'Required Field'), t('onboarding.validation.activity', 'Please select your activity level.'));
         return;
       }
+    } else if (currentStepId === 'country') {
+      if (!profileData.country) {
+        Alert.alert(
+          t('common.required', 'Required Field'),
+          t('country.required', 'Please select your country.'),
+        );
+        return;
+      }
+    } else if (currentStepId === 'allergies') {
+      if (!allergiesState.hasNone && allergiesState.selected.length === 0 && !allergiesState.otherText.trim()) {
+        Alert.alert(
+          t('common.required', 'Required Field'),
+          t('allergies.subtitle', 'Tell us about your allergies — or pick "I have no allergies".'),
+        );
+        return;
+      }
     }
 
     // Шаг считается "подтверждённым" только когда пользователь явно нажал Next
@@ -1041,7 +1065,7 @@ const OnboardingScreen = () => {
       setCurrentStep(nextStepIndex);
       scrollViewRef.current?.scrollTo({ x: nextStepIndex * width, animated: true });
     }
-  }, [currentStep, steps, profileData, markStepConfirmed, t]);
+  }, [currentStep, steps, profileData, markStepConfirmed, t, allergiesState]);
 
   const prevStep = () => {
     if (currentStep > 0) {
@@ -1126,6 +1150,9 @@ const OnboardingScreen = () => {
           ...(profilePreferences?.subscription ?? {}),
           ...subscriptionPreference,
         },
+        allergies: serializeAllergies(allergiesState),
+        allergiesNone: allergiesState.hasNone,
+        country: profileData.country || null,
       };
 
       profileDataWithoutPlan.preferences = mergedPreferences;
@@ -1647,7 +1674,11 @@ const OnboardingScreen = () => {
   );
 
   const renderPlanStep = () => (
-    <View style={styles.stepContainer}>
+    <KeyboardAvoidingView
+      style={styles.stepContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
       <Text style={[styles.stepTitle, { marginTop: 8, marginBottom: 4 }]}>{t('onboarding.plan')}</Text>
       <Text style={[styles.planToggleText, { marginBottom: 12 }]}>
         {t('onboarding.planSubtitle', 'Choose the plan that works best for you')}
@@ -1657,6 +1688,7 @@ const OnboardingScreen = () => {
         contentContainerStyle={{ paddingBottom: 24, paddingTop: 24 }}
         showsVerticalScrollIndicator={false}
         bounces={true}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.plansContainer}>
           {/* Main plans (excluding student) */}
@@ -1917,9 +1949,12 @@ const OnboardingScreen = () => {
           <View style={{
             marginTop: 8,
             paddingHorizontal: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
           }}>
             <TextInput
               style={{
+                flex: 1,
                 borderWidth: 1,
                 borderColor: colors.border,
                 borderRadius: 8,
@@ -1939,6 +1974,24 @@ const OnboardingScreen = () => {
               autoCapitalize="characters"
               maxLength={8}
             />
+            <TouchableOpacity
+              onPress={async () => {
+                try {
+                  const ClipboardMod = await import('expo-clipboard');
+                  const text = await ClipboardMod.getStringAsync();
+                  if (text) {
+                    setProfileData(prev => ({ ...prev, referralCode: text.trim().toUpperCase().slice(0, 8) }));
+                  }
+                } catch (e) {
+                  // ignore
+                }
+              }}
+              style={{ marginLeft: 8, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border }}
+            >
+              <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>
+                {t('referral.paste', 'Paste')}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -1949,7 +2002,7 @@ const OnboardingScreen = () => {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 
   // New render functions for additional steps
@@ -2052,6 +2105,56 @@ const OnboardingScreen = () => {
               />
             </KeyboardAvoidingView>
           )}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderCountryStep = () => {
+    // Pre-fill from device locale region (e.g. "KZ" from ru-KZ).
+    // expo-localization v55 uses getLocales()[0].regionCode (Localization.region was deprecated).
+    let detectedRegion: string | null = null;
+    try {
+      detectedRegion = (Localization.getLocales()?.[0]?.regionCode || '').toUpperCase() || null;
+    } catch {
+      detectedRegion = null;
+    }
+    const presetCountry = profileData.country || detectedRegion;
+    return (
+      <View style={styles.stepContent}>
+        <Text style={styles.stepTitle}>{t('country.title', 'Select country')}</Text>
+        <Text style={styles.stepSubtitle}>{t('country.onboardingSubtitle', 'We use this to put you in the right community.')}</Text>
+        <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
+          <CountryPicker
+            value={profileData.country || presetCountry}
+            onChange={(code) => setProfileData(prev => ({ ...prev, country: code }))}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  const renderAllergiesStep = () => {
+    return (
+      <View style={styles.stepContent}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <AllergiesSelector
+            selected={allergiesState.selected}
+            hasNone={allergiesState.hasNone}
+            otherText={allergiesState.otherText}
+            onChange={(next) => {
+              setAllergiesState(next);
+              setProfileData(prev => ({
+                ...prev,
+                allergies: serializeAllergies(next),
+                allergiesNone: next.hasNone,
+              }));
+            }}
+          />
         </ScrollView>
       </View>
     );
@@ -2583,21 +2686,24 @@ const OnboardingScreen = () => {
 
 
   const renderStep = () => {
-    switch (currentStep) {
-      case 0: return renderWelcomeStep();
-      case 1: return renderNameStep();
-      case 2: return renderGoalsStep();
-      case 3: return renderGenderStep();
-      case 4: return renderAgeStep();
-      case 5: return renderHeightStep();
-      case 6: return renderWeightStep();
-      case 7: return renderTargetWeightStep();
-      case 8: return renderActivityStep();
-      case 9: return renderDietStep();
-      case 10: return renderHealthConditionsStep();
-      case 11: return renderTermsStep();
-      case 12: return renderLoadingStep();
-      case 13: return renderPlanStep();
+    const stepId = steps[currentStep]?.id;
+    switch (stepId) {
+      case 'welcome': return renderWelcomeStep();
+      case 'name': return renderNameStep();
+      case 'country': return renderCountryStep();
+      case 'goals': return renderGoalsStep();
+      case 'gender': return renderGenderStep();
+      case 'age': return renderAgeStep();
+      case 'height': return renderHeightStep();
+      case 'weight': return renderWeightStep();
+      case 'targetWeight': return renderTargetWeightStep();
+      case 'activity': return renderActivityStep();
+      case 'diet': return renderDietStep();
+      case 'allergies': return renderAllergiesStep();
+      case 'health': return renderHealthConditionsStep();
+      case 'terms': return renderTermsStep();
+      case 'loading': return renderLoadingStep();
+      case 'plan': return renderPlanStep();
       default: return renderWelcomeStep();
     }
   };
@@ -2821,9 +2927,28 @@ const VerticalScrollPicker = ({
       >
         {items.map((item) => {
           const isSelected = Math.abs(item - value) < step / 2;
+          const handlePressItem = () => {
+            const offset = ((item - minimumValue) / step) * itemHeight;
+            isProgrammaticScroll.current = true;
+            localValueRef.current = item;
+            onValueChange(item);
+            scrollViewRef.current?.scrollTo({ y: offset, animated: true });
+            if (enableHaptics && Platform.OS === 'ios') {
+              try {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              } catch {
+                // ignore
+              }
+            }
+            setTimeout(() => {
+              isProgrammaticScroll.current = false;
+            }, 350);
+          };
           return (
-            <View
+            <TouchableOpacity
               key={item}
+              activeOpacity={0.7}
+              onPress={handlePressItem}
               style={[
                 styles.verticalPickerItem,
                 { height: itemHeight },
@@ -2837,7 +2962,7 @@ const VerticalScrollPicker = ({
               >
                 {Math.round(item)}{unit}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </Animated.ScrollView>
@@ -2965,9 +3090,28 @@ const HorizontalScrollPicker = ({
       >
         {items.map((item) => {
           const isSelected = Math.abs(item - value) < step / 2;
+          const handlePressItem = () => {
+            const offset = ((item - minimumValue) / step) * itemWidth;
+            isProgrammaticScroll.current = true;
+            localValueRef.current = item;
+            onValueChange(item);
+            scrollViewRef.current?.scrollTo({ x: offset, animated: true });
+            if (enableHaptics && Platform.OS === 'ios') {
+              try {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              } catch {
+                // ignore
+              }
+            }
+            setTimeout(() => {
+              isProgrammaticScroll.current = false;
+            }, 350);
+          };
           return (
-            <View
+            <TouchableOpacity
               key={item}
+              activeOpacity={0.7}
+              onPress={handlePressItem}
               style={[
                 styles.horizontalPickerItem,
                 { width: itemWidth },
@@ -2981,7 +3125,7 @@ const HorizontalScrollPicker = ({
               >
                 {item}{unit}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </Animated.ScrollView>

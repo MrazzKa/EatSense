@@ -35,6 +35,7 @@ import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
 import { MedicationsModule } from './src/medications/medications.module';
 import { ExpertsModule } from './src/experts/experts.module';
+import { PaymentsModule } from './src/payments/payments.module';
 import { ConversationsModule } from './src/conversations/conversations.module';
 import { MessagesModule } from './src/messages/messages.module';
 import { ReviewsModule } from './src/reviews/reviews.module';
@@ -115,6 +116,7 @@ import { MascotModule } from './src/mascot/mascot.module';
     SuggestionsModule,
     MedicationsModule,
     ExpertsModule,
+    PaymentsModule,
     ConversationsModule,
     MessagesModule,
     ReviewsModule,

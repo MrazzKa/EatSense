@@ -233,6 +233,7 @@ export class FoodProcessor {
         foodDescription: foodDescription || undefined, // Pass food description if provided
         skipCache: skipCache || false, // Pass skip-cache flag for debugging
         userProfile,
+        userId, // Scope cache by user so personalized adjustments don't leak across users
       });
       metrics.analyzeTime = Date.now() - analyzeStart;
 

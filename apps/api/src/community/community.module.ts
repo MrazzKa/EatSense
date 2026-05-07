@@ -4,9 +4,10 @@ import { CommunityController } from './community.controller';
 import { CommunityAdminController } from './community-admin.controller';
 import { PrismaModule } from '../../prisma.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, SubscriptionsModule],
+  imports: [PrismaModule, SubscriptionsModule, NotificationsModule],
   providers: [CommunityService],
   controllers: [CommunityController, CommunityAdminController],
   exports: [CommunityService],

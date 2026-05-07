@@ -250,12 +250,14 @@
       <div class="tab icon-inline" data-tab="reports" onclick="switchTab('reports')" id="tabbtn-reports" title="Жалобы пользователей на посты, комментарии и аккаунты в коммьюнити">Reports</div>
       <div class="tab icon-inline" data-tab="reviews" onclick="switchTab('reviews')" id="tabbtn-reviews" title="Отзывы клиентов на экспертов">Reviews</div>
       <div class="tab icon-inline" data-tab="experts" onclick="switchTab('experts')" id="tabbtn-experts" title="Заявки на роль эксперта: проверка документов и одобрение">Experts</div>
+      <div class="tab icon-inline" data-tab="posts" onclick="switchTab('posts')" id="tabbtn-posts" title="Модерация постов сообщества (Best Places и обычные посты)">Posts</div>
     </div>
     <script>
       document.getElementById('tabbtn-suggestions').insertAdjacentHTML('afterbegin', ic('list', 14) + ' ');
       document.getElementById('tabbtn-reports').insertAdjacentHTML('afterbegin', ic('flag', 14) + ' ');
       document.getElementById('tabbtn-reviews').insertAdjacentHTML('afterbegin', ic('star', 14) + ' ');
       document.getElementById('tabbtn-experts').insertAdjacentHTML('afterbegin', ic('stethoscope', 14) + ' ');
+      document.getElementById('tabbtn-posts').insertAdjacentHTML('afterbegin', ic('check', 14) + ' ');
     </script>
 
     <div class="content">
@@ -293,6 +295,18 @@
         </div>
         <div class="stat-bar" id="experts-stats"></div>
         <div id="experts-list"><div class="loading">Loading experts...</div></div>
+      </div>
+
+      <!-- POSTS MODERATION TAB -->
+      <div id="tab-posts" style="display:none">
+        <div class="filter-bar" id="posts-filter">
+          <button class="btn btn-outline btn-sm active" onclick="filterPostType('')">All types</button>
+          <button class="btn btn-outline btn-sm" onclick="filterPostType('BEST_PLACES')">Best Places</button>
+          <button class="btn btn-outline btn-sm" onclick="filterPostType('TEXT')">Text</button>
+          <button class="btn btn-outline btn-sm" onclick="filterPostType('PHOTO')">Photo</button>
+        </div>
+        <div class="stat-bar" id="posts-stats"></div>
+        <div id="posts-list"><div class="loading">Loading pending posts...</div></div>
       </div>
     </div>
   </div>
@@ -432,11 +446,94 @@
     // ===== TABS =====
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-      ['suggestions', 'reports', 'reviews', 'experts'].forEach(t => {
+      ['suggestions', 'reports', 'reviews', 'experts', 'posts'].forEach(t => {
         document.getElementById('tab-' + t).style.display = tab === t ? 'block' : 'none';
       });
       if (tab === 'reviews') loadReviews();
       if (tab === 'experts') loadExperts();
+      if (tab === 'posts') loadPendingPosts();
+    }
+
+    // ===== POSTS MODERATION =====
+    let currentPostType = '';
+
+    function filterPostType(type) {
+      currentPostType = type;
+      document.querySelectorAll('#posts-filter .btn').forEach(b => b.classList.remove('active'));
+      const all = document.querySelectorAll('#posts-filter .btn');
+      const idx = ['', 'BEST_PLACES', 'TEXT', 'PHOTO'].indexOf(type);
+      if (all[idx]) all[idx].classList.add('active');
+      loadPendingPosts();
+    }
+
+    async function loadPendingPosts() {
+      const list = document.getElementById('posts-list');
+      list.innerHTML = '<div class="loading">Loading pending posts...</div>';
+      try {
+        const qs = currentPostType ? '?type=' + encodeURIComponent(currentPostType) : '';
+        const data = await fetchAPI('/community/admin/pending' + qs);
+        const items = (data && data.data) ? data.data : [];
+        document.getElementById('posts-stats').textContent = (data?.total || 0) + ' pending';
+        if (items.length === 0) {
+          list.innerHTML = '<div class="loading">No pending posts.</div>';
+          return;
+        }
+        list.innerHTML = items.map(p => {
+          const meta = p.metadata || {};
+          const author = (p.author?.userProfile?.firstName || '') + ' ' + (p.author?.userProfile?.lastName || '');
+          const placeName = meta.placeName ? `<div><b>Place:</b> ${escapeHtml(meta.placeName)}</div>` : '';
+          const city = meta.city ? `<div><b>City:</b> ${escapeHtml(meta.city)}</div>` : '';
+          const img = p.imageUrl ? `<img src="${p.imageUrl}" style="max-width:200px;max-height:160px;border-radius:8px;margin-top:8px"/>` : '';
+          return `
+            <div class="card" style="padding:12px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div>
+                  <div><b>${escapeHtml(p.type)}</b> · ${escapeHtml(author.trim() || p.author?.email || 'Unknown')}</div>
+                  ${placeName}${city}
+                  <div style="margin-top:6px;color:var(--text-secondary);">${escapeHtml(p.content || '')}</div>
+                  ${img}
+                  <div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">submitted ${new Date(p.createdAt).toLocaleString()}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
+                  <button class="btn btn-green btn-sm" onclick="approvePost('${p.id}')">${ic('check')} Approve</button>
+                  <button class="btn btn-red btn-sm" onclick="rejectPost('${p.id}')">${ic('x')} Reject</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = '<div class="loading">Failed to load: ' + (e?.message || e) + '</div>';
+      }
+    }
+
+    async function approvePost(id) {
+      try {
+        await fetchAPI('/community/admin/posts/' + id + '/approve', { method: 'PATCH' });
+        loadPendingPosts();
+      } catch (e) {
+        alert('Approve failed: ' + (e?.message || e));
+      }
+    }
+
+    async function rejectPost(id) {
+      const reason = prompt('Reason for rejection (optional):') || '';
+      try {
+        await fetchAPI('/community/admin/posts/' + id + '/reject', {
+          method: 'PATCH',
+          body: JSON.stringify({ reason }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        loadPendingPosts();
+      } catch (e) {
+        alert('Reject failed: ' + (e?.message || e));
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     // ===== SUGGESTIONS =====

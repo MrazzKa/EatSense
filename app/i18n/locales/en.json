@@ -778,7 +778,74 @@
         "neutral": "Neutral",
         "negative": "Caution",
         "veryNegative": "High load"
-      }
+      },
+      "disclaimer": "This information is for general guidance only and does not replace professional medical advice. If you have any health conditions or concerns, please consult a qualified specialist."
+    }
+  },
+  "country": {
+    "title": "Country",
+    "placeholder": "Select country",
+    "search": "Search…",
+    "required": "Please select your country.",
+    "onboardingSubtitle": "We use this to put you in the right community.",
+    "RU": "Russia",
+    "KZ": "Kazakhstan",
+    "UA": "Ukraine",
+    "BY": "Belarus",
+    "US": "United States",
+    "DE": "Germany",
+    "FR": "France",
+    "ES": "Spain",
+    "IT": "Italy",
+    "GB": "United Kingdom",
+    "PL": "Poland",
+    "TR": "Türkiye",
+    "NL": "Netherlands",
+    "CZ": "Czechia",
+    "KG": "Kyrgyzstan",
+    "UZ": "Uzbekistan",
+    "AZ": "Azerbaijan",
+    "GE": "Georgia",
+    "AM": "Armenia",
+    "MD": "Moldova",
+    "EE": "Estonia",
+    "LV": "Latvia",
+    "LT": "Lithuania",
+    "IL": "Israel",
+    "AE": "United Arab Emirates",
+    "CA": "Canada",
+    "AU": "Australia",
+    "BR": "Brazil",
+    "JP": "Japan",
+    "KR": "South Korea",
+    "OTHER": "Other"
+  },
+  "allergies": {
+    "title": "Allergies",
+    "subtitle": "Tell us about your allergies — we'll flag any meal that may contain them.",
+    "none": "I have no allergies",
+    "noneSet": "No allergies set",
+    "addOther": "Add other",
+    "otherLabel": "Other",
+    "otherPlaceholder": "List other allergens, comma-separated",
+    "save": "Save",
+    "edit": "Edit",
+    "selectedCount": "{{count}} selected",
+    "items": {
+      "gluten": "Gluten (wheat, rye, barley)",
+      "crustaceans": "Crustaceans",
+      "eggs": "Eggs",
+      "fish": "Fish",
+      "peanuts": "Peanuts",
+      "soy": "Soy",
+      "milk": "Milk / lactose",
+      "nuts": "Tree nuts",
+      "celery": "Celery",
+      "mustard": "Mustard",
+      "sesame": "Sesame",
+      "sulfites": "Sulfites",
+      "lupin": "Lupin",
+      "molluscs": "Molluscs"
     }
   },
   "describeFood": {
@@ -1562,7 +1629,11 @@
     "profileRejected": "Profile Rejected",
     "rejectionReason": "Reason: {{reason}}",
     "accessDenied": "Access denied",
-    "accessDeniedDesc": "Data access was not granted."
+    "accessDeniedDesc": "Data access was not granted.",
+    "approvedHint": "Your expert profile is live. Manage offers and chats from the expert portal.",
+    "rejectedHint": "Your application was not approved. Please update your profile and re-submit.",
+    "expertPending": "Application pending",
+    "expertRejected": "Re-submit application"
   },
   "offers": {
     "noOffers": "No services yet",
@@ -1868,8 +1939,8 @@
   },
   "referral": {
     "title": "Invite Friends",
-    "heroTitle": "Give 7 days, Get 7 days",
-    "heroSubtitle": "Invite friends and both of you get 7 days of PRO free!",
+    "heroTitle": "Earn 7 days for every friend",
+    "heroSubtitle": "Invite friends and earn 7 days of PRO for each one who joins.",
     "yourCode": "Your referral code",
     "share": "Share with friends",
     "invited": "Friends invited",
@@ -1878,13 +1949,14 @@
     "howItWorks": "How it works",
     "step1": "Share your code with friends",
     "step2": "They sign up with your code",
-    "step3": "You both get 7 days PRO free!",
-    "shareMessage": "Hey! I'm giving you 7 days of Pro: {{link}}",
+    "step3": "You earn 7 days of PRO for each friend who joins!",
+    "shareMessage": "Hey! Join me on EatSense — use my code to support me: {{link}}",
     "haveFriendCode": "Have a friend's code?",
+    "paste": "Paste",
     "enterCode": "Enter code",
     "applyCode": "Apply Code",
     "success": "Success!",
-    "codeApplied": "Referral code applied! You both get 7 days PRO.",
+    "codeApplied": "Code applied! Your friend earned 7 days of PRO. Welcome aboard!",
     "invalidCode": "Invalid or already used referral code"
   },
   "privacy": {
@@ -4139,6 +4211,11 @@
   },
   "community": {
     "title": "Community",
+    "moderation": {
+      "pending": "Pending review",
+      "rejected": "Rejected",
+      "approved": "Approved"
+    },
     "time": {
       "justNow": "just now",
       "minutesShort": "{{count}}m",
@@ -4298,7 +4375,8 @@
       "rating": "Rating",
       "untitled": "Unnamed place",
       "review": "review",
-      "reviews": "reviews"
+      "reviews": "reviews",
+      "city": "City"
     },
     "guidelines": {
       "title": "Community Guidelines",

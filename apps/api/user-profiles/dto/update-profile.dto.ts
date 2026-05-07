@@ -71,5 +71,10 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsBoolean()
   isOnboardingCompleted?: boolean;
+
+  @ApiPropertyOptional({ example: 'KZ', description: 'ISO 3166-1 alpha-2 country code' })
+  @IsOptional()
+  @IsString()
+  country?: string;
 }
 

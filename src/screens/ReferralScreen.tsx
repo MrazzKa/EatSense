@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Share, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-// import * as Clipboard from 'expo-clipboard'; // Package not installed
+import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import ReferralsService from '../services/referralsService';
@@ -39,18 +39,29 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
 
     const handleCopyCode = useCallback(async () => {
         if (!stats?.code || stats.code === '---') return;
-        // await Clipboard.setStringAsync(stats.code); // Package missing
-        // Fallback or just show feedback
-        console.warn('Clipboard package missing');
+        try {
+            await Clipboard.setStringAsync(stats.code);
+        } catch (e) {
+            console.warn('Clipboard write failed:', e);
+        }
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     }, [stats?.code]);
+
+    const handlePasteCode = useCallback(async () => {
+        try {
+            const text = await Clipboard.getStringAsync();
+            if (text) setFriendCode(text.trim().toUpperCase());
+        } catch (e) {
+            console.warn('Clipboard read failed:', e);
+        }
+    }, []);
 
     const handleShare = useCallback(async () => {
         if (!stats?.code || stats.code === '---') return;
         const shareLink = `https://eatsense.app/r/${stats.code}`;
         const message = t('referral.shareMessage')?.replace('{{link}}', shareLink) ||
-            `Join me on EatSense! Use my code ${stats.code} and we both get 7 days PRO free! Download: ${shareLink}`;
+            `Join me on EatSense! Use my code ${stats.code} to support me — download: ${shareLink}`;
         try {
             await Share.share({ message });
         } catch (error) {
@@ -66,7 +77,7 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
             const result = await ReferralsService.applyReferralCode(code);
             Alert.alert(
                 t('referral.success', 'Success!'),
-                result.message || t('referral.codeApplied', 'Referral code applied! You both get 7 days PRO.'),
+                result.message || t('referral.codeApplied', 'Code applied! Your friend earned 7 days of PRO. Welcome aboard!'),
             );
             setFriendCode('');
             loadStats(); // Refresh stats
@@ -130,7 +141,7 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
                     </Text>
                     <View style={styles.codeRow}>
                         <TextInput
-                            style={[styles.codeInput, { color: colors.textPrimary, borderColor: colors.border }]}
+                            style={[styles.codeInput, { color: colors.textPrimary, borderColor: colors.border, flex: 1 }]}
                             value={friendCode}
                             onChangeText={setFriendCode}
                             placeholder={t('referral.enterCode', 'Enter code')}
@@ -138,6 +149,14 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
                             autoCapitalize="characters"
                             maxLength={8}
                         />
+                        <TouchableOpacity
+                            onPress={handlePasteCode}
+                            style={{ marginLeft: 8, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border }}
+                        >
+                            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>
+                                {t('referral.paste', 'Paste')}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                     <TouchableOpacity
                         style={[styles.shareButton, {

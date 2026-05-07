@@ -68,6 +68,7 @@ export default function CreateCommunityPostScreen() {
   // Best Places fields
   const [placeName, setPlaceName] = useState('');
   const [placeAddress, setPlaceAddress] = useState('');
+  const [placeCity, setPlaceCity] = useState('');
   const [placeRating, setPlaceRating] = useState(0);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
@@ -173,6 +174,7 @@ export default function CreateCommunityPostScreen() {
         payload.metadata = {
           placeName: placeName.trim(),
           address: placeAddress.trim(),
+          city: placeCity.trim(),
           rating: placeRating || undefined,
         };
       }
@@ -193,7 +195,7 @@ export default function CreateCommunityPostScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeRating, addXp, navigation, t]);
+  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, addXp, navigation, t]);
 
   const isValid = content.trim().length > 0 && selectedGroupId;
 
@@ -421,6 +423,13 @@ export default function CreateCommunityPostScreen() {
                 placeholderTextColor={colors.textTertiary}
                 value={placeName}
                 onChangeText={setPlaceName}
+              />
+              <TextInput
+                style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
+                placeholder={t('community.bestPlaces.city', 'City')}
+                placeholderTextColor={colors.textTertiary}
+                value={placeCity}
+                onChangeText={setPlaceCity}
               />
               <TextInput
                 style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}

@@ -18,6 +18,7 @@ import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import ApiService from '../services/apiService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { CommunityPostCard } from '../components/community/CommunityPostCard';
 import { BestPlaceCard } from '../components/community/BestPlaceCard';
@@ -95,7 +96,18 @@ export default function CommunityScreen() {
 
   const loadBestPlaces = useCallback(async () => {
     try {
-      const data = await ApiService.getBestPlaces(1, 50);
+      // Apply user's selected-city filter (set on BestPlacesScreen).
+      let city: string | undefined;
+      try {
+        const raw = await AsyncStorage.getItem('bestPlaces:selectedCity');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.city) city = parsed.city;
+        }
+      } catch {
+        // ignore — fall back to global best places
+      }
+      const data = await ApiService.getBestPlaces(1, 50, undefined, city);
       setBestPlaces(data?.data || data || []);
     } catch (err) {
       console.warn('Failed to load best places:', err);

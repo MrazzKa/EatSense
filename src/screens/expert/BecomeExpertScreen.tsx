@@ -423,7 +423,19 @@ export default function BecomeExpertScreen({ navigation }: any) {
             return;
         }
 
-        // Validate all education entries have a document (defence in depth — UI already blocks submit)
+        // Defence in depth — UI already blocks submit, but guard against an empty
+        // educationEntries array (e.g. if local state got wiped) and against any
+        // entry missing required fields. Both must be satisfied before we POST.
+        const filledEducation = educationEntries.filter(
+            e => e.degree.trim() && e.institution.trim() && e.document,
+        );
+        if (filledEducation.length === 0) {
+            Alert.alert(
+                t('experts.onboarding.uploadFailed') || 'Upload failed',
+                t('experts.onboarding.errorEducationRequired') || 'Please add at least one education entry.',
+            );
+            return;
+        }
         for (const entry of educationEntries) {
             if (!entry.degree.trim() || !entry.institution.trim() || !entry.document) {
                 Alert.alert(

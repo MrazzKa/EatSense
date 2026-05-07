@@ -118,11 +118,21 @@ export class UserProfilesService {
       delete finalData.updatedAt;
       delete finalData.email; // Email is in User model, not UserProfile
       
+      // Country can come at the root or inside preferences. Normalize to ISO-2.
+      const incomingCountryRaw =
+        (profileData as any).country ||
+        (mergedPreferences && (mergedPreferences as any).country) ||
+        null;
+      if (incomingCountryRaw && typeof incomingCountryRaw === 'string') {
+        finalData.country = String(incomingCountryRaw).toUpperCase().slice(0, 2);
+      }
+
       // Only include fields that exist in UserProfile model
       const allowedFields = [
-        'firstName', 'lastName', 'age', 'height', 'weight', 'gender', 
-        'activityLevel', 'goal', 'targetWeight', 'dailyCalories', 
-        'avatarUrl', 'preferences', 'healthProfile', 'isOnboardingCompleted'
+        'firstName', 'lastName', 'age', 'height', 'weight', 'gender',
+        'activityLevel', 'goal', 'targetWeight', 'dailyCalories',
+        'avatarUrl', 'preferences', 'healthProfile', 'isOnboardingCompleted',
+        'country',
       ];
       const sanitizedFinalData: any = {};
       for (const key of allowedFields) {
@@ -132,7 +142,7 @@ export class UserProfilesService {
       }
 
       // Use upsert to handle both create and update
-      return this.prisma.userProfile.upsert({
+      const result = await this.prisma.userProfile.upsert({
         where: { userId },
         create: {
           userId,
@@ -141,6 +151,18 @@ export class UserProfilesService {
         },
         update: sanitizedFinalData,
       });
+
+      // Auto-join the user to the country-level community group when country
+      // is set or changes. Failure must not break profile save.
+      if (sanitizedFinalData.country) {
+        try {
+          await this.ensureCountryCommunityMembership(userId, sanitizedFinalData.country);
+        } catch (e: any) {
+          this.logger.warn(`[UserProfilesService] country auto-join failed: ${e?.message || e}`);
+        }
+      }
+
+      return result;
     } catch (error) {
       this.logger.error(
         `[UserProfilesService] upsertForUser() failed for userId=${userId}`,
@@ -169,13 +191,31 @@ export class UserProfilesService {
         this.logger.log(`[UserProfilesService] Created default profile for userId=${userId}, id=${profile.id}`);
       }
 
-      // Include expertsRole from User model so the mobile app can check expert status
+      // Include expertsRole from User model so the mobile app can check expert status.
+      // Also expose the expert's approval state (isPublished/isVerified) so the
+      // mobile UI can distinguish "applicant pending review" from "approved expert".
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { expertsRole: true },
+        select: {
+          expertsRole: true,
+          expertProfile: {
+            select: { id: true, isPublished: true, isVerified: true, isActive: true },
+          },
+        },
       });
 
-      return { ...profile, expertsRole: user?.expertsRole ?? null };
+      const expertStatus = user?.expertProfile
+        ? (user.expertProfile.isPublished && user.expertProfile.isVerified
+            ? 'approved'
+            : (user.expertProfile.isActive ? 'pending' : 'rejected'))
+        : null;
+
+      return {
+        ...profile,
+        expertsRole: user?.expertsRole ?? null,
+        expertStatus,
+        expertProfile: user?.expertProfile ?? null,
+      };
     } catch (error) {
       this.logger.error(
         `[UserProfilesService] getProfile() failed for userId=${userId}`,
@@ -281,11 +321,20 @@ export class UserProfilesService {
         normalizedData.preferences = mergedPrefs;
       }
 
+      // Country: accept at root or inside preferences. Normalize to ISO-2.
+      const incomingCountryRaw =
+        (dto as any).country ||
+        (normalizedData.preferences as any)?.country ||
+        null;
+      if (incomingCountryRaw && typeof incomingCountryRaw === 'string') {
+        normalizedData.country = String(incomingCountryRaw).toUpperCase().slice(0, 2);
+      }
+
       // Only include fields that exist in UserProfile model
       const allowedFields = [
         'firstName', 'lastName', 'age', 'height', 'weight', 'gender',
         'activityLevel', 'goal', 'targetWeight', 'dailyCalories',
-        'preferences', 'healthProfile', 'isOnboardingCompleted'
+        'preferences', 'healthProfile', 'isOnboardingCompleted', 'country',
       ];
       const sanitizedData: any = {};
       for (const key of allowedFields) {
@@ -304,6 +353,15 @@ export class UserProfilesService {
         },
         update: sanitizedData,
       });
+
+      // Auto-join country community group if country was set/changed.
+      if (sanitizedData.country) {
+        try {
+          await this.ensureCountryCommunityMembership(userId, sanitizedData.country);
+        } catch (e: any) {
+          this.logger.warn(`country auto-join failed: ${e?.message || e}`);
+        }
+      }
 
       // FIX: Invalidate stats cache so Dashboard picks up new calorie goals immediately
       // This is the PRIMARY profile update endpoint (PUT /user-profiles)
@@ -423,5 +481,45 @@ export class UserProfilesService {
     }
 
     return preferencesClone;
+  }
+
+  /**
+   * Ensure the user is a member of the country-level community group.
+   * Idempotent: upsert by slug `country-${code}`, removes user from any other
+   * COUNTRY group, then upsert membership. Single COUNTRY membership invariant.
+   */
+  private async ensureCountryCommunityMembership(userId: string, countryCode: string) {
+    const code = String(countryCode || '').toUpperCase().slice(0, 2);
+    if (!code || code.length !== 2) return;
+
+    const slug = `country-${code.toLowerCase()}`;
+    const group = await (this.prisma as any).communityGroup.upsert({
+      where: { slug },
+      update: {},
+      create: {
+        name: `Community ${code}`,
+        slug,
+        type: 'COUNTRY' as any,
+        country: code,
+        isSeeded: true,
+      },
+    });
+
+    try {
+      await (this.prisma as any).communityMembership.deleteMany({
+        where: {
+          userId,
+          group: { type: 'COUNTRY' as any, NOT: { id: group.id } },
+        },
+      });
+    } catch {
+      // older deployments may not have type=COUNTRY rows
+    }
+
+    await (this.prisma as any).communityMembership.upsert({
+      where: { userId_groupId: { userId, groupId: group.id } },
+      update: {},
+      create: { userId, groupId: group.id },
+    });
   }
 }

@@ -31,6 +31,11 @@ import { formatAmount, getPriceValue, formatPrice } from '../utils/currency';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import AllergiesSelector, {
+  serializeAllergies,
+  deserializeAllergies,
+} from '../components/AllergiesSelector';
+import CountryPicker from '../components/CountryPicker';
 import { GlassCard } from '../components/glass';
 import LockedFeatureOverlay from '../components/profile/LockedFeatureOverlay';
 import { canUseFeature } from '../utils/subscriptionGuard';
@@ -250,6 +255,8 @@ const ProfileScreen = () => {
   const [iapPrices, setIapPrices] = useState({});
   const [goal, setGoal] = useState('maintain_weight');
   const [dietPreferences, setDietPreferences] = useState([]);
+  const [allergiesState, setAllergiesState] = useState({ selected: [] as string[], hasNone: false, otherText: '' });
+  const [country, setCountry] = useState<string | null>(null);
   const [planModalVisible, setPlanModalVisible] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
@@ -489,6 +496,19 @@ const ProfileScreen = () => {
 
         const goalPref = preferences?.goal || 'maintain_weight';
         const dietsPref = Array.isArray(preferences?.diets) ? preferences.diets : [];
+        const allergiesRaw = preferences?.allergies;
+        // Hydrate allergies state. Three cases:
+        // 1. allergiesNone=true → user explicitly chose "no allergies"
+        // 2. array exists → deserialize selected/other
+        // 3. nothing stored yet → leave default (nothing selected)
+        if (preferences?.allergiesNone === true) {
+          setAllergiesState({ selected: [], hasNone: true, otherText: '' });
+        } else if (Array.isArray(allergiesRaw)) {
+          setAllergiesState(deserializeAllergies(allergiesRaw));
+        }
+        if (preferences?.country) {
+          setCountry(preferences.country);
+        }
         setGoal(goalPref);
         setDietPreferences(dietsPref);
 
@@ -712,6 +732,11 @@ const ProfileScreen = () => {
       }
       if (dietPreferences && dietPreferences.length > 0) {
         preferencesObj.diets = dietPreferences;
+      }
+      preferencesObj.allergies = serializeAllergies(allergiesState);
+      preferencesObj.allergiesNone = allergiesState.hasNone;
+      if (country) {
+        preferencesObj.country = country;
       }
       if (subscription.planId || subscription.billingCycle) {
         preferencesObj.subscription = {
@@ -1825,7 +1850,7 @@ const ProfileScreen = () => {
                     {safeT('referral.title', 'Invite Friends')}
                   </Text>
                   <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                    {safeT('referral.heroSubtitle', 'Invite friends and both get 7 days PRO free!')}
+                    {safeT('referral.heroSubtitle', 'Invite friends and earn 7 days of PRO for each one who joins.')}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
@@ -2034,6 +2059,20 @@ const ProfileScreen = () => {
                             </TouchableOpacity>
                           </View>
                         </View>
+
+                        <View style={styles.subsection}>
+                          <AllergiesSelector
+                            selected={allergiesState.selected}
+                            hasNone={allergiesState.hasNone}
+                            otherText={allergiesState.otherText}
+                            onChange={setAllergiesState}
+                          />
+                        </View>
+
+                        <View style={styles.subsection}>
+                          <Text style={styles.subsectionTitle}>{safeT('country.title', 'Country')}</Text>
+                          <CountryPicker value={country} onChange={setCountry} />
+                        </View>
                       </View>
                     </AppCard>
                   </ScrollView>
@@ -2213,11 +2252,21 @@ const ProfileScreen = () => {
             <AppCard style={styles.resetCard}>
               <TouchableOpacity
                 onPress={() => {
-                  if (user?.expertsRole === 'EXPERT') {
-                    // Already an expert — could link to web portal in the future
+                  const status = (user as any)?.expertStatus;
+                  if (status === 'approved') {
+                    Alert.alert(
+                      safeT('experts.expertRole', 'Expert'),
+                      safeT('experts.approvedHint', 'Your expert profile is live. Manage offers and chats from the expert portal.'),
+                    );
+                  } else if (status === 'pending') {
                     Alert.alert(
                       safeT('experts.expertRole', 'Expert'),
                       safeT('experts.pendingReview', 'Your profile is under review'),
+                    );
+                  } else if (status === 'rejected') {
+                    Alert.alert(
+                      safeT('experts.expertRole', 'Expert'),
+                      safeT('experts.rejectedHint', 'Your application was not approved. Please update your profile and re-submit.'),
                     );
                   } else {
                     navigation.navigate('BecomeExpert' as never);
@@ -2227,9 +2276,13 @@ const ProfileScreen = () => {
               >
                 <Ionicons name="school-outline" size={20} color={colors.primary || '#007AFF'} />
                 <Text style={[styles.resetButtonText, { color: colors.primary || '#007AFF' }]}>
-                  {user?.expertsRole === 'EXPERT'
-                    ? safeT('experts.expertRole', 'Expert Profile')
-                    : safeT('experts.becomeExpert', 'Become an Expert')}
+                  {(() => {
+                    const status = (user as any)?.expertStatus;
+                    if (status === 'approved') return safeT('experts.expertRole', 'Expert Profile');
+                    if (status === 'pending') return safeT('experts.expertPending', 'Application pending');
+                    if (status === 'rejected') return safeT('experts.expertRejected', 'Re-submit application');
+                    return safeT('experts.becomeExpert', 'Become an Expert');
+                  })()}
                 </Text>
               </TouchableOpacity>
             </AppCard>
