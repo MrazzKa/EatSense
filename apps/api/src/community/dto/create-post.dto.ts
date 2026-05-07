@@ -11,9 +11,10 @@ export class CreatePostDto {
   @IsString()
   content: string;
 
-  @ApiProperty({ example: 'group-id-123' })
+  @ApiPropertyOptional({ example: 'group-id-123' })
+  @IsOptional()
   @IsString()
-  groupId: string;
+  groupId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

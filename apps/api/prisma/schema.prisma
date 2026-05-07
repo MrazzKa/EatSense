@@ -45,6 +45,7 @@ model User {
   clientConversations    Conversation[]    @relation("ClientConversations")
   sentMessages           Message[]
   clientReviews          Review[]          @relation("ClientReviews")
+  payments               Payment[]
   disclaimerAcceptances  DisclaimerAcceptance[]
   abuseReports           AbuseReport[]
   blocksMade             UserBlock[]       @relation("BlocksMade")
@@ -674,6 +675,14 @@ enum PriceType {
   CONTACT
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
 model ExpertProfile {
   id                String   @id @default(cuid())
   userId            String   @unique @map("user_id")
@@ -783,6 +792,7 @@ model ExpertOffer {
   
   expert        ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
   conversations Conversation[]
+  payments      Payment[]
   
   @@index([expertId, isPublished])
   @@map("expert_offers")
@@ -811,11 +821,38 @@ model Conversation {
   offer           ExpertOffer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
   messages        Message[]
   review          Review?
+  payments        Payment[]
   
   @@unique([clientId, expertId])
   @@index([clientId, status])
   @@index([expertId, status])
   @@map("conversations")
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  userId                String        @map("user_id")
+  offerId               String        @map("offer_id")
+  conversationId        String        @map("conversation_id")
+  amountCents           Int           @map("amount_cents")
+  currency              String        @default("USD")
+  status                PaymentStatus @default(PENDING)
+  stripePaymentIntentId String?       @unique @map("stripe_payment_intent_id")
+  stripeChargeId        String?       @map("stripe_charge_id")
+  failureReason         String?       @map("failure_reason")
+  refundedAt            DateTime?     @map("refunded_at")
+  paidAt                DateTime?     @map("paid_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer                 ExpertOffer   @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  conversation          Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([offerId])
+  @@index([conversationId])
+  @@map("payments")
 }
 
 model Message {

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -60,6 +60,10 @@ export default function AllergiesSelector({
   const tokens = useDesignTokens();
   const { t } = useI18n();
   const [localOther, setLocalOther] = useState(otherText);
+
+  useEffect(() => {
+    setLocalOther(otherText);
+  }, [otherText]);
 
   const styles = useMemo(() => createStyles(tokens, colors, compact), [tokens, colors, compact]);
 

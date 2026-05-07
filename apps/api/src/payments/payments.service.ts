@@ -1,14 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import Stripe from 'stripe';
 import { PrismaService } from '../../prisma.service';
 
-/**
- * Foundation for Stripe-backed expert offer payments.
- *
- * MVP launches with FREE-only offers — this service exists so paid offers can be
- * wired in without a schema or routing change. The actual Stripe SDK call is
- * stubbed; flipping STRIPE_ENABLED=true and filling createIntent's `// TODO`
- * block with `stripe.paymentIntents.create({...})` is the next step.
- */
 @Injectable()
 export class PaymentsService {
     private readonly logger = new Logger(PaymentsService.name);
@@ -19,12 +12,17 @@ export class PaymentsService {
         return process.env.STRIPE_ENABLED === 'true' && Boolean(process.env.STRIPE_SECRET_KEY);
     }
 
-    /**
-     * Create a payment intent for a paid expert offer. Caller must already have
-     * a Conversation with the expert (so we can attribute the payment).
-     *
-     * Returns: { clientSecret, paymentId } on success, or throws.
-     */
+    private get stripe(): InstanceType<typeof Stripe> {
+        if (!this.isEnabled) {
+            throw new InternalServerErrorException(
+                'Payments are not enabled in this environment. Set STRIPE_ENABLED=true and STRIPE_SECRET_KEY to activate.',
+            );
+        }
+        return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+            apiVersion: '2026-04-22.dahlia',
+        });
+    }
+
     async createIntentForOffer(params: {
         userId: string;
         offerId: string;
@@ -44,6 +42,9 @@ export class PaymentsService {
         if (offer.priceType === 'FREE') {
             throw new BadRequestException('This offer is free — no payment required.');
         }
+        if (offer.priceType !== 'FIXED') {
+            throw new BadRequestException('Only fixed-price offers can be paid in-app.');
+        }
         if (!offer.priceAmount || offer.priceAmount <= 0) {
             throw new BadRequestException('Offer has no price set.');
         }
@@ -54,41 +55,57 @@ export class PaymentsService {
         if (!conversation || conversation.clientId !== params.userId) {
             throw new BadRequestException('Conversation not found or not owned by user.');
         }
+        if (conversation.expertId !== offer.expertId) {
+            throw new BadRequestException('Offer does not belong to this conversation expert.');
+        }
 
-        // TODO(stripe): replace this stub with real Stripe SDK once API key is set.
-        //   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
-        //   const intent = await stripe.paymentIntents.create({
-        //     amount: Math.round(offer.priceAmount * 100),
-        //     currency: (offer.currency || 'USD').toLowerCase(),
-        //     metadata: { offerId: offer.id, conversationId, userId: params.userId, expertId: offer.expertId },
-        //   });
-        //   const clientSecret = intent.client_secret!;
-        //   const stripePaymentIntentId = intent.id;
-        // For now we throw so callers don't accidentally rely on this path until wired.
-        throw new InternalServerErrorException(
-            'Stripe SDK not wired yet. Replace the TODO block in payments.service.ts to enable.',
-        );
+        const amountCents = Math.round(offer.priceAmount * 100);
+        const currency = (offer.currency || 'USD').toUpperCase();
 
-        // Once wired, persist a Payment row so we can reconcile via webhook:
-        //
-        // const payment = await this.prisma.payment.create({
-        //     data: {
-        //         userId: params.userId,
-        //         offerId: offer.id,
-        //         conversationId: params.conversationId,
-        //         amount: offer.priceAmount,
-        //         currency: offer.currency || 'USD',
-        //         status: 'PENDING',
-        //         stripePaymentIntentId,
-        //     },
-        // });
-        // return { clientSecret, paymentId: payment.id };
+        const payment = await this.prisma.payment.create({
+            data: {
+                userId: params.userId,
+                offerId: offer.id,
+                conversationId: params.conversationId,
+                amountCents,
+                currency,
+                status: 'PENDING',
+            },
+        });
+
+        try {
+            const intent = await this.stripe.paymentIntents.create({
+                amount: amountCents,
+                currency: currency.toLowerCase(),
+                automatic_payment_methods: { enabled: true },
+                metadata: {
+                    paymentId: payment.id,
+                    offerId: offer.id,
+                    conversationId: params.conversationId,
+                    userId: params.userId,
+                    expertId: offer.expertId,
+                },
+            });
+
+            await this.prisma.payment.update({
+                where: { id: payment.id },
+                data: { stripePaymentIntentId: intent.id },
+            });
+
+            if (!intent.client_secret) {
+                throw new InternalServerErrorException('Stripe did not return a client secret.');
+            }
+
+            return { clientSecret: intent.client_secret, paymentId: payment.id };
+        } catch (error: any) {
+            await this.prisma.payment.update({
+                where: { id: payment.id },
+                data: { status: 'FAILED', failureReason: error?.message || 'Stripe intent creation failed' },
+            }).catch(() => undefined);
+            throw error;
+        }
     }
 
-    /**
-     * Stripe webhook entry. Signature verification + idempotent state transitions
-     * (PENDING → SUCCEEDED / FAILED / REFUNDED) live here.
-     */
     async handleWebhook(rawBody: Buffer, signatureHeader: string | undefined): Promise<{ received: boolean }> {
         if (!this.isEnabled) {
             this.logger.warn('Stripe webhook received but payments are disabled — ignoring.');
@@ -97,24 +114,93 @@ export class PaymentsService {
         if (!signatureHeader) {
             throw new BadRequestException('Missing Stripe-Signature header');
         }
+        if (!process.env.STRIPE_WEBHOOK_SECRET) {
+            throw new InternalServerErrorException('STRIPE_WEBHOOK_SECRET is not configured.');
+        }
+        if (!Buffer.isBuffer(rawBody)) {
+            throw new BadRequestException('Webhook raw body is not available.');
+        }
 
-        // TODO(stripe): verify signature + dispatch on event type.
-        //   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
-        //   const event = stripe.webhooks.constructEvent(rawBody, signatureHeader, process.env.STRIPE_WEBHOOK_SECRET!);
-        //   switch (event.type) {
-        //     case 'payment_intent.succeeded': await this.markSucceeded(event.data.object as any); break;
-        //     case 'payment_intent.payment_failed': await this.markFailed(event.data.object as any); break;
-        //     case 'charge.refunded': await this.markRefunded(event.data.object as any); break;
-        //   }
+        const event = this.stripe.webhooks.constructEvent(
+            rawBody,
+            signatureHeader,
+            process.env.STRIPE_WEBHOOK_SECRET,
+        );
 
-        this.logger.log('Stripe webhook stub received — wire SDK to process events.');
+        switch (event.type) {
+            case 'payment_intent.succeeded':
+                await this.markIntentSucceeded(event.data.object as any);
+                break;
+            case 'payment_intent.payment_failed':
+                await this.markIntentFailed(event.data.object as any);
+                break;
+            case 'payment_intent.canceled':
+                await this.markIntentCancelled(event.data.object as any);
+                break;
+            case 'charge.refunded':
+                await this.markChargeRefunded(event.data.object as any);
+                break;
+            default:
+                this.logger.debug(`Unhandled Stripe event: ${event.type}`);
+        }
+
         return { received: true };
     }
 
     async getPayment(paymentId: string, userId: string) {
-        // Once Payment model is migrated, replace with prisma.payment.findUnique.
-        // Stubbed so the controller compiles and routes register cleanly.
-        this.logger.warn(`getPayment stub: ${paymentId} for ${userId}`);
-        return null;
+        const payment = await this.prisma.payment.findFirst({
+            where: { id: paymentId, userId },
+            include: {
+                offer: true,
+                conversation: { select: { id: true, expertId: true, status: true } },
+            },
+        });
+        if (!payment) throw new NotFoundException('Payment not found');
+        return payment;
+    }
+
+    private async markIntentSucceeded(intent: any) {
+        await this.prisma.payment.updateMany({
+            where: { stripePaymentIntentId: intent.id },
+            data: {
+                status: 'SUCCEEDED',
+                paidAt: new Date(),
+                stripeChargeId: typeof intent.latest_charge === 'string' ? intent.latest_charge : intent.latest_charge?.id,
+                failureReason: null,
+            },
+        });
+    }
+
+    private async markIntentFailed(intent: any) {
+        await this.prisma.payment.updateMany({
+            where: { stripePaymentIntentId: intent.id },
+            data: {
+                status: 'FAILED',
+                failureReason: intent.last_payment_error?.message || 'Payment failed',
+            },
+        });
+    }
+
+    private async markIntentCancelled(intent: any) {
+        await this.prisma.payment.updateMany({
+            where: { stripePaymentIntentId: intent.id },
+            data: {
+                status: 'CANCELLED',
+                failureReason: intent.cancellation_reason || 'Payment cancelled',
+            },
+        });
+    }
+
+    private async markChargeRefunded(charge: any) {
+        const intentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
+        if (!intentId) return;
+        await this.prisma.payment.updateMany({
+            where: { stripePaymentIntentId: intentId },
+            data: {
+                status: 'REFUNDED',
+                refundedAt: new Date(),
+                stripeChargeId: charge.id,
+            },
+        });
     }
 }

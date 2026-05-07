@@ -197,7 +197,11 @@ export default function CommunityScreen() {
 
   const handleJoinGroup = useCallback(async (groupId: string) => {
     try {
-      if (groups.find(g => g.id === groupId)?.isMember) {
+      const group = groups.find(g => g.id === groupId);
+      if (group?.type === 'COUNTRY' && group?.isMember) {
+        return;
+      }
+      if (group?.isMember) {
         await ApiService.leaveCommunityGroup(groupId);
       } else {
         await ApiService.joinCommunityGroup(groupId);
@@ -306,11 +310,12 @@ export default function CommunityScreen() {
       <GroupCard
         group={item}
         isMember={item.isMember}
-        onPress={() => navigation.navigate('CommunityGroup', { groupId: item.id, groupName: item.name })}
+        lockedMembership={item.type === 'COUNTRY' && item.isMember}
+        onPress={() => navigation.navigate('CommunityGroup', { groupId: item.id, groupName: resolveGroupName(item, t) })}
         onJoin={() => handleJoinGroup(item.id)}
       />
     ),
-    [navigation, handleJoinGroup],
+    [navigation, handleJoinGroup, t],
   );
 
   const renderBestPlaceItem = useCallback(
@@ -352,6 +357,7 @@ export default function CommunityScreen() {
               key={group.id}
               group={group}
               isMember={false}
+              lockedMembership={group.type === 'COUNTRY' && group.isMember}
               onPress={() => navigation.navigate('CommunityGroup', { groupId: group.id, groupName: resolveGroupName(group, t) })}
               onJoin={() => handleJoinGroup(group.id)}
             />

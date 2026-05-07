@@ -52,6 +52,7 @@ async function bootstrap() {
     logger: process.env.NODE_ENV === 'production'
       ? ['log', 'warn', 'error']
       : ['log', 'debug', 'warn', 'error'],
+    rawBody: true,
   });
 
   // Log incoming requests to /user-profiles* (onboarding, profile save) for debugging

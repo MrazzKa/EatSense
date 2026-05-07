@@ -405,6 +405,18 @@ export class FoodService {
     const totalProtein = ingredients.reduce((sum: number, ing: any) => sum + (ing.protein || 0), 0);
     const totalCarbs = ingredients.reduce((sum: number, ing: any) => sum + (ing.carbs || 0), 0);
     const totalFat = ingredients.reduce((sum: number, ing: any) => sum + (ing.fat || 0), 0);
+    const totalFiber = ingredients.reduce((sum: number, ing: any) => sum + (ing.fiber || 0), 0);
+    const totalSugars = ingredients.reduce((sum: number, ing: any) => sum + (ing.sugars || 0), 0);
+    const totalSatFat = ingredients.reduce((sum: number, ing: any) => sum + (ing.satFat || 0), 0);
+    const totalsForBodySystems: AnalysisTotals = {
+      calories: raw?.total?.calories ?? raw?.totals?.calories ?? totalCalories,
+      protein: raw?.total?.protein ?? raw?.totals?.protein ?? totalProtein,
+      carbs: raw?.total?.carbs ?? raw?.totals?.carbs ?? totalCarbs,
+      fat: raw?.total?.fat ?? raw?.totals?.fat ?? totalFat,
+      fiber: raw?.total?.fiber ?? raw?.totals?.fiber ?? totalFiber,
+      sugars: raw?.total?.sugars ?? raw?.totals?.sugars ?? totalSugars,
+      satFat: raw?.total?.satFat ?? raw?.totals?.satFat ?? totalSatFat,
+    } as AnalysisTotals;
 
     // Extract Health Score (new pipeline provides this)
     let healthScore = raw.healthScore;
@@ -480,6 +492,15 @@ export class FoodService {
         return names.slice(0, 3).join(', ');
       })();
 
+    let bodySystems = raw.bodySystems || null;
+    if (!bodySystems && items.length > 0) {
+      try {
+        bodySystems = this.analyzeService.computeBodySystems(items, totalsForBodySystems);
+      } catch (error: any) {
+        this.logger.warn(`[FoodService] Failed to compute bodySystems fallback: ${error?.message || String(error)}`);
+      }
+    }
+
     const result: any = {
       dishName,
       totalCalories,
@@ -496,7 +517,7 @@ export class FoodService {
       },
       // Body systems impact panel (4 systems: cardio / blood sugar / blood-iron / gut).
       // Frontend renders this as the "health impact" teaser/Premium card.
-      bodySystems: raw.bodySystems || null,
+      bodySystems,
     };
     return result;
   }

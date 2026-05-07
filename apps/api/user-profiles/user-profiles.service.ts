@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from '@nes
 import { PrismaService } from '../prisma.service';
 import { CacheService } from '../src/cache/cache.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { normalizeSupportedCountryCode } from '../src/common/country-codes';
 
 @Injectable()
 export class UserProfilesService {
@@ -11,6 +12,18 @@ export class UserProfilesService {
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
   ) {}
+
+  private async hasActiveSubscription(userId: string): Promise<boolean> {
+    const subscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    return Boolean(subscription);
+  }
 
   async createProfile(userId: string, profileData: any) {
     try {
@@ -107,7 +120,7 @@ export class UserProfilesService {
       }
 
       // Handle healthProfile (JSON field)
-      if (healthProfile !== undefined) {
+      if (healthProfile !== undefined && await this.hasActiveSubscription(userId)) {
         finalData.healthProfile = healthProfile;
       }
 
@@ -118,13 +131,14 @@ export class UserProfilesService {
       delete finalData.updatedAt;
       delete finalData.email; // Email is in User model, not UserProfile
       
-      // Country can come at the root or inside preferences. Normalize to ISO-2.
+      // Country can come at the root or inside preferences. Accept only supported
+      // ISO-2 codes. "OTHER" intentionally does not create a community.
       const incomingCountryRaw =
         (profileData as any).country ||
         (mergedPreferences && (mergedPreferences as any).country) ||
         null;
       if (incomingCountryRaw && typeof incomingCountryRaw === 'string') {
-        finalData.country = String(incomingCountryRaw).toUpperCase().slice(0, 2);
+        finalData.country = normalizeSupportedCountryCode(incomingCountryRaw);
       }
 
       // Only include fields that exist in UserProfile model
@@ -284,7 +298,7 @@ export class UserProfilesService {
       if (dto.preferences !== undefined) {
         normalizedData.preferences = typeof dto.preferences === 'object' && dto.preferences !== null ? dto.preferences : null;
       }
-      if (dto.healthProfile !== undefined) {
+      if (dto.healthProfile !== undefined && await this.hasActiveSubscription(userId)) {
         normalizedData.healthProfile = typeof dto.healthProfile === 'object' && dto.healthProfile !== null ? dto.healthProfile : null;
       }
 
@@ -321,13 +335,13 @@ export class UserProfilesService {
         normalizedData.preferences = mergedPrefs;
       }
 
-      // Country: accept at root or inside preferences. Normalize to ISO-2.
+      // Country: accept at root or inside preferences. Accept only supported ISO-2.
       const incomingCountryRaw =
         (dto as any).country ||
         (normalizedData.preferences as any)?.country ||
         null;
       if (incomingCountryRaw && typeof incomingCountryRaw === 'string') {
-        normalizedData.country = String(incomingCountryRaw).toUpperCase().slice(0, 2);
+        normalizedData.country = normalizeSupportedCountryCode(incomingCountryRaw);
       }
 
       // Only include fields that exist in UserProfile model
@@ -490,8 +504,8 @@ export class UserProfilesService {
    * Single COUNTRY membership invariant.
    */
   private async ensureCountryCommunityMembership(userId: string, countryCode: string) {
-    const code = String(countryCode || '').toUpperCase().slice(0, 2);
-    if (!code || code.length !== 2) return;
+    const code = normalizeSupportedCountryCode(countryCode);
+    if (!code) return;
 
     let group = await (this.prisma as any).communityGroup.findFirst({
       where: { type: 'COUNTRY' as any, country: code },

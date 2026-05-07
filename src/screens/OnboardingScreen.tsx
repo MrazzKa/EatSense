@@ -33,7 +33,7 @@ import { useI18n } from '../../app/i18n/hooks';
 
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import AllergiesSelector, { serializeAllergies } from '../components/AllergiesSelector';
-import CountryPicker from '../components/CountryPicker';
+import CountryPicker, { normalizeSupportedCountryCode } from '../components/CountryPicker';
 import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import { TRIAL_DAYS } from '../config/freeContent';
@@ -2120,7 +2120,7 @@ const OnboardingScreen = () => {
     if (profileData.country) return;
     let detected: string | null = null;
     try {
-      detected = (Localization.getLocales()?.[0]?.regionCode || '').toUpperCase() || null;
+      detected = normalizeSupportedCountryCode(Localization.getLocales()?.[0]?.regionCode || null);
     } catch {
       detected = null;
     }
@@ -2133,7 +2133,7 @@ const OnboardingScreen = () => {
   const renderCountryStep = () => {
     let detectedRegion: string | null = null;
     try {
-      detectedRegion = (Localization.getLocales()?.[0]?.regionCode || '').toUpperCase() || null;
+      detectedRegion = normalizeSupportedCountryCode(Localization.getLocales()?.[0]?.regionCode || null);
     } catch {
       detectedRegion = null;
     }
@@ -3150,4 +3150,3 @@ const HorizontalScrollPicker = ({
     </View>
   );
 };
-

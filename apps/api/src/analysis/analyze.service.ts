@@ -3865,7 +3865,8 @@ export class AnalyzeService {
       const haystack = `${item.name || ''} ${item.originalName || ''} ${item.label || ''}`.toLowerCase();
       const matched: string[] = [];
       for (const a of allergies) {
-        if (a && haystack.includes(a)) matched.push(a);
+        const terms = this.getAllergenTerms(a);
+        if (a && terms.some((term) => haystack.includes(term))) matched.push(a);
       }
       const dietViolations: string[] = [];
       for (const d of diets) {
@@ -3956,6 +3957,27 @@ export class AnalyzeService {
     if ((healthScore as any).score !== undefined) (healthScore as any).score = newTotal;
     if (typeof (healthScore as any).grade === 'string') (healthScore as any).grade = this.deriveGrade(newTotal);
     (healthScore as any).profileAdjustments = adjustments;
+  }
+
+  private getAllergenTerms(allergen: string): string[] {
+    const key = String(allergen || '').toLowerCase().trim();
+    const synonyms: Record<string, string[]> = {
+      gluten: ['gluten', 'wheat', 'barley', 'rye', 'bread', 'pasta', 'flour', 'пшениц', 'глютен', 'ячмен', 'рожь', 'хлеб', 'мук', 'макарон'],
+      crustaceans: ['crustacean', 'shrimp', 'prawn', 'crab', 'lobster', 'креветк', 'краб', 'лобстер', 'рак', 'шаян'],
+      eggs: ['egg', 'eggs', 'omelet', 'mayonnaise', 'яйц', 'омлет', 'майонез'],
+      fish: ['fish', 'salmon', 'tuna', 'cod', 'trout', 'herring', 'рыб', 'лосос', 'тунец', 'треск', 'форел', 'сельд'],
+      peanuts: ['peanut', 'peanuts', 'арахис'],
+      soy: ['soy', 'soya', 'tofu', 'edamame', 'соев', 'соя', 'тофу'],
+      milk: ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'lactose', 'молок', 'сыр', 'йогурт', 'слив', 'масло', 'лактоз'],
+      nuts: ['almond', 'hazelnut', 'walnut', 'cashew', 'pistachio', 'pecan', 'macadamia', 'орех', 'миндаль', 'фундук', 'грецк', 'кешью', 'фисташ'],
+      celery: ['celery', 'сельдер'],
+      mustard: ['mustard', 'горчиц'],
+      sesame: ['sesame', 'tahini', 'кунжут', 'тахини'],
+      sulfites: ['sulfite', 'sulphite', 'sulfur dioxide', 'сульфит', 'диоксид серы'],
+      lupin: ['lupin', 'lupine', 'люпин'],
+      molluscs: ['mollusc', 'mollusk', 'oyster', 'mussel', 'clam', 'squid', 'octopus', 'устриц', 'миди', 'моллюск', 'кальмар', 'осьминог'],
+    };
+    return Array.from(new Set([key, ...(synonyms[key] || [])].filter(Boolean)));
   }
 
   private isAnimalIngredient(item: AnalyzedItem): boolean {

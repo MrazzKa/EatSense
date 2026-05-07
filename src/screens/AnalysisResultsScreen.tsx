@@ -378,8 +378,6 @@ export default function AnalysisResultsScreen() {
         });
       }
 
-      fadeAnim.setValue(0);
-
       setAnalysisResult(prevResult => {
         if (prevResult?.analysisId === normalized.analysisId && prevResult?.ingredients?.length === normalized.ingredients?.length) {
           const prevBodySystems = prevResult?.bodySystems || prevResult?.data?.bodySystems || null;
@@ -406,6 +404,7 @@ export default function AnalysisResultsScreen() {
           };
         }
         console.log('[AnalysisResultsScreen] Setting new analysisResult:', normalized.analysisId);
+        fadeAnim.setValue(0);
         return normalized;
       });
 

@@ -10,6 +10,7 @@ interface GroupCardProps {
   onPress?: () => void;
   onJoin?: () => void;
   isMember?: boolean;
+  lockedMembership?: boolean;
 }
 
 /**
@@ -26,7 +27,7 @@ export function resolveGroupName(group: any, t: any): string {
   return group?.name || '';
 }
 
-export function GroupCard({ group, onPress, onJoin, isMember }: GroupCardProps) {
+export function GroupCard({ group, onPress, onJoin, isMember, lockedMembership }: GroupCardProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -52,9 +53,10 @@ export function GroupCard({ group, onPress, onJoin, isMember }: GroupCardProps) 
       <TouchableOpacity
         onPress={(e) => {
           e.stopPropagation?.();
+          if (lockedMembership) return;
           onJoin?.();
         }}
-        style={[styles.joinBtn, { backgroundColor: isMember ? colors.border : colors.primary }]}
+        style={[styles.joinBtn, { backgroundColor: isMember ? colors.border : colors.primary, opacity: lockedMembership ? 0.7 : 1 }]}
       >
         <Text
           style={[

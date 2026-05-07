@@ -50,6 +50,15 @@ export const COUNTRY_OPTIONS: Array<{ code: string; name: string }> = [
   { code: 'OTHER', name: 'Other' },
 ];
 
+export const SUPPORTED_COUNTRY_CODES = COUNTRY_OPTIONS
+  .filter((country) => country.code !== 'OTHER')
+  .map((country) => country.code);
+
+export function normalizeSupportedCountryCode(input?: string | null): string | null {
+  const code = (input || '').trim().toUpperCase();
+  return SUPPORTED_COUNTRY_CODES.includes(code) ? code : null;
+}
+
 interface Props {
   value: string | null;
   onChange: (code: string) => void;

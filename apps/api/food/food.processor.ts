@@ -23,6 +23,20 @@ export class FoodProcessor {
     private readonly redisService: RedisService,
   ) { }
 
+  private async stripPremiumHealthProfileForFreeUser(userId: string, userProfile: any) {
+    if (!userProfile?.healthProfile) return userProfile;
+    const subscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    if (subscription) return userProfile;
+    return { ...userProfile, healthProfile: null };
+  }
+
 
 
   @Process('analyze-image')
@@ -534,6 +548,7 @@ export class FoodProcessor {
           const existingStats = await this.prisma.userStats.findUnique({
             where: { userId },
           });
+          userProfile = await this.stripPremiumHealthProfileForFreeUser(userId, userProfile);
 
           if (existingStats) {
             const lastAnalysisDate = existingStats.lastAnalysisDate
@@ -650,10 +665,11 @@ export class FoodProcessor {
       // Fetch userProfile to thread personalization (settings → analysis)
       let textUserProfile: any = null;
       try {
-        textUserProfile = await this.prisma.userProfile.findUnique({
-          where: { userId },
-          select: { goal: true, dailyCalories: true, preferences: true, healthProfile: true },
-        });
+          textUserProfile = await this.prisma.userProfile.findUnique({
+            where: { userId },
+            select: { goal: true, dailyCalories: true, preferences: true, healthProfile: true },
+          });
+          textUserProfile = await this.stripPremiumHealthProfileForFreeUser(userId, textUserProfile);
       } catch {}
 
       // Use new AnalyzeService for text analysis

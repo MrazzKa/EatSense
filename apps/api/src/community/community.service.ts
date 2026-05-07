@@ -6,6 +6,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { ReportDto } from './dto/report.dto';
+import { normalizeSupportedCountryCode } from '../common/country-codes';
 
 const authorInclude = {
   select: {
@@ -16,6 +17,20 @@ const authorInclude = {
     },
   },
 };
+
+const publicGroupSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  type: true,
+  country: true,
+};
+
+function normalizeCityKey(city: unknown): string | null {
+  if (typeof city !== 'string') return null;
+  const key = city.trim().toLocaleLowerCase();
+  return key || null;
+}
 
 @Injectable()
 export class CommunityService {
@@ -32,8 +47,8 @@ export class CommunityService {
       where: { userId },
       select: { country: true, cityGroupId: true },
     });
-    const code = String(profile?.country || '').toUpperCase().slice(0, 2);
-    if (!code || code.length !== 2) return null;
+    const code = normalizeSupportedCountryCode(profile?.country);
+    if (!code) return null;
 
     let group = await this.prisma.communityGroup.findFirst({
       where: { type: 'COUNTRY' as any, country: code },
@@ -80,6 +95,9 @@ export class CommunityService {
 
   async listGroups(userId: string, query: { type?: string; search?: string }) {
     const countryGroup = await this.ensureUserCountryCommunity(userId);
+    if (!countryGroup) {
+      return [];
+    }
     const where: any = {};
 
     if (query.type) {
@@ -254,6 +272,21 @@ export class CommunityService {
   }
 
   async leaveGroup(userId: string, groupId: string) {
+    const [group, profile] = await Promise.all([
+      this.prisma.communityGroup.findUnique({
+        where: { id: groupId },
+        select: { type: true, country: true },
+      }),
+      this.prisma.userProfile.findUnique({
+        where: { userId },
+        select: { country: true },
+      }),
+    ]);
+    const currentCountry = normalizeSupportedCountryCode(profile?.country);
+    if (group?.type === 'COUNTRY' && group.country === currentCountry) {
+      throw new ForbiddenException('Your country community is selected automatically and cannot be left.');
+    }
+
     await this.prisma.communityMembership.deleteMany({
       where: { userId, groupId },
     });
@@ -322,21 +355,14 @@ export class CommunityService {
 
   async getFeed(userId: string, page: number, limit: number) {
     const skip = (page - 1) * limit;
-    await this.ensureUserCountryCommunity(userId);
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
 
-    const memberships = await this.prisma.communityMembership.findMany({
-      where: { userId },
-      select: { groupId: true },
-    });
-
-    const groupIds = memberships.map((m) => m.groupId);
-
-    if (groupIds.length === 0) {
+    if (!countryGroup) {
       return { data: [], total: 0, page, limit, totalPages: 0 };
     }
 
     const where: any = {
-      groupId: { in: groupIds },
+      groupId: countryGroup.id,
       ...this.moderationVisibilityWhere(userId),
     };
 
@@ -346,7 +372,7 @@ export class CommunityService {
         include: {
           author: authorInclude,
           group: {
-            select: { id: true, name: true, slug: true },
+            select: publicGroupSelect,
           },
           _count: {
             select: { comments: true, likes: true, attendees: true },
@@ -411,6 +437,9 @@ export class CommunityService {
   async createPost(userId: string, dto: CreatePostDto) {
     const countryGroup = await this.ensureUserCountryCommunity(userId);
     const targetGroupId = countryGroup?.id || dto.groupId;
+    if (!targetGroupId) {
+      throw new BadRequestException('Country community is not configured for this user.');
+    }
 
     // Check guidelines acceptance
     const membership = await this.prisma.communityMembership.findUnique({
@@ -435,8 +464,14 @@ export class CommunityService {
     // Moderation: every new post enters as "pending" and is hidden from public
     // feeds until an admin approves it. Author still sees it in their own views.
     // Stored under metadata to avoid a Prisma migration; admin endpoints flip it.
+    const metadata = dto.type === 'BEST_PLACES'
+      ? {
+          ...(dto.metadata || {}),
+          cityKey: normalizeCityKey((dto.metadata as any)?.city),
+        }
+      : (dto.metadata || {});
     const metadataWithModeration = {
-      ...(dto.metadata || {}),
+      ...metadata,
       moderationStatus: 'pending',
       moderationSubmittedAt: new Date().toISOString(),
     };
@@ -654,10 +689,13 @@ export class CommunityService {
   }
 
   async getMyGroups(userId: string) {
-    await this.ensureUserCountryCommunity(userId);
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    if (!countryGroup) {
+      return [];
+    }
 
     const memberships = await this.prisma.communityMembership.findMany({
-      where: { userId },
+      where: { userId, groupId: countryGroup.id },
       include: {
         group: {
           include: {
@@ -887,7 +925,7 @@ export class CommunityService {
         where,
         include: {
           author: authorInclude,
-          group: { select: { id: true, name: true, slug: true } },
+          group: { select: publicGroupSelect },
         },
         orderBy: { createdAt: 'asc' },
         skip: (page - 1) * limit,
@@ -959,22 +997,14 @@ export class CommunityService {
 
   async getBestPlaces(userId: string, page: number, limit: number, groupId?: string, city?: string) {
     const skip = (page - 1) * limit;
-    await this.ensureUserCountryCommunity(userId);
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
 
     const where: any = { type: 'BEST_PLACES' as any };
 
-    if (groupId) {
-      where.groupId = groupId;
+    if (countryGroup) {
+      where.groupId = countryGroup.id;
     } else {
-      // If no groupId, show posts from user's groups
-      const memberships = await this.prisma.communityMembership.findMany({
-        where: { userId },
-        select: { groupId: true },
-      });
-      const groupIds = memberships.map((m) => m.groupId);
-      if (groupIds.length > 0) {
-        where.groupId = { in: groupIds };
-      }
+      return { data: [], total: 0, page, limit, totalPages: 0 };
     }
 
     // Apply unified moderation visibility (same as feed/group): hide pending
@@ -982,9 +1012,16 @@ export class CommunityService {
     Object.assign(where, this.moderationVisibilityWhere(userId));
 
     // Optional city filter — stored in metadata.city. Combined via AND.
-    if (city && city.trim()) {
+    const cityKey = normalizeCityKey(city);
+    if (cityKey) {
+      const rawCity = city!.trim();
       where.AND = [
-        { metadata: { path: ['city'], equals: city.trim() } },
+        {
+          OR: [
+            { metadata: { path: ['cityKey'], equals: cityKey } },
+            { metadata: { path: ['city'], equals: rawCity } },
+          ],
+        },
       ];
     }
 
@@ -994,7 +1031,7 @@ export class CommunityService {
         include: {
           author: authorInclude,
           group: {
-            select: { id: true, name: true, slug: true },
+            select: publicGroupSelect,
           },
           _count: {
             select: { comments: true, likes: true },

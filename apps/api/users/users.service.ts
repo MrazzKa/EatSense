@@ -4,6 +4,7 @@ import { RedisService } from '../redis/redis.service';
 import { CacheService } from '../src/cache/cache.service';
 import { UpdateProfileDto } from './dto';
 import { HealthProfile } from '../src/users/health-profile.types';
+import { normalizeSupportedCountryCode } from '../src/common/country-codes';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,18 @@ export class UsersService {
     private readonly redisService: RedisService,
     private readonly cache: CacheService,
   ) {}
+
+  private async hasActiveSubscription(userId: string): Promise<boolean> {
+    const subscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    return Boolean(subscription);
+  }
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -114,11 +127,11 @@ export class UsersService {
       (updateProfileDto.preferences as any)?.country ||
       null;
     if (incomingCountryRaw && typeof incomingCountryRaw === 'string') {
-      updateData.country = incomingCountryRaw.toUpperCase().slice(0, 2);
+      updateData.country = normalizeSupportedCountryCode(incomingCountryRaw);
     }
 
     // Handle healthProfile merge
-    if (updateProfileDto.healthProfile !== undefined) {
+    if (updateProfileDto.healthProfile !== undefined && await this.hasActiveSubscription(userId)) {
       const existingProfile = await this.prisma.userProfile.findUnique({
         where: { userId },
       });
@@ -463,8 +476,8 @@ export class UsersService {
    * Removes membership from any other country group the user may have been in.
    */
   private async ensureCountryCommunityMembership(userId: string, countryCode: string) {
-    const code = String(countryCode || '').toUpperCase().slice(0, 2);
-    if (!code || code.length !== 2) return;
+    const code = normalizeSupportedCountryCode(countryCode);
+    if (!code) return;
 
     let group = await (this.prisma as any).communityGroup.findFirst({
       where: { type: 'COUNTRY' as any, country: code },

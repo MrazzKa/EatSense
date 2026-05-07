@@ -114,11 +114,6 @@ export default function CreateCommunityPostScreen() {
       Alert.alert(t('community.error', 'Error'), t('community.emptyContent', 'Please write something'));
       return;
     }
-    if (!selectedGroupId) {
-      Alert.alert(t('community.error', 'Error'), t('community.selectGroup', 'Please select a group'));
-      return;
-    }
-
     setSubmitting(true);
     try {
       // Upload image if attached
@@ -137,8 +132,10 @@ export default function CreateCommunityPostScreen() {
       const payload: any = {
         content: trimmedContent,
         type: postType,
-        groupId: selectedGroupId,
       };
+      if (selectedGroupId) {
+        payload.groupId = selectedGroupId;
+      }
 
       if (uploadedImageUrl) {
         payload.imageUrl = uploadedImageUrl;
@@ -198,7 +195,7 @@ export default function CreateCommunityPostScreen() {
     }
   }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, addXp, navigation, t]);
 
-  const isValid = content.trim().length > 0 && selectedGroupId;
+  const isValid = content.trim().length > 0 && (selectedGroupId || groups.length === 0);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
