@@ -1912,6 +1912,17 @@ class ApiService {
     return this.request(`/community/best-places?${params.toString()}`);
   }
 
+  async createExpertOfferPaymentIntent(offerId: string, conversationId: string) {
+    return this.request('/payments/expert-offer/intent', {
+      method: 'POST',
+      body: JSON.stringify({ offerId, conversationId }),
+    });
+  }
+
+  async getPayment(paymentId: string) {
+    return this.request(`/payments/${paymentId}`);
+  }
+
   async getCommunityGroupPosts(groupId: string, page = 1, limit = 20) {
     return this.request(`/community/groups/${groupId}/posts?page=${page}&limit=${limit}`);
   }

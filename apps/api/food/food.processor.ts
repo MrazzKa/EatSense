@@ -235,6 +235,7 @@ export class FoodProcessor {
       } catch (e: any) {
         this.logger.warn(`[FoodProcessor] Failed to load userProfile for ${jobUserId}: ${e.message}`);
       }
+      userProfile = await this.stripPremiumHealthProfileForFreeUser(userId, userProfile);
 
       // Use new AnalyzeService with USDA + local catalog
       // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
@@ -257,19 +258,10 @@ export class FoodProcessor {
       const isVisionError = visionStatus === 'api_error' || visionStatus === 'parse_error';
       const isNoFoodDetected = visionStatus === 'no_food_detected';
 
-      // Transform to old format for compatibility
       const result: any = {
-        items: (analysisResult.items && Array.isArray(analysisResult.items) ? analysisResult.items : []).map(item => ({
-          label: item.name,
-          kcal: item.nutrients.calories,
-          protein: item.nutrients.protein,
-          fat: item.nutrients.fat,
-          carbs: item.nutrients.carbs,
-          gramsMean: item.portion_g,
-        })),
-        total: analysisResult.total,
-        healthScore: analysisResult.healthScore,
-        // Include vision status info for debugging/display
+        ...analysisResult,
+        // Include vision status info for debugging/display while preserving the
+        // full AnalyzeService shape (items.userFlags, bodySystems, dish names).
         visionStatus: visionStatus || 'success',
         visionError: visionError || null,
       };
@@ -548,8 +540,6 @@ export class FoodProcessor {
           const existingStats = await this.prisma.userStats.findUnique({
             where: { userId },
           });
-          userProfile = await this.stripPremiumHealthProfileForFreeUser(userId, userProfile);
-
           if (existingStats) {
             const lastAnalysisDate = existingStats.lastAnalysisDate
               ? new Date(existingStats.lastAnalysisDate).toISOString().split('T')[0]
@@ -677,19 +667,7 @@ export class FoodProcessor {
 
       this.logger.log(`[FoodProcessor] Text analysis ${analysisId} completed, items count: ${analysisResult.items?.length || 0}`);
 
-      // Transform to old format for compatibility
-      const result: any = {
-        items: (analysisResult.items && Array.isArray(analysisResult.items) ? analysisResult.items : []).map(item => ({
-          label: item.name,
-          kcal: item.nutrients.calories,
-          protein: item.nutrients.protein,
-          fat: item.nutrients.fat,
-          carbs: item.nutrients.carbs,
-          gramsMean: item.portion_g,
-        })),
-        total: analysisResult.total,
-        healthScore: analysisResult.healthScore,
-      };
+      const result: any = { ...analysisResult };
 
       // Auto-save text analyses as well
       try {
@@ -697,7 +675,11 @@ export class FoodProcessor {
         if (items.length > 0 && userId && userId !== 'test-user' && userId !== 'temp-user') {
           const user = await this.prisma.user.findUnique({ where: { id: userId } });
           if (user) {
-            const dishName = items[0]?.name || 'Analyzed Meal';
+            const dishName = analysisResult.displayName ||
+              analysisResult.dishNameLocalized ||
+              analysisResult.originalDishName ||
+              items[0]?.name ||
+              'Analyzed Meal';
             // Фильтруем и валидируем items перед сохранением
             // Relaxed validation: accept items with any nutrition data or reasonable portion
             const validItems = items

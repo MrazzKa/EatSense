@@ -7,6 +7,8 @@ import {
   FlatList,
   StyleSheet,
   Keyboard,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-import AppCard from '../components/common/AppCard';
+import { useAuth } from '../contexts/AuthContext';
+import ApiService from '../services/apiService';
+import { BestPlaceCard } from '../components/community/BestPlaceCard';
 
 const SELECTED_CITY_KEY = 'bestPlaces:selectedCity';
 
@@ -92,12 +96,16 @@ interface SelectedCity {
 export default function BestPlacesScreen() {
   const { colors, tokens } = useTheme();
   const { t } = useI18n();
-  const navigation = useNavigation();
+  const { user } = useAuth();
+  const navigation = useNavigation<any>();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
   const [search, setSearch] = useState('');
   const [selectedCity, setSelectedCity] = useState<SelectedCity | null>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [places, setPlaces] = useState<any[]>([]);
+  const [loadingPlaces, setLoadingPlaces] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(SELECTED_CITY_KEY).then(raw => {
@@ -131,6 +139,36 @@ export default function BestPlacesScreen() {
     setSelectedCity(null);
     await AsyncStorage.removeItem(SELECTED_CITY_KEY);
   }, []);
+
+  const loadPlaces = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setLoadingPlaces(true);
+    try {
+      const data = await ApiService.getBestPlaces(1, 50, undefined, selectedCity?.city);
+      setPlaces(data?.data || data || []);
+    } catch (error) {
+      console.warn('Failed to load best places:', error);
+      setPlaces([]);
+    } finally {
+      setLoadingPlaces(false);
+    }
+  }, [selectedCity?.city]);
+
+  useEffect(() => {
+    loadPlaces(true);
+  }, [loadPlaces]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadPlaces(false);
+    setRefreshing(false);
+  }, [loadPlaces]);
+
+  const handleCreatePlace = useCallback(() => {
+    navigation.navigate('CreateCommunityPost' as never, {
+      initialType: 'BEST_PLACES',
+      initialCity: selectedCity?.city || '',
+    } as never);
+  }, [navigation, selectedCity?.city]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -227,47 +265,59 @@ export default function BestPlacesScreen() {
           </View>
         )}
 
-        {/* Coming Soon section */}
-        <AppCard style={styles.comingSoonCard}>
-          <View style={styles.comingSoonContent}>
-            <Text style={{ fontSize: 48 }}>🍽️</Text>
-            <Text style={[styles.comingSoonTitle, { color: colors.textPrimary }]}>
-              {t('bestPlaces.comingSoonTitle') || 'Partner Restaurants & Cafes'}
-            </Text>
-            <Text style={[styles.comingSoonText, { color: colors.textSecondary }]}>
-              {selectedCity
-                ? (t('bestPlaces.comingSoonWithCity', { city: selectedCity.city }) || `We're finding the best healthy eating spots in ${selectedCity.city}. Stay tuned!`)
-                : (t('bestPlaces.comingSoonGeneric') || 'Select your city to discover partner restaurants, cafes, and health food stores near you.')
-              }
-            </Text>
-            <View style={[styles.comingSoonBadge, { backgroundColor: colors.primary + '15' }]}>
-              <Ionicons name="time-outline" size={16} color={colors.primary} />
-              <Text style={[styles.comingSoonBadgeText, { color: colors.primary }]}>
-                {t('common.comingSoon') || 'Coming soon'}
-              </Text>
-            </View>
-          </View>
-        </AppCard>
-
-        {/* What to expect */}
-        <View style={styles.expectSection}>
-          <Text style={[styles.expectTitle, { color: colors.textPrimary }]}>
-            {t('bestPlaces.whatToExpect') || 'What to expect'}
+        <View style={styles.actionsRow}>
+          <Text style={[styles.resultsTitle, { color: colors.textPrimary }]}>
+            {selectedCity
+              ? t('bestPlaces.resultsInCity', { city: selectedCity.city }) || `Places in ${selectedCity.city}`
+              : t('bestPlaces.allPlaces', 'Community places')}
           </Text>
-          {[
-            { icon: 'restaurant-outline' as const, text: t('bestPlaces.feature1') || 'Healthy restaurants and cafes' },
-            { icon: 'leaf-outline' as const, text: t('bestPlaces.feature2') || 'Organic & farm-to-table shops' },
-            { icon: 'pricetag-outline' as const, text: t('bestPlaces.feature3') || 'Exclusive discounts for EatSense users' },
-            { icon: 'star-outline' as const, text: t('bestPlaces.feature4') || 'Community ratings & reviews' },
-          ].map((item, i) => (
-            <View key={i} style={styles.expectRow}>
-              <Ionicons name={item.icon} size={20} color={colors.primary} />
-              <Text style={[styles.expectText, { color: colors.textSecondary }]}>
-                {item.text}
-              </Text>
-            </View>
-          ))}
+          <TouchableOpacity
+            style={[styles.createPlaceButton, { backgroundColor: colors.primary }]}
+            onPress={handleCreatePlace}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text style={styles.createPlaceText}>{t('bestPlaces.addPlace', 'Add')}</Text>
+          </TouchableOpacity>
         </View>
+
+        {loadingPlaces ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={places}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <BestPlaceCard
+                post={item}
+                currentUserId={user?.id}
+                onPress={() => navigation.navigate('CommunityPostDetail' as never, { postId: item.id } as never)}
+                onLike={() => {
+                  ApiService.toggleCommunityLike(item.id).then(() => loadPlaces(false)).catch(() => {});
+                }}
+                onComment={() => navigation.navigate('CommunityPostDetail' as never, { postId: item.id } as never)}
+              />
+            )}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyPlaces}>
+                <Ionicons name="location-outline" size={42} color={colors.textTertiary} />
+                <Text style={[styles.emptyPlacesTitle, { color: colors.textPrimary }]}>
+                  {t('bestPlaces.emptyTitle', 'No places yet')}
+                </Text>
+                <Text style={[styles.emptyPlacesText, { color: colors.textSecondary }]}>
+                  {t('bestPlaces.emptyText', 'Share the first healthy cafe, restaurant, shop, or spot for your country community.')}
+                </Text>
+              </View>
+            }
+            contentContainerStyle={places.length ? styles.placesList : styles.placesListEmpty}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -368,52 +418,60 @@ const createStyles = (tokens: any, colors: any) =>
     emptySearchText: {
       fontSize: 14,
     },
-    comingSoonCard: {
-      marginTop: 24,
-    },
-    comingSoonContent: {
+    actionsRow: {
+      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       gap: 12,
+      marginTop: 18,
+      marginBottom: 12,
     },
-    comingSoonTitle: {
+    resultsTitle: {
+      flex: 1,
+      fontSize: 17,
+      fontWeight: '700',
+    },
+    createPlaceButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      height: 36,
+      borderRadius: 18,
+    },
+    createPlaceText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    loadingBox: {
+      paddingTop: 32,
+      alignItems: 'center',
+    },
+    placesList: {
+      paddingBottom: 28,
+    },
+    placesListEmpty: {
+      flexGrow: 1,
+      paddingTop: 36,
+      paddingBottom: 28,
+    },
+    emptyPlaces: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 28,
+    },
+    emptyPlacesTitle: {
+      marginTop: 12,
       fontSize: 18,
       fontWeight: '700',
       textAlign: 'center',
     },
-    comingSoonText: {
+    emptyPlacesText: {
+      marginTop: 8,
       fontSize: 14,
-      textAlign: 'center',
       lineHeight: 20,
-      paddingHorizontal: 8,
-    },
-    comingSoonBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      gap: 6,
-      marginTop: 4,
-    },
-    comingSoonBadgeText: {
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    expectSection: {
-      marginTop: 24,
-      gap: 14,
-    },
-    expectTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    expectRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    expectText: {
-      fontSize: 14,
-      flex: 1,
+      textAlign: 'center',
     },
   });

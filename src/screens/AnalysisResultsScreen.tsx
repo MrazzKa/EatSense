@@ -384,8 +384,28 @@ export default function AnalysisResultsScreen() {
           const nextBodySystems = normalized?.bodySystems || normalized?.data?.bodySystems || null;
           const prevFeedbackSig = JSON.stringify(prevResult?.healthScore?.feedback || prevResult?.data?.healthScore?.feedback || null);
           const nextFeedbackSig = JSON.stringify(normalized?.healthScore?.feedback || normalized?.data?.healthScore?.feedback || null);
+          const prevIngredientSig = JSON.stringify((prevResult?.ingredients || []).map((i: any) => [
+            i.id,
+            i.name,
+            i.weight,
+            i.calories,
+            i.protein,
+            i.carbs,
+            i.fat,
+            i.userFlags,
+          ]));
+          const nextIngredientSig = JSON.stringify((normalized?.ingredients || []).map((i: any) => [
+            i.id,
+            i.name,
+            i.weight,
+            i.calories,
+            i.protein,
+            i.carbs,
+            i.fat,
+            i.userFlags,
+          ]));
 
-          if (!nextBodySystems && prevFeedbackSig === nextFeedbackSig) {
+          if (!nextBodySystems && prevFeedbackSig === nextFeedbackSig && prevIngredientSig === nextIngredientSig) {
             console.log('[AnalysisResultsScreen] Skipping duplicate result update (ID match)');
             return prevResult;
           }
@@ -393,6 +413,8 @@ export default function AnalysisResultsScreen() {
           console.log('[AnalysisResultsScreen] Merging enriched result update:', normalized.analysisId);
           return {
             ...prevResult,
+            ...normalized,
+            imageUrl: normalized.imageUrl ?? prevResult.imageUrl,
             healthScore: normalized.healthScore ?? prevResult.healthScore,
             bodySystems: nextBodySystems ?? prevBodySystems,
             data: {

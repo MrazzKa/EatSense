@@ -24,6 +24,94 @@ export class FoodService {
     private readonly analyzeService: AnalyzeService,
   ) { }
 
+  private normalizeAnalysisItems(rawItems: any[] | undefined | null): AnalyzedItem[] {
+    const items = Array.isArray(rawItems) ? rawItems : [];
+    return items.map((item: any) => {
+      if (item && item.nutrients) {
+        return item as AnalyzedItem;
+      }
+
+      const calories = item?.kcal ?? item?.calories ?? 0;
+      const protein = item?.protein ?? 0;
+      const carbs = item?.carbs ?? 0;
+      const fat = item?.fat ?? 0;
+      const weight = item?.gramsMean ?? item?.weight ?? 100;
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const crypto = require('crypto');
+      return {
+        id: item?.id || crypto.randomUUID(),
+        name: normalizeFoodName(item?.label || item?.name || 'Unknown Food'),
+        label: item?.label,
+        portion_g: weight,
+        nutrients: {
+          calories,
+          protein,
+          carbs,
+          fat,
+          fiber: item?.fiber ?? 0,
+          sugars: item?.sugars ?? 0,
+          satFat: item?.satFat ?? 0,
+          energyDensity: weight > 0 ? (calories / weight) * 100 : 0,
+        },
+        source: 'fdc',
+      } as AnalyzedItem;
+    });
+  }
+
+  private async loadUserProfileForAnalysis(userId: string): Promise<any> {
+    const userProfile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: {
+        goal: true,
+        dailyCalories: true,
+        preferences: true,
+        healthProfile: true,
+      },
+    });
+
+    if (!userProfile?.healthProfile) {
+      return userProfile;
+    }
+
+    const subscription = await this.prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+
+    return subscription ? userProfile : { ...userProfile, healthProfile: null };
+  }
+
+  private async applyProfileAndBodySystems(
+    data: AnalysisData,
+    userId: string,
+    locale: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
+  ): Promise<AnalysisData> {
+    const items = this.normalizeAnalysisItems(data.items).map((item) => ({
+      ...item,
+      nutrients: { ...item.nutrients },
+      userFlags: undefined,
+    }));
+    const total = data.total;
+    const healthScore = data.healthScore;
+    const userProfile = await this.loadUserProfileForAnalysis(userId);
+
+    if (userProfile) {
+      this.analyzeService.applyUserProfileAdjustments(items, total, healthScore, userProfile, locale);
+    }
+
+    return {
+      ...data,
+      items,
+      healthScore,
+      bodySystems: this.analyzeService.computeBodySystems(items, total, userProfile),
+    };
+  }
+
   async analyzeImage(file: any, userId: string, locale?: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es', foodDescription?: string, skipCache?: boolean) {
     try {
       if (!file) {
@@ -327,40 +415,7 @@ export class FoodService {
    */
   private mapAnalysisResult(raw: AnalysisData | any) {
     // Normalize items to AnalyzedItem[] to be robust to legacy shapes
-    const rawItems: any[] = Array.isArray(raw?.items) ? raw.items : [];
-    const items: AnalyzedItem[] = rawItems.map((item: any) => {
-      // New shape: already AnalyzedItem with nutrients
-      if (item && item.nutrients) {
-        return item as AnalyzedItem;
-      }
-      // Legacy shape: { label, kcal, protein, carbs, fat, gramsMean }
-      const calories = item?.kcal ?? item?.calories ?? 0;
-      const protein = item?.protein ?? 0;
-      const carbs = item?.carbs ?? 0;
-      const fat = item?.fat ?? 0;
-      const weight = item?.gramsMean ?? item?.weight ?? 100;
-
-      // Generate id for legacy items
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const crypto = require('crypto');
-      return {
-        id: item?.id || crypto.randomUUID(),
-        name: normalizeFoodName(item?.label || item?.name || 'Unknown Food'),
-        label: item?.label,
-        portion_g: weight,
-        nutrients: {
-          calories,
-          protein,
-          carbs,
-          fat,
-          fiber: 0,
-          sugars: 0,
-          satFat: 0,
-          energyDensity: 0,
-        },
-        source: 'fdc',
-      } as AnalyzedItem;
-    });
+    const items = this.normalizeAnalysisItems(raw?.items);
 
     const ingredients = items.map((item: AnalyzedItem) => {
       const n = item.nutrients;
@@ -771,6 +826,7 @@ export class FoodService {
     // 3. Re-run analysis using AnalyzeService
     let newAnalysisData: AnalysisData;
     const mode = dto.mode || 'review';
+    const userProfile = await this.loadUserProfileForAnalysis(userId);
 
     if (imageUrl) {
       this.logger.log(`[FoodService] Re-analyzing image from original URL for analysis ${analysisId}`);
@@ -778,12 +834,16 @@ export class FoodService {
         imageUrl,
         locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
         mode,
+        userProfile,
+        userId,
       });
     } else if (textQuery) {
       this.logger.log(`[FoodService] Re-analyzing text from original query for analysis ${analysisId}`);
       newAnalysisData = await this.analyzeService.analyzeText(
         textQuery,
         locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
+        false,
+        { userProfile },
       );
     } else {
       throw new BadRequestException('No valid input found for re-analysis');
@@ -847,6 +907,9 @@ export class FoodService {
         },
         userId,
       );
+      const metadata = (analysis.metadata || {}) as any;
+      const locale = (dto.locale || metadata.locale || newAnalysisData.locale || 'en') as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
+      const personalizedAnalysisData = await this.applyProfileAndBodySystems(newAnalysisData, userId, locale);
 
       // 3. Update AnalysisResult in DB
       const existingResult = await this.prisma.analysisResult.findFirst({
@@ -857,22 +920,22 @@ export class FoodService {
       if (existingResult) {
         await this.prisma.analysisResult.update({
           where: { id: existingResult.id },
-          data: { data: newAnalysisData as any },
+          data: { data: personalizedAnalysisData as any },
         });
       } else {
         await this.prisma.analysisResult.create({
           data: {
             analysisId: dto.analysisId,
-            data: newAnalysisData as any,
+            data: personalizedAnalysisData as any,
           },
         });
       }
 
       // 4. Update Meal and MealItem if they exist
-      await this.updateMealFromAnalysisResult(dto.analysisId, newAnalysisData);
+      await this.updateMealFromAnalysisResult(dto.analysisId, personalizedAnalysisData);
 
       // 5. Return updated data in frontend-compatible format
-      return { ...this.mapAnalysisResult(newAnalysisData), analysisId: dto.analysisId };
+      return { ...this.mapAnalysisResult(personalizedAnalysisData), analysisId: dto.analysisId };
     } catch (error: any) {
       this.logger.error(
         `[FoodService] reanalyzeWithManualComponents() failed for analysisId=${dto.analysisId}`,
@@ -915,7 +978,7 @@ export class FoodService {
 
     const lastResult = analysis.results[0];
     const previousData = (lastResult.data || {}) as unknown as AnalysisData;
-    const previousItems = previousData.items || [];
+    const previousItems = this.normalizeAnalysisItems(previousData.items);
 
     // 2. Собираем карту по id, а также по индексу для fallback
     const itemsById = new Map<string, AnalyzedItem>();
@@ -1013,8 +1076,8 @@ export class FoodService {
     }));
 
     // 4. Пересчитываем totals + healthScore
-    const { totals, healthScore } =
-      await this.recalculateAnalysisFromItems(updatedItems, analysis);
+    const { totals, healthScore, bodySystems } =
+      await this.recalculateAnalysisFromItems(updatedItems, analysis, userId);
 
     const metadata = (analysis.metadata || {}) as any;
     const locale = metadata.locale || 'en';
@@ -1024,6 +1087,7 @@ export class FoodService {
       items: updatedItems,
       total: totals,
       healthScore,
+      bodySystems,
       locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     };
 
@@ -1074,19 +1138,21 @@ export class FoodService {
 
     const lastResult = analysis.results[0];
     const previousData = (lastResult.data || {}) as unknown as AnalysisData;
-    const items = previousData.items || [];
+    const items = this.normalizeAnalysisItems(previousData.items);
 
     // Пересчитываем totals + healthScore
-    const { totals, healthScore } =
-      await this.recalculateAnalysisFromItems(items, analysis);
+    const { totals, healthScore, bodySystems } =
+      await this.recalculateAnalysisFromItems(items, analysis, userId);
 
     const metadata = (analysis.metadata || {}) as any;
     const locale = metadata.locale || 'en';
 
     const newData: AnalysisData = {
       ...previousData,
+      items,
       total: totals,
       healthScore,
+      bodySystems,
       locale: locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     };
 
@@ -1115,13 +1181,21 @@ export class FoodService {
   private async recalculateAnalysisFromItems(
     items: AnalyzedItem[],
     analysis: { metadata?: any },
+    userId?: string,
   ): Promise<{
     totals: AnalysisTotals;
     healthScore: HealthScore;
+    bodySystems: import('../src/analysis/analysis.types').BodySystemsImpact;
     feedback: any;
   }> {
+    const normalizedItems = this.normalizeAnalysisItems(items).map((item) => ({
+      ...item,
+      nutrients: { ...item.nutrients },
+      userFlags: undefined,
+    }));
+
     // 1. totals
-    const totals: AnalysisTotals = items.reduce(
+    const totals: AnalysisTotals = normalizedItems.reduce(
       (acc, item) => {
         acc.portion_g += item.portion_g || 0;
         acc.calories += item.nutrients?.calories || 0;
@@ -1159,14 +1233,28 @@ export class FoodService {
     const healthScore = this.analyzeService.computeHealthScore(
       totals,
       totals.portion_g,
-      items,
-      locale as 'en' | 'ru' | 'kk',
+      normalizedItems,
+      locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
     );
+
+    const userProfile = userId ? await this.loadUserProfileForAnalysis(userId) : null;
+    if (userProfile) {
+      this.analyzeService.applyUserProfileAdjustments(
+        normalizedItems,
+        totals,
+        healthScore,
+        userProfile,
+        locale as 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es',
+      );
+    }
+
+    const bodySystems = this.analyzeService.computeBodySystems(normalizedItems, totals, userProfile);
+    items.splice(0, items.length, ...normalizedItems);
 
     // Feedback уже включен в healthScore
     const feedback = healthScore.feedback || [];
 
-    return { totals, healthScore, feedback };
+    return { totals, healthScore, bodySystems, feedback };
   }
 
   /**

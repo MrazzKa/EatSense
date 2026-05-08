@@ -93,6 +93,27 @@ export class CommunityService {
     return group;
   }
 
+  private async ensureRequestedGroupIsCurrentCountry(userId: string, groupId: string) {
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
+    if (!countryGroup || countryGroup.id !== groupId) {
+      throw new NotFoundException('Group not found');
+    }
+    return countryGroup;
+  }
+
+  private async ensurePostIsInCurrentCountry(userId: string, postId: string) {
+    const [countryGroup, post] = await Promise.all([
+      this.ensureUserCountryCommunity(userId),
+      this.prisma.communityPost.findUnique({
+        where: { id: postId },
+        select: { id: true, groupId: true },
+      }),
+    ]);
+    if (!post || !countryGroup || post.groupId !== countryGroup.id) {
+      throw new NotFoundException('Post not found');
+    }
+  }
+
   async listGroups(userId: string, query: { type?: string; search?: string }) {
     const countryGroup = await this.ensureUserCountryCommunity(userId);
     if (!countryGroup) {
@@ -137,6 +158,7 @@ export class CommunityService {
   }
 
   async getGroup(userId: string, id: string) {
+    await this.ensureRequestedGroupIsCurrentCountry(userId, id);
     const group = await this.prisma.communityGroup.findUnique({
       where: { id },
       include: {
@@ -210,13 +232,7 @@ export class CommunityService {
   }
 
   async joinGroup(userId: string, groupId: string) {
-    const group = await this.prisma.communityGroup.findUnique({
-      where: { id: groupId },
-    });
-
-    if (!group) {
-      throw new NotFoundException('Group not found');
-    }
+    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
 
     const membership = await this.prisma.communityMembership.upsert({
       where: {
@@ -226,9 +242,9 @@ export class CommunityService {
         userId,
         groupId,
         role: 'MEMBER',
-        guidelinesAccepted: false,
+        guidelinesAccepted: true,
       },
-      update: {},
+      update: { guidelinesAccepted: true },
     });
 
     return {
@@ -238,6 +254,7 @@ export class CommunityService {
   }
 
   async acceptGuidelines(userId: string, groupId: string) {
+    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
     const membership = await this.prisma.communityMembership.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
@@ -256,6 +273,7 @@ export class CommunityService {
   }
 
   async getGuidelinesStatus(userId: string, groupId: string) {
+    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
     const membership = await this.prisma.communityMembership.findUnique({
       where: { userId_groupId: { userId, groupId } },
     });
@@ -272,6 +290,7 @@ export class CommunityService {
   }
 
   async leaveGroup(userId: string, groupId: string) {
+    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
     const [group, profile] = await Promise.all([
       this.prisma.communityGroup.findUnique({
         where: { id: groupId },
@@ -319,6 +338,7 @@ export class CommunityService {
   }
 
   async getGroupPosts(userId: string, groupId: string, page: number, limit: number) {
+    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -397,6 +417,7 @@ export class CommunityService {
   }
 
   async getPost(userId: string, postId: string) {
+    const countryGroup = await this.ensureUserCountryCommunity(userId);
     const post = await this.prisma.communityPost.findUnique({
       where: { id: postId },
       include: {
@@ -407,6 +428,9 @@ export class CommunityService {
     });
 
     if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    if (!countryGroup || post.groupId !== countryGroup.id) {
       throw new NotFoundException('Post not found');
     }
 
@@ -436,7 +460,7 @@ export class CommunityService {
 
   async createPost(userId: string, dto: CreatePostDto) {
     const countryGroup = await this.ensureUserCountryCommunity(userId);
-    const targetGroupId = countryGroup?.id || dto.groupId;
+    const targetGroupId = countryGroup?.id;
     if (!targetGroupId) {
       throw new BadRequestException('Country community is not configured for this user.');
     }
@@ -513,6 +537,7 @@ export class CommunityService {
   }
 
   async toggleLike(userId: string, postId: string, type: string = 'LIKE') {
+    await this.ensurePostIsInCurrentCountry(userId, postId);
     const existing = await this.prisma.communityLike.findUnique({
       where: {
         userId_postId: { userId, postId },
@@ -554,7 +579,8 @@ export class CommunityService {
     }
   }
 
-  async getComments(postId: string, page: number, limit: number) {
+  async getComments(userId: string, postId: string, page: number, limit: number) {
+    await this.ensurePostIsInCurrentCountry(userId, postId);
     const skip = (page - 1) * limit;
 
     const [comments, total] = await Promise.all([
@@ -580,6 +606,7 @@ export class CommunityService {
   }
 
   async createComment(userId: string, postId: string, dto: CreateCommentDto) {
+    await this.ensurePostIsInCurrentCountry(userId, postId);
     const post = await this.prisma.communityPost.findUnique({
       where: { id: postId },
     });
@@ -632,6 +659,7 @@ export class CommunityService {
   }
 
   async toggleAttendance(userId: string, postId: string) {
+    await this.ensurePostIsInCurrentCountry(userId, postId);
     const post = await this.prisma.communityPost.findUnique({
       where: { id: postId },
     });
@@ -664,13 +692,7 @@ export class CommunityService {
   }
 
   async getMyOwnedCommunity(userId: string) {
-    const group = await this.prisma.communityGroup.findFirst({
-      where: { createdById: userId, type: 'CUSTOM' },
-      include: {
-        _count: { select: { memberships: true, posts: true } },
-      },
-    });
-    return group;
+    return null;
   }
 
   async deleteOwnedCommunity(userId: string, groupId: string) {
@@ -748,13 +770,7 @@ export class CommunityService {
   }
 
   async setMyCity(userId: string, groupId: string) {
-    const group = await this.prisma.communityGroup.findUnique({
-      where: { id: groupId },
-    });
-
-    if (!group) {
-      throw new NotFoundException('Group not found');
-    }
+    await this.ensureRequestedGroupIsCurrentCountry(userId, groupId);
 
     await this.prisma.userProfile.update({
       where: { userId },

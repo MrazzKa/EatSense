@@ -53,6 +53,21 @@ export class ConversationsService {
             throw new ForbiddenException('Cannot start conversation with this user');
         }
 
+        let selectedOffer: any = null;
+        let requiresPayment = false;
+        if (dto.offerId) {
+            const offer = await this.prisma.expertOffer.findUnique({
+                where: { id: dto.offerId },
+            });
+
+            if (!offer || offer.expertId !== dto.expertId || !offer.isPublished) {
+                throw new BadRequestException('Invalid offer');
+            }
+
+            selectedOffer = offer;
+            requiresPayment = offer.priceType === 'FIXED' && Number(offer.priceAmount || 0) > 0;
+        }
+
         // Check for existing conversation
         const existing = await this.prisma.conversation.findUnique({
             where: {
@@ -64,19 +79,38 @@ export class ConversationsService {
         });
 
         if (existing) {
-            // Return existing conversation
-            return this.findById(existing.id, clientId);
-        }
-
-        // Validate offer if provided
-        if (dto.offerId) {
-            const offer = await this.prisma.expertOffer.findUnique({
-                where: { id: dto.offerId },
-            });
-
-            if (!offer || offer.expertId !== dto.expertId || !offer.isPublished) {
-                throw new BadRequestException('Invalid offer');
+            const existingConversation = await this.findById(existing.id, clientId);
+            if (requiresPayment) {
+                const paid = await this.prisma.payment.findFirst({
+                    where: {
+                        userId: clientId,
+                        conversationId: existing.id,
+                        offerId: dto.offerId,
+                        status: 'SUCCEEDED',
+                    },
+                    select: { id: true },
+                });
+                if (!paid) {
+                    await this.prisma.conversation.update({
+                        where: { id: existing.id },
+                        data: {
+                            status: 'payment_pending',
+                            offerId: dto.offerId,
+                        },
+                    });
+                    return {
+                        requiresPayment: true,
+                        conversation: {
+                            ...existingConversation,
+                            status: 'payment_pending',
+                            offerId: dto.offerId,
+                            offer: selectedOffer,
+                        },
+                        offer: selectedOffer,
+                    };
+                }
             }
+            return existingConversation;
         }
 
         try {
@@ -85,7 +119,7 @@ export class ConversationsService {
                     clientId,
                     expertId: dto.expertId,
                     offerId: dto.offerId,
-                    status: 'active',
+                    status: requiresPayment ? 'payment_pending' : 'active',
                 },
                 include: {
                     expert: {
@@ -98,17 +132,28 @@ export class ConversationsService {
                             isVerified: true,
                         },
                     },
-                    offer: {
-                        select: {
-                            id: true,
-                            name: true,
-                            format: true,
-                        },
-                    },
+	                    offer: {
+	                        select: {
+	                            id: true,
+	                            name: true,
+	                            format: true,
+	                            priceType: true,
+	                            priceAmount: true,
+	                            currency: true,
+	                        },
+	                    },
                 },
             });
 
             this.logger.log(`Conversation started: client=${clientId}, expert=${dto.expertId}`);
+
+            if (requiresPayment) {
+                return {
+                    requiresPayment: true,
+                    conversation,
+                    offer: selectedOffer,
+                };
+            }
 
             return conversation;
         } catch (error) {
@@ -140,9 +185,9 @@ export class ConversationsService {
                         isVerified: true,
                     },
                 },
-                offer: {
-                    select: { id: true, name: true, format: true },
-                },
+	                offer: {
+	                    select: { id: true, name: true, format: true, priceType: true, priceAmount: true, currency: true },
+	                },
                 messages: {
                     take: 1,
                     orderBy: { createdAt: 'desc' },
@@ -174,9 +219,9 @@ export class ConversationsService {
                             },
                         },
                     },
-                    offer: {
-                        select: { id: true, name: true, format: true },
-                    },
+	                    offer: {
+	                        select: { id: true, name: true, format: true, priceType: true, priceAmount: true, currency: true },
+	                    },
                     messages: {
                         take: 1,
                         orderBy: { createdAt: 'desc' },
@@ -220,9 +265,9 @@ export class ConversationsService {
                         },
                     },
                 },
-                offer: {
-                    select: { id: true, name: true, format: true, durationDays: true },
-                },
+	                offer: {
+	                    select: { id: true, name: true, format: true, durationDays: true, priceType: true, priceAmount: true, currency: true },
+	                },
             },
         });
 

@@ -160,6 +160,11 @@ export class PaymentsService {
     }
 
     private async markIntentSucceeded(intent: any) {
+        const payment = await this.prisma.payment.findUnique({
+            where: { stripePaymentIntentId: intent.id },
+            select: { id: true, conversationId: true },
+        });
+
         await this.prisma.payment.updateMany({
             where: { stripePaymentIntentId: intent.id },
             data: {
@@ -169,6 +174,15 @@ export class PaymentsService {
                 failureReason: null,
             },
         });
+
+        if (payment?.conversationId) {
+            await this.prisma.conversation.update({
+                where: { id: payment.conversationId },
+                data: { status: 'active' },
+            }).catch((error) => {
+                this.logger.warn(`Failed to activate paid conversation ${payment.conversationId}: ${error?.message || error}`);
+            });
+        }
     }
 
     private async markIntentFailed(intent: any) {

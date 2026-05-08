@@ -19,6 +19,9 @@ import ApiService from '../services/apiService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { formatAmountInCurrency } from '../utils/currency';
+import { useStripe } from '@stripe/stripe-react-native';
+
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
 const LANGUAGE_LABELS = {
     en: 'English', ru: 'Русский', kk: 'Қазақша', fr: 'Français', de: 'Deutsch', es: 'Español',
@@ -59,11 +62,13 @@ export default function ExpertProfileScreen({ route, navigation }) {
     const themeContext = useTheme();
     const tokens = useDesignTokens();
     const colors = themeContext?.colors || {};
+    const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
     const [expert, setExpert] = useState(null);
     const [loading, setLoading] = useState(true);
     const [requesting, setRequesting] = useState(false);
     const [showDisclaimer, setShowDisclaimer] = useState(false);
+    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
 
     const loadExpert = useCallback(async () => {
         if (!specialistId) {
@@ -75,6 +80,8 @@ export default function ExpertProfileScreen({ route, navigation }) {
             const response = await MarketplaceService.getExpert(specialistId);
             if (response) {
                 setExpert(response);
+                const firstOffer = response.offers?.[0]?.id || null;
+                setSelectedOfferId(prev => prev || firstOffer);
             }
         } catch (error) {
             console.error('[ExpertProfileScreen] Failed to load:', error);
@@ -104,13 +111,50 @@ export default function ExpertProfileScreen({ route, navigation }) {
 
     const handleStartConversation = async () => {
         const expertIdToUse = expert?.id || specialistId;
+        const offerIdToUse = selectedOfferId || expert?.offers?.[0]?.id;
         if (!expertIdToUse) {
             Alert.alert(t('common.error') || 'Error', t('experts.not_found') || 'Expert not found');
             return;
         }
         setRequesting(true);
         try {
-            const conversation = await MarketplaceService.startConversation(expertIdToUse);
+            const response = await MarketplaceService.startConversation(expertIdToUse, offerIdToUse);
+            const conversation = response?.conversation || response;
+
+            if (response?.requiresPayment) {
+                if (!STRIPE_PUBLISHABLE_KEY) {
+                    Alert.alert(
+                        t('common.error') || 'Error',
+                        t('experts.paymentNotConfigured') || 'Payments are not configured for this build yet.',
+                    );
+                    return;
+                }
+
+                const intent = await ApiService.createExpertOfferPaymentIntent(offerIdToUse, conversation.id);
+                const initResult = await initPaymentSheet({
+                    merchantDisplayName: 'EatSense',
+                    paymentIntentClientSecret: intent.clientSecret,
+                    allowsDelayedPaymentMethods: false,
+                });
+                if (initResult.error) {
+                    Alert.alert(t('common.error') || 'Error', initResult.error.message);
+                    return;
+                }
+
+                const paymentResult = await presentPaymentSheet();
+                if (paymentResult.error) {
+                    Alert.alert(t('common.error') || 'Error', paymentResult.error.message);
+                    return;
+                }
+
+                Alert.alert(
+                    t('experts.paymentSubmittedTitle') || 'Payment submitted',
+                    t('experts.paymentSubmittedBody') || 'Your chat will unlock as soon as the payment is confirmed.',
+                    [{ text: t('common.ok') || 'OK', onPress: () => navigation.navigate('Chat', { conversationId: conversation.id }) }],
+                );
+                return;
+            }
+
             if (conversation?.id) {
                 navigation.navigate('Chat', { conversationId: conversation.id });
             }
@@ -317,7 +361,18 @@ export default function ExpertProfileScreen({ route, navigation }) {
                             const offerName = pickLocalized(offer.name, language);
                             const offerDesc = pickLocalized(offer.description, language);
                             return (
-                                <View key={offer.id} style={styles.offerCard}>
+                                <TouchableOpacity
+                                    key={offer.id}
+                                    style={[
+                                        styles.offerCard,
+                                        selectedOfferId === offer.id && {
+                                            borderColor: colors.primary || '#4CAF50',
+                                            backgroundColor: (colors.primary || '#4CAF50') + '10',
+                                        },
+                                    ]}
+                                    onPress={() => setSelectedOfferId(offer.id)}
+                                    activeOpacity={0.85}
+                                >
                                     <Text style={styles.offerName}>{offerName}</Text>
                                     {offerDesc && <Text style={styles.offerDesc}>{offerDesc}</Text>}
                                     <Text style={styles.offerPrice}>
@@ -325,7 +380,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                                             ? (t('experts.free') || 'Free')
                                             : formatAmountInCurrency(offer.priceAmount, offer.currency || 'USD')}
                                     </Text>
-                                </View>
+                                </TouchableOpacity>
                             );
                         })}
                     </View>
@@ -624,6 +679,8 @@ const createStyles = (tokens, colors) => StyleSheet.create({
         padding: 12,
         backgroundColor: colors.surfaceSecondary || '#F9FAFB',
         borderRadius: 10,
+        borderWidth: 1,
+        borderColor: colors.border || 'transparent',
         marginBottom: 8,
     },
     offerName: {

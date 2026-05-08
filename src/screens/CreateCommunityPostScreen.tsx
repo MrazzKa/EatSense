@@ -40,12 +40,14 @@ export default function CreateCommunityPostScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const preselectedGroupId = (route.params as any)?.groupId || null;
+  const initialType = (route.params as any)?.initialType || 'TEXT';
+  const initialCity = (route.params as any)?.initialCity || '';
   const { colors } = useTheme();
   const tokens = useDesignTokens();
   const { t } = useI18n();
   const { addXp } = useMascot();
 
-  const [postType, setPostType] = useState('TEXT');
+  const [postType, setPostType] = useState(initialType);
   const [content, setContent] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(preselectedGroupId);
   const [groups, setGroups] = useState([]);
@@ -69,7 +71,7 @@ export default function CreateCommunityPostScreen() {
   // Best Places fields
   const [placeName, setPlaceName] = useState('');
   const [placeAddress, setPlaceAddress] = useState('');
-  const [placeCity, setPlaceCity] = useState('');
+  const [placeCity, setPlaceCity] = useState(initialCity);
   const [placeRating, setPlaceRating] = useState(0);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
@@ -112,6 +114,10 @@ export default function CreateCommunityPostScreen() {
     const trimmedContent = content.trim();
     if (!trimmedContent) {
       Alert.alert(t('community.error', 'Error'), t('community.emptyContent', 'Please write something'));
+      return;
+    }
+    if (postType === 'BEST_PLACES' && !placeName.trim()) {
+      Alert.alert(t('community.error', 'Error'), t('community.bestPlaces.placeNameRequired', 'Please add the place name'));
       return;
     }
     setSubmitting(true);
@@ -195,7 +201,9 @@ export default function CreateCommunityPostScreen() {
     }
   }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, addXp, navigation, t]);
 
-  const isValid = content.trim().length > 0 && (selectedGroupId || groups.length === 0);
+  const isValid = content.trim().length > 0
+    && (postType !== 'BEST_PLACES' || placeName.trim().length > 0)
+    && (selectedGroupId || groups.length === 0);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>

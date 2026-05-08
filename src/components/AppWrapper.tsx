@@ -11,6 +11,9 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 import ApiService from '../services/apiService';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
+import { StripeProvider } from '@stripe/stripe-react-native';
+
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
 function AppContent({ children }) {
   const { isDark } = useTheme();
@@ -56,16 +59,18 @@ export function AppWrapper({ children }) {
         return (
           <AuthProvider>
             <TooltipProvider>
-              <ProgramProgressProvider>
-                <AnalysisProvider>
-                  <MascotProvider>
-                    {(() => {
-                      console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
-                      return <AppContent>{children}</AppContent>;
-                    })()}
-                  </MascotProvider>
-                </AnalysisProvider>
-              </ProgramProgressProvider>
+              <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY || 'pk_test_not_configured'}>
+                <ProgramProgressProvider>
+                  <AnalysisProvider>
+                    <MascotProvider>
+                      {(() => {
+                        console.log('[BOOT:AppWrapper] Inside AuthProvider, rendering AppContent');
+                        return <AppContent>{children}</AppContent>;
+                      })()}
+                    </MascotProvider>
+                  </AnalysisProvider>
+                </ProgramProgressProvider>
+              </StripeProvider>
             </TooltipProvider>
           </AuthProvider>
         );
@@ -73,4 +78,3 @@ export function AppWrapper({ children }) {
     </ThemeProvider>
   );
 }
-

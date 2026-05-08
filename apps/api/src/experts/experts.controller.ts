@@ -37,18 +37,6 @@ export class ExpertsController {
         return this.expertsService.findAll(filters, req.user.id);
     }
 
-    @Get(':id')
-    @UseGuards(JwtAuthGuard)
-    async findById(@Param('id') id: string, @Request() req: any) {
-        return this.expertsService.findById(id, req.user.id);
-    }
-
-    @Get(':id/offers')
-    @UseGuards(JwtAuthGuard)
-    async getExpertOffers(@Param('id') id: string) {
-        return this.expertsService.getOffers(id, true);
-    }
-
     // ==================== MY PROFILE ENDPOINTS ====================
 
     @Get('me/profile')
@@ -171,5 +159,17 @@ export class ExpertsController {
         @Body() dto: PublishOfferDto,
     ) {
         return this.expertsService.publishOffer(req.user.id, id, dto.isPublished);
+    }
+
+    @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    async findById(@Param('id') id: string, @Request() req: any) {
+        return this.expertsService.findById(id, req.user.id);
+    }
+
+    @Get(':id/offers')
+    @UseGuards(JwtAuthGuard)
+    async getExpertOffers(@Param('id') id: string) {
+        return this.expertsService.getOffers(id, true);
     }
 }

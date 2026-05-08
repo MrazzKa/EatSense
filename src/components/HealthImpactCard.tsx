@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { GlassCard } from './glass/GlassCard';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
@@ -92,7 +93,12 @@ export default function HealthImpactCard({ bodySystems }: Props) {
   if (!isPremium) {
     return (
       <GlassCard style={styles.card}>
-        <Text style={styles.lockedTitle}>{t('analysis.healthImpact.lockedTitle')}</Text>
+        <View style={styles.headingRow}>
+          <View style={styles.headingIcon}>
+            <Ionicons name="pulse-outline" size={18} color={colors.primary || '#4CAF50'} />
+          </View>
+          <Text style={styles.lockedTitle}>{t('analysis.healthImpact.lockedTitle')}</Text>
+        </View>
         <Text style={styles.lockedSubtitle}>{t('analysis.healthImpact.lockedSubtitle')}</Text>
 
         <View style={styles.blurContainer}>
@@ -102,6 +108,11 @@ export default function HealthImpactCard({ bodySystems }: Props) {
             ))}
           </View>
           <BlurView intensity={28} tint="default" style={StyleSheet.absoluteFill} />
+          <View style={styles.lockOverlay}>
+            <View style={styles.lockBadge}>
+              <Ionicons name="lock-closed" size={16} color="#fff" />
+            </View>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -120,7 +131,12 @@ export default function HealthImpactCard({ bodySystems }: Props) {
 
   return (
     <GlassCard style={styles.card}>
-      <Text style={styles.title}>{t('analysis.healthImpact.title')}</Text>
+      <View style={styles.headingRow}>
+        <View style={styles.headingIcon}>
+          <Ionicons name="pulse-outline" size={18} color={colors.primary || '#4CAF50'} />
+        </View>
+        <Text style={styles.title}>{t('analysis.healthImpact.title')}</Text>
+      </View>
       <Text style={styles.subtitle}>{t('analysis.healthImpact.subtitle')}</Text>
       {bodySystems.aiSummary ? (
         <Text style={styles.aiSummary}>{bodySystems.aiSummary}</Text>
@@ -182,12 +198,27 @@ const createStyles = (tokens: any, colors: any) => StyleSheet.create({
     paddingVertical: 20,
     alignItems: 'center',
   },
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  headingIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primarySubtle || 'rgba(76,175,80,0.12)',
+  },
   title: {
+    flex: 1,
     fontSize: 17,
     fontWeight: '600',
     color: colors.text || '#111',
   },
   lockedTitle: {
+    flex: 1,
     fontSize: 17,
     fontWeight: '600',
     color: colors.text || '#111',
@@ -221,10 +252,27 @@ const createStyles = (tokens: any, colors: any) => StyleSheet.create({
   blurContent: {
     paddingVertical: 4,
   },
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary || '#4CAF50',
+  },
   row: {
+    marginBottom: 8,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border || colors.borderMuted || 'rgba(0,0,0,0.06)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border || colors.borderMuted || 'rgba(0,0,0,0.06)',
+    borderRadius: 12,
+    backgroundColor: colors.surfaceSecondary || 'rgba(255,255,255,0.55)',
   },
   rowDimmed: {
     opacity: 0.55,

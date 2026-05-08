@@ -164,11 +164,13 @@ export class CommunityController {
   @Get('posts/:id/comments')
   @ApiOperation({ summary: 'Get comments on a post' })
   async getComments(
+    @Request() req: any,
     @Param('id') id: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
   ) {
     return this.communityService.getComments(
+      req.user.id,
       id,
       parseInt(page, 10) || 1,
       parseInt(limit, 10) || 20,

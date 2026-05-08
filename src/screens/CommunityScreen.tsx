@@ -558,7 +558,7 @@ export default function CommunityScreen() {
       {/* FAB */}
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: colors.primary }]}
-        onPress={() => navigation.navigate('CreateCommunityPost')}
+        onPress={() => navigation.navigate('CreateCommunityPost', activeTab === 'places' ? { initialType: 'BEST_PLACES' } : undefined)}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={32} color="#fff" />

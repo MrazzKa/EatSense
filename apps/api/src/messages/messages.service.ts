@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -59,7 +59,10 @@ export class MessagesService {
     }
 
     async create(data: CreateMessageDto) {
-        await this.checkAccess(data.conversationId, data.senderId);
+        const { conversation } = await this.checkAccess(data.conversationId, data.senderId);
+        if (conversation.status === 'payment_pending') {
+            throw new BadRequestException('Payment is required before messaging this expert.');
+        }
 
         const message = await this.prisma.message.create({
             data: {
