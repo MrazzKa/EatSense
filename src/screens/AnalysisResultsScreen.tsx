@@ -220,6 +220,12 @@ export default function AnalysisResultsScreen() {
             carbs: toMacro(carbs),
             fat: toMacro(fat),
           },
+          hasNutrition: item.hasNutrition,
+          category: item.category,
+          source: item.source,
+          confidence: item.confidence,
+          flags: item.flags,
+          userFlags: item.userFlags,
         };
       });
 

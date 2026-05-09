@@ -47,6 +47,7 @@ export default function CommunityScreen() {
   const [hasCity, setHasCity] = useState(false);
   const [myOwnedCommunity, setMyOwnedCommunity] = useState<{ id: string; name: string } | null>(null);
   const [bestPlaces, setBestPlaces] = useState([]);
+  const [selectedPlacesCity, setSelectedPlacesCity] = useState<any>(null);
 
   // Search
   const [searchVisible, setSearchVisible] = useState(false);
@@ -102,9 +103,12 @@ export default function CommunityScreen() {
         const raw = await AsyncStorage.getItem('bestPlaces:selectedCity');
         if (raw) {
           const parsed = JSON.parse(raw);
+          setSelectedPlacesCity(parsed?.city ? parsed : null);
           if (parsed?.city) city = parsed.city;
         }
+        if (!raw) setSelectedPlacesCity(null);
       } catch {
+        setSelectedPlacesCity(null);
         // ignore — fall back to global best places
       }
       const data = await ApiService.getBestPlaces(1, 50, undefined, city);
@@ -336,6 +340,27 @@ export default function CommunityScreen() {
     return null;
   };
 
+  const placesHeader = () => (
+    <TouchableOpacity
+      style={[styles.cityFilterBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+      onPress={() => navigation.navigate('BestPlaces')}
+      activeOpacity={0.75}
+    >
+      <Ionicons name="location-outline" size={18} color={colors.primary} />
+      <View style={styles.cityFilterCopy}>
+        <Text style={[styles.cityFilterTitle, { color: colors.textPrimary || colors.text }]}>
+          {selectedPlacesCity?.city || t('community.placesFilterCity', 'Filter by city')}
+        </Text>
+        <Text style={[styles.cityFilterSubtitle, { color: colors.textTertiary }]}>
+          {selectedPlacesCity
+            ? t('community.placesFilterChange', 'Tap to change city')
+            : t('community.placesFilterHint', 'Kazakhstan and Switzerland include major city filters')}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+    </TouchableOpacity>
+  );
+
   const renderEmptyFeed = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="chatbubbles-outline" size={48} color={colors.textTertiary} />
@@ -546,6 +571,7 @@ export default function CommunityScreen() {
           data={filteredPlaces}
           keyExtractor={(item) => item.id}
           renderItem={renderBestPlaceItem}
+          ListHeaderComponent={placesHeader}
           ListEmptyComponent={renderEmptyPlaces}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
@@ -558,7 +584,14 @@ export default function CommunityScreen() {
       {/* FAB */}
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: colors.primary }]}
-        onPress={() => navigation.navigate('CreateCommunityPost', activeTab === 'places' ? { initialType: 'BEST_PLACES' } : undefined)}
+        onPress={() =>
+          navigation.navigate(
+            'CreateCommunityPost',
+            activeTab === 'places'
+              ? { initialType: 'BEST_PLACES', initialCity: selectedPlacesCity?.city || '' }
+              : undefined,
+          )
+        }
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={32} color="#fff" />
@@ -699,6 +732,28 @@ const createStyles = (tokens: any, colors: any) =>
       fontSize: 15,
       fontWeight: '600',
       marginLeft: 8,
+    },
+    cityFilterBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: 16,
+      marginBottom: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderRadius: 12,
+      borderWidth: 1,
+      gap: 10,
+    },
+    cityFilterCopy: {
+      flex: 1,
+    },
+    cityFilterTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    cityFilterSubtitle: {
+      fontSize: 12,
+      marginTop: 2,
     },
     fab: {
       position: 'absolute',

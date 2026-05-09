@@ -535,6 +535,7 @@
       "removeFromDiary": "Aus dem Tagebuch entfernen"
     },
     "dietViolation": {
+      "title": "Ernährung passt nicht",
       "body": "Diese Mahlzeit passt möglicherweise nicht zu Ihren Ernährungseinstellungen: {{list}}."
     },
     "healthImpact": {
@@ -1956,7 +1957,7 @@
     "enterCode": "Code eingeben",
     "applyCode": "Code anwenden",
     "success": "Erfolg!",
-    "codeApplied": "Code angewendet! Ihr Freund hat 7 Tage PRO erhalten. Willkommen!",
+    "codeApplied": "Code angewendet! Die einladende Person hat 7 Tage PRO erhalten. Willkommen!",
     "invalidCode": "Ungültiger oder bereits verwendeter Code"
   },
   "reports": {
@@ -2201,6 +2202,7 @@
     "noResults": "Keine Städte gefunden",
     "comingSoonTitle": "Partner-Restaurants & Cafés",
     "comingSoonWithCity": "Wir finden die besten gesunden Lokale in {{city}}. Bleiben Sie dran!",
+    "resultsInCity": "Orte in {{city}}",
     "comingSoonGeneric": "Wählen Sie Ihre Stadt, um Partner-Restaurants und Gesundheitsläden zu entdecken.",
     "whatToExpect": "Was Sie erwartet",
     "feature1": "Gesunde Restaurants und Cafés",
@@ -4266,6 +4268,9 @@
     },
     "myFeed": "Mein Feed",
     "groups": "Gruppen",
+    "placesFilterCity": "Nach Stadt filtern",
+    "placesFilterChange": "Tippen, um die Stadt zu ändern",
+    "placesFilterHint": "Kasachstan und die Schweiz enthalten Filter für große Städte",
     "members": "Mitglieder",
     "join": "Beitreten",
     "joined": "Beigetreten",
@@ -4418,7 +4423,8 @@
       "untitled": "Unbenannter Ort",
       "review": "Bewertung",
       "reviews": "Bewertungen",
-      "city": "Stadt"
+      "city": "Stadt",
+      "cityRequired": "Bitte Stadt hinzufügen"
     },
     "guidelines": {
       "title": "Community-Richtlinien",

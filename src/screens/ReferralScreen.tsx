@@ -77,7 +77,7 @@ export default function ReferralScreen({ navigation }: ReferralScreenProps) {
             const result = await ReferralsService.applyReferralCode(code);
             Alert.alert(
                 t('referral.success', 'Success!'),
-                result.message || t('referral.codeApplied', 'Code applied! Your friend earned 7 days of PRO. Welcome aboard!'),
+                result.message || t('referral.codeApplied', 'Code applied! The inviter earned 7 days of PRO. Welcome aboard!'),
             );
             setFriendCode('');
             loadStats(); // Refresh stats

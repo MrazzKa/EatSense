@@ -28,7 +28,11 @@ const publicGroupSelect = {
 
 function normalizeCityKey(city: unknown): string | null {
   if (typeof city !== 'string') return null;
-  const key = city.trim().toLocaleLowerCase();
+  const key = city
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase();
   return key || null;
 }
 

@@ -152,10 +152,20 @@ export const SwipeableIngredientItem = ({
 }; // End of SwipeableIngredientItem
 
 // Extracted Component
-const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => (
+const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
+  const allergyMatches = Array.isArray(ingredient?.userFlags?.allergyMatch)
+    ? ingredient.userFlags.allergyMatch
+    : [];
+  const dietViolations = Array.isArray(ingredient?.userFlags?.dietViolation)
+    ? ingredient.userFlags.dietViolation
+    : [];
+  const hasUserWarnings = allergyMatches.length > 0 || dietViolations.length > 0;
+
+  return (
   <View style={[
     styles.ingredientCard,
-    { backgroundColor: colors.card || colors.surface || '#FFFFFF' }
+    hasUserWarnings && styles.ingredientCardWarning,
+    { backgroundColor: hasUserWarnings ? '#FFF7ED' : (colors.card || colors.surface || '#FFFFFF') }
   ]}>
     <View style={styles.ingredientInfo}>
       <Text
@@ -170,6 +180,26 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => (
       <Text style={[styles.ingredientWeight, { color: colors.textSecondary || '#6B7280' }]}>
         {ingredient.weight || ingredient.portion_g || 0} {t('analysis.grams') || 'г'}
       </Text>
+      {hasUserWarnings && (
+        <View style={styles.warningBadges}>
+          {allergyMatches.length > 0 && (
+            <View style={[styles.warningBadge, styles.allergyBadge]}>
+              <Ionicons name="warning" size={12} color="#B91C1C" />
+              <Text style={[styles.warningBadgeText, { color: '#B91C1C' }]} numberOfLines={1}>
+                {t('analysis.allergyWarning.title') || 'Allergy'}: {allergyMatches.join(', ')}
+              </Text>
+            </View>
+          )}
+          {dietViolations.length > 0 && (
+            <View style={[styles.warningBadge, styles.dietBadge]}>
+              <Ionicons name="alert-circle" size={12} color="#92400E" />
+              <Text style={[styles.warningBadgeText, { color: '#92400E' }]} numberOfLines={1}>
+                {t('analysis.dietViolation.title') || 'Diet'}: {dietViolations.join(', ')}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
 
     <View style={styles.nutritionInfo}>
@@ -200,7 +230,8 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => (
       </View>
     )}
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   swipeableContainer: {
@@ -248,6 +279,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  ingredientCardWarning: {
+    borderWidth: 1,
+    borderColor: '#FDBA74',
+  },
   ingredientInfo: {
     flex: 1,
     marginRight: 12,
@@ -261,6 +296,31 @@ const styles = StyleSheet.create({
   },
   ingredientWeight: {
     fontSize: 13,
+  },
+  warningBadges: {
+    marginTop: 8,
+    gap: 6,
+  },
+  warningBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '100%',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  allergyBadge: {
+    backgroundColor: '#FEE2E2',
+  },
+  dietBadge: {
+    backgroundColor: '#FEF3C7',
+  },
+  warningBadgeText: {
+    flexShrink: 1,
+    fontSize: 11,
+    fontWeight: '700',
   },
   nutritionInfo: {
     alignItems: 'flex-end',

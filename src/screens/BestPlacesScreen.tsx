@@ -33,6 +33,7 @@ const CITIES_DB: { city: string; countryKey: string; emoji: string }[] = [
   { city: 'Bern', countryKey: 'switzerland', emoji: '🇨🇭' },
   { city: 'Lausanne', countryKey: 'switzerland', emoji: '🇨🇭' },
   { city: 'Lucerne', countryKey: 'switzerland', emoji: '🇨🇭' },
+  { city: 'Lugano', countryKey: 'switzerland', emoji: '🇨🇭' },
   // Germany
   { city: 'Berlin', countryKey: 'germany', emoji: '🇩🇪' },
   { city: 'Munich', countryKey: 'germany', emoji: '🇩🇪' },
@@ -81,6 +82,10 @@ const CITIES_DB: { city: string; countryKey: string; emoji: string }[] = [
   { city: 'Astana', countryKey: 'kazakhstan', emoji: '🇰🇿' },
   { city: 'Dubai', countryKey: 'uae', emoji: '🇦🇪' },
   { city: 'Abu Dhabi', countryKey: 'uae', emoji: '🇦🇪' },
+  { city: 'Shymkent', countryKey: 'kazakhstan', emoji: '🇰🇿' },
+  { city: 'Karaganda', countryKey: 'kazakhstan', emoji: '🇰🇿' },
+  { city: 'Aktobe', countryKey: 'kazakhstan', emoji: '🇰🇿' },
+  { city: 'Atyrau', countryKey: 'kazakhstan', emoji: '🇰🇿' },
   // Asia
   { city: 'Tokyo', countryKey: 'japan', emoji: '🇯🇵' },
   { city: 'Singapore', countryKey: 'singapore', emoji: '🇸🇬' },

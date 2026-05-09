@@ -17,12 +17,7 @@ export class ReferralsService {
         });
 
         if (!referralCode) {
-            referralCode = await prismaAny.referralCode.create({
-                data: {
-                    userId,
-                    code: this.generateCode(userId),
-                },
-            });
+            referralCode = await this.createUniqueReferralCode(userId);
         }
 
         return referralCode;
@@ -139,7 +134,7 @@ export class ReferralsService {
             },
         });
 
-        // Grant trial days to both users
+        // Grant trial days to the inviter only.
         const now = new Date();
         const grantTrialDays = async (uid: string) => {
             const existingSub = await prismaAny.userSubscription?.findFirst({
@@ -194,8 +189,27 @@ export class ReferralsService {
         return {
             success: true,
             bonusDays: BONUS_DAYS,
-            message: `Your friend received ${BONUS_DAYS} days of PRO. Thanks for joining!`,
+            message: `Referral code applied. The inviter received ${BONUS_DAYS} days of PRO.`,
         };
+    }
+
+    private async createUniqueReferralCode(userId: string) {
+        const prismaAny = this.prisma as any;
+        let lastError: any = null;
+        for (let attempt = 0; attempt < 5; attempt += 1) {
+            try {
+                return await prismaAny.referralCode.create({
+                    data: {
+                        userId,
+                        code: this.generateCode(userId),
+                    },
+                });
+            } catch (error: any) {
+                lastError = error;
+                if (error?.code !== 'P2002') break;
+            }
+        }
+        throw lastError || new Error('Failed to create referral code');
     }
 
     private generateCode(_userId: string): string {

@@ -120,6 +120,10 @@ export default function CreateCommunityPostScreen() {
       Alert.alert(t('community.error', 'Error'), t('community.bestPlaces.placeNameRequired', 'Please add the place name'));
       return;
     }
+    if (postType === 'BEST_PLACES' && !placeCity.trim()) {
+      Alert.alert(t('community.error', 'Error'), t('community.bestPlaces.cityRequired', 'Please add the city'));
+      return;
+    }
     setSubmitting(true);
     try {
       // Upload image if attached
@@ -203,6 +207,7 @@ export default function CreateCommunityPostScreen() {
 
   const isValid = content.trim().length > 0
     && (postType !== 'BEST_PLACES' || placeName.trim().length > 0)
+    && (postType !== 'BEST_PLACES' || placeCity.trim().length > 0)
     && (selectedGroupId || groups.length === 0);
 
   return (

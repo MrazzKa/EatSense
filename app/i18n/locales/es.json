@@ -197,6 +197,7 @@
       "removeFromDiary": "Eliminar del diario"
     },
     "dietViolation": {
+      "title": "No coincide con tu dieta",
       "body": "Esta comida puede no ajustarse a tus preferencias alimentarias: {{list}}."
     },
     "healthImpact": {
@@ -1982,7 +1983,7 @@
     "enterCode": "Ingresa el código",
     "applyCode": "Aplicar código",
     "success": "¡Éxito!",
-    "codeApplied": "¡Código aplicado! Tu amigo ganó 7 días de PRO. ¡Bienvenido!",
+    "codeApplied": "¡Código aplicado! La persona que te invitó ganó 7 días de PRO. ¡Bienvenido!",
     "invalidCode": "Código inválido o ya utilizado"
   },
   "reports": {
@@ -2227,6 +2228,7 @@
     "noResults": "No se encontraron ciudades",
     "comingSoonTitle": "Restaurantes y cafés asociados",
     "comingSoonWithCity": "Estamos buscando los mejores lugares saludables en {{city}}. ¡Mantente atento!",
+    "resultsInCity": "Lugares en {{city}}",
     "comingSoonGeneric": "Selecciona tu ciudad para descubrir restaurantes y tiendas asociadas.",
     "whatToExpect": "Qué esperar",
     "feature1": "Restaurantes y cafés saludables",
@@ -2699,6 +2701,9 @@
     },
     "myFeed": "Mi Feed",
     "groups": "Grupos",
+    "placesFilterCity": "Filtrar por ciudad",
+    "placesFilterChange": "Toca para cambiar de ciudad",
+    "placesFilterHint": "Kazajistán y Suiza incluyen filtros de ciudades principales",
     "members": "miembros",
     "join": "Unirse",
     "joined": "Unido",
@@ -2851,7 +2856,8 @@
       "untitled": "Lugar sin nombre",
       "review": "reseña",
       "reviews": "reseñas",
-      "city": "Ciudad"
+      "city": "Ciudad",
+      "cityRequired": "Añade la ciudad"
     },
     "guidelines": {
       "title": "Normas de la comunidad",

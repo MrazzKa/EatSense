@@ -757,6 +757,7 @@
       "removeFromDiary": "Remove from diary"
     },
     "dietViolation": {
+      "title": "Diet mismatch",
       "body": "This meal may not fit your diet settings: {{list}}."
     },
     "healthImpact": {
@@ -1359,6 +1360,7 @@
     "noResults": "No cities found",
     "comingSoonTitle": "Partner Restaurants & Cafes",
     "comingSoonWithCity": "We're finding the best healthy eating spots in {{city}}. Stay tuned!",
+    "resultsInCity": "Places in {{city}}",
     "comingSoonGeneric": "Select your city to discover partner restaurants, cafes, and health food stores near you.",
     "whatToExpect": "What to expect",
     "feature1": "Healthy restaurants and cafes",
@@ -1956,7 +1958,7 @@
     "enterCode": "Enter code",
     "applyCode": "Apply Code",
     "success": "Success!",
-    "codeApplied": "Code applied! Your friend earned 7 days of PRO. Welcome aboard!",
+    "codeApplied": "Code applied! The inviter earned 7 days of PRO. Welcome aboard!",
     "invalidCode": "Invalid or already used referral code"
   },
   "privacy": {
@@ -4224,6 +4226,9 @@
     },
     "myFeed": "My Feed",
     "groups": "Groups",
+    "placesFilterCity": "Filter by city",
+    "placesFilterChange": "Tap to change city",
+    "placesFilterHint": "Kazakhstan and Switzerland include major city filters",
     "members": "members",
     "join": "Join",
     "joined": "Joined",
@@ -4376,7 +4381,8 @@
       "untitled": "Unnamed place",
       "review": "review",
       "reviews": "reviews",
-      "city": "City"
+      "city": "City",
+      "cityRequired": "Please add the city"
     },
     "guidelines": {
       "title": "Community Guidelines",

@@ -197,6 +197,7 @@
       "removeFromDiary": "Retirer du journal"
     },
     "dietViolation": {
+      "title": "Régime non respecté",
       "body": "Ce repas peut ne pas correspondre à vos paramètres alimentaires : {{list}}."
     },
     "healthImpact": {
@@ -2236,7 +2237,7 @@
     "enterCode": "Entrez le code",
     "applyCode": "Appliquer le code",
     "success": "Succès !",
-    "codeApplied": "Code appliqué ! Votre ami a gagné 7 jours de PRO. Bienvenue !",
+    "codeApplied": "Code appliqué ! La personne qui vous a invité a gagné 7 jours de PRO. Bienvenue !",
     "invalidCode": "Code invalide ou déjà utilisé"
   },
   "reports": {
@@ -2507,6 +2508,7 @@
     "noResults": "Aucune ville trouvée",
     "comingSoonTitle": "Restaurants et cafés partenaires",
     "comingSoonWithCity": "Nous recherchons les meilleurs établissements à {{city}}. Restez à l'écoute !",
+    "resultsInCity": "Lieux à {{city}}",
     "comingSoonGeneric": "Sélectionnez votre ville pour découvrir les restaurants et magasins partenaires.",
     "whatToExpect": "À quoi s'attendre",
     "feature1": "Restaurants et cafés healthy",
@@ -4277,6 +4279,9 @@
     },
     "myFeed": "Mon fil",
     "groups": "Groupes",
+    "placesFilterCity": "Filtrer par ville",
+    "placesFilterChange": "Touchez pour changer de ville",
+    "placesFilterHint": "Le Kazakhstan et la Suisse incluent des filtres pour les grandes villes",
     "members": "membres",
     "join": "Rejoindre",
     "joined": "Membre",
@@ -4429,7 +4434,8 @@
       "untitled": "Lieu sans nom",
       "review": "avis",
       "reviews": "avis",
-      "city": "Ville"
+      "city": "Ville",
+      "cityRequired": "Veuillez ajouter la ville"
     },
     "guidelines": {
       "title": "Règles de la communauté",
