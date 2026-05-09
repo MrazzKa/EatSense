@@ -126,6 +126,7 @@ export class MealsService {
         await this.cache.invalidateNamespace('stats:monthly', userId);
         await this.cache.invalidateNamespace('stats:daily' as any, userId);
         await this.cache.invalidateNamespace('meals:diary', userId);
+        await this.cache.invalidateNamespace('suggestions', userId);
       } catch {}
     }
 

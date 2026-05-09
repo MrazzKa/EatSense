@@ -192,13 +192,22 @@
     "viewSources": "Voir les sources",
     "allergyWarning": {
       "title": "Vérifiez ce repas",
+      "badgeTitle": "Allergène",
       "body": "Ce repas peut contenir : {{list}}. Cela correspond à vos paramètres d'allergies.",
       "keep": "Garder",
       "removeFromDiary": "Retirer du journal"
     },
     "dietViolation": {
       "title": "Régime non respecté",
-      "body": "Ce repas peut ne pas correspondre à vos paramètres alimentaires : {{list}}."
+      "body": "Ce repas peut ne pas correspondre à vos paramètres alimentaires : {{list}}.",
+      "items": {
+        "vegan": "Végane",
+        "vegetarian": "Végétarien",
+        "halal": "Halal",
+        "kosher": "Casher",
+        "gluten-free": "Sans gluten",
+        "lactose-free": "Sans lactose"
+      }
     },
     "healthImpact": {
       "lockedTitle": "Vous voulez voir comment ce repas peut agir sur votre santé ?",
@@ -2509,6 +2518,10 @@
     "comingSoonTitle": "Restaurants et cafés partenaires",
     "comingSoonWithCity": "Nous recherchons les meilleurs établissements à {{city}}. Restez à l'écoute !",
     "resultsInCity": "Lieux à {{city}}",
+    "allPlaces": "Lieux de la communauté",
+    "addPlace": "Ajouter",
+    "emptyTitle": "Aucun lieu pour le moment",
+    "emptyText": "Partagez le premier café, restaurant, magasin ou lieu sain de votre communauté.",
     "comingSoonGeneric": "Sélectionnez votre ville pour découvrir les restaurants et magasins partenaires.",
     "whatToExpect": "À quoi s'attendre",
     "feature1": "Restaurants et cafés healthy",
@@ -4387,6 +4400,8 @@
     "challenge": "Défi",
     "tour": {
       "skip": "Passer",
+      "next": "Suivant",
+      "done": "Compris",
       "step1": {
         "title": "Rejoignez un groupe",
         "desc": "Trouvez un groupe dans votre pays ou créez le vôtre pour échanger avec des personnes partageant vos objectifs.",

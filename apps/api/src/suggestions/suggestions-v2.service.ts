@@ -23,6 +23,8 @@ import {
 @Injectable()
 export class SuggestionsV2Service {
     private readonly logger = new Logger(SuggestionsV2Service.name);
+    private readonly minMealsForRecommendations = 5;
+    private readonly minDaysForRecommendations = 2;
 
     constructor(
         private readonly prisma: PrismaService,
@@ -69,10 +71,9 @@ export class SuggestionsV2Service {
             const t2 = Date.now();
 
             // Fast path: not enough meals → return immediately without loading items
-            if (mealsCount < 3) {
+            if (mealsCount < this.minMealsForRecommendations) {
                 this.logger.log(`[SuggestionsV2] Fast path: ${mealsCount} meals for ${userId} (count: ${t2 - t1}ms, total: ${t2 - t0}ms)`);
-                const emptyStats = { mealsCount, daysWithMeals: mealsCount > 0 ? 1 : 0 };
-                return this.buildInsufficientDataResponse(locale, emptyStats as any);
+                return this.buildInsufficientDataResponse(locale, this.buildEmptyStats(mealsCount));
             }
 
             // 1. Get user profile + meals in parallel (saves ~200-400ms on proxy DB)
@@ -111,7 +112,7 @@ export class SuggestionsV2Service {
             this.logger.log(`[SuggestionsV2] Loaded data for ${userId}: cache=${t1 - t0}ms, count=${t2 - t1}ms, data=${t3 - t2}ms, meals=${meals.length}`);
 
             // 4. Check for insufficient data (double check after full load)
-            if (stats.mealsCount < 3 || stats.daysWithMeals < 2) {
+            if (stats.mealsCount < this.minMealsForRecommendations || stats.daysWithMeals < this.minDaysForRecommendations) {
                 return this.buildInsufficientDataResponse(locale, stats);
             }
 
@@ -227,6 +228,22 @@ export class SuggestionsV2Service {
                 sections: [],
             };
         }
+    }
+
+    private buildEmptyStats(mealsCount: number): ReturnType<typeof this.calculateStats> {
+        return {
+            daysWithMeals: mealsCount > 0 ? 1 : 0,
+            mealsCount,
+            avgCalories: 0,
+            avgProtein: 0,
+            avgFat: 0,
+            avgCarbs: 0,
+            avgFiber: 0,
+            proteinPerc: 0,
+            fatPerc: 0,
+            carbsPerc: 0,
+            uniqueFoods: 0,
+        };
     }
 
     /**
@@ -692,8 +709,8 @@ export class SuggestionsV2Service {
         locale: SupportedLocale,
         stats: ReturnType<typeof this.calculateStats>,
     ): SuggestedFoodV2Response {
-        // FIX: Don't show "Add 0 more meals" when mealsCount >= 5
-        const neededMeals = Math.max(0, 5 - stats.mealsCount);
+        // Keep the displayed counter aligned with the actual recommendation threshold.
+        const neededMeals = Math.max(0, this.minMealsForRecommendations - stats.mealsCount);
         let summary: string;
 
         if (neededMeals === 0 && stats.daysWithMeals < 2) {

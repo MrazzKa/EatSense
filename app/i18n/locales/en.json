@@ -752,13 +752,22 @@
     "viewSources": "View scientific sources",
     "allergyWarning": {
       "title": "Check this meal",
+      "badgeTitle": "Allergen",
       "body": "This meal may contain: {{list}}. These match your allergy settings.",
       "keep": "Keep",
       "removeFromDiary": "Remove from diary"
     },
     "dietViolation": {
       "title": "Diet mismatch",
-      "body": "This meal may not fit your diet settings: {{list}}."
+      "body": "This meal may not fit your diet settings: {{list}}.",
+      "items": {
+        "vegan": "Vegan",
+        "vegetarian": "Vegetarian",
+        "halal": "Halal",
+        "kosher": "Kosher",
+        "gluten-free": "Gluten-free",
+        "lactose-free": "Lactose-free"
+      }
     },
     "healthImpact": {
       "lockedTitle": "Want to see how this meal may affect your health?",
@@ -1361,6 +1370,10 @@
     "comingSoonTitle": "Partner Restaurants & Cafes",
     "comingSoonWithCity": "We're finding the best healthy eating spots in {{city}}. Stay tuned!",
     "resultsInCity": "Places in {{city}}",
+    "allPlaces": "Community places",
+    "addPlace": "Add",
+    "emptyTitle": "No places yet",
+    "emptyText": "Share the first healthy cafe, restaurant, shop, or spot for your country community.",
     "comingSoonGeneric": "Select your city to discover partner restaurants, cafes, and health food stores near you.",
     "whatToExpect": "What to expect",
     "feature1": "Healthy restaurants and cafes",
@@ -4334,6 +4347,8 @@
     "challenge": "Challenge",
     "tour": {
       "skip": "Skip tour",
+      "next": "Next",
+      "done": "Got it",
       "step1": {
         "title": "Join a Group",
         "desc": "Find a group in your country or create your own to connect with people who share your goals.",

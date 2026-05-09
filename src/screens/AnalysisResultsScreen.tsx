@@ -25,6 +25,7 @@ import { mapLanguageToLocale } from '../utils/locale';
 import { getDisclaimer } from '../legal/disclaimerUtils';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import HealthImpactCard from '../components/HealthImpactCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import FullScreenImageModal from '../components/common/FullScreenImageModal';
 import { clientLog } from '../utils/clientLog';
@@ -149,12 +150,21 @@ export default function AnalysisResultsScreen() {
       // Use baseImageUri as fallback only if not explicitly set to null and not text-only analysis
       // const effectiveFallback = fallbackImage !== undefined ? fallbackImage : (routeParams.source !== 'text' ? baseImageUri : null); // Unused
 
-      // Log API response only when explicitly debugging
-      // console.log('[AnalysisResults] Raw API response:', JSON.stringify(raw, null, 2));
-
       if (!raw) {
         return null;
       }
+
+      // Log API response only when explicitly debugging
+      // console.log('[AnalysisResults] Raw API response:', JSON.stringify(raw, null, 2));
+      const normalizedMealId =
+        raw.mealId ||
+        raw.autoSave?.mealId ||
+        raw.savedMeal?.mealId ||
+        routeParams.mealId ||
+        raw.meal?.id ||
+        (raw.id && raw.analysisId && raw.id !== raw.analysisId ? raw.id : null) ||
+        (raw.id && !raw.analysisId ? raw.id : null) ||
+        null;
 
       // =====================================================
       // OBSERVABILITY: CLIENT_LOG for pipeline debugging
@@ -165,7 +175,7 @@ export default function AnalysisResultsScreen() {
           topLevelKeys: Object.keys(raw),
           dataKeys: raw.data ? Object.keys(raw.data) : [],
           analysisId: raw.id || raw.analysisId,
-          mealId: raw.mealId,
+          mealId: normalizedMealId,
           dishNameFields: {
             'data.dishNameLocalized': raw.data?.dishNameLocalized || null,
             'data.originalDishName': raw.data?.originalDishName || null,
@@ -267,8 +277,8 @@ export default function AnalysisResultsScreen() {
       return {
         id: raw.id || raw.analysisId || null,
         analysisId: raw.analysisId || raw.data?.analysisId || routeParams.analysisId || null,
-        // mealId is preserved separately so we can fall back to /meals/:id/edit-items for legacy meals
-        mealId: raw.mealId || raw.autoSave?.mealId || raw.savedMeal?.mealId || (raw.id && !raw.analysisId ? raw.id : null) || null,
+        // mealId is preserved separately so we can delete/edit diary meals even when analysisId is also present.
+        mealId: normalizedMealId,
         dishName: (() => {
           // STEP 2 FIX: Use displayName as the single source of truth
           // Priority: displayName > dishNameLocalized > originalDishName > dishName > name
@@ -448,32 +458,53 @@ export default function AnalysisResultsScreen() {
       }
       if ((allergyHits.length || dietHits.length) && !allergyAlertShownRef.current) {
         allergyAlertShownRef.current = true;
-        const uniqueAllergies = Array.from(new Set(allergyHits.map(s => String(s))));
-        const uniqueDiet = Array.from(new Set(dietHits.map(s => String(s))));
+        const localizeAllergy = (value: string) => t(`allergies.items.${value}`, value);
+        const localizeDiet = (value: string) => t(`analysis.dietViolation.items.${value}`, value);
+        const uniqueAllergies = Array.from(new Set(allergyHits.map(s => String(s)))).map(localizeAllergy);
+        const uniqueDiet = Array.from(new Set(dietHits.map(s => String(s)))).map(localizeDiet);
         const messageParts: string[] = [];
         if (uniqueAllergies.length) messageParts.push(t('analysis.allergyWarning.body', { list: uniqueAllergies.join(', ') }));
         if (uniqueDiet.length) messageParts.push(t('analysis.dietViolation.body', { list: uniqueDiet.join(', ') }));
         const mealIdToDelete = normalized.mealId || normalized.autoSave?.mealId;
-        Alert.alert(
-          t('analysis.allergyWarning.title') || 'Heads up',
-          messageParts.join('\n\n'),
-          [
-            {
-              text: t('analysis.allergyWarning.keep') || 'Keep',
-              style: 'default',
-            },
-            {
-              text: t('analysis.allergyWarning.removeFromDiary') || 'Remove from diary',
-              style: 'destructive',
-              onPress: async () => {
-                if (mealIdToDelete) {
-                  try { await ApiService.request(`/meals/${mealIdToDelete}`, { method: 'DELETE' }); } catch {}
-                }
-              },
-            },
-          ],
-          { cancelable: true },
-        );
+        const warningKey = `analysisWarningSeen:${mealIdToDelete || normalized.analysisId || normalized.id || messageParts.join('|')}`;
+        AsyncStorage.getItem(warningKey)
+          .then((seen) => {
+            if (seen) return;
+            Alert.alert(
+              t('analysis.allergyWarning.title') || 'Heads up',
+              messageParts.join('\n\n'),
+              [
+                {
+                  text: t('analysis.allergyWarning.keep') || 'Keep',
+                  style: 'default',
+                  onPress: () => {
+                    AsyncStorage.setItem(warningKey, '1').catch(() => {});
+                  },
+                },
+                {
+                  text: t('analysis.allergyWarning.removeFromDiary') || 'Remove from diary',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await AsyncStorage.setItem(warningKey, '1').catch(() => {});
+                    if (!mealIdToDelete) {
+                      navigateToDashboard();
+                      return;
+                    }
+                    try {
+                      await ApiService.deleteMeal(mealIdToDelete);
+                      setAnalysisResult(null);
+                    } catch (error) {
+                      console.warn('[AnalysisResultsScreen] Failed to delete allergen meal:', error);
+                    } finally {
+                      navigateToDashboard();
+                    }
+                  },
+                },
+              ],
+              { cancelable: true },
+            );
+          })
+          .catch(() => {});
       }
 
       setIsAnalyzing(false);
@@ -484,7 +515,7 @@ export default function AnalysisResultsScreen() {
         useNativeDriver: true,
       }).start();
     },
-    [fadeAnim, normalizeAnalysis],
+    [fadeAnim, normalizeAnalysis, navigateToDashboard, t],
   );
 
   // Refs to track processed items and prevent loops/duplicate calls

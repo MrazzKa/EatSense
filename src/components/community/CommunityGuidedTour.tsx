@@ -1,20 +1,15 @@
 // @ts-nocheck
-/**
- * CommunityGuidedTour — Step-by-step onboarding for first-time community visitors
- * Shows 3 steps: Join a group → Create first post → Like & comment
- */
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Animated,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '../../contexts/ThemeContext';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useI18n } from '../../../app/i18n/hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const TOUR_STORAGE_KEY = 'community_tour_completed';
 
@@ -34,7 +29,7 @@ const STEPS: Step[] = [
     titleKey: 'community.tour.step1.title',
     titleFallback: 'Join a Group',
     descKey: 'community.tour.step1.desc',
-    descFallback: 'Find a group in your country or create your own to connect with people who share your goals.',
+    descFallback: 'Find a group in your country to connect with people who share your goals.',
     actionKey: 'community.tour.step1.action',
     actionFallback: 'Browse Groups',
   },
@@ -43,7 +38,7 @@ const STEPS: Step[] = [
     titleKey: 'community.tour.step2.title',
     titleFallback: 'Share Your Journey',
     descKey: 'community.tour.step2.desc',
-    descFallback: 'Post about your meals, achievements, or ask the community for advice. Photos welcome!',
+    descFallback: 'Post about your meals, achievements, or ask the community for advice.',
     actionKey: 'community.tour.step2.action',
     actionFallback: 'Create a Post',
   },
@@ -52,9 +47,9 @@ const STEPS: Step[] = [
     titleKey: 'community.tour.step3.title',
     titleFallback: 'Support Others',
     descKey: 'community.tour.step3.desc',
-    descFallback: 'Like and comment on posts to encourage fellow members. Community thrives on support!',
+    descFallback: 'Like and comment on posts to encourage fellow members.',
     actionKey: 'community.tour.step3.action',
-    actionFallback: 'Got it!',
+    actionFallback: 'Got it',
   },
 ];
 
@@ -66,110 +61,113 @@ interface Props {
 export default function CommunityGuidedTour({ onStepAction, onDismiss }: Props) {
   const { colors } = useTheme();
   const { t } = useI18n();
+  const [ready, setReady] = useState(false);
   const [visible, setVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    AsyncStorage.getItem(TOUR_STORAGE_KEY).then(val => {
-      if (!val) {
+    let mounted = true;
+
+    AsyncStorage.getItem(TOUR_STORAGE_KEY)
+      .then((value) => {
+        if (!mounted) return;
+        setReady(true);
+        setVisible(!value);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setReady(true);
         setVisible(true);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }).start();
-      }
-    });
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const handleAction = useCallback(() => {
-    onStepAction?.(currentStep);
+  const completeTour = useCallback(() => {
+    setVisible(false);
+    AsyncStorage.setItem(TOUR_STORAGE_KEY, 'true').catch(() => {});
+    onDismiss?.();
+  }, [onDismiss]);
+
+  const handleNext = useCallback(() => {
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      handleDismiss();
+      setCurrentStep((prev) => prev + 1);
+      return;
     }
-  }, [currentStep, onStepAction]);
+    completeTour();
+  }, [completeTour, currentStep]);
 
-  const handleDismiss = useCallback(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setVisible(false);
-      AsyncStorage.setItem(TOUR_STORAGE_KEY, 'true').catch(() => {});
-      onDismiss?.();
-    });
-  }, [fadeAnim, onDismiss]);
-
-  const handleSkip = useCallback(() => {
-    handleDismiss();
-  }, [handleDismiss]);
+  const handleAction = useCallback(() => {
+    completeTour();
+    onStepAction?.(currentStep);
+  }, [completeTour, currentStep, onStepAction]);
 
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  if (!visible) return null;
+  if (!ready || !visible) return null;
 
   const step = STEPS[currentStep];
+  const isLastStep = currentStep === STEPS.length - 1;
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      {/* Progress dots */}
+    <View style={styles.container}>
       <View style={styles.dotsRow}>
-        {STEPS.map((_, i) => (
-          <View
-            key={i}
+        {STEPS.map((_, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => setCurrentStep(index)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={[
               styles.dot,
-              { backgroundColor: i <= currentStep ? colors.primary : colors.border || '#E0E0E0' },
+              { backgroundColor: index === currentStep ? colors.primary : colors.border || '#E0E0E0' },
             ]}
           />
         ))}
       </View>
 
-      {/* Icon */}
-      <View style={[styles.iconCircle, { backgroundColor: colors.primary + '15' }]}>
+      <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}15` }]}>
         <Ionicons name={step.icon as any} size={32} color={colors.primary} />
       </View>
 
-      {/* Title */}
       <Text style={[styles.title, { color: colors.textPrimary }]}>
         {t(step.titleKey, step.titleFallback)}
       </Text>
-
-      {/* Description */}
       <Text style={[styles.desc, { color: colors.textSecondary }]}>
         {t(step.descKey, step.descFallback)}
       </Text>
-
-      {/* Step counter */}
       <Text style={[styles.stepCounter, { color: colors.textTertiary }]}>
         {currentStep + 1} / {STEPS.length}
       </Text>
 
-      {/* Action button */}
       <TouchableOpacity
         style={[styles.actionBtn, { backgroundColor: colors.primary }]}
-        onPress={handleAction}
-        activeOpacity={0.8}
+        onPress={handleNext}
+        activeOpacity={0.85}
       >
         <Text style={styles.actionBtnText}>
-          {t(step.actionKey, step.actionFallback)}
+          {isLastStep ? t('community.tour.done', 'Got it') : t('community.tour.next', 'Next')}
         </Text>
-        {currentStep < STEPS.length - 1 && (
-          <Ionicons name="arrow-forward" size={18} color="#FFF" style={{ marginLeft: 6 }} />
-        )}
+        {!isLastStep && <Ionicons name="arrow-forward" size={18} color="#FFF" style={styles.actionIcon} />}
       </TouchableOpacity>
 
-      {/* Skip */}
-      <TouchableOpacity onPress={handleSkip} style={styles.skipBtn} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={handleAction}
+        style={[styles.secondaryBtn, { borderColor: colors.border }]}
+        activeOpacity={0.75}
+      >
+        <Text style={[styles.secondaryText, { color: colors.primary }]}>
+          {t(step.actionKey, step.actionFallback)}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={completeTour} style={styles.skipBtn} activeOpacity={0.7}>
         <Text style={[styles.skipText, { color: colors.textTertiary }]}>
           {t('community.tour.skip', 'Skip tour')}
         </Text>
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -190,11 +188,11 @@ const createStyles = (colors: any) =>
     },
     dotsRow: {
       flexDirection: 'row',
-      gap: 6,
+      gap: 8,
       marginBottom: 16,
     },
     dot: {
-      width: 8,
+      width: 10,
       height: 8,
       borderRadius: 4,
     },
@@ -236,6 +234,23 @@ const createStyles = (colors: any) =>
     actionBtnText: {
       color: '#FFF',
       fontSize: 16,
+      fontWeight: '700',
+    },
+    actionIcon: {
+      marginLeft: 6,
+    },
+    secondaryBtn: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 10,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      borderWidth: 1,
+      width: '100%',
+    },
+    secondaryText: {
+      fontSize: 15,
       fontWeight: '700',
     },
     skipBtn: {

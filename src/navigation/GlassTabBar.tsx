@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View, AccessibilityState } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,10 +19,11 @@ export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 12;
  * - Active tab gets a brand-tinted pill behind the icon with spring animation.
  */
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-    const insets = useSafeAreaInsets();
     const { colors, isDark } = useTheme();
 
-    const bottom = Math.max(insets.bottom, BOTTOM_GAP);
+    // Keep the glass pill floating without painting a safe-area slab underneath it.
+    // The previous inset-sized padding showed up as a pale strip below the tab bar on iOS.
+    const bottom = BOTTOM_GAP;
     const outline = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.06)';
 
     return (

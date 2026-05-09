@@ -118,8 +118,8 @@ export class DashboardService {
 
             // Load suggestions SEPARATELY — completely non-blocking
             // Dashboard returns immediately with loading state, suggestions load in background
-            const skipKey = `suggestions_skip:${userId}`;
-            const cachedSuggestionsKey = `suggestions_result:${userId}`;
+            const skipKey = `${userId}:dashboard-skip`;
+            const cachedSuggestionsKey = `${userId}:dashboard:${normalizedLocale}`;
             const shouldSkip = await this.cacheService.get(skipKey, 'suggestions');
 
             let suggestions: any = { status: 'loading', sections: [] }; // Default: loading state

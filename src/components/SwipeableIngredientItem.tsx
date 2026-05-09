@@ -160,6 +160,8 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
     ? ingredient.userFlags.dietViolation
     : [];
   const hasUserWarnings = allergyMatches.length > 0 || dietViolations.length > 0;
+  const localizeAllergy = (value) => t(`allergies.items.${value}`) || value;
+  const localizeDiet = (value) => t(`analysis.dietViolation.items.${value}`) || value;
 
   return (
   <View style={[
@@ -186,7 +188,7 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
             <View style={[styles.warningBadge, styles.allergyBadge]}>
               <Ionicons name="warning" size={12} color="#B91C1C" />
               <Text style={[styles.warningBadgeText, { color: '#B91C1C' }]} numberOfLines={1}>
-                {t('analysis.allergyWarning.title') || 'Allergy'}: {allergyMatches.join(', ')}
+                {t('analysis.allergyWarning.badgeTitle') || 'Allergen'}: {allergyMatches.map(localizeAllergy).join(', ')}
               </Text>
             </View>
           )}
@@ -194,7 +196,7 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
             <View style={[styles.warningBadge, styles.dietBadge]}>
               <Ionicons name="alert-circle" size={12} color="#92400E" />
               <Text style={[styles.warningBadgeText, { color: '#92400E' }]} numberOfLines={1}>
-                {t('analysis.dietViolation.title') || 'Diet'}: {dietViolations.join(', ')}
+                {t('analysis.dietViolation.title') || 'Diet'}: {dietViolations.map(localizeDiet).join(', ')}
               </Text>
             </View>
           )}
@@ -213,7 +215,7 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
             {Math.round(ingredient.calories || 0)} {t('analysis.kcal') || 'ккал'}
           </Text>
           <Text style={[styles.macrosText, { color: colors.textSecondary || '#6B7280' }]}>
-            Б: {formatMacro(ingredient.protein)} · У: {formatMacro(ingredient.carbs)} · Ж: {formatMacro(ingredient.fat)}
+            {t('analysis.proteinShort') || 'P'}: {formatMacro(ingredient.protein)} · {t('analysis.carbsShort') || 'C'}: {formatMacro(ingredient.carbs)} · {t('analysis.fatShort') || 'F'}: {formatMacro(ingredient.fat)}
           </Text>
         </>
       )}

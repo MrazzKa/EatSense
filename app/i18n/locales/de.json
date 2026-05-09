@@ -464,7 +464,7 @@
     "noAnalysisId": "Analysis ID not found",
     "noDataToSave": "No analysis data to save",
     "noIngredients": "No ingredients recognized",
-    "noNutritionData": "No nutrition data",
+    "noNutritionData": "Keine Nährwertdaten",
     "processing": "Processing your meal...",
     "processingSubtitle": "Identifying ingredients and matching nutrition data...",
     "proteinShort": "P",
@@ -530,13 +530,22 @@
     "viewSources": "Wissenschaftliche Quellen anzeigen",
     "allergyWarning": {
       "title": "Mahlzeit prüfen",
+      "badgeTitle": "Allergen",
       "body": "Diese Mahlzeit kann enthalten: {{list}}. Das passt zu Ihren Allergie-Einstellungen.",
       "keep": "Behalten",
       "removeFromDiary": "Aus dem Tagebuch entfernen"
     },
     "dietViolation": {
       "title": "Ernährung passt nicht",
-      "body": "Diese Mahlzeit passt möglicherweise nicht zu Ihren Ernährungseinstellungen: {{list}}."
+      "body": "Diese Mahlzeit passt möglicherweise nicht zu Ihren Ernährungseinstellungen: {{list}}.",
+      "items": {
+        "vegan": "Vegan",
+        "vegetarian": "Vegetarisch",
+        "halal": "Halal",
+        "kosher": "Koscher",
+        "gluten-free": "Glutenfrei",
+        "lactose-free": "Laktosefrei"
+      }
     },
     "healthImpact": {
       "lockedTitle": "Möchten Sie sehen, wie diese Mahlzeit Ihre Gesundheit beeinflussen kann?",
@@ -2203,6 +2212,10 @@
     "comingSoonTitle": "Partner-Restaurants & Cafés",
     "comingSoonWithCity": "Wir finden die besten gesunden Lokale in {{city}}. Bleiben Sie dran!",
     "resultsInCity": "Orte in {{city}}",
+    "allPlaces": "Community-Orte",
+    "addPlace": "Hinzufügen",
+    "emptyTitle": "Noch keine Orte",
+    "emptyText": "Teilen Sie das erste gesunde Café, Restaurant, Geschäft oder den ersten Ort in Ihrer Community.",
     "comingSoonGeneric": "Wählen Sie Ihre Stadt, um Partner-Restaurants und Gesundheitsläden zu entdecken.",
     "whatToExpect": "Was Sie erwartet",
     "feature1": "Gesunde Restaurants und Cafés",
@@ -4376,6 +4389,8 @@
     "challenge": "Herausforderung",
     "tour": {
       "skip": "Überspringen",
+      "next": "Weiter",
+      "done": "Verstanden",
       "step1": {
         "title": "Tritt einer Gruppe bei",
         "desc": "Finde eine Gruppe in deinem Land oder erstelle deine eigene.",
