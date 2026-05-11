@@ -1321,6 +1321,14 @@
       "feature2": "Чат-консультации напрямую",
       "feature3": "Безопасный обмен данными"
     },
+    "startVideoCall": "Видеозвонок",
+    "video": {
+      "connecting": "Подключение…",
+      "unavailable": "Видеозвонки пока не настроены — скоро будут доступны.",
+      "unavailableTitle": "Видео недоступно",
+      "noConversation": "Чат не найден",
+      "waitingForPeer": "Ожидание собеседника…"
+    },
     "browseArticles": "Смотреть статьи о питании",
     "subtitleExpert": "Управление профилем эксперта",
     "myConsultations": "Мои консультации",
@@ -1331,6 +1339,8 @@
     "asClient": "Я клиент",
     "asExpert": "Я эксперт",
     "expertRole": "Эксперт",
+    "chatTitle": "Чат",
+    "clientFallback": "Клиент",
     "clientRole": "Клиент",
     "startChat": "Начать чат",
     "viewAll": "Все специалисты",
@@ -1503,6 +1513,9 @@
     "completeConsultation": "Завершить консультацию",
     "completeConfirm": "Вы уверены, что хотите завершить эту консультацию?",
     "consultationCompleted": "Консультация завершена",
+    "consultationCancelled": "Отменено",
+    "awaitingPayment": "Ожидание оплаты",
+    "paymentRequiredBanner": "Оплатите консультацию, чтобы начать переписку.",
     "leaveReview": "Оставить отзыв",
     "reviewPlaceholder": "Поделитесь опытом...",
     "submitReview": "Отправить отзыв",
@@ -1550,7 +1563,9 @@
     "approvedHint": "Ваш профиль эксперта опубликован. Управляйте офферами и чатами в портале экспертов.",
     "rejectedHint": "Заявка не одобрена. Обновите профиль и подайте повторно.",
     "expertPending": "Заявка на рассмотрении",
-    "expertRejected": "Подать заявку повторно"
+    "expertRejected": "Подать заявку повторно",
+    "expertUnpublished": "Профиль скрыт",
+    "unpublishedHint": "Ваш профиль временно скрыт из маркетплейса. Свяжитесь с поддержкой, чтобы вернуть его."
   },
   "offers": {
     "noOffers": "Нет услуг",

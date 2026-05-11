@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.36",
+    version: "2.0.37",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "54",
+      buildNumber: "55",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -54,9 +54,11 @@ export default {
           "EatSense needs access to save analyzed food photos to your library.",
         NSLocationWhenInUseUsageDescription:
           "EatSense may use your location to provide location-based nutrition recommendations (optional).",
+        // Microphone required for video consultations with experts (LiveKit).
+        NSMicrophoneUsageDescription:
+          "EatSense uses your microphone for video consultations with your nutritionist or dietitian.",
         // NSHealthShareUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
         // NSHealthUpdateUsageDescription — REMOVED (HealthKit not used in v1.0, planned for Q1 2026)
-        // NSMicrophoneUsageDescription — REMOVED (not used, Apple rejects unused permissions)
         // NSFaceIDUsageDescription — REMOVED (not used, Apple rejects unused permissions)
       },
       associatedDomains: ["applinks:eatsense.app", "applinks:*.eatsense.app"],
@@ -72,9 +74,9 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 91,
+      versionCode: 92,
       adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
-      permissions: ["CAMERA", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
+      permissions: ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
       intentFilters: [{
         action: "VIEW",
         autoVerify: true,
@@ -107,6 +109,8 @@ export default {
       "expo-web-browser",
       "expo-secure-store",
       "expo-camera",
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
       "expo-image-picker",
       "expo-media-library",
       "expo-localization",

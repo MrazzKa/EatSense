@@ -820,6 +820,14 @@
       "feature2": "Consultas directas por chat",
       "feature3": "Compartición segura de datos"
     },
+    "startVideoCall": "Videollamada",
+    "video": {
+      "connecting": "Conectando…",
+      "unavailable": "Las videollamadas aún no están disponibles — próximamente.",
+      "unavailableTitle": "Video no disponible",
+      "noConversation": "Conversación no encontrada",
+      "waitingForPeer": "Esperando al otro participante…"
+    },
     "feature1": "Encuentra especialistas verificados",
     "feature2": "Consultas por chat y video",
     "feature3": "Planes de comidas personalizados",
@@ -830,6 +838,8 @@
     "asClient": "Como Cliente",
     "asExpert": "Como Experto",
     "expertRole": "Experto",
+    "chatTitle": "Chat",
+    "clientFallback": "Cliente",
     "clientRole": "Cliente",
     "startChat": "Iniciar Chat",
     "switchRole": "Cambiar",
@@ -996,6 +1006,9 @@
     "completeConsultation": "Completar consulta",
     "completeConfirm": "¿Estás seguro de que quieres completar esta consulta?",
     "consultationCompleted": "Consulta completada",
+    "consultationCancelled": "Cancelada",
+    "awaitingPayment": "Esperando pago",
+    "paymentRequiredBanner": "Completa el pago para empezar a chatear.",
     "leaveReview": "Dejar una reseña",
     "reviewPlaceholder": "Comparte tu experiencia...",
     "submitReview": "Enviar reseña",
@@ -1042,7 +1055,9 @@
     "approvedHint": "Tu perfil de experto está publicado. Gestiona ofertas y chats desde el portal de expertos.",
     "rejectedHint": "Tu solicitud no fue aprobada. Actualiza tu perfil y vuelve a enviarla.",
     "expertPending": "Solicitud en revisión",
-    "expertRejected": "Volver a enviar"
+    "expertRejected": "Volver a enviar",
+    "expertUnpublished": "Perfil oculto",
+    "unpublishedHint": "Tu perfil está temporalmente oculto del marketplace. Contacta con soporte para volver a publicarlo."
   },
   "feedbackScreen": {
     "alerts": {

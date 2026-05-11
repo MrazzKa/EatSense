@@ -218,11 +218,19 @@ export class UserProfilesService {
         },
       });
 
-      const expertStatus = user?.expertProfile
-        ? (user.expertProfile.isPublished && user.expertProfile.isVerified
-            ? 'approved'
-            : (user.expertProfile.isActive ? 'pending' : 'rejected'))
-        : null;
+      // expertStatus matches the admin filter taxonomy:
+      // - 'approved': currently published + verified
+      // - 'unpublished': previously approved (verified) but admin took offline
+      // - 'pending': fresh application awaiting review (active, not yet verified)
+      // - 'rejected': admin denied (isActive=false)
+      const ep = user?.expertProfile;
+      let expertStatus: 'approved' | 'unpublished' | 'pending' | 'rejected' | null = null;
+      if (ep) {
+        if (ep.isPublished && ep.isVerified) expertStatus = 'approved';
+        else if (ep.isActive && ep.isVerified) expertStatus = 'unpublished';
+        else if (ep.isActive) expertStatus = 'pending';
+        else expertStatus = 'rejected';
+      }
 
       return {
         ...profile,

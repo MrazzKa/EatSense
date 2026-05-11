@@ -2,17 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Globe, Leaf, MessageSquare, Package, Star, User, type LucideIcon } from 'lucide-react';
+import { BarChart3, Globe, Leaf, MessageSquare, Package, Star, User, Wallet, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 
-type NavKey = 'dashboard' | 'chats' | 'offers' | 'reviews' | 'profile';
+type NavKey = 'dashboard' | 'chats' | 'offers' | 'earnings' | 'reviews' | 'profile';
 
 const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
   { href: '/dashboard', key: 'dashboard', icon: BarChart3 },
   { href: '/chats', key: 'chats', icon: MessageSquare },
   { href: '/offers', key: 'offers', icon: Package },
+  { href: '/earnings', key: 'earnings', icon: Wallet },
   { href: '/reviews', key: 'reviews', icon: Star },
   { href: '/profile', key: 'profile', icon: User },
 ];

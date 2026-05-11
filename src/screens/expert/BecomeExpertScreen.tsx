@@ -48,8 +48,31 @@ const LANGUAGES = [
     { code: 'de', label: 'Deutsch' },
     { code: 'es', label: 'Español' },
 ];
+const SUPPORTED_LANG_CODES = LANGUAGES.map(l => l.code);
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
+
+const OFFER_FORMATS = ['CHAT_CONSULTATION', 'VIDEO_CONSULTATION', 'MEAL_PLAN', 'REPORT_REVIEW', 'MONTHLY_SUPPORT', 'CUSTOM'] as const;
+const OFFER_CURRENCIES = ['USD', 'EUR', 'CHF', 'RUB', 'KZT'] as const;
+const MAX_OFFERS = 5;
+type OfferDraft = {
+    name: string;
+    description: string;
+    format: typeof OFFER_FORMATS[number];
+    priceType: 'FREE' | 'FIXED';
+    priceAmount: string;
+    currency: typeof OFFER_CURRENCIES[number];
+    durationDays: string;
+};
+const blankOffer = (): OfferDraft => ({
+    name: '',
+    description: '',
+    format: 'CHAT_CONSULTATION',
+    priceType: 'FREE',
+    priceAmount: '',
+    currency: 'USD',
+    durationDays: '',
+});
 
 export default function BecomeExpertScreen({ navigation }: any) {
     const { colors } = useTheme();
@@ -60,6 +83,15 @@ export default function BecomeExpertScreen({ navigation }: any) {
 
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+
+    // Tracks whether the component is still mounted. Used to skip late state
+    // updates from handleSubmit promises after the screen was popped — avoids
+    // "setState on unmounted component" warnings if the user backs out.
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
 
     // Step 1: Disclaimer
     const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
@@ -148,6 +180,18 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const [documents, setDocuments] = useState<PickedDocument[]>([]);
     const [pickerOpen, setPickerOpen] = useState(false);
 
+    // Step 5: Offers — services the expert provides. At least one is required.
+    const [offers, setOffers] = useState<OfferDraft[]>([blankOffer()]);
+    const updateOffer = useCallback((index: number, patch: Partial<OfferDraft>) => {
+        setOffers(prev => prev.map((o, i) => (i === index ? { ...o, ...patch } : o)));
+    }, []);
+    const addOffer = useCallback(() => {
+        setOffers(prev => (prev.length < MAX_OFFERS ? [...prev, blankOffer()] : prev));
+    }, []);
+    const removeOffer = useCallback((index: number) => {
+        setOffers(prev => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+    }, []);
+
     // Draft auto-save: hydrate on mount, save on changes, clear on successful submit.
     const [draftHydrated, setDraftHydrated] = useState(false);
     const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -172,6 +216,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     if (Array.isArray(draft.selectedLangs) && draft.selectedLangs.length > 0) setSelectedLangs(draft.selectedLangs);
                     if (Array.isArray(draft.documents)) setDocuments(draft.documents);
                     if (typeof draft.country === 'string') setCountry(draft.country);
+                    if (Array.isArray(draft.offers) && draft.offers.length > 0) setOffers(draft.offers);
                 }
             } catch (err) {
                 console.warn('[BecomeExpert] Failed to hydrate draft:', err);
@@ -198,6 +243,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 selectedLangs,
                 documents,
                 country,
+                offers,
             };
             AsyncStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft)).catch((err) =>
                 console.warn('[BecomeExpert] Failed to save draft:', err),
@@ -206,7 +252,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
         return () => {
             if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
         };
-    }, [draftHydrated, step, disclaimerAccepted, displayName, type, bio, educationEntries, experienceYears, selectedSpecs, selectedLangs, documents, country]);
+    }, [draftHydrated, step, disclaimerAccepted, displayName, type, bio, educationEntries, experienceYears, selectedSpecs, selectedLangs, documents, country, offers]);
 
     const clearDraft = useCallback(() => {
         AsyncStorage.removeItem(DRAFT_STORAGE_KEY).catch(() => {});
@@ -248,12 +294,31 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 return null;
             case 4:
                 return documents.length >= 1 ? null : (t('experts.onboarding.errorDocsRequired') || 'Please attach at least one document.');
-            case 5:
+            case 5: {
+                // Offers step — at least 1 offer with name + valid price (if FIXED).
+                if (offers.length === 0) {
+                    return t('experts.onboarding.errorOffersRequired') || 'Please add at least one service offer.';
+                }
+                for (let i = 0; i < offers.length; i += 1) {
+                    const o = offers[i];
+                    if (!o.name.trim()) {
+                        return t('experts.onboarding.errorOfferNameRequired') || `Offer #${i + 1}: name is required.`;
+                    }
+                    if (o.priceType === 'FIXED') {
+                        const amount = parseFloat(o.priceAmount);
+                        if (!isFinite(amount) || amount <= 0) {
+                            return t('experts.onboarding.errorOfferPrice') || `Offer #${i + 1}: enter a valid price (greater than 0).`;
+                        }
+                    }
+                }
+                return null;
+            }
+            case 6:
                 return null;
             default:
                 return 'Invalid step';
         }
-    }, [step, disclaimerAccepted, displayName, country, bio, educationEntries, selectedSpecs, selectedLangs, documents.length, t]);
+    }, [step, disclaimerAccepted, displayName, country, bio, educationEntries, selectedSpecs, selectedLangs, documents.length, offers, t]);
 
     const canGoNext = validationError === null;
 
@@ -483,13 +548,14 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     languages: selectedLangs,
                     country: country || undefined,
                 });
-                // Wipe existing education entries + credentials so retry doesn't pile up
-                // duplicates (e.g. retrying with 3 educations when 2 were already uploaded
-                // would otherwise create 5 entries total).
+                // Wipe existing education entries + credentials + offers so retry doesn't
+                // pile up duplicates (e.g. retrying with 3 educations when 2 were already
+                // uploaded would otherwise create 5 entries total).
                 try {
-                    const [existingEducation, existingCredentials] = await Promise.all([
+                    const [existingEducation, existingCredentials, existingOffers] = await Promise.all([
                         MarketplaceService.getMyEducation().catch(() => []),
                         MarketplaceService.getMyCredentials().catch(() => []),
+                        MarketplaceService.getMyOffers().catch(() => []),
                     ]);
                     await Promise.all([
                         ...((existingEducation || []) as any[]).map((e) =>
@@ -498,9 +564,28 @@ export default function BecomeExpertScreen({ navigation }: any) {
                         ...((existingCredentials || []) as any[]).map((c) =>
                             MarketplaceService.deleteCredential(c.id).catch(() => {}),
                         ),
+                        ...((existingOffers || []) as any[]).map((o) =>
+                            MarketplaceService.deleteOffer(o.id).catch(() => {}),
+                        ),
                     ]);
                 } catch (cleanupErr) {
                     console.warn('[BecomeExpert] Cleanup before retry failed:', cleanupErr);
+                }
+            }
+
+            // 1b. Clean up auto-created offer from profile creation (backend creates
+            // a single free chat offer at /me/profile creation time — we replace it
+            // with the user's explicit offer list).
+            if (!profileExists) {
+                try {
+                    const autoOffers = await MarketplaceService.getMyOffers();
+                    await Promise.all(
+                        ((autoOffers || []) as any[]).map((o) =>
+                            MarketplaceService.deleteOffer(o.id).catch(() => {}),
+                        ),
+                    );
+                } catch (err) {
+                    console.warn('[BecomeExpert] Failed to clear auto-created offer:', err);
                 }
             }
 
@@ -546,36 +631,74 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 }
             }
 
-            const allFailed = credentialFailures.length === documents.length && educationFailures.length === educationEntries.length;
-            if (allFailed) {
+            // 4. Create offers (services the expert provides — required since step 5)
+            const offerFailures: string[] = [];
+            for (let i = 0; i < offers.length; i += 1) {
+                const o = offers[i];
+                const isFixed = o.priceType === 'FIXED';
+                const isVideo = o.format === 'VIDEO_CONSULTATION';
+                const durationNum = o.durationDays ? parseInt(o.durationDays, 10) : undefined;
+                const payload: any = {
+                    // Localized names — provide all 6 languages with the same value so
+                    // the marketplace doesn't fall back to '—' for non-English locales.
+                    // Expert can later edit per-locale in the portal.
+                    name: SUPPORTED_LANG_CODES.reduce((acc, code) => ({ ...acc, [code]: o.name.trim() }), {} as Record<string, string>),
+                    description: o.description.trim()
+                        ? SUPPORTED_LANG_CODES.reduce((acc, code) => ({ ...acc, [code]: o.description.trim() }), {} as Record<string, string>)
+                        : undefined,
+                    format: o.format,
+                    priceType: o.priceType,
+                    priceAmount: isFixed ? parseFloat(o.priceAmount) : undefined,
+                    currency: o.currency,
+                    // For video consultations the duration input represents per-session
+                    // minutes, not days — store it in slotMinutes (backend schema field).
+                    durationDays: isVideo ? undefined : durationNum,
+                    slotMinutes: isVideo ? durationNum : undefined,
+                    isPublished: true,
+                    sortOrder: i,
+                };
+                try {
+                    await MarketplaceService.createOffer(payload);
+                } catch (err: any) {
+                    console.warn('Offer create failed:', o.name, err?.message);
+                    offerFailures.push(o.name || `#${i + 1}`);
+                }
+            }
+
+            // ANY upload/create failure must block the success screen — otherwise the
+            // applicant thinks they submitted but the admin will reject for missing
+            // documents. Cleanup logic above runs on retry, so re-pressing Submit
+            // will redo only the failures (existing successful uploads were wiped
+            // and will be re-uploaded fresh — keeps things consistent).
+            const allFailures = [...educationFailures, ...credentialFailures, ...offerFailures];
+            if (allFailures.length > 0) {
                 Alert.alert(
-                    t('experts.onboarding.uploadFailed'),
-                    (t('experts.onboarding.allCredentialsFailed') as string)
-                        || 'All documents failed to upload. Without credentials the admin will likely reject your profile. Please retry.',
+                    t('experts.onboarding.uploadFailed') || 'Upload failed',
+                    (t('experts.onboarding.uploadFailedMessage') as string ||
+                        'Some documents failed to upload. Please retry — your application will not be submitted until all files are uploaded successfully.') +
+                        '\n\n' + allFailures.join(', '),
                 );
                 return;
             }
 
-            const allFailures = [...educationFailures, ...credentialFailures];
-            if (allFailures.length > 0) {
-                Alert.alert(
-                    t('experts.onboarding.uploadFailed'),
-                    t('experts.onboarding.uploadFailedMessage') + '\n\n' + allFailures.join(', '),
-                );
-            }
-
             await refreshUser();
             clearDraft();
-            setStep(6);
+            if (mountedRef.current) {
+                setStep(7);
+            }
         } catch (error: any) {
-            Alert.alert(
-                t('common.error'),
-                error?.message || t('experts.onboarding.profileCreateFailed') || 'Failed to create profile',
-            );
+            if (mountedRef.current) {
+                Alert.alert(
+                    t('common.error'),
+                    error?.message || t('experts.onboarding.profileCreateFailed') || 'Failed to create profile',
+                );
+            }
         } finally {
-            setLoading(false);
+            if (mountedRef.current) {
+                setLoading(false);
+            }
         }
-    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, educationEntries, refreshUser, t, clearDraft]);
+    }, [type, displayName, bio, composedEducation, experienceYears, selectedSpecs, selectedLangs, documents, educationEntries, offers, country, refreshUser, t, clearDraft]);
 
     const handleNext = useCallback(() => {
         if (validationError) {
@@ -585,7 +708,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             );
             return;
         }
-        if (step === 5) {
+        if (step === 6) {
             handleSubmit();
         } else {
             setStep(s => s + 1);
@@ -835,6 +958,25 @@ export default function BecomeExpertScreen({ navigation }: any) {
                                     <Text style={styles.pickerOptionText}>{opt.name}</Text>
                                 </TouchableOpacity>
                             ))}
+                            {/* Free-form ISO 3166-1 alpha-2 code entry for countries not in
+                                the short list above (e.g. AR, BR, JP). Backend caps at 2 chars. */}
+                            <View style={[styles.pickerOption, { gap: 8 }]}>
+                                <Ionicons name="globe-outline" size={20} color={colors.primary} />
+                                <Text style={styles.pickerOptionText}>
+                                    {t('experts.edit.countryOther') || 'Other (ISO code):'}
+                                </Text>
+                                <TextInput
+                                    style={[styles.input, { flex: 1, marginVertical: 0, marginLeft: 8, paddingVertical: 6, textTransform: 'uppercase' }]}
+                                    value={
+                                        COUNTRY_OPTIONS.some(o => o.code === country) ? '' : country
+                                    }
+                                    autoCapitalize="characters"
+                                    maxLength={2}
+                                    placeholder="AR"
+                                    placeholderTextColor={colors.textSecondary}
+                                    onChangeText={(v) => setCountry(v.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2))}
+                                />
+                            </View>
                         </ScrollView>
                         <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryPickerOpen(false)}>
                             <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
@@ -951,6 +1093,148 @@ export default function BecomeExpertScreen({ navigation }: any) {
 
     const renderStep5 = () => (
         <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+            <Text style={styles.stepTitle}>{t('experts.onboarding.step5OffersTitle') || 'Your services'}</Text>
+            <Text style={styles.stepSubtitle}>
+                {t('experts.onboarding.step5OffersSub') ||
+                    'Add at least one service you offer. Each becomes a buyable card on your public profile. You can edit prices anytime in your portal.'}
+            </Text>
+
+            {offers.map((o, idx) => (
+                <View key={idx} style={[styles.previewCard, { marginBottom: 12 }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={{ fontWeight: '700', color: colors.text }}>
+                            {(t('experts.onboarding.offer') || 'Service')} #{idx + 1}
+                        </Text>
+                        {offers.length > 1 && (
+                            <TouchableOpacity onPress={() => removeOffer(idx)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                                <Ionicons name="close-circle" size={22} color={colors.error || '#FF3B30'} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    <Text style={styles.label}>{t('experts.edit.offerName') || 'Name'} *</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={o.name}
+                        onChangeText={(v) => updateOffer(idx, { name: v })}
+                        placeholder={t('experts.onboarding.offerNamePlaceholder') || 'e.g. 30-min chat consultation'}
+                        placeholderTextColor={colors.textSecondary}
+                        maxLength={80}
+                    />
+
+                    <Text style={styles.label}>{t('experts.edit.description') || 'Description'}</Text>
+                    <TextInput
+                        style={[styles.input, styles.textArea]}
+                        value={o.description}
+                        onChangeText={(v) => updateOffer(idx, { description: v })}
+                        placeholder={t('experts.onboarding.offerDescPlaceholder') || 'What’s included'}
+                        placeholderTextColor={colors.textSecondary}
+                        multiline
+                        maxLength={400}
+                    />
+
+                    <Text style={styles.label}>{t('experts.edit.format') || 'Format'}</Text>
+                    <View style={[styles.chipContainer, { marginBottom: 8 }]}>
+                        {OFFER_FORMATS.map((f) => (
+                            <TouchableOpacity
+                                key={f}
+                                style={[styles.chip, o.format === f && styles.chipActive]}
+                                onPress={() => updateOffer(idx, { format: f })}
+                            >
+                                <Text style={[styles.chipText, o.format === f && styles.chipTextActive]}>
+                                    {t(`experts.offerFormat.${f}`) || f}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <Text style={styles.label}>{t('experts.edit.priceType') || 'Price type'}</Text>
+                    <View style={[styles.chipContainer, { marginBottom: 8 }]}>
+                        {(['FREE', 'FIXED'] as const).map((pt) => (
+                            <TouchableOpacity
+                                key={pt}
+                                style={[styles.chip, o.priceType === pt && styles.chipActive]}
+                                onPress={() => updateOffer(idx, { priceType: pt })}
+                            >
+                                <Text style={[styles.chipText, o.priceType === pt && styles.chipTextActive]}>
+                                    {pt === 'FREE' ? (t('experts.priceFree') || 'Free') : (t('experts.priceFixed') || 'Fixed')}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {o.priceType === 'FIXED' && (
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                            <View style={{ flex: 2 }}>
+                                <Text style={styles.label}>{t('experts.edit.price') || 'Price'} *</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={o.priceAmount}
+                                    onChangeText={(v) => {
+                                        // Strip non-numeric chars, then keep only the first decimal point
+                                        // (filter "1.2.3" → "1.23", not "1.2" which parseFloat would silently truncate).
+                                        const cleaned = v.replace(/[^0-9.]/g, '');
+                                        const firstDot = cleaned.indexOf('.');
+                                        const normalized = firstDot < 0
+                                            ? cleaned
+                                            : cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, '');
+                                        updateOffer(idx, { priceAmount: normalized });
+                                    }}
+                                    placeholder="50"
+                                    placeholderTextColor={colors.textSecondary}
+                                    keyboardType="decimal-pad"
+                                    maxLength={10}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.label}>{t('experts.edit.currency') || 'Currency'}</Text>
+                                <View style={[styles.chipContainer, { marginBottom: 0 }]}>
+                                    {OFFER_CURRENCIES.map((c) => (
+                                        <TouchableOpacity
+                                            key={c}
+                                            style={[styles.chip, o.currency === c && styles.chipActive]}
+                                            onPress={() => updateOffer(idx, { currency: c })}
+                                        >
+                                            <Text style={[styles.chipText, o.currency === c && styles.chipTextActive]}>{c}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+                        </View>
+                    )}
+
+                    <Text style={styles.label}>
+                        {o.format === 'VIDEO_CONSULTATION'
+                            ? (t('experts.edit.durationMinutes') || 'Session duration (minutes)')
+                            : (t('experts.edit.duration') || 'Duration (days)')}
+                    </Text>
+                    <TextInput
+                        style={styles.input}
+                        value={o.durationDays}
+                        onChangeText={(v) => updateOffer(idx, { durationDays: v.replace(/[^0-9]/g, '') })}
+                        placeholder={
+                            o.format === 'VIDEO_CONSULTATION'
+                                ? (t('experts.onboarding.durationMinutesPlaceholder') || 'e.g. 30')
+                                : (t('experts.onboarding.durationPlaceholder') || 'e.g. 7')
+                        }
+                        placeholderTextColor={colors.textSecondary}
+                        keyboardType="number-pad"
+                        maxLength={4}
+                    />
+                </View>
+            ))}
+
+            {offers.length < MAX_OFFERS && (
+                <TouchableOpacity style={styles.uploadButton} onPress={addOffer}>
+                    <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
+                    <Text style={styles.uploadButtonText}>{t('experts.onboarding.addOffer') || 'Add another service'}</Text>
+                </TouchableOpacity>
+            )}
+        </ScrollView>
+    );
+
+    const renderStep6 = () => (
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
             <Text style={styles.stepTitle}>{t('experts.onboarding.step5Title')}</Text>
             <Text style={styles.stepSubtitle}>{t('experts.onboarding.step5Sub')}</Text>
 
@@ -1029,11 +1313,28 @@ export default function BecomeExpertScreen({ navigation }: any) {
                         <Text style={styles.previewText}>{documents.length} {t('experts.onboarding.documentUploaded').toLowerCase()}</Text>
                     </>
                 )}
+
+                {offers.length > 0 && (
+                    <>
+                        <Text style={styles.previewSectionTitle}>{t('experts.offers') || 'Services'}</Text>
+                        {offers.map((o, idx) => (
+                            <View key={idx} style={{ marginBottom: tokens.spacing.xs }}>
+                                <Text style={styles.previewText}>
+                                    • {o.name || `(${t('experts.onboarding.offer') || 'service'} #${idx + 1})`}
+                                    {' · '}
+                                    {o.priceType === 'FREE'
+                                        ? (t('experts.priceFree') || 'Free')
+                                        : `${o.currency} ${o.priceAmount || '?'}`}
+                                </Text>
+                            </View>
+                        ))}
+                    </>
+                )}
             </View>
         </ScrollView>
     );
 
-    const renderStep6 = () => (
+    const renderStep7 = () => (
         <View style={[styles.stepContent, styles.centeredContent]}>
             <Ionicons name="hourglass-outline" size={64} color={colors.primary} />
             <Text style={styles.stepTitle}>{t('experts.onboarding.step6Title')}</Text>
@@ -1055,6 +1356,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             case 4: return renderStep4();
             case 5: return renderStep5();
             case 6: return renderStep6();
+            case 7: return renderStep7();
             default: return null;
         }
     };
@@ -1063,8 +1365,12 @@ export default function BecomeExpertScreen({ navigation }: any) {
         <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                {step < 6 && (
-                    <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                {step < 7 && (
+                    <TouchableOpacity
+                        onPress={handleBack}
+                        style={[styles.backButton, loading && { opacity: 0.4 }]}
+                        disabled={loading}
+                    >
                         <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </TouchableOpacity>
                 )}
@@ -1082,7 +1388,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             </KeyboardAvoidingView>
 
             {/* Bottom buttons */}
-            {step < 6 && (
+            {step < 7 && (
                 <View style={styles.bottomBar}>
                     {validationError && (
                         <Text style={styles.validationHint} numberOfLines={2}>
@@ -1099,7 +1405,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                             <ActivityIndicator color="#FFFFFF" />
                         ) : (
                             <Text style={styles.primaryButtonText}>
-                                {step === 5 ? t('experts.onboarding.submitForReview') : (t('common.next') || 'Next')}
+                                {step === 6 ? t('experts.onboarding.submitForReview') : (t('common.next') || 'Next')}
                             </Text>
                         )}
                     </TouchableOpacity>

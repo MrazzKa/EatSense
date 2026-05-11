@@ -2258,6 +2258,11 @@ const ProfileScreen = () => {
                       safeT('experts.expertRole', 'Expert'),
                       safeT('experts.approvedHint', 'Your expert profile is live. Manage offers and chats from the expert portal.'),
                     );
+                  } else if (status === 'unpublished') {
+                    Alert.alert(
+                      safeT('experts.expertRole', 'Expert'),
+                      safeT('experts.unpublishedHint', 'Your profile is temporarily hidden from the marketplace. Contact support to re-publish.'),
+                    );
                   } else if (status === 'pending') {
                     Alert.alert(
                       safeT('experts.expertRole', 'Expert'),
@@ -2279,6 +2284,7 @@ const ProfileScreen = () => {
                   {(() => {
                     const status = (user as any)?.expertStatus;
                     if (status === 'approved') return safeT('experts.expertRole', 'Expert Profile');
+                    if (status === 'unpublished') return safeT('experts.expertUnpublished', 'Profile unpublished');
                     if (status === 'pending') return safeT('experts.expertPending', 'Application pending');
                     if (status === 'rejected') return safeT('experts.expertRejected', 'Re-submit application');
                     return safeT('experts.becomeExpert', 'Become an Expert');

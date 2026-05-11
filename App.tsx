@@ -5,6 +5,10 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+// Register WebRTC + crypto globals required by LiveKit before any LiveKit code
+// runs. Must be top-level so it executes before VideoCallScreen mounts.
+import { registerGlobals as registerLiveKitGlobals } from '@livekit/react-native';
+registerLiveKitGlobals();
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { I18nProvider } from './app/i18n/provider';
 import { ensureI18nReady } from './app/i18n/config';
@@ -40,6 +44,7 @@ const LegalMenuScreen = withSuspense(React.lazy(() => import('./src/screens/Lega
 const SuggestedFoodScreen = withSuspense(React.lazy(() => import('./src/screens/SuggestedFoodScreen')));
 const MedicationScheduleScreen = withSuspense(React.lazy(() => import('./src/screens/MedicationScheduleScreen')));
 const ChatScreen = withSuspense(React.lazy(() => import('./src/screens/ChatScreen')));
+const VideoCallScreen = withSuspense(React.lazy(() => import('./src/screens/VideoCallScreen')));
 const ConsultationsListScreen = withSuspense(React.lazy(() => import('./src/screens/ConsultationsListScreen')));
 const DietProgramsListScreen = withSuspense(React.lazy(() => import('./src/screens/DietProgramsListScreen')));
 const DietProgramDetailScreen = withSuspense(React.lazy(() => import('./src/screens/DietProgramDetailScreen')));
@@ -293,6 +298,11 @@ function AppContent() {
                 name="Chat"
                 component={ChatScreen}
                 options={{ presentation: 'card' }}
+              />
+              <Stack.Screen
+                name="VideoCall"
+                component={VideoCallScreen}
+                options={{ presentation: 'modal', headerShown: false, gestureEnabled: false }}
               />
               <Stack.Screen
                 name="ConsultationsList"

@@ -141,6 +141,14 @@ export default function ConsultationsListScreen({ navigation }) {
                             )}
                         </View>
 
+                        {item.status === 'payment_pending' && (
+                            <View style={styles.statusRow}>
+                                <Ionicons name="card-outline" size={14} color="#F59E0B" />
+                                <Text style={[styles.statusText, { color: '#F59E0B' }]}>
+                                    {t('experts.awaitingPayment') || 'Awaiting payment'}
+                                </Text>
+                            </View>
+                        )}
                         {isCompleted && (
                             <View style={styles.statusRow}>
                                 <Ionicons name="checkmark-done" size={14} color={colors.textSecondary || '#9CA3AF'} />

@@ -1,10 +1,16 @@
 import { Body, Controller, Get, Headers, Param, Post, Request, UseGuards, RawBodyRequest, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PaymentsService } from './payments.service';
 
 class CreateOfferIntentDto {
+    @IsString()
+    @IsNotEmpty()
     offerId!: string;
+
+    @IsString()
+    @IsNotEmpty()
     conversationId!: string;
 }
 

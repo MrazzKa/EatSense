@@ -24,12 +24,14 @@ import { useAuth } from '../contexts/AuthContext';
 import MarketplaceService from '../services/marketplaceService';
 import ApiService from '../services/apiService';
 import * as ImagePicker from 'expo-image-picker';
+import * as Notifications from 'expo-notifications';
 import ReviewModal from '../components/common/ReviewModal';
 import DisclaimerModal from '../components/common/DisclaimerModal';
 import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 
 const POLL_FAST_MS = 4000;
 const POLL_SLOW_MS = 8000;
+const POLL_MAX_MS = 60000; // backoff cap on consecutive errors
 const IDLE_THRESHOLD_MS = 30000;
 
 export default function ChatScreen({ navigation, route }) {
@@ -97,10 +99,12 @@ export default function ChatScreen({ navigation, route }) {
     useFocusEffect(
         useCallback(() => {
             let cancelled = false;
+            let consecutiveErrors = 0;
 
             const tick = async () => {
                 try {
                     const messagesData = await MarketplaceService.getMessages(conversationId);
+                    consecutiveErrors = 0;
                     const msgs = Array.isArray(messagesData) ? messagesData : [];
                     if (msgs.length > 0) {
                         const latestId = msgs[msgs.length - 1].id;
@@ -112,14 +116,18 @@ export default function ChatScreen({ navigation, route }) {
                         }
                     }
                 } catch {
-                    // silent — polling failure is not critical
+                    consecutiveErrors += 1;
                 }
             };
 
             const schedule = () => {
                 if (cancelled) return;
                 const idleFor = Date.now() - lastActivityRef.current;
-                const delay = idleFor > IDLE_THRESHOLD_MS ? POLL_SLOW_MS : POLL_FAST_MS;
+                const base = idleFor > IDLE_THRESHOLD_MS ? POLL_SLOW_MS : POLL_FAST_MS;
+                // Exponential backoff on consecutive failures: 4s → 8s → 16s → 32s → 60s (capped).
+                const delay = consecutiveErrors > 0
+                    ? Math.min(base * Math.pow(2, consecutiveErrors), POLL_MAX_MS)
+                    : base;
                 pollingRef.current = setTimeout(async () => {
                     await tick();
                     schedule();
@@ -136,6 +144,18 @@ export default function ChatScreen({ navigation, route }) {
             lastActivityRef.current = Date.now();
             schedule();
 
+            // Instant refresh on push — short-circuit the polling delay when a
+            // new_message arrives for this conversation.
+            const pushSub = Notifications.addNotificationReceivedListener((event) => {
+                const data = (event.request?.content?.data || {}) as Record<string, any>;
+                if (data.type === 'new_message' && data.conversationId === conversationId) {
+                    stop();
+                    tick().finally(() => {
+                        if (!cancelled) schedule();
+                    });
+                }
+            });
+
             const sub = AppState.addEventListener('change', (state) => {
                 if (state === 'active') {
                     lastActivityRef.current = Date.now();
@@ -149,6 +169,7 @@ export default function ChatScreen({ navigation, route }) {
                 cancelled = true;
                 stop();
                 sub.remove();
+                pushSub.remove();
             };
         }, [conversationId])
     );
@@ -237,33 +258,34 @@ export default function ChatScreen({ navigation, route }) {
         );
     }, [t, pickFromCamera, pickFromGallery]);
 
-    const handleShareMeals = useCallback(async () => {
+    const shareMealsForDays = useCallback(async (days: number) => {
+        try {
+            const toDate = new Date();
+            const fromDate = new Date(toDate.getTime() - days * 24 * 60 * 60 * 1000);
+            const newMessage = await MarketplaceService.shareMeals(
+                conversationId,
+                fromDate.toISOString(),
+                toDate.toISOString(),
+            );
+            setMessages((prev) => [...prev, newMessage]);
+            lastMessageIdRef.current = newMessage.id;
+        } catch {
+            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to share meals');
+        }
+    }, [conversationId, t]);
+
+    const handleShareMeals = useCallback(() => {
         Alert.alert(
-            t('experts.shareData') || 'Share Data',
-            t('experts.shareDataConfirm') || 'Share your meals from the last 7 days?',
+            t('experts.shareData') || 'Share Meals',
+            t('experts.shareMealsRangePrompt') || 'Choose how far back to share your meal log:',
             [
                 { text: t('common.cancel') || 'Cancel', style: 'cancel' },
-                {
-                    text: t('common.confirm') || 'Confirm',
-                    onPress: async () => {
-                        try {
-                            const toDate = new Date();
-                            const fromDate = new Date(toDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-                            const newMessage = await MarketplaceService.shareMeals(
-                                conversationId,
-                                fromDate.toISOString(),
-                                toDate.toISOString(),
-                            );
-                            setMessages((prev) => [...prev, newMessage]);
-                            lastMessageIdRef.current = newMessage.id;
-                        } catch {
-                            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to share meals');
-                        }
-                    },
-                },
+                { text: t('experts.shareLast3Days') || 'Last 3 days', onPress: () => shareMealsForDays(3) },
+                { text: t('experts.shareLast7Days') || 'Last 7 days', onPress: () => shareMealsForDays(7) },
+                { text: t('experts.shareLast30Days') || 'Last 30 days', onPress: () => shareMealsForDays(30) },
             ],
         );
-    }, [conversationId, t]);
+    }, [shareMealsForDays, t]);
 
     const requestDataInFlightRef = useRef(false);
     const handleRequestData = useCallback(async () => {
@@ -284,27 +306,76 @@ export default function ChatScreen({ navigation, route }) {
         }
     }, [conversationId, t]);
 
-    const handleGrantAccess = useCallback(async () => {
-        try {
-            await MarketplaceService.updateConversation(conversationId, { reportsShared: true });
-            setConversation((prev) => ({ ...prev, reportsShared: true }));
-            // Send confirmation message
-            const newMessage = await MarketplaceService.sendMessage(
-                conversationId,
-                t('experts.accessGranted') || 'Access to nutrition data granted.',
-                'report_grant',
-            );
-            setMessages((prev) => [...prev, newMessage]);
-            lastMessageIdRef.current = newMessage.id;
-        } catch {
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
-        }
-    }, [conversationId, t]);
+    const grantScopes = useCallback(
+        async (scopes: { meals: boolean; analyses: boolean; medications: boolean }) => {
+            try {
+                await MarketplaceService.updateConversation(conversationId, {
+                    shareMeals: scopes.meals,
+                    shareAnalyses: scopes.analyses,
+                    shareMedications: scopes.medications,
+                });
+                setConversation((prev) => ({
+                    ...prev,
+                    reportsShared: scopes.meals || scopes.analyses || scopes.medications,
+                    shareMeals: scopes.meals,
+                    shareAnalyses: scopes.analyses,
+                    shareMedications: scopes.medications,
+                }));
+                const labels: string[] = [];
+                if (scopes.meals) labels.push(t('experts.shareMealsShort') || 'meals');
+                if (scopes.analyses) labels.push(t('experts.shareAnalysesShort') || 'analyses');
+                if (scopes.medications) labels.push(t('experts.shareMedicationsShort') || 'medications');
+                const summary = labels.length === 3
+                    ? (t('experts.accessGrantedAll') || 'Access granted: meals, analyses, medications.')
+                    : (t('experts.accessGrantedScoped') || `Access granted: ${labels.join(', ')}.`);
+                const newMessage = await MarketplaceService.sendMessage(conversationId, summary, 'report_grant');
+                setMessages((prev) => [...prev, newMessage]);
+                lastMessageIdRef.current = newMessage.id;
+            } catch {
+                Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
+            }
+        },
+        [conversationId, t],
+    );
+
+    // Picker — let the client choose what to share. "All" is the default fast path.
+    const handleGrantAccess = useCallback(() => {
+        Alert.alert(
+            t('experts.chooseDataToShare') || 'Choose data to share',
+            t('experts.chooseDataToShareBody') ||
+                'You can revoke access at any time. Sharing automatically ends when the consultation is marked complete.',
+            [
+                { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+                {
+                    text: t('experts.shareAll') || 'Share everything',
+                    onPress: () => grantScopes({ meals: true, analyses: true, medications: true }),
+                },
+                {
+                    text: t('experts.shareMealsOnly') || 'Meals only',
+                    onPress: () => grantScopes({ meals: true, analyses: false, medications: false }),
+                },
+                {
+                    text: t('experts.shareAnalysesOnly') || 'Analyses only',
+                    onPress: () => grantScopes({ meals: false, analyses: true, medications: false }),
+                },
+            ],
+        );
+    }, [grantScopes, t]);
 
     const handleRevokeAccess = useCallback(async () => {
         try {
-            await MarketplaceService.updateConversation(conversationId, { reportsShared: false });
-            setConversation((prev) => ({ ...prev, reportsShared: false }));
+            await MarketplaceService.updateConversation(conversationId, {
+                shareMeals: false,
+                shareAnalyses: false,
+                shareMedications: false,
+            });
+            setConversation((prev) => ({
+                ...prev,
+                reportsShared: false,
+                shareMeals: false,
+                shareAnalyses: false,
+                shareMedications: false,
+            }));
             const newMessage = await MarketplaceService.sendMessage(
                 conversationId,
                 t('experts.accessRevoked') || 'Access to nutrition data revoked.',
@@ -382,6 +453,12 @@ export default function ChatScreen({ navigation, route }) {
             actions.push({ label: t('experts.requestDataAccess') || 'Request Data Access', handler: handleRequestData });
             actions.push({ label: t('experts.completeConsultation') || 'Complete Consultation', handler: handleCompleteConsultation });
         }
+        if (isActive) {
+            actions.push({
+                label: t('experts.startVideoCall') || 'Start video call',
+                handler: () => navigation.navigate('VideoCall', { conversationId }),
+            });
+        }
         actions.push({ label: t('experts.reportAbuse') || 'Report', handler: handleReport, destructive: true });
 
         if (Platform.OS === 'ios') {
@@ -411,12 +488,12 @@ export default function ChatScreen({ navigation, route }) {
     );
 
     const getOtherPartyName = () => {
-        if (!conversation) return 'Chat';
+        if (!conversation) return t('experts.chatTitle') || 'Chat';
         if (conversation.isClient) {
-            return conversation.expert?.displayName || 'Expert';
+            return conversation.expert?.displayName || t('experts.expertRole') || 'Expert';
         }
         const cp = conversation.client?.userProfile;
-        return cp?.firstName || 'Client';
+        return cp?.firstName || t('experts.clientFallback') || 'Client';
     };
 
     const isActive = conversation?.status === 'active';
@@ -548,12 +625,31 @@ export default function ChatScreen({ navigation, route }) {
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
                     <Text style={styles.headerTitle} numberOfLines={1}>{getOtherPartyName()}</Text>
-                    <Text style={[styles.headerSubtitle, { color: isActive ? '#4CAF50' : colors.textSecondary || '#9CA3AF' }]}>
+                    <Text style={[styles.headerSubtitle, {
+                        color: isActive
+                            ? '#4CAF50'
+                            : conversation?.status === 'payment_pending'
+                                ? '#F59E0B'
+                                : colors.textSecondary || '#9CA3AF',
+                    }]}>
                         {isActive
                             ? (t('experts.activeConsultation') || 'Active')
-                            : (t('experts.consultationCompleted') || 'Completed')}
+                            : conversation?.status === 'payment_pending'
+                                ? (t('experts.awaitingPayment') || 'Awaiting payment')
+                                : conversation?.status === 'cancelled'
+                                    ? (t('experts.consultationCancelled') || 'Cancelled')
+                                    : (t('experts.consultationCompleted') || 'Completed')}
                     </Text>
                 </View>
+                {isActive && (
+                    <TouchableOpacity
+                        style={styles.headerAction}
+                        onPress={() => navigation.navigate('VideoCall', { conversationId })}
+                        accessibilityLabel={t('experts.startVideoCall') || 'Start video call'}
+                    >
+                        <Ionicons name="videocam-outline" size={24} color={colors.primary || '#4CAF50'} />
+                    </TouchableOpacity>
+                )}
                 <TouchableOpacity style={styles.headerAction} onPress={handleMoreMenu}>
                     <Ionicons name="ellipsis-vertical" size={22} color={colors.textPrimary || '#212121'} />
                 </TouchableOpacity>
@@ -617,12 +713,18 @@ export default function ChatScreen({ navigation, route }) {
             ) : (
                 <View style={styles.endedBanner}>
                     <View style={styles.endedRow}>
-                        <Ionicons name="checkmark-done" size={18} color={colors.textSecondary || '#9CA3AF'} />
+                        <Ionicons
+                            name={conversation?.status === 'payment_pending' ? 'card-outline' : 'checkmark-done'}
+                            size={18}
+                            color={conversation?.status === 'payment_pending' ? '#F59E0B' : colors.textSecondary || '#9CA3AF'}
+                        />
                         <Text style={styles.endedText}>
-                            {t('experts.consultationCompleted') || 'Consultation completed'}
+                            {conversation?.status === 'payment_pending'
+                                ? (t('experts.paymentRequiredBanner') || 'Complete payment to start messaging.')
+                                : (t('experts.consultationCompleted') || 'Consultation completed')}
                         </Text>
                     </View>
-                    {conversation?.isClient && (
+                    {conversation?.isClient && conversation?.status === 'completed' && (
                         <TouchableOpacity style={styles.reviewButton} onPress={() => setShowReview(true)}>
                             <Ionicons name="star-outline" size={18} color="#FFF" />
                             <Text style={styles.reviewButtonText}>

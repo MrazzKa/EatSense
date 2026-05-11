@@ -207,6 +207,15 @@ export class ExpertsService {
             throw new NotFoundException('Expert profile not found');
         }
 
+        // Re-submit after rejection: clear rejection fields and re-activate so
+        // the profile shows up in the admin "Pending" filter again. Without this
+        // a rejected applicant who fixes their docs and resubmits stays
+        // permanently invisible to the admin (isActive=false → no pending row).
+        const isResubmit = expert.isActive === false;
+        const resubmitPatch = isResubmit
+            ? { isActive: true, isVerified: false, isPublished: false, rejectedAt: null, rejectionReason: null }
+            : {};
+
         return this.prisma.expertProfile.update({
             where: { userId },
             data: {
@@ -222,6 +231,7 @@ export class ExpertsService {
                 contactPolicy: dto.contactPolicy,
                 country: dto.country,
                 isActive: dto.isActive,
+                ...resubmitPatch,
             },
         });
     }

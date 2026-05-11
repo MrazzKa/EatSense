@@ -2,14 +2,17 @@ import {
     Controller,
     Get,
     Post,
+    Patch,
     Param,
     Body,
     Headers,
     Query,
+    Req,
     UnauthorizedException,
     BadRequestException,
     Logger,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -29,6 +32,30 @@ export class ExpertsAdminController {
         }
     }
 
+    private async writeAudit(
+        action: string,
+        targetType: string,
+        targetId: string | null,
+        payload: Record<string, any> | null,
+        req?: Request,
+    ) {
+        try {
+            await this.prisma.adminAuditLog.create({
+                data: {
+                    action,
+                    targetType,
+                    targetId: targetId ?? undefined,
+                    payload: payload ?? undefined,
+                    adminIdentifier: 'env-admin',
+                    ipAddress: req?.ip ?? req?.headers?.['x-forwarded-for']?.toString() ?? null,
+                },
+            });
+        } catch (err: any) {
+            // Never let audit logging break the actual admin action.
+            this.logger.warn(`Audit log write failed: ${err?.message}`);
+        }
+    }
+
     @Get()
     async list(
         @Headers('x-admin-secret') adminSecret: string,
@@ -39,10 +66,17 @@ export class ExpertsAdminController {
         const where: any = {};
 
         if (status === 'pending') {
+            // Fresh applications awaiting initial review (never verified yet).
+            // Excludes approved-then-unpublished experts (those keep isVerified=true).
             where.isPublished = false;
             where.isActive = true;
+            where.isVerified = false;
         } else if (status === 'approved') {
             where.isPublished = true;
+            where.isVerified = true;
+        } else if (status === 'unpublished') {
+            where.isActive = true;
+            where.isPublished = false;
             where.isVerified = true;
         } else if (status === 'rejected') {
             where.isActive = false;
@@ -72,6 +106,21 @@ export class ExpertsAdminController {
                     select: { reviews: true, conversations: true },
                 },
             },
+        });
+    }
+
+    @Get('audit-log')
+    async listAuditLogStatic(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Query('limit') limit?: string,
+        @Query('targetId') targetId?: string,
+    ) {
+        this.validateAdmin(adminSecret);
+        const take = Math.min(parseInt(limit ?? '100', 10) || 100, 500);
+        return this.prisma.adminAuditLog.findMany({
+            where: targetId ? { targetId } : undefined,
+            orderBy: { createdAt: 'desc' },
+            take,
         });
     }
 
@@ -128,6 +177,7 @@ export class ExpertsAdminController {
     async approve(
         @Headers('x-admin-secret') adminSecret: string,
         @Param('id') id: string,
+        @Req() req: Request,
     ) {
         this.validateAdmin(adminSecret);
 
@@ -146,8 +196,12 @@ export class ExpertsAdminController {
                 isPublished: true,
                 isVerified: true,
                 isActive: true,
+                verifiedAt: new Date(),
+                rejectedAt: null,
+                rejectionReason: null,
             },
         });
+        await this.writeAudit('approve_expert', 'expert', id, null, req);
 
         // Approve all pending credentials
         await this.prisma.expertCredential.updateMany({
@@ -185,6 +239,7 @@ export class ExpertsAdminController {
         @Headers('x-admin-secret') adminSecret: string,
         @Param('id') id: string,
         @Body() body: { reason?: string },
+        @Req() req?: Request,
     ) {
         this.validateAdmin(adminSecret);
 
@@ -194,8 +249,11 @@ export class ExpertsAdminController {
                 isPublished: false,
                 isVerified: false,
                 isActive: false,
+                rejectedAt: new Date(),
+                rejectionReason: body.reason ?? null,
             },
         });
+        await this.writeAudit('reject_expert', 'expert', id, { reason: body.reason ?? null }, req);
 
         // Reject all pending credentials
         await this.prisma.expertCredential.updateMany({
@@ -244,6 +302,7 @@ export class ExpertsAdminController {
     async unpublish(
         @Headers('x-admin-secret') adminSecret: string,
         @Param('id') id: string,
+        @Req() req: Request,
     ) {
         this.validateAdmin(adminSecret);
 
@@ -251,6 +310,7 @@ export class ExpertsAdminController {
             where: { id },
             data: { isPublished: false },
         });
+        await this.writeAudit('unpublish_expert', 'expert', id, null, req);
 
         this.logger.log(`Expert unpublished: id=${id}`);
         return { success: true, expert };
@@ -260,6 +320,7 @@ export class ExpertsAdminController {
     async publish(
         @Headers('x-admin-secret') adminSecret: string,
         @Param('id') id: string,
+        @Req() req: Request,
     ) {
         this.validateAdmin(adminSecret);
 
@@ -276,8 +337,26 @@ export class ExpertsAdminController {
             where: { id },
             data: { isPublished: true, isActive: true },
         });
+        await this.writeAudit('publish_expert', 'expert', id, null, req);
 
         this.logger.log(`Expert re-published: id=${id}`);
         return { success: true, expert };
     }
+
+    @Patch(':id/notes')
+    async updateNotes(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Param('id') id: string,
+        @Body() body: { notes: string },
+        @Req() req: Request,
+    ) {
+        this.validateAdmin(adminSecret);
+        const expert = await this.prisma.expertProfile.update({
+            where: { id },
+            data: { adminNotes: body.notes ?? null },
+        });
+        await this.writeAudit('update_notes', 'expert', id, { notes: body.notes ?? null }, req);
+        return { success: true, expert };
+    }
+
 }

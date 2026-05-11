@@ -92,6 +92,16 @@ export class AuthService {
     throw new BadRequestException('Password login is disabled. Use email code login.');
   }
 
+  /**
+   * Load-test only: bypass OTP, find-or-create user by email, return tokens.
+   * Caller (controller) must verify LOAD_TEST_MODE env flag before invoking.
+   */
+  async mintLoadTestToken(email: string) {
+    const user = await this.findOrCreateUser(this.normalizeEmail(email));
+    const tokens = await this.generateTokens(user.id, user.email);
+    return { user: { id: user.id, email: user.email }, ...tokens };
+  }
+
   async requestOtp(requestOtpDto: RequestOtpDto, clientIp?: string) {
     const normalizedEmail = this.normalizeEmail(requestOtpDto.email);
     const sanitizedIp = this.sanitizeIp(clientIp);

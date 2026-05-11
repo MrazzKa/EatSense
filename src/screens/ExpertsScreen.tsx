@@ -119,6 +119,12 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
 
     const getAvatarUrl = (expert: any) => ApiService.resolveMediaUrl(expert?.avatarUrl);
 
+    const getInitials = (name?: string) => {
+        if (!name) return '';
+        const parts = name.trim().split(/\s+/).slice(0, 2);
+        return parts.map((p) => p[0]?.toUpperCase() ?? '').join('');
+    };
+
     const renderExpertCard = useCallback(({ item }: { item: any }) => (
         <TouchableOpacity
             style={styles.card}
@@ -130,7 +136,11 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                     <Image source={{ uri: getAvatarUrl(item) }} style={styles.avatar} />
                 ) : (
                     <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                        <Ionicons name="person" size={24} color={colors.textSecondary} />
+                        {getInitials(item.displayName) ? (
+                            <Text style={styles.avatarInitials}>{getInitials(item.displayName)}</Text>
+                        ) : (
+                            <Ionicons name="person" size={24} color={colors.textSecondary} />
+                        )}
                     </View>
                 )}
                 <View style={styles.cardInfo}>
@@ -402,7 +412,8 @@ const createStyles = (tokens: any, colors: any) =>
         },
         cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
         avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.border },
-        avatarPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+        avatarPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary + '22' },
+        avatarInitials: { fontSize: 18, fontWeight: '700', color: colors.primary, letterSpacing: 0.5 },
         cardInfo: { flex: 1, marginLeft: tokens.spacing.md },
         nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
         cardName: { fontSize: 16, fontWeight: '600', color: colors.text, flex: 1 },

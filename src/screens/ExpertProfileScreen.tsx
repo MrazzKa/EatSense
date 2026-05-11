@@ -211,7 +211,15 @@ export default function ExpertProfileScreen({ route, navigation }) {
                         <Image source={{ uri: ApiService.resolveMediaUrl(expert.avatarUrl) }} style={styles.avatar} />
                     ) : (
                         <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                            <Ionicons name="person" size={48} color="#9CA3AF" />
+                            {(() => {
+                                const parts = (expert.displayName || '').trim().split(/\s+/).slice(0, 2);
+                                const initials = parts.map((p: string) => p[0]?.toUpperCase() ?? '').join('');
+                                return initials ? (
+                                    <Text style={styles.avatarInitials}>{initials}</Text>
+                                ) : (
+                                    <Ionicons name="person" size={48} color="#9CA3AF" />
+                                );
+                            })()}
                         </View>
                     )}
 
@@ -536,6 +544,12 @@ const createStyles = (tokens, colors) => StyleSheet.create({
         backgroundColor: '#F3F4F6',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    avatarInitials: {
+        fontSize: 34,
+        fontWeight: '600',
+        color: colors.textSecondary || '#6B7280',
+        letterSpacing: 1,
     },
     nameRow: {
         flexDirection: 'row',

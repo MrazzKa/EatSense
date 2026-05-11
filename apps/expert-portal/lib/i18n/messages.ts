@@ -26,6 +26,7 @@ type MessagesShape = {
     dashboard: string;
     chats: string;
     offers: string;
+    earnings: string;
     reviews: string;
     profile: string;
     signOut: string;
@@ -122,6 +123,8 @@ type MessagesShape = {
     completeBtn: string;
     viewData: string;
     requestData: string;
+    startVideo: string;
+    awaitingPayment: string;
     grantedDataAccess: string;
     revokedDataAccess: string;
     dataAccessRequest: string;
@@ -233,10 +236,16 @@ type MessagesShape = {
     MONTHLY_SUPPORT: string;
     CUSTOM: string;
   };
+  call: {
+    connecting: string;
+    unavailable: string;
+    tryAgainLater: string;
+    notConfigured: string;
+  };
 };
 
 const en: MessagesShape = {
-  nav: { dashboard: 'Dashboard', chats: 'Chats', offers: 'Offers', reviews: 'Reviews', profile: 'My Profile', signOut: 'Sign out' },
+  nav: { dashboard: 'Dashboard', chats: 'Chats', offers: 'Offers', earnings: 'Earnings', reviews: 'Reviews', profile: 'My Profile', signOut: 'Sign out' },
   common: {
     save: 'Save changes', saving: 'Saving...', saved: 'Saved!', cancel: 'Cancel', delete: 'Delete', deleting: 'Deleting...',
     edit: 'Edit', create: 'Create', creating: 'Creating...', loading: 'Loading...', upload: 'Upload', uploading: 'Uploading...',
@@ -279,7 +288,7 @@ const en: MessagesShape = {
     photo: 'Photo', sharedMeals: 'Shared meals', sharedReport: 'Shared report', yesterday: 'Yesterday',
     typeMessage: 'Type a message...', send: 'Send', markComplete: 'Mark complete', reopen: 'Reopen',
     complete: 'Completed', cancelled: 'Cancelled', confirmComplete: 'Mark this consultation as complete?',
-    completeBtn: 'Complete', viewData: 'View Data', requestData: 'Request Data',
+    completeBtn: 'Complete', viewData: 'View Data', requestData: 'Request Data', startVideo: 'Video call', awaitingPayment: 'Awaiting payment',
     grantedDataAccess: 'Client granted data access', revokedDataAccess: 'Client revoked data access',
     dataAccessRequest: 'Data access request',
     dataAccessGranted: 'Data access granted',
@@ -363,10 +372,16 @@ const en: MessagesShape = {
     CHAT_CONSULTATION: 'Chat consultation', MEAL_PLAN: 'Meal plan', REPORT_REVIEW: 'Report review',
     MONTHLY_SUPPORT: 'Monthly support', CUSTOM: 'Custom',
   },
+  call: {
+    connecting: 'Connecting to video room…',
+    unavailable: 'Video unavailable',
+    tryAgainLater: 'Try again later.',
+    notConfigured: 'Video calls are not configured yet on the server.',
+  },
 };
 
 const ru: MessagesShape = {
-  nav: { dashboard: 'Обзор', chats: 'Чаты', offers: 'Услуги', reviews: 'Отзывы', profile: 'Мой профиль', signOut: 'Выйти' },
+  nav: { dashboard: 'Обзор', chats: 'Чаты', offers: 'Услуги', earnings: 'Выплаты', reviews: 'Отзывы', profile: 'Мой профиль', signOut: 'Выйти' },
   common: {
     save: 'Сохранить', saving: 'Сохранение...', saved: 'Сохранено!', cancel: 'Отмена', delete: 'Удалить', deleting: 'Удаление...',
     edit: 'Изменить', create: 'Создать', creating: 'Создание...', loading: 'Загрузка...', upload: 'Загрузить', uploading: 'Загрузка...',
@@ -409,7 +424,7 @@ const ru: MessagesShape = {
     photo: 'Фото', sharedMeals: 'Поделились приёмами пищи', sharedReport: 'Поделились отчётом', yesterday: 'Вчера',
     typeMessage: 'Введите сообщение...', send: 'Отправить', markComplete: 'Завершить', reopen: 'Возобновить',
     complete: 'Завершена', cancelled: 'Отменена', confirmComplete: 'Отметить консультацию как завершённую?',
-    completeBtn: 'Завершить', viewData: 'Посмотреть данные', requestData: 'Запросить доступ',
+    completeBtn: 'Завершить', viewData: 'Посмотреть данные', requestData: 'Запросить доступ', startVideo: 'Видеозвонок', awaitingPayment: 'Ожидает оплаты',
     grantedDataAccess: 'Клиент предоставил доступ к данным', revokedDataAccess: 'Клиент отозвал доступ к данным',
     dataAccessRequest: 'Запрос доступа к данным',
     dataAccessGranted: 'Доступ к данным предоставлен',
@@ -493,10 +508,16 @@ const ru: MessagesShape = {
     CHAT_CONSULTATION: 'Консультация в чате', MEAL_PLAN: 'План питания', REPORT_REVIEW: 'Разбор отчёта',
     MONTHLY_SUPPORT: 'Месячное сопровождение', CUSTOM: 'Индивидуальный',
   },
+  call: {
+    connecting: 'Подключение к видеокомнате…',
+    unavailable: 'Видео недоступно',
+    tryAgainLater: 'Попробуйте позже.',
+    notConfigured: 'Видеозвонки пока не настроены на сервере.',
+  },
 };
 
 const kk: MessagesShape = {
-  nav: { dashboard: 'Шолу', chats: 'Чаттар', offers: 'Қызметтер', reviews: 'Пікірлер', profile: 'Менің профилім', signOut: 'Шығу' },
+  nav: { dashboard: 'Шолу', chats: 'Чаттар', offers: 'Қызметтер', earnings: 'Төлемдер', reviews: 'Пікірлер', profile: 'Менің профилім', signOut: 'Шығу' },
   common: {
     save: 'Сақтау', saving: 'Сақталуда...', saved: 'Сақталды!', cancel: 'Бас тарту', delete: 'Жою', deleting: 'Жойылуда...',
     edit: 'Өзгерту', create: 'Жасау', creating: 'Жасалуда...', loading: 'Жүктелуде...', upload: 'Жүктеу', uploading: 'Жүктелуде...',
@@ -539,7 +560,7 @@ const kk: MessagesShape = {
     photo: 'Фото', sharedMeals: 'Тамақтармен бөлісті', sharedReport: 'Есеппен бөлісті', yesterday: 'Кеше',
     typeMessage: 'Хабарлама жазыңыз...', send: 'Жіберу', markComplete: 'Аяқталды деп белгілеу', reopen: 'Қайта ашу',
     complete: 'Аяқталды', cancelled: 'Бас тартылды', confirmComplete: 'Осы кеңесті аяқталды деп белгілеу керек пе?',
-    completeBtn: 'Аяқтау', viewData: 'Деректерді көру', requestData: 'Рұқсат сұрау',
+    completeBtn: 'Аяқтау', viewData: 'Деректерді көру', requestData: 'Рұқсат сұрау', startVideo: 'Видеоқоңырау', awaitingPayment: 'Төлемді күтуде',
     grantedDataAccess: 'Клиент деректерге рұқсат берді', revokedDataAccess: 'Клиент деректерге рұқсатты кері алды',
     dataAccessRequest: 'Деректерге рұқсат сұрауы',
     dataAccessGranted: 'Деректерге рұқсат берілді',
@@ -623,10 +644,16 @@ const kk: MessagesShape = {
     CHAT_CONSULTATION: 'Чат арқылы кеңес', MEAL_PLAN: 'Тамақтану жоспары', REPORT_REVIEW: 'Есеп талдау',
     MONTHLY_SUPPORT: 'Айлық қолдау', CUSTOM: 'Жеке',
   },
+  call: {
+    connecting: 'Бейне бөлмесіне қосылу…',
+    unavailable: 'Видео қол жетімді емес',
+    tryAgainLater: 'Кейінірек қайталап көріңіз.',
+    notConfigured: 'Видеоқоңыраулар серверде әлі реттелмеген.',
+  },
 };
 
 const de: MessagesShape = {
-  nav: { dashboard: 'Übersicht', chats: 'Chats', offers: 'Angebote', reviews: 'Bewertungen', profile: 'Mein Profil', signOut: 'Abmelden' },
+  nav: { dashboard: 'Übersicht', chats: 'Chats', offers: 'Angebote', earnings: 'Einnahmen', reviews: 'Bewertungen', profile: 'Mein Profil', signOut: 'Abmelden' },
   common: {
     save: 'Änderungen speichern', saving: 'Speichern...', saved: 'Gespeichert!', cancel: 'Abbrechen', delete: 'Löschen', deleting: 'Löschen...',
     edit: 'Bearbeiten', create: 'Erstellen', creating: 'Erstellen...', loading: 'Laden...', upload: 'Hochladen', uploading: 'Hochladen...',
@@ -669,7 +696,7 @@ const de: MessagesShape = {
     photo: 'Foto', sharedMeals: 'Geteilte Mahlzeiten', sharedReport: 'Geteilter Bericht', yesterday: 'Gestern',
     typeMessage: 'Nachricht eingeben...', send: 'Senden', markComplete: 'Als abgeschlossen markieren', reopen: 'Wieder öffnen',
     complete: 'Abgeschlossen', cancelled: 'Abgebrochen', confirmComplete: 'Diese Konsultation als abgeschlossen markieren?',
-    completeBtn: 'Abschließen', viewData: 'Daten ansehen', requestData: 'Daten anfordern',
+    completeBtn: 'Abschließen', viewData: 'Daten ansehen', requestData: 'Daten anfordern', startVideo: 'Videoanruf', awaitingPayment: 'Zahlung ausstehend',
     grantedDataAccess: 'Kunde hat Datenzugriff gewährt', revokedDataAccess: 'Kunde hat Datenzugriff widerrufen',
     dataAccessRequest: 'Anfrage für Datenzugriff',
     dataAccessGranted: 'Datenzugriff gewährt',
@@ -753,10 +780,16 @@ const de: MessagesShape = {
     CHAT_CONSULTATION: 'Chat-Beratung', MEAL_PLAN: 'Ernährungsplan', REPORT_REVIEW: 'Bericht-Analyse',
     MONTHLY_SUPPORT: 'Monatliche Betreuung', CUSTOM: 'Individuell',
   },
+  call: {
+    connecting: 'Verbindung zum Videoraum…',
+    unavailable: 'Video nicht verfügbar',
+    tryAgainLater: 'Versuchen Sie es später erneut.',
+    notConfigured: 'Videoanrufe sind auf dem Server noch nicht konfiguriert.',
+  },
 };
 
 const fr: MessagesShape = {
-  nav: { dashboard: 'Tableau de bord', chats: 'Messages', offers: 'Offres', reviews: 'Avis', profile: 'Mon Profil', signOut: 'Se déconnecter' },
+  nav: { dashboard: 'Tableau de bord', chats: 'Messages', offers: 'Offres', earnings: 'Revenus', reviews: 'Avis', profile: 'Mon Profil', signOut: 'Se déconnecter' },
   common: {
     save: 'Enregistrer', saving: 'Enregistrement...', saved: 'Enregistré !', cancel: 'Annuler', delete: 'Supprimer', deleting: 'Suppression...',
     edit: 'Modifier', create: 'Créer', creating: 'Création...', loading: 'Chargement...', upload: 'Téléverser', uploading: 'Téléversement...',
@@ -799,7 +832,7 @@ const fr: MessagesShape = {
     photo: 'Photo', sharedMeals: 'Repas partagés', sharedReport: 'Rapport partagé', yesterday: 'Hier',
     typeMessage: 'Tapez un message...', send: 'Envoyer', markComplete: 'Marquer comme terminé', reopen: 'Rouvrir',
     complete: 'Terminée', cancelled: 'Annulée', confirmComplete: 'Marquer cette consultation comme terminée ?',
-    completeBtn: 'Terminer', viewData: 'Voir les données', requestData: 'Demander l\'accès',
+    completeBtn: 'Terminer', viewData: 'Voir les données', requestData: 'Demander l\'accès', startVideo: 'Appel vidéo', awaitingPayment: 'En attente de paiement',
     grantedDataAccess: 'Le client a accordé l\'accès aux données', revokedDataAccess: 'Le client a révoqué l\'accès aux données',
     dataAccessRequest: 'Demande d\'accès aux données',
     dataAccessGranted: 'Accès aux données accordé',
@@ -883,10 +916,16 @@ const fr: MessagesShape = {
     CHAT_CONSULTATION: 'Consultation par chat', MEAL_PLAN: 'Plan alimentaire', REPORT_REVIEW: 'Analyse de rapport',
     MONTHLY_SUPPORT: 'Accompagnement mensuel', CUSTOM: 'Personnalisé',
   },
+  call: {
+    connecting: 'Connexion à la salle vidéo…',
+    unavailable: 'Vidéo indisponible',
+    tryAgainLater: 'Réessayez plus tard.',
+    notConfigured: 'Les appels vidéo ne sont pas encore configurés sur le serveur.',
+  },
 };
 
 const es: MessagesShape = {
-  nav: { dashboard: 'Panel', chats: 'Chats', offers: 'Servicios', reviews: 'Reseñas', profile: 'Mi Perfil', signOut: 'Cerrar sesión' },
+  nav: { dashboard: 'Panel', chats: 'Chats', offers: 'Servicios', earnings: 'Ingresos', reviews: 'Reseñas', profile: 'Mi Perfil', signOut: 'Cerrar sesión' },
   common: {
     save: 'Guardar cambios', saving: 'Guardando...', saved: '¡Guardado!', cancel: 'Cancelar', delete: 'Eliminar', deleting: 'Eliminando...',
     edit: 'Editar', create: 'Crear', creating: 'Creando...', loading: 'Cargando...', upload: 'Subir', uploading: 'Subiendo...',
@@ -929,7 +968,7 @@ const es: MessagesShape = {
     photo: 'Foto', sharedMeals: 'Comidas compartidas', sharedReport: 'Informe compartido', yesterday: 'Ayer',
     typeMessage: 'Escribe un mensaje...', send: 'Enviar', markComplete: 'Marcar como completada', reopen: 'Reabrir',
     complete: 'Completada', cancelled: 'Cancelada', confirmComplete: '¿Marcar esta consulta como completada?',
-    completeBtn: 'Completar', viewData: 'Ver datos', requestData: 'Solicitar acceso',
+    completeBtn: 'Completar', viewData: 'Ver datos', requestData: 'Solicitar acceso', startVideo: 'Videollamada', awaitingPayment: 'Pago pendiente',
     grantedDataAccess: 'El cliente concedió acceso a los datos', revokedDataAccess: 'El cliente revocó el acceso a los datos',
     dataAccessRequest: 'Solicitud de acceso a datos',
     dataAccessGranted: 'Acceso a datos concedido',
@@ -1012,6 +1051,12 @@ const es: MessagesShape = {
   formats: {
     CHAT_CONSULTATION: 'Consulta por chat', MEAL_PLAN: 'Plan de comidas', REPORT_REVIEW: 'Análisis de informe',
     MONTHLY_SUPPORT: 'Acompañamiento mensual', CUSTOM: 'Personalizado',
+  },
+  call: {
+    connecting: 'Conectando a la sala de video…',
+    unavailable: 'Video no disponible',
+    tryAgainLater: 'Inténtalo más tarde.',
+    notConfigured: 'Las videollamadas aún no están configuradas en el servidor.',
   },
 };
 

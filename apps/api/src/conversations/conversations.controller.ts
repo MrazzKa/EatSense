@@ -32,6 +32,18 @@ class UpdateConversationDto {
     @IsOptional()
     @IsBoolean()
     reportsShared?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    shareMeals?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    shareAnalyses?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    shareMedications?: boolean;
 }
 
 @Controller('conversations')

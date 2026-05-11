@@ -262,6 +262,7 @@ export class CreateCredentialDto {
 
 export enum OfferFormat {
     CHAT_CONSULTATION = 'CHAT_CONSULTATION',
+    VIDEO_CONSULTATION = 'VIDEO_CONSULTATION',
     MEAL_PLAN = 'MEAL_PLAN',
     REPORT_REVIEW = 'REPORT_REVIEW',
     MONTHLY_SUPPORT = 'MONTHLY_SUPPORT',
@@ -308,6 +309,13 @@ export class CreateOfferDto {
     @Max(3650)
     @Type(() => Number)
     durationDays?: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(5)
+    @Max(240)
+    @Type(() => Number)
+    slotMinutes?: number;
 
     @IsOptional()
     deliverables?: Record<string, string[]>;

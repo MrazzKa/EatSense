@@ -153,6 +153,12 @@ export default function ChatsPage() {
                       {conv.status === 'completed' && (
                         <span className="ml-2 text-xs text-[var(--text2)]">{t('chats', 'complete')}</span>
                       )}
+                      {conv.status === 'payment_pending' && (
+                        <span className="ml-2 text-xs text-[var(--yellow)]">{t('chats', 'awaitingPayment')}</span>
+                      )}
+                      {conv.status === 'cancelled' && (
+                        <span className="ml-2 text-xs text-[var(--red)]">{t('chats', 'cancelled')}</span>
+                      )}
                     </span>
                     {conv.lastMessage && (
                       <span className="text-xs text-[var(--text2)] shrink-0 ml-2">

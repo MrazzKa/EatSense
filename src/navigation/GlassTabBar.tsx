@@ -1,16 +1,18 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View, AccessibilityState } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
 
 const TAB_BAR_HEIGHT = 62;
 const HORIZONTAL_INSET = 18;
-// Lift the pill above the screen edge so it visibly floats over content.
-const BOTTOM_GAP = 14;
+// Visible gap above the safe-area inset (home indicator on iOS, nav bar on Android).
+const BOTTOM_GAP = 26;
+const ANDROID_FALLBACK_INSET = 12;
 
 /** Total vertical space the floating bar reserves at the bottom of the screen. */
-export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 12;
+export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 28;
 
 /**
  * Floating glass pill at the bottom — modeled after Telegram / Apple system style.
@@ -20,10 +22,12 @@ export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 12;
  */
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const { colors, isDark } = useTheme();
+    const insets = useSafeAreaInsets();
 
-    // Keep the glass pill floating without painting a safe-area slab underneath it.
-    // The previous inset-sized padding showed up as a pale strip below the tab bar on iOS.
-    const bottom = BOTTOM_GAP;
+    // Float the pill above the home indicator / nav bar. Fall back to a small
+    // gap on Android phones that report 0 inset so the bar never hugs the edge.
+    const safeBottom = Platform.OS === 'android' ? Math.max(insets.bottom, ANDROID_FALLBACK_INSET) : insets.bottom;
+    const bottom = safeBottom + BOTTOM_GAP;
     const outline = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.06)';
 
     return (

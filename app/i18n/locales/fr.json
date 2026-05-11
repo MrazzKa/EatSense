@@ -1105,6 +1105,14 @@
       "feature2": "Consultations directes par chat",
       "feature3": "Partage de données sécurisé"
     },
+    "startVideoCall": "Appel vidéo",
+    "video": {
+      "connecting": "Connexion…",
+      "unavailable": "Les appels vidéo ne sont pas encore disponibles — bientôt.",
+      "unavailableTitle": "Vidéo indisponible",
+      "noConversation": "Conversation introuvable",
+      "waitingForPeer": "En attente de l'autre participant…"
+    },
     "feature1": "Trouver des spécialistes vérifiés",
     "feature2": "Consultations par chat et vidéo",
     "feature3": "Plans de repas personnalisés",
@@ -1118,6 +1126,8 @@
     "asClient": "En tant que client",
     "asExpert": "En tant qu'expert",
     "expertRole": "Expert",
+    "chatTitle": "Chat",
+    "clientFallback": "Client",
     "clientRole": "Client",
     "startChat": "Démarrer le chat",
     "viewAll": "Voir tous les spécialistes",
@@ -1287,6 +1297,9 @@
     "completeConsultation": "Terminer la consultation",
     "completeConfirm": "Êtes-vous sûr de vouloir terminer cette consultation ?",
     "consultationCompleted": "Consultation terminée",
+    "consultationCancelled": "Annulée",
+    "awaitingPayment": "En attente de paiement",
+    "paymentRequiredBanner": "Effectuez le paiement pour commencer à envoyer des messages.",
     "leaveReview": "Laisser un avis",
     "reviewPlaceholder": "Partagez votre expérience...",
     "submitReview": "Envoyer l'avis",
@@ -1333,7 +1346,9 @@
     "approvedHint": "Votre profil d'expert est en ligne. Gérez les offres et les discussions depuis le portail expert.",
     "rejectedHint": "Votre candidature n'a pas été approuvée. Mettez à jour votre profil et soumettez à nouveau.",
     "expertPending": "Candidature en attente",
-    "expertRejected": "Soumettre à nouveau"
+    "expertRejected": "Soumettre à nouveau",
+    "expertUnpublished": "Profil masqué",
+    "unpublishedHint": "Votre profil est temporairement masqué du marketplace. Contactez le support pour le republier."
   },
   "feedbackScreen": {
     "alerts": {

@@ -29,6 +29,20 @@ import { Request as ExpressRequest } from 'express';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  /**
+   * Load-test only: mint an access token for a synthetic user without OTP/email.
+   * Gated by env LOAD_TEST_MODE=true — refuses to work otherwise. Never enable
+   * this in production.
+   */
+  @Post('load-test-token')
+  async loadTestToken(@Body() body: { email?: string }) {
+    if ((process.env.LOAD_TEST_MODE || '').toLowerCase() !== 'true') {
+      throw new BadRequestException('Load test mode is not enabled');
+    }
+    const email = (body?.email || `loadtest-${Date.now()}@eatsense.test`).toLowerCase();
+    return this.authService.mintLoadTestToken(email);
+  }
+
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })

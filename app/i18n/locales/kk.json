@@ -1005,6 +1005,14 @@
       "feature2": "Чатпен тікелей кеңестер",
       "feature3": "Қауіпсіз деректермен бөлісу"
     },
+    "startVideoCall": "Видеоқоңырау",
+    "video": {
+      "connecting": "Қосылу…",
+      "unavailable": "Видеоқоңыраулар әлі қол жетімді емес — жақын арада.",
+      "unavailableTitle": "Видео қол жетімді емес",
+      "noConversation": "Чат табылмады",
+      "waitingForPeer": "Әңгімелесушіні күту…"
+    },
     "feature1": "Тексерілген мамандарды табыңыз",
     "feature2": "Чат және бейне кеңестер",
     "feature3": "Жеке тамақтану жоспарлары",
@@ -1018,6 +1026,8 @@
     "asClient": "Клиент ретінде",
     "asExpert": "Маман ретінде",
     "expertRole": "Маман",
+    "chatTitle": "Чат",
+    "clientFallback": "Клиент",
     "clientRole": "Клиент",
     "startChat": "Чат бастау",
     "viewAll": "Барлық мамандар",
@@ -1187,6 +1197,9 @@
     "completeConsultation": "Кеңесті аяқтау",
     "completeConfirm": "Осы кеңесті аяқтағыңыз келе ме?",
     "consultationCompleted": "Кеңес аяқталды",
+    "consultationCancelled": "Болдырылмаған",
+    "awaitingPayment": "Төлемді күту",
+    "paymentRequiredBanner": "Хабарлама жіберу үшін төлемді аяқтаңыз.",
     "leaveReview": "Пікір қалдыру",
     "reviewPlaceholder": "Тәжірибеңізбен бөлісіңіз...",
     "submitReview": "Пікір жіберу",
@@ -1233,7 +1246,9 @@
     "approvedHint": "Сарапшы профиліңіз жарияланды. Офферлерді және чаттарды эксперт порталында басқарыңыз.",
     "rejectedHint": "Өтінім мақұлданбады. Профильді жаңартып қайта жіберіңіз.",
     "expertPending": "Өтінім қарауда",
-    "expertRejected": "Қайта жіберу"
+    "expertRejected": "Қайта жіберу",
+    "expertUnpublished": "Профиль жасырылған",
+    "unpublishedHint": "Профиліңіз маркетплейстен уақытша жасырылған. Қайта жариялау үшін қолдау қызметіне хабарласыңыз."
   },
   "offers": {
     "noOffers": "Қызметтер әлі жоқ",

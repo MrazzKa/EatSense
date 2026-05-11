@@ -291,6 +291,7 @@
           <button class="btn btn-outline btn-sm active" onclick="filterExperts('')">All</button>
           <button class="btn btn-outline btn-sm" onclick="filterExperts('pending')">Pending</button>
           <button class="btn btn-outline btn-sm" onclick="filterExperts('approved')">Approved</button>
+          <button class="btn btn-outline btn-sm" onclick="filterExperts('unpublished')">Unpublished</button>
           <button class="btn btn-outline btn-sm" onclick="filterExperts('rejected')">Rejected</button>
         </div>
         <div class="stat-bar" id="experts-stats"></div>
@@ -851,7 +852,11 @@
       }
 
       list.innerHTML = experts.map(expert => {
-        const isPending = !expert.isPublished && expert.isActive;
+        // Pending = fresh application waiting for review (not yet verified).
+        // Approved = currently published + verified.
+        // Unpublished = was approved but admin took them offline (still verified).
+        // Rejected = admin denied (isActive=false).
+        const isPending = !expert.isPublished && expert.isActive && !expert.isVerified;
         const isApproved = expert.isPublished && expert.isVerified;
         const isActiveUnpublished = expert.isActive && !expert.isPublished && expert.isVerified;
         const isRejected = !expert.isActive;
@@ -963,9 +968,23 @@
                     return `<div style="padding:4px 0;border-bottom:1px dashed var(--border)">${escapeHtml(String(firstName))} · ${escapeHtml(o.format || '')} · ${escapeHtml(priceLabel)} · ${o.isPublished ? 'published' : 'hidden'}</div>`;
                   }).join('')}
                 ` : '<div style="color:var(--text2)">No offers</div>'}
+                ${expert.rejectionReason ? `
+                  <div style="margin-top:10px;padding:8px;background:#fdecec;border-left:3px solid var(--red);border-radius:4px">
+                    <strong style="color:var(--red)">Rejection reason:</strong>
+                    <div style="font-size:13px;margin-top:4px">${escapeHtml(expert.rejectionReason)}</div>
+                    ${expert.rejectedAt ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">Rejected ${new Date(expert.rejectedAt).toLocaleString()}</div>` : ''}
+                  </div>
+                ` : ''}
                 <div style="margin-top:10px">
-                  <button class="btn btn-outline btn-sm" onclick="exportExpertProfile('${expert.id}')">${ic('download')} Export profile (PDF)</button>
+                  <strong>Admin notes</strong>
+                  <textarea id="notes-${expert.id}" rows="2" style="display:block;width:100%;margin-top:4px;padding:6px;border:1px solid var(--border);border-radius:4px;font:inherit;resize:vertical">${escapeHtml(expert.adminNotes || '')}</textarea>
+                  <button class="btn btn-outline btn-sm" style="margin-top:4px" onclick="saveAdminNotes('${expert.id}')">Save notes</button>
                 </div>
+                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-outline btn-sm" onclick="exportExpertProfile('${expert.id}')">${ic('download')} Export profile (PDF)</button>
+                  <button class="btn btn-outline btn-sm" onclick="showAuditLog('${expert.id}')">${ic('clock') || ''} Activity log</button>
+                </div>
+                <div id="audit-${expert.id}" style="display:none;margin-top:8px"></div>
               </div>
             </div>
             <div class="card-actions" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -1071,6 +1090,52 @@
         w.document.close();
       } catch (err) {
         toast('Export failed: ' + err.message);
+      }
+    }
+
+    async function saveAdminNotes(id) {
+      const el = document.getElementById(`notes-${id}`);
+      if (!el) return;
+      try {
+        await fetchAPI(`/admin/experts/${id}/notes`, {
+          method: 'PATCH',
+          body: JSON.stringify({ notes: el.value }),
+        });
+        toast('Notes saved');
+      } catch (err) {
+        toast('Save failed: ' + err.message);
+      }
+    }
+
+    async function showAuditLog(id) {
+      const box = document.getElementById(`audit-${id}`);
+      if (!box) return;
+      if (box.style.display === 'block') {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'block';
+      box.innerHTML = '<div style="padding:8px;color:var(--text2)">Loading…</div>';
+      try {
+        const entries = await fetchAPI(`/admin/experts/audit-log?targetId=${encodeURIComponent(id)}&limit=50`);
+        if (!entries || entries.length === 0) {
+          box.innerHTML = '<div style="padding:8px;color:var(--text2)">No activity recorded yet.</div>';
+          return;
+        }
+        box.innerHTML = `
+          <div style="border:1px solid var(--border);border-radius:6px;background:var(--surface);padding:8px">
+            <strong style="display:block;margin-bottom:6px">Activity log</strong>
+            ${entries.map(e => `
+              <div style="padding:4px 0;border-bottom:1px dashed var(--border);font-size:12px">
+                <span style="color:var(--text2)">${new Date(e.createdAt).toLocaleString()}</span> ·
+                <strong>${escapeHtml(e.action)}</strong>
+                ${e.payload ? ` · <span style="color:var(--text2)">${escapeHtml(JSON.stringify(e.payload))}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = `<div style="padding:8px;color:var(--red)">Load failed: ${escapeHtml(err.message)}</div>`;
       }
     }
 

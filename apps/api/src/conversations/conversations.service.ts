@@ -8,7 +8,12 @@ interface StartConversationDto {
 
 interface UpdateConversationDto {
     status?: 'active' | 'completed' | 'cancelled';
+    // Legacy aggregate flag — when set, mirrored to all three granular fields.
     reportsShared?: boolean;
+    // Granular sharing — client toggles each category independently.
+    shareMeals?: boolean;
+    shareAnalyses?: boolean;
+    shareMedications?: boolean;
 }
 
 @Injectable()
@@ -292,9 +297,10 @@ export class ConversationsService {
     async update(id: string, userId: string, dto: UpdateConversationDto) {
         const conversation = await this.findById(id, userId);
 
-        // Only clients can toggle reports sharing
-        if (dto.reportsShared !== undefined && !conversation.isClient) {
-            throw new ForbiddenException('Only clients can toggle report sharing');
+        const sharingFields = ['reportsShared', 'shareMeals', 'shareAnalyses', 'shareMedications'] as const;
+        const isSharingChange = sharingFields.some((k) => dto[k] !== undefined);
+        if (isSharingChange && !conversation.isClient) {
+            throw new ForbiddenException('Only clients can toggle data sharing');
         }
 
         if (dto.status !== undefined) {
@@ -311,12 +317,37 @@ export class ConversationsService {
             }
         }
 
+        // Build the sharing patch:
+        // - Legacy reportsShared toggles all three granular flags together.
+        // - Granular flags take precedence if provided.
+        // - When conversation transitions to completed/cancelled, auto-revoke all
+        //   sharing (privacy by default once consultation ends).
+        const isEnding = dto.status === 'completed' || dto.status === 'cancelled';
+        let shareMeals = dto.shareMeals;
+        let shareAnalyses = dto.shareAnalyses;
+        let shareMedications = dto.shareMedications;
+        if (dto.reportsShared !== undefined && shareMeals === undefined) shareMeals = dto.reportsShared;
+        if (dto.reportsShared !== undefined && shareAnalyses === undefined) shareAnalyses = dto.reportsShared;
+        if (dto.reportsShared !== undefined && shareMedications === undefined) shareMedications = dto.reportsShared;
+        if (isEnding) {
+            shareMeals = false;
+            shareAnalyses = false;
+            shareMedications = false;
+        }
+        const reportsShared =
+            shareMeals !== undefined || shareAnalyses !== undefined || shareMedications !== undefined
+                ? Boolean(shareMeals || shareAnalyses || shareMedications)
+                : dto.reportsShared;
+
         const updated = await this.prisma.conversation.update({
             where: { id },
             data: {
                 status: dto.status,
-                reportsShared: dto.reportsShared,
-                endedAt: dto.status === 'completed' || dto.status === 'cancelled' ? new Date() : undefined,
+                reportsShared,
+                shareMeals,
+                shareAnalyses,
+                shareMedications,
+                endedAt: isEnding ? new Date() : undefined,
             },
         });
 
@@ -339,29 +370,39 @@ export class ConversationsService {
             throw new ForbiddenException('Only experts can view client data');
         }
 
-        if (!conversation.reportsShared) {
+        const anyShared =
+            conversation.shareMeals || conversation.shareAnalyses || conversation.shareMedications || conversation.reportsShared;
+        if (!anyShared) {
             throw new ForbiddenException('Client has not granted access to data');
         }
 
         const clientId = conversation.clientId;
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
+        const wantMeals = conversation.shareMeals || conversation.reportsShared;
+        const wantAnalyses = conversation.shareAnalyses || conversation.reportsShared;
+        const wantMedications = conversation.shareMedications || conversation.reportsShared;
+
         const [meals, labResults, userProfile] = await Promise.all([
-            this.prisma.meal.findMany({
-                where: {
-                    userId: clientId,
-                    createdAt: { gte: thirtyDaysAgo },
-                },
-                include: { items: true },
-                orderBy: { createdAt: 'desc' },
-                take: 100,
-            }),
-            this.prisma.labResult.findMany({
-                where: { userId: clientId },
-                include: { metrics: true },
-                orderBy: { createdAt: 'desc' },
-                take: 20,
-            }),
+            wantMeals
+                ? this.prisma.meal.findMany({
+                      where: { userId: clientId, createdAt: { gte: thirtyDaysAgo } },
+                      include: { items: true },
+                      orderBy: { createdAt: 'desc' },
+                      take: 100,
+                  })
+                : Promise.resolve([]),
+            wantAnalyses
+                ? this.prisma.labResult.findMany({
+                      where: { userId: clientId },
+                      include: { metrics: true },
+                      orderBy: { createdAt: 'desc' },
+                      take: 20,
+                  })
+                : Promise.resolve([]),
+            // userProfile always returned (basic demographic info — expert needs
+            // at least name/age to address the client); healthProfile + medications
+            // gated separately below.
             this.prisma.userProfile.findUnique({
                 where: { userId: clientId },
                 select: {
@@ -374,16 +415,39 @@ export class ConversationsService {
                     goal: true,
                     targetWeight: true,
                     dailyCalories: true,
-                    healthProfile: true,
-                    preferences: true,
+                    healthProfile: wantMedications,
+                    preferences: false,
                 },
             }),
         ]);
+
+        // Best-effort audit log of data access — never block the response on failure.
+        this.prisma.adminAuditLog
+            .create({
+                data: {
+                    action: 'expert_view_client_data',
+                    targetType: 'conversation',
+                    targetId: conversationId,
+                    adminIdentifier: `user:${userId}`,
+                    payload: {
+                        clientId,
+                        shareMeals: wantMeals,
+                        shareAnalyses: wantAnalyses,
+                        shareMedications: wantMedications,
+                    },
+                },
+            })
+            .catch((err) => this.logger.warn(`Audit log (view client data) failed: ${err?.message}`));
 
         return {
             meals,
             labResults,
             healthProfile: userProfile,
+            permissions: {
+                meals: wantMeals,
+                analyses: wantAnalyses,
+                medications: wantMedications,
+            },
             periodDays: 30,
         };
     }

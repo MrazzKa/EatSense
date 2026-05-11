@@ -64,4 +64,20 @@ export const configSchema = Joi.object({
   APPLE_BUNDLE_ID: Joi.string().optional().default('ch.eatsense.app'),
   // Medication push notifications (disabled by default, use local notifications)
   MEDICATION_PUSH_ENABLED: Joi.boolean().optional().default(false),
+  // Stripe — feature-flagged. When STRIPE_ENABLED is false (default), the
+  // payments module short-circuits and offers fall back to chat-free flow.
+  // Flip STRIPE_ENABLED=true once both keys + webhook secret are provisioned.
+  STRIPE_ENABLED: Joi.boolean().optional().default(false),
+  STRIPE_SECRET_KEY: Joi.string().optional().allow(''),
+  STRIPE_PUBLISHABLE_KEY: Joi.string().optional().allow(''),
+  STRIPE_WEBHOOK_SECRET: Joi.string().optional().allow(''),
+  // Platform fee in basis points (e.g. 1500 = 15%). Used once Stripe Connect
+  // is wired for expert payouts (Phase 4); ignored otherwise.
+  STRIPE_PLATFORM_FEE_BPS: Joi.number().integer().min(0).max(10000).optional().default(1500),
+  // LiveKit (video consultations). Cloud free tier on start (10k connection-min/mo).
+  // When LIVEKIT_API_KEY is missing, /video/token returns 503 and mobile shows
+  // "Video unavailable" — flow gracefully degrades.
+  LIVEKIT_API_KEY: Joi.string().optional().allow(''),
+  LIVEKIT_API_SECRET: Joi.string().optional().allow(''),
+  LIVEKIT_URL: Joi.string().optional().allow(''),
 });

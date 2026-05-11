@@ -142,18 +142,24 @@ export default function OffersPage() {
       const body: Record<string, unknown> = {
         name: nonEmptyName,
         format: form.format,
-        priceType: 'FREE',
       };
       if (Object.keys(nonEmptyDesc).length > 0) body.description = nonEmptyDesc;
       const duration = parseInt(form.durationDays, 10);
       if (!isNaN(duration) && duration > 0) body.durationDays = duration;
 
       if (editing) {
+        // Preserve pricing set during the application form. Editor below only
+        // covers name/description/format/duration; full price editing belongs
+        // to a dedicated screen and is wired separately.
+        body.priceType = editing.priceType;
+        if (editing.priceAmount != null) body.priceAmount = editing.priceAmount;
+        if (editing.currency) body.currency = editing.currency;
         await apiFetch(`/experts/me/offers/${editing.id}`, {
           method: 'PATCH',
           body: JSON.stringify(body),
         });
       } else {
+        body.priceType = 'FREE';
         await apiFetch('/experts/me/offers', {
           method: 'POST',
           body: JSON.stringify(body),
@@ -244,7 +250,11 @@ export default function OffersPage() {
                       <div className="text-xs text-[var(--text2)] flex items-center gap-2 flex-wrap">
                         <span>{t('formats', offer.format)}</span>
                         {offer.durationDays ? <span>· {offer.durationDays} {t('offers', 'duration').toLowerCase().match(/\w+/)?.[0] || ''}</span> : null}
-                        <span>· {t('offers', 'free')}</span>
+                        <span>· {
+                          offer.priceType === 'FREE' || offer.priceAmount == null
+                            ? t('offers', 'free')
+                            : `${offer.currency || 'USD'} ${offer.priceAmount}`
+                        }</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">

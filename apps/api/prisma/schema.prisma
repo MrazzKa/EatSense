@@ -665,6 +665,7 @@ enum OfferFormat {
   MEAL_PLAN
   REPORT_REVIEW
   MONTHLY_SUPPORT
+  VIDEO_CONSULTATION
   CUSTOM
 }
 
@@ -704,7 +705,10 @@ model ExpertProfile {
   // Verification
   isVerified        Boolean  @default(false) @map("is_verified")
   verifiedAt        DateTime? @map("verified_at")
-  
+  rejectedAt        DateTime? @map("rejected_at")
+  rejectionReason   String?   @map("rejection_reason")
+  adminNotes        String?   @map("admin_notes")
+
   // Settings
   isActive          Boolean  @default(true) @map("is_active")
   isPublished       Boolean  @default(false) @map("is_published")
@@ -782,6 +786,8 @@ model ExpertOffer {
   
   // Details
   durationDays  Int?        @map("duration_days")
+  // For VIDEO_CONSULTATION offers — length of each session in minutes.
+  slotMinutes   Int?        @map("slot_minutes")
   deliverables  Json?       // Localized list of what's included
   
   // Status
@@ -805,9 +811,15 @@ model Conversation {
   offerId         String?  @map("offer_id")
   
   status          String   @default("active") // "active" | "completed" | "cancelled"
-  
-  // Report sharing consent
-  reportsShared   Boolean  @default(false) @map("reports_shared")
+
+  // Report sharing consent — legacy aggregate flag, kept for backwards compat.
+  // Source of truth for new code: shareMeals / shareAnalyses / shareMedications.
+  reportsShared    Boolean  @default(false) @map("reports_shared")
+  // Granular per-category sharing flags (added 2026-05-11). Client toggles each
+  // independently. Server filters /client-data response by these flags.
+  shareMeals       Boolean  @default(false) @map("share_meals")
+  shareAnalyses    Boolean  @default(false) @map("share_analyses")
+  shareMedications Boolean  @default(false) @map("share_medications")
   
   // Timestamps
   startedAt       DateTime @default(now()) @map("started_at")
@@ -822,11 +834,38 @@ model Conversation {
   messages        Message[]
   review          Review?
   payments        Payment[]
-  
+  videoSessions   VideoSession[]
+
   @@unique([clientId, expertId])
   @@index([clientId, status])
   @@index([expertId, status])
   @@map("conversations")
+}
+
+// LiveKit-backed video consultation session. One Conversation may have multiple
+// sessions (rescheduled, completed). Status lifecycle: scheduled → ringing → in_call → ended.
+model VideoSession {
+  id             String   @id @default(cuid())
+  conversationId String   @map("conversation_id")
+  // LiveKit room identifier. Includes session id so each new call inside a
+  // conversation gets a fresh room (LiveKit reuses rooms but we want clean
+  // analytics per session). NOT @unique — concurrent token requests in the
+  // same session must reuse the same room name.
+  roomName       String   @map("room_name")
+  scheduledAt    DateTime? @map("scheduled_at")
+  startedAt      DateTime? @map("started_at")
+  endedAt        DateTime? @map("ended_at")
+  durationSec    Int?     @map("duration_sec")
+  status         String   @default("scheduled") // scheduled | ringing | in_call | ended | cancelled
+  recordingUrl   String?  @map("recording_url")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, status])
+  @@index([scheduledAt])
+  @@map("video_sessions")
 }
 
 model Payment {
@@ -1487,4 +1526,20 @@ model UserMascot {
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_mascots")
+}
+
+model AdminAuditLog {
+  id              String   @id @default(cuid())
+  action          String   // "approve_expert" | "reject_expert" | "unpublish_expert" | "publish_expert" | "update_notes" | ...
+  targetType      String   @map("target_type") // "expert" | "user" | ...
+  targetId        String?  @map("target_id")
+  adminIdentifier String?  @map("admin_identifier") // env-keyed admin (no per-user yet)
+  payload         Json?    // arbitrary context (e.g. rejection reason, previous status)
+  ipAddress       String?  @map("ip_address")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([targetType, targetId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
 }

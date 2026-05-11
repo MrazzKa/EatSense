@@ -1420,6 +1420,14 @@
       "feature2": "Direct chat consultations",
       "feature3": "Secure data sharing"
     },
+    "startVideoCall": "Start video call",
+    "video": {
+      "connecting": "Connecting…",
+      "unavailable": "Video calls are not available yet — coming soon.",
+      "unavailableTitle": "Video unavailable",
+      "noConversation": "Missing conversation",
+      "waitingForPeer": "Waiting for the other participant…"
+    },
     "feature1": "Find verified specialists",
     "feature2": "Chat & video consultations",
     "feature3": "Personalized meal plans",
@@ -1433,6 +1441,8 @@
     "asClient": "As Client",
     "asExpert": "As Expert",
     "expertRole": "Expert",
+    "chatTitle": "Chat",
+    "clientFallback": "Client",
     "clientRole": "Client",
     "startChat": "Start Chat",
     "messageExpert": "Message Expert",
@@ -1617,6 +1627,9 @@
     "completeConsultation": "Complete Consultation",
     "completeConfirm": "Are you sure you want to complete this consultation?",
     "consultationCompleted": "Consultation completed",
+    "consultationCancelled": "Cancelled",
+    "awaitingPayment": "Awaiting payment",
+    "paymentRequiredBanner": "Complete payment to start messaging.",
     "leaveReview": "Leave a Review",
     "reviewPlaceholder": "Share your experience...",
     "submitReview": "Submit Review",
@@ -1648,7 +1661,9 @@
     "approvedHint": "Your expert profile is live. Manage offers and chats from the expert portal.",
     "rejectedHint": "Your application was not approved. Please update your profile and re-submit.",
     "expertPending": "Application pending",
-    "expertRejected": "Re-submit application"
+    "expertRejected": "Re-submit application",
+    "expertUnpublished": "Profile unpublished",
+    "unpublishedHint": "Your profile is temporarily hidden from the marketplace. Contact support to re-publish."
   },
   "offers": {
     "noOffers": "No services yet",

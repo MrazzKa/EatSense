@@ -2,11 +2,13 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import ApiService from '../services/apiService';
 
 const SUBSCRIPTION_CACHE_KEY = 'eatsense_subscription_cache';
@@ -173,6 +175,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     attemptAutoLogin();
+  }, [refreshUser]);
+
+  // Refresh user when expert status changes via push, so useIsExpert() and
+  // gated screens (Profile, Become Expert, Marketplace banner) react instantly
+  // without a relaunch.
+  useEffect(() => {
+    const sub = Notifications.addNotificationReceivedListener((event) => {
+      const data = (event.request?.content?.data || {}) as Record<string, any>;
+      const type = data.type;
+      if (type === 'expert_approved' || type === 'expert_rejected' || type === 'expert_status_changed') {
+        refreshUser().catch(() => {});
+      }
+    });
+    return () => sub.remove();
   }, [refreshUser]);
 
   const value = useMemo<AuthContextValue>(

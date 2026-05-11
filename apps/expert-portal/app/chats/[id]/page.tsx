@@ -22,6 +22,9 @@ interface Conversation {
   id: string;
   status: string;
   reportsShared: boolean;
+  shareMeals?: boolean;
+  shareAnalyses?: boolean;
+  shareMedications?: boolean;
   client: {
     id: string;
     email: string;
@@ -314,6 +317,12 @@ export default function ChatPage() {
                     {t('chats', 'requestData')}
                   </button>
                 )}
+                <Link
+                  href={`/call/${convId}`}
+                  className="px-3 py-1.5 text-xs font-medium bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition"
+                >
+                  {t('chats', 'startVideo') || 'Video call'}
+                </Link>
                 <button
                   onClick={handleComplete}
                   className="px-3 py-1.5 text-xs font-medium bg-[#ef444422] text-[var(--red)] rounded-lg hover:bg-[#ef444433] transition cursor-pointer"
