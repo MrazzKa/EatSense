@@ -221,7 +221,7 @@ export default function ChatPage() {
 
     return (
       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2`}>
-        <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm ${
+        <div className={`max-w-[86%] px-4 py-2.5 rounded-2xl text-sm sm:max-w-[70%] ${
           isMe
             ? 'bg-[var(--primary)] text-white rounded-br-md'
             : 'bg-[var(--surface2)] text-[var(--text)] rounded-bl-md'
@@ -279,18 +279,18 @@ export default function ChatPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col h-screen">
+      <div className="flex h-[calc(100dvh-10rem)] min-h-[520px] flex-col md:h-screen">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
             <Link href="/chats" className="text-[var(--text2)] hover:text-[var(--text)] transition mr-1" aria-label={t('common', 'back')}>
               <ArrowLeft size={18} />
             </Link>
             <div className="w-9 h-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-sm">
               {getClientName().charAt(0).toUpperCase()}
             </div>
-            <div>
-              <div className="font-medium text-sm">{getClientName()}</div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium">{getClientName()}</div>
               <div className="text-xs text-[var(--text2)]">
                 {conversation?.status === 'completed' && t('chats', 'complete')}
                 {conversation?.status === 'cancelled' && t('chats', 'cancelled')}
@@ -298,7 +298,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {conversation?.reportsShared && (
               <Link
                 href={`/clients/${convId}`}
@@ -335,7 +335,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 py-4 bg-[var(--bg)]">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-[var(--bg)] px-4 py-4 sm:px-6">
           {loading ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
@@ -354,7 +354,7 @@ export default function ChatPage() {
 
         {/* Completed banner */}
         {conversation?.status === 'completed' && (
-          <div className="px-6 py-3 bg-[var(--surface)] border-t border-[var(--border)] text-center text-sm text-[var(--text2)]">
+          <div className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-center text-sm text-[var(--text2)] sm:px-6">
             {t('chats', 'completedBanner')}
           </div>
         )}
@@ -363,7 +363,7 @@ export default function ChatPage() {
         {conversation?.status === 'active' && (
           <div className="border-t border-[var(--border)] bg-[var(--surface)] shrink-0">
             {/* Quick-action templates */}
-            <div className="flex gap-2 px-6 pt-3 overflow-x-auto scrollbar-none">
+            <div className="flex gap-2 overflow-x-auto px-4 pt-3 sm:px-6">
               <span className="text-[11px] uppercase tracking-wider text-[var(--text2)] self-center shrink-0 pr-1">
                 {t('chats', 'templates')}
               </span>
@@ -378,18 +378,18 @@ export default function ChatPage() {
                 </button>
               ))}
             </div>
-            <form onSubmit={handleSend} className="flex items-center gap-3 px-6 py-3">
+            <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t('chats', 'typeMessage')}
-                className="flex-1 px-4 py-2.5 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-sm text-[var(--text)] placeholder:text-[var(--text2)] outline-none focus:border-[var(--primary)] transition"
+                className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--text2)] focus:border-[var(--primary)]"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || sending}
-                className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-40 text-white text-sm font-medium rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
+                className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-40 sm:px-5"
               >
                 {t('chats', 'send')}
               </button>

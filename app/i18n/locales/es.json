@@ -933,6 +933,7 @@
     "paymentUnavailableBody": "Este servicio de pago ya está visible, pero el pago en línea todavía no está conectado. Elige un servicio gratuito o contacta al experto cuando los pagos estén activos.",
     "ownerProfilePublished": "Tu perfil de experto está publicado",
     "ownerProfilePublishedSub": "Los clientes pueden encontrar tus servicios en EatSense.",
+    "selfHiddenHint": "Tu propio perfil se oculta en tu lista personal. Otros clientes pueden encontrarlo en EatSense.",
     "ownerOpenPortal": "Abrir portal de experto",
     "offerFormat": {
       "CHAT_CONSULTATION": "Consulta por chat",

@@ -73,6 +73,14 @@ export class AuthController {
     return this.authService.requestMagicLink(requestMagicLinkDto, clientIp);
   }
 
+  @Post('expert/request-magic-link')
+  @ApiOperation({ summary: 'Request expert portal magic link' })
+  @ApiResponse({ status: 200, description: 'Magic link sent successfully for eligible expert accounts' })
+  async requestExpertMagicLink(@Req() req: ExpressRequest, @Body() requestMagicLinkDto: RequestMagicLinkDto) {
+    const clientIp = this.getClientIp(req);
+    return this.authService.requestExpertMagicLink(requestMagicLinkDto, clientIp);
+  }
+
   @Get('magic-link')
   @ApiOperation({ summary: 'Consume magic link' })
   @ApiResponse({ status: 200, description: 'Magic link verified successfully' })

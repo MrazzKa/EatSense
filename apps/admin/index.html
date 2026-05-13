@@ -274,6 +274,140 @@
       color: var(--text2);
       text-align: center;
     }
+
+    @media (max-width: 720px) {
+      body {
+        overflow-x: hidden;
+      }
+
+      #login-screen {
+        padding: 16px;
+      }
+
+      .login-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 28px 20px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+
+      .topbar h1 {
+        min-width: 0;
+        font-size: 16px;
+      }
+
+      .topbar-right {
+        flex: 1;
+        justify-content: flex-end;
+        min-width: 0;
+      }
+
+      #api-url-display {
+        max-width: 46vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tabs {
+        gap: 2px;
+        overflow-x: auto;
+        padding: 8px 12px 0;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .tab {
+        flex: 0 0 auto;
+        padding: 12px 14px;
+        white-space: nowrap;
+      }
+
+      .content {
+        width: 100%;
+        padding: 16px 12px 96px;
+      }
+
+      .stat-bar,
+      .filter-bar {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .stat {
+        min-width: 132px;
+        padding: 14px;
+      }
+
+      .card {
+        padding: 14px;
+        border-radius: 10px;
+      }
+
+      .card-header {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .card-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .btn {
+        min-height: 40px;
+        padding: 9px 12px;
+      }
+
+      .btn-sm {
+        min-height: 38px;
+        padding: 8px 12px;
+      }
+
+      .card-actions .btn {
+        width: 100%;
+      }
+
+      textarea,
+      input {
+        max-width: 100%;
+      }
+
+      .file-modal {
+        width: 100vw;
+        height: 100dvh;
+        border-radius: 0;
+      }
+
+      .file-modal-header {
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .file-modal-header > div:last-child {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .file-modal-title {
+        max-width: 52vw;
+      }
+
+      .toast {
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+      }
+    }
   </style>
 </head>
 <body>

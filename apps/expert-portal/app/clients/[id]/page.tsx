@@ -89,7 +89,7 @@ export default function ClientDataPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-5xl">
+      <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <div className="flex items-center gap-3 mb-6">
           <Link href={`/chats/${convId}`} className="inline-flex items-center gap-1.5 text-[var(--text2)] hover:text-[var(--text)] transition">
             <ArrowLeft size={16} />
@@ -112,7 +112,7 @@ export default function ClientDataPage() {
         ) : data ? (
           <>
             {/* Tabs */}
-            <div className="flex gap-1 mb-6 bg-[var(--surface)] border border-[var(--border)] rounded-lg p-1 w-fit">
+            <div className="mb-6 flex w-full gap-1 overflow-x-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1 sm:w-fit">
               {(['meals', 'labs', 'health'] as const).map((tabKey) => (
                 <button
                   key={tabKey}
@@ -139,8 +139,8 @@ export default function ClientDataPage() {
                   <p className="text-[var(--text2)] text-center py-10">{t('clients', 'noMeals')}</p>
                 ) : (
                   data.meals.map((meal) => (
-                    <div key={meal.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
-                      <div className="flex gap-4">
+                    <div key={meal.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                      <div className="flex flex-col gap-4 sm:flex-row">
                         {meal.photoUrl && (
                           <img
                             src={meal.photoUrl}
@@ -149,7 +149,7 @@ export default function ClientDataPage() {
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                             <span className="text-sm font-medium">{meal.description || t('clients', 'mealLabel')}</span>
                             <span className="text-xs text-[var(--text2)]">
                               {new Date(meal.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -157,7 +157,7 @@ export default function ClientDataPage() {
                           </div>
 
                           {/* Macros */}
-                          <div className="flex gap-4 text-xs">
+                          <div className="flex flex-wrap gap-3 text-xs sm:gap-4">
                             {meal.calories != null && (
                               <span className="text-[var(--yellow)]">{Math.round(meal.calories)} kcal</span>
                             )}
@@ -193,8 +193,8 @@ export default function ClientDataPage() {
                   <p className="text-[var(--text2)] text-center py-10">{t('clients', 'noLabs')}</p>
                 ) : (
                   data.labResults.map((lab) => (
-                    <div key={lab.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
-                      <div className="flex items-center justify-between mb-3">
+                    <div key={lab.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+                      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="font-medium text-sm">{lab.testName}</h3>
                         <span className="text-xs text-[var(--text2)]">
                           {new Date(lab.testDate).toLocaleDateString()}
@@ -245,7 +245,7 @@ export default function ClientDataPage() {
 
             {/* Health profile tab */}
             {tab === 'health' && (
-              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
                 {data.healthProfile ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <ProfileField label={t('clients', 'name')} value={[data.healthProfile.firstName, data.healthProfile.lastName].filter(Boolean).join(' ')} />

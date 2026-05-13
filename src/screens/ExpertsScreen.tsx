@@ -124,6 +124,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     }, []);
 
     const hasFilters = filterSpec || filterLang;
+    const hasSearchOrFilters = Boolean(searchDebounced || hasFilters);
 
     const handleRetry = useCallback(async () => {
         setLoading(true);
@@ -211,6 +212,29 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 </View>
             );
         }
+        if (isApprovedExpert && !hasSearchOrFilters) {
+            return (
+                <View style={styles.emptyContainer}>
+                    <View style={styles.ownerEmptyIcon}>
+                        <Ionicons name="checkmark-circle-outline" size={32} color={colors.primary} />
+                    </View>
+                    <Text style={styles.emptyTitle}>{t('experts.ownerProfilePublished')}</Text>
+                    <Text style={styles.emptySubtitleCentered}>
+                        {t('experts.ownerProfilePublishedSub')}
+                    </Text>
+                    <Text style={styles.ownerEmptyHint}>
+                        {t('experts.selfHiddenHint') || 'Your own profile is hidden from your personal list. Other clients can find it in EatSense.'}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.ownerPortalButton}
+                        onPress={() => Linking.openURL('https://experts.eatsense.ch').catch(() => {})}
+                        activeOpacity={0.75}
+                    >
+                        <Text style={styles.ownerPortalButtonText}>{t('experts.ownerOpenPortal')}</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
         return (
             <View style={styles.emptyContainer}>
                 <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
@@ -230,7 +254,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const renderFooter = () => (
         <>
             {loadingMore && <ActivityIndicator style={{ paddingVertical: 16 }} color={colors.primary} />}
-            {isApprovedExpert ? (
+            {isApprovedExpert && experts.length > 0 ? (
                 <TouchableOpacity
                     style={styles.expertBanner}
                     onPress={() => Linking.openURL('https://experts.eatsense.ch').catch(() => {})}
@@ -461,8 +485,42 @@ const createStyles = (tokens: any, colors: any) =>
         emptyContainer: { alignItems: 'center', paddingVertical: tokens.spacing.xxxl },
         emptyTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginTop: tokens.spacing.lg },
         emptySubtitle: { fontSize: 14, color: colors.textSecondary, marginTop: tokens.spacing.sm },
+        emptySubtitleCentered: {
+            fontSize: 14,
+            color: colors.textSecondary,
+            marginTop: tokens.spacing.sm,
+            textAlign: 'center',
+            lineHeight: 20,
+        },
         clearButton: { marginTop: tokens.spacing.lg },
         clearButtonText: { fontSize: 15, color: colors.primary, fontWeight: '500' },
+        ownerEmptyIcon: {
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            backgroundColor: colors.primary + '14',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        ownerEmptyHint: {
+            fontSize: 13,
+            color: colors.textTertiary,
+            textAlign: 'center',
+            lineHeight: 18,
+            marginTop: tokens.spacing.md,
+            paddingHorizontal: tokens.spacing.md,
+        },
+        ownerPortalButton: {
+            marginTop: tokens.spacing.lg,
+            minHeight: 44,
+            paddingHorizontal: tokens.spacing.xl,
+            paddingVertical: tokens.spacing.sm,
+            borderRadius: tokens.radii.xs,
+            backgroundColor: colors.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        ownerPortalButtonText: { fontSize: 15, color: '#FFF', fontWeight: '700' },
         // Expert banner
         expertBanner: {
             flexDirection: 'row', alignItems: 'center', padding: tokens.spacing.lg,

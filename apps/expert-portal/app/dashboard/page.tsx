@@ -98,8 +98,8 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-4xl">
-        <h1 className="text-2xl font-bold mb-6">{t('dashboard', 'title')}</h1>
+      <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
+        <h1 className="mb-5 text-2xl font-bold sm:mb-6">{t('dashboard', 'title')}</h1>
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -108,9 +108,9 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Profile status */}
-            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
+            <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <h2 className="text-lg font-semibold">{profile?.displayName || t('dashboard', 'yourProfile')}</h2>
                   <p className="text-sm text-[var(--text2)]">{getProfileTypeLabel(profile?.type)}</p>
                 </div>
@@ -145,13 +145,13 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick actions */}
-            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
               <h3 className="text-sm font-semibold text-[var(--text2)] uppercase tracking-wider mb-4">{t('dashboard', 'quickActions')}</h3>
-              <div className="flex flex-wrap gap-3">
-                <a href="/chats" className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-sm font-medium rounded-lg transition">
+              <div className="grid gap-3 sm:flex sm:flex-wrap">
+                <a href="/chats" className="rounded-lg bg-[var(--primary)] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] sm:py-2">
                   {t('dashboard', 'viewChats')}
                 </a>
-                <a href="/profile" className="px-4 py-2 bg-[var(--surface2)] hover:bg-[var(--border)] text-sm font-medium rounded-lg transition">
+                <a href="/profile" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
                   {t('dashboard', 'editProfile')}
                 </a>
               </div>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
 
 function StatCard({ icon: Icon, label, value, highlight }: { icon: LucideIcon; label: string; value: string | number; highlight?: boolean }) {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
       <div className="flex items-center gap-3 mb-2">
         <Icon size={20} className="text-[var(--text2)]" />
         <span className="text-sm text-[var(--text2)]">{label}</span>

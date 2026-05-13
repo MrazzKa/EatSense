@@ -5,10 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
 
-const TAB_BAR_HEIGHT = 68;
-const HORIZONTAL_INSET = 12;
+const TAB_BAR_HEIGHT = 74;
+const HORIZONTAL_INSET = 8;
 // Visible gap above the safe-area inset (home indicator on iOS, nav bar on Android).
-const BOTTOM_GAP = 18;
+const BOTTOM_GAP = 12;
 const ANDROID_FALLBACK_INSET = 12;
 
 /** Total vertical space the floating bar reserves at the bottom of the screen. */
@@ -40,7 +40,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
                 {
                     paddingBottom: bottom,
                     paddingHorizontal: HORIZONTAL_INSET,
-                    backgroundColor: colors.background || 'transparent',
+                    backgroundColor: 'transparent',
                 },
             ]}
         >
@@ -220,9 +220,9 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 7,
-        paddingHorizontal: 1,
-        gap: 3,
+        paddingVertical: 8,
+        paddingHorizontal: 0,
+        gap: 4,
     },
     itemPressed: {
         opacity: 0.6,
@@ -245,5 +245,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0,
         textAlign: 'center',
         width: '100%',
+        paddingHorizontal: 1,
     },
 });

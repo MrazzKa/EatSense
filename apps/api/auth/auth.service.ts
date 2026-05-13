@@ -191,6 +191,43 @@ export class AuthService {
     await this.enforceMagicLinkRateLimits(normalizedEmail, sanitizedIp);
 
     const user = await this.findOrCreateUser(normalizedEmail);
+    await this.sendMagicLinkForUser(user, requestMagicLinkDto.redirectUrl);
+
+    this.logger.log(`[AuthService] Magic link requested for ${this.maskEmail(user.email)}`);
+
+    return {
+      message: 'If this email is registered, we sent a magic link to your inbox.',
+    };
+  }
+
+  async requestExpertMagicLink(requestMagicLinkDto: RequestMagicLinkDto, clientIp?: string) {
+    const normalizedEmail = this.normalizeEmail(requestMagicLinkDto.email);
+    const sanitizedIp = this.sanitizeIp(clientIp);
+
+    await this.enforceMagicLinkRateLimits(normalizedEmail, sanitizedIp);
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: { expertProfile: true },
+    });
+
+    const response = {
+      message: 'If this email belongs to an expert account, we sent a sign-in link to your inbox.',
+    };
+
+    if (!user || user.expertsRole !== 'EXPERT' || !user.expertProfile) {
+      this.logger.warn(`[AuthService] Expert portal magic link skipped for ineligible email ${this.maskEmail(normalizedEmail)}`);
+      return response;
+    }
+
+    await this.sendMagicLinkForUser(user, requestMagicLinkDto.redirectUrl);
+
+    this.logger.log(`[AuthService] Expert portal magic link requested for ${this.maskEmail(user.email)}`);
+
+    return response;
+  }
+
+  private async sendMagicLinkForUser(user: { id: string; email: string }, redirectUrl?: string) {
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MINUTES * 60 * 1000);
 
@@ -204,9 +241,9 @@ export class AuthService {
     });
 
     let magicLinkUrl: string;
-    if (requestMagicLinkDto.redirectUrl) {
-      const sep = requestMagicLinkDto.redirectUrl.includes('?') ? '&' : '?';
-      magicLinkUrl = `${requestMagicLinkDto.redirectUrl}${sep}token=${token}`;
+    if (redirectUrl) {
+      const sep = redirectUrl.includes('?') ? '&' : '?';
+      magicLinkUrl = `${redirectUrl}${sep}token=${token}`;
     } else {
       const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
       magicLinkUrl = `${baseUrl}/auth/magic-link?token=${token}`;
@@ -218,12 +255,6 @@ export class AuthService {
       this.logger.error(`[AuthService] Failed to dispatch magic link for ${this.maskEmail(user.email)}`);
       throw new ServiceUnavailableException('We could not send the magic link. Please try again later.');
     }
-
-    this.logger.log(`[AuthService] Magic link requested for ${this.maskEmail(user.email)}`);
-
-    return {
-      message: 'If this email is registered, we sent a magic link to your inbox.',
-    };
   }
 
   async consumeMagicLink(token: string) {

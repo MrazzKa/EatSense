@@ -33,7 +33,7 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/request-magic-link`, {
+      const res = await fetch(`${API_BASE}/auth/expert/request-magic-link`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -120,8 +120,8 @@ export default function ChatsPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-3xl">
-        <h1 className="text-2xl font-bold mb-6">{t('chats', 'title')}</h1>
+      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
+        <h1 className="mb-5 text-2xl font-bold sm:mb-6">{t('chats', 'title')}</h1>
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -138,7 +138,7 @@ export default function ChatsPage() {
               <Link
                 key={conv.id}
                 href={`/chats/${conv.id}`}
-                className="flex items-center gap-4 p-4 bg-[var(--surface)] border border-[var(--border)] rounded-xl hover:bg-[var(--surface2)] transition"
+                className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 transition hover:bg-[var(--surface2)] sm:gap-4 sm:p-4"
               >
                 {/* Avatar */}
                 <div className="w-11 h-11 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -147,7 +147,7 @@ export default function ChatsPage() {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
+                  <div className="mb-0.5 flex items-center justify-between gap-2">
                     <span className="font-medium text-sm truncate">
                       {getClientName(conv)}
                       {conv.status === 'completed' && (

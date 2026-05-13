@@ -199,8 +199,8 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-3xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
+        <div className="mb-5 flex items-center justify-between sm:mb-6">
           <h1 className="text-2xl font-bold">{t('profile', 'title')}</h1>
           {saved && (
             <span className="text-sm text-[var(--green)] font-medium">{t('common', 'saved')}</span>
@@ -229,12 +229,12 @@ export default function ProfilePage() {
 
             {/* Type */}
             <Field label={t('profile', 'type')}>
-              <div className="flex gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:flex">
                 {(['nutritionist', 'dietitian'] as const).map((typeKey) => (
                   <button
                     key={typeKey}
                     onClick={() => setType(typeKey)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition cursor-pointer ${
+                    className={`rounded-lg border px-4 py-3 text-sm font-medium transition sm:py-2 ${
                       type === typeKey
                         ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
                         : 'border-[var(--border)] bg-[var(--surface2)] text-[var(--text2)] hover:border-[var(--text2)]'
@@ -323,12 +323,12 @@ export default function ProfilePage() {
             <Field label={t('profile', 'credentials')}>
               <div className="space-y-2">
                 {(profile.credentials || []).map((cred) => (
-                  <div key={cred.id} className="flex items-center justify-between bg-[var(--surface2)] rounded-lg px-4 py-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <div key={cred.id} className="flex flex-col gap-3 rounded-lg bg-[var(--surface2)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
                       <FileText size={16} className="text-[var(--text2)] shrink-0" />
                       <span className="text-sm truncate">{cred.name}</span>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex shrink-0 flex-wrap items-center gap-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         cred.status === 'approved' ? 'bg-[#22c55e22] text-[var(--green)]' :
                         cred.status === 'rejected' ? 'bg-[#ef444422] text-[var(--red)]' :
@@ -395,7 +395,7 @@ export default function ProfilePage() {
               <button
                 onClick={handleSave}
                 disabled={saving || !displayName.trim()}
-                className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
               >
                 {saving ? t('common', 'saving') : t('common', 'save')}
               </button>

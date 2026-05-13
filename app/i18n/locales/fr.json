@@ -1155,6 +1155,7 @@
     "paymentUnavailableBody": "Ce service payant est déjà visible, mais le paiement en ligne n'est pas encore connecté. Choisissez un service gratuit ou contactez l'expert lorsque les paiements seront activés.",
     "ownerProfilePublished": "Votre profil expert est publié",
     "ownerProfilePublishedSub": "Les clients peuvent trouver vos services dans EatSense.",
+    "selfHiddenHint": "Votre propre profil est masqué dans votre liste personnelle. Les autres clients peuvent le trouver dans EatSense.",
     "ownerOpenPortal": "Ouvrir le portail expert",
     "offerFormat": {
       "CHAT_CONSULTATION": "Consultation par chat",

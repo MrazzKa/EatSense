@@ -14,7 +14,7 @@ export default function EarningsPage() {
   const { t } = useI18n();
   return (
     <AppShell>
-      <div className="max-w-4xl">
+      <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <h1 className="text-2xl font-semibold mb-2">{t('nav', 'earnings')}</h1>
         <p className="text-sm text-[var(--text2)] mb-6">
           Track your consultations, paid orders, and (soon) automatic payouts.

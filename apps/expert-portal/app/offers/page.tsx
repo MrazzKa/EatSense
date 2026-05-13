@@ -211,12 +211,12 @@ export default function OffersPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-3xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
+        <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold">{t('offers', 'title')}</h1>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-sm font-semibold rounded-lg transition cursor-pointer"
+            className="flex items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-hover)] sm:py-2"
           >
             <Plus size={16} />
             {t('offers', 'newOffer')}
@@ -241,10 +241,10 @@ export default function OffersPage() {
               return (
                 <div
                   key={offer.id}
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5"
                 >
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div>
+                  <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{displayName || '—'}</h3>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -266,7 +266,7 @@ export default function OffersPage() {
                         }</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex shrink-0 items-center justify-end gap-1">
                       <button
                         onClick={() => togglePublish(offer)}
                         title={offer.isPublished ? t('common', 'hidden') : t('common', 'visible')}
@@ -300,13 +300,13 @@ export default function OffersPage() {
         )}
 
         {editorOpen && (
-          <div className="mt-6 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
+          <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
             <h2 className="text-lg font-semibold mb-4">{editing ? t('offers', 'edit') : t('offers', 'create')}</h2>
 
             <div className="space-y-4">
               {/* Locale tabs */}
               <div>
-                <div className="flex gap-1 mb-3 border-b border-[var(--border)]">
+                <div className="-mx-1 mb-3 flex gap-1 overflow-x-auto border-b border-[var(--border)] px-1">
                   {OFFER_LOCALES.map((l) => {
                     const hasName = !!(form.name[l] || '').trim();
                     return (
@@ -386,18 +386,18 @@ export default function OffersPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-3 pt-2 border-t border-[var(--border)]">
+              <div className="grid gap-3 border-t border-[var(--border)] pt-2 sm:flex sm:items-center">
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 text-white font-semibold rounded-lg transition cursor-pointer"
+                  className="rounded-lg bg-[var(--primary)] px-5 py-3 font-semibold text-white transition hover:bg-[var(--primary-hover)] disabled:opacity-50 sm:py-2"
                 >
                   {saving ? t('common', 'saving') : editing ? t('common', 'save') : t('common', 'create')}
                 </button>
                 <button
                   onClick={closeEditor}
                   disabled={saving}
-                  className="px-5 py-2 text-[var(--text2)] hover:text-[var(--text)] font-medium rounded-lg transition cursor-pointer"
+                  className="rounded-lg px-5 py-3 font-medium text-[var(--text2)] transition hover:text-[var(--text)] sm:py-2"
                 >
                   {t('common', 'cancel')}
                 </button>

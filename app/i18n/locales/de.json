@@ -1271,6 +1271,7 @@
     "paymentUnavailableBody": "Diese kostenpflichtige Leistung ist bereits sichtbar, aber Online-Zahlung ist noch nicht verbunden. Wähle eine kostenlose Leistung oder kontaktiere den Experten, sobald Zahlungen aktiviert sind.",
     "ownerProfilePublished": "Dein Expertenprofil ist veröffentlicht",
     "ownerProfilePublishedSub": "Klienten können deine Leistungen in EatSense finden.",
+    "selfHiddenHint": "Dein eigenes Profil wird in deiner persönlichen Liste ausgeblendet. Andere Klienten können es in EatSense finden.",
     "ownerOpenPortal": "Expertenportal öffnen",
     "offerFormat": {
       "CHAT_CONSULTATION": "Chat-Beratung",

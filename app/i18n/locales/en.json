@@ -1467,6 +1467,7 @@
     "paymentUnavailableBody": "This paid service is already visible, but online checkout is not connected yet. You can choose a free service or contact the expert when payments are enabled.",
     "ownerProfilePublished": "Your expert profile is published",
     "ownerProfilePublishedSub": "Clients can find your services in EatSense.",
+    "selfHiddenHint": "Your own profile is hidden from your personal list. Other clients can find it in EatSense.",
     "ownerOpenPortal": "Open expert portal",
     "offerFormat": {
       "CHAT_CONSULTATION": "Chat consultation",

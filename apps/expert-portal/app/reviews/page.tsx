@@ -72,7 +72,7 @@ export default function ReviewsPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-3xl">
+      <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <h1 className="text-2xl font-bold mb-6">{t('reviews', 'title')}</h1>
 
         {loading ? (
@@ -87,7 +87,7 @@ export default function ReviewsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
                 <div className="text-xs text-[var(--text2)] mb-1">{t('reviews', 'total')}</div>
                 <div className="text-2xl font-bold">{reviews.length}</div>
@@ -106,11 +106,11 @@ export default function ReviewsPage() {
               {reviews.map((r) => (
                 <div
                   key={r.id}
-                  className={`bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 ${
+                  className={`rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5 ${
                     r.isVisible ? '' : 'opacity-60'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <Stars rating={r.rating} />
