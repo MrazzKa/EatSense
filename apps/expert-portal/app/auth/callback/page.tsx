@@ -35,7 +35,7 @@ function CallbackContent() {
           throw new Error(t('auth', 'authFailed'));
         }
 
-        login(data.accessToken, data.refreshToken);
+        await login(data.accessToken, data.refreshToken);
         router.replace('/dashboard');
       } catch (err: any) {
         setError(err.message || t('auth', 'somethingWrong'));

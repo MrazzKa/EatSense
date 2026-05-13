@@ -64,6 +64,7 @@ type MessagesShape = {
     saveFailed: string;
     deleteFailed: string;
     uploadFailed: string;
+    openFailed: string;
     confirmDelete: string;
   };
   login: {
@@ -189,7 +190,9 @@ type MessagesShape = {
     nameRequired: string;
     format: string;
     duration: string;
-    durationHint: string;
+    durationMinutes: string;
+    days: string;
+    minutes: string;
     free: string;
     confirmDelete: string;
     togglePublishFailed: string;
@@ -231,6 +234,7 @@ type MessagesShape = {
   languageNames: Record<Locale, string>;
   formats: {
     CHAT_CONSULTATION: string;
+    VIDEO_CONSULTATION: string;
     MEAL_PLAN: string;
     REPORT_REVIEW: string;
     MONTHLY_SUPPORT: string;
@@ -255,6 +259,7 @@ const en: MessagesShape = {
     saveFailed: 'Failed to save. Please try again.',
     deleteFailed: 'Failed to delete. Please try again.',
     uploadFailed: 'Failed to upload. Please try again.',
+    openFailed: 'Failed to open the document. Please try again.',
     confirmDelete: 'Delete this item?',
   },
   login: {
@@ -326,7 +331,7 @@ const en: MessagesShape = {
     name: 'Name', nameFor: 'Name ({lang})',
     description: 'Description', descriptionFor: 'Description ({lang})',
     nameRequired: 'Please provide a name in at least one language.',
-    format: 'Format', duration: 'Duration (days, optional)', durationHint: '',
+    format: 'Format', duration: 'Duration (days, optional)', durationMinutes: 'Session duration (minutes, optional)', days: 'days', minutes: 'min',
     free: 'Free', confirmDelete: 'Delete this offer? Existing conversations will keep working but new clients will no longer see it.',
     togglePublishFailed: 'Failed to update visibility.',
   },
@@ -369,7 +374,7 @@ const en: MessagesShape = {
     en: 'English', ru: 'Russian', kk: 'Kazakh', de: 'German', fr: 'French', es: 'Spanish',
   },
   formats: {
-    CHAT_CONSULTATION: 'Chat consultation', MEAL_PLAN: 'Meal plan', REPORT_REVIEW: 'Report review',
+    CHAT_CONSULTATION: 'Chat consultation', VIDEO_CONSULTATION: 'Video consultation', MEAL_PLAN: 'Meal plan', REPORT_REVIEW: 'Report review',
     MONTHLY_SUPPORT: 'Monthly support', CUSTOM: 'Custom',
   },
   call: {
@@ -391,6 +396,7 @@ const ru: MessagesShape = {
     saveFailed: 'Не удалось сохранить. Попробуйте ещё раз.',
     deleteFailed: 'Не удалось удалить. Попробуйте ещё раз.',
     uploadFailed: 'Не удалось загрузить. Попробуйте ещё раз.',
+    openFailed: 'Не удалось открыть документ. Попробуйте ещё раз.',
     confirmDelete: 'Удалить элемент?',
   },
   login: {
@@ -462,7 +468,7 @@ const ru: MessagesShape = {
     name: 'Название', nameFor: 'Название ({lang})',
     description: 'Описание', descriptionFor: 'Описание ({lang})',
     nameRequired: 'Пожалуйста, укажите название хотя бы на одном языке.',
-    format: 'Формат', duration: 'Длительность (дни, опционально)', durationHint: '',
+    format: 'Формат', duration: 'Длительность (дни, опционально)', durationMinutes: 'Длительность встречи (минуты, опционально)', days: 'дн.', minutes: 'мин',
     free: 'Бесплатно', confirmDelete: 'Удалить услугу? Существующие консультации продолжат работу, но новые клиенты её больше не увидят.',
     togglePublishFailed: 'Не удалось изменить видимость.',
   },
@@ -505,7 +511,7 @@ const ru: MessagesShape = {
     en: 'Английский', ru: 'Русский', kk: 'Казахский', de: 'Немецкий', fr: 'Французский', es: 'Испанский',
   },
   formats: {
-    CHAT_CONSULTATION: 'Консультация в чате', MEAL_PLAN: 'План питания', REPORT_REVIEW: 'Разбор отчёта',
+    CHAT_CONSULTATION: 'Консультация в чате', VIDEO_CONSULTATION: 'Видеоконсультация', MEAL_PLAN: 'План питания', REPORT_REVIEW: 'Разбор отчёта',
     MONTHLY_SUPPORT: 'Месячное сопровождение', CUSTOM: 'Индивидуальный',
   },
   call: {
@@ -527,6 +533,7 @@ const kk: MessagesShape = {
     saveFailed: 'Сақтау мүмкін болмады. Қайта көріңіз.',
     deleteFailed: 'Жою мүмкін болмады. Қайта көріңіз.',
     uploadFailed: 'Жүктеу мүмкін болмады. Қайта көріңіз.',
+    openFailed: 'Құжатты ашу мүмкін болмады. Қайта көріңіз.',
     confirmDelete: 'Осы элементті жою керек пе?',
   },
   login: {
@@ -598,7 +605,7 @@ const kk: MessagesShape = {
     name: 'Атауы', nameFor: 'Атауы ({lang})',
     description: 'Сипаттамасы', descriptionFor: 'Сипаттамасы ({lang})',
     nameRequired: 'Кемінде бір тілде атау көрсетіңіз.',
-    format: 'Формат', duration: 'Ұзақтығы (күн, міндетті емес)', durationHint: '',
+    format: 'Формат', duration: 'Ұзақтығы (күн, міндетті емес)', durationMinutes: 'Сессия ұзақтығы (минут, міндетті емес)', days: 'күн', minutes: 'мин',
     free: 'Тегін', confirmDelete: 'Осы қызметті жою керек пе? Бар сұхбаттар жалғасады, бірақ жаңа клиенттер оны көрмейді.',
     togglePublishFailed: 'Көрінуді өзгерту мүмкін болмады.',
   },
@@ -641,7 +648,7 @@ const kk: MessagesShape = {
     en: 'Ағылшын', ru: 'Орыс', kk: 'Қазақ', de: 'Неміс', fr: 'Француз', es: 'Испан',
   },
   formats: {
-    CHAT_CONSULTATION: 'Чат арқылы кеңес', MEAL_PLAN: 'Тамақтану жоспары', REPORT_REVIEW: 'Есеп талдау',
+    CHAT_CONSULTATION: 'Чат арқылы кеңес', VIDEO_CONSULTATION: 'Видео кеңес', MEAL_PLAN: 'Тамақтану жоспары', REPORT_REVIEW: 'Есеп талдау',
     MONTHLY_SUPPORT: 'Айлық қолдау', CUSTOM: 'Жеке',
   },
   call: {
@@ -663,6 +670,7 @@ const de: MessagesShape = {
     saveFailed: 'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     deleteFailed: 'Löschen fehlgeschlagen. Bitte erneut versuchen.',
     uploadFailed: 'Hochladen fehlgeschlagen. Bitte erneut versuchen.',
+    openFailed: 'Dokument konnte nicht geöffnet werden. Bitte erneut versuchen.',
     confirmDelete: 'Diesen Eintrag löschen?',
   },
   login: {
@@ -734,7 +742,7 @@ const de: MessagesShape = {
     name: 'Name', nameFor: 'Name ({lang})',
     description: 'Beschreibung', descriptionFor: 'Beschreibung ({lang})',
     nameRequired: 'Bitte geben Sie einen Namen in mindestens einer Sprache an.',
-    format: 'Format', duration: 'Dauer (Tage, optional)', durationHint: '',
+    format: 'Format', duration: 'Dauer (Tage, optional)', durationMinutes: 'Sitzungsdauer (Minuten, optional)', days: 'Tage', minutes: 'Min.',
     free: 'Kostenlos', confirmDelete: 'Dieses Angebot löschen? Bestehende Konversationen funktionieren weiter, aber neue Kunden sehen es nicht mehr.',
     togglePublishFailed: 'Sichtbarkeit konnte nicht aktualisiert werden.',
   },
@@ -777,7 +785,7 @@ const de: MessagesShape = {
     en: 'Englisch', ru: 'Russisch', kk: 'Kasachisch', de: 'Deutsch', fr: 'Französisch', es: 'Spanisch',
   },
   formats: {
-    CHAT_CONSULTATION: 'Chat-Beratung', MEAL_PLAN: 'Ernährungsplan', REPORT_REVIEW: 'Bericht-Analyse',
+    CHAT_CONSULTATION: 'Chat-Beratung', VIDEO_CONSULTATION: 'Video-Beratung', MEAL_PLAN: 'Ernährungsplan', REPORT_REVIEW: 'Bericht-Analyse',
     MONTHLY_SUPPORT: 'Monatliche Betreuung', CUSTOM: 'Individuell',
   },
   call: {
@@ -799,6 +807,7 @@ const fr: MessagesShape = {
     saveFailed: 'Échec de l\'enregistrement. Veuillez réessayer.',
     deleteFailed: 'Échec de la suppression. Veuillez réessayer.',
     uploadFailed: 'Échec du téléversement. Veuillez réessayer.',
+    openFailed: 'Impossible d’ouvrir le document. Veuillez réessayer.',
     confirmDelete: 'Supprimer cet élément ?',
   },
   login: {
@@ -870,7 +879,7 @@ const fr: MessagesShape = {
     name: 'Nom', nameFor: 'Nom ({lang})',
     description: 'Description', descriptionFor: 'Description ({lang})',
     nameRequired: 'Veuillez fournir un nom dans au moins une langue.',
-    format: 'Format', duration: 'Durée (jours, facultatif)', durationHint: '',
+    format: 'Format', duration: 'Durée (jours, facultatif)', durationMinutes: 'Durée de session (minutes, facultatif)', days: 'jours', minutes: 'min',
     free: 'Gratuit', confirmDelete: 'Supprimer cette offre ? Les conversations existantes continueront, mais les nouveaux clients ne la verront plus.',
     togglePublishFailed: 'Impossible de modifier la visibilité.',
   },
@@ -913,7 +922,7 @@ const fr: MessagesShape = {
     en: 'Anglais', ru: 'Russe', kk: 'Kazakh', de: 'Allemand', fr: 'Français', es: 'Espagnol',
   },
   formats: {
-    CHAT_CONSULTATION: 'Consultation par chat', MEAL_PLAN: 'Plan alimentaire', REPORT_REVIEW: 'Analyse de rapport',
+    CHAT_CONSULTATION: 'Consultation par chat', VIDEO_CONSULTATION: 'Consultation vidéo', MEAL_PLAN: 'Plan alimentaire', REPORT_REVIEW: 'Analyse de rapport',
     MONTHLY_SUPPORT: 'Accompagnement mensuel', CUSTOM: 'Personnalisé',
   },
   call: {
@@ -935,6 +944,7 @@ const es: MessagesShape = {
     saveFailed: 'No se pudo guardar. Inténtalo de nuevo.',
     deleteFailed: 'No se pudo eliminar. Inténtalo de nuevo.',
     uploadFailed: 'No se pudo subir. Inténtalo de nuevo.',
+    openFailed: 'No se pudo abrir el documento. Inténtalo de nuevo.',
     confirmDelete: '¿Eliminar este elemento?',
   },
   login: {
@@ -1006,7 +1016,7 @@ const es: MessagesShape = {
     name: 'Nombre', nameFor: 'Nombre ({lang})',
     description: 'Descripción', descriptionFor: 'Descripción ({lang})',
     nameRequired: 'Por favor, proporciona un nombre al menos en un idioma.',
-    format: 'Formato', duration: 'Duración (días, opcional)', durationHint: '',
+    format: 'Formato', duration: 'Duración (días, opcional)', durationMinutes: 'Duración de sesión (minutos, opcional)', days: 'días', minutes: 'min',
     free: 'Gratis', confirmDelete: '¿Eliminar este servicio? Las conversaciones existentes seguirán funcionando, pero los nuevos clientes ya no lo verán.',
     togglePublishFailed: 'No se pudo actualizar la visibilidad.',
   },
@@ -1049,7 +1059,7 @@ const es: MessagesShape = {
     en: 'Inglés', ru: 'Ruso', kk: 'Kazajo', de: 'Alemán', fr: 'Francés', es: 'Español',
   },
   formats: {
-    CHAT_CONSULTATION: 'Consulta por chat', MEAL_PLAN: 'Plan de comidas', REPORT_REVIEW: 'Análisis de informe',
+    CHAT_CONSULTATION: 'Consulta por chat', VIDEO_CONSULTATION: 'Videoconsulta', MEAL_PLAN: 'Plan de comidas', REPORT_REVIEW: 'Análisis de informe',
     MONTHLY_SUPPORT: 'Acompañamiento mensual', CUSTOM: 'Personalizado',
   },
   call: {

@@ -10,9 +10,11 @@ import {
     ActivityIndicator,
     Image,
     KeyboardAvoidingView,
+    Modal,
     Platform,
+    useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -79,6 +81,8 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const tokens = useDesignTokens();
     const { t } = useI18n();
     const { refreshUser } = useAuth();
+    const insets = useSafeAreaInsets();
+    const { height: windowHeight } = useWindowDimensions();
     const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
     const [step, setStep] = useState(1);
@@ -119,6 +123,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
     const [educationPickerIndex, setEducationPickerIndex] = useState<number | null>(null);
     const [country, setCountry] = useState<string>(''); // ISO 3166-1 alpha-2
     const [countryPickerOpen, setCountryPickerOpen] = useState(false);
+    const [manualCountryCode, setManualCountryCode] = useState('');
 
     const COUNTRY_OPTIONS: Array<{ code: string; name: string }> = [
         { code: 'KZ', name: 'Kazakhstan' },
@@ -135,6 +140,26 @@ export default function BecomeExpertScreen({ navigation }: any) {
         { code: 'AE', name: 'United Arab Emirates' },
         { code: 'TR', name: 'Turkey' },
     ];
+    const countryPickerMaxHeight = Math.max(
+        320,
+        Math.min(windowHeight * 0.72, windowHeight - insets.top - insets.bottom - 96),
+    );
+
+    const openCountryPicker = useCallback(() => {
+        setManualCountryCode(COUNTRY_OPTIONS.some(o => o.code === country) ? '' : country);
+        setCountryPickerOpen(true);
+    }, [COUNTRY_OPTIONS, country]);
+
+    const closeCountryPicker = useCallback(() => {
+        setCountryPickerOpen(false);
+    }, []);
+
+    const applyManualCountry = useCallback(() => {
+        if (manualCountryCode.length === 2) {
+            setCountry(manualCountryCode);
+            setCountryPickerOpen(false);
+        }
+    }, [manualCountryCode]);
 
     const MAX_EDUCATION_ENTRIES = 5;
     const EDUCATION_FILE_MAX_MB = 10;
@@ -179,6 +204,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
     };
     const [documents, setDocuments] = useState<PickedDocument[]>([]);
     const [pickerOpen, setPickerOpen] = useState(false);
+    const anyPickerOpen = educationPickerIndex !== null || pickerOpen || countryPickerOpen;
 
     // Step 5: Offers — services the expert provides. At least one is required.
     const [offers, setOffers] = useState<OfferDraft[]>([blankOffer()]);
@@ -501,7 +527,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             );
             return;
         }
-        for (const entry of educationEntries) {
+        for (const entry of filledEducation) {
             if (!entry.degree.trim() || !entry.institution.trim() || !entry.document) {
                 Alert.alert(
                     t('experts.onboarding.uploadFailed') || 'Upload failed',
@@ -591,7 +617,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
 
             // 2. Upload education documents + create structured education entries
             const educationFailures: string[] = [];
-            for (const entry of educationEntries) {
+            for (const entry of filledEducation) {
                 if (!entry.document) continue;
                 try {
                     const uploadResult = await ApiService.uploadDocument(entry.document.uri, entry.document.mimeType, entry.document.name);
@@ -738,7 +764,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
     );
 
     const renderStep1 = () => (
-        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInnerWithBottomBar}>
             <Ionicons name="shield-checkmark-outline" size={56} color={colors.primary} />
             <Text style={styles.stepTitle}>{t('experts.onboarding.step1Title')}</Text>
             <Text style={styles.stepSubtitle}>{t('experts.onboarding.step1Sub')}</Text>
@@ -767,7 +793,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
     );
 
     const renderStep2 = () => (
-        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInnerWithBottomBar}>
             <Text style={styles.stepTitle}>{t('experts.onboarding.step2Title')}</Text>
             <Text style={styles.stepSubtitle}>{t('experts.onboarding.step2Sub')}</Text>
 
@@ -798,7 +824,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
             <Text style={styles.label}>{t('experts.edit.country') || 'Country'}</Text>
             <TouchableOpacity
                 style={styles.input}
-                onPress={() => setCountryPickerOpen(true)}
+                onPress={openCountryPicker}
                 activeOpacity={0.7}
             >
                 <Text style={{ color: country ? colors.text : colors.textTertiary, paddingVertical: 4 }}>
@@ -900,30 +926,6 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 </TouchableOpacity>
             )}
 
-            {educationPickerIndex !== null && (
-                <>
-                    <TouchableOpacity
-                        style={styles.pickerBackdrop}
-                        activeOpacity={1}
-                        onPress={() => setEducationPickerIndex(null)}
-                    />
-                    <View style={styles.pickerSheet}>
-                        <Text style={styles.pickerTitle}>{t('experts.onboarding.chooseDocumentSource') || 'Choose source'}</Text>
-                        <TouchableOpacity style={styles.pickerOption} onPress={() => pickEducationImage(educationPickerIndex)}>
-                            <Ionicons name="images-outline" size={22} color={colors.primary} />
-                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceGallery')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.pickerOption} onPress={() => pickEducationPdf(educationPickerIndex)}>
-                            <Ionicons name="document-text-outline" size={22} color={colors.primary} />
-                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourcePdf')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setEducationPickerIndex(null)}>
-                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </>
-            )}
-
             <Text style={styles.label}>{t('experts.edit.experienceYears')}</Text>
             <TextInput
                 style={styles.input}
@@ -933,62 +935,11 @@ export default function BecomeExpertScreen({ navigation }: any) {
                 placeholderTextColor={colors.textTertiary}
                 keyboardType="numeric"
             />
-
-            {countryPickerOpen && (
-                <>
-                    <TouchableOpacity
-                        style={styles.pickerBackdrop}
-                        activeOpacity={1}
-                        onPress={() => setCountryPickerOpen(false)}
-                    />
-                    <View style={styles.pickerSheet}>
-                        <Text style={styles.pickerTitle}>{t('experts.edit.countryPlaceholder') || 'Select your country'}</Text>
-                        <ScrollView style={{ maxHeight: 360 }}>
-                            {COUNTRY_OPTIONS.map(opt => (
-                                <TouchableOpacity
-                                    key={opt.code}
-                                    style={styles.pickerOption}
-                                    onPress={() => { setCountry(opt.code); setCountryPickerOpen(false); }}
-                                >
-                                    <Ionicons
-                                        name={country === opt.code ? 'radio-button-on' : 'radio-button-off'}
-                                        size={20}
-                                        color={colors.primary}
-                                    />
-                                    <Text style={styles.pickerOptionText}>{opt.name}</Text>
-                                </TouchableOpacity>
-                            ))}
-                            {/* Free-form ISO 3166-1 alpha-2 code entry for countries not in
-                                the short list above (e.g. AR, BR, JP). Backend caps at 2 chars. */}
-                            <View style={[styles.pickerOption, { gap: 8 }]}>
-                                <Ionicons name="globe-outline" size={20} color={colors.primary} />
-                                <Text style={styles.pickerOptionText}>
-                                    {t('experts.edit.countryOther') || 'Other (ISO code):'}
-                                </Text>
-                                <TextInput
-                                    style={[styles.input, { flex: 1, marginVertical: 0, marginLeft: 8, paddingVertical: 6, textTransform: 'uppercase' }]}
-                                    value={
-                                        COUNTRY_OPTIONS.some(o => o.code === country) ? '' : country
-                                    }
-                                    autoCapitalize="characters"
-                                    maxLength={2}
-                                    placeholder="AR"
-                                    placeholderTextColor={colors.textSecondary}
-                                    onChangeText={(v) => setCountry(v.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2))}
-                                />
-                            </View>
-                        </ScrollView>
-                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryPickerOpen(false)}>
-                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </>
-            )}
         </ScrollView>
     );
 
     const renderStep3 = () => (
-        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInnerWithBottomBar}>
             <Text style={styles.stepTitle}>{t('experts.onboarding.step3Title')}</Text>
             <Text style={styles.stepSubtitle}>{t('experts.onboarding.step3Sub')}</Text>
 
@@ -1025,7 +976,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
     );
 
     const renderStep4 = () => (
-        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInnerWithBottomBar}>
             <Text style={styles.stepTitle}>{t('experts.onboarding.step4Title')}</Text>
             <Text style={styles.stepSubtitle}>{t('experts.onboarding.step4Sub')}</Text>
 
@@ -1060,39 +1011,11 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     {t('experts.onboarding.documentsRequired')}
                 </Text>
             )}
-
-            {pickerOpen && (
-                <>
-                    <TouchableOpacity
-                        style={styles.pickerBackdrop}
-                        activeOpacity={1}
-                        onPress={() => setPickerOpen(false)}
-                    />
-                    <View style={styles.pickerSheet}>
-                        <Text style={styles.pickerTitle}>{t('experts.onboarding.chooseDocumentSource')}</Text>
-                        <TouchableOpacity style={styles.pickerOption} onPress={pickFromCamera}>
-                            <Ionicons name="camera-outline" size={22} color={colors.primary} />
-                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceCamera')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.pickerOption} onPress={pickFromGallery}>
-                            <Ionicons name="images-outline" size={22} color={colors.primary} />
-                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceGallery')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.pickerOption} onPress={pickPdf}>
-                            <Ionicons name="document-text-outline" size={22} color={colors.primary} />
-                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourcePdf')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setPickerOpen(false)}>
-                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </>
-            )}
         </ScrollView>
     );
 
     const renderStep5 = () => (
-        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInnerWithBottomBar}>
             <Text style={styles.stepTitle}>{t('experts.onboarding.step5OffersTitle') || 'Your services'}</Text>
             <Text style={styles.stepSubtitle}>
                 {t('experts.onboarding.step5OffersSub') ||
@@ -1234,7 +1157,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
     );
 
     const renderStep6 = () => (
-        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInner}>
+        <ScrollView style={styles.stepContent} contentContainerStyle={styles.stepContentInnerWithBottomBar}>
             <Text style={styles.stepTitle}>{t('experts.onboarding.step5Title')}</Text>
             <Text style={styles.stepSubtitle}>{t('experts.onboarding.step5Sub')}</Text>
 
@@ -1322,7 +1245,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                                 <Text style={styles.previewText}>
                                     • {o.name || `(${t('experts.onboarding.offer') || 'service'} #${idx + 1})`}
                                     {' · '}
-                                    {o.priceType === 'FREE'
+                                    {t(`experts.offerFormat.${o.format}`)} · {o.priceType === 'FREE'
                                         ? (t('experts.priceFree') || 'Free')
                                         : `${o.currency} ${o.priceAmount || '?'}`}
                                 </Text>
@@ -1361,6 +1284,182 @@ export default function BecomeExpertScreen({ navigation }: any) {
         }
     };
 
+    const renderPickerModals = () => (
+        <>
+            <Modal
+                visible={educationPickerIndex !== null}
+                transparent
+                animationType="fade"
+                presentationStyle="overFullScreen"
+                statusBarTranslucent
+                onRequestClose={() => setEducationPickerIndex(null)}
+            >
+                <TouchableOpacity
+                    style={styles.pickerBackdrop}
+                    activeOpacity={1}
+                    onPress={() => setEducationPickerIndex(null)}
+                >
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={[styles.pickerSheet, { paddingBottom: tokens.spacing.lg + insets.bottom }]}
+                    >
+                        <View style={styles.pickerHandle} />
+                        <Text style={styles.pickerTitle}>{t('experts.onboarding.chooseDocumentSource') || 'Add document'}</Text>
+                        <Text style={styles.pickerDescription}>
+                            {t('experts.onboarding.educationDocumentHint') || 'Attach a diploma (PDF, JPG or PNG, up to 10 MB) for each entry.'}
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.pickerOption}
+                            onPress={() => educationPickerIndex !== null && pickEducationImage(educationPickerIndex)}
+                        >
+                            <Ionicons name="images-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceGallery')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.pickerOption}
+                            onPress={() => educationPickerIndex !== null && pickEducationPdf(educationPickerIndex)}
+                        >
+                            <Ionicons name="document-text-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourcePdf')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setEducationPickerIndex(null)}>
+                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
+
+            <Modal
+                visible={pickerOpen}
+                transparent
+                animationType="fade"
+                presentationStyle="overFullScreen"
+                statusBarTranslucent
+                onRequestClose={() => setPickerOpen(false)}
+            >
+                <TouchableOpacity
+                    style={styles.pickerBackdrop}
+                    activeOpacity={1}
+                    onPress={() => setPickerOpen(false)}
+                >
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={[styles.pickerSheet, { paddingBottom: tokens.spacing.lg + insets.bottom }]}
+                    >
+                        <View style={styles.pickerHandle} />
+                        <Text style={styles.pickerTitle}>{t('experts.onboarding.chooseDocumentSource')}</Text>
+                        <TouchableOpacity style={styles.pickerOption} onPress={pickFromCamera}>
+                            <Ionicons name="camera-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceCamera')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerOption} onPress={pickFromGallery}>
+                            <Ionicons name="images-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourceGallery')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerOption} onPress={pickPdf}>
+                            <Ionicons name="document-text-outline" size={22} color={colors.primary} />
+                            <Text style={styles.pickerOptionText}>{t('experts.onboarding.sourcePdf')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.pickerCancel} onPress={() => setPickerOpen(false)}>
+                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
+
+            <Modal
+                visible={countryPickerOpen}
+                transparent
+                animationType="fade"
+                presentationStyle="overFullScreen"
+                statusBarTranslucent
+                onRequestClose={closeCountryPicker}
+            >
+                <TouchableOpacity
+                    style={styles.pickerBackdrop}
+                    activeOpacity={1}
+                    onPress={closeCountryPicker}
+                >
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={[
+                            styles.pickerSheet,
+                            {
+                                maxHeight: countryPickerMaxHeight,
+                                paddingBottom: tokens.spacing.lg + insets.bottom,
+                            },
+                        ]}
+                    >
+                        <View style={styles.pickerHandle} />
+                        <Text style={styles.pickerTitle}>{t('experts.edit.countryPlaceholder') || 'Select your country'}</Text>
+                        <Text style={styles.pickerDescription}>
+                            {t('experts.edit.countryPickerHint') || 'Choose a country from the list, or enter a two-letter ISO code.'}
+                        </Text>
+                        <ScrollView
+                            style={styles.countryList}
+                            contentContainerStyle={{ paddingBottom: tokens.spacing.sm }}
+                            showsVerticalScrollIndicator={false}
+                        >
+                            {COUNTRY_OPTIONS.map(opt => (
+                                <TouchableOpacity
+                                    key={opt.code}
+                                    style={styles.pickerOption}
+                                    onPress={() => { setCountry(opt.code); setCountryPickerOpen(false); }}
+                                >
+                                    <Ionicons
+                                        name={country === opt.code ? 'radio-button-on' : 'radio-button-off'}
+                                        size={20}
+                                        color={colors.primary}
+                                    />
+                                    <Text style={styles.pickerOptionText}>{opt.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        <View style={styles.countryManualCard}>
+                            <View style={styles.countryManualHeader}>
+                                <Ionicons name="globe-outline" size={20} color={colors.primary} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.countryManualTitle}>
+                                        {t('experts.edit.countryOther') || 'Other country'}
+                                    </Text>
+                                    <Text style={styles.countryManualSubtitle}>
+                                        {t('experts.edit.countryManualCode') || 'Enter a two-letter ISO country code.'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={styles.countryManualRow}>
+                                <TextInput
+                                    style={styles.countryCodeInput}
+                                    value={manualCountryCode}
+                                    autoCapitalize="characters"
+                                    maxLength={2}
+                                    placeholder="AR"
+                                    placeholderTextColor={colors.textTertiary}
+                                    onChangeText={(v) => setManualCountryCode(v.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2))}
+                                />
+                                <TouchableOpacity
+                                    style={[
+                                        styles.countryApplyButton,
+                                        manualCountryCode.length !== 2 && styles.countryApplyButtonDisabled,
+                                    ]}
+                                    disabled={manualCountryCode.length !== 2}
+                                    onPress={applyManualCountry}
+                                >
+                                    <Text style={styles.countryApplyButtonText}>
+                                        {t('experts.edit.countryApply') || 'Apply'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <TouchableOpacity style={styles.pickerCancel} onPress={closeCountryPicker}>
+                            <Text style={styles.pickerCancelText}>{t('experts.onboarding.cancel')}</Text>
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
+        </>
+    );
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -1388,8 +1487,8 @@ export default function BecomeExpertScreen({ navigation }: any) {
             </KeyboardAvoidingView>
 
             {/* Bottom buttons */}
-            {step < 7 && (
-                <View style={styles.bottomBar}>
+            {step < 7 && !anyPickerOpen && (
+                <View style={[styles.bottomBar, { paddingBottom: Math.max(tokens.spacing.md, insets.bottom + tokens.spacing.sm) }]}>
                     {validationError && (
                         <Text style={styles.validationHint} numberOfLines={2}>
                             {validationError}
@@ -1398,7 +1497,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     <TouchableOpacity
                         style={[styles.primaryButton, !canGoNext && styles.primaryButtonDisabled]}
                         onPress={handleNext}
-                        disabled={loading}
+                        disabled={loading || anyPickerOpen}
                         activeOpacity={canGoNext ? 0.8 : 1}
                     >
                         {loading ? (
@@ -1411,6 +1510,7 @@ export default function BecomeExpertScreen({ navigation }: any) {
                     </TouchableOpacity>
                 </View>
             )}
+            {renderPickerModals()}
         </SafeAreaView>
     );
 }
@@ -1460,6 +1560,10 @@ const createStyles = (tokens: any, colors: any) =>
         stepContentInner: {
             padding: tokens.spacing.xl,
             paddingBottom: tokens.spacing.xxxl,
+        },
+        stepContentInnerWithBottomBar: {
+            padding: tokens.spacing.xl,
+            paddingBottom: tokens.spacing.xxxl + 112,
         },
         centeredContent: {
             justifyContent: 'center',
@@ -1568,6 +1672,7 @@ const createStyles = (tokens: any, colors: any) =>
             borderWidth: 1,
             borderColor: colors.border,
             backgroundColor: colors.surface,
+            maxWidth: '100%',
         },
         chipActive: {
             borderColor: colors.primary,
@@ -1576,6 +1681,7 @@ const createStyles = (tokens: any, colors: any) =>
         chipText: {
             fontSize: 14,
             color: colors.textSecondary,
+            flexShrink: 1,
         },
         chipTextActive: {
             color: colors.primary,
@@ -1637,40 +1743,60 @@ const createStyles = (tokens: any, colors: any) =>
             borderColor: colors.error || '#FF3B30',
         },
         pickerBackdrop: {
-            position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            flex: 1,
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(15,23,42,0.36)',
         },
         pickerSheet: {
-            position: 'absolute',
-            left: tokens.spacing.lg,
-            right: tokens.spacing.lg,
-            bottom: tokens.spacing.lg,
             backgroundColor: colors.surface,
-            borderRadius: tokens.radii.md,
-            padding: tokens.spacing.md,
+            borderTopLeftRadius: tokens.radii.lg,
+            borderTopRightRadius: tokens.radii.lg,
+            paddingHorizontal: tokens.spacing.lg,
+            paddingTop: tokens.spacing.sm,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -8 },
+            shadowOpacity: 0.14,
+            shadowRadius: 24,
+            elevation: 18,
+        },
+        pickerHandle: {
+            alignSelf: 'center',
+            width: 42,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: colors.border,
+            marginBottom: tokens.spacing.md,
         },
         pickerTitle: {
-            fontSize: 13,
-            fontWeight: '600',
-            color: colors.textSecondary,
+            fontSize: 15,
+            fontWeight: '700',
+            color: colors.text,
             textAlign: 'center',
-            paddingVertical: tokens.spacing.sm,
             textTransform: 'uppercase',
             letterSpacing: 0.5,
+        },
+        pickerDescription: {
+            fontSize: 13,
+            color: colors.textSecondary,
+            textAlign: 'center',
+            lineHeight: 18,
+            marginTop: tokens.spacing.xs,
+            marginBottom: tokens.spacing.md,
         },
         pickerOption: {
             flexDirection: 'row',
             alignItems: 'center',
             gap: tokens.spacing.md,
-            paddingVertical: tokens.spacing.lg,
-            paddingHorizontal: tokens.spacing.md,
+            minHeight: 56,
+            paddingVertical: tokens.spacing.md,
+            paddingHorizontal: tokens.spacing.sm,
             borderTopWidth: 1,
             borderTopColor: colors.border,
         },
         pickerOptionText: {
             fontSize: 16,
             color: colors.text,
+            flex: 1,
         },
         pickerCancel: {
             marginTop: tokens.spacing.sm,
@@ -1683,6 +1809,66 @@ const createStyles = (tokens: any, colors: any) =>
             fontSize: 16,
             color: colors.primary,
             fontWeight: '600',
+        },
+        countryList: {
+            maxHeight: 320,
+        },
+        countryManualCard: {
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+            paddingTop: tokens.spacing.md,
+            gap: tokens.spacing.md,
+        },
+        countryManualHeader: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: tokens.spacing.md,
+        },
+        countryManualTitle: {
+            fontSize: 15,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        countryManualSubtitle: {
+            marginTop: 2,
+            fontSize: 13,
+            color: colors.textSecondary,
+            lineHeight: 18,
+        },
+        countryManualRow: {
+            flexDirection: 'row',
+            gap: tokens.spacing.sm,
+            alignItems: 'center',
+        },
+        countryCodeInput: {
+            width: 88,
+            backgroundColor: colors.background,
+            borderRadius: tokens.radii.xs,
+            borderWidth: 1,
+            borderColor: colors.border,
+            paddingVertical: tokens.spacing.md,
+            paddingHorizontal: tokens.spacing.md,
+            fontSize: 16,
+            fontWeight: '700',
+            letterSpacing: 1,
+            color: colors.text,
+            textAlign: 'center',
+        },
+        countryApplyButton: {
+            flex: 1,
+            minHeight: 48,
+            borderRadius: tokens.radii.xs,
+            backgroundColor: colors.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        countryApplyButtonDisabled: {
+            opacity: 0.45,
+        },
+        countryApplyButtonText: {
+            color: '#FFFFFF',
+            fontSize: 15,
+            fontWeight: '700',
         },
         previewCard: {
             backgroundColor: colors.surface,
@@ -1738,6 +1924,7 @@ const createStyles = (tokens: any, colors: any) =>
             paddingVertical: tokens.spacing.md,
             borderTopWidth: 1,
             borderTopColor: colors.border,
+            backgroundColor: colors.background,
         },
         primaryButton: {
             backgroundColor: colors.primary,

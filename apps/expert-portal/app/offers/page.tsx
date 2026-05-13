@@ -9,6 +9,7 @@ import { OFFER_LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 
 type OfferFormat =
   | 'CHAT_CONSULTATION'
+  | 'VIDEO_CONSULTATION'
   | 'MEAL_PLAN'
   | 'REPORT_REVIEW'
   | 'MONTHLY_SUPPORT'
@@ -16,6 +17,7 @@ type OfferFormat =
 
 const FORMATS: OfferFormat[] = [
   'CHAT_CONSULTATION',
+  'VIDEO_CONSULTATION',
   'MEAL_PLAN',
   'REPORT_REVIEW',
   'MONTHLY_SUPPORT',
@@ -31,6 +33,7 @@ interface Offer {
   priceAmount?: number | null;
   currency: string;
   durationDays?: number | null;
+  slotMinutes?: number | null;
   isPublished: boolean;
   sortOrder: number;
 }
@@ -106,7 +109,9 @@ export default function OffersPage() {
       name: nameMap,
       description: descMap,
       format: offer.format,
-      durationDays: offer.durationDays ? String(offer.durationDays) : '',
+      durationDays: offer.format === 'VIDEO_CONSULTATION'
+        ? (offer.slotMinutes ? String(offer.slotMinutes) : '')
+        : (offer.durationDays ? String(offer.durationDays) : ''),
     });
     setActiveTab(locale);
   }
@@ -145,7 +150,10 @@ export default function OffersPage() {
       };
       if (Object.keys(nonEmptyDesc).length > 0) body.description = nonEmptyDesc;
       const duration = parseInt(form.durationDays, 10);
-      if (!isNaN(duration) && duration > 0) body.durationDays = duration;
+      if (!isNaN(duration) && duration > 0) {
+        if (form.format === 'VIDEO_CONSULTATION') body.slotMinutes = duration;
+        else body.durationDays = duration;
+      }
 
       if (editing) {
         // Preserve pricing set during the application form. Editor below only
@@ -249,7 +257,8 @@ export default function OffersPage() {
                       </div>
                       <div className="text-xs text-[var(--text2)] flex items-center gap-2 flex-wrap">
                         <span>{t('formats', offer.format)}</span>
-                        {offer.durationDays ? <span>· {offer.durationDays} {t('offers', 'duration').toLowerCase().match(/\w+/)?.[0] || ''}</span> : null}
+                        {offer.format === 'VIDEO_CONSULTATION' && offer.slotMinutes ? <span>· {offer.slotMinutes} {t('offers', 'minutes')}</span> : null}
+                        {offer.format !== 'VIDEO_CONSULTATION' && offer.durationDays ? <span>· {offer.durationDays} {t('offers', 'days')}</span> : null}
                         <span>· {
                           offer.priceType === 'FREE' || offer.priceAmount == null
                             ? t('offers', 'free')
@@ -364,7 +373,9 @@ export default function OffersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text2)] mb-1">{t('offers', 'duration')}</label>
+                <label className="block text-sm font-medium text-[var(--text2)] mb-1">
+                  {form.format === 'VIDEO_CONSULTATION' ? t('offers', 'durationMinutes') : t('offers', 'duration')}
+                </label>
                 <input
                   type="number"
                   min={1}

@@ -11,12 +11,15 @@ import {
     Image,
     Modal,
     ScrollView,
+    Linking,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useIsExpert } from '../hooks/useIsExpert';
+import { useAuth } from '../contexts/AuthContext';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import MarketplaceService from '../services/marketplaceService';
 import ApiService from '../services/apiService';
@@ -34,6 +37,8 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const tokens = useDesignTokens();
     const { t } = useI18n();
     const isExpert = useIsExpert();
+    const { user, refreshUser } = useAuth();
+    const isApprovedExpert = (user as any)?.expertStatus === 'approved';
     const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
     const [experts, setExperts] = useState<any[]>([]);
@@ -90,11 +95,20 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         loadExperts(0).finally(() => setLoading(false));
     }, [loadExperts]);
 
+    useFocusEffect(
+        useCallback(() => {
+            refreshUser().catch(() => {});
+        }, [refreshUser]),
+    );
+
     const handleRefresh = useCallback(async () => {
         setRefreshing(true);
-        await loadExperts(0);
+        await Promise.all([
+            loadExperts(0),
+            refreshUser().catch(() => {}),
+        ]);
         setRefreshing(false);
-    }, [loadExperts]);
+    }, [loadExperts, refreshUser]);
 
     const handleLoadMore = useCallback(async () => {
         if (loadingMore || experts.length >= total) return;
@@ -216,8 +230,22 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const renderFooter = () => (
         <>
             {loadingMore && <ActivityIndicator style={{ paddingVertical: 16 }} color={colors.primary} />}
-            {/* Expert registration banner */}
-            {!isExpert && (
+            {isApprovedExpert ? (
+                <TouchableOpacity
+                    style={styles.expertBanner}
+                    onPress={() => Linking.openURL('https://experts.eatsense.ch').catch(() => {})}
+                    activeOpacity={0.7}
+                >
+                    <View style={styles.expertBannerIcon}>
+                        <Ionicons name="checkmark-circle-outline" size={24} color={colors.primary} />
+                    </View>
+                    <View style={styles.expertBannerText}>
+                        <Text style={styles.expertBannerTitle}>{t('experts.ownerProfilePublished')}</Text>
+                        <Text style={styles.expertBannerSub}>{t('experts.ownerProfilePublishedSub')}</Text>
+                    </View>
+                    <Text style={styles.expertBannerLink}>{t('experts.ownerOpenPortal')}</Text>
+                </TouchableOpacity>
+            ) : !isExpert && (
                 <TouchableOpacity
                     style={styles.expertBanner}
                     onPress={() => navigation.navigate('BecomeExpert')}
@@ -449,6 +477,7 @@ const createStyles = (tokens: any, colors: any) =>
         expertBannerText: { flex: 1 },
         expertBannerTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
         expertBannerSub: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+        expertBannerLink: { fontSize: 13, color: colors.primary, fontWeight: '700' },
         // Modal
         modalContainer: { flex: 1, backgroundColor: colors.background },
         modalHeader: {

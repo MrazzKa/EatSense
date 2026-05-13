@@ -161,13 +161,27 @@ export class ExpertsAdminController {
     }
 
     private async getUserLanguage(userId: string): Promise<string> {
+        const supported = new Set(['en', 'ru', 'kk', 'fr', 'de', 'es']);
         try {
             const profile = await this.prisma.userProfile.findUnique({
                 where: { userId },
                 select: { preferences: true },
             });
             const prefs = profile?.preferences as Record<string, any> | null;
-            return prefs?.language || 'en';
+            const preferred = String(prefs?.language || prefs?.locale || '').split('-')[0].toLowerCase();
+            if (supported.has(preferred)) {
+                return preferred;
+            }
+
+            const expert = await this.prisma.expertProfile.findFirst({
+                where: { userId },
+                select: { languages: true },
+                orderBy: { createdAt: 'desc' },
+            });
+            const expertLanguage = (expert?.languages || [])
+                .map((lang) => String(lang).split('-')[0].toLowerCase())
+                .find((lang) => supported.has(lang));
+            return expertLanguage || 'en';
         } catch {
             return 'en';
         }

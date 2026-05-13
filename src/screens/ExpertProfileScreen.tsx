@@ -95,7 +95,26 @@ export default function ExpertProfileScreen({ route, navigation }) {
         loadExpert();
     }, [loadExpert]);
 
+    const getSelectedOffer = useCallback(() => {
+        const offerIdToUse = selectedOfferId || expert?.offers?.[0]?.id;
+        return expert?.offers?.find((offer: any) => offer.id === offerIdToUse);
+    }, [expert?.offers, selectedOfferId]);
+
+    const showPaymentUnavailable = useCallback(() => {
+        Alert.alert(
+            t('experts.paymentUnavailableTitle') || 'Payment is not available yet',
+            t('experts.paymentUnavailableBody') ||
+                'This paid service is already visible, but online checkout is not connected yet. You can choose a free service or contact the expert when payments are enabled.',
+        );
+    }, [t]);
+
     const initChatRequest = async () => {
+        const selectedOffer = getSelectedOffer();
+        if (selectedOffer?.priceType && selectedOffer.priceType !== 'FREE') {
+            showPaymentUnavailable();
+            return;
+        }
+
         const show = await shouldShowDisclaimer('data_sharing_consent');
         if (show) {
             setShowDisclaimer(true);
@@ -114,6 +133,11 @@ export default function ExpertProfileScreen({ route, navigation }) {
         const offerIdToUse = selectedOfferId || expert?.offers?.[0]?.id;
         if (!expertIdToUse) {
             Alert.alert(t('common.error') || 'Error', t('experts.not_found') || 'Expert not found');
+            return;
+        }
+        const selectedOffer = expert?.offers?.find((offer: any) => offer.id === offerIdToUse);
+        if (selectedOffer?.priceType && selectedOffer.priceType !== 'FREE') {
+            showPaymentUnavailable();
             return;
         }
         setRequesting(true);
@@ -368,11 +392,13 @@ export default function ExpertProfileScreen({ route, navigation }) {
                         {expert.offers.map((offer) => {
                             const offerName = pickLocalized(offer.name, language);
                             const offerDesc = pickLocalized(offer.description, language);
+                            const isPaidUnavailable = offer.priceType !== 'FREE';
                             return (
                                 <TouchableOpacity
                                     key={offer.id}
                                     style={[
                                         styles.offerCard,
+                                        isPaidUnavailable && styles.offerCardUnavailable,
                                         selectedOfferId === offer.id && {
                                             borderColor: colors.primary || '#4CAF50',
                                             backgroundColor: (colors.primary || '#4CAF50') + '10',
@@ -381,13 +407,28 @@ export default function ExpertProfileScreen({ route, navigation }) {
                                     onPress={() => setSelectedOfferId(offer.id)}
                                     activeOpacity={0.85}
                                 >
-                                    <Text style={styles.offerName}>{offerName}</Text>
-                                    {offerDesc && <Text style={styles.offerDesc}>{offerDesc}</Text>}
-                                    <Text style={styles.offerPrice}>
-                                        {offer.priceType === 'FREE' || offer.priceAmount == null
-                                            ? (t('experts.free') || 'Free')
-                                            : formatAmountInCurrency(offer.priceAmount, offer.currency || 'USD')}
+                                    <View style={styles.offerHeaderRow}>
+                                        <Text style={styles.offerName} numberOfLines={2}>{offerName}</Text>
+                                        {selectedOfferId === offer.id && (
+                                            <Ionicons name="checkmark-circle" size={18} color={colors.primary || '#4CAF50'} />
+                                        )}
+                                    </View>
+                                    <Text style={styles.offerFormat}>
+                                        {t(`experts.offerFormat.${offer.format}`) || offer.format}
                                     </Text>
+                                    {offerDesc && <Text style={styles.offerDesc}>{offerDesc}</Text>}
+                                    <View style={styles.offerFooterRow}>
+                                        <Text style={styles.offerPrice}>
+                                            {offer.priceType === 'FREE' || offer.priceAmount == null
+                                                ? (t('experts.free') || 'Free')
+                                                : formatAmountInCurrency(offer.priceAmount, offer.currency || 'USD')}
+                                        </Text>
+                                        {isPaidUnavailable && (
+                                            <Text style={styles.offerUnavailableText}>
+                                                {t('experts.paymentUnavailableTitle') || 'Payment is not available yet'}
+                                            </Text>
+                                        )}
+                                    </View>
                                 </TouchableOpacity>
                             );
                         })}
@@ -697,21 +738,48 @@ const createStyles = (tokens, colors) => StyleSheet.create({
         borderColor: colors.border || 'transparent',
         marginBottom: 8,
     },
+    offerCardUnavailable: {
+        opacity: 0.86,
+    },
+    offerHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
     offerName: {
+        flex: 1,
         fontSize: 15,
         fontWeight: '600',
         color: colors.textPrimary || '#374151',
+    },
+    offerFormat: {
+        fontSize: 12,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 4,
     },
     offerDesc: {
         fontSize: 13,
         color: colors.textSecondary || '#6B7280',
         marginTop: 4,
     },
+    offerFooterRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+        marginTop: 6,
+    },
     offerPrice: {
         fontSize: 14,
         fontWeight: '600',
         color: colors.primary || '#4CAF50',
-        marginTop: 6,
+    },
+    offerUnavailableText: {
+        flex: 1,
+        textAlign: 'right',
+        fontSize: 11,
+        color: colors.textSecondary || '#6B7280',
     },
     // Reviews
     reviewCard: {

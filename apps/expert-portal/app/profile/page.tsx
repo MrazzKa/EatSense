@@ -171,6 +171,32 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleViewCredential(cred: { name: string; fileUrl: string }) {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const url = /^https?:\/\//i.test(cred.fileUrl) ? cred.fileUrl : `${API_BASE}${cred.fileUrl}`;
+      const res = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (err) {
+      console.error('Failed to open credential:', err);
+      alert(t('common', 'openFailed'));
+    }
+  }
+
   return (
     <AppShell>
       <div className="p-8 max-w-3xl">
@@ -312,14 +338,13 @@ export default function ProfilePage() {
                          cred.status === 'rejected' ? t('common', 'rejected') :
                          t('common', 'pending')}
                       </span>
-                      <a
-                        href={cred.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => handleViewCredential(cred)}
                         className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)]"
                       >
                         {t('common', 'view')}
-                      </a>
+                      </button>
                       <button
                         onClick={() => handleDeleteCredential(cred.id)}
                         title={t('common', 'delete')}

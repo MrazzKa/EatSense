@@ -26,7 +26,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (accessToken: string, refreshToken: string) => void;
+  login: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -34,7 +34,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: () => {},
+  login: async () => {},
   logout: () => {},
   refresh: async () => {},
 });
@@ -85,10 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser();
   }, [fetchUser]);
 
-  const login = useCallback((accessToken: string, refreshToken: string) => {
+  const login = useCallback(async (accessToken: string, refreshToken: string) => {
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
-    fetchUser();
+    await fetchUser();
   }, [fetchUser]);
 
   const logout = useCallback(() => {

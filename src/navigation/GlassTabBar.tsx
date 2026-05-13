@@ -5,14 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
 
-const TAB_BAR_HEIGHT = 62;
-const HORIZONTAL_INSET = 18;
+const TAB_BAR_HEIGHT = 68;
+const HORIZONTAL_INSET = 12;
 // Visible gap above the safe-area inset (home indicator on iOS, nav bar on Android).
-const BOTTOM_GAP = 26;
+const BOTTOM_GAP = 18;
 const ANDROID_FALLBACK_INSET = 12;
 
 /** Total vertical space the floating bar reserves at the bottom of the screen. */
 export const FLOATING_TAB_BAR_RESERVED = TAB_BAR_HEIGHT + BOTTOM_GAP + 28;
+export const FLOATING_TAB_BAR_HEIGHT = TAB_BAR_HEIGHT;
+export const FLOATING_TAB_BAR_BOTTOM_GAP = BOTTOM_GAP;
 
 /**
  * Floating glass pill at the bottom — modeled after Telegram / Apple system style.
@@ -150,7 +152,12 @@ function TabItem({
                 />
                 {renderIcon?.({ focused, color, size: 22 })}
             </View>
-            <Text numberOfLines={1} style={[styles.label, { color }]}>
+            <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.82}
+                style={[styles.label, { color }]}
+            >
                 {label}
             </Text>
         </Pressable>
@@ -200,33 +207,36 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
-        paddingHorizontal: 6,
+        paddingHorizontal: 4,
     },
     itemBase: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 6,
-        gap: 2,
+        paddingVertical: 7,
+        paddingHorizontal: 1,
+        gap: 3,
     },
     itemPressed: {
         opacity: 0.6,
     },
     iconWrap: {
         width: 48,
-        height: 30,
+        height: 31,
         alignItems: 'center',
         justifyContent: 'center',
     },
     indicator: {
         position: 'absolute',
         width: 48,
-        height: 30,
+        height: 31,
         borderRadius: 16,
     },
     label: {
         fontSize: 10,
         fontWeight: '600',
-        letterSpacing: 0.2,
+        letterSpacing: 0,
+        textAlign: 'center',
+        width: '100%',
     },
 });

@@ -80,6 +80,9 @@ export function MainTabsNavigator() {
       tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        sceneStyle: {
+          backgroundColor: 'transparent',
+        },
       }}
     >
       <Tab.Screen
@@ -169,4 +172,3 @@ const badgeStyles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
 });
-

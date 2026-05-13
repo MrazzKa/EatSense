@@ -4,9 +4,11 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import ApiService from '../services/apiService';
@@ -40,6 +42,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true); // Start with true for initial load
+  const appStateRef = useRef(AppState.currentState);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -181,14 +184,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // gated screens (Profile, Become Expert, Marketplace banner) react instantly
   // without a relaunch.
   useEffect(() => {
-    const sub = Notifications.addNotificationReceivedListener((event) => {
-      const data = (event.request?.content?.data || {}) as Record<string, any>;
+    const maybeRefreshForExpertStatus = (data: Record<string, any>) => {
       const type = data.type;
       if (type === 'expert_approved' || type === 'expert_rejected' || type === 'expert_status_changed') {
         refreshUser().catch(() => {});
       }
+    };
+
+    const receivedSub = Notifications.addNotificationReceivedListener((event) => {
+      maybeRefreshForExpertStatus((event.request?.content?.data || {}) as Record<string, any>);
     });
-    return () => sub.remove();
+    const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
+      maybeRefreshForExpertStatus((response.notification.request?.content?.data || {}) as Record<string, any>);
+    });
+    const appStateSub = AppState.addEventListener('change', (nextState) => {
+      const wasInactive = /inactive|background/.test(appStateRef.current);
+      appStateRef.current = nextState;
+      if (wasInactive && nextState === 'active' && ApiService.token) {
+        refreshUser().catch(() => {});
+      }
+    });
+
+    return () => {
+      receivedSub.remove();
+      responseSub.remove();
+      appStateSub.remove();
+    };
   }, [refreshUser]);
 
   const value = useMemo<AuthContextValue>(

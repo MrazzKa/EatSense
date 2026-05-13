@@ -203,7 +203,7 @@
       "items": {
         "vegan": "Végane",
         "vegetarian": "Végétarien",
-        "halal": "Halal",
+        "halal": "Compatible halal",
         "kosher": "Casher",
         "gluten-free": "Sans gluten",
         "lactose-free": "Sans lactose"
@@ -239,12 +239,12 @@
     "required": "Veuillez sélectionner votre pays.",
     "onboardingSubtitle": "Cela nous permet de vous placer dans la bonne communauté.",
     "RU": "Russie",
-    "KZ": "Kazakhstan",
-    "UA": "Ukraine",
+    "KZ": "Kazakhstan (KZ)",
+    "UA": "Ukraine (UA)",
     "BY": "Biélorussie",
     "US": "États-Unis",
     "DE": "Allemagne",
-    "FR": "France",
+    "FR": "France (FR)",
     "ES": "Espagne",
     "IT": "Italie",
     "GB": "Royaume-Uni",
@@ -263,7 +263,7 @@
     "LT": "Lituanie",
     "IL": "Israël",
     "AE": "Émirats arabes unis",
-    "CA": "Canada",
+    "CA": "Canada (CA)",
     "AU": "Australie",
     "BR": "Brésil",
     "JP": "Japon",
@@ -293,8 +293,8 @@
       "celery": "Céleri",
       "mustard": "Moutarde",
       "sesame": "Sésame",
-      "sulfites": "Sulfites",
-      "lupin": "Lupin",
+      "sulfites": "Sulfites ajoutés",
+      "lupin": "Lupin (allergène)",
       "molluscs": "Mollusques"
     }
   },
@@ -450,7 +450,15 @@
     "shareMeals": "Partager les repas",
     "shareMealsConfirm": "Partager vos repas des 7 derniers jours ?",
     "activeConsultation": "Actif",
-    "findExpertHint": "Trouvez un expert pour démarrer une consultation"
+    "findExpertHint": "Trouvez un expert pour démarrer une consultation",
+    "sharedMeals": "Repas partagés",
+    "sharedReport": "Rapport partagé",
+    "noMessages": "Aucun message",
+    "reportAbuse": "Signaler",
+    "reportAbuseConfirm": "Signaler cette conversation pour abus ?",
+    "reportSent": "Signalement envoyé. Nous l'examinerons rapidement.",
+    "report": "Signaler",
+    "photo": "Photo"
   },
   "disclaimer": {
     "title": "Note Importante",
@@ -593,7 +601,7 @@
     "sat": "Sa",
     "sun": "Di",
     "permissionNeeded": "Autorisation requise",
-    "options": "Options"
+    "options": "Paramètres"
   },
   "tooltips": {
     "scanMeal": {
@@ -1140,6 +1148,22 @@
     "recentReviews": "Avis récents",
     "switchRole": "Changer",
     "expertLabel": "Expert",
+    "offers": "Prestations",
+    "priceFree": "Gratuit",
+    "priceFixed": "Prix fixe",
+    "paymentUnavailableTitle": "Le paiement n'est pas encore disponible",
+    "paymentUnavailableBody": "Ce service payant est déjà visible, mais le paiement en ligne n'est pas encore connecté. Choisissez un service gratuit ou contactez l'expert lorsque les paiements seront activés.",
+    "ownerProfilePublished": "Votre profil expert est publié",
+    "ownerProfilePublishedSub": "Les clients peuvent trouver vos services dans EatSense.",
+    "ownerOpenPortal": "Ouvrir le portail expert",
+    "offerFormat": {
+      "CHAT_CONSULTATION": "Consultation par chat",
+      "VIDEO_CONSULTATION": "Consultation vidéo",
+      "MEAL_PLAN": "Plan alimentaire",
+      "REPORT_REVIEW": "Analyse de rapport",
+      "MONTHLY_SUPPORT": "Suivi mensuel",
+      "CUSTOM": "Personnalisé"
+    },
     "tabs": {
       "specialists": "Spécialistes",
       "articles": "Articles"
@@ -1185,8 +1209,20 @@
       "educationDegreePlaceholder": "Diplôme (ex. MSc Nutrition)",
       "educationInstitutionPlaceholder": "Établissement (ex. EPFL)",
       "educationYearPlaceholder": "Année (ex. 2020)",
+      "offerName": "Nom du service",
+      "description": "Description",
+      "format": "Type",
+      "priceType": "Type de prix",
+      "price": "Prix",
+      "currency": "Devise",
+      "duration": "Durée, jours",
+      "durationMinutes": "Durée de session, minutes",
       "country": "Pays",
-      "countryPlaceholder": "Sélectionnez votre pays"
+      "countryPlaceholder": "Sélectionnez votre pays",
+      "countryPickerHint": "Choisissez un pays dans la liste ou saisissez un code ISO à deux lettres.",
+      "countryOther": "Autre pays",
+      "countryManualCode": "Saisissez le code ISO pays à deux lettres.",
+      "countryApply": "Appliquer"
     },
     "client": "Client",
     "consultation": "Consultation",
@@ -1223,9 +1259,9 @@
     "yearsExperience": "{{count}} ans d'expérience",
     "yearsExperience_one": "{{count}} an d'expérience",
     "yearsExperience_other": "{{count}} ans d'expérience",
-    "completedConsultations": "{{count}} consultations",
-    "completedConsultations_one": "{{count}} consultation",
-    "completedConsultations_other": "{{count}} consultations",
+    "completedConsultations": "{{count}} consultations terminées",
+    "completedConsultations_one": "{{count}} consultation terminée",
+    "completedConsultations_other": "{{count}} consultations terminées",
     "writeToExpert": "Écrire à l'expert",
     "diplomaAttached": "Diplôme joint",
     "onboarding": {
@@ -1235,7 +1271,7 @@
       "step2Sub": "Présentez-vous à vos clients",
       "step3Title": "Spécialisations",
       "step3Sub": "Sélectionnez vos domaines d'expertise",
-      "step4Title": "Documents",
+      "step4Title": "Justificatifs",
       "step4Sub": "Téléchargez au moins un document : diplôme, licence ou certificat",
       "documentsRequired": "Téléchargez au moins un document pour continuer",
       "chooseDocumentSource": "Ajouter un document",
@@ -1245,10 +1281,18 @@
       "cancel": "Annuler",
       "cameraPermission": "L'accès à la caméra est nécessaire pour photographier votre document.",
       "galleryPermission": "Veuillez autoriser l'accès à votre galerie photo.",
-      "bioMinHint": "{{count}}/50 min",
+      "bioMinHint": "{{count}}/50 caractères min.",
       "uploadFailed": "Échec du téléchargement",
       "uploadFailedMessage": "Certains documents n'ont pas pu être téléchargés. Réessayez.",
       "allCredentialsFailed": "Aucun document n'a été téléchargé. Sans justificatifs, l'admin rejettera probablement votre profil. Vérifiez votre connexion et réessayez.",
+      "step5OffersTitle": "Vos services",
+      "step5OffersSub": "Ajoutez au moins un service. Après approbation, il apparaîtra sur votre profil public d'expert.",
+      "offer": "Prestation",
+      "offerNamePlaceholder": "ex. consultation vidéo de 30 minutes",
+      "offerDescPlaceholder": "Ce qui est inclus",
+      "durationPlaceholder": "ex. 7",
+      "durationMinutesPlaceholder": "ex. 30",
+      "addOffer": "Ajouter un autre service",
       "step5Title": "Aperçu",
       "step5Sub": "Vérifiez votre profil avant envoi",
       "step6Title": "En cours de vérification",
@@ -1278,7 +1322,10 @@
       "errorSpecsRequired": "Veuillez sélectionner au moins une spécialisation.",
       "errorLangsRequired": "Veuillez sélectionner au moins une langue.",
       "errorDocsRequired": "Veuillez joindre au moins un document.",
-      "errorCountryRequired": "Veuillez sélectionner votre pays."
+      "errorCountryRequired": "Veuillez sélectionner votre pays.",
+      "errorOffersRequired": "Veuillez ajouter au moins un service.",
+      "errorOfferNameRequired": "Veuillez saisir le nom du service.",
+      "errorOfferPrice": "Veuillez saisir un prix valide supérieur à 0."
     },
     "specializations": {
       "weightManagement": "Gestion du poids",
@@ -1320,7 +1367,7 @@
     "typeDietitian": "Diététicien",
     "typeNutritionist": "Nutritionniste",
     "yearsExp": "ans",
-    "services": "Services",
+    "services": "Prestations",
     "activeConsultation": "Actif",
     "sharedMeals": "Repas partagés",
     "sharedReport": "Rapport partagé",
@@ -2441,7 +2488,7 @@
       "deleteMessage": "Êtes-vous sûr de vouloir supprimer cette habitude ? Cette action est irréversible.",
       "name": "Nom",
       "namePlaceholder": "ex. Boire de l'eau",
-      "emoji": "Emoji",
+      "emoji": "Icône",
       "frequency": "Fréquence",
       "daily": "Quotidien",
       "weekdays": "Jours ouvrables",
@@ -2492,8 +2539,8 @@
       "walk": "10 000 pas",
       "cleanUp": "Ranger",
       "floss": "Fil dentaire",
-      "journal": "Journal",
-      "gratitude": "Gratitude",
+      "journal": "Carnet",
+      "gratitude": "Reconnaissance",
       "eatFruit": "Manger un fruit",
       "morningRoutine": "Routine matinale",
       "eveningRoutine": "Routine du soir",
@@ -2546,7 +2593,7 @@
     "countries": {
       "switzerland": "Suisse",
       "germany": "Allemagne",
-      "france": "France",
+      "france": "France métropolitaine",
       "uk": "Royaume-Uni",
       "usa": "États-Unis",
       "spain": "Espagne",
@@ -2554,7 +2601,7 @@
       "netherlands": "Pays-Bas",
       "austria": "Autriche",
       "russia": "Russie",
-      "kazakhstan": "Kazakhstan",
+      "kazakhstan": "Kazakhstan (Asie centrale)",
       "uae": "EAU",
       "japan": "Japon",
       "singapore": "Singapour",
@@ -4271,7 +4318,7 @@
       "name": "ex. Pharmacie Amavita",
       "code": "ex. AMA-1234",
       "address": "ex. Marktgasse 12, 3011 Bern",
-      "phone": "+41 31 311 22 33",
+      "phone": "Numéro de téléphone",
       "email": "pharmacie@exemple.ch",
       "medicationName": "Nom du médicament",
       "notes": "Notes supplémentaires..."
@@ -4354,7 +4401,7 @@
       "lifestyle": "Mode de vie",
       "bestPlaces": "Meilleurs endroits",
       "recipe": "Recette",
-      "question": "Question",
+      "question": "Demande",
       "challenge": "Défi"
     },
     "feed": {
@@ -4384,7 +4431,7 @@
     },
     "event": {
       "title": "Titre de l'événement",
-      "date": "Date",
+      "date": "Date de l’événement",
       "time": "Heure",
       "location": "Lieu"
     },
@@ -4527,9 +4574,9 @@
     "type": {
       "cat": "Chat",
       "dog": "Chien",
-      "panda": "Panda",
+      "panda": "Panda doux",
       "fox": "Renard",
-      "robot": "Robot"
+      "robot": "Robot coach"
     },
     "phrase": {
       "greeting": "Mangeons sainement aujourd'hui !",

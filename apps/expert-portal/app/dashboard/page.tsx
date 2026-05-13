@@ -88,6 +88,14 @@ export default function DashboardPage() {
     );
   }
 
+  function getProfileTypeLabel(type?: string | null) {
+    const key = String(type || '').toLowerCase();
+    if (key === 'nutritionist' || key === 'dietitian') {
+      return t('profile', key);
+    }
+    return type || '';
+  }
+
   return (
     <AppShell>
       <div className="p-8 max-w-4xl">
@@ -104,7 +112,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-semibold">{profile?.displayName || t('dashboard', 'yourProfile')}</h2>
-                  <p className="text-sm text-[var(--text2)] capitalize">{profile?.type?.toLowerCase()}</p>
+                  <p className="text-sm text-[var(--text2)]">{getProfileTypeLabel(profile?.type)}</p>
                 </div>
                 {getStatusBadge()}
               </div>

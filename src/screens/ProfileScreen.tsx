@@ -2254,10 +2254,12 @@ const ProfileScreen = () => {
                 onPress={() => {
                   const status = (user as any)?.expertStatus;
                   if (status === 'approved') {
-                    Alert.alert(
-                      safeT('experts.expertRole', 'Expert'),
-                      safeT('experts.approvedHint', 'Your expert profile is live. Manage offers and chats from the expert portal.'),
-                    );
+                    Linking.openURL('https://experts.eatsense.ch').catch(() => {
+                      Alert.alert(
+                        safeT('experts.expertRole', 'Expert'),
+                        safeT('experts.approvedHint', 'Your expert profile is live. Manage offers and chats from the expert portal.'),
+                      );
+                    });
                   } else if (status === 'unpublished') {
                     Alert.alert(
                       safeT('experts.expertRole', 'Expert'),
@@ -2283,7 +2285,7 @@ const ProfileScreen = () => {
                 <Text style={[styles.resetButtonText, { color: colors.primary || '#007AFF' }]}>
                   {(() => {
                     const status = (user as any)?.expertStatus;
-                    if (status === 'approved') return safeT('experts.expertRole', 'Expert Profile');
+                    if (status === 'approved') return safeT('experts.ownerOpenPortal', 'Open expert portal');
                     if (status === 'unpublished') return safeT('experts.expertUnpublished', 'Profile unpublished');
                     if (status === 'pending') return safeT('experts.expertPending', 'Application pending');
                     if (status === 'rejected') return safeT('experts.expertRejected', 'Re-submit application');

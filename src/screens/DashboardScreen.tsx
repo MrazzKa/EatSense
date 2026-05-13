@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ApiService from '../services/apiService';
@@ -33,7 +33,10 @@ import { useMascot } from '../contexts/MascotContext';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { mapLanguageToLocale } from '../utils/locale';
-import { FLOATING_TAB_BAR_RESERVED } from '../navigation/GlassTabBar';
+import {
+  FLOATING_TAB_BAR_BOTTOM_GAP,
+  FLOATING_TAB_BAR_HEIGHT,
+} from '../navigation/GlassTabBar';
 import LimitReachedModal from '../components/LimitReachedModal';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
@@ -200,6 +203,10 @@ export default function DashboardScreen() {
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
+  const insets = useSafeAreaInsets();
+  const floatingTabTop = insets.bottom + FLOATING_TAB_BAR_BOTTOM_GAP + FLOATING_TAB_BAR_HEIGHT;
+  const dashboardBottomPadding = floatingTabTop + 118;
+  const fabBottom = floatingTabTop + 18;
   // Load active diet for dashboard widget from store
   const { activeProgram, loadProgress } = useProgramProgress();
   const { mascot, addXp } = useMascot();
@@ -280,6 +287,16 @@ export default function DashboardScreen() {
   const [recentItems, setRecentItems] = useState([]);
   const recentItemsRef = useRef(recentItems);
   recentItemsRef.current = recentItems;
+  const resetDashboardForDate = React.useCallback(() => {
+    setRecentItems([]);
+    setStats(prev => ({
+      ...prev,
+      totalCalories: 0,
+      totalProtein: 0,
+      totalCarbs: 0,
+      totalFat: 0,
+    }));
+  }, []);
   const pendingAnalyses = usePendingAnalyses();
   const { retryAnalysis, removePendingAnalysis, addPendingAnalysis } = useAnalysis();
   const [userStats, setUserStats] = useState({
@@ -557,6 +574,7 @@ export default function DashboardScreen() {
     if (isFetchingRef.current) {
       if (force) {
         pendingForceRefreshRef.current = true;
+        fetchIdRef.current += 1;
         if (__DEV__) console.log('[Dashboard] Fetch in-flight — queued forced refresh for after completion');
       } else {
         if (__DEV__) console.log('[Dashboard] Skipping — fetch already in-flight');
@@ -618,12 +636,9 @@ export default function DashboardScreen() {
       if (data?.meals?.length > 0) {
         writeDashboardCache(cacheKey, dateKey, currentLocale, data).catch(() => { });
       }
-      // FIX: Don't overwrite existing meals with empty response (timing race)
-      if (data?.meals?.length > 0 || !recentItemsRef.current?.length) {
-        clientLog('Dashboard:updateStateStart').catch(() => {});
-        updateDashboardState(data);
-        clientLog('Dashboard:updateStateDone').catch(() => {});
-      }
+      clientLog('Dashboard:updateStateStart').catch(() => {});
+      updateDashboardState(data);
+      clientLog('Dashboard:updateStateDone').catch(() => {});
 
     } catch (error) {
       console.error('[DashboardScreen] Error loading dashboard data:', error);
@@ -675,8 +690,9 @@ export default function DashboardScreen() {
 
   // FIX 3: Reload when selected date changes
   useEffect(() => {
-    loadDashboardData();
-  }, [selectedDate, loadDashboardData]);
+    resetDashboardForDate();
+    loadDashboardData(true);
+  }, [selectedDate, loadDashboardData, resetDashboardForDate]);
 
   // ===== END FIX =====
 
@@ -908,7 +924,7 @@ export default function DashboardScreen() {
       />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: dashboardBottomPadding }}
         showsVerticalScrollIndicator={false}
       >
         {/* Calendar header with avatar */}
@@ -1291,6 +1307,7 @@ export default function DashboardScreen() {
         style={[
           styles.plusButtonContainer,
           {
+            bottom: fabBottom,
             transform: [{ scale: plusScale }],
             opacity: plusOpacity,
           },
@@ -1822,7 +1839,6 @@ const createStyles = (tokens) =>
     },
     plusButtonContainer: {
       position: 'absolute',
-      bottom: FLOATING_TAB_BAR_RESERVED + 28,
       right: tokens.spacing.xl,
       zIndex: 10,
     },
