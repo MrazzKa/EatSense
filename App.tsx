@@ -1,7 +1,7 @@
 // @ts-nocheck
 // App.js - Main navigation structure
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -15,6 +15,7 @@ import { ensureI18nReady } from './app/i18n/config';
 import { AppWrapper } from './src/components/AppWrapper';
 import { EmptySplash } from './src/components/EmptySplash';
 import { useAuth } from './src/contexts/AuthContext';
+import { useTheme } from './src/contexts/ThemeContext';
 import { useNotificationActions, setNotificationNavigationCallback } from './src/hooks/useNotificationActions';
 
 // FIX: Lazy load screens to improve app startup time
@@ -100,8 +101,20 @@ function NotificationActionsHandler() {
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { colors } = useTheme();
   const isAuthenticated = !!user;
   const needsOnboarding = isAuthenticated && !user?.isOnboardingCompleted;
+  const navigationTheme = React.useMemo(() => ({
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colors.background || '#F4F5F7',
+      card: colors.background || '#F4F5F7',
+      text: colors.text || DefaultTheme.colors.text,
+      border: colors.border || DefaultTheme.colors.border,
+      primary: colors.primary || DefaultTheme.colors.primary,
+    },
+  }), [colors]);
 
   useEffect(() => {
     clientLog('RootNav:render', {
@@ -124,6 +137,7 @@ function AppContent() {
   return (
     <SafeAreaProvider>
       <NavigationContainer
+        theme={navigationTheme}
         onReady={() => {
           clientLog('App:navigationReady').catch(() => { });
         }}
@@ -440,7 +454,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#F4F5F7' }}>
       <ErrorBoundary>
         <I18nProvider fallback={<EmptySplash />}>
           <AppWrapper>

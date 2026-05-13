@@ -35,7 +35,14 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     return (
         <View
             pointerEvents="box-none"
-            style={[styles.container, { paddingBottom: bottom, paddingHorizontal: HORIZONTAL_INSET }]}
+            style={[
+                styles.container,
+                {
+                    paddingBottom: bottom,
+                    paddingHorizontal: HORIZONTAL_INSET,
+                    backgroundColor: colors.background || 'transparent',
+                },
+            ]}
         >
             <View style={styles.shadow}>
                 <GlassSurface

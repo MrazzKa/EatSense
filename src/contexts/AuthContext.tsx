@@ -43,10 +43,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true); // Start with true for initial load
   const appStateRef = useRef(AppState.currentState);
+  const userRef = useRef<any>(null);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const refreshUser = useCallback(async () => {
+    const shouldShowGlobalLoading = !userRef.current;
     try {
-      setLoading(true);
+      if (shouldShowGlobalLoading) {
+        setLoading(true);
+      }
       const result = await ApiService.getUserProfile();
       // Backend returns { profile: null } if profile doesn't exist, or the profile object if it exists
       const profile = result?.profile !== undefined ? result.profile : result;
@@ -109,7 +117,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     } finally {
-      setLoading(false);
+      if (shouldShowGlobalLoading) {
+        setLoading(false);
+      }
     }
   }, []);
 
