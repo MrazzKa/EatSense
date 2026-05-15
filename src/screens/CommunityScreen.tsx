@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
@@ -27,7 +28,10 @@ import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard, resolveGroupName } from '../components/community/GroupCard';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
-import { FLOATING_TAB_BAR_RESERVED } from '../navigation/GlassTabBar';
+import {
+  FLOATING_TAB_BAR_BOTTOM_GAP,
+  FLOATING_TAB_BAR_HEIGHT,
+} from '../navigation/GlassTabBar';
 
 type TabKey = 'feed' | 'groups' | 'places';
 
@@ -35,6 +39,7 @@ export default function CommunityScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const tokens = useDesignTokens();
+  const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { user } = useAuth();
   const isInitialLoad = useRef(true);
@@ -57,7 +62,9 @@ export default function CommunityScreen() {
   const [authorSheetVisible, setAuthorSheetVisible] = useState(false);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
-  const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
+  const floatingTabTop = insets.bottom + FLOATING_TAB_BAR_BOTTOM_GAP + FLOATING_TAB_BAR_HEIGHT;
+  const fabBottom = floatingTabTop + 18;
+  const styles = useMemo(() => createStyles(tokens, colors, fabBottom), [tokens, colors, fabBottom]);
 
   const loadFeed = useCallback(async () => {
     try {
@@ -607,7 +614,7 @@ export default function CommunityScreen() {
   );
 }
 
-const createStyles = (tokens: any, colors: any) =>
+const createStyles = (tokens: any, colors: any, fabBottom: number) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -757,7 +764,7 @@ const createStyles = (tokens: any, colors: any) =>
     },
     fab: {
       position: 'absolute',
-      bottom: FLOATING_TAB_BAR_RESERVED + 28,
+      bottom: fabBottom,
       right: tokens.spacing.xl,
       width: 64,
       height: 64,

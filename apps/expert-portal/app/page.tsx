@@ -65,7 +65,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 text-center">
+      <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 text-center sm:p-10">
         <Leaf size={32} className="mx-auto mb-2 text-[var(--primary)]" strokeWidth={2.25} />
         <h1 className="text-xl font-bold mb-1">{t('login', 'title')}</h1>
         <p className="text-sm text-[var(--text2)] mb-8">{t('login', 'subtitle')}</p>

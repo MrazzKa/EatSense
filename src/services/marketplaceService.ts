@@ -44,6 +44,22 @@ class MarketplaceService {
         return ApiService.post('/experts/me/profile/publish', { isPublished });
     }
 
+    async getMyAccessCode() {
+        return ApiService.get('/experts/me/access-code');
+    }
+
+    async regenerateMyAccessCode() {
+        return ApiService.post('/experts/me/access-code/regenerate', {});
+    }
+
+    async getMySpecialists() {
+        return ApiService.get('/experts/my-specialists');
+    }
+
+    async applyExpertCode(code) {
+        return ApiService.post('/experts/access-code/apply', { code });
+    }
+
     // ==================== MY CREDENTIALS ====================
 
     async getMyCredentials() {

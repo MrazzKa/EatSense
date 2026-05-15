@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { FileText, Upload, Trash2 } from 'lucide-react';
+import { Copy, FileText, KeyRound, RefreshCw, Upload, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
@@ -25,6 +25,12 @@ interface ExpertProfile {
   credentials?: { id: string; name: string; fileUrl: string; status: string }[];
 }
 
+interface ExpertAccessCode {
+  code: string;
+  usageCount: number;
+  canUsePublicly: boolean;
+}
+
 export default function ProfilePage() {
   const { t } = useI18n();
   const [profile, setProfile] = useState<ExpertProfile | null>(null);
@@ -33,6 +39,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [credName, setCredName] = useState('');
+  const [accessCode, setAccessCode] = useState<ExpertAccessCode | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Form state
@@ -57,8 +64,12 @@ export default function ProfilePage() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await apiFetch('/experts/me/profile');
+        const [data, codeData] = await Promise.all([
+          apiFetch('/experts/me/profile'),
+          apiFetch('/experts/me/access-code').catch(() => null),
+        ]);
         setProfile(data);
+        setAccessCode(codeData);
         populateForm(data);
       } catch (err) {
         console.error('Failed to load profile:', err);
@@ -104,8 +115,33 @@ export default function ProfilePage() {
   }
 
   async function refreshProfile() {
-    const data = await apiFetch('/experts/me/profile');
+    const [data, codeData] = await Promise.all([
+      apiFetch('/experts/me/profile'),
+      apiFetch('/experts/me/access-code').catch(() => null),
+    ]);
     setProfile(data);
+    setAccessCode(codeData);
+  }
+
+  async function handleCopyCode() {
+    if (!accessCode?.code) return;
+    try {
+      await navigator.clipboard.writeText(accessCode.code);
+      alert(t('profile', 'codeCopied'));
+    } catch {
+      window.prompt(t('profile', 'copyCode'), accessCode.code);
+    }
+  }
+
+  async function handleRegenerateCode() {
+    if (!confirm(t('profile', 'regenerateCodeConfirm'))) return;
+    try {
+      const updated = await apiFetch('/experts/me/access-code/regenerate', { method: 'POST' });
+      setAccessCode((prev) => ({ ...(prev || {}), ...updated, usageCount: updated.usageCount ?? 0 }));
+    } catch (err) {
+      console.error('Failed to regenerate access code:', err);
+      alert(t('common', 'error'));
+    }
   }
 
   async function handleCredentialFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -217,6 +253,55 @@ export default function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-6">
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/15 text-[var(--primary)]">
+                    <KeyRound size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-base font-semibold">{t('profile', 'expertCodeTitle')}</h2>
+                    <p className="mt-1 text-sm leading-5 text-[var(--text2)]">{t('profile', 'expertCodeBody')}</p>
+                    {accessCode && !accessCode.canUsePublicly && (
+                      <p className="mt-2 text-xs text-[var(--yellow)]">{t('profile', 'expertCodeUnavailable')}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="shrink-0 text-left sm:text-right">
+                  <div className="inline-flex min-h-11 items-center rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-4 font-mono text-lg font-bold tracking-[0.12em]">
+                    {accessCode?.code || '------'}
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--text2)]">
+                    {t('profile', 'codeUsage')}: {accessCode?.usageCount || 0}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  disabled={!accessCode?.code}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                >
+                  <Copy size={16} />
+                  {t('profile', 'copyCode')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRegenerateCode}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--border)] px-4 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--surface2)]"
+                >
+                  <RefreshCw size={15} />
+                  {t('profile', 'regenerateCode')}
+                </button>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface2)] p-4 sm:p-5">
+              <h2 className="text-base font-semibold">{t('profile', 'dietsSoonTitle')}</h2>
+              <p className="mt-1 text-sm leading-5 text-[var(--text2)]">{t('profile', 'dietsSoonBody')}</p>
+            </section>
+
             {/* Display Name */}
             <Field label={t('profile', 'displayName')}>
               <input

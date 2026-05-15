@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma.service';
 import {
     CreateExpertProfileDto,
@@ -14,8 +15,116 @@ import {
 @Injectable()
 export class ExpertsService {
     private readonly logger = new Logger(ExpertsService.name);
+    private readonly codeAttemptWindowMs = 5 * 60 * 1000;
+    private readonly codeAttemptLimit = 10;
+    private readonly codeAttempts = new Map<string, { count: number; resetAt: number }>();
 
     constructor(private prisma: PrismaService) { }
+
+    private normalizeAccessCode(code: string) {
+        return String(code || '').replace(/[^a-z0-9]/gi, '').toUpperCase();
+    }
+
+    private assertCodeRateLimit(userId: string) {
+        const now = Date.now();
+        const current = this.codeAttempts.get(userId);
+        if (!current || current.resetAt <= now) {
+            this.codeAttempts.set(userId, { count: 1, resetAt: now + this.codeAttemptWindowMs });
+            return;
+        }
+        if (current.count >= this.codeAttemptLimit) {
+            throw new HttpException('Too many code attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+        }
+        current.count += 1;
+    }
+
+    private async generateUniqueAccessCode() {
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+            const bytes = crypto.randomBytes(6);
+            let code = '';
+            for (const byte of bytes) {
+                code += alphabet[byte % alphabet.length];
+            }
+            const existing = await this.prisma.expertAccessCode.findUnique({ where: { code } });
+            if (!existing) return code;
+        }
+        throw new BadRequestException('Could not generate unique expert code');
+    }
+
+    private publicExpertInclude() {
+        return {
+            offers: {
+                where: { isPublished: true },
+                orderBy: { sortOrder: 'asc' as const },
+            },
+            credentials: {
+                where: { status: 'approved' },
+            },
+            educationEntries: {
+                orderBy: { createdAt: 'asc' as const },
+            },
+            reviews: {
+                where: { isVisible: true },
+                take: 10,
+                orderBy: { createdAt: 'desc' as const },
+                include: {
+                    client: {
+                        select: {
+                            id: true,
+                            userProfile: {
+                                select: { firstName: true, avatarUrl: true },
+                            },
+                        },
+                    },
+                },
+            },
+        };
+    }
+
+    async ensureAccessCodeForExpert(expertId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { id: expertId },
+            select: { id: true },
+        });
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        const existing = await this.prisma.expertAccessCode.findUnique({
+            where: { expertId },
+        });
+        if (existing) return existing;
+
+        const code = await this.generateUniqueAccessCode();
+        return this.prisma.expertAccessCode.create({
+            data: { expertId, code },
+        });
+    }
+
+    async regenerateAccessCodeForExpert(expertId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { id: expertId },
+            select: { id: true },
+        });
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        const code = await this.generateUniqueAccessCode();
+        const existing = await this.prisma.expertAccessCode.findUnique({
+            where: { expertId },
+        });
+        if (!existing) {
+            return this.prisma.expertAccessCode.create({
+                data: { expertId, code },
+            });
+        }
+        return this.prisma.expertAccessCode.update({
+            where: { expertId },
+            data: { code, isActive: true },
+        });
+    }
 
     // ==================== EXPERT PROFILES ====================
 
@@ -99,31 +208,7 @@ export class ExpertsService {
         const expert = await this.prisma.expertProfile.findFirst({
             where: baseWhere,
             include: {
-                offers: {
-                    where: { isPublished: true },
-                    orderBy: { sortOrder: 'asc' },
-                },
-                credentials: {
-                    where: { status: 'approved' },
-                },
-                educationEntries: {
-                    orderBy: { createdAt: 'asc' },
-                },
-                reviews: {
-                    where: { isVisible: true },
-                    take: 10,
-                    orderBy: { createdAt: 'desc' },
-                    include: {
-                        client: {
-                            select: {
-                                id: true,
-                                userProfile: {
-                                    select: { firstName: true, avatarUrl: true },
-                                },
-                            },
-                        },
-                    },
-                },
+                ...this.publicExpertInclude(),
             },
         });
 
@@ -145,6 +230,7 @@ export class ExpertsService {
                 offers: {
                     orderBy: { sortOrder: 'asc' },
                 },
+                accessCode: true,
             },
         });
     }
@@ -256,9 +342,211 @@ export class ExpertsService {
             }
         }
 
-        return this.prisma.expertProfile.update({
+        const updated = await this.prisma.expertProfile.update({
             where: { userId },
             data: { isPublished },
+        });
+        if (isPublished) {
+            await this.ensureAccessCodeForExpert(expert.id);
+        }
+        return updated;
+    }
+
+    // ==================== ACCESS CODES ====================
+
+    async getMyAccessCode(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+            select: { id: true, isActive: true, isPublished: true, isVerified: true },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        const accessCode = await this.ensureAccessCodeForExpert(expert.id);
+        const usageCount = await this.prisma.expertAccessCodeUsage.count({
+            where: { codeId: accessCode.id },
+        });
+
+        return {
+            ...accessCode,
+            usageCount,
+            canUsePublicly: expert.isActive && expert.isPublished,
+            expertStatus: {
+                isActive: expert.isActive,
+                isPublished: expert.isPublished,
+                isVerified: expert.isVerified,
+            },
+        };
+    }
+
+    async regenerateMyAccessCode(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+            select: { id: true },
+        });
+
+        if (!expert) {
+            throw new NotFoundException('Expert profile not found');
+        }
+
+        await this.regenerateAccessCodeForExpert(expert.id);
+        return this.getMyAccessCode(userId);
+    }
+
+    async getMySpecialists(userId: string) {
+        const links = await this.prisma.expertClientLink.findMany({
+            where: { clientId: userId, isActive: true },
+            orderBy: { updatedAt: 'desc' },
+            include: {
+                expert: {
+                    include: {
+                        offers: {
+                            where: { isPublished: true },
+                            orderBy: { sortOrder: 'asc' },
+                            take: 3,
+                        },
+                        _count: {
+                            select: { reviews: true },
+                        },
+                    },
+                },
+            },
+        });
+
+        const expertIds = links.map((link) => link.expertId);
+        const conversations = expertIds.length
+            ? await this.prisma.conversation.findMany({
+                where: { clientId: userId, expertId: { in: expertIds } },
+                select: { id: true, expertId: true, status: true },
+            })
+            : [];
+        const conversationByExpert = new Map(conversations.map((conv) => [conv.expertId, conv]));
+
+        return links.map((link) => ({
+            id: link.id,
+            source: link.source,
+            createdAt: link.createdAt,
+            available: link.expert.isActive && link.expert.isPublished,
+            conversation: conversationByExpert.get(link.expertId) || null,
+            expert: link.expert,
+        }));
+    }
+
+    async applyAccessCode(userId: string, rawCode: string) {
+        this.assertCodeRateLimit(userId);
+        const code = this.normalizeAccessCode(rawCode);
+        if (code.length < 4) {
+            throw new BadRequestException('Check the code and try again.');
+        }
+
+        const accessCode = await this.prisma.expertAccessCode.findUnique({
+            where: { code },
+            include: {
+                expert: {
+                    include: {
+                        ...this.publicExpertInclude(),
+                    },
+                },
+            },
+        });
+
+        if (
+            !accessCode ||
+            !accessCode.isActive ||
+            !accessCode.expert ||
+            !accessCode.expert.isActive ||
+            !accessCode.expert.isPublished
+        ) {
+            throw new BadRequestException('Check the code and try again.');
+        }
+
+        if (accessCode.expert.userId === userId) {
+            throw new BadRequestException('You cannot use your own specialist code.');
+        }
+
+        const block = await this.prisma.userBlock.findFirst({
+            where: {
+                OR: [
+                    { blockerId: userId, blockedId: accessCode.expert.userId },
+                    { blockerId: accessCode.expert.userId, blockedId: userId },
+                ],
+            },
+        });
+        if (block) {
+            throw new ForbiddenException('Cannot connect with this specialist.');
+        }
+
+        const existingConversation = await this.prisma.conversation.findUnique({
+            where: {
+                clientId_expertId: {
+                    clientId: userId,
+                    expertId: accessCode.expertId,
+                },
+            },
+            select: { id: true, status: true, expertId: true },
+        });
+
+        const link = await this.prisma.$transaction(async (tx) => {
+            const savedLink = await tx.expertClientLink.upsert({
+                where: {
+                    clientId_expertId: {
+                        clientId: userId,
+                        expertId: accessCode.expertId,
+                    },
+                },
+                update: {
+                    isActive: true,
+                    codeId: accessCode.id,
+                    source: 'code',
+                },
+                create: {
+                    clientId: userId,
+                    expertId: accessCode.expertId,
+                    codeId: accessCode.id,
+                    source: 'code',
+                },
+            });
+            await tx.expertAccessCodeUsage.create({
+                data: {
+                    codeId: accessCode.id,
+                    expertId: accessCode.expertId,
+                    clientId: userId,
+                    conversationId: existingConversation?.id,
+                },
+            });
+            await tx.expertAccessCode.update({
+                where: { id: accessCode.id },
+                data: { usageCount: { increment: 1 } },
+            });
+            return savedLink;
+        });
+
+        return {
+            link,
+            expert: accessCode.expert,
+            conversation: existingConversation,
+        };
+    }
+
+    async listAccessCodeUsageForExpert(expertId: string, take = 25) {
+        return this.prisma.expertAccessCodeUsage.findMany({
+            where: { expertId },
+            orderBy: { createdAt: 'desc' },
+            take: Math.min(Math.max(take, 1), 100),
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        email: true,
+                        userProfile: { select: { firstName: true, lastName: true, avatarUrl: true } },
+                    },
+                },
+                conversation: {
+                    select: { id: true, status: true },
+                },
+            },
         });
     }
 

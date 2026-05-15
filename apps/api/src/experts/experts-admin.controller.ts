@@ -15,6 +15,7 @@ import {
 import type { Request } from 'express';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ExpertsService } from './experts.service';
 
 @Controller('admin/experts')
 export class ExpertsAdminController {
@@ -23,6 +24,7 @@ export class ExpertsAdminController {
     constructor(
         private prisma: PrismaService,
         private notifications: NotificationsService,
+        private expertsService: ExpertsService,
     ) {}
 
     private validateAdmin(adminSecret: string) {
@@ -102,6 +104,7 @@ export class ExpertsAdminController {
                         },
                     },
                 },
+                accessCode: true,
                 _count: {
                     select: { reviews: true, conversations: true },
                 },
@@ -122,6 +125,29 @@ export class ExpertsAdminController {
             orderBy: { createdAt: 'desc' },
             take,
         });
+    }
+
+    @Get(':id/access-code')
+    async getAccessCode(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Param('id') id: string,
+    ) {
+        this.validateAdmin(adminSecret);
+        const code = await this.expertsService.ensureAccessCodeForExpert(id);
+        const usage = await this.expertsService.listAccessCodeUsageForExpert(id, 50);
+        return { code, usage };
+    }
+
+    @Post(':id/access-code/regenerate')
+    async regenerateAccessCode(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Param('id') id: string,
+        @Req() req: Request,
+    ) {
+        this.validateAdmin(adminSecret);
+        const code = await this.expertsService.regenerateAccessCodeForExpert(id);
+        await this.writeAudit('regenerate_expert_access_code', 'expert', id, null, req);
+        return { success: true, code };
     }
 
     @Get(':id')
@@ -153,6 +179,7 @@ export class ExpertsAdminController {
                     take: 5,
                     orderBy: { createdAt: 'desc' },
                 },
+                accessCode: true,
                 _count: {
                     select: { reviews: true, conversations: true },
                 },
@@ -215,6 +242,7 @@ export class ExpertsAdminController {
                 rejectionReason: null,
             },
         });
+        await this.expertsService.ensureAccessCodeForExpert(id);
         await this.writeAudit('approve_expert', 'expert', id, null, req);
 
         // Approve all pending credentials
@@ -351,6 +379,7 @@ export class ExpertsAdminController {
             where: { id },
             data: { isPublished: true, isActive: true },
         });
+        await this.expertsService.ensureAccessCodeForExpert(id);
         await this.writeAudit('publish_expert', 'expert', id, null, req);
 
         this.logger.log(`Expert re-published: id=${id}`);

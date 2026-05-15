@@ -1435,7 +1435,20 @@
     "expertPending": "Bewerbung wird geprüft",
     "expertRejected": "Erneut einreichen",
     "expertUnpublished": "Profil ausgeblendet",
-    "unpublishedHint": "Ihr Profil ist vorübergehend nicht im Marktplatz sichtbar. Wenden Sie sich an den Support, um es wieder zu veröffentlichen."
+    "unpublishedHint": "Ihr Profil ist vorübergehend nicht im Marktplatz sichtbar. Wenden Sie sich an den Support, um es wieder zu veröffentlichen.",
+    "haveCodeTitle": "Ich habe einen Spezialistencode",
+    "haveCodeSub": "Gib den privaten Code ein, um deinen Spezialisten hinzuzufügen.",
+    "mySpecialists": "Meine Spezialisten",
+    "linkedByCode": "Code",
+    "specialistUnavailable": "Spezialist ist derzeit nicht verfügbar",
+    "enterCodeTitle": "Spezialistencode",
+    "enterCodeBody": "Gib den privaten Code ein, den dein Spezialist geteilt hat.",
+    "codePlaceholder": "A7K9Q2",
+    "applyCode": "Spezialist hinzufügen",
+    "codeInvalidTitle": "Code prüfen",
+    "codeInvalidBody": "Prüfe den Spezialistencode und versuche es erneut.",
+    "codeAppliedTitle": "Spezialist hinzugefügt",
+    "codeAppliedBody": "Dieser Spezialist ist jetzt unter Meine Spezialisten verfügbar."
   },
   "feedbackScreen": {
     "alerts": {

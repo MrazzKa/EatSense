@@ -30,7 +30,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (user.expertsRole !== 'EXPERT') {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 text-center">
+        <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 text-center sm:p-10">
           <Ban size={40} strokeWidth={1.5} className="mx-auto mb-4 text-[var(--red)]" />
           <h2 className="text-lg font-semibold mb-2">{t('login', 'notExpert')}</h2>
           <p className="text-sm text-[var(--text2)] mb-6">

@@ -229,6 +229,16 @@ type MessagesShape = {
     uploadOnlyImageOrPdf: string;
     uploadMaxSize: string;
     credentialNameRequired: string;
+    expertCodeTitle: string;
+    expertCodeBody: string;
+    expertCodeUnavailable: string;
+    copyCode: string;
+    regenerateCode: string;
+    regenerateCodeConfirm: string;
+    codeCopied: string;
+    codeUsage: string;
+    dietsSoonTitle: string;
+    dietsSoonBody: string;
   };
   specializations: Record<SpecializationKey, string>;
   languageNames: Record<Locale, string>;
@@ -263,9 +273,9 @@ const en: MessagesShape = {
     confirmDelete: 'Delete this item?',
   },
   login: {
-    title: 'EatSense Expert Portal', subtitle: 'Sign in to manage your expert profile',
-    emailPlaceholder: 'your@email.com', send: 'Send Magic Link', sending: 'Sending...',
-    checkEmail: 'Check your email', sentTo: 'We sent a magic link to',
+    title: 'EatSense Expert Portal', subtitle: 'Enter your email to receive a one-time sign-in link.',
+    emailPlaceholder: 'your@email.com', send: 'Send sign-in link', sending: 'Sending...',
+    checkEmail: 'Check your email', sentTo: 'We sent a sign-in link to',
     useDifferent: 'Use a different email',
     notExpert: 'Not an expert', notExpertBody: 'This portal is for registered experts only. Register as an expert in the EatSense app first.',
   },
@@ -355,6 +365,16 @@ const en: MessagesShape = {
     uploadOnlyImageOrPdf: 'Only images and PDFs are supported.',
     uploadMaxSize: 'File must be smaller than 15MB.',
     credentialNameRequired: 'Please enter a credential name first.',
+    expertCodeTitle: 'Specialist code',
+    expertCodeBody: 'Share this private code with clients who should add you directly in EatSense.',
+    expertCodeUnavailable: 'Your profile must be published before clients can use this code.',
+    copyCode: 'Copy code',
+    regenerateCode: 'Regenerate',
+    regenerateCodeConfirm: 'Regenerate this code? The old code will stop working.',
+    codeCopied: 'Code copied.',
+    codeUsage: 'Uses',
+    dietsSoonTitle: 'Client diets',
+    dietsSoonBody: 'Soon you will be able to create a structured diet plan and send it to a client.',
   },
   specializations: {
     weightManagement: 'Weight Management',
@@ -492,6 +512,16 @@ const ru: MessagesShape = {
     uploadOnlyImageOrPdf: 'Поддерживаются только изображения и PDF.',
     uploadMaxSize: 'Файл должен быть меньше 15 МБ.',
     credentialNameRequired: 'Сначала укажите название документа.',
+    expertCodeTitle: 'Код специалиста',
+    expertCodeBody: 'Поделитесь этим приватным кодом с клиентами, которые должны добавить вас напрямую в EatSense.',
+    expertCodeUnavailable: 'Профиль должен быть опубликован, прежде чем клиенты смогут использовать этот код.',
+    copyCode: 'Скопировать код',
+    regenerateCode: 'Сгенерировать заново',
+    regenerateCodeConfirm: 'Сгенерировать код заново? Старый код перестанет работать.',
+    codeCopied: 'Код скопирован.',
+    codeUsage: 'Использований',
+    dietsSoonTitle: 'Диеты клиентов',
+    dietsSoonBody: 'Скоро вы сможете создавать структурированный план питания и отправлять его клиенту.',
   },
   specializations: {
     weightManagement: 'Управление весом',
@@ -629,6 +659,16 @@ const kk: MessagesShape = {
     uploadOnlyImageOrPdf: 'Тек суреттер мен PDF қолданылады.',
     uploadMaxSize: 'Файл 15 МБ-дан кіші болуы керек.',
     credentialNameRequired: 'Алдымен құжат атауын енгізіңіз.',
+    expertCodeTitle: 'Маман коды',
+    expertCodeBody: 'EatSense ішінде сізді тікелей қосуы керек клиенттермен осы жеке кодты бөлісіңіз.',
+    expertCodeUnavailable: 'Клиенттер бұл кодты қолдануы үшін профиліңіз жарияланған болуы керек.',
+    copyCode: 'Кодты көшіру',
+    regenerateCode: 'Қайта жасау',
+    regenerateCodeConfirm: 'Кодты қайта жасау керек пе? Ескі код жұмысын тоқтатады.',
+    codeCopied: 'Код көшірілді.',
+    codeUsage: 'Қолданулар',
+    dietsSoonTitle: 'Клиент диеталары',
+    dietsSoonBody: 'Жақында сіз құрылымдалған тамақтану жоспарын жасап, оны клиентке жібере аласыз.',
   },
   specializations: {
     weightManagement: 'Салмақты басқару',
@@ -766,6 +806,16 @@ const de: MessagesShape = {
     uploadOnlyImageOrPdf: 'Nur Bilder und PDFs werden unterstützt.',
     uploadMaxSize: 'Die Datei muss kleiner als 15 MB sein.',
     credentialNameRequired: 'Bitte geben Sie zuerst einen Namen ein.',
+    expertCodeTitle: 'Spezialistencode',
+    expertCodeBody: 'Teilen Sie diesen privaten Code mit Kunden, die Sie direkt in EatSense hinzufügen sollen.',
+    expertCodeUnavailable: 'Ihr Profil muss veröffentlicht sein, bevor Kunden diesen Code verwenden können.',
+    copyCode: 'Code kopieren',
+    regenerateCode: 'Neu generieren',
+    regenerateCodeConfirm: 'Diesen Code neu generieren? Der alte Code funktioniert danach nicht mehr.',
+    codeCopied: 'Code kopiert.',
+    codeUsage: 'Nutzungen',
+    dietsSoonTitle: 'Kundendiäten',
+    dietsSoonBody: 'Bald können Sie einen strukturierten Ernährungsplan erstellen und an einen Kunden senden.',
   },
   specializations: {
     weightManagement: 'Gewichtsmanagement',
@@ -903,6 +953,16 @@ const fr: MessagesShape = {
     uploadOnlyImageOrPdf: 'Seules les images et les PDF sont pris en charge.',
     uploadMaxSize: 'Le fichier doit faire moins de 15 Mo.',
     credentialNameRequired: 'Veuillez d\'abord saisir un nom.',
+    expertCodeTitle: 'Code spécialiste',
+    expertCodeBody: 'Partagez ce code privé avec les clients qui doivent vous ajouter directement dans EatSense.',
+    expertCodeUnavailable: 'Votre profil doit être publié avant que les clients puissent utiliser ce code.',
+    copyCode: 'Copier le code',
+    regenerateCode: 'Régénérer',
+    regenerateCodeConfirm: 'Régénérer ce code ? L’ancien code cessera de fonctionner.',
+    codeCopied: 'Code copié.',
+    codeUsage: 'Utilisations',
+    dietsSoonTitle: 'Régimes clients',
+    dietsSoonBody: 'Bientôt, vous pourrez créer un plan alimentaire structuré et l’envoyer à un client.',
   },
   specializations: {
     weightManagement: 'Gestion du poids',
@@ -1040,6 +1100,16 @@ const es: MessagesShape = {
     uploadOnlyImageOrPdf: 'Solo se admiten imágenes y PDFs.',
     uploadMaxSize: 'El archivo debe ser menor de 15 MB.',
     credentialNameRequired: 'Introduce primero un nombre de credencial.',
+    expertCodeTitle: 'Código de especialista',
+    expertCodeBody: 'Comparte este código privado con los clientes que deben añadirte directamente en EatSense.',
+    expertCodeUnavailable: 'Tu perfil debe estar publicado antes de que los clientes puedan usar este código.',
+    copyCode: 'Copiar código',
+    regenerateCode: 'Regenerar',
+    regenerateCodeConfirm: '¿Regenerar este código? El código anterior dejará de funcionar.',
+    codeCopied: 'Código copiado.',
+    codeUsage: 'Usos',
+    dietsSoonTitle: 'Dietas de clientes',
+    dietsSoonBody: 'Pronto podrás crear un plan de alimentación estructurado y enviarlo a un cliente.',
   },
   specializations: {
     weightManagement: 'Control de peso',

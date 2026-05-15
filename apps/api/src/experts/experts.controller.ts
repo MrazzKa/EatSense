@@ -24,6 +24,13 @@ import {
     UpdateOfferDto,
     PublishOfferDto,
 } from './dto/experts.dto';
+import { IsString, MaxLength } from 'class-validator';
+
+class ApplyExpertCodeDto {
+    @IsString()
+    @MaxLength(32)
+    code: string;
+}
 
 @Controller('experts')
 export class ExpertsController {
@@ -61,6 +68,30 @@ export class ExpertsController {
     @UseGuards(JwtAuthGuard)
     async publishProfile(@Request() req: any, @Body() dto: PublishProfileDto) {
         return this.expertsService.publishProfile(req.user.id, dto.isPublished);
+    }
+
+    @Get('me/access-code')
+    @UseGuards(JwtAuthGuard)
+    async getMyAccessCode(@Request() req: any) {
+        return this.expertsService.getMyAccessCode(req.user.id);
+    }
+
+    @Post('me/access-code/regenerate')
+    @UseGuards(JwtAuthGuard)
+    async regenerateMyAccessCode(@Request() req: any) {
+        return this.expertsService.regenerateMyAccessCode(req.user.id);
+    }
+
+    @Get('my-specialists')
+    @UseGuards(JwtAuthGuard)
+    async getMySpecialists(@Request() req: any) {
+        return this.expertsService.getMySpecialists(req.user.id);
+    }
+
+    @Post('access-code/apply')
+    @UseGuards(JwtAuthGuard)
+    async applyAccessCode(@Request() req: any, @Body() dto: ApplyExpertCodeDto) {
+        return this.expertsService.applyAccessCode(req.user.id, dto.code);
     }
 
     // ==================== MY CREDENTIALS ENDPOINTS ====================
@@ -161,15 +192,15 @@ export class ExpertsController {
         return this.expertsService.publishOffer(req.user.id, id, dto.isPublished);
     }
 
-    @Get(':id')
-    @UseGuards(JwtAuthGuard)
-    async findById(@Param('id') id: string, @Request() req: any) {
-        return this.expertsService.findById(id, req.user.id);
-    }
-
     @Get(':id/offers')
     @UseGuards(JwtAuthGuard)
     async getExpertOffers(@Param('id') id: string) {
         return this.expertsService.getOffers(id, true);
+    }
+
+    @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    async findById(@Param('id') id: string, @Request() req: any) {
+        return this.expertsService.findById(id, req.user.id);
     }
 }

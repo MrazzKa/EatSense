@@ -1288,7 +1288,20 @@
     "expertPending": "Өтінім қарауда",
     "expertRejected": "Қайта жіберу",
     "expertUnpublished": "Профиль жасырылған",
-    "unpublishedHint": "Профиліңіз маркетплейстен уақытша жасырылған. Қайта жариялау үшін қолдау қызметіне хабарласыңыз."
+    "unpublishedHint": "Профиліңіз маркетплейстен уақытша жасырылған. Қайта жариялау үшін қолдау қызметіне хабарласыңыз.",
+    "haveCodeTitle": "Маман коды бар",
+    "haveCodeSub": "Маманды қосу үшін жеке кодты енгізіңіз.",
+    "mySpecialists": "Менің мамандарым",
+    "linkedByCode": "Код",
+    "specialistUnavailable": "Маман қазір қолжетімсіз",
+    "enterCodeTitle": "Маман коды",
+    "enterCodeBody": "Маман берген жеке кодты енгізіңіз.",
+    "codePlaceholder": "MAM123",
+    "applyCode": "Маманды қосу",
+    "codeInvalidTitle": "Кодты тексеріңіз",
+    "codeInvalidBody": "Маман кодын тексеріп, қайта көріңіз.",
+    "codeAppliedTitle": "Маман қосылды",
+    "codeAppliedBody": "Бұл маман енді Менің мамандарым бөлімінде қолжетімді."
   },
   "offers": {
     "noOffers": "Қызметтер әлі жоқ",

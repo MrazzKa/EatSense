@@ -46,7 +46,7 @@ function CallbackContent() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-10 text-center">
+        <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 text-center sm:p-10">
           <div className="text-4xl mb-4">:(</div>
           <h2 className="text-lg font-semibold mb-2">{t('auth', 'signInFailed')}</h2>
           <p className="text-sm text-[var(--text2)] mb-6">{error}</p>

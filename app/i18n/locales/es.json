@@ -1097,7 +1097,20 @@
     "expertPending": "Solicitud en revisión",
     "expertRejected": "Volver a enviar",
     "expertUnpublished": "Perfil oculto",
-    "unpublishedHint": "Tu perfil está temporalmente oculto del marketplace. Contacta con soporte para volver a publicarlo."
+    "unpublishedHint": "Tu perfil está temporalmente oculto del marketplace. Contacta con soporte para volver a publicarlo.",
+    "haveCodeTitle": "Tengo un código de especialista",
+    "haveCodeSub": "Introduce el código privado para añadir a tu especialista.",
+    "mySpecialists": "Mis especialistas",
+    "linkedByCode": "Código",
+    "specialistUnavailable": "El especialista no está disponible ahora",
+    "enterCodeTitle": "Código de especialista",
+    "enterCodeBody": "Introduce el código privado que compartió tu especialista.",
+    "codePlaceholder": "A7K9Q2",
+    "applyCode": "Añadir especialista",
+    "codeInvalidTitle": "Revisa el código",
+    "codeInvalidBody": "Revisa el código de especialista e inténtalo de nuevo.",
+    "codeAppliedTitle": "Especialista añadido",
+    "codeAppliedBody": "Este especialista ya está disponible en Mis especialistas."
   },
   "feedbackScreen": {
     "alerts": {

@@ -1396,7 +1396,20 @@
     "expertPending": "Candidature en attente",
     "expertRejected": "Soumettre à nouveau",
     "expertUnpublished": "Profil masqué",
-    "unpublishedHint": "Votre profil est temporairement masqué du marketplace. Contactez le support pour le republier."
+    "unpublishedHint": "Votre profil est temporairement masqué du marketplace. Contactez le support pour le republier.",
+    "haveCodeTitle": "J’ai un code spécialiste",
+    "haveCodeSub": "Saisissez le code privé pour ajouter votre spécialiste.",
+    "mySpecialists": "Mes spécialistes",
+    "linkedByCode": "Code privé",
+    "specialistUnavailable": "Le spécialiste est actuellement indisponible",
+    "enterCodeTitle": "Code spécialiste",
+    "enterCodeBody": "Saisissez le code privé partagé par votre spécialiste.",
+    "codePlaceholder": "ABC123",
+    "applyCode": "Ajouter le spécialiste",
+    "codeInvalidTitle": "Vérifiez le code",
+    "codeInvalidBody": "Vérifiez le code spécialiste et réessayez.",
+    "codeAppliedTitle": "Spécialiste ajouté",
+    "codeAppliedBody": "Ce spécialiste est maintenant disponible dans Mes spécialistes."
   },
   "feedbackScreen": {
     "alerts": {

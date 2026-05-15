@@ -27,6 +27,11 @@ export function Sidebar() {
     || [user?.profile?.firstName, user?.profile?.lastName].filter(Boolean).join(' ')
     || user?.email
     || 'Expert';
+  const mobileLabel = (key: NavKey) => {
+    if (key === 'dashboard') return locale === 'ru' ? 'Обзор' : 'Home';
+    if (key === 'profile') return locale === 'ru' ? 'Профиль' : 'Profile';
+    return t('nav', key);
+  };
 
   return (
     <>
@@ -135,7 +140,7 @@ export function Sidebar() {
               }`}
             >
               <Icon size={19} />
-              <span className="w-full truncate text-center">{t('nav', item.key)}</span>
+              <span className="w-full truncate text-center">{mobileLabel(item.key)}</span>
             </Link>
           );
         })}

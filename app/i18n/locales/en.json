@@ -1703,7 +1703,20 @@
     "expertPending": "Application pending",
     "expertRejected": "Re-submit application",
     "expertUnpublished": "Profile unpublished",
-    "unpublishedHint": "Your profile is temporarily hidden from the marketplace. Contact support to re-publish."
+    "unpublishedHint": "Your profile is temporarily hidden from the marketplace. Contact support to re-publish.",
+    "haveCodeTitle": "I have a specialist code",
+    "haveCodeSub": "Enter a private code to add your specialist.",
+    "mySpecialists": "My specialists",
+    "linkedByCode": "Code",
+    "specialistUnavailable": "Specialist is currently unavailable",
+    "enterCodeTitle": "Specialist code",
+    "enterCodeBody": "Enter the private code your specialist shared with you.",
+    "codePlaceholder": "A7K9Q2",
+    "applyCode": "Add specialist",
+    "codeInvalidTitle": "Check the code",
+    "codeInvalidBody": "Check the specialist code and try again.",
+    "codeAppliedTitle": "Specialist added",
+    "codeAppliedBody": "This specialist is now available in My specialists."
   },
   "offers": {
     "noOffers": "No services yet",

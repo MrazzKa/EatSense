@@ -50,6 +50,8 @@ model User {
   abuseReports           AbuseReport[]
   blocksMade             UserBlock[]       @relation("BlocksMade")
   blocksReceived         UserBlock[]       @relation("BlocksReceived")
+  expertClientLinks      ExpertClientLink[]
+  expertCodeUsages       ExpertAccessCodeUsage[]
 
   // Diet Programs
   userDietPrograms    UserDietProgram[]
@@ -729,6 +731,9 @@ model ExpertProfile {
   conversations     Conversation[]
   reviews           Review[]
   articles          Article[]
+  accessCode        ExpertAccessCode?
+  clientLinks       ExpertClientLink[]
+  codeUsages        ExpertAccessCodeUsage[]
 
   @@index([type, isActive, isPublished])
   @@index([isVerified, isActive])
@@ -835,11 +840,68 @@ model Conversation {
   review          Review?
   payments        Payment[]
   videoSessions   VideoSession[]
+  expertCodeUsages ExpertAccessCodeUsage[]
 
   @@unique([clientId, expertId])
   @@index([clientId, status])
   @@index([expertId, status])
   @@map("conversations")
+}
+
+model ExpertAccessCode {
+  id          String   @id @default(cuid())
+  expertId    String   @unique @map("expert_id")
+  code        String   @unique
+  isActive    Boolean  @default(true) @map("is_active")
+  usageCount  Int      @default(0) @map("usage_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  expert      ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  usages      ExpertAccessCodeUsage[]
+  links       ExpertClientLink[]
+
+  @@index([code])
+  @@map("expert_access_codes")
+}
+
+model ExpertClientLink {
+  id          String   @id @default(cuid())
+  clientId    String   @map("client_id")
+  expertId    String   @map("expert_id")
+  codeId      String?  @map("code_id")
+  source      String   @default("code")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  client      User              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  expert      ExpertProfile     @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  code        ExpertAccessCode? @relation(fields: [codeId], references: [id], onDelete: SetNull)
+
+  @@unique([clientId, expertId])
+  @@index([clientId, isActive])
+  @@index([expertId])
+  @@map("expert_client_links")
+}
+
+model ExpertAccessCodeUsage {
+  id             String   @id @default(cuid())
+  codeId         String   @map("code_id")
+  expertId       String   @map("expert_id")
+  clientId       String   @map("client_id")
+  conversationId String?  @map("conversation_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  code           ExpertAccessCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  expert         ExpertProfile    @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  client         User             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  conversation   Conversation?    @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([codeId, createdAt])
+  @@index([expertId, createdAt])
+  @@index([clientId, createdAt])
+  @@map("expert_access_code_usages")
 }
 
 // LiveKit-backed video consultation session. One Conversation may have multiple

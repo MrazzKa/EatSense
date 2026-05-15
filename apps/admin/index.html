@@ -1200,6 +1200,21 @@
                 <button class="btn btn-outline btn-sm" onclick="toggleExpertDetails('${expert.id}')">${ic('eye')} Details</button>
               </div>
               <div id="expert-details-${expert.id}" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border-radius:6px;font-size:13px">
+                <div style="margin-bottom:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                    <div>
+                      <strong>Expert access</strong>
+                      <div style="color:var(--text2);font-size:12px;margin-top:2px">RU/EN copy block for portal login and private specialist code.</div>
+                    </div>
+                    <span class="badge" style="font-family:ui-monospace,Menlo,monospace;font-size:14px">${escapeHtml(expert.accessCode?.code || 'No code yet')}</span>
+                  </div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+                    <button class="btn btn-outline btn-sm" onclick="copyExpertAccess('${expert.id}', decodeURIComponent('${encArg(email)}'), decodeURIComponent('${encArg(expert.displayName)}'), decodeURIComponent('${encArg(expert.accessCode?.code || '')}'))">Copy RU+EN instruction</button>
+                    <button class="btn btn-outline btn-sm" onclick="regenerateExpertCode('${expert.id}')">Regenerate code</button>
+                    <button class="btn btn-outline btn-sm" onclick="loadExpertCodeUsage('${expert.id}')">Usage log</button>
+                  </div>
+                  <div id="code-usage-${expert.id}" style="display:none;margin-top:8px;color:var(--text2);font-size:12px"></div>
+                </div>
                 ${(expert.educationEntries || []).length > 0 ? `
                   <div style="margin-bottom:8px"><strong>Education (${expert.educationEntries.length}):</strong></div>
                   ${expert.educationEntries.map(e => `
@@ -1292,6 +1307,73 @@
       const el = document.getElementById(`expert-details-${id}`);
       if (!el) return;
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function copyExpertAccess(id, email, name, code) {
+      if (!code) {
+        try {
+          const result = await fetchAPI(`/admin/experts/${id}/access-code`);
+          code = result?.code?.code || '';
+        } catch (err) {
+          toast('Failed to load expert code: ' + err.message);
+          return;
+        }
+      }
+      const portal = 'https://experts.eatsense.ch';
+      const text = [
+        `RU: Доступ эксперта ${name}`,
+        `Портал: ${portal}`,
+        `Email для входа: ${email}`,
+        `Код специалиста для клиентов: ${code}`,
+        'Вход без пароля: специалист вводит email и получает одноразовую ссылку на почту.',
+        '',
+        `EN: Expert access for ${name}`,
+        `Portal: ${portal}`,
+        `Sign-in email: ${email}`,
+        `Specialist code for clients: ${code}`,
+        'No shared password is used: the specialist enters their email and receives a one-time sign-in link.',
+      ].join('\\n');
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('Expert access instruction copied');
+      } catch {
+        window.prompt('Copy expert access instruction', text);
+      }
+    }
+
+    async function regenerateExpertCode(id) {
+      if (!confirm('Regenerate this expert code? The old code will stop working.')) return;
+      try {
+        await fetchAPI(`/admin/experts/${id}/access-code/regenerate`, { method: 'POST' });
+        toast('Expert code regenerated');
+        loadExperts();
+      } catch (err) {
+        toast('Failed to regenerate code: ' + err.message);
+      }
+    }
+
+    async function loadExpertCodeUsage(id) {
+      const box = document.getElementById(`code-usage-${id}`);
+      if (!box) return;
+      if (box.style.display !== 'none' && box.innerHTML) {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'block';
+      box.textContent = 'Loading usage...';
+      try {
+        const result = await fetchAPI(`/admin/experts/${id}/access-code`);
+        const usage = result?.usage || [];
+        box.innerHTML = usage.length
+          ? usage.map((u) => {
+              const profile = u.client?.userProfile || {};
+              const clientName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || u.client?.email || u.clientId;
+              return `<div style="padding:4px 0;border-bottom:1px dashed var(--border)">${escapeHtml(clientName)} · ${new Date(u.createdAt).toLocaleString()}${u.conversation ? ` · chat ${escapeHtml(u.conversation.status)}` : ''}</div>`;
+            }).join('')
+          : 'No code usage yet.';
+      } catch (err) {
+        box.textContent = 'Failed to load usage: ' + err.message;
+      }
     }
 
     function togglePreview(previewId) {

@@ -12,6 +12,9 @@ import {
     Modal,
     ScrollView,
     Linking,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -54,6 +57,10 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const [filterSpec, setFilterSpec] = useState<string | null>(null);
     const [filterLang, setFilterLang] = useState<string | null>(null);
     const [filtersVisible, setFiltersVisible] = useState(false);
+    const [codeVisible, setCodeVisible] = useState(false);
+    const [codeInput, setCodeInput] = useState('');
+    const [applyingCode, setApplyingCode] = useState(false);
+    const [mySpecialists, setMySpecialists] = useState<any[]>([]);
 
     // Debounce search
     useEffect(() => {
@@ -89,11 +96,21 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         }
     }, [searchDebounced, filterSpec, filterLang]);
 
+    const loadMySpecialists = useCallback(async () => {
+        try {
+            const result = await MarketplaceService.getMySpecialists();
+            setMySpecialists(Array.isArray(result) ? result : []);
+        } catch (err) {
+            console.warn('[ExpertsScreen] Failed to load linked specialists:', err);
+            setMySpecialists([]);
+        }
+    }, []);
+
     // Backend default orderBy is [isVerified desc, rating desc, consultationCount desc].
     useEffect(() => {
         setLoading(true);
-        loadExperts(0).finally(() => setLoading(false));
-    }, [loadExperts]);
+        Promise.all([loadExperts(0), loadMySpecialists()]).finally(() => setLoading(false));
+    }, [loadExperts, loadMySpecialists]);
 
     useFocusEffect(
         useCallback(() => {
@@ -105,10 +122,11 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         setRefreshing(true);
         await Promise.all([
             loadExperts(0),
+            loadMySpecialists(),
             refreshUser().catch(() => {}),
         ]);
         setRefreshing(false);
-    }, [loadExperts, refreshUser]);
+    }, [loadExperts, loadMySpecialists, refreshUser]);
 
     const handleLoadMore = useCallback(async () => {
         if (loadingMore || experts.length >= total) return;
@@ -128,9 +146,53 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
 
     const handleRetry = useCallback(async () => {
         setLoading(true);
-        await loadExperts(0);
+        await Promise.all([loadExperts(0), loadMySpecialists()]);
         setLoading(false);
-    }, [loadExperts]);
+    }, [loadExperts, loadMySpecialists]);
+
+    const normalizeCodeInput = (value: string) => value.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 12);
+
+    const handleApplyCode = useCallback(async () => {
+        const code = normalizeCodeInput(codeInput);
+        if (!code || code.length < 4) {
+            Alert.alert(
+                t('experts.codeInvalidTitle') || 'Check the code',
+                t('experts.codeInvalidBody') || 'Check the specialist code and try again.',
+            );
+            return;
+        }
+        setApplyingCode(true);
+        try {
+            const result = await MarketplaceService.applyExpertCode(code);
+            await loadMySpecialists();
+            setCodeVisible(false);
+            setCodeInput('');
+            const expertId = result?.expert?.id;
+            const conversationId = result?.conversation?.id;
+            Alert.alert(
+                t('experts.codeAppliedTitle') || 'Specialist added',
+                t('experts.codeAppliedBody') || 'This specialist is now available in My specialists.',
+                [
+                    {
+                        text: t('common.ok') || 'OK',
+                        onPress: () => {
+                            if (expertId) {
+                                navigation.navigate('ExpertProfile', { specialistId: expertId, conversationId });
+                            }
+                        },
+                    },
+                ],
+            );
+        } catch (err: any) {
+            console.error('[ExpertsScreen] Apply code failed:', err);
+            Alert.alert(
+                t('experts.codeInvalidTitle') || 'Check the code',
+                t('experts.codeInvalidBody') || 'Check the specialist code and try again.',
+            );
+        } finally {
+            setApplyingCode(false);
+        }
+    }, [codeInput, loadMySpecialists, navigation, t]);
 
     const getAvatarUrl = (expert: any) => ApiService.resolveMediaUrl(expert?.avatarUrl);
 
@@ -198,6 +260,71 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         </TouchableOpacity>
     ), [styles, colors, t, navigation]);
 
+    const renderCodeEntry = () => (
+        <TouchableOpacity
+            style={styles.codeEntry}
+            onPress={() => setCodeVisible(true)}
+            activeOpacity={0.75}
+        >
+            <View style={styles.codeEntryIcon}>
+                <Ionicons name="key-outline" size={22} color={colors.primary} />
+            </View>
+            <View style={styles.codeEntryText}>
+                <Text style={styles.codeEntryTitle}>{t('experts.haveCodeTitle') || 'I have a specialist code'}</Text>
+                <Text style={styles.codeEntrySub}>{t('experts.haveCodeSub') || 'Enter a private code to add your specialist.'}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+        </TouchableOpacity>
+    );
+
+    const renderMySpecialists = () => {
+        if (!mySpecialists.length) return null;
+        return (
+            <View style={styles.mySection}>
+                <Text style={styles.sectionTitle}>{t('experts.mySpecialists') || 'My specialists'}</Text>
+                {mySpecialists.map((link) => {
+                    const expert = link.expert;
+                    return (
+                        <TouchableOpacity
+                            key={link.id}
+                            style={[styles.card, !link.available && styles.unavailableCard]}
+                            onPress={() => {
+                                if (link.available) {
+                                    navigation.navigate('ExpertProfile', { specialistId: expert.id, conversationId: link.conversation?.id });
+                                }
+                            }}
+                            activeOpacity={link.available ? 0.7 : 1}
+                        >
+                            <View style={styles.cardRow}>
+                                {getAvatarUrl(expert) ? (
+                                    <Image source={{ uri: getAvatarUrl(expert) }} style={styles.avatar} />
+                                ) : (
+                                    <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                                        <Text style={styles.avatarInitials}>{getInitials(expert.displayName) || 'E'}</Text>
+                                    </View>
+                                )}
+                                <View style={styles.cardInfo}>
+                                    <View style={styles.nameRow}>
+                                        <Text style={styles.cardName} numberOfLines={1}>{expert.displayName}</Text>
+                                        <View style={styles.linkedBadge}>
+                                            <Text style={styles.linkedBadgeText}>{t('experts.linkedByCode') || 'Code'}</Text>
+                                        </View>
+                                    </View>
+                                    <Text style={styles.cardType}>
+                                        {link.available
+                                            ? String(t(`experts.${(expert.type || '').toLowerCase()}.title`, { defaultValue: expert.type }) ?? expert.type ?? '')
+                                            : (t('experts.specialistUnavailable') || 'Specialist is currently unavailable')}
+                                    </Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        );
+    };
+
     const renderEmpty = () => {
         if (loading) return null;
         if (loadError) {
@@ -249,7 +376,12 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         );
     };
 
-    const renderHeader = () => null;
+    const renderHeader = () => (
+        <>
+            {renderCodeEntry()}
+            {renderMySpecialists()}
+        </>
+    );
 
     const renderFooter = () => (
         <>
@@ -414,6 +546,52 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                     </View>
                 </SafeAreaView>
             </Modal>
+
+            <Modal visible={codeVisible} animationType="fade" transparent onRequestClose={() => setCodeVisible(false)}>
+                <KeyboardAvoidingView
+                    style={styles.codeModalOverlay}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                >
+                    <TouchableOpacity style={styles.codeModalScrim} activeOpacity={1} onPress={() => setCodeVisible(false)} />
+                    <View style={styles.codeModalCard}>
+                        <View style={styles.modalGrabber} />
+                        <Text style={styles.codeModalTitle}>{t('experts.enterCodeTitle') || 'Specialist code'}</Text>
+                        <Text style={styles.codeModalSub}>
+                            {t('experts.enterCodeBody') || 'Enter the private code your specialist shared with you.'}
+                        </Text>
+                        <TextInput
+                            value={codeInput}
+                            onChangeText={(value) => setCodeInput(normalizeCodeInput(value))}
+                            autoCapitalize="characters"
+                            autoCorrect={false}
+                            placeholder={t('experts.codePlaceholder') || 'A7K9Q2'}
+                            placeholderTextColor={colors.textTertiary}
+                            style={styles.codeInput}
+                            maxLength={12}
+                        />
+                        <View style={styles.codeActions}>
+                            <TouchableOpacity
+                                style={styles.codeCancelButton}
+                                onPress={() => setCodeVisible(false)}
+                                disabled={applyingCode}
+                            >
+                                <Text style={styles.codeCancelText}>{t('common.cancel') || 'Cancel'}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.codeApplyButton, applyingCode && styles.disabledButton]}
+                                onPress={handleApplyCode}
+                                disabled={applyingCode}
+                            >
+                                {applyingCode ? (
+                                    <ActivityIndicator color="#FFF" />
+                                ) : (
+                                    <Text style={styles.codeApplyText}>{t('experts.applyCode') || 'Add specialist'}</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -481,6 +659,43 @@ const createStyles = (tokens: any, colors: any) =>
         },
         specChipText: { fontSize: 11, color: colors.primary },
         cardRight: { alignItems: 'center', justifyContent: 'center', marginLeft: tokens.spacing.sm },
+        unavailableCard: { opacity: 0.62 },
+        codeEntry: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: tokens.spacing.lg,
+            marginBottom: tokens.spacing.md,
+            borderRadius: tokens.radii.sm,
+            borderWidth: 1,
+            borderColor: colors.primary + '26',
+            backgroundColor: colors.primary + '08',
+            gap: tokens.spacing.md,
+        },
+        codeEntryIcon: {
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.primary + '14',
+        },
+        codeEntryText: { flex: 1 },
+        codeEntryTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
+        codeEntrySub: { fontSize: 13, color: colors.textSecondary, marginTop: 2, lineHeight: 18 },
+        mySection: { marginTop: tokens.spacing.xs, marginBottom: tokens.spacing.sm },
+        sectionTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.text,
+            marginBottom: tokens.spacing.sm,
+        },
+        linkedBadge: {
+            paddingHorizontal: tokens.spacing.sm,
+            paddingVertical: 2,
+            borderRadius: tokens.radii.pill,
+            backgroundColor: colors.primary + '16',
+        },
+        linkedBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
         // Empty
         emptyContainer: { alignItems: 'center', paddingVertical: tokens.spacing.xxxl },
         emptyTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginTop: tokens.spacing.lg },
@@ -570,4 +785,63 @@ const createStyles = (tokens: any, colors: any) =>
             alignItems: 'center', backgroundColor: colors.primary,
         },
         applyButtonText: { fontSize: 15, fontWeight: '600', color: '#FFF' },
+        codeModalOverlay: { flex: 1, justifyContent: 'flex-end' },
+        codeModalScrim: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: 'rgba(0,0,0,0.36)',
+        },
+        codeModalCard: {
+            backgroundColor: colors.surface,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            paddingHorizontal: tokens.spacing.xl,
+            paddingTop: tokens.spacing.md,
+            paddingBottom: tokens.spacing.xl,
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        modalGrabber: {
+            alignSelf: 'center',
+            width: 42,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: colors.border,
+            marginBottom: tokens.spacing.lg,
+        },
+        codeModalTitle: { fontSize: 20, fontWeight: '800', color: colors.text },
+        codeModalSub: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginTop: tokens.spacing.sm },
+        codeInput: {
+            height: 52,
+            borderRadius: tokens.radii.xs,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.background,
+            paddingHorizontal: tokens.spacing.lg,
+            marginTop: tokens.spacing.lg,
+            color: colors.text,
+            fontSize: 19,
+            fontWeight: '800',
+            letterSpacing: 1,
+        },
+        codeActions: { flexDirection: 'row', gap: tokens.spacing.md, marginTop: tokens.spacing.lg },
+        codeCancelButton: {
+            flex: 1,
+            minHeight: 48,
+            borderRadius: tokens.radii.xs,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        codeCancelText: { fontSize: 15, fontWeight: '700', color: colors.text },
+        codeApplyButton: {
+            flex: 1.4,
+            minHeight: 48,
+            borderRadius: tokens.radii.xs,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.primary,
+        },
+        codeApplyText: { fontSize: 15, fontWeight: '800', color: '#FFF' },
+        disabledButton: { opacity: 0.65 },
     });

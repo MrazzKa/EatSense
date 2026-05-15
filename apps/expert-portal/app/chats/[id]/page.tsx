@@ -279,7 +279,7 @@ export default function ChatPage() {
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100dvh-10rem)] min-h-[520px] flex-col md:h-screen">
+      <div className="flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col md:h-screen">
         {/* Header */}
         <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -298,7 +298,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
             {conversation?.reportsShared && (
               <Link
                 href={`/clients/${convId}`}
@@ -310,22 +310,22 @@ export default function ChatPage() {
             {conversation?.status === 'active' && (
               <>
                 {!conversation.reportsShared && (
-                  <button
-                    onClick={handleRequestData}
-                    className="px-3 py-1.5 text-xs font-medium bg-[var(--surface2)] text-[var(--text2)] rounded-lg hover:bg-[var(--border)] transition cursor-pointer"
+                <button
+                  onClick={handleRequestData}
+                    className="min-h-9 rounded-lg bg-[var(--surface2)] px-3 py-1.5 text-xs font-medium text-[var(--text2)] transition hover:bg-[var(--border)]"
                   >
                     {t('chats', 'requestData')}
                   </button>
                 )}
                 <Link
                   href={`/call/${convId}`}
-                  className="px-3 py-1.5 text-xs font-medium bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition"
+                  className="flex min-h-9 items-center justify-center rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
                 >
                   {t('chats', 'startVideo') || 'Video call'}
                 </Link>
                 <button
                   onClick={handleComplete}
-                  className="px-3 py-1.5 text-xs font-medium bg-[#ef444422] text-[var(--red)] rounded-lg hover:bg-[#ef444433] transition cursor-pointer"
+                  className="hidden min-h-9 rounded-lg bg-[#ef444422] px-3 py-1.5 text-xs font-medium text-[var(--red)] transition hover:bg-[#ef444433] sm:inline-flex sm:items-center"
                 >
                   {t('chats', 'completeBtn')}
                 </button>
@@ -363,7 +363,7 @@ export default function ChatPage() {
         {conversation?.status === 'active' && (
           <div className="border-t border-[var(--border)] bg-[var(--surface)] shrink-0">
             {/* Quick-action templates */}
-            <div className="flex gap-2 overflow-x-auto px-4 pt-3 sm:px-6">
+            <div className="hidden gap-2 overflow-x-auto px-4 pt-3 sm:flex sm:px-6">
               <span className="text-[11px] uppercase tracking-wider text-[var(--text2)] self-center shrink-0 pr-1">
                 {t('chats', 'templates')}
               </span>
@@ -378,18 +378,18 @@ export default function ChatPage() {
                 </button>
               ))}
             </div>
-            <form onSubmit={handleSend} className="flex items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
+            <form onSubmit={handleSend} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t('chats', 'typeMessage')}
-                className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--text2)] focus:border-[var(--primary)]"
+                className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--text2)] focus:border-[var(--primary)]"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || sending}
-                className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-40 sm:px-5"
+                className="min-h-11 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-40 sm:px-5"
               >
                 {t('chats', 'send')}
               </button>
