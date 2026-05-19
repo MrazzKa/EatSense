@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, CheckCheck, Lock, LockOpen, ShieldAlert, Utensils } from 'lucide-react';
+import { ArrowLeft, CheckCheck, Languages, Lock, LockOpen, ShieldAlert, Utensils } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -58,6 +58,34 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [translating, setTranslating] = useState<string | null>(null);
+
+  async function toggleTranslate(messageId: string) {
+    if (translations[messageId]) {
+      setTranslations((t) => {
+        const next = { ...t };
+        delete next[messageId];
+        return next;
+      });
+      return;
+    }
+    setTranslating(messageId);
+    try {
+      const target = (typeof navigator !== 'undefined' && navigator.language?.slice(0, 2)) || 'en';
+      const res = await apiFetch(`/messages/${messageId}/translate`, {
+        method: 'POST',
+        body: JSON.stringify({ targetLocale: target }),
+      });
+      if (res?.translation) {
+        setTranslations((t) => ({ ...t, [messageId]: res.translation }));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTranslating(null);
+    }
+  }
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -243,9 +271,25 @@ export default function ChatPage() {
             </div>
           )}
 
-          {msg.type !== 'photo' && <p>{msg.content}</p>}
+          {msg.type !== 'photo' && <p>{translations[msg.id] || msg.content}</p>}
+          {translations[msg.id] && (
+            <p className={`mt-1 text-[10px] italic ${isMe ? 'opacity-70' : 'text-[var(--text2)]'}`}>
+              {t('chats', 'translated') || 'Translated'}
+            </p>
+          )}
 
-          <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'opacity-70' : 'text-[var(--text2)]'}`}>
+          <div className={`flex items-center justify-end gap-2 mt-1 text-[10px] ${isMe ? 'opacity-70' : 'text-[var(--text2)]'}`}>
+            {!isMe && msg.type === 'text' && msg.content && (
+              <button
+                onClick={() => toggleTranslate(msg.id)}
+                className="inline-flex items-center gap-0.5 opacity-70 hover:opacity-100"
+                disabled={translating === msg.id}
+                title={translations[msg.id] ? 'Show original' : 'Translate'}
+              >
+                <Languages size={11} />
+                {translating === msg.id ? '…' : translations[msg.id] ? 'orig' : ''}
+              </button>
+            )}
             <span>{formatTime(msg.createdAt)}</span>
             {isMe && msg.isRead && <CheckCheck size={12} />}
           </div>

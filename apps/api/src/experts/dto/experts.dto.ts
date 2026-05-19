@@ -4,8 +4,8 @@ import { Type } from 'class-transformer';
 export const SUPPORTED_LANGUAGES = ['en', 'ru', 'kk', 'fr', 'de', 'es'] as const;
 
 export class CreateExpertProfileDto {
-    @IsIn(['dietitian', 'nutritionist'])
-    type: 'dietitian' | 'nutritionist';
+    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'obgyn', 'pediatrician', 'gp', 'other'])
+    type: string;
 
     @IsString()
     @MaxLength(100)
@@ -63,8 +63,8 @@ export class CreateExpertProfileDto {
 
 export class UpdateExpertProfileDto {
     @IsOptional()
-    @IsIn(['dietitian', 'nutritionist'])
-    type?: 'dietitian' | 'nutritionist';
+    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'obgyn', 'pediatrician', 'gp', 'other'])
+    type?: string;
 
     @IsOptional()
     @IsString()

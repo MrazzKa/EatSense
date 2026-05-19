@@ -40,50 +40,53 @@ model User {
   analysisCorrections    AnalysisCorrection[]
 
   // Experts Marketplace
-  expertsRole            UserExpertsRole   @default(USER) @map("experts_role")
-  expertProfile          ExpertProfile?
-  clientConversations    Conversation[]    @relation("ClientConversations")
-  sentMessages           Message[]
-  clientReviews          Review[]          @relation("ClientReviews")
-  payments               Payment[]
-  disclaimerAcceptances  DisclaimerAcceptance[]
-  abuseReports           AbuseReport[]
-  blocksMade             UserBlock[]       @relation("BlocksMade")
-  blocksReceived         UserBlock[]       @relation("BlocksReceived")
-  expertClientLinks      ExpertClientLink[]
-  expertCodeUsages       ExpertAccessCodeUsage[]
+  expertsRole           UserExpertsRole         @default(USER) @map("experts_role")
+  expertProfile         ExpertProfile?
+  clientConversations   Conversation[]          @relation("ClientConversations")
+  sentMessages          Message[]
+  clientReviews         Review[]                @relation("ClientReviews")
+  payments              Payment[]
+  disclaimerAcceptances DisclaimerAcceptance[]
+  abuseReports          AbuseReport[]
+  blocksMade            UserBlock[]             @relation("BlocksMade")
+  blocksReceived        UserBlock[]             @relation("BlocksReceived")
+  expertClientLinks     ExpertClientLink[]
+  expertCodeUsages      ExpertAccessCodeUsage[]
+  dataAccessAudits      DataAccessAudit[]       @relation("DataAccessAuditsForClient")
+  expertClientNotes     ExpertClientNote[]      @relation("ExpertClientNotesForClient")
+  scheduledAsClient     ScheduledConsultation[] @relation("ScheduledAsClient")
 
   // Diet Programs
-  userDietPrograms    UserDietProgram[]
-  dietRatings         DietProgramRating[] @relation("UserDietRatings")
+  userDietPrograms UserDietProgram[]
+  dietRatings      DietProgramRating[] @relation("UserDietRatings")
 
   // Pharmacy
   pharmacyConnections PharmacyConnection[] @relation("UserPharmacies")
   pharmacyOrders      PharmacyOrder[]      @relation("UserPharmacyOrders")
 
   // Referral System
-  referralCode        ReferralCode?  @relation("UserReferralCode")
-  referralsMade       Referral[]     @relation("ReferrerUser")
-  referredBy          Referral?      @relation("ReferredUser")
+  referralCode  ReferralCode? @relation("UserReferralCode")
+  referralsMade Referral[]    @relation("ReferrerUser")
+  referredBy    Referral?     @relation("ReferredUser")
 
   // Community
-  communityGroups       CommunityGroup[]      @relation("CreatedGroups")
-  communityMemberships  CommunityMembership[]
-  communityPosts        CommunityPost[]
-  communityLikes        CommunityLike[]
-  communityComments     CommunityComment[]
-  communityReports      CommunityReport[]
-  eventAttendances      EventAttendee[]
+  communityGroups      CommunityGroup[]      @relation("CreatedGroups")
+  communityMemberships CommunityMembership[]
+  communityPosts       CommunityPost[]
+  communityLikes       CommunityLike[]
+  communityComments    CommunityComment[]
+  communityReports     CommunityReport[]
+  eventAttendances     EventAttendee[]
 
   // Mascot
-  mascot                UserMascot?
+  mascot UserMascot?
 
   @@map("users")
 }
 
 model UserProfile {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
+  id                    String          @id @default(cuid())
+  userId                String          @unique
   firstName             String?
   lastName              String?
   age                   Int?
@@ -97,13 +100,13 @@ model UserProfile {
   avatarUrl             String?
   preferences           Json?
   healthProfile         Json?
-  country               String?  // ISO 3166-1 alpha-2 (e.g. "KZ", "DE"); auto-joins user to country community group
-  isOnboardingCompleted Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country               String? // ISO 3166-1 alpha-2 (e.g. "KZ", "DE"); auto-joins user to country community group
+  isOnboardingCompleted Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   cityGroupId           String?
-  cityGroup             CommunityGroup?  @relation(fields: [cityGroupId], references: [id])
+  cityGroup             CommunityGroup? @relation(fields: [cityGroupId], references: [id])
 
   @@map("user_profiles")
 }
@@ -156,7 +159,7 @@ model Meal {
 }
 
 model MealItem {
-  id       String  @id @default(cuid())
+  id       String @id @default(cuid())
   mealId   String
   name     String
   calories Float
@@ -166,8 +169,8 @@ model MealItem {
   weight   Float?
   fiber    Float?
   sugars   Float?
-  satFat   Float?  @map("sat_fat")
-  meal     Meal    @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  satFat   Float? @map("sat_fat")
+  meal     Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
 
   @@map("meal_items")
 }
@@ -323,10 +326,10 @@ model Article {
   isActive       Boolean   @default(true) @map("is_active")
   locale         String    @default("ru")
   subtitle       String?   @map("subtitle")
-  
+
   // Expert author (optional - for expert-written articles)
-  expertId       String?   @map("expert_id")
-  expert         ExpertProfile? @relation(fields: [expertId], references: [id], onDelete: SetNull)
+  expertId String?        @map("expert_id")
+  expert   ExpertProfile? @relation(fields: [expertId], references: [id], onDelete: SetNull)
 
   @@unique([slug, locale])
   @@index([locale, isActive])
@@ -448,27 +451,27 @@ model UserStats {
 }
 
 model AnalysisCorrection {
-  id              String    @id @default(cuid())
-  userId          String
-  analysisId      String?
-  mealId          String?
-  itemId          String?
-  originalName    String
-  correctedName   String?
-  originalPortionG Float?   @map("original_portion_g")
-  correctedPortionG Float?  @map("corrected_portion_g")
-  originalCalories Float?   @map("original_calories")
-  correctedCalories Float?  @map("corrected_calories")
-  originalProtein Float?   @map("original_protein")
-  correctedProtein Float?  @map("corrected_protein")
-  originalCarbs   Float?   @map("original_carbs")
-  correctedCarbs  Float?   @map("corrected_carbs")
-  originalFat     Float?   @map("original_fat")
-  correctedFat    Float?   @map("corrected_fat")
-  correctionType  String   @map("correction_type")
-  foodCategory    String?  @map("food_category")
-  createdAt       DateTime @default(now()) @map("created_at")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  userId            String
+  analysisId        String?
+  mealId            String?
+  itemId            String?
+  originalName      String
+  correctedName     String?
+  originalPortionG  Float?   @map("original_portion_g")
+  correctedPortionG Float?   @map("corrected_portion_g")
+  originalCalories  Float?   @map("original_calories")
+  correctedCalories Float?   @map("corrected_calories")
+  originalProtein   Float?   @map("original_protein")
+  correctedProtein  Float?   @map("corrected_protein")
+  originalCarbs     Float?   @map("original_carbs")
+  correctedCarbs    Float?   @map("corrected_carbs")
+  originalFat       Float?   @map("original_fat")
+  correctedFat      Float?   @map("corrected_fat")
+  correctionType    String   @map("correction_type")
+  foodCategory      String?  @map("food_category")
+  createdAt         DateTime @default(now()) @map("created_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([analysisId])
@@ -513,13 +516,13 @@ model Medication {
   endDate      DateTime? // Дата окончания курса (nullable; если null — бессрочно)
   timezone     String    @default("UTC") // IANA timezone, например "Asia/Almaty"
   isActive     Boolean   @default(true)
-  
+
   // P3.2: Medication quantity and stock tracking
-  quantity     Int?      // Общее количество таблеток в упаковке (nullable - опционально)
-  remainingStock Int?    // Остаток таблеток (nullable - опционально, вычисляется автоматически)
-  lowStockThreshold Int? @default(7) // Порог для уведомления о низком остатке (дни до окончания)
-  lastStockUpdate DateTime? // Дата последнего обновления остатка
-  imageUrl     String?   // Фото лекарства
+  quantity          Int? // Общее количество таблеток в упаковке (nullable - опционально)
+  remainingStock    Int? // Остаток таблеток (nullable - опционально, вычисляется автоматически)
+  lowStockThreshold Int?      @default(7) // Порог для уведомления о низком остатке (дни до окончания)
+  lastStockUpdate   DateTime? // Дата последнего обновления остатка
+  imageUrl          String? // Фото лекарства
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -541,7 +544,7 @@ model MedicationDose {
 
   beforeMeal Boolean @default(false)
   afterMeal  Boolean @default(false)
-  
+
   // Количество таблеток на один приём
   pillsPerDose Int @default(1) @map("pills_per_dose")
 
@@ -580,7 +583,7 @@ model PharmacyOrder {
   pharmacyConnection   PharmacyConnection? @relation(fields: [pharmacyConnectionId], references: [id])
   status               String              @default("pending") // pending, sent, processing, ready, completed
   statusToken          String?             @unique @map("status_token") // Unique token for email status update links
-  items                Json                // [{name, dosage, quantity}]
+  items                Json // [{name, dosage, quantity}]
   prescriptionUrl      String?             @map("prescription_url")
   notes                String?
   createdAt            DateTime            @default(now()) @map("created_at")
@@ -629,29 +632,29 @@ enum FoodSource {
 
 // Локальная таблица топ-100 самых частых продуктов для быстрого поиска
 model LocalFood {
-  id          String   @id @default(cuid())
-  name        String   // Название продукта (нормализованное)
-  nameEn      String?  @map("name_en") // Английское название
-  nameRu      String?  @map("name_ru") // Русское название
-  nameKk      String?  @map("name_kk") // Казахское название
-  
+  id     String  @id @default(cuid())
+  name   String // Название продукта (нормализованное)
+  nameEn String? @map("name_en") // Английское название
+  nameRu String? @map("name_ru") // Русское название
+  nameKk String? @map("name_kk") // Казахское название
+
   // Питательные вещества на 100г
-  calories    Float    @default(0)
-  protein     Float    @default(0)
-  carbs       Float    @default(0)
-  fat         Float    @default(0)
-  fiber       Float?   @default(0)
-  sugars      Float?   @default(0)
-  satFat      Float?   @default(0) @map("sat_fat")
-  
+  calories Float  @default(0)
+  protein  Float  @default(0)
+  carbs    Float  @default(0)
+  fat      Float  @default(0)
+  fiber    Float? @default(0)
+  sugars   Float? @default(0)
+  satFat   Float? @default(0) @map("sat_fat")
+
   // Категория
-  category    String?  // "vegetable", "fruit", "meat", "dairy", etc.
-  
+  category String? // "vegetable", "fruit", "meat", "dairy", etc.
+
   // Порядок сортировки (чем меньше, тем популярнее)
-  popularity  Int      @default(100)
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  popularity Int @default(100)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([name])
   @@index([name])
@@ -687,53 +690,70 @@ enum PaymentStatus {
 }
 
 model ExpertProfile {
-  id                String   @id @default(cuid())
-  userId            String   @unique @map("user_id")
-  type              String   // "dietitian" | "nutritionist"
-  displayName       String   @map("display_name")
-  title             String?  // "Certified Dietitian, PhD"
-  bio               String?
-  avatarUrl         String?  @map("avatar_url")
-  
+  id          String  @id @default(cuid())
+  userId      String  @unique @map("user_id")
+  type        String // "dietitian" | "nutritionist"
+  displayName String  @map("display_name")
+  title       String? // "Certified Dietitian, PhD"
+  bio         String?
+  avatarUrl   String? @map("avatar_url")
+
   // Education & Credentials
-  education         String?
-  experienceYears   Int      @default(0) @map("experience_years")
-  specializations   String[] @default([])
-  languages         String[] @default(["en"])
+  education       String?
+  experienceYears Int      @default(0) @map("experience_years")
+  specializations String[] @default([])
+  languages       String[] @default(["en"])
 
   // Location
-  country           String?  // ISO 3166-1 alpha-2 code (e.g. "KZ", "DE")
-  
+  country       String? // ISO 3166-1 alpha-2 code (e.g. "KZ", "DE")
+  city          String?
+  timezone      String? // IANA tz, e.g. "Europe/Zurich"
+  phone         String?
+  licenseNumber String?   @map("license_number")
+  awayUntil     DateTime? @map("away_until") // vacation mode end (UTC)
+  awayMessage   String?   @map("away_message")
+
+  // Stripe Connect (Express accounts)
+  stripeConnectAccountId        String? @map("stripe_connect_account_id")
+  stripeConnectPayoutsEnabled   Boolean @default(false) @map("stripe_connect_payouts_enabled")
+  stripeConnectChargesEnabled   Boolean @default(false) @map("stripe_connect_charges_enabled")
+  stripeConnectDetailsSubmitted Boolean @default(false) @map("stripe_connect_details_submitted")
+
   // Verification
-  isVerified        Boolean  @default(false) @map("is_verified")
-  verifiedAt        DateTime? @map("verified_at")
-  rejectedAt        DateTime? @map("rejected_at")
-  rejectionReason   String?   @map("rejection_reason")
-  adminNotes        String?   @map("admin_notes")
+  isVerified      Boolean   @default(false) @map("is_verified")
+  verifiedAt      DateTime? @map("verified_at")
+  rejectedAt      DateTime? @map("rejected_at")
+  rejectionReason String?   @map("rejection_reason")
+  adminNotes      String?   @map("admin_notes")
 
   // Settings
-  isActive          Boolean  @default(true) @map("is_active")
-  isPublished       Boolean  @default(false) @map("is_published")
-  contactPolicy     String?  @map("contact_policy")
-  
+  isActive      Boolean @default(true) @map("is_active")
+  isPublished   Boolean @default(false) @map("is_published")
+  contactPolicy String? @map("contact_policy")
+
   // Stats (aggregated)
-  rating            Float    @default(0)
-  reviewCount       Int      @default(0) @map("review_count")
-  consultationCount Int      @default(0) @map("consultation_count")
-  
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-  
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  credentials       ExpertCredential[]
-  educationEntries  ExpertEducation[]
-  offers            ExpertOffer[]
-  conversations     Conversation[]
-  reviews           Review[]
-  articles          Article[]
-  accessCode        ExpertAccessCode?
-  clientLinks       ExpertClientLink[]
-  codeUsages        ExpertAccessCodeUsage[]
+  rating            Float @default(0)
+  reviewCount       Int   @default(0) @map("review_count")
+  consultationCount Int   @default(0) @map("consultation_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentials            ExpertCredential[]
+  educationEntries       ExpertEducation[]
+  offers                 ExpertOffer[]
+  conversations          Conversation[]
+  reviews                Review[]
+  articles               Article[]
+  accessCode             ExpertAccessCode?
+  clientLinks            ExpertClientLink[]
+  codeUsages             ExpertAccessCodeUsage[]
+  dataAccessAudits       DataAccessAudit[]
+  expertNotes            ExpertClientNote[]
+  availability           ExpertAvailability[]
+  availabilityExceptions AvailabilityException[]
+  scheduledConsultations ScheduledConsultation[]
 
   @@index([type, isActive, isPublished])
   @@index([isVerified, isActive])
@@ -753,93 +773,93 @@ model ExpertEducation {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  expert       ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
 
   @@index([expertId])
   @@map("expert_education")
 }
 
 model ExpertCredential {
-  id          String    @id @default(cuid())
-  expertId    String    @map("expert_id")
-  name        String    // "Medical License", "Nutrition Certificate"
-  issuer      String?   // "State Medical Board"
-  issuedAt    DateTime? @map("issued_at")
-  expiresAt   DateTime? @map("expires_at")
-  fileUrl     String?   @map("file_url")
-  fileType    String?   @map("file_type") // "pdf" | "image"
-  status      String    @default("pending") // "pending" | "approved" | "rejected"
-  createdAt   DateTime  @default(now()) @map("created_at")
-  
-  expert      ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  
+  id        String    @id @default(cuid())
+  expertId  String    @map("expert_id")
+  name      String // "Medical License", "Nutrition Certificate"
+  issuer    String? // "State Medical Board"
+  issuedAt  DateTime? @map("issued_at")
+  expiresAt DateTime? @map("expires_at")
+  fileUrl   String?   @map("file_url")
+  fileType  String?   @map("file_type") // "pdf" | "image"
+  status    String    @default("pending") // "pending" | "approved" | "rejected"
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
   @@index([expertId])
   @@map("expert_credentials")
 }
 
 model ExpertOffer {
-  id            String      @id @default(cuid())
-  expertId      String      @map("expert_id")
-  name          Json        // { en: "...", ru: "...", kk: "..." }
-  description   Json?       // Localized
-  format        OfferFormat @default(CHAT_CONSULTATION)
-  
+  id          String      @id @default(cuid())
+  expertId    String      @map("expert_id")
+  name        Json // { en: "...", ru: "...", kk: "..." }
+  description Json? // Localized
+  format      OfferFormat @default(CHAT_CONSULTATION)
+
   // Pricing (MVP: only FREE enabled in UI)
-  priceType     PriceType   @default(FREE) @map("price_type")
-  priceAmount   Float?      @map("price_amount")
-  currency      String      @default("USD")
-  
+  priceType   PriceType @default(FREE) @map("price_type")
+  priceAmount Float?    @map("price_amount")
+  currency    String    @default("USD")
+
   // Details
-  durationDays  Int?        @map("duration_days")
+  durationDays Int?  @map("duration_days")
   // For VIDEO_CONSULTATION offers — length of each session in minutes.
-  slotMinutes   Int?        @map("slot_minutes")
-  deliverables  Json?       // Localized list of what's included
-  
+  slotMinutes  Int?  @map("slot_minutes")
+  deliverables Json? // Localized list of what's included
+
   // Status
-  isPublished   Boolean     @default(false) @map("is_published")
-  sortOrder     Int         @default(0) @map("sort_order")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
-  
-  expert        ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  isPublished Boolean  @default(false) @map("is_published")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  expert        ExpertProfile  @relation(fields: [expertId], references: [id], onDelete: Cascade)
   conversations Conversation[]
   payments      Payment[]
-  
+
   @@index([expertId, isPublished])
   @@map("expert_offers")
 }
 
 model Conversation {
-  id              String   @id @default(cuid())
-  clientId        String   @map("client_id")
-  expertId        String   @map("expert_id")
-  offerId         String?  @map("offer_id")
-  
-  status          String   @default("active") // "active" | "completed" | "cancelled"
+  id       String  @id @default(cuid())
+  clientId String  @map("client_id")
+  expertId String  @map("expert_id")
+  offerId  String? @map("offer_id")
+
+  status String @default("active") // "active" | "completed" | "cancelled"
 
   // Report sharing consent — legacy aggregate flag, kept for backwards compat.
   // Source of truth for new code: shareMeals / shareAnalyses / shareMedications.
-  reportsShared    Boolean  @default(false) @map("reports_shared")
+  reportsShared    Boolean @default(false) @map("reports_shared")
   // Granular per-category sharing flags (added 2026-05-11). Client toggles each
   // independently. Server filters /client-data response by these flags.
-  shareMeals       Boolean  @default(false) @map("share_meals")
-  shareAnalyses    Boolean  @default(false) @map("share_analyses")
-  shareMedications Boolean  @default(false) @map("share_medications")
-  
+  shareMeals       Boolean @default(false) @map("share_meals")
+  shareAnalyses    Boolean @default(false) @map("share_analyses")
+  shareMedications Boolean @default(false) @map("share_medications")
+
   // Timestamps
-  startedAt       DateTime @default(now()) @map("started_at")
-  endedAt         DateTime? @map("ended_at")
-  lastMessageAt   DateTime? @map("last_message_at")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  
-  client          User          @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
-  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  offer           ExpertOffer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
-  messages        Message[]
-  review          Review?
-  payments        Payment[]
-  videoSessions   VideoSession[]
+  startedAt     DateTime  @default(now()) @map("started_at")
+  endedAt       DateTime? @map("ended_at")
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  client           User                    @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
+  expert           ExpertProfile           @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  offer            ExpertOffer?            @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  messages         Message[]
+  review           Review?
+  payments         Payment[]
+  videoSessions    VideoSession[]
   expertCodeUsages ExpertAccessCodeUsage[]
 
   @@unique([clientId, expertId])
@@ -849,35 +869,35 @@ model Conversation {
 }
 
 model ExpertAccessCode {
-  id          String   @id @default(cuid())
-  expertId    String   @unique @map("expert_id")
-  code        String   @unique
-  isActive    Boolean  @default(true) @map("is_active")
-  usageCount  Int      @default(0) @map("usage_count")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(cuid())
+  expertId   String   @unique @map("expert_id")
+  code       String   @unique
+  isActive   Boolean  @default(true) @map("is_active")
+  usageCount Int      @default(0) @map("usage_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  expert      ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  usages      ExpertAccessCodeUsage[]
-  links       ExpertClientLink[]
+  expert ExpertProfile           @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  usages ExpertAccessCodeUsage[]
+  links  ExpertClientLink[]
 
   @@index([code])
   @@map("expert_access_codes")
 }
 
 model ExpertClientLink {
-  id          String   @id @default(cuid())
-  clientId    String   @map("client_id")
-  expertId    String   @map("expert_id")
-  codeId      String?  @map("code_id")
-  source      String   @default("code")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  clientId  String   @map("client_id")
+  expertId  String   @map("expert_id")
+  codeId    String?  @map("code_id")
+  source    String   @default("code")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  client      User              @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  expert      ExpertProfile     @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  code        ExpertAccessCode? @relation(fields: [codeId], references: [id], onDelete: SetNull)
+  client User              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  expert ExpertProfile     @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  code   ExpertAccessCode? @relation(fields: [codeId], references: [id], onDelete: SetNull)
 
   @@unique([clientId, expertId])
   @@index([clientId, isActive])
@@ -893,10 +913,10 @@ model ExpertAccessCodeUsage {
   conversationId String?  @map("conversation_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  code           ExpertAccessCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
-  expert         ExpertProfile    @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  client         User             @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  conversation   Conversation?    @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  code         ExpertAccessCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  expert       ExpertProfile    @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  client       User             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  conversation Conversation?    @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
   @@index([codeId, createdAt])
   @@index([expertId, createdAt])
@@ -907,23 +927,23 @@ model ExpertAccessCodeUsage {
 // LiveKit-backed video consultation session. One Conversation may have multiple
 // sessions (rescheduled, completed). Status lifecycle: scheduled → ringing → in_call → ended.
 model VideoSession {
-  id             String   @id @default(cuid())
-  conversationId String   @map("conversation_id")
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
   // LiveKit room identifier. Includes session id so each new call inside a
   // conversation gets a fresh room (LiveKit reuses rooms but we want clean
   // analytics per session). NOT @unique — concurrent token requests in the
   // same session must reuse the same room name.
-  roomName       String   @map("room_name")
+  roomName       String    @map("room_name")
   scheduledAt    DateTime? @map("scheduled_at")
   startedAt      DateTime? @map("started_at")
   endedAt        DateTime? @map("ended_at")
-  durationSec    Int?     @map("duration_sec")
-  status         String   @default("scheduled") // scheduled | ringing | in_call | ended | cancelled
-  recordingUrl   String?  @map("recording_url")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  durationSec    Int?      @map("duration_sec")
+  status         String    @default("scheduled") // scheduled | ringing | in_call | ended | cancelled
+  recordingUrl   String?   @map("recording_url")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, status])
   @@index([scheduledAt])
@@ -946,9 +966,9 @@ model Payment {
   createdAt             DateTime      @default(now()) @map("created_at")
   updatedAt             DateTime      @updatedAt @map("updated_at")
 
-  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  offer                 ExpertOffer   @relation(fields: [offerId], references: [id], onDelete: Restrict)
-  conversation          Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer        ExpertOffer  @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([userId, status])
   @@index([offerId])
@@ -957,88 +977,88 @@ model Payment {
 }
 
 model Message {
-  id              String   @id @default(cuid())
-  conversationId  String   @map("conversation_id")
-  senderId        String   @map("sender_id")
-  
-  type            String   @default("text") // "text" | "image" | "file" | "report_share"
-  content         String
-  metadata        Json?    // For attachments: { fileName, fileSize, mimeType, url }
-  
-  isRead          Boolean  @default(false) @map("is_read")
-  createdAt       DateTime @default(now()) @map("created_at")
-  
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  
+  id             String @id @default(cuid())
+  conversationId String @map("conversation_id")
+  senderId       String @map("sender_id")
+
+  type     String @default("text") // "text" | "image" | "file" | "report_share"
+  content  String
+  metadata Json? // For attachments: { fileName, fileSize, mimeType, url }
+
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("messages")
 }
 
 model Review {
-  id              String   @id @default(cuid())
-  conversationId  String?  @unique @map("conversation_id")
-  clientId        String   @map("client_id")
-  expertId        String   @map("expert_id")
-  
-  rating          Int      // 1-5
-  comment         String?
-  
-  isVisible       Boolean  @default(true) @map("is_visible")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  
-  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
-  client          User          @relation("ClientReviews", fields: [clientId], references: [id], onDelete: Cascade)
-  expert          ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
-  
+  id             String  @id @default(cuid())
+  conversationId String? @unique @map("conversation_id")
+  clientId       String  @map("client_id")
+  expertId       String  @map("expert_id")
+
+  rating  Int // 1-5
+  comment String?
+
+  isVisible Boolean  @default(true) @map("is_visible")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  client       User          @relation("ClientReviews", fields: [clientId], references: [id], onDelete: Cascade)
+  expert       ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
   @@unique([clientId, expertId])
   @@index([expertId, isVisible])
   @@map("reviews")
 }
 
 model DisclaimerAcceptance {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  type        String   // "experts_chat"
-  acceptedAt  DateTime @default(now()) @map("accepted_at")
-  
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  type       String // "experts_chat"
+  acceptedAt DateTime @default(now()) @map("accepted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, type])
   @@map("disclaimer_acceptances")
 }
 
 model AbuseReport {
-  id               String   @id @default(cuid())
-  reporterId       String   @map("reporter_id")
-  reportedUserId   String?  @map("reported_user_id")
-  reportedExpertId String?  @map("reported_expert_id")
-  conversationId   String?  @map("conversation_id")
-  
-  category         String   // "spam" | "harassment" | "inappropriate" | "fraud" | "other"
-  description      String?
-  attachmentUrls   String[] @default([]) @map("attachment_urls")
-  
-  status           String   @default("pending") // "pending" | "reviewed" | "resolved"
-  createdAt        DateTime @default(now()) @map("created_at")
-  
-  reporter         User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-  
+  id               String  @id @default(cuid())
+  reporterId       String  @map("reporter_id")
+  reportedUserId   String? @map("reported_user_id")
+  reportedExpertId String? @map("reported_expert_id")
+  conversationId   String? @map("conversation_id")
+
+  category       String // "spam" | "harassment" | "inappropriate" | "fraud" | "other"
+  description    String?
+  attachmentUrls String[] @default([]) @map("attachment_urls")
+
+  status    String   @default("pending") // "pending" | "reviewed" | "resolved"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
   @@index([status])
   @@map("abuse_reports")
 }
 
 model UserBlock {
-  id          String   @id @default(cuid())
-  blockerId   String   @map("blocker_id")
-  blockedId   String   @map("blocked_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  
-  blocker     User @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked     User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
-  
+  id        String   @id @default(cuid())
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
   @@unique([blockerId, blockedId])
   @@map("user_blocks")
 }
@@ -1061,70 +1081,70 @@ enum DietDifficulty {
 }
 
 model DietProgram {
-  id              String          @id @default(cuid())
-  slug            String          @unique
-  name            Json            // { en: "...", ru: "...", kk: "..." }
-  subtitle        Json?           // Localized subtitle
-  description     Json?           // Localized description
-  shortDescription Json?          @map("short_description") // For cards
-  imageUrl        String?         @map("image_url")
-  iconUrl         String?         @map("icon_url")
-  color           String?         // UI color like #4CAF50
-  
+  id               String  @id @default(cuid())
+  slug             String  @unique
+  name             Json // { en: "...", ru: "...", kk: "..." }
+  subtitle         Json? // Localized subtitle
+  description      Json? // Localized description
+  shortDescription Json?   @map("short_description") // For cards
+  imageUrl         String? @map("image_url")
+  iconUrl          String? @map("icon_url")
+  color            String? // UI color like #4CAF50
+
   // Type and difficulty
-  category        String          // "hollywood" | "athletes" | "historical" | "modern" | "medical" | "cultural"
-  type            DietType        @default(HEALTH)
-  difficulty      DietDifficulty  @default(MODERATE)
-  duration        Int             // Days
-  
+  category   String // "hollywood" | "athletes" | "historical" | "modern" | "medical" | "cultural"
+  type       DietType       @default(HEALTH)
+  difficulty DietDifficulty @default(MODERATE)
+  duration   Int // Days
+
   // UI grouping and evidence
-  uiGroup         String?         @map("ui_group") // "Popular" | "Health" | "Weight loss" | "Performance" | "Medical" | "Historical"
-  evidenceLevel   String?         @map("evidence_level") // "high" | "medium" | "low"
-  disclaimerKey   String?         @map("disclaimer_key") // "DISCLAIMER_GENERAL" | "DISCLAIMER_MEDICAL" | "DISCLAIMER_HISTORICAL"
-  
+  uiGroup       String? @map("ui_group") // "Popular" | "Health" | "Weight loss" | "Performance" | "Medical" | "Historical"
+  evidenceLevel String? @map("evidence_level") // "high" | "medium" | "low"
+  disclaimerKey String? @map("disclaimer_key") // "DISCLAIMER_GENERAL" | "DISCLAIMER_MEDICAL" | "DISCLAIMER_HISTORICAL"
+
   // Nutrition targets
-  dailyCalories   Int?            @map("daily_calories")
-  dailyCaloriesMin Int?           @map("daily_calories_min")
-  dailyCaloriesMax Int?           @map("daily_calories_max")
-  macroSplit      Json?           @map("macro_split") // { protein: 30, carbs: 40, fat: 30 }
-  
+  dailyCalories    Int?  @map("daily_calories")
+  dailyCaloriesMin Int?  @map("daily_calories_min")
+  dailyCaloriesMax Int?  @map("daily_calories_max")
+  macroSplit       Json? @map("macro_split") // { protein: 30, carbs: 40, fat: 30 }
+
   // Suitability
-  suitableFor     String[]        @default([]) // ['weight_loss', 'diabetes', 'athletes']
-  notSuitableFor  String[]        @default([]) @map("not_suitable_for") // ['pregnant', 'kidney_disease']
-  
+  suitableFor    String[] @default([]) // ['weight_loss', 'diabetes', 'athletes']
+  notSuitableFor String[] @default([]) @map("not_suitable_for") // ['pregnant', 'kidney_disease']
+
   // Food restrictions
-  allowedFoods    String[]        @default([]) @map("allowed_foods")
-  restrictedFoods String[]        @default([]) @map("restricted_foods")
-  
+  allowedFoods    String[] @default([]) @map("allowed_foods")
+  restrictedFoods String[] @default([]) @map("restricted_foods")
+
   // Tips, rules, and tracker
-  tips            Json?           // { en: [...], ru: [...] }
-  rules           Json?           // Special rules
-  howItWorks      Json?           @map("how_it_works") // { en: [...], ru: [...], kk: [...] } - bullets
-  dailyTracker    Json?           @map("daily_tracker") // [{ key: "veggies_5", label: { en: "...", ru: "...", kk: "..." } }, ...]
-  weeklyGoals     Json?           @map("weekly_goals") // Optional weekly goals
-  notFor          Json?           @map("not_for") // Contraindications { en: [...], ru: [...], kk: [...] }
-  sampleDay       Json?           @map("sample_day") // { en: "...", ru: "...", kk: "..." } - Example one-day menu
-  
+  tips         Json? // { en: [...], ru: [...] }
+  rules        Json? // Special rules
+  howItWorks   Json? @map("how_it_works") // { en: [...], ru: [...], kk: [...] } - bullets
+  dailyTracker Json? @map("daily_tracker") // [{ key: "veggies_5", label: { en: "...", ru: "...", kk: "..." } }, ...]
+  weeklyGoals  Json? @map("weekly_goals") // Optional weekly goals
+  notFor       Json? @map("not_for") // Contraindications { en: [...], ru: [...], kk: [...] }
+  sampleDay    Json? @map("sample_day") // { en: "...", ru: "...", kk: "..." } - Example one-day menu
+
   // Streak settings
-  streakThreshold Float           @default(0.7) @map("streak_threshold") // Per-diet threshold (0.0-1.0)
-  
+  streakThreshold Float @default(0.7) @map("streak_threshold") // Per-diet threshold (0.0-1.0)
+
   // Stats
   tags            String[]
-  popularityScore Int             @default(0) @map("popularity_score")
-  userCount       Int             @default(0) @map("user_count")
-  averageRating   Float           @default(0) @map("average_rating")
-  ratingCount     Int             @default(0) @map("rating_count")
-  
-  // Status
-  isActive        Boolean         @default(true) @map("is_active")
-  isFeatured      Boolean         @default(false) @map("is_featured")
-  sortOrder       Int             @default(0) @map("sort_order")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+  popularityScore Int      @default(0) @map("popularity_score")
+  userCount       Int      @default(0) @map("user_count")
+  averageRating   Float    @default(0) @map("average_rating")
+  ratingCount     Int      @default(0) @map("rating_count")
 
-  days            DietProgramDay[]
-  userPrograms    UserDietProgram[]
-  ratings         DietProgramRating[]
+  // Status
+  isActive   Boolean  @default(true) @map("is_active")
+  isFeatured Boolean  @default(false) @map("is_featured")
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  days         DietProgramDay[]
+  userPrograms UserDietProgram[]
+  ratings      DietProgramRating[]
 
   @@index([category, isActive])
   @@index([type, isActive])
@@ -1135,18 +1155,18 @@ model DietProgram {
 }
 
 model DietProgramDay {
-  id              String   @id @default(cuid())
-  programId       String   @map("program_id")
-  dayNumber       Int      @map("day_number")
-  title           String?
-  description     String?
-  totalCalories   Int?     @map("total_calories")
-  totalProtein    Float?   @map("total_protein")
-  totalCarbs      Float?   @map("total_carbs")
-  totalFat        Float?   @map("total_fat")
+  id            String  @id @default(cuid())
+  programId     String  @map("program_id")
+  dayNumber     Int     @map("day_number")
+  title         String?
+  description   String?
+  totalCalories Int?    @map("total_calories")
+  totalProtein  Float?  @map("total_protein")
+  totalCarbs    Float?  @map("total_carbs")
+  totalFat      Float?  @map("total_fat")
 
-  program         DietProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
-  meals           DietProgramMeal[]
+  program DietProgram       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  meals   DietProgramMeal[]
 
   @@unique([programId, dayNumber])
   @@index([programId])
@@ -1154,53 +1174,53 @@ model DietProgramDay {
 }
 
 model DietProgramMeal {
-  id              String   @id @default(cuid())
-  dayId           String   @map("day_id")
-  mealType        String   @map("meal_type") // "breakfast" | "lunch" | "dinner" | "snack"
-  name            String
-  description     String?
-  calories        Int?
-  protein         Float?
-  carbs           Float?
-  fat             Float?
-  sortOrder       Int      @default(0) @map("sort_order")
+  id          String  @id @default(cuid())
+  dayId       String  @map("day_id")
+  mealType    String  @map("meal_type") // "breakfast" | "lunch" | "dinner" | "snack"
+  name        String
+  description String?
+  calories    Int?
+  protein     Float?
+  carbs       Float?
+  fat         Float?
+  sortOrder   Int     @default(0) @map("sort_order")
 
-  day             DietProgramDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  day DietProgramDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
 
   @@index([dayId])
   @@map("diet_program_meals")
 }
 
 model UserDietProgram {
-  id              String    @id @default(cuid())
-  userId          String    @map("user_id")
-  programId       String    @map("program_id")
-  startedAt       DateTime  @default(now()) @map("started_at")
-  currentDay      Int       @default(1) @map("current_day")
-  status          String    @default("active") // "active" | "completed" | "paused" | "abandoned"
-  completedAt     DateTime? @map("completed_at")
-  
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  programId   String    @map("program_id")
+  startedAt   DateTime  @default(now()) @map("started_at")
+  currentDay  Int       @default(1) @map("current_day")
+  status      String    @default("active") // "active" | "completed" | "paused" | "abandoned"
+  completedAt DateTime? @map("completed_at")
+
   // Customization
-  customCalories  Int?      @map("custom_calories")
-  targetWeight    Float?    @map("target_weight")
-  startWeight     Float?    @map("start_weight")
-  currentWeight   Float?    @map("current_weight")
-  
+  customCalories Int?   @map("custom_calories")
+  targetWeight   Float? @map("target_weight")
+  startWeight    Float? @map("start_weight")
+  currentWeight  Float? @map("current_weight")
+
   // Stats
-  daysCompleted   Int       @default(0) @map("days_completed")
-  mealsLogged     Int       @default(0) @map("meals_logged")
-  adherenceScore  Float     @default(0) @map("adherence_score")
-  
+  daysCompleted  Int   @default(0) @map("days_completed")
+  mealsLogged    Int   @default(0) @map("meals_logged")
+  adherenceScore Float @default(0) @map("adherence_score")
+
   // Streak tracking
-  currentStreak   Int       @default(0) @map("current_streak") // Current consecutive days meeting threshold
-  longestStreak   Int       @default(0) @map("longest_streak") // Best streak ever
-  lastStreakDate  DateTime? @map("last_streak_date") // Last date streak was updated
+  currentStreak  Int       @default(0) @map("current_streak") // Current consecutive days meeting threshold
+  longestStreak  Int       @default(0) @map("longest_streak") // Best streak ever
+  lastStreakDate DateTime? @map("last_streak_date") // Last date streak was updated
 
-  updatedAt       DateTime? @updatedAt @map("updated_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  program         DietProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
-  dailyLogs       UserDietDailyLog[]
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program   DietProgram        @relation(fields: [programId], references: [id], onDelete: Cascade)
+  dailyLogs UserDietDailyLog[]
 
   @@unique([userId, programId])
   @@index([userId, status])
@@ -1209,48 +1229,48 @@ model UserDietProgram {
 
 // Daily log for diet adherence tracking
 model UserDietDailyLog {
-  id              String      @id @default(cuid())
-  userDietId      String      @map("user_diet_id")
-  date            DateTime    @db.Date
-  dayNumber       Int         @map("day_number")
-  
+  id         String   @id @default(cuid())
+  userDietId String   @map("user_diet_id")
+  date       DateTime @db.Date
+  dayNumber  Int      @map("day_number")
+
   // Meals logged
-  breakfastLogged Boolean     @default(false) @map("breakfast_logged")
-  lunchLogged     Boolean     @default(false) @map("lunch_logged")
-  dinnerLogged    Boolean     @default(false) @map("dinner_logged")
-  snacksLogged    Int         @default(0) @map("snacks_logged")
-  
+  breakfastLogged Boolean @default(false) @map("breakfast_logged")
+  lunchLogged     Boolean @default(false) @map("lunch_logged")
+  dinnerLogged    Boolean @default(false) @map("dinner_logged")
+  snacksLogged    Int     @default(0) @map("snacks_logged")
+
   // Daily checklist state (keys match diet.dailyTracker items)
-  checklist       Json?       // { "veggies_5": true, "protein_3": false, ... }
-  completionPercent Float?    @map("completion_percent") // Auto-calculated 0.0-1.0
-  
+  checklist         Json? // { "veggies_5": true, "protein_3": false, ... }
+  completionPercent Float? @map("completion_percent") // Auto-calculated 0.0-1.0
+
   // Symptoms tracking (for Medical diets) — 1-5 scale
-  symptoms        Json?       // { "energy": 4, "bloating": 2, "digestion": 3, "mood": 5 }
-  
+  symptoms Json? // { "energy": 4, "bloating": 2, "digestion": 3, "mood": 5 }
+
   // Actual nutrients
-  actualCalories  Int?        @map("actual_calories")
-  actualProtein   Float?      @map("actual_protein")
-  actualCarbs     Float?      @map("actual_carbs")
-  actualFat       Float?      @map("actual_fat")
-  
+  actualCalories Int?   @map("actual_calories")
+  actualProtein  Float? @map("actual_protein")
+  actualCarbs    Float? @map("actual_carbs")
+  actualFat      Float? @map("actual_fat")
+
   // Targets
-  targetCalories  Int?        @map("target_calories")
-  targetProtein   Float?      @map("target_protein")
-  targetCarbs     Float?      @map("target_carbs")
-  targetFat       Float?      @map("target_fat")
-  
+  targetCalories Int?   @map("target_calories")
+  targetProtein  Float? @map("target_protein")
+  targetCarbs    Float? @map("target_carbs")
+  targetFat      Float? @map("target_fat")
+
   // Progress
-  adherenceScore  Float?      @map("adherence_score")
-  weight          Float?
-  mood            String?     // 'great' | 'good' | 'okay' | 'bad'
-  notes           String?
-  
+  adherenceScore Float?  @map("adherence_score")
+  weight         Float?
+  mood           String? // 'great' | 'good' | 'okay' | 'bad'
+  notes          String?
+
   // Day completion tracking
-  completed       Boolean     @default(false) // Day marked as complete
-  celebrationShown Boolean    @default(false) @map("celebration_shown") // Celebration already shown
-  
-  userDiet        UserDietProgram @relation(fields: [userDietId], references: [id], onDelete: Cascade)
-  
+  completed        Boolean @default(false) // Day marked as complete
+  celebrationShown Boolean @default(false) @map("celebration_shown") // Celebration already shown
+
+  userDiet UserDietProgram @relation(fields: [userDietId], references: [id], onDelete: Cascade)
+
   @@unique([userDietId, date])
   @@index([date])
   @@map("user_diet_daily_logs")
@@ -1258,22 +1278,22 @@ model UserDietDailyLog {
 
 // Diet ratings and reviews
 model DietProgramRating {
-  id              String      @id @default(cuid())
-  dietId          String      @map("diet_id")
-  userId          String      @map("user_id")
-  rating          Int         // 1-5
-  review          String?     @db.Text
-  
+  id     String  @id @default(cuid())
+  dietId String  @map("diet_id")
+  userId String  @map("user_id")
+  rating Int // 1-5
+  review String? @db.Text
+
   // Results
-  weightLost      Float?      @map("weight_lost")
-  durationWeeks   Int?        @map("duration_weeks")
-  wouldRecommend  Boolean?    @map("would_recommend")
-  
-  createdAt       DateTime    @default(now()) @map("created_at")
-  
-  diet            DietProgram @relation(fields: [dietId], references: [id], onDelete: Cascade)
-  user            User        @relation("UserDietRatings", fields: [userId], references: [id], onDelete: Cascade)
-  
+  weightLost     Float?   @map("weight_lost")
+  durationWeeks  Int?     @map("duration_weeks")
+  wouldRecommend Boolean? @map("would_recommend")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  diet DietProgram @relation(fields: [dietId], references: [id], onDelete: Cascade)
+  user User        @relation("UserDietRatings", fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([dietId, userId])
   @@index([dietId])
   @@map("diet_program_ratings")
@@ -1282,33 +1302,33 @@ model DietProgramRating {
 // ==================== REFERRAL SYSTEM ====================
 
 model ReferralCode {
-  id              String   @id @default(cuid())
-  userId          String   @unique @map("user_id")
-  code            String   @unique // "ALEX1234"
-  usageCount      Int      @default(0) @map("usage_count")
-  totalBonusDays  Int      @default(0) @map("total_bonus_days")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  userId         String   @unique @map("user_id")
+  code           String   @unique // "ALEX1234"
+  usageCount     Int      @default(0) @map("usage_count")
+  totalBonusDays Int      @default(0) @map("total_bonus_days")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  user            User     @relation("UserReferralCode", fields: [userId], references: [id], onDelete: Cascade)
-  referrals       Referral[]
+  user      User       @relation("UserReferralCode", fields: [userId], references: [id], onDelete: Cascade)
+  referrals Referral[]
 
   @@index([code])
   @@map("referral_codes")
 }
 
 model Referral {
-  id              String   @id @default(cuid())
-  referralCodeId  String   @map("referral_code_id")
-  referrerId      String   @map("referrer_id")
-  referredId      String   @unique @map("referred_id")
-  status          String   @default("completed")
-  referrerBonus   Int      @default(7) @map("referrer_bonus")
-  referredBonus   Int      @default(7) @map("referred_bonus")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  referralCodeId String   @map("referral_code_id")
+  referrerId     String   @map("referrer_id")
+  referredId     String   @unique @map("referred_id")
+  status         String   @default("completed")
+  referrerBonus  Int      @default(7) @map("referrer_bonus")
+  referredBonus  Int      @default(7) @map("referred_bonus")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  referralCode    ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
-  referrer        User         @relation("ReferrerUser", fields: [referrerId], references: [id], onDelete: Cascade)
-  referred        User         @relation("ReferredUser", fields: [referredId], references: [id], onDelete: Cascade)
+  referralCode ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  referrer     User         @relation("ReferrerUser", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred     User         @relation("ReferredUser", fields: [referredId], references: [id], onDelete: Cascade)
 
   @@index([referrerId])
   @@index([referredId])
@@ -1320,40 +1340,40 @@ model Referral {
 // ==========================================
 
 model SubscriptionPlan {
-  id                   String              @id @default(cuid())
-  name                 String              @unique // 'weekly', 'monthly', 'yearly', 'student'
-  basePriceUsd         Float               @map("base_price_usd")
-  durationDays         Int                 @map("duration_days")
-  dailyLimit           Int                 @default(9999) @map("daily_limit") // Daily analysis limit for this plan
-  features             Json                // ['feature1', 'feature2', ...]
-  requiresVerification Boolean             @default(false) @map("requires_verification")
-  displayOrder         Int                 @default(0) @map("display_order")
-  isActive             Boolean             @default(true) @map("is_active")
-  
-  prices               SubscriptionPrice[]
-  userSubscriptions    UserSubscription[]
-  
-  createdAt            DateTime            @default(now()) @map("created_at")
-  updatedAt            DateTime            @updatedAt @map("updated_at")
+  id                   String  @id @default(cuid())
+  name                 String  @unique // 'weekly', 'monthly', 'yearly', 'student'
+  basePriceUsd         Float   @map("base_price_usd")
+  durationDays         Int     @map("duration_days")
+  dailyLimit           Int     @default(9999) @map("daily_limit") // Daily analysis limit for this plan
+  features             Json // ['feature1', 'feature2', ...]
+  requiresVerification Boolean @default(false) @map("requires_verification")
+  displayOrder         Int     @default(0) @map("display_order")
+  isActive             Boolean @default(true) @map("is_active")
+
+  prices            SubscriptionPrice[]
+  userSubscriptions UserSubscription[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("subscription_plans")
 }
 
 model SubscriptionPrice {
-  id                     String           @id @default(cuid())
-  planId                 String           @map("plan_id")
-  currencyCode           String           @map("currency_code") // 'USD', 'EUR', 'KZT', 'RUB', etc.
+  id                     String  @id @default(cuid())
+  planId                 String  @map("plan_id")
+  currencyCode           String  @map("currency_code") // 'USD', 'EUR', 'KZT', 'RUB', etc.
   price                  Float
-  priceFormatted         String           @map("price_formatted") // '$9.99', '4 490 ₸'
-  pricePerMonth          Float?           @map("price_per_month")
-  pricePerMonthFormatted String?          @map("price_per_month_formatted")
-  savingsPercent         Int?             @map("savings_percent")
-  appleProductId         String?          @map("apple_product_id")
-  googleProductId        String?          @map("google_product_id")
-  
-  plan                   SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  
-  createdAt              DateTime         @default(now()) @map("created_at")
+  priceFormatted         String  @map("price_formatted") // '$9.99', '4 490 ₸'
+  pricePerMonth          Float?  @map("price_per_month")
+  pricePerMonthFormatted String? @map("price_per_month_formatted")
+  savingsPercent         Int?    @map("savings_percent")
+  appleProductId         String? @map("apple_product_id")
+  googleProductId        String? @map("google_product_id")
+
+  plan SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([planId, currencyCode])
   @@index([currencyCode])
@@ -1375,11 +1395,11 @@ model UserSubscription {
   googlePurchaseToken String?            @map("google_purchase_token")
   studentVerified     Boolean            @default(false) @map("student_verified")
   studentEmail        String?            @map("student_email")
-  
-  plan                SubscriptionPlan   @relation(fields: [planId], references: [id])
-  
-  createdAt           DateTime           @default(now()) @map("created_at")
-  updatedAt           DateTime           @updatedAt @map("updated_at")
+
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([status])
@@ -1399,13 +1419,13 @@ model ProgramSuggestion {
   id          String   @id @default(cuid())
   name        String
   description String?
-  type        String   // 'diet' | 'lifestyle'
+  type        String // 'diet' | 'lifestyle'
   votes       Int      @default(1)
   voters      String[] // Array of userIds who voted
   createdBy   String   @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at")
   status      String   @default("pending") // pending, approved, rejected
-  
+
   @@index([status, votes])
   @@index([type, status])
   @@map("program_suggestions")
@@ -1446,36 +1466,36 @@ enum CommunityReportStatus {
 }
 
 model CommunityGroup {
-  id          String             @id @default(cuid())
-  name        String
-  slug        String             @unique
-  description String?
-  imageUrl    String?
-  type        CommunityGroupType
-  city        String?
-  country     String?
-  isSeeded    Boolean            @default(false)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  createdById String?
-  createdBy   User?              @relation("CreatedGroups", fields: [createdById], references: [id])
-  memberships CommunityMembership[]
-  posts       CommunityPost[]
+  id           String                @id @default(cuid())
+  name         String
+  slug         String                @unique
+  description  String?
+  imageUrl     String?
+  type         CommunityGroupType
+  city         String?
+  country      String?
+  isSeeded     Boolean               @default(false)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  createdById  String?
+  createdBy    User?                 @relation("CreatedGroups", fields: [createdById], references: [id])
+  memberships  CommunityMembership[]
+  posts        CommunityPost[]
   userProfiles UserProfile[]
 
   @@map("community_groups")
 }
 
 model CommunityMembership {
-  id                  String              @id @default(cuid())
-  userId              String
-  groupId             String
-  role                CommunityMemberRole @default(MEMBER)
-  guidelinesAccepted  Boolean             @default(false)
-  guidelinesVersion   Int                 @default(1)
-  createdAt           DateTime            @default(now())
-  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group               CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id                 String              @id @default(cuid())
+  userId             String
+  groupId            String
+  role               CommunityMemberRole @default(MEMBER)
+  guidelinesAccepted Boolean             @default(false)
+  guidelinesVersion  Int                 @default(1)
+  createdAt          DateTime            @default(now())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group              CommunityGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
   @@index([userId])
@@ -1484,21 +1504,21 @@ model CommunityMembership {
 }
 
 model CommunityPost {
-  id         String            @id @default(cuid())
+  id         String             @id @default(cuid())
   authorId   String
   groupId    String
-  type       CommunityPostType @default(TEXT)
+  type       CommunityPostType  @default(TEXT)
   content    String
   imageUrl   String?
   metadata   Json?
-  likesCount Int               @default(0)
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-  author     User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  group      CommunityGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  likesCount Int                @default(0)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  author     User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group      CommunityGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
   likes      CommunityLike[]
   comments   CommunityComment[]
-  reports    CommunityReport[] @relation("PostReports")
+  reports    CommunityReport[]  @relation("PostReports")
   attendees  EventAttendee[]
 
   @@index([groupId, createdAt(sort: Desc)])
@@ -1521,14 +1541,14 @@ model CommunityLike {
 }
 
 model CommunityComment {
-  id        String        @id @default(cuid())
+  id        String            @id @default(cuid())
   authorId  String
   postId    String
   content   String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      CommunityPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
   reports   CommunityReport[] @relation("CommentReports")
 
   @@index([postId, createdAt])
@@ -1592,11 +1612,11 @@ model UserMascot {
 
 model AdminAuditLog {
   id              String   @id @default(cuid())
-  action          String   // "approve_expert" | "reject_expert" | "unpublish_expert" | "publish_expert" | "update_notes" | ...
+  action          String // "approve_expert" | "reject_expert" | "unpublish_expert" | "publish_expert" | "update_notes" | ...
   targetType      String   @map("target_type") // "expert" | "user" | ...
   targetId        String?  @map("target_id")
   adminIdentifier String?  @map("admin_identifier") // env-keyed admin (no per-user yet)
-  payload         Json?    // arbitrary context (e.g. rejection reason, previous status)
+  payload         Json? // arbitrary context (e.g. rejection reason, previous status)
   ipAddress       String?  @map("ip_address")
   createdAt       DateTime @default(now()) @map("created_at")
 
@@ -1604,4 +1624,119 @@ model AdminAuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("admin_audit_logs")
+}
+
+// ==================== EXPERTS — DATA ACCESS / NOTES / CALENDAR ====================
+
+model DataAccessAudit {
+  id        String   @id @default(cuid())
+  clientId  String   @map("client_id")
+  expertId  String   @map("expert_id")
+  action    String // "granted" | "revoked" | "viewed" | "request_sent"
+  scope     String? // "all" | "meals" | "lab" | "health_profile"
+  context   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client User          @relation("DataAccessAuditsForClient", fields: [clientId], references: [id], onDelete: Cascade)
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+  @@index([expertId, createdAt])
+  @@map("data_access_audits")
+}
+
+model ExpertClientNote {
+  id        String   @id @default(cuid())
+  expertId  String   @map("expert_id")
+  clientId  String   @map("client_id")
+  body      String   @db.Text // markdown
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  client User          @relation("ExpertClientNotesForClient", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([expertId, clientId])
+  @@index([expertId, updatedAt])
+  @@map("expert_client_notes")
+}
+
+model ExpertAvailability {
+  id          String   @id @default(cuid())
+  expertId    String   @map("expert_id")
+  weekday     Int // 0=Sunday .. 6=Saturday
+  startMinute Int      @map("start_minute") // minutes from midnight in expert's tz
+  endMinute   Int      @map("end_minute")
+  timezone    String // IANA tz (denormalized for convenience)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@index([expertId, weekday])
+  @@map("expert_availability")
+}
+
+model AvailabilityException {
+  id          String   @id @default(cuid())
+  expertId    String   @map("expert_id")
+  date        DateTime // local date (00:00 of expert's tz). Stored as UTC.
+  kind        String // "closed" | "custom"
+  startMinute Int?     @map("start_minute")
+  endMinute   Int?     @map("end_minute")
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@index([expertId, date])
+  @@map("availability_exceptions")
+}
+
+enum ScheduledConsultationStatus {
+  SCHEDULED
+  PENDING_RESCHEDULE
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model ScheduledConsultation {
+  id                 String                      @id @default(cuid())
+  expertId           String                      @map("expert_id")
+  clientId           String                      @map("client_id")
+  conversationId     String?                     @map("conversation_id")
+  offerId            String?                     @map("offer_id")
+  paymentId          String?                     @map("payment_id")
+  startAt            DateTime                    @map("start_at") // UTC
+  endAt              DateTime                    @map("end_at") // UTC
+  durationMinutes    Int                         @map("duration_minutes")
+  status             ScheduledConsultationStatus @default(SCHEDULED)
+  initiatedBy        String                      @map("initiated_by") // "expert" | "client"
+  cancellationReason String?                     @map("cancellation_reason")
+  cancelledBy        String?                     @map("cancelled_by")
+  cancelledAt        DateTime?                   @map("cancelled_at")
+  rescheduledFromId  String?                     @map("rescheduled_from_id")
+  proposedStartAt    DateTime?                   @map("proposed_start_at") // for PENDING_RESCHEDULE
+  proposedEndAt      DateTime?                   @map("proposed_end_at")
+  proposedBy         String?                     @map("proposed_by")
+  livekitRoom        String?                     @map("livekit_room")
+  startedAt          DateTime?                   @map("started_at")
+  completedAt        DateTime?                   @map("completed_at")
+  ratingPromptSentAt DateTime?                   @map("rating_prompt_sent_at")
+  reminder24hSentAt  DateTime?                   @map("reminder_24h_sent_at")
+  reminder1hSentAt   DateTime?                   @map("reminder_1h_sent_at")
+  reminder10mSentAt  DateTime?                   @map("reminder_10m_sent_at")
+  createdAt          DateTime                    @default(now()) @map("created_at")
+  updatedAt          DateTime                    @updatedAt @map("updated_at")
+
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  client User          @relation("ScheduledAsClient", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([expertId, startAt])
+  @@index([clientId, startAt])
+  @@index([status, startAt])
+  @@map("scheduled_consultations")
 }

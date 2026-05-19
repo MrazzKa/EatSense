@@ -57,7 +57,7 @@ const formatReviewDate = (iso: string, locale: string): string => {
 };
 
 export default function ExpertProfileScreen({ route, navigation }) {
-    const { specialistId } = route.params || {};
+    const { specialistId, conversationId } = route.params || {};
     const { t, language } = useI18n();
     const themeContext = useTheme();
     const tokens = useDesignTokens();
@@ -293,6 +293,26 @@ export default function ExpertProfileScreen({ route, navigation }) {
                     </View>
                 </View>
 
+                {/* Schedule consultation CTA — appears once user has an active link
+                    (already passed access code). Routes to slot picker. */}
+                {expert?.id && conversationId ? (
+                    <TouchableOpacity
+                        style={styles.scheduleCta}
+                        onPress={() => navigation.navigate('ScheduleConsultation', {
+                            expertId: expert.id,
+                            conversationId,
+                            expertName: expert.displayName,
+                        })}
+                        activeOpacity={0.85}
+                    >
+                        <Ionicons name="calendar-outline" size={20} color="#fff" />
+                        <Text style={styles.scheduleCtaText}>
+                            {t('experts.scheduleConsultation') || 'Schedule consultation'}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={18} color="#fff" />
+                    </TouchableOpacity>
+                ) : null}
+
                 {/* About / Bio */}
                 {expert.bio && (
                     <View style={styles.section}>
@@ -507,6 +527,29 @@ const createStyles = (tokens, colors) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background || '#FAFAFA',
+    },
+    scheduleCta: {
+        marginHorizontal: 16,
+        marginTop: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+        paddingHorizontal: 18,
+        paddingVertical: 14,
+        backgroundColor: colors.primary || '#4CAF50',
+        borderRadius: 14,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+    },
+    scheduleCtaText: {
+        flex: 1,
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
     },
     loadingContainer: {
         flex: 1,

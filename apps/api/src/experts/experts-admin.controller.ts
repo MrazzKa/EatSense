@@ -16,6 +16,7 @@ import type { Request } from 'express';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ExpertsService } from './experts.service';
+import { MediaService } from '../../media/media.service';
 
 @Controller('admin/experts')
 export class ExpertsAdminController {
@@ -25,6 +26,7 @@ export class ExpertsAdminController {
         private prisma: PrismaService,
         private notifications: NotificationsService,
         private expertsService: ExpertsService,
+        private media: MediaService,
     ) {}
 
     private validateAdmin(adminSecret: string) {
@@ -400,6 +402,240 @@ export class ExpertsAdminController {
         });
         await this.writeAudit('update_notes', 'expert', id, { notes: body.notes ?? null }, req);
         return { success: true, expert };
+    }
+
+    @Post()
+    async createExpertManually(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Body() body: any,
+        @Req() req: Request,
+    ) {
+        this.validateAdmin(adminSecret);
+        const {
+            email,
+            firstName,
+            lastName,
+            displayName,
+            type,
+            bio,
+            country,
+            city,
+            timezone,
+            phone,
+            licenseNumber,
+            education,
+            educationEntries,
+            experienceYears,
+            specializations,
+            languages,
+            accessCode,
+            avatarUrl,
+        } = body || {};
+
+        if (!email || !type || !displayName) {
+            throw new BadRequestException('email, type and displayName are required');
+        }
+        const normalizedEmail = String(email).trim().toLowerCase();
+
+        // Validate custom access code if provided
+        let codeOverride: string | undefined;
+        if (accessCode) {
+            const normalized = String(accessCode).trim().toUpperCase();
+            if (!/^[A-Z0-9-]{4,32}$/.test(normalized) || normalized.startsWith('-') || normalized.endsWith('-') || normalized.includes('--')) {
+                throw new BadRequestException('Invalid accessCode format. Use [A-Z0-9-] 4..32 chars, no leading/trailing/double "-".');
+            }
+            const existing = await this.prisma.expertAccessCode.findUnique({ where: { code: normalized } });
+            if (existing) throw new BadRequestException('Access code already taken');
+            codeOverride = normalized;
+        }
+
+        const result = await this.prisma.$transaction(async (tx) => {
+            // Reuse existing user or create a new one (shell account, magic-link login).
+            let user = await tx.user.findUnique({ where: { email: normalizedEmail } });
+            if (!user) {
+                user = await tx.user.create({
+                    data: { email: normalizedEmail, expertsRole: 'EXPERT' as any },
+                });
+            } else if ((user as any).expertsRole !== 'EXPERT') {
+                user = await tx.user.update({ where: { id: user.id }, data: { expertsRole: 'EXPERT' as any } });
+            }
+
+            // Upsert UserProfile (firstName/lastName)
+            if (firstName || lastName) {
+                await tx.userProfile.upsert({
+                    where: { userId: user.id },
+                    update: { firstName: firstName ?? undefined, lastName: lastName ?? undefined },
+                    create: { userId: user.id, firstName: firstName ?? null, lastName: lastName ?? null },
+                });
+            }
+
+            // Create ExpertProfile (or update if it somehow exists)
+            const expert = await tx.expertProfile.upsert({
+                where: { userId: user.id },
+                update: {
+                    type,
+                    displayName,
+                    bio: bio ?? null,
+                    avatarUrl: avatarUrl ?? null,
+                    education: education ?? null,
+                    experienceYears: experienceYears ?? 0,
+                    specializations: Array.isArray(specializations) ? specializations : [],
+                    languages: Array.isArray(languages) && languages.length ? languages : ['en'],
+                    country: country ?? null,
+                    city: city ?? null,
+                    timezone: timezone ?? null,
+                    phone: phone ?? null,
+                    licenseNumber: licenseNumber ?? null,
+                    isActive: true,
+                    isPublished: true,
+                    isVerified: true,
+                    verifiedAt: new Date(),
+                },
+                create: {
+                    userId: user.id,
+                    type,
+                    displayName,
+                    bio: bio ?? null,
+                    avatarUrl: avatarUrl ?? null,
+                    education: education ?? null,
+                    experienceYears: experienceYears ?? 0,
+                    specializations: Array.isArray(specializations) ? specializations : [],
+                    languages: Array.isArray(languages) && languages.length ? languages : ['en'],
+                    country: country ?? null,
+                    city: city ?? null,
+                    timezone: timezone ?? null,
+                    phone: phone ?? null,
+                    licenseNumber: licenseNumber ?? null,
+                    isActive: true,
+                    isPublished: true,
+                    isVerified: true,
+                    verifiedAt: new Date(),
+                },
+            });
+
+            // Education entries (optional)
+            if (Array.isArray(educationEntries) && educationEntries.length) {
+                for (const e of educationEntries) {
+                    if (!e?.institution || !e?.degree) continue;
+                    await tx.expertEducation.create({
+                        data: {
+                            expertId: expert.id,
+                            institution: e.institution,
+                            degree: e.degree,
+                            year: e.year ? String(e.year) : null,
+                            documentUrl: e.documentUrl ?? null,
+                            documentType: e.documentType ?? null,
+                            documentName: e.documentName ?? null,
+                        },
+                    }).catch(() => {});
+                }
+            }
+
+            return { user, expert };
+        });
+
+        // Assign access code (custom or auto)
+        const code = codeOverride
+            ? await this.prisma.expertAccessCode.create({
+                  data: { expertId: result.expert.id, code: codeOverride },
+              })
+            : await this.expertsService.ensureAccessCodeForExpert(result.expert.id);
+
+        // Upload credentials (optional). Each item: { name, issuer?, issuedAt?, base64, mimeType, filename }
+        const credentials = Array.isArray(body?.credentials) ? body.credentials : [];
+        const uploadedCredentials: any[] = [];
+        for (const cred of credentials) {
+            if (!cred?.base64 || !cred?.name) continue;
+            try {
+                const mimeType = String(cred.mimeType || 'application/pdf');
+                if (!/^(application\/pdf|image\/(png|jpeg|jpg))$/.test(mimeType)) {
+                    this.logger.warn(`Skipping credential with unsupported mime: ${mimeType}`);
+                    continue;
+                }
+                // Strip data URL prefix if present.
+                const b64 = cred.base64.replace(/^data:[^;]+;base64,/, '');
+                const buf = Buffer.from(b64, 'base64');
+                if (buf.length > 15 * 1024 * 1024) {
+                    this.logger.warn(`Skipping credential >15MB: ${cred.name}`);
+                    continue;
+                }
+                const synthetic: any = {
+                    buffer: buf,
+                    originalname: String(cred.filename || `${cred.name}.${mimeType === 'application/pdf' ? 'pdf' : 'jpg'}`),
+                    mimetype: mimeType,
+                    size: buf.length,
+                };
+                const uploaded = await this.media.uploadDocument(synthetic, result.user.id);
+                const created = await this.prisma.expertCredential.create({
+                    data: {
+                        expertId: result.expert.id,
+                        name: cred.name,
+                        issuer: cred.issuer ?? null,
+                        issuedAt: cred.issuedAt ? new Date(cred.issuedAt) : null,
+                        fileUrl: uploaded.url,
+                        fileType: mimeType === 'application/pdf' ? 'pdf' : 'image',
+                        status: 'approved',
+                    },
+                });
+                uploadedCredentials.push(created);
+            } catch (err: any) {
+                this.logger.warn(`Failed to attach credential "${cred.name}": ${err?.message}`);
+            }
+        }
+
+        await this.writeAudit('create_expert_manual', 'expert', result.expert.id, { email: normalizedEmail, credentialCount: uploadedCredentials.length }, req);
+        this.logger.log(`Expert created manually: id=${result.expert.id} email=${normalizedEmail} code=${(code as any)?.code}`);
+
+        return {
+            success: true,
+            expert: result.expert,
+            user: { id: result.user.id, email: result.user.email },
+            accessCode: (code as any)?.code,
+            credentials: uploadedCredentials.length,
+        };
+    }
+
+    @Get('access-code/suggest')
+    async suggestAccessCode(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Query('firstName') firstName?: string,
+        @Query('lastName') lastName?: string,
+        @Query('type') type?: string,
+        @Query('city') city?: string,
+    ) {
+        this.validateAdmin(adminSecret);
+        const slug = (s?: string) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const fn = slug(firstName);
+        const ln = slug(lastName);
+        const ty = slug(type);
+        const ci = slug(city);
+        const candidates: string[] = [];
+        if (fn && ty) candidates.push(`${fn}-${ty}`);
+        if (fn && ci) candidates.push(`${fn}-${ci}-01`);
+        if (fn && ln) candidates.push(`${fn}-${ln}`);
+        if (fn) candidates.push(fn);
+        const results = await Promise.all(
+            candidates.map(async (c) => {
+                if (!/^[A-Z0-9-]{4,32}$/.test(c)) return null;
+                const exists = await this.prisma.expertAccessCode.findUnique({ where: { code: c } });
+                return exists ? null : c;
+            }),
+        );
+        return { suggestions: results.filter(Boolean) };
+    }
+
+    @Post('access-code/check')
+    async checkAccessCodeAvailability(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Body() body: { code?: string },
+    ) {
+        this.validateAdmin(adminSecret);
+        const raw = String(body?.code || '').trim().toUpperCase();
+        if (!/^[A-Z0-9-]{4,32}$/.test(raw) || raw.startsWith('-') || raw.endsWith('-') || raw.includes('--')) {
+            return { available: false, reason: 'invalid_format' };
+        }
+        const existing = await this.prisma.expertAccessCode.findUnique({ where: { code: raw } });
+        return { available: !existing, code: raw };
     }
 
 }

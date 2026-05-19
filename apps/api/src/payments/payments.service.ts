@@ -140,11 +140,95 @@ export class PaymentsService {
             case 'charge.refunded':
                 await this.markChargeRefunded(event.data.object as any);
                 break;
+            case 'account.updated':
+                await this.handleConnectAccountUpdated(event.data.object as any);
+                break;
             default:
                 this.logger.debug(`Unhandled Stripe event: ${event.type}`);
         }
 
         return { received: true };
+    }
+
+    async createConnectOnboardingLink(userId: string): Promise<{ url: string; expiresAt: number }> {
+        if (!this.isEnabled) throw new InternalServerErrorException('Payments not enabled');
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+            select: { id: true, stripeConnectAccountId: true, displayName: true } as any,
+        });
+        if (!expert) throw new NotFoundException('Expert profile not found');
+        const e = expert as any;
+
+        let accountId = e.stripeConnectAccountId as string | null;
+        if (!accountId) {
+            const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+            const account = await this.stripe.accounts.create({
+                type: 'express',
+                email: user?.email,
+                capabilities: {
+                    transfers: { requested: true },
+                },
+                business_profile: { product_description: 'Nutrition consultations on EatSense' },
+            });
+            accountId = account.id;
+            await this.prisma.expertProfile.update({
+                where: { id: e.id },
+                data: { stripeConnectAccountId: accountId } as any,
+            });
+        }
+
+        const link = await this.stripe.accountLinks.create({
+            account: accountId,
+            refresh_url: process.env.STRIPE_CONNECT_REFRESH_URL || 'https://experts.eatsense.ch/earnings',
+            return_url: process.env.STRIPE_CONNECT_RETURN_URL || 'https://experts.eatsense.ch/earnings',
+            type: 'account_onboarding',
+        });
+        return { url: link.url, expiresAt: link.expires_at };
+    }
+
+    async getConnectStatus(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId },
+            select: {
+                stripeConnectAccountId: true,
+                stripeConnectPayoutsEnabled: true,
+                stripeConnectChargesEnabled: true,
+                stripeConnectDetailsSubmitted: true,
+            } as any,
+        });
+        if (!expert) throw new NotFoundException();
+        return expert;
+    }
+
+    async adminRefund(paymentId: string, opts?: { reason?: string; amount?: number }): Promise<{ refundId: string }> {
+        if (!this.isEnabled) throw new InternalServerErrorException('Payments not enabled');
+        const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+        if (!payment) throw new NotFoundException();
+        if (!payment.stripePaymentIntentId) throw new BadRequestException('No payment intent on file');
+        if (payment.status === 'REFUNDED') throw new BadRequestException('Already refunded');
+        const refund = await this.stripe.refunds.create({
+            payment_intent: payment.stripePaymentIntentId,
+            reason: 'requested_by_customer',
+            amount: opts?.amount,
+            metadata: { adminReason: opts?.reason || '' },
+        });
+        await this.prisma.payment.update({
+            where: { id: payment.id },
+            data: { status: 'REFUNDED', refundedAt: new Date() },
+        });
+        return { refundId: refund.id };
+    }
+
+    private async handleConnectAccountUpdated(account: any) {
+        if (!account?.id) return;
+        await this.prisma.expertProfile.updateMany({
+            where: { stripeConnectAccountId: account.id } as any,
+            data: {
+                stripeConnectPayoutsEnabled: !!account.payouts_enabled,
+                stripeConnectChargesEnabled: !!account.charges_enabled,
+                stripeConnectDetailsSubmitted: !!account.details_submitted,
+            } as any,
+        }).catch((e) => this.logger.warn(`handleConnectAccountUpdated update failed: ${e?.message}`));
     }
 
     async getPayment(paymentId: string, userId: string) {

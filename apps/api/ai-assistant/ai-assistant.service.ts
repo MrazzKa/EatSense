@@ -553,7 +553,11 @@ CRITICAL RULES:
         throw quotaError;
       }
 
-      throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
+      throw new InternalServerErrorException({
+        code: 'AI_LAB_RESULTS_FAILED',
+        message: 'AI_LAB_RESULTS_FAILED',
+        detail: error?.message ? String(error.message).slice(0, 240) : undefined,
+      });
     }
   }
 
@@ -722,7 +726,11 @@ CRITICAL RULES:
         throw quotaError;
       }
 
-      throw new InternalServerErrorException('AI_LAB_RESULTS_FAILED');
+      throw new InternalServerErrorException({
+        code: 'AI_LAB_RESULTS_FAILED',
+        message: 'AI_LAB_RESULTS_FAILED',
+        detail: error?.message ? String(error.message).slice(0, 240) : undefined,
+      });
     }
   }
 

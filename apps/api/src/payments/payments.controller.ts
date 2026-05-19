@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Post, Request, UseGuards, RawBodyRequest, Req } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Request, UnauthorizedException, UseGuards, RawBodyRequest, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -48,5 +48,30 @@ export class PaymentsController {
     @ApiOperation({ summary: 'Get a payment by id' })
     async getPayment(@Request() req: any, @Param('id') id: string) {
         return this.paymentsService.getPayment(id, req.user.id);
+    }
+
+    @Post('admin/refund/:id')
+    @ApiOperation({ summary: 'Admin: refund a payment (requires x-admin-secret)' })
+    async adminRefund(@Param('id') id: string, @Headers('x-admin-secret') adminSecret: string, @Body() body: any) {
+        if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+            throw new UnauthorizedException();
+        }
+        return this.paymentsService.adminRefund(id, { reason: body?.reason, amount: body?.amount });
+    }
+
+    @Post('connect/onboarding-link')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Create Stripe Connect Express onboarding link for the current expert' })
+    async connectOnboarding(@Request() req: any) {
+        return this.paymentsService.createConnectOnboardingLink(req.user.id);
+    }
+
+    @Get('connect/status')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get Stripe Connect status for the current expert' })
+    async connectStatus(@Request() req: any) {
+        return this.paymentsService.getConnectStatus(req.user.id);
     }
 }

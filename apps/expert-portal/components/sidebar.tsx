@@ -2,16 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Globe, Leaf, LogOut, MessageSquare, Package, Star, User, Wallet, type LucideIcon } from 'lucide-react';
+import { BarChart3, Calendar, Globe, Leaf, LogOut, MessageSquare, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 
-type NavKey = 'dashboard' | 'chats' | 'offers' | 'earnings' | 'reviews' | 'profile';
+type NavKey = 'dashboard' | 'chats' | 'clients' | 'calendar' | 'consultations' | 'offers' | 'earnings' | 'reviews' | 'profile';
 
 const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
   { href: '/dashboard', key: 'dashboard', icon: BarChart3 },
   { href: '/chats', key: 'chats', icon: MessageSquare },
+  { href: '/clients', key: 'clients', icon: Users },
+  { href: '/calendar', key: 'calendar', icon: Calendar },
+  { href: '/consultations', key: 'consultations', icon: Calendar },
   { href: '/offers', key: 'offers', icon: Package },
   { href: '/earnings', key: 'earnings', icon: Wallet },
   { href: '/reviews', key: 'reviews', icon: Star },
@@ -30,6 +33,9 @@ export function Sidebar() {
   const mobileLabel = (key: NavKey) => {
     if (key === 'dashboard') return locale === 'ru' ? 'Обзор' : 'Home';
     if (key === 'profile') return locale === 'ru' ? 'Профиль' : 'Profile';
+    if (key === 'clients') return locale === 'ru' ? 'Клиенты' : 'Clients';
+    if (key === 'calendar') return locale === 'ru' ? 'Доступность' : 'Availability';
+    if (key === 'consultations') return locale === 'ru' ? 'Встречи' : 'Bookings';
     return t('nav', key);
   };
 

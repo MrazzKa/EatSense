@@ -9,7 +9,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   constructor(private readonly prisma: PrismaService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // Accept JWT from Authorization header (default) or ?access_token= query.
+      // The query fallback exists for EventSource (SSE) where setting headers
+      // is not possible without a polyfill. Only used by /experts/me/clients/:id/stream.
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ExtractJwt.fromUrlQueryParameter('access_token'),
+      ]),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET || 'your-secret-key',
       // Pass request to validate for diagnostic logging

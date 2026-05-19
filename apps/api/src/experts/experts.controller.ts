@@ -7,9 +7,12 @@ import {
     Param,
     Body,
     Query,
+    Sse,
     UseGuards,
     Request,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { interval, switchMap, from, map, distinctUntilChanged } from 'rxjs';
 import { ExpertsService } from './experts.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
@@ -34,13 +37,19 @@ class ApplyExpertCodeDto {
 
 @Controller('experts')
 export class ExpertsController {
-    constructor(private expertsService: ExpertsService) { }
+    constructor(
+        private expertsService: ExpertsService,
+        private config: ConfigService,
+    ) { }
 
     // ==================== PUBLIC ENDPOINTS ====================
 
     @Get()
     @UseGuards(JwtAuthGuard)
     async findAll(@Request() req: any, @Query() filters: ExpertFiltersDto) {
+        if (!this.config.get<boolean>('EXPERT_CATALOG_ENABLED')) {
+            return { items: [], total: 0 };
+        }
         return this.expertsService.findAll(filters, req.user.id);
     }
 
@@ -92,6 +101,49 @@ export class ExpertsController {
     @UseGuards(JwtAuthGuard)
     async applyAccessCode(@Request() req: any, @Body() dto: ApplyExpertCodeDto) {
         return this.expertsService.applyAccessCode(req.user.id, dto.code);
+    }
+
+    @Get('me/code-usages')
+    @UseGuards(JwtAuthGuard)
+    async getMyCodeUsages(@Request() req: any, @Query('take') take?: string) {
+        return this.expertsService.listMyCodeUsages(req.user.id, take ? Math.min(parseInt(take, 10) || 25, 200) : 25);
+    }
+
+    @Get('me/clients')
+    @UseGuards(JwtAuthGuard)
+    async getMyClients(@Request() req: any) {
+        return this.expertsService.listMyClients(req.user.id);
+    }
+
+    @Get('me/clients/:clientId/note')
+    @UseGuards(JwtAuthGuard)
+    async getClientNote(@Request() req: any, @Param('clientId') clientId: string) {
+        return this.expertsService.getClientNote(req.user.id, clientId);
+    }
+
+    @Post('me/clients/:clientId/note')
+    @UseGuards(JwtAuthGuard)
+    async saveClientNote(@Request() req: any, @Param('clientId') clientId: string, @Body() body: { body: string }) {
+        return this.expertsService.saveClientNote(req.user.id, clientId, body?.body ?? '');
+    }
+
+    @Post('me/vacation')
+    @UseGuards(JwtAuthGuard)
+    async setVacation(@Request() req: any, @Body() body: { awayUntil?: string | null; awayMessage?: string | null }) {
+        return this.expertsService.setVacation(req.user.id, body);
+    }
+
+    // SSE stream of client data updates (meals, labs, profile). Polls every 5s for
+    // changes and emits a heartbeat every 30s. Replace with event-bus when scale demands.
+    @Sse('me/clients/:clientId/stream')
+    @UseGuards(JwtAuthGuard)
+    streamClient(@Request() req: any, @Param('clientId') clientId: string) {
+        const expertUserId = req.user.id;
+        return interval(5000).pipe(
+            switchMap(() => from(this.expertsService.getClientSnapshot(expertUserId, clientId))),
+            map((snapshot) => ({ data: snapshot, type: 'snapshot' })),
+            distinctUntilChanged((a, b) => JSON.stringify(a.data) === JSON.stringify(b.data)),
+        );
     }
 
     // ==================== MY CREDENTIALS ENDPOINTS ====================

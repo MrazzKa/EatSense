@@ -35,6 +35,11 @@ const SPECIALIZATIONS = [
 
 const PAGE_SIZE = 20;
 
+// Pilot: hide public catalog & "Become expert" CTA. Only show: code input,
+// "My specialists", and "Scheduled consultations". Flip when launching the
+// public marketplace.
+const EXPERT_CATALOG_VISIBLE = false;
+
 export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const { colors } = useTheme();
     const tokens = useDesignTokens();
@@ -380,8 +385,153 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         <>
             {renderCodeEntry()}
             {renderMySpecialists()}
+            {renderScheduledConsultations()}
         </>
     );
+
+    const [scheduledConsultations, setScheduledConsultations] = React.useState<any[]>([]);
+    const refreshScheduled = useCallback(() => {
+        ApiService.request('/consultations/me?role=client').then((data: any[]) => {
+            if (Array.isArray(data)) {
+                const now = Date.now();
+                setScheduledConsultations(
+                    data.filter((c) => new Date(c.endAt).getTime() > now && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c.status))
+                        .slice(0, 5),
+                );
+            }
+        }).catch(() => {});
+    }, []);
+    useFocusEffect(useCallback(() => { refreshScheduled(); }, [refreshScheduled]));
+
+    const respondReschedule = useCallback(async (consultationId: string, accept: boolean) => {
+        try {
+            await ApiService.request(`/consultations/${consultationId}/reschedule/respond`, {
+                method: 'POST',
+                body: JSON.stringify({ accept }),
+            });
+            refreshScheduled();
+        } catch (err: any) {
+            Alert.alert(t('common.error') || 'Error', err?.message || 'Failed');
+        }
+    }, [t, refreshScheduled]);
+
+    const cancelConsultation = useCallback((consultationId: string) => {
+        Alert.alert(
+            t('experts.cancelConfirmTitle') || 'Cancel consultation?',
+            t('experts.cancelConfirmBody') || 'The expert will be notified. You will get a full refund.',
+            [
+                { text: t('common.no') || 'No', style: 'cancel' },
+                {
+                    text: t('common.yes') || 'Yes',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await ApiService.request(`/consultations/${consultationId}`, {
+                                method: 'DELETE',
+                                body: JSON.stringify({ reason: 'client_cancelled' }),
+                            });
+                            refreshScheduled();
+                        } catch (err: any) {
+                            Alert.alert(t('common.error') || 'Error', err?.message || 'Failed');
+                        }
+                    },
+                },
+            ],
+        );
+    }, [t, refreshScheduled]);
+
+    const openConsultationMenu = useCallback((c: any) => {
+        const buttons: any[] = [];
+        if (c.status === 'SCHEDULED') {
+            buttons.push({
+                text: t('experts.proposeReschedule') || 'Propose new time',
+                onPress: () => navigation.navigate('ScheduleConsultation', {
+                    expertId: c.expert?.id,
+                    conversationId: c.conversationId,
+                    expertName: c.expert?.displayName,
+                    rescheduleConsultationId: c.id,
+                    initialDurationMinutes: c.durationMinutes,
+                }),
+            });
+        }
+        buttons.push({
+            text: t('experts.cancelConsultation') || 'Cancel consultation',
+            style: 'destructive',
+            onPress: () => cancelConsultation(c.id),
+        });
+        buttons.push({ text: t('common.cancel') || 'Cancel', style: 'cancel' });
+        Alert.alert(t('experts.manageConsultation') || 'Manage consultation', '', buttons);
+    }, [t, navigation, cancelConsultation]);
+
+    const renderScheduledConsultations = () => {
+        if (!scheduledConsultations.length) return null;
+        return (
+            <View style={styles.mySection}>
+                <Text style={styles.sectionTitle}>{t('experts.scheduledTitle') || 'Scheduled consultations'}</Text>
+                {scheduledConsultations.map((c) => {
+                    const expert = c.expert || {};
+                    const isPending = c.status === 'PENDING_RESCHEDULE';
+                    const start = new Date(isPending && c.proposedStartAt ? c.proposedStartAt : c.startAt);
+                    const end = new Date(isPending && c.proposedEndAt ? c.proposedEndAt : c.endAt);
+                    const inWindow = !isPending && Date.now() >= start.getTime() - 5 * 60000 && Date.now() < end.getTime() + 10 * 60000;
+                    const reschedulerIsMe = c.proposedBy === 'client';
+                    return (
+                        <TouchableOpacity
+                            key={c.id}
+                            style={styles.card}
+                            onPress={() => {
+                                if (inWindow && c.id) {
+                                    navigation.navigate('VideoCall', { conversationId: c.conversationId, consultationId: c.id });
+                                } else if (c.conversationId) {
+                                    navigation.navigate('ExpertProfile', { specialistId: expert.id, conversationId: c.conversationId });
+                                }
+                            }}
+                            onLongPress={() => openConsultationMenu(c)}
+                            delayLongPress={400}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.cardRow}>
+                                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                                    <Ionicons name={isPending ? 'time' : 'calendar'} size={22} color={isPending ? '#f59e0b' : colors.primary} />
+                                </View>
+                                <View style={styles.cardInfo}>
+                                    <Text style={styles.cardName} numberOfLines={1}>{expert.displayName || t('experts.expertFallback') || 'Specialist'}</Text>
+                                    <Text style={styles.cardType}>
+                                        {isPending
+                                            ? `${t('experts.rescheduleProposed') || 'Reschedule requested'}: ${start.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                                            : `${start.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${c.durationMinutes} min`}
+                                    </Text>
+                                </View>
+                                {isPending && !reschedulerIsMe ? null : inWindow ? (
+                                    <View style={[styles.linkedBadge, { backgroundColor: colors.primary }]}>
+                                        <Text style={[styles.linkedBadgeText, { color: '#fff' }]}>{t('common.join') || 'Join'}</Text>
+                                    </View>
+                                ) : (
+                                    <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+                                )}
+                            </View>
+                            {isPending && !reschedulerIsMe ? (
+                                <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                                    <TouchableOpacity
+                                        onPress={(e) => { e.stopPropagation?.(); respondReschedule(c.id, true); }}
+                                        style={{ flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center' }}
+                                    >
+                                        <Text style={{ color: '#fff', fontWeight: '600' }}>{t('experts.rescheduleAccept') || 'Accept'}</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={(e) => { e.stopPropagation?.(); respondReschedule(c.id, false); }}
+                                        style={{ flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
+                                    >
+                                        <Text style={{ color: colors.text, fontWeight: '600' }}>{t('experts.rescheduleDecline') || 'Decline'}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : null}
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        );
+    };
 
     const renderFooter = () => (
         <>
@@ -401,7 +551,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                     </View>
                     <Text style={styles.expertBannerLink}>{t('experts.ownerOpenPortal')}</Text>
                 </TouchableOpacity>
-            ) : !isExpert && (
+            ) : !isExpert && EXPERT_CATALOG_VISIBLE && (
                 <TouchableOpacity
                     style={styles.expertBanner}
                     onPress={() => navigation.navigate('BecomeExpert')}
@@ -428,7 +578,8 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 <ProfileAvatarButton />
             </View>
 
-            {/* Search bar */}
+            {/* Search bar (hidden in pilot when catalog disabled) */}
+            {EXPERT_CATALOG_VISIBLE && (
             <View style={styles.searchRow}>
                 <View style={styles.searchBar}>
                     <Ionicons name="search" size={18} color={colors.textTertiary} />
@@ -454,8 +605,9 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 </TouchableOpacity>
             </View>
 
+            )}
             {/* Active filters chips */}
-            {hasFilters && (
+            {EXPERT_CATALOG_VISIBLE && hasFilters && (
                 <View style={styles.activeFilters}>
                     {filterSpec && (
                         <TouchableOpacity style={styles.filterChip} onPress={() => setFilterSpec(null)}>
@@ -479,12 +631,12 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 </View>
             ) : (
                 <FlatList
-                    data={experts}
+                    data={EXPERT_CATALOG_VISIBLE ? experts : []}
                     keyExtractor={item => item.id}
                     renderItem={renderExpertCard}
                     ListHeaderComponent={renderHeader}
                     ListFooterComponent={renderFooter}
-                    ListEmptyComponent={renderEmpty}
+                    ListEmptyComponent={EXPERT_CATALOG_VISIBLE ? renderEmpty : null}
                     contentContainerStyle={styles.listContent}
                     refreshControl={
                         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import { TranslationService } from '../translation/translation.service';
 
 interface StartConversationDto {
     expertId: string;
@@ -20,7 +21,10 @@ interface UpdateConversationDto {
 export class ConversationsService {
     private readonly logger = new Logger(ConversationsService.name);
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private translation: TranslationService,
+    ) { }
 
     async start(clientId: string, dto: StartConversationDto) {
         this.logger.log(`Starting conversation: client=${clientId}, expertId=${dto.expertId}, offerId=${dto.offerId || 'none'}`);
@@ -362,6 +366,38 @@ export class ConversationsService {
         return updated;
     }
 
+    private async getExpertLocale(expertUserId: string): Promise<string | null> {
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { userId: expertUserId },
+            select: { languages: true },
+        });
+        if (!expert?.languages?.length) return null;
+        // languages stored as ISO 639-1 codes; first one wins.
+        return expert.languages[0]?.toLowerCase() || null;
+    }
+
+    private async translateMealsInPlace(meals: any[], locale: string) {
+        // Collect unique strings to translate in one batch (meal.name + items[].name).
+        const stringsSet = new Set<string>();
+        for (const m of meals) {
+            if (m?.name) stringsSet.add(m.name);
+            for (const it of m?.items || []) {
+                if (it?.name) stringsSet.add(it.name);
+            }
+        }
+        const inputs = Array.from(stringsSet);
+        if (!inputs.length) return;
+        const translated = await this.translation.translateBatch(inputs, locale);
+        const map = new Map<string, string>();
+        for (let i = 0; i < inputs.length; i++) map.set(inputs[i], translated[i]);
+        for (const m of meals) {
+            if (m?.name && map.has(m.name)) m.name = map.get(m.name);
+            for (const it of m?.items || []) {
+                if (it?.name && map.has(it.name)) it.name = map.get(it.name);
+            }
+        }
+    }
+
     async getClientData(conversationId: string, userId: string) {
         const conversation = await this.findById(conversationId, userId);
 
@@ -439,7 +475,21 @@ export class ConversationsService {
             })
             .catch((err) => this.logger.warn(`Audit log (view client data) failed: ${err?.message}`));
 
+        // Auto-translate meal ingredient + meal names into the expert's locale.
+        // Best-effort: silently falls back to original on any error or missing key.
+        if (meals.length && this.translation.hasApiKey()) {
+            try {
+                const expertLocale = await this.getExpertLocale(userId);
+                if (expertLocale && expertLocale !== 'en') {
+                    await this.translateMealsInPlace(meals as any[], expertLocale);
+                }
+            } catch (err: any) {
+                this.logger.warn(`[getClientData] meal translation failed: ${err?.message}`);
+            }
+        }
+
         return {
+            clientId,
             meals,
             labResults,
             healthProfile: userProfile,

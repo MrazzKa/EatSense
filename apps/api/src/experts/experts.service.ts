@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { RedisService } from '../../redis/redis.service';
 import {
     CreateExpertProfileDto,
     UpdateExpertProfileDto,
@@ -15,21 +17,43 @@ import {
 @Injectable()
 export class ExpertsService {
     private readonly logger = new Logger(ExpertsService.name);
-    private readonly codeAttemptWindowMs = 5 * 60 * 1000;
+    private readonly codeAttemptWindowSec = 5 * 60;
     private readonly codeAttemptLimit = 10;
-    private readonly codeAttempts = new Map<string, { count: number; resetAt: number }>();
+    // In-memory fallback used only when Redis is offline so the API does not
+    // become unusable. Cluster-wide enforcement requires Redis.
+    private readonly memoryAttempts = new Map<string, { count: number; resetAt: number }>();
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notifications: NotificationsService,
+        private redis: RedisService,
+    ) { }
 
     private normalizeAccessCode(code: string) {
         return String(code || '').replace(/[^a-z0-9]/gi, '').toUpperCase();
     }
 
-    private assertCodeRateLimit(userId: string) {
+    private async assertCodeRateLimit(userId: string) {
+        const key = `expert:code-attempt:${userId}`;
+        // Try Redis first (cluster-safe). Fall back to in-memory if Redis is down.
+        try {
+            const count = await this.redis.incr(key);
+            if (count === 1) {
+                await this.redis.expire(key, this.codeAttemptWindowSec);
+            }
+            if (count > this.codeAttemptLimit) {
+                throw new HttpException('Too many code attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+            }
+            if (count > 0) return; // Redis path succeeded
+        } catch (err) {
+            if (err instanceof HttpException) throw err;
+            this.logger.warn(`[rateLimit] Redis unavailable, falling back to memory: ${(err as any)?.message}`);
+        }
+        // Memory fallback
         const now = Date.now();
-        const current = this.codeAttempts.get(userId);
+        const current = this.memoryAttempts.get(userId);
         if (!current || current.resetAt <= now) {
-            this.codeAttempts.set(userId, { count: 1, resetAt: now + this.codeAttemptWindowMs });
+            this.memoryAttempts.set(userId, { count: 1, resetAt: now + this.codeAttemptWindowSec * 1000 });
             return;
         }
         if (current.count >= this.codeAttemptLimit) {
@@ -435,7 +459,7 @@ export class ExpertsService {
     }
 
     async applyAccessCode(userId: string, rawCode: string) {
-        this.assertCodeRateLimit(userId);
+        await this.assertCodeRateLimit(userId);
         const code = this.normalizeAccessCode(rawCode);
         if (code.length < 4) {
             throw new BadRequestException('Check the code and try again.');
@@ -523,11 +547,167 @@ export class ExpertsService {
             return savedLink;
         });
 
+        // Notify expert + insert welcome system message (best-effort, never blocks the flow).
+        Promise.resolve().then(async () => {
+            try {
+                const client = await this.prisma.user.findUnique({
+                    where: { id: userId },
+                    select: {
+                        email: true,
+                        userProfile: { select: { firstName: true } },
+                    },
+                });
+                const clientName = client?.userProfile?.firstName || client?.email?.split('@')[0] || 'A new client';
+                await this.notifications.sendPushNotification(
+                    accessCode.expert.userId,
+                    'New client',
+                    `${clientName} connected via your access code.`,
+                    { type: 'expert.new_client', expertId: accessCode.expertId, clientId: userId },
+                );
+            } catch (err) {
+                this.logger.warn(`[applyAccessCode] notify expert failed: ${(err as any)?.message}`);
+            }
+
+            try {
+                // Welcome message in the conversation (created on first chat open if missing).
+                // Type 'text' for safe rendering across mobile + portal. To distinguish
+                // from a normal user message we tag it via `metadata.system = true`.
+                if (existingConversation?.id) {
+                    const existingWelcome = await this.prisma.message.findFirst({
+                        where: {
+                            conversationId: existingConversation.id,
+                            senderId: accessCode.expert.userId,
+                            metadata: { path: ['system'], equals: true },
+                        },
+                        select: { id: true },
+                    }).catch(() => null);
+                    if (!existingWelcome) {
+                        await this.prisma.message.create({
+                            data: {
+                                conversationId: existingConversation.id,
+                                senderId: accessCode.expert.userId,
+                                type: 'text',
+                                content: 'Welcome! Feel free to ask anything — I will respond as soon as I can.',
+                                metadata: { system: true, kind: 'welcome', clientId: userId },
+                            },
+                        }).catch(() => {});
+                    }
+                }
+            } catch (err) {
+                this.logger.warn(`[applyAccessCode] welcome message failed: ${(err as any)?.message}`);
+            }
+        });
+
         return {
             link,
             expert: accessCode.expert,
             conversation: existingConversation,
         };
+    }
+
+    async listMyCodeUsages(userId: string, take = 25) {
+        const expert = await this.prisma.expertProfile.findUnique({ where: { userId }, select: { id: true } });
+        if (!expert) return [];
+        return this.listAccessCodeUsageForExpert(expert.id, take);
+    }
+
+    async listMyClients(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({ where: { userId }, select: { id: true } });
+        if (!expert) return [];
+        const links = await this.prisma.expertClientLink.findMany({
+            where: { expertId: expert.id, isActive: true },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        email: true,
+                        userProfile: { select: { firstName: true, lastName: true, avatarUrl: true } },
+                    },
+                },
+            },
+        });
+        // Enrich with last meal + last message timestamps for "activity" sort
+        const clientIds = links.map((l) => l.clientId);
+        const [lastMeals, lastMessages] = await Promise.all([
+            clientIds.length
+                ? this.prisma.meal.groupBy({
+                      by: ['userId'],
+                      where: { userId: { in: clientIds } },
+                      _max: { createdAt: true },
+                  })
+                : [],
+            clientIds.length
+                ? this.prisma.conversation.findMany({
+                      where: { clientId: { in: clientIds }, expertId: expert.id },
+                      select: { clientId: true, lastMessageAt: true, id: true },
+                  })
+                : [],
+        ]);
+        const mealByUser = new Map(lastMeals.map((m: any) => [m.userId, m._max.createdAt]));
+        const convByUser = new Map(lastMessages.map((c: any) => [c.clientId, { id: c.id, lastMessageAt: c.lastMessageAt }]));
+        return links.map((l) => ({
+            id: l.id,
+            source: l.source,
+            createdAt: l.createdAt,
+            client: l.client,
+            lastMealAt: mealByUser.get(l.clientId) || null,
+            conversation: convByUser.get(l.clientId) || null,
+        }));
+    }
+
+    async getClientNote(userId: string, clientId: string) {
+        const expert = await this.requireExpert(userId);
+        const note = await this.prisma.expertClientNote.findUnique({
+            where: { expertId_clientId: { expertId: expert.id, clientId } },
+        });
+        return note || { body: '' };
+    }
+
+    async saveClientNote(userId: string, clientId: string, bodyText: string) {
+        const expert = await this.requireExpert(userId);
+        // Verify expert-client link exists
+        const link = await this.prisma.expertClientLink.findFirst({ where: { expertId: expert.id, clientId } });
+        if (!link) throw new ForbiddenException('No link to this client');
+        return this.prisma.expertClientNote.upsert({
+            where: { expertId_clientId: { expertId: expert.id, clientId } },
+            update: { body: bodyText },
+            create: { expertId: expert.id, clientId, body: bodyText },
+        });
+    }
+
+    async getClientSnapshot(expertUserId: string, clientId: string) {
+        const expert = await this.requireExpert(expertUserId);
+        const link = await this.prisma.expertClientLink.findFirst({ where: { expertId: expert.id, clientId, isActive: true } });
+        if (!link) throw new ForbiddenException('No link to this client');
+        const [lastMeal, lastLab, lastMsg] = await Promise.all([
+            this.prisma.meal.findFirst({ where: { userId: clientId }, orderBy: { createdAt: 'desc' }, select: { id: true, createdAt: true } }),
+            this.prisma.labResult.findFirst({ where: { userId: clientId }, orderBy: { createdAt: 'desc' }, select: { id: true, createdAt: true } }).catch(() => null),
+            this.prisma.conversation.findFirst({ where: { clientId, expertId: expert.id }, select: { lastMessageAt: true } }),
+        ]);
+        return {
+            lastMealId: lastMeal?.id || null,
+            lastMealAt: lastMeal?.createdAt || null,
+            lastLabId: (lastLab as any)?.id || null,
+            lastLabAt: (lastLab as any)?.createdAt || null,
+            lastMessageAt: lastMsg?.lastMessageAt || null,
+            ts: Date.now(),
+        };
+    }
+
+    async setVacation(userId: string, dto: { awayUntil?: string | null; awayMessage?: string | null }) {
+        const expert = await this.requireExpert(userId);
+        const data: any = {
+            awayUntil: dto.awayUntil ? new Date(dto.awayUntil) : null,
+            awayMessage: dto.awayMessage ?? null,
+        };
+        return this.prisma.expertProfile.update({ where: { id: expert.id }, data });
+    }
+
+    private async requireExpert(userId: string) {
+        const expert = await this.prisma.expertProfile.findUnique({ where: { userId }, select: { id: true } });
+        if (!expert) throw new ForbiddenException('Not an expert');
+        return expert;
     }
 
     async listAccessCodeUsageForExpert(expertId: string, take = 25) {

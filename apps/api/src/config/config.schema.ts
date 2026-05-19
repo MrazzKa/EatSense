@@ -80,4 +80,17 @@ export const configSchema = Joi.object({
   LIVEKIT_API_KEY: Joi.string().optional().allow(''),
   LIVEKIT_API_SECRET: Joi.string().optional().allow(''),
   LIVEKIT_URL: Joi.string().optional().allow(''),
+  // Pilot mode: hide public catalog / disable self-registration. When false
+  // (default), mobile shows only "enter code" + "my specialists" + "scheduled".
+  // Admin creates experts manually; magic-link works only for existing users.
+  EXPERT_CATALOG_ENABLED: Joi.boolean().optional().default(false),
+  EXPERT_PUBLIC_REGISTRATION_ENABLED: Joi.boolean().optional().default(false),
+  // DeepL key for chat auto-translate (optional; toggle is hidden when missing)
+  DEEPL_API_KEY: Joi.string().optional().allow(''),
+  // Stripe Connect — when set, the platform can onboard experts as Express accounts
+  // and split payments via transfer_data. Without it the platform falls back to
+  // single-account mode (all funds land on platform balance; payouts manual).
+  STRIPE_CONNECT_CLIENT_ID: Joi.string().optional().allow(''),
+  STRIPE_CONNECT_REFRESH_URL: Joi.string().optional().allow(''),
+  STRIPE_CONNECT_RETURN_URL: Joi.string().optional().allow(''),
 });

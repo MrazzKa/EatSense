@@ -487,9 +487,75 @@
           <button class="btn btn-outline btn-sm" onclick="filterExperts('approved')">Approved</button>
           <button class="btn btn-outline btn-sm" onclick="filterExperts('unpublished')">Unpublished</button>
           <button class="btn btn-outline btn-sm" onclick="filterExperts('rejected')">Rejected</button>
+          <button class="btn btn-green btn-sm" style="margin-left:auto" onclick="openCreateExpertModal()">+ Create expert</button>
         </div>
         <div class="stat-bar" id="experts-stats"></div>
         <div id="experts-list"><div class="loading">Loading experts...</div></div>
+
+        <!-- Create expert modal -->
+        <div id="create-expert-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+          <div style="background:#fff; max-width:680px; width:100%; max-height:90vh; overflow-y:auto; border-radius:12px; padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h2 style="margin:0">Create expert</h2>
+              <button class="btn btn-outline btn-sm" onclick="closeCreateExpertModal()">Close</button>
+            </div>
+            <form id="create-expert-form" onsubmit="submitCreateExpert(event)">
+              <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <label>Email *<input name="email" type="email" required></label>
+                <label>Type *
+                  <select name="type" required>
+                    <option value="">—</option>
+                    <option value="nutritionist">Nutritionist</option>
+                    <option value="dietitian">Dietitian</option>
+                    <option value="psychologist">Psychologist</option>
+                    <option value="endocrinologist">Endocrinologist</option>
+                    <option value="obgyn">OB-GYN (Акушер-гинеколог)</option>
+                    <option value="pediatrician">Pediatrician</option>
+                    <option value="gp">General Practitioner</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+                <label>First name<input name="firstName" type="text"></label>
+                <label>Last name<input name="lastName" type="text"></label>
+                <label style="grid-column:1/-1">Display name *<input name="displayName" type="text" required></label>
+                <label>Country (ISO-2)<input name="country" type="text" maxlength="2" placeholder="CH"></label>
+                <label>City<input name="city" type="text"></label>
+                <label>Timezone (IANA)<input name="timezone" type="text" placeholder="Europe/Zurich"></label>
+                <label>Phone<input name="phone" type="tel"></label>
+                <label>License number<input name="licenseNumber" type="text"></label>
+                <label>Experience years<input name="experienceYears" type="number" min="0"></label>
+                <label style="grid-column:1/-1">Languages (comma-separated)<input name="languages" type="text" placeholder="en, ru, fr"></label>
+                <label style="grid-column:1/-1">Specializations (comma-separated)<input name="specializations" type="text" placeholder="weight loss, diabetes"></label>
+                <label style="grid-column:1/-1">Bio<textarea name="bio" rows="4"></textarea></label>
+                <label style="grid-column:1/-1">Education (free text)<textarea name="education" rows="2"></textarea></label>
+                <label style="grid-column:1/-1">
+                  Credentials (PDF/JPG/PNG; до 15 МБ каждый)
+                  <input type="file" name="credentialFiles" multiple accept="application/pdf,image/png,image/jpeg" oninput="onCredentialsPicked(event)">
+                  <small style="color:#666">Загрузи дипломы/сертификаты. Имя файла будет использовано как название документа.</small>
+                  <div id="credentials-preview" style="margin-top:6px; font-size:12px; color:#444;"></div>
+                </label>
+
+                <label style="grid-column:1/-1">
+                  Access code (optional — leave empty for auto)
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <input name="accessCode" type="text" pattern="[A-Z0-9-]{4,32}" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase(); checkAccessCodeAvailability(this.value)">
+                    <span id="code-availability" style="font-size:12px;"></span>
+                  </div>
+                  <small style="color:#666">Format: [A-Z0-9-]{4..32}. Example: <code>SOPHIA-NUTRITION</code>, <code>PHARMA-GENEVE-01</code></small>
+                  <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="suggestExpertCode(0)">Name-Type</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="suggestExpertCode(1)">Name-City-01</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="suggestExpertCode(2)">Name-Lastname</button>
+                  </div>
+                </label>
+              </div>
+              <div style="margin-top:20px; display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeCreateExpertModal()">Cancel</button>
+                <button type="submit" class="btn btn-green">Create expert</button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
 
       <!-- POSTS MODERATION TAB -->
@@ -1502,6 +1568,107 @@
         `;
       } catch (err) {
         box.innerHTML = `<div style="padding:8px;color:var(--red)">Load failed: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    let pendingCredentials = [];
+    function openCreateExpertModal() {
+      document.getElementById('create-expert-modal').style.display = 'flex';
+    }
+    function closeCreateExpertModal() {
+      document.getElementById('create-expert-modal').style.display = 'none';
+      document.getElementById('create-expert-form').reset();
+      document.getElementById('code-availability').textContent = '';
+      document.getElementById('credentials-preview').textContent = '';
+      pendingCredentials = [];
+    }
+    function onCredentialsPicked(ev) {
+      const files = Array.from(ev.target.files || []);
+      pendingCredentials = [];
+      const preview = document.getElementById('credentials-preview');
+      preview.innerHTML = '';
+      const promises = files.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = String(reader.result).split(',')[1] || '';
+          const name = file.name.replace(/\.[^.]+$/, '');
+          pendingCredentials.push({
+            name,
+            filename: file.name,
+            mimeType: file.type || 'application/pdf',
+            base64,
+          });
+          const div = document.createElement('div');
+          div.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+          preview.appendChild(div);
+          resolve();
+        };
+        reader.onerror = () => resolve();
+        reader.readAsDataURL(file);
+      }));
+      Promise.all(promises);
+    }
+    function slugifyForCode(s) {
+      return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+    function suggestExpertCode(variant) {
+      const f = document.getElementById('create-expert-form');
+      const first = slugifyForCode(f.firstName.value);
+      const last = slugifyForCode(f.lastName.value);
+      const type = slugifyForCode(f.type.value);
+      const city = slugifyForCode(f.city.value);
+      let code = '';
+      if (variant === 0 && first && type) code = `${first}-${type}`;
+      else if (variant === 1 && first && city) code = `${first}-${city}-01`;
+      else if (variant === 2 && first && last) code = `${first}-${last}`;
+      if (!code) { toast('Fill required fields first'); return; }
+      f.accessCode.value = code.slice(0, 32);
+      checkAccessCodeAvailability(f.accessCode.value);
+    }
+    let codeCheckTimer = null;
+    async function checkAccessCodeAvailability(rawCode) {
+      const el = document.getElementById('code-availability');
+      const code = (rawCode || '').trim().toUpperCase();
+      el.textContent = '';
+      if (!code) return;
+      if (codeCheckTimer) clearTimeout(codeCheckTimer);
+      codeCheckTimer = setTimeout(async () => {
+        try {
+          const res = await fetchAPI('/admin/experts/access-code/check', {
+            method: 'POST',
+            body: JSON.stringify({ code }),
+          });
+          if (res.available) {
+            el.textContent = '✓ available';
+            el.style.color = 'green';
+          } else {
+            el.textContent = res.reason === 'invalid_format' ? '✗ invalid format' : '✗ already taken';
+            el.style.color = 'crimson';
+          }
+        } catch (e) { el.textContent = ''; }
+      }, 350);
+    }
+    async function submitCreateExpert(ev) {
+      ev.preventDefault();
+      const f = ev.target;
+      const fd = new FormData(f);
+      const obj = {};
+      fd.forEach((v, k) => { obj[k] = typeof v === 'string' ? v.trim() : v; });
+      if (obj.languages) obj.languages = obj.languages.split(',').map(s => s.trim()).filter(Boolean);
+      if (obj.specializations) obj.specializations = obj.specializations.split(',').map(s => s.trim()).filter(Boolean);
+      if (obj.experienceYears) obj.experienceYears = parseInt(obj.experienceYears, 10) || 0;
+      if (!obj.accessCode) delete obj.accessCode;
+      // Drop the raw FileList — replaced by base64 collected in pendingCredentials.
+      delete obj.credentialFiles;
+      if (pendingCredentials.length) obj.credentials = pendingCredentials;
+      try {
+        const res = await fetchAPI('/admin/experts', { method: 'POST', body: JSON.stringify(obj) });
+        const credText = res.credentials ? `, ${res.credentials} credentials` : '';
+        toast(`Expert created. Code: ${res.accessCode || '(auto)'}${credText}`);
+        closeCreateExpertModal();
+        loadExperts();
+      } catch (e) {
+        toast('Create failed: ' + (e?.message || e));
       }
     }
 

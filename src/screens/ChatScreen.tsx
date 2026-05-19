@@ -46,6 +46,35 @@ export default function ChatScreen({ navigation, route }) {
     const [messages, setMessages] = useState([]);
     const [conversation, setConversation] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [translations, setTranslations] = useState<Record<string, string>>({});
+    const [translatingId, setTranslatingId] = useState<string | null>(null);
+
+    const toggleTranslate = async (messageId: string) => {
+        if (translations[messageId]) {
+            setTranslations((prev) => {
+                const next = { ...prev };
+                delete next[messageId];
+                return next;
+            });
+            return;
+        }
+        setTranslatingId(messageId);
+        try {
+            const Localization = await import('expo-localization').catch(() => null);
+            const target = (Localization?.getLocales?.()?.[0]?.languageCode || 'en').slice(0, 2);
+            const res = await ApiService.request(`/messages/${messageId}/translate`, {
+                method: 'POST',
+                body: JSON.stringify({ targetLocale: target }),
+            });
+            if (res?.translation) {
+                setTranslations((prev) => ({ ...prev, [messageId]: res.translation }));
+            }
+        } catch (err) {
+            console.warn('[ChatScreen] translate failed', err);
+        } finally {
+            setTranslatingId(null);
+        }
+    };
     const [sending, setSending] = useState(false);
     const [text, setText] = useState('');
     const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -566,9 +595,25 @@ export default function ChatScreen({ navigation, route }) {
                         />
                     ) : (
                         <Text style={[styles.messageText, { color: mine ? '#fff' : colors.textPrimary || '#212121' }]}>
-                            {item.content}
+                            {translations[item.id] || item.content}
                         </Text>
                     )}
+                    {!mine && item.type === 'text' && item.content ? (
+                        <TouchableOpacity
+                            onPress={() => toggleTranslate(item.id)}
+                            style={styles.translateLink}
+                            disabled={translatingId === item.id}
+                        >
+                            <Ionicons name="language" size={11} color={colors.textSecondary || '#9CA3AF'} />
+                            <Text style={[styles.translateLinkText, { color: colors.textSecondary || '#9CA3AF' }]}>
+                                {translatingId === item.id
+                                    ? '…'
+                                    : translations[item.id]
+                                        ? t('experts.showOriginal') || 'Show original'
+                                        : t('experts.translate') || 'Translate'}
+                            </Text>
+                        </TouchableOpacity>
+                    ) : null}
                     {/* Action buttons for report_request — only visible to client */}
                     {isReportRequest && !mine && !conversation?.reportsShared && (
                         <View style={styles.actionButtons}>
@@ -767,6 +812,18 @@ const createStyles = (tokens, colors) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background || '#FAFAFA',
+    },
+    translateLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 4,
+        alignSelf: 'flex-start',
+        opacity: 0.85,
+    },
+    translateLinkText: {
+        fontSize: 11,
+        fontStyle: 'italic',
     },
     loadingContainer: {
         flex: 1,

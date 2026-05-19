@@ -31,6 +31,8 @@ import { HealthController } from './health.controller';
 import { AdminPanelController } from './admin-panel.controller';
 import { configSchema } from './src/config/config.schema';
 import { NotificationsModule } from './src/notifications/notifications.module';
+import { CalendarModule } from './src/calendar/calendar.module';
+import { TranslationModule } from './src/translation/translation.module';
 import { DebugModule } from './src/debug/debug.module';
 import { SuggestionsModule } from './src/suggestions/suggestions.module';
 import { MedicationsModule } from './src/medications/medications.module';
@@ -117,6 +119,8 @@ import { MascotModule } from './src/mascot/mascot.module';
     SuggestionsModule,
     MedicationsModule,
     ExpertsModule,
+    CalendarModule,
+    TranslationModule,
     PaymentsModule,
     VideoModule,
     ConversationsModule,

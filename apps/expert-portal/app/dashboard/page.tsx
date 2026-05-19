@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MessageSquare, Users, Mail, Star, type LucideIcon } from 'lucide-react';
+import { Calendar, MessageSquare, Users, Mail, Star, Video, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
+import { OnboardingTour } from '@/components/onboarding-tour';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
@@ -98,8 +100,12 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
+      <OnboardingTour />
       <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <h1 className="mb-5 text-2xl font-bold sm:mb-6">{t('dashboard', 'title')}</h1>
+
+        <NextConsultationWidget />
+
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -172,6 +178,91 @@ function StatCard({ icon: Icon, label, value, highlight }: { icon: LucideIcon; l
       </div>
       <div className={`text-2xl font-bold ${highlight ? 'text-[var(--primary)]' : ''}`}>
         {value}
+      </div>
+    </div>
+  );
+}
+
+function NextConsultationWidget() {
+  const { locale } = useI18n();
+  const [next, setNext] = useState<any | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      apiFetch('/consultations/me?role=expert&status=SCHEDULED').then((data: any[]) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const now = Date.now();
+        const upcoming = data
+          .filter((c) => new Date(c.endAt).getTime() > now)
+          .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())[0];
+        setNext(upcoming || null);
+      }).catch(() => {});
+    };
+    load();
+    const refresh = setInterval(load, 60000);
+    const ticker = setInterval(() => setTick((x) => x + 1), 30000);
+    return () => { cancelled = true; clearInterval(refresh); clearInterval(ticker); };
+  }, []);
+
+  if (!next) return null;
+  const start = new Date(next.startAt);
+  const end = new Date(next.endAt);
+  const now = Date.now();
+  const diffMs = start.getTime() - now;
+  const inWindow = now >= start.getTime() - 5 * 60000 && now < end.getTime() + 10 * 60000;
+  const clientName = [next.client?.userProfile?.firstName, next.client?.userProfile?.lastName].filter(Boolean).join(' ')
+    || next.client?.email || 'client';
+
+  let when: string;
+  if (inWindow) {
+    when = locale === 'ru' ? 'Идёт сейчас' : 'Live now';
+  } else if (diffMs < 0) {
+    when = locale === 'ru' ? 'Должна была начаться' : 'Should have started';
+  } else if (diffMs < 60 * 60000) {
+    when = `${Math.round(diffMs / 60000)} ${locale === 'ru' ? 'мин' : 'min'}`;
+  } else if (diffMs < 24 * 60 * 60000) {
+    const h = Math.floor(diffMs / 3600000);
+    const m = Math.round((diffMs % 3600000) / 60000);
+    when = `${h}${locale === 'ru' ? 'ч' : 'h'} ${m}${locale === 'ru' ? 'м' : 'm'}`;
+  } else {
+    when = start.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  // tick used to force re-render every 30s so countdown stays fresh
+  void tick;
+
+  return (
+    <div className="mb-6 rounded-xl border border-[var(--primary-soft)] bg-[var(--primary-soft)]/30 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-[var(--primary)] p-2.5 text-white">
+            <Calendar size={20} />
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wide text-[var(--text2)]">
+              {locale === 'ru' ? 'Ближайшая консультация' : 'Next consultation'}
+            </div>
+            <div className="font-medium">
+              {clientName} · <span className="text-[var(--primary)]">{when}</span>
+            </div>
+            <div className="text-xs text-[var(--text2)]">
+              {start.toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              {' · '}{next.durationMinutes} min
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {inWindow ? (
+            <Link href={`/call/${next.id}`} className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white">
+              <Video size={14} /> {locale === 'ru' ? 'Начать' : 'Start'}
+            </Link>
+          ) : null}
+          <Link href="/consultations" className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm">
+            {locale === 'ru' ? 'Все' : 'View all'}
+          </Link>
+        </div>
       </div>
     </div>
   );

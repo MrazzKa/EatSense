@@ -1,6 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TranslationService } from '../translation/translation.service';
 
 interface CreateMessageDto {
     conversationId: string;
@@ -17,7 +18,22 @@ export class MessagesService {
     constructor(
         private prisma: PrismaService,
         private notifications: NotificationsService,
+        private translation: TranslationService,
     ) { }
+
+    async translate(messageId: string, userId: string, targetLocale: string): Promise<{ translation: string; cached: boolean }> {
+        const message = await this.prisma.message.findUnique({
+            where: { id: messageId },
+            select: { id: true, content: true, conversationId: true, type: true },
+        });
+        if (!message) throw new NotFoundException();
+        await this.checkAccess(message.conversationId, userId);
+        if (message.type !== 'text' || !message.content?.trim()) {
+            return { translation: message.content || '', cached: true };
+        }
+        const { value, cached } = await this.translation.translate(message.content, targetLocale);
+        return { translation: value, cached };
+    }
 
     private async checkAccess(conversationId: string, userId: string) {
         const conversation = await this.prisma.conversation.findUnique({

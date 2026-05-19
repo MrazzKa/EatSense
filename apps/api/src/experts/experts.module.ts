@@ -4,9 +4,10 @@ import { ExpertsAdminController } from './experts-admin.controller';
 import { ExpertsService } from './experts.service';
 import { PrismaModule } from '../../prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { MediaModule } from '../../media/media.module';
 
 @Module({
-    imports: [PrismaModule, NotificationsModule],
+    imports: [PrismaModule, NotificationsModule, MediaModule],
     controllers: [ExpertsController, ExpertsAdminController],
     providers: [ExpertsService],
     exports: [ExpertsService],

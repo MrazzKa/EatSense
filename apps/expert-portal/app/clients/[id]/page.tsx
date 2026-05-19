@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import Link from 'next/link';
 
@@ -23,10 +23,14 @@ interface Meal {
 interface MealItem {
   id: string;
   name: string;
+  weight?: number;
   calories?: number;
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
+  sugars?: number;
+  satFat?: number;
 }
 
 interface LabResult {
@@ -60,6 +64,7 @@ interface HealthProfile {
 }
 
 interface ClientData {
+  clientId?: string;
   meals: Meal[];
   labResults: LabResult[];
   healthProfile: HealthProfile;
@@ -75,16 +80,64 @@ export default function ClientDataPage() {
   const [tab, setTab] = useState<'meals' | 'labs' | 'health'>('meals');
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+    let es: EventSource | null = null;
+    let pollTimer: any = null;
+    const load = async (silent: boolean) => {
       try {
         const result = await apiFetch(`/conversations/${convId}/client-data`);
-        setData(result);
+        if (!cancelled) {
+          setData(result);
+          if (!silent) setLoading(false);
+        }
+        return result;
       } catch (err: any) {
-        setError(err.message || t('clients', 'loadFailed'));
-      } finally {
-        setLoading(false);
+        if (!cancelled && !silent) {
+          setError(err.message || t('clients', 'loadFailed'));
+          setLoading(false);
+        }
+      }
+    };
+    (async () => {
+      const initial = await load(false);
+      const clientId = initial?.clientId;
+      if (cancelled) return;
+      // Prefer SSE when we know the client id; fall back to 30s polling otherwise.
+      if (clientId && typeof window !== 'undefined' && typeof EventSource !== 'undefined') {
+        const token = localStorage.getItem('accessToken');
+        // EventSource cannot send headers; use a token query param. Backend SSE
+        // route is protected by JwtAuthGuard which also accepts query token.
+        const url = `${apiBaseUrl()}/experts/me/clients/${clientId}/stream?access_token=${encodeURIComponent(token || '')}`;
+        try {
+          es = new EventSource(url, { withCredentials: false });
+          let lastTs = 0;
+          es.onmessage = (ev) => {
+            try {
+              const snap = JSON.parse(ev.data);
+              if (snap?.ts && snap.ts > lastTs) {
+                lastTs = snap.ts;
+                load(true);
+              }
+            } catch {}
+          };
+          es.onerror = () => {
+            // On error, close & fall back to polling so the screen keeps working.
+            es?.close();
+            es = null;
+            pollTimer = setInterval(() => load(true), 30000);
+          };
+        } catch {
+          pollTimer = setInterval(() => load(true), 30000);
+        }
+      } else {
+        pollTimer = setInterval(() => load(true), 30000);
       }
     })();
+    return () => {
+      cancelled = true;
+      if (pollTimer) clearInterval(pollTimer);
+      if (es) es.close();
+    };
   }, [convId]);
 
   return (
@@ -172,10 +225,35 @@ export default function ClientDataPage() {
                             )}
                           </div>
 
-                          {/* Items */}
+                          {/* Detailed ingredients with full macros */}
                           {meal.items && meal.items.length > 0 && (
-                            <div className="mt-2 text-xs text-[var(--text2)]">
-                              {meal.items.map((item) => item.name).join(', ')}
+                            <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)]">
+                              <table className="w-full text-xs">
+                                <thead className="bg-[var(--surface2)] text-[var(--text2)]">
+                                  <tr>
+                                    <th className="px-2 py-1.5 text-left font-medium">{t('clients', 'ingredient') || 'Ingredient'}</th>
+                                    <th className="px-2 py-1.5 text-right font-medium">g</th>
+                                    <th className="px-2 py-1.5 text-right font-medium">kcal</th>
+                                    <th className="px-2 py-1.5 text-right font-medium">P</th>
+                                    <th className="px-2 py-1.5 text-right font-medium">C</th>
+                                    <th className="px-2 py-1.5 text-right font-medium">F</th>
+                                    <th className="px-2 py-1.5 text-right font-medium">Fib</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {meal.items.map((it) => (
+                                    <tr key={it.id} className="border-t border-[var(--border)]">
+                                      <td className="px-2 py-1.5">{it.name}</td>
+                                      <td className="px-2 py-1.5 text-right tabular-nums">{it.weight != null ? Math.round(it.weight) : '—'}</td>
+                                      <td className="px-2 py-1.5 text-right tabular-nums">{it.calories != null ? Math.round(it.calories) : '—'}</td>
+                                      <td className="px-2 py-1.5 text-right tabular-nums">{it.protein != null ? it.protein.toFixed(1) : '—'}</td>
+                                      <td className="px-2 py-1.5 text-right tabular-nums">{it.carbs != null ? it.carbs.toFixed(1) : '—'}</td>
+                                      <td className="px-2 py-1.5 text-right tabular-nums">{it.fat != null ? it.fat.toFixed(1) : '—'}</td>
+                                      <td className="px-2 py-1.5 text-right tabular-nums">{it.fiber != null ? it.fiber.toFixed(1) : '—'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
                           )}
                         </div>

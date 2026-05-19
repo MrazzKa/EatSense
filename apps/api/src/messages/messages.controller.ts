@@ -77,6 +77,13 @@ export class MessagesController {
         return this.messagesService.getUnreadCount(req.user.id);
     }
 
+    // DeepL-backed translation. Cached on the server (text+target hash) to keep
+    // costs flat across users in the same chat.
+    @Post(':id/translate')
+    async translate(@Request() req: any, @Param('id') id: string, @Body() body: { targetLocale: string }) {
+        return this.messagesService.translate(id, req.user.id, (body?.targetLocale || 'en').toLowerCase());
+    }
+
     @Post('conversation/:conversationId/share-meals')
     async shareMeals(
         @Request() req: any,

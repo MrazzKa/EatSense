@@ -98,6 +98,16 @@ export default function VideoCallScreen({ route, navigation }: any) {
         navigation.goBack();
     }, [creds, navigation]);
 
+    const onConnected = useCallback(() => {
+        startedAtRef.current = Date.now();
+        if (creds?.sessionId) {
+            ApiService.request(`/video/session/${creds.sessionId}/started`, {
+                method: 'POST',
+                body: JSON.stringify({}),
+            }).catch(() => { });
+        }
+    }, [creds]);
+
     if (loading) {
         return (
             <SafeAreaView style={[styles.center, { backgroundColor: colors.background }]}>
@@ -128,16 +138,6 @@ export default function VideoCallScreen({ route, navigation }: any) {
             </SafeAreaView>
         );
     }
-
-    const onConnected = useCallback(() => {
-        startedAtRef.current = Date.now();
-        if (creds?.sessionId) {
-            ApiService.request(`/video/session/${creds.sessionId}/started`, {
-                method: 'POST',
-                body: JSON.stringify({}),
-            }).catch(() => { });
-        }
-    }, [creds]);
 
     return (
         <View style={styles.fullscreen}>
@@ -182,9 +182,14 @@ function RoomView({ onEndCall, t }: { onEndCall: () => void; t: any }) {
                     <VideoTrack trackRef={remote} style={styles.remote} />
                 ) : (
                     <View style={[styles.remote, styles.waitingRoom]}>
-                        <Ionicons name="person-circle-outline" size={96} color="#8b8b8b" />
-                        <Text style={styles.waitingText}>
+                        <View style={styles.waitingPulse}>
+                            <Ionicons name="videocam-outline" size={64} color="#cdd5e0" />
+                        </View>
+                        <Text style={styles.waitingTitle}>
                             {t('experts.video.waitingForPeer') || 'Waiting for the other participant…'}
+                        </Text>
+                        <Text style={styles.waitingSubtitle}>
+                            {t('experts.videoWaitingHint') || 'You will join automatically when they connect.'}
                         </Text>
                     </View>
                 )}
@@ -231,6 +236,17 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     waitingText: { color: '#aaa', fontSize: 14 },
+    waitingPulse: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 8,
+    },
+    waitingTitle: { color: '#e8eaf0', fontSize: 17, fontWeight: '600', textAlign: 'center', paddingHorizontal: 32 },
+    waitingSubtitle: { color: '#8b8b8b', fontSize: 13, textAlign: 'center', paddingHorizontal: 40 },
     localPip: {
         position: 'absolute',
         top: 60,

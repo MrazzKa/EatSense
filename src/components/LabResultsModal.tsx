@@ -258,11 +258,32 @@ const LabResultsModal: React.FC<LabResultsModalProps> = ({ visible, onClose, onR
         setError(t('aiAssistant.lab.errors.noSummary'));
       }
     } catch (err: any) {
-      console.error('LabResultsModal: analyze error', err);
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        t('aiAssistant.lab.errors.generic');
+      // Detailed diagnostics: surface the real cause instead of a generic banner
+      const status = err?.response?.status || err?.status;
+      const code = err?.response?.data?.code || err?.code;
+      const serverMsg = err?.response?.data?.message || err?.body?.message;
+      console.error('[LabResultsModal] analyze error', {
+        status,
+        code,
+        serverMsg,
+        message: err?.message,
+        mode,
+        hasFile: !!imageFile,
+        hasPdf: !!file,
+        textLen: text?.length || 0,
+      });
+      let message: string;
+      if (status === 401) {
+        message = t('aiAssistant.lab.errors.auth') || 'Please sign in again and retry.';
+      } else if (status === 413) {
+        message = t('aiAssistant.lab.errors.tooLarge') || 'File is too large (max 10 MB).';
+      } else if (status === 429) {
+        message = t('aiAssistant.lab.errors.rateLimit') || 'Too many attempts. Try again in a minute.';
+      } else if (code === 'AI_LAB_RESULTS_FAILED') {
+        message = t('aiAssistant.lab.errors.aiUnavailable') || 'AI service temporarily unavailable.';
+      } else {
+        message = serverMsg || err?.message || t('aiAssistant.lab.errors.generic');
+      }
       setError(message);
     } finally {
       setLoading(false);

@@ -1,90 +1,119 @@
 'use client';
 
-import { AlertCircle, CreditCard, ExternalLink, Wallet } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertCircle, CheckCircle2, CreditCard, ExternalLink, Wallet } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
+import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+
+interface ConnectStatus {
+  stripeConnectAccountId: string | null;
+  stripeConnectPayoutsEnabled: boolean;
+  stripeConnectChargesEnabled: boolean;
+  stripeConnectDetailsSubmitted: boolean;
+}
 
 export default function EarningsPage() {
   const { t, locale } = useI18n();
-  const copy = locale === 'ru'
-    ? {
-        subtitle: 'Выплаты и история заказов появятся после подключения Stripe Connect.',
-        month: 'Этот месяц',
-        pending: 'Ожидает выплаты',
-        lifetime: 'За все время',
-        soon: 'Скоро',
-        title: 'Выплаты пока не подключены',
-        body: 'Пока Stripe Connect не подключен, автоматические выплаты недоступны. Активные консультации и стоимость заказов отображаются во вкладке',
-        questions: 'Вопросы по выплатам:',
-        more: 'Stripe Connect · История выплат · Ежемесячные отчеты · Налоговые документы',
-      }
-    : {
-        subtitle: 'Payouts and order history will appear after Stripe Connect is connected.',
-        month: 'This month',
-        pending: 'Pending payout',
-        lifetime: 'Lifetime',
-        soon: 'Coming soon',
-        title: 'Payouts are not connected yet',
-        body: 'Until Stripe Connect is connected, automatic payouts are unavailable. Active consultations and order prices appear in the',
-        questions: 'Questions about payouts:',
-        more: 'Stripe Connect · Payout history · Monthly statements · Tax forms',
-      };
+  const [status, setStatus] = useState<ConnectStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/payments/connect/status')
+      .then((s) => setStatus(s))
+      .catch(() => setStatus(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function startOnboarding() {
+    setRedirecting(true);
+    try {
+      const res = await apiFetch('/payments/connect/onboarding-link', { method: 'POST' });
+      if (res?.url) window.location.href = res.url;
+    } catch (e) {
+      alert((e as any)?.message || 'Failed to create onboarding link');
+      setRedirecting(false);
+    }
+  }
+
+  const ready = status?.stripeConnectPayoutsEnabled && status?.stripeConnectChargesEnabled;
+  const pending = status?.stripeConnectAccountId && !ready;
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <h1 className="mb-2 text-2xl font-semibold">{t('nav', 'earnings')}</h1>
-        <p className="mb-6 text-sm text-[var(--text2)]">{copy.subtitle}</p>
+        <p className="mb-6 text-sm text-[var(--text2)]">
+          {locale === 'ru' ? 'Подключите Stripe Connect для автоматических выплат за консультации.' : 'Connect Stripe to receive automatic payouts for consultations.'}
+        </p>
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <StatCard label={copy.month} value="-" sublabel={copy.soon} icon={Wallet} />
-          <StatCard label={copy.pending} value="-" sublabel={copy.soon} icon={CreditCard} />
-          <StatCard label={copy.lifetime} value="-" sublabel={copy.soon} icon={Wallet} />
+          <StatCard label={locale === 'ru' ? 'Этот месяц' : 'This month'} value="—" sublabel={locale === 'ru' ? 'Скоро' : 'Coming soon'} icon={Wallet} />
+          <StatCard label={locale === 'ru' ? 'Ожидает выплаты' : 'Pending payout'} value="—" sublabel={locale === 'ru' ? 'Скоро' : 'Coming soon'} icon={CreditCard} />
+          <StatCard label={locale === 'ru' ? 'За всё время' : 'Lifetime'} value="—" sublabel={locale === 'ru' ? 'Скоро' : 'Coming soon'} icon={Wallet} />
         </div>
 
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
-          <div className="flex items-start gap-3">
-            <AlertCircle size={20} className="mt-0.5 shrink-0 text-[var(--yellow)]" />
-            <div>
-              <h2 className="mb-1 text-sm font-medium">{copy.title}</h2>
-              <p className="text-sm leading-relaxed text-[var(--text2)]">
-                {copy.body}
-                <a className="mx-1 text-[var(--primary)] hover:underline" href="/chats">Chats</a>
-                tab.
-              </p>
-              <p className="mt-2 text-sm text-[var(--text2)]">
-                {copy.questions}{' '}
-                <a className="text-[var(--primary)] hover:underline" href="mailto:experts@eatsense.ch">
-                  experts@eatsense.ch
-                </a>
-              </p>
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <div className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+          </div>
+        ) : ready ? (
+          <div className="rounded-xl border border-green-200 bg-green-50 p-5">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-green-600" />
+              <div>
+                <h2 className="mb-1 text-sm font-medium">{locale === 'ru' ? 'Stripe Connect подключён' : 'Stripe Connect connected'}</h2>
+                <p className="text-sm text-[var(--text2)]">
+                  {locale === 'ru' ? 'Платежи приходят на ваш счёт автоматически после завершения консультаций.' : 'Payouts will appear in your account after consultations complete.'}
+                </p>
+                <button onClick={startOnboarding} className="mt-3 text-sm text-[var(--primary)] hover:underline">
+                  {locale === 'ru' ? 'Обновить данные на Stripe' : 'Update on Stripe'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="mt-6 rounded-xl border border-dashed border-[var(--border)] p-5 text-sm text-[var(--text2)]">
-          <div className="mb-1 flex items-center gap-2">
-            <ExternalLink size={14} />
-            <span className="font-medium text-[var(--text)]">{copy.soon}</span>
+        ) : pending ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={20} className="mt-0.5 shrink-0 text-amber-600" />
+              <div>
+                <h2 className="mb-1 text-sm font-medium">{locale === 'ru' ? 'Завершите настройку Stripe' : 'Finish Stripe setup'}</h2>
+                <p className="text-sm text-[var(--text2)]">
+                  {locale === 'ru' ? 'Подтвердите ваши данные в Stripe чтобы начать получать выплаты.' : 'Submit your details on Stripe to enable payouts.'}
+                </p>
+                <button onClick={startOnboarding} disabled={redirecting} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {redirecting ? '…' : locale === 'ru' ? 'Продолжить на Stripe' : 'Continue on Stripe'}
+                  <ExternalLink size={14} />
+                </button>
+              </div>
+            </div>
           </div>
-          {copy.more}
-        </div>
+        ) : (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <div className="flex items-start gap-3">
+              <CreditCard size={20} className="mt-0.5 shrink-0 text-[var(--primary)]" />
+              <div>
+                <h2 className="mb-1 text-sm font-medium">
+                  {locale === 'ru' ? 'Подключите Stripe для приёма выплат' : 'Connect Stripe to receive payouts'}
+                </h2>
+                <p className="text-sm leading-relaxed text-[var(--text2)]">
+                  {locale === 'ru' ? 'EatSense использует Stripe Connect Express. Onboarding занимает 5-10 минут. Платформа удерживает 15% комиссию.' : 'EatSense uses Stripe Connect Express. Onboarding takes 5–10 minutes. The platform fee is 15%.'}
+                </p>
+                <button onClick={startOnboarding} disabled={redirecting} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {redirecting ? '…' : locale === 'ru' ? 'Подключить Stripe' : 'Connect Stripe'}
+                  <ExternalLink size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
 }
 
-function StatCard({
-  label,
-  value,
-  sublabel,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  sublabel: string;
-  icon: typeof Wallet;
-}) {
+function StatCard({ label, value, sublabel, icon: Icon }: { label: string; value: string; sublabel: string; icon: typeof Wallet }) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <div className="mb-2 flex items-center gap-2 text-xs text-[var(--text2)]">
