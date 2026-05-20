@@ -41,7 +41,10 @@ export default function CameraScreen() {
   // Keep ref in sync with state for gesture callbacks
   useEffect(() => { zoomRef.current = zoomValue; }, [zoomValue]);
 
+  // Gesture Handler v2 runs callbacks on the UI thread by default which crashes
+  // when we touch refs/setState. runOnJS(true) keeps everything on JS thread.
   const pinchGesture = useMemo(() => Gesture.Pinch()
+    .runOnJS(true)
     .onStart(() => {
       baseZoomRef.current = zoomRef.current;
     })

@@ -25,6 +25,9 @@ type MessagesShape = {
   nav: {
     dashboard: string;
     chats: string;
+    clients: string;
+    calendar: string;
+    consultations: string;
     offers: string;
     earnings: string;
     reviews: string;
@@ -151,6 +154,7 @@ type MessagesShape = {
     templateTypicalDayLabel: string;
     templateNextStepsLabel: string;
     templateFollowUpLabel: string;
+    translated: string;
   };
   clients: {
     title: string;
@@ -175,6 +179,13 @@ type MessagesShape = {
     dailyCalories: string;
     preferences: string;
     loadFailed: string;
+    ingredient: string;
+    searchPlaceholder: string;
+    filter_all: string;
+    filter_code: string;
+    filter_manual: string;
+    emptyState: string;
+    noMatches: string;
   };
   offers: {
     title: string;
@@ -259,7 +270,7 @@ type MessagesShape = {
 };
 
 const en: MessagesShape = {
-  nav: { dashboard: 'Dashboard', chats: 'Chats', offers: 'Offers', earnings: 'Earnings', reviews: 'Reviews', profile: 'My Profile', signOut: 'Sign out' },
+  nav: { dashboard: 'Dashboard', chats: 'Chats', clients: 'Clients', calendar: 'Calendar', consultations: 'Bookings', offers: 'Offers', earnings: 'Earnings', reviews: 'Reviews', profile: 'My Profile', signOut: 'Sign out' },
   common: {
     save: 'Save changes', saving: 'Saving...', saved: 'Saved!', cancel: 'Cancel', delete: 'Delete', deleting: 'Deleting...',
     edit: 'Edit', create: 'Create', creating: 'Creating...', loading: 'Loading...', upload: 'Upload', uploading: 'Uploading...',
@@ -323,7 +334,7 @@ const en: MessagesShape = {
     templateNextSteps: 'Great progress! Let\'s discuss the next steps for your plan.',
     templateFollowUp: 'How have you been feeling since our last conversation?',
     templateGreetingLabel: 'Greeting', templateGoalsLabel: 'Goals', templateAllergiesLabel: 'Allergies',
-    templateTypicalDayLabel: 'Typical day', templateNextStepsLabel: 'Next steps', templateFollowUpLabel: 'Follow-up',
+    templateTypicalDayLabel: 'Typical day', templateNextStepsLabel: 'Next steps', templateFollowUpLabel: 'Follow-up', translated: 'Translated',
   },
   clients: {
     title: 'Client Data', backToChat: 'Back to chat',
@@ -333,7 +344,7 @@ const en: MessagesShape = {
     metric: 'Metric', value: 'Value', reference: 'Reference', mealLabel: 'Meal',
     name: 'Name', age: 'Age', height: 'Height', weight: 'Weight', gender: 'Gender', goal: 'Goal',
     dailyCalories: 'Daily Calories Target', preferences: 'Preferences',
-    loadFailed: 'Failed to load client data',
+    loadFailed: 'Failed to load client data', ingredient: 'Ingredient', searchPlaceholder: 'Search by name or email', filter_all: 'All', filter_code: 'By code', filter_manual: 'Manual', emptyState: 'No clients yet. Share your access code to invite people.', noMatches: 'No clients match your filters.',
   },
   offers: {
     title: 'Offers', newOffer: 'New offer', edit: 'Edit offer', create: 'New offer',
@@ -406,7 +417,7 @@ const en: MessagesShape = {
 };
 
 const ru: MessagesShape = {
-  nav: { dashboard: 'Обзор', chats: 'Чаты', offers: 'Услуги', earnings: 'Выплаты', reviews: 'Отзывы', profile: 'Мой профиль', signOut: 'Выйти' },
+  nav: { dashboard: 'Обзор', chats: 'Чаты', clients: 'Клиенты', calendar: 'Календарь', consultations: 'Встречи', offers: 'Услуги', earnings: 'Выплаты', reviews: 'Отзывы', profile: 'Мой профиль', signOut: 'Выйти' },
   common: {
     save: 'Сохранить', saving: 'Сохранение...', saved: 'Сохранено!', cancel: 'Отмена', delete: 'Удалить', deleting: 'Удаление...',
     edit: 'Изменить', create: 'Создать', creating: 'Создание...', loading: 'Загрузка...', upload: 'Загрузить', uploading: 'Загрузка...',
@@ -470,7 +481,7 @@ const ru: MessagesShape = {
     templateNextSteps: 'Отличный прогресс! Давайте обсудим следующие шаги вашего плана.',
     templateFollowUp: 'Как вы себя чувствуете со времени нашего последнего разговора?',
     templateGreetingLabel: 'Приветствие', templateGoalsLabel: 'Цели', templateAllergiesLabel: 'Аллергии',
-    templateTypicalDayLabel: 'Типичный день', templateNextStepsLabel: 'След. шаги', templateFollowUpLabel: 'Follow-up',
+    templateTypicalDayLabel: 'Типичный день', templateNextStepsLabel: 'След. шаги', templateFollowUpLabel: 'Follow-up', translated: 'Переведено',
   },
   clients: {
     title: 'Данные клиента', backToChat: 'Вернуться к чату',
@@ -480,7 +491,7 @@ const ru: MessagesShape = {
     metric: 'Показатель', value: 'Значение', reference: 'Норма', mealLabel: 'Приём пищи',
     name: 'Имя', age: 'Возраст', height: 'Рост', weight: 'Вес', gender: 'Пол', goal: 'Цель',
     dailyCalories: 'Целевая норма калорий', preferences: 'Предпочтения',
-    loadFailed: 'Не удалось загрузить данные клиента',
+    loadFailed: 'Не удалось загрузить данные клиента', ingredient: 'Ингредиент', searchPlaceholder: 'Поиск по имени или email', filter_all: 'Все', filter_code: 'По коду', filter_manual: 'Вручную', emptyState: 'Пока нет клиентов. Поделитесь кодом доступа, чтобы пригласить людей.', noMatches: 'Нет клиентов, соответствующих фильтру.',
   },
   offers: {
     title: 'Услуги', newOffer: 'Новая услуга', edit: 'Редактировать услугу', create: 'Новая услуга',
@@ -553,7 +564,7 @@ const ru: MessagesShape = {
 };
 
 const kk: MessagesShape = {
-  nav: { dashboard: 'Шолу', chats: 'Чаттар', offers: 'Қызметтер', earnings: 'Төлемдер', reviews: 'Пікірлер', profile: 'Менің профилім', signOut: 'Шығу' },
+  nav: { dashboard: 'Шолу', chats: 'Чаттар', clients: 'Клиенттер', calendar: 'Күнтізбе', consultations: 'Кездесулер', offers: 'Қызметтер', earnings: 'Төлемдер', reviews: 'Пікірлер', profile: 'Менің профилім', signOut: 'Шығу' },
   common: {
     save: 'Сақтау', saving: 'Сақталуда...', saved: 'Сақталды!', cancel: 'Бас тарту', delete: 'Жою', deleting: 'Жойылуда...',
     edit: 'Өзгерту', create: 'Жасау', creating: 'Жасалуда...', loading: 'Жүктелуде...', upload: 'Жүктеу', uploading: 'Жүктелуде...',
@@ -617,7 +628,7 @@ const kk: MessagesShape = {
     templateNextSteps: 'Керемет жетістік! Жоспарыңыздың келесі қадамдарын талқылайық.',
     templateFollowUp: 'Соңғы әңгімемізден бері қалай сезініп жүрсіз?',
     templateGreetingLabel: 'Сәлемдесу', templateGoalsLabel: 'Мақсаттар', templateAllergiesLabel: 'Аллергиялар',
-    templateTypicalDayLabel: 'Әдеттегі күн', templateNextStepsLabel: 'Келесі қадамдар', templateFollowUpLabel: 'Follow-up',
+    templateTypicalDayLabel: 'Әдеттегі күн', templateNextStepsLabel: 'Келесі қадамдар', templateFollowUpLabel: 'Follow-up', translated: 'Аударылды',
   },
   clients: {
     title: 'Клиент деректері', backToChat: 'Чатқа оралу',
@@ -627,7 +638,7 @@ const kk: MessagesShape = {
     metric: 'Көрсеткіш', value: 'Мән', reference: 'Норма', mealLabel: 'Тамақ',
     name: 'Аты', age: 'Жасы', height: 'Бойы', weight: 'Салмағы', gender: 'Жынысы', goal: 'Мақсаты',
     dailyCalories: 'Күнделікті калория мақсаты', preferences: 'Қалаулар',
-    loadFailed: 'Клиент деректерін жүктеу мүмкін болмады',
+    loadFailed: 'Клиент деректерін жүктеу мүмкін болмады', ingredient: 'Ингредиент', searchPlaceholder: 'Аты немесе email бойынша іздеу', filter_all: 'Барлығы', filter_code: 'Код бойынша', filter_manual: 'Қолмен', emptyState: 'Әзірге клиент жоқ. Адамдарды шақыру үшін кодыңызбен бөлісіңіз.', noMatches: 'Сүзгіге сәйкес клиент жоқ.',
   },
   offers: {
     title: 'Қызметтер', newOffer: 'Жаңа қызмет', edit: 'Қызметті өзгерту', create: 'Жаңа қызмет',
@@ -700,7 +711,7 @@ const kk: MessagesShape = {
 };
 
 const de: MessagesShape = {
-  nav: { dashboard: 'Übersicht', chats: 'Chats', offers: 'Angebote', earnings: 'Einnahmen', reviews: 'Bewertungen', profile: 'Mein Profil', signOut: 'Abmelden' },
+  nav: { dashboard: 'Übersicht', chats: 'Chats', clients: 'Klienten', calendar: 'Kalender', consultations: 'Termine', offers: 'Angebote', earnings: 'Einnahmen', reviews: 'Bewertungen', profile: 'Mein Profil', signOut: 'Abmelden' },
   common: {
     save: 'Änderungen speichern', saving: 'Speichern...', saved: 'Gespeichert!', cancel: 'Abbrechen', delete: 'Löschen', deleting: 'Löschen...',
     edit: 'Bearbeiten', create: 'Erstellen', creating: 'Erstellen...', loading: 'Laden...', upload: 'Hochladen', uploading: 'Hochladen...',
@@ -764,7 +775,7 @@ const de: MessagesShape = {
     templateNextSteps: 'Tolle Fortschritte! Lassen Sie uns die nächsten Schritte für Ihren Plan besprechen.',
     templateFollowUp: 'Wie haben Sie sich seit unserem letzten Gespräch gefühlt?',
     templateGreetingLabel: 'Begrüßung', templateGoalsLabel: 'Ziele', templateAllergiesLabel: 'Allergien',
-    templateTypicalDayLabel: 'Typischer Tag', templateNextStepsLabel: 'Nächste Schritte', templateFollowUpLabel: 'Follow-up',
+    templateTypicalDayLabel: 'Typischer Tag', templateNextStepsLabel: 'Nächste Schritte', templateFollowUpLabel: 'Follow-up', translated: 'Übersetzt',
   },
   clients: {
     title: 'Kundendaten', backToChat: 'Zurück zum Chat',
@@ -774,7 +785,7 @@ const de: MessagesShape = {
     metric: 'Kennzahl', value: 'Wert', reference: 'Referenz', mealLabel: 'Mahlzeit',
     name: 'Name', age: 'Alter', height: 'Größe', weight: 'Gewicht', gender: 'Geschlecht', goal: 'Ziel',
     dailyCalories: 'Tägliches Kalorienziel', preferences: 'Vorlieben',
-    loadFailed: 'Kundendaten konnten nicht geladen werden',
+    loadFailed: 'Kundendaten konnten nicht geladen werden', ingredient: 'Zutat', searchPlaceholder: 'Nach Name oder E-Mail suchen', filter_all: 'Alle', filter_code: 'Per Code', filter_manual: 'Manuell', emptyState: 'Noch keine Klienten. Teilen Sie Ihren Zugangscode, um Personen einzuladen.', noMatches: 'Keine Klienten entsprechen den Filtern.',
   },
   offers: {
     title: 'Angebote', newOffer: 'Neues Angebot', edit: 'Angebot bearbeiten', create: 'Neues Angebot',
@@ -847,7 +858,7 @@ const de: MessagesShape = {
 };
 
 const fr: MessagesShape = {
-  nav: { dashboard: 'Tableau de bord', chats: 'Messages', offers: 'Offres', earnings: 'Revenus', reviews: 'Avis', profile: 'Mon Profil', signOut: 'Se déconnecter' },
+  nav: { dashboard: 'Tableau de bord', chats: 'Messages', clients: 'Clients', calendar: 'Calendrier', consultations: 'Rendez-vous', offers: 'Offres', earnings: 'Revenus', reviews: 'Avis', profile: 'Mon Profil', signOut: 'Se déconnecter' },
   common: {
     save: 'Enregistrer', saving: 'Enregistrement...', saved: 'Enregistré !', cancel: 'Annuler', delete: 'Supprimer', deleting: 'Suppression...',
     edit: 'Modifier', create: 'Créer', creating: 'Création...', loading: 'Chargement...', upload: 'Téléverser', uploading: 'Téléversement...',
@@ -911,7 +922,7 @@ const fr: MessagesShape = {
     templateNextSteps: 'Excellents progrès ! Discutons des prochaines étapes de votre plan.',
     templateFollowUp: 'Comment vous sentez-vous depuis notre dernière conversation ?',
     templateGreetingLabel: 'Salutation', templateGoalsLabel: 'Objectifs', templateAllergiesLabel: 'Allergies',
-    templateTypicalDayLabel: 'Journée type', templateNextStepsLabel: 'Étapes suivantes', templateFollowUpLabel: 'Suivi',
+    templateTypicalDayLabel: 'Journée type', templateNextStepsLabel: 'Étapes suivantes', templateFollowUpLabel: 'Suivi', translated: 'Traduit',
   },
   clients: {
     title: 'Données du client', backToChat: 'Retour au chat',
@@ -921,7 +932,7 @@ const fr: MessagesShape = {
     metric: 'Paramètre', value: 'Valeur', reference: 'Référence', mealLabel: 'Repas',
     name: 'Nom', age: 'Âge', height: 'Taille', weight: 'Poids', gender: 'Sexe', goal: 'Objectif',
     dailyCalories: 'Objectif calorique journalier', preferences: 'Préférences',
-    loadFailed: 'Échec du chargement des données client',
+    loadFailed: 'Échec du chargement des données client', ingredient: 'Ingrédient', searchPlaceholder: 'Rechercher par nom ou e-mail', filter_all: 'Tous', filter_code: 'Par code', filter_manual: 'Manuel', emptyState: "Aucun client pour le moment. Partagez votre code d'accès pour inviter des personnes.", noMatches: 'Aucun client ne correspond aux filtres.',
   },
   offers: {
     title: 'Offres', newOffer: 'Nouvelle offre', edit: 'Modifier l\'offre', create: 'Nouvelle offre',
@@ -994,7 +1005,7 @@ const fr: MessagesShape = {
 };
 
 const es: MessagesShape = {
-  nav: { dashboard: 'Panel', chats: 'Chats', offers: 'Servicios', earnings: 'Ingresos', reviews: 'Reseñas', profile: 'Mi Perfil', signOut: 'Cerrar sesión' },
+  nav: { dashboard: 'Panel', chats: 'Chats', clients: 'Clientes', calendar: 'Calendario', consultations: 'Citas', offers: 'Servicios', earnings: 'Ingresos', reviews: 'Reseñas', profile: 'Mi Perfil', signOut: 'Cerrar sesión' },
   common: {
     save: 'Guardar cambios', saving: 'Guardando...', saved: '¡Guardado!', cancel: 'Cancelar', delete: 'Eliminar', deleting: 'Eliminando...',
     edit: 'Editar', create: 'Crear', creating: 'Creando...', loading: 'Cargando...', upload: 'Subir', uploading: 'Subiendo...',
@@ -1058,7 +1069,7 @@ const es: MessagesShape = {
     templateNextSteps: '¡Excelente progreso! Hablemos de los próximos pasos de tu plan.',
     templateFollowUp: '¿Cómo te has sentido desde nuestra última conversación?',
     templateGreetingLabel: 'Saludo', templateGoalsLabel: 'Objetivos', templateAllergiesLabel: 'Alergias',
-    templateTypicalDayLabel: 'Día típico', templateNextStepsLabel: 'Próximos pasos', templateFollowUpLabel: 'Seguimiento',
+    templateTypicalDayLabel: 'Día típico', templateNextStepsLabel: 'Próximos pasos', templateFollowUpLabel: 'Seguimiento', translated: 'Traducido',
   },
   clients: {
     title: 'Datos del cliente', backToChat: 'Volver al chat',
@@ -1068,7 +1079,7 @@ const es: MessagesShape = {
     metric: 'Indicador', value: 'Valor', reference: 'Referencia', mealLabel: 'Comida',
     name: 'Nombre', age: 'Edad', height: 'Altura', weight: 'Peso', gender: 'Género', goal: 'Objetivo',
     dailyCalories: 'Objetivo calórico diario', preferences: 'Preferencias',
-    loadFailed: 'No se pudieron cargar los datos del cliente',
+    loadFailed: 'No se pudieron cargar los datos del cliente', ingredient: 'Ingrediente', searchPlaceholder: 'Buscar por nombre o correo', filter_all: 'Todos', filter_code: 'Por código', filter_manual: 'Manual', emptyState: 'Aún no hay clientes. Comparte tu código de acceso para invitar personas.', noMatches: 'Ningún cliente coincide con los filtros.',
   },
   offers: {
     title: 'Servicios', newOffer: 'Nuevo servicio', edit: 'Editar servicio', create: 'Nuevo servicio',

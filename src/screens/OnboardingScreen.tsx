@@ -1386,9 +1386,6 @@ const OnboardingScreen = () => {
     const genders = [
       { id: 'male', label: t('onboarding.genders.male'), icon: '♂' },
       { id: 'female', label: t('onboarding.genders.female'), icon: '♀' },
-      { id: 'non_binary', label: t('onboarding.genders.nonBinary', 'Non-binary'), icon: '⚧' },
-      { id: 'prefer_not_to_say', label: t('onboarding.genders.preferNotToSay', 'Prefer not to say'), icon: '○' },
-      { id: 'other', label: t('onboarding.genders.other', 'Other'), icon: '○' },
     ];
 
     return (
@@ -2380,9 +2377,10 @@ const OnboardingScreen = () => {
               console.warn('Push token error', e);
             }
 
-            // Schedule default reminders
-            const { localNotificationService } = require('../services/localNotificationService');
-            localNotificationService.scheduleMealReminders(3).catch(() => { });
+            // Push permission granted, but meal reminders are now opt-in only
+            // (user enables them explicitly in Profile → Notifications).
+            // Previously this auto-scheduled 3x/day reminders at 9/13/19 which
+            // users couldn't easily turn off — caused spam complaints 2026-05-20.
           }
         } catch (e) {
           console.warn('Notification permission error', e);
@@ -2478,12 +2476,19 @@ const OnboardingScreen = () => {
             console.warn('[Onboarding] Failed to get push token:', tokenError);
           }
 
-          // Update profile data with notification preference
+          // Meal reminders are opt-in: permission grant just enables push token,
+          // but daily reminders stay OFF until the user toggles them in Profile.
+          // Cancel any leftover scheduled reminders (e.g. orphaned from old builds).
+          try {
+            const { localNotificationService } = require('../services/localNotificationService');
+            await localNotificationService.cancelNotificationsByCategory('meal_reminder');
+          } catch {}
+
           setProfileData(prev => ({
             ...prev,
             preferences: {
               ...prev.preferences,
-              dailyPushEnabled: true,
+              dailyPushEnabled: false,
               dailyPushHour: 9,
               dailyPushMinute: 0,
               timezone: Localization.getCalendars()[0]?.timeZone || Localization.timezone || 'UTC',
@@ -2498,15 +2503,6 @@ const OnboardingScreen = () => {
             } catch (saveError) {
               console.warn('[Onboarding] Failed to save push token:', saveError);
             }
-          }
-
-          // Schedule automatic meal reminders (3 times a day)
-          try {
-            const { localNotificationService } = require('../services/localNotificationService');
-            await localNotificationService.scheduleMealReminders(3);
-            console.log('[Onboarding] Scheduled 3 daily meal reminders');
-          } catch (scheduleError) {
-            console.warn('[Onboarding] Failed to schedule meal reminders:', scheduleError);
           }
 
           clientLog('Onboarding:notificationsEnabled', { hasPushToken: !!pushToken });

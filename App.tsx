@@ -125,6 +125,27 @@ function AppContent() {
     }).catch(() => { });
   }, [isAuthenticated, needsOnboarding, user?.id]);
 
+  // One-shot cleanup of orphaned meal-reminder notifications at app start.
+  // Users complained about spam at 9/13/19 even with the toggle off — old
+  // builds scheduled them automatically. Sync schedule with server preference.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const ApiService = require('./src/services/apiService').default;
+        const { localNotificationService } = require('./src/services/localNotificationService');
+        const prefs = await ApiService.getNotificationPreferences().catch(() => null);
+        if (cancelled) return;
+        const enabled = !!prefs?.dailyPushEnabled;
+        if (!enabled) {
+          await localNotificationService.cancelNotificationsByCategory('meal_reminder');
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, user?.id]);
+
   // Show loading/splash while checking auth
   if (loading) {
     return <EmptySplash />;

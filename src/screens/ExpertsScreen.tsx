@@ -66,6 +66,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const [codeInput, setCodeInput] = useState('');
     const [applyingCode, setApplyingCode] = useState(false);
     const [mySpecialists, setMySpecialists] = useState<any[]>([]);
+    const [scheduledConsultations, setScheduledConsultations] = useState<any[]>([]);
 
     // Debounce search
     useEffect(() => {
@@ -389,17 +390,21 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         </>
     );
 
-    const [scheduledConsultations, setScheduledConsultations] = React.useState<any[]>([]);
     const refreshScheduled = useCallback(() => {
-        ApiService.request('/consultations/me?role=client').then((data: any[]) => {
+        ApiService.request('/consultations/me?role=client').then((data: any) => {
             if (Array.isArray(data)) {
                 const now = Date.now();
                 setScheduledConsultations(
                     data.filter((c) => new Date(c.endAt).getTime() > now && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c.status))
                         .slice(0, 5),
                 );
+            } else {
+                setScheduledConsultations([]);
             }
-        }).catch(() => {});
+        }).catch((err) => {
+            console.warn('[ExpertsScreen] consultations load failed:', err?.message || err);
+            setScheduledConsultations([]);
+        });
     }, []);
     useFocusEffect(useCallback(() => { refreshScheduled(); }, [refreshScheduled]));
 

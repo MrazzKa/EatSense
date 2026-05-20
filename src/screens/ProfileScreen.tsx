@@ -599,6 +599,12 @@ const ProfileScreen = () => {
         // Respect user's explicit choice — do NOT auto-enable
         const shouldBeEnabled = hasPermission && !!prefs.dailyPushEnabled;
 
+        // If user has push disabled (or no permission), cancel any leftover
+        // local meal reminders. Fixes orphaned 9/13/19 spam from old builds.
+        if (!shouldBeEnabled) {
+          try { await localNotificationService.cancelNotificationsByCategory('meal_reminder'); } catch {}
+        }
+
         setNotificationPreferences({
           dailyPushEnabled: shouldBeEnabled,
           dailyPushHour: typeof prefs.dailyPushHour === 'number' ? prefs.dailyPushHour : 8,
