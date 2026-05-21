@@ -74,7 +74,12 @@ export default function ChatsPage() {
   async function loadConversations() {
     try {
       const data = await apiFetch('/conversations');
-      const list = data?.asExpert || data || [];
+      // Backend returns { asExpert, asClient } for experts, or raw array for clients.
+      const list = Array.isArray(data?.asExpert)
+        ? data.asExpert
+        : Array.isArray(data)
+          ? data
+          : [];
       setConversations(list);
     } catch (err) {
       console.error('Failed to load conversations:', err);

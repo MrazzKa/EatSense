@@ -56,7 +56,7 @@ export default function ReviewsPage() {
     (async () => {
       try {
         const data = await apiFetch<Review[]>('/experts/me/reviews');
-        setReviews(data);
+        setReviews(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to load reviews:', err);
       } finally {

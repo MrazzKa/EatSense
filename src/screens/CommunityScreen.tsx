@@ -69,7 +69,8 @@ export default function CommunityScreen() {
   const loadFeed = useCallback(async () => {
     try {
       const data = await ApiService.getCommunityFeed();
-      setPosts(data?.data || data || []);
+      const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      setPosts(list);
     } catch (err) {
       console.warn('Failed to load community feed:', err);
     }
@@ -119,7 +120,8 @@ export default function CommunityScreen() {
         // ignore — fall back to global best places
       }
       const data = await ApiService.getBestPlaces(1, 50, undefined, city);
-      setBestPlaces(data?.data || data || []);
+      const places = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      setBestPlaces(places);
     } catch (err) {
       console.warn('Failed to load best places:', err);
     }

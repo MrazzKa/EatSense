@@ -52,9 +52,9 @@ export default function CalendarPage() {
   useEffect(() => {
     apiFetch('/experts/me/availability')
       .then((data) => {
-        setRules(data.rules || []);
-        setExceptions(data.exceptions || []);
-        setTimezone(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+        setRules(Array.isArray(data?.rules) ? data.rules : []);
+        setExceptions(Array.isArray(data?.exceptions) ? data.exceptions : []);
+        setTimezone(data?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
@@ -91,7 +91,7 @@ export default function CalendarPage() {
         method: 'POST',
         body: JSON.stringify({ timezone, rules: rules.map((r) => ({ weekday: r.weekday, startMinute: r.startMinute, endMinute: r.endMinute, isActive: r.isActive !== false })) }),
       });
-      setRules(res.rules || []);
+      setRules(Array.isArray(res?.rules) ? res.rules : []);
     } catch (e) {
       alert((e as any)?.message || 'Save failed');
     } finally {

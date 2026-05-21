@@ -82,11 +82,20 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
             if (filterLang) filters.language = filterLang;
 
             const result = await MarketplaceService.getExperts(filters);
-            const list = result?.experts || result || [];
-            const count = result?.total ?? list.length;
+            // Be paranoid about response shape — anything non-array would crash
+            // the spread below ("iterator method is not callable" on iOS).
+            const list: any[] = Array.isArray(result?.experts)
+                ? result.experts
+                : Array.isArray(result)
+                    ? result
+                    : [];
+            const count = typeof result?.total === 'number' ? result.total : list.length;
 
             if (append) {
-                setExperts(prev => [...prev, ...list]);
+                setExperts(prev => {
+                    const safePrev = Array.isArray(prev) ? prev : [];
+                    return [...safePrev, ...list];
+                });
             } else {
                 setExperts(list);
             }
@@ -105,7 +114,13 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const loadMySpecialists = useCallback(async () => {
         try {
             const result = await MarketplaceService.getMySpecialists();
-            setMySpecialists(Array.isArray(result) ? result : []);
+            // Some endpoints wrap the array in { items: [...] }; tolerate both shapes.
+            const arr = Array.isArray(result)
+                ? result
+                : Array.isArray((result as any)?.items)
+                    ? (result as any).items
+                    : [];
+            setMySpecialists(arr);
         } catch (err) {
             console.warn('[ExpertsScreen] Failed to load linked specialists:', err);
             setMySpecialists([]);
@@ -400,15 +415,17 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         refreshScheduledRef.current = token;
         ApiService.request('/consultations/me?role=client').then((data: any) => {
             if (token.cancelled) return;
-            if (Array.isArray(data)) {
-                const now = Date.now();
-                setScheduledConsultations(
-                    data.filter((c) => c?.endAt && new Date(c.endAt).getTime() > now && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c.status))
-                        .slice(0, 5),
-                );
-            } else {
-                setScheduledConsultations([]);
-            }
+            // Tolerate { items: [...] } shape in addition to raw array.
+            const list = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.items)
+                    ? data.items
+                    : [];
+            const now = Date.now();
+            setScheduledConsultations(
+                list.filter((c: any) => c?.endAt && new Date(c.endAt).getTime() > now && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c?.status))
+                    .slice(0, 5),
+            );
         }).catch((err) => {
             if (token.cancelled) return;
             console.warn('[ExpertsScreen] consultations load failed:', err?.message || err);

@@ -44,9 +44,13 @@ export default function DashboardPage() {
 
         setProfile(profileData);
 
-        const conversations = conversationsData?.asExpert || conversationsData || [];
-        const active = conversations.filter((c: any) => c.status === 'active');
-        const unread = conversations.reduce((sum: number, c: any) => sum + (c._count?.messages || 0), 0);
+        const conversations = Array.isArray(conversationsData?.asExpert)
+          ? conversationsData.asExpert
+          : Array.isArray(conversationsData)
+            ? conversationsData
+            : [];
+        const active = conversations.filter((c: any) => c?.status === 'active');
+        const unread = conversations.reduce((sum: number, c: any) => sum + (c?._count?.messages || 0), 0);
 
         setStats({
           activeChats: active.length,

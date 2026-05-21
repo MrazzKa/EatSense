@@ -828,7 +828,7 @@
       try {
         const qs = currentPostType ? '?type=' + encodeURIComponent(currentPostType) : '';
         const data = await fetchAPI('/community/admin/pending' + qs);
-        const items = (data && data.data) ? data.data : [];
+        const items = asArr(data && data.data ? data.data : data);
         document.getElementById('posts-stats').textContent = (data?.total || 0) + ' pending';
         if (items.length === 0) {
           list.innerHTML = '<div class="loading">No pending posts.</div>';
@@ -892,6 +892,19 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    // Coerce any API result into an array. Survives backend returning null,
+    // an object wrapper, or unexpected shape — without breaking .map()/.filter() below.
+    function asArr(x) {
+      if (Array.isArray(x)) return x;
+      if (x && Array.isArray(x.data)) return x.data;
+      if (x && Array.isArray(x.items)) return x.items;
+      if (x && Array.isArray(x.experts)) return x.experts;
+      if (x && Array.isArray(x.reviews)) return x.reviews;
+      if (x && Array.isArray(x.reports)) return x.reports;
+      if (x && Array.isArray(x.suggestions)) return x.suggestions;
+      return [];
+    }
+
     // ===== SUGGESTIONS =====
     async function loadSuggestions() {
       try {
@@ -903,6 +916,7 @@
     }
 
     function renderSuggestions(suggestions) {
+      suggestions = asArr(suggestions);
       const stats = document.getElementById('suggestions-stats');
       const list = document.getElementById('suggestions-list');
 
@@ -985,6 +999,7 @@
     }
 
     function renderReports(reports) {
+      reports = asArr(reports);
       const stats = document.getElementById('reports-stats');
       const list = document.getElementById('reports-list');
 
@@ -1104,6 +1119,7 @@
     }
 
     function renderReviews(reviews) {
+      reviews = asArr(reviews);
       const stats = document.getElementById('reviews-stats');
       const list = document.getElementById('reviews-list');
 
@@ -1188,6 +1204,7 @@
     }
 
     function renderExperts(experts) {
+      experts = asArr(experts);
       const stats = document.getElementById('experts-stats');
       const list = document.getElementById('experts-list');
 
@@ -1227,7 +1244,7 @@
         const email = expert.user?.email || '';
         const credCount = expert.credentials?.length || 0;
         const pendingCreds = (expert.credentials || []).filter(c => c.status === 'pending').length;
-        const offers = expert.offers || [];
+        const offers = asArr(expert.offers);
 
         return `
           <div class="card">
@@ -1253,7 +1270,7 @@
               </p>
               ${credCount > 0 ? `
                 <div style="margin-top:8px">
-                  ${expert.credentials.map(c => `
+                  ${asArr(expert.credentials).map(c => `
                     <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
                       <span style="font-size:13px">${escapeHtml(c.name)}</span>
                       <span class="badge ${c.status === 'approved' ? 'badge-green' : c.status === 'pending' ? 'badge-yellow' : 'badge-red'}">${c.status}</span>
@@ -1283,7 +1300,7 @@
                 </div>
                 ${(expert.educationEntries || []).length > 0 ? `
                   <div style="margin-bottom:8px"><strong>Education (${expert.educationEntries.length}):</strong></div>
-                  ${expert.educationEntries.map(e => `
+                  ${asArr(expert.educationEntries).map(e => `
                     <div style="padding:6px 0;border-bottom:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
                       <div>
                         <div>${escapeHtml(e.degree)} · ${escapeHtml(e.institution)}${e.year ? ` (${escapeHtml(e.year)})` : ''}</div>
@@ -1302,7 +1319,7 @@
                 ${expert.contactPolicy ? `<div style="margin-bottom:6px"><strong>Contact policy:</strong> ${escapeHtml(expert.contactPolicy)}</div>` : ''}
                 ${(expert.credentials || []).length > 0 ? `
                   <div style="margin-top:8px"><strong>Credentials (${expert.credentials.length}):</strong></div>
-                  ${expert.credentials.map((c, i) => {
+                  ${asArr(expert.credentials).map((c, i) => {
                     const isImage = c.fileType && /^image\//i.test(c.fileType);
                     const isPdf = c.fileType && /pdf/i.test(c.fileType);
                     const previewId = `cred-preview-${expert.id}-${i}`;
@@ -1326,7 +1343,7 @@
                 ` : '<div style="color:var(--red);margin-top:8px">⚠️ No credentials uploaded — verify before approving.</div>'}
                 ${offers.length > 0 ? `
                   <div style="margin-top:8px"><strong>Offers (${offers.length}):</strong></div>
-                  ${offers.map(o => {
+                  ${asArr(offers).map(o => {
                     const nameMap = o.name || {};
                     const firstName = nameMap.en || nameMap.ru || Object.values(nameMap)[0] || '—';
                     const priceLabel = o.priceType === 'FREE' ? 'Free' : `${o.currency || '$'}${o.priceAmount ?? '—'}`;
@@ -1456,7 +1473,7 @@
         const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
         const edu = expert.educationEntries || [];
         const creds = expert.credentials || [];
-        const offers = expert.offers || [];
+        const offers = asArr(expert.offers);
         const user = expert.user || {};
         const name = [user?.userProfile?.firstName, user?.userProfile?.lastName].filter(Boolean).join(' ') || '';
         const created = expert.createdAt ? new Date(expert.createdAt).toLocaleString() : '';

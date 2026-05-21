@@ -35,7 +35,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
       const res = await ApiService.request(
         `/experts/${expertId}/availability/slots?from=${from.toISOString()}&to=${to.toISOString()}&duration=${duration}`,
       );
-      setSlots(res?.slots || []);
+      setSlots(Array.isArray(res?.slots) ? res.slots : []);
     } catch (err: any) {
       Alert.alert(t('common.error') || 'Error', err?.message || t('experts.noSlots') || 'Failed to load slots');
     } finally {

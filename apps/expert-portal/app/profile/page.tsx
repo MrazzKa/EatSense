@@ -57,8 +57,8 @@ export default function ProfilePage() {
     setBio(p.bio || '');
     setEducation(p.education || '');
     setExperienceYears(p.experienceYears || 0);
-    setSpecializations(p.specializations || []);
-    setLanguages(p.languages || []);
+    setSpecializations(Array.isArray(p.specializations) ? p.specializations : []);
+    setLanguages(Array.isArray(p.languages) ? p.languages : []);
   }, []);
 
   useEffect(() => {

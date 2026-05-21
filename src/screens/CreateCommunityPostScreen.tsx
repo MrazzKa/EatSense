@@ -80,7 +80,11 @@ export default function CreateCommunityPostScreen() {
     const loadGroups = async () => {
       try {
         const data = await ApiService.getCommunityGroups();
-        const allGroups = Array.isArray(data) ? data : data?.data || [];
+        const allGroups = Array.isArray(data)
+          ? data
+          : Array.isArray((data as any)?.data)
+            ? (data as any).data
+            : [];
         // Show only groups user is a member of
         const myGroups = allGroups.filter((g: any) => g.isMember);
         setGroups(myGroups);

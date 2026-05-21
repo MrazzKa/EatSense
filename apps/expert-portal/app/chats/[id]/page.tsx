@@ -114,7 +114,11 @@ export default function ChatPage() {
     try {
       const msgs = await apiFetch(`/messages/conversation/${convId}`);
       if (!isMountedRef.current) return;
-      const list = Array.isArray(msgs) ? msgs : msgs?.messages || [];
+      const list = Array.isArray(msgs)
+        ? msgs
+        : Array.isArray(msgs?.messages)
+          ? msgs.messages
+          : [];
       const lastId = list[list.length - 1]?.id || '';
 
       if (lastId !== lastMessageIdRef.current) {

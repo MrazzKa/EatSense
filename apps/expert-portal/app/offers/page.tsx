@@ -77,7 +77,7 @@ export default function OffersPage() {
   const load = useCallback(async () => {
     try {
       const data = await apiFetch<Offer[]>('/experts/me/offers');
-      setOffers(data);
+      setOffers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load offers:', err);
     } finally {

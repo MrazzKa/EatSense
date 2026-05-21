@@ -322,10 +322,10 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 )}
 
                 {/* Education — prefer structured educationEntries, fall back to legacy string */}
-                {(expert.educationEntries?.length > 0 || expert.education) && (
+                {(Array.isArray(expert.educationEntries) && expert.educationEntries.length > 0 || expert.education) && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.education') || 'Education'}</Text>
-                        {expert.educationEntries?.length > 0 ? (
+                        {Array.isArray(expert.educationEntries) && expert.educationEntries.length > 0 ? (
                             expert.educationEntries.map((entry: any) => (
                                 <View key={entry.id} style={styles.educationItem}>
                                     <Ionicons name="school-outline" size={18} color={colors.primary || '#4CAF50'} />
@@ -356,7 +356,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 )}
 
                 {/* Specializations */}
-                {expert.specializations?.length > 0 && (
+                {Array.isArray(expert.specializations) && expert.specializations.length > 0 && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.specializations') || 'Specializations'}</Text>
                         <View style={styles.chipsContainer}>
@@ -372,7 +372,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 )}
 
                 {/* Languages */}
-                {expert.languages?.length > 0 && (
+                {Array.isArray(expert.languages) && expert.languages.length > 0 && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.languages') || 'Languages'}</Text>
                         <View style={styles.chipsContainer}>
@@ -388,7 +388,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 )}
 
                 {/* Credentials */}
-                {expert.credentials?.length > 0 && (
+                {Array.isArray(expert.credentials) && expert.credentials.length > 0 && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.credentials') || 'Credentials'}</Text>
                         {expert.credentials.map((cred) => (
@@ -406,7 +406,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 )}
 
                 {/* Offers */}
-                {expert.offers?.length > 0 && (
+                {Array.isArray(expert.offers) && expert.offers.length > 0 && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>{t('experts.services') || 'Services'}</Text>
                         {expert.offers.map((offer) => {
@@ -456,7 +456,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
                 )}
 
                 {/* Reviews */}
-                {expert.reviews?.length > 0 && (
+                {Array.isArray(expert.reviews) && expert.reviews.length > 0 && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>
                             {t('experts.reviews') || 'Reviews'} ({expert.reviewCount || expert.reviews.length})
