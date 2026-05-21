@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from './notifications.service';
+import { pickNextCategory, pickTip, SmartTipCategory } from './smart-tips';
 
 // Server-side notification translations
 const DAILY_REMINDER_TRANSLATIONS: Record<string, { title: string; body: string }> = {
@@ -184,6 +185,68 @@ export class NotificationsScheduler {
   async handleDailyReminders() {
     // Disabled — local notifications handle this
     return;
+  }
+
+  /**
+   * Smart tips: opt-in 1 push/day in the user's chosen hour (local tz), with
+   * a rotating tip drawn from their declared health issues. Runs every 15 min
+   * to cover all timezones; per-user dedup via smartTipsLastSentAt (UTC date).
+   */
+  @Cron('0 */15 * * * *')
+  async smartTipsTick() {
+    const nowUtc = DateTime.utc();
+    try {
+      const prefs = await this.prisma.notificationPreference.findMany({
+        where: {
+          smartTipsEnabled: true,
+          dailyPushEnabled: true, // honor master opt-in toggle
+        },
+        take: 1000,
+      });
+      for (const p of prefs) {
+        try {
+          const issues = (p as any).healthIssues as string[] | undefined;
+          if (!issues || issues.length === 0) continue;
+
+          // Skip if already sent within last 20 hours (covers DST jitter).
+          const lastSent = (p as any).smartTipsLastSentAt as Date | null;
+          if (lastSent && nowUtc.diff(DateTime.fromJSDate(lastSent), 'hours').hours < 20) continue;
+
+          const tz = p.timezone || 'UTC';
+          const local = nowUtc.setZone(tz);
+          if (!local.isValid) continue;
+
+          const targetHour = (p as any).smartTipsHour ?? 20;
+          // Tick fires every 15min; allow the window [targetHour:00 .. targetHour:14].
+          if (local.hour !== targetHour || local.minute >= 15) continue;
+
+          const lastCategory = (p as any).smartTipsLastCategory as string | null;
+          const category = pickNextCategory(issues, lastCategory);
+          if (!category) continue;
+
+          const locale = await this.getUserLanguage(p.userId);
+          const tip = pickTip(category, locale, p.userId);
+
+          await this.notificationsService.sendPushNotification(
+            p.userId,
+            tip.title,
+            tip.body,
+            { type: 'smart_tip', category },
+          );
+          await this.prisma.notificationPreference.update({
+            where: { id: p.id },
+            data: {
+              smartTipsLastSentAt: nowUtc.toJSDate(),
+              smartTipsLastCategory: category,
+            } as any,
+          });
+        } catch (perUserErr: any) {
+          this.logger.warn(`[smartTipsTick] user=${p.userId} failed: ${perUserErr?.message}`);
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`[smartTipsTick] failed: ${e?.message}`);
+    }
   }
 }
 

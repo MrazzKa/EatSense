@@ -13,10 +13,13 @@ import {
     Logger,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import * as crypto from 'crypto';
+import { AdminCreateExpertDto, AdminUpdateNotesDto } from './dto/experts.dto';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ExpertsService } from './experts.service';
 import { MediaService } from '../../media/media.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Controller('admin/experts')
 export class ExpertsAdminController {
@@ -27,11 +30,16 @@ export class ExpertsAdminController {
         private notifications: NotificationsService,
         private expertsService: ExpertsService,
         private media: MediaService,
+        private auth: AuthService,
     ) {}
 
     private validateAdmin(adminSecret: string) {
         const expectedSecret = process.env.ADMIN_SECRET;
-        if (!expectedSecret || adminSecret !== expectedSecret) {
+        if (!expectedSecret) throw new UnauthorizedException('Invalid admin credentials');
+        const a = Buffer.from(String(adminSecret || ''));
+        const b = Buffer.from(expectedSecret);
+        // Equal lengths required for timingSafeEqual; fail fast but uniformly.
+        if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
             throw new UnauthorizedException('Invalid admin credentials');
         }
     }
@@ -299,9 +307,10 @@ export class ExpertsAdminController {
         });
         await this.writeAudit('reject_expert', 'expert', id, { reason: body.reason ?? null }, req);
 
-        // Reject all pending credentials
+        // Reject all credentials that aren't already rejected — including those
+        // auto-approved by manual creation. Expert is rejected, so no docs are valid.
         await this.prisma.expertCredential.updateMany({
-            where: { expertId: id, status: 'pending' },
+            where: { expertId: id, status: { in: ['pending', 'approved'] } },
             data: { status: 'rejected' },
         });
 
@@ -392,7 +401,7 @@ export class ExpertsAdminController {
     async updateNotes(
         @Headers('x-admin-secret') adminSecret: string,
         @Param('id') id: string,
-        @Body() body: { notes: string },
+        @Body() body: AdminUpdateNotesDto,
         @Req() req: Request,
     ) {
         this.validateAdmin(adminSecret);
@@ -407,7 +416,7 @@ export class ExpertsAdminController {
     @Post()
     async createExpertManually(
         @Headers('x-admin-secret') adminSecret: string,
-        @Body() body: any,
+        @Body() body: AdminCreateExpertDto & { credentials?: any[]; educationEntries?: any[] },
         @Req() req: Request,
     ) {
         this.validateAdmin(adminSecret);
@@ -554,6 +563,12 @@ export class ExpertsAdminController {
                 }
                 // Strip data URL prefix if present.
                 const b64 = cred.base64.replace(/^data:[^;]+;base64,/, '');
+                // Pre-decode size check (each base64 char ≈ 0.75 bytes). 20MB
+                // encoded ≈ 15MB decoded — reject before allocating Buffer.
+                if (b64.length > 20 * 1024 * 1024) {
+                    this.logger.warn(`Skipping credential — base64 payload >20MB: ${cred.name}`);
+                    continue;
+                }
                 const buf = Buffer.from(b64, 'base64');
                 if (buf.length > 15 * 1024 * 1024) {
                     this.logger.warn(`Skipping credential >15MB: ${cred.name}`);
@@ -586,12 +601,20 @@ export class ExpertsAdminController {
         await this.writeAudit('create_expert_manual', 'expert', result.expert.id, { email: normalizedEmail, credentialCount: uploadedCredentials.length }, req);
         this.logger.log(`Expert created manually: id=${result.expert.id} email=${normalizedEmail} code=${(code as any)?.code}`);
 
+        // Auto-send a welcome magic-link so the expert can log into the portal
+        // immediately, without the admin having to message them out-of-band.
+        const magicLinkResult = await this.auth.sendInitialExpertMagicLink(result.user.id).catch((err) => {
+            this.logger.warn(`Magic-link send failed for expert=${result.expert.id}: ${err?.message}`);
+            return { sent: false };
+        });
+
         return {
             success: true,
             expert: result.expert,
             user: { id: result.user.id, email: result.user.email },
             accessCode: (code as any)?.code,
             credentials: uploadedCredentials.length,
+            magicLinkSent: magicLinkResult?.sent ?? false,
         };
     }
 

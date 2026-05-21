@@ -39,7 +39,7 @@ export default function ReviewModal({ visible, expertId, conversationId, onClose
             setRating(0);
             setComment('');
         } catch (err) {
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to submit review');
+            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed to submit review');
         } finally {
             setSubmitting(false);
         }

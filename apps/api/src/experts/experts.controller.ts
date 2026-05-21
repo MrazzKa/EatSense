@@ -12,7 +12,7 @@ import {
     Request,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { interval, switchMap, from, map, distinctUntilChanged } from 'rxjs';
+import { interval, switchMap, from, map, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
 import { ExpertsService } from './experts.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
@@ -133,13 +133,22 @@ export class ExpertsController {
         return this.expertsService.setVacation(req.user.id, body);
     }
 
-    // SSE stream of client data updates (meals, labs, profile). Polls every 5s for
-    // changes and emits a heartbeat every 30s. Replace with event-bus when scale demands.
+    // SSE stream of client data updates (meals, labs, profile). Polls every 5s.
+    // Subscription is terminated when the client disconnects (req 'close' event)
+    // so we don't accumulate zombie polls.
     @Sse('me/clients/:clientId/stream')
     @UseGuards(JwtAuthGuard)
     streamClient(@Request() req: any, @Param('clientId') clientId: string) {
         const expertUserId = req.user.id;
+        const destroy$ = new Subject<void>();
+        const cleanup = () => {
+            destroy$.next();
+            destroy$.complete();
+        };
+        req.on?.('close', cleanup);
+        req.on?.('aborted', cleanup);
         return interval(5000).pipe(
+            takeUntil(destroy$),
             switchMap(() => from(this.expertsService.getClientSnapshot(expertUserId, clientId))),
             map((snapshot) => ({ data: snapshot, type: 'snapshot' })),
             distinctUntilChanged((a, b) => JSON.stringify(a.data) === JSON.stringify(b.data)),

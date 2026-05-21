@@ -187,10 +187,6 @@
     "tapToView": "Toca para ver",
     "analysisComplete": "Análisis completo",
     "deleteError": "Eliminar error",
-    "protein": "Proteína",
-    "carbs": "Carbohidratos",
-    "fat": "Grasa",
-    "fiber": "Fibra",
     "trustText": "La precisión del análisis mejora con cada uso: la IA aprende a reconocer tus platos y tamaños de porción favoritos.",
     "disclaimer": "Esto no es un consejo médico.",
     "viewSources": "Ver fuentes científicas",
@@ -466,7 +462,15 @@
     "mealShared": "Datos de la comida compartidos",
     "reportShared": "Informe compartido",
     "activeConsultation": "Activo",
-    "findExpertHint": "Encuentra un experto para iniciar una consulta"
+    "findExpertHint": "Encuentra un experto para iniciar una consulta",
+    "noMessages": "Aún no hay mensajes",
+    "photo": "Foto",
+    "report": "Reportar",
+    "reportAbuse": "Reportar",
+    "reportAbuseConfirm": "¿Reportar esta conversación por abuso?",
+    "reportSent": "Reporte enviado. Lo revisaremos pronto.",
+    "sharedMeals": "Comidas compartidas",
+    "sharedReport": "Reporte compartido"
   },
   "common": {
     "all": "Todos",
@@ -525,18 +529,7 @@
     "start": "Comenzar",
     "tryAgain": "Intentar de nuevo",
     "underweight": "Bajo peso",
-    "noData": "Sin datos",
-    "filter": "Filtrar",
-    "more": "Más",
-    "less": "Menos",
-    "share": "Compartir",
-    "copy": "Copiar",
-    "today": "Hoy",
-    "tomorrow": "Mañana",
-    "remove": "Eliminar",
     "apply": "Aplicar",
-    "seeAll": "Ver todo",
-    "viewMore": "Ver más",
     "mon": "Lun",
     "tue": "Mar",
     "wed": "Mié",
@@ -698,10 +691,7 @@
       "takePhoto": "Tomar foto",
       "title": "Título"
     },
-    "showAllMeals": "Mostrar todas las comidas",
-    "todaysMeals": "Comidas de hoy",
-    "noMeals": "Aún no hay comidas hoy",
-    "analyzeMeal": "Analizar comida"
+    "showAllMeals": "Mostrar todas las comidas"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -926,11 +916,8 @@
     "find_expert": "Buscar experto",
     "free": "Gratis",
     "free_consultation": "Consulta gratuita",
-    "load_error": "Error al cargar",
     "no_consultations": "Aún no hay consultas",
     "no_experts_found": "No se encontraron expertos",
-    "not_found": "No encontrado",
-    "request_error": "Error en la solicitud",
     "specialist": "Especialista",
     "start_chat": "Iniciar chat",
     "tab_my_chats": "Mis chats",
@@ -1150,7 +1137,10 @@
     "codeInvalidTitle": "Revisa el código",
     "codeInvalidBody": "Revisa el código de especialista e inténtalo de nuevo.",
     "codeAppliedTitle": "Especialista añadido",
-    "codeAppliedBody": "Este especialista ya está disponible en Mis especialistas."
+    "codeAppliedBody": "Este especialista ya está disponible en Mis especialistas.",
+    "profileLoadError": "Error al cargar",
+    "profileNotFound": "No encontrado",
+    "requestFailed": "Error en la solicitud"
   },
   "feedbackScreen": {
     "alerts": {
@@ -1194,16 +1184,8 @@
     "title": "What did you eat?"
   },
   "gallery": {
-    "accessDenied": "Acceso a galería",
-    "accessDeniedText": "Para seleccionar fotos, necesitas otorgar acceso a la galería. Abre la configuración y permite el acceso a fotos.",
     "error": "No se pudo cargar la imagen. Inténtalo de nuevo.",
     "goBack": "Volver",
-    "loadingGallery": "Cargando galería...",
-    "permissionRequired": "Acceso a galería requerido",
-    "permissionText": "Habilita el acceso a la biblioteca de fotos en la configuración de tu dispositivo para seleccionar fotos de tus comidas.",
-    "requestingPermission": "Solicitando permiso de galería...",
-    "settings": "Configuración",
-    "title": "Seleccionar foto",
     "notResponding": "Galería no responde",
     "timeoutMessage": "El selector de fotos está tardando demasiado. Toca el botón de abajo para intentar de nuevo.",
     "openGallery": "Abrir Galería",
@@ -1606,23 +1588,6 @@
         "lifetime": "Pago único, acceso de por vida",
         "badge": "Insignia exclusiva Fundador",
         "priority": "Acceso directo desarrollador"
-      },
-      "founders": {
-        "badge": "Limitado",
-        "features": [
-          "Pago único, acceso de por vida",
-          "Insignia exclusiva de fundador",
-          "Acceso directo al desarrollador"
-        ],
-        "headline": "Acceso de por vida + Insignia exclusiva",
-        "name": "Fundador"
-      },
-      "proYearly": {
-        "features": [
-          "Todo del plan mensual",
-          "Webinars exclusivos",
-          "Acceso anticipado a funciones"
-        ]
       }
     },
     "summary": "Your choices",
@@ -1716,48 +1681,7 @@
   "privacy": {
     "intro": "EatSense valora su privacidad. Esta política describe cómo recopilamos, usamos y protegemos su información.",
     "lastUpdated": "Última actualización",
-    "sections": {
-      "changes": {
-        "content": "Te avisaremos de los cambios importantes en esta política de privacidad dentro de la app o por correo electrónico antes de que entren en vigor.",
-        "title": "5. Cambios en esta política"
-      },
-      "children": {
-        "content": "EatSense no está dirigida a menores de 13 años. No recopilamos deliberadamente sus datos y los eliminaremos si descubrimos que los tenemos.",
-        "title": "7. Privacidad de menores"
-      },
-      "choices": {
-        "content": "Puedes gestionar tus preferencias de privacidad en la app. Puedes solicitar una copia o eliminar tus datos en cualquier momento.",
-        "title": "9. Tus opciones"
-      },
-      "collection": {
-        "content": "Recopilamos información que proporciona durante el registro y uso de la aplicación, incluidos datos personales, información nutricional y fotos de alimentos.",
-        "title": "1. Recopilación de Información"
-      },
-      "contact": {
-        "content": "Para preguntas sobre privacidad, escribe a privacy@eatsense.ch",
-        "title": "10. Contáctanos"
-      },
-      "cookies": {
-        "content": "Usamos cookies y tecnologías similares para recordar preferencias, medir el rendimiento y mejorar la experiencia. Puedes gestionar las cookies desde la configuración del dispositivo.",
-        "title": "6. Cookies y seguimiento"
-      },
-      "protection": {
-        "content": "Utilizamos métodos modernos de cifrado y almacenamiento seguro de datos para proteger su información personal.",
-        "title": "3. Protección de Datos"
-      },
-      "rights": {
-        "content": "Según tu región, puedes solicitar acceso, actualización, eliminación o restricción del tratamiento de tus datos. Contáctanos para ejercer estos derechos.",
-        "title": "8. Tus derechos"
-      },
-      "sharing": {
-        "content": "No vendemos tu información personal. Podemos compartir datos anonimizados con socios para mejorar los servicios.",
-        "title": "4. Compartición de datos"
-      },
-      "usage": {
-        "content": "Su información se utiliza para proporcionar recomendaciones nutricionales personalizadas, análisis de alimentos y mejorar la aplicación.",
-        "title": "2. Uso de la Información"
-      }
-    },
+    "sections": "Secciones",
     "title": "Política de Privacidad"
   },
   "profile": {
@@ -1873,20 +1797,7 @@
       "clearMessage": "¿Estás seguro de que deseas borrar todos los parámetros de salud? Esta acción no se puede deshacer.",
       "clearTitle": "Borrar datos de salud",
       "cleared": "Datos de salud borrados",
-      "drugTypeLabel": "Tipo de medicamento",
-      "bodyFat": "Porcentaje de grasa corporal",
-      "waistCirc": "Circunferencia de cintura",
-      "hipCirc": "Circunferencia de cadera",
-      "glp1": {
-        "title": "Terapia GLP-1",
-        "isUser": "Usuario de GLP-1"
-      },
-      "sugarControl": "Control de azúcar",
-      "cholesterol": "Colesterol",
-      "inflammation": "Inflamación",
-      "iron": "Hierro",
-      "microbiome": "Microbioma",
-      "hormonalBalance": "Equilibrio hormonal"
+      "drugTypeLabel": "Tipo de medicamento"
     },
     "height": "Altura (cm)",
     "language": "Idioma",
@@ -1980,39 +1891,8 @@
     "medications": "Medicamentos",
     "medicationsSubtitle": "Gestiona tu horario",
     "metricBmi": "IMC",
-    "deleteConfirmMessage": "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
-    "signOut": "Cerrar sesión",
-    "signOutConfirm": "¿Estás seguro de que deseas cerrar sesión?",
     "planFounderName": "EatSense Founder",
     "planStudentName": "EatSense Student",
-    "version": "Versión",
-    "darkMode": "Modo oscuro",
-    "privacy": "Privacidad",
-    "terms": "Términos de uso",
-    "feedback": "Dar opinión",
-    "rateApp": "Calificar la app",
-    "features": {
-      "limitedAnalyses": "Análisis limitados",
-      "calorieTracking": "Seguimiento de calorías",
-      "basicStats": "Estadísticas básicas",
-      "unlimitedAnalyses": "Análisis ilimitados",
-      "advancedInsights": "Información avanzada",
-      "coachingTips": "Consejos de coaching",
-      "everythingInProMonthly": "Todo de Pro Mensual",
-      "annualWebinars": "Webinars anuales",
-      "earlyAccess": "Acceso anticipado",
-      "studentDiscount": "Descuento estudiantil",
-      "lifetimeAccess": "Acceso de por vida",
-      "founderBadge": "Insignia de fundador",
-      "directAccess": "Acceso directo"
-    },
-    "badges": {
-      "included": "Incluido",
-      "mostPopular": "Más popular",
-      "save33": "Ahorra 33%",
-      "studentDiscount": "Descuento estudiantil",
-      "limited": "Limitado"
-    },
     "notificationsPermissionMessage": "Por favor habilita las notificaciones en los ajustes del sistema para recibir recordatorios.",
     "notificationsPermissionTitle": "Permiso requerido",
     "personalization": "Personalización",
@@ -2052,6 +1932,20 @@
       "remove": "Eliminar foto",
       "cameraPermission": "Se requiere permiso de cámara",
       "uploadFailed": "Error al subir la foto"
+    },
+    "smartTips": {
+      "title": "Consejos inteligentes",
+      "subtitle": "Cada día, un consejo personalizado según lo que quieras mejorar.",
+      "masterRequired": "Activa los recordatorios diarios para usar consejos inteligentes.",
+      "enabled": "Consejos inteligentes",
+      "hourLabel": "Hora",
+      "issuesLabel": "¿Qué te gustaría mejorar?",
+      "issueSleep": "Sueño",
+      "issueStress": "Estrés",
+      "issueEnergy": "Energía",
+      "issueDigestion": "Digestión",
+      "saveFailed": "No se pudieron guardar los ajustes",
+      "pickIssueFirst": "Selecciona al menos un área a continuación para activar los consejos inteligentes."
     }
   },
   "recently": {
@@ -2493,7 +2387,6 @@
     "loading": "Cargando",
     "loading_more": "Cargando más",
     "filters_target_label": "Objetivo",
-    "filters_age_label": "Edad",
     "filters_target_all": "Todos",
     "filters_target_male": "Hombres",
     "filters_target_female": "Mujeres",
@@ -2520,9 +2413,7 @@
     "type_message": "Escribe un mensaje..."
   },
   "error": {
-    "title": "Error",
-    "network": "Error de red. Por favor verifica tu conexión.",
-    "unknown": "Ocurrió un error desconocido."
+    "title": "Error"
   },
   "suggest": {
     "title": "Sugerencias de la comunidad",

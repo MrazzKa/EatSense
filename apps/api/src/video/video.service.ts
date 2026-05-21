@@ -87,7 +87,10 @@ export class VideoService {
             this.config.get<string>('LIVEKIT_API_SECRET')!,
             {
                 identity: params.userId,
-                ttl: '15m',
+                // Long enough to cover a 90-min consultation + buffer for late
+                // join + reconnects. Tokens are short-lived secrets but a 15min
+                // TTL was expiring mid-call.
+                ttl: '2h',
                 name: isExpert ? `Expert ${conversation.expert?.displayName || ''}`.trim() : 'Client',
             },
         );
@@ -105,18 +108,39 @@ export class VideoService {
             url: this.config.get<string>('LIVEKIT_URL'),
             roomName,
             sessionId: session.id,
-            expiresIn: 900,
+            expiresIn: 7200,
         };
     }
 
-    async markStarted(sessionId: string) {
+    /** Returns the session if the user is a participant of the parent conversation. */
+    private async assertSessionParticipant(sessionId: string, userId: string) {
+        const session = await this.prisma.videoSession.findUnique({
+            where: { id: sessionId },
+            include: { conversation: { include: { expert: { select: { userId: true } } } } },
+        });
+        if (!session) throw new NotFoundException('Session not found');
+        const isClient = session.conversation?.clientId === userId;
+        const isExpert = session.conversation?.expert?.userId === userId;
+        if (!isClient && !isExpert) {
+            throw new ForbiddenException('You are not a participant of this session');
+        }
+        return session;
+    }
+
+    async markStarted(sessionId: string, userId: string) {
+        const session = await this.assertSessionParticipant(sessionId, userId);
+        // Preserve original startedAt across reconnects so duration math is correct.
         return this.prisma.videoSession.update({
             where: { id: sessionId },
-            data: { status: 'in_call', startedAt: new Date() },
+            data: {
+                status: 'in_call',
+                startedAt: session.startedAt ?? new Date(),
+            },
         });
     }
 
-    async markEnded(sessionId: string, durationSec?: number) {
+    async markEnded(sessionId: string, durationSec?: number, userId?: string) {
+        if (userId) await this.assertSessionParticipant(sessionId, userId);
         return this.prisma.videoSession.update({
             where: { id: sessionId },
             data: {

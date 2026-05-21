@@ -11,6 +11,8 @@ interface ConnectStatus {
   stripeConnectPayoutsEnabled: boolean;
   stripeConnectChargesEnabled: boolean;
   stripeConnectDetailsSubmitted: boolean;
+  stripeEnabled?: boolean;
+  platformFeePercent?: number;
 }
 
 export default function EarningsPage() {
@@ -39,6 +41,8 @@ export default function EarningsPage() {
 
   const ready = status?.stripeConnectPayoutsEnabled && status?.stripeConnectChargesEnabled;
   const pending = status?.stripeConnectAccountId && !ready;
+  const stripeDisabled = status?.stripeEnabled === false;
+  const feePercent = typeof status?.platformFeePercent === 'number' ? status.platformFeePercent : 15;
 
   return (
     <AppShell>
@@ -54,6 +58,13 @@ export default function EarningsPage() {
           <StatCard label={locale === 'ru' ? 'За всё время' : 'Lifetime'} value="—" sublabel={locale === 'ru' ? 'Скоро' : 'Coming soon'} icon={Wallet} />
         </div>
 
+        {stripeDisabled && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            {locale === 'ru'
+              ? 'Платежи временно отключены администратором. Связка со Stripe станет доступна после включения.'
+              : 'Payments are temporarily disabled by the admin. Stripe linking will be available once enabled.'}
+          </div>
+        )}
         {loading ? (
           <div className="flex justify-center py-10">
             <div className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--primary)] border-t-transparent" />
@@ -98,7 +109,9 @@ export default function EarningsPage() {
                   {locale === 'ru' ? 'Подключите Stripe для приёма выплат' : 'Connect Stripe to receive payouts'}
                 </h2>
                 <p className="text-sm leading-relaxed text-[var(--text2)]">
-                  {locale === 'ru' ? 'EatSense использует Stripe Connect Express. Onboarding занимает 5-10 минут. Платформа удерживает 15% комиссию.' : 'EatSense uses Stripe Connect Express. Onboarding takes 5–10 minutes. The platform fee is 15%.'}
+                  {locale === 'ru'
+                    ? `EatSense использует Stripe Connect Express. Onboarding занимает 5-10 минут. Платформа удерживает ${feePercent}% комиссию.`
+                    : `EatSense uses Stripe Connect Express. Onboarding takes 5–10 minutes. The platform fee is ${feePercent}%.`}
                 </p>
                 <button onClick={startOnboarding} disabled={redirecting} className="mt-3 inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
                   {redirecting ? '…' : locale === 'ru' ? 'Подключить Stripe' : 'Connect Stripe'}

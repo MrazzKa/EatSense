@@ -145,19 +145,19 @@ export default function CalendarPage() {
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{locale === 'ru' ? 'Доступность' : 'Availability'}</h1>
+          <h1 className="text-2xl font-bold">{t('calendar', 'title')}</h1>
           <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-            <Save size={16} /> {saving ? '…' : locale === 'ru' ? 'Сохранить' : 'Save'}
+            <Save size={16} /> {saving ? '…' : t('calendar', 'save')}
           </button>
         </div>
 
         {icalUrl && (
           <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-              <CalendarIcon size={16} /> {locale === 'ru' ? 'Подписка на календарь' : 'Subscribe to calendar'}
+              <CalendarIcon size={16} /> {t('calendar', 'subscribeTitle')}
             </div>
             <p className="mb-2 text-xs text-[var(--text-secondary)]">
-              {locale === 'ru' ? 'Добавьте этот URL в Google Calendar или Apple Calendar чтобы видеть консультации.' : 'Add this URL to Google Calendar or Apple Calendar to see consultations.'}
+              {t('calendar', 'subscribeHint')}
             </p>
             <div className="flex gap-2">
               <input
@@ -167,10 +167,10 @@ export default function CalendarPage() {
                 className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 font-mono text-xs"
               />
               <button
-                onClick={() => navigator.clipboard?.writeText(icalUrl).then(() => alert(locale === 'ru' ? 'Скопировано' : 'Copied'))}
+                onClick={() => navigator.clipboard?.writeText(icalUrl).then(() => alert(t('calendar', 'copied')))}
                 className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--bg)]"
               >
-                <Copy size={12} /> {locale === 'ru' ? 'Копировать' : 'Copy'}
+                <Copy size={12} /> {t('calendar', 'copy')}
               </button>
             </div>
           </div>
@@ -179,14 +179,14 @@ export default function CalendarPage() {
         {/* Vacation mode */}
         <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <Plane size={16} /> {locale === 'ru' ? 'Режим отпуска' : 'Out of office'}
+            <Plane size={16} /> {t('calendar', 'vacationTitle')}
           </div>
           <p className="mb-2 text-xs text-[var(--text-secondary)]">
-            {locale === 'ru' ? 'Пока активен, бронирование слотов заблокировано.' : 'While active, new bookings are blocked.'}
+            {t('calendar', 'vacationHint')}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <label className="text-xs">
-              <span className="mb-1 block">{locale === 'ru' ? 'До какого числа' : 'Away until'}</span>
+              <span className="mb-1 block">{t('calendar', 'awayUntil')}</span>
               <input
                 type="date"
                 value={awayUntil}
@@ -195,12 +195,12 @@ export default function CalendarPage() {
               />
             </label>
             <label className="flex-1 text-xs">
-              <span className="mb-1 block">{locale === 'ru' ? 'Сообщение (необязательно)' : 'Message (optional)'}</span>
+              <span className="mb-1 block">{t('calendar', 'vacationMessage')}</span>
               <input
                 type="text"
                 value={awayMessage}
                 onChange={(e) => setAwayMessage(e.target.value)}
-                placeholder={locale === 'ru' ? 'Вернусь 1 июля' : 'Back on July 1'}
+                placeholder={t('calendar', 'vacationPlaceholder')}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
               />
             </label>
@@ -209,14 +209,14 @@ export default function CalendarPage() {
               disabled={savingAway}
               className="self-end rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-medium text-white disabled:opacity-50"
             >
-              {savingAway ? '…' : locale === 'ru' ? 'Сохранить' : 'Save'}
+              {savingAway ? '…' : t('calendar', 'save')}
             </button>
             {awayUntil && (
               <button
                 onClick={() => { setAwayUntil(''); setAwayMessage(''); saveVacation(); }}
                 className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--bg)]"
               >
-                {locale === 'ru' ? 'Сбросить' : 'Clear'}
+                {t('calendar', 'clear')}
               </button>
             )}
           </div>
@@ -225,10 +225,10 @@ export default function CalendarPage() {
         {/* Availability exceptions */}
         <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-            <CalendarIcon size={16} /> {locale === 'ru' ? 'Исключения (нерабочие дни)' : 'Exceptions (closed days)'}
+            <CalendarIcon size={16} /> {t('calendar', 'exceptionsTitle')}
           </div>
           <p className="mb-2 text-xs text-[var(--text-secondary)]">
-            {locale === 'ru' ? 'Конкретные даты, когда вы не принимаете консультации.' : 'Specific dates when you do not accept consultations.'}
+            {t('calendar', 'exceptionsHint')}
           </p>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <input
@@ -242,12 +242,12 @@ export default function CalendarPage() {
               disabled={!newExDate}
               className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs hover:bg-[var(--bg)] disabled:opacity-50"
             >
-              <Plus size={12} /> {locale === 'ru' ? 'Добавить' : 'Add closed day'}
+              <Plus size={12} /> {t('calendar', 'addClosedDay')}
             </button>
           </div>
           {exceptions.length === 0 ? (
             <div className="text-xs text-[var(--text-secondary)]">
-              {locale === 'ru' ? 'Нет добавленных исключений.' : 'No exceptions added.'}
+              {t('calendar', 'noExceptions')}
             </div>
           ) : (
             <ul className="space-y-1.5">
@@ -256,7 +256,7 @@ export default function CalendarPage() {
                   <span>
                     {new Date(ex.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                     <span className="ml-2 text-[var(--text-secondary)]">
-                      {ex.kind === 'closed' ? (locale === 'ru' ? 'закрыт' : 'closed') : (locale === 'ru' ? 'нестандарт' : 'custom')}
+                      {ex.kind === 'closed' ? t('calendar', 'closed') : t('calendar', 'custom')}
                     </span>
                   </span>
                   <button
@@ -273,7 +273,7 @@ export default function CalendarPage() {
 
         <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
           <label className="block text-sm">
-            <span className="mb-1 block font-medium">{locale === 'ru' ? 'Часовой пояс' : 'Timezone'}</span>
+            <span className="mb-1 block font-medium">{t('calendar', 'timezone')}</span>
             <input
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
@@ -295,11 +295,11 @@ export default function CalendarPage() {
                 <div className="mb-2 flex items-center justify-between">
                   <span className="font-medium">{label}</span>
                   <button onClick={() => addRule(day)} className="text-xs text-[var(--primary)] hover:underline">
-                    + {locale === 'ru' ? 'Добавить блок' : 'Add block'}
+                    + {t('calendar', 'addBlock')}
                   </button>
                 </div>
                 {grouped[day].length === 0 ? (
-                  <div className="text-xs text-[var(--text-secondary)]">{locale === 'ru' ? 'Выходной' : 'Off'}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">{t('calendar', 'off')}</div>
                 ) : (
                   <ul className="space-y-1.5">
                     {grouped[day].map((r) => {

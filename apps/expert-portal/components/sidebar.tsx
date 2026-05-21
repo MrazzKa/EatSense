@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, Globe, Leaf, LogOut, MessageSquare, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { BarChart3, Calendar, CalendarClock, Globe, Leaf, LogOut, MessageSquare, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
@@ -14,7 +14,7 @@ const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
   { href: '/chats', key: 'chats', icon: MessageSquare },
   { href: '/clients', key: 'clients', icon: Users },
   { href: '/calendar', key: 'calendar', icon: Calendar },
-  { href: '/consultations', key: 'consultations', icon: Calendar },
+  { href: '/consultations', key: 'consultations', icon: CalendarClock },
   { href: '/offers', key: 'offers', icon: Package },
   { href: '/earnings', key: 'earnings', icon: Wallet },
   { href: '/reviews', key: 'reviews', icon: Star },
@@ -141,7 +141,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight transition ${
+              className={`flex min-h-[44px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 text-[10px] leading-tight transition ${
                 active ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)]'
               }`}
             >

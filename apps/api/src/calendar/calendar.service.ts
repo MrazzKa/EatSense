@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { DateTime } from 'luxon';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -34,6 +35,15 @@ export class CalendarService {
   async setMyAvailability(userId: string, payload: { timezone?: string; rules: Array<{ weekday: number; startMinute: number; endMinute: number; isActive?: boolean }> }) {
     const expert = await this.requireExpertByUserId(userId);
     const tz = payload.timezone || (expert as any).timezone || 'UTC';
+
+    // Reject arbitrary strings — must be a valid IANA tz (Intl validates against ICU).
+    if (payload.timezone) {
+      try {
+        new Intl.DateTimeFormat('en', { timeZone: tz });
+      } catch {
+        throw new BadRequestException(`Invalid timezone: ${tz}`);
+      }
+    }
 
     // Validation
     for (const r of payload.rules || []) {
@@ -125,16 +135,28 @@ export class CalendarService {
     ]);
 
     const slots: Array<{ startAt: string; endAt: string }> = [];
-    const dayMs = 86400000;
-    for (let dayStart = startOfDayUtc(opts.from); dayStart < opts.to; dayStart = new Date(dayStart.getTime() + dayMs)) {
-      // Convert dayStart (UTC) to expert's local weekday using the tz offset (simple approach via Intl)
-      const local = new Date(dayStart);
-      const weekday = local.getUTCDay();
-      // Apply exceptions for this date
-      const exceptionsForDay = exceptions.filter((e) => sameUtcDate(e.date, dayStart));
+
+    // Iterate over LOCAL calendar days in the expert's timezone. Rules and
+    // exception dates are interpreted in expert's local time; UTC math here
+    // would shift slots by the tz offset (caused 5h drift for Almaty experts).
+    const safeTz = (() => { try { DateTime.now().setZone(tz); return tz; } catch { return 'UTC'; } })();
+    const startLocal = DateTime.fromJSDate(opts.from, { zone: 'utc' }).setZone(safeTz).startOf('day');
+    const endLocal = DateTime.fromJSDate(opts.to, { zone: 'utc' }).setZone(safeTz);
+
+    for (let dayLocal = startLocal; dayLocal < endLocal; dayLocal = dayLocal.plus({ days: 1 })) {
+      const weekday = dayLocal.weekday % 7; // luxon: 1=Mon..7=Sun → 1..6,0
+      const dayUtcStart = dayLocal.toUTC().toJSDate();
+
+      // Vacation: skip while awayUntil is in the future (inclusive day).
+      if (awayUntil && dayUtcStart <= awayUntil) continue;
+
+      // Exceptions: match on the expert's local date.
+      const exceptionsForDay = exceptions.filter((e) => {
+        const exLocal = DateTime.fromJSDate(e.date, { zone: 'utc' }).setZone(safeTz);
+        return exLocal.hasSame(dayLocal, 'day');
+      });
       const closed = exceptionsForDay.find((e) => e.kind === 'closed');
       if (closed) continue;
-      if (awayUntil && dayStart <= awayUntil) continue;
 
       const customs = exceptionsForDay.filter((e) => e.kind === 'custom' && e.startMinute != null && e.endMinute != null);
       const blocks =
@@ -144,7 +166,9 @@ export class CalendarService {
 
       for (const b of blocks) {
         for (let m = b.startMinute; m + opts.durationMinutes <= b.endMinute; m += MIN_SLOT_MINUTES) {
-          const start = new Date(dayStart.getTime() + m * 60000);
+          // Slot start = local midnight + m minutes, converted to UTC.
+          const startLocalDT = dayLocal.plus({ minutes: m });
+          const start = startLocalDT.toUTC().toJSDate();
           const end = new Date(start.getTime() + opts.durationMinutes * 60000);
           if (start < opts.from || end > opts.to) continue;
           if (start.getTime() < Date.now()) continue;
@@ -273,6 +297,24 @@ export class CalendarService {
     if (isMine) throw new BadRequestException('Counterparty must accept/decline');
 
     if (accept) {
+      // The proposal may have been made hours ago; re-validate before applying
+      // so we never land an active consultation in the past or on a slot that
+      // another booking has since claimed.
+      if (c.proposedStartAt.getTime() < Date.now()) {
+        throw new BadRequestException('Proposed time is in the past — ask the other side to propose a new time');
+      }
+      const newConflict = await this.prisma.scheduledConsultation.findFirst({
+        where: {
+          OR: [{ expertId: c.expertId }, { clientId: c.clientId }],
+          status: { in: ['SCHEDULED', 'IN_PROGRESS'] as any },
+          startAt: { lt: c.proposedEndAt },
+          endAt: { gt: c.proposedStartAt },
+          NOT: { id: c.id },
+        },
+      });
+      if (newConflict) {
+        throw new BadRequestException('Proposed slot now overlaps with another consultation');
+      }
       const updated = await this.prisma.scheduledConsultation.update({
         where: { id },
         data: {
@@ -334,7 +376,14 @@ export class CalendarService {
     const [userId, sig] = (token || '').split('.');
     if (!userId || !sig) return null;
     const expected = this.signICalToken(userId).split('.')[1];
-    if (crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return userId;
+    // timingSafeEqual throws on length mismatch — corrupt/stale tokens must
+    // return null (→ 400), not surface as 500.
+    if (sig.length !== expected.length) return null;
+    try {
+      if (crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return userId;
+    } catch {
+      return null;
+    }
     return null;
   }
 
@@ -417,16 +466,6 @@ export class CalendarService {
       this.notifications.sendPushNotification(client.id, m.titleClient, m.body, { type: `consultation.${kind}`, id: c.id }),
     ]).catch(() => {});
   }
-}
-
-function startOfDayUtc(d: Date): Date {
-  const x = new Date(d);
-  x.setUTCHours(0, 0, 0, 0);
-  return x;
-}
-
-function sameUtcDate(a: Date, b: Date): boolean {
-  return a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth() && a.getUTCDate() === b.getUTCDate();
 }
 
 function cryptoRandomId(): string {

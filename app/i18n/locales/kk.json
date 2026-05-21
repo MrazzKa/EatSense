@@ -1140,11 +1140,8 @@
     "find_expert": "Сарапшы табу",
     "free": "Тегін",
     "free_consultation": "Тегін кеңес",
-    "load_error": "Жүктеу мүмкін болмады",
     "no_consultations": "Әзірге кеңестер жоқ",
     "no_experts_found": "Сарапшылар табылмады",
-    "not_found": "Табылмады",
-    "request_error": "Сұраныс қатесі",
     "specialist": "Маман",
     "start_chat": "Чатты бастау",
     "tab_my_chats": "Менің чаттарым",
@@ -1341,7 +1338,10 @@
     "codeInvalidTitle": "Кодты тексеріңіз",
     "codeInvalidBody": "Маман кодын тексеріп, қайта көріңіз.",
     "codeAppliedTitle": "Маман қосылды",
-    "codeAppliedBody": "Бұл маман енді Менің мамандарым бөлімінде қолжетімді."
+    "codeAppliedBody": "Бұл маман енді Менің мамандарым бөлімінде қолжетімді.",
+    "profileLoadError": "Жүктеу мүмкін болмады",
+    "profileNotFound": "Табылмады",
+    "requestFailed": "Сұраныс қатесі"
   },
   "offers": {
     "noOffers": "Қызметтер әлі жоқ",
@@ -1491,15 +1491,7 @@
     "selectHint": "Галереядан талдау үшін фото таңдаңыз.",
     "canceled": "Таңдаудан бас тартылды",
     "canceledHint": "Сіз фото таңдаудан бас тарттыңыз.",
-    "opening": "Ашылуда...",
-    "accessDenied": "Галереяға қолжетімділік жоқ",
-    "accessDeniedText": "Параметрлерден галереяға рұқсат беріңіз.",
-    "loadingGallery": "Галерея жүктелуде...",
-    "permissionRequired": "Рұқсат қажет",
-    "permissionText": "Фото таңдау үшін рұқсат беріңіз.",
-    "requestingPermission": "Рұқсат сұралуда...",
-    "settings": "Параметрлер",
-    "title": "Фото таңдау"
+    "opening": "Ашылуда..."
   },
   "healthScore": {
     "factorLevel": {
@@ -1602,17 +1594,9 @@
       "spray_one": "спрей",
       "spray_other": "спрей",
       "tablet_one": "таблетка",
-      "tablet_few": "таблетка",
-      "tablet_many": "таблетка",
       "capsule_one": "капсула",
-      "capsule_few": "капсула",
-      "capsule_many": "капсула",
       "drop_one": "тамшы",
-      "drop_few": "тамшы",
-      "drop_many": "тамшы",
-      "puff_one": "шашыру",
-      "puff_few": "шашыру",
-      "puff_many": "шашыру"
+      "puff_one": "шашыру"
     },
     "error": {
       "invalidTime": "Уақыт пішімі қате",
@@ -1765,10 +1749,6 @@
       },
       "finePrint": "Жоспарды кез келген уақытта параметрлерден өзгерте аласыз немесе бас тарта аласыз.",
       "forever": "мәңгі",
-      "plans": {
-        "month": "ай",
-        "year": "жыл"
-      },
       "monthly": "Айлық",
       "yearly": "Жылдық",
       "included": "Қосылған",
@@ -2243,6 +2223,20 @@
       "remove": "Суретті жою",
       "cameraPermission": "Камераға рұқсат қажет",
       "uploadFailed": "Суретті жүктеу сәтсіз аяқталды"
+    },
+    "smartTips": {
+      "title": "Ақылды кеңестер",
+      "subtitle": "Күн сайын — жақсартқыңыз келетін нәрсе бойынша жеке кеңес.",
+      "masterRequired": "Ақылды кеңестерді қосу үшін күнделікті еске салуды қосыңыз.",
+      "enabled": "Ақылды кеңестер",
+      "hourLabel": "Уақыты",
+      "issuesLabel": "Не жақсартқыңыз келеді?",
+      "issueSleep": "Ұйқы",
+      "issueStress": "Стресс",
+      "issueEnergy": "Энергия",
+      "issueDigestion": "Ас қорыту",
+      "saveFailed": "Ақылды кеңес параметрлерін сақтау мүмкін болмады",
+      "pickIssueFirst": "Ақылды кеңестерді қосу үшін төменде кем дегенде бір тақырыпты таңдаңыз."
     }
   },
   "recently": {
@@ -2696,7 +2690,6 @@
     "filters_target_all": "Барлығы",
     "filters_target_male": "Ерлер",
     "filters_target_female": "Әйелдер",
-    "filters_age_label": "Жас:",
     "empty": "Бағдарламалар табылмады",
     "loading_more": "Көбірек жүктелуде..."
   },
@@ -2824,7 +2817,6 @@
   "restored": "Қалпына келтірілді",
   "studentVerificationDescription": "Студенттік растау сипаттамасы",
   "studentVerificationTitle": "Студенттік растау",
-  "CHAT_CONSULTATION": "Чат арқылы кеңес",
   "errorBoundary": {
     "somethingWentWrong": "Бірдеңе дұрыс болмады",
     "unexpectedError": "Күтпеген қате",
@@ -2927,7 +2919,6 @@
     "perPortion": "порцияға",
     "weightNotDetermined": "Салмақ анықталмады"
   },
-  "title": "Тақырып",
   "programs": {
     "lifestyle": {
       "that_girl": {

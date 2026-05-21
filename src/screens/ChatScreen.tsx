@@ -225,10 +225,18 @@ export default function ChatScreen({ navigation, route }) {
             const newMessage = await MarketplaceService.sendMessage(conversationId, body);
             setMessages((prev) => prev.map((m) => (m.id === tempId ? newMessage : m)));
             lastMessageIdRef.current = newMessage.id;
-        } catch {
-            setMessages((prev) => prev.filter((m) => m.id !== tempId));
-            setText(body);
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to send message');
+        } catch (err: any) {
+            // On 5xx the server may have persisted the message already; keep the
+            // optimistic bubble and let the next poll reconcile so the user
+            // doesn't accidentally double-send. Roll back only on 4xx/network.
+            const status = err?.status || err?.response?.status;
+            if (typeof status === 'number' && status >= 500) {
+                Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed to send message');
+            } else {
+                setMessages((prev) => prev.filter((m) => m.id !== tempId));
+                setText(body);
+                Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed to send message');
+            }
         } finally {
             setSending(false);
         }
@@ -250,7 +258,7 @@ export default function ChatScreen({ navigation, route }) {
                 setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
             }
         } catch {
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to send photo');
+            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed to send photo');
         } finally {
             setSending(false);
         }
@@ -299,7 +307,7 @@ export default function ChatScreen({ navigation, route }) {
             setMessages((prev) => [...prev, newMessage]);
             lastMessageIdRef.current = newMessage.id;
         } catch {
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to share meals');
+            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed to share meals');
         }
     }, [conversationId, t]);
 
@@ -329,7 +337,7 @@ export default function ChatScreen({ navigation, route }) {
             setMessages((prev) => [...prev, newMessage]);
             lastMessageIdRef.current = newMessage.id;
         } catch {
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
+            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed');
         } finally {
             setTimeout(() => { requestDataInFlightRef.current = false; }, 1500);
         }
@@ -361,7 +369,7 @@ export default function ChatScreen({ navigation, route }) {
                 setMessages((prev) => [...prev, newMessage]);
                 lastMessageIdRef.current = newMessage.id;
             } catch {
-                Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
+                Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed');
             }
         },
         [conversationId, t],
@@ -413,7 +421,7 @@ export default function ChatScreen({ navigation, route }) {
             setMessages((prev) => [...prev, newMessage]);
             lastMessageIdRef.current = newMessage.id;
         } catch {
-            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
+            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed');
         }
     }, [conversationId, t]);
 
@@ -431,7 +439,7 @@ export default function ChatScreen({ navigation, route }) {
                             await MarketplaceService.updateConversation(conversationId, { status: 'completed' });
                             setConversation((prev) => ({ ...prev, status: 'completed' }));
                         } catch {
-                            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed to complete');
+                            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed to complete');
                         }
                     },
                 },
@@ -456,7 +464,7 @@ export default function ChatScreen({ navigation, route }) {
                             });
                             Alert.alert(t('experts.reportSent') || 'Report sent');
                         } catch {
-                            Alert.alert(t('common.error') || 'Error', t('experts.request_error') || 'Failed');
+                            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed');
                         }
                     },
                 },

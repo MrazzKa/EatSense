@@ -92,6 +92,12 @@ export default function ChatPage() {
   const lastMessageIdRef = useRef<string>('');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isAtBottomRef = useRef(true);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -107,6 +113,7 @@ export default function ChatPage() {
   const loadMessages = useCallback(async () => {
     try {
       const msgs = await apiFetch(`/messages/conversation/${convId}`);
+      if (!isMountedRef.current) return;
       const list = Array.isArray(msgs) ? msgs : msgs?.messages || [];
       const lastId = list[list.length - 1]?.id || '';
 
@@ -115,13 +122,14 @@ export default function ChatPage() {
         setMessages(list);
         lastMessageIdRef.current = lastId;
         if (wasAtBottom) {
-          setTimeout(scrollToBottom, 100);
+          setTimeout(() => { if (isMountedRef.current) scrollToBottom(); }, 100);
         }
 
         // Mark as read
         apiFetch(`/messages/conversation/${convId}/read`, { method: 'POST' }).catch(() => {});
       }
     } catch (err) {
+      if (!isMountedRef.current) return;
       console.error('Failed to load messages:', err);
     }
   }, [convId, scrollToBottom]);
@@ -170,18 +178,43 @@ export default function ChatPage() {
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || sending) return;
+    const body = input.trim();
+    if (!body || sending) return;
 
     setSending(true);
+    // Optimistic insert so the user sees instant feedback.
+    const tempId = `tmp-${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      content: body,
+      type: 'text',
+      senderId: 'me',
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    } as any;
+    setMessages((prev) => [...prev, optimistic]);
+    setInput('');
+    setTimeout(scrollToBottom, 50);
     try {
       await apiFetch(`/messages/conversation/${convId}`, {
         method: 'POST',
-        body: JSON.stringify({ content: input.trim(), type: 'text' }),
+        body: JSON.stringify({ content: body, type: 'text' }),
       });
-      setInput('');
+      // Replace optimistic by reloading server state.
       await loadMessages();
-    } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } catch (err: any) {
       console.error('Failed to send message:', err);
+      // On 5xx the message may have been persisted server-side; keep optimistic
+      // and let next poll reconcile. On other errors, roll back and restore input.
+      const status = err?.status || err?.response?.status;
+      if (typeof status === 'number' && status >= 500) {
+        alert(t('common', 'error'));
+      } else {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setInput(body);
+        alert(t('common', 'error'));
+      }
     } finally {
       setSending(false);
     }

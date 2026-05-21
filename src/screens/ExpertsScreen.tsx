@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
     View,
     Text,
@@ -290,12 +290,13 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 <Text style={styles.sectionTitle}>{t('experts.mySpecialists') || 'My specialists'}</Text>
                 {mySpecialists.map((link) => {
                     const expert = link.expert;
+                    if (!expert) return null; // expert soft-deleted or missing relation
                     return (
                         <TouchableOpacity
                             key={link.id}
                             style={[styles.card, !link.available && styles.unavailableCard]}
                             onPress={() => {
-                                if (link.available) {
+                                if (link.available && expert.id) {
                                     navigation.navigate('ExpertProfile', { specialistId: expert.id, conversationId: link.conversation?.id });
                                 }
                             }}
@@ -390,23 +391,37 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         </>
     );
 
+    const refreshScheduledRef = useRef<{ cancelled: boolean } | null>(null);
     const refreshScheduled = useCallback(() => {
+        // Cancel any in-flight previous call so stale results can't overwrite
+        // newer state (race when user toggles focus quickly).
+        if (refreshScheduledRef.current) refreshScheduledRef.current.cancelled = true;
+        const token = { cancelled: false };
+        refreshScheduledRef.current = token;
         ApiService.request('/consultations/me?role=client').then((data: any) => {
+            if (token.cancelled) return;
             if (Array.isArray(data)) {
                 const now = Date.now();
                 setScheduledConsultations(
-                    data.filter((c) => new Date(c.endAt).getTime() > now && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c.status))
+                    data.filter((c) => c?.endAt && new Date(c.endAt).getTime() > now && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c.status))
                         .slice(0, 5),
                 );
             } else {
                 setScheduledConsultations([]);
             }
         }).catch((err) => {
+            if (token.cancelled) return;
             console.warn('[ExpertsScreen] consultations load failed:', err?.message || err);
             setScheduledConsultations([]);
         });
     }, []);
-    useFocusEffect(useCallback(() => { refreshScheduled(); }, [refreshScheduled]));
+    useFocusEffect(useCallback(() => {
+        refreshScheduled();
+        return () => {
+            // Unmount/blur: cancel any in-flight request.
+            if (refreshScheduledRef.current) refreshScheduledRef.current.cancelled = true;
+        };
+    }, [refreshScheduled]));
 
     const respondReschedule = useCallback(async (consultationId: string, accept: boolean) => {
         try {
@@ -518,13 +533,13 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                             {isPending && !reschedulerIsMe ? (
                                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                                     <TouchableOpacity
-                                        onPress={(e) => { e.stopPropagation?.(); respondReschedule(c.id, true); }}
+                                        onPress={(e) => { e.stopPropagation(); respondReschedule(c.id, true); }}
                                         style={{ flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center' }}
                                     >
                                         <Text style={{ color: '#fff', fontWeight: '600' }}>{t('experts.rescheduleAccept') || 'Accept'}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
-                                        onPress={(e) => { e.stopPropagation?.(); respondReschedule(c.id, false); }}
+                                        onPress={(e) => { e.stopPropagation(); respondReschedule(c.id, false); }}
                                         style={{ flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
                                     >
                                         <Text style={{ color: colors.text, fontWeight: '600' }}>{t('experts.rescheduleDecline') || 'Decline'}</Text>

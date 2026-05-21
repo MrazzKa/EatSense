@@ -156,6 +156,31 @@ type MessagesShape = {
     templateFollowUpLabel: string;
     translated: string;
   };
+  calendar: {
+    title: string;
+    save: string;
+    subscribeTitle: string;
+    subscribeHint: string;
+    copy: string;
+    copied: string;
+    vacationTitle: string;
+    vacationHint: string;
+    awayUntil: string;
+    vacationMessage: string;
+    vacationPlaceholder: string;
+    clear: string;
+    exceptionsTitle: string;
+    exceptionsHint: string;
+    addClosedDay: string;
+    noExceptions: string;
+    closed: string;
+    custom: string;
+    timezone: string;
+    timezoneHint: string;
+    off: string;
+    addBlock: string;
+    failed: string;
+  };
   clients: {
     title: string;
     backToChat: string;
@@ -336,6 +361,31 @@ const en: MessagesShape = {
     templateGreetingLabel: 'Greeting', templateGoalsLabel: 'Goals', templateAllergiesLabel: 'Allergies',
     templateTypicalDayLabel: 'Typical day', templateNextStepsLabel: 'Next steps', templateFollowUpLabel: 'Follow-up', translated: 'Translated',
   },
+  calendar: {
+    title: 'Availability',
+    save: 'Save',
+    subscribeTitle: 'Subscribe to calendar',
+    subscribeHint: 'Add this URL to Google Calendar or Apple Calendar to see consultations.',
+    copy: 'Copy',
+    copied: 'Copied',
+    vacationTitle: 'Out of office',
+    vacationHint: 'While active, new bookings are blocked.',
+    awayUntil: 'Away until',
+    vacationMessage: 'Message (optional)',
+    vacationPlaceholder: 'Back on July 1',
+    clear: 'Clear',
+    exceptionsTitle: 'Exceptions (closed days)',
+    exceptionsHint: 'Specific dates when you do not accept consultations.',
+    addClosedDay: 'Add closed day',
+    noExceptions: 'No exceptions added.',
+    closed: 'closed',
+    custom: 'custom',
+    timezone: 'Timezone',
+    timezoneHint: 'IANA timezone (e.g. Europe/Zurich, Asia/Almaty)',
+    off: 'Off',
+    addBlock: 'Add block',
+    failed: 'Failed',
+  },
   clients: {
     title: 'Client Data', backToChat: 'Back to chat',
     noAccess: 'The client may not have granted data access yet.',
@@ -482,6 +532,31 @@ const ru: MessagesShape = {
     templateFollowUp: 'Как вы себя чувствуете со времени нашего последнего разговора?',
     templateGreetingLabel: 'Приветствие', templateGoalsLabel: 'Цели', templateAllergiesLabel: 'Аллергии',
     templateTypicalDayLabel: 'Типичный день', templateNextStepsLabel: 'След. шаги', templateFollowUpLabel: 'Follow-up', translated: 'Переведено',
+  },
+  calendar: {
+    title: 'Доступность',
+    save: 'Сохранить',
+    subscribeTitle: 'Подписка на календарь',
+    subscribeHint: 'Добавьте этот URL в Google Calendar или Apple Calendar чтобы видеть консультации.',
+    copy: 'Копировать',
+    copied: 'Скопировано',
+    vacationTitle: 'Режим отпуска',
+    vacationHint: 'Пока активен, бронирование слотов заблокировано.',
+    awayUntil: 'До какого числа',
+    vacationMessage: 'Сообщение (необязательно)',
+    vacationPlaceholder: 'Вернусь 1 июля',
+    clear: 'Сбросить',
+    exceptionsTitle: 'Исключения (нерабочие дни)',
+    exceptionsHint: 'Конкретные даты, когда вы не принимаете консультации.',
+    addClosedDay: 'Добавить',
+    noExceptions: 'Нет добавленных исключений.',
+    closed: 'закрыт',
+    custom: 'нестандарт',
+    timezone: 'Часовой пояс',
+    timezoneHint: 'IANA timezone (например, Europe/Zurich, Asia/Almaty)',
+    off: 'Выходной',
+    addBlock: 'Добавить блок',
+    failed: 'Ошибка',
   },
   clients: {
     title: 'Данные клиента', backToChat: 'Вернуться к чату',
@@ -630,6 +705,31 @@ const kk: MessagesShape = {
     templateGreetingLabel: 'Сәлемдесу', templateGoalsLabel: 'Мақсаттар', templateAllergiesLabel: 'Аллергиялар',
     templateTypicalDayLabel: 'Әдеттегі күн', templateNextStepsLabel: 'Келесі қадамдар', templateFollowUpLabel: 'Follow-up', translated: 'Аударылды',
   },
+  calendar: {
+    title: 'Қолжетімділік',
+    save: 'Сақтау',
+    subscribeTitle: 'Күнтізбеге жазылу',
+    subscribeHint: 'Кеңестерді көру үшін бұл URL-ді Google Calendar немесе Apple Calendar-ға қосыңыз.',
+    copy: 'Көшіру',
+    copied: 'Көшірілді',
+    vacationTitle: 'Демалыс режимі',
+    vacationHint: 'Белсенді болған кезде жаңа жазылулар бұғатталады.',
+    awayUntil: 'Қайтсам дейін',
+    vacationMessage: 'Хабар (міндетті емес)',
+    vacationPlaceholder: '1 шілдеде қайтамын',
+    clear: 'Тазалау',
+    exceptionsTitle: 'Ерекшеліктер (жұмыс емес күндер)',
+    exceptionsHint: 'Кеңес қабылдамайтын нақты күндер.',
+    addClosedDay: 'Қосу',
+    noExceptions: 'Қосылған ерекшеліктер жоқ.',
+    closed: 'жабық',
+    custom: 'арнайы',
+    timezone: 'Уақыт белдеуі',
+    timezoneHint: 'IANA уақыт белдеуі (мысалы, Asia/Almaty, Europe/Zurich)',
+    off: 'Демалыс',
+    addBlock: 'Блок қосу',
+    failed: 'Қате',
+  },
   clients: {
     title: 'Клиент деректері', backToChat: 'Чатқа оралу',
     noAccess: 'Клиент әлі деректерге рұқсат бермеген болуы мүмкін.',
@@ -776,6 +876,31 @@ const de: MessagesShape = {
     templateFollowUp: 'Wie haben Sie sich seit unserem letzten Gespräch gefühlt?',
     templateGreetingLabel: 'Begrüßung', templateGoalsLabel: 'Ziele', templateAllergiesLabel: 'Allergien',
     templateTypicalDayLabel: 'Typischer Tag', templateNextStepsLabel: 'Nächste Schritte', templateFollowUpLabel: 'Follow-up', translated: 'Übersetzt',
+  },
+  calendar: {
+    title: 'Verfügbarkeit',
+    save: 'Speichern',
+    subscribeTitle: 'Kalender abonnieren',
+    subscribeHint: 'Fügen Sie diese URL zu Google Calendar oder Apple Calendar hinzu, um Termine zu sehen.',
+    copy: 'Kopieren',
+    copied: 'Kopiert',
+    vacationTitle: 'Abwesend',
+    vacationHint: 'Während aktiv, sind neue Buchungen blockiert.',
+    awayUntil: 'Abwesend bis',
+    vacationMessage: 'Nachricht (optional)',
+    vacationPlaceholder: 'Zurück am 1. Juli',
+    clear: 'Zurücksetzen',
+    exceptionsTitle: 'Ausnahmen (geschlossene Tage)',
+    exceptionsHint: 'Bestimmte Daten, an denen Sie keine Beratungen annehmen.',
+    addClosedDay: 'Hinzufügen',
+    noExceptions: 'Keine Ausnahmen hinzugefügt.',
+    closed: 'geschlossen',
+    custom: 'individuell',
+    timezone: 'Zeitzone',
+    timezoneHint: 'IANA-Zeitzone (z. B. Europe/Zurich, Asia/Almaty)',
+    off: 'Frei',
+    addBlock: 'Block hinzufügen',
+    failed: 'Fehler',
   },
   clients: {
     title: 'Kundendaten', backToChat: 'Zurück zum Chat',
@@ -924,6 +1049,31 @@ const fr: MessagesShape = {
     templateGreetingLabel: 'Salutation', templateGoalsLabel: 'Objectifs', templateAllergiesLabel: 'Allergies',
     templateTypicalDayLabel: 'Journée type', templateNextStepsLabel: 'Étapes suivantes', templateFollowUpLabel: 'Suivi', translated: 'Traduit',
   },
+  calendar: {
+    title: 'Disponibilité',
+    save: 'Enregistrer',
+    subscribeTitle: 'S\'abonner au calendrier',
+    subscribeHint: 'Ajoutez cette URL à Google Calendar ou Apple Calendar pour voir les consultations.',
+    copy: 'Copier',
+    copied: 'Copié',
+    vacationTitle: 'Absent du bureau',
+    vacationHint: 'Lorsqu\'il est actif, les nouvelles réservations sont bloquées.',
+    awayUntil: 'Absent jusqu\'au',
+    vacationMessage: 'Message (facultatif)',
+    vacationPlaceholder: 'De retour le 1er juillet',
+    clear: 'Effacer',
+    exceptionsTitle: 'Exceptions (jours fermés)',
+    exceptionsHint: 'Dates spécifiques où vous n\'acceptez pas de consultations.',
+    addClosedDay: 'Ajouter',
+    noExceptions: 'Aucune exception ajoutée.',
+    closed: 'fermé',
+    custom: 'personnalisé',
+    timezone: 'Fuseau horaire',
+    timezoneHint: 'Fuseau horaire IANA (par ex. Europe/Zurich, Asia/Almaty)',
+    off: 'Repos',
+    addBlock: 'Ajouter un bloc',
+    failed: 'Échec',
+  },
   clients: {
     title: 'Données du client', backToChat: 'Retour au chat',
     noAccess: 'Le client n\'a peut-être pas encore accordé l\'accès aux données.',
@@ -1070,6 +1220,31 @@ const es: MessagesShape = {
     templateFollowUp: '¿Cómo te has sentido desde nuestra última conversación?',
     templateGreetingLabel: 'Saludo', templateGoalsLabel: 'Objetivos', templateAllergiesLabel: 'Alergias',
     templateTypicalDayLabel: 'Día típico', templateNextStepsLabel: 'Próximos pasos', templateFollowUpLabel: 'Seguimiento', translated: 'Traducido',
+  },
+  calendar: {
+    title: 'Disponibilidad',
+    save: 'Guardar',
+    subscribeTitle: 'Suscribirse al calendario',
+    subscribeHint: 'Añade esta URL a Google Calendar o Apple Calendar para ver las consultas.',
+    copy: 'Copiar',
+    copied: 'Copiado',
+    vacationTitle: 'Fuera de la oficina',
+    vacationHint: 'Mientras esté activo, las nuevas reservas estarán bloqueadas.',
+    awayUntil: 'Ausente hasta',
+    vacationMessage: 'Mensaje (opcional)',
+    vacationPlaceholder: 'Vuelvo el 1 de julio',
+    clear: 'Limpiar',
+    exceptionsTitle: 'Excepciones (días cerrados)',
+    exceptionsHint: 'Fechas específicas en las que no aceptas consultas.',
+    addClosedDay: 'Añadir',
+    noExceptions: 'No hay excepciones añadidas.',
+    closed: 'cerrado',
+    custom: 'personalizado',
+    timezone: 'Zona horaria',
+    timezoneHint: 'Zona horaria IANA (p. ej. Europe/Zurich, Asia/Almaty)',
+    off: 'Descanso',
+    addBlock: 'Añadir bloque',
+    failed: 'Error',
   },
   clients: {
     title: 'Datos del cliente', backToChat: 'Volver al chat',

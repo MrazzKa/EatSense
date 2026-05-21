@@ -1170,7 +1170,21 @@
     "policyError": "Failed to open policy",
     "termsError": "Failed to open terms",
     "notificationsDailyEnabled": "Notifications Daily Enabled",
-    "scientificSources": "Scientific Sources & References"
+    "scientificSources": "Scientific Sources & References",
+    "smartTips": {
+      "title": "Smart tips",
+      "subtitle": "Get a personalised tip each day based on what you want to improve.",
+      "masterRequired": "Turn on Daily reminders to enable smart tips.",
+      "enabled": "Smart tips",
+      "hourLabel": "Time of day",
+      "issuesLabel": "What would you like to improve?",
+      "issueSleep": "Sleep",
+      "issueStress": "Stress",
+      "issueEnergy": "Energy",
+      "issueDigestion": "Digestion",
+      "saveFailed": "Could not save smart tips settings",
+      "pickIssueFirst": "Pick at least one area below to enable smart tips."
+    }
   },
   "camera": {
     "requestingPermission": "Requesting camera permission...",
@@ -1556,12 +1570,9 @@
     "find_expert": "Find Expert",
     "free": "Free",
     "free_consultation": "Free consultation",
-    "load_error": "Failed to load",
     "noSpecialists": "No Specialists",
     "no_consultations": "No consultations yet",
     "no_experts_found": "No experts found",
-    "not_found": "Not found",
-    "request_error": "Request failed",
     "specialist": "Specialist",
     "start_chat": "Start chat",
     "tab_my_chats": "My Chats",
@@ -1752,7 +1763,10 @@
     "codeInvalidTitle": "Check the code",
     "codeInvalidBody": "Check the specialist code and try again.",
     "codeAppliedTitle": "Specialist added",
-    "codeAppliedBody": "This specialist is now available in My specialists."
+    "codeAppliedBody": "This specialist is now available in My specialists.",
+    "profileLoadError": "Failed to load",
+    "profileNotFound": "Not found",
+    "requestFailed": "Request failed"
   },
   "offers": {
     "noOffers": "No services yet",

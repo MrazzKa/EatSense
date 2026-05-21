@@ -338,3 +338,72 @@ export class PublishOfferDto {
     @IsBoolean()
     isPublished: boolean;
 }
+
+// ==================== ADMIN DTOs ====================
+
+export class AdminCreateExpertDto {
+    @IsString()
+    @MaxLength(254)
+    email: string;
+
+    @IsIn(['dietitian', 'nutritionist', 'psychologist', 'endocrinologist', 'obgyn', 'pediatrician', 'gp', 'other'])
+    type: string;
+
+    @IsString()
+    @MaxLength(100)
+    displayName: string;
+
+    @IsOptional() @IsString() @MaxLength(80)
+    firstName?: string;
+
+    @IsOptional() @IsString() @MaxLength(80)
+    lastName?: string;
+
+    @IsOptional() @IsString() @MaxLength(4000)
+    bio?: string;
+
+    @IsOptional() @IsString() @MaxLength(2)
+    country?: string;
+
+    @IsOptional() @IsString() @MaxLength(100)
+    city?: string;
+
+    @IsOptional() @IsString() @MaxLength(64)
+    timezone?: string;
+
+    @IsOptional() @IsString() @MaxLength(40)
+    phone?: string;
+
+    @IsOptional() @IsString() @MaxLength(100)
+    licenseNumber?: string;
+
+    @IsOptional() @IsString() @MaxLength(4000)
+    education?: string;
+
+    @IsOptional() @IsArray() @ArrayMaxSize(20)
+    educationEntries?: any[];
+
+    @IsOptional() @IsInt() @Min(0) @Max(70)
+    experienceYears?: number;
+
+    @IsOptional() @IsArray() @ArrayMaxSize(20) @IsString({ each: true }) @MaxLength(50, { each: true })
+    specializations?: string[];
+
+    @IsOptional() @IsArray() @ArrayMaxSize(10)
+    @IsIn(SUPPORTED_LANGUAGES as unknown as string[], { each: true })
+    languages?: string[];
+
+    @IsOptional() @IsString() @MaxLength(32)
+    accessCode?: string;
+
+    @IsOptional() @IsString() @MaxLength(1000)
+    avatarUrl?: string;
+
+    @IsOptional() @IsArray() @ArrayMaxSize(10)
+    credentials?: any[];
+}
+
+export class AdminUpdateNotesDto {
+    @IsOptional() @IsString() @MaxLength(8000)
+    notes?: string | null;
+}

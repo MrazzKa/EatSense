@@ -187,10 +187,6 @@
     "tapToView": "Appuyez pour voir",
     "analysisComplete": "Analyse terminée",
     "deleteError": "Erreur de suppression",
-    "protein": "Protéines",
-    "carbs": "Glucides",
-    "fat": "Lipides",
-    "fiber": "Fibres",
     "trustText": "Aperçu de l'IA",
     "disclaimer": "Les analyses sont approximatives",
     "viewSources": "Voir les sources",
@@ -598,18 +594,7 @@
     "comingSoon": "Bientôt",
     "daysAgo": "Il y a des jours",
     "yesterday": "Hier",
-    "noData": "Pas de données",
-    "filter": "Filtrer",
-    "more": "Plus",
-    "less": "Moins",
-    "share": "Partager",
-    "copy": "Copier",
-    "today": "Aujourd'hui",
-    "tomorrow": "Demain",
-    "remove": "Supprimer",
     "apply": "Appliquer",
-    "seeAll": "Voir tout",
-    "viewMore": "Voir plus",
     "mon": "Lu",
     "tue": "Ma",
     "wed": "Me",
@@ -798,10 +783,7 @@
       "takePhoto": "Prendre une photo",
       "title": "Ajouter un repas"
     },
-    "showAllMeals": "Afficher tous les repas",
-    "todaysMeals": "Repas du jour",
-    "noMeals": "Pas encore de repas aujourd'hui",
-    "analyzeMeal": "Analyser le repas"
+    "showAllMeals": "Afficher tous les repas"
   },
   "mealHistory": {
     "title": "Tous les repas",
@@ -1248,12 +1230,9 @@
     "find_expert": "Trouver un expert",
     "free": "Gratuit",
     "free_consultation": "Consultation gratuite",
-    "load_error": "Échec du chargement",
     "noSpecialists": "Aucun spécialiste",
     "no_consultations": "Aucune consultation pour le moment",
     "no_experts_found": "Aucun expert trouvé",
-    "not_found": "Introuvable",
-    "request_error": "Échec de la requête",
     "specialist": "Spécialiste",
     "start_chat": "Démarrer la discussion",
     "tab_my_chats": "Mes discussions",
@@ -1449,7 +1428,10 @@
     "codeInvalidTitle": "Vérifiez le code",
     "codeInvalidBody": "Vérifiez le code spécialiste et réessayez.",
     "codeAppliedTitle": "Spécialiste ajouté",
-    "codeAppliedBody": "Ce spécialiste est maintenant disponible dans Mes spécialistes."
+    "codeAppliedBody": "Ce spécialiste est maintenant disponible dans Mes spécialistes.",
+    "profileLoadError": "Échec du chargement",
+    "profileNotFound": "Introuvable",
+    "requestFailed": "Échec de la requête"
   },
   "feedbackScreen": {
     "alerts": {
@@ -1493,16 +1475,8 @@
     "title": "Qu'avez-vous mangé ?"
   },
   "gallery": {
-    "accessDenied": "Gallery Access",
-    "accessDeniedText": "To select photos, you need to grant gallery access in settings.",
     "error": "Failed to load image. Please try again.",
     "goBack": "Go Back",
-    "loadingGallery": "Loading gallery...",
-    "permissionRequired": "Gallery access required",
-    "permissionText": "Please allow photo access in device settings to select food photos.",
-    "requestingPermission": "Requesting gallery access...",
-    "settings": "Settings",
-    "title": "Select Photo",
     "notResponding": "Gallery not responding",
     "timeoutMessage": "Opening gallery is taking too long.",
     "openGallery": "Ouvrir la galerie",
@@ -1718,10 +1692,6 @@
       "month": "mois",
       "year": "an",
       "finePrint": "Vous pouvez changer de plan ou annuler à tout moment depuis les Paramètres.",
-      "plans": {
-        "month": "mois",
-        "year": "an"
-      },
       "free": {
         "badge": "Inclus",
         "features": [
@@ -1805,23 +1775,6 @@
         "lifetime": "Paiement unique, accès permanent",
         "badge": "Badge Fondateur exclusif",
         "priority": "Contact direct avec le développeur"
-      },
-      "founders": {
-        "badge": "Limité",
-        "features": [
-          "Paiement unique, accès à vie",
-          "Badge exclusif de fondateur",
-          "Accès direct au développeur"
-        ],
-        "headline": "Accès à vie + Badge exclusif",
-        "name": "Fondateur"
-      },
-      "proYearly": {
-        "features": [
-          "Tout du plan mensuel",
-          "Webinaires exclusifs",
-          "Accès anticipé aux fonctionnalités"
-        ]
       }
     },
     "welcome": "Bienvenue sur EatSense",
@@ -2127,20 +2080,7 @@
       "clearData": "Effacer les données",
       "clearTitle": "Effacer les données de santé",
       "clearMessage": "Êtes-vous sûr de vouloir effacer tous les paramètres de santé ? Cette action est irréversible.",
-      "cleared": "Données de santé effacées",
-      "bodyFat": "Pourcentage de graisse corporelle",
-      "waistCirc": "Tour de taille",
-      "hipCirc": "Tour de hanches",
-      "glp1": {
-        "title": "Thérapie GLP-1",
-        "isUser": "Utilisateur GLP-1"
-      },
-      "sugarControl": "Contrôle du sucre",
-      "cholesterol": "Cholestérol",
-      "inflammation": "Inflammation",
-      "iron": "Fer",
-      "microbiome": "Microbiome",
-      "hormonalBalance": "Équilibre hormonal"
+      "cleared": "Données de santé effacées"
     },
     "title": "Compte",
     "section": "Votre profil",
@@ -2275,37 +2215,6 @@
     "noData": "Aucune donnée",
     "policyError": "Erreur de politique",
     "termsError": "Erreur de conditions",
-    "deleteConfirmMessage": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
-    "signOut": "Se déconnecter",
-    "signOutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
-    "version": "Version",
-    "darkMode": "Mode sombre",
-    "privacy": "Confidentialité",
-    "terms": "Conditions d'utilisation",
-    "feedback": "Donner son avis",
-    "rateApp": "Évaluer l'application",
-    "features": {
-      "limitedAnalyses": "Analyses limitées",
-      "calorieTracking": "Suivi calorique",
-      "basicStats": "Statistiques de base",
-      "unlimitedAnalyses": "Analyses illimitées",
-      "advancedInsights": "Aperçus avancés",
-      "coachingTips": "Conseils de coaching",
-      "everythingInProMonthly": "Tout de Pro Mensuel",
-      "annualWebinars": "Webinaires annuels",
-      "earlyAccess": "Accès anticipé",
-      "studentDiscount": "Réduction étudiante",
-      "lifetimeAccess": "Accès à vie",
-      "founderBadge": "Badge fondateur",
-      "directAccess": "Accès direct"
-    },
-    "badges": {
-      "included": "Inclus",
-      "mostPopular": "Plus populaire",
-      "save33": "Économisez 33%",
-      "studentDiscount": "Réduction étudiante",
-      "limited": "Limité"
-    },
     "avatar": {
       "title": "Photo de Profil",
       "camera": "Prendre une Photo",
@@ -2314,6 +2223,20 @@
       "remove": "Supprimer la Photo",
       "cameraPermission": "La permission de la caméra est requise",
       "uploadFailed": "Échec du téléchargement de la photo"
+    },
+    "smartTips": {
+      "title": "Conseils intelligents",
+      "subtitle": "Chaque jour, un conseil personnalisé selon ce que vous voulez améliorer.",
+      "masterRequired": "Activez les rappels quotidiens pour utiliser les conseils intelligents.",
+      "enabled": "Conseils intelligents",
+      "hourLabel": "Heure",
+      "issuesLabel": "Que souhaitez-vous améliorer ?",
+      "issueSleep": "Sommeil",
+      "issueStress": "Stress",
+      "issueEnergy": "Énergie",
+      "issueDigestion": "Digestion",
+      "saveFailed": "Impossible d'enregistrer les paramètres",
+      "pickIssueFirst": "Sélectionnez au moins un domaine ci-dessous pour activer les conseils intelligents."
     }
   },
   "recently": {
@@ -2768,8 +2691,7 @@
     "filters_target_label": "Objectif",
     "filters_target_all": "Tous",
     "filters_target_male": "Hommes",
-    "filters_target_female": "Femmes",
-    "filters_age_label": "Âge"
+    "filters_target_female": "Femmes"
   },
   "consultations": {
     "status_active": "Actif",
@@ -2780,9 +2702,7 @@
     "type_message": "Écrivez un message..."
   },
   "error": {
-    "title": "Erreur",
-    "network": "Erreur réseau. Veuillez vérifier votre connexion.",
-    "unknown": "Une erreur inconnue s'est produite."
+    "title": "Erreur"
   },
   "diets_tracker_title": "Suivi Quotidien",
   "diets_tracker_daily_checklist": "Checklist Quotidienne",
@@ -2897,7 +2817,6 @@
   "restored": "Restauré",
   "studentVerificationDescription": "Téléchargez une photo de votre carte étudiante pour obtenir une réduction",
   "studentVerificationTitle": "Réduction étudiante",
-  "CHAT_CONSULTATION": "Consultation par chat",
   "paywall": {
     "title": "Débloquer l'accès complet",
     "subtitle": "Tirez le meilleur parti d'EatSense",
@@ -3000,7 +2919,6 @@
     "title": "Fonctionnalités expérimentales",
     "subtitle": "Gérer les expériences"
   },
-  "title": "Titre",
   "programs": {
     "lifestyle": {
       "that_girl": {

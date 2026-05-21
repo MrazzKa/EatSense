@@ -197,7 +197,14 @@ export class PaymentsService {
             } as any,
         });
         if (!expert) throw new NotFoundException();
-        return expert;
+        // Expose env-driven config so the portal renders correct fee/disabled banner.
+        const platformFeeBps = Number(process.env.STRIPE_PLATFORM_FEE_BPS || 1500);
+        return {
+            ...expert,
+            stripeEnabled: this.isEnabled,
+            platformFeeBps,
+            platformFeePercent: platformFeeBps / 100,
+        };
     }
 
     async adminRefund(paymentId: string, opts?: { reason?: string; amount?: number }): Promise<{ refundId: string }> {

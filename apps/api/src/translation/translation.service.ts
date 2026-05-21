@@ -23,18 +23,27 @@ export class TranslationService {
   /**
    * Translate a single text. Returns the original on missing key or error
    * (translation is a best-effort enhancement, never a blocker).
+   *
+   * sourceLocale (optional): when provided, cache key includes source so that
+   * cross-language homographs (e.g. "burro" IT="butter" vs ES="donkey") don't
+   * collide. Also passes source_lang to DeepL for better accuracy.
    */
-  async translate(text: string, targetLocale: string): Promise<{ value: string; cached: boolean }> {
+  async translate(
+    text: string,
+    targetLocale: string,
+    sourceLocale?: string,
+  ): Promise<{ value: string; cached: boolean }> {
     if (!text || !text.trim()) return { value: text || '', cached: true };
     const target = (targetLocale || 'en').slice(0, 5).toUpperCase();
-    const key = `${this.hash(text)}:${target}`;
+    const source = sourceLocale ? sourceLocale.slice(0, 5).toUpperCase() : '';
+    const key = this.makeKey(text, target, source);
     const cached = this.cache.get(key);
     if (cached && Date.now() - cached.ts < this.TTL_MS) {
       return { value: cached.value, cached: true };
     }
     if (!process.env.DEEPL_API_KEY) return { value: text, cached: false };
     try {
-      const result = await this.callDeepL([text], target);
+      const result = await this.callDeepL([text], target, source);
       const translation = result[0] || text;
       this.set(key, translation);
       return { value: translation, cached: false };
@@ -48,8 +57,9 @@ export class TranslationService {
    * Batch translate (one DeepL call per ≤50 strings). Misses are sent, hits served from cache.
    * Returns array in the same order as input.
    */
-  async translateBatch(texts: string[], targetLocale: string): Promise<string[]> {
+  async translateBatch(texts: string[], targetLocale: string, sourceLocale?: string): Promise<string[]> {
     const target = (targetLocale || 'en').slice(0, 5).toUpperCase();
+    const source = sourceLocale ? sourceLocale.slice(0, 5).toUpperCase() : '';
     if (!texts.length) return [];
     if (!process.env.DEEPL_API_KEY) return texts.slice();
 
@@ -62,7 +72,7 @@ export class TranslationService {
         result[i] = t || '';
         continue;
       }
-      const key = `${this.hash(t)}:${target}`;
+      const key = this.makeKey(t, target, source);
       const cached = this.cache.get(key);
       if (cached && Date.now() - cached.ts < this.TTL_MS) {
         result[i] = cached.value;
@@ -73,19 +83,18 @@ export class TranslationService {
     }
     if (missingTexts.length) {
       try {
-        // DeepL accepts up to 50 text params per call.
         const chunks: string[][] = [];
         for (let i = 0; i < missingTexts.length; i += 50) {
           chunks.push(missingTexts.slice(i, i + 50));
         }
         let cursor = 0;
         for (const chunk of chunks) {
-          const translated = await this.callDeepL(chunk, target);
+          const translated = await this.callDeepL(chunk, target, source);
           for (let j = 0; j < chunk.length; j++) {
             const i = missingIdx[cursor + j];
             const val = translated[j] || chunk[j];
             result[i] = val;
-            this.set(`${this.hash(chunk[j])}:${target}`, val);
+            this.set(this.makeKey(chunk[j], target, source), val);
           }
           cursor += chunk.length;
         }
@@ -95,6 +104,10 @@ export class TranslationService {
       }
     }
     return result;
+  }
+
+  private makeKey(text: string, target: string, source: string): string {
+    return `${this.hash(`${source}|${text}`)}:${target}`;
   }
 
   private hash(s: string): string {
@@ -114,13 +127,14 @@ export class TranslationService {
     this.cache.set(key, { value, ts: Date.now() });
   }
 
-  private async callDeepL(texts: string[], target: string): Promise<string[]> {
+  private async callDeepL(texts: string[], target: string, source?: string): Promise<string[]> {
     const apiKey = process.env.DEEPL_API_KEY!;
     const isFree = apiKey.endsWith(':fx');
     const endpoint = `https://api${isFree ? '-free' : ''}.deepl.com/v2/translate`;
     const body = new URLSearchParams();
     for (const t of texts) body.append('text', t);
     body.append('target_lang', target);
+    if (source) body.append('source_lang', source);
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {

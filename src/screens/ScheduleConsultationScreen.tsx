@@ -37,7 +37,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
       );
       setSlots(res?.slots || []);
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to load slots');
+      Alert.alert(t('common.error') || 'Error', err?.message || t('experts.noSlots') || 'Failed to load slots');
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
         );
       }
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to book');
+      Alert.alert(t('common.error') || 'Error', err?.message || 'Failed to book');
     } finally {
       setBooking(null);
     }

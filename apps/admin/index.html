@@ -515,19 +515,19 @@
                     <option value="other">Other</option>
                   </select>
                 </label>
-                <label>First name<input name="firstName" type="text"></label>
-                <label>Last name<input name="lastName" type="text"></label>
-                <label style="grid-column:1/-1">Display name *<input name="displayName" type="text" required></label>
+                <label>First name<input name="firstName" type="text" maxlength="80"></label>
+                <label>Last name<input name="lastName" type="text" maxlength="80"></label>
+                <label style="grid-column:1/-1">Display name *<input name="displayName" type="text" required maxlength="100"></label>
                 <label>Country (ISO-2)<input name="country" type="text" maxlength="2" placeholder="CH"></label>
-                <label>City<input name="city" type="text"></label>
-                <label>Timezone (IANA)<input name="timezone" type="text" placeholder="Europe/Zurich"></label>
-                <label>Phone<input name="phone" type="tel"></label>
-                <label>License number<input name="licenseNumber" type="text"></label>
-                <label>Experience years<input name="experienceYears" type="number" min="0"></label>
-                <label style="grid-column:1/-1">Languages (comma-separated)<input name="languages" type="text" placeholder="en, ru, fr"></label>
-                <label style="grid-column:1/-1">Specializations (comma-separated)<input name="specializations" type="text" placeholder="weight loss, diabetes"></label>
-                <label style="grid-column:1/-1">Bio<textarea name="bio" rows="4"></textarea></label>
-                <label style="grid-column:1/-1">Education (free text)<textarea name="education" rows="2"></textarea></label>
+                <label>City<input name="city" type="text" maxlength="100"></label>
+                <label>Timezone (IANA)<input name="timezone" type="text" placeholder="Europe/Zurich" maxlength="64"></label>
+                <label>Phone<input name="phone" type="tel" maxlength="40"></label>
+                <label>License number<input name="licenseNumber" type="text" maxlength="100"></label>
+                <label>Experience years<input name="experienceYears" type="number" min="0" max="70"></label>
+                <label style="grid-column:1/-1">Languages (comma-separated)<input name="languages" type="text" placeholder="en, ru, fr" maxlength="100"></label>
+                <label style="grid-column:1/-1">Specializations (comma-separated)<input name="specializations" type="text" placeholder="weight loss, diabetes" maxlength="500"></label>
+                <label style="grid-column:1/-1">Bio<textarea name="bio" rows="4" maxlength="4000"></textarea></label>
+                <label style="grid-column:1/-1">Education (free text)<textarea name="education" rows="2" maxlength="4000"></textarea></label>
                 <label style="grid-column:1/-1">
                   Credentials (PDF/JPG/PNG; до 15 МБ каждый)
                   <input type="file" name="credentialFiles" multiple accept="application/pdf,image/png,image/jpeg" oninput="onCredentialsPicked(event)">
@@ -839,7 +839,7 @@
           const author = (p.author?.userProfile?.firstName || '') + ' ' + (p.author?.userProfile?.lastName || '');
           const placeName = meta.placeName ? `<div><b>Place:</b> ${escapeHtml(meta.placeName)}</div>` : '';
           const city = meta.city ? `<div><b>City:</b> ${escapeHtml(meta.city)}</div>` : '';
-          const img = p.imageUrl ? `<img src="${p.imageUrl}" style="max-width:200px;max-height:160px;border-radius:8px;margin-top:8px"/>` : '';
+          const img = p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" style="max-width:200px;max-height:160px;border-radius:8px;margin-top:8px"/>` : '';
           return `
             <div class="card" style="padding:12px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
@@ -1664,7 +1664,10 @@
       try {
         const res = await fetchAPI('/admin/experts', { method: 'POST', body: JSON.stringify(obj) });
         const credText = res.credentials ? `, ${res.credentials} credentials` : '';
-        toast(`Expert created. Code: ${res.accessCode || '(auto)'}${credText}`);
+        const magicLinkText = res.magicLinkSent
+          ? ' — welcome magic-link sent by email'
+          : ' — ⚠ magic-link not sent (check SMTP/logs)';
+        toast(`Expert created. Code: ${res.accessCode || '(auto)'}${credText}${magicLinkText}`);
         closeCreateExpertModal();
         loadExperts();
       } catch (e) {

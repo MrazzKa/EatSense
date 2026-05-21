@@ -43,6 +43,12 @@ export class NotificationsService {
       dailyPushMinute: prefs.dailyPushMinute ?? 0,
       timezone: prefs.timezone,
       lastPushSentAt: prefs.lastPushSentAt,
+      // Smart tips
+      smartTipsEnabled: (prefs as any).smartTipsEnabled ?? false,
+      smartTipsHour: (prefs as any).smartTipsHour ?? 20,
+      healthIssues: ((prefs as any).healthIssues ?? []) as string[],
+      smartTipsLastSentAt: (prefs as any).smartTipsLastSentAt ?? null,
+      smartTipsLastCategory: (prefs as any).smartTipsLastCategory ?? null,
     };
   }
 
@@ -98,6 +104,28 @@ export class NotificationsService {
         updateData.lastPushSentAt = null;
       }
 
+      // Smart tips
+      if (dto.smartTipsEnabled !== undefined) {
+        updateData.smartTipsEnabled = Boolean(dto.smartTipsEnabled);
+        // Reset dedup so a freshly-enabled user can get today's tip.
+        if (updateData.smartTipsEnabled) updateData.smartTipsLastSentAt = null;
+      }
+      if (dto.smartTipsHour !== undefined) {
+        const hour = Number(dto.smartTipsHour);
+        if (Number.isNaN(hour) || hour < 0 || hour > 23) {
+          throw new BadRequestException('smartTipsHour must be an integer between 0 and 23');
+        }
+        updateData.smartTipsHour = hour;
+        updateData.smartTipsLastSentAt = null;
+      }
+      if (dto.healthIssues !== undefined) {
+        const allowed = new Set(['sleep', 'stress', 'energy', 'digestion']);
+        const sanitized = Array.isArray(dto.healthIssues)
+          ? Array.from(new Set(dto.healthIssues.filter((i) => allowed.has(i))))
+          : [];
+        updateData.healthIssues = sanitized;
+      }
+
 
       // Use upsert to handle both create and update cases
       const prefs = await this.prisma.notificationPreference.upsert({
@@ -123,6 +151,9 @@ export class NotificationsService {
         dailyPushMinute: prefs.dailyPushMinute ?? 0,
         timezone: prefs.timezone,
         lastPushSentAt: prefs.lastPushSentAt,
+        smartTipsEnabled: (prefs as any).smartTipsEnabled ?? false,
+        smartTipsHour: (prefs as any).smartTipsHour ?? 20,
+        healthIssues: ((prefs as any).healthIssues ?? []) as string[],
       };
     } catch (error) {
       this.logger.error(

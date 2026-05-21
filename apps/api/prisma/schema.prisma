@@ -288,16 +288,22 @@ model PushToken {
 }
 
 model NotificationPreference {
-  id               String    @id @default(cuid())
-  userId           String    @unique
-  dailyPushEnabled Boolean   @default(false)
-  dailyPushHour    Int       @default(8)
-  dailyPushMinute  Int       @default(0)
-  timezone         String    @default("UTC")
-  lastPushSentAt   DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  dailyPushEnabled       Boolean   @default(false)
+  dailyPushHour          Int       @default(8)
+  dailyPushMinute        Int       @default(0)
+  timezone               String    @default("UTC")
+  lastPushSentAt         DateTime?
+  // Smart tips (opt-in personalised reminders based on healthIssues).
+  smartTipsEnabled       Boolean   @default(false) @map("smart_tips_enabled")
+  smartTipsHour          Int       @default(20) @map("smart_tips_hour")
+  healthIssues           String[]  @default([]) @map("health_issues") // 'sleep'|'stress'|'energy'|'digestion'
+  smartTipsLastSentAt    DateTime? @map("smart_tips_last_sent_at")
+  smartTipsLastCategory  String?   @map("smart_tips_last_category")
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
 }

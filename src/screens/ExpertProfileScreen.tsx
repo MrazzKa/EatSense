@@ -85,7 +85,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
             }
         } catch (error) {
             console.error('[ExpertProfileScreen] Failed to load:', error);
-            Alert.alert(t('common.error') || 'Error', t('experts.load_error') || 'Failed to load expert profile');
+            Alert.alert(t('common.error') || 'Error', t('experts.profileLoadError') || 'Failed to load expert profile');
         } finally {
             setLoading(false);
         }
@@ -132,7 +132,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
         const expertIdToUse = expert?.id || specialistId;
         const offerIdToUse = selectedOfferId || expert?.offers?.[0]?.id;
         if (!expertIdToUse) {
-            Alert.alert(t('common.error') || 'Error', t('experts.not_found') || 'Expert not found');
+            Alert.alert(t('common.error') || 'Error', t('experts.profileNotFound') || 'Expert not found');
             return;
         }
         const selectedOffer = expert?.offers?.find((offer: any) => offer.id === offerIdToUse);
@@ -186,7 +186,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
             console.error('[ExpertProfileScreen] Start conversation failed:', error);
             Alert.alert(
                 t('common.error') || 'Error',
-                t('experts.request_error') || 'Failed to start conversation'
+                t('experts.requestFailed') || 'Failed to start conversation'
             );
         } finally {
             setRequesting(false);
@@ -206,7 +206,7 @@ export default function ExpertProfileScreen({ route, navigation }) {
     if (!expert) {
         return (
             <SafeAreaView style={styles.errorContainer} edges={['top']}>
-                <Text style={styles.errorText}>{t('experts.not_found') || 'Expert not found'}</Text>
+                <Text style={styles.errorText}>{t('experts.profileNotFound') || 'Expert not found'}</Text>
                 <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
                     <Text style={styles.backLinkText}>{t('common.goBack') || 'Go back'}</Text>
                 </TouchableOpacity>

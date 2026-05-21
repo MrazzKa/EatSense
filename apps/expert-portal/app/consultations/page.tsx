@@ -111,7 +111,16 @@ export default function ConsultationsPage() {
 
   function openReschedule(c: Consultation) {
     setReschedOpenFor(c);
-    setReschedStartAt(new Date(c.startAt).toISOString().slice(0, 16));
+    if (!c.startAt) {
+      setReschedStartAt('');
+      return;
+    }
+    const d = new Date(c.startAt);
+    if (isNaN(d.getTime())) {
+      setReschedStartAt('');
+      return;
+    }
+    setReschedStartAt(d.toISOString().slice(0, 16));
   }
 
   async function submitReschedule() {
@@ -369,6 +378,7 @@ export default function ConsultationsPage() {
                   type="datetime-local"
                   value={reschedStartAt}
                   onChange={(e) => setReschedStartAt(e.target.value)}
+                  min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm"
                 />
               </label>

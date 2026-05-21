@@ -227,6 +227,33 @@ export function useNotificationActions() {
             if (navigationCallback) navigationCallback('MainTabs');
             return;
         }
+
+        // Smart tips: opt-in personalised reminders (sleep/stress/energy/digestion).
+        // Tap → Profile so the user can adjust prefs or see context.
+        if (type === 'smart_tip') {
+            if (navigationCallback) navigationCallback('MainTabs', { screen: 'Profile' });
+            return;
+        }
+
+        // Consultation reminders fired by CalendarScheduler:
+        // reminder_24h / reminder_1h / reminder_10m → open the consultation chat
+        // or fall back to Experts tab if no conversationId attached.
+        if (type === 'reminder_24h' || type === 'reminder_1h' || type === 'reminder_10m' || type === 'consultation_reminder') {
+            const conversationId = data.conversationId as string | undefined;
+            if (conversationId && navigationCallback) {
+                navigationCallback('Chat', { conversationId });
+            } else if (navigationCallback) {
+                navigationCallback('MainTabs', { screen: 'Experts' });
+            }
+            return;
+        }
+
+        // No-show / completion / rating prompt → Experts tab so user sees the
+        // scheduled-consultations list with updated status.
+        if (type === 'no_show' || type === 'consultation_completed' || type === 'rating_prompt') {
+            if (navigationCallback) navigationCallback('MainTabs', { screen: 'Experts' });
+            return;
+        }
     }, [takeMedication, showTakeAlert, strings]);
 
     useEffect(() => {

@@ -103,15 +103,18 @@ export class CalendarScheduler {
         },
         take: 200,
       });
+      // Tick runs every 5 min. Reminder windows are tight (~ tick-size wide)
+      // so each reminder fires near its true target, never as a "1h reminder"
+      // when the call is actually 15 minutes away.
       for (const c of upcoming) {
         const minutesUntil = (c.startAt.getTime() - now.getTime()) / 60000;
-        if (minutesUntil <= 11 && !c.reminder10mSentAt) {
+        if (minutesUntil >= 5 && minutesUntil <= 12 && !c.reminder10mSentAt) {
           this.calendar.notifyConsultationEvent(c, 'reminder_10m').catch(() => {});
           await this.prisma.scheduledConsultation.update({ where: { id: c.id }, data: { reminder10mSentAt: now } });
-        } else if (minutesUntil <= 65 && minutesUntil > 11 && !c.reminder1hSentAt) {
+        } else if (minutesUntil >= 55 && minutesUntil <= 65 && !c.reminder1hSentAt) {
           this.calendar.notifyConsultationEvent(c, 'reminder_1h').catch(() => {});
           await this.prisma.scheduledConsultation.update({ where: { id: c.id }, data: { reminder1hSentAt: now } });
-        } else if (minutesUntil <= 24 * 60 + 5 && minutesUntil > 65 && !c.reminder24hSentAt) {
+        } else if (minutesUntil >= 24 * 60 - 5 && minutesUntil <= 24 * 60 + 5 && !c.reminder24hSentAt) {
           this.calendar.notifyConsultationEvent(c, 'reminder_24h').catch(() => {});
           await this.prisma.scheduledConsultation.update({ where: { id: c.id }, data: { reminder24hSentAt: now } });
         }

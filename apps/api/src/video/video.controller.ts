@@ -21,15 +21,18 @@ export class VideoController {
     }
 
     @Post('session/:sessionId/started')
-    async sessionStarted(@Param('sessionId') sessionId: string) {
-        return this.videoService.markStarted(sessionId);
+    async sessionStarted(@Param('sessionId') sessionId: string, @Req() req: any) {
+        const userId = req.user?.userId || req.user?.id;
+        return this.videoService.markStarted(sessionId, userId);
     }
 
     @Post('session/:sessionId/ended')
     async sessionEnded(
         @Param('sessionId') sessionId: string,
         @Body() body: { durationSec?: number },
+        @Req() req: any,
     ) {
-        return this.videoService.markEnded(sessionId, body?.durationSec);
+        const userId = req.user?.userId || req.user?.id;
+        return this.videoService.markEnded(sessionId, body?.durationSec, userId);
     }
 }

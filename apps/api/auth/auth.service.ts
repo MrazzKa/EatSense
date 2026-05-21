@@ -227,6 +227,27 @@ export class AuthService {
     return response;
   }
 
+  /**
+   * Admin-triggered: send an initial magic-link to a newly-created expert without
+   * rate-limiting. Used after `POST /admin/experts` so the expert receives a
+   * welcome email with portal access automatically.
+   */
+  async sendInitialExpertMagicLink(userId: string): Promise<{ sent: boolean }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, expertsRole: true },
+    });
+    if (!user || user.expertsRole !== 'EXPERT') return { sent: false };
+    try {
+      await this.sendMagicLinkForUser(user);
+      this.logger.log(`[AuthService] Initial expert magic link sent to ${this.maskEmail(user.email)}`);
+      return { sent: true };
+    } catch (err: any) {
+      this.logger.warn(`[AuthService] Initial expert magic link failed: ${err?.message}`);
+      return { sent: false };
+    }
+  }
+
   private async sendMagicLinkForUser(user: { id: string; email: string }, redirectUrl?: string) {
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MINUTES * 60 * 1000);

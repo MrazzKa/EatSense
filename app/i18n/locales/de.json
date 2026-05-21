@@ -27,9 +27,7 @@
     }
   },
   "error": {
-    "title": "Fehler",
-    "network": "Netzwerkfehler. Bitte überprüfe deine Verbindung.",
-    "unknown": "Ein unbekannter Fehler ist aufgetreten."
+    "title": "Fehler"
   },
   "help": {
     "title": "Hilfe & Support",
@@ -525,10 +523,6 @@
     "tapToView": "Tap to view",
     "analysisComplete": "Analysis complete",
     "deleteError": "Delete Error",
-    "protein": "Protein",
-    "carbs": "Kohlenhydrate",
-    "fat": "Fett",
-    "fiber": "Ballaststoffe",
     "disclaimer": "Dies ist kein medizinischer Rat.",
     "trustText": "Die Analysegenauigkeit verbessert sich mit jeder Nutzung — die KI lernt, Ihre Lieblingsgerichte und Portionsgrößen zu erkennen.",
     "viewSources": "Wissenschaftliche Quellen anzeigen",
@@ -804,7 +798,15 @@
     "mealShared": "Meal data shared",
     "reportShared": "Report shared",
     "activeConsultation": "Aktiv",
-    "findExpertHint": "Finden Sie einen Experten, um eine Beratung zu starten"
+    "findExpertHint": "Finden Sie einen Experten, um eine Beratung zu starten",
+    "noMessages": "Noch keine Nachrichten",
+    "photo": "Foto",
+    "report": "Melden",
+    "reportAbuse": "Melden",
+    "reportAbuseConfirm": "Diese Unterhaltung wegen Missbrauchs melden?",
+    "reportSent": "Meldung gesendet. Wir prüfen sie in Kürze.",
+    "sharedMeals": "Geteilte Mahlzeiten",
+    "sharedReport": "Geteilter Bericht"
   },
   "common": {
     "all": "Alle",
@@ -863,18 +865,7 @@
     "start": "Starten",
     "tryAgain": "Erneut versuchen",
     "underweight": "Untergewichtig",
-    "noData": "Keine Daten",
-    "filter": "Filter",
-    "more": "Mehr",
-    "less": "Weniger",
-    "share": "Teilen",
-    "copy": "Kopieren",
-    "today": "Heute",
-    "tomorrow": "Morgen",
-    "remove": "Entfernen",
     "apply": "Anwenden",
-    "seeAll": "Alle anzeigen",
-    "viewMore": "Mehr anzeigen",
     "mon": "Mo",
     "tue": "Di",
     "wed": "Mi",
@@ -1036,10 +1027,7 @@
       "takePhoto": "Take Photo",
       "title": "Title"
     },
-    "showAllMeals": "Show All Meals",
-    "todaysMeals": "Heutige Mahlzeiten",
-    "noMeals": "Noch keine Mahlzeiten heute",
-    "analyzeMeal": "Mahlzeit analysieren"
+    "showAllMeals": "Show All Meals"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -1264,11 +1252,8 @@
     "find_expert": "Experten finden",
     "free": "Kostenlos",
     "free_consultation": "Kostenlose Beratung",
-    "load_error": "Laden fehlgeschlagen",
     "no_consultations": "Noch keine Beratungen",
     "no_experts_found": "Keine Experten gefunden",
-    "not_found": "Nicht gefunden",
-    "request_error": "Anfrage fehlgeschlagen",
     "specialist": "Spezialist",
     "start_chat": "Chat starten",
     "tab_my_chats": "Meine Chats",
@@ -1488,7 +1473,10 @@
     "codeInvalidTitle": "Code prüfen",
     "codeInvalidBody": "Prüfe den Spezialistencode und versuche es erneut.",
     "codeAppliedTitle": "Spezialist hinzugefügt",
-    "codeAppliedBody": "Dieser Spezialist ist jetzt unter Meine Spezialisten verfügbar."
+    "codeAppliedBody": "Dieser Spezialist ist jetzt unter Meine Spezialisten verfügbar.",
+    "profileLoadError": "Laden fehlgeschlagen",
+    "profileNotFound": "Nicht gefunden",
+    "requestFailed": "Anfrage fehlgeschlagen"
   },
   "feedbackScreen": {
     "alerts": {
@@ -1532,16 +1520,8 @@
     "title": "What did you eat?"
   },
   "gallery": {
-    "accessDenied": "Galeriezugriff",
-    "accessDeniedText": "Um Fotos auszuwählen, müssen Sie den Galeriezugriff gewähren. Öffnen Sie die Einstellungen und erlauben Sie den Foto-Zugriff.",
     "error": "Bild konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
     "goBack": "Zurück",
-    "loadingGallery": "Galerie wird geladen...",
-    "permissionRequired": "Galeriezugriff erforderlich",
-    "permissionText": "Bitte aktivieren Sie den Zugriff auf die Fotobibliothek in den Geräteeinstellungen, um Fotos Ihrer Mahlzeiten auszuwählen.",
-    "requestingPermission": "Galerie-Berechtigung anfordern...",
-    "settings": "Einstellungen",
-    "title": "Foto auswählen",
     "notResponding": "Galerie reagiert nicht",
     "timeoutMessage": "Die Fotoauswahl dauert zu lange. Tippen Sie auf die Schaltfläche unten, um es erneut zu versuchen.",
     "openGallery": "Galerie öffnen",
@@ -1847,20 +1827,7 @@
       "clearMessage": "Möchtest du wirklich alle Gesundheitsparameter löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
       "clearTitle": "Gesundheitsdaten löschen",
       "cleared": "Gesundheitsdaten gelöscht",
-      "drugTypeLabel": "Medikamententyp",
-      "bodyFat": "Körperfettanteil",
-      "waistCirc": "Taillenumfang",
-      "hipCirc": "Hüftumfang",
-      "glp1": {
-        "title": "GLP-1 Therapie",
-        "isUser": "GLP-1 Anwender"
-      },
-      "sugarControl": "Blutzuckerkontrolle",
-      "cholesterol": "Cholesterin",
-      "inflammation": "Entzündung",
-      "iron": "Eisen",
-      "microbiome": "Mikrobiom",
-      "hormonalBalance": "Hormonelles Gleichgewicht"
+      "drugTypeLabel": "Medikamententyp"
     },
     "height": "Körpergröße (cm)",
     "language": "Sprache",
@@ -1954,39 +1921,8 @@
     "medications": "Medikamente",
     "medicationsSubtitle": "Verwalte deinen Zeitplan",
     "metricBmi": "BMI",
-    "deleteConfirmMessage": "Bist du sicher, dass du dein Konto löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "signOut": "Abmelden",
-    "signOutConfirm": "Möchtest du dich wirklich abmelden?",
     "planFounderName": "EatSense Founder",
     "planStudentName": "EatSense Student",
-    "version": "Version",
-    "darkMode": "Dunkelmodus",
-    "privacy": "Datenschutz",
-    "terms": "Nutzungsbedingungen",
-    "feedback": "Feedback geben",
-    "rateApp": "App bewerten",
-    "features": {
-      "limitedAnalyses": "Begrenzte Analysen",
-      "calorieTracking": "Kalorien-Tracking",
-      "basicStats": "Basis-Statistiken",
-      "unlimitedAnalyses": "Unbegrenzte Analysen",
-      "advancedInsights": "Erweiterte Einblicke",
-      "coachingTips": "Coaching-Tipps",
-      "everythingInProMonthly": "Alles aus Pro Monatlich",
-      "annualWebinars": "Jährliche Webinare",
-      "earlyAccess": "Frühzugang",
-      "studentDiscount": "Studentenrabatt",
-      "lifetimeAccess": "Lebenslanger Zugang",
-      "founderBadge": "Gründer-Abzeichen",
-      "directAccess": "Direkter Zugang"
-    },
-    "badges": {
-      "included": "Inklusive",
-      "mostPopular": "Beliebteste",
-      "save33": "33% sparen",
-      "studentDiscount": "Studentenrabatt",
-      "limited": "Begrenzt"
-    },
     "notificationsPermissionMessage": "Bitte aktiviere Benachrichtigungen in den Systemeinstellungen, um Erinnerungen zu erhalten.",
     "notificationsPermissionTitle": "Berechtigung erforderlich",
     "personalization": "Personalisierung",
@@ -2026,7 +1962,21 @@
       "uploadFailed": "Foto konnte nicht hochgeladen werden"
     },
     "reports": "Berichte",
-    "reportsSubtitle": "Monatliche Ernährungsberichte"
+    "reportsSubtitle": "Monatliche Ernährungsberichte",
+    "smartTips": {
+      "title": "Smarte Tipps",
+      "subtitle": "Jeden Tag ein personalisierter Tipp basierend auf Ihren Zielen.",
+      "masterRequired": "Aktivieren Sie tägliche Erinnerungen, um smarte Tipps zu nutzen.",
+      "enabled": "Smarte Tipps",
+      "hourLabel": "Uhrzeit",
+      "issuesLabel": "Was möchten Sie verbessern?",
+      "issueSleep": "Schlaf",
+      "issueStress": "Stress",
+      "issueEnergy": "Energie",
+      "issueDigestion": "Verdauung",
+      "saveFailed": "Einstellungen konnten nicht gespeichert werden",
+      "pickIssueFirst": "Wählen Sie unten mindestens einen Bereich aus, um smarte Tipps zu aktivieren."
+    }
   },
   "recently": {
     "analyzing": "Analyzing...",
@@ -2657,7 +2607,6 @@
   "diets_type_sports": "Performance",
   "diets_type_medical": "Medical",
   "lifestyles.filters_target_label": "Target",
-  "lifestyles.filters_age_label": "Age",
   "lifestyles.filters_target_all": "All",
   "lifestyles.filters_target_male": "Men",
   "lifestyles.filters_target_female": "Women",
