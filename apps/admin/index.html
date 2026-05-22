@@ -125,6 +125,109 @@
 
     .btn:disabled { opacity: 0.5; pointer-events: none; }
 
+    /* ===== FORMS / MODALS ===== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,.72);
+      z-index: 9999;
+    }
+    .create-expert-dialog {
+      width: min(980px, 100%);
+      max-height: min(92vh, 920px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 28px 90px rgba(0,0,0,.48);
+    }
+    .modal-titlebar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-titlebar h2 { margin: 0; font-size: 20px; }
+    .modal-subtitle { margin-top: 4px; color: var(--text2); font-size: 13px; line-height: 1.4; }
+    .modal-body {
+      overflow-y: auto;
+      padding: 18px 20px 20px;
+    }
+    .form-section {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .form-section-title {
+      margin-bottom: 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .form-field {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 9px 11px;
+      font: inherit;
+      font-weight: 500;
+      outline: none;
+    }
+    .form-field textarea { resize: vertical; line-height: 1.45; }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color: var(--primary); }
+    .form-help { color: var(--text2); font-size: 12px; line-height: 1.45; font-weight: 400; }
+    .inline-input-row { display: flex; gap: 8px; align-items: center; }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 4px;
+    }
+    @media (max-width: 720px) {
+      .modal-backdrop { padding: 0; align-items: stretch; }
+      .create-expert-dialog { max-height: 100dvh; border-radius: 0; }
+      .modal-titlebar { padding: 14px; }
+      .modal-body { padding: 14px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .inline-input-row { flex-direction: column; align-items: stretch; }
+      .modal-actions { display: grid; grid-template-columns: 1fr; }
+    }
+
     /* ===== CARDS ===== */
     .card {
       background: var(--surface);
@@ -493,55 +596,82 @@
         <div id="experts-list"><div class="loading">Loading experts...</div></div>
 
         <!-- Create expert modal -->
-        <div id="create-expert-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
-          <div style="background:#fff; max-width:680px; width:100%; max-height:90vh; overflow-y:auto; border-radius:12px; padding:24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-              <h2 style="margin:0">Create expert</h2>
-              <button class="btn btn-outline btn-sm" onclick="closeCreateExpertModal()">Close</button>
+        <div id="create-expert-modal" class="modal-backdrop">
+          <div class="create-expert-dialog">
+            <div class="modal-titlebar">
+              <div>
+                <h2 data-create-i18n="title">Create expert</h2>
+                <p class="modal-subtitle" data-create-i18n="subtitle">Add a verified expert, upload credentials, and generate an access code in one place.</p>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+                <select id="create-expert-lang" class="btn btn-outline btn-sm" onchange="setCreateExpertLang(this.value)" aria-label="Language">
+                  <option value="en">EN</option>
+                  <option value="ru">RU</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="closeCreateExpertModal()" data-create-i18n="close">Close</button>
+              </div>
             </div>
+            <div class="modal-body">
             <form id="create-expert-form" onsubmit="submitCreateExpert(event)">
-              <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <label>Email *<input name="email" type="email" required></label>
-                <label>Type *
+              <div class="form-section">
+                <div class="form-section-title" data-create-i18n="basic">Basic info</div>
+                <div class="form-grid">
+                <label class="form-field"><span data-create-i18n="email">Email *</span><input name="email" type="email" required></label>
+                <label class="form-field"><span data-create-i18n="type">Type *</span>
                   <select name="type" required>
                     <option value="">—</option>
                     <option value="nutritionist">Nutritionist</option>
                     <option value="dietitian">Dietitian</option>
                     <option value="psychologist">Psychologist</option>
                     <option value="endocrinologist">Endocrinologist</option>
-                    <option value="obgyn">OB-GYN (Акушер-гинеколог)</option>
+                    <option value="obgyn">OB-GYN / Акушер-гинеколог</option>
                     <option value="pediatrician">Pediatrician</option>
                     <option value="gp">General Practitioner</option>
                     <option value="other">Other</option>
                   </select>
                 </label>
-                <label>First name<input name="firstName" type="text" maxlength="80"></label>
-                <label>Last name<input name="lastName" type="text" maxlength="80"></label>
-                <label style="grid-column:1/-1">Display name *<input name="displayName" type="text" required maxlength="100"></label>
-                <label>Country (ISO-2)<input name="country" type="text" maxlength="2" placeholder="CH"></label>
-                <label>City<input name="city" type="text" maxlength="100"></label>
-                <label>Timezone (IANA)<input name="timezone" type="text" placeholder="Europe/Zurich" maxlength="64"></label>
-                <label>Phone<input name="phone" type="tel" maxlength="40"></label>
-                <label>License number<input name="licenseNumber" type="text" maxlength="100"></label>
-                <label>Experience years<input name="experienceYears" type="number" min="0" max="70"></label>
-                <label style="grid-column:1/-1">Languages (comma-separated)<input name="languages" type="text" placeholder="en, ru, fr" maxlength="100"></label>
-                <label style="grid-column:1/-1">Specializations (comma-separated)<input name="specializations" type="text" placeholder="weight loss, diabetes" maxlength="500"></label>
-                <label style="grid-column:1/-1">Bio<textarea name="bio" rows="4" maxlength="4000"></textarea></label>
-                <label style="grid-column:1/-1">Education (free text)<textarea name="education" rows="2" maxlength="4000"></textarea></label>
-                <label style="grid-column:1/-1">
-                  Credentials (PDF/JPG/PNG; до 15 МБ каждый)
+                <label class="form-field"><span data-create-i18n="firstName">First name</span><input name="firstName" type="text" maxlength="80"></label>
+                <label class="form-field"><span data-create-i18n="lastName">Last name</span><input name="lastName" type="text" maxlength="80"></label>
+                <label class="form-field full"><span data-create-i18n="displayName">Display name *</span><input name="displayName" type="text" required maxlength="100"></label>
+                </div>
+              </div>
+              <div class="form-section">
+                <div class="form-section-title" data-create-i18n="practice">Practice</div>
+                <div class="form-grid">
+                <label class="form-field"><span data-create-i18n="country">Country (ISO-2)</span><input name="country" type="text" maxlength="2" placeholder="KZ"></label>
+                <label class="form-field"><span data-create-i18n="city">City</span><input name="city" type="text" maxlength="100"></label>
+                <label class="form-field"><span data-create-i18n="timezone">Timezone (IANA)</span><input name="timezone" type="text" placeholder="Asia/Almaty" maxlength="64"></label>
+                <label class="form-field"><span data-create-i18n="phone">Phone</span><input name="phone" type="tel" maxlength="40"></label>
+                <label class="form-field"><span data-create-i18n="license">License number</span><input name="licenseNumber" type="text" maxlength="100"></label>
+                <label class="form-field"><span data-create-i18n="experience">Experience years</span><input name="experienceYears" type="number" min="0" max="70"></label>
+                <label class="form-field full"><span data-create-i18n="languages">Languages (comma-separated)</span><input name="languages" type="text" placeholder="ru, kk" maxlength="100"></label>
+                <label class="form-field full"><span data-create-i18n="specializations">Specializations (comma-separated)</span><input name="specializations" type="text" placeholder="акушерство, гинекология" maxlength="500"></label>
+                </div>
+              </div>
+              <div class="form-section">
+                <div class="form-section-title" data-create-i18n="profile">Profile text</div>
+                <div class="form-grid">
+                <label class="form-field full"><span data-create-i18n="bio">Bio</span><textarea name="bio" rows="4" maxlength="4000"></textarea></label>
+                <label class="form-field full"><span data-create-i18n="education">Education (free text)</span><textarea name="education" rows="3" maxlength="4000"></textarea></label>
+                </div>
+              </div>
+              <div class="form-section">
+                <div class="form-section-title" data-create-i18n="verification">Verification</div>
+                <div class="form-grid">
+                <label class="form-field full">
+                  <span data-create-i18n="credentials">Credentials (PDF/JPG/PNG; up to 15 MB each)</span>
                   <input type="file" name="credentialFiles" multiple accept="application/pdf,image/png,image/jpeg" oninput="onCredentialsPicked(event)">
-                  <small style="color:#666">Загрузи дипломы/сертификаты. Имя файла будет использовано как название документа.</small>
-                  <div id="credentials-preview" style="margin-top:6px; font-size:12px; color:#444;"></div>
+                  <small class="form-help" data-create-i18n="credentialsHelp">Upload diplomas or certificates. The filename will be used as the document title.</small>
+                  <div id="credentials-preview" class="form-help" style="margin-top:6px;"></div>
                 </label>
 
-                <label style="grid-column:1/-1">
-                  Access code (optional — leave empty for auto)
-                  <div style="display:flex; gap:8px; align-items:center;">
+                <label class="form-field full">
+                  <span data-create-i18n="accessCode">Access code (optional — leave empty for auto)</span>
+                  <div class="inline-input-row">
                     <input name="accessCode" type="text" pattern="[A-Z0-9-]{4,32}" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase(); checkAccessCodeAvailability(this.value)">
                     <span id="code-availability" style="font-size:12px;"></span>
                   </div>
-                  <small style="color:#666">Format: [A-Z0-9-]{4..32}. Example: <code>SOPHIA-NUTRITION</code>, <code>PHARMA-GENEVE-01</code></small>
+                  <small class="form-help" data-create-i18n="accessHelp">Format: [A-Z0-9-]{4..32}. Example: MANSHUK-OBGYN.</small>
                   <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
                     <button type="button" class="btn btn-outline btn-sm" onclick="suggestExpertCode(0)">Name-Type</button>
                     <button type="button" class="btn btn-outline btn-sm" onclick="suggestExpertCode(1)">Name-City-01</button>
@@ -549,11 +679,13 @@
                   </div>
                 </label>
               </div>
-              <div style="margin-top:20px; display:flex; gap:8px; justify-content:flex-end;">
-                <button type="button" class="btn btn-outline" onclick="closeCreateExpertModal()">Cancel</button>
-                <button type="submit" class="btn btn-green">Create expert</button>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeCreateExpertModal()" data-create-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn btn-green" data-create-i18n="submit">Create expert</button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       </div>
@@ -1588,9 +1720,88 @@
       }
     }
 
+    const CREATE_EXPERT_I18N = {
+      en: {
+        title: 'Create expert',
+        subtitle: 'Add a verified expert, upload credentials, and generate an access code in one place.',
+        close: 'Close',
+        basic: 'Basic info',
+        practice: 'Practice',
+        profile: 'Profile text',
+        verification: 'Verification',
+        email: 'Email *',
+        type: 'Type *',
+        firstName: 'First name',
+        lastName: 'Last name',
+        displayName: 'Display name *',
+        country: 'Country (ISO-2)',
+        city: 'City',
+        timezone: 'Timezone (IANA)',
+        phone: 'Phone',
+        license: 'License number',
+        experience: 'Experience years',
+        languages: 'Languages (comma-separated)',
+        specializations: 'Specializations (comma-separated)',
+        bio: 'Bio',
+        education: 'Education (free text)',
+        credentials: 'Credentials (PDF/JPG/PNG; up to 15 MB each)',
+        credentialsHelp: 'Upload diplomas or certificates. The filename will be used as the document title.',
+        accessCode: 'Access code (optional — leave empty for auto)',
+        accessHelp: 'Format: [A-Z0-9-]{4..32}. Example: MANSHUK-OBGYN.',
+        cancel: 'Cancel',
+        submit: 'Create expert',
+      },
+      ru: {
+        title: 'Создать эксперта',
+        subtitle: 'Добавьте проверенного эксперта, загрузите документы и создайте код доступа в одном окне.',
+        close: 'Закрыть',
+        basic: 'Основное',
+        practice: 'Практика',
+        profile: 'Текст профиля',
+        verification: 'Верификация',
+        email: 'Email *',
+        type: 'Тип *',
+        firstName: 'Имя',
+        lastName: 'Фамилия',
+        displayName: 'Имя в профиле *',
+        country: 'Страна (ISO-2)',
+        city: 'Город',
+        timezone: 'Часовой пояс (IANA)',
+        phone: 'Телефон',
+        license: 'Номер лицензии',
+        experience: 'Стаж в годах',
+        languages: 'Языки через запятую',
+        specializations: 'Специализации через запятую',
+        bio: 'Описание',
+        education: 'Образование (свободный текст)',
+        credentials: 'Документы (PDF/JPG/PNG; до 15 МБ каждый)',
+        credentialsHelp: 'Загрузите дипломы или сертификаты. Имя файла будет использовано как название документа.',
+        accessCode: 'Код доступа (необязательно — пусто для авто)',
+        accessHelp: 'Формат: [A-Z0-9-]{4..32}. Пример: MANSHUK-OBGYN.',
+        cancel: 'Отмена',
+        submit: 'Создать эксперта',
+      },
+    };
+    let createExpertLang = localStorage.getItem('adminCreateExpertLang') || 'en';
+    function setCreateExpertLang(lang) {
+      createExpertLang = CREATE_EXPERT_I18N[lang] ? lang : 'en';
+      localStorage.setItem('adminCreateExpertLang', createExpertLang);
+      applyCreateExpertI18n();
+    }
+    function applyCreateExpertI18n() {
+      const dict = CREATE_EXPERT_I18N[createExpertLang] || CREATE_EXPERT_I18N.en;
+      const picker = document.getElementById('create-expert-lang');
+      if (picker) picker.value = createExpertLang;
+      document.querySelectorAll('[data-create-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-create-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+    }
+
     let pendingCredentials = [];
     function openCreateExpertModal() {
       document.getElementById('create-expert-modal').style.display = 'flex';
+      applyCreateExpertI18n();
     }
     function closeCreateExpertModal() {
       document.getElementById('create-expert-modal').style.display = 'none';
@@ -1625,8 +1836,15 @@
       }));
       Promise.all(promises);
     }
+    function transliterateCodeText(value) {
+      const map = {
+        А:'A',Б:'B',В:'V',Г:'G',Д:'D',Е:'E',Ё:'E',Ж:'ZH',З:'Z',И:'I',Й:'Y',К:'K',Л:'L',М:'M',Н:'N',О:'O',П:'P',Р:'R',С:'S',Т:'T',У:'U',Ф:'F',Х:'KH',Ц:'TS',Ч:'CH',Ш:'SH',Щ:'SCH',Ъ:'',Ы:'Y',Ь:'',Э:'E',Ю:'YU',Я:'YA',
+        ә:'A',ғ:'G',қ:'K',ң:'N',ө:'O',ұ:'U',ү:'U',һ:'H',і:'I',
+      };
+      return String(value || '').replace(/[А-ЯЁәғқңөұүһі]/gi, (ch) => map[ch.toUpperCase()] || map[ch] || '');
+    }
     function slugifyForCode(s) {
-      return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      return transliterateCodeText(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
     }
     function suggestExpertCode(variant) {
       const f = document.getElementById('create-expert-form');

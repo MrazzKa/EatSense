@@ -249,6 +249,12 @@ type MessagesShape = {
     type: string;
     nutritionist: string;
     dietitian: string;
+    obgyn: string;
+    pediatrician: string;
+    gp: string;
+    psychologist: string;
+    endocrinologist: string;
+    other: string;
     bio: string;
     bioPlaceholder: string;
     education: string;
@@ -413,7 +419,7 @@ const en: MessagesShape = {
   },
   profile: {
     title: 'My Profile', displayName: 'Display Name', type: 'Type',
-    nutritionist: 'Nutritionist', dietitian: 'Dietitian', bio: 'Bio',
+    nutritionist: 'Nutritionist', dietitian: 'Dietitian', obgyn: 'OB-GYN', pediatrician: 'Pediatrician', gp: 'General practitioner', psychologist: 'Psychologist', endocrinologist: 'Endocrinologist', other: 'Other', bio: 'Bio',
     bioPlaceholder: 'Tell clients about your expertise and approach...',
     education: 'Education', educationPlaceholder: 'e.g. MSc in Nutrition Science, ETH Zurich',
     experienceYears: 'Years of Experience', specializations: 'Specializations', languages: 'Languages',
@@ -585,7 +591,7 @@ const ru: MessagesShape = {
   },
   profile: {
     title: 'Мой профиль', displayName: 'Отображаемое имя', type: 'Тип',
-    nutritionist: 'Нутрициолог', dietitian: 'Диетолог', bio: 'О себе',
+    nutritionist: 'Нутрициолог', dietitian: 'Диетолог', obgyn: 'Акушер-гинеколог', pediatrician: 'Педиатр', gp: 'Врач общей практики', psychologist: 'Психолог', endocrinologist: 'Эндокринолог', other: 'Другое', bio: 'О себе',
     bioPlaceholder: 'Расскажите клиентам о своём опыте и подходе...',
     education: 'Образование', educationPlaceholder: 'например, MSc в нутрициологии, ETH Zurich',
     experienceYears: 'Лет опыта', specializations: 'Специализации', languages: 'Языки',
@@ -757,7 +763,7 @@ const kk: MessagesShape = {
   },
   profile: {
     title: 'Менің профилім', displayName: 'Көрсетілетін есім', type: 'Түрі',
-    nutritionist: 'Нутрициолог', dietitian: 'Диетолог', bio: 'Өзі туралы',
+    nutritionist: 'Нутрициолог', dietitian: 'Диетолог', obgyn: 'Акушер-гинеколог', pediatrician: 'Педиатр', gp: 'Жалпы практика дәрігері', psychologist: 'Психолог', endocrinologist: 'Эндокринолог', other: 'Басқа', bio: 'Өзі туралы',
     bioPlaceholder: 'Клиенттерге тәжірибеңіз бен тәсіліңіз туралы айтыңыз...',
     education: 'Білімі', educationPlaceholder: 'мысалы, MSc нутрициология, ETH Zurich',
     experienceYears: 'Тәжірибе жылдары', specializations: 'Мамандықтар', languages: 'Тілдер',
@@ -929,7 +935,7 @@ const de: MessagesShape = {
   },
   profile: {
     title: 'Mein Profil', displayName: 'Anzeigename', type: 'Typ',
-    nutritionist: 'Ernährungsberater', dietitian: 'Diätassistent', bio: 'Biografie',
+    nutritionist: 'Ernährungsberater', dietitian: 'Diätassistent', obgyn: 'Gynäkologe', pediatrician: 'Kinderarzt', gp: 'Hausarzt', psychologist: 'Psychologe', endocrinologist: 'Endokrinologe', other: 'Andere', bio: 'Biografie',
     bioPlaceholder: 'Erzählen Sie Kunden von Ihrer Expertise und Ihrem Ansatz...',
     education: 'Ausbildung', educationPlaceholder: 'z.B. MSc Ernährungswissenschaft, ETH Zürich',
     experienceYears: 'Jahre Erfahrung', specializations: 'Spezialisierungen', languages: 'Sprachen',
@@ -1101,7 +1107,7 @@ const fr: MessagesShape = {
   },
   profile: {
     title: 'Mon Profil', displayName: 'Nom d\'affichage', type: 'Type',
-    nutritionist: 'Nutritionniste', dietitian: 'Diététicien', bio: 'Biographie',
+    nutritionist: 'Nutritionniste', dietitian: 'Diététicien', obgyn: 'Gynécologue-obstétricien', pediatrician: 'Pédiatre', gp: 'Médecin généraliste', psychologist: 'Psychologue', endocrinologist: 'Endocrinologue', other: 'Autre', bio: 'Biographie',
     bioPlaceholder: 'Parlez aux clients de votre expertise et de votre approche...',
     education: 'Formation', educationPlaceholder: 'ex. MSc en sciences de la nutrition, EPF Zurich',
     experienceYears: 'Années d\'expérience', specializations: 'Spécialisations', languages: 'Langues',
@@ -1273,7 +1279,7 @@ const es: MessagesShape = {
   },
   profile: {
     title: 'Mi Perfil', displayName: 'Nombre público', type: 'Tipo',
-    nutritionist: 'Nutricionista', dietitian: 'Dietista', bio: 'Biografía',
+    nutritionist: 'Nutricionista', dietitian: 'Dietista', obgyn: 'Ginecólogo-obstetra', pediatrician: 'Pediatra', gp: 'Médico general', psychologist: 'Psicólogo', endocrinologist: 'Endocrinólogo', other: 'Otro', bio: 'Biografía',
     bioPlaceholder: 'Cuéntales a los clientes sobre tu experiencia y enfoque...',
     education: 'Formación', educationPlaceholder: 'ej. MSc en Nutrición, ETH Zúrich',
     experienceYears: 'Años de experiencia', specializations: 'Especializaciones', languages: 'Idiomas',

@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, CalendarClock, Globe, Leaf, LogOut, MessageSquare, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { BarChart3, Calendar, CalendarClock, Globe, Leaf, LogOut, MessageSquare, MoreHorizontal, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
@@ -21,10 +22,18 @@ const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
   { href: '/profile', key: 'profile', icon: User },
 ];
 
+const MOBILE_PRIMARY_ITEMS = NAV_ITEMS.filter((item) =>
+  ['dashboard', 'chats', 'clients', 'calendar'].includes(item.key),
+);
+const MOBILE_MORE_ITEMS = NAV_ITEMS.filter((item) =>
+  ['consultations', 'offers', 'earnings', 'reviews', 'profile'].includes(item.key),
+);
+
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { t, locale, setLocale } = useI18n();
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   const displayName = user?.expertProfile?.displayName
     || [user?.profile?.firstName, user?.profile?.lastName].filter(Boolean).join(' ')
@@ -133,14 +142,39 @@ export function Sidebar() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 gap-1 border-t border-[var(--border)] bg-[var(--surface)]/95 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 backdrop-blur md:hidden">
-        {NAV_ITEMS.map((item) => {
+      {mobileMoreOpen && (
+        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+76px)] z-40 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl md:hidden">
+          <div className="grid grid-cols-2 gap-1">
+            {MOBILE_MORE_ITEMS.map((item) => {
+              const active = pathname.startsWith(item.href);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMoreOpen(false)}
+                  className={`flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm transition ${
+                    active ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)]'
+                  }`}
+                >
+                  <Icon size={17} />
+                  <span className="truncate">{mobileLabel(item.key)}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 gap-1 border-t border-[var(--border)] bg-[var(--surface)]/95 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 backdrop-blur md:hidden">
+        {MOBILE_PRIMARY_ITEMS.map((item) => {
           const active = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileMoreOpen(false)}
               className={`flex min-h-[44px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 text-[10px] leading-tight transition ${
                 active ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)]'
               }`}
@@ -150,6 +184,18 @@ export function Sidebar() {
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={() => setMobileMoreOpen((value) => !value)}
+          className={`flex min-h-[44px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 text-[10px] leading-tight transition ${
+            mobileMoreOpen || MOBILE_MORE_ITEMS.some((item) => pathname.startsWith(item.href))
+              ? 'bg-[var(--primary)] text-white'
+              : 'text-[var(--text2)]'
+          }`}
+        >
+          <MoreHorizontal size={19} />
+          <span className="w-full truncate text-center">{locale === 'ru' ? 'Ещё' : 'More'}</span>
+        </button>
       </nav>
     </>
   );

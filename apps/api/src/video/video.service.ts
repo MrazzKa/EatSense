@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, NotFoundException, ServiceUnavailableException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, ServiceUnavailableException, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma.service';
 // livekit-server-sdk is loaded lazily so the API boots even when the package
@@ -45,10 +45,7 @@ export class VideoService {
             throw new ServiceUnavailableException('Video calls are not configured for this environment');
         }
 
-        const conversation = await this.prisma.conversation.findUnique({
-            where: { id: params.conversationId },
-            include: { expert: true },
-        });
+        const conversation = await this.resolveConversationForVideo(params.conversationId, params.userId);
         if (!conversation) throw new NotFoundException('Conversation not found');
 
         const isClient = conversation.clientId === params.userId;
@@ -110,6 +107,49 @@ export class VideoService {
             sessionId: session.id,
             expiresIn: 7200,
         };
+    }
+
+    private async resolveConversationForVideo(id: string, userId: string) {
+        const conversation = await this.prisma.conversation.findUnique({
+            where: { id },
+            include: { expert: true },
+        });
+        if (conversation) return conversation;
+
+        const consultation = await this.prisma.scheduledConsultation.findUnique({
+            where: { id },
+            include: { expert: true },
+        });
+        if (!consultation) return null;
+
+        const isClient = consultation.clientId === userId;
+        const isExpert = consultation.expert?.userId === userId;
+        if (!isClient && !isExpert) {
+            throw new ForbiddenException('You are not a participant of this consultation');
+        }
+        if (!consultation.conversationId) {
+            throw new BadRequestException('This consultation has no linked conversation');
+        }
+        const now = Date.now();
+        if (
+            consultation.startAt.getTime() - now > 5 * 60000 ||
+            now > consultation.endAt.getTime() + 10 * 60000
+        ) {
+            throw new BadRequestException('Call is available from 5 minutes before start until 10 minutes after the scheduled end');
+        }
+        if (!['SCHEDULED', 'IN_PROGRESS'].includes(consultation.status as any)) {
+            throw new BadRequestException('Consultation is not available for video');
+        }
+
+        await this.prisma.scheduledConsultation.update({
+            where: { id: consultation.id },
+            data: { status: 'IN_PROGRESS' as any, startedAt: consultation.startedAt ?? new Date() },
+        }).catch(() => {});
+
+        return this.prisma.conversation.findUnique({
+            where: { id: consultation.conversationId },
+            include: { expert: true },
+        });
     }
 
     /** Returns the session if the user is a participant of the parent conversation. */

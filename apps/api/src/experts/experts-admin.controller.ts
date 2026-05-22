@@ -627,7 +627,12 @@ export class ExpertsAdminController {
         @Query('city') city?: string,
     ) {
         this.validateAdmin(adminSecret);
-        const slug = (s?: string) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const translitMap: Record<string, string> = {
+            А: 'A', Б: 'B', В: 'V', Г: 'G', Д: 'D', Е: 'E', Ё: 'E', Ж: 'ZH', З: 'Z', И: 'I', Й: 'Y', К: 'K', Л: 'L', М: 'M', Н: 'N', О: 'O', П: 'P', Р: 'R', С: 'S', Т: 'T', У: 'U', Ф: 'F', Х: 'KH', Ц: 'TS', Ч: 'CH', Ш: 'SH', Щ: 'SCH', Ъ: '', Ы: 'Y', Ь: '', Э: 'E', Ю: 'YU', Я: 'YA',
+            Ә: 'A', Ғ: 'G', Қ: 'K', Ң: 'N', Ө: 'O', Ұ: 'U', Ү: 'U', Һ: 'H', І: 'I',
+        };
+        const translit = (s?: string) => String(s || '').replace(/[А-ЯЁӘҒҚҢӨҰҮҺІ]/gi, (ch) => translitMap[ch.toUpperCase()] ?? '');
+        const slug = (s?: string) => translit(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
         const fn = slug(firstName);
         const ln = slug(lastName);
         const ty = slug(type);

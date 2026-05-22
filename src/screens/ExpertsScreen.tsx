@@ -171,7 +171,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         setLoading(false);
     }, [loadExperts, loadMySpecialists]);
 
-    const normalizeCodeInput = (value: string) => value.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 12);
+    const normalizeCodeInput = (value: string) => value.replace(/[^a-z0-9-]/gi, '').toUpperCase().slice(0, 32);
 
     const handleApplyCode = useCallback(async () => {
         const code = normalizeCodeInput(codeInput);
@@ -753,10 +753,10 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                             onChangeText={(value) => setCodeInput(normalizeCodeInput(value))}
                             autoCapitalize="characters"
                             autoCorrect={false}
-                            placeholder={t('experts.codePlaceholder') || 'A7K9Q2'}
+                            placeholder={t('experts.codePlaceholder') || 'MANSHUK-OBGYN'}
                             placeholderTextColor={colors.textTertiary}
                             style={styles.codeInput}
-                            maxLength={12}
+                            maxLength={32}
                         />
                         <View style={styles.codeActions}>
                             <TouchableOpacity

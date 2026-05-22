@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, SPECIALIZATION_KEYS, type Locale, type SpecializationKey } from '@/lib/i18n/messages';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const EXPERT_TYPES = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'other'] as const;
 
 interface ExpertProfile {
   id: string;
@@ -314,8 +315,8 @@ export default function ProfilePage() {
 
             {/* Type */}
             <Field label={t('profile', 'type')}>
-              <div className="grid grid-cols-2 gap-3 sm:flex">
-                {(['nutritionist', 'dietitian'] as const).map((typeKey) => (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {EXPERT_TYPES.map((typeKey) => (
                   <button
                     key={typeKey}
                     onClick={() => setType(typeKey)}

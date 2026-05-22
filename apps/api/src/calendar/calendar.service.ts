@@ -210,6 +210,34 @@ export class CalendarService {
     const link = await this.prisma.expertClientLink.findFirst({ where: { expertId, clientId, isActive: true } });
     if (!link) throw new ForbiddenException('No active expert-client link');
 
+    if (initiatedBy === 'client') {
+      const slotData = await this.listSlots(expertId, {
+        from: new Date(start.getTime() - 1000),
+        to: new Date(start.getTime() + 1000),
+        durationMinutes: dto.durationMinutes,
+      });
+      const hasSlot = slotData.slots.some((slot) => slot.startAt === start.toISOString());
+      if (!hasSlot) throw new BadRequestException('Selected time is no longer available');
+    }
+
+    let conversationId = dto.conversationId;
+    if (conversationId) {
+      const conversation = await this.prisma.conversation.findUnique({ where: { id: conversationId } });
+      if (!conversation || conversation.clientId !== clientId || conversation.expertId !== expertId) {
+        throw new BadRequestException('Invalid conversation for this consultation');
+      }
+    } else {
+      const conversation = await this.prisma.conversation.upsert({
+        where: {
+          clientId_expertId: { clientId, expertId },
+        },
+        update: { status: 'active' },
+        create: { clientId, expertId, status: 'active' },
+        select: { id: true },
+      });
+      conversationId = conversation.id;
+    }
+
     // Overlap check
     const conflict = await this.prisma.scheduledConsultation.findFirst({
       where: {
@@ -225,7 +253,7 @@ export class CalendarService {
       data: {
         expertId,
         clientId,
-        conversationId: dto.conversationId,
+        conversationId,
         offerId: dto.offerId,
         startAt: start,
         endAt: end,

@@ -32,6 +32,12 @@ const LANGUAGE_LABELS = {
 const TYPE_KEYS: Record<string, string> = {
     nutritionist: 'experts.typeNutritionist',
     dietitian: 'experts.typeDietitian',
+    obgyn: 'experts.typeObgyn',
+    pediatrician: 'experts.typePediatrician',
+    gp: 'experts.typeGp',
+    psychologist: 'experts.typePsychologist',
+    endocrinologist: 'experts.typeEndocrinologist',
+    other: 'experts.typeOther',
 };
 
 const pickLocalized = (value: any, locale: string): string => {

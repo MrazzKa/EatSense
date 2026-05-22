@@ -512,7 +512,7 @@ export class ExpertsService {
             select: { id: true, status: true, expertId: true },
         });
 
-        const link = await this.prisma.$transaction(async (tx) => {
+        const result = await this.prisma.$transaction(async (tx) => {
             const savedLink = await tx.expertClientLink.upsert({
                 where: {
                     clientId_expertId: {
@@ -532,19 +532,33 @@ export class ExpertsService {
                     source: 'code',
                 },
             });
+            const conversation = existingConversation
+              ? await tx.conversation.update({
+                  where: { id: existingConversation.id },
+                  data: { status: 'active' },
+                  select: { id: true, status: true, expertId: true },
+                })
+              : await tx.conversation.create({
+                  data: {
+                    clientId: userId,
+                    expertId: accessCode.expertId,
+                    status: 'active',
+                  },
+                  select: { id: true, status: true, expertId: true },
+                });
             await tx.expertAccessCodeUsage.create({
                 data: {
                     codeId: accessCode.id,
                     expertId: accessCode.expertId,
                     clientId: userId,
-                    conversationId: existingConversation?.id,
+                    conversationId: conversation.id,
                 },
             });
             await tx.expertAccessCode.update({
                 where: { id: accessCode.id },
                 data: { usageCount: { increment: 1 } },
             });
-            return savedLink;
+            return { link: savedLink, conversation };
         });
 
         // Notify expert + insert welcome system message (best-effort, never blocks the flow).
@@ -569,29 +583,27 @@ export class ExpertsService {
             }
 
             try {
-                // Welcome message in the conversation (created on first chat open if missing).
+                // Welcome message in the conversation.
                 // Type 'text' for safe rendering across mobile + portal. To distinguish
                 // from a normal user message we tag it via `metadata.system = true`.
-                if (existingConversation?.id) {
-                    const existingWelcome = await this.prisma.message.findFirst({
-                        where: {
-                            conversationId: existingConversation.id,
+                const existingWelcome = await this.prisma.message.findFirst({
+                    where: {
+                        conversationId: result.conversation.id,
+                        senderId: accessCode.expert.userId,
+                        metadata: { path: ['system'], equals: true },
+                    },
+                    select: { id: true },
+                }).catch(() => null);
+                if (!existingWelcome) {
+                    await this.prisma.message.create({
+                        data: {
+                            conversationId: result.conversation.id,
                             senderId: accessCode.expert.userId,
-                            metadata: { path: ['system'], equals: true },
+                            type: 'text',
+                            content: 'Welcome! Feel free to ask anything — I will respond as soon as I can.',
+                            metadata: { system: true, kind: 'welcome', clientId: userId },
                         },
-                        select: { id: true },
-                    }).catch(() => null);
-                    if (!existingWelcome) {
-                        await this.prisma.message.create({
-                            data: {
-                                conversationId: existingConversation.id,
-                                senderId: accessCode.expert.userId,
-                                type: 'text',
-                                content: 'Welcome! Feel free to ask anything — I will respond as soon as I can.',
-                                metadata: { system: true, kind: 'welcome', clientId: userId },
-                            },
-                        }).catch(() => {});
-                    }
+                    }).catch(() => {});
                 }
             } catch (err) {
                 this.logger.warn(`[applyAccessCode] welcome message failed: ${(err as any)?.message}`);
@@ -599,9 +611,9 @@ export class ExpertsService {
         });
 
         return {
-            link,
+            link: result.link,
             expert: accessCode.expert,
-            conversation: existingConversation,
+            conversation: result.conversation,
         };
     }
 
