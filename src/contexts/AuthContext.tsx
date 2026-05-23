@@ -12,6 +12,7 @@ import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import ApiService from '../services/apiService';
+import { applyLocalOnboardingCompletion } from '../utils/onboardingCompletion';
 
 const SUBSCRIPTION_CACHE_KEY = 'eatsense_subscription_cache';
 
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       const result = await ApiService.getUserProfile();
       // Backend returns { profile: null } if profile doesn't exist, or the profile object if it exists
-      const profile = result?.profile !== undefined ? result.profile : result;
+      const profile = await applyLocalOnboardingCompletion(result?.profile !== undefined ? result.profile : result);
 
       if (profile && profile.id) {
         // Profile exists - use it directly
@@ -159,7 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               // Optimization: Use profile from refresh response if available
               if (refreshResult.profile) {
                 if (__DEV__) console.log('[AuthContext] Using profile from refresh token response');
-                setUser(refreshResult.profile);
+                setUser(await applyLocalOnboardingCompletion(refreshResult.profile));
                 setLoading(false);
                 return;
               }

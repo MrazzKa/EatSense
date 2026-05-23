@@ -3,30 +3,30 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, CalendarClock, Globe, Leaf, LogOut, MessageSquare, MoreHorizontal, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { BarChart3, Calendar, Globe, HelpCircle, Leaf, LogOut, MessageSquare, MoreHorizontal, Package, Star, User, Users, Wallet, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 
-type NavKey = 'dashboard' | 'chats' | 'clients' | 'calendar' | 'consultations' | 'offers' | 'earnings' | 'reviews' | 'profile';
+type NavKey = 'dashboard' | 'chats' | 'clients' | 'calendar' | 'offers' | 'earnings' | 'reviews' | 'profile' | 'support';
 
 const NAV_ITEMS: { href: string; key: NavKey; icon: LucideIcon }[] = [
   { href: '/dashboard', key: 'dashboard', icon: BarChart3 },
   { href: '/chats', key: 'chats', icon: MessageSquare },
   { href: '/clients', key: 'clients', icon: Users },
   { href: '/calendar', key: 'calendar', icon: Calendar },
-  { href: '/consultations', key: 'consultations', icon: CalendarClock },
   { href: '/offers', key: 'offers', icon: Package },
   { href: '/earnings', key: 'earnings', icon: Wallet },
   { href: '/reviews', key: 'reviews', icon: Star },
   { href: '/profile', key: 'profile', icon: User },
+  { href: '/support', key: 'support', icon: HelpCircle },
 ];
 
 const MOBILE_PRIMARY_ITEMS = NAV_ITEMS.filter((item) =>
   ['dashboard', 'chats', 'clients', 'calendar'].includes(item.key),
 );
 const MOBILE_MORE_ITEMS = NAV_ITEMS.filter((item) =>
-  ['consultations', 'offers', 'earnings', 'reviews', 'profile'].includes(item.key),
+  ['offers', 'earnings', 'reviews', 'profile', 'support'].includes(item.key),
 );
 
 export function Sidebar() {
@@ -41,11 +41,9 @@ export function Sidebar() {
     || 'Expert';
   const mobileLabel = (key: NavKey) => {
     if (key === 'dashboard') return locale === 'ru' ? 'Обзор' : 'Home';
-    if (key === 'profile') return locale === 'ru' ? 'Профиль' : 'Profile';
-    if (key === 'clients') return locale === 'ru' ? 'Клиенты' : 'Clients';
-    if (key === 'calendar') return locale === 'ru' ? 'Доступность' : 'Availability';
-    if (key === 'consultations') return locale === 'ru' ? 'Встречи' : 'Bookings';
-    return t('nav', key);
+    if (key === 'calendar') return locale === 'ru' ? 'Расписание' : 'Schedule';
+    if (key === 'support') return locale === 'ru' ? 'Связь' : 'Contact';
+    return t('nav', key as Exclude<NavKey, 'support'>);
   };
 
   return (
@@ -92,7 +90,7 @@ export function Sidebar() {
 
         <nav className="flex-1 p-3 space-y-1">
           {NAV_ITEMS.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = pathname.startsWith(item.href) || (item.href === '/calendar' && pathname.startsWith('/consultations'));
             const Icon = item.icon;
             return (
               <Link
@@ -105,7 +103,7 @@ export function Sidebar() {
                 }`}
               >
                 <Icon size={18} />
-                <span>{t('nav', item.key)}</span>
+                <span>{mobileLabel(item.key)}</span>
               </Link>
             );
           })}
@@ -168,7 +166,7 @@ export function Sidebar() {
 
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 gap-1 border-t border-[var(--border)] bg-[var(--surface)]/95 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 backdrop-blur md:hidden">
         {MOBILE_PRIMARY_ITEMS.map((item) => {
-          const active = pathname.startsWith(item.href);
+          const active = pathname.startsWith(item.href) || (item.href === '/calendar' && pathname.startsWith('/consultations'));
           const Icon = item.icon;
           return (
             <Link

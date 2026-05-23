@@ -198,6 +198,14 @@ export default function ConsultationsPage() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <CalendarIcon size={24} /> {locale === 'ru' ? 'Консультации' : 'Consultations'}
           </h1>
+          <div className="mt-2 flex gap-2 text-xs">
+            <Link href="/calendar" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
+              {locale === 'ru' ? 'Доступность' : 'Availability'}
+            </Link>
+            <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
+              {locale === 'ru' ? 'Встречи' : 'Bookings'}
+            </span>
+          </div>
           <button
             onClick={openCreate}
             className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white"

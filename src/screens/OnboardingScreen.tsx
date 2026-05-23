@@ -38,6 +38,7 @@ import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import { TRIAL_DAYS } from '../config/freeContent';
 import { formatPrice, getCurrency, formatAmount, getDeviceRegion, getCurrencySymbolByCode } from '../utils/currency';
+import { markOnboardingCompletedLocally } from '../utils/onboardingCompletion';
 
 const { width } = Dimensions.get('window');
 
@@ -1089,11 +1090,15 @@ const OnboardingScreen = () => {
       console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
 
       await clientLog('Onboarding:completed').catch(() => { });
+      await markOnboardingCompletedLocally(onboardingResult);
 
       // Update user context with isOnboardingCompleted
       // This will trigger App.js to switch from OnboardingStack to MainStack
       if (setUser) {
-        setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
+        setUser((prev) => {
+          markOnboardingCompletedLocally(prev).catch(() => {});
+          return { ...prev, isOnboardingCompleted: true };
+        });
         console.log('[OnboardingScreen] User context updated with isOnboardingCompleted: true');
       }
 
@@ -1109,7 +1114,10 @@ const OnboardingScreen = () => {
       // FAIL OPEN: Even if API fails (e.g. timeout, network), let the user in
       // Update local state so they can use the app
       if (setUser) {
-        setUser((prev) => ({ ...prev, isOnboardingCompleted: true }));
+        setUser((prev) => {
+          markOnboardingCompletedLocally(prev).catch(() => {});
+          return { ...prev, isOnboardingCompleted: true };
+        });
         console.log('[OnboardingScreen] Force updating user context on error');
       }
     }

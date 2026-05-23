@@ -1815,6 +1815,22 @@
       pendingCredentials = [];
       const preview = document.getElementById('credentials-preview');
       preview.innerHTML = '';
+      const maxFileBytes = 15 * 1024 * 1024;
+      const maxTotalBytes = 45 * 1024 * 1024;
+      const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+      const oversized = files.find((file) => file.size > maxFileBytes);
+      if (oversized) {
+        ev.target.value = '';
+        preview.textContent = `File is too large: ${oversized.name}. Max 15 MB per file.`;
+        pendingCredentials = [];
+        return;
+      }
+      if (totalBytes > maxTotalBytes) {
+        ev.target.value = '';
+        preview.textContent = 'Total upload is too large. Please upload up to 45 MB at once.';
+        pendingCredentials = [];
+        return;
+      }
       const promises = files.map((file) => new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -1906,7 +1922,12 @@
         closeCreateExpertModal();
         loadExperts();
       } catch (e) {
-        toast('Create failed: ' + (e?.message || e));
+        const msg = String(e?.message || e || '');
+        if (msg.toLowerCase().includes('entity too large') || msg.includes('413')) {
+          toast('Create failed: attached files are too large. Try smaller PDFs or upload fewer files.');
+        } else {
+          toast('Create failed: ' + msg);
+        }
       }
     }
 

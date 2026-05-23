@@ -34,6 +34,7 @@ try {
   isGoogleSignInAvailable = false;
 }
 import ApiService from '../services/apiService';
+import { applyLocalOnboardingCompletion } from '../utils/onboardingCompletion';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -182,11 +183,11 @@ export default function AuthScreen({ onAuthSuccess }) {
           setStatusMessage(t('auth.messages.signedIn'));
 
           // Update AuthContext - load user profile (same as Google/OTP flow)
-          let profile = response.profile; // Optimization: Use profile from response
+          let profile = await applyLocalOnboardingCompletion(response.profile); // Optimization: Use profile from response
           try {
             if (!profile) {
               await clientLog('Auth:appleSignInRefreshUser').catch(() => { });
-              profile = await ApiService.getUserProfile();
+              profile = await applyLocalOnboardingCompletion(await ApiService.getUserProfile());
             }
             if (profile) {
               setUser(profile);
@@ -334,11 +335,11 @@ export default function AuthScreen({ onAuthSuccess }) {
         setStatusMessage(t('auth.messages.signedIn'));
 
         // Update AuthContext - load user profile
-        let profile = response.profile; // Optimization: Use profile from response
+          let profile = await applyLocalOnboardingCompletion(response.profile); // Optimization: Use profile from response
         try {
           if (!profile) {
             await clientLog('Auth:googleSignInRefreshUser').catch(() => { });
-            profile = await ApiService.getUserProfile();
+            profile = await applyLocalOnboardingCompletion(await ApiService.getUserProfile());
           }
           if (profile) {
             setUser(profile);
@@ -487,11 +488,11 @@ export default function AuthScreen({ onAuthSuccess }) {
         console.log('[AuthScreen] Token saved');
 
         // Update AuthContext - load user profile
-        let profile = response.profile; // Optimization: Use profile from response
+        let profile = await applyLocalOnboardingCompletion(response.profile); // Optimization: Use profile from response
         try {
           if (!profile) {
             await clientLog('Auth:authContextRefreshUser').catch(() => { });
-            profile = await ApiService.getUserProfile();
+            profile = await applyLocalOnboardingCompletion(await ApiService.getUserProfile());
           }
           if (profile) {
             setUser(profile);

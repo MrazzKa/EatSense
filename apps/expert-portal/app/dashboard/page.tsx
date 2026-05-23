@@ -29,7 +29,7 @@ interface Stats {
 
 export default function DashboardPage() {
   useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [profile, setProfile] = useState<ExpertProfile | null>(null);
   const [stats, setStats] = useState<Stats>({ activeChats: 0, totalClients: 0, unreadMessages: 0 });
   const [loading, setLoading] = useState(true);
@@ -163,6 +163,12 @@ export default function DashboardPage() {
                 </a>
                 <a href="/profile" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
                   {t('dashboard', 'editProfile')}
+                </a>
+                <a href="/calendar" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
+                  {locale === 'ru' ? 'Расписание' : 'Schedule'}
+                </a>
+                <a href="/support" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
+                  {locale === 'ru' ? 'Связаться' : 'Contact'}
                 </a>
               </div>
             </div>

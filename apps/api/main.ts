@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './src/core/middleware/error-handler.middleware';
 import * as os from 'node:os';
+import { json, urlencoded } from 'express';
 
 function resolveCorsOrigins(): string | string[] {
   const multi = process.env.CORS_ORIGINS;
@@ -52,8 +53,22 @@ async function bootstrap() {
     logger: process.env.NODE_ENV === 'production'
       ? ['log', 'warn', 'error']
       : ['log', 'debug', 'warn', 'error'],
-    rawBody: true,
+    bodyParser: false,
   });
+
+  app.use(json({
+    limit: process.env.JSON_BODY_LIMIT || '75mb',
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }));
+  app.use(urlencoded({
+    extended: true,
+    limit: process.env.JSON_BODY_LIMIT || '75mb',
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }));
 
   // Log incoming requests to /user-profiles* (onboarding, profile save) for debugging
   app.use((req: any, _res: any, next: () => void) => {

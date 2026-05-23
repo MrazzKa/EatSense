@@ -5,6 +5,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import { Calendar as CalendarIcon, Copy, Plane, Plus, Save, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface Rule {
   id?: string;
@@ -145,7 +146,17 @@ export default function CalendarPage() {
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t('calendar', 'title')}</h1>
+          <div>
+            <h1 className="text-2xl font-bold">{locale === 'ru' ? 'Расписание' : 'Schedule'}</h1>
+            <div className="mt-2 flex gap-2 text-xs">
+              <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
+                {locale === 'ru' ? 'Доступность' : 'Availability'}
+              </span>
+              <Link href="/consultations" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
+                {locale === 'ru' ? 'Встречи' : 'Bookings'}
+              </Link>
+            </div>
+          </div>
           <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
             <Save size={16} /> {saving ? '…' : t('calendar', 'save')}
           </button>

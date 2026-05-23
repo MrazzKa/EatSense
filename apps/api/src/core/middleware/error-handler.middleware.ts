@@ -14,12 +14,20 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
+        : typeof exception?.status === 'number'
+          ? exception.status
+          : typeof exception?.statusCode === 'number'
+            ? exception.statusCode
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let message: any = 'Internal server error';
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       message = typeof response === 'string' ? response : (response as any)?.message || response;
+    } else if (exception?.type === 'entity.too.large' || status === 413) {
+      message = 'Request payload is too large';
+    } else if (exception?.message && status < 500) {
+      message = exception.message;
     }
 
     // Log error (but sanitize sensitive data)

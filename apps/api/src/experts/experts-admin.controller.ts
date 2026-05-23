@@ -545,8 +545,10 @@ export class ExpertsAdminController {
 
         // Assign access code (custom or auto)
         const code = codeOverride
-            ? await this.prisma.expertAccessCode.create({
-                  data: { expertId: result.expert.id, code: codeOverride },
+            ? await this.prisma.expertAccessCode.upsert({
+                  where: { expertId: result.expert.id },
+                  update: { code: codeOverride, isActive: true },
+                  create: { expertId: result.expert.id, code: codeOverride },
               })
             : await this.expertsService.ensureAccessCodeForExpert(result.expert.id);
 
