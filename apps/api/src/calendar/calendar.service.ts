@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { DateTime } from 'luxon';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailerService } from '../../mailer/mailer.service';
 
 const MIN_SLOT_MINUTES = 15;
 
@@ -13,6 +14,7 @@ export class CalendarService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private mailer: MailerService,
   ) {}
 
   // ============== Availability ==============
@@ -385,10 +387,33 @@ export class CalendarService {
   async completeConsultation(userId: string, id: string) {
     const c = await this.requireParticipant(userId, id);
     if (c.status === 'COMPLETED') return c;
-    return this.prisma.scheduledConsultation.update({
+    if (['CANCELLED', 'NO_SHOW'].includes(c.status)) throw new BadRequestException('Already finalized');
+    const updated = await this.prisma.scheduledConsultation.update({
       where: { id },
       data: { status: 'COMPLETED' as any, completedAt: new Date() },
     });
+    this.notifyConsultationEvent(updated, 'completed').catch(() => {});
+    return updated;
+  }
+
+  async markNoShow(userId: string, id: string) {
+    const c = await this.requireParticipant(userId, id);
+    if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(c.status)) throw new BadRequestException('Already finalized');
+    const expertProfile = await this.prisma.expertProfile.findUnique({ where: { userId }, select: { id: true } });
+    if (expertProfile?.id !== c.expertId) {
+      throw new ForbiddenException('Only expert can mark no-show');
+    }
+    const updated = await this.prisma.scheduledConsultation.update({
+      where: { id },
+      data: {
+        status: 'NO_SHOW' as any,
+        cancelledAt: new Date(),
+        cancelledBy: 'expert',
+        cancellationReason: 'No-show',
+      },
+    });
+    this.notifyConsultationEvent(updated, 'no_show').catch(() => {});
+    return updated;
   }
 
   // ============== iCal ==============
@@ -466,10 +491,10 @@ export class CalendarService {
     return c;
   }
 
-  async notifyConsultationEvent(c: any, kind: 'created' | 'cancelled' | 'reschedule_proposed' | 'reschedule_accepted' | 'reschedule_declined' | 'reminder_24h' | 'reminder_1h' | 'reminder_10m' | 'no_show') {
+  async notifyConsultationEvent(c: any, kind: 'created' | 'cancelled' | 'reschedule_proposed' | 'reschedule_accepted' | 'reschedule_declined' | 'completed' | 'reminder_24h' | 'reminder_1h' | 'reminder_10m' | 'no_show') {
     const [expert, client] = await Promise.all([
-      this.prisma.expertProfile.findUnique({ where: { id: c.expertId }, select: { userId: true, displayName: true } }),
-      this.prisma.user.findUnique({ where: { id: c.clientId }, select: { id: true, userProfile: { select: { firstName: true } } } }),
+      this.prisma.expertProfile.findUnique({ where: { id: c.expertId }, select: { userId: true, displayName: true, user: { select: { email: true } } } }),
+      this.prisma.user.findUnique({ where: { id: c.clientId }, select: { id: true, email: true, userProfile: { select: { firstName: true } } } }),
     ]);
     if (!expert || !client) return;
     const startLocal = new Date(c.startAt).toISOString();
@@ -482,10 +507,11 @@ export class CalendarService {
       reschedule_proposed: { titleExpert: 'Reschedule requested', titleClient: 'Reschedule requested', body: 'Accept or decline in the app' },
       reschedule_accepted: { titleExpert: 'Reschedule accepted', titleClient: 'Reschedule accepted', body: `New time: ${startLocal}` },
       reschedule_declined: { titleExpert: 'Reschedule declined', titleClient: 'Reschedule declined', body: 'Original time kept' },
+      completed: { titleExpert: 'Consultation completed', titleClient: 'Consultation completed', body: `${startLocal}` },
       reminder_24h: { titleExpert: 'Consultation tomorrow', titleClient: 'Consultation tomorrow', body: `with ${expertName} / ${clientName} at ${startLocal}` },
       reminder_1h: { titleExpert: 'Consultation in 1 hour', titleClient: 'Consultation in 1 hour', body: `at ${startLocal}` },
       reminder_10m: { titleExpert: 'Consultation in 10 minutes', titleClient: 'Consultation in 10 minutes', body: `Open the app` },
-      no_show: { titleExpert: 'Marked as no-show', titleClient: 'Expert did not join — refund issued', body: '' },
+      no_show: { titleExpert: 'Marked as no-show', titleClient: 'Consultation marked as no-show', body: `${startLocal}` },
     };
     const m = messages[kind];
     if (!m) return;
@@ -493,6 +519,42 @@ export class CalendarService {
       this.notifications.sendPushNotification(expert.userId, m.titleExpert, m.body, { type: `consultation.${kind}`, id: c.id }),
       this.notifications.sendPushNotification(client.id, m.titleClient, m.body, { type: `consultation.${kind}`, id: c.id }),
     ]).catch(() => {});
+
+    if (['created', 'cancelled', 'reschedule_accepted', 'reminder_24h', 'reminder_1h'].includes(kind)) {
+      await Promise.all([
+        this.sendConsultationEmail(expert.user?.email, m.titleExpert, m.body),
+        this.sendConsultationEmail(client.email, m.titleClient, m.body),
+      ]).catch((err) => this.logger.warn(`consultation email failed: ${err?.message || err}`));
+    }
+  }
+
+  private async sendConsultationEmail(to: string | undefined | null, subject: string, body: string) {
+    if (!to) return;
+    const safeSubject = this.escapeHtml(subject);
+    const safeBody = this.escapeHtml(body || 'Open EatSense to view the consultation details.');
+    const text = [
+      subject,
+      '',
+      body || 'Open EatSense to view the consultation details.',
+      '',
+      'EatSense',
+    ].join('\n');
+    await this.mailer.sendEmail({
+      to,
+      subject: `EatSense: ${subject}`,
+      text,
+      html: `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;max-width:560px;margin:0 auto;color:#111827"><h2 style="margin:0 0 16px">${safeSubject}</h2><p style="margin:0 0 20px">${safeBody}</p><p style="margin:0;color:#6B7280;font-size:14px">EatSense</p></div>`,
+    });
+  }
+
+  private escapeHtml(value: string) {
+    return value.replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char] || char));
   }
 }
 

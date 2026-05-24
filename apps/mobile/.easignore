@@ -1,0 +1,23 @@
+apps/api
+**/*.mp4
+**/*.mov
+**/*.mkv
+**/*.zip
+**/*.psd
+**/*.ai
+**/*.sketch
+**/*.tgz
+**/*.7z
+**/*.rar
+**/backups/**
+# **/data/** - removed, was blocking src/features/lifestyles/data
+**/.github/**
+node_modules/.cache
+**/*.log
+**/*.xcarchive
+**/*.xcworkspace
+**/Pods
+ios/Pods
+ios/build
+ios/*.xcworkspace
+ios/*.xcuserdata

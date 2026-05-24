@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - EatSense</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2D5A27 0%, #4A7C43 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .logo span {
+            color: #8BC34A;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        main {
+            padding: 40px 0;
+        }
+
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            color: #2D5A27;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .faq-item:first-child {
+            padding-top: 0;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #2D5A27;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .faq-answer {
+            color: #666;
+            font-size: 15px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .contact-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .contact-item .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .contact-item h3 {
+            color: #2D5A27;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .contact-item a {
+            color: #4A7C43;
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        .contact-item p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .button {
+            display: inline-block;
+            background: #2D5A27;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .button:hover {
+            background: #4A7C43;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .response-time {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            color: #2D5A27;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 30px 15px;
+            }
+
+            .logo {
+                font-size: 26px;
+            }
+
+            section {
+                padding: 20px;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">Eat<span>Sense</span></div>
+        <h1>Support Center</h1>
+        <nav class="nav-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Use</a>
+            <a href="/">Home</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <!-- FAQ Section -->
+        <section>
+            <h2>❓ Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <div class="faq-question">How does AI food analysis work?</div>
+                <div class="faq-answer">Simply take a photo of your meal, and our AI will analyze it to estimate
+                    calories, protein, carbs, and fat. The analysis typically takes 2-3 seconds. You can always manually
+                    edit the results if needed.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How accurate is the food analysis?</div>
+                <div class="faq-answer">Our AI provides estimates based on image recognition. Accuracy depends on image
+                    quality, portion visibility, and food type. We recommend using the results as guidance and adjusting
+                    portions manually when needed. The more you use the app, the better you'll understand typical
+                    portion sizes.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What's included in the FREE plan?</div>
+                <div class="faq-answer">The FREE plan includes 3 food scans per day, basic nutrition tracking, and 7
+                    days of meal history. It's perfect for trying out the app and basic tracking needs.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What do I get with PRO?</div>
+                <div class="faq-answer">PRO unlocks unlimited food scans, full meal history, AI nutrition assistant,
+                    biomarker tracking, detailed reports, Lifestyle Programs, and priority support. Available as monthly
+                    (CHF 9.90), yearly (CHF 79), student yearly (CHF 49), or lifetime Founders Pass (CHF 99).</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How do I cancel my subscription?</div>
+                <div class="faq-answer">Subscriptions are managed through your device's app store. On iPhone: Settings →
+                    Apple ID → Subscriptions → EatSense → Cancel. On Android: Play Store → Menu → Subscriptions →
+                    EatSense → Cancel. Cancellation takes effect at the end of your current billing period.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Can I get a refund?</div>
+                <div class="faq-answer">Refunds are handled by Apple App Store or Google Play Store according to their
+                    policies. To request a refund, contact Apple Support (reportaproblem.apple.com) or Google Play
+                    Support directly.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What are Lifestyle Programs?</div>
+                <div class="faq-answer">Lifestyle Programs are dietary inspiration guides based on cultural archetypes
+                    and wellness philosophies. They're designed for motivation and education, not as medical diet plans.
+                    Programs referencing public figures are creative interpretations, not actual celebrity diets.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Is my health data safe?</div>
+                <div class="faq-answer">Yes. Your data is encrypted and stored securely on servers in the European Union
+                    (Netherlands). We never sell your personal data. You can export or delete all your data at any time
+                    from the app settings. See our Privacy Policy for details.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How do I delete my account?</div>
+                <div class="faq-answer">Go to Settings → Account → Delete Account. This will permanently remove all your
+                    data from our servers immediately. This action cannot be undone.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Does EatSense provide medical advice?</div>
+                <div class="faq-answer">No. EatSense is a nutrition tracking tool, not a medical device. Information
+                    provided is for general guidance only. Always consult healthcare professionals for medical
+                    decisions, especially regarding biomarkers, medications, or health conditions.</div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section>
+            <h2>📬 Contact Us</h2>
+
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="icon">✉️</div>
+                    <h3>Email Support</h3>
+                    <a href="mailto:support@eatsense.ch">support@eatsense.ch</a>
+                    <p>For general questions</p>
+                </div>
+
+                <div class="contact-item">
+                    <div class="icon">🔒</div>
+                    <h3>Privacy Inquiries</h3>
+                    <a href="mailto:privacy@eatsense.ch">privacy@eatsense.ch</a>
+                    <p>Data protection requests</p>
+                </div>
+
+                <div class="contact-item">
+                    <div class="icon">🤝</div>
+                    <h3>Business & Partnerships</h3>
+                    <a href="mailto:info@eatsense.ch">info@eatsense.ch</a>
+                    <p>B2B inquiries</p>
+                </div>
+            </div>
+
+            <div class="response-time">
+                📨 We typically respond within 24-48 hours on business days
+            </div>
+        </section>
+
+        <!-- Company Info -->
+        <section>
+            <h2>🏢 Company Information</h2>
+            <p><strong>EatSense</strong></p>
+            <p>Aleksei Belov</p>
+            <p>Rue Pictet-de-Bock 6</p>
+            <p>1205 Geneva, Switzerland</p>
+            <br>
+            <p>Email: <a href="mailto:info@eatsense.ch">info@eatsense.ch</a></p>
+            <p>Website: <a href="https://eatsense.ch">eatsense.ch</a></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 EatSense. All rights reserved.</p>
+        <p style="margin-top: 10px;">
+            <a href="/privacy">Privacy Policy</a> ·
+            <a href="/terms">Terms of Use</a> ·
+            <a href="/support">Support</a>
+        </p>
+        <p style="margin-top: 15px; font-size: 12px;">Made with 🇨🇭 Swiss Precision in Geneva</p>
+    </footer>
+    <!-- Cookie Banner -->
+    <div id="cookie-banner"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #2D5A27; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
+        <p style="margin: 0; font-size: 14px; flex: 1;">This website uses only essential cookies required for basic
+            functionality. We do not use tracking or advertising cookies. <a href="/privacy"
+                style="color: #8BC34A;">Learn more</a></p>
+        <button onclick="acceptCookies()"
+            style="background: #8BC34A; color: #2D5A27; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">OK</button>
+    </div>
+    <script>
+        if (localStorage.getItem('cookiesAccepted')) {
+            document.getElementById('cookie-banner').style.display = 'none';
+        }
+        function acceptCookies() {
+            localStorage.setItem('cookiesAccepted', 'true');
+            document.getElementById('cookie-banner').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

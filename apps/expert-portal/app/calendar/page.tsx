@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
-import { Calendar as CalendarIcon, Copy, Plane, Plus, Save, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Copy, MessageSquare, Plane, Plus, Save, Trash2, Video } from 'lucide-react';
 import Link from 'next/link';
 
 interface Rule {
@@ -22,6 +22,16 @@ interface Exception {
   startMinute?: number | null;
   endMinute?: number | null;
   reason?: string | null;
+}
+
+interface ScheduleConsultation {
+  id: string;
+  status: string;
+  startAt: string;
+  endAt: string;
+  durationMinutes: number;
+  conversationId: string | null;
+  client?: { email?: string; userProfile?: { firstName?: string; lastName?: string } };
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -49,6 +59,8 @@ export default function CalendarPage() {
   const [awayUntil, setAwayUntil] = useState<string>('');
   const [awayMessage, setAwayMessage] = useState<string>('');
   const [savingAway, setSavingAway] = useState(false);
+  const [consultations, setConsultations] = useState<ScheduleConsultation[]>([]);
+  const [consultationTab, setConsultationTab] = useState<'upcoming' | 'past'>('upcoming');
 
   useEffect(() => {
     apiFetch('/experts/me/availability')
@@ -73,6 +85,9 @@ export default function CalendarPage() {
         }
       })
       .catch(() => {});
+    apiFetch('/consultations/me?role=expert')
+      .then((data) => setConsultations(Array.isArray(data) ? data : []))
+      .catch(() => setConsultations([]));
   }, []);
 
   function addRule(weekday: number) {
@@ -141,6 +156,29 @@ export default function CalendarPage() {
   }
 
   const grouped = WEEKDAYS.map((_, day) => rules.filter((r) => r.weekday === day));
+  const calendarCopy = {
+    meetings: locale === 'ru' ? 'Встречи' : 'Meetings',
+    availability: locale === 'ru' ? 'Доступность' : 'Availability',
+    upcoming: locale === 'ru' ? 'Предстоящие' : 'Upcoming',
+    history: locale === 'ru' ? 'История' : 'History',
+    noMeetings: locale === 'ru' ? 'Нет консультаций в этом разделе' : 'No consultations in this section',
+    manage: locale === 'ru' ? 'Открыть все' : 'Open all',
+    waiting: locale === 'ru' ? 'Комната ожидания' : 'Waiting room',
+    start: locale === 'ru' ? 'Начать' : 'Start',
+    chat: locale === 'ru' ? 'Чат' : 'Chat',
+  };
+  const visibleConsultations = consultations.filter((c) => {
+    const end = new Date(c.endAt).getTime();
+    const isFinal = ['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(c.status);
+    if (consultationTab === 'upcoming') return end >= Date.now() && !isFinal;
+    return end < Date.now() || isFinal;
+  }).slice(0, 6);
+
+  function consultationName(item: ScheduleConsultation) {
+    const profile = item.client?.userProfile;
+    const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ');
+    return name || item.client?.email || '—';
+  }
 
   return (
     <AppShell>
@@ -150,10 +188,13 @@ export default function CalendarPage() {
             <h1 className="text-2xl font-bold">{locale === 'ru' ? 'Расписание' : 'Schedule'}</h1>
             <div className="mt-2 flex gap-2 text-xs">
               <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
-                {locale === 'ru' ? 'Доступность' : 'Availability'}
+                {calendarCopy.availability}
               </span>
+              <a href="#meetings" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
+                {calendarCopy.meetings}
+              </a>
               <Link href="/consultations" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
-                {locale === 'ru' ? 'Встречи' : 'Bookings'}
+                {calendarCopy.manage}
               </Link>
             </div>
           </div>
@@ -161,6 +202,69 @@ export default function CalendarPage() {
             <Save size={16} /> {saving ? '…' : t('calendar', 'save')}
           </button>
         </div>
+
+        <section id="meetings" className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <CalendarIcon size={16} />
+              {calendarCopy.meetings}
+            </div>
+            <div className="flex w-fit gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] p-0.5">
+              {(['upcoming', 'past'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setConsultationTab(tab)}
+                  className={`rounded-md px-3 py-1 text-xs font-semibold transition ${consultationTab === tab ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)]'}`}
+                >
+                  {tab === 'upcoming' ? calendarCopy.upcoming : calendarCopy.history}
+                </button>
+              ))}
+            </div>
+          </div>
+          {visibleConsultations.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-[var(--border)] px-4 py-6 text-center text-xs text-[var(--text2)]">
+              {calendarCopy.noMeetings}
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {visibleConsultations.map((item) => {
+                const start = new Date(item.startAt);
+                const end = new Date(item.endAt);
+                const inWindow = Date.now() >= start.getTime() - 5 * 60000 && Date.now() < end.getTime() + 10 * 60000;
+                return (
+                  <li key={item.id} className="rounded-lg border border-[var(--border)] bg-[var(--surface2)] p-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold">{consultationName(item)}</div>
+                        <div className="mt-1 flex flex-wrap gap-3 text-xs text-[var(--text2)]">
+                          <span>{start.toLocaleString(locale === 'ru' ? 'ru-RU' : undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="inline-flex items-center gap-1"><Clock size={12} /> {item.durationMinutes} min</span>
+                          <span>{item.status}</span>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap gap-2">
+                        {inWindow && ['SCHEDULED', 'IN_PROGRESS'].includes(item.status) && (
+                          <Link href={`/call/${item.id}`} className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-[var(--primary)] px-3 text-xs font-semibold text-white">
+                            <Video size={14} /> {Date.now() < start.getTime() ? calendarCopy.waiting : calendarCopy.start}
+                          </Link>
+                        )}
+                        {item.conversationId && (
+                          <Link href={`/chats/${item.conversationId}`} className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-[var(--border)] px-3 text-xs font-semibold">
+                            <MessageSquare size={14} /> {calendarCopy.chat}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <Link href="/consultations" className="mt-3 inline-flex min-h-9 items-center rounded-lg border border-[var(--border)] px-3 text-xs font-semibold text-[var(--text2)] hover:text-[var(--text)]">
+            {calendarCopy.manage}
+          </Link>
+        </section>
 
         {icalUrl && (
           <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">

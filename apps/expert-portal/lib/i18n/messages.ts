@@ -262,6 +262,15 @@ type MessagesShape = {
     experienceYears: string;
     specializations: string;
     languages: string;
+    videoCalls: string;
+    videoCallsBody: string;
+    videoCallsEnabled: string;
+    videoCallsDisabled: string;
+    profileTools: string;
+    profileToolsBody: string;
+    manageOffers: string;
+    manageReviews: string;
+    contactSupport: string;
     credentials: string;
     credentialsHint: string;
     credentialName: string;
@@ -297,6 +306,11 @@ type MessagesShape = {
     unavailable: string;
     tryAgainLater: string;
     notConfigured: string;
+    reconnecting: string;
+    reconnectingHint: string;
+    inProgress: string;
+    inProgressHint: string;
+    end: string;
   };
 };
 
@@ -423,6 +437,15 @@ const en: MessagesShape = {
     bioPlaceholder: 'Tell clients about your expertise and approach...',
     education: 'Education', educationPlaceholder: 'e.g. MSc in Nutrition Science, ETH Zurich',
     experienceYears: 'Years of Experience', specializations: 'Specializations', languages: 'Languages',
+    videoCalls: 'Video calls',
+    videoCallsBody: 'When disabled, clients and you keep the chat, but video rooms cannot be opened for consultations.',
+    videoCallsEnabled: 'Video consultations enabled',
+    videoCallsDisabled: 'Video consultations disabled',
+    profileTools: 'Profile tools',
+    profileToolsBody: 'Offers, reviews, and support now live with your profile settings.',
+    manageOffers: 'Manage offers',
+    manageReviews: 'Reviews',
+    contactSupport: 'Support',
     credentials: 'Credentials',
     credentialsHint: 'Upload a diploma, certification, or license. Images are compressed; PDFs stored as-is. Max 15MB. Credentials stay pending until approved by the EatSense team.',
     credentialName: 'Credential name',
@@ -469,6 +492,11 @@ const en: MessagesShape = {
     unavailable: 'Video unavailable',
     tryAgainLater: 'Try again later.',
     notConfigured: 'Video calls are not configured yet on the server.',
+    reconnecting: 'Reconnecting…',
+    reconnectingHint: 'Keep this page open while we restore the connection.',
+    inProgress: 'Video consultation in progress',
+    inProgressHint: 'Use the red button when you are ready to end the call.',
+    end: 'End',
   },
 };
 
@@ -595,6 +623,15 @@ const ru: MessagesShape = {
     bioPlaceholder: 'Расскажите клиентам о своём опыте и подходе...',
     education: 'Образование', educationPlaceholder: 'например, MSc в нутрициологии, ETH Zurich',
     experienceYears: 'Лет опыта', specializations: 'Специализации', languages: 'Языки',
+    videoCalls: 'Видеозвонки',
+    videoCallsBody: 'Если выключить, чат останется доступен, но видеокомнаты для консультаций открыть нельзя.',
+    videoCallsEnabled: 'Видеоконсультации включены',
+    videoCallsDisabled: 'Видеоконсультации выключены',
+    profileTools: 'Инструменты профиля',
+    profileToolsBody: 'Услуги, отзывы и связь теперь собраны рядом с настройками профиля.',
+    manageOffers: 'Управлять услугами',
+    manageReviews: 'Отзывы',
+    contactSupport: 'Связь',
     credentials: 'Документы',
     credentialsHint: 'Загрузите диплом, сертификат или лицензию. Изображения сжимаются, PDF сохраняются как есть. Максимум 15 МБ. Документы остаются на проверке до одобрения командой EatSense.',
     credentialName: 'Название документа',
@@ -641,6 +678,11 @@ const ru: MessagesShape = {
     unavailable: 'Видео недоступно',
     tryAgainLater: 'Попробуйте позже.',
     notConfigured: 'Видеозвонки пока не настроены на сервере.',
+    reconnecting: 'Переподключение…',
+    reconnectingHint: 'Оставьте страницу открытой, пока мы восстанавливаем соединение.',
+    inProgress: 'Видеоконсультация идет',
+    inProgressHint: 'Нажмите красную кнопку, когда консультацию нужно завершить.',
+    end: 'Завершить',
   },
 };
 
@@ -767,6 +809,15 @@ const kk: MessagesShape = {
     bioPlaceholder: 'Клиенттерге тәжірибеңіз бен тәсіліңіз туралы айтыңыз...',
     education: 'Білімі', educationPlaceholder: 'мысалы, MSc нутрициология, ETH Zurich',
     experienceYears: 'Тәжірибе жылдары', specializations: 'Мамандықтар', languages: 'Тілдер',
+    videoCalls: 'Бейнеқоңыраулар',
+    videoCallsBody: 'Өшірілген кезде чат қолжетімді болады, бірақ кеңестер үшін бейне бөлмелер ашылмайды.',
+    videoCallsEnabled: 'Бейне кеңестер қосулы',
+    videoCallsDisabled: 'Бейне кеңестер өшірулі',
+    profileTools: 'Профиль құралдары',
+    profileToolsBody: 'Қызметтер, пікірлер және қолдау профиль баптауларында жиналды.',
+    manageOffers: 'Қызметтерді басқару',
+    manageReviews: 'Пікірлер',
+    contactSupport: 'Қолдау',
     credentials: 'Құжаттар',
     credentialsHint: 'Диплом, сертификат немесе лицензия жүктеңіз. Суреттер қысылады, PDF файлдары сол күйінде сақталады. Максимум 15 МБ. Құжаттар EatSense командасы мақұлдағанша тексеруде тұрады.',
     credentialName: 'Құжат атауы',
@@ -813,6 +864,11 @@ const kk: MessagesShape = {
     unavailable: 'Видео қол жетімді емес',
     tryAgainLater: 'Кейінірек қайталап көріңіз.',
     notConfigured: 'Видеоқоңыраулар серверде әлі реттелмеген.',
+    reconnecting: 'Қайта қосылуда…',
+    reconnectingHint: 'Байланыс қалпына келгенше бетті ашық қалдырыңыз.',
+    inProgress: 'Видео кеңес жүріп жатыр',
+    inProgressHint: 'Кеңесті аяқтау үшін қызыл батырманы басыңыз.',
+    end: 'Аяқтау',
   },
 };
 
@@ -939,6 +995,15 @@ const de: MessagesShape = {
     bioPlaceholder: 'Erzählen Sie Kunden von Ihrer Expertise und Ihrem Ansatz...',
     education: 'Ausbildung', educationPlaceholder: 'z.B. MSc Ernährungswissenschaft, ETH Zürich',
     experienceYears: 'Jahre Erfahrung', specializations: 'Spezialisierungen', languages: 'Sprachen',
+    videoCalls: 'Videoanrufe',
+    videoCallsBody: 'Wenn deaktiviert, bleibt der Chat verfügbar, aber Videoräume für Beratungen können nicht geöffnet werden.',
+    videoCallsEnabled: 'Videoberatungen aktiviert',
+    videoCallsDisabled: 'Videoberatungen deaktiviert',
+    profileTools: 'Profilwerkzeuge',
+    profileToolsBody: 'Angebote, Bewertungen und Support sind jetzt bei den Profileinstellungen.',
+    manageOffers: 'Angebote verwalten',
+    manageReviews: 'Bewertungen',
+    contactSupport: 'Support',
     credentials: 'Qualifikationen',
     credentialsHint: 'Laden Sie ein Diplom, Zertifikat oder eine Lizenz hoch. Bilder werden komprimiert, PDFs unverändert gespeichert. Max. 15 MB. Qualifikationen bleiben ausstehend, bis das EatSense-Team sie genehmigt.',
     credentialName: 'Name der Qualifikation',
@@ -985,6 +1050,11 @@ const de: MessagesShape = {
     unavailable: 'Video nicht verfügbar',
     tryAgainLater: 'Versuchen Sie es später erneut.',
     notConfigured: 'Videoanrufe sind auf dem Server noch nicht konfiguriert.',
+    reconnecting: 'Verbindung wird wiederhergestellt…',
+    reconnectingHint: 'Lassen Sie diese Seite geöffnet, während die Verbindung wiederhergestellt wird.',
+    inProgress: 'Video-Beratung läuft',
+    inProgressHint: 'Nutzen Sie die rote Schaltfläche, wenn Sie den Anruf beenden möchten.',
+    end: 'Beenden',
   },
 };
 
@@ -1111,6 +1181,15 @@ const fr: MessagesShape = {
     bioPlaceholder: 'Parlez aux clients de votre expertise et de votre approche...',
     education: 'Formation', educationPlaceholder: 'ex. MSc en sciences de la nutrition, EPF Zurich',
     experienceYears: 'Années d\'expérience', specializations: 'Spécialisations', languages: 'Langues',
+    videoCalls: 'Appels vidéo',
+    videoCallsBody: 'Si désactivé, le chat reste disponible, mais les salles vidéo des consultations ne peuvent pas être ouvertes.',
+    videoCallsEnabled: 'Consultations vidéo activées',
+    videoCallsDisabled: 'Consultations vidéo désactivées',
+    profileTools: 'Outils du profil',
+    profileToolsBody: 'Les offres, avis et le support sont maintenant regroupés avec les paramètres du profil.',
+    manageOffers: 'Gérer les offres',
+    manageReviews: 'Avis',
+    contactSupport: 'Support',
     credentials: 'Diplômes',
     credentialsHint: 'Téléversez un diplôme, une certification ou une licence. Les images sont compressées, les PDF conservés tels quels. Max 15 Mo. Les diplômes restent en attente jusqu\'à approbation par l\'équipe EatSense.',
     credentialName: 'Nom du diplôme',
@@ -1157,6 +1236,11 @@ const fr: MessagesShape = {
     unavailable: 'Vidéo indisponible',
     tryAgainLater: 'Réessayez plus tard.',
     notConfigured: 'Les appels vidéo ne sont pas encore configurés sur le serveur.',
+    reconnecting: 'Reconnexion…',
+    reconnectingHint: 'Gardez cette page ouverte pendant que nous rétablissons la connexion.',
+    inProgress: 'Consultation vidéo en cours',
+    inProgressHint: 'Utilisez le bouton rouge lorsque vous souhaitez terminer l’appel.',
+    end: 'Terminer',
   },
 };
 
@@ -1283,6 +1367,15 @@ const es: MessagesShape = {
     bioPlaceholder: 'Cuéntales a los clientes sobre tu experiencia y enfoque...',
     education: 'Formación', educationPlaceholder: 'ej. MSc en Nutrición, ETH Zúrich',
     experienceYears: 'Años de experiencia', specializations: 'Especializaciones', languages: 'Idiomas',
+    videoCalls: 'Videollamadas',
+    videoCallsBody: 'Si se desactiva, el chat seguirá disponible, pero no se podrán abrir salas de vídeo para consultas.',
+    videoCallsEnabled: 'Consultas por vídeo activadas',
+    videoCallsDisabled: 'Consultas por vídeo desactivadas',
+    profileTools: 'Herramientas de perfil',
+    profileToolsBody: 'Servicios, reseñas y soporte ahora están junto a los ajustes del perfil.',
+    manageOffers: 'Gestionar servicios',
+    manageReviews: 'Reseñas',
+    contactSupport: 'Soporte',
     credentials: 'Credenciales',
     credentialsHint: 'Sube un diploma, certificación o licencia. Las imágenes se comprimen, los PDFs se guardan tal cual. Máx. 15MB. Las credenciales quedan pendientes hasta que el equipo de EatSense las apruebe.',
     credentialName: 'Nombre de la credencial',
@@ -1329,6 +1422,11 @@ const es: MessagesShape = {
     unavailable: 'Video no disponible',
     tryAgainLater: 'Inténtalo más tarde.',
     notConfigured: 'Las videollamadas aún no están configuradas en el servidor.',
+    reconnecting: 'Reconectando…',
+    reconnectingHint: 'Mantén esta página abierta mientras restauramos la conexión.',
+    inProgress: 'Videoconsulta en curso',
+    inProgressHint: 'Usa el botón rojo cuando quieras finalizar la llamada.',
+    end: 'Finalizar',
   },
 };
 

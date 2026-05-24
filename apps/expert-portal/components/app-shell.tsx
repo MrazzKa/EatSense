@@ -6,9 +6,9 @@ import { Sidebar } from './sidebar';
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen md:flex">
+      <div className="h-dvh overflow-hidden md:flex">
         <Sidebar />
-        <main className="min-w-0 flex-1 overflow-auto pb-24 pt-16 md:pb-0 md:pt-0">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto pb-24 pt-16 md:h-dvh md:pb-0 md:pt-0">
           {children}
         </main>
       </div>

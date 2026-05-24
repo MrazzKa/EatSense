@@ -12,11 +12,11 @@ This is a **pnpm workspaces monorepo**. Four separate deployables plus a bunch o
 
 | Path | What it is | Deploy target |
 |---|---|---|
-| `src/`, `app/`, `App.tsx`, `app.config.js` | Expo / React Native mobile app (iOS + Android) | EAS Build → App Store / Play Store |
+| `apps/mobile/` | Expo / React Native mobile app (iOS + Android) | EAS Build → App Store / Play Store |
 | `apps/api/` | NestJS 11 API. Prisma on PostgreSQL, BullMQ on Redis, S3/MinIO for media, Expo Push, magic-link auth, rate limiting | Railway (Dockerfile) |
 | `apps/expert-portal/` | Next.js 15 dashboard for certified nutritionists — magic-link auth, chat with clients, offers, reviews, profile editor | Vercel (`expert-portal-pi.vercel.app`), custom domain `experts.eatsense.ch` |
 | `apps/admin/` | Single-file `index.html` admin panel for operators — approve experts, moderate suggestions, diet programs, pharmacy cities, community | Static hosting (Railway / any CDN) |
-| `legal-site/` | Marketing landing + legal pages (Privacy / Terms / Support). Static HTML + CSS, 6-language switcher | Cloudflare Pages, served at `eatsense.ch` / `www.eatsense.ch` |
+| `apps/legal-site/` | Marketing landing + legal pages (Privacy / Terms / Support). Static HTML + CSS, 6-language switcher | Cloudflare Pages, served at `eatsense.ch` / `www.eatsense.ch` |
 | `docs/plans/` | Private planning docs (`.gitignored`) — design decisions, audits, migration roadmaps |  |
 
 Always run `pnpm` commands from the repo root unless a guide says otherwise.
@@ -82,15 +82,15 @@ pnpm dev                     # http://localhost:3001
 ### Landing (optional, locally)
 
 ```bash
-cd legal-site
-pnpm run dev    # serves legal-site/public on :3000
+cd apps/legal-site
+pnpm run dev    # serves apps/legal-site/public on :3000
 ```
 
 ---
 
 ## Features
 
-### Mobile app (`src/`)
+### Mobile app (`apps/mobile/src/`)
 - AI-powered photo analysis (OpenAI Vision) + USDA FoodData Central lookups
 - 47 curated lifestyle programs ("diets") with daily tracker
 - Biomarker tracking (lab results → nutrition correlation)
@@ -140,7 +140,7 @@ pnpm run dev    # serves legal-site/public on :3000
 
 **Active languages (6):** `en`, `ru`, `kk`, `fr`, `de`, `es`
 
-Locale files live in `app/i18n/locales/{lang}.json`. Expert portal uses `apps/expert-portal/lib/i18n/messages.ts`. Landing has its own inline translations (61 keys × 6 langs).
+Locale files live in `apps/mobile/app/i18n/locales/{lang}.json`. Expert portal uses `apps/expert-portal/lib/i18n/messages.ts`. Landing has its own inline translations (61 keys × 6 langs).
 
 The files `ja.json`, `ko.json`, `zh.json` exist in the locales folder as legacy from an earlier scope — **not wired into the app** and not maintained. Safe to ignore.
 
@@ -224,7 +224,7 @@ See `apps/api/env.template` for full list with defaults.
 ## Deployment
 
 ### Backend — Railway
-1. GitHub push → auto-deploy. `Dockerfile` in `apps/api/`.
+1. GitHub push → auto-deploy. Railway uses the root `Dockerfile` with `apps/api` as the API workspace.
 2. Prisma migrations are applied on startup via `prisma migrate deploy`. Watch build logs for `_add_expert_education` style names to confirm.
 3. After changing env vars → Redeploy.
 
@@ -247,7 +247,7 @@ pnpm build:ios              # creates production build
 pnpm dlx eas-cli@latest submit -p ios --profile production --latest
 ```
 
-Bump `version`, `buildNumber`, `versionCode` in `app.config.js` for every TestFlight / Play Store release.
+Bump `version`, `buildNumber`, `versionCode` in `apps/mobile/app.config.js` for every TestFlight / Play Store release.
 
 ### DNS / domains reference
 | Host | Target | Provider |
@@ -293,7 +293,7 @@ pnpm exec tsc --noEmit
 
 **Backend:** `pnpm --filter eatsense-api test` (Jest)
 **Mobile unit:** `pnpm test` (Jest)
-**Mobile E2E:** `pnpm test:e2e` (Detox — config in `detox.config.js`)
+**Mobile E2E:** `pnpm test:e2e` (Detox — config in `apps/mobile/detox.config.js`)
 
 E2E tests for the Experts Marketplace flow are **not yet automated** — manual smoke-checklist lives in the latest `docs/plans/experts-audit-*.md`.
 

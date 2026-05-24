@@ -16,9 +16,10 @@ RUN apk add --no-cache \
 
 # Set working directory
 WORKDIR /app
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
 # Install pnpm globally
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10.19.0
 
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -40,7 +41,6 @@ RUN pnpm --filter ./apps/api exec prisma generate --schema prisma/schema.prisma
 
 # Copy source code
 COPY apps/api ./apps/api
-COPY tsconfig.json ./
 
 # Build the application
 RUN pnpm --filter ./apps/api build
@@ -62,9 +62,10 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Set working directory
 WORKDIR /app
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
 # Install pnpm globally
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10.19.0
 
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

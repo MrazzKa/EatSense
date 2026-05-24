@@ -5,9 +5,10 @@ const fs = require('fs');
 const path = require('path');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const SOURCE_DIRS = [path.join(PROJECT_ROOT, 'src'), path.join(PROJECT_ROOT, 'App.js')];
-const OUTPUT_FILE = path.join(PROJECT_ROOT, 'app', 'i18n', 'extracted-keys.json');
-const EN_LOCALE_PATH = path.join(PROJECT_ROOT, 'app', 'i18n', 'locales', 'en.json');
+const MOBILE_ROOT = path.join(PROJECT_ROOT, 'apps', 'mobile');
+const SOURCE_DIRS = [path.join(MOBILE_ROOT, 'src'), path.join(MOBILE_ROOT, 'App.tsx')];
+const OUTPUT_FILE = path.join(MOBILE_ROOT, 'app', 'i18n', 'extracted-keys.json');
+const EN_LOCALE_PATH = path.join(MOBILE_ROOT, 'app', 'i18n', 'locales', 'en.json');
 
 const KEY_REGEX = /(?:^|[^\w])t\(\s*(["'`])([^"'`]+)\1/g;
 const VALID_KEY_REGEX = /^[A-Za-z0-9_.:-]+$/;

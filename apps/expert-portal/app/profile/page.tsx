@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Copy, FileText, KeyRound, RefreshCw, Upload, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Copy, FileText, Headphones, KeyRound, Package, RefreshCw, Star, Upload, Trash2, Video } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
@@ -23,6 +24,7 @@ interface ExpertProfile {
   isPublished: boolean;
   isVerified: boolean;
   isActive: boolean;
+  videoEnabled?: boolean;
   credentials?: { id: string; name: string; fileUrl: string; status: string }[];
 }
 
@@ -51,6 +53,7 @@ export default function ProfilePage() {
   const [experienceYears, setExperienceYears] = useState(0);
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
+  const [videoEnabled, setVideoEnabled] = useState(true);
 
   const populateForm = useCallback((p: ExpertProfile) => {
     setDisplayName(p.displayName || '');
@@ -60,6 +63,7 @@ export default function ProfilePage() {
     setExperienceYears(p.experienceYears || 0);
     setSpecializations(Array.isArray(p.specializations) ? p.specializations : []);
     setLanguages(Array.isArray(p.languages) ? p.languages : []);
+    setVideoEnabled(p.videoEnabled !== false);
   }, []);
 
   useEffect(() => {
@@ -94,6 +98,7 @@ export default function ProfilePage() {
           experienceYears: Number(experienceYears),
           specializations,
           languages,
+          videoEnabled,
         }),
       });
       setProfile(updated);
@@ -209,6 +214,7 @@ export default function ProfilePage() {
   }
 
   async function handleViewCredential(cred: { name: string; fileUrl: string }) {
+    const popup = typeof window !== 'undefined' ? window.open('', '_blank', 'noopener,noreferrer') : null;
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
       const url = /^https?:\/\//i.test(cred.fileUrl) ? cred.fileUrl : `${API_BASE}${cred.fileUrl}`;
@@ -220,16 +226,15 @@ export default function ProfilePage() {
       }
       const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      if (popup) {
+        popup.location.href = objectUrl;
+      } else {
+        window.location.href = objectUrl;
+      }
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
     } catch (err) {
       console.error('Failed to open credential:', err);
+      popup?.close();
       alert(t('common', 'openFailed'));
     }
   }
@@ -301,6 +306,44 @@ export default function ProfilePage() {
             <section className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface2)] p-4 sm:p-5">
               <h2 className="text-base font-semibold">{t('profile', 'dietsSoonTitle')}</h2>
               <p className="mt-1 text-sm leading-5 text-[var(--text2)]">{t('profile', 'dietsSoonBody')}</p>
+            </section>
+
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/15 text-[var(--primary)]">
+                  <Video size={20} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-base font-semibold">{t('profile', 'videoCalls')}</h2>
+                      <p className="mt-1 text-sm leading-5 text-[var(--text2)]">{t('profile', 'videoCallsBody')}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setVideoEnabled((value) => !value)}
+                      className={`relative h-8 w-14 shrink-0 rounded-full transition ${videoEnabled ? 'bg-[var(--primary)]' : 'bg-[var(--surface2)] border border-[var(--border)]'}`}
+                      aria-pressed={videoEnabled}
+                      aria-label={t('profile', 'videoCalls')}
+                    >
+                      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition ${videoEnabled ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+                  <div className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${videoEnabled ? 'bg-[#22c55e22] text-[var(--green)]' : 'bg-[#ef444422] text-[var(--red)]'}`}>
+                    {videoEnabled ? t('profile', 'videoCallsEnabled') : t('profile', 'videoCallsDisabled')}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+              <h2 className="text-base font-semibold">{t('profile', 'profileTools')}</h2>
+              <p className="mt-1 text-sm leading-5 text-[var(--text2)]">{t('profile', 'profileToolsBody')}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <ProfileToolLink href="/offers" icon={<Package size={17} />} label={t('profile', 'manageOffers')} />
+                <ProfileToolLink href="/reviews" icon={<Star size={17} />} label={t('profile', 'manageReviews')} />
+                <ProfileToolLink href="/support" icon={<Headphones size={17} />} label={t('profile', 'contactSupport')} />
+              </div>
             </section>
 
             {/* Display Name */}
@@ -510,6 +553,18 @@ export default function ProfilePage() {
         }
       `}</style>
     </AppShell>
+  );
+}
+
+function ProfileToolLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-3 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+    >
+      {icon}
+      <span>{label}</span>
+    </Link>
   );
 }
 

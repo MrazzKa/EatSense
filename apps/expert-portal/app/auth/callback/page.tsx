@@ -36,6 +36,9 @@ function CallbackContent() {
         }
 
         await login(data.accessToken, data.refreshToken);
+        if (data.user?.email) {
+          localStorage.setItem('expertPortal:lastEmail', data.user.email);
+        }
         router.replace('/dashboard');
       } catch (err: any) {
         setError(err.message || t('auth', 'somethingWrong'));

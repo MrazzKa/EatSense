@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Meal {
   id: string;
@@ -138,7 +139,7 @@ export default function ClientDataPage() {
       if (pollTimer) clearInterval(pollTimer);
       if (es) es.close();
     };
-  }, [convId]);
+  }, [convId, t]);
 
   return (
     <AppShell>
@@ -195,11 +196,15 @@ export default function ClientDataPage() {
                     <div key={meal.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
                       <div className="flex flex-col gap-4 sm:flex-row">
                         {meal.photoUrl && (
-                          <img
-                            src={meal.photoUrl}
-                            alt={t('clients', 'mealLabel')}
-                            className="w-20 h-20 rounded-lg object-cover shrink-0"
-                          />
+                          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg">
+                            <Image
+                              src={meal.photoUrl}
+                              alt={t('clients', 'mealLabel')}
+                              fill
+                              sizes="80px"
+                              className="object-cover"
+                            />
+                          </div>
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">

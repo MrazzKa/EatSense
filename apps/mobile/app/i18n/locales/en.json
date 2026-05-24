@@ -1,0 +1,4693 @@
+{
+  "common": {
+    "tryAgain": "Try again",
+    "enabled": "Enabled",
+    "reset": "Reset",
+    "saveChanges": "Save Changes",
+    "start": "Start",
+    "clear": "Clear",
+    "apply": "Apply",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": "Add",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "join": "Join",
+    "done": "Done",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "rerun": "Rerun",
+    "search": "Search",
+    "viewAll": "View All",
+    "showLess": "Show Less",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "info": "Info",
+    "optional": "optional",
+    "days": "days",
+    "of": "of",
+    "all": "All",
+    "comingSoon": "Coming soon",
+    "continue": "Continue",
+    "show": "Show",
+    "hide": "Hide",
+    "cm": "cm",
+    "hoursShort": "h",
+    "stop": "Stop",
+    "goBack": "Go back",
+    "goTo": "Go to",
+    "daysAgo": "Days Ago",
+    "errorGeneric": "Error Generic",
+    "free": "Free",
+    "premium": "Premium",
+    "gotIt": "Got It",
+    "normal": "Normal",
+    "underweight": "Underweight",
+    "overweight": "Overweight",
+    "obese": "Obese",
+    "later": "Later",
+    "other": "Other",
+    "required": "Required",
+    "yesterday": "Yesterday",
+    "mon": "Mo",
+    "tue": "Tu",
+    "wed": "We",
+    "thu": "Th",
+    "fri": "Fr",
+    "sat": "Sa",
+    "sun": "Su",
+    "permissionNeeded": "Permission needed",
+    "options": "Options",
+    "create": "Create"
+  },
+  "tooltips": {
+    "scanMeal": {
+      "title": "Scan Your Meal",
+      "text": "Take a photo of your meal or select from gallery to get a detailed nutritional analysis"
+    },
+    "dashboard": {
+      "title": "Your Dashboard",
+      "text": "Track your daily progress, calories, and macronutrient balance here"
+    },
+    "lifestyles": {
+      "title": "Lifestyles",
+      "text": "Choose a nutrition program that matches your lifestyle and goals"
+    },
+    "medications": {
+      "title": "Medication Schedule",
+      "hintTitle": "Hint",
+      "text": "Add your medications and get reminders to take them at the right time"
+    },
+    "assistant": {
+      "title": "AI Assistant",
+      "text": "Ask any question about nutrition, diets, or health - the assistant will help"
+    },
+    "profile": {
+      "title": "Your Profile",
+      "text": "Set up your personal data, goals, and preferences for personalized recommendations"
+    }
+  },
+  "errors": {
+    "serverUnavailable": "Server temporarily unavailable. Please try again.",
+    "requestTimeout": "Request timed out. Please try again.",
+    "networkConnection": "Connection error. Please check your network.",
+    "photoFailed": "Failed to take photo",
+    "selectFailed": "Failed to select image",
+    "loadFailed": "Failed to load images from gallery",
+    "cameraPermission": "Failed to request camera permission",
+    "cameraNotAvailable": "Camera function not available",
+    "takePictureFailed": "Failed to take picture",
+    "startConsultation": "Failed to start consultation",
+    "sendMessage": "Failed to send message",
+    "shareMeals": "Failed to share meals",
+    "startProgram": "Failed to start program",
+    "stopProgram": "Failed to stop program",
+    "pauseProgram": "Failed to pause diet",
+    "completeDay": "Failed to complete day",
+    "navNotAvailable": "Navigation not available. Please restart the app.",
+    "navigationError": "Navigation error occurred",
+    "navigationNotAvailable": "Navigation not available. Please restart the app.",
+    "galleryFailed": "Gallery Failed",
+    "title": "Title",
+    "limitReachedTitle": "Daily Limit Reached",
+    "limitReachedMessage": "You have reached your daily scan limit. Upgrade to get unlimited scans.",
+    "analysisHint": "Try a clearer photo with the dish well-lit and centered.",
+    "analysisFailed": "Analysis failed. Please try again."
+  },
+  "error": {
+    "title": "Error"
+  },
+  "tooltip": {
+    "bmi": {
+      "title": "BMI — Body Mass Index",
+      "body": "BMI is a measure of body fat based on height and weight. It helps assess whether your weight is in a healthy range. Normal BMI is 18.5–24.9."
+    },
+    "whr": {
+      "title": "WHR — Waist-to-Hip Ratio",
+      "body": "WHR measures the ratio of your waist circumference to hip circumference. It indicates fat distribution. A healthy WHR is below 0.85 for women and 0.90 for men."
+    },
+    "glp1": {
+      "title": "GLP-1 — Glucagon-Like Peptide-1",
+      "body": "GLP-1 receptor agonists (e.g., semaglutide, liraglutide) are medications that help regulate blood sugar and appetite. This module adjusts recommendations for GLP-1 users."
+    },
+    "kcal": {
+      "title": "kcal — Kilocalories",
+      "body": "Your daily calorie target is calculated using the Mifflin-St Jeor formula based on your age, gender, height, weight, and activity level. This is your estimated basal metabolic rate adjusted for activity."
+    },
+    "bmr": {
+      "title": "BMR — Basal Metabolic Rate",
+      "body": "BMR is the number of calories your body needs at rest. It is calculated using the Mifflin-St Jeor equation and represents the minimum energy needed for basic body functions."
+    }
+  },
+  "help": {
+    "title": "Help & Support",
+    "faqTitle": "Frequently Asked Questions",
+    "contactTitle": "Contact Us",
+    "feedbackTitle": "Feedback",
+    "feedbackSubtitle": "Share your ideas",
+    "feedbackAlert": "Thank you for your interest! The feedback feature is coming soon.",
+    "faq": {
+      "howToUse": {
+        "question": "How to use the app?",
+        "answer": "Take a photo of your food or choose one from your gallery. Our AI will analyze the dish and show you calories and nutrients."
+      },
+      "photoLimit": {
+        "question": "How many photos can I analyze?",
+        "answer": "Free users can analyze up to 5 photos per day. Subscribers have unlimited access."
+      },
+      "saveMeal": {
+        "question": "How do I save a meal?",
+        "answer": "After analysis, tap \"Save to Journal\" to add the meal to your food diary."
+      },
+      "editResults": {
+        "question": "Can I edit analysis results?",
+        "answer": "Yes, you can tap on any ingredient to manually adjust its values."
+      },
+      "aiAssistant": {
+        "question": "How does AI Assistant work?",
+        "answer": "AI Assistant provides personalized nutrition advice based on your profile and eating habits."
+      }
+    }
+  },
+  "onboarding": {
+    "plans": {
+      "month": "mo",
+      "year": "yr",
+      "free": {
+        "name": "EatSense Free",
+        "price": "$0 forever",
+        "headline": "Get started with the essentials",
+        "features": [
+          "AI food analysis (3/day)",
+          "Daily calorie tracking",
+          "Basic statistics"
+        ],
+        "badge": "Included"
+      },
+      "proMonthly": {
+        "name": "EatSense Pro",
+        "price": "$9.99 / month",
+        "headline": "Unlock everything with flexible billing",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Personalized coaching tips",
+          "Priority support"
+        ],
+        "badge": "Most Popular"
+      },
+      "proAnnual": {
+        "name": "EatSense Pro",
+        "price": "$79.99 / year",
+        "headline": "Best value — save 33%",
+        "features": [
+          "Everything in Pro Monthly",
+          "Exclusive annual webinars",
+          "Early access to new features"
+        ],
+        "badge": "Save 33%"
+      },
+      "student": {
+        "name": "Student",
+        "price": "$49 / year",
+        "headline": "Special student pricing",
+        "features": [
+          "Unlimited AI analysis",
+          "Advanced nutrition insights",
+          "Student ID required"
+        ],
+        "badge": "Student"
+      },
+      "founder": {
+        "name": "Founder",
+        "price": "$199.99 / once",
+        "headline": "Lifetime access + Exclusive badge",
+        "features": [
+          "One-time payment, forever access",
+          "Exclusive Founder Badge",
+          "Direct developer access"
+        ],
+        "badge": "Limited"
+      },
+      "finePrint": "You can change plans or cancel anytime from Settings.",
+      "forever": "forever",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "included": "Included",
+      "bestValue": "Best Value",
+      "studentBadge": "Student",
+      "freeHeadline": "Get started with the essentials",
+      "monthlyHeadline": "Flexible billing",
+      "yearlyHeadline": "Best value — save 33%",
+      "studentHeadline": "Special student pricing",
+      "founderHeadline": "Lifetime access + Exclusive badge",
+      "founderBadge": "Limited",
+      "features": {
+        "analysis3": "AI food analysis (1/day)",
+        "tracking": "Daily calorie tracking",
+        "basicStats": "Basic statistics",
+        "unlimited": "Unlimited AI analysis",
+        "insights": "Advanced nutrition insights",
+        "coaching": "Personalized coaching",
+        "support": "Priority support",
+        "everything": "Everything in Monthly",
+        "webinars": "Exclusive webinars",
+        "earlyAccess": "Early access to features",
+        "verification": "Student ID required",
+        "lifetime": "One-time payment, forever access",
+        "badge": "Exclusive Founder Badge",
+        "priority": "Direct developer access"
+      }
+    },
+    "welcome": "Welcome to EatSense",
+    "notificationsDeniedTitle": "Notifications disabled",
+    "notificationsDeniedDescription": "You can enable notifications later in the app settings or iOS system settings to receive meal reminders and helpful tips.",
+    "notificationsDeniedHint": "You can enable notifications in the app settings later.",
+    "termsDescription": "Read our terms and conditions",
+    "privacyDescription": "Learn how we protect your data",
+    "startFree": "Start Now",
+    "subscribe": "Subscribe",
+    "activity": "How active are you?",
+    "activitySubtitle": "This helps us calculate your calorie needs",
+    "activityLevels": {
+      "sedentary": "Sedentary",
+      "sedentaryDesc": "Little to no exercise",
+      "lightlyActive": "Lightly Active",
+      "lightlyActiveDesc": "Light exercise 1-3 days/week",
+      "moderatelyActive": "Moderately Active",
+      "moderatelyActiveDesc": "Moderate exercise 3-5 days/week",
+      "veryActive": "Very Active",
+      "veryActiveDesc": "Heavy exercise 6-7 days/week",
+      "extremelyActive": "Extremely Active",
+      "extremelyActiveDesc": "Very heavy exercise, physical job"
+    },
+    "age": "How old are you?",
+    "ageSubtitle": "Age helps personalize your nutrition plan",
+    "breath": "Do you get shortness of breath?",
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "complete": "Complete Setup",
+      "getStarted": "Get Started",
+      "skip": "Skip"
+    },
+    "care": "We care about you",
+    "diet": "Are you following any diet?",
+    "dietSubtitle": "Choose a diet type that suits you",
+    "dietTypes": {
+      "none": "No Specific Diet",
+      "noneDesc": "I don't follow any particular diet",
+      "noDiet": "No Specific Diet",
+      "noDietDesc": "I don't follow any particular diet",
+      "balanced": "Balanced",
+      "balancedDesc": "Varied diet without restrictions",
+      "lowCarb": "Low Carb",
+      "lowCarbDesc": "Less carbs, more protein and fat",
+      "highProtein": "High Protein",
+      "highProteinDesc": "Focus on protein for muscles",
+      "vegetarian": "Vegetarian",
+      "vegetarianDesc": "No meat, fish and dairy allowed",
+      "vegan": "Vegan",
+      "veganDesc": "Plant-based foods only",
+      "keto": "Keto",
+      "ketoDesc": "Very low carbs, high fat",
+      "paleo": "Paleo",
+      "paleoDesc": "Whole foods, no processed",
+      "mediterranean": "Mediterranean",
+      "mediterraneanDesc": "Fish, vegetables, olive oil"
+    },
+    "features": {
+      "analysis": "AI Food Analysis",
+      "analysisDesc": "Instant dish recognition and calories",
+      "tracking": "Smart Tracking",
+      "trackingDesc": "Simple food journal with history",
+      "insights": "Health Insights",
+      "insightsDesc": "Personalized AI recommendations"
+    },
+    "gender": "What's your gender?",
+    "genderSubtitle": "Needed for accurate calorie calculation",
+    "genders": {
+      "male": "Male",
+      "female": "Female",
+      "nonBinary": "Non-binary",
+      "preferNotToSay": "Prefer not to say",
+      "other": "Other"
+    },
+    "goals": "What are your goals?",
+    "goalsSubtitle": "Choose what you want to achieve",
+    "goalTypes": {
+      "loseWeight": "Lose Weight",
+      "maintainWeight": "Maintain Weight",
+      "gainWeight": "Gain Weight"
+    },
+    "health": "What should we know about you?",
+    "healthSubtitle": "Select if any apply to you",
+    "healthConditions": {
+      "diabetes": "Diabetes",
+      "hypertension": "Hypertension",
+      "heartDisease": "Heart Disease",
+      "allergies": "Allergies",
+      "none": "None of the above",
+      "gastritis": "Gastritis",
+      "highCholesterol": "High Cholesterol",
+      "thyroid": "Thyroid Issues",
+      "other": "Not in list, I'll write"
+    },
+    "enableNotifications": "Enable",
+    "notificationsDescription": "Get reminders about meals, water intake, and your health goals.",
+    "planReady": "Your personalized plan",
+    "recommendedIntake": "Recommended daily intake:",
+    "caloriesLabel": "Calories",
+    "proteinLabel": "Protein",
+    "carbsLabel": "Carbs",
+    "fatLabel": "Fat",
+    "targetWeight": "What weight do you want?",
+    "targetWeightLabel": "Target weight",
+    "continueButton": "Continue",
+    "specifyCondition": "Please specify condition",
+    "specifyDiet": "Please specify your diet",
+    "notificationsEnabled": "Enabled!",
+    "notificationsSuccess": "Great! You'll receive helpful reminders.",
+    "terms": "Terms & Privacy",
+    "termsSubtitle": "Please read and accept to continue",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "acceptTerms": "I accept the Terms of Service",
+    "acceptPrivacy": "I accept the Privacy Policy",
+    "tapToRead": "Tap to read full document",
+    "opened": "✓ Opened",
+    "pleaseRead": "Please Read",
+    "scrollToAccept": "Please scroll through the Terms of Service to accept.",
+    "scrollToAcceptPrivacy": "Please scroll through the Privacy Policy to accept.",
+    "height": "What's your height?",
+    "heightSubtitle": "Needed for ideal weight calculation",
+    "loading": "Creating your plan",
+    "loadingSubtitle": "Analyzing your data...",
+    "notifications": "Enable notifications",
+    "notificationsSubtitle": "Reminders help you achieve your goals",
+    "obstacles": "What prevents you from reaching your goal?",
+    "obstaclesSubtitle": "Select all that apply",
+    "obstacleTypes": {
+      "time": "Lack of time",
+      "motivation": "Lack of motivation",
+      "knowledge": "Don't know where to start",
+      "budget": "Limited budget",
+      "habits": "Bad habits",
+      "stress": "Stress"
+    },
+    "plan": "Choose Your Plan",
+    "planSubtitle": "Select a plan that works for you",
+    "summary": "Your choices",
+    "summarySubtitle": "Review your information",
+    "support": "We care about you",
+    "targetWeightSubtitle": "What weight are you aiming for?",
+    "trust": "Thank you for trusting us",
+    "trustSubtitle": "We'll help you achieve your goals",
+    "units": {
+      "years": "years",
+      "cm": "cm",
+      "kg": "kg",
+      "ft": "ft",
+      "in": "in",
+      "lbs": "lbs",
+      "pounds": "Pounds"
+    },
+    "walking": "How much do you walk?",
+    "weight": "What's your weight?",
+    "weightSubtitle": "Current weight is needed for calorie calculation",
+    "weightRate": "Weight change rate",
+    "welcomeSubtitle": "Your AI-powered nutrition companion. Let's personalize your experience!",
+    "name": "What's your name?",
+    "nameSubtitle": "So we can personalize your experience",
+    "namePlaceholder": "Your name",
+    "formulaExplanation": "Calculated using the Mifflin-St Jeor formula based on your age, gender, height, weight, and activity level.",
+    "additionalPlans": "Additional Plans",
+    "setupComplete": "Setup Complete",
+    "profileSavedLocally": "Profile saved locally. You can complete setup later in settings.",
+    "continueFree": "Continue Free",
+    "notificationsEnabledTitle": "Notifications Enabled!",
+    "notificationsEnabledDescription": "We'll send reminders about meals and helpful tips. You can change settings anytime.",
+    "notificationsHint": "You can disable notifications in app settings or iOS system settings.",
+    "notificationsReady": "Ready!",
+    "validation": {
+      "requiredField": "Required field",
+      "selectActivity": "Please select your activity level.",
+      "selectGender": "Please select your gender.",
+      "selectGoal": "Please select a goal.",
+      "enterName": "Enter your name",
+      "enterAge": "Enter your age",
+      "enterHeight": "Enter your height",
+      "enterWeight": "Enter your weight",
+      "selectDiet": "Select a diet type",
+      "selectConditions": "Select health conditions",
+      "goal": "Please select your goal.",
+      "gender": "Please select your gender.",
+      "activity": "Please select your activity level."
+    }
+  },
+  "suggest": {
+    "title": "Community Suggestions",
+    "subtitle": "Write to us — name and request",
+    "subtitle_count": "{{count}} ideas — vote or add yours!",
+    "subtitle_empty": "Suggest a lifestyle — community votes!",
+    "modal_title": "Community Suggestions",
+    "name_placeholder": "Program name",
+    "description_placeholder": "Describe your idea...",
+    "request_placeholder": "Your request",
+    "submit": "Submit",
+    "add_new": "Suggest a program",
+    "name_required": "Enter a name",
+    "request_required": "Enter your request",
+    "contact_success": "Your request has been sent",
+    "success": "Your suggestion has been submitted!",
+    "voted": "Vote counted!",
+    "already_voted": "You have already voted for this",
+    "leader": "Top voted",
+    "empty": "No suggestions yet. Be the first!",
+    "reward_title": "6 months PRO free!",
+    "reward_info": "Top-voted suggestions get implemented! The author receives 6 months of PRO free!",
+    "error": "Failed to send request",
+    "round_info": "Monthly voting round",
+    "days_left": "days left",
+    "approved": "Approved"
+  },
+  "dashboard": {
+    "activeDiet": {
+      "streak_count": "Streak count",
+      "title": "Your diet",
+      "streak": "days streak",
+      "streak_count_one": "{{count}} day streak",
+      "streak_count_other": "{{count}} days streak",
+      "progress": "Today's progress",
+      "completed": "completed",
+      "daysLeft": "Days left",
+      "openTracker": "Open tracker",
+      "noDiet": "Choose a diet",
+      "browseDiets": "Browse diets"
+    },
+    "title": "Dashboard",
+    "calories": "calories",
+    "caloriesUnit": "kcal",
+    "ofGoal": "of {{goal}} goal",
+    "overGoal": "over goal",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "quickStats": "Quick Stats",
+    "articles": "Articles",
+    "aiAssistant": "AI Assistant",
+    "aiAssistantSubtitle": "Get personalized nutrition advice",
+    "healthScoreTitle": "{{meal}} health snapshot",
+    "healthScoreSubtitle": "Tap the card to open the full analysis in Recent.",
+    "recent": "Diary",
+    "recentEmptyTitle": "No recent items",
+    "recentEmptySubtitle": "Start by taking a photo of your meal",
+    "mealFallback": "Meal",
+    "recentMacroSummary": "{{calories}} kcal • P {{protein}} • C {{carbs}} • F {{fat}}",
+    "monthlyStats": {
+      "title": "Monthly highlights",
+      "loading": "Crunching the numbers…",
+      "empty": "No meal logs yet. Track your meals to see trends.",
+      "topFoods": "Top foods",
+      "foodMeta": "{{count}} logs • {{calories}} kcal total",
+      "mealDistribution": "Meal distribution",
+      "mealMeta": "{{count}} meals • {{calories}} kcal",
+      "viewFullInsights": "View full insights"
+    },
+    "mealTypes": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "addFood": {
+      "title": "Add Food",
+      "subtitle": "Choose how you want to add your meal",
+      "camera": {
+        "title": "Take Photo",
+        "description": "Capture your meal with the camera"
+      },
+      "gallery": {
+        "title": "Choose from Gallery",
+        "description": "Select a photo from your gallery"
+      },
+      "manual": {
+        "title": "Enter manually",
+        "description": "Add a meal without a photo or upload lab results"
+      }
+    },
+    "manualAnalysis": {
+      "title": "Medical Lab Results",
+      "subtitle": "Upload lab results for AI interpretation"
+    },
+    "analysisCounter": {
+      "today": "Today",
+      "total": "Total"
+    },
+    "specialists": {
+      "title": "Talk to a real nutrition expert (coming soon)",
+      "shortDescription": "Talk to a real nutrition expert (coming soon)",
+      "description": "In the future, you'll be able to connect with certified nutritionists and dietitians for personalized advice and meal planning.",
+      "gotIt": "Got it"
+    },
+    "suggestedFood": {
+      "title": "Smart food suggestions",
+      "trustText": "Personal recommendations are formed based on your nutrition data over several days. The longer you use the app, the more accurate the advice.",
+      "subtitle": "Here are simple ideas to better match your goal for the next few days.",
+      "summary": {
+        "title": "Personal recommendation"
+      },
+      "shortDescription": "Get simple ideas of what to eat today",
+      "description": "Personalized food suggestions based on your goals, preferences, and nutritional needs.",
+      "gotIt": "Got it",
+      "loading": "Loading suggestions...",
+      "empty": "We don't have suggestions right now. Try adding a few meals first.",
+      "insufficientData": {
+        "title": "Not Enough Data",
+        "message": "Add a few more meals to get personalized recommendations"
+      },
+      "addMeal": "Add Meal",
+      "retry": "Retry",
+      "error": {
+        "generic": "We couldn't load suggestions. We'll show some basic ideas instead."
+      },
+      "sections": {
+        "protein": {
+          "title": "Protein sources",
+          "subtitle": "You're slightly under your protein target. Try adding 1–2 of these options daily.",
+          "items": {
+            "cottageCheese": {
+              "title": "Low-fat cottage cheese",
+              "description": "200 g of cottage cheese for breakfast or dinner is a simple and budget-friendly way to boost protein."
+            },
+            "chickenBreast": {
+              "title": "Chicken breast",
+              "description": "Baked or boiled chicken breast works well with any side — rice, buckwheat, or vegetables."
+            },
+            "eggs": {
+              "title": "Eggs",
+              "description": "2–3 eggs for breakfast, omelet or boiled, give a quick portion of protein and keep you full longer."
+            }
+          }
+        },
+        "fiber": {
+          "title": "Fiber and slow carbs",
+          "subtitle": "A bit more fiber will help with satiety and digestion.",
+          "items": {
+            "oats": {
+              "title": "Oatmeal",
+              "description": "Oatmeal with a little fruit or berries is a simple breakfast that gives long-lasting energy."
+            },
+            "vegetables": {
+              "title": "Vegetable side dishes",
+              "description": "Add fresh or cooked vegetables to lunch and dinner — start with 100–150 g per meal."
+            }
+          }
+        }
+      }
+    },
+    "diary": {
+      "analyzing": "Analyzing...",
+      "analyzingHint": "This may take up to a minute",
+      "failed": "Analysis failed",
+      "failedHint": "Tap to retry",
+      "needsReview": "Needs review",
+      "needsReviewHint": "Could not calculate nutrition",
+      "analysisComplete": "Analysis Complete"
+    },
+    "bottomSheet": {
+      "describeFood": "Describe Food",
+      "fromGallery": "From Gallery",
+      "labResults": "Lab Results",
+      "takePhoto": "Take Photo",
+      "title": "Title"
+    },
+    "showAllMeals": "Show All Meals"
+  },
+  "mealHistory": {
+    "title": "All Meals",
+    "emptyTitle": "No meals this day",
+    "emptySubtitle": "Meals you log will appear here."
+  },
+  "articles": {
+    "title": "Articles",
+    "searchPlaceholder": "Search articles...",
+    "featured": "Featured",
+    "allArticles": "All Articles",
+    "searching": "Searching...",
+    "found": "Found: {{count}}",
+    "noArticles": "No articles found",
+    "comingSoon": "Articles coming soon",
+    "errorLoading": "We couldn't load articles. Please try again.",
+    "retry": "Try again",
+    "quickRead": "Quick read",
+    "readingTime": "{{minutes}} min read",
+    "updatedRecently": "Updated recently",
+    "featuredBadge": "Featured",
+    "browseByTag": "Browse by tag",
+    "clearTag": "Clear",
+    "loadingTag": "Loading articles tagged “{{tag}}”…",
+    "tagResultCount": "{{count}} articles tagged “{{tag}}”",
+    "searchResultCount": "{{count}} results",
+    "article": "Article",
+    "openSource": "View original article",
+    "loading": "Loading article..."
+  },
+  "analysis": {
+    "title": "Analysis Complete",
+    "analyzing": "Analyzing your meal...",
+    "analyzingSubtitle": "This may take a few seconds",
+    "processing": "Processing your meal...",
+    "processingSubtitle": "Identifying ingredients and matching nutrition data...",
+    "subtitle": "AI is identifying ingredients and calories",
+    "uploaded": "Uploaded",
+    "analyzingStep": "Analyzing",
+    "calculating": "Calculating",
+    "totalNutrition": "Total Nutrition",
+    "calories": "Calories",
+    "kcal": "kcal",
+    "proteinShort": "P",
+    "carbsShort": "C",
+    "fatShort": "F",
+    "grams": "g",
+    "askAi": "Ask AI",
+    "ingredients": "Ingredients",
+    "addIngredient": "Add ingredient",
+    "share": "Share",
+    "fixButton": "Fix",
+    "fix": "Fix",
+    "fixTitle": "Fix Result",
+    "fixMessage": "AI will analyze this dish again more carefully to remove any discrepancies or errors.",
+    "fixConfirm": "Fix",
+    "fixSuccess": "Analysis updated with more accurate results",
+    "fixError": "Failed to fix analysis. Please try again.",
+    "reanalyze": "Re-analyze",
+    "shareButton": "Share",
+    "reanalyzedSuccess": "Analysis recalculated successfully",
+    "reanalyzeError": "Failed to recalculate analysis. Please try again.",
+    "noAnalysisId": "Analysis ID not found",
+    "saveToJournal": "Save to Journal",
+    "autoSavedTitle": "Auto-saved to your journal",
+    "autoSavedDescription": "We saved this meal to your recent entries. You can open or edit it anytime.",
+    "viewMeal": "View meal entry",
+    "phrases": {
+      "analyzing": "Analyzing photo...",
+      "recognizing": "Recognizing ingredients...",
+      "counting": "Counting calories...",
+      "portions": "Estimating portions...",
+      "nutrients": "Checking nutrients...",
+      "almostDone": "Almost done...",
+      "formatting": "Formatting results..."
+    },
+    "saveAsNewEntry": "Save as new entry",
+    "errorTitle": "Analysis Error",
+    "errorMessage": "We couldn't analyze your meal. Please try again.",
+    "timeoutTitle": "Analysis Timeout",
+    "timeoutMessage": "The analysis is taking longer than expected. Please try again.",
+    "savedTitle": "Saved",
+    "savedMessage": "Meal saved to your journal",
+    "saveError": "Failed to save meal. Please try again.",
+    "noDataToSave": "No analysis data to save",
+    "needsReviewTitle": "Review Required",
+    "needsReviewMessage": "We're not fully confident about this analysis. Please double-check and edit the values.",
+    "noNutritionData": "No nutrition data",
+    "warning": {
+      "suspiciousTitle": "Analysis may be inaccurate",
+      "suspiciousDescription": "This analysis has data quality issues. Calories may not match macros, or energy density seems unusual. Please verify the results.",
+      "needsReview": "Nutrition data unavailable"
+    },
+    "reanalyzeConfirmTitle": "Re-analyze dish?",
+    "reanalyzeConfirmMessage": "Re-analyze this dish from the original photo/text? Current edits will remain in history, but the new result may differ.",
+    "noIngredients": "No ingredients recognized",
+    "fixWithAi": "Fix with AI",
+    "fixWithAiHint": "Tap to ask AI to fix or improve this analysis",
+    "askButton": "Ask AI",
+    "healthScore": "Health Score",
+    "loading": {
+      "analyzingPhoto": "Analyzing photo...",
+      "detectingFood": "Detecting food...",
+      "identifyingIngredients": "Identifying ingredients...",
+      "measuringPortions": "Measuring portions...",
+      "calculatingCalories": "Calculating calories...",
+      "analyzingProteins": "Analyzing proteins...",
+      "analyzingFats": "Analyzing fats...",
+      "analyzingCarbs": "Analyzing carbs...",
+      "checkingNutrients": "Checking nutrients...",
+      "consultingDatabase": "Consulting database...",
+      "verifyingData": "Verifying data...",
+      "preparingResults": "Preparing results...",
+      "almostDone": "Almost done...",
+      "finishingUp": "Finishing up...",
+      "justAMoment": "Just a moment..."
+    },
+    "tapToView": "Tap to view",
+    "analysisComplete": "Analysis complete",
+    "deleteError": "Delete Error",
+    "trustText": "Analysis accuracy improves with each use — AI learns to recognize your favorite dishes and portion sizes.",
+    "disclaimer": "This is not medical advice.",
+    "viewSources": "View scientific sources",
+    "allergyWarning": {
+      "title": "Check this meal",
+      "badgeTitle": "Allergen",
+      "body": "This meal may contain: {{list}}. These match your allergy settings.",
+      "keep": "Keep",
+      "removeFromDiary": "Remove from diary"
+    },
+    "dietViolation": {
+      "title": "Diet mismatch",
+      "body": "This meal may not fit your diet settings: {{list}}.",
+      "items": {
+        "vegan": "Vegan",
+        "vegetarian": "Vegetarian",
+        "halal": "Halal",
+        "kosher": "Kosher",
+        "gluten-free": "Gluten-free",
+        "lactose-free": "Lactose-free"
+      }
+    },
+    "healthImpact": {
+      "lockedTitle": "Want to see how this meal may affect your health?",
+      "lockedSubtitle": "Unlock a personalized breakdown for your heart, blood sugar, iron status, and gut health.",
+      "unlock": "Unlock",
+      "title": "Health impact",
+      "subtitle": "Based on this meal and your profile settings.",
+      "focusPill": "Your focus",
+      "systems": {
+        "cardiovascular": "Heart and vessels",
+        "bloodSugar": "Blood sugar",
+        "bloodIron": "Blood and iron",
+        "gut": "Gut health"
+      },
+      "levels": {
+        "veryPositive": "Strong support",
+        "positive": "Supportive",
+        "neutral": "Neutral",
+        "negative": "Caution",
+        "veryNegative": "High load"
+      },
+      "disclaimer": "This information is for general guidance only and does not replace professional medical advice. If you have any health conditions or concerns, please consult a qualified specialist."
+    }
+  },
+  "country": {
+    "title": "Country",
+    "placeholder": "Select country",
+    "search": "Search…",
+    "required": "Please select your country.",
+    "onboardingSubtitle": "We use this to put you in the right community.",
+    "RU": "Russia",
+    "KZ": "Kazakhstan",
+    "UA": "Ukraine",
+    "BY": "Belarus",
+    "US": "United States",
+    "DE": "Germany",
+    "FR": "France",
+    "ES": "Spain",
+    "IT": "Italy",
+    "GB": "United Kingdom",
+    "CH": "Switzerland",
+    "AT": "Austria",
+    "BE": "Belgium",
+    "PT": "Portugal",
+    "GR": "Greece",
+    "SE": "Sweden",
+    "NO": "Norway",
+    "DK": "Denmark",
+    "FI": "Finland",
+    "IE": "Ireland",
+    "RO": "Romania",
+    "HU": "Hungary",
+    "PL": "Poland",
+    "TR": "Türkiye",
+    "NL": "Netherlands",
+    "CZ": "Czechia",
+    "KG": "Kyrgyzstan",
+    "UZ": "Uzbekistan",
+    "AZ": "Azerbaijan",
+    "GE": "Georgia",
+    "AM": "Armenia",
+    "MD": "Moldova",
+    "EE": "Estonia",
+    "LV": "Latvia",
+    "LT": "Lithuania",
+    "IL": "Israel",
+    "AE": "United Arab Emirates",
+    "CA": "Canada",
+    "AU": "Australia",
+    "BR": "Brazil",
+    "JP": "Japan",
+    "KR": "South Korea",
+    "OTHER": "Other"
+  },
+  "allergies": {
+    "title": "Allergies",
+    "subtitle": "Tell us about your allergies — we'll flag any meal that may contain them.",
+    "none": "I have no allergies",
+    "noneSet": "No allergies set",
+    "addOther": "Add other",
+    "otherLabel": "Other",
+    "otherPlaceholder": "List other allergens, comma-separated",
+    "save": "Save",
+    "edit": "Edit",
+    "selectedCount": "{{count}} selected",
+    "items": {
+      "gluten": "Gluten (wheat, rye, barley)",
+      "crustaceans": "Crustaceans",
+      "eggs": "Eggs",
+      "fish": "Fish",
+      "peanuts": "Peanuts",
+      "soy": "Soy",
+      "milk": "Milk / lactose",
+      "nuts": "Tree nuts",
+      "celery": "Celery",
+      "mustard": "Mustard",
+      "sesame": "Sesame",
+      "sulfites": "Sulfites",
+      "lupin": "Lupin",
+      "molluscs": "Molluscs"
+    }
+  },
+  "describeFood": {
+    "title": "Describe your meal",
+    "subtitle": "Describe what you ate in free text. The AI will estimate calories and macros.",
+    "label": "Meal description",
+    "placeholder": "Example: Omelet from 3 eggs with cheese and tomatoes, 2 slices of toast with butter, a cup of cappuccino...",
+    "analyzeButton": "Analyze",
+    "errors": {
+      "emptyText": "Please describe your meal first.",
+      "noAnalysisId": "Analysis created but no ID was returned. Please try again.",
+      "navigationFailed": "Failed to navigate to results. Please try again.",
+      "generic": "Failed to analyze the meal. Please try again."
+    }
+  },
+  "healthScore": {
+    "title": "Health score",
+    "subtitle": "We estimate how balanced this meal is based on macros and energy density.",
+    "level": {
+      "poor": "Needs improvement",
+      "average": "Okay, but could be better",
+      "good": "Good choice",
+      "excellent": "Excellent choice"
+    },
+    "factorLevel": {
+      "good": "Good",
+      "ok": "Okay",
+      "bad": "Needs attention"
+    },
+    "qualityFactors": "Quality Factors",
+    "macroBalance": "Macro Balance",
+    "proteinQuality": "Protein Quality",
+    "feedback": "Feedback",
+    "factors": {
+      "protein": "Protein density",
+      "fiber": "Fiber density",
+      "satFat": "Saturated fat",
+      "saturatedFat": "Saturated fat",
+      "sugar": "Free sugars",
+      "sugars": "Free sugars",
+      "energyDensity": "Energy density",
+      "macroBalance": "Macro balance",
+      "calorieDensity": "Calorie density",
+      "proteinQuality": "Protein quality",
+      "processingLevel": "Processing level"
+    },
+    "feedbackMessages": {
+      "celebrate": "Great job! This meal looks well balanced.",
+      "increase": "Increase {{factor}} to improve your score.",
+      "reduce": "Reduce {{factor}} to improve your score.",
+      "monitor": "Keep an eye on {{factor}}."
+    }
+  },
+  "profile": {
+    "goal": "Goal",
+    "goalValue": "Current Goal",
+    "activityLevel": "Activity Level",
+    "personalization": "Personalization",
+    "plan": "Plan",
+    "sync": "Sync",
+    "settings": "Settings",
+    "units": "Units",
+    "savePhotos": "Save Photos",
+    "about": "About",
+    "faq": "FAQ",
+    "bmiUnderweight": "Underweight",
+    "bmiNormal": "Normal",
+    "bmiOverweight": "Overweight",
+    "bmiObesity": "Obesity",
+    "planUpdatedTitle": "Plan Updated",
+    "planUpdatedMessage": "Your plan has been successfully updated.",
+    "planUpdateError": "Failed to update plan.",
+    "metricBmi": "BMI",
+    "medications": "Medications",
+    "medicationsSubtitle": "Manage your schedule",
+    "reports": "Reports",
+    "reportsSubtitle": "Monthly nutrition reports",
+    "advancedSettings": {
+      "locked": "Health Settings",
+      "upgrade": "Upgrade to Pro"
+    },
+    "supportLink": "Contact Support",
+    "savingButton": "Saving...",
+    "avatar": {
+      "title": "Profile Photo",
+      "camera": "Take Photo",
+      "gallery": "Choose from Gallery",
+      "preset": "Choose Avatar",
+      "remove": "Remove Photo",
+      "cameraPermission": "Camera permission is required",
+      "uploadFailed": "Failed to upload photo"
+    },
+    "applyPlan": "Apply Plan",
+    "selectTime": "Select Time",
+    "tabs": {
+      "profile": "Profile",
+      "personalization": "Personalization",
+      "settings": "Settings",
+      "about": "About",
+      "faq": "FAQ"
+    },
+    "health": {
+      "chronotype": {
+        "early": "Early Bird",
+        "mid": "Intermediate",
+        "late": "Night Owl"
+      },
+      "drugType": {
+        "semaglutide": "Semaglutide",
+        "tirzepatide": "Tirzepatide",
+        "liraglutide": "Liraglutide"
+      },
+      "advanced": "Advanced Settings",
+      "show": "Show",
+      "hide": "Hide",
+      "metabolic": "Metabolic Parameters",
+      "sleep": "Sleep & Circadian Rhythms",
+      "eatingBehavior": "Eating Behavior",
+      "glp1Module": "GLP-1 Module",
+      "healthFocus": "Health Focus Areas",
+      "bodyFatPercent": "Body Fat %",
+      "waistCm": "Waist Circumference",
+      "hipCm": "Hip Circumference",
+      "whr": "WHR (Waist / Hip)",
+      "auto": "auto",
+      "fatDistributionType": "Fat Distribution Type",
+      "fatDistribution": {
+        "visceral": "Visceral",
+        "gynoid": "Gynoid",
+        "mixed": "Mixed"
+      },
+      "mealsPerDay": "Meals per Day",
+      "snackingTendency": "Snacking Tendency",
+      "snacking": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "eveningAppetite": "Evening Appetite",
+      "sleepHours": "Sleep (hours)",
+      "chronotypeOptions": {
+        "early": "Early",
+        "mid": "Mid",
+        "late": "Late"
+      },
+      "isGlp1User": "GLP-1 User",
+      "therapyGoal": "Therapy Goal",
+      "therapyGoalOptions": {
+        "preserve_muscle": "Preserve Muscle",
+        "appetite_control": "Appetite Control",
+        "weight_maintenance": "Weight Maintenance",
+        "slow_weight_loss": "Slow Weight Loss"
+      },
+      "focus": {
+        "sugarControl": "Sugar Control",
+        "cholesterol": "Cholesterol",
+        "inflammation": "Inflammation",
+        "iron": "Iron",
+        "microbiome": "Microbiome",
+        "hormonalBalance": "Hormonal Balance"
+      },
+      "fatLabel": "fat",
+      "sleepLabel": "Sleep",
+      "waistLabel": "Waist",
+      "noData": "No data",
+      "focusAreas": "Focus",
+      "clearData": "Clear Health Data",
+      "clearTitle": "Clear Health Data",
+      "clearMessage": "Are you sure you want to clear all health parameters? This action cannot be undone.",
+      "cleared": "Health data cleared",
+      "chronotypeLabel": "Chronotype",
+      "drugTypeLabel": "Drug Type"
+    },
+    "title": "Profile",
+    "welcomeBack": "Welcome back",
+    "defaultName": "Guest",
+    "editProfile": "Edit profile",
+    "details": "Profile details",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "height": "Height (cm)",
+    "weight": "Weight (kg)",
+    "age": "Age",
+    "dailyCalories": "Daily calories",
+    "metricWeight": "Weight",
+    "metricHeight": "Height",
+    "metricAge": "Age",
+    "metricCalories": "Calories/day",
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "lightMode": "Light theme",
+    "darkModeSubtitle": "Dark theme",
+    "systemTheme": "Follow system theme",
+    "notifications": "Notifications",
+    "notificationsInfo": "Notification preferences will be available soon.",
+    "notificationsDailyTitle": "Daily reminder",
+    "notificationsDailyDescription": "We'll remind you at {{time}} each day.",
+    "notificationsDailyDisabled": "Enable daily reminders to stay on track.",
+    "notificationsChangeTime": "Change time (currently {{time}})",
+    "notificationsErrorTitle": "Update failed",
+    "notificationsErrorMessage": "We couldn’t update notification settings. Please try again.",
+    "notificationsPermissionTitle": "Permission Required",
+    "notificationsPermissionMessage": "Please enable notifications in system settings to receive reminders.",
+    "savedTitle": "Profile saved",
+    "savedMessage": "Your profile was updated successfully.",
+    "errorTitle": "Update failed",
+    "errorMessage": "Could not update profile. Please try again later.",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "updateFailed": "Could not update profile. Please try again."
+    },
+    "deleteAccount": "Delete Account",
+    "deleteAccountTitle": "Delete Account",
+    "deleteAccountMessage": "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.",
+    "deleteAccountConfirm": "Delete",
+    "deleteAccountCancel": "Cancel",
+    "deleteAccountSuccess": "Account deleted successfully",
+    "deleteAccountError": "Failed to delete account. Please try again.",
+    "deleteAccountDisclaimer": "This action is permanent. All your data will be erased.",
+    "monthlyReportTitle": "Monthly nutrition report",
+    "monthlyReportSubtitle": "Download a detailed report about your eating habits for the last month",
+    "monthlyReportDownloaded": "Report downloaded successfully",
+    "monthlyReportError": "Failed to download monthly report. Please try again later.",
+    "goalsTitle": "Goals & diet",
+    "goalLabel": "Goal",
+    "goalLoseWeight": "Lose weight",
+    "goalMaintainWeight": "Maintain weight",
+    "goalGainMuscle": "Gain muscle",
+    "dietLabel": "Diet type",
+    "dietBalanced": "Balanced",
+    "dietHighProtein": "High protein",
+    "dietLowCarb": "Low carb",
+    "dietMediterranean": "Mediterranean",
+    "dietPlantBased": "Plant-based",
+    "choosePlan": "Choose a plan",
+    "selectPlan": "Select Plan",
+    "subscriptionTitle": "Subscription",
+    "changePlan": "Change plan",
+    "billingAnnual": "Billed annually",
+    "billingMonthly": "Billed monthly",
+    "billingFree": "Basic Plan",
+    "planFreeName": "EatSense Free",
+    "planProName": "EatSense Pro",
+    "planStudentName": "EatSense Student",
+    "planFounderName": "EatSense Founder",
+    "planFreePrice": "Free",
+    "planFounderPrice": "One-time payment",
+    "planStudentDescription": "Special student pricing with verification.",
+    "planFounderDescription": "Lifetime access with exclusive badge.",
+    "planMonthlyPrice": "{{price}} / month",
+    "planAnnualPrice": "{{price}} / year",
+    "planFreeDescription": "Start tracking meals with essential features.",
+    "planProMonthlyDescription": "Unlock unlimited AI tools with flexible billing.",
+    "planProAnnualDescription": "Best value — save 33% vs monthly billing.",
+    "planFeatures": {
+      "limitedAnalyses": "1 AI analysis per day",
+      "calorieTracking": "Calorie tracking",
+      "basicStats": "Basic statistics",
+      "unlimitedAnalyses": "Unlimited AI food analysis",
+      "advancedInsights": "Advanced nutrition insights",
+      "coachingTips": "Personalized coaching tips",
+      "everythingInProMonthly": "Everything in Pro Monthly",
+      "annualWebinars": "Exclusive annual webinars",
+      "earlyAccess": "Early access to new features",
+      "studentDiscount": "Student discount with verification"
+    },
+    "planBadges": {
+      "included": "Included",
+      "mostPopular": "Most popular",
+      "save33": "Save 33%",
+      "student": "Student",
+      "limited": "Limited"
+    },
+    "currentPlan": "Current plan",
+    "month": "month",
+    "year": "year",
+    "legal": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "policy": "Privacy Policy",
+    "politics": "Data Processing Policy",
+    "termsOfService": "Terms of Service",
+    "aboutEatsense": "About EatSense",
+    "aboutText1": "EatSense is an AI-powered nutrition analysis app that helps you track your food intake and maintain a healthy lifestyle.",
+    "aboutText2": "Our advanced AI technology can identify ingredients and calculate nutritional values from photos of your meals.",
+    "faq1q": "How accurate is the AI analysis?",
+    "faq1a": "Our AI provides highly accurate nutritional analysis based on advanced machine learning models.",
+    "faq2q": "Can I edit the analysis results?",
+    "faq2a": "Yes, you can manually correct any analysis results to ensure accuracy.",
+    "faq3q": "Is my data secure?",
+    "faq3a": "Yes, we use industry-standard encryption to protect your personal data.",
+    "section": "Your Profile",
+    "unitsMetric": "Metric",
+    "autoSave": "Auto-save to gallery",
+    "planPremium": "Premium",
+    "advanced": "Advanced Health Parameters",
+    "noData": "No data",
+    "policyError": "Failed to open policy",
+    "termsError": "Failed to open terms",
+    "notificationsDailyEnabled": "Notifications Daily Enabled",
+    "scientificSources": "Scientific Sources & References",
+    "smartTips": {
+      "title": "Smart tips",
+      "subtitle": "Get a personalised tip each day based on what you want to improve.",
+      "masterRequired": "Turn on Daily reminders to enable smart tips.",
+      "enabled": "Smart tips",
+      "hourLabel": "Time of day",
+      "issuesLabel": "What would you like to improve?",
+      "issueSleep": "Sleep",
+      "issueStress": "Stress",
+      "issueEnergy": "Energy",
+      "issueDigestion": "Digestion",
+      "saveFailed": "Could not save smart tips settings",
+      "pickIssueFirst": "Pick at least one area below to enable smart tips."
+    },
+    "cancelSubscriptionTitle": "Cancel subscription?",
+    "cancelSubscriptionMessage": "You can manage or cancel your subscription in your store account settings.",
+    "manageSubscription": "Manage subscription",
+    "switchToFree": "Switch to Free",
+    "upgradePlan": "Upgrade plan"
+  },
+  "camera": {
+    "requestingPermission": "Requesting camera permission...",
+    "accessTitle": "Camera Access Required",
+    "typeInstead": "Type instead",
+    "accessBody": "Enable camera access in Settings to capture your meals.",
+    "requestPermission": "Grant Access",
+    "takePhoto": "Capture Meal",
+    "flashModeOff": "Flash off",
+    "flashModeOn": "Flash on",
+    "flashModeAuto": "Flash auto",
+    "switchCamera": "Flip camera",
+    "zoomLabel": "Zoom {{value}}x",
+    "captureError": "We couldn’t capture the photo. Please try again.",
+    "permissionError": "Permission Error",
+    "gallery": "Gallery"
+  },
+  "editFood": {
+    "title": "Edit Ingredient",
+    "subtitle": "Make changes and save",
+    "name": "Name",
+    "namePlaceholder": "Product name",
+    "weight": "Weight (g)",
+    "weightHint": "Portion mass",
+    "macronutrients": "Macronutrients",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "calories": "Calories (kcal)",
+    "calculate": "Calculate: {{value}}",
+    "calculatedAuto": "Calculated automatically from macronutrients",
+    "searchUSDA": "Search USDA Database",
+    "noResults": "No Results",
+    "searchPlaceholder": "Search Placeholder",
+    "nameRequired": "Please enter a name for this ingredient.",
+    "portionRequired": "Please enter a portion of at least 1 gram."
+  },
+  "auth": {
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "otpCode": "Verification code",
+    "otpPlaceholder": "Enter 6-digit code",
+    "requestOtp": "Request OTP",
+    "verify": "Verify",
+    "magicLink": "Send Magic Link",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "welcomeTitle": "Sign in to start your journey with EatSense!",
+    "welcomeSubtitle": "EatSense has helped millions of users just like you reach their goals.",
+    "signInWithApple": "Sign Up With Apple",
+    "continueWithGoogle": "Continue With Google",
+    "signUpWithEmail": "Sign Up With E-mail",
+    "termsAcceptance": "By continuing, I accept the Terms and Conditions.",
+    "emailLabel": "Email address",
+    "signInWithOtp": "Sign in with email code",
+    "signInWithMagicLink": "Sign in with magic link",
+    "otpScreenTitle": "Enter verification code",
+    "otpScreenSubtitle": "We sent a 6-digit code to {{email}}",
+    "verifyCode": "Verify code",
+    "resendCode": "Send a new code",
+    "magicLinkTitle": "Check your inbox",
+    "magicLinkSubtitle": "We sent a link to",
+    "magicLinkDescription": "Open the link in your email to sign in. The link is valid for 15 minutes.",
+    "magicLinkResend": "Resend link",
+    "sendCode": "Send code",
+    "changeEmail": "Use a different email",
+    "resendIn": "Resend in {{seconds}}s",
+    "codeExpiresIn": "Code expires in {{seconds}}s",
+    "messages": {
+      "codeSent": "Check {{email}} for your 6-digit code.",
+      "codeResent": "A new code was sent to {{email}}.",
+      "signedIn": "You are signed in!"
+    },
+    "errors": {
+      "invalidEmail": "Enter a valid email address.",
+      "sendFailed": "We couldn’t send a code. Please try again.",
+      "resendFailed": "We couldn’t resend the code. Please try again later.",
+      "verifyFailed": "We couldn’t verify the code. Please try again.",
+      "invalidCode": "The code you entered is incorrect.",
+      "expiredCode": "This code has expired. Request a new one.",
+      "rateLimited": "Too many attempts. Try again in {{seconds}}s.",
+      "codeLength": "Enter the 6-digit code from your email.",
+      "googleAndroidClientIdMissing": "Google Android Client Id Missing",
+      "googleIosClientIdMissing": "Google Ios Client Id Missing",
+      "googleNotAvailableExpoGo": "Google Not Available Expo Go",
+      "googleNotConfigured": "Google Not Configured",
+      "googleNotConfiguredMessage": "Google Not Configured Message",
+      "networkError": "Network Error"
+    }
+  },
+  "tabs": {
+    "dashboard": "Home",
+    "diets": "Nutrition",
+    "articles": "Articles",
+    "recently": "Recent",
+    "profile": "Profile",
+    "experts": "Experts",
+    "reports": "Reports",
+    "medications": "Medications",
+    "myDay": "My Day",
+    "community": "Community"
+  },
+  "tracker": {
+    "title": "My Day",
+    "tabs": {
+      "habits": "Habits",
+      "shopping": "Shopping",
+      "health": "HEALTH"
+    },
+    "streak": "day streak",
+    "wave": {
+      "title": "Weekly Progress"
+    },
+    "habits": {
+      "add": "Add Habit",
+      "edit": "Edit Habit",
+      "delete": "Delete Habit",
+      "deleteConfirm": "Are you sure you want to delete this habit?",
+      "deleteTitle": "Delete Habit",
+      "deleteMessage": "Are you sure you want to delete this habit? This cannot be undone.",
+      "name": "Name",
+      "namePlaceholder": "e.g. Drink water",
+      "emoji": "Emoji",
+      "frequency": "Frequency",
+      "daily": "Daily",
+      "weekdays": "Weekdays",
+      "custom": "Custom"
+    },
+    "shopping": {
+      "add": "Add",
+      "bought": "Bought",
+      "clear": "Clear bought",
+      "clearTitle": "Clear Bought Items",
+      "clearConfirm": "Are you sure you want to remove all bought items?",
+      "share": "Share",
+      "shareTitle": "Shopping List",
+      "recommendations": "Recommended",
+      "emptyState": "Your shopping list is empty",
+      "namePlaceholder": "Item name",
+      "addAll": "Add All",
+      "addItem": "Add Item",
+      "cat": {
+        "protein": "Protein",
+        "veg": "Vegetables",
+        "dairy": "Dairy",
+        "fat": "Fats",
+        "grain": "Grains",
+        "other": "Other"
+      }
+    },
+    "todo": {
+      "title": "TO-DO",
+      "add": "Add task",
+      "placeholder": "Add a task...",
+      "empty": "No tasks for today",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "reminder": "Reminder",
+      "selectTime": "Select time"
+    },
+    "presets": {
+      "title": "Add Habits",
+      "createCustom": "Create Custom Habit",
+      "drinkWater": "Drink water",
+      "exercise": "Exercise",
+      "meditate": "Meditate",
+      "read": "Read",
+      "vitamins": "Take vitamins",
+      "eatHealthy": "Eat healthy",
+      "sleepEarly": "Sleep early",
+      "walk": "10k steps",
+      "cleanUp": "Clean up",
+      "floss": "Floss",
+      "journal": "Journal",
+      "gratitude": "Gratitude",
+      "eatFruit": "Eat fruit",
+      "morningRoutine": "Morning routine",
+      "eveningRoutine": "Evening routine",
+      "noPhone": "No phone before bed",
+      "gym": "Go to gym",
+      "noSugar": "No sugar drinks",
+      "skincare": "Skincare",
+      "outdoors": "Go outside",
+      "stretching": "Stretch",
+      "practice": "Practice instrument",
+      "learn": "Learn something new",
+      "breathing": "Breathing exercise",
+      "healthySnack": "Healthy snack",
+      "familyTime": "Family time",
+      "noAlcohol": "No alcohol",
+      "screenLimit": "Screen time limit",
+      "makeBed": "Make bed"
+    },
+    "limit": {
+      "habits": "Unlimited Habits",
+      "shopping": "Unlimited Shopping"
+    },
+    "stats": {
+      "streak": "Streak",
+      "weekly": "Weekly",
+      "total": "Total"
+    },
+    "emptyState": "No habits yet",
+    "emptyStateSubtitle": "Add your first habit to start tracking"
+  },
+  "bestPlaces": {
+    "title": "Best Places",
+    "subtitle": "Restaurants & healthy spots nearby",
+    "selectCity": "Your city",
+    "searchPlaceholder": "Search city or country...",
+    "noResults": "No cities found",
+    "comingSoonTitle": "Partner Restaurants & Cafes",
+    "comingSoonWithCity": "We're finding the best healthy eating spots in {{city}}. Stay tuned!",
+    "resultsInCity": "Places in {{city}}",
+    "allPlaces": "Community places",
+    "addPlace": "Add",
+    "emptyTitle": "No places yet",
+    "emptyText": "Share the first healthy cafe, restaurant, shop, or spot for your country community.",
+    "comingSoonGeneric": "Select your city to discover partner restaurants, cafes, and health food stores near you.",
+    "whatToExpect": "What to expect",
+    "feature1": "Healthy restaurants and cafes",
+    "feature2": "Organic & farm-to-table shops",
+    "feature3": "Exclusive discounts for EatSense users",
+    "feature4": "Community ratings & reviews",
+    "countries": {
+      "switzerland": "Switzerland",
+      "germany": "Germany",
+      "france": "France",
+      "uk": "United Kingdom",
+      "usa": "United States",
+      "spain": "Spain",
+      "italy": "Italy",
+      "netherlands": "Netherlands",
+      "austria": "Austria",
+      "russia": "Russia",
+      "kazakhstan": "Kazakhstan",
+      "uae": "UAE",
+      "japan": "Japan",
+      "singapore": "Singapore",
+      "southKorea": "South Korea"
+    }
+  },
+  "experts": {
+    "dietitian": {
+      "title": "Dietitian"
+    },
+    "nutritionist": {
+      "title": "Nutritionist"
+    },
+    "title": "Expert Consultations",
+    "subtitle": "Connect with certified dietitians and nutritionists for personal consultations. Coming soon!",
+    "comingSoonTitle": "Expert Consultations",
+    "comingSoonDescription": "Connect with certified dietitians and nutritionists for personalized consultations. This feature is coming soon!",
+    "findExperts": "Find verified specialists",
+    "chat": "Chat and video consultations",
+    "mealPlans": "Personal meal plans",
+    "viewArticles": "View nutrition articles",
+    "comingSoon": {
+      "title": "Experts Coming Soon",
+      "subtitle": "We're hand-picking certified nutritionists and dietitians for you. The marketplace launches soon — stay tuned!",
+      "feature1": "Verified credentials",
+      "feature2": "Direct chat consultations",
+      "feature3": "Secure data sharing"
+    },
+    "startVideoCall": "Start video call",
+    "video": {
+      "connecting": "Connecting…",
+      "unavailable": "Video calls are not available yet — coming soon.",
+      "unavailableTitle": "Video unavailable",
+      "noConversation": "Missing conversation",
+      "waitingForPeer": "Waiting for the other participant…",
+      "reconnecting": "Reconnecting...",
+      "muteMic": "Mute microphone",
+      "disableCamera": "Turn camera off"
+    },
+    "feature1": "Find verified specialists",
+    "feature2": "Chat & video consultations",
+    "feature3": "Personalized meal plans",
+    "browseArticles": "Browse Nutrition Articles",
+    "subtitleExpert": "Manage your expert profile",
+    "myConsultations": "My Consultations",
+    "myConversations": "My Chats",
+    "viewChats": "View your active chats",
+    "findSpecialist": "Find a Specialist",
+    "noConversations": "No active chats",
+    "asClient": "As Client",
+    "asExpert": "As Expert",
+    "expertRole": "Expert",
+    "chatTitle": "Chat",
+    "clientFallback": "Client",
+    "clientRole": "Client",
+    "startChat": "Start Chat",
+    "messageExpert": "Message Expert",
+    "viewAll": "View All Specialists",
+    "profile": "Profile",
+    "verified": "Verified",
+    "reviews": "reviews",
+    "typeDietitian": "Dietitian",
+    "typeNutritionist": "Nutritionist",
+    "typeObgyn": "OB-GYN",
+    "typePediatrician": "Pediatrician",
+    "typeGp": "General practitioner",
+    "typePsychologist": "Psychologist",
+    "typeEndocrinologist": "Endocrinologist",
+    "typeOther": "Specialist",
+    "yearsExp": "years",
+    "services": "Services",
+    "about": "About",
+    "credentials": "Credentials",
+    "languages": "Languages",
+    "recentReviews": "Recent Reviews",
+    "switchRole": "Switch",
+    "expertLabel": "Expert",
+    "offers": "Services",
+    "priceFree": "Free",
+    "priceFixed": "Fixed price",
+    "paymentUnavailableTitle": "Payment is not available yet",
+    "paymentUnavailableBody": "This paid service is already visible, but online checkout is not connected yet. You can choose a free service or contact the expert when payments are enabled.",
+    "ownerProfilePublished": "Your expert profile is published",
+    "ownerProfilePublishedSub": "Clients can find your services in EatSense.",
+    "selfHiddenHint": "Your own profile is hidden from your personal list. Other clients can find it in EatSense.",
+    "ownerOpenPortal": "Open expert portal",
+    "offerFormat": {
+      "CHAT_CONSULTATION": "Chat consultation",
+      "VIDEO_CONSULTATION": "Video consultation",
+      "MEAL_PLAN": "Meal plan",
+      "REPORT_REVIEW": "Report review",
+      "MONTHLY_SUPPORT": "Monthly support",
+      "CUSTOM": "Custom"
+    },
+    "tabs": {
+      "specialists": "Specialists",
+      "articles": "Articles"
+    },
+    "roleSelection": {
+      "title": "What brings you here?",
+      "subtitle": "You can change this later",
+      "userTitle": "I'm looking for a specialist",
+      "userDescription": "Find a dietitian for consultation",
+      "expertTitle": "I'm a certified specialist",
+      "expertDescription": "Create a profile and help clients"
+    },
+    "expert": {
+      "myOffers": "My Offers"
+    },
+    "edit": {
+      "createProfile": "Create Profile",
+      "editProfile": "Edit Profile",
+      "saved": "Profile saved",
+      "published": "Published",
+      "unpublished": "Unpublished",
+      "basicInfo": "Basic Information",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "e.g. Anna Smith, RD",
+      "type": "Specialist Type",
+      "title": "Professional Title",
+      "titlePlaceholder": "e.g. Certified Dietitian",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell clients about yourself...",
+      "experience": "Experience",
+      "education": "Education",
+      "educationPlaceholder": "Degrees, certifications...",
+      "experienceYears": "Years of Experience",
+      "specializations": "Specializations",
+      "specializationsPlaceholder": "Weight loss, Diabetes, Sports...",
+      "languages": "Languages",
+      "commaSeparated": "Comma-separated",
+      "contactSection": "Contact Policy",
+      "contactPolicy": "Response Time & Availability",
+      "contactPolicyPlaceholder": "e.g. I reply within 24 hours on weekdays",
+      "nameRequired": "Display name is required",
+      "addEducation": "Add another entry",
+      "educationDegreePlaceholder": "Degree (e.g. MSc Nutrition)",
+      "educationInstitutionPlaceholder": "Institution (e.g. ETH Zürich)",
+      "educationYearPlaceholder": "Year (e.g. 2020)",
+      "offerName": "Service name",
+      "description": "Description",
+      "format": "Format",
+      "priceType": "Price type",
+      "price": "Price",
+      "currency": "Currency",
+      "duration": "Duration, days",
+      "durationMinutes": "Session duration, minutes",
+      "country": "Country",
+      "countryPlaceholder": "Select your country",
+      "countryPickerHint": "Choose a country from the list, or enter a two-letter ISO code.",
+      "countryOther": "Other country",
+      "countryManualCode": "Enter a two-letter ISO country code.",
+      "countryApply": "Apply"
+    },
+    "client": "Client",
+    "consultation": "Consultation",
+    "filter_all": "All",
+    "find_expert": "Find Expert",
+    "free": "Free",
+    "free_consultation": "Free consultation",
+    "noSpecialists": "No Specialists",
+    "no_consultations": "No consultations yet",
+    "no_experts_found": "No experts found",
+    "specialist": "Specialist",
+    "start_chat": "Start chat",
+    "tab_my_chats": "My Chats",
+    "tab_specialists": "Specialists",
+    "week": "week",
+    "becomeExpert": "Become an Expert",
+    "becomeExpertDescription": "Are you a nutritionist or dietitian? Register as an expert and help people improve their nutrition.",
+    "becomeExpertBanner": "Are you a specialist?",
+    "becomeExpertBannerSub": "Register and help clients with nutrition",
+    "registerAsExpert": "Register as Expert",
+    "search": "Search experts...",
+    "filters": "Filters",
+    "recommended": "Recommended",
+    "allExperts": "All Experts",
+    "noResults": "No experts found",
+    "noResultsSub": "Try adjusting your filters",
+    "loadError": "Couldn't load experts",
+    "loadErrorSub": "Check your connection and try again",
+    "freeConsultation": "Free",
+    "rating": "Rating",
+    "yearsExperience": "{{count}} years experience",
+    "yearsExperience_one": "{{count}} year experience",
+    "yearsExperience_other": "{{count}} years experience",
+    "completedConsultations": "{{count}} consultations",
+    "completedConsultations_one": "{{count}} consultation",
+    "completedConsultations_other": "{{count}} consultations",
+    "writeToExpert": "Message Expert",
+    "diplomaAttached": "Diploma attached",
+    "activeConsultation": "Active",
+    "findExpertHint": "Find an expert to start a consultation",
+    "noMessages": "No messages yet",
+    "photo": "Photo",
+    "report": "Report",
+    "reportAbuse": "Report",
+    "reportAbuseConfirm": "Report this conversation for abuse?",
+    "reportSent": "Report sent. We will review it shortly.",
+    "sharedMeals": "Shared meals",
+    "sharedReport": "Shared report",
+    "onboarding": {
+      "step1Title": "Welcome",
+      "step1Sub": "Join our network of nutrition professionals",
+      "step2Title": "Your Profile",
+      "step2Sub": "Tell clients about yourself",
+      "step3Title": "Specializations",
+      "step3Sub": "Select your areas of expertise",
+      "step4Title": "Documents",
+      "step4Sub": "Upload at least one credential: diploma, license, or professional certificate",
+      "documentsRequired": "Upload at least one document to continue",
+      "chooseDocumentSource": "Add Document",
+      "sourceCamera": "Take Photo",
+      "sourceGallery": "Choose from Gallery",
+      "sourcePdf": "Upload PDF",
+      "cancel": "Cancel",
+      "cameraPermission": "Camera access is needed to take a photo of your document.",
+      "galleryPermission": "Please allow access to your photo library.",
+      "bioMinHint": "{{count}}/50 min",
+      "uploadFailed": "Upload failed",
+      "uploadFailedMessage": "Some of your documents failed to upload. Please try again.",
+      "allCredentialsFailed": "All documents failed to upload. Without credentials the admin will likely reject your profile. Please check your connection and retry.",
+      "step5OffersTitle": "Your services",
+      "step5OffersSub": "Add at least one service. After approval, it will appear on your public expert profile.",
+      "offer": "Service",
+      "offerNamePlaceholder": "e.g. 30-minute video consultation",
+      "offerDescPlaceholder": "What is included",
+      "durationPlaceholder": "e.g. 7",
+      "durationMinutesPlaceholder": "e.g. 30",
+      "addOffer": "Add another service",
+      "step5Title": "Preview",
+      "step5Sub": "Review your profile before submitting",
+      "step6Title": "Under Review",
+      "step6Sub": "Your profile is being reviewed by our team",
+      "step6Description": "We'll notify you once your profile is approved. This usually takes 1-2 business days.",
+      "acceptDisclaimer": "I confirm that I am a qualified nutrition professional and accept the terms of service",
+      "uploadDiploma": "Upload Diploma",
+      "uploadLicense": "Upload License",
+      "uploadDocument": "Upload Document",
+      "documentUploaded": "Document uploaded",
+      "removeDocument": "Remove",
+      "submitForReview": "Submit for Review",
+      "profileSubmitted": "Profile submitted for review",
+      "educationDocumentHint": "Attach a diploma (PDF, JPG or PNG, up to 10 MB) for each entry.",
+      "attachDocument": "Attach document",
+      "educationIncomplete": "Each education entry requires a degree, institution and an attached document.",
+      "fileTooLarge": "File too large",
+      "fileTooLargeMessage": "Maximum file size is {{mb}} MB.",
+      "profileCreateFailed": "Failed to create profile. Please try again.",
+      "cannotProceed": "Almost there",
+      "errorAcceptDisclaimer": "Please accept the disclaimer to continue.",
+      "errorDisplayNameRequired": "Please enter your display name.",
+      "errorBioTooShort": "Please write more about yourself — need {{count}} more characters.",
+      "errorEducationRequired": "Please add at least one education entry.",
+      "errorEducationIncomplete": "Please fill degree and institution for each education entry.",
+      "errorEducationDocRequired": "Please attach a document for each education entry.",
+      "errorSpecsRequired": "Please select at least one specialization.",
+      "errorLangsRequired": "Please select at least one language.",
+      "errorDocsRequired": "Please attach at least one document.",
+      "errorCountryRequired": "Please select your country.",
+      "errorOffersRequired": "Please add at least one service.",
+      "errorOfferNameRequired": "Please enter a service name.",
+      "errorOfferPrice": "Please enter a valid price greater than 0."
+    },
+    "specializations": {
+      "weightManagement": "Weight Management",
+      "sportsNutrition": "Sports Nutrition",
+      "clinicalNutrition": "Clinical Nutrition",
+      "pediatricNutrition": "Pediatric Nutrition",
+      "eatingDisorders": "Eating Disorders",
+      "diabetesManagement": "Diabetes Management",
+      "foodAllergies": "Food Allergies & Intolerances",
+      "vegetarianVegan": "Vegetarian & Vegan",
+      "pregnancyNutrition": "Pregnancy & Lactation",
+      "geriatricNutrition": "Geriatric Nutrition",
+      "gutHealth": "Gut Health",
+      "mentalHealthNutrition": "Mental Health & Nutrition"
+    },
+    "completeConsultation": "Complete Consultation",
+    "completeConfirm": "Are you sure you want to complete this consultation?",
+    "consultationCompleted": "Consultation completed",
+    "consultationCancelled": "Cancelled",
+    "awaitingPayment": "Awaiting payment",
+    "paymentRequiredBanner": "Complete payment to start messaging.",
+    "leaveReview": "Leave a Review",
+    "reviewPlaceholder": "Share your experience...",
+    "submitReview": "Submit Review",
+    "reviewSubmitted": "Thank you!",
+    "reviewSubmittedDesc": "Your review has been submitted.",
+    "ratingExcellent": "Excellent",
+    "ratingGood": "Good",
+    "ratingAverage": "Average",
+    "ratingBelowAverage": "Below Average",
+    "ratingPoor": "Poor",
+    "shareData": "Share Your Data",
+    "shareDataRequest": "I would like to access your nutrition data to provide better recommendations. Please allow access.",
+    "shareDataConfirm": "This will share your nutrition logs, lab results, and health profile with the expert.",
+    "allowAccess": "Allow Access",
+    "denyAccess": "Deny",
+    "revokeAccess": "Revoke Data Access",
+    "requestDataAccess": "Request Data Access",
+    "dataAccessRequest": "Data Access Request",
+    "accessGranted": "Access granted",
+    "accessGrantedScoped": "Access granted: {{labels}}",
+    "accessRevoked": "Access to nutrition data revoked",
+    "scheduleConsultation": "Schedule consultation",
+    "scheduleTitle": "Schedule a consultation",
+    "scheduledTitle": "Scheduled consultations",
+    "expertFallback": "Specialist",
+    "noSlots": "No free slots in the next 2 weeks",
+    "noSlotsHint": "Try a shorter duration or contact the specialist.",
+    "bookingConfirmedTitle": "Booked",
+    "bookingConfirmedBody": "You will receive a reminder before the call.",
+    "videoWaitingHint": "You will join automatically when they connect.",
+    "translate": "Translate",
+    "showOriginal": "Show original",
+    "rescheduleProposed": "Reschedule requested",
+    "rescheduleAccept": "Accept",
+    "rescheduleDecline": "Decline",
+    "rescheduleTitle": "Reschedule",
+    "rescheduleSentTitle": "Reschedule requested",
+    "rescheduleSentBody": "The expert will be notified and can accept or decline.",
+    "proposeReschedule": "Propose new time",
+    "cancelConsultation": "Cancel consultation",
+    "cancelConfirmTitle": "Cancel consultation?",
+    "cancelConfirmBody": "The expert will be notified. You will get a full refund.",
+    "manageConsultation": "Manage consultation",
+    "dataShared": "Data shared with expert",
+    "dataRevoked": "Data access revoked",
+    "pendingReview": "Pending Review",
+    "profileApproved": "Profile Approved",
+    "profileRejected": "Profile Rejected",
+    "rejectionReason": "Reason: {{reason}}",
+    "accessDenied": "Access denied",
+    "accessDeniedDesc": "Data access was not granted.",
+    "approvedHint": "Your expert profile is live. Manage offers and chats from the expert portal.",
+    "rejectedHint": "Your application was not approved. Please update your profile and re-submit.",
+    "expertPending": "Application pending",
+    "expertRejected": "Re-submit application",
+    "expertUnpublished": "Profile unpublished",
+    "unpublishedHint": "Your profile is temporarily hidden from the marketplace. Contact support to re-publish.",
+    "haveCodeTitle": "I have a specialist code",
+    "haveCodeSub": "Enter a private code to add your specialist.",
+    "mySpecialists": "My specialists",
+    "linkedByCode": "Code",
+    "specialistUnavailable": "Specialist is currently unavailable",
+    "enterCodeTitle": "Specialist code",
+    "enterCodeBody": "Enter the private code your specialist shared with you.",
+    "codePlaceholder": "A7K9Q2",
+    "applyCode": "Add specialist",
+    "codeInvalidTitle": "Check the code",
+    "codeInvalidBody": "Check the specialist code and try again.",
+    "codeAppliedTitle": "Specialist added",
+    "codeAppliedBody": "This specialist is now available in My specialists.",
+    "profileLoadError": "Failed to load",
+    "profileNotFound": "Not found",
+    "requestFailed": "Request failed",
+    "shareMealsRangePrompt": "Choose how far back to share your meal log:",
+    "shareLast3Days": "Last 3 days",
+    "shareLast7Days": "Last 7 days",
+    "shareLast30Days": "Last 30 days",
+    "shareMealsShort": "meals",
+    "shareAnalysesShort": "analyses",
+    "shareMedicationsShort": "medications",
+    "accessGrantedAll": "Access granted: meals, analyses, medications.",
+    "chooseDataToShare": "Choose data to share",
+    "chooseDataToShareBody": "You can revoke access at any time. Sharing automatically ends when the consultation is marked complete.",
+    "shareAll": "Share everything",
+    "shareMealsOnly": "Meals only",
+    "shareAnalysesOnly": "Analyses only",
+    "startConversation": "Start conversation",
+    "typePlaceholder": "Type a message...",
+    "paymentNotConfigured": "Payments are not configured for this build yet.",
+    "paymentSubmittedTitle": "Payment submitted",
+    "paymentSubmittedBody": "Your chat will unlock as soon as the payment is confirmed.",
+    "consultations": "Consultations",
+    "education": "Education"
+  },
+  "offers": {
+    "noOffers": "No services yet",
+    "createFirst": "Create Your First Service",
+    "create": "Create Service",
+    "edit": "Edit Service",
+    "name": "Name",
+    "namePlaceholder": "e.g. Weekly Consultation",
+    "nameRequired": "Name is required",
+    "description": "Description",
+    "descriptionPlaceholder": "What clients will get...",
+    "format": "Service Type",
+    "freeOffer": "Free Consultation",
+    "published": "Published",
+    "contactForPrice": "Contact for price",
+    "untitled": "Untitled",
+    "deleteConfirm": "Delete this service?",
+    "formatTypes": {
+      "chat": "Chat Consultation",
+      "mealPlan": "Meal Plan",
+      "reportReview": "Report Review",
+      "monthlySupport": "Monthly Support",
+      "custom": "Custom"
+    }
+  },
+  "chat": {
+    "active": "Active",
+    "ended": "Ended",
+    "cancelled": "Cancelled",
+    "startConversation": "Start the conversation!",
+    "typeMessage": "Type a message...",
+    "typePlaceholder": "Type a message...",
+    "conversationEnded": "This conversation has ended",
+    "mealShared": "Meal data shared",
+    "reportShared": "Report shared",
+    "consultationEnded": "Consultation ended",
+    "activeConsultation": "Active",
+    "sharedMeals": "Shared Meals",
+    "sharedReport": "Shared Report",
+    "noMessages": "No messages yet",
+    "findExpertHint": "Find an expert to start a consultation",
+    "reportAbuse": "Report",
+    "reportAbuseConfirm": "Report this conversation for abuse?",
+    "reportSent": "Report sent. We will review it shortly.",
+    "report": "Report",
+    "photo": "Photo",
+    "daysRemaining": "days remaining",
+    "shareMeals": "Share Meals",
+    "shareMealsConfirm": "Share your meals from the last 7 days?"
+  },
+  "disclaimer": {
+    "title": "Important Notice",
+    "intro": "Before starting a consultation with an expert, please read and accept the following terms:",
+    "point1": "Information provided by experts is for general guidance only and should not replace professional medical advice.",
+    "point2": "Always consult with your doctor before making significant changes to your diet or health regimen.",
+    "point3": "Your conversations are private. Do not share sensitive personal information beyond what is necessary.",
+    "point4": "If you experience a medical emergency, contact emergency services immediately.",
+    "accept": "I have read and accept these terms"
+  },
+  "report": {
+    "title": "Report User",
+    "subtitle": "Report inappropriate behavior",
+    "selectReason": "Select a reason",
+    "additionalDetails": "Additional details (optional)",
+    "detailsPlaceholder": "Describe what happened...",
+    "submit": "Submit Report",
+    "success": {
+      "title": "Report Submitted",
+      "message": "Thank you for your report. We will review it shortly."
+    },
+    "error": "Failed to submit report",
+    "reason": {
+      "inappropriate": "Inappropriate content",
+      "harassment": "Harassment",
+      "spam": "Spam",
+      "scam": "Scam",
+      "unprofessional": "Unprofessional behavior",
+      "other": "Other"
+    }
+  },
+  "block": {
+    "title": "Block User",
+    "subtitle": "Stop receiving messages",
+    "warning": "Blocking this user will:\n\n• Stop all messages from them\n• Hide your profile from them\n• End any active conversations\n\nYou can unblock users anytime in settings.",
+    "confirm": "Block User",
+    "success": {
+      "title": "User Blocked",
+      "message": "You will no longer receive messages from this user."
+    },
+    "error": "Failed to block user"
+  },
+  "diets": {
+    "groups": {
+      "popular": "Popular",
+      "health": "Health",
+      "weight_loss": "Weight Loss",
+      "performance": "Performance",
+      "medical": "Medical",
+      "seasonal": "Seasonal"
+    },
+    "filters": {
+      "all": "All",
+      "weight_loss": "Weight Loss",
+      "health": "Health",
+      "sports": "Sports",
+      "medical": "Medical",
+      "difficulty": {
+        "title": "Difficulty",
+        "easy": "Easy",
+        "moderate": "Moderate",
+        "hard": "Hard"
+      }
+    },
+    "labels": {
+      "featured": "Popular Diets",
+      "recommended": "Recommended for You",
+      "recommended_description": "Based on your profile and eating habits",
+      "browse": "Browse All",
+      "no_diets": "No diets found",
+      "days": "days"
+    },
+    "detail": {
+      "how_it_works": "How it works",
+      "items_allowed": "What you can eat",
+      "items_restricted": "Best to avoid",
+      "daily_tracker": "Daily Tracker",
+      "daily_tracker_preview": "Daily Tracker Preview",
+      "tracker_preview_hint": "Track your daily progress with this checklist",
+      "more_items": "more items",
+      "not_for": "Not recommended for",
+      "medical_note": "This is a medical diet. Please consult with your doctor before starting.",
+      "start_program": "Start Program",
+      "view_schedule": "View Schedule"
+    },
+    "tags": {
+      "1920s": "1920s",
+      "1950s": "1950s",
+      "1960s": "1960s",
+      "1970s": "1970s",
+      "1980s": "1980s",
+      "aesthetic": "Aesthetic",
+      "allergy": "Allergy Friendly",
+      "autumn": "Autumn",
+      "b12": "Vitamin B12",
+      "balanced": "Balanced",
+      "beginner_friendly": "Beginner Friendly",
+      "blood_pressure": "Blood Pressure",
+      "brain_health": "Brain Health",
+      "breakfast": "Breakfast",
+      "brunch": "Brunch",
+      "bulk": "Bulking",
+      "business": "Business",
+      "celiac": "Celiac Safe",
+      "central_asian": "Central Asian",
+      "classic": "Classic",
+      "clean_eating": "Clean Eating",
+      "cognitive": "Cognitive",
+      "comfort": "Comfort Food",
+      "cultural": "Cultural",
+      "discipline": "Discipline",
+      "disco": "Disco",
+      "elegant": "Elegant",
+      "elimination": "Elimination",
+      "evidence_based": "Evidence Based",
+      "fasting": "Fasting",
+      "fat_loss": "Fat Loss",
+      "feast": "Feast",
+      "fermented": "Fermented",
+      "fiber": "Fiber Rich",
+      "fish": "Fish",
+      "flexible": "Flexible",
+      "french": "French",
+      "fresh": "Fresh",
+      "fun": "Fun",
+      "gatsby": "Gatsby",
+      "glamour": "Glamour",
+      "gut_health": "Gut Health",
+      "harvest": "Harvest",
+      "heart_healthy": "Heart Healthy",
+      "historical": "Historical",
+      "history": "History",
+      "hollywood": "Hollywood",
+      "home_cooking": "Home Cooking",
+      "immune": "Immunity",
+      "intuitive": "Intuitive",
+      "japanese": "Japanese",
+      "kazakh": "Kazakh",
+      "light": "Light",
+      "longevity": "Longevity",
+      "low_carb": "Low Carb",
+      "lunch": "Lunch",
+      "macros": "Macros",
+      "medical": "Medical",
+      "mediterranean": "Mediterranean",
+      "mindful": "Mindful",
+      "minimalist": "Minimalist",
+      "mod": "Mod",
+      "morning": "Morning",
+      "muscle": "Muscle Gain",
+      "no_dairy": "Dairy Free",
+      "no_grains": "Grain Free",
+      "old_money": "Old Money",
+      "omega3": "Omega-3",
+      "party": "Party",
+      "plant_based": "Plant Based",
+      "pleasure": "Pleasure",
+      "popular": "Popular",
+      "power": "Power",
+      "proper": "Proper Nutrition",
+      "protein": "High Protein",
+      "public_figure": "Public Figure",
+      "pumpkin": "Pumpkin",
+      "relaxed": "Relaxed",
+      "religious": "Religious",
+      "requires_supervision": "Requires Supervision",
+      "reset": "Reset",
+      "scandinavian": "Scandinavian",
+      "seafood": "Seafood",
+      "seasonal": "Seasonal",
+      "short_term": "Short Term",
+      "simple": "Simple",
+      "skin": "Skin Health",
+      "social": "Social",
+      "sports": "Sports",
+      "spring": "Spring",
+      "summer": "Summer",
+      "sustainable": "Sustainable",
+      "therapeutic": "Therapeutic",
+      "tracking": "Tracking",
+      "vacation": "Vacation",
+      "vintage": "Vintage",
+      "visual": "Visual",
+      "weekend": "Weekend",
+      "weight_loss": "Weight Loss",
+      "whole_foods": "Whole Foods",
+      "winter": "Winter",
+      "yacht": "Yacht Life",
+      "youthful": "Youthful"
+    },
+    "tracker": {
+      "days": "days"
+    },
+    "daily_tracker_preview": "Daily Tracker",
+    "tracker_preview_hint": "Track your daily progress with this checklist",
+    "disclaimers": {
+      "historical": "Historical/inspired reconstruction. Not guaranteed historically accurate.",
+      "medical": "This diet may have contraindications. Consult a professional."
+    },
+    "how_it_works": "How It Works",
+    "more_items": "More",
+    "not_for": "Not recommended for:",
+    "medical_note": "This diet may have contraindications. Consult a healthcare professional before starting."
+  },
+  "dietPrograms": {
+    "startTrialTitle": "Start your journey",
+    "startTrialBody": "Join this program today",
+    "mealTypes": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "startProgram": "Start Program",
+    "startConfirm": "Start",
+    "kcalDay": "kcal/day",
+    "level": "Level",
+    "about": "About",
+    "previewDay1": "Preview Day 1",
+    "empty": "Program not found",
+    "stopProgram": "Stop Program",
+    "stopProgramConfirm": "Are you sure you want to stop the program? Your progress will be saved.",
+    "pauseProgram": "Pause",
+    "pauseProgramConfirm": "Would you like to pause the diet? You can resume anytime.",
+    "resumeProgram": "Resume",
+    "resumeProgramConfirm": "Continue the diet from where you left off?",
+    "pause": "Pause",
+    "resume": "Resume",
+    "mealsForDay": "Meals for Day",
+    "anotherDietActive": "Another Diet Active",
+    "anotherDietActiveMessage": "You already have an active diet. Complete or abandon it first.",
+    "completeDay": "Complete Day",
+    "dayCompleted": "Day completed",
+    "completed": "Completed",
+    "completedMessage": "Completed Message",
+    "continueProgram": "Continue Program",
+    "day": "Day",
+    "featured": "Featured",
+    "finishProgram": "Finish Program",
+    "notFound": "Not Found",
+    "title": "Title",
+    "viewActive": "View Active",
+    "categories": {
+      "all": "All",
+      "hollywood": "Hollywood",
+      "athletes": "Athletes",
+      "historical": "Historical"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    }
+  },
+  "referral": {
+    "title": "Invite Friends",
+    "heroTitle": "Earn 7 days for every friend",
+    "heroSubtitle": "Invite friends and earn 7 days of PRO for each one who joins.",
+    "yourCode": "Your referral code",
+    "share": "Share with friends",
+    "invited": "Friends invited",
+    "earnedDays": "Days earned",
+    "history": "Recent invites",
+    "howItWorks": "How it works",
+    "step1": "Share your code with friends",
+    "step2": "They sign up with your code",
+    "step3": "You earn 7 days of PRO for each friend who joins!",
+    "shareMessage": "Hey! Join me on EatSense — use my code to support me: {{link}}",
+    "haveFriendCode": "Have a friend's code?",
+    "paste": "Paste",
+    "enterCode": "Enter code",
+    "applyCode": "Apply Code",
+    "success": "Success!",
+    "codeApplied": "Code applied! The inviter earned 7 days of PRO. Welcome aboard!",
+    "invalidCode": "Invalid or already used referral code"
+  },
+  "privacy": {
+    "sections": "Sections",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "intro": "EatSense values your privacy. This policy describes how we collect, use, and protect your information."
+  },
+  "analysisFlow": {
+    "uploadPhoto": "Upload Photo",
+    "takePhoto": "Take Photo",
+    "describeMeal": "Describe your meal",
+    "describeMealPlaceholder": "Add details like ingredients and portion sizes",
+    "analyze": "Analyze",
+    "recentResults": "Recent Results",
+    "viewDetails": "View details"
+  },
+  "aiAssistant": {
+    "title": "AI Nutrition Assistant",
+    "subtitle": "Ask anything about nutrition, meals, or wellness",
+    "placeholder": "Type your question...",
+    "inputPlaceholder": "Type your question...",
+    "send": "Send",
+    "stop": "Stop",
+    "typing": "Assistant is typing...",
+    "welcome": "Hello! I'm your AI nutrition assistant. How can I help you today?",
+    "emptyState": "Start a conversation with your AI assistant",
+    "error": "Sorry, something went wrong. Please try again later.",
+    "quotaExceeded": "AI Assistant quota exceeded. The service is temporarily unavailable. Please try again later.",
+    "quickActions": "Quick actions",
+    "attach": {
+      "title": "Attach File",
+      "photo": "Choose Photo",
+      "file": "Choose File (PDF)",
+      "error": "Failed to pick file"
+    },
+    "lab": {
+      "title": "Document Analysis",
+      "subtitle": "Paste your lab values or attach a PDF to get a cautious AI interpretation.",
+      "mode": {
+        "text": "Text",
+        "file": "PDF file"
+      },
+      "textLabel": "Lab results (text)",
+      "textPlaceholder": "Example: Hemoglobin – 100 g/L, WBC – 7.0 x10^9/L, Platelets – 250 x10^9/L...",
+      "fileLabel": "File",
+      "attachPdf": "Attach",
+      "fileHint": "Attach a PDF or image file with your lab report. Maximum file size: 10 MB.",
+      "analyzeButton": "Analyze",
+      "resultTitle": "AI Interpretation",
+      "errors": {
+        "emptyText": "Please enter lab results text first.",
+        "noFile": "Please attach a PDF file first.",
+        "filePickFailed": "Failed to pick a file.",
+        "fileNotSupported": "File-based analysis is not yet configured. Please use text mode.",
+        "generic": "Failed to analyze lab results. Please try again.",
+        "noSummary": "The AI did not return a summary. Please try again.",
+        "fileUploadFailed": "File Upload Failed",
+        "auth": "Please sign in again and retry.",
+        "tooLarge": "File is too large (max 10 MB).",
+        "rateLimit": "Too many attempts. Try again in a minute.",
+        "aiUnavailable": "AI service is temporarily unavailable. Please try again later."
+      },
+      "typeTitle": "Type of analysis",
+      "type": {
+        "auto": "Auto-detect",
+        "cbc": "Complete Blood Count (CBC)",
+        "biochemistry": "Blood Biochemistry",
+        "lipid": "Lipid Profile",
+        "glycemic": "Glycemic Profile",
+        "vitamins": "Vitamins and Trace Elements",
+        "hormones": "Hormonal Profile",
+        "hormonal": "Hormonal Profile",
+        "inflammation": "Inflammation Markers",
+        "other": "Other"
+      },
+      "attachPhoto": "Attach Photo",
+      "manualTitle": "Manual Entry",
+      "manualPlaceholder": "Enter your lab results here...",
+      "submit": "Submit",
+      "submitted": "Lab results submitted successfully",
+      "success": "Lab results analyzed successfully",
+      "error": "Failed to send results. Please try again.",
+      "emptyError": "Please enter lab results or attach a file",
+      "photoAttached": "Photo attached",
+      "pdfAttached": "PDF attached",
+      "disclaimer": "This is not a medical diagnosis. Consult a healthcare professional for medical decisions.",
+      "questionsForDoctor": "Questions for your doctor"
+    },
+    "unavailable": "AI Assistant temporarily unavailable",
+    "unavailableDescription": "We are testing the first version of the app. The assistant section is temporarily disabled, but everything else is working.",
+    "suggestions": {
+      "mealIdeas": "Healthy meal ideas",
+      "dietPlan": "Plan my diet",
+      "calorieAdvice": "Calorie advice"
+    },
+    "tabs": {
+      "chat": "Chat",
+      "healthAnalysis": "Health Analysis"
+    },
+    "healthAnalysis": {
+      "empty": "Paste your health information or lab results below to analyze",
+      "summary": "Summary",
+      "keyFindings": "Key Findings",
+      "metrics": "Metrics",
+      "recommendation": "Recommendations",
+      "placeholder": "Paste your health information or lab results here...",
+      "disclaimer": "This is not a medical diagnosis. Please consult a healthcare professional for medical decisions.",
+      "addPhoto": "Add Photo",
+      "selectPhoto": "Select a photo to analyze",
+      "analyzing": "Analyzing photo...",
+      "photoResultTitle": "Analyzed: {{dish}}",
+      "error": "Failed to analyze photo. Please try again."
+    }
+  },
+  "assistant": {
+    "title": "AI Coach",
+    "chooseFlow": "Choose a coaching flow",
+    "recentAdvice": "Recent recommendations",
+    "historyEmpty": "You don’t have any saved recommendations yet.",
+    "inputPlaceholder": "Enter your response...",
+    "next": "Next",
+    "cancel": "Cancel",
+    "summaryTitle": "Your tailored plan",
+    "done": "Done",
+    "flow": {
+      "injury": {
+        "title": "Injury triage",
+        "desc": "Collect symptom details and get next steps."
+      },
+      "nutrition": {
+        "title": "Nutrition goal setup",
+        "desc": "Define your goal, challenges, and resources."
+      },
+      "hydration": {
+        "title": "Hydration check",
+        "desc": "Audit daily intake and build a hydration schedule."
+      }
+    }
+  },
+  "recently": {
+    "title": "Recently",
+    "subtitle": "Your latest meals and analyses",
+    "analyzing": "Analyzing...",
+    "pending": "Pending...",
+    "analyzingStatus": "Identifying ingredients...",
+    "pendingStatus": "Waiting for analysis to start...",
+    "noItems": "No recent items yet. Start by analyzing a meal!",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "empty": {
+      "title": "No Recent Items",
+      "subtitle": "Start by analyzing your first meal",
+      "cta": "Analyze Food"
+    },
+    "nutrition": {
+      "calories": "cal",
+      "protein": "protein",
+      "carbs": "carbs",
+      "fat": "fat"
+    },
+    "healthScoreLabel": "Score {{score}}",
+    "analyzingSubtitle": "Analyzing Subtitle",
+    "daysAgo": "{{count}} days ago"
+  },
+  "meals": {
+    "title": "Meals",
+    "empty": "No meals recorded yet.",
+    "addMeal": "Add Meal",
+    "mealDetails": "Meal Details"
+  },
+  "subscription": {
+    "title": "Premium",
+    "subtitle": "Unlock all features and enjoy unlimited access",
+    "loadingPrices": "Loading prices...",
+    "plan_monthly": "Monthly",
+    "plan_yearly": "Yearly",
+    "plan_student": "Student",
+    "plan_founders": "Founder",
+    "freePlan": "Free Plan",
+    "freePlanIncluded": "Currently active",
+    "free": "Free",
+    "freeFeature1": "1 analysis per day",
+    "freeFeature2": "Basic nutrition tracking",
+    "upgradeToPremium": "Upgrade to Premium",
+    "feature_unlimited_analyses": "Unlimited food analysis",
+    "feature_detailed_reports": "Detailed nutrition reports",
+    "feature_ai_chat": "AI Nutrition Assistant",
+    "most_popular": "BEST VALUE",
+    "lifetime": "LIFETIME",
+    "student": "STUDENT",
+    "studentToggle": "I am a student",
+    "studentHint": "Show student discount",
+    "restorePurchases": "Restore Purchases",
+    "restored": "Restored",
+    "purchasesRestored": "Your purchases have been restored.",
+    "noPurchases": "No Purchases",
+    "noPurchasesFound": "No previous purchases found.",
+    "restoreFailed": "Could not restore purchases.",
+    "planNotFound": "Plan not found",
+    "purchaseFailed": "Purchase failed. Please try again.",
+    "terms_notice": "Cancel anytime from Settings.",
+    "restore": "Restore Purchases",
+    "studentVerificationTitle": "Student Discount",
+    "studentVerificationDescription": "Upload a photo of your student ID to get a discount",
+    "applyPlan": "Apply Plan",
+    "bestValue": "Best Value",
+    "billing": {
+      "currency": {
+        "default": "$",
+        "kk": "₸",
+        "ru": "₽"
+      },
+      "free": "Basic Plan",
+      "perMonth": "per month",
+      "perYear": "per year"
+    },
+    "choosePlan": "Choose Plan",
+    "continue": "Continue",
+    "feature_expert_access": "Access to nutrition experts",
+    "feature_export_data": "Export your data",
+    "features": {
+      "analyses": "AI analyses per day",
+      "stats": "Advanced statistics",
+      "tracking": "Calorie tracking"
+    },
+    "features_title": "What you get",
+    "founders": "Founder",
+    "hideStudent": "Hide",
+    "included": "Included",
+    "legalPrivacy": "Privacy Policy",
+    "legalTerms": "Terms of Use",
+    "month": "mo",
+    "monthly": "Monthly",
+    "perMonth": "/mo",
+    "perYear": "/yr",
+    "plan": {
+      "free": "EatSense Free",
+      "premium": "EatSense Premium",
+      "pro": "EatSense Pro"
+    },
+    "plan_weekly": "Weekly",
+    "popular": "Popular",
+    "save": "Save",
+    "subscribeCTA": "Choose Plan",
+    "yearly": "Yearly",
+    "freePlanBaseline": "Included with all plans",
+    "success": "Success",
+    "purchaseComplete": "Your subscription is now active!",
+    "founderBadge": "Founder",
+    "subscribe": "Subscribe",
+    "purchaseNow": "Purchase Now",
+    "subscribeNow": "Subscribe Now"
+  },
+  "plan_yearly": "Yearly",
+  "plan_student": "Student",
+  "plan": {
+    "free": "EatSense Free",
+    "pro": "EatSense Pro",
+    "premium": "EatSense Premium"
+  },
+  "features": {
+    "analyses": "AI analyses per day",
+    "tracking": "Calorie tracking",
+    "stats": "Advanced statistics"
+  },
+  "billing": {
+    "perMonth": "per month",
+    "perYear": "per year",
+    "free": "Basic Plan",
+    "currency": {
+      "ru": "₽",
+      "kk": "₸",
+      "default": "$"
+    }
+  },
+  "lifetime": "Lifetime",
+  "noPurchases": "No Purchases",
+  "noPurchasesFound": "No Purchases Found",
+  "planNotFound": "Plan Not Found",
+  "purchaseFailed": "Purchase Failed",
+  "purchasesRestored": "Purchases Restored",
+  "restoreFailed": "Restore Failed",
+  "restorePurchases": "Restore Purchases",
+  "restored": "Restored",
+  "studentVerificationDescription": "Student Verification Description",
+  "studentVerificationTitle": "Student Verification Title",
+  "limits": {
+    "title": "Daily Limit Reached",
+    "dailyLimitReached": "You have reached your daily limit of {{count}} photo analyses. Please try again tomorrow.",
+    "description": "Upgrade to Premium to remove limits",
+    "resetsAt": "Resets at",
+    "tryFreeTrial": "Try free",
+    "tryFreeTrialMessage": "7 days free, then {{price}}/month",
+    "unlimitedBenefit": "Unlimited analyses",
+    "upgradeToPremium": "Get Premium"
+  },
+  "statistics": {
+    "title": "Statistics",
+    "today": "Today",
+    "noDataToday": "No data for today yet",
+    "unnamedProduct": "Unnamed Product",
+    "empty": "No statistics available yet",
+    "times": "times",
+    "period": "Period",
+    "adherence": "Goal Adherence",
+    "conclusions": "Conclusions",
+    "onTrack": "On Track",
+    "over": "Over Goal",
+    "under": "Under Goal",
+    "mealDistribution": "Meal Distribution"
+  },
+  "reports": {
+    "error": {
+      "generic": "Error generating report",
+      "noDirectory": "Download not available in Expo Go.",
+      "network": "Network error.",
+      "openFailed": "Failed to open report file."
+    },
+    "title": "Reports",
+    "subtitle": "Track your monthly progress",
+    "monthly": {
+      "title": "Monthly nutrition report",
+      "subtitle": "Detailed PDF about your month: calories, macros, top foods.",
+      "downloadCurrent": "Download current month"
+    },
+    "history": {
+      "title": "Recent Reports",
+      "subtitle": "Previously downloaded reports"
+    },
+    "upgradeBanner": {
+      "title": "Unlock Reports",
+      "subtitle": "Start a free trial to download monthly nutrition reports"
+    },
+    "downloaded": "Report downloaded successfully",
+    "noDataForMonth": "No data for this month yet. Add some meals to generate a report.",
+    "deleteConfirm": "Delete this report from history?",
+    "fileSaved": "Report saved"
+  },
+  "legal": {
+    "title": "Legal & Policies",
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Use",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Use",
+    "supportLink": "Support"
+  },
+  "foodCompatibility": {
+    "title": "Food compatibility",
+    "positives": "What works well",
+    "issues": "What could be improved",
+    "scoreLabel": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "moderate": "Mixed",
+      "problematic": "Needs improvement"
+    }
+  },
+  "carcinogenicRisk": {
+    "title": "Long-term risk factors",
+    "highRiskItems": "Items to keep in moderation",
+    "level": {
+      "none": "No significant factors",
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "Elevated"
+    }
+  },
+  "medications": {
+    "error": {
+      "invalidTime": "Invalid time format",
+      "load": "Failed to load medications",
+      "save": "Failed to save medication",
+      "delete": "Failed to delete medication",
+      "nameRequired": "Medication name is required",
+      "endDateBeforeStart": "End date must be after start date",
+      "photoUpload": "Failed to upload photo"
+    },
+    "schedule": "Schedule",
+    "supply": "Supply",
+    "notes": "Notes",
+    "title": "Medication schedule",
+    "subtitle": "Manage your medication schedule",
+    "tabTitle": "Medications",
+    "empty": "No medications yet. Add your first one.",
+    "noDoses": "No times specified",
+    "edit": "Edit medication",
+    "add": "Add medication",
+    "deleteConfirm": "Delete medication",
+    "deleteMessage": "Are you sure you want to delete this medication?",
+    "fields": {
+      "name": "Name",
+      "dosage": "Dosage",
+      "instructions": "Instructions",
+      "startDate": "Start date (YYYY-MM-DD)",
+      "endDate": "End date (optional)",
+      "timezone": "Timezone",
+      "doses": "Dose times",
+      "quantity": "Total quantity (optional)",
+      "remainingStock": "Remaining stock (optional)"
+    },
+    "placeholders": {
+      "name": "Metformin",
+      "dosage": "500 mg",
+      "dosageAmount": "500",
+      "instructions": "Before dinner, with water",
+      "quantity": "30",
+      "remainingStock": "Auto-calculated"
+    },
+    "hints": {
+      "quantity": "Total number of tablets/pills in package",
+      "remainingStock": "Will be calculated automatically based on doses and days passed"
+    },
+    "stock": {
+      "total": "Total",
+      "remaining": "Remaining",
+      "daysRemaining": "Days remaining",
+      "lowStock": "Low stock! Time to refill"
+    },
+    "take": "Take",
+    "times": "Times",
+    "beforeMeal": "Before",
+    "afterMeal": "After",
+    "addDose": "Add time",
+    "dosageUnits": {
+      "mg": "mg",
+      "g": "g",
+      "ml": "ml",
+      "drops": "drops",
+      "tablets": "tablets",
+      "capsules": "capsules",
+      "puffs": "puffs",
+      "sprays": "sprays",
+      "IU": "IU"
+    },
+    "notifications": {
+      "title": "Time for medication",
+      "body": "{{name}} at {{time}} ({{dosage}})",
+      "reminder": "Medication reminder",
+      "actionTake": "Taken",
+      "alertTitle": "Medication Reminder",
+      "alertMessage": "Did you take your medication?",
+      "taken": "Taken",
+      "later": "Later",
+      "success": "Medication marked as taken",
+      "error": "Failed to update medication"
+    },
+    "dosagePlural": {
+      "tablet_one": "tablet",
+      "tablet_other": "tablets",
+      "capsule_one": "capsule",
+      "capsule_other": "capsules",
+      "drop_one": "drop",
+      "drop_other": "drops",
+      "puff_one": "puff",
+      "puff_other": "puffs",
+      "spray_one": "spray",
+      "spray_other": "sprays"
+    },
+    "photo": "Photo",
+    "addPhoto": "Add photo",
+    "takePhoto": "Take Photo",
+    "chooseFromGallery": "Choose from Gallery",
+    "cameraPermissionDenied": "Camera permission is required to take photos."
+  },
+  "foodDescriptionPrompt": {
+    "title": "What did you eat?",
+    "subtitle": "This will help us better analyze your meal",
+    "placeholder": "For example: khachapuri, borscht, salad...",
+    "skip": "Skip",
+    "confirm": "Continue"
+  },
+  "feedbackScreen": {
+    "title": "Send Feedback",
+    "ratingQuestion": "How would you rate your experience?",
+    "category": "Category",
+    "yourFeedback": "Your Feedback",
+    "placeholder": "Tell us what you think...",
+    "submitting": "Submitting...",
+    "submit": "Submit Feedback",
+    "categories": {
+      "bug": "Bug Report",
+      "feature": "Feature Request",
+      "ui": "UI/UX Issue",
+      "performance": "Performance",
+      "other": "Other"
+    },
+    "alerts": {
+      "emptyFeedback": "Please enter your feedback",
+      "noCategory": "Please select a category",
+      "success": "Your feedback has been submitted successfully",
+      "thankYou": "Thank you!",
+      "error": "Failed to submit feedback. Please try again."
+    }
+  },
+  "permissions": {
+    "cameraRequired": "Camera permission is required to take photos",
+    "mediaRequired": "Media library permission is required to select photos",
+    "required": "Permission required",
+    "grantAccess": "Please grant access to your photo library"
+  },
+  "gallery": {
+    "notResponding": "Gallery Not Responding",
+    "timeoutMessage": "The photo picker is taking too long. Tap the button below to try again.",
+    "openGallery": "Open Gallery",
+    "goBack": "Go Back",
+    "selectPhoto": "Select Photo from Gallery",
+    "selectPhotoHint": "Tap the button below to open your photo library and select an image of your meal.",
+    "accessRequired": "Gallery Access Required",
+    "accessRequiredHint": "Please enable photo library access in your device settings to select photos of your meals.",
+    "grantPermission": "Grant Permission",
+    "openSettings": "Open Settings",
+    "error": "Error",
+    "tryAgain": "Try Again",
+    "selectTitle": "Select Photo",
+    "selectHint": "Choose a photo from your gallery to analyze.",
+    "canceled": "Selection Canceled",
+    "canceledHint": "You canceled photo selection.",
+    "opening": "Opening..."
+  },
+  "validation": {
+    "requiredField": "Required Field",
+    "selectGoal": "Please select your goal.",
+    "selectGender": "Please select your gender.",
+    "selectActivity": "Please select your activity level."
+  },
+  "smokeTest": {
+    "title": "EatSense Smoke Test",
+    "pingApi": "Ping API",
+    "openApp": "Open App"
+  },
+  "errorBoundary": {
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred",
+    "crashed": "App crashed",
+    "tryAgain": "Try Again",
+    "debugMessage": "Debug screen. Collecting stack trace."
+  },
+  "analysisResults": {
+    "title": "Analysis Result",
+    "calories": "Calories",
+    "portions": "Portions",
+    "healthScore": "Health Score",
+    "healthScoreLevel": {
+      "very": "very healthy",
+      "moderately": "moderately healthy",
+      "less": "less healthy",
+      "text": "This dish is {{level}}."
+    },
+    "ingredients": "Ingredients",
+    "share": "Share",
+    "correct": "Correct",
+    "unknownDish": "Unknown dish",
+    "perPortion": "per portion",
+    "weightNotDetermined": "Weight not determined"
+  },
+  "incident": {
+    "title": "Report Incident",
+    "detectedTitle": "Security Incident Detected",
+    "description": "We've detected unusual activity in your account. For your security, we've temporarily restricted access.",
+    "detailsTitle": "Incident Details:",
+    "loginAttempt": "Unusual login attempt detected",
+    "locationUnknown": "Location: Unknown",
+    "contactSupport": "Contact Support"
+  },
+  "analysisComponent": {
+    "analysisError": "Analysis Error",
+    "analysisFailed": "Analysis failed",
+    "tryAgain": "Try Again",
+    "analyzing": "Analyzing...",
+    "analyzingDish": "Analyzing your dish...",
+    "analysisComplete": "Analysis complete!",
+    "calculatingCalories": "Calculating calories",
+    "uploaded": "Uploaded"
+  },
+  "usageSummary": {
+    "title": "Daily Usage",
+    "totalToday": "Total Today",
+    "remaining": "Remaining",
+    "limit": "Limit",
+    "upgrade": "Upgrade for More",
+    "limitReached": "Daily limit reached",
+    "limitApproaching": "Approaching daily limit",
+    "limitOk": "Usage within limits",
+    "analyses": "analyses"
+  },
+  "premium": {
+    "lock_title": "Premium Content",
+    "lock_desc": "Get unlimited access to all diets, lifestyles, and features with EatSense Pro.",
+    "feature": {
+      "diets": "All Premium Diets",
+      "lifestyles": "Lifestyle Programs",
+      "tracker": "Advanced Progress Tracking"
+    },
+    "start_trial": "Start 3-Day Free Trial",
+    "restore": "Restore Purchases"
+  },
+  "notifications": {
+    "enabled": "Notifications enabled!",
+    "notEnabled": "Notifications were not enabled.",
+    "enableFailed": "Could not enable notifications."
+  },
+  "diets_title": "Nutrition",
+  "diets_subtitle": "Find the perfect nutrition plan for you",
+  "diets_all": "All",
+  "diets_weight_loss": "Weight Loss",
+  "diets_type_weight_loss": "Weight Loss",
+  "diets_weight_gain": "Weight Gain",
+  "diets_health": "Health",
+  "diets_type_health": "Health",
+  "diets_sports": "Sports",
+  "diets_type_sports": "Sports",
+  "diets_lifestyle_label": "Lifestyle",
+  "diets_lifestyle_disclaimer": "Disclaimer",
+  "diets_lifestyle_trending": "Trending",
+  "diets_activeLifestyleBanner": "Your active lifestyle. Tap to track your progress.",
+  "diets_medical": "Medical",
+  "diets_type_medical": "Medical",
+  "diets_recommended": "Recommended for You",
+  "diets_recommended_description": "Based on your profile and eating habits",
+  "diets_featured": "Popular Diets",
+  "diets_browse": "Browse All",
+  "diets_no_diets": "No diets found",
+  "diets_days": "days",
+  "diets_start": "Start Diet",
+  "diets_stop": "End Diet",
+  "diets_active": "Active",
+  "diets_easy": "Easy",
+  "diets_moderate": "Moderate",
+  "diets_hard": "Hard",
+  "diets_difficulty_easy": "Easy",
+  "diets_difficulty_moderate": "Moderate",
+  "diets_difficulty_hard": "Hard",
+  "diets_users": "users",
+  "diets_search_placeholder": "Search diets...",
+  "diets_filter_difficulty": "Difficulty",
+  "diets_yourActiveDiet": "Your active diet",
+  "diets_day": "Day",
+  "diets_dayOf": "of",
+  "diets_mealsToday": "Meals today",
+  "diets_daysLeft": "Days left",
+  "diets_viewPlan": "View plan",
+  "diets_progress": "Progress",
+  "diets_streak": "Streak",
+  "diets_bestStreak": "Best streak",
+  "diets_completedTasks": "Completed",
+  "diets_finishDay": "Finish day",
+  "diets_dailyPlan": "Daily plan",
+  "diets_wellbeing": "Wellbeing",
+  "diets_groups_free": "Free",
+  "diets_groups_popular": "Popular",
+  "diets_groups_health": "Health",
+  "diets_groups_weight_loss": "Weight Loss",
+  "diets_groups_performance": "Performance",
+  "diets_groups_medical": "Medical",
+  "diets_groups_historical": "Historical",
+  "diets_groups_seasonal": "Seasonal",
+  "diets_groups_vintage": "Vintage",
+  "diets_groups_old_money": "Old Money",
+  "diets_groups_aesthetic": "Aesthetic",
+  "diets_status_active": "Active",
+  "diets_status_completed": "Completed",
+  "diets_comingSoon": "Coming soon",
+  "diets_historical_section_title": "Historical & Inspired",
+  "diets_historical_section_subtitle": "Fun diets inspired by history and culture",
+  "diets_historical_section_disclaimer_banner": "These are approximations for fun, not medical recommendations",
+  "diets_active_program": "Active Program",
+  "diets_loading_more": "Loading more...",
+  "diets_more_items": "More",
+  "diets_no_programs": "No programs",
+  "diets_no_programs_search": "No programs found for your search",
+  "diets_not_for": "Not recommended for:",
+  "diets_sample_day": "Sample Day",
+  "diets_tracker_title": "Daily Tracker",
+  "diets_tracker_daily_checklist": "Daily Checklist",
+  "diets_tracker_weekly_goals": "Weekly Goals",
+  "diets_tracker_streak": "Streak",
+  "diets_tracker_current_streak": "Current Streak",
+  "diets_tracker_longest_streak": "Longest Streak",
+  "diets_tracker_days": "days",
+  "diets_tracker_complete_to_maintain": "Complete {{threshold}}% to maintain streak",
+  "diets_tracker_progress": "Progress",
+  "diets_tracker_completed": "Completed",
+  "diets_celebration_perfect": "Perfect! 🎉",
+  "diets_celebration_excellent": "Excellent work! 🌟",
+  "diets_celebration_great": "Great job! 💪",
+  "diets_celebration_good": "Good progress! 👍",
+  "diets_celebration_perfectSubtext": "You completed all tasks today!",
+  "diets_celebration_greatSubtext": "You're maintaining your streak!",
+  "diets_celebration_goodSubtext": "Every step counts!",
+  "diets_symptoms_scale_hint": "Scale_hint",
+  "diets_symptoms_title": "Title",
+  "diets_daily_tracker_preview": "Daily Tracker Preview",
+  "diets_tracker_preview_hint": "Track your daily progress with this checklist",
+  "diets_evidence_high": "Strong evidence",
+  "diets_evidence_medium": "Moderate evidence",
+  "diets_evidence_low": "Limited evidence",
+  "diets_medical_note": "This diet may have contraindications. Consult a healthcare professional before starting.",
+  "diets_how_it_works": "How It Works",
+  "diets_detail": {},
+  "diets_disclaimers_general": "This is educational information and not medical advice.",
+  "diets_disclaimers_medical": "This diet may have contraindications. Consult a professional.",
+  "diets_disclaimers_medical_short": "Medical",
+  "diets_disclaimers_historical": "Historical/inspired reconstruction. Not guaranteed historically accurate.",
+  "diets_disclaimers_historical_short": "Historical",
+  "diets_disclaimers_public_figure": "Public-figure-inspired template. Not an official program.",
+  "diets_disclaimers_public_figure_short": "Inspired",
+  "diets_tabs_diets": "Diets",
+  "diets_tabs_lifestyle": "Lifestyle",
+  "lifestyles": {
+    "categories": {
+      "all": "All",
+      "FREE": "Free",
+      "TRENDING": "Trending",
+      "GOAL_LOSE_WEIGHT": "Weight Loss",
+      "GOAL_BUILD_MUSCLE": "Build Muscle",
+      "GOAL_CLEAR_SKIN": "Clear Skin",
+      "GOAL_MORE_ENERGY": "More Energy",
+      "DESTINATIONS": "Destinations",
+      "AESTHETICS": "Aesthetics",
+      "WARRIOR_MODE": "Warrior Mode",
+      "SEASONAL": "Seasonal"
+    },
+    "trending": "Trending Now",
+    "startTrialTitle": "Start Lifestyle",
+    "startTrialBody": "Begin this lifestyle program",
+    "filters_target_label": "Target:",
+    "filters_target_all": "All",
+    "filters_target_male": "Men",
+    "filters_target_female": "Women",
+    "loading": "Loading lifestyle programs...",
+    "empty": "No programs found",
+    "loading_more": "Loading more...",
+    "search": {
+      "placeholder": "Search lifestyle programs..."
+    },
+    "card": {
+      "view": "View Program",
+      "locked": "Paid Plan"
+    },
+    "disclaimer": "This is lifestyle inspiration, not medical advice. Consult a healthcare professional for medical guidance.",
+    "programNotFound": "Program not found",
+    "loadError": "Failed to load program",
+    "programStarted": "Program started!",
+    "programStartedMessage": "You started \"{{name}}\". Track your progress on the main screen.",
+    "programAlreadyActive": "You are already enrolled in this program.",
+    "startFailed": "Failed to start program. Please try again later.",
+    "detail": {
+      "mantra": "Daily Mantra",
+      "philosophy": "Philosophy",
+      "embrace": "Embrace",
+      "minimize": "Minimize",
+      "dailyInspiration": "Daily Inspiration",
+      "sampleDay": "Sample Day",
+      "morning": "Morning",
+      "midday": "Midday",
+      "evening": "Evening",
+      "morningRitual": "Morning Ritual",
+      "eveningRitual": "Evening Ritual",
+      "diningOut": "Dining Out",
+      "pairsWellWith": "Pairs Well With",
+      "vibe": "Vibe",
+      "startProgram": "Start Program",
+      "continueProgram": "Continue",
+      "share": "Share"
+    },
+    "share": {
+      "button": "Share",
+      "title": "Share Your Style",
+      "textTemplate": "🌟 I chose the \"{{name}}\" lifestyle ✨\n\nWhat about you? Discover your style in EatSense!\n\n📲 https://eatsense.me/download",
+      "celebrationTitle": "Share Your Success!",
+      "celebrationSubtitle": "Tell your friends about your lifestyle"
+    }
+  },
+  "programs": {
+    "lifestyle": {
+      "that_girl": {
+        "dailyTracker": {
+          "morning_routine": {
+            "label": "Morning routine 5AM"
+          },
+          "green_juice": {
+            "label": "Green smoothie or matcha"
+          },
+          "aesthetic_meal": {
+            "label": "Aesthetic healthy meal"
+          },
+          "hydration": {
+            "label": "Stay hydrated"
+          }
+        },
+        "name": "That Girl",
+        "subtitle": "5AM, green juice, main character energy",
+        "description": "Wellness as aesthetic. Green smoothies, matcha, overnight oats. Looking good, feeling good.",
+        "shortDescription": "5AM routine, green juice, main character energy"
+      },
+      "clean_girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Whole foods only"
+          },
+          "hydration": {
+            "label": "3L water"
+          },
+          "simple_meal": {
+            "label": "Simple clean meal"
+          }
+        },
+        "name": "Clean Girl",
+        "subtitle": "Minimal, glowing, effortless beauty",
+        "description": "The no-makeup makeup of eating. Whole foods, nothing processed, maximum hydration.",
+        "shortDescription": "Minimal, glowing, effortless"
+      },
+      "old_money": {
+        "dailyTracker": {
+          "quality_ingredients": {
+            "label": "Quality ingredients"
+          },
+          "proper_dining": {
+            "label": "Proper table setting"
+          },
+          "three_meals": {
+            "label": "Three structured meals"
+          }
+        },
+        "name": "Old Money",
+        "subtitle": "Quiet luxury, timeless elegance",
+        "description": "Quality over everything. Grass-fed, wild-caught, organic, artisanal. No chain restaurants.",
+        "shortDescription": "Quality over quantity, timeless elegance"
+      },
+      "tomato_girl_summer": {
+        "dailyTracker": {
+          "olive_oil": {
+            "label": "Olive oil on everything"
+          },
+          "fresh_tomatoes": {
+            "label": "Fresh tomatoes"
+          },
+          "aperitivo": {
+            "label": "Aperitivo hour"
+          }
+        },
+        "name": "Tomato Girl Summer",
+        "subtitle": "Mediterranean dreams, sun-kissed living",
+        "description": "La dolce vita on your plate. Fresh tomatoes, burrata, olive oil, pasta, wine.",
+        "shortDescription": "Mediterranean vibes, sun-kissed"
+      },
+      "pilates_princess": {
+        "dailyTracker": {
+          "collagen": {
+            "label": "Collagen in smoothie"
+          },
+          "lean_protein": {
+            "label": "Lean protein"
+          },
+          "light_eating": {
+            "label": "Light eating on class days"
+          }
+        },
+        "name": "Pilates Princess",
+        "subtitle": "Long, lean, graceful strength",
+        "description": "Fuel for lengthening and strengthening. Lean proteins, anti-inflammatory foods, collagen.",
+        "shortDescription": "Lean, graceful, strong"
+      },
+      "coastal_grandmother": {
+        "dailyTracker": {
+          "set_table": {
+            "label": "Set table properly"
+          },
+          "fresh_seafood": {
+            "label": "Fresh seafood"
+          },
+          "beach_walk": {
+            "label": "Walk on the beach"
+          }
+        },
+        "name": "Coastal Grandmother",
+        "subtitle": "Coastal kitchen energy",
+        "description": "Coastal living lifestyle. Fresh seafood, farmers market vegetables, white wine on the porch.",
+        "shortDescription": "Coastal elegance, seaside vibes"
+      },
+      "soft_life": {
+        "dailyTracker": {
+          "comfort_food": {
+            "label": "Comfort food without guilt"
+          },
+          "gentle_self": {
+            "label": "Gentle with yourself"
+          },
+          "rest": {
+            "label": "Rest is productive"
+          }
+        },
+        "name": "Soft Life",
+        "subtitle": "Ease, comfort, zero stress",
+        "description": "Anti-hustle culture eating. Gentle foods, no strict rules, comfort without guilt.",
+        "shortDescription": "Easy, comfortable, stress-free"
+      },
+      "mob_wife": {
+        "dailyTracker": {
+          "sunday_sauce": {
+            "label": "Sunday sauce tradition"
+          },
+          "espresso": {
+            "label": "Espresso, not apologies"
+          },
+          "family_dinner": {
+            "label": "Family-style dinner"
+          }
+        },
+        "name": "Mob Wife",
+        "subtitle": "Dramatic, luxurious, unapologetic",
+        "description": "Italian-American indulgence. Sunday sauce, big family dinners, espresso, cannoli.",
+        "shortDescription": "Italian luxury, bold choices"
+      },
+      "summer_shred": {
+        "dailyTracker": {},
+        "name": "Summer Shred",
+        "subtitle": "Lean, defined, beach-ready",
+        "description": "Strategic fat loss while preserving muscle. High protein, plenty of vegetables.",
+        "shortDescription": "Lean, defined, beach-ready"
+      },
+      "metabolic_reset": {
+        "dailyTracker": {},
+        "name": "Metabolic Reset",
+        "subtitle": "Rebalance your energy systems",
+        "description": "Support your metabolism through whole foods, stable blood sugar, and strategic eating windows.",
+        "shortDescription": "Metabolic rebalance, stable energy"
+      },
+      "debloat_detox": {
+        "dailyTracker": {},
+        "name": "Debloat & Glow",
+        "subtitle": "Flatten, refresh, feel light",
+        "description": "Anti-inflammatory, low sodium, gut-friendly eating.",
+        "shortDescription": "Debloat, refresh, feel light"
+      },
+      "sustainable_slim": {
+        "dailyTracker": {},
+        "name": "Sustainable Slim",
+        "subtitle": "Sustainable habits for lasting results",
+        "description": "Anti-yo-yo approach. Small sustainable changes, focus on habits not numbers.",
+        "shortDescription": "Sustainable weight loss"
+      },
+      "lean_bulk": {
+        "dailyTracker": {},
+        "name": "Lean Bulk",
+        "subtitle": "Build muscle without the fat",
+        "description": "Strategic surplus. Enough calories to grow, enough protein to build.",
+        "shortDescription": "Build muscle, stay lean"
+      },
+      "strength_athlete": {
+        "dailyTracker": {},
+        "name": "Strength Athlete",
+        "subtitle": "Fuel for power and performance",
+        "description": "Performance nutrition for lifters. High protein, strategic carbs.",
+        "shortDescription": "Fuel for strength"
+      },
+      "athletic_performance": {
+        "dailyTracker": {},
+        "name": "Athletic Performance",
+        "subtitle": "Train hard, eat smart, perform better",
+        "description": "Sports nutrition for competitive athletes.",
+        "shortDescription": "Athletic performance nutrition"
+      },
+      "functional_fitness": {
+        "dailyTracker": {},
+        "name": "Functional Fitness",
+        "subtitle": "Strong, capable, ready for anything",
+        "description": "Nutrition for real-world performance. Balanced macros, anti-inflammatory focus.",
+        "shortDescription": "Functional strength nutrition"
+      },
+      "glass_skin": {
+        "dailyTracker": {},
+        "subtitle": "Korean beauty-inspired nutrition",
+        "description": "Gut-skin connection. Fermented foods, omega-3s, collagen.",
+        "shortDescription": "K-beauty nutrition"
+      },
+      "acne_clear": {
+        "dailyTracker": {},
+        "subtitle": "Calm inflammation, clear breakouts",
+        "description": "Anti-inflammatory, low-glycemic eating.",
+        "shortDescription": "Clear skin nutrition"
+      },
+      "anti_aging_glow": {
+        "dailyTracker": {},
+        "subtitle": "Age gracefully, glow eternally",
+        "description": "Longevity nutrition. Antioxidants, collagen, healthy fats.",
+        "shortDescription": "Longevity-focused nutrition"
+      },
+      "all_day_energy": {
+        "dailyTracker": {},
+        "subtitle": "No crashes, no slumps, just go",
+        "description": "Blood sugar stability for sustained energy.",
+        "shortDescription": "Sustained energy all day"
+      },
+      "brain_fuel": {
+        "dailyTracker": {},
+        "subtitle": "Focus, clarity, mental edge",
+        "description": "Nootropic nutrition. Omega-3s, stable glucose, brain nutrients.",
+        "shortDescription": "Brain-boosting nutrition"
+      },
+      "adrenal_recovery": {
+        "dailyTracker": {},
+        "subtitle": "Support recovery, nurture vitality",
+        "description": "Recovery-focused nutrition for busy lifestyles.",
+        "shortDescription": "Burnout recovery"
+      },
+      "amalfi_coast": {
+        "dailyTracker": {},
+        "subtitle": "Limoncello sunsets, Italian dreams",
+        "description": "Southern Italian coastal living.",
+        "shortDescription": "Italian coastal eating"
+      },
+      "greek_islands": {
+        "dailyTracker": {},
+        "subtitle": "Santorini sunsets on your plate",
+        "description": "The original Mediterranean diet.",
+        "shortDescription": "Greek Mediterranean eating"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {},
+        "subtitle": "Inspired by Okinawan traditions",
+        "description": "Blue Zone wisdom. Hara hachi bu — 80% full.",
+        "shortDescription": "Blue zone longevity"
+      },
+      "tokyo_energy": {
+        "dailyTracker": {},
+        "subtitle": "Fast-paced city, balanced eating",
+        "description": "Japanese efficiency meets nutrition.",
+        "shortDescription": "Japanese efficient eating"
+      },
+      "scandi_hygge": {
+        "dailyTracker": {},
+        "subtitle": "Cozy, balanced, sustainably happy",
+        "description": "Nordic eating meets hygge lifestyle.",
+        "shortDescription": "Nordic cozy eating"
+      },
+      "1950s_bombshell": {
+        "dailyTracker": {},
+        "subtitle": "Curves, confidence, classic beauty",
+        "description": "Real food, real curves. Protein-rich, whole ingredients.",
+        "shortDescription": "Classic curves nutrition"
+      },
+      "prima_ballerina": {
+        "dailyTracker": {},
+        "subtitle": "Grace, discipline, elegant strength",
+        "description": "Eating for performance and grace. Carbs for energy, protein for strength.",
+        "shortDescription": "Dancer nutrition"
+      },
+      "french_girl": {
+        "dailyTracker": {},
+        "subtitle": "Je ne sais quoi in every bite",
+        "description": "Original intuitive eating. Three meals, no snacking, wine with dinner.",
+        "shortDescription": "French intuitive eating"
+      },
+      "pin_up_retro": {
+        "dailyTracker": {},
+        "subtitle": "Vintage curves, modern confidence",
+        "description": "Home-cooked meals, whole ingredients, no guilt.",
+        "shortDescription": "Retro body-positive eating"
+      },
+      "minimalist_zen": {
+        "dailyTracker": {},
+        "subtitle": "Less clutter, more clarity",
+        "description": "Japanese-inspired minimalism. Few ingredients, high quality.",
+        "shortDescription": "Minimalist eating"
+      },
+      "spartan_warrior": {
+        "dailyTracker": {},
+        "subtitle": "THIS. IS. DISCIPLINE.",
+        "description": "Ancient warrior fuel. Simple foods, no luxury.",
+        "shortDescription": "Spartan discipline"
+      },
+      "viking_raider": {
+        "dailyTracker": {},
+        "subtitle": "Fuel for conquest and cold",
+        "description": "Norse fuel. High fat, high protein, fermented foods.",
+        "shortDescription": "Viking strength eating"
+      },
+      "navy_seal": {
+        "dailyTracker": {},
+        "subtitle": "Elite fuel for elite performance",
+        "description": "Performance nutrition, no nonsense. High calories for high output.",
+        "shortDescription": "Elite performance nutrition"
+      },
+      "mma_fighter": {
+        "dailyTracker": {},
+        "subtitle": "Cut weight, stay strong, dominate",
+        "description": "Fight camp nutrition. High protein, strategic carbs.",
+        "shortDescription": "Fighter nutrition"
+      },
+      "ceo_warrior": {
+        "dailyTracker": {},
+        "subtitle": "Dominate the boardroom",
+        "description": "Biohacker meets executive. IF, keto principles.",
+        "shortDescription": "Executive biohacking"
+      },
+      "stoic_monk": {
+        "dailyTracker": {},
+        "subtitle": "Master your body, master your mind",
+        "description": "Voluntary simplicity. Eat little, want nothing.",
+        "shortDescription": "Stoic simplicity"
+      },
+      "summer_beach_body": {
+        "dailyTracker": {},
+        "subtitle": "4 weeks to your most confident summer",
+        "description": "Light, clean eating for beach confidence.",
+        "shortDescription": "Beach body prep"
+      },
+      "new_year_reset": {
+        "dailyTracker": {},
+        "subtitle": "Fresh start, clean slate",
+        "description": "Gentle reset after indulgent times.",
+        "shortDescription": "New year reset"
+      },
+      "wedding_ready": {
+        "dailyTracker": {},
+        "subtitle": "Glowing, confident, picture-perfect",
+        "description": "Gradual, sustainable approach for your special day.",
+        "shortDescription": "Wedding prep nutrition"
+      },
+      "holiday_balance": {
+        "dailyTracker": {},
+        "subtitle": "Enjoy the season without regret",
+        "description": "Navigate holidays without gaining or restricting.",
+        "shortDescription": "Holiday balance"
+      },
+      "hot_girl_walk": {
+        "dailyTracker": {
+          "walk": {
+            "label": "Hot girl walk done"
+          },
+          "hydration": {
+            "label": "Stayed hydrated"
+          },
+          "mood": {
+            "label": "Checked in with mood"
+          }
+        },
+        "name": "Hot Girl Walk",
+        "subtitle": "Walk, reflect, glow",
+        "description": "Daily walks for mood and movement. Simple, sustainable, no gym required.",
+        "shortDescription": "Daily walks, mood, movement"
+      },
+      "lazy_girl_weight_loss": {
+        "dailyTracker": {
+          "simple_habit": {
+            "label": "One simple healthy habit"
+          },
+          "no_restrict": {
+            "label": "No harsh restriction"
+          },
+          "sustainable": {
+            "label": "Sustainable choice"
+          }
+        },
+        "name": "Lazy Girl Weight Loss",
+        "subtitle": "Minimal effort, maximum results",
+        "description": "Low-effort habits for sustainable weight loss. No strict diets, no punishing workouts.",
+        "shortDescription": "Low-effort, sustainable loss"
+      },
+      "high_energy": {
+        "dailyTracker": {
+          "steady_energy": {
+            "label": "Steady energy all day"
+          },
+          "no_crash": {
+            "label": "No afternoon crash"
+          },
+          "balanced_meals": {
+            "label": "Balanced meals"
+          }
+        },
+        "name": "High Energy",
+        "subtitle": "Fuel up, perform, thrive",
+        "description": "Nutrition for all-day energy. Balanced meals, smart carbs, no crashes.",
+        "shortDescription": "All-day energy nutrition"
+      }
+    },
+    "diet": {
+      "mediterranean": {
+        "dailyTracker": {
+          "veggies_5": {
+            "label": "5+ servings of vegetables/fruits"
+          },
+          "whole_grains": {
+            "label": "1-2 servings of whole grains"
+          },
+          "healthy_fat": {
+            "label": "Healthy fat (olive oil/nuts)"
+          },
+          "protein": {
+            "label": "Protein: fish/legumes/poultry"
+          },
+          "water": {
+            "label": "Water 6-8 glasses"
+          }
+        },
+        "name": "Mediterranean",
+        "description": "An eating plan inspired by traditional cuisine of Mediterranean countries. Rich in vegetables, fruits, whole grains, and olive oil.",
+        "shortDescription": "Mediterranean-inspired diet rich in olive oil, fish, and vegetables"
+      },
+      "dash": {
+        "dailyTracker": {
+          "veggies_fruits_5": {
+            "label": "Vegetables/fruits 5+"
+          },
+          "whole_grains": {
+            "label": "Whole grains 1-2"
+          },
+          "lean_protein": {
+            "label": "Lean protein"
+          },
+          "low_salt": {
+            "label": "Salt/salty — minimal"
+          },
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "DASH",
+        "description": "Inspired by the DASH dietary approach. Focuses on fruits, vegetables, whole grains, and lean proteins while limiting sodium.",
+        "shortDescription": "Balanced diet focusing on whole foods and low sodium"
+      },
+      "mind": {
+        "dailyTracker": {
+          "greens_veggies": {
+            "label": "Greens/vegetables (min 2 servings)"
+          },
+          "berries": {
+            "label": "Berries/fruits 1 serving"
+          },
+          "nuts": {
+            "label": "Nuts/seeds 1 serving"
+          },
+          "whole_grains": {
+            "label": "Whole grains 1-2"
+          },
+          "limit_sweets": {
+            "label": "Limit sweets/fried"
+          }
+        },
+        "name": "MIND",
+        "description": "Nutrition approach combining Mediterranean and DASH principles with emphasis on foods that support cognitive wellness.",
+        "shortDescription": "Nutrition for cognitive wellness"
+      },
+      "flexitarian": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "legumes_grains": {
+            "label": "Legumes/whole grains"
+          },
+          "protein": {
+            "label": "Protein (plant or animal)"
+          },
+          "limit_junk": {
+            "label": "Sweets/fast food — minimal"
+          }
+        },
+        "name": "Flexitarian",
+        "description": "A flexible approach to vegetarian eating. Primarily plant-based with occasional meat.",
+        "shortDescription": "Flexible plant-based eating with occasional meat"
+      },
+      "nordic": {
+        "dailyTracker": {
+          "fish_legumes": {
+            "label": "Fish/seafood or legumes (protein)"
+          },
+          "berries": {
+            "label": "Berries/fruits"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          },
+          "root_veggies": {
+            "label": "Vegetables/root vegetables"
+          },
+          "min_sugar": {
+            "label": "Minimal sugar"
+          }
+        },
+        "name": "Nordic",
+        "description": "Based on traditional Scandinavian cuisine. Emphasizes local, seasonal foods.",
+        "shortDescription": "Scandinavian-style healthy eating"
+      },
+      "plate-method": {
+        "dailyTracker": {
+          "veggies_2meals": {
+            "label": "Vegetables 2+ meals"
+          },
+          "protein_each": {
+            "label": "Protein in each meal"
+          },
+          "complex_carbs": {
+            "label": "Complex carbs 1-2"
+          },
+          "water": {
+            "label": "Water 6-8"
+          }
+        },
+        "name": "Plate Method",
+        "description": "Simple visual guide: half plate vegetables, quarter protein, quarter carbs. Perfect for beginners.",
+        "shortDescription": "Simple plate division for balanced meals"
+      },
+      "if-14-10": {
+        "dailyTracker": {
+          "fasting_14h": {
+            "label": "Fasting interval observed (14h)"
+          },
+          "eating_window": {
+            "label": "Ate only within window (10h)"
+          },
+          "protein_veggies": {
+            "label": "Protein + vegetables in main meals"
+          }
+        },
+        "name": "14:10 Eating Window",
+        "description": "A gentler approach to intermittent fasting. Fast for 14 hours, eat within a 10-hour window.",
+        "shortDescription": "Gentle fasting: 14h fast, 10h eating window"
+      },
+      "if-16-8": {
+        "dailyTracker": {
+          "fasting_16h": {
+            "label": "Fasting interval observed (16h)"
+          },
+          "eating_window": {
+            "label": "Ate only within window (8h)"
+          },
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "16:8 Eating Window",
+        "description": "Classic intermittent fasting. Fast for 16 hours, eat within an 8-hour window.",
+        "shortDescription": "Classic fasting: 16h fast, 8h eating window"
+      },
+      "high-protein-cut": {
+        "dailyTracker": {
+          "protein_4x": {
+            "label": "Protein 3-4 times a day"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "min_sweets": {
+            "label": "Sweets — minimal"
+          },
+          "activity": {
+            "label": "Steps/activity (if tracking)"
+          }
+        },
+        "name": "High-Protein Cut",
+        "description": "High protein intake for preserving muscle while cutting fat. Popular with athletes.",
+        "shortDescription": "High protein for fat loss while preserving muscle"
+      },
+      "low-carb": {
+        "dailyTracker": {
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          },
+          "whole_carbs": {
+            "label": "Carbs — only whole/vegetables"
+          },
+          "protein_each": {
+            "label": "Protein in each meal"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          }
+        },
+        "name": "Low-Carb",
+        "description": "Reduces carbohydrates, especially refined ones. Focus on protein and vegetables.",
+        "shortDescription": "Reduce carbs, focus on protein and vegetables"
+      },
+      "keto": {
+        "dailyTracker": {
+          "carbs_limited": {
+            "label": "Carbs strictly limited (manual)"
+          },
+          "water_electrolytes": {
+            "label": "Enough water and electrolytes"
+          },
+          "low_carb_veggies": {
+            "label": "Low-carb vegetables"
+          }
+        },
+        "name": "Keto",
+        "description": "Very low-carb, high-fat diet that puts body into ketosis. Requires medical supervision for many people.",
+        "shortDescription": "Very low-carb for ketosis — requires caution"
+      },
+      "low-fodmap": {
+        "dailyTracker": {
+          "phase_foods": {
+            "label": "Phase-appropriate foods followed"
+          },
+          "symptoms_noted": {
+            "label": "Symptoms noted (1-5)"
+          },
+          "water": {
+            "label": "Enough water"
+          }
+        },
+        "name": "Low-FODMAP (Gut)",
+        "description": "Elimination-style approach for digestive comfort. Best done in phases with professional guidance.",
+        "shortDescription": "Gut-healing diet in phases — requires guidance"
+      },
+      "gluten-free": {
+        "dailyTracker": {
+          "no_gluten": {
+            "label": "No gluten (manual check)"
+          },
+          "fiber": {
+            "label": "Enough fiber (vegetables/legumes/GF grains)"
+          }
+        },
+        "name": "Gluten-Free",
+        "description": "Essential for celiac disease and gluten sensitivity. Not necessary as a lifestyle choice without medical indication.",
+        "shortDescription": "For celiac disease or gluten sensitivity"
+      },
+      "roman-inspired": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Legumes/lentils 1 time"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          },
+          "min_junk": {
+            "label": "Minimal sweets/fast food"
+          }
+        },
+        "name": "Roman-Inspired",
+        "description": "Inspired by ancient Roman diet. Focus on grains, legumes, olive oil, and vegetables. Historical reconstruction for fun.",
+        "shortDescription": "Ancient Roman-inspired eating"
+      },
+      "spartan-inspired": {
+        "dailyTracker": {
+          "simple_foods": {
+            "label": "Simple products (no ultra-processed)"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "protein_2_3": {
+            "label": "Protein 2-3"
+          },
+          "no_sugary_drinks": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "Spartan-Inspired",
+        "description": "Inspired by Spartan simplicity. Focus on simple, unprocessed foods and discipline.",
+        "shortDescription": "Spartan simplicity and discipline"
+      },
+      "arctic-inspired": {
+        "dailyTracker": {
+          "fish_omega3": {
+            "label": "Fish/seafood or omega-3 source"
+          },
+          "berries": {
+            "label": "Berries/fruits"
+          },
+          "protein_2_3": {
+            "label": "Protein 2-3"
+          },
+          "water": {
+            "label": "Enough water"
+          }
+        },
+        "name": "Arctic-Inspired",
+        "description": "Adapted from traditional Inuit diet. Focus on fish, omega-3, and seasonal produce.",
+        "shortDescription": "Fish-focused with omega-3 and berries"
+      },
+      "steppe-inspired": {
+        "dailyTracker": {
+          "protein_2_3": {
+            "label": "Protein 2-3"
+          },
+          "fermented": {
+            "label": "Fermented dairy (if tolerated)"
+          },
+          "veggies_2": {
+            "label": "Vegetables/greens 2+ (adaptation)"
+          }
+        },
+        "name": "Steppe-Inspired",
+        "description": "Adapted from Mongolian steppe traditions. Focus on protein and fermented dairy.",
+        "shortDescription": "Protein and fermented foods, steppe style"
+      },
+      "three-sisters": {
+        "dailyTracker": {
+          "legumes": {
+            "label": "Legumes 1 time"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          }
+        },
+        "name": "Three Sisters",
+        "description": "Based on Native American \"Three Sisters\" agriculture. Corn, beans, and squash as dietary foundation.",
+        "shortDescription": "Native American plant-based foundation"
+      },
+      "okinawa_longevity": {
+        "dailyTracker": {
+          "vegetables_5": {
+            "label": "Vegetables 5+ servings"
+          },
+          "sweet_potato": {
+            "label": "Sweet potato or whole grains"
+          },
+          "tofu_legumes": {
+            "label": "Tofu/legumes for protein"
+          },
+          "hara_hachi_bu": {
+            "label": "Stopped eating at 80% full"
+          },
+          "minimal_processed": {
+            "label": "Avoided processed foods"
+          }
+        },
+        "name": "Okinawa Longevity",
+        "description": "Based on the traditional diet of Okinawa, Japan, known for the long lifespan of its inhabitants. Emphasizes plant-based foods, fish, sweet potatoes, and moderate calorie restriction.",
+        "shortDescription": "Japanese longevity diet from Okinawa"
+      },
+      "paleo": {
+        "dailyTracker": {
+          "veggies_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "protein_3": {
+            "label": "Protein 2-3 times"
+          },
+          "no_sugary": {
+            "label": "No sugary drinks"
+          },
+          "min_processed": {
+            "label": "Minimal ultra-processing"
+          }
+        },
+        "name": "Paleo",
+        "description": "A whole-food approach with minimal processing. Emphasizes meat, fish, vegetables, fruits, nuts, and seeds.",
+        "shortDescription": "Whole foods, no grains or dairy"
+      },
+      "whole30-inspired": {
+        "dailyTracker": {
+          "no_sugar": {
+            "label": "No added sugar"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "protein_3": {
+            "label": "Protein 2-3"
+          },
+          "home_cooked": {
+            "label": "Home cooked/no fast food"
+          }
+        },
+        "name": "Whole30 (Inspired)",
+        "description": "A short reset protocol with strict rules. Eliminates sugar, alcohol, and common triggers for 30 days.",
+        "shortDescription": "30-day elimination reset"
+      },
+      "vegan-balanced": {
+        "dailyTracker": {
+          "plant_protein": {
+            "label": "Protein 2-3 times (plant)"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "grains_legumes": {
+            "label": "Whole grains/legumes"
+          },
+          "b12_check": {
+            "label": "B12 (reminder check)"
+          }
+        },
+        "name": "Vegan (Balanced)",
+        "description": "Balanced plant-based eating with focus on adequate protein, B12, and other nutrients.",
+        "shortDescription": "Balanced plant-based eating"
+      },
+      "clean-eating": {
+        "dailyTracker": {
+          "home_cooked_2": {
+            "label": "Home cooked 2+ meals"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "no_sugary": {
+            "label": "No sugary drinks"
+          }
+        },
+        "name": "Clean Eating (Simple)",
+        "description": "Simple approach: focus on whole foods and home cooking, minimize processed foods.",
+        "shortDescription": "Whole foods, home cooking"
+      },
+      "iifym": {
+        "dailyTracker": {
+          "calories_check": {
+            "label": "Calories within goal (check)"
+          },
+          "protein_check": {
+            "label": "Protein achieved (check)"
+          },
+          "veggies_2": {
+            "label": "Vegetables 2+"
+          }
+        },
+        "name": "Flexible Dieting (IIFYM)",
+        "description": "If It Fits Your Macros — flexible approach focusing on hitting daily calorie and macro targets.",
+        "shortDescription": "Hit your macros, flexible food choices"
+      },
+      "roman-commoner": {
+        "dailyTracker": {
+          "legumes_1": {
+            "label": "Legumes 1 time"
+          },
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "whole_grains": {
+            "label": "Whole grains"
+          }
+        },
+        "name": "Roman Commoner (Inspired)",
+        "description": "Inspired by the diet of common Roman citizens. Simple grains, legumes, vegetables with occasional fish or cheese.",
+        "shortDescription": "Simple Roman-inspired eating"
+      },
+      "roman-elite": {
+        "dailyTracker": {
+          "veggies_3": {
+            "label": "Vegetables 3+"
+          },
+          "protein_3": {
+            "label": "Protein 2-3"
+          },
+          "sweets_limited": {
+            "label": "Sweets limited"
+          }
+        },
+        "name": "Roman Elite (Inspired)",
+        "description": "Inspired by wealthier Roman diets. More variety with fish, meat, various appetizers, and fruits.",
+        "shortDescription": "Wealthy Roman-inspired variety"
+      },
+      "napoleon-soldier": {
+        "dailyTracker": {
+          "soup_warm": {
+            "label": "Soup/warm food 1 time"
+          },
+          "veggies_2": {
+            "label": "Vegetables 2+"
+          },
+          "water": {
+            "label": "Water"
+          }
+        },
+        "name": "Napoleon (Soldier-Style, Inspired)",
+        "description": "Inspired by Napoleonic era soldier rations. Hearty soups, bread, and simple protein.",
+        "shortDescription": "Simple soldier-style eating"
+      },
+      "on-set-day": {
+        "dailyTracker": {
+          "protein_3": {
+            "label": "Protein 3 times"
+          },
+          "veggies_4": {
+            "label": "Vegetables 4+"
+          },
+          "snacks_no_sugar": {
+            "label": "Snacks without sugar"
+          }
+        },
+        "name": "On-Set Day (Inspired)",
+        "description": "A public-figure-inspired template without naming individuals. Structured eating focused on protein and vegetables.",
+        "shortDescription": "Structured day with protein focus"
+      },
+      "ramadan": {
+        "dailyTracker": {
+          "iftar_balanced": {
+            "label": "Balanced iftar meal"
+          },
+          "suhoor_eaten": {
+            "label": "Had suhoor"
+          },
+          "hydration": {
+            "label": "Drank 8+ glasses of water"
+          },
+          "no_overeating": {
+            "label": "Ate mindfully, no overeating"
+          },
+          "dates_start": {
+            "label": "Started iftar with dates"
+          }
+        },
+        "name": "Ramadan Fasting",
+        "description": "Guidance for healthy eating during Ramadan fasting period. Focus on balanced suhoor and iftar meals with proper hydration.",
+        "shortDescription": "Healthy eating during Ramadan"
+      },
+      "great-lent": {
+        "dailyTracker": {
+          "plant_based": {
+            "label": "Ate plant-based today"
+          },
+          "no_meat": {
+            "label": "No meat/dairy/eggs"
+          },
+          "vegetables_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "legumes": {
+            "label": "Legumes or grains"
+          },
+          "mindful": {
+            "label": "Ate mindfully"
+          }
+        },
+        "name": "Great Lent (Orthodox)",
+        "description": "Guidance for the Orthodox Great Lent fasting period with plant-based meals. A spiritual journey through mindful eating.",
+        "shortDescription": "Orthodox fasting traditions"
+      },
+      "summer-detox": {
+        "dailyTracker": {
+          "fruits_3": {
+            "label": "Fresh fruits 3+ servings"
+          },
+          "vegetables_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "water_8": {
+            "label": "Water 8+ glasses"
+          },
+          "light_protein": {
+            "label": "Light protein (fish/chicken/legumes)"
+          },
+          "no_heavy_food": {
+            "label": "No heavy/fried food"
+          }
+        },
+        "name": "Summer Fresh",
+        "description": "Seasonal eating focused on fresh fruits, vegetables, and light meals perfect for hot summer days.",
+        "shortDescription": "Fresh summer eating plan"
+      },
+      "navruz": {
+        "dailyTracker": {
+          "fresh_greens": {
+            "label": "Fresh greens/herbs"
+          },
+          "dairy": {
+            "label": "Dairy products"
+          },
+          "traditional_dish": {
+            "label": "Traditional dish"
+          },
+          "vegetables_3": {
+            "label": "Vegetables 3+ servings"
+          },
+          "shared_meal": {
+            "label": "Shared meal with others"
+          }
+        },
+        "name": "Navruz Spring",
+        "description": "A celebration of spring equinox with traditional Central Asian foods. Fresh greens, dairy, and symbolic dishes for renewal.",
+        "shortDescription": "Spring celebration eating"
+      },
+      "winter-warmth": {
+        "dailyTracker": {
+          "warm_breakfast": {
+            "label": "Warm breakfast"
+          },
+          "soup_stew": {
+            "label": "Soup or stew"
+          },
+          "root_vegetables": {
+            "label": "Root vegetables"
+          },
+          "immune_foods": {
+            "label": "Immune-supporting foods"
+          },
+          "warm_drinks": {
+            "label": "Warm beverages"
+          }
+        },
+        "name": "Winter Warmth",
+        "description": "Hearty, warming meals to keep you energized through winter. Focus on soups, stews, root vegetables, and immune-supporting foods.",
+        "shortDescription": "Warming winter eating plan"
+      },
+      "autumn-harvest": {
+        "dailyTracker": {
+          "autumn_vegetable": {
+            "label": "Autumn vegetable (pumpkin/squash)"
+          },
+          "fall_fruit": {
+            "label": "Fall fruit (apple/pear)"
+          },
+          "warming_spices": {
+            "label": "Used warming spices"
+          },
+          "vegetables_4": {
+            "label": "Vegetables 4+ servings"
+          },
+          "cooked_meal": {
+            "label": "Warm cooked meal"
+          }
+        },
+        "name": "Autumn Harvest",
+        "description": "Embrace autumn with pumpkins, apples, squash, and other fall favorites. Transition from summer lightness to winter warmth.",
+        "shortDescription": "Seasonal autumn eating"
+      },
+      "clean-girl": {
+        "dailyTracker": {
+          "whole_foods": {
+            "label": "Ate whole, unprocessed foods"
+          },
+          "water_8": {
+            "label": "Water 8+ glasses"
+          },
+          "skin_foods": {
+            "label": "Skin-healthy foods (greens/berries)"
+          },
+          "no_processed": {
+            "label": "No processed snacks"
+          },
+          "mindful_meal": {
+            "label": "Mindful, calm meal"
+          }
+        },
+        "name": "Clean Girl Aesthetic",
+        "description": "A clean eating approach inspired by the clean girl aesthetic trend. Focus on simple, whole foods for glowing skin and natural energy.",
+        "shortDescription": "Simple, clean eating for natural glow"
+      },
+      "vacation-vibes": {
+        "dailyTracker": {
+          "fresh_meal": {
+            "label": "Fresh, colorful meal"
+          },
+          "slow_eating": {
+            "label": "Ate slowly, enjoyed"
+          },
+          "seafood_olive": {
+            "label": "Seafood or olive oil"
+          },
+          "vegetables_3": {
+            "label": "Fresh vegetables 3+"
+          },
+          "relaxed": {
+            "label": "Relaxed, stress-free eating"
+          }
+        },
+        "name": "Vacation Vibes",
+        "description": "Balanced eating inspired by Mediterranean vacation style — fresh, colorful, enjoyable. No stress, just pleasure.",
+        "shortDescription": "Vacation-style balanced eating"
+      },
+      "old-money": {
+        "dailyTracker": {
+          "quality_meal": {
+            "label": "Quality over quantity"
+          },
+          "proper_times": {
+            "label": "Ate at proper times"
+          },
+          "no_overeating": {
+            "label": "No overeating"
+          },
+          "table_manners": {
+            "label": "Proper table manners"
+          },
+          "classic_foods": {
+            "label": "Classic, quality foods"
+          }
+        },
+        "name": "Old Money Classic",
+        "description": "Refined eating habits inspired by classic elegance — quality over quantity, proper portions, timeless foods.",
+        "shortDescription": "Classic elegant eating style"
+      },
+      "country-club-breakfast": {
+        "dailyTracker": {
+          "proper_breakfast": {
+            "label": "Proper sit-down breakfast"
+          },
+          "protein_included": {
+            "label": "Protein included"
+          },
+          "no_phone": {
+            "label": "No phone during breakfast"
+          },
+          "fruit_included": {
+            "label": "Fresh fruit included"
+          },
+          "no_rush": {
+            "label": "No rushing"
+          }
+        },
+        "name": "Country Club Breakfast",
+        "description": "Morning rituals inspired by country club traditions. Proper breakfast as the foundation of a refined day.",
+        "shortDescription": "Elegant morning rituals"
+      },
+      "sunday-brunch": {
+        "dailyTracker": {
+          "leisurely_meal": {
+            "label": "Leisurely, unhurried meal"
+          },
+          "quality_food": {
+            "label": "Quality, refined food"
+          },
+          "good_company": {
+            "label": "Good company"
+          },
+          "balanced_plate": {
+            "label": "Balanced plate"
+          },
+          "no_phones": {
+            "label": "No phones at table"
+          }
+        },
+        "name": "Sunday Brunch",
+        "description": "The art of leisurely Sunday brunch — late morning, good company, quality food, no rush.",
+        "shortDescription": "Leisurely brunch tradition"
+      },
+      "yacht-week": {
+        "dailyTracker": {
+          "seafood": {
+            "label": "Seafood or fish"
+          },
+          "light_portions": {
+            "label": "Light portions"
+          },
+          "hydrated": {
+            "label": "Stayed hydrated"
+          },
+          "fresh_vegetables": {
+            "label": "Fresh vegetables"
+          },
+          "elegant_dinner": {
+            "label": "Elegant dinner"
+          }
+        },
+        "name": "Yacht Week",
+        "description": "Eating inspired by yacht lifestyle — light, fresh, Mediterranean-influenced, always elegant.",
+        "shortDescription": "Elegant seaside eating"
+      },
+      "prep-school-lunch": {
+        "dailyTracker": {
+          "proper_lunch": {
+            "label": "Proper sit-down lunch"
+          },
+          "balanced_plate": {
+            "label": "Balanced plate"
+          },
+          "set_time": {
+            "label": "Ate at set time"
+          },
+          "water": {
+            "label": "Water with meal"
+          },
+          "no_desk_eating": {
+            "label": "No eating at desk"
+          }
+        },
+        "name": "Prep School Lunch",
+        "description": "Inspired by traditional prep school dining — balanced, nutritious, proper. No skipping meals, no junk food.",
+        "shortDescription": "Proper, balanced lunches"
+      },
+      "french-chic": {
+        "dailyTracker": {
+          "small_portions": {
+            "label": "Ate small portions"
+          },
+          "enjoyed_food": {
+            "label": "Truly enjoyed food"
+          },
+          "sat_down": {
+            "label": "Ate sitting down"
+          },
+          "quality_choice": {
+            "label": "Chose quality over quantity"
+          },
+          "stopped_satisfied": {
+            "label": "Stopped when satisfied"
+          }
+        },
+        "name": "French Girl Diet",
+        "description": "French approach to eating — quality portions, enjoyment, no strict restrictions, natural balance and pleasure.",
+        "shortDescription": "French-style intuitive eating"
+      },
+      "gatsby-twenties": {
+        "dailyTracker": {
+          "elegant_appetizer": {
+            "label": "Elegant appetizer/canapé"
+          },
+          "small_portions": {
+            "label": "Small, refined portions"
+          },
+          "social_meal": {
+            "label": "Social meal with others"
+          },
+          "presentation": {
+            "label": "Nice presentation"
+          },
+          "sparkling": {
+            "label": "Sparkling beverage"
+          }
+        },
+        "name": "1920s Gatsby",
+        "description": "Inspired by the roaring twenties — glamorous parties, elegant appetizers, champagne, and indulgent but refined tastes.",
+        "shortDescription": "Jazz age inspired eating"
+      },
+      "fifties-hollywood": {
+        "dailyTracker": {
+          "protein_focused": {
+            "label": "Protein-focused meal"
+          },
+          "vegetables": {
+            "label": "Plenty of vegetables"
+          },
+          "light_breakfast": {
+            "label": "Light breakfast"
+          },
+          "no_bloating": {
+            "label": "No bloating foods"
+          },
+          "elegant_dinner": {
+            "label": "Elegant dinner"
+          }
+        },
+        "name": "1950s Hollywood",
+        "description": "Inspired by 1950s Hollywood glamour — balanced, portion-conscious, always camera-ready but enjoying life.",
+        "shortDescription": "Classic Hollywood eating"
+      },
+      "sixties-twiggy": {
+        "dailyTracker": {
+          "light_meal": {
+            "label": "Light, colorful meal"
+          },
+          "fresh_juice": {
+            "label": "Fresh juice or smoothie"
+          },
+          "small_portions": {
+            "label": "Small, frequent portions"
+          },
+          "something_new": {
+            "label": "Tried something new"
+          },
+          "fun_presentation": {
+            "label": "Fun presentation"
+          }
+        },
+        "name": "1960s Mod",
+        "description": "Inspired by 1960s mod culture — light, youthful, colorful, breaking traditional rules while staying elegant.",
+        "shortDescription": "Youthful mod-style eating"
+      },
+      "seventies-disco": {
+        "dailyTracker": {
+          "light_eating": {
+            "label": "Light eating"
+          },
+          "movement": {
+            "label": "Danced or moved"
+          },
+          "appetizers": {
+            "label": "Appetizers over heavy meals"
+          },
+          "energy_maintained": {
+            "label": "Energy maintained"
+          },
+          "moderate_drinks": {
+            "label": "Moderate drinks"
+          }
+        },
+        "name": "1970s Disco",
+        "description": "Inspired by Studio 54 era — light eating to stay energized for parties, quick bites, champagne, staying slim for dance floor.",
+        "shortDescription": "Party-ready eating"
+      },
+      "eighties-power": {
+        "dailyTracker": {
+          "protein_lunch": {
+            "label": "Protein-rich lunch"
+          },
+          "quality_restaurant": {
+            "label": "Quality restaurant"
+          },
+          "confident_order": {
+            "label": "Ordered confidently"
+          },
+          "networking": {
+            "label": "Business discussion at meal"
+          },
+          "balanced": {
+            "label": "Balanced choice"
+          }
+        },
+        "name": "1980s Power Lunch",
+        "description": "Inspired by 1980s corporate culture — power lunches, steak houses, business over meals, confident choices.",
+        "shortDescription": "Power business eating"
+      }
+    }
+  },
+  "consultations": {
+    "status_active": "Active",
+    "status_completed": "Completed",
+    "status_cancelled": "Cancelled",
+    "no_messages": "No messages yet",
+    "start_conversation": "Start Conversation",
+    "type_message": "Type a message..."
+  },
+  "paywall": {
+    "title": "Unlock Full Access",
+    "subtitle": "Get the most out of EatSense",
+    "unlockFeature": "Unlock this feature",
+    "freeTrial": "Start Free Trial",
+    "recommended": "Recommended",
+    "startTrial": "Start 7-Day Free Trial",
+    "finePrint": "Cancel anytime. You won't be charged during the trial period.",
+    "finePrintNoTrial": "Subscription renews monthly. Cancel anytime.",
+    "trialBadge": "{{days}} days free trial",
+    "tryFree": "Try free for {{days}} days",
+    "subscribeNow": "Subscribe Now",
+    "purchaseNow": "Purchase Now",
+    "purchaseComplete": "Your subscription is now active!",
+    "priceAfterTrial": "Then {{price}}/month after trial",
+    "priceMonthly": "{{price}}/month",
+    "features": {
+      "unlimited": "Unlimited Analysis",
+      "diets": "All Diets & Plans",
+      "insights": "Health Insights",
+      "support": "Priority Support"
+    },
+    "feature": {
+      "reports": "Monthly Reports",
+      "advancedSettings": "Advanced Health Settings"
+    }
+  },
+  "featureFlags": {
+    "title": "Feature Flags",
+    "subtitle": "Manage experimental features"
+  },
+  "terms": {
+    "intro": "Please read these Terms of Use carefully before using EatSense.",
+    "lastUpdated": "Last updated",
+    "sections": {
+      "acceptance": {
+        "content": "By using EatSense, you agree to these Terms of Use. If you do not agree to these terms, please do not use the application.",
+        "title": "1. Acceptance of Terms"
+      },
+      "changes": {
+        "content": "We reserve the right to modify these terms at any time. Continued use of the application after changes constitutes acceptance of the new terms.",
+        "title": "8. Changes to Terms"
+      },
+      "contact": {
+        "content": "If you have questions about these Terms, contact us at: legal@eatsense.ch or by mail at Rue Vignier 8, 1205.",
+        "title": "9. Contact"
+      },
+      "description": {
+        "content": "EatSense provides tools for nutrition tracking, food analysis, and personalized dietary recommendations using artificial intelligence.",
+        "title": "2. Service Description"
+      },
+      "intellectual": {
+        "content": "All content, features, and functionality of EatSense are owned by us and are protected by copyright and other intellectual property laws.",
+        "title": "6. Intellectual Property"
+      },
+      "limitation": {
+        "content": "EatSense is provided 'as is' without warranties. We are not liable for any damages resulting from the use of the application.",
+        "title": "7. Limitation of Liability"
+      },
+      "prohibited": {
+        "content": "You may not use the service for any illegal purpose, to harm others, or to violate any laws or regulations.",
+        "title": "5. Prohibited Uses"
+      },
+      "registration": {
+        "content": "You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account.",
+        "title": "3. Registration and Account"
+      },
+      "userContent": {
+        "content": "You retain ownership of the content you upload. By uploading content, you grant us a license to use it to provide the service and improve the application.",
+        "title": "4. User Content"
+      }
+    },
+    "title": "Terms of Use"
+  },
+  "pharmacy": {
+    "title": "My Pharmacy",
+    "subtitle": "Connect pharmacy & order medications",
+    "bannerText": "Connect your pharmacy & order meds",
+    "connectedPharmacies": "Connected Pharmacies",
+    "noPharmacy": "No pharmacy connected yet",
+    "connectPharmacy": "Connect Pharmacy",
+    "editPharmacy": "Edit Pharmacy",
+    "disconnect": "Disconnect",
+    "disconnectTitle": "Disconnect Pharmacy",
+    "disconnectConfirm": "Are you sure you want to disconnect from this pharmacy?",
+    "orderMedications": "Order Medications",
+    "selectPharmacy": "Select Pharmacy",
+    "medications": "Medications",
+    "addMedication": "Add Medication",
+    "prescription": "Prescription",
+    "addPrescription": "Add prescription photo",
+    "prescriptionAttached": "Prescription attached",
+    "removePrescription": "Remove",
+    "prescriptionPhotoPrompt": "Add prescription photo",
+    "notes": "Notes",
+    "submitOrder": "Submit Order",
+    "orderHistory": "Order History",
+    "orderSentTitle": "Order Sent!",
+    "orderSentMessage": "Your order has been sent. We will notify the pharmacy.",
+    "fields": {
+      "name": "Pharmacy Name",
+      "code": "Pharmacy Code",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "dosage": "Dosage",
+      "quantity": "Quantity"
+    },
+    "placeholders": {
+      "name": "e.g. Amavita Apotheke",
+      "code": "e.g. AMA-1234",
+      "address": "e.g. Marktgasse 12, 3011 Bern",
+      "phone": "+41 31 311 22 33",
+      "email": "pharmacy@example.ch",
+      "medicationName": "Medication name",
+      "notes": "Any additional notes..."
+    },
+    "status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "processing": "Processing",
+      "ready": "Ready",
+      "completed": "Completed"
+    },
+    "error": {
+      "nameRequired": "Pharmacy name is required",
+      "connect": "Failed to connect pharmacy",
+      "order": "Failed to send order",
+      "noItems": "Add at least one medication",
+      "photoUpload": "Failed to upload photo",
+      "cameraPermission": "Camera permission is required"
+    }
+  },
+  "citations": {
+    "screenTitle": "Scientific Sources & References",
+    "bmi": "Based on WHO BMI Classification (WHO, 2000)",
+    "bmr": "Mifflin-St Jeor equation (Am J Clin Nutr, 1990)",
+    "tdee": "Activity multipliers (Ainsworth et al., 2011)",
+    "calories": "Atwater general factor system (USDA, 1902)",
+    "healthScore": "Based on WHO/FAO nutritional guidelines (TRS 916, 2003)",
+    "viewAllSources": "View scientific sources & references",
+    "sectionCalculations": "Body Measurements & Calculations",
+    "sectionHealthScore": "Nutrition Health Score",
+    "sectionDietPrograms": "Diet Programs",
+    "sectionDisclaimer": "General Disclaimer",
+    "healthScoreMethodology": "The Health Score evaluates meals on a 0-100 scale based on five evidence-based nutritional factors: protein density, fiber content, saturated fat, free sugars, and energy density."
+  },
+  "community": {
+    "title": "Community",
+    "moderation": {
+      "pending": "Pending review",
+      "rejected": "Rejected",
+      "approved": "Approved"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutesShort": "{{count}}m",
+      "hoursShort": "{{count}}h",
+      "daysShort": "{{count}}d"
+    },
+    "myFeed": "My Feed",
+    "groups": "Groups",
+    "placesFilterCity": "Filter by city",
+    "placesFilterChange": "Tap to change city",
+    "placesFilterHint": "Kazakhstan and Switzerland include major city filters",
+    "members": "members",
+    "join": "Join",
+    "joined": "Joined",
+    "leave": "Leave",
+    "createPost": "Create Post",
+    "createGroup": "Create Group",
+    "postTitle": "Post",
+    "newPost": "New Post",
+    "setCountry": "Set your country to connect with locals",
+    "selectCountry": "Select Your Country",
+    "searchCountry": "Search countries...",
+    "noCountriesFound": "No countries match your search",
+    "noCountries": "No countries available",
+    "countryNotFound": "Country Not Found",
+    "countryNotFoundDesc": "Your country is not available yet. Please select manually.",
+    "setCountryFailed": "Failed to set your country",
+    "selectGroupLabel": "Post to group",
+    "whatOnMind": "What's on your mind?",
+    "noGroups": "Join a group first to post",
+    "emptyContent": "Please write something",
+    "postFailed": "Failed to create post",
+    "eventDetails": "Event Details",
+    "eventTitle": "Event title",
+    "eventDate": "Date (e.g. March 20, 2026)",
+    "eventTime": "Time (e.g. 14:00)",
+    "eventLocation": "Location",
+    "noComments": "No comments yet. Be the first!",
+    "writeComment": "Write a comment...",
+    "comments": "Comments",
+    "emptyFeed": "No posts yet",
+    "emptyFeedDesc": "Join groups and be the first to share!",
+    "emptyGroups": "No groups found",
+    "emptyGroupsDesc": "Create a group to get started!",
+    "error": "Error",
+    "postType": {
+      "text": "Text",
+      "photo": "Photo",
+      "dietShare": "Share Diet",
+      "achievement": "Achievement",
+      "event": "Event",
+      "recommendation": "Recommendation",
+      "lifestyle": "Lifestyle",
+      "bestPlaces": "Best Places",
+      "recipe": "Recipe",
+      "question": "Question",
+      "challenge": "Challenge"
+    },
+    "feed": {
+      "empty": "No posts yet. Join groups to see posts in your feed!",
+      "emptyGroup": "No posts in this group yet. Be the first to share!"
+    },
+    "post": {
+      "placeholder": "What's on your mind?",
+      "submit": "Post",
+      "delete": "Delete Post",
+      "deleteConfirm": "Are you sure you want to delete this post?"
+    },
+    "comment": {
+      "placeholder": "Write a comment...",
+      "submit": "Send",
+      "delete": "Delete",
+      "empty": "No comments yet"
+    },
+    "group": {
+      "name": "Group Name",
+      "description": "Description",
+      "create": "Create",
+      "selectGroup": "Select Group",
+      "custom": "Custom Groups",
+      "city": "City Groups",
+      "country": "Country Groups"
+    },
+    "event": {
+      "title": "Event Title",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location"
+    },
+    "attend": "I'll go",
+    "attending": "Going",
+    "report": {
+      "title": "Report",
+      "reason": "Reason",
+      "submit": "Submit Report",
+      "success": "Report submitted"
+    },
+    "city": {
+      "title": "Select Your City",
+      "detect": "Detect My Location",
+      "detecting": "Detecting...",
+      "search": "Search cities...",
+      "prompt": "Set your city to join the local community",
+      "set": "Set City"
+    },
+    "premium": {
+      "dietShareLocked": "Upgrade to Premium to share your diet programs"
+    },
+    "attachPhoto": "Add photo",
+    "challengeLabel": "CHALLENGE",
+    "joinChallenge": "Join Challenge",
+    "participants": "joined",
+    "days": "days",
+    "challenge": "Challenge",
+    "tour": {
+      "skip": "Skip tour",
+      "next": "Next",
+      "done": "Got it",
+      "step1": {
+        "title": "Join a Group",
+        "desc": "Find a group in your country or create your own to connect with people who share your goals.",
+        "action": "Browse Groups"
+      },
+      "step2": {
+        "title": "Share Your Journey",
+        "desc": "Post about your meals, achievements, or ask the community for advice. Photos welcome!",
+        "action": "Create a Post"
+      },
+      "step3": {
+        "title": "Support Others",
+        "desc": "Like and comment on posts to encourage fellow members. Community thrives on support!",
+        "action": "Got it!"
+      }
+    },
+    "deleteCommentConfirm": "Are you sure you want to delete this comment?",
+    "deleteFailed": "Failed to delete",
+    "recommendedGroups": "Recommended for you",
+    "searchPlaceholder": "Search posts and groups...",
+    "profile": {
+      "posts": "Posts",
+      "joined": "Joined",
+      "notFound": "Profile not found",
+      "anonymousUser": "User"
+    },
+    "recipe": {
+      "details": "Recipe Details",
+      "name": "Recipe name",
+      "ingredients": "Ingredients",
+      "steps": "Steps",
+      "prepTime": "Prep time",
+      "servings": "Servings",
+      "servingsShort": "servings"
+    },
+    "question": {
+      "solved": "Solved",
+      "markSolved": "Mark Solved"
+    },
+    "bestPlaces": {
+      "details": "Place Details",
+      "placeName": "Place name",
+      "address": "Address",
+      "rating": "Rating",
+      "untitled": "Unnamed place",
+      "review": "review",
+      "reviews": "reviews",
+      "city": "City",
+      "cityRequired": "Please add the city"
+    },
+    "guidelines": {
+      "title": "Community Guidelines",
+      "heading": "Welcome to {{group}}!",
+      "subtitle": "Please review and accept the community guidelines before participating.",
+      "respectTitle": "Be Respectful",
+      "respectText": "Treat everyone with kindness. No harassment, hate speech, or personal attacks.",
+      "topicTitle": "Stay On Topic",
+      "topicText": "Keep discussions relevant to the group theme. Off-topic posts may be removed.",
+      "safetyTitle": "No Harmful Advice",
+      "safetyText": "Do not share dangerous health advice. Always recommend consulting professionals for medical decisions.",
+      "spamTitle": "No Spam or Self-Promotion",
+      "spamText": "Avoid excessive self-promotion, advertisements, or repetitive content.",
+      "privacyTitle": "Respect Privacy",
+      "privacyText": "Do not share personal information of others without their consent.",
+      "reportTitle": "Report Violations",
+      "reportText": "If you see content that violates these guidelines, use the report feature. Our team reviews all reports.",
+      "note": "Violating these guidelines may result in content removal or suspension from the community.",
+      "accept": "I Agree & Continue"
+    },
+    "limitReachedTitle": "Community limit reached",
+    "limitReachedMessage": "You can create only one community. Delete your existing community to create a new one.",
+    "openExisting": "Open my community",
+    "deleteCommunity": "Delete community",
+    "deleteCommunityConfirm": "Are you sure you want to delete this community? All posts, comments and members will be removed. This cannot be undone.",
+    "newGroup": "New Group",
+    "groupName": "Group Name",
+    "groupNamePlaceholder": "e.g. Healthy Cooking Club",
+    "groupDescription": "Description (optional)",
+    "groupDescPlaceholder": "What is this group about?",
+    "groupFailed": "Failed to create group",
+    "emptyGroupName": "Please enter a group name",
+    "noGroupPosts": "No posts in this group yet",
+    "places": "Places",
+    "emptyPlaces": "No places yet",
+    "emptyPlacesDesc": "Be the first to share a great place!",
+    "anonymous": "User",
+    "locationDenied": "Location access denied",
+    "locationDeniedDesc": "Allow location access or select your city manually.",
+    "locationError": "Could not detect location",
+    "locationErrorDesc": "Please select your city manually.",
+    "detecting": "Detecting location...",
+    "detectLocation": "Detect my location"
+  },
+  "mascot": {
+    "setup": {
+      "title": "Choose Your Companion",
+      "editTitle": "My Companion",
+      "choose": "Choose a mascot",
+      "changeType": "Change mascot",
+      "nameLabel": "Give it a name",
+      "rename": "Rename",
+      "namePlaceholder": "Enter name...",
+      "nameRequired": "Please enter a name",
+      "nameTooLong": "Name must be 20 characters or less",
+      "create": "Adopt Companion",
+      "save": "Save Changes",
+      "createFailed": "Failed to create mascot",
+      "updateFailed": "Failed to update mascot",
+      "delete": "Release Companion",
+      "deleteTitle": "Release Companion",
+      "deleteConfirm": "Are you sure? Your companion and all progress will be lost. You can adopt a new one afterwards.",
+      "deleteFailed": "Failed to release companion"
+    },
+    "type": {
+      "cat": "Cat",
+      "dog": "Dog",
+      "panda": "Panda",
+      "fox": "Fox",
+      "robot": "Robot"
+    },
+    "phrase": {
+      "greeting": "Let's eat healthy today!",
+      "encouragement": "You're doing great, keep going!",
+      "healthy": "Healthy choices make me grow!",
+      "streak": "We're an amazing team!",
+      "levelUp": "I'm so proud of you!"
+    },
+    "stage": {
+      "egg": "Egg",
+      "baby": "Baby",
+      "teen": "Teen",
+      "adult": "Adult",
+      "master": "Master"
+    },
+    "invite": {
+      "title": "Get a Companion!",
+      "subtitle": "Choose a cute mascot that grows with your healthy eating habits"
+    },
+    "growth": {
+      "title": "How your companion grows",
+      "description": "Earn XP by using the app. Your companion evolves through 5 stages as it levels up!",
+      "stages": "Evolution stages"
+    },
+    "levelUp": {
+      "title": "Level Up!",
+      "evolved": "has evolved!",
+      "keepGoing": "Keep eating healthy to unlock the next stage!",
+      "awesome": "Awesome!"
+    },
+    "xpSource": {
+      "analysis": "Analyze a meal photo",
+      "dailyLogin": "Daily login",
+      "communityPost": "Create a community post",
+      "streak": "Daily streak bonus",
+      "quest": "Complete a quest"
+    }
+  },
+  "health": {
+    "title": "My Health",
+    "subtitle": "Track your medical tests and get AI-powered insights"
+  },
+  "lifestyles_tracker_daily_inspiration": "Daily Inspiration",
+  "diets_lifestyle": "Lifestyle",
+  "diets_muscle_building": "Muscle Building",
+  "diets_energy": "Energy",
+  "upload": {
+    "status": {
+      "uploading": "Uploading...",
+      "processing": "Processing...",
+      "completed": "Completed",
+      "error": "Error",
+      "unknown": "Unknown"
+    }
+  }
+}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
-import { Calendar as CalendarIcon, CalendarClock, Clock, Plus, Video, X } from 'lucide-react';
+import { Calendar as CalendarIcon, CalendarClock, CheckCircle2, Clock, Plus, UserX, Video, X } from 'lucide-react';
 
 interface Consultation {
   id: string;
@@ -191,27 +191,49 @@ export default function ConsultationsPage() {
     }
   }
 
+  async function complete(id: string) {
+    if (!confirm(locale === 'ru' ? 'Завершить консультацию?' : 'Complete consultation?')) return;
+    try {
+      await apiFetch(`/consultations/${id}/complete`, { method: 'POST', body: JSON.stringify({}) });
+      load();
+    } catch (e) {
+      alert((e as any)?.message || 'Failed');
+    }
+  }
+
+  async function markNoShow(id: string) {
+    if (!confirm(locale === 'ru' ? 'Отметить как no-show?' : 'Mark as no-show?')) return;
+    try {
+      await apiFetch(`/consultations/${id}/no-show`, { method: 'POST', body: JSON.stringify({}) });
+      load();
+    } catch (e) {
+      alert((e as any)?.message || 'Failed');
+    }
+  }
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
-        <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
             <CalendarIcon size={24} /> {locale === 'ru' ? 'Консультации' : 'Consultations'}
           </h1>
-          <div className="mt-2 flex gap-2 text-xs">
-            <Link href="/calendar" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
-              {locale === 'ru' ? 'Доступность' : 'Availability'}
-            </Link>
-            <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
-              {locale === 'ru' ? 'Встречи' : 'Bookings'}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex gap-2 text-xs">
+              <Link href="/calendar" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
+                {locale === 'ru' ? 'Доступность' : 'Availability'}
+              </Link>
+              <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
+                {locale === 'ru' ? 'Встречи' : 'Bookings'}
+              </span>
+            </div>
+            <button
+              onClick={openCreate}
+              className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white"
+            >
+              <Plus size={14} /> {locale === 'ru' ? 'Назначить' : 'New'}
+            </button>
           </div>
-          <button
-            onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white"
-          >
-            <Plus size={14} /> {locale === 'ru' ? 'Назначить' : 'New'}
-          </button>
         </div>
 
         <div className="mb-4 flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-0.5 w-fit">
@@ -271,7 +293,17 @@ export default function ConsultationsPage() {
                           <CalendarClock size={12} />
                         </button>
                       )}
-                      {['SCHEDULED', 'PENDING_RESCHEDULE'].includes(c.status) && (
+                      {(['IN_PROGRESS'].includes(c.status) || (c.status === 'SCHEDULED' && inWindow)) && (
+                        <button onClick={() => complete(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-green-700" title={locale === 'ru' ? 'Завершить' : 'Complete'}>
+                          <CheckCircle2 size={14} />
+                        </button>
+                      )}
+                      {(['IN_PROGRESS'].includes(c.status) || (c.status === 'SCHEDULED' && Date.now() > new Date(c.startAt).getTime())) && (
+                        <button onClick={() => markNoShow(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-amber-700" title="No-show">
+                          <UserX size={14} />
+                        </button>
+                      )}
+                      {['SCHEDULED', 'PENDING_RESCHEDULE', 'IN_PROGRESS'].includes(c.status) && (
                         <button onClick={() => cancel(c.id)} className="rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-red-600" title="Cancel">
                           <X size={14} />
                         </button>

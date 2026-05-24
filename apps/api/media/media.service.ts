@@ -372,6 +372,7 @@ export class MediaService {
           }
           const buffer = Buffer.concat(chunks);
           res.set('Content-Type', media.mimetype || 'application/octet-stream');
+          res.set('Content-Disposition', `inline; filename="${encodeURIComponent(media.filename || 'credential')}"`);
           res.set('Content-Length', buffer.length.toString());
           res.set('Cache-Control', 'private, max-age=0, no-store');
           res.send(buffer);
@@ -385,6 +386,7 @@ export class MediaService {
 
     if (media.data) {
       res.set('Content-Type', media.mimetype || 'application/octet-stream');
+      res.set('Content-Disposition', `inline; filename="${encodeURIComponent(media.filename || 'credential')}"`);
       res.set('Content-Length', media.size.toString());
       res.set('Cache-Control', 'private, max-age=0, no-store');
       res.send(Buffer.from(media.data));

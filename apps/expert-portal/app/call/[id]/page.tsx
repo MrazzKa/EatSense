@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { VideoOff } from 'lucide-react';
+import { Loader2, PhoneOff, VideoOff } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
@@ -36,6 +36,7 @@ export default function ExpertCallPage() {
     const [creds, setCreds] = useState<TokenResp | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [connectionLost, setConnectionLost] = useState(false);
     const startedAtRef = useRef<number | null>(null);
 
     useEffect(() => {
@@ -59,9 +60,10 @@ export default function ExpertCallPage() {
             }
         })();
         return () => { cancelled = true; };
-    }, [conversationId]);
+    }, [conversationId, t]);
 
     const onConnected = useCallback(() => {
+        setConnectionLost(false);
         startedAtRef.current = Date.now();
         if (creds?.sessionId) {
             apiFetch(`/video/session/${creds.sessionId}/started`, {
@@ -71,7 +73,7 @@ export default function ExpertCallPage() {
         }
     }, [creds]);
 
-    const onDisconnected = useCallback(async () => {
+    const finishCall = useCallback(async () => {
         const duration = startedAtRef.current
             ? Math.round((Date.now() - startedAtRef.current) / 1000)
             : 0;
@@ -85,6 +87,10 @@ export default function ExpertCallPage() {
         }
         router.push('/chats');
     }, [creds, router]);
+
+    const onDisconnected = useCallback(() => {
+        setConnectionLost(true);
+    }, []);
 
     if (loading) {
         return (
@@ -123,6 +129,21 @@ export default function ExpertCallPage() {
                 onDisconnected={onDisconnected}
                 style={{ height: '100%' }}
             >
+                <div className="fixed left-4 right-4 top-4 z-20 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-white backdrop-blur md:left-6 md:right-6">
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{connectionLost ? t('call', 'reconnecting') : t('call', 'inProgress')}</p>
+                        <p className="truncate text-xs text-white/70">{connectionLost ? t('call', 'reconnectingHint') : t('call', 'inProgressHint')}</p>
+                    </div>
+                    {connectionLost ? <Loader2 size={18} className="shrink-0 animate-spin text-white/80" /> : null}
+                    <button
+                        type="button"
+                        onClick={finishCall}
+                        className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                    >
+                        <PhoneOff size={16} />
+                        {t('call', 'end')}
+                    </button>
+                </div>
                 <VideoConference chatMessageFormatter={formatChatMessageLinks} />
             </LiveKitRoom>
         </div>

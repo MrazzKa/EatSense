@@ -1,9 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
-const podspecPath = path.join(__dirname, '..', 'node_modules', 'react-native-iap', 'RNIap.podspec');
+const candidates = [
+    path.join(__dirname, '..', 'node_modules', 'react-native-iap', 'RNIap.podspec'),
+    path.join(__dirname, '..', 'apps', 'mobile', 'node_modules', 'react-native-iap', 'RNIap.podspec'),
+];
 
-if (fs.existsSync(podspecPath)) {
+const podspecPath = candidates.find((candidate) => fs.existsSync(candidate));
+
+if (podspecPath) {
     console.log('Patching RNIap.podspec to remove RCT-Folly dependency...');
     let content = fs.readFileSync(podspecPath, 'utf8');
 

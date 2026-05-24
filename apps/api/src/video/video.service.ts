@@ -53,6 +53,9 @@ export class VideoService {
         if (!isClient && !isExpert) {
             throw new ForbiddenException('You are not a participant of this conversation');
         }
+        if (conversation.expert && (conversation.expert as any).videoEnabled === false) {
+            throw new BadRequestException('Video calls are disabled by this expert');
+        }
 
         // Active session for this conversation? Reuse it so client + expert
         // join the same LiveKit room. Otherwise create a fresh one whose room

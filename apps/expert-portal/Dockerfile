@@ -2,8 +2,8 @@
 # Railway build for expert-portal (Next.js 15, standalone output)
 # Build context should be the monorepo root (railway.json sets this).
 
-FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM node:22-alpine AS base
+RUN corepack enable && corepack prepare pnpm@10.19.0 --activate
 WORKDIR /repo
 
 # --- deps ---
@@ -32,15 +32,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm run build
 
 # --- runtime ---
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 
 # Next.js standalone output bundles only what's needed
 COPY --from=build /repo/apps/expert-portal/.next/standalone ./
 COPY --from=build /repo/apps/expert-portal/.next/static ./apps/expert-portal/.next/static
-EXPOSE 3000
+EXPOSE 8080
 CMD ["node", "apps/expert-portal/server.js"]

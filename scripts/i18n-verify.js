@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const LOCALES_DIR = path.join(__dirname, '..', 'app', 'i18n', 'locales');
+const LOCALES_DIR = path.join(__dirname, '..', 'apps', 'mobile', 'app', 'i18n', 'locales');
 
 const flattenKeys = (obj, prefix = '') => {
   return Object.keys(obj).reduce((acc, key) => {

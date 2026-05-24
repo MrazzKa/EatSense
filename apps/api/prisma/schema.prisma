@@ -736,6 +736,7 @@ model ExpertProfile {
   isActive      Boolean @default(true) @map("is_active")
   isPublished   Boolean @default(false) @map("is_published")
   contactPolicy String? @map("contact_policy")
+  videoEnabled  Boolean @default(true) @map("video_enabled")
 
   // Stats (aggregated)
   rating            Float @default(0)

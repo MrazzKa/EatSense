@@ -1,0 +1,912 @@
+// @ts-nocheck
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    StyleSheet,
+    ActivityIndicator,
+    Image,
+    Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../app/i18n/hooks';
+import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
+import MarketplaceService from '../services/marketplaceService';
+import ApiService from '../services/apiService';
+import DisclaimerModal from '../components/common/DisclaimerModal';
+import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
+import { formatAmountInCurrency } from '../utils/currency';
+import { useStripe } from '@stripe/stripe-react-native';
+
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
+const LANGUAGE_LABELS = {
+    en: 'English', ru: 'Русский', kk: 'Қазақша', fr: 'Français', de: 'Deutsch', es: 'Español',
+};
+
+const COUNTRY_NAME_FALLBACKS: Record<string, Record<string, string>> = {
+    KZ: { ru: 'Казахстан', en: 'Kazakhstan', kk: 'Қазақстан', de: 'Kasachstan', fr: 'Kazakhstan', es: 'Kazajistán' },
+    CH: { ru: 'Швейцария', en: 'Switzerland', kk: 'Швейцария', de: 'Schweiz', fr: 'Suisse', es: 'Suiza' },
+};
+
+// Map of expert.type → i18n key. Default to 'specialist' for unknown types so we don't
+// silently mislabel future expert types (psychologist, coach, etc.) as "Nutritionist".
+const TYPE_KEYS: Record<string, string> = {
+    nutritionist: 'experts.typeNutritionist',
+    dietitian: 'experts.typeDietitian',
+    obgyn: 'experts.typeObgyn',
+    pediatrician: 'experts.typePediatrician',
+    gp: 'experts.typeGp',
+    psychologist: 'experts.typePsychologist',
+    endocrinologist: 'experts.typeEndocrinologist',
+    other: 'experts.typeOther',
+};
+
+const pickLocalized = (value: any, locale: string): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+        return value[locale] || value.en || Object.values(value).find(Boolean) || '';
+    }
+    return '';
+};
+
+const formatReviewDate = (iso: string, locale: string): string => {
+    if (!iso) return '';
+    try {
+        return new Date(iso).toLocaleDateString(locale, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        });
+    } catch {
+        return new Date(iso).toLocaleDateString();
+    }
+};
+
+const formatCountryName = (code: string, locale: string): string => {
+    const normalized = (code || '').trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(normalized)) return code;
+    const localeKey = (locale || 'en').split('-')[0];
+    const fallback = COUNTRY_NAME_FALLBACKS[normalized];
+    if (fallback?.[localeKey]) return fallback[localeKey];
+    try {
+        const displayNames = new Intl.DisplayNames([locale || 'en'], { type: 'region' });
+        return displayNames.of(normalized) || normalized;
+    } catch {
+        return normalized;
+    }
+};
+
+export default function ExpertProfileScreen({ route, navigation }) {
+    const { specialistId, conversationId } = route.params || {};
+    const { t, language } = useI18n();
+    const themeContext = useTheme();
+    const tokens = useDesignTokens();
+    const colors = themeContext?.colors || {};
+    const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+    const [expert, setExpert] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [requesting, setRequesting] = useState(false);
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
+    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
+
+    const loadExpert = useCallback(async () => {
+        if (!specialistId) {
+            console.warn('[ExpertProfileScreen] Missing specialistId in route params');
+            setLoading(false);
+            return;
+        }
+        try {
+            const response = await MarketplaceService.getExpert(specialistId);
+            if (response) {
+                setExpert(response);
+                const firstOffer = response.offers?.[0]?.id || null;
+                setSelectedOfferId(prev => prev || firstOffer);
+            }
+        } catch (error) {
+            console.error('[ExpertProfileScreen] Failed to load:', error);
+            Alert.alert(t('common.error') || 'Error', t('experts.profileLoadError') || 'Failed to load expert profile');
+        } finally {
+            setLoading(false);
+        }
+    }, [specialistId, t]);
+
+    useEffect(() => {
+        loadExpert();
+    }, [loadExpert]);
+
+    const getSelectedOffer = useCallback(() => {
+        const offerIdToUse = selectedOfferId || expert?.offers?.[0]?.id;
+        return expert?.offers?.find((offer: any) => offer.id === offerIdToUse);
+    }, [expert?.offers, selectedOfferId]);
+
+    const showPaymentUnavailable = useCallback(() => {
+        Alert.alert(
+            t('experts.paymentUnavailableTitle') || 'Payment is not available yet',
+            t('experts.paymentUnavailableBody') ||
+                'This paid service is already visible, but online checkout is not connected yet. You can choose a free service or contact the expert when payments are enabled.',
+        );
+    }, [t]);
+
+    const initChatRequest = async () => {
+        const selectedOffer = getSelectedOffer();
+        if (selectedOffer?.priceType && selectedOffer.priceType !== 'FREE') {
+            showPaymentUnavailable();
+            return;
+        }
+
+        const show = await shouldShowDisclaimer('data_sharing_consent');
+        if (show) {
+            setShowDisclaimer(true);
+        } else {
+            handleStartConversation();
+        }
+    };
+
+    const handleDisclaimerAccept = () => {
+        setShowDisclaimer(false);
+        handleStartConversation();
+    };
+
+    const handleStartConversation = async () => {
+        const expertIdToUse = expert?.id || specialistId;
+        const offerIdToUse = selectedOfferId || expert?.offers?.[0]?.id;
+        if (!expertIdToUse) {
+            Alert.alert(t('common.error') || 'Error', t('experts.profileNotFound') || 'Expert not found');
+            return;
+        }
+        const selectedOffer = expert?.offers?.find((offer: any) => offer.id === offerIdToUse);
+        if (selectedOffer?.priceType && selectedOffer.priceType !== 'FREE') {
+            showPaymentUnavailable();
+            return;
+        }
+        setRequesting(true);
+        try {
+            const response = await MarketplaceService.startConversation(expertIdToUse, offerIdToUse);
+            const conversation = response?.conversation || response;
+
+            if (response?.requiresPayment) {
+                if (!STRIPE_PUBLISHABLE_KEY) {
+                    Alert.alert(
+                        t('common.error') || 'Error',
+                        t('experts.paymentNotConfigured') || 'Payments are not configured for this build yet.',
+                    );
+                    return;
+                }
+
+                const intent = await ApiService.createExpertOfferPaymentIntent(offerIdToUse, conversation.id);
+                const initResult = await initPaymentSheet({
+                    merchantDisplayName: 'EatSense',
+                    paymentIntentClientSecret: intent.clientSecret,
+                    allowsDelayedPaymentMethods: false,
+                });
+                if (initResult.error) {
+                    Alert.alert(t('common.error') || 'Error', initResult.error.message);
+                    return;
+                }
+
+                const paymentResult = await presentPaymentSheet();
+                if (paymentResult.error) {
+                    Alert.alert(t('common.error') || 'Error', paymentResult.error.message);
+                    return;
+                }
+
+                Alert.alert(
+                    t('experts.paymentSubmittedTitle') || 'Payment submitted',
+                    t('experts.paymentSubmittedBody') || 'Your chat will unlock as soon as the payment is confirmed.',
+                    [{ text: t('common.ok') || 'OK', onPress: () => navigation.navigate('Chat', { conversationId: conversation.id }) }],
+                );
+                return;
+            }
+
+            if (conversation?.id) {
+                navigation.navigate('Chat', { conversationId: conversation.id });
+            }
+        } catch (error) {
+            console.error('[ExpertProfileScreen] Start conversation failed:', error);
+            Alert.alert(
+                t('common.error') || 'Error',
+                t('experts.requestFailed') || 'Failed to start conversation'
+            );
+        } finally {
+            setRequesting(false);
+        }
+    };
+
+    const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.loadingContainer} edges={['top']}>
+                <ActivityIndicator size="large" color={colors.primary || '#4CAF50'} />
+            </SafeAreaView>
+        );
+    }
+
+    if (!expert) {
+        return (
+            <SafeAreaView style={styles.errorContainer} edges={['top']}>
+                <Text style={styles.errorText}>{t('experts.profileNotFound') || 'Expert not found'}</Text>
+                <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
+                    <Text style={styles.backLinkText}>{t('common.goBack') || 'Go back'}</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
+
+    const normalizedType = (expert.type || '').toLowerCase();
+    const typeKey = TYPE_KEYS[normalizedType] ?? 'experts.specialist';
+
+    return (
+        <SafeAreaView style={styles.container} edges={['top']}>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary || '#212121'} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle} numberOfLines={1}>{expert.displayName}</Text>
+                <View style={styles.headerPlaceholder} />
+            </View>
+
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+                {/* Hero Section */}
+                <View style={styles.heroSection}>
+                    {expert.avatarUrl ? (
+                        <Image source={{ uri: ApiService.resolveMediaUrl(expert.avatarUrl) }} style={styles.avatar} />
+                    ) : (
+                        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                            {(() => {
+                                const parts = (expert.displayName || '').trim().split(/\s+/).slice(0, 2);
+                                const initials = parts.map((p: string) => p[0]?.toUpperCase() ?? '').join('');
+                                return initials ? (
+                                    <Text style={styles.avatarInitials}>{initials}</Text>
+                                ) : (
+                                    <Ionicons name="person" size={48} color="#9CA3AF" />
+                                );
+                            })()}
+                        </View>
+                    )}
+
+                    <View style={styles.nameRow}>
+                        <Text style={styles.name}>{expert.displayName}</Text>
+                        {expert.isVerified && (
+                            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" style={{ marginLeft: 6 }} />
+                        )}
+                    </View>
+
+                    {expert.title && (
+                        <Text style={styles.titleText}>{expert.title}</Text>
+                    )}
+
+                    <Text style={styles.typeText}>{t(typeKey) || expert.type}</Text>
+
+                    {expert.country ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 }}>
+                            <Ionicons name="location-outline" size={14} color={colors.textSecondary || '#6B7280'} />
+                            <Text style={[styles.typeText, { fontSize: 13 }]}>{formatCountryName(expert.country, language)}</Text>
+                        </View>
+                    ) : null}
+
+                    {/* Stats Row */}
+                    <View style={styles.statsRow}>
+                        <View style={styles.statItem}>
+                            <Ionicons name="star" size={16} color="#FFC107" />
+                            <Text style={styles.statValue}>{expert.rating?.toFixed(1) || '—'}</Text>
+                            <Text style={styles.statLabel}>
+                                ({expert.reviewCount || expert._count?.reviews || 0})
+                            </Text>
+                        </View>
+                        {expert.experienceYears > 0 && (
+                            <View style={styles.statItem}>
+                                <Ionicons name="briefcase-outline" size={16} color={colors.textSecondary || '#6B7280'} />
+                                <Text style={styles.statValue}>{expert.experienceYears}</Text>
+                                <Text style={styles.statLabel}>{t('experts.yearsExp') || 'years'}</Text>
+                            </View>
+                        )}
+                        {expert.consultationCount > 0 && (
+                            <View style={styles.statItem}>
+                                <Ionicons name="chatbubbles-outline" size={16} color={colors.textSecondary || '#6B7280'} />
+                                <Text style={styles.statValue}>{expert.consultationCount}</Text>
+                                <Text style={styles.statLabel}>{t('experts.consultations') || 'consultations'}</Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Schedule consultation CTA — appears once user has an active link
+                    (already passed access code). Routes to slot picker. */}
+                {expert?.id && conversationId ? (
+                    <TouchableOpacity
+                        style={styles.scheduleCta}
+                        onPress={() => navigation.navigate('ScheduleConsultation', {
+                            expertId: expert.id,
+                            conversationId,
+                            expertName: expert.displayName,
+                        })}
+                        activeOpacity={0.85}
+                    >
+                        <Ionicons name="calendar-outline" size={20} color="#fff" />
+                        <Text style={styles.scheduleCtaText}>
+                            {t('experts.scheduleConsultation') || 'Schedule consultation'}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={18} color="#fff" />
+                    </TouchableOpacity>
+                ) : null}
+
+                {/* About / Bio */}
+                {expert.bio && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.about') || 'About'}</Text>
+                        <Text style={styles.bioText}>{expert.bio}</Text>
+                    </View>
+                )}
+
+                {/* Education — prefer structured educationEntries, fall back to legacy string */}
+                {(Array.isArray(expert.educationEntries) && expert.educationEntries.length > 0 || expert.education) && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.education') || 'Education'}</Text>
+                        {Array.isArray(expert.educationEntries) && expert.educationEntries.length > 0 ? (
+                            expert.educationEntries.map((entry: any) => (
+                                <View key={entry.id} style={styles.educationItem}>
+                                    <Ionicons name="school-outline" size={18} color={colors.primary || '#4CAF50'} />
+                                    <View style={styles.educationInfo}>
+                                        <Text style={styles.educationDegree}>{entry.degree}</Text>
+                                        <Text style={styles.educationMeta}>
+                                            {entry.institution}{entry.year ? ` · ${entry.year}` : ''}
+                                        </Text>
+                                        {entry.documentUrl ? (
+                                            <View style={styles.educationDoc}>
+                                                <Ionicons
+                                                    name={entry.documentType === 'pdf' ? 'document-attach-outline' : 'image-outline'}
+                                                    size={14}
+                                                    color={colors.textSecondary || '#6B7280'}
+                                                />
+                                                <Text style={styles.educationDocText} numberOfLines={1}>
+                                                    {entry.documentName || (t('experts.diplomaAttached') || 'Diploma attached')}
+                                                </Text>
+                                            </View>
+                                        ) : null}
+                                    </View>
+                                </View>
+                            ))
+                        ) : (
+                            <Text style={styles.bioText}>{expert.education}</Text>
+                        )}
+                    </View>
+                )}
+
+                {/* Specializations */}
+                {Array.isArray(expert.specializations) && expert.specializations.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.edit.specializations') || 'Specializations'}</Text>
+                        <View style={styles.chipsContainer}>
+                            {expert.specializations.map((spec) => (
+                                <View key={spec} style={styles.chip}>
+                                    <Text style={styles.chipText}>
+                                        {t(`experts.specializations.${spec}`) || spec}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                {/* Languages */}
+                {Array.isArray(expert.languages) && expert.languages.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.languages') || 'Languages'}</Text>
+                        <View style={styles.chipsContainer}>
+                            {expert.languages.map((lang) => (
+                                <View key={lang} style={[styles.chip, styles.langChip]}>
+                                    <Text style={styles.chipText}>
+                                        {LANGUAGE_LABELS[lang] || lang.toUpperCase()}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                {/* Credentials */}
+                {Array.isArray(expert.credentials) && expert.credentials.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.credentials') || 'Credentials'}</Text>
+                        {expert.credentials.map((cred) => (
+                            <View key={cred.id} style={styles.credentialCard}>
+                                <Ionicons name="ribbon-outline" size={20} color={colors.primary || '#4CAF50'} />
+                                <View style={styles.credentialInfo}>
+                                    <Text style={styles.credentialName}>{cred.name}</Text>
+                                    {cred.issuer && (
+                                        <Text style={styles.credentialIssuer}>{cred.issuer}</Text>
+                                    )}
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Offers */}
+                {Array.isArray(expert.offers) && expert.offers.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>{t('experts.services') || 'Services'}</Text>
+                        {expert.offers.map((offer) => {
+                            const offerName = pickLocalized(offer.name, language);
+                            const offerDesc = pickLocalized(offer.description, language);
+                            const isPaidUnavailable = offer.priceType !== 'FREE';
+                            return (
+                                <TouchableOpacity
+                                    key={offer.id}
+                                    style={[
+                                        styles.offerCard,
+                                        isPaidUnavailable && styles.offerCardUnavailable,
+                                        selectedOfferId === offer.id && {
+                                            borderColor: colors.primary || '#4CAF50',
+                                            backgroundColor: (colors.primary || '#4CAF50') + '10',
+                                        },
+                                    ]}
+                                    onPress={() => setSelectedOfferId(offer.id)}
+                                    activeOpacity={0.85}
+                                >
+                                    <View style={styles.offerHeaderRow}>
+                                        <Text style={styles.offerName} numberOfLines={2}>{offerName}</Text>
+                                        {selectedOfferId === offer.id && (
+                                            <Ionicons name="checkmark-circle" size={18} color={colors.primary || '#4CAF50'} />
+                                        )}
+                                    </View>
+                                    <Text style={styles.offerFormat}>
+                                        {t(`experts.offerFormat.${offer.format}`) || offer.format}
+                                    </Text>
+                                    {offerDesc && <Text style={styles.offerDesc}>{offerDesc}</Text>}
+                                    <View style={styles.offerFooterRow}>
+                                        <Text style={styles.offerPrice}>
+                                            {offer.priceType === 'FREE' || offer.priceAmount == null
+                                                ? (t('experts.free') || 'Free')
+                                                : formatAmountInCurrency(offer.priceAmount, offer.currency || 'USD')}
+                                        </Text>
+                                        {isPaidUnavailable && (
+                                            <Text style={styles.offerUnavailableText}>
+                                                {t('experts.paymentUnavailableTitle') || 'Payment is not available yet'}
+                                            </Text>
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                )}
+
+                {/* Reviews */}
+                {Array.isArray(expert.reviews) && expert.reviews.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>
+                            {t('experts.reviews') || 'Reviews'} ({expert.reviewCount || expert.reviews.length})
+                        </Text>
+                        {expert.reviews.map((review) => (
+                            <View key={review.id} style={styles.reviewCard}>
+                                <View style={styles.reviewHeader}>
+                                    <View style={styles.reviewRating}>
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Ionicons
+                                                key={star}
+                                                name={star <= review.rating ? 'star' : 'star-outline'}
+                                                size={14}
+                                                color="#FFC107"
+                                            />
+                                        ))}
+                                    </View>
+                                    <Text style={styles.reviewDate}>
+                                        {formatReviewDate(review.createdAt, language)}
+                                    </Text>
+                                </View>
+                                {review.client?.userProfile?.firstName && (
+                                    <Text style={styles.reviewAuthor}>{review.client.userProfile.firstName}</Text>
+                                )}
+                                {review.comment && (
+                                    <Text style={styles.reviewText}>{review.comment}</Text>
+                                )}
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Spacer for bottom CTA */}
+                <View style={{ height: 100 }} />
+            </ScrollView>
+
+            {/* Bottom CTA */}
+            <View style={styles.bottomContainer}>
+                <TouchableOpacity
+                    style={[styles.ctaButton, requesting && styles.ctaButtonDisabled]}
+                    onPress={initChatRequest}
+                    disabled={requesting}
+                >
+                    {requesting ? (
+                        <ActivityIndicator color="#FFF" />
+                    ) : (
+                        <>
+                            <Ionicons name="chatbubbles" size={20} color="#FFF" />
+                            <Text style={styles.ctaButtonText}>
+                                {t('experts.messageExpert') || 'Message Expert'}
+                            </Text>
+                        </>
+                    )}
+                </TouchableOpacity>
+            </View>
+
+            <DisclaimerModal
+                disclaimerKey="data_sharing_consent"
+                visible={showDisclaimer}
+                onAccept={handleDisclaimerAccept}
+                onCancel={() => setShowDisclaimer(false)}
+            />
+        </SafeAreaView>
+    );
+}
+
+const createStyles = (tokens, colors) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.background || '#FAFAFA',
+    },
+    scheduleCta: {
+        marginHorizontal: 16,
+        marginTop: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+        paddingHorizontal: 18,
+        paddingVertical: 14,
+        backgroundColor: colors.primary || '#4CAF50',
+        borderRadius: 14,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+    },
+    scheduleCtaText: {
+        flex: 1,
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.background || '#FAFAFA',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.background || '#FAFAFA',
+        padding: 24,
+    },
+    errorText: {
+        fontSize: 16,
+        color: colors.textSecondary || '#666',
+        marginBottom: 16,
+    },
+    backLink: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+    },
+    backLinkText: {
+        fontSize: 15,
+        color: colors.primary || '#4CAF50',
+        fontWeight: '500',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.surface || '#FFF',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border || '#E0E0E0',
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerTitle: {
+        flex: 1,
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.textPrimary || '#212121',
+        textAlign: 'center',
+    },
+    headerPlaceholder: {
+        width: 40,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    content: {
+        paddingBottom: 16,
+    },
+    // Hero
+    heroSection: {
+        alignItems: 'center',
+        paddingVertical: 24,
+        paddingHorizontal: 16,
+        backgroundColor: colors.surface || '#FFF',
+        marginBottom: 8,
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginBottom: 16,
+    },
+    avatarPlaceholder: {
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatarInitials: {
+        fontSize: 34,
+        fontWeight: '600',
+        color: colors.textSecondary || '#6B7280',
+        letterSpacing: 1,
+    },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    name: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: colors.textPrimary || '#212121',
+    },
+    titleText: {
+        fontSize: 15,
+        color: colors.textSecondary || '#6B7280',
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    typeText: {
+        fontSize: 14,
+        color: colors.primary || '#4CAF50',
+        fontWeight: '500',
+        marginBottom: 12,
+    },
+    statsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 20,
+    },
+    statItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    statValue: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.textPrimary || '#212121',
+    },
+    statLabel: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+    },
+    // Sections
+    section: {
+        padding: 16,
+        backgroundColor: colors.surface || '#FFF',
+        marginBottom: 8,
+    },
+    sectionTitle: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: colors.textSecondary || '#6B7280',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 12,
+    },
+    bioText: {
+        fontSize: 15,
+        color: colors.textPrimary || '#374151',
+        lineHeight: 22,
+    },
+    // Chips
+    chipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    chip: {
+        backgroundColor: (colors.primary || '#4CAF50') + '15',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+    },
+    langChip: {
+        backgroundColor: colors.surfaceSecondary || '#F3F4F6',
+    },
+    chipText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: colors.textPrimary || '#374151',
+    },
+    // Education
+    educationItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        marginBottom: 8,
+        gap: 10,
+    },
+    educationInfo: {
+        flex: 1,
+    },
+    educationDegree: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textPrimary || '#374151',
+    },
+    educationMeta: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 2,
+    },
+    educationDoc: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 6,
+    },
+    educationDocText: {
+        fontSize: 12,
+        color: colors.textSecondary || '#6B7280',
+        flex: 1,
+    },
+    // Credentials
+    credentialCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        marginBottom: 8,
+    },
+    credentialInfo: {
+        marginLeft: 12,
+        flex: 1,
+    },
+    credentialName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textPrimary || '#374151',
+    },
+    credentialIssuer: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 2,
+    },
+    // Offers
+    offerCard: {
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: colors.border || 'transparent',
+        marginBottom: 8,
+    },
+    offerCardUnavailable: {
+        opacity: 0.86,
+    },
+    offerHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
+    offerName: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.textPrimary || '#374151',
+    },
+    offerFormat: {
+        fontSize: 12,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 4,
+    },
+    offerDesc: {
+        fontSize: 13,
+        color: colors.textSecondary || '#6B7280',
+        marginTop: 4,
+    },
+    offerFooterRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+        marginTop: 6,
+    },
+    offerPrice: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.primary || '#4CAF50',
+    },
+    offerUnavailableText: {
+        flex: 1,
+        textAlign: 'right',
+        fontSize: 11,
+        color: colors.textSecondary || '#6B7280',
+    },
+    // Reviews
+    reviewCard: {
+        padding: 12,
+        backgroundColor: colors.surfaceSecondary || '#F9FAFB',
+        borderRadius: 10,
+        marginBottom: 8,
+    },
+    reviewHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    reviewRating: {
+        flexDirection: 'row',
+    },
+    reviewDate: {
+        fontSize: 12,
+        color: colors.textSecondary || '#9CA3AF',
+    },
+    reviewAuthor: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: colors.textSecondary || '#6B7280',
+        marginBottom: 4,
+    },
+    reviewText: {
+        fontSize: 14,
+        color: colors.textPrimary || '#374151',
+        lineHeight: 20,
+    },
+    // Bottom CTA
+    bottomContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 16,
+        paddingBottom: 24,
+        backgroundColor: colors.surface || '#FFF',
+        borderTopWidth: 1,
+        borderTopColor: colors.border || '#E0E0E0',
+    },
+    ctaButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.primary || '#4CAF50',
+        paddingVertical: 16,
+        borderRadius: 12,
+    },
+    ctaButtonDisabled: {
+        opacity: 0.6,
+    },
+    ctaButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
+});

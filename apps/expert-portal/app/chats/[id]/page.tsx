@@ -8,6 +8,7 @@ import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Message {
   id: string;
@@ -293,7 +294,15 @@ export default function ChatPage() {
         }`}>
           {/* Special message types */}
           {msg.type === 'photo' && (
-            <img src={msg.content} alt={t('chats', 'photo')} className="max-w-full rounded-lg mb-1" style={{ maxHeight: 300 }} />
+            <div className="relative mb-1 h-[min(300px,60vw)] w-[min(420px,70vw)] max-w-full overflow-hidden rounded-lg">
+              <Image
+                src={msg.content}
+                alt={t('chats', 'photo')}
+                fill
+                sizes="(max-width: 640px) 70vw, 420px"
+                className="object-contain"
+              />
+            </div>
           )}
           {msg.type === 'meal_share' && (
             <div className="flex items-center gap-1.5 mb-1 opacity-80 text-xs">
@@ -360,7 +369,7 @@ export default function ChatPage() {
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col md:h-screen">
+      <div className="flex h-[calc(100dvh-8.75rem)] min-h-0 flex-col overflow-hidden md:h-dvh">
         {/* Header */}
         <div className="flex shrink-0 flex-col gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -398,12 +407,6 @@ export default function ChatPage() {
                     {t('chats', 'requestData')}
                   </button>
                 )}
-                <Link
-                  href={`/call/${convId}`}
-                  className="flex min-h-9 items-center justify-center rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
-                >
-                  {t('chats', 'startVideo') || 'Video call'}
-                </Link>
                 <button
                   onClick={handleComplete}
                   className="hidden min-h-9 rounded-lg bg-[#ef444422] px-3 py-1.5 text-xs font-medium text-[var(--red)] transition hover:bg-[#ef444433] sm:inline-flex sm:items-center"
@@ -416,7 +419,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto bg-[var(--bg)] px-4 py-4 sm:px-6">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--bg)] px-4 py-4 sm:px-6">
           {loading ? (
             <div className="flex justify-center py-20">
               <div className="animate-spin w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full" />

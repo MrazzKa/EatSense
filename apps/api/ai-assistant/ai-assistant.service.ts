@@ -146,7 +146,7 @@ export class AiAssistantService {
     temperature: number = 0.7,
     language?: string,
   ) {
-    const { systemPrompt, context } = await this.buildSystemPrompt(type, userId, extraContext, language);
+    const { systemPrompt, context, userLanguage } = await this.buildSystemPrompt(type, userId, question, extraContext, language);
 
     try {
       const model = process.env.OPENAI_MODEL || 'gpt-4o';
@@ -168,7 +168,7 @@ export class AiAssistantService {
         }),
       });
       // Localized fallback message when OpenAI doesn't return content
-      const fallbackMessage = this.getLocalizedErrorMessage(language || 'en', 'empty_response');
+      const fallbackMessage = this.getLocalizedErrorMessage(userLanguage || language || 'en', 'empty_response');
       const answer = response.choices[0]?.message?.content || fallbackMessage;
       const usage = response.usage;
 
@@ -215,6 +215,7 @@ export class AiAssistantService {
 
       return {
         answer,
+        suggestions: this.buildSuggestions(userLanguage || language || 'en'),
         tokensUsed: usage?.total_tokens || 0,
         promptTokens: usage?.prompt_tokens || 0,
         completionTokens: usage?.completion_tokens || 0,
@@ -245,15 +246,30 @@ export class AiAssistantService {
     }
   }
 
+  private buildSuggestions(language: string): string[] {
+    const lang = (language || 'en').split('-')[0];
+    const suggestions: Record<string, string[]> = {
+      ru: ['Что мне съесть сегодня?', 'Как уменьшить вздутие?', 'Оцени мой рацион'],
+      kk: ['Бүгін не жеген дұрыс?', 'Іш кебуін қалай азайтамын?', 'Рационымды бағала'],
+      es: ['¿Qué debería comer hoy?', '¿Cómo reduzco la hinchazón?', 'Evalúa mi dieta'],
+      fr: ['Que manger aujourd’hui ?', 'Comment réduire les ballonnements ?', 'Évalue mon alimentation'],
+      de: ['Was soll ich heute essen?', 'Wie reduziere ich Blähungen?', 'Bewerte meine Ernährung'],
+      en: ['What should I eat today?', 'How can I reduce bloating?', 'Review my diet'],
+    };
+    return suggestions[lang] || suggestions.en;
+  }
+
   private async buildSystemPrompt(
     type: 'nutrition_advice' | 'health_check' | 'general_question',
     userId: string,
+    question: string,
     extraContext?: any,
     language?: string,
   ) {
     // Get user language from profile or use provided language or default to English
     const userProfile = await this.prisma.userProfile.findUnique({ where: { userId } });
-    const userLanguage = language || (userProfile?.preferences as any)?.language || 'en';
+    const detectedQuestionLanguage = this.detectQuestionLanguage(question);
+    const userLanguage = detectedQuestionLanguage || language || (userProfile?.preferences as any)?.language || 'en';
 
     // Map language codes to language names for OpenAI
     const languageMap: Record<string, string> = {
@@ -283,14 +299,15 @@ CRITICAL RULES:
 4. NEVER give formal diagnoses or prescribe treatment - only provide nutrition-focused guidance and general explanations.
 5. EVERY response must include a short disclaimer that this is not medical advice and users should consult a doctor for medical decisions.
 6. Be encouraging and supportive.
-7. Respond in ${responseLanguage}.
+7. Respond in ${responseLanguage}. If the user's latest message is clearly written in another language, respond in that same language instead.
 
 Example response format:
 - What's good: [positive aspects]
 - What to improve: [areas for improvement]
 - Next steps: [actionable recommendations]
 - Disclaimer: This is not medical advice. Please consult a healthcare professional for medical decisions.`,
-        context: {},
+        context: { userLanguage, detectedQuestionLanguage },
+        userLanguage,
       };
     }
     const recentMeals = await this.prisma.meal.findMany({
@@ -327,7 +344,26 @@ Example response format:
       extraContext,
     };
 
-    return { systemPrompt: basePrompt, context };
+    return { systemPrompt: basePrompt, context, userLanguage };
+  }
+
+  private detectQuestionLanguage(text?: string): string | null {
+    const value = (text || '').trim();
+    if (!value) return null;
+
+    const cyrillic = value.match(/[А-Яа-яЁё]/g)?.length || 0;
+    const kazakhSpecific = value.match(/[ӘәҒғҚқҢңӨөҰұҮүҺһІі]/g)?.length || 0;
+    if (kazakhSpecific >= 2) return 'kk';
+    if (cyrillic >= 2) return 'ru';
+
+    const latinLetters = value.match(/[A-Za-zÀ-ÿ]/g)?.length || 0;
+    if (latinLetters < 2) return null;
+
+    const lower = value.toLowerCase();
+    if (/[¿¡]/.test(value) || /\b(hola|gracias|dolor|comida|salud)\b/.test(lower)) return 'es';
+    if (/\b(bonjour|merci|douleur|repas|santé|sante)\b/.test(lower)) return 'fr';
+    if (/\b(hallo|danke|schmerz|essen|gesundheit)\b/.test(lower)) return 'de';
+    return 'en';
   }
 
   private calculateDailyUsage(conversations: any[]) {
@@ -386,7 +422,7 @@ Recent Meals:`;
 6. Suggest meal ideas where appropriate.
 7. NEVER give formal diagnoses or prescribe treatment - only provide nutrition-focused guidance and general explanations.
 8. EVERY response must include a short disclaimer that this is not medical advice and users should consult a doctor for medical decisions.
-9. Respond in ${language}.`;
+9. Respond in ${language}. If the user's latest message is clearly written in another language, respond in that same language instead.`;
 
     return prompt;
   }
@@ -414,7 +450,7 @@ OUTPUT FORMAT (always follow this structure):
 5. Disclaimer – clearly state this is not medical advice and the user should consult a doctor for medical decisions.
 
 CRITICAL RULES:
-* Always answer in ${language}.
+* Always answer in ${language}. If the user's latest message is clearly written in another language, answer in that same language instead.
 * Always refer to the user's specific question and avoid generic copy-pasted advice.
 * Never give diagnoses or prescribe medications.
 * Never invent lab values or precise probabilities.

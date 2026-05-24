@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const LOCALES_DIR = path.join(__dirname, '../app/i18n/locales');
+const LOCALES_DIR = path.join(__dirname, '../apps/mobile/app/i18n/locales');
 const TARGET_LOCALES = ['ru', 'kk', 'fr'];
 
 // Helper: Get all keys from nested object
@@ -114,7 +114,8 @@ function main() {
                         'Horaires', 'Times', 'Old Money', 'Hot Girl Walk', 'Normal', 'Hypertension', 'Allergies', 'Stress',
                         'Liraglutide', 'Microbiome', 'Sports', 'Brunch', 'Discipline', 'Disco', 'Flexible',
                         'Gatsby', 'Glamour', 'Hollywood', 'Kazakh', 'Macros', 'Simple', 'Social',
-                        'Notes', 'Photo', 'Portions', 'Soft Life', 'Mob Wife', 'Summer Shred'
+                        'Notes', 'Photo', 'Portions', 'Soft Life', 'Mob Wife', 'Summer Shred',
+                        'Portugal', 'Digestion'
                     ];
                     if (!ignoreList.includes(value)) {
                         untranslated.push(key);

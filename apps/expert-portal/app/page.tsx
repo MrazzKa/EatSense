@@ -27,6 +27,11 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
+  useEffect(() => {
+    const remembered = localStorage.getItem('expertPortal:lastEmail');
+    if (remembered) setEmail(remembered);
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -47,6 +52,7 @@ export default function LoginPage() {
         throw new Error(data.message || 'Failed to send magic link');
       }
 
+      localStorage.setItem('expertPortal:lastEmail', email.trim().toLowerCase());
       setSent(true);
     } catch (err: any) {
       setError(err.message || 'Something went wrong');

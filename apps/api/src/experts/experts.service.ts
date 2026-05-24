@@ -288,6 +288,7 @@ export class ExpertsService {
                 specializations: dto.specializations || [],
                 languages: dto.languages || ['en'],
                 contactPolicy: dto.contactPolicy,
+                videoEnabled: dto.videoEnabled ?? true,
                 country: dto.country,
             },
         });
@@ -339,6 +340,7 @@ export class ExpertsService {
                 specializations: dto.specializations,
                 languages: dto.languages,
                 contactPolicy: dto.contactPolicy,
+                videoEnabled: dto.videoEnabled,
                 country: dto.country,
                 isActive: dto.isActive,
                 ...resubmitPatch,

@@ -2,11 +2,14 @@
 # scripts/convert-logo.sh
 # Requires ImageMagick installed (magick or convert)
 
+APP_DIR="${1:-apps/mobile}"
+ASSETS_DIR="$APP_DIR/assets"
+
 # Ensure directories exist
-mkdir -p assets/logo
+mkdir -p "$ASSETS_DIR/logo"
 
 # Source image
-SOURCE="assets/logo/logo.jpg"
+SOURCE="$ASSETS_DIR/logo/logo.jpg"
 
 if [ ! -f "$SOURCE" ]; then
     echo "Error: $SOURCE not found!"
@@ -26,20 +29,20 @@ else
 fi
 
 # 1. Icon (1024x1024)
-echo "Generating assets/icon.png..."
-$CMD "$SOURCE" -resize 1024x1024^ -gravity center -extent 1024x1024 assets/icon.png
+echo "Generating $ASSETS_DIR/icon.png..."
+$CMD "$SOURCE" -resize 1024x1024^ -gravity center -extent 1024x1024 "$ASSETS_DIR/icon.png"
 
 # 2. Adaptive Icon (1024x1024, centered content approx 660px safe zone)
-echo "Generating assets/adaptive-icon.png..."
+echo "Generating $ASSETS_DIR/adaptive-icon.png..."
 # For adaptive icon, we want the logo centered with some padding
-$CMD "$SOURCE" -resize 800x800^ -gravity center -background white -extent 1024x1024 assets/adaptive-icon.png
+$CMD "$SOURCE" -resize 800x800^ -gravity center -background white -extent 1024x1024 "$ASSETS_DIR/adaptive-icon.png"
 
 # 3. Splash Screen (1242x2436 typical)
-echo "Generating assets/splash.png..."
-$CMD "$SOURCE" -resize 500x500^ -gravity center -background white -extent 1242x2436 assets/splash.png
+echo "Generating $ASSETS_DIR/splash.png..."
+$CMD "$SOURCE" -resize 500x500^ -gravity center -background white -extent 1242x2436 "$ASSETS_DIR/splash.png"
 
 # 4. Favicon (48x48)
-echo "Generating assets/favicon.png..."
-$CMD "$SOURCE" -resize 48x48 assets/favicon.png
+echo "Generating $ASSETS_DIR/favicon.png..."
+$CMD "$SOURCE" -resize 48x48 "$ASSETS_DIR/favicon.png"
 
 echo "Done! Please run: npx expo prebuild --clean"

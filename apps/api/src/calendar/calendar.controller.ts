@@ -99,6 +99,12 @@ export class CalendarController {
     return this.calendar.completeConsultation(req.user.id, id);
   }
 
+  @Post('consultations/:id/no-show')
+  @UseGuards(JwtAuthGuard)
+  async noShow(@Request() req: any, @Param('id') id: string) {
+    return this.calendar.markNoShow(req.user.id, id);
+  }
+
   // Token-based iCal feed (no JWT — feed URLs are subscribed in calendar apps).
   // Token = HMAC-SHA256(JWT_SECRET, userId) signed in CalendarService.
   @Get('consultations/me/ical.ics')
