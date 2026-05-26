@@ -137,6 +137,9 @@ export class NotificationsService {
           dailyPushMinute: updateData.dailyPushMinute ?? 0,
           timezone: updateData.timezone ?? 'UTC',
           lastPushSentAt: null,
+          smartTipsEnabled: updateData.smartTipsEnabled ?? false,
+          smartTipsHour: updateData.smartTipsHour ?? 20,
+          healthIssues: updateData.healthIssues ?? [],
         },
         update: updateData,
       });
@@ -379,4 +382,3 @@ export class NotificationsService {
     });
   }
 }
-

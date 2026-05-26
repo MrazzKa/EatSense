@@ -74,7 +74,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 104,
+      versionCode: 103,
       adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
       permissions: ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
       intentFilters: [{

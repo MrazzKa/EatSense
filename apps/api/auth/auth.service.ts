@@ -33,6 +33,13 @@ const OTP_EMAIL_HOURLY_LIMIT = 5;
 const OTP_IP_HOURLY_LIMIT = 40;
 const MAGIC_LINK_HOURLY_LIMIT = 5;
 const MAGIC_LINK_TTL_MINUTES = 15;
+const REFRESH_TOKEN_TTL_DAYS = Number.parseInt(process.env.JWT_REFRESH_TTL_DAYS || '365', 10);
+
+function refreshTokenTtlDays(): number {
+  return Number.isFinite(REFRESH_TOKEN_TTL_DAYS) && REFRESH_TOKEN_TTL_DAYS > 0
+    ? REFRESH_TOKEN_TTL_DAYS
+    : 365;
+}
 
 @Injectable()
 export class AuthService {
@@ -206,8 +213,11 @@ export class AuthService {
 
     await this.enforceMagicLinkRateLimits(normalizedEmail, sanitizedIp);
 
-    const user = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    // Case-insensitive findFirst+orderBy in case duplicate / mixed-case rows
+    // exist (see findOrCreateUser).
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      orderBy: { createdAt: 'asc' },
       include: { expertProfile: true },
     });
 
@@ -536,12 +546,12 @@ export class AuthService {
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
-      expiresIn: '30d',
+      expiresIn: `${refreshTokenTtlDays()}d`,
     });
 
     // Use findFirst + create/update to handle race conditions
     // This works even with partial unique indexes (WHERE jti IS NOT NULL)
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + refreshTokenTtlDays() * 24 * 60 * 60 * 1000);
 
     // Try to find existing token by jti
     const existingToken = await tx.refreshToken.findFirst({
@@ -712,9 +722,25 @@ export class AuthService {
 
       const normalizedEmail = this.normalizeEmail(email);
 
-      let user_ = await this.prisma.user.findUnique({
-        where: { email: normalizedEmail },
+      let user_ = await this.prisma.user.findFirst({
+        where: { appleUserId: tokenSub },
+        orderBy: { createdAt: 'asc' },
       });
+
+      if (!user_) {
+        // Case-insensitive findMany+orderBy to survive duplicate-email rows
+        // and mixed-case legacy data in prod (see findOrCreateUser comment).
+        const byEmail = await this.prisma.user.findMany({
+          where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+          orderBy: { createdAt: 'asc' },
+        });
+        if (byEmail.length > 1) {
+          this.logger.error(
+            `[AuthService] Apple Sign In: duplicate users for email=${this.maskEmail(normalizedEmail)}: ${byEmail.map((u) => u.id).join(', ')}. Pinning to oldest.`,
+          );
+        }
+        user_ = byEmail[0] || null;
+      }
 
       if (!user_) {
         const password = await this.generateRandomPasswordHash();
@@ -725,11 +751,28 @@ export class AuthService {
             appleUserId: tokenSub,
           },
         });
-      } else if (!user_.appleUserId) {
-        user_ = await this.prisma.user.update({
-          where: { id: user_.id },
-          data: { appleUserId: tokenSub },
-        });
+      } else {
+        // Backfill appleUserId for legacy users and refresh the relay email if Apple
+        // rotated it (happens when the user revokes & re-grants access — same Apple ID,
+        // new private-relay address). Without this the user's profile keeps a stale
+        // email and password resets / magic links go to a dead inbox.
+        const patch: { appleUserId?: string; email?: string } = {};
+        if (!user_.appleUserId) patch.appleUserId = tokenSub;
+        if (normalizedEmail && user_.email !== normalizedEmail) {
+          // Only auto-rotate to a private-relay address — never override a real email
+          // a user typed in OTP/magic-link flow with a relay alias.
+          const isRelay = normalizedEmail.endsWith('@privaterelay.appleid.com');
+          const wasRelay = (user_.email || '').endsWith('@privaterelay.appleid.com');
+          if (isRelay && wasRelay) {
+            patch.email = normalizedEmail;
+          }
+        }
+        if (Object.keys(patch).length > 0) {
+          user_ = await this.prisma.user.update({
+            where: { id: user_.id },
+            data: patch,
+          });
+        }
       }
 
       if (fullName && (fullName.givenName || fullName.familyName)) {
@@ -916,7 +959,7 @@ export class AuthService {
     this.logger.log(`[AuthService] generateTokens() - signing refresh token...`);
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
-      expiresIn: '30d',
+      expiresIn: `${refreshTokenTtlDays()}d`,
     });
     this.logger.log(`[AuthService] generateTokens() - refresh token signed, length=${refreshToken.length}`);
 
@@ -924,7 +967,7 @@ export class AuthService {
     // Use findFirst + create/update to handle race conditions
     // This works even with partial unique indexes (WHERE jti IS NOT NULL)
     try {
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + refreshTokenTtlDays() * 24 * 60 * 60 * 1000);
 
       // Try to find existing token by jti
       const existingToken = await this.prisma.refreshToken.findFirst({
@@ -980,10 +1023,27 @@ export class AuthService {
     this.logger.log(`[AuthService] findOrCreateUser() called for email: ${this.maskEmail(email)}`);
 
     this.logger.log(`[AuthService] findOrCreateUser() - searching for user in database...`);
-    let user = await this.prisma.user.findUnique({
-      where: { email },
+    // Defensive lookup: case-insensitive match + return the OLDEST user.
+    //
+    // History: some accounts created before normalizeEmail() was applied got
+    // stored with mixed case (e.g. `Bountyvangun348@gmail.com`). The current
+    // login passes `bountyvangun348@gmail.com`, which `findUnique` treats as a
+    // different string → creates a fresh User → user loops back into the
+    // onboarding screen because their old profile lives under the original
+    // capitalized row. `mode: 'insensitive'` makes the comparison ILIKE in
+    // Postgres. orderBy createdAt asc pins a returning user to their original
+    // (oldest) record even if duplicates were created during the bug window.
+    const candidates = await this.prisma.user.findMany({
+      where: { email: { equals: email, mode: 'insensitive' } },
+      orderBy: { createdAt: 'asc' },
     });
-    this.logger.log(`[AuthService] findOrCreateUser() - user search completed, found=${!!user}, userId=${user?.id || 'N/A'}`);
+    if (candidates.length > 1) {
+      this.logger.error(
+        `[AuthService] findOrCreateUser() - DUPLICATE USERS for email=${this.maskEmail(email)}: ${candidates.map((u) => u.id).join(', ')}. Pinning to oldest.`,
+      );
+    }
+    let user: typeof candidates[number] | null = candidates[0] || null;
+    this.logger.log(`[AuthService] findOrCreateUser() - user search completed, found=${!!user}, userId=${user?.id || 'N/A'}, duplicates=${Math.max(0, candidates.length - 1)}`);
 
     if (!user) {
       this.logger.log(`[AuthService] findOrCreateUser() - user not found, creating new user...`);

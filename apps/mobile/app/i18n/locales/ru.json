@@ -1218,7 +1218,10 @@
       "waitingForPeer": "Ожидание собеседника…",
       "reconnecting": "Переподключение...",
       "muteMic": "Выключить микрофон",
-      "disableCamera": "Выключить камеру"
+      "disableCamera": "Выключить камеру",
+      "cancel": "Отменить",
+      "unmuteMic": "Включить микрофон",
+      "enableCamera": "Включить камеру"
     },
     "browseArticles": "Смотреть статьи о питании",
     "subtitleExpert": "Управление профилем эксперта",

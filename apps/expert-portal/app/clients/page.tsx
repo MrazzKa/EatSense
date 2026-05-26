@@ -97,12 +97,12 @@ export default function ClientsPage() {
             <Users size={24} />
             {t('clients', 'title') || 'My clients'}
           </h1>
-          <span className="text-sm text-[var(--text-secondary)]">{clients.length}</span>
+          <span className="text-sm text-[var(--text2)]">{clients.length}</span>
         </div>
 
         <div className="mb-4 flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text2)]" />
             <input
               type="text"
               value={query}
@@ -119,7 +119,7 @@ export default function ClientsPage() {
                 className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition ${
                   filter === f
                     ? 'bg-[var(--primary)] text-white'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                    : 'text-[var(--text2)] hover:text-[var(--text)]'
                 }`}
               >
                 {t('clients', `filter_${f}`) || f}
@@ -133,7 +133,7 @@ export default function ClientsPage() {
             <div className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--primary)] border-t-transparent" />
           </div>
         ) : visible.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--text-secondary)]">
+          <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--text2)]">
             {clients.length === 0
               ? t('clients', 'emptyState') || 'No clients yet. Share your access code to invite people.'
               : t('clients', 'noMatches') || 'No clients match your filters.'}
@@ -165,7 +165,7 @@ export default function ClientsPage() {
                           </span>
                         ) : null}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                      <div className="mt-0.5 flex items-center gap-3 text-xs text-[var(--text2)]">
                         <span className="inline-flex items-center gap-1">
                           <Utensils size={12} /> {relTime(c.lastMealAt)}
                         </span>

@@ -108,6 +108,16 @@ type MessagesShape = {
     quickActions: string;
     viewChats: string;
     editProfile: string;
+    scheduleBtn: string;
+    contactBtn: string;
+    liveNow: string;
+    shouldHaveStarted: string;
+    nextConsultation: string;
+    startBtn: string;
+    viewAll: string;
+    minutesShort: string;
+    hoursShort: string;
+    minShort: string;
   };
   chats: {
     title: string;
@@ -180,6 +190,16 @@ type MessagesShape = {
     off: string;
     addBlock: string;
     failed: string;
+    meetings: string;
+    history: string;
+    noMeetings: string;
+    manage: string;
+    waiting: string;
+    start: string;
+    chat: string;
+    pageTitle: string;
+    availability: string;
+    upcoming: string;
   };
   clients: {
     title: string;
@@ -312,6 +332,83 @@ type MessagesShape = {
     inProgressHint: string;
     end: string;
   };
+  support: {
+    title: string;
+    subject: string;
+    expertSupport: string;
+    body: string;
+    bodyFull: string;
+  };
+  earnings: {
+    bannerCta: string;
+    thisMonth: string;
+    pendingPayout: string;
+    lifetime: string;
+    comingSoon: string;
+    body: string;
+    stripeConnected: string;
+    payoutsAuto: string;
+    updateStripe: string;
+    finishSetup: string;
+    finishSetupBody: string;
+    continueStripe: string;
+    connectStripeTitle: string;
+    connectStripeBody: string;
+    connectStripeBtn: string;
+    stripeFeeBefore: string;
+    paymentsDisabled: string;
+  };
+  sidebarMobile: {
+    home: string;
+    schedule: string;
+  };
+  onboardingTour: {
+    skip: string;
+    next: string;
+    done: string;
+    closeAria: string;
+    slide1Title: string;
+    slide1Body: string;
+    slide2Title: string;
+    slide2Body: string;
+    slide3Title: string;
+    slide3Body: string;
+    slide4Title: string;
+    slide4Body: string;
+  };
+  consultations: {
+    title: string;
+    tabAvailability: string;
+    tabBookings: string;
+    newButton: string;
+    pickClientAndTime: string;
+    cancelConfirm: string;
+    completeConfirm: string;
+    noShowConfirm: string;
+    upcoming: string;
+    past: string;
+    empty: string;
+    startBtn: string;
+    chatBtn: string;
+    rescheduleBtn: string;
+    completeBtn: string;
+    cancelBtn: string;
+    noShowBtn: string;
+    newConsultation: string;
+    client: string;
+    when: string;
+    duration: string;
+    modalCancel: string;
+    modalCreate: string;
+    modalSend: string;
+    rescheduleTitle: string;
+    rescheduleBody: string;
+    newTime: string;
+    accept: string;
+    decline: string;
+    youProposed: string;
+    clientProposed: string;
+  };
 };
 
 const en: MessagesShape = {
@@ -353,6 +450,7 @@ const en: MessagesShape = {
     underReviewTitle: 'Under review.',
     underReviewBody: 'Your profile is being reviewed by our team. You will receive a notification once it is approved.',
     quickActions: 'Quick Actions', viewChats: 'View Chats', editProfile: 'Edit Profile',
+    scheduleBtn: 'Schedule', contactBtn: 'Contact', liveNow: 'Live now', shouldHaveStarted: 'Should have started', nextConsultation: 'Next consultation', startBtn: 'Start', viewAll: 'View all', minutesShort: 'min', hoursShort: 'h', minShort: 'm',
   },
   chats: {
     title: 'Chats', empty: 'No conversations yet', noMessages: 'No messages yet',
@@ -405,6 +503,7 @@ const en: MessagesShape = {
     off: 'Off',
     addBlock: 'Add block',
     failed: 'Failed',
+    meetings: 'Meetings', history: 'History', noMeetings: 'No consultations in this section', manage: 'Open all', waiting: 'Waiting room', start: 'Start', chat: 'Chat', pageTitle: 'Schedule', availability: 'Availability', upcoming: 'Upcoming',
   },
   clients: {
     title: 'Client Data', backToChat: 'Back to chat',
@@ -498,6 +597,35 @@ const en: MessagesShape = {
     inProgressHint: 'Use the red button when you are ready to end the call.',
     end: 'End',
   },
+  support: {
+    title: 'Contact EatSense', subject: 'EatSense expert support', expertSupport: 'Expert support', body: 'Email us about schedule, clients, payouts, profile changes, or technical issues.', bodyFull: 'Email us about schedule, clients, payouts, profile changes, or technical issues. We usually reply within one business day.',
+  },
+  earnings: {
+    bannerCta: 'Connect Stripe to receive automatic payouts for consultations.', thisMonth: 'This month', pendingPayout: 'Pending payout', lifetime: 'Lifetime', comingSoon: 'Coming soon', body: 'Earnings reporting is in beta. For exact balances and transfers check Stripe Connect.', stripeConnected: 'Stripe Connect connected', payoutsAuto: 'Payouts will appear in your account after consultations complete.', updateStripe: 'Update on Stripe', finishSetup: 'Finish Stripe setup', finishSetupBody: 'Submit your details on Stripe to enable payouts.', continueStripe: 'Continue on Stripe', connectStripeTitle: 'Connect Stripe to receive payouts', connectStripeBody: 'Stripe Connect handles payouts automatically when clients pay for a consultation.', connectStripeBtn: 'Connect Stripe', stripeFeeBefore: 'EatSense uses Stripe Connect Express. Onboarding takes 5–10 minutes. The platform fee is', paymentsDisabled: 'Payments are temporarily disabled by the admin. Stripe linking will be available once enabled.',
+  },
+  sidebarMobile: {
+    home: 'Home', schedule: 'Schedule',
+  },
+  onboardingTour: {
+    skip: 'Skip', next: 'Next', done: 'Got it', closeAria: 'Close',
+    slide1Title: 'Your access code',
+    slide1Body: 'Share this code with clients — they enter it in the mobile app to start a consultation with you. You can copy or regenerate it in Profile.',
+    slide2Title: 'Set your availability',
+    slide2Body: 'Open Availability and mark when you accept consultations. Clients only see free slots. Out-of-office mode pauses bookings.',
+    slide3Title: 'Pricing & offers',
+    slide3Body: 'Add 30/60/90-min offers with prices in your local currency. Stripe Connect handles payouts automatically (set up in Earnings).',
+    slide4Title: 'Chat & client notes',
+    slide4Body: 'Each client conversation lives in Chats. Open a client card to see meals, lab results, and add private notes — visible only to you.',
+  },
+  consultations: {
+    title: 'Consultations', tabAvailability: 'Availability', tabBookings: 'Bookings', newButton: 'New',
+    pickClientAndTime: 'Pick a client and a time',
+    cancelConfirm: 'Cancel consultation?', completeConfirm: 'Complete consultation?', noShowConfirm: 'Mark as no-show?',
+    upcoming: 'Upcoming', past: 'Past', empty: 'No consultations',
+    startBtn: 'Start', chatBtn: 'Chat', rescheduleBtn: 'Reschedule',
+    completeBtn: 'Complete', cancelBtn: 'Cancel', noShowBtn: 'No-show',
+    newConsultation: 'New consultation', client: 'Client', when: 'When', duration: 'Duration', modalCancel: 'Cancel', modalCreate: 'Create', modalSend: 'Send', rescheduleTitle: 'Reschedule', rescheduleBody: 'Pick a new time to propose to the client.', newTime: 'New time', accept: 'Accept', decline: 'Decline', youProposed: 'You proposed reschedule to:', clientProposed: 'Client proposed reschedule to:',
+  },
 };
 
 const ru: MessagesShape = {
@@ -539,6 +667,7 @@ const ru: MessagesShape = {
     underReviewTitle: 'На проверке.',
     underReviewBody: 'Ваш профиль проверяется нашей командой. Вы получите уведомление, как только он будет одобрен.',
     quickActions: 'Быстрые действия', viewChats: 'Перейти к чатам', editProfile: 'Изменить профиль',
+    scheduleBtn: 'Расписание', contactBtn: 'Связаться', liveNow: 'Идёт сейчас', shouldHaveStarted: 'Должна была начаться', nextConsultation: 'Ближайшая консультация', startBtn: 'Начать', viewAll: 'Все', minutesShort: 'мин', hoursShort: 'ч', minShort: 'м',
   },
   chats: {
     title: 'Чаты', empty: 'Пока нет консультаций', noMessages: 'Пока нет сообщений',
@@ -591,6 +720,7 @@ const ru: MessagesShape = {
     off: 'Выходной',
     addBlock: 'Добавить блок',
     failed: 'Ошибка',
+    meetings: 'Встречи', history: 'История', noMeetings: 'Нет консультаций в этом разделе', manage: 'Открыть все', waiting: 'Комната ожидания', start: 'Начать', chat: 'Чат', pageTitle: 'Расписание', availability: 'Доступность', upcoming: 'Предстоящие',
   },
   clients: {
     title: 'Данные клиента', backToChat: 'Вернуться к чату',
@@ -684,6 +814,35 @@ const ru: MessagesShape = {
     inProgressHint: 'Нажмите красную кнопку, когда консультацию нужно завершить.',
     end: 'Завершить',
   },
+  support: {
+    title: 'Связаться с EatSense', subject: 'Вопрос эксперта EatSense', expertSupport: 'Помощь для экспертов', body: 'Напишите нам по вопросам расписания, клиентов, выплат, профиля или технических ошибок.', bodyFull: 'Напишите нам по вопросам расписания, клиентов, выплат, профиля или технических ошибок. Обычно отвечаем в течение одного рабочего дня.',
+  },
+  earnings: {
+    bannerCta: 'Подключите Stripe Connect для автоматических выплат за консультации.', thisMonth: 'Этот месяц', pendingPayout: 'Ожидает выплаты', lifetime: 'За всё время', comingSoon: 'Скоро', body: 'Отчёты по выплатам в бета-режиме. Для точных балансов и переводов смотрите Stripe Connect.', stripeConnected: 'Stripe Connect подключён', payoutsAuto: 'Платежи приходят на ваш счёт автоматически после завершения консультаций.', updateStripe: 'Обновить данные на Stripe', finishSetup: 'Завершите настройку Stripe', finishSetupBody: 'Подтвердите ваши данные в Stripe чтобы начать получать выплаты.', continueStripe: 'Продолжить на Stripe', connectStripeTitle: 'Подключите Stripe для приёма выплат', connectStripeBody: 'Stripe Connect автоматически проводит выплаты, когда клиент оплачивает консультацию.', connectStripeBtn: 'Подключить Stripe', stripeFeeBefore: 'EatSense использует Stripe Connect Express. Onboarding занимает 5–10 минут. Платформа удерживает', paymentsDisabled: 'Платежи временно отключены администратором. Связка со Stripe станет доступна после включения.',
+  },
+  sidebarMobile: {
+    home: 'Обзор', schedule: 'Расписание',
+  },
+  onboardingTour: {
+    skip: 'Пропустить', next: 'Далее', done: 'Готово', closeAria: 'Закрыть',
+    slide1Title: 'Ваш код доступа',
+    slide1Body: 'Поделитесь этим кодом с клиентами — они вводят его в приложении, чтобы начать консультацию. Скопировать или сгенерировать заново можно в Профиле.',
+    slide2Title: 'Задайте доступность',
+    slide2Body: 'В разделе «Доступность» отметьте время приёма. Клиенты видят только свободные слоты. Режим отпуска приостанавливает бронирование.',
+    slide3Title: 'Цены и услуги',
+    slide3Body: 'Создайте офферы 30/60/90 минут с ценами в вашей валюте. Stripe Connect автоматически проводит выплаты (подключите в разделе «Доходы»).',
+    slide4Title: 'Чат и заметки',
+    slide4Body: 'Каждый разговор живёт в «Чатах». На карточке клиента видны приёмы пищи и анализы, можно вести приватные заметки.',
+  },
+  consultations: {
+    title: 'Консультации', tabAvailability: 'Доступность', tabBookings: 'Встречи', newButton: 'Назначить',
+    pickClientAndTime: 'Выберите клиента и время',
+    cancelConfirm: 'Отменить консультацию?', completeConfirm: 'Завершить консультацию?', noShowConfirm: 'Отметить как no-show?',
+    upcoming: 'Предстоящие', past: 'Прошлые', empty: 'Нет консультаций',
+    startBtn: 'Начать', chatBtn: 'Чат', rescheduleBtn: 'Перенести',
+    completeBtn: 'Завершить', cancelBtn: 'Отменить', noShowBtn: 'Не пришёл',
+    newConsultation: 'Назначить консультацию', client: 'Клиент', when: 'Когда', duration: 'Длительность', modalCancel: 'Отмена', modalCreate: 'Создать', modalSend: 'Отправить', rescheduleTitle: 'Перенести консультацию', rescheduleBody: 'Выберите новое время для предложения клиенту.', newTime: 'Новое время', accept: 'Принять', decline: 'Отклонить', youProposed: 'Вы предложили перенос на:', clientProposed: 'Клиент предложил перенос на:',
+  },
 };
 
 const kk: MessagesShape = {
@@ -725,6 +884,7 @@ const kk: MessagesShape = {
     underReviewTitle: 'Тексеруде.',
     underReviewBody: 'Профиліңіз біздің командамен тексерілуде. Мақұлданған кезде хабарлама аласыз.',
     quickActions: 'Жылдам әрекеттер', viewChats: 'Чаттарға өту', editProfile: 'Профильді өзгерту',
+    scheduleBtn: 'Кесте', contactBtn: 'Хабарласу', liveNow: 'Қазір өтуде', shouldHaveStarted: 'Басталуы керек еді', nextConsultation: 'Жақын консультация', startBtn: 'Бастау', viewAll: 'Барлығы', minutesShort: 'мин', hoursShort: 'сағ', minShort: 'мин',
   },
   chats: {
     title: 'Чаттар', empty: 'Әзірге сұхбаттар жоқ', noMessages: 'Әзірге хабарламалар жоқ',
@@ -777,6 +937,7 @@ const kk: MessagesShape = {
     off: 'Демалыс',
     addBlock: 'Блок қосу',
     failed: 'Қате',
+    meetings: 'Кездесулер', history: 'Тарих', noMeetings: 'Бұл бөлімде консультациялар жоқ', manage: 'Барлығын ашу', waiting: 'Күту бөлмесі', start: 'Бастау', chat: 'Чат', pageTitle: 'Кесте', availability: 'Қол жетімділік', upcoming: 'Алдағы',
   },
   clients: {
     title: 'Клиент деректері', backToChat: 'Чатқа оралу',
@@ -870,6 +1031,35 @@ const kk: MessagesShape = {
     inProgressHint: 'Кеңесті аяқтау үшін қызыл батырманы басыңыз.',
     end: 'Аяқтау',
   },
+  support: {
+    title: 'EatSense-пен байланысу', subject: 'EatSense сарапшысының сұрағы', expertSupport: 'Сарапшыларға көмек', body: 'Кесте, клиенттер, төлемдер, профиль немесе техникалық мәселелер бойынша хат жазыңыз.', bodyFull: 'Кесте, клиенттер, төлемдер, профиль немесе техникалық мәселелер бойынша жазыңыз. Әдетте бір жұмыс күні ішінде жауап береміз.',
+  },
+  earnings: {
+    bannerCta: 'Консультациялар үшін автоматты төлемдер алу үшін Stripe Connect-ке қосылыңыз.', thisMonth: 'Осы ай', pendingPayout: 'Күтудегі төлем', lifetime: 'Барлық уақытта', comingSoon: 'Жақын арада', body: 'Кірістер есебі бета-режимінде. Нақты балансты Stripe Connect-те қараңыз.', stripeConnected: 'Stripe Connect қосылған', payoutsAuto: 'Консультациялар аяқталғаннан кейін төлемдер автоматты түрде келеді.', updateStripe: 'Stripe-тегі деректерді жаңарту', finishSetup: 'Stripe орнатуын аяқтаңыз', finishSetupBody: 'Төлемдер үшін Stripe-те деректерді растаңыз.', continueStripe: 'Stripe-те жалғастыру', connectStripeTitle: 'Төлем алу үшін Stripe-ке қосылыңыз', connectStripeBody: 'Клиент консультацияны төлегенде Stripe Connect төлемдерді автоматты түрде өңдейді.', connectStripeBtn: 'Stripe-ке қосылу', stripeFeeBefore: 'EatSense Stripe Connect Express пайдаланады. Орнату 5–10 минут алады. Платформа комиссиясы', paymentsDisabled: 'Төлемдер әкімші тарапынан уақытша өшірілген. Қосылған соң Stripe қол жетімді болады.',
+  },
+  sidebarMobile: {
+    home: 'Басты', schedule: 'Кесте',
+  },
+  onboardingTour: {
+    skip: 'Өткізіп жіберу', next: 'Әрі қарай', done: 'Дайын', closeAria: 'Жабу',
+    slide1Title: 'Сіздің кіру кодыңыз',
+    slide1Body: 'Бұл кодты клиенттермен бөлісіңіз — олар сізбен консультация бастау үшін мобильді қосымшаға енгізеді. Профильде көшіруге немесе қайта жасауға болады.',
+    slide2Title: 'Қол жетімділікті орнатыңыз',
+    slide2Body: 'Қол жетімділік бөлімінде консультация қабылдайтын уақытыңызды белгілеңіз. Клиенттер тек бос уақытты көреді. Демалыс режимі брондауларды тоқтатады.',
+    slide3Title: 'Бағалар мен қызметтер',
+    slide3Body: '30/60/90 мин ұсыныстарын жергілікті валютада қосыңыз. Stripe Connect төлемдерді автоматты түрде жасайды (Кірістерде орнатыңыз).',
+    slide4Title: 'Чат пен жазбалар',
+    slide4Body: 'Әрбір клиент әңгімесі Чаттарда. Клиент картасын ашып тағамдар мен талдауларды көріп, тек өзіңізге көрінетін жеке жазбалар қоса аласыз.',
+  },
+  consultations: {
+    title: 'Консультациялар', tabAvailability: 'Қол жетімділік', tabBookings: 'Кездесулер', newButton: 'Тағайындау',
+    pickClientAndTime: 'Клиент пен уақытты таңдаңыз',
+    cancelConfirm: 'Консультацияны болдырмау керек пе?', completeConfirm: 'Консультацияны аяқтау керек пе?', noShowConfirm: 'Келмеген деп белгілеу керек пе?',
+    upcoming: 'Алдағы', past: 'Өткен', empty: 'Консультациялар жоқ',
+    startBtn: 'Бастау', chatBtn: 'Чат', rescheduleBtn: 'Ауыстыру',
+    completeBtn: 'Аяқтау', cancelBtn: 'Болдырмау', noShowBtn: 'Келмеді',
+    newConsultation: 'Консультация тағайындау', client: 'Клиент', when: 'Қашан', duration: 'Ұзақтығы', modalCancel: 'Болдырмау', modalCreate: 'Жасау', modalSend: 'Жіберу', rescheduleTitle: 'Консультацияны ауыстыру', rescheduleBody: 'Клиентке ұсыну үшін жаңа уақытты таңдаңыз.', newTime: 'Жаңа уақыт', accept: 'Қабылдау', decline: 'Қабылдамау', youProposed: 'Сіз ауыстыруды ұсындыңыз:', clientProposed: 'Клиент ауыстыруды ұсынды:',
+  },
 };
 
 const de: MessagesShape = {
@@ -911,6 +1101,7 @@ const de: MessagesShape = {
     underReviewTitle: 'In Prüfung.',
     underReviewBody: 'Ihr Profil wird von unserem Team geprüft. Sie erhalten eine Benachrichtigung, sobald es genehmigt ist.',
     quickActions: 'Schnellaktionen', viewChats: 'Chats anzeigen', editProfile: 'Profil bearbeiten',
+    scheduleBtn: 'Zeitplan', contactBtn: 'Kontakt', liveNow: 'Läuft jetzt', shouldHaveStarted: 'Hätte beginnen sollen', nextConsultation: 'Nächste Beratung', startBtn: 'Starten', viewAll: 'Alle ansehen', minutesShort: 'Min.', hoursShort: 'Std.', minShort: 'm',
   },
   chats: {
     title: 'Chats', empty: 'Noch keine Konversationen', noMessages: 'Noch keine Nachrichten',
@@ -963,6 +1154,7 @@ const de: MessagesShape = {
     off: 'Frei',
     addBlock: 'Block hinzufügen',
     failed: 'Fehler',
+    meetings: 'Termine', history: 'Verlauf', noMeetings: 'Keine Beratungen in diesem Abschnitt', manage: 'Alle öffnen', waiting: 'Warteraum', start: 'Starten', chat: 'Chat', pageTitle: 'Zeitplan', availability: 'Verfügbarkeit', upcoming: 'Bevorstehend',
   },
   clients: {
     title: 'Kundendaten', backToChat: 'Zurück zum Chat',
@@ -1056,6 +1248,35 @@ const de: MessagesShape = {
     inProgressHint: 'Nutzen Sie die rote Schaltfläche, wenn Sie den Anruf beenden möchten.',
     end: 'Beenden',
   },
+  support: {
+    title: 'EatSense kontaktieren', subject: 'EatSense Experten-Support', expertSupport: 'Experten-Support', body: 'Schreiben Sie uns zu Zeitplan, Klienten, Auszahlungen, Profil oder technischen Problemen.', bodyFull: 'Schreiben Sie uns zu Zeitplan, Klienten, Auszahlungen, Profil oder technischen Problemen. Wir antworten in der Regel innerhalb eines Werktags.',
+  },
+  earnings: {
+    bannerCta: 'Verbinden Sie Stripe Connect für automatische Beratungs-Auszahlungen.', thisMonth: 'Diesen Monat', pendingPayout: 'Ausstehende Auszahlung', lifetime: 'Gesamt', comingSoon: 'Demnächst', body: 'Einnahmen-Reporting ist in der Beta. Für genaue Salden und Überweisungen siehe Stripe Connect.', stripeConnected: 'Stripe Connect verbunden', payoutsAuto: 'Auszahlungen erscheinen nach Abschluss der Beratungen auf Ihrem Konto.', updateStripe: 'Bei Stripe aktualisieren', finishSetup: 'Stripe-Einrichtung abschließen', finishSetupBody: 'Bestätigen Sie Ihre Daten bei Stripe, um Auszahlungen zu erhalten.', continueStripe: 'Bei Stripe fortsetzen', connectStripeTitle: 'Stripe verbinden, um Auszahlungen zu erhalten', connectStripeBody: 'Stripe Connect verarbeitet Auszahlungen automatisch, wenn Klienten zahlen.', connectStripeBtn: 'Stripe verbinden', stripeFeeBefore: 'EatSense verwendet Stripe Connect Express. Onboarding dauert 5–10 Minuten. Die Plattform-Gebühr beträgt', paymentsDisabled: 'Zahlungen sind vom Admin vorübergehend deaktiviert. Stripe-Verknüpfung wird nach Aktivierung verfügbar.',
+  },
+  sidebarMobile: {
+    home: 'Start', schedule: 'Zeitplan',
+  },
+  onboardingTour: {
+    skip: 'Überspringen', next: 'Weiter', done: 'Verstanden', closeAria: 'Schließen',
+    slide1Title: 'Ihr Zugangscode',
+    slide1Body: 'Teilen Sie diesen Code mit Klienten — sie geben ihn in der Mobile-App ein, um eine Beratung mit Ihnen zu starten. Im Profil kopieren oder neu generieren.',
+    slide2Title: 'Verfügbarkeit festlegen',
+    slide2Body: 'Öffnen Sie „Verfügbarkeit" und markieren Sie, wann Sie Beratungen annehmen. Klienten sehen nur freie Slots. Abwesenheitsmodus pausiert Buchungen.',
+    slide3Title: 'Preise & Angebote',
+    slide3Body: 'Fügen Sie 30/60/90-Minuten-Angebote mit Preisen in Ihrer Währung hinzu. Stripe Connect übernimmt Auszahlungen automatisch (in „Einnahmen" einrichten).',
+    slide4Title: 'Chat & Notizen',
+    slide4Body: 'Jedes Klientengespräch lebt in Chats. Öffnen Sie eine Klientenkarte für Mahlzeiten, Laborergebnisse und private Notizen — nur für Sie sichtbar.',
+  },
+  consultations: {
+    title: 'Beratungen', tabAvailability: 'Verfügbarkeit', tabBookings: 'Termine', newButton: 'Neu',
+    pickClientAndTime: 'Klient und Zeit auswählen',
+    cancelConfirm: 'Beratung absagen?', completeConfirm: 'Beratung abschließen?', noShowConfirm: 'Als „nicht erschienen" markieren?',
+    upcoming: 'Bevorstehend', past: 'Vergangen', empty: 'Keine Beratungen',
+    startBtn: 'Starten', chatBtn: 'Chat', rescheduleBtn: 'Verschieben',
+    completeBtn: 'Abschließen', cancelBtn: 'Absagen', noShowBtn: 'Nicht erschienen',
+    newConsultation: 'Neue Beratung', client: 'Klient', when: 'Wann', duration: 'Dauer', modalCancel: 'Abbrechen', modalCreate: 'Erstellen', modalSend: 'Senden', rescheduleTitle: 'Verschieben', rescheduleBody: 'Wählen Sie eine neue Zeit zur Vorlage beim Klienten.', newTime: 'Neue Zeit', accept: 'Annehmen', decline: 'Ablehnen', youProposed: 'Sie haben verschoben auf:', clientProposed: 'Klient hat verschoben auf:',
+  },
 };
 
 const fr: MessagesShape = {
@@ -1097,6 +1318,7 @@ const fr: MessagesShape = {
     underReviewTitle: 'En cours d\'examen.',
     underReviewBody: 'Votre profil est examiné par notre équipe. Vous recevrez une notification dès son approbation.',
     quickActions: 'Actions rapides', viewChats: 'Voir les chats', editProfile: 'Modifier le profil',
+    scheduleBtn: 'Planning', contactBtn: 'Contact', liveNow: 'En cours', shouldHaveStarted: 'Aurait dû commencer', nextConsultation: 'Prochaine consultation', startBtn: 'Démarrer', viewAll: 'Voir tout', minutesShort: 'min', hoursShort: 'h', minShort: 'm',
   },
   chats: {
     title: 'Messages', empty: 'Aucune conversation pour le moment', noMessages: 'Aucun message pour le moment',
@@ -1149,6 +1371,7 @@ const fr: MessagesShape = {
     off: 'Repos',
     addBlock: 'Ajouter un bloc',
     failed: 'Échec',
+    meetings: 'Réunions', history: 'Historique', noMeetings: 'Aucune consultation dans cette section', manage: 'Tout ouvrir', waiting: 'Salle d\'attente', start: 'Démarrer', chat: 'Chat', pageTitle: 'Planning', availability: 'Disponibilité', upcoming: 'À venir',
   },
   clients: {
     title: 'Données du client', backToChat: 'Retour au chat',
@@ -1242,6 +1465,35 @@ const fr: MessagesShape = {
     inProgressHint: 'Utilisez le bouton rouge lorsque vous souhaitez terminer l’appel.',
     end: 'Terminer',
   },
+  support: {
+    title: 'Contacter EatSense', subject: 'Support expert EatSense', expertSupport: 'Support expert', body: 'Écrivez-nous pour des questions sur le planning, les clients, paiements, profil ou problèmes techniques.', bodyFull: 'Écrivez-nous pour le planning, les clients, paiements, profil ou problèmes techniques. Nous répondons en général sous un jour ouvré.',
+  },
+  earnings: {
+    bannerCta: 'Connectez Stripe Connect pour recevoir vos paiements automatiquement.', thisMonth: 'Ce mois', pendingPayout: 'Paiement en attente', lifetime: 'Total', comingSoon: 'Bientôt', body: 'Les rapports de revenus sont en bêta. Pour les soldes exacts, consultez Stripe Connect.', stripeConnected: 'Stripe Connect connecté', payoutsAuto: 'Les paiements arrivent sur votre compte après chaque consultation.', updateStripe: 'Mettre à jour sur Stripe', finishSetup: 'Terminer la configuration Stripe', finishSetupBody: 'Validez vos informations chez Stripe pour activer les paiements.', continueStripe: 'Continuer sur Stripe', connectStripeTitle: 'Connectez Stripe pour recevoir les paiements', connectStripeBody: "Stripe Connect gère les paiements automatiquement lorsqu'un client paie une consultation.", connectStripeBtn: 'Connecter Stripe', stripeFeeBefore: 'EatSense utilise Stripe Connect Express. L’onboarding prend 5–10 minutes. La commission de la plateforme est', paymentsDisabled: 'Les paiements sont temporairement désactivés par l\'admin. La liaison Stripe sera disponible une fois activée.',
+  },
+  sidebarMobile: {
+    home: 'Accueil', schedule: 'Planning',
+  },
+  onboardingTour: {
+    skip: 'Passer', next: 'Suivant', done: 'Compris', closeAria: 'Fermer',
+    slide1Title: 'Votre code d\'accès',
+    slide1Body: 'Partagez ce code avec vos clients — ils le saisissent dans l\'app mobile pour démarrer une consultation. Vous pouvez le copier ou le régénérer dans Profil.',
+    slide2Title: 'Définir vos disponibilités',
+    slide2Body: 'Dans Disponibilités, indiquez quand vous acceptez des consultations. Les clients ne voient que les créneaux libres. Le mode absence met en pause les réservations.',
+    slide3Title: 'Tarifs & offres',
+    slide3Body: 'Ajoutez des offres 30/60/90 min avec des prix dans votre devise. Stripe Connect gère les paiements automatiquement (à configurer dans Revenus).',
+    slide4Title: 'Chat & notes',
+    slide4Body: 'Chaque conversation client est dans Chats. Ouvrez une fiche client pour voir les repas, analyses et ajouter des notes privées — visibles uniquement par vous.',
+  },
+  consultations: {
+    title: 'Consultations', tabAvailability: 'Disponibilités', tabBookings: 'Rendez-vous', newButton: 'Nouveau',
+    pickClientAndTime: 'Choisissez un client et un créneau',
+    cancelConfirm: 'Annuler la consultation ?', completeConfirm: 'Terminer la consultation ?', noShowConfirm: 'Marquer comme absent ?',
+    upcoming: 'À venir', past: 'Passées', empty: 'Aucune consultation',
+    startBtn: 'Démarrer', chatBtn: 'Chat', rescheduleBtn: 'Reprogrammer',
+    completeBtn: 'Terminer', cancelBtn: 'Annuler', noShowBtn: 'Absent',
+    newConsultation: 'Nouvelle consultation', client: 'Client', when: 'Quand', duration: 'Durée', modalCancel: 'Annuler', modalCreate: 'Créer', modalSend: 'Envoyer', rescheduleTitle: 'Reprogrammer', rescheduleBody: 'Choisissez un nouveau créneau à proposer au client.', newTime: 'Nouveau créneau', accept: 'Accepter', decline: 'Refuser', youProposed: 'Vous avez proposé pour :', clientProposed: 'Le client a proposé pour :',
+  },
 };
 
 const es: MessagesShape = {
@@ -1283,6 +1535,7 @@ const es: MessagesShape = {
     underReviewTitle: 'En revisión.',
     underReviewBody: 'Tu perfil está siendo revisado por nuestro equipo. Recibirás una notificación cuando sea aprobado.',
     quickActions: 'Acciones rápidas', viewChats: 'Ver chats', editProfile: 'Editar perfil',
+    scheduleBtn: 'Agenda', contactBtn: 'Contacto', liveNow: 'En curso', shouldHaveStarted: 'Debería haber empezado', nextConsultation: 'Próxima consulta', startBtn: 'Iniciar', viewAll: 'Ver todo', minutesShort: 'min', hoursShort: 'h', minShort: 'm',
   },
   chats: {
     title: 'Chats', empty: 'Aún no hay conversaciones', noMessages: 'Aún no hay mensajes',
@@ -1335,6 +1588,7 @@ const es: MessagesShape = {
     off: 'Descanso',
     addBlock: 'Añadir bloque',
     failed: 'Error',
+    meetings: 'Reuniones', history: 'Historial', noMeetings: 'No hay consultas en esta sección', manage: 'Abrir todo', waiting: 'Sala de espera', start: 'Iniciar', chat: 'Chat', pageTitle: 'Agenda', availability: 'Disponibilidad', upcoming: 'Próximas',
   },
   clients: {
     title: 'Datos del cliente', backToChat: 'Volver al chat',
@@ -1427,6 +1681,35 @@ const es: MessagesShape = {
     inProgress: 'Videoconsulta en curso',
     inProgressHint: 'Usa el botón rojo cuando quieras finalizar la llamada.',
     end: 'Finalizar',
+  },
+  support: {
+    title: 'Contactar a EatSense', subject: 'Soporte experto EatSense', expertSupport: 'Soporte experto', body: 'Escríbenos sobre agenda, clientes, pagos, perfil o incidencias técnicas.', bodyFull: 'Escríbenos sobre agenda, clientes, pagos, perfil o incidencias técnicas. Solemos responder en menos de un día laborable.',
+  },
+  earnings: {
+    bannerCta: 'Conecta Stripe Connect para recibir pagos automáticos por consultas.', thisMonth: 'Este mes', pendingPayout: 'Pago pendiente', lifetime: 'Total histórico', comingSoon: 'Próximamente', body: 'Los informes de ingresos están en beta. Para saldos exactos consulta Stripe Connect.', stripeConnected: 'Stripe Connect conectado', payoutsAuto: 'Los pagos aparecerán en tu cuenta tras completar las consultas.', updateStripe: 'Actualizar en Stripe', finishSetup: 'Termina la configuración de Stripe', finishSetupBody: 'Confirma tus datos en Stripe para activar los pagos.', continueStripe: 'Continuar en Stripe', connectStripeTitle: 'Conecta Stripe para recibir pagos', connectStripeBody: 'Stripe Connect gestiona los pagos automáticamente cuando un cliente paga una consulta.', connectStripeBtn: 'Conectar Stripe', stripeFeeBefore: 'EatSense usa Stripe Connect Express. El onboarding tarda 5–10 minutos. La comisión de la plataforma es', paymentsDisabled: 'Los pagos están temporalmente deshabilitados por el administrador. La conexión a Stripe estará disponible al activarse.',
+  },
+  sidebarMobile: {
+    home: 'Inicio', schedule: 'Agenda',
+  },
+  onboardingTour: {
+    skip: 'Saltar', next: 'Siguiente', done: 'Entendido', closeAria: 'Cerrar',
+    slide1Title: 'Tu código de acceso',
+    slide1Body: 'Comparte este código con tus clientes — lo introducen en la app móvil para iniciar una consulta contigo. Puedes copiarlo o regenerarlo en Perfil.',
+    slide2Title: 'Configura tu disponibilidad',
+    slide2Body: 'Abre Disponibilidad y marca cuándo aceptas consultas. Los clientes solo ven las franjas libres. El modo ausente pausa las reservas.',
+    slide3Title: 'Precios y ofertas',
+    slide3Body: 'Añade ofertas de 30/60/90 min con precios en tu moneda. Stripe Connect gestiona los pagos automáticamente (configúralo en Ingresos).',
+    slide4Title: 'Chat y notas',
+    slide4Body: 'Cada conversación con un cliente vive en Chats. Abre la ficha del cliente para ver comidas, análisis y añadir notas privadas — solo visibles para ti.',
+  },
+  consultations: {
+    title: 'Consultas', tabAvailability: 'Disponibilidad', tabBookings: 'Citas', newButton: 'Nueva',
+    pickClientAndTime: 'Elige un cliente y una hora',
+    cancelConfirm: '¿Cancelar consulta?', completeConfirm: '¿Completar consulta?', noShowConfirm: '¿Marcar como no asistió?',
+    upcoming: 'Próximas', past: 'Pasadas', empty: 'Sin consultas',
+    startBtn: 'Iniciar', chatBtn: 'Chat', rescheduleBtn: 'Reprogramar',
+    completeBtn: 'Completar', cancelBtn: 'Cancelar', noShowBtn: 'No asistió',
+    newConsultation: 'Nueva consulta', client: 'Cliente', when: 'Cuándo', duration: 'Duración', modalCancel: 'Cancelar', modalCreate: 'Crear', modalSend: 'Enviar', rescheduleTitle: 'Reprogramar', rescheduleBody: 'Elige una nueva hora para proponer al cliente.', newTime: 'Nueva hora', accept: 'Aceptar', decline: 'Rechazar', youProposed: 'Has propuesto reprogramar a:', clientProposed: 'El cliente propuso reprogramar a:',
   },
 };
 

@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Copy, FileText, Headphones, KeyRound, Package, RefreshCw, Star, Upload, Trash2, Video } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, apiFetchRaw } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { useToast } from '@/components/toast';
 import { LOCALES, SPECIALIZATION_KEYS, type Locale, type SpecializationKey } from '@/lib/i18n/messages';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 const EXPERT_TYPES = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'other'] as const;
 
 interface ExpertProfile {
@@ -36,6 +36,7 @@ interface ExpertAccessCode {
 
 export default function ProfilePage() {
   const { t } = useI18n();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<ExpertProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -106,7 +107,7 @@ export default function ProfilePage() {
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('Failed to save:', err);
-      alert(t('common', 'saveFailed'));
+      toast(t('common', 'saveFailed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -133,7 +134,7 @@ export default function ProfilePage() {
     if (!accessCode?.code) return;
     try {
       await navigator.clipboard.writeText(accessCode.code);
-      alert(t('profile', 'codeCopied'));
+      toast(t('profile', 'codeCopied'), 'success');
     } catch {
       window.prompt(t('profile', 'copyCode'), accessCode.code);
     }
@@ -146,7 +147,7 @@ export default function ProfilePage() {
       setAccessCode((prev) => ({ ...(prev || {}), ...updated, usageCount: updated.usageCount ?? 0 }));
     } catch (err) {
       console.error('Failed to regenerate access code:', err);
-      alert(t('common', 'error'));
+      toast(t('common', 'error'));
     }
   }
 
@@ -155,28 +156,26 @@ export default function ProfilePage() {
     e.target.value = '';
     if (!file) return;
     if (!credName.trim()) {
-      alert(t('profile', 'credentialNameRequired'));
+      toast(t('profile', 'credentialNameRequired'), 'error');
       return;
     }
     const isImage = file.type.startsWith('image/');
     const isPdf = file.type === 'application/pdf';
     if (!isImage && !isPdf) {
-      alert(t('profile', 'uploadOnlyImageOrPdf'));
+      toast(t('profile', 'uploadOnlyImageOrPdf'), 'error');
       return;
     }
     if (file.size > 15 * 1024 * 1024) {
-      alert(t('profile', 'uploadMaxSize'));
+      toast(t('profile', 'uploadMaxSize'), 'error');
       return;
     }
 
     setUploading(true);
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(`${API_BASE}/media/upload-document`, {
+      const res = await apiFetchRaw('/media/upload-document', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: fd,
       });
       if (!res.ok) {
@@ -196,7 +195,7 @@ export default function ProfilePage() {
       await refreshProfile();
     } catch (err) {
       console.error('Credential upload failed:', err);
-      alert(t('common', 'uploadFailed'));
+      toast(t('common', 'uploadFailed'), 'error');
     } finally {
       setUploading(false);
     }
@@ -209,18 +208,19 @@ export default function ProfilePage() {
       await refreshProfile();
     } catch (err) {
       console.error('Failed to delete credential:', err);
-      alert(t('common', 'deleteFailed'));
+      toast(t('common', 'deleteFailed'), 'error');
     }
   }
 
   async function handleViewCredential(cred: { name: string; fileUrl: string }) {
     const popup = typeof window !== 'undefined' ? window.open('', '_blank', 'noopener,noreferrer') : null;
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      const url = /^https?:\/\//i.test(cred.fileUrl) ? cred.fileUrl : `${API_BASE}${cred.fileUrl}`;
-      const res = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
+      const isAbsolute = /^https?:\/\//i.test(cred.fileUrl);
+      // Internal URLs go through apiFetchRaw so the access token is refreshed
+      // automatically on 401. External ones we open with a plain fetch.
+      const res = isAbsolute
+        ? await fetch(cred.fileUrl)
+        : await apiFetchRaw(cred.fileUrl);
       if (!res.ok) {
         throw new Error(await res.text());
       }
@@ -235,7 +235,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error('Failed to open credential:', err);
       popup?.close();
-      alert(t('common', 'openFailed'));
+      toast(t('common', 'openFailed'), 'error');
     }
   }
 
@@ -274,8 +274,8 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="shrink-0 text-left sm:text-right">
-                  <div className="inline-flex min-h-11 items-center rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-4 font-mono text-lg font-bold tracking-[0.12em]">
-                    {accessCode?.code || '------'}
+                  <div className="inline-flex min-h-11 max-w-full items-center overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-4 font-mono text-lg font-bold tracking-[0.12em]">
+                    <span className="truncate">{accessCode?.code || '------'}</span>
                   </div>
                   <div className="mt-1 text-xs text-[var(--text2)]">
                     {t('profile', 'codeUsage')}: {accessCode?.usageCount || 0}
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                       <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition ${videoEnabled ? 'left-7' : 'left-1'}`} />
                     </button>
                   </div>
-                  <div className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${videoEnabled ? 'bg-[#22c55e22] text-[var(--green)]' : 'bg-[#ef444422] text-[var(--red)]'}`}>
+                  <div className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${videoEnabled ? 'bg-[var(--green-soft)] text-[var(--green)]' : 'bg-[var(--red-soft)] text-[var(--red)]'}`}>
                     {videoEnabled ? t('profile', 'videoCallsEnabled') : t('profile', 'videoCallsDisabled')}
                   </div>
                 </div>
@@ -459,9 +459,9 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        cred.status === 'approved' ? 'bg-[#22c55e22] text-[var(--green)]' :
-                        cred.status === 'rejected' ? 'bg-[#ef444422] text-[var(--red)]' :
-                        'bg-[#f59e0b22] text-[var(--yellow)]'
+                        cred.status === 'approved' ? 'bg-[var(--green-soft)] text-[var(--green)]' :
+                        cred.status === 'rejected' ? 'bg-[var(--red-soft)] text-[var(--red)]' :
+                        'bg-[var(--yellow-soft)] text-[var(--yellow)]'
                       }`}>
                         {cred.status === 'approved' ? t('common', 'approved') :
                          cred.status === 'rejected' ? t('common', 'rejected') :

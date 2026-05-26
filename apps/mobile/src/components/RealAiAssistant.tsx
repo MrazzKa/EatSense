@@ -52,6 +52,20 @@ interface RealAiAssistantProps {
   } | null;
 }
 
+async function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealContext }) => {
   if (__DEV__) {
     console.log('[RealAiAssistant] mounted');
@@ -92,7 +106,11 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
           ]);
           return;
         }
-        const history = await ApiService.getConversationHistory(user.id, 10);
+        const history = await withTimeout(
+          ApiService.getConversationHistory(user.id, 10),
+          8000,
+          'AI assistant history timed out',
+        );
 
         if (Array.isArray(history) && history.length > 0) {
           const historyMessages: Message[] = history
@@ -208,18 +226,18 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
 
           let response;
           if (ApiService && typeof ApiService.getNutritionAdvice === 'function') {
-            response = await ApiService.getNutritionAdvice(
+            response = await withTimeout(ApiService.getNutritionAdvice(
               user?.id || '',
               `Please analyze this meal and provide nutritional insights:\n\n${contextString}`,
               mealContext,
               locale,
-            );
+            ), 20000, 'AI meal analysis timed out');
           } else if (ApiService && typeof ApiService.getGeneralQuestion === 'function') {
-            response = await ApiService.getGeneralQuestion(
+            response = await withTimeout(ApiService.getGeneralQuestion(
               user?.id || '',
               `Please analyze this meal and provide nutritional insights:\n\n${contextString}`,
               locale,
-            );
+            ), 20000, 'AI meal analysis timed out');
           }
 
           if (response?.answer) {
@@ -392,25 +410,25 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
         const questionWithContext = `${text}\n\nContext about this meal:\n${contextString}`;
 
         if (ApiService && typeof ApiService.getNutritionAdvice === 'function') {
-          response = await ApiService.getNutritionAdvice(
+          response = await withTimeout(ApiService.getNutritionAdvice(
             user?.id || '',
             questionWithContext,
             mealContext,
             mapLanguageToLocale(language),
-          );
+          ), 20000, 'AI nutrition advice timed out');
         } else {
-          response = await ApiService.getGeneralQuestion(
+          response = await withTimeout(ApiService.getGeneralQuestion(
             user?.id || '',
             questionWithContext,
             mapLanguageToLocale(language),
-          );
+          ), 20000, 'AI general question timed out');
         }
       } else {
-        response = await ApiService.getGeneralQuestion(
+        response = await withTimeout(ApiService.getGeneralQuestion(
           user?.id || '',
           text || (attachment ? `[${attachment.type === 'image' ? 'Photo' : 'PDF'} attached]` : ''),
           mapLanguageToLocale(language),
-        );
+        ), 20000, 'AI general question timed out');
       }
 
       const assistantMessage: Message = {

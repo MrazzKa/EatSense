@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Package } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { useToast } from '@/components/toast';
 import { OFFER_LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n/messages';
 
 type OfferFormat =
@@ -66,6 +67,7 @@ function pickLocalized(map: Record<string, string> | null | undefined, preferred
 
 export default function OffersPage() {
   const { t, locale } = useI18n();
+  const { toast } = useToast();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Offer | null>(null);
@@ -133,7 +135,7 @@ export default function OffersPage() {
       if (v) nonEmptyName[l] = v;
     }
     if (Object.keys(nonEmptyName).length === 0) {
-      alert(t('offers', 'nameRequired'));
+      toast(t('offers', 'nameRequired'), 'error');
       return;
     }
     const nonEmptyDesc: Record<string, string> = {};
@@ -177,7 +179,7 @@ export default function OffersPage() {
       closeEditor();
     } catch (err) {
       console.error('Failed to save offer:', err);
-      alert(t('common', 'saveFailed'));
+      toast(t('common', 'saveFailed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -192,7 +194,7 @@ export default function OffersPage() {
       await load();
     } catch (err) {
       console.error('Failed to toggle publish:', err);
-      alert(t('offers', 'togglePublishFailed'));
+      toast(t('offers', 'togglePublishFailed'), 'error');
     }
   }
 
@@ -203,7 +205,7 @@ export default function OffersPage() {
       await load();
     } catch (err) {
       console.error('Failed to delete offer:', err);
-      alert(t('common', 'deleteFailed'));
+      toast(t('common', 'deleteFailed'), 'error');
     }
   }
 
@@ -249,7 +251,7 @@ export default function OffersPage() {
                         <h3 className="font-semibold">{displayName || '—'}</h3>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           offer.isPublished
-                            ? 'bg-[#22c55e22] text-[var(--green)]'
+                            ? 'bg-[var(--green-soft)] text-[var(--green)]'
                             : 'bg-[var(--surface2)] text-[var(--text2)]'
                         }`}>
                           {offer.isPublished ? t('common', 'published') : t('common', 'draft')}

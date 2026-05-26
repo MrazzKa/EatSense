@@ -812,7 +812,7 @@ const OnboardingScreen = () => {
 
 
   const scrollViewRef = useRef(null);
-  const onboardingCompletedRef = useRef(false);
+  const onboardingCompletedRef = useRef<false | 'inflight' | 'done'>(false);
 
   // Simplified onboarding - only essential data collection slides
   const steps = useMemo(() => [
@@ -1079,14 +1079,18 @@ const OnboardingScreen = () => {
 
 
   // Complete onboarding after profile is saved (called after purchase success or for free plan)
+  // Guard: prevents concurrent calls, but allows retry if the API call failed so the
+  // backend isOnboardingCompleted flag actually gets set (otherwise the user lands
+  // back in onboarding on next refresh — this caused the "double onboarding" bug).
   const completeOnboarding = useCallback(async () => {
-    if (onboardingCompletedRef.current) {
-      console.log('[OnboardingScreen] completeOnboarding already called, skipping');
+    if (onboardingCompletedRef.current === 'done' || onboardingCompletedRef.current === 'inflight') {
+      console.log('[OnboardingScreen] completeOnboarding already in progress/done, skipping');
       return;
     }
-    onboardingCompletedRef.current = true;
+    onboardingCompletedRef.current = 'inflight';
     try {
       const onboardingResult = await ApiService.completeOnboarding();
+      onboardingCompletedRef.current = 'done';
       console.log('[OnboardingScreen] Onboarding completed, result:', onboardingResult);
 
       await clientLog('Onboarding:completed').catch(() => { });
@@ -1110,6 +1114,8 @@ const OnboardingScreen = () => {
       }
     } catch (err) {
       console.error('[OnboardingScreen] Complete onboarding error:', err);
+      // Allow retry on the next navigation/tap so the backend flag is eventually set.
+      onboardingCompletedRef.current = false;
 
       // FAIL OPEN: Even if API fails (e.g. timeout, network), let the user in
       // Update local state so they can use the app

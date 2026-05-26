@@ -48,8 +48,14 @@ const DisclaimerModal = ({
             setLoading(false);
         };
 
-        if (propVisible !== false) { // Only run if not explicitly hidden
+        // Only run the visibility check when the parent explicitly mounts the
+        // modal (propVisible === true). `undefined` means the caller never
+        // opened it, so we must not auto-accept on background mounts.
+        if (propVisible === true) {
             checkStatus();
+        } else {
+            setLoading(false);
+            setInternalVisible(false);
         }
     }, [disclaimerKey, language, propVisible, onAccept]);
 

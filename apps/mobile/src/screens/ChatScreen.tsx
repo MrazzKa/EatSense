@@ -583,8 +583,8 @@ export default function ChatScreen({ navigation, route }) {
                     )}
                     {isReportRequest && (
                         <View style={styles.specialBadge}>
-                            <Ionicons name="shield-outline" size={14} color={mine ? '#fff' : '#FF9800'} />
-                            <Text style={[styles.specialBadgeText, { color: mine ? '#fff' : '#FF9800' }]}>
+                            <Ionicons name="shield-outline" size={14} color={mine ? '#fff' : (colors.warning || '#F59E0B')} />
+                            <Text style={[styles.specialBadgeText, { color: mine ? '#fff' : (colors.warning || '#F59E0B') }]}>
                                 {t('experts.dataAccessRequest') || 'Data Access Request'}
                             </Text>
                         </View>

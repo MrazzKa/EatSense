@@ -38,13 +38,14 @@ type TokenResponse = {
 };
 
 export default function VideoCallScreen({ route, navigation }: any) {
-    const { conversationId } = route.params || {};
+    const { conversationId, consultationId } = route.params || {};
     const { t } = useI18n();
     const { colors } = useTheme();
     const [creds, setCreds] = useState<TokenResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [connectionLost, setConnectionLost] = useState(false);
+    const [consultationEndAt, setConsultationEndAt] = useState<number | null>(null);
     const startedAtRef = useRef<number | null>(null);
 
     const fetchToken = useCallback(async () => {
@@ -61,7 +62,8 @@ export default function VideoCallScreen({ route, navigation }: any) {
                 body: JSON.stringify({}),
             });
             setCreds(res);
-            startedAtRef.current = Date.now();
+            // startedAtRef is set in onConnected (first connect only) so that
+            // billed duration matches actual time spent in the room.
         } catch (err: any) {
             const status = err?.response?.status || err?.status;
             if (status === 503) {
@@ -78,6 +80,19 @@ export default function VideoCallScreen({ route, navigation }: any) {
         fetchToken();
     }, [fetchToken]);
 
+    // Load consultation end time so we can auto-finish when the paid window closes.
+    useEffect(() => {
+        if (!consultationId) return;
+        let cancelled = false;
+        ApiService.request(`/consultations/${consultationId}`)
+            .then((data: any) => {
+                if (cancelled) return;
+                if (data?.endAt) setConsultationEndAt(new Date(data.endAt).getTime());
+            })
+            .catch(() => { });
+        return () => { cancelled = true; };
+    }, [consultationId]);
+
     // iOS/Android audio session lifecycle (echo cancellation, route, etc).
     useEffect(() => {
         if (!creds) return;
@@ -88,20 +103,88 @@ export default function VideoCallScreen({ route, navigation }: any) {
         };
     }, [creds]);
 
-    const endCall = useCallback(async () => {
-        const duration = startedAtRef.current ? Math.round((Date.now() - startedAtRef.current) / 1000) : 0;
-        if (creds?.sessionId) {
-            ApiService.request(`/video/session/${creds.sessionId}/ended`, {
-                method: 'POST',
-                body: JSON.stringify({ durationSec: duration }),
-            }).catch(() => { });
+    const sessionEndedRef = useRef(false);
+
+    const endCallInternal = useCallback(async (opts?: { suppressNavigation?: boolean }) => {
+        if (sessionEndedRef.current) {
+            if (!opts?.suppressNavigation) navigation.goBack();
+            return;
         }
-        navigation.goBack();
+        sessionEndedRef.current = true;
+        const duration = startedAtRef.current
+            ? Math.round((Date.now() - startedAtRef.current) / 1000)
+            : 0;
+        if (creds?.sessionId) {
+            try {
+                await ApiService.request(`/video/session/${creds.sessionId}/ended`, {
+                    method: 'POST',
+                    body: JSON.stringify({ durationSec: duration }),
+                });
+            } catch {
+                // Best-effort — backend may already mark sessions as ended via heartbeat timeout.
+            }
+        }
+        if (!opts?.suppressNavigation) navigation.goBack();
     }, [creds, navigation]);
+
+    const endCall = useCallback(() => {
+        endCallInternal();
+    }, [endCallInternal]);
+
+    // Hard guarantee: if the user backs out via gesture, hardware back, or the
+    // screen unmounts for any reason, still report the session as ended so it
+    // doesn't get stuck in `in_call` forever.
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+            if (sessionEndedRef.current || !creds?.sessionId) return;
+            e.preventDefault();
+            endCallInternal({ suppressNavigation: true }).finally(() => {
+                navigation.dispatch(e.data.action);
+            });
+        });
+        return unsubscribe;
+    }, [navigation, creds?.sessionId, endCallInternal]);
+
+    useEffect(() => {
+        return () => {
+            if (!sessionEndedRef.current && creds?.sessionId) {
+                // Fire-and-forget — component is unmounting, we cannot block here.
+                ApiService.request(`/video/session/${creds.sessionId}/ended`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        durationSec: startedAtRef.current
+                            ? Math.round((Date.now() - startedAtRef.current) / 1000)
+                            : 0,
+                    }),
+                }).catch(() => {});
+            }
+        };
+    }, [creds?.sessionId]);
+
+    // Auto-finish call when the paid consultation window closes. We give a small
+    // grace (60s after endAt) so trailing wrap-up doesn't get cut mid-sentence.
+    useEffect(() => {
+        if (!consultationEndAt || !creds?.sessionId) return;
+        const graceMs = 60_000;
+        const dueAt = consultationEndAt + graceMs;
+        const now = Date.now();
+        if (now >= dueAt) {
+            endCallInternal();
+            return;
+        }
+        const handle = setTimeout(() => {
+            endCallInternal();
+        }, dueAt - now);
+        return () => clearTimeout(handle);
+    }, [consultationEndAt, creds?.sessionId, endCallInternal]);
 
     const onConnected = useCallback(() => {
         setConnectionLost(false);
-        startedAtRef.current = Date.now();
+        // Set start time only on the first successful connect — otherwise reconnects
+        // would reset the clock and the billed duration becomes wrong.
+        if (!startedAtRef.current) {
+            startedAtRef.current = Date.now();
+        }
         if (creds?.sessionId) {
             ApiService.request(`/video/session/${creds.sessionId}/started`, {
                 method: 'POST',
@@ -236,6 +319,22 @@ function RoomView({ onEndCall, t, connectionLost }: { onEndCall: () => void; t: 
                 </View>
             )}
 
+            {/* Cancel waiting (shown while peer hasn't joined yet) */}
+            {!remote && (
+                <SafeAreaView style={styles.cancelContainer} edges={['top']}>
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={onEndCall}
+                        accessibilityLabel={t('experts.video.cancel') || 'Cancel call'}
+                    >
+                        <Ionicons name="close" size={18} color="#fff" />
+                        <Text style={styles.cancelButtonText}>
+                            {t('experts.video.cancel') || 'Cancel'}
+                        </Text>
+                    </TouchableOpacity>
+                </SafeAreaView>
+            )}
+
             {/* End-call button */}
             <SafeAreaView style={styles.controlsContainer} edges={['bottom']}>
                 <TouchableOpacity
@@ -363,5 +462,29 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.5,
         shadowRadius: 8,
         elevation: 8,
+    },
+    cancelContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        alignItems: 'flex-start',
+        paddingTop: 12,
+        paddingHorizontal: 16,
+        zIndex: 30,
+    },
+    cancelButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.55)',
+    },
+    cancelButtonText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
     },
 });

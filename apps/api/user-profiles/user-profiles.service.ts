@@ -192,17 +192,9 @@ export class UserProfilesService {
         where: { userId },
       });
 
-      // If profile doesn't exist, create a default one
       if (!profile) {
-        this.logger.log(`[UserProfilesService] Profile not found for userId=${userId}, creating default profile`);
-        profile = await this.prisma.userProfile.create({
-          data: {
-            userId,
-            isOnboardingCompleted: false,
-            // All other fields are optional, so we can leave them null/undefined
-          },
-        });
-        this.logger.log(`[UserProfilesService] Created default profile for userId=${userId}, id=${profile.id}`);
+        this.logger.log(`[UserProfilesService] Profile not found for userId=${userId}`);
+        return null;
       }
 
       // Include expertsRole from User model so the mobile app can check expert status.

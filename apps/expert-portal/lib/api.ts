@@ -1,4 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+let refreshPromise: Promise<boolean> | null = null;
 
 export function apiBaseUrl(): string {
   return API_BASE;
@@ -32,7 +33,7 @@ export async function apiFetch<T = any>(
 
   if (res.status === 401) {
     // Try refresh
-    const refreshed = await tryRefreshToken();
+    const refreshed = await refreshOnce();
     if (refreshed) {
       headers['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
       const retry = await fetch(`${API_BASE}${path}`, { ...options, headers });
@@ -57,6 +58,41 @@ export async function apiFetch<T = any>(
   return res.json();
 }
 
+/**
+ * Like apiFetch but returns the raw Response — for binary downloads, file
+ * uploads (FormData), or anywhere you need streaming/headers/blob access.
+ * Still handles 401 with a single-flight refresh and retries once.
+ */
+export async function apiFetchRaw(
+  path: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string> | undefined),
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const url = /^https?:\/\//i.test(path) ? path : `${API_BASE}${path}`;
+  const res = await fetch(url, { ...options, headers });
+  if (res.status !== 401) return res;
+
+  const refreshed = await refreshOnce();
+  if (!refreshed) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/';
+    }
+    return res;
+  }
+  const newToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  if (newToken) headers['Authorization'] = `Bearer ${newToken}`;
+  return fetch(url, { ...options, headers });
+}
+
 async function tryRefreshToken(): Promise<boolean> {
   const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
   if (!refreshToken) return false;
@@ -79,4 +115,13 @@ async function tryRefreshToken(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function refreshOnce(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = tryRefreshToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 }

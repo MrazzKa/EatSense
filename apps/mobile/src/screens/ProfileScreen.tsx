@@ -9,6 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import ApiService from '../services/apiService';
 import { localNotificationService } from '../services/localNotificationService';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -614,7 +616,7 @@ const ProfileScreen = () => {
           dailyPushHour: typeof prefs.dailyPushHour === 'number' ? prefs.dailyPushHour : 8,
           dailyPushMinute: typeof prefs.dailyPushMinute === 'number' ? prefs.dailyPushMinute : 0,
           timezone: prefs.timezone || deviceTimezone,
-          smartTipsEnabled: !!prefs.smartTipsEnabled && shouldBeEnabled,
+          smartTipsEnabled: !!prefs.smartTipsEnabled,
           smartTipsHour: typeof prefs.smartTipsHour === 'number' ? prefs.smartTipsHour : 20,
           healthIssues: Array.isArray(prefs.healthIssues) ? prefs.healthIssues : [],
         });
@@ -991,11 +993,13 @@ const ProfileScreen = () => {
       }
 
       const updated = await ApiService.updateNotificationPreferences(payload);
-      setNotificationPreferences({
+      setNotificationPreferences(prev => ({
+        ...prev,
         dailyPushEnabled: Boolean(updated.dailyPushEnabled),
         dailyPushHour: typeof updated.dailyPushHour === 'number' ? updated.dailyPushHour : notificationPreferences.dailyPushHour,
+        dailyPushMinute: typeof updated.dailyPushMinute === 'number' ? updated.dailyPushMinute : notificationPreferences.dailyPushMinute,
         timezone: (updated.timezone || notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
-      });
+      }));
     } catch (error) {
       console.error('Failed to update push preferences', error);
       Alert.alert(
@@ -1014,10 +1018,65 @@ const ProfileScreen = () => {
     try {
       setSmartTipsSaving(true);
       const next = { ...notificationPreferences, ...partial };
+      const selectedIssues = Array.isArray(next.healthIssues) ? next.healthIssues : [];
+      const wantsEnable = Boolean(next.smartTipsEnabled);
+      if (wantsEnable && selectedIssues.length === 0) {
+        Alert.alert(
+          safeT('common.error', 'Error'),
+          safeT('profile.smartTips.pickIssueFirst', 'Pick at least one area below to enable smart tips.'),
+        );
+        return;
+      }
+
+      const hasPermission = await localNotificationService.checkPermissions();
+      if (wantsEnable && !hasPermission) {
+        const granted = await localNotificationService.requestPermissions();
+        if (!granted) {
+          Alert.alert(
+            safeT('profile.notificationsPermissionTitle', 'Permission Required'),
+            safeT('profile.notificationsPermissionMessage', 'Please enable notifications in system settings to receive reminders.'),
+          );
+          return;
+        }
+      }
+
+      // Smart tips are delivered as remote push from the backend scheduler, so we
+      // need the Expo push token registered in the API. The app registers it on
+      // launch via usePushNotifications, but if the user denied permission on
+      // first launch and now flipped Smart Tips on, that registration never
+      // happened — register it here so the very first tip can actually arrive.
+      if (wantsEnable) {
+        try {
+          if (Device.isDevice) {
+            const projectId =
+              Constants.expoConfig?.extra?.eas?.projectId ||
+              (Constants as any).easConfig?.projectId;
+            if (projectId) {
+              const tokenResp = await Notifications.getExpoPushTokenAsync({ projectId });
+              if (tokenResp?.data) {
+                const deviceId = Constants.sessionId || Constants.deviceId || 'unknown';
+                const platform = Platform.OS;
+                const appVersion = Constants.expoConfig?.version || '1.0.0';
+                await ApiService.registerPushToken(
+                  tokenResp.data,
+                  deviceId,
+                  platform,
+                  appVersion,
+                ).catch((err) => {
+                  console.warn('[smartTips] registerPushToken failed', err);
+                });
+              }
+            }
+          }
+        } catch (tokenErr) {
+          console.warn('[smartTips] getExpoPushTokenAsync failed', tokenErr);
+        }
+      }
+
       const payload = {
         smartTipsEnabled: Boolean(next.smartTipsEnabled),
         smartTipsHour: Number(next.smartTipsHour) || 20,
-        healthIssues: Array.isArray(next.healthIssues) ? next.healthIssues : [],
+        healthIssues: selectedIssues,
       };
       const updated = await ApiService.updateNotificationPreferences(payload);
       setNotificationPreferences(prev => ({
@@ -1040,7 +1099,10 @@ const ProfileScreen = () => {
   const toggleHealthIssue = (issue: string) => {
     const current = notificationPreferences.healthIssues || [];
     const next = current.includes(issue) ? current.filter((i) => i !== issue) : [...current, issue];
-    saveSmartTips({ healthIssues: next });
+    saveSmartTips({
+      healthIssues: next,
+      smartTipsEnabled: notificationPreferences.smartTipsEnabled && next.length > 0,
+    });
   };
 
   const onTimeChange = (event, selectedDate) => {
@@ -1075,12 +1137,13 @@ const ProfileScreen = () => {
       }
 
       const updated = await ApiService.updateNotificationPreferences(payload);
-      setNotificationPreferences({
+      setNotificationPreferences(prev => ({
+        ...prev,
         dailyPushEnabled: Boolean(updated.dailyPushEnabled),
         dailyPushHour: typeof updated.dailyPushHour === 'number' ? updated.dailyPushHour : hour,
         dailyPushMinute: typeof updated.dailyPushMinute === 'number' ? updated.dailyPushMinute : minute,
         timezone: (updated.timezone || notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
-      });
+      }));
     } catch (error) {
       console.error('Failed to update reminder time', error);
       Alert.alert(
@@ -2247,13 +2310,10 @@ const ProfileScreen = () => {
             {/* Smart tips section — opt-in personalised tips per health issue */}
             <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: tokens.colors.borderMuted }}>
               {(() => {
-                const masterOn = notificationPreferences.dailyPushEnabled;
                 const issuesCount = (notificationPreferences.healthIssues || []).length;
-                const canEnableSmart = masterOn && issuesCount > 0;
+                const canEnableSmart = issuesCount > 0;
                 const smartOn = notificationPreferences.smartTipsEnabled && canEnableSmart;
-                const subtitle = !masterOn
-                  ? safeT('profile.smartTips.masterRequired', 'Turn on Daily reminders to enable smart tips.')
-                  : issuesCount === 0
+                const subtitle = issuesCount === 0
                   ? safeT('profile.smartTips.pickIssueFirst', 'Pick at least one area below to enable smart tips.')
                   : safeT('profile.smartTips.subtitle', 'Get a personalised tip each day based on what you want to improve.');
                 return (
@@ -2273,41 +2333,37 @@ const ProfileScreen = () => {
                 );
               })()}
 
-              {notificationPreferences.dailyPushEnabled && (
-                <>
-                  <Text style={[styles.preferenceLabel, { marginTop: 16, marginBottom: 8 }]}>
-                    {safeT('profile.smartTips.issuesLabel', 'What would you like to improve?')}
-                  </Text>
-                  {(['sleep', 'stress', 'energy', 'digestion'] as const).map((issue) => {
-                    const checked = (notificationPreferences.healthIssues || []).includes(issue);
-                    const labelKey = issue === 'sleep' ? 'profile.smartTips.issueSleep'
-                      : issue === 'stress' ? 'profile.smartTips.issueStress'
-                      : issue === 'energy' ? 'profile.smartTips.issueEnergy'
-                      : 'profile.smartTips.issueDigestion';
-                    const labelFallback = issue.charAt(0).toUpperCase() + issue.slice(1);
-                    return (
-                      <TouchableOpacity
-                        key={issue}
-                        onPress={() => toggleHealthIssue(issue)}
-                        disabled={smartTipsSaving}
-                        activeOpacity={0.7}
-                        style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}
-                      >
-                        <Ionicons
-                          name={checked ? 'checkbox' : 'square-outline'}
-                          size={22}
-                          color={checked ? tokens.colors.primary : tokens.colors.textSecondary}
-                        />
-                        <Text style={{ marginLeft: 12, fontSize: 15, color: tokens.colors.textPrimary }}>
-                          {safeT(labelKey, labelFallback)}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </>
-              )}
+              <Text style={[styles.preferenceLabel, { marginTop: 16, marginBottom: 8 }]}>
+                {safeT('profile.smartTips.issuesLabel', 'What would you like to improve?')}
+              </Text>
+              {(['sleep', 'stress', 'energy', 'digestion'] as const).map((issue) => {
+                const checked = (notificationPreferences.healthIssues || []).includes(issue);
+                const labelKey = issue === 'sleep' ? 'profile.smartTips.issueSleep'
+                  : issue === 'stress' ? 'profile.smartTips.issueStress'
+                  : issue === 'energy' ? 'profile.smartTips.issueEnergy'
+                  : 'profile.smartTips.issueDigestion';
+                const labelFallback = issue.charAt(0).toUpperCase() + issue.slice(1);
+                return (
+                  <TouchableOpacity
+                    key={issue}
+                    onPress={() => toggleHealthIssue(issue)}
+                    disabled={smartTipsSaving}
+                    activeOpacity={0.7}
+                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}
+                  >
+                    <Ionicons
+                      name={checked ? 'checkbox' : 'square-outline'}
+                      size={22}
+                      color={checked ? tokens.colors.primary : tokens.colors.textSecondary}
+                    />
+                    <Text style={{ marginLeft: 12, fontSize: 15, color: tokens.colors.textPrimary }}>
+                      {safeT(labelKey, labelFallback)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
 
-              {notificationPreferences.smartTipsEnabled && notificationPreferences.dailyPushEnabled && (notificationPreferences.healthIssues || []).length > 0 && (
+              {notificationPreferences.smartTipsEnabled && (notificationPreferences.healthIssues || []).length > 0 && (
                 <>
                   {/* Hour picker — reuse modal-less inline UX via simple +/- chips */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>

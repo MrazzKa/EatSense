@@ -1466,7 +1466,10 @@
       "waitingForPeer": "Waiting for the other participant…",
       "reconnecting": "Reconnecting...",
       "muteMic": "Mute microphone",
-      "disableCamera": "Turn camera off"
+      "disableCamera": "Turn camera off",
+      "cancel": "Cancel",
+      "unmuteMic": "Unmute microphone",
+      "enableCamera": "Turn camera on"
     },
     "feature1": "Find verified specialists",
     "feature2": "Chat & video consultations",

@@ -9,12 +9,57 @@
   --text2: #8b91a8;
   --primary: #6366f1;
   --primary-hover: #818cf8;
+  --primary-soft: rgba(99, 102, 241, 0.14);
   --green: #22c55e;
+  --green-soft: rgba(34, 197, 94, 0.14);
   --red: #ef4444;
+  --red-soft: rgba(239, 68, 68, 0.14);
   --yellow: #f59e0b;
+  --yellow-soft: rgba(245, 158, 11, 0.14);
+  --neutral-soft: rgba(139, 145, 168, 0.14);
 }
 
 body {
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
 }
+
+/* Site-wide keyboard focus ring — matches our primary token. */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary);
+  border-radius: 6px;
+}
+
+/* Shared button variants. Components can still extend via className for layout,
+   but base sizing / transition / disabled handling lives here so the portal
+   stays consistent across pages. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface2); }
+
+.btn-ghost { background: transparent; color: var(--text2); }
+.btn-ghost:hover:not(:disabled) { color: var(--text); background: var(--surface); }
+
+.btn-destructive { background: var(--red); color: white; }
+.btn-destructive:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 85%, white); }

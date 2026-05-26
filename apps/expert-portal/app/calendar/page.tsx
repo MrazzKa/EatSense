@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { AppShell } from '@/components/app-shell';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { useToast } from '@/components/toast';
 import { Calendar as CalendarIcon, Clock, Copy, MessageSquare, Plane, Plus, Save, Trash2, Video } from 'lucide-react';
 import Link from 'next/link';
 
@@ -49,6 +50,7 @@ function parseTime(value: string): number {
 
 export default function CalendarPage() {
   const { t, locale } = useI18n();
+  const { toast } = useToast();
   const [rules, setRules] = useState<Rule[]>([]);
   const [timezone, setTimezone] = useState<string>('UTC');
   const [loading, setLoading] = useState(true);
@@ -61,6 +63,7 @@ export default function CalendarPage() {
   const [savingAway, setSavingAway] = useState(false);
   const [consultations, setConsultations] = useState<ScheduleConsultation[]>([]);
   const [consultationTab, setConsultationTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [view, setView] = useState<'availability' | 'meetings'>('availability');
 
   useEffect(() => {
     apiFetch('/experts/me/availability')
@@ -80,8 +83,7 @@ export default function CalendarPage() {
     apiFetch('/consultations/me/ical-token')
       .then((data) => {
         if (data?.token && typeof window !== 'undefined') {
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || window.location.origin.replace(/:\d+$/, ':3000');
-          setIcalUrl(`${apiBase}/consultations/me/ical.ics?token=${encodeURIComponent(data.token)}`);
+          setIcalUrl(`${apiBaseUrl()}/consultations/me/ical.ics?token=${encodeURIComponent(data.token)}`);
         }
       })
       .catch(() => {});
@@ -109,7 +111,7 @@ export default function CalendarPage() {
       });
       setRules(Array.isArray(res?.rules) ? res.rules : []);
     } catch (e) {
-      alert((e as any)?.message || 'Save failed');
+      toast((e as any)?.message || 'Save failed', 'error');
     } finally {
       setSaving(false);
     }
@@ -125,7 +127,7 @@ export default function CalendarPage() {
       setExceptions((arr) => [...arr, created]);
       setNewExDate('');
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     }
   }
 
@@ -134,7 +136,7 @@ export default function CalendarPage() {
       await apiFetch(`/experts/me/availability/exceptions/${id}`, { method: 'DELETE' });
       setExceptions((arr) => arr.filter((e) => e.id !== id));
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     }
   }
 
@@ -149,7 +151,7 @@ export default function CalendarPage() {
         }),
       });
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     } finally {
       setSavingAway(false);
     }
@@ -157,15 +159,15 @@ export default function CalendarPage() {
 
   const grouped = WEEKDAYS.map((_, day) => rules.filter((r) => r.weekday === day));
   const calendarCopy = {
-    meetings: locale === 'ru' ? 'Встречи' : 'Meetings',
-    availability: locale === 'ru' ? 'Доступность' : 'Availability',
-    upcoming: locale === 'ru' ? 'Предстоящие' : 'Upcoming',
-    history: locale === 'ru' ? 'История' : 'History',
-    noMeetings: locale === 'ru' ? 'Нет консультаций в этом разделе' : 'No consultations in this section',
-    manage: locale === 'ru' ? 'Открыть все' : 'Open all',
-    waiting: locale === 'ru' ? 'Комната ожидания' : 'Waiting room',
-    start: locale === 'ru' ? 'Начать' : 'Start',
-    chat: locale === 'ru' ? 'Чат' : 'Chat',
+    meetings: t('calendar', 'meetings'),
+    availability: t('calendar', 'availability'),
+    upcoming: t('calendar', 'upcoming'),
+    history: t('calendar', 'history'),
+    noMeetings: t('calendar', 'noMeetings'),
+    manage: t('calendar', 'manage'),
+    waiting: t('calendar', 'waiting'),
+    start: t('calendar', 'start'),
+    chat: t('calendar', 'chat'),
   };
   const visibleConsultations = consultations.filter((c) => {
     const end = new Date(c.endAt).getTime();
@@ -183,27 +185,38 @@ export default function CalendarPage() {
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{locale === 'ru' ? 'Расписание' : 'Schedule'}</h1>
-            <div className="mt-2 flex gap-2 text-xs">
-              <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">{t('calendar', 'pageTitle')}</h1>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setView('availability')}
+                className={`rounded-full px-3 py-2 font-semibold transition ${view === 'availability' ? 'bg-[var(--primary)] text-white' : 'border border-[var(--border)] text-[var(--text2)]'}`}
+              >
                 {calendarCopy.availability}
-              </span>
-              <a href="#meetings" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('meetings')}
+                className={`rounded-full px-3 py-2 font-semibold transition ${view === 'meetings' ? 'bg-[var(--primary)] text-white' : 'border border-[var(--border)] text-[var(--text2)]'}`}
+              >
                 {calendarCopy.meetings}
-              </a>
-              <Link href="/consultations" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
+              </button>
+              <Link href="/consultations" className="rounded-full border border-[var(--border)] px-3 py-2 font-semibold text-[var(--text2)]">
                 {calendarCopy.manage}
               </Link>
             </div>
           </div>
-          <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+          {view === 'availability' && (
+          <button onClick={save} disabled={saving} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-white disabled:opacity-50">
             <Save size={16} /> {saving ? '…' : t('calendar', 'save')}
           </button>
+          )}
         </div>
 
-        <section id="meetings" className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        {view === 'meetings' && (
+        <section className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <CalendarIcon size={16} />
@@ -265,13 +278,16 @@ export default function CalendarPage() {
             {calendarCopy.manage}
           </Link>
         </section>
+        )}
 
+        {view === 'availability' && (
+        <>
         {icalUrl && (
           <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               <CalendarIcon size={16} /> {t('calendar', 'subscribeTitle')}
             </div>
-            <p className="mb-2 text-xs text-[var(--text-secondary)]">
+            <p className="mb-2 text-xs text-[var(--text2)]">
               {t('calendar', 'subscribeHint')}
             </p>
             <div className="flex gap-2">
@@ -282,7 +298,7 @@ export default function CalendarPage() {
                 className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 font-mono text-xs"
               />
               <button
-                onClick={() => navigator.clipboard?.writeText(icalUrl).then(() => alert(t('calendar', 'copied')))}
+                onClick={() => navigator.clipboard?.writeText(icalUrl).then(() => toast(t('calendar', 'copied'), 'success'))}
                 className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--bg)]"
               >
                 <Copy size={12} /> {t('calendar', 'copy')}
@@ -296,7 +312,7 @@ export default function CalendarPage() {
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
             <Plane size={16} /> {t('calendar', 'vacationTitle')}
           </div>
-          <p className="mb-2 text-xs text-[var(--text-secondary)]">
+          <p className="mb-2 text-xs text-[var(--text2)]">
             {t('calendar', 'vacationHint')}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -342,7 +358,7 @@ export default function CalendarPage() {
           <div className="mb-2 flex items-center gap-2 text-sm font-medium">
             <CalendarIcon size={16} /> {t('calendar', 'exceptionsTitle')}
           </div>
-          <p className="mb-2 text-xs text-[var(--text-secondary)]">
+          <p className="mb-2 text-xs text-[var(--text2)]">
             {t('calendar', 'exceptionsHint')}
           </p>
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -361,7 +377,7 @@ export default function CalendarPage() {
             </button>
           </div>
           {exceptions.length === 0 ? (
-            <div className="text-xs text-[var(--text-secondary)]">
+            <div className="text-xs text-[var(--text2)]">
               {t('calendar', 'noExceptions')}
             </div>
           ) : (
@@ -370,13 +386,13 @@ export default function CalendarPage() {
                 <li key={ex.id} className="flex items-center justify-between text-xs">
                   <span>
                     {new Date(ex.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-                    <span className="ml-2 text-[var(--text-secondary)]">
+                    <span className="ml-2 text-[var(--text2)]">
                       {ex.kind === 'closed' ? t('calendar', 'closed') : t('calendar', 'custom')}
                     </span>
                   </span>
                   <button
                     onClick={() => removeException(ex.id)}
-                    className="text-[var(--text-secondary)] hover:text-red-500"
+                    className="text-[var(--text2)] hover:text-[var(--red)]"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -395,7 +411,7 @@ export default function CalendarPage() {
               placeholder="Europe/Zurich"
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
             />
-            <span className="mt-1 block text-xs text-[var(--text-secondary)]">IANA timezone (e.g. Europe/Zurich, Asia/Almaty)</span>
+            <span className="mt-1 block text-xs text-[var(--text2)]">IANA timezone (e.g. Europe/Zurich, Asia/Almaty)</span>
           </label>
         </div>
 
@@ -414,7 +430,7 @@ export default function CalendarPage() {
                   </button>
                 </div>
                 {grouped[day].length === 0 ? (
-                  <div className="text-xs text-[var(--text-secondary)]">{t('calendar', 'off')}</div>
+                  <div className="text-xs text-[var(--text2)]">{t('calendar', 'off')}</div>
                 ) : (
                   <ul className="space-y-1.5">
                     {grouped[day].map((r) => {
@@ -425,18 +441,18 @@ export default function CalendarPage() {
                             type="time"
                             value={fmt(r.startMinute)}
                             onChange={(e) => updateRule(idx, { startMinute: parseTime(e.target.value) })}
-                            className="rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-sm"
+                            className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm"
                             step={900}
                           />
-                          <span className="text-[var(--text-secondary)]">—</span>
+                          <span className="text-[var(--text2)]">—</span>
                           <input
                             type="time"
                             value={fmt(r.endMinute)}
                             onChange={(e) => updateRule(idx, { endMinute: parseTime(e.target.value) })}
-                            className="rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-sm"
+                            className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm"
                             step={900}
                           />
-                          <button onClick={() => removeRule(idx)} className="ml-auto text-[var(--text-secondary)] hover:text-red-500" title="Remove">
+                          <button onClick={() => removeRule(idx)} className="ml-auto text-[var(--text2)] hover:text-[var(--red)]" title="Remove">
                             <Trash2 size={16} />
                           </button>
                         </li>
@@ -447,6 +463,8 @@ export default function CalendarPage() {
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </div>
     </AppShell>

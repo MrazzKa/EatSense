@@ -68,6 +68,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (shouldPreserveCompleted) {
           markOnboardingCompletedLocally(nextProfile).catch(() => {});
         }
+        // Self-heal "double onboarding" bug: if local state / AsyncStorage marker
+        // says the user finished onboarding but the backend disagrees (e.g. the
+        // original complete-onboarding call timed out and we fell into the
+        // fail-open branch), retry the call now so the server catches up. Without
+        // this the user stays in onboarding-limbo on any device that doesn't
+        // have the local marker (new install, cleared storage, signed out & in).
+        if (shouldPreserveCompleted && !profile.isOnboardingCompleted) {
+          ApiService.completeOnboarding().catch((err: any) => {
+            console.warn('[AuthContext] Self-heal complete-onboarding failed:', err?.message || err);
+          });
+        }
         // Profile exists - use it directly
         setUser(nextProfile);
         // Fire-and-forget subscription pre-fetch so DietsScreen / LifestyleDetailScreen /
@@ -175,7 +186,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               // Optimization: Use profile from refresh response if available
               if (refreshResult.profile) {
                 if (__DEV__) console.log('[AuthContext] Using profile from refresh token response');
-                setUser(await applyLocalOnboardingCompletion(refreshResult.profile));
+                const merged = await applyLocalOnboardingCompletion(refreshResult.profile);
+                // Self-heal: backend lost the completed flag but local marker
+                // says we already finished — re-fire complete-onboarding so the
+                // server catches up (otherwise next sign-in on another device
+                // would loop into onboarding again).
+                if (merged?.isOnboardingCompleted && !refreshResult.profile.isOnboardingCompleted) {
+                  ApiService.completeOnboarding().catch(() => {});
+                }
+                setUser(merged);
                 setLoading(false);
                 return;
               }

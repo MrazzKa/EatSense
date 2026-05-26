@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/lib/auth-context';
 import { I18nProvider } from '@/lib/i18n/context';
+import { ToastProvider } from '@/components/toast';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -28,9 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="antialiased min-h-screen bg-[var(--bg)] text-[var(--text)]">
         <I18nProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </ToastProvider>
         </I18nProvider>
       </body>
     </html>

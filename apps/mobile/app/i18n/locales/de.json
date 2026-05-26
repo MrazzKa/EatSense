@@ -1177,7 +1177,10 @@
       "waitingForPeer": "Warten auf den anderen Teilnehmer…",
       "reconnecting": "Verbindung wird wiederhergestellt...",
       "muteMic": "Mikrofon stummschalten",
-      "disableCamera": "Kamera ausschalten"
+      "disableCamera": "Kamera ausschalten",
+      "cancel": "Abbrechen",
+      "unmuteMic": "Mikrofon einschalten",
+      "enableCamera": "Kamera einschalten"
     },
     "feature1": "Verifizierte Spezialisten finden",
     "feature2": "Chat- und Videoberatungen",

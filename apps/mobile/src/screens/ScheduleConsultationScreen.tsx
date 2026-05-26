@@ -32,12 +32,19 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
     try {
       const from = new Date();
       const to = new Date(Date.now() + 14 * 86400000);
-      const res = await ApiService.request(
-        `/experts/${expertId}/availability/slots?from=${from.toISOString()}&to=${to.toISOString()}&duration=${duration}`,
-      );
-      setSlots(Array.isArray(res?.slots) ? res.slots : []);
+      // Without a timeout the UI gets stuck on the spinner if the API hangs.
+      const res = await Promise.race([
+        ApiService.request(
+          `/experts/${expertId}/availability/slots?from=${from.toISOString()}&to=${to.toISOString()}&duration=${duration}`,
+        ),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Loading slots timed out')), 15000),
+        ),
+      ]);
+      setSlots(Array.isArray((res as any)?.slots) ? (res as any).slots : []);
     } catch (err: any) {
       Alert.alert(t('common.error') || 'Error', err?.message || t('experts.noSlots') || 'Failed to load slots');
+      setSlots([]);
     } finally {
       setLoading(false);
     }

@@ -841,7 +841,10 @@
       "waitingForPeer": "Esperando al otro participante…",
       "reconnecting": "Reconectando...",
       "muteMic": "Silenciar micrófono",
-      "disableCamera": "Desactivar cámara"
+      "disableCamera": "Desactivar cámara",
+      "cancel": "Cancelar",
+      "unmuteMic": "Activar micrófono",
+      "enableCamera": "Activar cámara"
     },
     "feature1": "Encuentra especialistas verificados",
     "feature2": "Consultas por chat y video",

@@ -29,7 +29,7 @@ interface Stats {
 
 export default function DashboardPage() {
   useAuth();
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [profile, setProfile] = useState<ExpertProfile | null>(null);
   const [stats, setStats] = useState<Stats>({ activeChats: 0, totalClients: 0, unreadMessages: 0 });
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
     if (profile.isPublished && profile.isVerified) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[#22c55e22] text-[var(--green)]">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--green-soft)] text-[var(--green)]">
           <span className="w-2 h-2 rounded-full bg-[var(--green)]" />
           {t('dashboard', 'statusPublished')}
         </span>
@@ -79,7 +79,7 @@ export default function DashboardPage() {
 
     if (!profile.isActive) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[#ef444422] text-[var(--red)]">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--red-soft)] text-[var(--red)]">
           <span className="w-2 h-2 rounded-full bg-[var(--red)]" />
           {t('dashboard', 'statusRejected')}
         </span>
@@ -87,7 +87,7 @@ export default function DashboardPage() {
     }
 
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[#f59e0b22] text-[var(--yellow)]">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--yellow-soft)] text-[var(--yellow)]">
         <span className="w-2 h-2 rounded-full bg-[var(--yellow)]" />
         {t('dashboard', 'statusPending')}
       </span>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
               </div>
 
               {profile && !profile.isPublished && !profile.isActive && (
-                <div className="bg-[#ef444411] border border-[#ef444433] rounded-lg p-4 text-sm">
+                <div className="bg-[var(--red-soft)] border border-[var(--red-soft)] rounded-lg p-4 text-sm">
                   <strong className="text-[var(--red)]">{t('dashboard', 'rejectedTitle')}</strong>{' '}
                   <span className="text-[var(--text2)]">
                     {t('dashboard', 'rejectedBody')}
@@ -137,7 +137,7 @@ export default function DashboardPage() {
               )}
 
               {profile && !profile.isPublished && profile.isActive && (
-                <div className="bg-[#f59e0b11] border border-[#f59e0b33] rounded-lg p-4 text-sm">
+                <div className="bg-[var(--yellow-soft)] border border-[var(--yellow-soft)] rounded-lg p-4 text-sm">
                   <strong className="text-[var(--yellow)]">{t('dashboard', 'underReviewTitle')}</strong>{' '}
                   <span className="text-[var(--text2)]">
                     {t('dashboard', 'underReviewBody')}
@@ -158,17 +158,17 @@ export default function DashboardPage() {
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
               <h3 className="text-sm font-semibold text-[var(--text2)] uppercase tracking-wider mb-4">{t('dashboard', 'quickActions')}</h3>
               <div className="grid gap-3 sm:flex sm:flex-wrap">
-                <a href="/chats" className="rounded-lg bg-[var(--primary)] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[var(--primary-hover)] sm:py-2">
+                <a href="/chats" className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-hover)]">
                   {t('dashboard', 'viewChats')}
                 </a>
-                <a href="/profile" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
+                <a href="/profile" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-4 text-sm font-medium transition-colors hover:bg-[var(--border)]">
                   {t('dashboard', 'editProfile')}
                 </a>
-                <a href="/calendar" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
-                  {locale === 'ru' ? 'Расписание' : 'Schedule'}
+                <a href="/calendar" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-4 text-sm font-medium transition-colors hover:bg-[var(--border)]">
+                  {t('dashboard', 'scheduleBtn')}
                 </a>
-                <a href="/support" className="rounded-lg bg-[var(--surface2)] px-4 py-3 text-center text-sm font-medium transition hover:bg-[var(--border)] sm:py-2">
-                  {locale === 'ru' ? 'Связаться' : 'Contact'}
+                <a href="/support" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-4 text-sm font-medium transition-colors hover:bg-[var(--border)]">
+                  {t('dashboard', 'contactBtn')}
                 </a>
               </div>
             </div>
@@ -194,7 +194,7 @@ function StatCard({ icon: Icon, label, value, highlight }: { icon: LucideIcon; l
 }
 
 function NextConsultationWidget() {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const [next, setNext] = useState<any | null>(null);
   const [tick, setTick] = useState(0);
 
@@ -227,15 +227,15 @@ function NextConsultationWidget() {
 
   let when: string;
   if (inWindow) {
-    when = locale === 'ru' ? 'Идёт сейчас' : 'Live now';
+    when = t('dashboard', 'liveNow');
   } else if (diffMs < 0) {
-    when = locale === 'ru' ? 'Должна была начаться' : 'Should have started';
+    when = t('dashboard', 'shouldHaveStarted');
   } else if (diffMs < 60 * 60000) {
-    when = `${Math.round(diffMs / 60000)} ${locale === 'ru' ? 'мин' : 'min'}`;
+    when = `${Math.round(diffMs / 60000)} ${t('dashboard', 'minutesShort')}`;
   } else if (diffMs < 24 * 60 * 60000) {
     const h = Math.floor(diffMs / 3600000);
     const m = Math.round((diffMs % 3600000) / 60000);
-    when = `${h}${locale === 'ru' ? 'ч' : 'h'} ${m}${locale === 'ru' ? 'м' : 'm'}`;
+    when = `${h}${t('dashboard', 'hoursShort')} ${m}${t('dashboard', 'minShort')}`;
   } else {
     when = start.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
   }
@@ -252,7 +252,7 @@ function NextConsultationWidget() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-wide text-[var(--text2)]">
-              {locale === 'ru' ? 'Ближайшая консультация' : 'Next consultation'}
+              {t('dashboard', 'nextConsultation')}
             </div>
             <div className="font-medium">
               {clientName} · <span className="text-[var(--primary)]">{when}</span>
@@ -266,11 +266,11 @@ function NextConsultationWidget() {
         <div className="flex gap-2">
           {inWindow ? (
             <Link href={`/call/${next.id}`} className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white">
-              <Video size={14} /> {locale === 'ru' ? 'Начать' : 'Start'}
+              <Video size={14} /> {t('dashboard', 'startBtn')}
             </Link>
           ) : null}
           <Link href="/consultations" className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm">
-            {locale === 'ru' ? 'Все' : 'View all'}
+            {t('dashboard', 'viewAll')}
           </Link>
         </div>
       </div>

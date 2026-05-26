@@ -199,7 +199,6 @@ export class NotificationsScheduler {
       const prefs = await this.prisma.notificationPreference.findMany({
         where: {
           smartTipsEnabled: true,
-          dailyPushEnabled: true, // honor master opt-in toggle
         },
         take: 1000,
       });
@@ -249,4 +248,3 @@ export class NotificationsScheduler {
     }
   }
 }
-

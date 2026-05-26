@@ -1126,7 +1126,10 @@
       "waitingForPeer": "En attente de l'autre participant…",
       "reconnecting": "Reconnexion...",
       "muteMic": "Couper le micro",
-      "disableCamera": "Désactiver la caméra"
+      "disableCamera": "Désactiver la caméra",
+      "cancel": "Annuler",
+      "unmuteMic": "Réactiver le micro",
+      "enableCamera": "Activer la caméra"
     },
     "feature1": "Trouver des spécialistes vérifiés",
     "feature2": "Consultations par chat et vidéo",

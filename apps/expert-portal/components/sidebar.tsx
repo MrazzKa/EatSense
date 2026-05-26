@@ -31,8 +31,8 @@ export function Sidebar() {
     || user?.email
     || 'Expert';
   const mobileLabel = (key: NavKey) => {
-    if (key === 'dashboard') return locale === 'ru' ? 'Обзор' : 'Home';
-    if (key === 'calendar') return locale === 'ru' ? 'Расписание' : 'Schedule';
+    if (key === 'dashboard') return t('sidebarMobile', 'home');
+    if (key === 'calendar') return t('sidebarMobile', 'schedule');
     return t('nav', key);
   };
 

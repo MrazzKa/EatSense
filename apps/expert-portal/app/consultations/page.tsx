@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { useToast } from '@/components/toast';
 import { Calendar as CalendarIcon, CalendarClock, CheckCircle2, Clock, Plus, UserX, Video, X } from 'lucide-react';
 
 interface Consultation {
@@ -46,16 +47,17 @@ function fmtTime(iso: string, locale: string): string {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  SCHEDULED: 'text-blue-600 bg-blue-50',
-  PENDING_RESCHEDULE: 'text-amber-700 bg-amber-50',
-  IN_PROGRESS: 'text-green-700 bg-green-50',
-  COMPLETED: 'text-gray-600 bg-gray-100',
-  CANCELLED: 'text-gray-500 bg-gray-100 line-through',
-  NO_SHOW: 'text-red-700 bg-red-50',
+  SCHEDULED: 'text-[var(--primary)] bg-[var(--primary-soft)]',
+  PENDING_RESCHEDULE: 'text-[var(--yellow)] bg-[var(--yellow-soft)]',
+  IN_PROGRESS: 'text-[var(--green)] bg-[var(--green-soft)]',
+  COMPLETED: 'text-[var(--text2)] bg-[var(--neutral-soft)]',
+  CANCELLED: 'text-[var(--text2)] bg-[var(--neutral-soft)] line-through',
+  NO_SHOW: 'text-[var(--red)] bg-[var(--red-soft)]',
 };
 
 export default function ConsultationsPage() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
+  const { toast } = useToast();
   const [items, setItems] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
@@ -82,7 +84,7 @@ export default function ConsultationsPage() {
 
   async function submitCreate() {
     if (!createClientId || !createStartAt) {
-      alert(locale === 'ru' ? 'Выберите клиента и время' : 'Pick a client and a time');
+      toast(t('consultations', 'pickClientAndTime'), 'error');
       return;
     }
     setCreating(true);
@@ -103,7 +105,7 @@ export default function ConsultationsPage() {
       setCreateDuration(60);
       load();
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     } finally {
       setCreating(false);
     }
@@ -138,7 +140,7 @@ export default function ConsultationsPage() {
       setReschedStartAt('');
       load();
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     } finally {
       setReschedSaving(false);
     }
@@ -152,7 +154,7 @@ export default function ConsultationsPage() {
       });
       load();
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     }
   }
 
@@ -182,32 +184,32 @@ export default function ConsultationsPage() {
   }, [items, tab]);
 
   async function cancel(id: string) {
-    if (!confirm(locale === 'ru' ? 'Отменить консультацию?' : 'Cancel consultation?')) return;
+    if (!confirm(t('consultations', 'cancelConfirm'))) return;
     try {
       await apiFetch(`/consultations/${id}`, { method: 'DELETE', body: JSON.stringify({ reason: 'expert_cancelled' }) });
       load();
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     }
   }
 
   async function complete(id: string) {
-    if (!confirm(locale === 'ru' ? 'Завершить консультацию?' : 'Complete consultation?')) return;
+    if (!confirm(t('consultations', 'completeConfirm'))) return;
     try {
       await apiFetch(`/consultations/${id}/complete`, { method: 'POST', body: JSON.stringify({}) });
       load();
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     }
   }
 
   async function markNoShow(id: string) {
-    if (!confirm(locale === 'ru' ? 'Отметить как no-show?' : 'Mark as no-show?')) return;
+    if (!confirm(t('consultations', 'noShowConfirm'))) return;
     try {
       await apiFetch(`/consultations/${id}/no-show`, { method: 'POST', body: JSON.stringify({}) });
       load();
     } catch (e) {
-      alert((e as any)?.message || 'Failed');
+      toast((e as any)?.message || 'Failed', 'error');
     }
   }
 
@@ -216,34 +218,34 @@ export default function ConsultationsPage() {
       <div className="mx-auto w-full max-w-3xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="flex min-w-0 items-center gap-2 text-2xl font-bold">
-            <CalendarIcon size={24} /> {locale === 'ru' ? 'Консультации' : 'Consultations'}
+            <CalendarIcon size={24} /> {t('consultations', 'title')}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex gap-2 text-xs">
               <Link href="/calendar" className="rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text2)]">
-                {locale === 'ru' ? 'Доступность' : 'Availability'}
+                {t('consultations', 'tabAvailability')}
               </Link>
               <span className="rounded-full bg-[var(--primary)] px-3 py-1 font-medium text-white">
-                {locale === 'ru' ? 'Встречи' : 'Bookings'}
+                {t('consultations', 'tabBookings')}
               </span>
             </div>
             <button
               onClick={openCreate}
               className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white"
             >
-              <Plus size={14} /> {locale === 'ru' ? 'Назначить' : 'New'}
+              <Plus size={14} /> {t('consultations', 'newButton')}
             </button>
           </div>
         </div>
 
         <div className="mb-4 flex gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-0.5 w-fit">
-          {(['upcoming', 'past'] as const).map((t) => (
+          {(['upcoming', 'past'] as const).map((key) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${tab === t ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)]'}`}
+              key={key}
+              onClick={() => setTab(key)}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${tab === key ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)]'}`}
             >
-              {t === 'upcoming' ? (locale === 'ru' ? 'Предстоящие' : 'Upcoming') : locale === 'ru' ? 'Прошлые' : 'Past'}
+              {key === 'upcoming' ? t('consultations', 'upcoming') : t('consultations', 'past')}
             </button>
           ))}
         </div>
@@ -253,8 +255,8 @@ export default function ConsultationsPage() {
             <div className="animate-spin h-8 w-8 rounded-full border-2 border-[var(--primary)] border-t-transparent" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--text-secondary)]">
-            {locale === 'ru' ? 'Нет консультаций' : 'No consultations'}
+          <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center text-sm text-[var(--text2)]">
+            {t('consultations', 'empty')}
           </div>
         ) : (
           <ul className="space-y-2">
@@ -268,7 +270,7 @@ export default function ConsultationsPage() {
                         <span className="font-medium">{fmtName(c)}</span>
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_COLORS[c.status] || ''}`}>{c.status}</span>
                       </div>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-[var(--text2)]">
                         <span className="inline-flex items-center gap-1">
                           <CalendarIcon size={12} /> {fmtTime(c.startAt, locale)}
                         </span>
@@ -280,51 +282,51 @@ export default function ConsultationsPage() {
                     <div className="flex items-center gap-2">
                       {inWindow && ['SCHEDULED', 'IN_PROGRESS'].includes(c.status) && (
                         <Link href={`/call/${c.id}`} className="inline-flex items-center gap-1 rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-white">
-                          <Video size={14} /> {locale === 'ru' ? 'Начать' : 'Start'}
+                          <Video size={14} /> {t('consultations', 'startBtn')}
                         </Link>
                       )}
                       {c.conversationId && (
                         <Link href={`/chats/${c.conversationId}`} className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs">
-                          {locale === 'ru' ? 'Чат' : 'Chat'}
+                          {t('consultations', 'chatBtn')}
                         </Link>
                       )}
                       {c.status === 'SCHEDULED' && (
-                        <button onClick={() => openReschedule(c)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs" title={locale === 'ru' ? 'Перенести' : 'Reschedule'}>
+                        <button onClick={() => openReschedule(c)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs" title={t('consultations', 'rescheduleBtn')}>
                           <CalendarClock size={12} />
                         </button>
                       )}
                       {(['IN_PROGRESS'].includes(c.status) || (c.status === 'SCHEDULED' && inWindow)) && (
-                        <button onClick={() => complete(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-green-700" title={locale === 'ru' ? 'Завершить' : 'Complete'}>
+                        <button onClick={() => complete(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--green)]" title={t('consultations', 'completeBtn')}>
                           <CheckCircle2 size={14} />
                         </button>
                       )}
                       {(['IN_PROGRESS'].includes(c.status) || (c.status === 'SCHEDULED' && Date.now() > new Date(c.startAt).getTime())) && (
-                        <button onClick={() => markNoShow(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-amber-700" title="No-show">
+                        <button onClick={() => markNoShow(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--yellow)]" title="No-show">
                           <UserX size={14} />
                         </button>
                       )}
                       {['SCHEDULED', 'PENDING_RESCHEDULE', 'IN_PROGRESS'].includes(c.status) && (
-                        <button onClick={() => cancel(c.id)} className="rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-red-600" title="Cancel">
+                        <button onClick={() => cancel(c.id)} className="rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--red)]" title="Cancel">
                           <X size={14} />
                         </button>
                       )}
                     </div>
                   </div>
                   {c.status === 'PENDING_RESCHEDULE' && c.proposedStartAt && (
-                    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2">
-                      <div className="mb-1 text-xs text-amber-900">
+                    <div className="mt-3 rounded-lg border border-[var(--yellow-soft)] bg-[var(--yellow-soft)] p-2">
+                      <div className="mb-1 text-xs text-[var(--yellow)]">
                         {c.proposedBy === 'expert'
-                          ? (locale === 'ru' ? 'Вы предложили перенос на:' : 'You proposed reschedule to:')
-                          : (locale === 'ru' ? 'Клиент предложил перенос на:' : 'Client proposed reschedule to:')}
+                          ? (t('consultations', 'youProposed'))
+                          : (t('consultations', 'clientProposed'))}
                         {' '}<strong>{fmtTime(c.proposedStartAt, locale)}</strong>
                       </div>
                       {c.proposedBy !== 'expert' && (
                         <div className="mt-1 flex gap-2">
                           <button onClick={() => respondReschedule(c, true)} className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-white">
-                            {locale === 'ru' ? 'Принять' : 'Accept'}
+                            {t('consultations', 'accept')}
                           </button>
                           <button onClick={() => respondReschedule(c, false)} className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs">
-                            {locale === 'ru' ? 'Отклонить' : 'Decline'}
+                            {t('consultations', 'decline')}
                           </button>
                         </div>
                       )}
@@ -341,12 +343,12 @@ export default function ConsultationsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setCreateOpen(false)}>
             <div className="w-full max-w-md rounded-2xl bg-[var(--surface)] p-5" onClick={(e) => e.stopPropagation()}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{locale === 'ru' ? 'Назначить консультацию' : 'New consultation'}</h2>
+                <h2 className="text-lg font-semibold">{t('consultations', 'newConsultation')}</h2>
                 <button onClick={() => setCreateOpen(false)} className="text-[var(--text2)]"><X size={18} /></button>
               </div>
               <div className="space-y-3">
                 <label className="block text-sm">
-                  <span className="mb-1 block">{locale === 'ru' ? 'Клиент' : 'Client'}</span>
+                  <span className="mb-1 block">{t('consultations', 'client')}</span>
                   <select
                     value={createClientId}
                     onChange={(e) => setCreateClientId(e.target.value)}
@@ -363,7 +365,7 @@ export default function ConsultationsPage() {
                   </select>
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1 block">{locale === 'ru' ? 'Когда' : 'When'}</span>
+                  <span className="mb-1 block">{t('consultations', 'when')}</span>
                   <input
                     type="datetime-local"
                     value={createStartAt}
@@ -372,7 +374,7 @@ export default function ConsultationsPage() {
                   />
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1 block">{locale === 'ru' ? 'Длительность' : 'Duration'}</span>
+                  <span className="mb-1 block">{t('consultations', 'duration')}</span>
                   <div className="flex gap-1.5">
                     {[30, 60, 90].map((d) => (
                       <button
@@ -389,10 +391,10 @@ export default function ConsultationsPage() {
               </div>
               <div className="mt-4 flex justify-end gap-2">
                 <button onClick={() => setCreateOpen(false)} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm">
-                  {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                  {t('consultations', 'modalCancel')}
                 </button>
                 <button onClick={submitCreate} disabled={creating} className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-                  {creating ? '…' : locale === 'ru' ? 'Создать' : 'Create'}
+                  {creating ? '…' : t('consultations', 'modalCreate')}
                 </button>
               </div>
             </div>
@@ -404,16 +406,14 @@ export default function ConsultationsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setReschedOpenFor(null)}>
             <div className="w-full max-w-md rounded-2xl bg-[var(--surface)] p-5" onClick={(e) => e.stopPropagation()}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{locale === 'ru' ? 'Перенести консультацию' : 'Reschedule'}</h2>
+                <h2 className="text-lg font-semibold">{t('consultations', 'rescheduleTitle')}</h2>
                 <button onClick={() => setReschedOpenFor(null)} className="text-[var(--text2)]"><X size={18} /></button>
               </div>
               <p className="mb-3 text-xs text-[var(--text2)]">
-                {locale === 'ru'
-                  ? 'Клиент получит запрос на новое время. Он сможет принять или отклонить.'
-                  : 'The client will receive the new time as a proposal and can accept or decline.'}
+                {t('consultations', 'rescheduleBody')}
               </p>
               <label className="block text-sm">
-                <span className="mb-1 block">{locale === 'ru' ? 'Новое время' : 'New time'}</span>
+                <span className="mb-1 block">{t('consultations', 'newTime')}</span>
                 <input
                   type="datetime-local"
                   value={reschedStartAt}
@@ -424,10 +424,10 @@ export default function ConsultationsPage() {
               </label>
               <div className="mt-4 flex justify-end gap-2">
                 <button onClick={() => setReschedOpenFor(null)} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm">
-                  {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                  {t('consultations', 'modalCancel')}
                 </button>
                 <button onClick={submitReschedule} disabled={reschedSaving} className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-                  {reschedSaving ? '…' : locale === 'ru' ? 'Отправить' : 'Send'}
+                  {reschedSaving ? '…' : t('consultations', 'modalSend')}
                 </button>
               </div>
             </div>

@@ -39,6 +39,25 @@ export default function ExpertCallPage() {
     const [connectionLost, setConnectionLost] = useState(false);
     const startedAtRef = useRef<number | null>(null);
 
+    const sessionEndedRef = useRef(false);
+    const [consultationEndAt, setConsultationEndAt] = useState<number | null>(null);
+
+    // Try to load consultation endAt — if `params.id` is a scheduled consultation
+    // id, we can auto-finish the call when its paid window closes. If it's a raw
+    // conversation id this returns 404 and we silently skip the timer.
+    useEffect(() => {
+        if (!conversationId) return;
+        let cancelled = false;
+        apiFetch<any>(`/consultations/${conversationId}`)
+            .then((data) => {
+                if (!cancelled && data?.endAt) {
+                    setConsultationEndAt(new Date(data.endAt).getTime());
+                }
+            })
+            .catch(() => { /* not a consultation id, no auto-end */ });
+        return () => { cancelled = true; };
+    }, [conversationId]);
+
     useEffect(() => {
         if (!conversationId) return;
         let cancelled = false;
@@ -47,7 +66,8 @@ export default function ExpertCallPage() {
                 const res = await apiFetch<TokenResp>(`/video/token/${conversationId}`, { method: 'POST' });
                 if (!cancelled) {
                     setCreds(res);
-                    startedAtRef.current = Date.now();
+                    // startedAtRef is set in onConnected (first connect only) so the
+                    // billed duration matches actual time spent in the room.
                 }
             } catch (err: any) {
                 if (cancelled) return;
@@ -64,7 +84,10 @@ export default function ExpertCallPage() {
 
     const onConnected = useCallback(() => {
         setConnectionLost(false);
-        startedAtRef.current = Date.now();
+        // First connect only — reconnects must not reset the duration clock.
+        if (!startedAtRef.current) {
+            startedAtRef.current = Date.now();
+        }
         if (creds?.sessionId) {
             apiFetch(`/video/session/${creds.sessionId}/started`, {
                 method: 'POST',
@@ -74,6 +97,11 @@ export default function ExpertCallPage() {
     }, [creds]);
 
     const finishCall = useCallback(async () => {
+        if (sessionEndedRef.current) {
+            router.push('/chats');
+            return;
+        }
+        sessionEndedRef.current = true;
         const duration = startedAtRef.current
             ? Math.round((Date.now() - startedAtRef.current) / 1000)
             : 0;
@@ -91,6 +119,66 @@ export default function ExpertCallPage() {
     const onDisconnected = useCallback(() => {
         setConnectionLost(true);
     }, []);
+
+    // Auto-finish when the paid consultation window closes (+60s grace).
+    useEffect(() => {
+        if (!consultationEndAt || !creds?.sessionId) return;
+        const graceMs = 60_000;
+        const dueAt = consultationEndAt + graceMs;
+        const now = Date.now();
+        if (now >= dueAt) {
+            finishCall();
+            return;
+        }
+        const handle = setTimeout(() => finishCall(), dueAt - now);
+        return () => clearTimeout(handle);
+    }, [consultationEndAt, creds?.sessionId, finishCall]);
+
+    // Guarantee the session is reported as ended even if the user navigates
+    // away by closing the tab, hitting browser back, or being redirected by
+    // ProtectedRoute. Otherwise the row sits in `in_call` until heartbeat
+    // timeout (worst case: clock charges keep running).
+    useEffect(() => {
+        const handleUnload = () => {
+            if (sessionEndedRef.current || !creds?.sessionId) return;
+            const duration = startedAtRef.current
+                ? Math.round((Date.now() - startedAtRef.current) / 1000)
+                : 0;
+            // sendBeacon is the only request type guaranteed to complete during
+            // unload. Falls back to keepalive fetch on Safari.
+            try {
+                const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+                const url = `${process.env.NEXT_PUBLIC_API_URL || ''}/video/session/${creds.sessionId}/ended`;
+                const body = JSON.stringify({ durationSec: duration });
+                if (navigator?.sendBeacon) {
+                    const blob = new Blob([body], { type: 'application/json' });
+                    navigator.sendBeacon(`${url}?token=${encodeURIComponent(token || '')}`, blob);
+                } else {
+                    fetch(url, {
+                        method: 'POST',
+                        keepalive: true,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        },
+                        body,
+                    }).catch(() => {});
+                }
+                sessionEndedRef.current = true;
+            } catch {
+                // Best-effort.
+            }
+        };
+
+        window.addEventListener('beforeunload', handleUnload);
+        window.addEventListener('pagehide', handleUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleUnload);
+            window.removeEventListener('pagehide', handleUnload);
+            // Component unmounting via in-app nav (router.push without finishCall).
+            handleUnload();
+        };
+    }, [creds?.sessionId]);
 
     if (loading) {
         return (
@@ -138,7 +226,7 @@ export default function ExpertCallPage() {
                     <button
                         type="button"
                         onClick={finishCall}
-                        className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                        className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--red)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90"
                     >
                         <PhoneOff size={16} />
                         {t('call', 'end')}

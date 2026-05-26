@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
+import { useToast } from '@/components/toast';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -52,6 +53,7 @@ export default function ChatPage() {
   const params = useParams();
   const { user } = useAuth();
   const { t } = useI18n();
+  const { toast } = useToast();
   const convId = params.id as string;
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -113,8 +115,15 @@ export default function ChatPage() {
 
   const loadMessages = useCallback(async () => {
     try {
-      const msgs = await apiFetch(`/messages/conversation/${convId}`);
+      // Refresh conversation status in parallel — otherwise an expert keeps
+      // typing into a chat the client just closed (status flips to completed
+      // but the UI doesn't notice until full page reload).
+      const [msgs, conv] = await Promise.all([
+        apiFetch(`/messages/conversation/${convId}`),
+        apiFetch(`/conversations/${convId}`).catch(() => null),
+      ]);
       if (!isMountedRef.current) return;
+      if (conv) setConversation(conv);
       const list = Array.isArray(msgs)
         ? msgs
         : Array.isArray(msgs?.messages)
@@ -214,11 +223,11 @@ export default function ChatPage() {
       // and let next poll reconcile. On other errors, roll back and restore input.
       const status = err?.status || err?.response?.status;
       if (typeof status === 'number' && status >= 500) {
-        alert(t('common', 'error'));
+        toast(t('common', 'error'));
       } else {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setInput(body);
-        alert(t('common', 'error'));
+        toast(t('common', 'error'));
       }
     } finally {
       setSending(false);
@@ -392,7 +401,7 @@ export default function ChatPage() {
             {conversation?.reportsShared && (
               <Link
                 href={`/clients/${convId}`}
-                className="px-3 py-1.5 text-xs font-medium bg-[#22c55e22] text-[var(--green)] rounded-lg hover:bg-[#22c55e33] transition"
+                className="px-3 py-1.5 text-xs font-medium bg-[var(--green-soft)] text-[var(--green)] rounded-lg hover:bg-[var(--green-soft)] transition"
               >
                 {t('chats', 'viewData')}
               </Link>
@@ -409,7 +418,7 @@ export default function ChatPage() {
                 )}
                 <button
                   onClick={handleComplete}
-                  className="hidden min-h-9 rounded-lg bg-[#ef444422] px-3 py-1.5 text-xs font-medium text-[var(--red)] transition hover:bg-[#ef444433] sm:inline-flex sm:items-center"
+                  className="hidden min-h-9 rounded-lg bg-[var(--red-soft)] px-3 py-1.5 text-xs font-medium text-[var(--red)] transition hover:bg-[var(--red-soft)] sm:inline-flex sm:items-center"
                 >
                   {t('chats', 'completeBtn')}
                 </button>

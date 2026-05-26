@@ -1,8 +1,8 @@
 // AI Assistant with safe error handling
 // Wrapped in ErrorBoundary to prevent crashes
 
-import React, { useEffect, useState, Suspense } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState, Suspense } from 'react';
+import { Platform, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { clientLog } from '../utils/clientLog';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -68,12 +68,23 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, meal
   const [hasError, setHasError] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
+  const swapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Check disclaimer status when visible changes to true
   useEffect(() => {
     if (visible && !disclaimerChecked) {
       // Logic handled inside DisclaimerModal, but here we just ensure we render it
       setShowDisclaimer(true);
+    }
+    if (!visible) {
+      setShowDisclaimer(false);
+      setDisclaimerChecked(false);
+      setContentReady(false);
+      if (swapTimerRef.current) {
+        clearTimeout(swapTimerRef.current);
+        swapTimerRef.current = null;
+      }
     }
   }, [visible, disclaimerChecked]);
 
@@ -88,37 +99,51 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, meal
   }, [visible]);
 
   useEffect(() => {
-    if (visible && !showDisclaimer) {
-      // Try to initialize AI Assistant
+    if (visible && contentReady) {
       clientLog('AiAssistant:initializing').catch(() => { });
-
-      // Future: Load real AI Assistant implementation here
-      // For now, just show fallback
-
       clientLog('AiAssistant:ready').catch(() => { });
     }
-  }, [visible, showDisclaimer]);
+  }, [visible, contentReady]);
 
-  if (!visible) {
-    return null;
-  }
+  useEffect(() => {
+    return () => {
+      if (swapTimerRef.current) {
+        clearTimeout(swapTimerRef.current);
+      }
+    };
+  }, []);
 
-  const handleClose = async () => {
+  const handleClose = useCallback(async () => {
     await clientLog('AiAssistant:closed').catch(() => { });
     if (onClose && typeof onClose === 'function') {
       onClose();
     }
-  };
+  }, [onClose]);
 
-  const handleDisclaimerAccept = () => {
+  const handleDisclaimerAccept = useCallback(() => {
     setShowDisclaimer(false);
-    setDisclaimerChecked(true); // Don't check again this session
-  };
+    setDisclaimerChecked(true);
+    clientLog('AiAssistant:disclaimerAccepted').catch(() => { });
+    // iOS can't dismiss one Modal and present another in the same tick — wait
+    // for the disclaimer Modal to finish its dismiss animation before mounting
+    // the main assistant Modal. Otherwise the parent screen is left frozen
+    // while the ghost Modal silently fails to present.
+    if (swapTimerRef.current) {
+      clearTimeout(swapTimerRef.current);
+    }
+    const delay = Platform.OS === 'ios' ? 450 : 0;
+    swapTimerRef.current = setTimeout(() => {
+      setContentReady(true);
+      swapTimerRef.current = null;
+    }, delay);
+  }, []);
+
+  const mainModalVisible = visible && disclaimerChecked && contentReady && !showDisclaimer;
 
   return (
     <>
       <SwipeClosableModal
-        visible={visible && !showDisclaimer}
+        visible={mainModalVisible}
         onClose={handleClose}
         enableSwipe={false}
         enableBackdropClose={true}
@@ -144,15 +169,12 @@ const AiAssistantContent: React.FC<AiAssistantProps> = ({ visible, onClose, meal
         </ErrorBoundary>
       </SwipeClosableModal>
 
-      {/* Inject Disclaimer Modal */}
-      {visible && (
-        <DisclaimerModal
-          disclaimerKey="ai_assistant"
-          visible={showDisclaimer}
-          onAccept={handleDisclaimerAccept}
-          onCancel={handleClose}
-        />
-      )}
+      <DisclaimerModal
+        disclaimerKey="ai_assistant"
+        visible={visible && showDisclaimer}
+        onAccept={handleDisclaimerAccept}
+        onCancel={handleClose}
+      />
     </>
   );
 };
