@@ -29,7 +29,7 @@ BEGIN
       email,
       ROW_NUMBER() OVER (
         PARTITION BY LOWER(email)
-        ORDER BY "created_at" ASC, id ASC
+        ORDER BY "createdAt" ASC, id ASC
       ) AS rn
     FROM "users"
   LOOP
