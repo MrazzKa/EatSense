@@ -326,13 +326,6 @@ function AppContent() {
                   headerShown: false,
                 }}
               />
-              <Stack.Screen
-                name="Onboarding"
-                component={OnboardingScreen}
-                options={{
-                  presentation: 'modal',
-                }}
-              />
               {/* Experts Marketplace Screens */}
               <Stack.Screen
                 name="Chat"
