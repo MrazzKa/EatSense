@@ -10,6 +10,8 @@ export class VideoService {
     private readonly logger = new Logger(VideoService.name);
     private accessTokenCtor: AccessTokenCtor | null = null;
     private grantTokenForRoom: any = null;
+    private roomServiceClientCtor: any = null;
+    private trackTypeEnum: any = null;
 
     constructor(
         private readonly prisma: PrismaService,
@@ -192,5 +194,60 @@ export class VideoService {
                 durationSec: typeof durationSec === 'number' ? Math.max(0, Math.floor(durationSec)) : undefined,
             },
         });
+    }
+
+    /**
+     * Expert-only moderator action: mute/unmute the *other* participant (the
+     * client) by toggling all their audio tracks via the LiveKit server API.
+     */
+    async muteOtherParticipant(sessionId: string, callerUserId: string, mute: boolean) {
+        if (!this.enabled()) {
+            throw new ServiceUnavailableException('Video calls are not configured for this environment');
+        }
+        const session = await this.assertSessionParticipant(sessionId, callerUserId);
+        const expertUserId = session.conversation?.expert?.userId;
+        const clientId = session.conversation?.clientId;
+        // Only the expert may mute the other side.
+        if (callerUserId !== expertUserId) {
+            throw new ForbiddenException('Only the expert can mute the other participant');
+        }
+        if (!clientId) throw new NotFoundException('Client not found for this session');
+
+        const svc = await this.getRoomService();
+        let participants: any[] = [];
+        try {
+            participants = await svc.listParticipants(session.roomName);
+        } catch (err: any) {
+            throw new ServiceUnavailableException(`Could not query room: ${err?.message}`);
+        }
+        const target = participants.find((p) => p.identity === clientId);
+        if (!target) throw new NotFoundException('Client is not currently in the call');
+
+        const AUDIO = this.trackTypeEnum?.AUDIO ?? 1; // proto: TrackType.AUDIO = 1
+        const audioTracks = (target.tracks || []).filter((tr: any) => tr.type === AUDIO);
+        for (const tr of audioTracks) {
+            await svc.mutePublishedTrack(session.roomName, clientId, tr.sid, mute).catch(() => { /* best-effort */ });
+        }
+        return { success: true, muted: mute, tracks: audioTracks.length };
+    }
+
+    private async getRoomService(): Promise<any> {
+        if (!this.roomServiceClientCtor) {
+            try {
+                const mod = await import('livekit-server-sdk' as any);
+                this.roomServiceClientCtor = mod.RoomServiceClient;
+                this.trackTypeEnum = mod.TrackType;
+            } catch (err: any) {
+                throw new ServiceUnavailableException('Video module not installed on this build');
+            }
+        }
+        // RoomServiceClient wants the HTTP(S) host; LIVEKIT_URL is typically wss://.
+        const raw = this.config.get<string>('LIVEKIT_URL')!;
+        const host = raw.replace(/^wss:\/\//i, 'https://').replace(/^ws:\/\//i, 'http://');
+        return new this.roomServiceClientCtor(
+            host,
+            this.config.get<string>('LIVEKIT_API_KEY')!,
+            this.config.get<string>('LIVEKIT_API_SECRET')!,
+        );
     }
 }

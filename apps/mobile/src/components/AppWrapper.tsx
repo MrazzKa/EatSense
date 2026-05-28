@@ -12,6 +12,7 @@ import ApiService from '../services/apiService';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import { getCurrentLocale } from '../../app/i18n/config';
 
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
@@ -27,7 +28,8 @@ function AppContent({ children }) {
       const appVersion = Constants.expoConfig?.version || Constants.nativeAppVersion || '1.0.0';
       const platform = Platform.OS;
 
-      ApiService.registerPushToken(expoPushToken, deviceId, platform, appVersion).catch((error) => {
+      const timezone = Intl?.DateTimeFormat?.().resolvedOptions?.().timeZone || 'UTC';
+      ApiService.registerPushToken(expoPushToken, deviceId, platform, appVersion, getCurrentLocale(), timezone).catch((error) => {
         console.error('[AppWrapper] Failed to register push token:', error);
       });
     }

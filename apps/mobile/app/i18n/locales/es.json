@@ -844,7 +844,10 @@
       "disableCamera": "Desactivar cámara",
       "cancel": "Cancelar",
       "unmuteMic": "Activar micrófono",
-      "enableCamera": "Activar cámara"
+      "enableCamera": "Activar cámara",
+      "switchCamera": "Cambiar cámara",
+      "muteClient": "Silenciar al cliente",
+      "unmuteClient": "Activar micrófono del cliente"
     },
     "feature1": "Encuentra especialistas verificados",
     "feature2": "Consultas por chat y video",
@@ -948,6 +951,9 @@
     "paymentUnavailableBody": "Este servicio de pago ya está visible, pero el pago en línea todavía no está conectado. Elige un servicio gratuito o contacta al experto cuando los pagos estén activos.",
     "ownerProfilePublished": "Tu perfil de experto está publicado",
     "ownerProfilePublishedSub": "Los clientes pueden encontrar tus servicios en EatSense.",
+    "ownerInviteByCode": "Invita a clientes con tu código",
+    "ownerInviteByCodeHint": "Comparte este código para que los clientes puedan añadirte en la app.",
+    "ownerCodeCopied": "Copiado",
     "selfHiddenHint": "Tu propio perfil se oculta en tu lista personal. Otros clientes pueden encontrarlo en EatSense.",
     "ownerOpenPortal": "Abrir portal de experto",
     "offerFormat": {
@@ -1103,6 +1109,7 @@
     "photo": "Foto",
     "requestDataAccess": "Solicitar acceso a datos",
     "dataAccessRequest": "Solicitud de acceso a datos",
+    "dataAccessRequestBody": "Me gustaría acceder a tus datos de nutrición e informes de salud para ayudarte mejor. Por favor, permite el acceso si estás de acuerdo.",
     "accessGranted": "Acceso concedido",
     "accessGrantedScoped": "Acceso concedido: {{labels}}",
     "scheduleConsultation": "Programar consulta",
@@ -1982,7 +1989,9 @@
       "issueEnergy": "Energía",
       "issueDigestion": "Digestión",
       "saveFailed": "No se pudieron guardar los ajustes",
-      "pickIssueFirst": "Selecciona al menos un área a continuación para activar los consejos inteligentes."
+      "pickIssueFirst": "Selecciona al menos un área a continuación para activar los consejos inteligentes.",
+      "advancedTitle": "Consejos avanzados",
+      "advancedSubtitle": "Permitir consejos sobre suplementos. Los consejos de estilo de vida siguen activos."
     },
     "cancelSubscriptionTitle": "¿Cancelar suscripción?",
     "cancelSubscriptionMessage": "Puedes gestionar o cancelar tu suscripción en la configuración de tu cuenta de la tienda.",

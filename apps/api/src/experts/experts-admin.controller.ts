@@ -160,6 +160,24 @@ export class ExpertsAdminController {
         return { success: true, code };
     }
 
+    @Post(':id/reset-password')
+    async resetExpertPassword(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Param('id') id: string,
+        @Req() req: Request,
+    ) {
+        this.validateAdmin(adminSecret);
+        const expert = await this.prisma.expertProfile.findUnique({
+            where: { id },
+            select: { userId: true },
+        });
+        if (!expert) throw new BadRequestException('Expert not found');
+        // Re-provisions a fresh temp password (mustChangePassword=true) and emails it.
+        const welcome = await this.auth.sendExpertWelcome(expert.userId);
+        await this.writeAudit('reset_expert_password', 'expert', id, { emailSent: welcome.sent }, req);
+        return { success: true, emailSent: welcome.sent, tempPassword: welcome.tempPassword };
+    }
+
     @Get(':id')
     async getById(
         @Headers('x-admin-secret') adminSecret: string,
@@ -603,11 +621,13 @@ export class ExpertsAdminController {
         await this.writeAudit('create_expert_manual', 'expert', result.expert.id, { email: normalizedEmail, credentialCount: uploadedCredentials.length }, req);
         this.logger.log(`Expert created manually: id=${result.expert.id} email=${normalizedEmail} code=${(code as any)?.code}`);
 
-        // Auto-send a welcome magic-link so the expert can log into the portal
-        // immediately, without the admin having to message them out-of-band.
-        const magicLinkResult = await this.auth.sendInitialExpertMagicLink(result.user.id).catch((err) => {
-            this.logger.warn(`Magic-link send failed for expert=${result.expert.id}: ${err?.message}`);
-            return { sent: false };
+        // Auto-provision a temp password and email the expert a welcome message
+        // with portal URL + credentials. They are forced to change it on first
+        // login. The plaintext is returned once so the admin can copy/share it
+        // (useful if email delivery is delayed) but is never logged.
+        const welcome = await this.auth.sendExpertWelcome(result.user.id).catch((err) => {
+            this.logger.warn(`Welcome email failed for expert=${result.expert.id}: ${err?.message}`);
+            return { sent: false, tempPassword: undefined as string | undefined };
         });
 
         return {
@@ -616,7 +636,8 @@ export class ExpertsAdminController {
             user: { id: result.user.id, email: result.user.email },
             accessCode: (code as any)?.code,
             credentials: uploadedCredentials.length,
-            magicLinkSent: magicLinkResult?.sent ?? false,
+            welcomeEmailSent: welcome?.sent ?? false,
+            tempPassword: welcome?.tempPassword,
         };
     }
 

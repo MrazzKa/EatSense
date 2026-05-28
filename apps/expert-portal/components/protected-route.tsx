@@ -5,9 +5,10 @@ import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { ChangePasswordForm } from './change-password-form';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const router = useRouter();
   const { t } = useI18n();
 
@@ -45,6 +46,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
+  }
+
+  // Safety net: an expert who signed in via magic link while flagged for a
+  // forced password reset must still set a password before using the portal.
+  if (user.mustChangePassword) {
+    return <ChangePasswordForm onDone={() => refresh()} />;
   }
 
   return <>{children}</>;

@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
+
+const LOCALES = ['en', 'ru', 'kk', 'fr', 'de', 'es'] as const;
 
 export class RegisterPushTokenDto {
   @ApiProperty({
@@ -44,5 +46,23 @@ export class RegisterPushTokenDto {
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
+
+  @ApiProperty({
+    description: 'Current app locale for localized server push fallback',
+    required: false,
+    example: 'ru',
+  })
+  @IsOptional()
+  @IsIn(LOCALES as unknown as string[])
+  locale?: string;
+
+  @ApiProperty({
+    description: 'Current device timezone',
+    required: false,
+    example: 'Europe/Zurich',
+  })
+  @IsOptional()
+  @IsString()
+  timezone?: string;
 }
 

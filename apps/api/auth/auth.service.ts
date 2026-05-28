@@ -21,6 +21,8 @@ import {
   RequestMagicLinkDto,
   AppleSignInDto,
   GoogleSignInDto,
+  ExpertLoginDto,
+  ChangePasswordDto,
 } from './dto';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -39,6 +41,11 @@ function refreshTokenTtlDays(): number {
   return Number.isFinite(REFRESH_TOKEN_TTL_DAYS) && REFRESH_TOKEN_TTL_DAYS > 0
     ? REFRESH_TOKEN_TTL_DAYS
     : 365;
+}
+
+/** Base URL of the expert portal (Next.js app). Magic links and welcome emails point here. */
+function expertPortalUrl(): string {
+  return (process.env.EXPERT_PORTAL_URL || 'https://experts.eatsense.ch').replace(/\/+$/, '');
 }
 
 @Injectable()
@@ -97,6 +104,133 @@ export class AuthService {
 
   async login(_: LoginDto) {
     throw new BadRequestException('Password login is disabled. Use email code login.');
+  }
+
+  /**
+   * Expert portal password login. Scoped to EXPERT accounts only — regular app
+   * users continue to use OTP / magic-link. Returns the same token shape as
+   * verifyOtp plus a `mustChangePassword` flag so the portal can force a reset.
+   */
+  async expertLogin(dto: ExpertLoginDto, clientIp?: string) {
+    const normalizedEmail = this.normalizeEmail(dto.email);
+    const sanitizedIp = this.sanitizeIp(clientIp);
+
+    // Reuse the magic-link rate limiter to throttle password guessing.
+    await this.enforceMagicLinkRateLimits(normalizedEmail, sanitizedIp);
+
+    const invalid = () =>
+      new UnauthorizedException({ message: 'Invalid email or password.', code: 'INVALID_CREDENTIALS' });
+
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!user || user.expertsRole !== 'EXPERT' || !user.password) {
+      // Same generic error regardless of which check failed (no account enumeration).
+      throw invalid();
+    }
+
+    const ok = await bcrypt.compare(dto.password, user.password);
+    if (!ok) throw invalid();
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    const profile = await this.prisma.userProfile.findUnique({ where: { userId: user.id } });
+
+    this.logger.log(`[AuthService] Expert password login for ${this.maskEmail(user.email)}`);
+
+    return {
+      message: 'Signed in successfully.',
+      user: { id: user.id, email: user.email },
+      profile,
+      mustChangePassword: (user as any).mustChangePassword === true,
+      ...tokens,
+    };
+  }
+
+  /**
+   * Change the current user's password. When `currentPassword` is provided it is
+   * verified; first-login resets (mustChangePassword=true) may omit it. Clears
+   * the mustChangePassword flag on success.
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const mustChange = (user as any).mustChangePassword === true;
+
+    // If the account is not in a forced-reset state, require the current password.
+    if (!mustChange) {
+      if (!dto.currentPassword) {
+        throw new BadRequestException({ message: 'Current password is required.', code: 'CURRENT_PASSWORD_REQUIRED' });
+      }
+      const ok = user.password ? await bcrypt.compare(dto.currentPassword, user.password) : false;
+      if (!ok) {
+        throw new BadRequestException({ message: 'Current password is incorrect.', code: 'CURRENT_PASSWORD_INVALID' });
+      }
+    }
+
+    const hash = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hash, mustChangePassword: false } as any,
+    });
+
+    this.logger.log(`[AuthService] Password changed for ${this.maskEmail(user.email)}`);
+    return { success: true };
+  }
+
+  /**
+   * Admin-triggered: set a freshly generated temporary password on an expert
+   * account and flag it for change on first login. Returns the plaintext so the
+   * caller can email it / show it to the admin once. Never logs the plaintext.
+   */
+  async provisionExpertPassword(userId: string): Promise<{ tempPassword: string }> {
+    const tempPassword = this.generateTempPassword();
+    const hash = await bcrypt.hash(tempPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hash, mustChangePassword: true } as any,
+    });
+    return { tempPassword };
+  }
+
+  /**
+   * Admin-triggered after expert creation: generate a temp password, store it,
+   * and email the expert a welcome message with portal URL + credentials.
+   * Returns the plaintext password so the admin panel can display it once.
+   */
+  async sendExpertWelcome(userId: string): Promise<{ sent: boolean; tempPassword?: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, expertsRole: true },
+    });
+    if (!user || user.expertsRole !== 'EXPERT') return { sent: false };
+
+    const { tempPassword } = await this.provisionExpertPassword(user.id);
+    try {
+      await this.mailerService.sendExpertWelcomeEmail(user.email, {
+        portalUrl: expertPortalUrl(),
+        tempPassword,
+      });
+      this.logger.log(`[AuthService] Expert welcome email sent to ${this.maskEmail(user.email)}`);
+      return { sent: true, tempPassword };
+    } catch (err: any) {
+      this.logger.warn(`[AuthService] Expert welcome email failed: ${err?.message}`);
+      // Password is still set; admin can share it manually via the returned value.
+      return { sent: false, tempPassword };
+    }
+  }
+
+  /** Human-friendly temporary password: e.g. "Leaf-7K3p-92" — easy to read/type once. */
+  private generateTempPassword(): string {
+    const words = ['Leaf', 'Apple', 'Berry', 'Olive', 'Mango', 'Lemon', 'Basil', 'Cocoa', 'Honey', 'Maple'];
+    const word = words[crypto.randomInt(0, words.length)];
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous 0/O/1/I/l
+    let mid = '';
+    for (let i = 0; i < 4; i++) mid += alphabet[crypto.randomInt(0, alphabet.length)];
+    const num = crypto.randomInt(10, 100);
+    return `${word}-${mid}-${num}`;
   }
 
   /**
@@ -249,7 +383,9 @@ export class AuthService {
     });
     if (!user || user.expertsRole !== 'EXPERT') return { sent: false };
     try {
-      await this.sendMagicLinkForUser(user);
+      // Must point at the portal callback (not the bare API endpoint, which
+      // would render raw JSON in the browser — see bug report screenshot 1).
+      await this.sendMagicLinkForUser(user, `${expertPortalUrl()}/auth/callback`);
       this.logger.log(`[AuthService] Initial expert magic link sent to ${this.maskEmail(user.email)}`);
       return { sent: true };
     } catch (err: any) {

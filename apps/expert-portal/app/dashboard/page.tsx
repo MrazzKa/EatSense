@@ -8,6 +8,7 @@ import { OnboardingTour } from '@/components/onboarding-tour';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
+import { formatDate, formatDateTime } from '@/lib/i18n/format';
 
 interface ExpertProfile {
   id: string;
@@ -194,7 +195,7 @@ function StatCard({ icon: Icon, label, value, highlight }: { icon: LucideIcon; l
 }
 
 function NextConsultationWidget() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [next, setNext] = useState<any | null>(null);
   const [tick, setTick] = useState(0);
 
@@ -237,7 +238,7 @@ function NextConsultationWidget() {
     const m = Math.round((diffMs % 3600000) / 60000);
     when = `${h}${t('dashboard', 'hoursShort')} ${m}${t('dashboard', 'minShort')}`;
   } else {
-    when = start.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' });
+    when = formatDate(start, locale, { weekday: 'short', day: 'numeric', month: 'short' });
   }
 
   // tick used to force re-render every 30s so countdown stays fresh
@@ -258,7 +259,7 @@ function NextConsultationWidget() {
               {clientName} · <span className="text-[var(--primary)]">{when}</span>
             </div>
             <div className="text-xs text-[var(--text2)]">
-              {start.toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              {formatDateTime(start, locale)}
               {' · '}{next.durationMinutes} min
             </div>
           </div>

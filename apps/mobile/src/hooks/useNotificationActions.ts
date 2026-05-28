@@ -72,6 +72,30 @@ const getLocalizedStrings = () => {
             de: 'Medikament konnte nicht aktualisiert werden',
             es: 'Error al actualizar el medicamento',
         },
+        smartTipUseful: {
+            en: 'Useful',
+            ru: 'Полезно',
+            kk: 'Пайдалы',
+            fr: 'Utile',
+            de: 'Hilfreich',
+            es: 'Útil',
+        },
+        smartTipNotRelevant: {
+            en: 'Not relevant',
+            ru: 'Не актуально',
+            kk: 'Өзекті емес',
+            fr: 'Pas pertinent',
+            de: 'Nicht relevant',
+            es: 'No relevante',
+        },
+        smartTipThanks: {
+            en: 'Thanks, we will personalize future tips.',
+            ru: 'Спасибо, мы учтём это в следующих советах.',
+            kk: 'Рахмет, келесі кеңестерде ескереміз.',
+            fr: 'Merci, nous personnaliserons les prochains conseils.',
+            de: 'Danke, wir personalisieren künftige Tipps.',
+            es: 'Gracias, personalizaremos los próximos consejos.',
+        },
     };
 
     // Return translated value or fallback
@@ -89,11 +113,14 @@ const getLocalizedStrings = () => {
         later: getWithFallback(later, 'later'),
         success: getWithFallback(success, 'success'),
         error: getWithFallback(error, 'error'),
+        smartTipUseful: fallbacks.smartTipUseful[locale] || fallbacks.smartTipUseful.en,
+        smartTipNotRelevant: fallbacks.smartTipNotRelevant[locale] || fallbacks.smartTipNotRelevant.en,
+        smartTipThanks: fallbacks.smartTipThanks[locale] || fallbacks.smartTipThanks.en,
     };
 };
 
 // Optional navigation callback for external navigation
-type NavigationCallback = (screen: string, params?: Record<string, unknown>) => void;
+type NavigationCallback = (_screen: string, _params?: Record<string, unknown>) => void;
 let navigationCallback: NavigationCallback | null = null;
 
 export function setNotificationNavigationCallback(callback: NavigationCallback | null) {
@@ -160,6 +187,25 @@ export function useNotificationActions() {
             { cancelable: true }
         );
     }, [takeMedication, strings]);
+
+    const saveSmartTipFeedback = useCallback(async (
+        data: Record<string, unknown>,
+        reaction: 'useful' | 'not_relevant',
+    ) => {
+        try {
+            await ApiService.saveSmartTipFeedback({
+                deliveryLogId: data.deliveryLogId as string | undefined,
+                category: data.category as string | undefined,
+                templateKey: data.templateKey as string | undefined,
+                reaction,
+            });
+            if (Platform.OS === 'ios') {
+                Alert.alert('', strings.smartTipThanks);
+            }
+        } catch (error) {
+            console.warn('[NotificationActions] Failed to save smart tip feedback:', error);
+        }
+    }, [strings.smartTipThanks]);
 
     /**
      * Handle notification response (both action button and tap)
@@ -231,7 +277,27 @@ export function useNotificationActions() {
         // Smart tips: opt-in personalised reminders (sleep/stress/energy/digestion).
         // Tap → Profile so the user can adjust prefs or see context.
         if (type === 'smart_tip') {
-            if (navigationCallback) navigationCallback('MainTabs', { screen: 'Profile' });
+            Alert.alert(
+                notification.request.content.title || 'EatSense',
+                notification.request.content.body || '',
+                [
+                    {
+                        text: strings.smartTipNotRelevant,
+                        style: 'cancel',
+                        onPress: () => saveSmartTipFeedback(data, 'not_relevant'),
+                    },
+                    {
+                        text: strings.smartTipUseful,
+                        onPress: () => saveSmartTipFeedback(data, 'useful'),
+                    },
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            if (navigationCallback) navigationCallback('MainTabs', { screen: 'Profile' });
+                        },
+                    },
+                ],
+            );
             return;
         }
 
@@ -254,7 +320,7 @@ export function useNotificationActions() {
             if (navigationCallback) navigationCallback('MainTabs', { screen: 'Experts' });
             return;
         }
-    }, [takeMedication, showTakeAlert, strings]);
+    }, [takeMedication, showTakeAlert, saveSmartTipFeedback, strings]);
 
     useEffect(() => {
         // Listen for notification responses (foreground/background)

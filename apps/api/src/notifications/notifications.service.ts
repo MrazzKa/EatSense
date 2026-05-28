@@ -6,6 +6,7 @@ import { PrismaService } from '../../prisma.service';
 import type { RegisterPushTokenDto } from './dto/register-push-token.dto';
 import type { SendTestNotificationDto } from './dto/send-test-notification.dto';
 import type { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
+import { pickTip, SmartTipCategory } from './smart-tips';
 
 @Injectable()
 export class NotificationsService {
@@ -31,8 +32,14 @@ export class NotificationsService {
         userId,
         dailyPushHour: Number.isNaN(this.defaultHour) ? 8 : this.defaultHour,
         timezone: 'UTC',
+        locale: 'en',
       },
     });
+  }
+
+  normalizeLocale(locale?: string | null) {
+    const value = String(locale || '').split('-')[0].toLowerCase();
+    return ['en', 'ru', 'kk', 'fr', 'de', 'es'].includes(value) ? value : 'en';
   }
 
   async getPreferences(userId: string) {
@@ -42,10 +49,13 @@ export class NotificationsService {
       dailyPushHour: prefs.dailyPushHour,
       dailyPushMinute: prefs.dailyPushMinute ?? 0,
       timezone: prefs.timezone,
+      locale: (prefs as any).locale ?? 'en',
       lastPushSentAt: prefs.lastPushSentAt,
       // Smart tips
       smartTipsEnabled: (prefs as any).smartTipsEnabled ?? false,
       smartTipsHour: (prefs as any).smartTipsHour ?? 20,
+      smartTipsMinute: (prefs as any).smartTipsMinute ?? 0,
+      smartTipsMedicalAllowed: (prefs as any).smartTipsMedicalAllowed ?? false,
       healthIssues: ((prefs as any).healthIssues ?? []) as string[],
       smartTipsLastSentAt: (prefs as any).smartTipsLastSentAt ?? null,
       smartTipsLastCategory: (prefs as any).smartTipsLastCategory ?? null,
@@ -91,6 +101,10 @@ export class NotificationsService {
         updateData.timezone = zone;
       }
 
+      if (dto.locale !== undefined) {
+        updateData.locale = this.normalizeLocale(dto.locale);
+      }
+
       // Handle dailyPushMinute - ensure it's a valid integer between 0-59
       if (dto.dailyPushMinute !== undefined) {
         const minute = typeof dto.dailyPushMinute === 'string'
@@ -118,6 +132,17 @@ export class NotificationsService {
         updateData.smartTipsHour = hour;
         updateData.smartTipsLastSentAt = null;
       }
+      if (dto.smartTipsMinute !== undefined) {
+        const minute = Number(dto.smartTipsMinute);
+        if (Number.isNaN(minute) || minute < 0 || minute > 59) {
+          throw new BadRequestException('smartTipsMinute must be an integer between 0 and 59');
+        }
+        updateData.smartTipsMinute = minute;
+        updateData.smartTipsLastSentAt = null;
+      }
+      if (dto.smartTipsMedicalAllowed !== undefined) {
+        updateData.smartTipsMedicalAllowed = Boolean(dto.smartTipsMedicalAllowed);
+      }
       if (dto.healthIssues !== undefined) {
         const allowed = new Set(['sleep', 'stress', 'energy', 'digestion']);
         const sanitized = Array.isArray(dto.healthIssues)
@@ -136,9 +161,12 @@ export class NotificationsService {
           dailyPushHour: updateData.dailyPushHour ?? (Number.isNaN(this.defaultHour) ? 8 : this.defaultHour),
           dailyPushMinute: updateData.dailyPushMinute ?? 0,
           timezone: updateData.timezone ?? 'UTC',
+          locale: updateData.locale ?? 'en',
           lastPushSentAt: null,
           smartTipsEnabled: updateData.smartTipsEnabled ?? false,
           smartTipsHour: updateData.smartTipsHour ?? 20,
+          smartTipsMinute: updateData.smartTipsMinute ?? 0,
+          smartTipsMedicalAllowed: updateData.smartTipsMedicalAllowed ?? false,
           healthIssues: updateData.healthIssues ?? [],
         },
         update: updateData,
@@ -153,9 +181,12 @@ export class NotificationsService {
         dailyPushHour: prefs.dailyPushHour,
         dailyPushMinute: prefs.dailyPushMinute ?? 0,
         timezone: prefs.timezone,
+        locale: (prefs as any).locale ?? 'en',
         lastPushSentAt: prefs.lastPushSentAt,
         smartTipsEnabled: (prefs as any).smartTipsEnabled ?? false,
         smartTipsHour: (prefs as any).smartTipsHour ?? 20,
+        smartTipsMinute: (prefs as any).smartTipsMinute ?? 0,
+        smartTipsMedicalAllowed: (prefs as any).smartTipsMedicalAllowed ?? false,
         healthIssues: ((prefs as any).healthIssues ?? []) as string[],
       };
     } catch (error) {
@@ -208,6 +239,49 @@ export class NotificationsService {
       });
     }
 
+    const prefUpdate: any = {};
+    if (dto.locale) prefUpdate.locale = this.normalizeLocale(dto.locale);
+    if (dto.timezone) {
+      const zone = dto.timezone.trim();
+      if (DateTime.utc().setZone(zone).isValid) prefUpdate.timezone = zone;
+    }
+    if (Object.keys(prefUpdate).length) {
+      await this.prisma.notificationPreference.upsert({
+        where: { userId },
+        create: {
+          userId,
+          dailyPushEnabled: false,
+          dailyPushHour: Number.isNaN(this.defaultHour) ? 8 : this.defaultHour,
+          dailyPushMinute: 0,
+          timezone: prefUpdate.timezone ?? 'UTC',
+          locale: prefUpdate.locale ?? 'en',
+          smartTipsEnabled: false,
+          smartTipsHour: 20,
+          smartTipsMinute: 0,
+          smartTipsMedicalAllowed: false,
+          healthIssues: [],
+        },
+        update: prefUpdate,
+      });
+    }
+    if (prefUpdate.locale || prefUpdate.timezone) {
+      const profile = await this.prisma.userProfile.findUnique({
+        where: { userId },
+        select: { preferences: true },
+      });
+      if (profile) {
+        const preferences = {
+          ...((profile.preferences as Record<string, any> | null) || {}),
+          ...(prefUpdate.locale ? { language: prefUpdate.locale } : {}),
+          ...(prefUpdate.timezone ? { timezone: prefUpdate.timezone } : {}),
+        };
+        await this.prisma.userProfile.update({
+          where: { userId },
+          data: { preferences },
+        });
+      }
+    }
+
     return {
       id: pushToken.id,
       deviceId: pushToken.deviceId,
@@ -249,6 +323,54 @@ export class NotificationsService {
 
   async sendTestNotification(userId: string, dto: SendTestNotificationDto) {
     return this.sendPushNotification(userId, dto.title, dto.body, dto.data);
+  }
+
+  async sendSmartTipTest(userId: string, requestedCategory?: string) {
+    const prefs = await this.ensurePreferences(userId);
+    const issues = ((prefs as any).healthIssues || []) as string[];
+    const allowed: SmartTipCategory[] = ['sleep', 'stress', 'energy', 'digestion'];
+    const category = allowed.includes(requestedCategory as SmartTipCategory)
+      ? requestedCategory as SmartTipCategory
+      : allowed.find((issue) => issues.includes(issue)) || 'sleep';
+    const locale = this.normalizeLocale((prefs as any).locale);
+    const timezone = prefs.timezone || 'UTC';
+    const local = DateTime.utc().setZone(timezone);
+    const tip = pickTip(category, locale, userId, {
+      allowMedical: Boolean((prefs as any).smartTipsMedicalAllowed),
+    });
+    const result = await this.sendPushNotification(userId, tip.title, tip.body, {
+      type: 'smart_tip',
+      category,
+      test: true,
+    });
+    const ticketIds = Array.isArray((result as any)?.tickets)
+      ? (result as any).tickets.map((ticket: any) => ticket?.id).filter(Boolean)
+      : [];
+    const ticketError = Array.isArray((result as any)?.tickets)
+      ? (result as any).tickets.find((ticket: any) => ticket?.status === 'error')
+      : null;
+    const sentAt = new Date();
+    await this.prisma.notificationDeliveryLog.create({
+      data: {
+        userId,
+        type: 'smart_tip_test',
+        category,
+        templateKey: `${category}:${locale}:${tip.title}`,
+        localDate: local.isValid ? local.toFormat("yyyy-LL-dd'T'HH:mm:ss") : sentAt.toISOString(),
+        locale,
+        timezone,
+        scheduledForUtc: sentAt,
+        sentAt,
+        status: (result as any)?.success !== false && ticketIds.length > 0 && !ticketError ? 'sent' : 'failed',
+        ticketIds,
+        errorCode: ticketError?.details?.error ?? null,
+        errorMessage: (result as any)?.message ?? ticketError?.message ?? (!ticketIds.length ? 'Expo did not return push tickets' : null),
+        payloadPreview: { title: tip.title, body: tip.body, test: true },
+      },
+    }).catch((err: any) => {
+      this.logger.warn(`[sendSmartTipTest] delivery log write failed for user=${userId}: ${err?.message}`);
+    });
+    return result;
   }
 
   async sendPushNotification(userId: string, title: string, body: string, data?: Record<string, any>) {
@@ -307,6 +429,40 @@ export class NotificationsService {
     };
   }
 
+  async saveSmartTipFeedback(userId: string, body: { deliveryLogId?: string; reaction?: string; category?: string; templateKey?: string }) {
+    const reaction = body?.reaction === 'useful' ? 'useful' : body?.reaction === 'not_relevant' ? 'not_relevant' : null;
+    if (!reaction) throw new BadRequestException('reaction must be useful or not_relevant');
+    if (body?.deliveryLogId) {
+      const updated = await this.prisma.notificationDeliveryLog.updateMany({
+        where: {
+          id: body.deliveryLogId,
+          userId,
+          type: { in: ['smart_tip', 'smart_tip_test'] },
+        },
+        data: {
+          reaction,
+          reactedAt: new Date(),
+        },
+      });
+      if (updated.count > 0) return { success: true };
+    }
+    await this.prisma.notificationDeliveryLog.create({
+      data: {
+        userId,
+        type: 'smart_tip_feedback',
+        category: body?.category || null,
+        templateKey: body?.templateKey || null,
+        localDate: new Date().toISOString(),
+        scheduledForUtc: new Date(),
+        sentAt: new Date(),
+        status: 'feedback_only',
+        reaction,
+        reactedAt: new Date(),
+      },
+    });
+    return { success: true };
+  }
+
   private async handleTicketErrors(tokens: string[], tickets: ExpoPushTicket[]) {
     await Promise.all(
       tickets.map(async (ticket, index) => {
@@ -327,6 +483,13 @@ export class NotificationsService {
         }
       }),
     );
+  }
+
+  async checkPushReceipts(ticketIds: string[]) {
+    const ids = ticketIds.filter(Boolean);
+    if (!ids.length) return {};
+    const receipts = await this.expo.getPushNotificationReceiptsAsync(ids);
+    return receipts;
   }
 
   /**

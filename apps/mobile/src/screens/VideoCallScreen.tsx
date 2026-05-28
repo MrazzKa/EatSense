@@ -25,6 +25,7 @@ import { Track } from 'livekit-client';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
+import MarketplaceService from '../services/marketplaceService';
 
 // Note: LiveKit's WebRTC globals are registered once at app bootstrap (App.tsx).
 // Calling registerGlobals() here too would be idempotent but redundant.
@@ -46,6 +47,7 @@ export default function VideoCallScreen({ route, navigation }: any) {
     const [error, setError] = useState<string | null>(null);
     const [connectionLost, setConnectionLost] = useState(false);
     const [consultationEndAt, setConsultationEndAt] = useState<number | null>(null);
+    const [isExpertSide, setIsExpertSide] = useState(false);
     const startedAtRef = useRef<number | null>(null);
 
     const fetchToken = useCallback(async () => {
@@ -79,6 +81,19 @@ export default function VideoCallScreen({ route, navigation }: any) {
     useEffect(() => {
         fetchToken();
     }, [fetchToken]);
+
+    useEffect(() => {
+        if (!conversationId) return;
+        let cancelled = false;
+        MarketplaceService.getConversation(conversationId)
+            .then((conversation: any) => {
+                if (!cancelled) setIsExpertSide(Boolean(conversation?.isExpert));
+            })
+            .catch(() => {
+                if (!cancelled) setIsExpertSide(false);
+            });
+        return () => { cancelled = true; };
+    }, [conversationId]);
 
     // Load consultation end time so we can auto-finish when the paid window closes.
     useEffect(() => {
@@ -240,16 +255,36 @@ export default function VideoCallScreen({ route, navigation }: any) {
                 onConnected={onConnected}
                 onDisconnected={onDisconnected}
             >
-                <RoomView onEndCall={endCall} t={t} connectionLost={connectionLost} />
+                <RoomView
+                    onEndCall={endCall}
+                    t={t}
+                    connectionLost={connectionLost}
+                    sessionId={creds.sessionId}
+                    isExpertSide={isExpertSide}
+                />
             </LiveKitRoom>
         </View>
     );
 }
 
-function RoomView({ onEndCall, t, connectionLost }: { onEndCall: () => void; t: any; connectionLost: boolean }) {
+function RoomView({
+    onEndCall,
+    t,
+    connectionLost,
+    sessionId,
+    isExpertSide,
+}: {
+    onEndCall: () => void;
+    t: any;
+    connectionLost: boolean;
+    sessionId: string;
+    isExpertSide: boolean;
+}) {
     const room = useRoomContext();
     const [micEnabled, setMicEnabled] = useState(true);
     const [cameraEnabled, setCameraEnabled] = useState(true);
+    const [clientMuted, setClientMuted] = useState(false);
+    const [moderationBusy, setModerationBusy] = useState(false);
     const tracks = useTracks(
         [
             { source: Track.Source.Camera, withPlaceholder: true },
@@ -277,6 +312,38 @@ function RoomView({ onEndCall, t, connectionLost }: { onEndCall: () => void; t: 
         setCameraEnabled(next);
         await room.localParticipant.setCameraEnabled(next).catch(() => setCameraEnabled(!next));
     }, [cameraEnabled, room]);
+
+    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+    const switchCamera = useCallback(async () => {
+        const next = facingMode === 'user' ? 'environment' : 'user';
+        // Restart the local camera track with the opposite facing mode.
+        const track: any = (local as any)?.publication?.track;
+        try {
+            if (track?.restartTrack) {
+                await track.restartTrack({ facingMode: next });
+                setFacingMode(next);
+            }
+        } catch {
+            /* keep current camera on failure */
+        }
+    }, [facingMode, local]);
+
+    const toggleClientMute = useCallback(async () => {
+        if (!sessionId || moderationBusy) return;
+        const next = !clientMuted;
+        setModerationBusy(true);
+        try {
+            await ApiService.request(`/video/session/${sessionId}/mute-participant`, {
+                method: 'POST',
+                body: JSON.stringify({ mute: next }),
+            });
+            setClientMuted(next);
+        } catch {
+            // The client may not have joined yet or may have no audio track.
+        } finally {
+            setModerationBusy(false);
+        }
+    }, [clientMuted, moderationBusy, sessionId]);
 
     return (
         <View style={styles.fullscreen}>
@@ -354,6 +421,26 @@ function RoomView({ onEndCall, t, connectionLost }: { onEndCall: () => void; t: 
                 >
                     <Ionicons name={cameraEnabled ? 'videocam' : 'videocam-off'} size={26} color="#fff" />
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.mediaButton}
+                    onPress={switchCamera}
+                    disabled={!cameraEnabled}
+                    accessibilityLabel={t('experts.video.switchCamera') || 'Switch camera'}
+                >
+                    <Ionicons name="camera-reverse-outline" size={26} color="#fff" />
+                </TouchableOpacity>
+                {isExpertSide && (
+                    <TouchableOpacity
+                        style={[styles.mediaButton, clientMuted && styles.mediaButtonOff]}
+                        onPress={toggleClientMute}
+                        disabled={moderationBusy}
+                        accessibilityLabel={clientMuted
+                            ? (t('experts.video.unmuteClient') || 'Unmute client')
+                            : (t('experts.video.muteClient') || 'Mute client')}
+                    >
+                        <Ionicons name={clientMuted ? 'volume-high-outline' : 'volume-mute-outline'} size={25} color="#fff" />
+                    </TouchableOpacity>
+                )}
             </SafeAreaView>
         </View>
     );
@@ -437,7 +524,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 18,
+        gap: 8,
+        paddingHorizontal: 12,
         paddingBottom: 24,
     },
     mediaButton: {

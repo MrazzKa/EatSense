@@ -7,6 +7,7 @@ interface User {
   id: string;
   email: string;
   expertsRole?: string;
+  mustChangePassword?: boolean;
   profile?: {
     firstName?: string;
     lastName?: string;
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: data.id,
         email: data.email,
         expertsRole: data.expertsRole,
+        mustChangePassword: data.mustChangePassword === true,
         profile: data.userProfile,
       };
 

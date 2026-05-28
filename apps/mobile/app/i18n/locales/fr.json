@@ -1129,7 +1129,10 @@
       "disableCamera": "Désactiver la caméra",
       "cancel": "Annuler",
       "unmuteMic": "Réactiver le micro",
-      "enableCamera": "Activer la caméra"
+      "enableCamera": "Activer la caméra",
+      "switchCamera": "Changer de caméra",
+      "muteClient": "Couper le micro du client",
+      "unmuteClient": "Réactiver le micro du client"
     },
     "feature1": "Trouver des spécialistes vérifiés",
     "feature2": "Consultations par chat et vidéo",
@@ -1165,6 +1168,9 @@
     "paymentUnavailableBody": "Ce service payant est déjà visible, mais le paiement en ligne n'est pas encore connecté. Choisissez un service gratuit ou contactez l'expert lorsque les paiements seront activés.",
     "ownerProfilePublished": "Votre profil expert est publié",
     "ownerProfilePublishedSub": "Les clients peuvent trouver vos services dans EatSense.",
+    "ownerInviteByCode": "Invitez des clients avec votre code",
+    "ownerInviteByCodeHint": "Partagez ce code pour que les clients puissent vous ajouter dans l'application.",
+    "ownerCodeCopied": "Copié",
     "selfHiddenHint": "Votre propre profil est masqué dans votre liste personnelle. Les autres clients peuvent le trouver dans EatSense.",
     "ownerOpenPortal": "Ouvrir le portail expert",
     "offerFormat": {
@@ -1394,6 +1400,7 @@
     "photo": "Photo",
     "requestDataAccess": "Demander l'accès aux données",
     "dataAccessRequest": "Demande d'accès aux données",
+    "dataAccessRequestBody": "Je souhaite accéder à vos données nutritionnelles et rapports de santé pour mieux vous aider. Veuillez autoriser si vous êtes d'accord.",
     "accessGranted": "Accès accordé",
     "accessGrantedScoped": "Accès accordé : {{labels}}",
     "scheduleConsultation": "Planifier une consultation",
@@ -2273,7 +2280,9 @@
       "issueEnergy": "Énergie",
       "issueDigestion": "Digestion",
       "saveFailed": "Impossible d'enregistrer les paramètres",
-      "pickIssueFirst": "Sélectionnez au moins un domaine ci-dessous pour activer les conseils intelligents."
+      "pickIssueFirst": "Sélectionnez au moins un domaine ci-dessous pour activer les conseils intelligents.",
+      "advancedTitle": "Conseils avancés",
+      "advancedSubtitle": "Autoriser les conseils liés aux compléments. Les conseils lifestyle restent activés."
     },
     "cancelSubscriptionTitle": "Annuler l’abonnement ?",
     "cancelSubscriptionMessage": "Vous pouvez gérer ou annuler votre abonnement dans les paramètres de votre compte de boutique.",

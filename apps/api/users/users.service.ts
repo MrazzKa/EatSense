@@ -36,6 +36,7 @@ export class UsersService {
         email: true,
         profile: true,
         expertsRole: true,
+        mustChangePassword: true,
         createdAt: true,
         updatedAt: true,
         userProfile: {

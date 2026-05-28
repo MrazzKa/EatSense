@@ -1180,7 +1180,10 @@
       "disableCamera": "Kamera ausschalten",
       "cancel": "Abbrechen",
       "unmuteMic": "Mikrofon einschalten",
-      "enableCamera": "Kamera einschalten"
+      "enableCamera": "Kamera einschalten",
+      "switchCamera": "Kamera wechseln",
+      "muteClient": "Klient stummschalten",
+      "unmuteClient": "Stummschaltung aufheben"
     },
     "feature1": "Verifizierte Spezialisten finden",
     "feature2": "Chat- und Videoberatungen",
@@ -1284,6 +1287,9 @@
     "paymentUnavailableBody": "Diese kostenpflichtige Leistung ist bereits sichtbar, aber Online-Zahlung ist noch nicht verbunden. Wähle eine kostenlose Leistung oder kontaktiere den Experten, sobald Zahlungen aktiviert sind.",
     "ownerProfilePublished": "Dein Expertenprofil ist veröffentlicht",
     "ownerProfilePublishedSub": "Klienten können deine Leistungen in EatSense finden.",
+    "ownerInviteByCode": "Lade Klienten mit deinem Code ein",
+    "ownerInviteByCodeHint": "Teile diesen Code, damit Klienten dich in der App hinzufügen können.",
+    "ownerCodeCopied": "Kopiert",
     "selfHiddenHint": "Dein eigenes Profil wird in deiner persönlichen Liste ausgeblendet. Andere Klienten können es in EatSense finden.",
     "ownerOpenPortal": "Expertenportal öffnen",
     "offerFormat": {
@@ -1439,6 +1445,7 @@
     "photo": "Foto",
     "requestDataAccess": "Datenzugriff anfordern",
     "dataAccessRequest": "Datenzugriffsanfrage",
+    "dataAccessRequestBody": "Ich möchte Zugriff auf Ihre Ernährungsdaten und Gesundheitsberichte, um Sie besser zu unterstützen. Bitte erlauben Sie es, wenn Sie einverstanden sind.",
     "accessGranted": "Zugriff gewährt",
     "accessGrantedScoped": "Zugriff gewährt: {{labels}}",
     "scheduleConsultation": "Beratung planen",
@@ -2012,7 +2019,9 @@
       "issueEnergy": "Energie",
       "issueDigestion": "Verdauung",
       "saveFailed": "Einstellungen konnten nicht gespeichert werden",
-      "pickIssueFirst": "Wählen Sie unten mindestens einen Bereich aus, um smarte Tipps zu aktivieren."
+      "pickIssueFirst": "Wählen Sie unten mindestens einen Bereich aus, um smarte Tipps zu aktivieren.",
+      "advancedTitle": "Erweiterte Tipps",
+      "advancedSubtitle": "Tipps zu Nahrungsergänzung erlauben. Lifestyle-Tipps bleiben standardmäßig aktiv."
     },
     "cancelSubscriptionTitle": "Abo kündigen?",
     "cancelSubscriptionMessage": "Du kannst dein Abo in den Store-Kontoeinstellungen verwalten oder kündigen.",

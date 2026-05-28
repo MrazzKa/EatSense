@@ -5,6 +5,7 @@ import { Star, MessageSquareQuote, EyeOff } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { localeTag } from '@/lib/i18n/format';
 
 interface ReviewClient {
   id: string;
@@ -42,7 +43,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function ReviewsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const clientName = (r: Review) => {
     const p = r.client?.userProfile;
     if (!p) return t('reviews', 'clientFallback');
@@ -118,7 +119,7 @@ export default function ReviewsPage() {
                       </div>
                       <div className="text-sm font-medium">{clientName(r)}</div>
                       <div className="text-xs text-[var(--text2)]">
-                        {new Date(r.createdAt).toLocaleDateString()}
+                        {new Date(r.createdAt).toLocaleDateString(localeTag(locale))}
                       </div>
                     </div>
                     {!r.isVisible && (

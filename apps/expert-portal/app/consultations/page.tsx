@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { LOCALE_TAGS } from '@/lib/i18n/format';
+import type { Locale } from '@/lib/i18n/messages';
 import { useToast } from '@/components/toast';
 import { Calendar as CalendarIcon, CalendarClock, CheckCircle2, Clock, Plus, UserX, Video, X } from 'lucide-react';
 
@@ -37,7 +39,7 @@ function fmtName(c: Consultation): string {
 
 function fmtTime(iso: string, locale: string): string {
   const d = new Date(iso);
-  return d.toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US', {
+  return d.toLocaleString(LOCALE_TAGS[locale as Locale] || 'en-US', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

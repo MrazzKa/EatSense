@@ -6,6 +6,8 @@ import { Search, Users, Utensils, MessageSquare, Calendar } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { localeTag } from '@/lib/i18n/format';
+import type { Locale } from '@/lib/i18n/messages';
 
 interface ClientLink {
   id: string;
@@ -42,7 +44,7 @@ function initials(c: ClientLink): string {
     .join('') || '?';
 }
 
-function relTime(dateStr: string | null): string {
+function relTime(dateStr: string | null, locale: Locale): string {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
   const diff = Date.now() - d.getTime();
@@ -53,11 +55,11 @@ function relTime(dateStr: string | null): string {
   if (h < 24) return `${h}h`;
   const days = Math.floor(h / 24);
   if (days < 30) return `${days}d`;
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString(localeTag(locale), { month: 'short', day: 'numeric' });
 }
 
 export default function ClientsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [clients, setClients] = useState<ClientLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -167,13 +169,13 @@ export default function ClientsPage() {
                       </div>
                       <div className="mt-0.5 flex items-center gap-3 text-xs text-[var(--text2)]">
                         <span className="inline-flex items-center gap-1">
-                          <Utensils size={12} /> {relTime(c.lastMealAt)}
+                          <Utensils size={12} /> {relTime(c.lastMealAt, locale)}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <MessageSquare size={12} /> {relTime(c.conversation?.lastMessageAt || null)}
+                          <MessageSquare size={12} /> {relTime(c.conversation?.lastMessageAt || null, locale)}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <Calendar size={12} /> {relTime(c.createdAt)}
+                          <Calendar size={12} /> {relTime(c.createdAt, locale)}
                         </span>
                       </div>
                     </div>

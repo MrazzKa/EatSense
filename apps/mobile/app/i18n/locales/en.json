@@ -1186,7 +1186,9 @@
       "issueEnergy": "Energy",
       "issueDigestion": "Digestion",
       "saveFailed": "Could not save smart tips settings",
-      "pickIssueFirst": "Pick at least one area below to enable smart tips."
+      "pickIssueFirst": "Pick at least one area below to enable smart tips.",
+      "advancedTitle": "Advanced tips",
+      "advancedSubtitle": "Allow supplement-related tips. Lifestyle tips stay on by default."
     },
     "cancelSubscriptionTitle": "Cancel subscription?",
     "cancelSubscriptionMessage": "You can manage or cancel your subscription in your store account settings.",
@@ -1469,7 +1471,10 @@
       "disableCamera": "Turn camera off",
       "cancel": "Cancel",
       "unmuteMic": "Unmute microphone",
-      "enableCamera": "Turn camera on"
+      "enableCamera": "Turn camera on",
+      "switchCamera": "Switch camera",
+      "muteClient": "Mute client",
+      "unmuteClient": "Unmute client"
     },
     "feature1": "Find verified specialists",
     "feature2": "Chat & video consultations",
@@ -1516,6 +1521,9 @@
     "paymentUnavailableBody": "This paid service is already visible, but online checkout is not connected yet. You can choose a free service or contact the expert when payments are enabled.",
     "ownerProfilePublished": "Your expert profile is published",
     "ownerProfilePublishedSub": "Clients can find your services in EatSense.",
+    "ownerInviteByCode": "Invite clients with your code",
+    "ownerInviteByCodeHint": "Share this code so clients can add you in the app.",
+    "ownerCodeCopied": "Copied",
     "selfHiddenHint": "Your own profile is hidden from your personal list. Other clients can find it in EatSense.",
     "ownerOpenPortal": "Open expert portal",
     "offerFormat": {
@@ -1734,6 +1742,7 @@
     "revokeAccess": "Revoke Data Access",
     "requestDataAccess": "Request Data Access",
     "dataAccessRequest": "Data Access Request",
+    "dataAccessRequestBody": "I'd like access to your nutrition data and health reports to help you better. Please allow it if you agree.",
     "accessGranted": "Access granted",
     "accessGrantedScoped": "Access granted: {{labels}}",
     "accessRevoked": "Access to nutrition data revoked",

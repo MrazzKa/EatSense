@@ -212,6 +212,11 @@
     .form-field textarea:focus { border-color: var(--primary); }
     .form-help { color: var(--text2); font-size: 12px; line-height: 1.45; font-weight: 400; }
     .inline-input-row { display: flex; gap: 8px; align-items: center; }
+    .checkbox-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .checkbox-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; user-select: none; }
+    .checkbox-chip input { margin: 0; }
+    .spec-chip { padding: 4px 10px; border: 1px dashed var(--border); border-radius: 14px; font-size: 12px; cursor: pointer; background: transparent; color: var(--text); }
+    .spec-chip:hover { border-style: solid; border-color: var(--green); }
     .modal-actions {
       display: flex;
       gap: 8px;
@@ -618,7 +623,7 @@
                 <div class="form-grid">
                 <label class="form-field"><span data-create-i18n="email">Email *</span><input name="email" type="email" required></label>
                 <label class="form-field"><span data-create-i18n="type">Type *</span>
-                  <select name="type" required>
+                  <select name="type" required onchange="renderSpecPresets(this.value)">
                     <option value="">—</option>
                     <option value="nutritionist">Nutritionist</option>
                     <option value="dietitian">Dietitian</option>
@@ -638,14 +643,60 @@
               <div class="form-section">
                 <div class="form-section-title" data-create-i18n="practice">Practice</div>
                 <div class="form-grid">
-                <label class="form-field"><span data-create-i18n="country">Country (ISO-2)</span><input name="country" type="text" maxlength="2" placeholder="KZ"></label>
+                <label class="form-field"><span data-create-i18n="country">Country</span>
+                  <input name="country" list="country-list" maxlength="2" placeholder="KZ" oninput="this.value=this.value.toUpperCase()">
+                  <datalist id="country-list">
+                    <option value="KZ">Kazakhstan</option>
+                    <option value="RU">Russia</option>
+                    <option value="CH">Switzerland</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="ES">Spain</option>
+                    <option value="US">United States</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="UA">Ukraine</option>
+                    <option value="UZ">Uzbekistan</option>
+                    <option value="KG">Kyrgyzstan</option>
+                    <option value="TR">Turkey</option>
+                    <option value="AE">UAE</option>
+                  </datalist>
+                </label>
                 <label class="form-field"><span data-create-i18n="city">City</span><input name="city" type="text" maxlength="100"></label>
-                <label class="form-field"><span data-create-i18n="timezone">Timezone (IANA)</span><input name="timezone" type="text" placeholder="Asia/Almaty" maxlength="64"></label>
+                <label class="form-field"><span data-create-i18n="timezone">Timezone (IANA)</span>
+                  <input name="timezone" list="tz-list" placeholder="Asia/Almaty" maxlength="64">
+                  <datalist id="tz-list">
+                    <option value="Asia/Almaty"></option>
+                    <option value="Asia/Aqtobe"></option>
+                    <option value="Europe/Moscow"></option>
+                    <option value="Europe/Zurich"></option>
+                    <option value="Europe/Berlin"></option>
+                    <option value="Europe/Paris"></option>
+                    <option value="Europe/Madrid"></option>
+                    <option value="Europe/London"></option>
+                    <option value="Europe/Kyiv"></option>
+                    <option value="Asia/Tashkent"></option>
+                    <option value="Asia/Bishkek"></option>
+                    <option value="Asia/Dubai"></option>
+                    <option value="America/New_York"></option>
+                  </datalist>
+                </label>
                 <label class="form-field"><span data-create-i18n="phone">Phone</span><input name="phone" type="tel" maxlength="40"></label>
                 <label class="form-field"><span data-create-i18n="license">License number</span><input name="licenseNumber" type="text" maxlength="100"></label>
                 <label class="form-field"><span data-create-i18n="experience">Experience years</span><input name="experienceYears" type="number" min="0" max="70"></label>
-                <label class="form-field full"><span data-create-i18n="languages">Languages (comma-separated)</span><input name="languages" type="text" placeholder="ru, kk" maxlength="100"></label>
-                <label class="form-field full"><span data-create-i18n="specializations">Specializations (comma-separated)</span><input name="specializations" type="text" placeholder="акушерство, гинекология" maxlength="500"></label>
+                <label class="form-field full"><span data-create-i18n="languages">Languages</span>
+                  <div id="lang-checkboxes" class="checkbox-row">
+                    <label class="checkbox-chip"><input type="checkbox" name="lang" value="en"> EN</label>
+                    <label class="checkbox-chip"><input type="checkbox" name="lang" value="ru"> RU</label>
+                    <label class="checkbox-chip"><input type="checkbox" name="lang" value="kk"> KK</label>
+                    <label class="checkbox-chip"><input type="checkbox" name="lang" value="fr"> FR</label>
+                    <label class="checkbox-chip"><input type="checkbox" name="lang" value="de"> DE</label>
+                    <label class="checkbox-chip"><input type="checkbox" name="lang" value="es"> ES</label>
+                  </div>
+                </label>
+                <label class="form-field full"><span data-create-i18n="specializations">Specializations (comma-separated)</span>
+                  <input name="specializations" type="text" placeholder="акушерство, гинекология" maxlength="500">
+                  <div id="spec-presets" class="form-help" style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;"></div>
+                </label>
                 </div>
               </div>
               <div class="form-section">
@@ -1426,6 +1477,7 @@
                   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
                     <button class="btn btn-outline btn-sm" onclick="copyExpertAccess('${expert.id}', decodeURIComponent('${encArg(email)}'), decodeURIComponent('${encArg(expert.displayName)}'), decodeURIComponent('${encArg(expert.accessCode?.code || '')}'))">Copy RU+EN instruction</button>
                     <button class="btn btn-outline btn-sm" onclick="regenerateExpertCode('${expert.id}')">Regenerate code</button>
+                    <button class="btn btn-outline btn-sm" onclick="resetExpertPassword('${expert.id}')">Reset password</button>
                     <button class="btn btn-outline btn-sm" onclick="loadExpertCodeUsage('${expert.id}')">Usage log</button>
                   </div>
                   <div id="code-usage-${expert.id}" style="display:none;margin-top:8px;color:var(--text2);font-size:12px"></div>
@@ -1564,6 +1616,18 @@
         loadExperts();
       } catch (err) {
         toast('Failed to regenerate code: ' + err.message);
+      }
+    }
+
+    async function resetExpertPassword(id) {
+      if (!confirm('Generate a new temporary password for this expert and email it to them? They will be required to change it on first login.')) return;
+      try {
+        const res = await fetchAPI(`/admin/experts/${id}/reset-password`, { method: 'POST' });
+        const emailText = res.emailSent ? 'Welcome email sent.' : '⚠ Email NOT sent (check SMTP/logs).';
+        alert(`Password reset.\n${emailText}${res.tempPassword ? `\n\nTemporary password: ${res.tempPassword}\n(The expert must change it on first login.)` : ''}`);
+        toast('Password reset');
+      } catch (err) {
+        toast('Failed to reset password: ' + err.message);
       }
     }
 
@@ -1734,13 +1798,13 @@
         firstName: 'First name',
         lastName: 'Last name',
         displayName: 'Display name *',
-        country: 'Country (ISO-2)',
+        country: 'Country',
         city: 'City',
         timezone: 'Timezone (IANA)',
         phone: 'Phone',
         license: 'License number',
         experience: 'Experience years',
-        languages: 'Languages (comma-separated)',
+        languages: 'Languages',
         specializations: 'Specializations (comma-separated)',
         bio: 'Bio',
         education: 'Education (free text)',
@@ -1764,13 +1828,13 @@
         firstName: 'Имя',
         lastName: 'Фамилия',
         displayName: 'Имя в профиле *',
-        country: 'Страна (ISO-2)',
+        country: 'Страна',
         city: 'Город',
         timezone: 'Часовой пояс (IANA)',
         phone: 'Телефон',
         license: 'Номер лицензии',
         experience: 'Стаж в годах',
-        languages: 'Языки через запятую',
+        languages: 'Языки',
         specializations: 'Специализации через запятую',
         bio: 'Описание',
         education: 'Образование (свободный текст)',
@@ -1899,13 +1963,51 @@
         } catch (e) { el.textContent = ''; }
       }, 350);
     }
+    // Common specialization presets per expert type. Clicking a chip appends it
+    // to the comma-separated specializations input — admin can still type freely.
+    const SPEC_PRESETS = {
+      nutritionist: ['снижение веса', 'спортивное питание', 'детское питание', 'вегетарианство', 'диабет', 'ЖКТ'],
+      dietitian: ['клиническая диетология', 'снижение веса', 'диабет', 'аллергии и непереносимости', 'послеоперационное питание'],
+      psychologist: ['РПП (расстройства пищевого поведения)', 'когнитивно-поведенческая терапия', 'тревожность', 'мотивация'],
+      endocrinologist: ['диабет', 'щитовидная железа', 'ожирение', 'гормональный баланс', 'СПКЯ'],
+      obgyn: ['акушерство', 'гинекология', 'питание при беременности', 'планирование беременности', 'менопауза'],
+      pediatrician: ['питание детей', 'прикорм', 'аллергии у детей', 'набор веса', 'грудное вскармливание'],
+      gp: ['общее здоровье', 'профилактика', 'питание', 'хронические заболевания'],
+      other: [],
+    };
+    function renderSpecPresets(type) {
+      const box = document.getElementById('spec-presets');
+      if (!box) return;
+      const presets = SPEC_PRESETS[type] || [];
+      box.innerHTML = '';
+      presets.forEach(p => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'spec-chip';
+        chip.textContent = '+ ' + p;
+        chip.onclick = () => appendSpec(p);
+        box.appendChild(chip);
+      });
+    }
+    function appendSpec(value) {
+      const input = document.querySelector('#create-expert-form input[name="specializations"]');
+      if (!input) return;
+      const current = input.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (current.includes(value)) return; // no duplicates
+      current.push(value);
+      input.value = current.join(', ');
+    }
+
     async function submitCreateExpert(ev) {
       ev.preventDefault();
       const f = ev.target;
       const fd = new FormData(f);
       const obj = {};
       fd.forEach((v, k) => { obj[k] = typeof v === 'string' ? v.trim() : v; });
-      if (obj.languages) obj.languages = obj.languages.split(',').map(s => s.trim()).filter(Boolean);
+      // Languages now come from checkboxes (name="lang"); collect them explicitly.
+      const langs = Array.from(f.querySelectorAll('input[name="lang"]:checked')).map(c => c.value);
+      obj.languages = langs;
+      delete obj.lang;
       if (obj.specializations) obj.specializations = obj.specializations.split(',').map(s => s.trim()).filter(Boolean);
       if (obj.experienceYears) obj.experienceYears = parseInt(obj.experienceYears, 10) || 0;
       if (!obj.accessCode) delete obj.accessCode;
@@ -1915,10 +2017,13 @@
       try {
         const res = await fetchAPI('/admin/experts', { method: 'POST', body: JSON.stringify(obj) });
         const credText = res.credentials ? `, ${res.credentials} credentials` : '';
-        const magicLinkText = res.magicLinkSent
-          ? ' — welcome magic-link sent by email'
-          : ' — ⚠ magic-link not sent (check SMTP/logs)';
-        toast(`Expert created. Code: ${res.accessCode || '(auto)'}${credText}${magicLinkText}`);
+        const emailText = res.welcomeEmailSent
+          ? 'Welcome email sent.'
+          : '⚠ Welcome email NOT sent (check SMTP/logs).';
+        // Surface the temp password so the admin can copy/share it if email is delayed.
+        const pwLine = res.tempPassword ? `\n\nLogin email: ${obj.email}\nTemporary password: ${res.tempPassword}\n(The expert must change it on first login.)` : '';
+        alert(`Expert created.\nAccess code: ${res.accessCode || '(auto)'}${credText ? '\n' + res.credentials + ' credential(s) uploaded.' : ''}\n${emailText}${pwLine}`);
+        toast(`Expert created. Code: ${res.accessCode || '(auto)'}${credText}`);
         closeCreateExpertModal();
         loadExperts();
       } catch (e) {

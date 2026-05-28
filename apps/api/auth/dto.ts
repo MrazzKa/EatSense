@@ -29,6 +29,32 @@ export class LoginDto {
   password!: string;
 }
 
+export class ExpertLoginDto {
+  @ApiProperty({ example: 'expert@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  @Transform(({ value }) => (value || '').toString().trim().toLowerCase())
+  email!: string;
+
+  @ApiProperty({ example: 'password123' })
+  @IsString()
+  @IsNotEmpty()
+  password!: string;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty({ example: 'currentPassword123', required: false })
+  @IsOptional()
+  @IsString()
+  currentPassword?: string;
+
+  @ApiProperty({ example: 'newPassword123' })
+  @IsString()
+  @MinLength(8)
+  @IsNotEmpty()
+  newPassword!: string;
+}
+
 export class RequestOtpDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()

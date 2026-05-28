@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Loader2, PhoneOff, VideoOff } from 'lucide-react';
+import { Loader2, MicOff, Mic, PhoneOff, VideoOff } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
@@ -37,6 +37,8 @@ export default function ExpertCallPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [connectionLost, setConnectionLost] = useState(false);
+    const [clientMuted, setClientMuted] = useState(false);
+    const [muting, setMuting] = useState(false);
     const startedAtRef = useRef<number | null>(null);
 
     const sessionEndedRef = useRef(false);
@@ -119,6 +121,23 @@ export default function ExpertCallPage() {
     const onDisconnected = useCallback(() => {
         setConnectionLost(true);
     }, []);
+
+    const toggleClientMute = useCallback(async () => {
+        if (!creds?.sessionId || muting) return;
+        const next = !clientMuted;
+        setMuting(true);
+        try {
+            await apiFetch(`/video/session/${creds.sessionId}/mute-participant`, {
+                method: 'POST',
+                body: JSON.stringify({ mute: next }),
+            });
+            setClientMuted(next);
+        } catch {
+            /* surface nothing; expert can retry */
+        } finally {
+            setMuting(false);
+        }
+    }, [creds?.sessionId, clientMuted, muting]);
 
     // Auto-finish when the paid consultation window closes (+60s grace).
     useEffect(() => {
@@ -225,8 +244,17 @@ export default function ExpertCallPage() {
                     {connectionLost ? <Loader2 size={18} className="shrink-0 animate-spin text-white/80" /> : null}
                     <button
                         type="button"
+                        onClick={toggleClientMute}
+                        disabled={muting}
+                        className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:opacity-50"
+                    >
+                        {clientMuted ? <Mic size={16} /> : <MicOff size={16} />}
+                        {clientMuted ? t('call', 'unmuteClient') : t('call', 'muteClient')}
+                    </button>
+                    <button
+                        type="button"
                         onClick={finishCall}
-                        className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--red)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90"
+                        className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[var(--red)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90"
                     >
                         <PhoneOff size={16} />
                         {t('call', 'end')}

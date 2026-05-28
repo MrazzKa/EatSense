@@ -21,6 +21,8 @@ import {
   RequestMagicLinkDto,
   AppleSignInDto,
   GoogleSignInDto,
+  ExpertLoginDto,
+  ChangePasswordDto,
 } from './dto';
 import { Request as ExpressRequest } from 'express';
 
@@ -55,6 +57,23 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login successful' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('expert/login')
+  @ApiOperation({ summary: 'Expert portal password login' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  async expertLogin(@Req() req: ExpressRequest, @Body() dto: ExpertLoginDto) {
+    const clientIp = this.getClientIp(req);
+    return this.authService.expertLogin(dto, clientIp);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change current password (also clears forced-reset flag)' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  async changePassword(@Request() req: any, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.id, dto);
   }
 
   @Post('request-otp')

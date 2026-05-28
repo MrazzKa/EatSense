@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { weekdayShortNames, formatDate, formatDateTime } from '@/lib/i18n/format';
 import { useToast } from '@/components/toast';
 import { Calendar as CalendarIcon, Clock, Copy, MessageSquare, Plane, Plus, Save, Trash2, Video } from 'lucide-react';
 import Link from 'next/link';
@@ -35,8 +36,6 @@ interface ScheduleConsultation {
   client?: { email?: string; userProfile?: { firstName?: string; lastName?: string } };
 }
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 function fmt(min: number): string {
   const h = Math.floor(min / 60).toString().padStart(2, '0');
   const m = (min % 60).toString().padStart(2, '0');
@@ -51,6 +50,7 @@ function parseTime(value: string): number {
 export default function CalendarPage() {
   const { t, locale } = useI18n();
   const { toast } = useToast();
+  const WEEKDAYS = useMemo(() => weekdayShortNames(locale), [locale]);
   const [rules, setRules] = useState<Rule[]>([]);
   const [timezone, setTimezone] = useState<string>('UTC');
   const [loading, setLoading] = useState(true);
@@ -251,7 +251,7 @@ export default function CalendarPage() {
                       <div className="min-w-0">
                         <div className="truncate text-sm font-semibold">{consultationName(item)}</div>
                         <div className="mt-1 flex flex-wrap gap-3 text-xs text-[var(--text2)]">
-                          <span>{start.toLocaleString(locale === 'ru' ? 'ru-RU' : undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{formatDateTime(start, locale)}</span>
                           <span className="inline-flex items-center gap-1"><Clock size={12} /> {item.durationMinutes} min</span>
                           <span>{item.status}</span>
                         </div>
@@ -385,7 +385,7 @@ export default function CalendarPage() {
               {exceptions.map((ex) => (
                 <li key={ex.id} className="flex items-center justify-between text-xs">
                   <span>
-                    {new Date(ex.date).toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                    {formatDate(ex.date, locale, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                     <span className="ml-2 text-[var(--text2)]">
                       {ex.kind === 'closed' ? t('calendar', 'closed') : t('calendar', 'custom')}
                     </span>

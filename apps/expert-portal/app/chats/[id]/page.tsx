@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
+import { localeTag } from '@/lib/i18n/format';
 import { useToast } from '@/components/toast';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -52,7 +53,7 @@ const TEMPLATE_KEYS = [
 export default function ChatPage() {
   const params = useParams();
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { toast } = useToast();
   const convId = params.id as string;
 
@@ -270,11 +271,11 @@ export default function ChatPage() {
   }
 
   function formatTime(dateStr: string) {
-    return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(dateStr).toLocaleTimeString(localeTag(locale), { hour: '2-digit', minute: '2-digit' });
   }
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    return new Date(dateStr).toLocaleDateString(localeTag(locale), { weekday: 'long', month: 'long', day: 'numeric' });
   }
 
   function renderMessage(msg: Message) {

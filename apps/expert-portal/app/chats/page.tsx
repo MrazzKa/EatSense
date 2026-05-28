@@ -15,6 +15,7 @@ import {
 import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { localeTag } from '@/lib/i18n/format';
 import Link from 'next/link';
 
 const MESSAGE_TYPE_ICON: Record<string, LucideIcon> = {
@@ -50,7 +51,7 @@ interface Conversation {
 }
 
 export default function ChatsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -117,10 +118,11 @@ export default function ChatsPage() {
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffDays === 0) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const tag = localeTag(locale);
+    if (diffDays === 0) return d.toLocaleTimeString(tag, { hour: '2-digit', minute: '2-digit' });
     if (diffDays === 1) return t('chats', 'yesterday');
-    if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'short' });
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    if (diffDays < 7) return d.toLocaleDateString(tag, { weekday: 'short' });
+    return d.toLocaleDateString(tag, { month: 'short', day: 'numeric' });
   }
 
   return (

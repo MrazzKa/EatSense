@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Copy, FileText, Headphones, KeyRound, Package, RefreshCw, Star, Upload, Trash2, Video } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
-import { apiFetch, apiFetchRaw } from '@/lib/api';
+import { apiFetch, apiFetchRaw, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import { useToast } from '@/components/toast';
 import { LOCALES, SPECIALIZATION_KEYS, type Locale, type SpecializationKey } from '@/lib/i18n/messages';
@@ -215,12 +215,17 @@ export default function ProfilePage() {
   async function handleViewCredential(cred: { name: string; fileUrl: string }) {
     const popup = typeof window !== 'undefined' ? window.open('', '_blank', 'noopener,noreferrer') : null;
     try {
-      const isAbsolute = /^https?:\/\//i.test(cred.fileUrl);
-      // Internal URLs go through apiFetchRaw so the access token is refreshed
-      // automatically on 401. External ones we open with a plain fetch.
-      const res = isAbsolute
-        ? await fetch(cred.fileUrl)
-        : await apiFetchRaw(cred.fileUrl);
+      // Credential URLs are served by our own API (/media/credential/:id) and
+      // require auth. The stored fileUrl is ABSOLUTE (API_BASE_URL prefixed), so
+      // a naive "is it absolute → external" check would fetch it WITHOUT the
+      // token and 401. Treat any URL pointing at our API base (or a relative
+      // path) as internal and send it through apiFetchRaw (attaches + refreshes
+      // the token). Only genuinely third-party URLs use a plain fetch.
+      const base = apiBaseUrl();
+      const isInternal = cred.fileUrl.startsWith('/') || cred.fileUrl.startsWith(base);
+      const res = isInternal
+        ? await apiFetchRaw(cred.fileUrl)
+        : await fetch(cred.fileUrl);
       if (!res.ok) {
         throw new Error(await res.text());
       }

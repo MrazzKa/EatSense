@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
+import { localeTag } from '@/lib/i18n/format';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -73,12 +74,16 @@ interface ClientData {
 
 export default function ClientDataPage() {
   const params = useParams();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const convId = params.id as string;
   const [data, setData] = useState<ClientData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<'meals' | 'labs' | 'health'>('meals');
+  const [noteDraft, setNoteDraft] = useState('');
+  const [noteSavedAt, setNoteSavedAt] = useState<string | null>(null);
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteError, setNoteError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -141,6 +146,61 @@ export default function ClientDataPage() {
     };
   }, [convId, t]);
 
+  useEffect(() => {
+    if (!data?.clientId) return;
+    let cancelled = false;
+    setNoteError('');
+    apiFetch(`/experts/me/clients/${data.clientId}/note`)
+      .then((note) => {
+        if (cancelled) return;
+        setNoteDraft(note?.body || '');
+        setNoteSavedAt(note?.updatedAt || null);
+      })
+      .catch(() => {
+        if (!cancelled) setNoteError(t('clients', 'notesLoadFailed'));
+      });
+    return () => { cancelled = true; };
+  }, [data?.clientId, t]);
+
+  const saveNote = useCallback(async () => {
+    if (!data?.clientId || noteSaving) return;
+    setNoteSaving(true);
+    setNoteError('');
+    try {
+      const saved = await apiFetch(`/experts/me/clients/${data.clientId}/note`, {
+        method: 'POST',
+        body: JSON.stringify({ body: noteDraft }),
+      });
+      setNoteSavedAt(saved?.updatedAt || new Date().toISOString());
+    } catch {
+      setNoteError(t('clients', 'notesSaveFailed'));
+    } finally {
+      setNoteSaving(false);
+    }
+  }, [data?.clientId, noteDraft, noteSaving, t]);
+
+  const mealTrend = useMemo(() => buildMealTrend(data?.meals || []), [data?.meals]);
+  const trendMaxCalories = useMemo(
+    () => Math.max(1, ...mealTrend.days.map((d) => d.calories)),
+    [mealTrend.days],
+  );
+  const labFlags = useMemo(() => {
+    const flags: Array<{ label: string; value: string }> = [];
+    for (const lab of data?.labResults || []) {
+      for (const metric of lab.metrics || []) {
+        const low = metric.referenceMin != null && metric.value < metric.referenceMin;
+        const high = metric.referenceMax != null && metric.value > metric.referenceMax;
+        if (low || high) {
+          flags.push({
+            label: `${metric.name} (${lab.testName})`,
+            value: `${metric.value} ${metric.unit}`,
+          });
+        }
+      }
+    }
+    return flags.slice(0, 5);
+  }, [data?.labResults]);
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
@@ -165,6 +225,81 @@ export default function ClientDataPage() {
           </div>
         ) : data ? (
           <>
+            <section className="mb-6 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold">{t('clients', 'overview')}</h2>
+                    <p className="text-xs text-[var(--text2)]">{t('clients', 'mealTrend')}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                    <TrendStat label={t('clients', 'avgCalories')} value={`${Math.round(mealTrend.avgCalories)} kcal`} tone="yellow" />
+                    <TrendStat label={t('clients', 'avgProtein')} value={`${mealTrend.avgProtein.toFixed(1)}g`} tone="primary" />
+                    <TrendStat label={t('clients', 'avgCarbs')} value={`${mealTrend.avgCarbs.toFixed(1)}g`} tone="green" />
+                    <TrendStat label={t('clients', 'avgFat')} value={`${mealTrend.avgFat.toFixed(1)}g`} tone="red" />
+                  </div>
+                </div>
+
+                <div className="flex h-28 items-end gap-1 border-b border-[var(--border)] pb-2">
+                  {mealTrend.days.map((day) => (
+                    <div key={day.key} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+                      <div
+                        className="w-full rounded-t bg-[var(--primary)]/70"
+                        title={`${day.label}: ${Math.round(day.calories)} kcal`}
+                        style={{ height: `${Math.max(6, Math.round((day.calories / trendMaxCalories) * 88))}px` }}
+                      />
+                      <span className="max-w-full truncate text-[10px] text-[var(--text2)]">{day.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4">
+                  <div className="mb-2 text-xs font-semibold text-[var(--text2)]">{t('clients', 'labFlags')}</div>
+                  {labFlags.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {labFlags.map((flag) => (
+                        <span key={`${flag.label}-${flag.value}`} className="rounded-full border border-[var(--red)]/30 bg-[var(--red)]/10 px-2.5 py-1 text-xs text-[var(--red)]">
+                          {flag.label}: {flag.value}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[var(--text2)]">{t('clients', 'noLabFlags')}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-semibold">{t('clients', 'privateNotes')}</h2>
+                    {noteSavedAt && (
+                      <p className="text-xs text-[var(--text2)]">
+                        {t('clients', 'saved')} · {new Date(noteSavedAt).toLocaleString(localeTag(locale), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveNote}
+                    disabled={noteSaving || !data.clientId}
+                    className="rounded-lg bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    {noteSaving ? t('clients', 'saving') : t('clients', 'saveNotes')}
+                  </button>
+                </div>
+                <textarea
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  placeholder={t('clients', 'notesPlaceholder')}
+                  rows={8}
+                  maxLength={8000}
+                  className="min-h-44 w-full resize-y rounded-lg border border-[var(--border)] bg-[var(--surface2)] p-3 text-sm outline-none focus:border-[var(--primary)]"
+                />
+                {noteError && <p className="mt-2 text-xs text-[var(--red)]">{noteError}</p>}
+              </div>
+            </section>
+
             {/* Tabs */}
             <div className="mb-6 flex w-full gap-1 overflow-x-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1 sm:w-fit">
               {(['meals', 'labs', 'health'] as const).map((tabKey) => (
@@ -210,7 +345,7 @@ export default function ClientDataPage() {
                           <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                             <span className="text-sm font-medium">{meal.description || t('clients', 'mealLabel')}</span>
                             <span className="text-xs text-[var(--text2)]">
-                              {new Date(meal.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              {new Date(meal.createdAt).toLocaleDateString(localeTag(locale), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
 
@@ -280,7 +415,7 @@ export default function ClientDataPage() {
                       <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="font-medium text-sm">{lab.testName}</h3>
                         <span className="text-xs text-[var(--text2)]">
-                          {new Date(lab.testDate).toLocaleDateString()}
+                          {new Date(lab.testDate).toLocaleDateString(localeTag(locale))}
                         </span>
                       </div>
 
@@ -359,4 +494,57 @@ function ProfileField({ label, value }: { label: string; value?: string | number
       <dd className="text-sm font-medium">{value || '-'}</dd>
     </div>
   );
+}
+
+function TrendStat({ label, value, tone }: { label: string; value: string; tone: 'yellow' | 'primary' | 'green' | 'red' }) {
+  const color = tone === 'yellow'
+    ? 'text-[var(--yellow)]'
+    : tone === 'primary'
+      ? 'text-[var(--primary)]'
+      : tone === 'green'
+        ? 'text-[var(--green)]'
+        : 'text-[var(--red)]';
+  return (
+    <div className="rounded-lg bg-[var(--surface2)] px-2.5 py-2">
+      <div className="text-[10px] uppercase tracking-wide text-[var(--text2)]">{label}</div>
+      <div className={`mt-0.5 font-semibold ${color}`}>{value}</div>
+    </div>
+  );
+}
+
+function buildMealTrend(meals: Meal[]) {
+  const now = new Date();
+  const days = Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(now);
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (13 - index));
+    const key = date.toISOString().slice(0, 10);
+    return {
+      key,
+      label: `${date.getDate()}.${date.getMonth() + 1}`,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    };
+  });
+  const byKey = new Map(days.map((day) => [day.key, day]));
+  for (const meal of meals) {
+    const key = new Date(meal.createdAt).toISOString().slice(0, 10);
+    const day = byKey.get(key);
+    if (!day) continue;
+    day.calories += meal.calories || 0;
+    day.protein += meal.protein || 0;
+    day.carbs += meal.carbs || 0;
+    day.fat += meal.fat || 0;
+  }
+  const activeDays = days.filter((day) => day.calories || day.protein || day.carbs || day.fat);
+  const denom = Math.max(1, activeDays.length);
+  return {
+    days,
+    avgCalories: activeDays.reduce((sum, day) => sum + day.calories, 0) / denom,
+    avgProtein: activeDays.reduce((sum, day) => sum + day.protein, 0) / denom,
+    avgCarbs: activeDays.reduce((sum, day) => sum + day.carbs, 0) / denom,
+    avgFat: activeDays.reduce((sum, day) => sum + day.fat, 0) / denom,
+  };
 }

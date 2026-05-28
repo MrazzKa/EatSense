@@ -453,6 +453,8 @@ export class CalendarService {
       'METHOD:PUBLISH',
       'X-WR-CALNAME:EatSense consultations',
     ];
+    // RFC 5545 TEXT escaping: backslash, semicolon, comma and newlines.
+    const esc = (s: string) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
     for (const c of items as any[]) {
       if (c.status === 'CANCELLED' || c.status === 'NO_SHOW') continue;
       const expertName = c.expert?.displayName || 'Expert';
@@ -463,7 +465,7 @@ export class CalendarService {
         `DTSTAMP:${now}`,
         `DTSTART:${formatICalDate(new Date(c.startAt))}`,
         `DTEND:${formatICalDate(new Date(c.endAt))}`,
-        `SUMMARY:Consultation — ${expertName} / ${clientName}`,
+        `SUMMARY:${esc(`Consultation — ${expertName} / ${clientName}`)}`,
         `STATUS:${c.status === 'COMPLETED' ? 'CONFIRMED' : 'TENTATIVE'}`,
         c.livekitRoom ? `URL:https://experts.eatsense.ch/call/${c.id}` : '',
         'END:VEVENT',

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking, Image, ActionSheetIOS } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Switch, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Animated, Linking, Image, ActionSheetIOS, ActivityIndicator } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -29,7 +29,7 @@ import { shouldShowDisclaimer } from '../legal/disclaimerUtils';
 import { API_BASE_URL } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
-import { formatAmount, getPriceValue, formatPrice } from '../utils/currency';
+import { formatAmount, getPriceValue } from '../utils/currency';
 import IAPService from '../services/iapService';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import HealthDisclaimer from '../components/HealthDisclaimer';
@@ -69,7 +69,7 @@ export function parsePresetAvatar(url: string | null | undefined): { icon: strin
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const themeContext = useTheme();
   const { signOut, user, setUser } = useAuth();
   const { mascot } = useMascot();
@@ -261,7 +261,9 @@ const ProfileScreen = () => {
   const [country, setCountry] = useState<string | null>(null);
   const [planModalVisible, setPlanModalVisible] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showSmartTipsTimePicker, setShowSmartTipsTimePicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
+  const [tempSmartTipsDate, setTempSmartTipsDate] = useState(new Date());
   const [planSaving, setPlanSaving] = useState(false);
   const [pendingPlan, setPendingPlan] = useState('free');
   const deviceTimezone = useMemo(() => {
@@ -283,6 +285,9 @@ const ProfileScreen = () => {
       timezone: deviceTimezone,
       smartTipsEnabled: false,
       smartTipsHour: 20,
+      smartTipsMinute: 0,
+      smartTipsMedicalAllowed: false,
+      locale: language || 'en',
       healthIssues: [] as string[],
     }),
   );
@@ -414,7 +419,7 @@ const ProfileScreen = () => {
       setAvatarUploading(false);
       setPresetModalVisible(false);
     }
-  }, [user]);
+  }, [setUser, user]);
 
   const bmi = useMemo(() => {
     if (profile.height > 0 && profile.weight > 0) {
@@ -608,7 +613,11 @@ const ProfileScreen = () => {
         // If user has push disabled (or no permission), cancel any leftover
         // local meal reminders. Fixes orphaned 9/13/19 spam from old builds.
         if (!shouldBeEnabled) {
-          try { await localNotificationService.cancelNotificationsByCategory('meal_reminder'); } catch {}
+          try {
+            await localNotificationService.cancelNotificationsByCategory('meal_reminder');
+          } catch (err) {
+            console.warn('[ProfileScreen] Failed to cancel stale meal reminders', err);
+          }
         }
 
         setNotificationPreferences({
@@ -618,6 +627,9 @@ const ProfileScreen = () => {
           timezone: prefs.timezone || deviceTimezone,
           smartTipsEnabled: !!prefs.smartTipsEnabled,
           smartTipsHour: typeof prefs.smartTipsHour === 'number' ? prefs.smartTipsHour : 20,
+          smartTipsMinute: typeof prefs.smartTipsMinute === 'number' ? prefs.smartTipsMinute : 0,
+          smartTipsMedicalAllowed: !!prefs.smartTipsMedicalAllowed,
+          locale: prefs.locale || language || 'en',
           healthIssues: Array.isArray(prefs.healthIssues) ? prefs.healthIssues : [],
         });
       } else {
@@ -630,7 +642,7 @@ const ProfileScreen = () => {
     } finally {
       setNotificationLoading(false);
     }
-  }, [deviceTimezone]);
+  }, [deviceTimezone, language]);
 
   useFocusEffect(
     useCallback(() => {
@@ -667,7 +679,7 @@ const ProfileScreen = () => {
         };
       });
     }
-  }, [healthProfile.metabolic.waistCm, healthProfile.metabolic.hipCm]);
+  }, [healthProfile.metabolic]);
 
   // Load IAP prices from StoreKit for plan modal (source of truth for subscription pricing)
   useEffect(() => {
@@ -781,7 +793,6 @@ const ProfileScreen = () => {
       // FIX Bug #4: Invalidate dashboard client cache so calorie goals sync immediately
       // Remove all dashboard cache keys and set a timestamp so Dashboard knows to force-refresh
       try {
-        const dateKey = new Date().toISOString().split('T')[0];
         const keys = await AsyncStorage.getAllKeys();
         const dashboardKeys = keys.filter(k => k.startsWith('dashboard_data_'));
         if (dashboardKeys.length > 0) {
@@ -961,6 +972,7 @@ const ProfileScreen = () => {
         dailyPushEnabled: Boolean(value),
         timezone: (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
         dailyPushHour: Number(notificationPreferences.dailyPushHour) || 8,
+        locale: language || 'en',
       };
 
       if (payload.dailyPushHour < 0 || payload.dailyPushHour > 23) {
@@ -981,15 +993,31 @@ const ProfileScreen = () => {
           }
         }
         // Re-schedule local meal reminders (3x/day)
-        try { await localNotificationService.scheduleMealReminders(3); } catch {}
+        try {
+          await localNotificationService.scheduleMealReminders(3);
+        } catch (err) {
+          console.warn('[ProfileScreen] Failed to schedule meal reminders', err);
+        }
         // Re-schedule mascot notifications if mascot exists
         if (mascot?.name) {
-          try { await localNotificationService.scheduleMascotNotifications(mascot.name); } catch {}
+          try {
+            await localNotificationService.scheduleMascotNotifications(mascot.name);
+          } catch (err) {
+            console.warn('[ProfileScreen] Failed to schedule mascot notifications', err);
+          }
         }
       } else {
         // Cancel all local reminders when user disables notifications
-        try { await localNotificationService.cancelNotificationsByCategory('meal_reminder'); } catch {}
-        try { await localNotificationService.cancelMascotNotifications(); } catch {}
+        try {
+          await localNotificationService.cancelNotificationsByCategory('meal_reminder');
+        } catch (err) {
+          console.warn('[ProfileScreen] Failed to cancel meal reminders', err);
+        }
+        try {
+          await localNotificationService.cancelMascotNotifications();
+        } catch (err) {
+          console.warn('[ProfileScreen] Failed to cancel mascot notifications', err);
+        }
       }
 
       const updated = await ApiService.updateNotificationPreferences(payload);
@@ -1014,7 +1042,7 @@ const ProfileScreen = () => {
 
 
   // Smart tips: opt-in personalised reminders based on healthIssues.
-  const saveSmartTips = async (partial: { smartTipsEnabled?: boolean; smartTipsHour?: number; healthIssues?: string[] }) => {
+  const saveSmartTips = async (partial: { smartTipsEnabled?: boolean; smartTipsHour?: number; smartTipsMinute?: number; smartTipsMedicalAllowed?: boolean; healthIssues?: string[] }) => {
     try {
       setSmartTipsSaving(true);
       const next = { ...notificationPreferences, ...partial };
@@ -1062,6 +1090,8 @@ const ProfileScreen = () => {
                   deviceId,
                   platform,
                   appVersion,
+                  language || 'en',
+                  (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
                 ).catch((err) => {
                   console.warn('[smartTips] registerPushToken failed', err);
                 });
@@ -1076,13 +1106,21 @@ const ProfileScreen = () => {
       const payload = {
         smartTipsEnabled: Boolean(next.smartTipsEnabled),
         smartTipsHour: Number(next.smartTipsHour) || 20,
+        smartTipsMinute: Number(next.smartTipsMinute) || 0,
+        smartTipsMedicalAllowed: Boolean(next.smartTipsMedicalAllowed),
         healthIssues: selectedIssues,
+        timezone: (next.timezone || deviceTimezone || 'UTC').trim(),
+        locale: language || 'en',
       };
       const updated = await ApiService.updateNotificationPreferences(payload);
       setNotificationPreferences(prev => ({
         ...prev,
         smartTipsEnabled: !!updated.smartTipsEnabled,
         smartTipsHour: typeof updated.smartTipsHour === 'number' ? updated.smartTipsHour : payload.smartTipsHour,
+        smartTipsMinute: typeof updated.smartTipsMinute === 'number' ? updated.smartTipsMinute : payload.smartTipsMinute,
+        smartTipsMedicalAllowed: !!updated.smartTipsMedicalAllowed,
+        timezone: (updated.timezone || payload.timezone || prev.timezone || deviceTimezone || 'UTC').trim(),
+        locale: updated.locale || payload.locale || prev.locale || language || 'en',
         healthIssues: Array.isArray(updated.healthIssues) ? updated.healthIssues : payload.healthIssues,
       }));
     } catch (err) {
@@ -1127,6 +1165,7 @@ const ProfileScreen = () => {
         dailyPushHour: Number(hour) || 8,
         dailyPushMinute: Number(minute) || 0,
         timezone: (notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
+        locale: language || 'en',
       };
 
       if (payload.dailyPushHour < 0 || payload.dailyPushHour > 23) {
@@ -1158,6 +1197,37 @@ const ProfileScreen = () => {
   const confirmIosTime = () => {
     setShowTimePicker(false);
     updatePushTime(tempDate.getHours(), tempDate.getMinutes());
+  };
+
+  const openSmartTipsTimePicker = () => {
+    const date = new Date();
+    date.setHours(notificationPreferences.smartTipsHour ?? 20);
+    date.setMinutes(notificationPreferences.smartTipsMinute ?? 0);
+    date.setSeconds(0, 0);
+    setTempSmartTipsDate(date);
+    setShowSmartTipsTimePicker(true);
+  };
+
+  const onSmartTipsTimeChange = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShowSmartTipsTimePicker(false);
+    }
+    if (!selectedDate) return;
+    setTempSmartTipsDate(selectedDate);
+    if (Platform.OS === 'android') {
+      saveSmartTips({
+        smartTipsHour: selectedDate.getHours(),
+        smartTipsMinute: selectedDate.getMinutes(),
+      });
+    }
+  };
+
+  const confirmIosSmartTipsTime = () => {
+    setShowSmartTipsTimePicker(false);
+    saveSmartTips({
+      smartTipsHour: tempSmartTipsDate.getHours(),
+      smartTipsMinute: tempSmartTipsDate.getMinutes(),
+    });
   };
 
   const handlePlanChange = async (planId) => {
@@ -1332,7 +1402,9 @@ const ProfileScreen = () => {
             <View style={styles.heroHeader}>
               <TouchableOpacity onPress={handleAvatarPress} activeOpacity={0.7} style={styles.avatarWrapper}>
                 <View style={styles.avatar}>
-                  {(() => {
+                  {avatarUploading ? (
+                    <ActivityIndicator size="small" color={tokens.colors.primary} />
+                  ) : (() => {
                     const preset = parsePresetAvatar(avatarUrl);
                     if (preset) {
                       return (
@@ -2365,28 +2437,34 @@ const ProfileScreen = () => {
 
               {notificationPreferences.smartTipsEnabled && (notificationPreferences.healthIssues || []).length > 0 && (
                 <>
-                  {/* Hour picker — reuse modal-less inline UX via simple +/- chips */}
+                  {/* Exact local delivery time */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
                     <Text style={styles.preferenceLabel}>{safeT('profile.smartTips.hourLabel', 'Time of day')}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <TouchableOpacity
-                        onPress={() => saveSmartTips({ smartTipsHour: Math.max(0, (notificationPreferences.smartTipsHour ?? 20) - 1) })}
-                        disabled={smartTipsSaving}
-                        style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: tokens.colors.surfaceMuted }}
-                      >
-                        <Ionicons name="remove" size={18} color={tokens.colors.textPrimary} />
-                      </TouchableOpacity>
-                      <Text style={{ minWidth: 56, textAlign: 'center', fontSize: 16, fontWeight: '600', color: tokens.colors.textPrimary }}>
-                        {String(notificationPreferences.smartTipsHour ?? 20).padStart(2, '0')}:00
+                    <TouchableOpacity
+                      onPress={openSmartTipsTimePicker}
+                      disabled={smartTipsSaving}
+                      style={styles.timeChip}
+                    >
+                      <Ionicons name="time-outline" size={16} color={tokens.colors.primary} />
+                      <Text style={styles.notificationTimeText}>
+                        {`${String(notificationPreferences.smartTipsHour ?? 20).padStart(2, '0')}:${String(notificationPreferences.smartTipsMinute ?? 0).padStart(2, '0')}`}
                       </Text>
-                      <TouchableOpacity
-                        onPress={() => saveSmartTips({ smartTipsHour: Math.min(23, (notificationPreferences.smartTipsHour ?? 20) + 1) })}
-                        disabled={smartTipsSaving}
-                        style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: tokens.colors.surfaceMuted }}
-                      >
-                        <Ionicons name="add" size={18} color={tokens.colors.textPrimary} />
-                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={[styles.preferenceRow, { marginTop: 12, paddingVertical: 0 }]}>
+                    <View style={styles.notificationCopy}>
+                      <Text style={styles.preferenceLabel}>{safeT('profile.smartTips.advancedTitle', 'Advanced tips')}</Text>
+                      <Text style={styles.notificationDescription}>
+                        {safeT('profile.smartTips.advancedSubtitle', 'Allow supplement-related tips. Lifestyle tips stay on by default.')}
+                      </Text>
                     </View>
+                    <Switch
+                      value={!!notificationPreferences.smartTipsMedicalAllowed}
+                      onValueChange={(value) => saveSmartTips({ smartTipsMedicalAllowed: value })}
+                      trackColor={{ false: tokens.colors.borderMuted, true: tokens.colors.primary }}
+                      thumbColor={tokens.states.primary.on}
+                      disabled={smartTipsSaving}
+                    />
                   </View>
                 </>
               )}
@@ -2751,6 +2829,62 @@ const ProfileScreen = () => {
                 is24Hour={true}
                 display="default"
                 onChange={onTimeChange}
+              />
+            )}
+          </>
+        )}
+
+      {
+        showSmartTipsTimePicker && (
+          <>
+            {Platform.OS === 'ios' ? (
+              <Modal transparent animationType="fade" visible={showSmartTipsTimePicker} statusBarTranslucent>
+                <TouchableOpacity
+                  style={styles.modalBackdrop}
+                  activeOpacity={1}
+                  onPress={() => setShowSmartTipsTimePicker(false)}
+                >
+                  <View style={[styles.modalContent, { padding: 0, paddingBottom: Math.max(insets.bottom, 30) }]}>
+                    <View style={[styles.modalHeader, { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }]}>
+                      <TouchableOpacity onPress={() => setShowSmartTipsTimePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <Text style={{ fontSize: 16, color: tokens.colors.textSecondary }}>
+                          {safeT('common.cancel', 'Cancel')}
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={[styles.modalTitle, { fontSize: 16 }]}>
+                        {safeT('profile.smartTips.hourLabel', 'Time of day')}
+                      </Text>
+                      <TouchableOpacity onPress={confirmIosSmartTipsTime} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <Text style={{ fontSize: 16, color: tokens.colors.primary, fontWeight: '600' }}>
+                          {safeT('common.done', 'Done')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{ width: '100%', height: 216, overflow: 'hidden' }}>
+                      <DateTimePicker
+                        value={tempSmartTipsDate}
+                        mode="time"
+                        display="spinner"
+                        onChange={onSmartTipsTimeChange}
+                        textColor={tokens.colors.textPrimary}
+                        style={{ width: '100%', height: 216 }}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={(() => {
+                  const d = new Date();
+                  d.setHours(notificationPreferences.smartTipsHour ?? 20);
+                  d.setMinutes(notificationPreferences.smartTipsMinute ?? 0);
+                  return d;
+                })()}
+                mode="time"
+                is24Hour={true}
+                display="default"
+                onChange={onSmartTipsTimeChange}
               />
             )}
           </>

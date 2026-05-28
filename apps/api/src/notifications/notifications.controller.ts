@@ -37,6 +37,21 @@ export class NotificationsController {
     return this.notificationsService.sendTestNotification(req.user.id, dto);
   }
 
+  @Post('smart-tip/test')
+  @ApiOperation({ summary: 'Send a localized smart tip test notification to the authenticated user' })
+  sendSmartTipTest(@Request() req: any, @Body() body: { category?: string }) {
+    return this.notificationsService.sendSmartTipTest(req.user.id, body?.category);
+  }
+
+  @Post('smart-tip/feedback')
+  @ApiOperation({ summary: 'Save smart tip feedback for personalization' })
+  saveSmartTipFeedback(
+    @Request() req: any,
+    @Body() body: { deliveryLogId?: string; reaction?: string; category?: string; templateKey?: string },
+  ) {
+    return this.notificationsService.saveSmartTipFeedback(req.user.id, body);
+  }
+
   @Get('preferences')
   @ApiOperation({ summary: 'Get notification preferences for the authenticated user' })
   getPreferences(@Request() req: any) {
@@ -49,4 +64,3 @@ export class NotificationsController {
     return this.notificationsService.updatePreferences(req.user.id, dto);
   }
 }
-

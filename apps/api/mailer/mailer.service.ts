@@ -113,6 +113,43 @@ export class MailerService {
   }
 
   /**
+   * Welcome email for a freshly-created expert: portal URL + login credentials.
+   * The temp password must be changed on first login (enforced server-side).
+   */
+  async sendExpertWelcomeEmail(to: string, params: { portalUrl: string; tempPassword: string }) {
+    const { portalUrl, tempPassword } = params;
+    const subject = 'Welcome to EatSense Expert — your portal access';
+    const text = [
+      'Welcome to EatSense Expert!',
+      '',
+      'Your expert account is ready. Sign in to the portal here:',
+      portalUrl,
+      '',
+      `Email: ${to}`,
+      `Temporary password: ${tempPassword}`,
+      '',
+      'For security, you will be asked to set a new password the first time you sign in.',
+    ].join('\n');
+
+    const html = `
+      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; max-width: 520px; margin: 0 auto;">
+        <p style="margin: 0 0 16px; color: #111827; font-size: 18px; font-weight: 700;">Welcome to EatSense Expert!</p>
+        <p style="margin: 0 0 16px; color: #111827; font-size: 16px;">Your expert account is ready. Use the credentials below to sign in to your portal:</p>
+        <div style="margin: 0 0 24px; padding: 16px 20px; background: #F3F4F6; border-radius: 12px;">
+          <p style="margin: 0 0 8px; color: #374151; font-size: 14px;"><strong>Email:</strong> ${to}</p>
+          <p style="margin: 0; color: #374151; font-size: 14px;"><strong>Temporary password:</strong> <span style="font-family: monospace; font-size: 15px; color: #111827;">${tempPassword}</span></p>
+        </div>
+        <p style="margin: 0 0 24px; text-align: center;">
+          <a href="${portalUrl}" style="background-color: #2563EB; color: #FFFFFF; padding: 14px 28px; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-block;">Open the portal</a>
+        </p>
+        <p style="margin: 0; color: #6B7280; font-size: 14px;">For security, you will be asked to set a new password the first time you sign in.</p>
+      </div>
+    `;
+
+    await this.dispatchMail('expert-welcome', { to, from: this.fromAddress, subject, text, html });
+  }
+
+  /**
    * Send generic email (for notifications, suggestions, etc.)
    */
   async sendEmail(options: { to: string | string[]; subject: string; text: string; html?: string }) {
@@ -128,7 +165,7 @@ export class MailerService {
     });
   }
 
-  private async dispatchMail(type: 'otp' | 'magic-link' | 'notification', message: MailDataRequired) {
+  private async dispatchMail(type: 'otp' | 'magic-link' | 'notification' | 'expert-welcome', message: MailDataRequired) {
     if (this.mailDisabled) {
       this.logger.warn(`[Mailer] Mail disabled (MAIL_DISABLE=true). Skipping ${type} email.`);
       return;

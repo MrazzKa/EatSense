@@ -17,6 +17,7 @@ import {
     Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -67,6 +68,8 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const [applyingCode, setApplyingCode] = useState(false);
     const [mySpecialists, setMySpecialists] = useState<any[]>([]);
     const [scheduledConsultations, setScheduledConsultations] = useState<any[]>([]);
+    const [myCode, setMyCode] = useState<string>('');
+    const [codeCopied, setCodeCopied] = useState(false);
 
     // Debounce search
     useEffect(() => {
@@ -127,11 +130,32 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         }
     }, []);
 
+    // Approved experts: load their personal access code so they can invite
+    // clients directly from the app (mirrors the portal/admin code).
+    const loadMyCode = useCallback(async () => {
+        if (!isApprovedExpert) return;
+        try {
+            const result: any = await MarketplaceService.getMyAccessCode();
+            if (result?.code) setMyCode(result.code);
+        } catch {
+            /* non-fatal: owner state still shows the portal link */
+        }
+    }, [isApprovedExpert]);
+
+    const copyMyCode = useCallback(async () => {
+        if (!myCode) return;
+        try {
+            await Clipboard.setStringAsync(myCode);
+            setCodeCopied(true);
+            setTimeout(() => setCodeCopied(false), 1800);
+        } catch { /* ignore */ }
+    }, [myCode]);
+
     // Backend default orderBy is [isVerified desc, rating desc, consultationCount desc].
     useEffect(() => {
         setLoading(true);
-        Promise.all([loadExperts(0), loadMySpecialists()]).finally(() => setLoading(false));
-    }, [loadExperts, loadMySpecialists]);
+        Promise.all([loadExperts(0), loadMySpecialists(), loadMyCode()]).finally(() => setLoading(false));
+    }, [loadExperts, loadMySpecialists, loadMyCode]);
 
     useFocusEffect(
         useCallback(() => {
@@ -374,6 +398,28 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                     <Text style={styles.ownerEmptyHint}>
                         {t('experts.selfHiddenHint') || 'Your own profile is hidden from your personal list. Other clients can find it in EatSense.'}
                     </Text>
+
+                    {myCode ? (
+                        <View style={styles.ownerCodeBox}>
+                            <Text style={styles.ownerCodeLabel}>
+                                {t('experts.ownerInviteByCode') || 'Invite clients with your code'}
+                            </Text>
+                            <TouchableOpacity style={styles.ownerCodeRow} onPress={copyMyCode} activeOpacity={0.7}>
+                                <Text style={styles.ownerCodeValue} selectable>{myCode}</Text>
+                                <Ionicons
+                                    name={codeCopied ? 'checkmark' : 'copy-outline'}
+                                    size={18}
+                                    color={codeCopied ? colors.primary : colors.textSecondary}
+                                />
+                            </TouchableOpacity>
+                            <Text style={styles.ownerCodeHint}>
+                                {codeCopied
+                                    ? (t('experts.ownerCodeCopied') || 'Copied')
+                                    : (t('experts.ownerInviteByCodeHint') || 'Share this code so clients can add you in the app.')}
+                            </Text>
+                        </View>
+                    ) : null}
+
                     <TouchableOpacity
                         style={styles.ownerPortalButton}
                         onPress={() => Linking.openURL('https://experts.eatsense.ch').catch(() => {})}
@@ -925,6 +971,30 @@ const createStyles = (tokens: any, colors: any) =>
             justifyContent: 'center',
         },
         ownerPortalButtonText: { fontSize: 15, color: '#FFF', fontWeight: '700' },
+        ownerCodeBox: {
+            marginTop: tokens.spacing.lg,
+            alignSelf: 'stretch',
+            marginHorizontal: tokens.spacing.lg,
+            padding: tokens.spacing.md,
+            borderRadius: tokens.radii.sm,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.surface,
+        },
+        ownerCodeLabel: { fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: tokens.spacing.sm },
+        ownerCodeRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: tokens.spacing.md,
+            paddingVertical: tokens.spacing.sm,
+            borderRadius: tokens.radii.xs,
+            backgroundColor: colors.background,
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        ownerCodeValue: { fontSize: 18, fontWeight: '700', letterSpacing: 1, color: colors.primary },
+        ownerCodeHint: { fontSize: 12, color: colors.textTertiary, marginTop: tokens.spacing.sm },
         // Expert banner
         expertBanner: {
             flexDirection: 'row', alignItems: 'center', padding: tokens.spacing.lg,

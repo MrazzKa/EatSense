@@ -362,9 +362,11 @@ export default function ChatScreen({ navigation, route }) {
                 if (scopes.meals) labels.push(t('experts.shareMealsShort') || 'meals');
                 if (scopes.analyses) labels.push(t('experts.shareAnalysesShort') || 'analyses');
                 if (scopes.medications) labels.push(t('experts.shareMedicationsShort') || 'medications');
+                const labelText = labels.join(', ');
+                const scopedTemplate = t('experts.accessGrantedScoped', { labels: labelText }) || `Access granted: ${labelText}.`;
                 const summary = labels.length === 3
                     ? (t('experts.accessGrantedAll') || 'Access granted: meals, analyses, medications.')
-                    : (t('experts.accessGrantedScoped') || `Access granted: ${labels.join(', ')}.`);
+                    : scopedTemplate.replace('{{labels}}', labelText);
                 const newMessage = await MarketplaceService.sendMessage(conversationId, summary, 'report_grant');
                 setMessages((prev) => [...prev, newMessage]);
                 lastMessageIdRef.current = newMessage.id;
@@ -538,6 +540,11 @@ export default function ChatScreen({ navigation, route }) {
         const isReportGrant = item.type === 'report_grant';
         const isReportRevoke = item.type === 'report_revoke';
         const isSystemMessage = isReportGrant || isReportRevoke;
+        const systemText = isReportGrant
+            ? (t('experts.accessGranted') || item.content)
+            : isReportRevoke
+                ? (t('experts.accessRevoked') || item.content)
+                : item.content;
 
         // System-style messages (grant/revoke) render as centered info bubbles
         if (isSystemMessage) {
@@ -549,7 +556,7 @@ export default function ChatScreen({ navigation, route }) {
                             size={14}
                             color={colors.textSecondary || '#6B7280'}
                         />
-                        <Text style={styles.systemText}>{item.content}</Text>
+                        <Text style={styles.systemText}>{systemText}</Text>
                     </View>
                 </View>
             );
@@ -595,6 +602,12 @@ export default function ChatScreen({ navigation, route }) {
                             style={styles.photoMessage}
                             resizeMode="cover"
                         />
+                    ) : isReportRequest ? (
+                        // System request: render a localized body in the viewer's
+                        // language instead of the sender-language stored content.
+                        <Text style={[styles.messageText, { color: mine ? '#fff' : colors.textPrimary || '#212121' }]}>
+                            {t('experts.dataAccessRequestBody') || item.content}
+                        </Text>
                     ) : (
                         <Text style={[styles.messageText, { color: mine ? '#fff' : colors.textPrimary || '#212121' }]}>
                             {translations[item.id] || item.content}

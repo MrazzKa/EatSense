@@ -13,6 +13,11 @@ export interface SmartTip {
     body: string;
 }
 
+export interface PickTipOptions {
+    allowMedical?: boolean;
+    excludeTitles?: string[];
+}
+
 type Pool = Record<SmartTipCategory, Record<SmartTipLocale, SmartTip[]>>;
 
 export const SMART_TIPS: Pool = {
@@ -292,14 +297,33 @@ export function pickTip(
     category: SmartTipCategory,
     locale: string,
     userId: string,
+    options: PickTipOptions = {},
 ): SmartTip {
     const loc = (['en', 'ru', 'kk', 'fr', 'de', 'es'] as const).includes(locale as any)
         ? (locale as SmartTipLocale)
         : 'en';
     const pool = SMART_TIPS[category][loc];
+    const excluded = new Set((options.excludeTitles || []).map((title) => title.toLowerCase()));
+    const candidates = pool.filter((tip) =>
+        !excluded.has(tip.title.toLowerCase()) &&
+        (options.allowMedical || !isSensitiveTip(tip)),
+    );
+    const available = candidates.length ? candidates : pool.filter((tip) => options.allowMedical || !isSensitiveTip(tip));
+    const finalPool = available.length ? available : pool;
     // Stable seed: dayOfYear + first 4 chars of userId hashed via sum.
     const day = Math.floor(Date.now() / 86400000);
     let seed = day;
     for (let i = 0; i < Math.min(userId.length, 8); i++) seed = (seed + userId.charCodeAt(i)) >>> 0;
-    return pool[seed % pool.length];
+    return finalPool[seed % finalPool.length];
+}
+
+export function isSensitiveTip(tip: SmartTip) {
+    const text = `${tip.title} ${tip.body}`.toLowerCase();
+    return [
+        'melatonin', 'мелатонин', 'мелатонин туралы', 'mélatonine',
+        'magnesium glycinate', 'magnesium citrate', 'магний-глицинат',
+        'цитрат магния', 'магний цитраты', 'magnésium glycinate',
+        'citrate de magnésium', 'magnesium-glycinat', 'magnesiumcitrat',
+        'magnesio glicinato', 'citrato de magnesio', '0.3', '0.5', '200mg', '200 мг',
+    ].some((marker) => text.includes(marker));
 }

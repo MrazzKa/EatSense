@@ -627,8 +627,8 @@ class ApiService {
               return true;
             }
           }
-        } catch (parseError) {
-          // Ignore JSON parse errors
+        } catch {
+          console.warn('[ApiService] Refresh endpoint returned a non-JSON error response');
         }
 
         // Token is invalid/expired, need to re-login
@@ -979,6 +979,13 @@ class ApiService {
     return this.request('/notifications/preferences', {
       method: 'PUT',
       body: JSON.stringify(preferences),
+    });
+  }
+
+  async saveSmartTipFeedback(payload: { deliveryLogId?: string; reaction: 'useful' | 'not_relevant'; category?: string; templateKey?: string }) {
+    return this.request('/notifications/smart-tip/feedback', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 
@@ -1516,11 +1523,11 @@ class ApiService {
     }
   }
 
-  async registerPushToken(token: string, deviceId: string, platform: string, appVersion: string) {
+  async registerPushToken(token: string, deviceId: string, platform: string, appVersion: string, locale?: string, timezone?: string) {
     try {
       await this.request('/notifications/push-token', {
         method: 'POST',
-        body: JSON.stringify({ token, deviceId, platform, appVersion }),
+        body: JSON.stringify({ token, deviceId, platform, appVersion, locale, timezone }),
       });
       this.expoPushToken = token;
     } catch (error) {

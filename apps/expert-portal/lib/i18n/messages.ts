@@ -81,6 +81,13 @@ type MessagesShape = {
     useDifferent: string;
     notExpert: string;
     notExpertBody: string;
+    passwordSubtitle: string;
+    passwordPlaceholder: string;
+    signInBtn: string;
+    signingInBtn: string;
+    useMagicLink: string;
+    usePassword: string;
+    invalidCredentials: string;
   };
   auth: {
     signingIn: string;
@@ -90,6 +97,17 @@ type MessagesShape = {
     linkExpired: string;
     authFailed: string;
     somethingWrong: string;
+  };
+  changePassword: {
+    title: string;
+    subtitle: string;
+    newPassword: string;
+    confirmPassword: string;
+    submit: string;
+    saving: string;
+    mismatch: string;
+    tooShort: string;
+    success: string;
   };
   dashboard: {
     title: string;
@@ -231,6 +249,21 @@ type MessagesShape = {
     filter_manual: string;
     emptyState: string;
     noMatches: string;
+    overview: string;
+    mealTrend: string;
+    avgCalories: string;
+    avgProtein: string;
+    avgCarbs: string;
+    avgFat: string;
+    labFlags: string;
+    noLabFlags: string;
+    privateNotes: string;
+    notesPlaceholder: string;
+    saveNotes: string;
+    saving: string;
+    saved: string;
+    notesLoadFailed: string;
+    notesSaveFailed: string;
   };
   offers: {
     title: string;
@@ -331,6 +364,8 @@ type MessagesShape = {
     inProgress: string;
     inProgressHint: string;
     end: string;
+    muteClient: string;
+    unmuteClient: string;
   };
   support: {
     title: string;
@@ -431,6 +466,11 @@ const en: MessagesShape = {
     checkEmail: 'Check your email', sentTo: 'We sent a sign-in link to',
     useDifferent: 'Use a different email',
     notExpert: 'Not an expert', notExpertBody: 'This portal is for registered experts only. Register as an expert in the EatSense app first.',
+    passwordSubtitle: 'Sign in with your email and password.',
+    passwordPlaceholder: 'Password',
+    signInBtn: 'Sign in', signingInBtn: 'Signing in...',
+    useMagicLink: 'Sign in with an email link instead', usePassword: 'Use password instead',
+    invalidCredentials: 'Invalid email or password.',
   },
   auth: {
     signingIn: 'Signing you in...',
@@ -440,6 +480,14 @@ const en: MessagesShape = {
     linkExpired: 'Invalid or expired link',
     authFailed: 'Authentication failed',
     somethingWrong: 'Something went wrong',
+  },
+  changePassword: {
+    title: 'Set a new password',
+    subtitle: 'For your security, please choose a new password.',
+    newPassword: 'New password', confirmPassword: 'Confirm password',
+    submit: 'Save password', saving: 'Saving...',
+    mismatch: 'Passwords do not match.', tooShort: 'Password must be at least 8 characters.',
+    success: 'Password updated.',
   },
   dashboard: {
     title: 'Dashboard', activeChats: 'Active chats', totalClients: 'Total clients', newMessages: 'New messages', avgRating: 'Avg rating',
@@ -514,6 +562,9 @@ const en: MessagesShape = {
     name: 'Name', age: 'Age', height: 'Height', weight: 'Weight', gender: 'Gender', goal: 'Goal',
     dailyCalories: 'Daily Calories Target', preferences: 'Preferences',
     loadFailed: 'Failed to load client data', ingredient: 'Ingredient', searchPlaceholder: 'Search by name or email', filter_all: 'All', filter_code: 'By code', filter_manual: 'Manual', emptyState: 'No clients yet. Share your access code to invite people.', noMatches: 'No clients match your filters.',
+    overview: 'Overview', mealTrend: 'Meal trend for the last 14 days', avgCalories: 'Avg kcal', avgProtein: 'Avg protein', avgCarbs: 'Avg carbs', avgFat: 'Avg fat',
+    labFlags: 'Lab flags', noLabFlags: 'No out-of-range lab metrics in shared results.', privateNotes: 'Private notes', notesPlaceholder: 'Add private notes about goals, follow-ups, symptoms, or next steps. Only you can see them.',
+    saveNotes: 'Save', saving: 'Saving...', saved: 'Saved', notesLoadFailed: 'Could not load private notes.', notesSaveFailed: 'Could not save private notes.',
   },
   offers: {
     title: 'Offers', newOffer: 'New offer', edit: 'Edit offer', create: 'New offer',
@@ -596,6 +647,8 @@ const en: MessagesShape = {
     inProgress: 'Video consultation in progress',
     inProgressHint: 'Use the red button when you are ready to end the call.',
     end: 'End',
+    muteClient: 'Mute client',
+    unmuteClient: 'Unmute client',
   },
   support: {
     title: 'Contact EatSense', subject: 'EatSense expert support', expertSupport: 'Expert support', body: 'Email us about schedule, clients, payouts, profile changes, or technical issues.', bodyFull: 'Email us about schedule, clients, payouts, profile changes, or technical issues. We usually reply within one business day.',
@@ -648,6 +701,11 @@ const ru: MessagesShape = {
     checkEmail: 'Проверьте почту', sentTo: 'Мы отправили magic link на',
     useDifferent: 'Использовать другой email',
     notExpert: 'Не эксперт', notExpertBody: 'Этот портал только для зарегистрированных экспертов. Сначала зарегистрируйтесь как эксперт в приложении EatSense.',
+    passwordSubtitle: 'Войдите по email и паролю.',
+    passwordPlaceholder: 'Пароль',
+    signInBtn: 'Войти', signingInBtn: 'Вход...',
+    useMagicLink: 'Войти по ссылке на email', usePassword: 'Войти по паролю',
+    invalidCredentials: 'Неверный email или пароль.',
   },
   auth: {
     signingIn: 'Выполняется вход...',
@@ -657,6 +715,14 @@ const ru: MessagesShape = {
     linkExpired: 'Ссылка недействительна или истекла',
     authFailed: 'Ошибка аутентификации',
     somethingWrong: 'Что-то пошло не так',
+  },
+  changePassword: {
+    title: 'Задайте новый пароль',
+    subtitle: 'В целях безопасности задайте новый пароль.',
+    newPassword: 'Новый пароль', confirmPassword: 'Повторите пароль',
+    submit: 'Сохранить пароль', saving: 'Сохранение...',
+    mismatch: 'Пароли не совпадают.', tooShort: 'Пароль должен быть не короче 8 символов.',
+    success: 'Пароль обновлён.',
   },
   dashboard: {
     title: 'Обзор', activeChats: 'Активные чаты', totalClients: 'Всего клиентов', newMessages: 'Новые сообщения', avgRating: 'Средний рейтинг',
@@ -731,6 +797,9 @@ const ru: MessagesShape = {
     name: 'Имя', age: 'Возраст', height: 'Рост', weight: 'Вес', gender: 'Пол', goal: 'Цель',
     dailyCalories: 'Целевая норма калорий', preferences: 'Предпочтения',
     loadFailed: 'Не удалось загрузить данные клиента', ingredient: 'Ингредиент', searchPlaceholder: 'Поиск по имени или email', filter_all: 'Все', filter_code: 'По коду', filter_manual: 'Вручную', emptyState: 'Пока нет клиентов. Поделитесь кодом доступа, чтобы пригласить людей.', noMatches: 'Нет клиентов, соответствующих фильтру.',
+    overview: 'Обзор', mealTrend: 'Тренд питания за последние 14 дней', avgCalories: 'Сред. ккал', avgProtein: 'Сред. белок', avgCarbs: 'Сред. углеводы', avgFat: 'Сред. жиры',
+    labFlags: 'Отклонения в анализах', noLabFlags: 'В доступных анализах нет показателей вне нормы.', privateNotes: 'Личные заметки', notesPlaceholder: 'Добавьте приватные заметки о целях, симптомах, наблюдениях или следующих шагах. Их видите только вы.',
+    saveNotes: 'Сохранить', saving: 'Сохранение...', saved: 'Сохранено', notesLoadFailed: 'Не удалось загрузить личные заметки.', notesSaveFailed: 'Не удалось сохранить личные заметки.',
   },
   offers: {
     title: 'Услуги', newOffer: 'Новая услуга', edit: 'Редактировать услугу', create: 'Новая услуга',
@@ -813,6 +882,8 @@ const ru: MessagesShape = {
     inProgress: 'Видеоконсультация идет',
     inProgressHint: 'Нажмите красную кнопку, когда консультацию нужно завершить.',
     end: 'Завершить',
+    muteClient: 'Заглушить клиента',
+    unmuteClient: 'Включить микрофон клиента',
   },
   support: {
     title: 'Связаться с EatSense', subject: 'Вопрос эксперта EatSense', expertSupport: 'Помощь для экспертов', body: 'Напишите нам по вопросам расписания, клиентов, выплат, профиля или технических ошибок.', bodyFull: 'Напишите нам по вопросам расписания, клиентов, выплат, профиля или технических ошибок. Обычно отвечаем в течение одного рабочего дня.',
@@ -865,6 +936,11 @@ const kk: MessagesShape = {
     checkEmail: 'Поштаңызды тексеріңіз', sentTo: 'Біз magic сілтемені келесі мекенжайға жібердік',
     useDifferent: 'Басқа email пайдалану',
     notExpert: 'Сарапшы емес', notExpertBody: 'Бұл портал тек тіркелген сарапшыларға арналған. Алдымен EatSense қолданбасында сарапшы ретінде тіркеліңіз.',
+    passwordSubtitle: 'Email және құпиясөзбен кіріңіз.',
+    passwordPlaceholder: 'Құпиясөз',
+    signInBtn: 'Кіру', signingInBtn: 'Кіру...',
+    useMagicLink: 'Email сілтемесі арқылы кіру', usePassword: 'Құпиясөзбен кіру',
+    invalidCredentials: 'Email немесе құпиясөз қате.',
   },
   auth: {
     signingIn: 'Кіру жүргізілуде...',
@@ -874,6 +950,14 @@ const kk: MessagesShape = {
     linkExpired: 'Сілтеме жарамсыз немесе мерзімі өтіп кеткен',
     authFailed: 'Аутентификация қатесі',
     somethingWrong: 'Бірдеңе дұрыс болмады',
+  },
+  changePassword: {
+    title: 'Жаңа құпиясөз орнатыңыз',
+    subtitle: 'Қауіпсіздік үшін жаңа құпиясөз таңдаңыз.',
+    newPassword: 'Жаңа құпиясөз', confirmPassword: 'Құпиясөзді қайталаңыз',
+    submit: 'Құпиясөзді сақтау', saving: 'Сақталуда...',
+    mismatch: 'Құпиясөздер сәйкес келмейді.', tooShort: 'Құпиясөз кемінде 8 таңбадан тұруы керек.',
+    success: 'Құпиясөз жаңартылды.',
   },
   dashboard: {
     title: 'Шолу', activeChats: 'Белсенді чаттар', totalClients: 'Клиенттер саны', newMessages: 'Жаңа хабарламалар', avgRating: 'Орташа рейтинг',
@@ -948,6 +1032,9 @@ const kk: MessagesShape = {
     name: 'Аты', age: 'Жасы', height: 'Бойы', weight: 'Салмағы', gender: 'Жынысы', goal: 'Мақсаты',
     dailyCalories: 'Күнделікті калория мақсаты', preferences: 'Қалаулар',
     loadFailed: 'Клиент деректерін жүктеу мүмкін болмады', ingredient: 'Ингредиент', searchPlaceholder: 'Аты немесе email бойынша іздеу', filter_all: 'Барлығы', filter_code: 'Код бойынша', filter_manual: 'Қолмен', emptyState: 'Әзірге клиент жоқ. Адамдарды шақыру үшін кодыңызбен бөлісіңіз.', noMatches: 'Сүзгіге сәйкес клиент жоқ.',
+    overview: 'Шолу', mealTrend: 'Соңғы 14 күндегі тамақтану тренді', avgCalories: 'Орташа ккал', avgProtein: 'Орташа ақуыз', avgCarbs: 'Орташа көмірсу', avgFat: 'Орташа май',
+    labFlags: 'Талдау ауытқулары', noLabFlags: 'Қолжетімді талдауларда нормадан тыс көрсеткіш жоқ.', privateNotes: 'Жеке жазбалар', notesPlaceholder: 'Мақсаттар, белгілер, бақылаулар немесе келесі қадамдар туралы жеке жазбалар қосыңыз. Оларды тек сіз көресіз.',
+    saveNotes: 'Сақтау', saving: 'Сақталуда...', saved: 'Сақталды', notesLoadFailed: 'Жеке жазбаларды жүктеу мүмкін болмады.', notesSaveFailed: 'Жеке жазбаларды сақтау мүмкін болмады.',
   },
   offers: {
     title: 'Қызметтер', newOffer: 'Жаңа қызмет', edit: 'Қызметті өзгерту', create: 'Жаңа қызмет',
@@ -1030,6 +1117,8 @@ const kk: MessagesShape = {
     inProgress: 'Видео кеңес жүріп жатыр',
     inProgressHint: 'Кеңесті аяқтау үшін қызыл батырманы басыңыз.',
     end: 'Аяқтау',
+    muteClient: 'Клиентті өшіру',
+    unmuteClient: 'Клиент микрофонын қосу',
   },
   support: {
     title: 'EatSense-пен байланысу', subject: 'EatSense сарапшысының сұрағы', expertSupport: 'Сарапшыларға көмек', body: 'Кесте, клиенттер, төлемдер, профиль немесе техникалық мәселелер бойынша хат жазыңыз.', bodyFull: 'Кесте, клиенттер, төлемдер, профиль немесе техникалық мәселелер бойынша жазыңыз. Әдетте бір жұмыс күні ішінде жауап береміз.',
@@ -1082,6 +1171,11 @@ const de: MessagesShape = {
     checkEmail: 'Prüfen Sie Ihr E-Mail-Postfach', sentTo: 'Wir haben einen Magic Link gesendet an',
     useDifferent: 'Andere E-Mail verwenden',
     notExpert: 'Kein Experte', notExpertBody: 'Dieses Portal ist nur für registrierte Experten. Registrieren Sie sich zuerst als Experte in der EatSense-App.',
+    passwordSubtitle: 'Melden Sie sich mit E-Mail und Passwort an.',
+    passwordPlaceholder: 'Passwort',
+    signInBtn: 'Anmelden', signingInBtn: 'Anmeldung...',
+    useMagicLink: 'Stattdessen per E-Mail-Link anmelden', usePassword: 'Mit Passwort anmelden',
+    invalidCredentials: 'Ungültige E-Mail oder Passwort.',
   },
   auth: {
     signingIn: 'Anmeldung läuft...',
@@ -1091,6 +1185,14 @@ const de: MessagesShape = {
     linkExpired: 'Ungültiger oder abgelaufener Link',
     authFailed: 'Authentifizierung fehlgeschlagen',
     somethingWrong: 'Etwas ist schiefgelaufen',
+  },
+  changePassword: {
+    title: 'Neues Passwort festlegen',
+    subtitle: 'Bitte wählen Sie aus Sicherheitsgründen ein neues Passwort.',
+    newPassword: 'Neues Passwort', confirmPassword: 'Passwort bestätigen',
+    submit: 'Passwort speichern', saving: 'Speichern...',
+    mismatch: 'Passwörter stimmen nicht überein.', tooShort: 'Das Passwort muss mindestens 8 Zeichen lang sein.',
+    success: 'Passwort aktualisiert.',
   },
   dashboard: {
     title: 'Übersicht', activeChats: 'Aktive Chats', totalClients: 'Gesamtkunden', newMessages: 'Neue Nachrichten', avgRating: 'Ø Bewertung',
@@ -1165,6 +1267,9 @@ const de: MessagesShape = {
     name: 'Name', age: 'Alter', height: 'Größe', weight: 'Gewicht', gender: 'Geschlecht', goal: 'Ziel',
     dailyCalories: 'Tägliches Kalorienziel', preferences: 'Vorlieben',
     loadFailed: 'Kundendaten konnten nicht geladen werden', ingredient: 'Zutat', searchPlaceholder: 'Nach Name oder E-Mail suchen', filter_all: 'Alle', filter_code: 'Per Code', filter_manual: 'Manuell', emptyState: 'Noch keine Klienten. Teilen Sie Ihren Zugangscode, um Personen einzuladen.', noMatches: 'Keine Klienten entsprechen den Filtern.',
+    overview: 'Übersicht', mealTrend: 'Mahlzeiten-Trend der letzten 14 Tage', avgCalories: 'Ø kcal', avgProtein: 'Ø Protein', avgCarbs: 'Ø Kohlenh.', avgFat: 'Ø Fett',
+    labFlags: 'Laborhinweise', noLabFlags: 'Keine geteilten Laborwerte ausserhalb der Referenz.', privateNotes: 'Private Notizen', notesPlaceholder: 'Notieren Sie Ziele, Symptome, Beobachtungen oder nächste Schritte. Nur Sie sehen diese Notizen.',
+    saveNotes: 'Speichern', saving: 'Speichern...', saved: 'Gespeichert', notesLoadFailed: 'Private Notizen konnten nicht geladen werden.', notesSaveFailed: 'Private Notizen konnten nicht gespeichert werden.',
   },
   offers: {
     title: 'Angebote', newOffer: 'Neues Angebot', edit: 'Angebot bearbeiten', create: 'Neues Angebot',
@@ -1247,6 +1352,8 @@ const de: MessagesShape = {
     inProgress: 'Video-Beratung läuft',
     inProgressHint: 'Nutzen Sie die rote Schaltfläche, wenn Sie den Anruf beenden möchten.',
     end: 'Beenden',
+    muteClient: 'Klient stummschalten',
+    unmuteClient: 'Stummschaltung aufheben',
   },
   support: {
     title: 'EatSense kontaktieren', subject: 'EatSense Experten-Support', expertSupport: 'Experten-Support', body: 'Schreiben Sie uns zu Zeitplan, Klienten, Auszahlungen, Profil oder technischen Problemen.', bodyFull: 'Schreiben Sie uns zu Zeitplan, Klienten, Auszahlungen, Profil oder technischen Problemen. Wir antworten in der Regel innerhalb eines Werktags.',
@@ -1299,6 +1406,11 @@ const fr: MessagesShape = {
     checkEmail: 'Vérifiez votre email', sentTo: 'Nous avons envoyé un lien magique à',
     useDifferent: 'Utiliser un autre email',
     notExpert: 'Non expert', notExpertBody: 'Ce portail est réservé aux experts enregistrés. Inscrivez-vous d\'abord comme expert dans l\'application EatSense.',
+    passwordSubtitle: 'Connectez-vous avec votre e-mail et votre mot de passe.',
+    passwordPlaceholder: 'Mot de passe',
+    signInBtn: 'Se connecter', signingInBtn: 'Connexion...',
+    useMagicLink: 'Se connecter via un lien e-mail', usePassword: 'Se connecter avec un mot de passe',
+    invalidCredentials: 'E-mail ou mot de passe invalide.',
   },
   auth: {
     signingIn: 'Connexion en cours...',
@@ -1308,6 +1420,14 @@ const fr: MessagesShape = {
     linkExpired: 'Lien invalide ou expiré',
     authFailed: 'Échec de l\'authentification',
     somethingWrong: 'Une erreur est survenue',
+  },
+  changePassword: {
+    title: 'Définir un nouveau mot de passe',
+    subtitle: 'Pour votre sécurité, veuillez choisir un nouveau mot de passe.',
+    newPassword: 'Nouveau mot de passe', confirmPassword: 'Confirmer le mot de passe',
+    submit: 'Enregistrer le mot de passe', saving: 'Enregistrement...',
+    mismatch: 'Les mots de passe ne correspondent pas.', tooShort: 'Le mot de passe doit comporter au moins 8 caractères.',
+    success: 'Mot de passe mis à jour.',
   },
   dashboard: {
     title: 'Tableau de bord', activeChats: 'Chats actifs', totalClients: 'Total clients', newMessages: 'Nouveaux messages', avgRating: 'Note moyenne',
@@ -1382,6 +1502,9 @@ const fr: MessagesShape = {
     name: 'Nom', age: 'Âge', height: 'Taille', weight: 'Poids', gender: 'Sexe', goal: 'Objectif',
     dailyCalories: 'Objectif calorique journalier', preferences: 'Préférences',
     loadFailed: 'Échec du chargement des données client', ingredient: 'Ingrédient', searchPlaceholder: 'Rechercher par nom ou e-mail', filter_all: 'Tous', filter_code: 'Par code', filter_manual: 'Manuel', emptyState: "Aucun client pour le moment. Partagez votre code d'accès pour inviter des personnes.", noMatches: 'Aucun client ne correspond aux filtres.',
+    overview: 'Aperçu', mealTrend: 'Tendance des repas sur 14 jours', avgCalories: 'Moy. kcal', avgProtein: 'Moy. protéines', avgCarbs: 'Moy. glucides', avgFat: 'Moy. lipides',
+    labFlags: 'Alertes d’analyse', noLabFlags: 'Aucune mesure partagée hors référence.', privateNotes: 'Notes privées', notesPlaceholder: 'Ajoutez des notes privées sur les objectifs, symptômes, observations ou prochaines étapes. Vous seul les voyez.',
+    saveNotes: 'Enregistrer', saving: 'Enregistrement...', saved: 'Enregistré', notesLoadFailed: 'Impossible de charger les notes privées.', notesSaveFailed: 'Impossible d’enregistrer les notes privées.',
   },
   offers: {
     title: 'Offres', newOffer: 'Nouvelle offre', edit: 'Modifier l\'offre', create: 'Nouvelle offre',
@@ -1464,6 +1587,8 @@ const fr: MessagesShape = {
     inProgress: 'Consultation vidéo en cours',
     inProgressHint: 'Utilisez le bouton rouge lorsque vous souhaitez terminer l’appel.',
     end: 'Terminer',
+    muteClient: 'Couper le micro du client',
+    unmuteClient: 'Réactiver le micro du client',
   },
   support: {
     title: 'Contacter EatSense', subject: 'Support expert EatSense', expertSupport: 'Support expert', body: 'Écrivez-nous pour des questions sur le planning, les clients, paiements, profil ou problèmes techniques.', bodyFull: 'Écrivez-nous pour le planning, les clients, paiements, profil ou problèmes techniques. Nous répondons en général sous un jour ouvré.',
@@ -1516,6 +1641,11 @@ const es: MessagesShape = {
     checkEmail: 'Revisa tu correo', sentTo: 'Hemos enviado un enlace mágico a',
     useDifferent: 'Usar otro email',
     notExpert: 'No es experto', notExpertBody: 'Este portal es solo para expertos registrados. Regístrate primero como experto en la aplicación EatSense.',
+    passwordSubtitle: 'Inicia sesión con tu correo y contraseña.',
+    passwordPlaceholder: 'Contraseña',
+    signInBtn: 'Iniciar sesión', signingInBtn: 'Iniciando sesión...',
+    useMagicLink: 'Iniciar sesión con un enlace por correo', usePassword: 'Iniciar sesión con contraseña',
+    invalidCredentials: 'Correo o contraseña no válidos.',
   },
   auth: {
     signingIn: 'Iniciando sesión...',
@@ -1525,6 +1655,14 @@ const es: MessagesShape = {
     linkExpired: 'Enlace inválido o caducado',
     authFailed: 'Error de autenticación',
     somethingWrong: 'Algo salió mal',
+  },
+  changePassword: {
+    title: 'Establece una nueva contraseña',
+    subtitle: 'Por tu seguridad, elige una nueva contraseña.',
+    newPassword: 'Nueva contraseña', confirmPassword: 'Confirmar contraseña',
+    submit: 'Guardar contraseña', saving: 'Guardando...',
+    mismatch: 'Las contraseñas no coinciden.', tooShort: 'La contraseña debe tener al menos 8 caracteres.',
+    success: 'Contraseña actualizada.',
   },
   dashboard: {
     title: 'Panel', activeChats: 'Chats activos', totalClients: 'Total de clientes', newMessages: 'Mensajes nuevos', avgRating: 'Valoración media',
@@ -1599,6 +1737,9 @@ const es: MessagesShape = {
     name: 'Nombre', age: 'Edad', height: 'Altura', weight: 'Peso', gender: 'Género', goal: 'Objetivo',
     dailyCalories: 'Objetivo calórico diario', preferences: 'Preferencias',
     loadFailed: 'No se pudieron cargar los datos del cliente', ingredient: 'Ingrediente', searchPlaceholder: 'Buscar por nombre o correo', filter_all: 'Todos', filter_code: 'Por código', filter_manual: 'Manual', emptyState: 'Aún no hay clientes. Comparte tu código de acceso para invitar personas.', noMatches: 'Ningún cliente coincide con los filtros.',
+    overview: 'Resumen', mealTrend: 'Tendencia de comidas de 14 días', avgCalories: 'Prom. kcal', avgProtein: 'Prom. proteína', avgCarbs: 'Prom. carbos', avgFat: 'Prom. grasa',
+    labFlags: 'Alertas de laboratorio', noLabFlags: 'No hay métricas compartidas fuera de rango.', privateNotes: 'Notas privadas', notesPlaceholder: 'Añade notas privadas sobre objetivos, síntomas, observaciones o próximos pasos. Solo tú puedes verlas.',
+    saveNotes: 'Guardar', saving: 'Guardando...', saved: 'Guardado', notesLoadFailed: 'No se pudieron cargar las notas privadas.', notesSaveFailed: 'No se pudieron guardar las notas privadas.',
   },
   offers: {
     title: 'Servicios', newOffer: 'Nuevo servicio', edit: 'Editar servicio', create: 'Nuevo servicio',
@@ -1681,6 +1822,8 @@ const es: MessagesShape = {
     inProgress: 'Videoconsulta en curso',
     inProgressHint: 'Usa el botón rojo cuando quieras finalizar la llamada.',
     end: 'Finalizar',
+    muteClient: 'Silenciar al cliente',
+    unmuteClient: 'Activar micrófono del cliente',
   },
   support: {
     title: 'Contactar a EatSense', subject: 'Soporte experto EatSense', expertSupport: 'Soporte experto', body: 'Escríbenos sobre agenda, clientes, pagos, perfil o incidencias técnicas.', bodyFull: 'Escríbenos sobre agenda, clientes, pagos, perfil o incidencias técnicas. Solemos responder en menos de un día laborable.',

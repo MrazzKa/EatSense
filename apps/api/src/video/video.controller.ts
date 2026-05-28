@@ -35,4 +35,18 @@ export class VideoController {
         const userId = req.user?.userId || req.user?.id;
         return this.videoService.markEnded(sessionId, body?.durationSec, userId);
     }
+
+    /**
+     * Expert-only: mute (or unmute) the client's microphone in the live call.
+     * The client can still unmute themselves afterwards (standard LiveKit behavior).
+     */
+    @Post('session/:sessionId/mute-participant')
+    async muteParticipant(
+        @Param('sessionId') sessionId: string,
+        @Body() body: { mute?: boolean },
+        @Req() req: any,
+    ) {
+        const userId = req.user?.userId || req.user?.id;
+        return this.videoService.muteOtherParticipant(sessionId, userId, body?.mute !== false);
+    }
 }
