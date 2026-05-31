@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "70",
+      buildNumber: "71",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -74,7 +74,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 106,
+      versionCode: 107,
       adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
       permissions: ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
       intentFilters: [{
@@ -84,7 +84,7 @@ export default {
           { scheme: "https", host: "eatsense.app", pathPrefix: "/v1/auth/magic/consume" },
           { scheme: "https", host: "eatsense.app", pathPrefix: "/auth/google/callback" },
           { scheme: "eatsense" }
-        ],;
+        ],
         category: ["BROWSABLE", "DEFAULT"]
       }]
     },
