@@ -38,7 +38,7 @@ export default function ChatScreen({ navigation, route }) {
     const themeContext = useTheme();
     const tokens = useDesignTokens();
     const colors = themeContext?.colors || {};
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const { user } = useAuth();
 
     const conversationId = route.params?.conversationId;
@@ -397,35 +397,87 @@ export default function ChatScreen({ navigation, route }) {
                     text: t('experts.shareAnalysesOnly') || 'Analyses only',
                     onPress: () => grantScopes({ meals: false, analyses: true, medications: false }),
                 },
+                {
+                    text: t('experts.shareMedicationsOnly') || 'Medications only',
+                    onPress: () => grantScopes({ meals: false, analyses: false, medications: true }),
+                },
             ],
         );
     }, [grantScopes, t]);
 
-    const handleRevokeAccess = useCallback(async () => {
-        try {
-            await MarketplaceService.updateConversation(conversationId, {
-                shareMeals: false,
-                shareAnalyses: false,
-                shareMedications: false,
-            });
-            setConversation((prev) => ({
-                ...prev,
-                reportsShared: false,
-                shareMeals: false,
-                shareAnalyses: false,
-                shareMedications: false,
-            }));
-            const newMessage = await MarketplaceService.sendMessage(
-                conversationId,
-                t('experts.accessRevoked') || 'Access to nutrition data revoked.',
-                'report_revoke',
-            );
-            setMessages((prev) => [...prev, newMessage]);
-            lastMessageIdRef.current = newMessage.id;
-        } catch {
-            Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed');
+    // Granular revoke: client picks which category to stop sharing instead of
+    // a single all-or-nothing toggle. Only currently-shared categories appear,
+    // plus a "Revoke all" fast path.
+    const handleRevokeAccess = useCallback(() => {
+        const current = {
+            meals: Boolean(conversation?.shareMeals || conversation?.reportsShared),
+            analyses: Boolean(conversation?.shareAnalyses || conversation?.reportsShared),
+            medications: Boolean(conversation?.shareMedications || conversation?.reportsShared),
+        };
+        const sharedCount = (current.meals ? 1 : 0) + (current.analyses ? 1 : 0) + (current.medications ? 1 : 0);
+
+        const applyRevoke = async (next: { meals: boolean; analyses: boolean; medications: boolean }) => {
+            try {
+                await MarketplaceService.updateConversation(conversationId, {
+                    shareMeals: next.meals,
+                    shareAnalyses: next.analyses,
+                    shareMedications: next.medications,
+                });
+                setConversation((prev) => ({
+                    ...prev,
+                    reportsShared: next.meals || next.analyses || next.medications,
+                    shareMeals: next.meals,
+                    shareAnalyses: next.analyses,
+                    shareMedications: next.medications,
+                }));
+                const fullRevoke = !next.meals && !next.analyses && !next.medications;
+                const text = fullRevoke
+                    ? (t('experts.accessRevoked') || 'Access to nutrition data revoked.')
+                    : (t('experts.accessPartiallyRevoked') || 'Some data access was revoked.');
+                const newMessage = await MarketplaceService.sendMessage(conversationId, text, 'report_revoke');
+                setMessages((prev) => [...prev, newMessage]);
+                lastMessageIdRef.current = newMessage.id;
+            } catch {
+                Alert.alert(t('common.error') || 'Error', t('experts.requestFailed') || 'Failed');
+            }
+        };
+
+        // If only one category is shared, single-step revoke (no picker).
+        if (sharedCount <= 1) {
+            applyRevoke({ meals: false, analyses: false, medications: false });
+            return;
         }
-    }, [conversationId, t]);
+
+        const buttons: any[] = [{ text: t('common.cancel') || 'Cancel', style: 'cancel' }];
+        if (current.meals) {
+            buttons.push({
+                text: t('experts.revokeMealsOnly') || 'Stop sharing meals',
+                onPress: () => applyRevoke({ ...current, meals: false }),
+            });
+        }
+        if (current.analyses) {
+            buttons.push({
+                text: t('experts.revokeAnalysesOnly') || 'Stop sharing analyses',
+                onPress: () => applyRevoke({ ...current, analyses: false }),
+            });
+        }
+        if (current.medications) {
+            buttons.push({
+                text: t('experts.revokeMedicationsOnly') || 'Stop sharing medications',
+                onPress: () => applyRevoke({ ...current, medications: false }),
+            });
+        }
+        buttons.push({
+            text: t('experts.revokeAll') || 'Revoke all access',
+            style: 'destructive',
+            onPress: () => applyRevoke({ meals: false, analyses: false, medications: false }),
+        });
+        Alert.alert(
+            t('experts.chooseDataToRevoke') || 'Choose what to stop sharing',
+            t('experts.chooseDataToRevokeBody') || 'Select which data category to revoke. You can re-grant access at any time.',
+            buttons,
+        );
+    }, [conversation, conversationId, t]);
 
     const handleCompleteConsultation = useCallback(async () => {
         Alert.alert(
@@ -650,7 +702,7 @@ export default function ChatScreen({ navigation, route }) {
                     )}
                     <View style={styles.messageFooter}>
                         <Text style={[styles.messageTime, { color: mine ? 'rgba(255,255,255,0.7)' : colors.textSecondary || '#9CA3AF' }]}>
-                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(item.createdAt).toLocaleTimeString(language || undefined, { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                         {mine && item.isRead && (
                             <Ionicons

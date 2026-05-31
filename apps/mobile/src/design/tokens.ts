@@ -128,8 +128,10 @@ const monochromePalette = {
   onPrimary: '#FFFFFF',
   secondary: '#000000',
   secondaryTint: '#F5F5F5',
-  text: '#000000',
-  textPrimary: '#000000',
+  // Soft black for body text (18.4:1) — keeps the B&W identity but is gentler
+  // than pure #000000 (21:1). Buttons/icons stay pure black via `primary`.
+  text: '#1A1A1A',
+  textPrimary: '#1A1A1A',
   textSecondary: '#666666',
   textTertiary: '#999999',
   textMuted: '#999999',
@@ -170,8 +172,10 @@ export const palettes = {
     onPrimary: '#FFFFFF',
     secondary: '#7C3AED',
     secondaryTint: '#EDE9FE',
-    text: '#111827',
-    textPrimary: '#111827',
+    // Softened from near-black #111827 (17.7:1, slightly harsh on white) to
+    // slate-800 — still ~14:1 (very readable) but easier on the eyes.
+    text: '#1F2937',
+    textPrimary: '#1F2937',
     textSecondary: '#4B5563',
     textTertiary: '#6B7280',
     textMuted: '#6B7280',
@@ -215,8 +219,8 @@ export const palettes = {
     textPrimary: '#9D174D',      // Pink-800
     textSecondary: '#BE185D',    // Pink-700
     textTertiary: '#DB2777',     // Pink-600
-    textMuted: '#F9A8D4',        // Pink-300
-    textSubdued: '#FBCFE8',      // Pink-200
+    textMuted: '#EC4899',        // Pink-500 (was Pink-300 #F9A8D4 — 1.81 contrast, unreadable)
+    textSubdued: '#F472B6',      // Pink-400 (was Pink-200 #FBCFE8 — 1.38)
     textDisabled: 'rgba(131, 24, 67, 0.4)',
     inverseText: '#FDF2F8',
     border: '#FBCFE8',           // Pink-200
@@ -255,9 +259,9 @@ export const palettes = {
     text: '#44403C',             // Stone-700
     textPrimary: '#57534E',      // Stone-600
     textSecondary: '#78716C',    // Stone-500
-    textTertiary: '#A8A29E',     // Stone-400
-    textMuted: '#D6D3D1',        // Stone-300
-    textSubdued: '#E7E5E4',      // Stone-200
+    textTertiary: '#857E78',     // darkened Stone (was Stone-400 #A8A29E — 2.52 contrast)
+    textMuted: '#A8A29E',        // Stone-400 (was Stone-300 #D6D3D1 — 1.49)
+    textSubdued: '#B0AAA5',      // (was Stone-200 #E7E5E4 — 1.26)
     textDisabled: 'rgba(68, 64, 60, 0.4)',
     inverseText: '#FAFAF9',
     border: '#E7E5E4',           // Stone-200
@@ -281,43 +285,48 @@ export const palettes = {
     neutrals: neutralPaletteLight,
   },
   dark: {
-    background: '#020617',
-    surface: '#0B1120',
-    surfaceMuted: '#111827',
+    // Softer, more cohesive dark palette inspired by Linear / Notion / Apple.
+    // Previous palette used near-pitch background (#020617) + light grey
+    // surfaceMuted (#111827) which created harsh "acid" contrast on stat
+    // chips and tab bars. Goal: every surface sits one subtle notch above
+    // the background, no surface ever looks pale grey on dark.
+    background: '#0B1220',          // deep slate-blue, not pitch
+    surface: '#141C2E',             // +1 step from bg — cards
+    surfaceMuted: '#1A2336',        // +2 step — stat chips, muted blocks
     surfaceContrast: '#F8FAFC',
-    surfaceElevated: '#16213A',
-    overlay: '#16213A',
-    primary: '#3B82F6',
-    primaryTint: 'rgba(59, 130, 246, 0.18)',
-    onPrimary: '#0B1120',
-    secondary: '#A855F7',
-    secondaryTint: 'rgba(168, 85, 247, 0.24)',
-    text: '#F9FAFB',
-    textPrimary: '#F8FAFC',
-    textSecondary: '#CBD5F5',
-    textTertiary: '#94A3B8',
-    textMuted: '#94A3B8',
-    textSubdued: '#64748B',
-    textDisabled: 'rgba(226, 232, 240, 0.4)',
-    inverseText: '#0F172A',
-    border: '#1F2937',
-    borderMuted: '#1E293B',
+    surfaceElevated: '#1F2940',     // modals, sheets
+    overlay: '#1A2336',
+    primary: '#6366F1',             // indigo-500 — softer than electric blue
+    primaryTint: 'rgba(99, 102, 241, 0.18)',
+    onPrimary: '#FFFFFF',
+    secondary: '#A78BFA',           // violet-400
+    secondaryTint: 'rgba(167, 139, 250, 0.20)',
+    text: '#E5E7EB',                // soft white, not pure white
+    textPrimary: '#F1F5F9',
+    textSecondary: '#9CA3AF',       // neutral grey (less acid blue tint)
+    textTertiary: '#7E8899',        // lifted to pass AA on dark surface (was #6B7280 — 3.52)
+    textMuted: '#7E8899',
+    textSubdued: '#737B88',         // was #4B5563 — 2.25
+    textDisabled: 'rgba(229, 231, 235, 0.4)',
+    inverseText: '#0B1220',
+    border: '#1F2940',              // matches elevated surface — invisible borders
+    borderMuted: '#1A2336',
     borderStrong: '#334155',
     success: '#34D399',
-    successTint: 'rgba(22, 101, 52, 0.28)',
+    successTint: 'rgba(52, 211, 153, 0.16)',
     warning: '#FBBF24',
-    warningTint: 'rgba(251, 191, 36, 0.18)',
+    warningTint: 'rgba(251, 191, 36, 0.16)',
     error: '#F87171',
-    errorTint: 'rgba(248, 113, 113, 0.18)',
-    info: '#38BDF8',
-    infoTint: 'rgba(56, 189, 248, 0.2)',
-    card: '#111D32',
-    inputBackground: '#111827',
-    icon: '#E2E8F0',
-    iconMuted: '#94A3B8',
-    overlayTint: 'rgba(15, 23, 42, 0.24)',
-    scrim: 'rgba(2, 6, 23, 0.75)',
-    focusRing: 'rgba(148, 163, 184, 0.5)',
+    errorTint: 'rgba(248, 113, 113, 0.16)',
+    info: '#60A5FA',
+    infoTint: 'rgba(96, 165, 250, 0.18)',
+    card: '#141C2E',                // same as surface — single elevation
+    inputBackground: '#1A2336',
+    icon: '#E5E7EB',
+    iconMuted: '#9CA3AF',
+    overlayTint: 'rgba(11, 18, 32, 0.24)',
+    scrim: 'rgba(11, 18, 32, 0.75)',
+    focusRing: 'rgba(99, 102, 241, 0.45)',
     neutrals: neutralPaletteDark,
   },
   monochrome: monochromePalette,
@@ -384,25 +393,29 @@ export const states = {
     },
   },
   dark: {
-    focusRing: 'rgba(148, 163, 184, 0.5)',
-    overlay: 'rgba(15, 23, 42, 0.28)',
-    scrim: 'rgba(2, 6, 23, 0.75)',
+    // Kept in sync with palettes.dark (redesigned 2026-05-30). The previous
+    // values were stale: surface.base sat at the background colour (#0B1120),
+    // making AppCard / Profile cards blend into the background, and primary was
+    // the old electric blue instead of the new indigo.
+    focusRing: 'rgba(99, 102, 241, 0.45)',
+    overlay: 'rgba(11, 18, 32, 0.28)',
+    scrim: 'rgba(11, 18, 32, 0.75)',
     primary: {
-      base: '#3B82F6',
-      hover: '#2563EB',
-      pressed: '#1D4ED8',
-      disabled: '#1E3A8A',
-      border: '#2563EB',
-      on: '#0B1120',
+      base: '#6366F1',
+      hover: '#4F46E5',
+      pressed: '#4338CA',
+      disabled: '#312E81',
+      border: '#4F46E5',
+      on: '#FFFFFF',
       disabledText: '#64748B',
-      disabledBorder: '#1E3A8A',
+      disabledBorder: '#312E81',
     },
     surface: {
-      base: '#0B1120',
-      elevated: '#16213A',
-      hovered: '#1F2937',
-      pressed: '#1E293B',
-      border: '#1F2937',
+      base: '#141C2E',      // palette surface (cards)
+      elevated: '#1F2940',  // palette surfaceElevated (modals/sheets)
+      hovered: '#1A2336',   // palette surfaceMuted
+      pressed: '#1A2336',
+      border: '#1F2940',    // palette border
     },
     cardShadow: {
       shadowColor: 'rgba(0, 0, 0, 0.35)',

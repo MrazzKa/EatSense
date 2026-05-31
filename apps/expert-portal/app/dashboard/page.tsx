@@ -260,7 +260,7 @@ function NextConsultationWidget() {
             </div>
             <div className="text-xs text-[var(--text2)]">
               {formatDateTime(start, locale)}
-              {' · '}{next.durationMinutes} min
+              {' · '}{next.durationMinutes} {t('dashboard', 'minutesShort')}
             </div>
           </div>
         </div>

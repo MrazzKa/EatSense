@@ -241,6 +241,9 @@ type MessagesShape = {
     goal: string;
     dailyCalories: string;
     preferences: string;
+    healthConditions: string;
+    dietaryPreferences: string;
+    allergies: string;
     loadFailed: string;
     ingredient: string;
     searchPlaceholder: string;
@@ -560,7 +563,7 @@ const en: MessagesShape = {
     noMeals: 'No meal data available.', noLabs: 'No lab results available.', noHealth: 'No health profile data available.',
     metric: 'Metric', value: 'Value', reference: 'Reference', mealLabel: 'Meal',
     name: 'Name', age: 'Age', height: 'Height', weight: 'Weight', gender: 'Gender', goal: 'Goal',
-    dailyCalories: 'Daily Calories Target', preferences: 'Preferences',
+    dailyCalories: 'Daily Calories Target', preferences: 'Preferences', healthConditions: 'Health conditions', dietaryPreferences: 'Diet', allergies: 'Allergies',
     loadFailed: 'Failed to load client data', ingredient: 'Ingredient', searchPlaceholder: 'Search by name or email', filter_all: 'All', filter_code: 'By code', filter_manual: 'Manual', emptyState: 'No clients yet. Share your access code to invite people.', noMatches: 'No clients match your filters.',
     overview: 'Overview', mealTrend: 'Meal trend for the last 14 days', avgCalories: 'Avg kcal', avgProtein: 'Avg protein', avgCarbs: 'Avg carbs', avgFat: 'Avg fat',
     labFlags: 'Lab flags', noLabFlags: 'No out-of-range lab metrics in shared results.', privateNotes: 'Private notes', notesPlaceholder: 'Add private notes about goals, follow-ups, symptoms, or next steps. Only you can see them.',
@@ -795,7 +798,7 @@ const ru: MessagesShape = {
     noMeals: 'Нет данных о приёмах пищи.', noLabs: 'Нет результатов анализов.', noHealth: 'Нет данных профиля здоровья.',
     metric: 'Показатель', value: 'Значение', reference: 'Норма', mealLabel: 'Приём пищи',
     name: 'Имя', age: 'Возраст', height: 'Рост', weight: 'Вес', gender: 'Пол', goal: 'Цель',
-    dailyCalories: 'Целевая норма калорий', preferences: 'Предпочтения',
+    dailyCalories: 'Целевая норма калорий', preferences: 'Предпочтения', healthConditions: 'Состояния здоровья', dietaryPreferences: 'Диета', allergies: 'Аллергии',
     loadFailed: 'Не удалось загрузить данные клиента', ingredient: 'Ингредиент', searchPlaceholder: 'Поиск по имени или email', filter_all: 'Все', filter_code: 'По коду', filter_manual: 'Вручную', emptyState: 'Пока нет клиентов. Поделитесь кодом доступа, чтобы пригласить людей.', noMatches: 'Нет клиентов, соответствующих фильтру.',
     overview: 'Обзор', mealTrend: 'Тренд питания за последние 14 дней', avgCalories: 'Сред. ккал', avgProtein: 'Сред. белок', avgCarbs: 'Сред. углеводы', avgFat: 'Сред. жиры',
     labFlags: 'Отклонения в анализах', noLabFlags: 'В доступных анализах нет показателей вне нормы.', privateNotes: 'Личные заметки', notesPlaceholder: 'Добавьте приватные заметки о целях, симптомах, наблюдениях или следующих шагах. Их видите только вы.',
@@ -1030,7 +1033,7 @@ const kk: MessagesShape = {
     noMeals: 'Тамақ деректері жоқ.', noLabs: 'Талдау нәтижелері жоқ.', noHealth: 'Денсаулық профилі деректері жоқ.',
     metric: 'Көрсеткіш', value: 'Мән', reference: 'Норма', mealLabel: 'Тамақ',
     name: 'Аты', age: 'Жасы', height: 'Бойы', weight: 'Салмағы', gender: 'Жынысы', goal: 'Мақсаты',
-    dailyCalories: 'Күнделікті калория мақсаты', preferences: 'Қалаулар',
+    dailyCalories: 'Күнделікті калория мақсаты', preferences: 'Қалаулар', healthConditions: 'Денсаулық жағдайлары', dietaryPreferences: 'Диета', allergies: 'Аллергиялар',
     loadFailed: 'Клиент деректерін жүктеу мүмкін болмады', ingredient: 'Ингредиент', searchPlaceholder: 'Аты немесе email бойынша іздеу', filter_all: 'Барлығы', filter_code: 'Код бойынша', filter_manual: 'Қолмен', emptyState: 'Әзірге клиент жоқ. Адамдарды шақыру үшін кодыңызбен бөлісіңіз.', noMatches: 'Сүзгіге сәйкес клиент жоқ.',
     overview: 'Шолу', mealTrend: 'Соңғы 14 күндегі тамақтану тренді', avgCalories: 'Орташа ккал', avgProtein: 'Орташа ақуыз', avgCarbs: 'Орташа көмірсу', avgFat: 'Орташа май',
     labFlags: 'Талдау ауытқулары', noLabFlags: 'Қолжетімді талдауларда нормадан тыс көрсеткіш жоқ.', privateNotes: 'Жеке жазбалар', notesPlaceholder: 'Мақсаттар, белгілер, бақылаулар немесе келесі қадамдар туралы жеке жазбалар қосыңыз. Оларды тек сіз көресіз.',
@@ -1265,7 +1268,7 @@ const de: MessagesShape = {
     noMeals: 'Keine Mahlzeitendaten verfügbar.', noLabs: 'Keine Laborergebnisse verfügbar.', noHealth: 'Keine Gesundheitsprofildaten verfügbar.',
     metric: 'Kennzahl', value: 'Wert', reference: 'Referenz', mealLabel: 'Mahlzeit',
     name: 'Name', age: 'Alter', height: 'Größe', weight: 'Gewicht', gender: 'Geschlecht', goal: 'Ziel',
-    dailyCalories: 'Tägliches Kalorienziel', preferences: 'Vorlieben',
+    dailyCalories: 'Tägliches Kalorienziel', preferences: 'Vorlieben', healthConditions: 'Gesundheitszustände', dietaryPreferences: 'Diät', allergies: 'Allergien',
     loadFailed: 'Kundendaten konnten nicht geladen werden', ingredient: 'Zutat', searchPlaceholder: 'Nach Name oder E-Mail suchen', filter_all: 'Alle', filter_code: 'Per Code', filter_manual: 'Manuell', emptyState: 'Noch keine Klienten. Teilen Sie Ihren Zugangscode, um Personen einzuladen.', noMatches: 'Keine Klienten entsprechen den Filtern.',
     overview: 'Übersicht', mealTrend: 'Mahlzeiten-Trend der letzten 14 Tage', avgCalories: 'Ø kcal', avgProtein: 'Ø Protein', avgCarbs: 'Ø Kohlenh.', avgFat: 'Ø Fett',
     labFlags: 'Laborhinweise', noLabFlags: 'Keine geteilten Laborwerte ausserhalb der Referenz.', privateNotes: 'Private Notizen', notesPlaceholder: 'Notieren Sie Ziele, Symptome, Beobachtungen oder nächste Schritte. Nur Sie sehen diese Notizen.',
@@ -1500,7 +1503,7 @@ const fr: MessagesShape = {
     noMeals: 'Aucune donnée de repas disponible.', noLabs: 'Aucun résultat d\'analyse disponible.', noHealth: 'Aucune donnée de profil de santé disponible.',
     metric: 'Paramètre', value: 'Valeur', reference: 'Référence', mealLabel: 'Repas',
     name: 'Nom', age: 'Âge', height: 'Taille', weight: 'Poids', gender: 'Sexe', goal: 'Objectif',
-    dailyCalories: 'Objectif calorique journalier', preferences: 'Préférences',
+    dailyCalories: 'Objectif calorique journalier', preferences: 'Préférences', healthConditions: 'Problèmes de santé', dietaryPreferences: 'Régime', allergies: 'Allergies',
     loadFailed: 'Échec du chargement des données client', ingredient: 'Ingrédient', searchPlaceholder: 'Rechercher par nom ou e-mail', filter_all: 'Tous', filter_code: 'Par code', filter_manual: 'Manuel', emptyState: "Aucun client pour le moment. Partagez votre code d'accès pour inviter des personnes.", noMatches: 'Aucun client ne correspond aux filtres.',
     overview: 'Aperçu', mealTrend: 'Tendance des repas sur 14 jours', avgCalories: 'Moy. kcal', avgProtein: 'Moy. protéines', avgCarbs: 'Moy. glucides', avgFat: 'Moy. lipides',
     labFlags: 'Alertes d’analyse', noLabFlags: 'Aucune mesure partagée hors référence.', privateNotes: 'Notes privées', notesPlaceholder: 'Ajoutez des notes privées sur les objectifs, symptômes, observations ou prochaines étapes. Vous seul les voyez.',
@@ -1735,7 +1738,7 @@ const es: MessagesShape = {
     noMeals: 'No hay datos de comidas disponibles.', noLabs: 'No hay resultados de laboratorio disponibles.', noHealth: 'No hay datos del perfil de salud.',
     metric: 'Indicador', value: 'Valor', reference: 'Referencia', mealLabel: 'Comida',
     name: 'Nombre', age: 'Edad', height: 'Altura', weight: 'Peso', gender: 'Género', goal: 'Objetivo',
-    dailyCalories: 'Objetivo calórico diario', preferences: 'Preferencias',
+    dailyCalories: 'Objetivo calórico diario', preferences: 'Preferencias', healthConditions: 'Condiciones de salud', dietaryPreferences: 'Dieta', allergies: 'Alergias',
     loadFailed: 'No se pudieron cargar los datos del cliente', ingredient: 'Ingrediente', searchPlaceholder: 'Buscar por nombre o correo', filter_all: 'Todos', filter_code: 'Por código', filter_manual: 'Manual', emptyState: 'Aún no hay clientes. Comparte tu código de acceso para invitar personas.', noMatches: 'Ningún cliente coincide con los filtros.',
     overview: 'Resumen', mealTrend: 'Tendencia de comidas de 14 días', avgCalories: 'Prom. kcal', avgProtein: 'Prom. proteína', avgCarbs: 'Prom. carbos', avgFat: 'Prom. grasa',
     labFlags: 'Alertas de laboratorio', noLabFlags: 'No hay métricas compartidas fuera de rango.', privateNotes: 'Notas privadas', notesPlaceholder: 'Añade notas privadas sobre objetivos, síntomas, observaciones o próximos pasos. Solo tú puedes verlas.',

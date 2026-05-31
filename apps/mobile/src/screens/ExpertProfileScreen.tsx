@@ -63,7 +63,7 @@ const formatReviewDate = (iso: string, locale: string): string => {
             year: 'numeric',
         });
     } catch {
-        return new Date(iso).toLocaleDateString();
+        return new Date(iso).toLocaleDateString(locale || undefined);
     }
 };
 

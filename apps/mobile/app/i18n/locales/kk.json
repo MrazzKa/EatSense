@@ -206,7 +206,20 @@
         "halal": "Халал",
         "kosher": "Кошер тамақтану",
         "gluten-free": "Глютенсіз",
-        "lactose-free": "Лактозасыз"
+        "lactose-free": "Лактозасыз",
+        "plant_based": "Өсімдік негізді",
+        "pescatarian": "Пескетариандық",
+        "gluten_free": "Глютенсіз",
+        "lactose_free": "Лактозасыз"
+      }
+    },
+    "conditionWarning": {
+      "title": "Денсаулық",
+      "body": "Денсаулық профиліңізді ескере отырып, назар аударыңыз: {{list}}.",
+      "items": {
+        "gastritis": "Гастрит",
+        "diabetes": "Диабет",
+        "high_cholesterol": "Жоғары холестерин"
       }
     },
     "healthImpact": {
@@ -1000,7 +1013,7 @@
     "takePictureFailed": "Суретке түсіру сәтсіз",
     "galleryFailed": "Галерея қатесі",
     "title": "Қате",
-    "limitReachedTitle": "Daily Limit Reached",
+    "limitReachedTitle": "Күндік шектеуге жетті",
     "limitReachedMessage": "Сіз лимитке жеттіңіз. Жалғастыру үшін жазылымыңызды жаңартыңыз.",
     "analysisHint": "Тағам жақсы жарықта және кадрдың ортасында көрінетіндей анық фото жасап көріңіз.",
     "analysisFailed": "Талдау орындалмады. Қайта көріңіз."
@@ -1385,7 +1398,8 @@
     "paymentSubmittedTitle": "Төлем жіберілді",
     "paymentSubmittedBody": "Төлем расталғаннан кейін чат ашылады.",
     "consultations": "Консультациялар",
-    "education": "Білім"
+    "education": "Білім",
+    "minutesShort": "мин"
   },
   "offers": {
     "noOffers": "Қызметтер әлі жоқ",
@@ -1690,7 +1704,9 @@
       "total": "Барлығы",
       "remaining": "Қалғаны",
       "daysRemaining": "Күн қалды",
-      "lowStock": "Қор аз! Толықтыру қажет"
+      "lowStock": "Қор аз! Толықтыру қажет",
+      "daysShort": "күн",
+      "orderRefill": "Толықтыруға тапсырыс"
     },
     "take": "Ішу",
     "times": "Уақыттар",
@@ -1724,7 +1740,9 @@
     "addPhoto": "Сурет қосу",
     "takePhoto": "Суретке түсіру",
     "chooseFromGallery": "Галереядан таңдау",
-    "cameraPermissionDenied": "Камераға рұқсат қажет"
+    "cameraPermissionDenied": "Камераға рұқсат қажет",
+    "emptyTitle": "Әзірге дәрі жоқ",
+    "emptySubtitle": "Еске салулар алып, қорды бақылау үшін дәрілеріңізді қосыңыз."
   },
   "notifications": {
     "enableFailed": "Хабарландыруларды қосу сәтсіз.",
@@ -1877,7 +1895,12 @@
       "paleo": "Палео",
       "paleoDesc": "Өңделмеген табиғи тағамдар",
       "mediterranean": "Жерорта теңізі",
-      "mediterraneanDesc": "Балық, көкөніс, зәйтүн майы"
+      "mediterraneanDesc": "Балық, көкөніс, зәйтүн майы",
+      "pescatarian": "Пескетариандық",
+      "glutenFree": "Глютенсіз",
+      "lactoseFree": "Лактозасыз",
+      "halal": "Халал",
+      "kosher": "Кошер"
     },
     "features": {
       "analysis": "AI тағам талдауы",
@@ -2005,7 +2028,16 @@
     "name": "Есіміңіз кім?",
     "nameSubtitle": "Біз сізге қалай жүгінетінімізді білуіміз үшін",
     "namePlaceholder": "Есіміңізді енгізіңіз",
-    "formulaExplanation": "Біз мақсаттарыңызға жетудің ең жақсы жолын есептеу үшін ғылыми формулаларды қолданамыз."
+    "formulaExplanation": "Біз мақсаттарыңызға жетудің ең жақсы жолын есептеу үшін ғылыми формулаларды қолданамыз.",
+    "loadingPhases": {
+      "analyzing": "Мақсаттарыңызды талдаудамыз…",
+      "calculating": "Күнделікті калорияны есептеудеміз…",
+      "macros": "Белок, май, көмірсуды теңестіреміз…",
+      "foods": "Қолайлы тағамдарды таңдаймыз…",
+      "finalizing": "Жоспарыңызды аяқтаудамыз…"
+    },
+    "termsIntroV2": "Деректеріңіз сізде қалады — шифрланған, сатылмайды, кез келген уақытта жоюға болады.",
+    "acceptBoth": "Қызмет көрсету шарттарын және Құпиялылық саясатын оқыдым және қабылдаймын."
   },
   "permissions": {
     "cameraRequired": "Суретке түсіру үшін камераға рұқсат қажет",
@@ -2288,7 +2320,15 @@
     "cancelSubscriptionMessage": "Жазылымды дүкен аккаунтының баптауларында басқаруға немесе тоқтатуға болады.",
     "manageSubscription": "Жазылымды басқару",
     "switchToFree": "Free жоспарына өту",
-    "upgradePlan": "Жоспарды жақсарту"
+    "upgradePlan": "Жоспарды жақсарту",
+    "healthConditionsLabel": "Денсаулық жағдайлары",
+    "notificationsDailyHourLabel": "Алғашқы еске салу",
+    "themeCaption": "Тақырып таңдаңыз — бірден қолданылады.",
+    "themeLight": "Жарық",
+    "themeDark": "Қараңғы",
+    "themeMonochrome": "Моно",
+    "themeRose": "Қызғылт",
+    "themeBeige": "Қоңыр-сары"
   },
   "recently": {
     "title": "Жуырда",
@@ -4341,7 +4381,8 @@
       "phone": "Телефон",
       "email": "Email",
       "dosage": "Дозасы",
-      "quantity": "Саны"
+      "quantity": "Саны",
+      "website": "Сайт"
     },
     "placeholders": {
       "name": "мыс. Amavita Apotheke",
@@ -4350,7 +4391,8 @@
       "phone": "Телефон нөмірін енгізіңіз",
       "email": "Email енгізіңіз",
       "medicationName": "Дәрі атауы",
-      "notes": "Қосымша ескертпелер..."
+      "notes": "Қосымша ескертпелер...",
+      "website": "https://example-pharmacy.ch"
     },
     "status": {
       "pending": "Күтілуде",
@@ -4366,7 +4408,17 @@
       "noItems": "Кем дегенде бір дәрі қосыңыз",
       "photoUpload": "Фотосуретті жүктеу сәтсіз аяқталды",
       "cameraPermission": "Камера рұқсаты қажет"
-    }
+    },
+    "haveCodeTitle": "Менде дәріхана коды бар",
+    "haveCodeSub": "Бірден байланыс — мекенжай мен поштасыз.",
+    "enterCodeTitle": "Дәріхана коды",
+    "enterCodeBody": "Дәріхана берген кодты енгізіңіз.",
+    "codePlaceholder": "AMAVITA-GENEVE",
+    "applyCode": "Дәріхананы байланыстыру",
+    "codeInvalidTitle": "Кодты тексеріңіз",
+    "codeInvalidBody": "Дәріхана кодын тексеріп, қайталаңыз.",
+    "codeAppliedTitle": "Дәріхана байланыстырылды",
+    "codeAppliedBody": "Бұл дәріхана енді қосылды."
   },
   "community": {
     "title": "Қоғамдастық",

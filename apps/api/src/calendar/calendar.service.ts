@@ -213,9 +213,12 @@ export class CalendarService {
     if (!link) throw new ForbiddenException('No active expert-client link');
 
     if (initiatedBy === 'client') {
+      // The window must fully contain the slot: listSlots drops any slot whose
+      // end exceeds `to`. A 2-second window (start±1s) can never hold a 30-min
+      // slot, so this used to reject EVERY client booking. Use [start-1s, end+1s].
       const slotData = await this.listSlots(expertId, {
         from: new Date(start.getTime() - 1000),
-        to: new Date(start.getTime() + 1000),
+        to: new Date(end.getTime() + 1000),
         durationMinutes: dto.durationMinutes,
       });
       const hasSlot = slotData.slots.some((slot) => slot.startAt === start.toISOString());
@@ -493,39 +496,53 @@ export class CalendarService {
     return c;
   }
 
-  async notifyConsultationEvent(c: any, kind: 'created' | 'cancelled' | 'reschedule_proposed' | 'reschedule_accepted' | 'reschedule_declined' | 'completed' | 'reminder_24h' | 'reminder_1h' | 'reminder_10m' | 'no_show') {
+  async notifyConsultationEvent(c: any, kind: ConsultationEventKind) {
     const [expert, client] = await Promise.all([
-      this.prisma.expertProfile.findUnique({ where: { id: c.expertId }, select: { userId: true, displayName: true, user: { select: { email: true } } } }),
-      this.prisma.user.findUnique({ where: { id: c.clientId }, select: { id: true, email: true, userProfile: { select: { firstName: true } } } }),
+      this.prisma.expertProfile.findUnique({
+        where: { id: c.expertId },
+        select: {
+          userId: true,
+          displayName: true,
+          timezone: true,
+          languages: true,
+          user: { select: { email: true, userProfile: { select: { preferences: true } } } },
+        },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: c.clientId },
+        select: {
+          id: true,
+          email: true,
+          userProfile: { select: { firstName: true, preferences: true } },
+        },
+      }),
     ]);
     if (!expert || !client) return;
-    const startLocal = new Date(c.startAt).toISOString();
-    const clientName = client.userProfile?.firstName || 'Client';
-    const expertName = expert.displayName || 'Expert';
 
-    const messages: Record<string, { titleExpert: string; titleClient: string; body: string }> = {
-      created: { titleExpert: 'New consultation', titleClient: 'Consultation scheduled', body: `${startLocal}` },
-      cancelled: { titleExpert: 'Consultation cancelled', titleClient: 'Consultation cancelled', body: `${startLocal}` },
-      reschedule_proposed: { titleExpert: 'Reschedule requested', titleClient: 'Reschedule requested', body: 'Accept or decline in the app' },
-      reschedule_accepted: { titleExpert: 'Reschedule accepted', titleClient: 'Reschedule accepted', body: `New time: ${startLocal}` },
-      reschedule_declined: { titleExpert: 'Reschedule declined', titleClient: 'Reschedule declined', body: 'Original time kept' },
-      completed: { titleExpert: 'Consultation completed', titleClient: 'Consultation completed', body: `${startLocal}` },
-      reminder_24h: { titleExpert: 'Consultation tomorrow', titleClient: 'Consultation tomorrow', body: `with ${expertName} / ${clientName} at ${startLocal}` },
-      reminder_1h: { titleExpert: 'Consultation in 1 hour', titleClient: 'Consultation in 1 hour', body: `at ${startLocal}` },
-      reminder_10m: { titleExpert: 'Consultation in 10 minutes', titleClient: 'Consultation in 10 minutes', body: `Open the app` },
-      no_show: { titleExpert: 'Marked as no-show', titleClient: 'Consultation marked as no-show', body: `${startLocal}` },
-    };
-    const m = messages[kind];
-    if (!m) return;
+    // Resolve each side's language + timezone independently so reminders read
+    // naturally for the recipient instead of a raw UTC ISO string in English.
+    const expertLang = pickConsultLang(
+      (expert.user?.userProfile?.preferences as any)?.language ?? expert.languages?.[0],
+    );
+    const clientLang = pickConsultLang((client.userProfile?.preferences as any)?.language);
+    const expertTz = (expert as any).timezone || 'UTC';
+    // UserProfile has no timezone column; some clients carry one in preferences.
+    // Otherwise fall back to the expert's zone (the consultation's reference tz).
+    const clientTz = (client.userProfile?.preferences as any)?.timezone || expertTz || 'UTC';
+
+    const expertMsg = buildConsultationMessage(kind, expertLang, 'expert', new Date(c.startAt), expertTz);
+    const clientMsg = buildConsultationMessage(kind, clientLang, 'client', new Date(c.startAt), clientTz);
+    if (!expertMsg || !clientMsg) return;
+
     await Promise.all([
-      this.notifications.sendPushNotification(expert.userId, m.titleExpert, m.body, { type: `consultation.${kind}`, id: c.id }),
-      this.notifications.sendPushNotification(client.id, m.titleClient, m.body, { type: `consultation.${kind}`, id: c.id }),
+      this.notifications.sendPushNotification(expert.userId, expertMsg.title, expertMsg.body, { type: `consultation.${kind}`, id: c.id }),
+      this.notifications.sendPushNotification(client.id, clientMsg.title, clientMsg.body, { type: `consultation.${kind}`, id: c.id }),
     ]).catch(() => {});
 
     if (['created', 'cancelled', 'reschedule_accepted', 'reminder_24h', 'reminder_1h'].includes(kind)) {
       await Promise.all([
-        this.sendConsultationEmail(expert.user?.email, m.titleExpert, m.body),
-        this.sendConsultationEmail(client.email, m.titleClient, m.body),
+        this.sendConsultationEmail(expert.user?.email, expertMsg.title, expertMsg.body),
+        this.sendConsultationEmail(client.email, clientMsg.title, clientMsg.body),
       ]).catch((err) => this.logger.warn(`consultation email failed: ${err?.message || err}`));
     }
   }
@@ -546,6 +563,7 @@ export class CalendarService {
       subject: `EatSense: ${subject}`,
       text,
       html: `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;max-width:560px;margin:0 auto;color:#111827"><h2 style="margin:0 0 16px">${safeSubject}</h2><p style="margin:0 0 20px">${safeBody}</p><p style="margin:0;color:#6B7280;font-size:14px">EatSense</p></div>`,
+      category: 'expert',
     });
   }
 
@@ -567,4 +585,163 @@ function cryptoRandomId(): string {
 
 function formatICalDate(d: Date): string {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+// ============== Localized consultation notifications ==============
+
+export type ConsultationEventKind =
+  | 'created'
+  | 'cancelled'
+  | 'reschedule_proposed'
+  | 'reschedule_accepted'
+  | 'reschedule_declined'
+  | 'completed'
+  | 'reminder_24h'
+  | 'reminder_1h'
+  | 'reminder_10m'
+  | 'no_show';
+
+type ConsultLang = 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
+
+export function pickConsultLang(raw: any): ConsultLang {
+  const v = String(raw || '').split('-')[0].toLowerCase();
+  return (['ru', 'kk', 'fr', 'de', 'es'] as const).includes(v as any) ? (v as ConsultLang) : 'en';
+}
+
+// Friendly localized date in the recipient's own timezone. Falls back to a
+// plain UTC ISO string only if luxon can't resolve the zone/locale.
+function formatConsultWhen(date: Date, lang: ConsultLang, tz: string): string {
+  try {
+    const dt = DateTime.fromJSDate(date).setZone(tz || 'UTC');
+    if (!dt.isValid) return date.toISOString();
+    return dt.setLocale(lang).toLocaleString({
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return date.toISOString();
+  }
+}
+
+// [titleExpert, titleClient] per kind, per language.
+const CONSULT_TITLES: Record<ConsultLang, Record<ConsultationEventKind, [string, string]>> = {
+  en: {
+    created: ['New consultation', 'Consultation scheduled'],
+    cancelled: ['Consultation cancelled', 'Consultation cancelled'],
+    reschedule_proposed: ['Reschedule requested', 'Reschedule requested'],
+    reschedule_accepted: ['Reschedule accepted', 'Reschedule accepted'],
+    reschedule_declined: ['Reschedule declined', 'Reschedule declined'],
+    completed: ['Consultation completed', 'Consultation completed'],
+    reminder_24h: ['Consultation tomorrow', 'Consultation tomorrow'],
+    reminder_1h: ['Consultation in 1 hour', 'Consultation in 1 hour'],
+    reminder_10m: ['Consultation in 10 minutes', 'Consultation in 10 minutes'],
+    no_show: ['Marked as no-show', 'Consultation marked as no-show'],
+  },
+  ru: {
+    created: ['Новая консультация', 'Консультация назначена'],
+    cancelled: ['Консультация отменена', 'Консультация отменена'],
+    reschedule_proposed: ['Запрос на перенос', 'Запрос на перенос'],
+    reschedule_accepted: ['Перенос принят', 'Перенос принят'],
+    reschedule_declined: ['Перенос отклонён', 'Перенос отклонён'],
+    completed: ['Консультация завершена', 'Консультация завершена'],
+    reminder_24h: ['Консультация завтра', 'Консультация завтра'],
+    reminder_1h: ['Консультация через час', 'Консультация через час'],
+    reminder_10m: ['Консультация через 10 минут', 'Консультация через 10 минут'],
+    no_show: ['Отмечено как неявка', 'Консультация отмечена как неявка'],
+  },
+  kk: {
+    created: ['Жаңа кеңес', 'Кеңес жоспарланды'],
+    cancelled: ['Кеңес тоқтатылды', 'Кеңес тоқтатылды'],
+    reschedule_proposed: ['Ауыстыру сұралды', 'Ауыстыру сұралды'],
+    reschedule_accepted: ['Ауыстыру қабылданды', 'Ауыстыру қабылданды'],
+    reschedule_declined: ['Ауыстыру қабылданбады', 'Ауыстыру қабылданбады'],
+    completed: ['Кеңес аяқталды', 'Кеңес аяқталды'],
+    reminder_24h: ['Ертең кеңес', 'Ертең кеңес'],
+    reminder_1h: ['1 сағаттан кейін кеңес', '1 сағаттан кейін кеңес'],
+    reminder_10m: ['10 минуттан кейін кеңес', '10 минуттан кейін кеңес'],
+    no_show: ['Келмеді деп белгіленді', 'Кеңес келмеді деп белгіленді'],
+  },
+  fr: {
+    created: ['Nouvelle consultation', 'Consultation planifiée'],
+    cancelled: ['Consultation annulée', 'Consultation annulée'],
+    reschedule_proposed: ['Report demandé', 'Report demandé'],
+    reschedule_accepted: ['Report accepté', 'Report accepté'],
+    reschedule_declined: ['Report refusé', 'Report refusé'],
+    completed: ['Consultation terminée', 'Consultation terminée'],
+    reminder_24h: ['Consultation demain', 'Consultation demain'],
+    reminder_1h: ['Consultation dans 1 heure', 'Consultation dans 1 heure'],
+    reminder_10m: ['Consultation dans 10 minutes', 'Consultation dans 10 minutes'],
+    no_show: ['Marquée comme absence', 'Consultation marquée comme absence'],
+  },
+  de: {
+    created: ['Neue Beratung', 'Beratung geplant'],
+    cancelled: ['Beratung abgesagt', 'Beratung abgesagt'],
+    reschedule_proposed: ['Verschiebung angefragt', 'Verschiebung angefragt'],
+    reschedule_accepted: ['Verschiebung angenommen', 'Verschiebung angenommen'],
+    reschedule_declined: ['Verschiebung abgelehnt', 'Verschiebung abgelehnt'],
+    completed: ['Beratung abgeschlossen', 'Beratung abgeschlossen'],
+    reminder_24h: ['Beratung morgen', 'Beratung morgen'],
+    reminder_1h: ['Beratung in 1 Stunde', 'Beratung in 1 Stunde'],
+    reminder_10m: ['Beratung in 10 Minuten', 'Beratung in 10 Minuten'],
+    no_show: ['Als Nichterscheinen markiert', 'Beratung als Nichterscheinen markiert'],
+  },
+  es: {
+    created: ['Nueva consulta', 'Consulta programada'],
+    cancelled: ['Consulta cancelada', 'Consulta cancelada'],
+    reschedule_proposed: ['Reprogramación solicitada', 'Reprogramación solicitada'],
+    reschedule_accepted: ['Reprogramación aceptada', 'Reprogramación aceptada'],
+    reschedule_declined: ['Reprogramación rechazada', 'Reprogramación rechazada'],
+    completed: ['Consulta completada', 'Consulta completada'],
+    reminder_24h: ['Consulta mañana', 'Consulta mañana'],
+    reminder_1h: ['Consulta en 1 hora', 'Consulta en 1 hora'],
+    reminder_10m: ['Consulta en 10 minutos', 'Consulta en 10 minutos'],
+    no_show: ['Marcada como ausencia', 'Consulta marcada como ausencia'],
+  },
+};
+
+// Localized body fragments. Bodies that just carry the time use the formatted
+// `when`; a few kinds use a fixed localized phrase instead.
+const CONSULT_BODY_FRAGMENTS: Record<ConsultLang, { acceptDecline: string; newTime: string; originalKept: string; openApp: string }> = {
+  en: { acceptDecline: 'Accept or decline in the app', newTime: 'New time: ', originalKept: 'Original time kept', openApp: 'Open the app' },
+  ru: { acceptDecline: 'Примите или отклоните в приложении', newTime: 'Новое время: ', originalKept: 'Исходное время сохранено', openApp: 'Откройте приложение' },
+  kk: { acceptDecline: 'Қолданбада қабылдаңыз немесе бас тартыңыз', newTime: 'Жаңа уақыт: ', originalKept: 'Бастапқы уақыт сақталды', openApp: 'Қолданбаны ашыңыз' },
+  fr: { acceptDecline: "Acceptez ou refusez dans l'application", newTime: 'Nouvel horaire : ', originalKept: "L'horaire initial est conservé", openApp: "Ouvrez l'application" },
+  de: { acceptDecline: 'In der App annehmen oder ablehnen', newTime: 'Neue Zeit: ', originalKept: 'Ursprüngliche Zeit bleibt', openApp: 'App öffnen' },
+  es: { acceptDecline: 'Acepta o rechaza en la app', newTime: 'Nueva hora: ', originalKept: 'Se mantiene la hora original', openApp: 'Abre la app' },
+};
+
+function buildConsultationMessage(
+  kind: ConsultationEventKind,
+  lang: ConsultLang,
+  _role: 'expert' | 'client',
+  startAt: Date,
+  tz: string,
+): { title: string; body: string } | null {
+  const titles = CONSULT_TITLES[lang]?.[kind];
+  if (!titles) return null;
+  const title = _role === 'expert' ? titles[0] : titles[1];
+  const frag = CONSULT_BODY_FRAGMENTS[lang];
+  const when = formatConsultWhen(startAt, lang, tz);
+  let body: string;
+  switch (kind) {
+    case 'reschedule_proposed':
+      body = frag.acceptDecline;
+      break;
+    case 'reschedule_accepted':
+      body = frag.newTime + when;
+      break;
+    case 'reschedule_declined':
+      body = frag.originalKept;
+      break;
+    case 'reminder_10m':
+      body = frag.openApp;
+      break;
+    default:
+      // created / cancelled / completed / no_show / reminder_24h / reminder_1h
+      body = when;
+  }
+  return { title, body };
 }

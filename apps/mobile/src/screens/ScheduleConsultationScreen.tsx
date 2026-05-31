@@ -18,7 +18,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
   const isReschedule = !!rescheduleConsultationId;
   const { colors } = useTheme();
   const tokens = useDesignTokens();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
   const [duration, setDuration] = useState<number>(initialDurationMinutes || 60);
@@ -58,12 +58,12 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
     const groups: Record<string, Slot[]> = {};
     for (const s of slots) {
       const d = new Date(s.startAt);
-      const key = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+      const key = d.toLocaleDateString(language || undefined, { weekday: 'short', day: 'numeric', month: 'short' });
       if (!groups[key]) groups[key] = [];
       groups[key].push(s);
     }
     return Object.entries(groups);
-  }, [slots]);
+  }, [slots, language]);
 
   async function book(slot: Slot) {
     setBooking(slot.startAt);
@@ -76,7 +76,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
         Alert.alert(
           t('experts.rescheduleSentTitle') || 'Reschedule requested',
           t('experts.rescheduleSentBody') || 'The expert will be notified and can accept or decline.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }],
+          [{ text: t('common.ok') || 'OK', onPress: () => navigation.goBack() }],
         );
       } else {
         await ApiService.request('/consultations', {
@@ -91,7 +91,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
         Alert.alert(
           t('experts.bookingConfirmedTitle') || 'Booked',
           t('experts.bookingConfirmedBody') || 'You will receive a reminder before the call.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }],
+          [{ text: t('common.ok') || 'OK', onPress: () => navigation.goBack() }],
         );
       }
     } catch (err: any) {
@@ -122,7 +122,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
             style={[styles.durationChip, duration === d && styles.durationChipActive]}
             onPress={() => setDuration(d)}
           >
-            <Text style={[styles.durationText, duration === d && styles.durationTextActive]}>{d} min</Text>
+            <Text style={[styles.durationText, duration === d && styles.durationTextActive]}>{d} {t('experts.minutesShort', 'min')}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -148,7 +148,7 @@ export default function ScheduleConsultationScreen({ route, navigation }: any) {
               <View style={styles.slotGrid}>
                 {daySlots.map((s) => {
                   const d = new Date(s.startAt);
-                  const label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  const label = d.toLocaleTimeString(language || undefined, { hour: '2-digit', minute: '2-digit' });
                   const isBooking = booking === s.startAt;
                   return (
                     <TouchableOpacity

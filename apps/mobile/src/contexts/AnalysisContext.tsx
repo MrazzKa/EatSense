@@ -45,8 +45,10 @@ interface AnalysisContextType {
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
 
-const MAX_POLL_ATTEMPTS = 30;
-const POLL_INTERVAL_MS = 3000;
+const MAX_POLL_ATTEMPTS = 40;
+// FIX 2026-05-29: faster polling so the result appears sooner after the backend
+// finishes (was 3000). Backoff still throttles long-running analyses.
+const POLL_INTERVAL_MS = 1500;
 const POLL_BACKOFF_MULTIPLIER = 1.2;
 const COMPLETION_ANIMATION_DELAY_MS = 2500; // Delay before removing completed analysis for smooth fade-out
 
@@ -121,7 +123,7 @@ function extractAnalysisData(apiResponse: any): Partial<PendingAnalysis> {
 }
 
 // STEP 5: Minimum interval between poll cycles to prevent spam
-const MIN_POLL_INTERVAL_MS = 2000;
+const MIN_POLL_INTERVAL_MS = 1000;
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const [pendingAnalyses, setPendingAnalyses] = useState<Map<string, PendingAnalysis>>(() => new Map());

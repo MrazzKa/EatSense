@@ -20,9 +20,11 @@ const NUTRITION_CACHE_VERSION = 'v7_2026-01-10_speed_optimization';
 // timeout chains and inconsistent matches.
 const PROVIDER_TIMEOUTS: Record<string, number> = {
   'local': 1000,           // Local embeddings - fast but give buffer
-  'usda': 10000,           // USDA - increased from 5000 (most reliable but slowest)
+  // FIX 2026-05-29: 10s was too slow for the ≤10s end-to-end target. Canonical +
+  // GPT-estimate fallbacks are reliable, so cap USDA at 4s and fall back fast.
+  'usda': 4000,            // was 10000
 };
-const DEFAULT_PROVIDER_TIMEOUT = 8000; // Increased from 4000
+const DEFAULT_PROVIDER_TIMEOUT = 4000; // was 8000
 
 export interface NutritionCacheKeyInput {
   normalizedName: string;

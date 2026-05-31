@@ -26,6 +26,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { localNotificationService, NotificationCategories } from '../services/localNotificationService';
 import DisclaimerModal from '../components/common/DisclaimerModal';
+import { EmptyState } from '../components/common/EmptyState';
+import { ListSkeleton } from '../components/common/Skeleton';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
@@ -158,7 +160,7 @@ const Header = ({ title, onAdd, onBack, colors }: any) => (
 );
 
 // 2. Medication Card Component
-const MedicationCard = ({ item, onPress, onDelete, onTake, colors, t }: any) => {
+const MedicationCard = ({ item, onPress, onDelete, onTake, onRefill, colors, t }: any) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const dosesText = item.doses && item.doses.length
         ? item.doses.map((d: any) => d.timeOfDay).join(', ')
@@ -251,13 +253,25 @@ const MedicationCard = ({ item, onPress, onDelete, onTake, colors, t }: any) => 
                         )}
                     </View>
 
-                    {/* Low Stock Warning */}
-                    {daysRemaining !== null && daysRemaining <= (item.lowStockThreshold || 5) && (
+                    {/* Low Stock Warning — threshold is in DAYS of supply (matches server) */}
+                    {daysRemaining !== null && daysRemaining <= (item.lowStockThreshold || 7) && (
                         <View style={styles.alertRow}>
                             <Ionicons name="warning" size={12} color="#FF9500" />
                             <Text style={[styles.alertText, { color: '#FF9500' }]}>
-                                {t('medications.stock.lowStock') || 'Low stock'} ({daysRemaining}d)
+                                {t('medications.stock.lowStock') || 'Low stock'} ({daysRemaining}{t('medications.stock.daysShort') || 'd'})
                             </Text>
+                            {onRefill && (
+                                <TouchableOpacity
+                                    onPress={() => onRefill(item)}
+                                    style={styles.refillButton}
+                                    hitSlop={8}
+                                >
+                                    <Ionicons name="storefront-outline" size={11} color={colors.primary || '#4CAF50'} />
+                                    <Text style={[styles.refillButtonText, { color: colors.primary || '#4CAF50' }]}>
+                                        {t('medications.stock.orderRefill') || 'Order refill'}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     )}
                 </View>
@@ -751,6 +765,33 @@ const MedicationScheduleScreen: React.FC = () => {
         setModalVisible(true);
     };
 
+    // Cancel all existing medication reminders and reschedule from a fresh
+    // snapshot of active meds. Called after any mutation (save/edit/delete)
+    // so stale reminders for deleted/inactive meds don't keep firing.
+    const rescheduleAllReminders = useCallback(async (meds: Medication[] | null | undefined) => {
+        try {
+            await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
+            const hasPermission = await localNotificationService.checkPermissions() || await localNotificationService.requestPermissions();
+            if (!hasPermission || !meds) return;
+            for (const med of meds) {
+                if (!med.isActive || !med.doses) continue;
+                for (const dose of med.doses) {
+                    if (!dose.timeOfDay) continue;
+                    const [hStr, mStr] = dose.timeOfDay.split(':');
+                    const h = parseInt(hStr, 10);
+                    const m = parseInt(mStr, 10);
+                    if (!isNaN(h) && !isNaN(m)) {
+                        await localNotificationService.scheduleMedicationReminder(
+                            med.name, h, m, med.id, med.dosage || undefined,
+                        );
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[MedicationSchedule] rescheduleAllReminders failed', e);
+        }
+    }, []);
+
     const handleSaveMedication = async (payload: any, id?: string) => {
         try {
             if (id) {
@@ -764,37 +805,7 @@ const MedicationScheduleScreen: React.FC = () => {
             setMedications(freshData || []);
             setModalVisible(false);
 
-            // --- Update Notifications ---
-            // 1. Cancel all medication reminders first to avoid duplicates
-            await localNotificationService.cancelNotificationsByCategory(NotificationCategories.MEDICATION_REMINDER);
-
-            // 2. Reschedule for ALL active medications
-            const hasPermission = await localNotificationService.checkPermissions() || await localNotificationService.requestPermissions();
-
-            if (hasPermission && freshData) {
-                for (const med of freshData) {
-                    if (!med.isActive || !med.doses) continue;
-
-                    for (const dose of med.doses) {
-                        if (!dose.timeOfDay) continue;
-                        const [hStr, mStr] = dose.timeOfDay.split(':');
-                        const h = parseInt(hStr, 10);
-                        const m = parseInt(mStr, 10);
-
-                        if (!isNaN(h) && !isNaN(m)) {
-                            await localNotificationService.scheduleMedicationReminder(
-                                med.name,
-                                h,
-                                m,
-                                med.id,
-                                med.dosage || undefined
-                            );
-                            console.log(`[MedicationSchedule] Scheduled ${med.name} at ${h}:${m} (${med.dosage || 'no dosage'})`);
-                        }
-                    }
-                }
-            }
-
+            await rescheduleAllReminders(freshData);
         } catch (e) {
             console.error('[MedicationSchedule] Save error:', e);
             Alert.alert(t('common.error'), t('medications.error.save') || 'Failed to save');
@@ -813,7 +824,11 @@ const MedicationScheduleScreen: React.FC = () => {
                     onPress: async () => {
                         try {
                             await ApiService.deleteMedication(med.id);
-                            loadMedications();
+                            // Refresh and immediately re-sync local reminders so
+                            // the deleted med's daily notification doesn't keep firing.
+                            const freshData = await ApiService.getMedications();
+                            setMedications(freshData || []);
+                            await rescheduleAllReminders(freshData);
                         } catch (e) {
                             console.error('[MedicationSchedule] Delete error:', e);
                         }
@@ -821,6 +836,14 @@ const MedicationScheduleScreen: React.FC = () => {
                 }
             ]
         );
+    };
+
+    const handleRefill = (med: Medication) => {
+        // Deep-link into the pharmacy order flow with this medication pre-filled.
+        (navigation as any).navigate('Pharmacy', {
+            autoOpenOrder: true,
+            prefillMedication: { name: med.name, dosage: med.dosage || '' },
+        });
     };
 
     const handleTake = async (med: Medication) => {
@@ -890,9 +913,7 @@ const MedicationScheduleScreen: React.FC = () => {
 
             {/* Main Content */}
             {loading && medications.length === 0 ? (
-                <View style={styles.centerLoading}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                </View>
+                <ListSkeleton count={4} />
             ) : (
                 <FlatList
                     data={medications}
@@ -904,17 +925,20 @@ const MedicationScheduleScreen: React.FC = () => {
                             onPress={handleOpenEdit}
                             onDelete={handleDelete}
                             onTake={handleTake}
+                            onRefill={handleRefill}
                             colors={colors}
                             t={t}
                         />
                     )}
                     ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Ionicons name="medical-outline" size={64} color={colors.textTertiary || '#CCC'} />
-                            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                                {t('medications.empty') || 'No medications yet. tap + to add.'}
-                            </Text>
-                        </View>
+                        <EmptyState
+                            icon="medical-outline"
+                            title={t('medications.emptyTitle') || t('medications.empty') || 'No medications yet'}
+                            subtitle={t('medications.emptySubtitle') || 'Add your medications to get reminders and track your supply.'}
+                            actionLabel={t('medications.add') || 'Add Medication'}
+                            onAction={handleOpenAdd}
+                            style={{ marginTop: 60 }}
+                        />
                     }
                 />
             )}
@@ -1032,12 +1056,26 @@ const styles = StyleSheet.create({
     alertRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        flexWrap: 'wrap',
         marginTop: 6,
-        gap: 4,
+        gap: 6,
     },
     alertText: {
         fontSize: 12,
         fontWeight: '600',
+    },
+    refillButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 12,
+        backgroundColor: 'rgba(76, 175, 80, 0.12)',
+    },
+    refillButtonText: {
+        fontSize: 11,
+        fontWeight: '700',
     },
     // Modal Styles
     modalContainer: {

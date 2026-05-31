@@ -300,8 +300,8 @@ export class MedicationsService {
       return existing;
     }
 
-    const newStock = Math.max(0, existing.remainingStock - 1);
-    const threshold = existing.lowStockThreshold || 7;
+    const prevStock = existing.remainingStock;
+    const newStock = Math.max(0, prevStock - 1);
 
     const updated = await this.prisma.medication.update({
       where: { id },
@@ -312,19 +312,40 @@ export class MedicationsService {
       include: { doses: true },
     });
 
-    // Send low stock alert when crossing threshold
-    if (newStock <= threshold && newStock > 0 && existing.remainingStock > threshold && this.pharmacyService) {
+    // Low-stock semantics unified to DAYS of supply (matches the in-app card +
+    // the schema comment). daysRemaining = stock / pills-per-day, where
+    // pills-per-day ≈ number of scheduled dose times (1 pill per dose).
+    const dosesPerDay = Math.max(1, existing.doses?.length || 1);
+    const thresholdDays = existing.lowStockThreshold || 7;
+    const prevDays = Math.floor(prevStock / dosesPerDay);
+    const newDays = Math.floor(newStock / dosesPerDay);
+
+    // Fire exactly once, on the crossing into the threshold window.
+    if (newStock > 0 && newDays <= thresholdDays && prevDays > thresholdDays && this.pharmacyService) {
       try {
         await this.pharmacyService.sendLowStockAlert(
           userId,
           existing.name,
           existing.dosage,
           newStock,
-          threshold,
+          thresholdDays,
+          newDays,
         );
-        this.logger.log(`[Medications] Low stock alert sent for ${existing.name} (${newStock} remaining)`);
+        this.logger.log(`[Medications] Low stock alert sent for ${existing.name} (${newStock} pills ≈ ${newDays}d)`);
       } catch (err) {
         this.logger.error(`[Medications] Failed to send low stock alert:`, err);
+      }
+      // Also nudge the patient so they can request a refill in one tap.
+      try {
+        await this.pharmacyService.notifyUserLowStock(userId, {
+          medicationId: existing.id,
+          name: existing.name,
+          dosage: existing.dosage,
+          remainingStock: newStock,
+          daysRemaining: newDays,
+        });
+      } catch (err) {
+        this.logger.error(`[Medications] Failed to push low stock to user:`, err);
       }
     }
 

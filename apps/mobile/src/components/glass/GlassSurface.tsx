@@ -50,11 +50,18 @@ export function GlassSurface({
     };
 
     if (Platform.OS === 'ios') {
+        // Dark mode must pick a *Dark material — plain 'systemMaterial' is
+        // the light variant and rendered as a pale grey pill on top of the
+        // dark UI (visible especially on the bottom tab bar). The 'Dark'
+        // variants give Apple's intended translucent dark glass.
+        const iosTint = branded
+            ? tint
+            : (isDark ? ('systemThinMaterialDark' as any) : ('systemMaterial' as any));
         return (
             <View style={[styles.wrapper, style]} {...rest}>
                 <BlurView
                     intensity={conf.ios}
-                    tint={branded ? tint : 'systemMaterial' as any}
+                    tint={iosTint}
                     style={StyleSheet.absoluteFill}
                 />
                 {branded && (

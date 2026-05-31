@@ -66,6 +66,35 @@ export function parsePresetAvatar(url: string | null | undefined): { icon: strin
   return null;
 }
 
+// Canonical diet vocabulary shared with onboarding and the analysis pipeline.
+// `id` is what gets persisted in preferences.dietaryPreferences.
+const DIET_OPTIONS: { id: string; key: string; fallback: string }[] = [
+  { id: 'balanced', key: 'profile.dietBalanced', fallback: 'Balanced' },
+  { id: 'keto', key: 'onboarding.dietTypes.keto', fallback: 'Keto' },
+  { id: 'paleo', key: 'onboarding.dietTypes.paleo', fallback: 'Paleo' },
+  { id: 'vegan', key: 'onboarding.dietTypes.vegan', fallback: 'Vegan' },
+  { id: 'vegetarian', key: 'onboarding.dietTypes.vegetarian', fallback: 'Vegetarian' },
+  { id: 'pescatarian', key: 'onboarding.dietTypes.pescatarian', fallback: 'Pescatarian' },
+  { id: 'mediterranean', key: 'profile.dietMediterranean', fallback: 'Mediterranean' },
+  { id: 'low_carb', key: 'profile.dietLowCarb', fallback: 'Low carb' },
+  { id: 'high_protein', key: 'profile.dietHighProtein', fallback: 'High protein' },
+  { id: 'plant_based', key: 'profile.dietPlantBased', fallback: 'Plant-based' },
+  { id: 'gluten_free', key: 'onboarding.dietTypes.glutenFree', fallback: 'Gluten-free' },
+  { id: 'lactose_free', key: 'onboarding.dietTypes.lactoseFree', fallback: 'Lactose-free' },
+  { id: 'halal', key: 'onboarding.dietTypes.halal', fallback: 'Halal' },
+  { id: 'kosher', key: 'onboarding.dietTypes.kosher', fallback: 'Kosher' },
+];
+
+// Health conditions captured at onboarding and editable in the profile.
+// Persisted in preferences.healthConditions; the analysis pipeline acts on
+// gastritis / diabetes / high_cholesterol.
+const HEALTH_CONDITION_OPTIONS: { id: string; key: string; fallback: string }[] = [
+  { id: 'gastritis', key: 'onboarding.healthConditions.gastritis', fallback: 'Gastritis' },
+  { id: 'high_cholesterol', key: 'onboarding.healthConditions.highCholesterol', fallback: 'High cholesterol' },
+  { id: 'diabetes', key: 'onboarding.healthConditions.diabetes', fallback: 'Diabetes' },
+  { id: 'thyroid', key: 'onboarding.healthConditions.thyroid', fallback: 'Thyroid issues' },
+];
+
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -257,6 +286,7 @@ const ProfileScreen = () => {
   const [iapPrices, setIapPrices] = useState({});
   const [goal, setGoal] = useState('maintain_weight');
   const [dietPreferences, setDietPreferences] = useState([]);
+  const [healthConditions, setHealthConditions] = useState<string[]>([]);
   const [allergiesState, setAllergiesState] = useState({ selected: [] as string[], hasNone: false, otherText: '' });
   const [country, setCountry] = useState<string | null>(null);
   const [planModalVisible, setPlanModalVisible] = useState(false);
@@ -506,7 +536,15 @@ const ProfileScreen = () => {
         setPendingPlan(subscriptionPref.planId || 'free');
 
         const goalPref = preferences?.goal || 'maintain_weight';
-        const dietsPref = Array.isArray(preferences?.diets) ? preferences.diets : [];
+        // Canonical key is `dietaryPreferences`; fall back to legacy `diets`.
+        const dietsPref = Array.isArray(preferences?.dietaryPreferences)
+          ? preferences.dietaryPreferences
+          : Array.isArray(preferences?.diets)
+            ? preferences.diets
+            : [];
+        const healthConditionsPref = Array.isArray(preferences?.healthConditions)
+          ? preferences.healthConditions.filter((c: string) => c && c !== 'none')
+          : [];
         const allergiesRaw = preferences?.allergies;
         // Hydrate allergies state. Three cases:
         // 1. allergiesNone=true → user explicitly chose "no allergies"
@@ -522,6 +560,7 @@ const ProfileScreen = () => {
         }
         setGoal(goalPref);
         setDietPreferences(dietsPref);
+        setHealthConditions(healthConditionsPref);
 
         // Load healthProfile - properly map all fields from API
         if (healthProfile) {
@@ -757,9 +796,11 @@ const ProfileScreen = () => {
       if (goal) {
         preferencesObj.goal = goal;
       }
-      if (dietPreferences && dietPreferences.length > 0) {
-        preferencesObj.diets = dietPreferences;
-      }
+      // Canonical key is `dietaryPreferences` (read by the analysis pipeline).
+      // Write it and drop the legacy `diets` key to avoid stale duplicates.
+      preferencesObj.dietaryPreferences = dietPreferences || [];
+      delete preferencesObj.diets;
+      preferencesObj.healthConditions = (healthConditions || []).filter((c) => c && c !== 'none');
       preferencesObj.allergies = serializeAllergies(allergiesState);
       preferencesObj.allergiesNone = allergiesState.hasNone;
       if (country) {
@@ -992,9 +1033,15 @@ const ProfileScreen = () => {
             return;
           }
         }
-        // Re-schedule local meal reminders (3x/day)
+        // Re-schedule local meal reminders (3x/day) anchored to the user's
+        // chosen morning hour (falls back to 9:00). lunch/dinner shift by
+        // +4h / +10h relative to the anchor.
         try {
-          await localNotificationService.scheduleMealReminders(3);
+          await localNotificationService.scheduleMealReminders(
+            3,
+            Number(notificationPreferences.dailyPushHour) || 9,
+            Number(notificationPreferences.dailyPushMinute) || 0,
+          );
         } catch (err) {
           console.warn('[ProfileScreen] Failed to schedule meal reminders', err);
         }
@@ -1183,6 +1230,17 @@ const ProfileScreen = () => {
         dailyPushMinute: typeof updated.dailyPushMinute === 'number' ? updated.dailyPushMinute : minute,
         timezone: (updated.timezone || notificationPreferences.timezone || deviceTimezone || 'UTC').trim(),
       }));
+
+      // Re-schedule local meal reminders to use the new anchor hour so the
+      // time-picker actually changes when notifications fire. Without this
+      // the setting was saved but never applied (the picker was dead).
+      if (payload.dailyPushEnabled) {
+        try {
+          await localNotificationService.scheduleMealReminders(3, payload.dailyPushHour, payload.dailyPushMinute);
+        } catch (err) {
+          console.warn('[ProfileScreen] Reschedule after time change failed', err);
+        }
+      }
     } catch (error) {
       console.error('Failed to update reminder time', error);
       Alert.alert(
@@ -1197,6 +1255,15 @@ const ProfileScreen = () => {
   const confirmIosTime = () => {
     setShowTimePicker(false);
     updatePushTime(tempDate.getHours(), tempDate.getMinutes());
+  };
+
+  const openDailyTimePicker = () => {
+    const date = new Date();
+    date.setHours(notificationPreferences.dailyPushHour ?? 9);
+    date.setMinutes(notificationPreferences.dailyPushMinute ?? 0);
+    date.setSeconds(0, 0);
+    setTempDate(date);
+    setShowTimePicker(true);
   };
 
   const openSmartTipsTimePicker = () => {
@@ -1315,6 +1382,15 @@ const ProfileScreen = () => {
         return prev.filter(id => id !== dietId);
       }
       return [...prev, dietId];
+    });
+  };
+
+  const toggleHealthCondition = (conditionId: string) => {
+    setHealthConditions(prev => {
+      if (prev.includes(conditionId)) {
+        return prev.filter(id => id !== conditionId);
+      }
+      return [...prev, conditionId];
     });
   };
 
@@ -2186,11 +2262,11 @@ const ProfileScreen = () => {
                               </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                              style={[styles.chip, goal === 'gain_muscle' && styles.chipActive]}
-                              onPress={() => setGoal('gain_muscle')}
+                              style={[styles.chip, goal === 'gain_weight' && styles.chipActive]}
+                              onPress={() => setGoal('gain_weight')}
                             >
-                              <Text style={[styles.chipLabel, goal === 'gain_muscle' && styles.chipLabelActive]}>
-                                {safeT('profile.goalGainMuscle', 'Gain muscle')}
+                              <Text style={[styles.chipLabel, goal === 'gain_weight' && styles.chipLabelActive]}>
+                                {safeT('onboarding.goalTypes.gainWeight', 'Gain weight')}
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -2199,46 +2275,40 @@ const ProfileScreen = () => {
                         <View style={styles.subsection}>
                           <Text style={styles.subsectionTitle}>{safeT('profile.dietLabel', 'Diet type')}</Text>
                           <View style={styles.chipWrap}>
-                            <TouchableOpacity
-                              style={[styles.chip, dietPreferences.includes('balanced') && styles.chipActive]}
-                              onPress={() => toggleDietPreference('balanced')}
-                            >
-                              <Text style={[styles.chipLabel, dietPreferences.includes('balanced') && styles.chipLabelActive]}>
-                                {safeT('profile.dietBalanced', 'Balanced')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={[styles.chip, dietPreferences.includes('high_protein') && styles.chipActive]}
-                              onPress={() => toggleDietPreference('high_protein')}
-                            >
-                              <Text style={[styles.chipLabel, dietPreferences.includes('high_protein') && styles.chipLabelActive]}>
-                                {safeT('profile.dietHighProtein', 'High protein')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={[styles.chip, dietPreferences.includes('low_carb') && styles.chipActive]}
-                              onPress={() => toggleDietPreference('low_carb')}
-                            >
-                              <Text style={[styles.chipLabel, dietPreferences.includes('low_carb') && styles.chipLabelActive]}>
-                                {safeT('profile.dietLowCarb', 'Low carb')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={[styles.chip, dietPreferences.includes('mediterranean') && styles.chipActive]}
-                              onPress={() => toggleDietPreference('mediterranean')}
-                            >
-                              <Text style={[styles.chipLabel, dietPreferences.includes('mediterranean') && styles.chipLabelActive]}>
-                                {safeT('profile.dietMediterranean', 'Mediterranean')}
-                              </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={[styles.chip, dietPreferences.includes('plant_based') && styles.chipActive]}
-                              onPress={() => toggleDietPreference('plant_based')}
-                            >
-                              <Text style={[styles.chipLabel, dietPreferences.includes('plant_based') && styles.chipLabelActive]}>
-                                {safeT('profile.dietPlantBased', 'Plant-based')}
-                              </Text>
-                            </TouchableOpacity>
+                            {DIET_OPTIONS.map((opt) => {
+                              const active = dietPreferences.includes(opt.id);
+                              return (
+                                <TouchableOpacity
+                                  key={opt.id}
+                                  style={[styles.chip, active && styles.chipActive]}
+                                  onPress={() => toggleDietPreference(opt.id)}
+                                >
+                                  <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
+                                    {safeT(opt.key, opt.fallback)}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
+
+                        <View style={styles.subsection}>
+                          <Text style={styles.subsectionTitle}>{safeT('profile.healthConditionsLabel', 'Health conditions')}</Text>
+                          <View style={styles.chipWrap}>
+                            {HEALTH_CONDITION_OPTIONS.map((opt) => {
+                              const active = healthConditions.includes(opt.id);
+                              return (
+                                <TouchableOpacity
+                                  key={opt.id}
+                                  style={[styles.chip, active && styles.chipActive]}
+                                  onPress={() => toggleHealthCondition(opt.id)}
+                                >
+                                  <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
+                                    {safeT(opt.key, opt.fallback)}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
                           </View>
                         </View>
 
@@ -2276,89 +2346,52 @@ const ProfileScreen = () => {
             <Text style={styles.sectionTitle}>{t('profile.preferences')}</Text>
             {/* FIX: Language selector removed - language is automatically detected from device settings */}
             {/* Language cannot be changed manually - it's determined by device locale */}
-            <View style={[styles.preferenceRow, styles.themeRow]}>
-              <View>
-                <Text style={styles.preferenceLabel}>{safeT('profile.theme', 'Theme')}</Text>
-                <Text style={styles.preferenceCaption}>
-                  {themeMode === 'system' ? safeT('profile.systemTheme', 'System') : isDark ? safeT('profile.darkModeSubtitle', 'Dark mode') : safeT('profile.lightMode', 'Light mode')}
-                </Text>
-              </View>
-              <View style={styles.themeToggles}>
-                <TouchableOpacity
-                  style={[
-                    styles.themeChip,
-                    themeMode === 'light' && styles.themeChipActive,
-                  ]}
-                  onPress={() => {
-                    if (typeof toggleTheme === 'function') {
-                      toggleTheme('light');
-                    }
-                  }}
-                >
-                  <View style={[styles.themeColorDot, { backgroundColor: '#2563EB' }]}>
-                    {themeMode === 'light' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.themeChip,
-                    themeMode === 'dark' && styles.themeChipActive,
-                  ]}
-                  onPress={() => {
-                    if (typeof toggleTheme === 'function') {
-                      toggleTheme('dark');
-                    }
-                  }}
-                >
-                  <View style={[styles.themeColorDot, { backgroundColor: '#1E293B' }]}>
-                    {themeMode === 'dark' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.themeChip,
-                    themeMode === 'monochrome' && styles.themeChipActive,
-                  ]}
-                  onPress={() => {
-                    if (typeof toggleTheme === 'function') {
-                      toggleTheme('monochrome');
-                    }
-                  }}
-                >
-                  <View style={[styles.themeColorDot, { backgroundColor: '#000000', borderWidth: 1, borderColor: '#E5E7EB' }]}>
-                    {themeMode === 'monochrome' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.themeChip,
-                    themeMode === 'rose' && styles.themeChipActive,
-                  ]}
-                  onPress={() => {
-                    if (typeof toggleTheme === 'function') {
-                      toggleTheme('rose');
-                    }
-                  }}
-                >
-                  <View style={[styles.themeColorDot, { backgroundColor: '#EC4899' }]}>
-                    {themeMode === 'rose' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.themeChip,
-                    themeMode === 'beige' && styles.themeChipActive,
-                  ]}
-                  onPress={() => {
-                    if (typeof toggleTheme === 'function') {
-                      toggleTheme('beige');
-                    }
-                  }}
-                >
-                  <View style={[styles.themeColorDot, { backgroundColor: '#A16207' }]}>
-                    {themeMode === 'beige' && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                  </View>
-                </TouchableOpacity>
+            {/* Themes — card grid with named previews. Each card shows the
+                surface/text/primary colors of that theme so the user picks
+                visually, not by abstract dot. */}
+            <View style={{ paddingVertical: 8 }}>
+              <Text style={styles.preferenceLabel}>{safeT('profile.theme', 'Theme')}</Text>
+              <Text style={styles.preferenceCaption}>
+                {safeT('profile.themeCaption', 'Pick a look you enjoy — applies instantly.')}
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
+                {([
+                  { id: 'light',      name: safeT('profile.themeLight', 'Light'),        bg: '#FFFFFF', surface: '#F9FAFB', text: '#111827', primary: '#2563EB' },
+                  { id: 'dark',       name: safeT('profile.themeDark', 'Dark'),          bg: '#0B1220', surface: '#1A2336', text: '#F1F5F9', primary: '#6366F1' },
+                  { id: 'monochrome', name: safeT('profile.themeMonochrome', 'Mono'),    bg: '#FFFFFF', surface: '#F3F4F6', text: '#000000', primary: '#111827' },
+                  { id: 'rose',       name: safeT('profile.themeRose', 'Rose'),          bg: '#FFF1F2', surface: '#FFE4E6', text: '#831843', primary: '#EC4899' },
+                  { id: 'beige',      name: safeT('profile.themeBeige', 'Beige'),        bg: '#FAF7F2', surface: '#F0E9DC', text: '#3E2C13', primary: '#A16207' },
+                ] as const).map((th) => {
+                  const active = themeMode === th.id;
+                  return (
+                    <TouchableOpacity
+                      key={th.id}
+                      onPress={() => { if (typeof toggleTheme === 'function') toggleTheme(th.id); }}
+                      activeOpacity={0.75}
+                      style={{
+                        width: '31%',
+                        borderRadius: 14,
+                        borderWidth: 2,
+                        borderColor: active ? tokens.colors.primary : (tokens.colors.border || 'rgba(0,0,0,0.08)'),
+                        overflow: 'hidden',
+                        backgroundColor: tokens.colors.surface,
+                      }}
+                    >
+                      {/* Preview swatch — mimics the theme's surface + dot */}
+                      <View style={{ height: 56, backgroundColor: th.bg, padding: 8, justifyContent: 'space-between' }}>
+                        <View style={{ height: 6, width: 24, borderRadius: 3, backgroundColor: th.surface }} />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: th.primary }} />
+                          <View style={{ height: 4, flex: 1, borderRadius: 2, backgroundColor: th.text, opacity: 0.6 }} />
+                        </View>
+                      </View>
+                      <View style={{ paddingVertical: 8, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 13, fontWeight: active ? '700' : '600', color: tokens.colors.text }}>{th.name}</Text>
+                        {active && <Ionicons name="checkmark-circle" size={16} color={tokens.colors.primary} />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
             <View style={styles.preferenceRow}>
@@ -2366,8 +2399,8 @@ const ProfileScreen = () => {
                 <Text style={styles.preferenceLabel}>{t('profile.notificationsDailyTitle')}</Text>
                 <Text style={styles.notificationDescription}>
                   {notificationPreferences.dailyPushEnabled
-                    ? t('profile.notificationsDailyEnabled') || 'Напоминания включены'
-                    : t('profile.notificationsDailyDisabled') || 'Напоминания отключены'}
+                    ? t('profile.notificationsDailyEnabled') || 'Reminders are enabled'
+                    : t('profile.notificationsDailyDisabled') || 'Reminders are disabled'}
                 </Text>
               </View>
               <Switch
@@ -2378,6 +2411,26 @@ const ProfileScreen = () => {
                 disabled={notificationLoading || notificationSaving}
               />
             </View>
+
+            {/* Time picker — visible only when daily reminders are on.
+                Anchors the morning meal reminder; lunch/dinner shift by +4h/+10h. */}
+            {notificationPreferences.dailyPushEnabled && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                <Text style={styles.preferenceLabel}>
+                  {safeT('profile.notificationsDailyHourLabel', 'First reminder')}
+                </Text>
+                <TouchableOpacity
+                  onPress={openDailyTimePicker}
+                  disabled={notificationSaving}
+                  style={styles.timeChip}
+                >
+                  <Ionicons name="time-outline" size={16} color={tokens.colors.primary} />
+                  <Text style={styles.notificationTimeText}>
+                    {`${String(notificationPreferences.dailyPushHour ?? 9).padStart(2, '0')}:${String(notificationPreferences.dailyPushMinute ?? 0).padStart(2, '0')}`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Smart tips section — opt-in personalised tips per health issue */}
             <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: tokens.colors.borderMuted }}>

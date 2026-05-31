@@ -27,12 +27,27 @@ import { useAuth } from '../contexts/AuthContext';
 import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import MarketplaceService from '../services/marketplaceService';
 import ApiService from '../services/apiService';
+import { BottomSheet } from '../components/common/BottomSheet';
 
 const SPECIALIZATIONS = [
     'weightManagement', 'sportsNutrition', 'clinicalNutrition', 'pediatricNutrition',
     'eatingDisorders', 'diabetesManagement', 'foodAllergies', 'vegetarianVegan',
     'pregnancyNutrition', 'geriatricNutrition', 'gutHealth', 'mentalHealthNutrition',
 ];
+
+// Canonical expert.type → i18n key map (mirrors ExpertProfileScreen.TYPE_KEYS).
+// The previous `experts.<type>.title` scheme only had nutritionist/dietitian, so
+// every other type (obgyn, psychologist, …) fell back to the raw enum string.
+const TYPE_KEYS: Record<string, string> = {
+    nutritionist: 'experts.typeNutritionist',
+    dietitian: 'experts.typeDietitian',
+    obgyn: 'experts.typeObgyn',
+    pediatrician: 'experts.typePediatrician',
+    gp: 'experts.typeGp',
+    psychologist: 'experts.typePsychologist',
+    endocrinologist: 'experts.typeEndocrinologist',
+    other: 'experts.typeOther',
+};
 
 const PAGE_SIZE = 20;
 
@@ -44,7 +59,7 @@ const EXPERT_CATALOG_VISIBLE = false;
 export default function ExpertsScreen({ navigation }: { navigation: any }) {
     const { colors } = useTheme();
     const tokens = useDesignTokens();
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const isExpert = useIsExpert();
     const { user, refreshUser } = useAuth();
     const isApprovedExpert = (user as any)?.expertStatus === 'approved';
@@ -247,6 +262,11 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
         return parts.map((p) => p[0]?.toUpperCase() ?? '').join('');
     };
 
+    const typeLabel = useCallback((type?: string) => {
+        const key = TYPE_KEYS[(type || '').toLowerCase()] || 'experts.specialist';
+        return t(key) || type || '';
+    }, [t]);
+
     const renderExpertCard = useCallback(({ item }: { item: any }) => (
         <TouchableOpacity
             style={styles.card}
@@ -272,7 +292,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                             <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
                         )}
                     </View>
-                    <Text style={styles.cardType}>{String(t(`experts.${(item.type || '').toLowerCase()}.title`, { defaultValue: item.type }) ?? item.type ?? '')}</Text>
+                    <Text style={styles.cardType}>{typeLabel(item.type)}</Text>
                     <View style={styles.cardMeta}>
                         {item.rating > 0 && (
                             <View style={styles.ratingBadge}>
@@ -303,7 +323,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 </View>
             </View>
         </TouchableOpacity>
-    ), [styles, colors, t, navigation]);
+    ), [styles, colors, t, navigation, typeLabel]);
 
     const renderCodeEntry = () => (
         <TouchableOpacity
@@ -358,7 +378,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                                     </View>
                                     <Text style={styles.cardType}>
                                         {link.available
-                                            ? String(t(`experts.${(expert.type || '').toLowerCase()}.title`, { defaultValue: expert.type }) ?? expert.type ?? '')
+                                            ? typeLabel(expert.type)
                                             : (t('experts.specialistUnavailable') || 'Specialist is currently unavailable')}
                                     </Text>
                                 </View>
@@ -581,8 +601,8 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                                     <Text style={styles.cardName} numberOfLines={1}>{expert.displayName || t('experts.expertFallback') || 'Specialist'}</Text>
                                     <Text style={styles.cardType}>
                                         {isPending
-                                            ? `${t('experts.rescheduleProposed') || 'Reschedule requested'}: ${start.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
-                                            : `${start.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${c.durationMinutes} min`}
+                                            ? `${t('experts.rescheduleProposed') || 'Reschedule requested'}: ${start.toLocaleString(language || undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                                            : `${start.toLocaleString(language || undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${c.durationMinutes} ${t('experts.minutesShort', 'min')}`}
                                     </Text>
                                 </View>
                                 {isPending && !reschedulerIsMe ? null : inWindow ? (
@@ -782,51 +802,42 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                 </SafeAreaView>
             </Modal>
 
-            <Modal visible={codeVisible} animationType="fade" transparent onRequestClose={() => setCodeVisible(false)}>
-                <KeyboardAvoidingView
-                    style={styles.codeModalOverlay}
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                >
-                    <TouchableOpacity style={styles.codeModalScrim} activeOpacity={1} onPress={() => setCodeVisible(false)} />
-                    <View style={styles.codeModalCard}>
-                        <View style={styles.modalGrabber} />
-                        <Text style={styles.codeModalTitle}>{t('experts.enterCodeTitle') || 'Specialist code'}</Text>
-                        <Text style={styles.codeModalSub}>
-                            {t('experts.enterCodeBody') || 'Enter the private code your specialist shared with you.'}
-                        </Text>
-                        <TextInput
-                            value={codeInput}
-                            onChangeText={(value) => setCodeInput(normalizeCodeInput(value))}
-                            autoCapitalize="characters"
-                            autoCorrect={false}
-                            placeholder={t('experts.codePlaceholder') || 'MANSHUK-OBGYN'}
-                            placeholderTextColor={colors.textTertiary}
-                            style={styles.codeInput}
-                            maxLength={32}
-                        />
-                        <View style={styles.codeActions}>
-                            <TouchableOpacity
-                                style={styles.codeCancelButton}
-                                onPress={() => setCodeVisible(false)}
-                                disabled={applyingCode}
-                            >
-                                <Text style={styles.codeCancelText}>{t('common.cancel') || 'Cancel'}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.codeApplyButton, applyingCode && styles.disabledButton]}
-                                onPress={handleApplyCode}
-                                disabled={applyingCode}
-                            >
-                                {applyingCode ? (
-                                    <ActivityIndicator color="#FFF" />
-                                ) : (
-                                    <Text style={styles.codeApplyText}>{t('experts.applyCode') || 'Add specialist'}</Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
+            <BottomSheet visible={codeVisible} onClose={() => setCodeVisible(false)}>
+                <Text style={styles.codeModalTitle}>{t('experts.enterCodeTitle') || 'Specialist code'}</Text>
+                <Text style={styles.codeModalSub}>
+                    {t('experts.enterCodeBody') || 'Enter the private code your specialist shared with you.'}
+                </Text>
+                <TextInput
+                    value={codeInput}
+                    onChangeText={(value) => setCodeInput(normalizeCodeInput(value))}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    placeholder={t('experts.codePlaceholder') || 'MANSHUK-OBGYN'}
+                    placeholderTextColor={colors.textTertiary}
+                    style={styles.codeInput}
+                    maxLength={32}
+                />
+                <View style={styles.codeActions}>
+                    <TouchableOpacity
+                        style={styles.codeCancelButton}
+                        onPress={() => setCodeVisible(false)}
+                        disabled={applyingCode}
+                    >
+                        <Text style={styles.codeCancelText}>{t('common.cancel') || 'Cancel'}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.codeApplyButton, applyingCode && styles.disabledButton]}
+                        onPress={handleApplyCode}
+                        disabled={applyingCode}
+                    >
+                        {applyingCode ? (
+                            <ActivityIndicator color="#FFF" />
+                        ) : (
+                            <Text style={styles.codeApplyText}>{t('experts.applyCode') || 'Add specialist'}</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            </BottomSheet>
         </SafeAreaView>
     );
 }

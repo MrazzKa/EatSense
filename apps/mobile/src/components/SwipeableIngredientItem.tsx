@@ -159,9 +159,13 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
   const dietViolations = Array.isArray(ingredient?.userFlags?.dietViolation)
     ? ingredient.userFlags.dietViolation
     : [];
-  const hasUserWarnings = allergyMatches.length > 0 || dietViolations.length > 0;
+  const conditionWarnings = Array.isArray(ingredient?.userFlags?.conditionWarning)
+    ? ingredient.userFlags.conditionWarning
+    : [];
+  const hasUserWarnings = allergyMatches.length > 0 || dietViolations.length > 0 || conditionWarnings.length > 0;
   const localizeAllergy = (value) => t(`allergies.items.${value}`) || value;
   const localizeDiet = (value) => t(`analysis.dietViolation.items.${value}`) || value;
+  const localizeCondition = (value) => t(`analysis.conditionWarning.items.${value}`) || value;
 
   return (
   <View style={[
@@ -197,6 +201,14 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
               <Ionicons name="alert-circle" size={12} color="#92400E" />
               <Text style={[styles.warningBadgeText, { color: '#92400E' }]} numberOfLines={1}>
                 {t('analysis.dietViolation.title') || 'Diet'}: {dietViolations.map(localizeDiet).join(', ')}
+              </Text>
+            </View>
+          )}
+          {conditionWarnings.length > 0 && (
+            <View style={[styles.warningBadge, styles.conditionBadge]}>
+              <Ionicons name="medkit" size={12} color="#9A3412" />
+              <Text style={[styles.warningBadgeText, { color: '#9A3412' }]} numberOfLines={1}>
+                {t('analysis.conditionWarning.title') || 'Health'}: {conditionWarnings.map(localizeCondition).join(', ')}
               </Text>
             </View>
           )}
@@ -318,6 +330,9 @@ const styles = StyleSheet.create({
   },
   dietBadge: {
     backgroundColor: '#FEF3C7',
+  },
+  conditionBadge: {
+    backgroundColor: '#FFEDD5',
   },
   warningBadgeText: {
     flexShrink: 1,

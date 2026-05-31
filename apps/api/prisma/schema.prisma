@@ -605,6 +605,12 @@ model PharmacyConnection {
   pharmacyAddress String?  @map("pharmacy_address")
   pharmacyPhone   String?  @map("pharmacy_phone")
   pharmacyEmail   String?  @map("pharmacy_email")
+  pharmacyWebsite String?  @map("pharmacy_website")
+  // Language the pharmacy reads (drives order/low-stock email language).
+  // ISO 639-1: en | fr | de | it. Defaults to en.
+  language        String   @default("en")
+  // "manual" (user typed details) or "code" (linked via a pharmacy access code).
+  source          String   @default("manual")
   isActive        Boolean  @default(true) @map("is_active")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -613,6 +619,27 @@ model PharmacyConnection {
 
   @@index([userId, isActive])
   @@map("pharmacy_connections")
+}
+
+// Admin-provisioned pharmacy. A patient enters the `code` to link without
+// typing the pharmacy's email/address/website — those are copied from here into
+// their PharmacyConnection. Mirrors the expert access-code flow.
+model PharmacyAccessCode {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  pharmacyName    String   @map("pharmacy_name")
+  pharmacyEmail   String?  @map("pharmacy_email")
+  pharmacyAddress String?  @map("pharmacy_address")
+  pharmacyPhone   String?  @map("pharmacy_phone")
+  pharmacyWebsite String?  @map("pharmacy_website")
+  language        String   @default("en") // en | fr | de | it
+  isActive        Boolean  @default(true) @map("is_active")
+  usageCount      Int      @default(0) @map("usage_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([code])
+  @@map("pharmacy_access_codes")
 }
 
 model PharmacyOrder {

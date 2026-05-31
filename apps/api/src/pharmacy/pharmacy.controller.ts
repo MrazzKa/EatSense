@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PharmacyService } from './pharmacy.service';
-import { ConnectPharmacyDto } from './dto/connect-pharmacy.dto';
+import { ConnectPharmacyDto, ConnectPharmacyByCodeDto } from './dto/connect-pharmacy.dto';
 import { CreatePharmacyOrderDto } from './dto/create-pharmacy-order.dto';
 
 @ApiTags('Pharmacy')
@@ -44,6 +44,15 @@ export class PharmacyController {
   @ApiResponse({ status: 201, description: 'Pharmacy connected' })
   async connect(@Request() req: any, @Body() dto: ConnectPharmacyDto) {
     return this.pharmacyService.connectPharmacy(req.user.id, dto);
+  }
+
+  @Post('connections/code')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Link a pharmacy by entering its access code' })
+  @ApiResponse({ status: 201, description: 'Pharmacy linked from code' })
+  async connectByCode(@Request() req: any, @Body() dto: ConnectPharmacyByCodeDto) {
+    return this.pharmacyService.applyPharmacyCode(req.user.id, dto.code);
   }
 
   @Put('connections/:id')

@@ -206,7 +206,20 @@
         "halal": "Compatible halal",
         "kosher": "Casher",
         "gluten-free": "Sans gluten",
-        "lactose-free": "Sans lactose"
+        "lactose-free": "Sans lactose",
+        "plant_based": "À base de plantes",
+        "pescatarian": "Pescétarien",
+        "gluten_free": "Sans gluten",
+        "lactose_free": "Sans lactose"
+      }
+    },
+    "conditionWarning": {
+      "title": "Santé",
+      "body": "Compte tenu de votre profil de santé, faites attention à : {{list}}.",
+      "items": {
+        "gastritis": "Gastrite",
+        "diabetes": "Diabète",
+        "high_cholesterol": "Cholestérol élevé"
       }
     },
     "healthImpact": {
@@ -1090,7 +1103,7 @@
     "title": "Erreur",
     "stopProgram": "Échec de l'arrêt du programme",
     "pauseProgram": "Échec de la mise en pause",
-    "limitReachedTitle": "Daily Limit Reached",
+    "limitReachedTitle": "Limite quotidienne atteinte",
     "limitReachedMessage": "Vous avez atteint votre limite mensuelle.",
     "analysisHint": "Essayez une photo plus nette, avec le plat bien éclairé et centré.",
     "analysisFailed": "L’analyse a échoué. Veuillez réessayer."
@@ -1475,7 +1488,8 @@
     "paymentSubmittedTitle": "Paiement envoyé",
     "paymentSubmittedBody": "Votre chat sera débloqué dès que le paiement sera confirmé.",
     "consultations": "Rendez-vous",
-    "education": "Formation"
+    "education": "Formation",
+    "minutesShort": "min"
   },
   "feedbackScreen": {
     "alerts": {
@@ -1520,7 +1534,7 @@
   },
   "gallery": {
     "error": "Failed to load image. Please try again.",
-    "goBack": "Go Back",
+    "goBack": "Retour",
     "notResponding": "Gallery not responding",
     "timeoutMessage": "Opening gallery is taking too long.",
     "openGallery": "Ouvrir la galerie",
@@ -1615,7 +1629,7 @@
   },
   "limits": {
     "dailyLimitReached": "Vous avez atteint votre limite quotidienne de {{count}} analyses de photos. Veuillez réessayer demain.",
-    "title": "Daily Limit Reached",
+    "title": "Limite quotidienne atteinte",
     "description": "Passez au Premium pour supprimer les limites",
     "resetsAt": "Réinitialisation dans",
     "tryFreeTrial": "Essai gratuit",
@@ -1691,7 +1705,9 @@
       "total": "Total",
       "remaining": "Restant",
       "daysRemaining": "Jours restants",
-      "lowStock": "Stock faible ! Il est temps de réapprovisionner"
+      "lowStock": "Stock faible ! Il est temps de réapprovisionner",
+      "daysShort": "j",
+      "orderRefill": "Commander un réappro"
     },
     "take": "Prendre",
     "tabTitle": "Médicaments",
@@ -1724,7 +1740,9 @@
     "addPhoto": "Ajouter photo",
     "takePhoto": "Prendre une photo",
     "chooseFromGallery": "Choisir de la galerie",
-    "cameraPermissionDenied": "Autorisation de la caméra refusée"
+    "cameraPermissionDenied": "Autorisation de la caméra refusée",
+    "emptyTitle": "Aucun médicament",
+    "emptySubtitle": "Ajoutez vos médicaments pour recevoir des rappels et suivre votre stock."
   },
   "notifications": {
     "enableFailed": "Impossible d'activer les notifications.",
@@ -1871,7 +1889,12 @@
       "vegetarian": "Végétarien",
       "vegetarianDesc": "Sans viande, poisson et produits laitiers autorisés",
       "paleo": "Paléo",
-      "paleoDesc": "Aliments naturels, non transformés"
+      "paleoDesc": "Aliments naturels, non transformés",
+      "pescatarian": "Pescétarien",
+      "glutenFree": "Sans gluten",
+      "lactoseFree": "Sans lactose",
+      "halal": "Halal",
+      "kosher": "Casher"
     },
     "features": {
       "analysis": "Analyse alimentaire IA",
@@ -2005,7 +2028,16 @@
     "name": "Comment vous appelez-vous ?",
     "nameSubtitle": "Pour personnaliser votre expérience",
     "namePlaceholder": "Votre prénom",
-    "formulaExplanation": "Basé sur des algorithmes scientifiquement prouvés"
+    "formulaExplanation": "Basé sur des algorithmes scientifiquement prouvés",
+    "loadingPhases": {
+      "analyzing": "Analyse de vos objectifs…",
+      "calculating": "Calcul de vos calories quotidiennes…",
+      "macros": "Équilibrage des protéines, glucides et lipides…",
+      "foods": "Sélection des aliments adaptés…",
+      "finalizing": "Finalisation de votre plan…"
+    },
+    "termsIntroV2": "Vos données vous appartiennent — chiffrées, jamais vendues, et supprimables à tout moment.",
+    "acceptBoth": "J'ai lu et j'accepte les Conditions d'utilisation et la Politique de confidentialité."
   },
   "permissions": {
     "cameraRequired": "L'autorisation de la caméra est requise pour prendre des photos",
@@ -2288,7 +2320,15 @@
     "cancelSubscriptionMessage": "Vous pouvez gérer ou annuler votre abonnement dans les paramètres de votre compte de boutique.",
     "manageSubscription": "Gérer l’abonnement",
     "switchToFree": "Passer à Free",
-    "upgradePlan": "Améliorer le plan"
+    "upgradePlan": "Améliorer le plan",
+    "healthConditionsLabel": "Problèmes de santé",
+    "notificationsDailyHourLabel": "Premier rappel",
+    "themeCaption": "Choisissez un thème — appliqué immédiatement.",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeMonochrome": "Mono",
+    "themeRose": "Rose",
+    "themeBeige": "Beige"
   },
   "recently": {
     "analyzing": "Analyse en cours...",
@@ -2378,7 +2418,7 @@
     "title": "Statistiques",
     "today": "Aujourd'hui",
     "under": "Sous l'objectif",
-    "unnamedProduct": "Unnamed Product",
+    "unnamedProduct": "Produit sans nom",
     "mealDistribution": "Répartition des repas"
   },
   "subscription": {
@@ -4341,7 +4381,8 @@
       "phone": "Téléphone",
       "email": "E-mail",
       "dosage": "Dosage",
-      "quantity": "Quantité"
+      "quantity": "Quantité",
+      "website": "Site web"
     },
     "placeholders": {
       "name": "ex. Pharmacie Amavita",
@@ -4350,7 +4391,8 @@
       "phone": "Numéro de téléphone",
       "email": "pharmacie@exemple.ch",
       "medicationName": "Nom du médicament",
-      "notes": "Notes supplémentaires..."
+      "notes": "Notes supplémentaires...",
+      "website": "https://exemple-pharmacie.ch"
     },
     "status": {
       "pending": "En attente",
@@ -4366,7 +4408,17 @@
       "noItems": "Ajoutez au moins un médicament",
       "photoUpload": "Échec du téléchargement de la photo",
       "cameraPermission": "L'autorisation de la caméra est requise"
-    }
+    },
+    "haveCodeTitle": "J'ai un code de pharmacie",
+    "haveCodeSub": "Liaison instantanée — sans saisir d'adresse ni d'e-mail.",
+    "enterCodeTitle": "Code de pharmacie",
+    "enterCodeBody": "Entrez le code que votre pharmacie vous a communiqué.",
+    "codePlaceholder": "AMAVITA-GENEVE",
+    "applyCode": "Lier la pharmacie",
+    "codeInvalidTitle": "Vérifiez le code",
+    "codeInvalidBody": "Vérifiez le code de la pharmacie et réessayez.",
+    "codeAppliedTitle": "Pharmacie liée",
+    "codeAppliedBody": "Cette pharmacie est maintenant connectée."
   },
   "community": {
     "title": "Communauté",

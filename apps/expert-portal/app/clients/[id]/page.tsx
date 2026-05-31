@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import { localeTag } from '@/lib/i18n/format';
+import { humanizeGoal, humanizeGender, humanizeHealthCondition, humanizeDiet, humanizeList, clinicalBanner } from '@/lib/i18n/humanize';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -52,6 +53,13 @@ interface LabMetric {
   referenceMax?: number;
 }
 
+interface ClientPreferences {
+  dietaryPreferences?: string[];
+  allergies?: string[];
+  allergiesNone?: boolean;
+  healthConditions?: string[];
+}
+
 interface HealthProfile {
   firstName?: string;
   lastName?: string;
@@ -61,7 +69,7 @@ interface HealthProfile {
   gender?: string;
   goal?: string;
   dailyCalories?: number;
-  preferences?: string;
+  preferences?: ClientPreferences;
   healthProfile?: any;
 }
 
@@ -201,6 +209,31 @@ export default function ClientDataPage() {
     return flags.slice(0, 5);
   }, [data?.labResults]);
 
+  // Chronic conditions reported at onboarding + a lightweight check of whether
+  // recent shared meals conflict with them (e.g. high-fat meals for a gastritis
+  // client). Surfaces the medical context the expert needs at a glance.
+  const conditions = useMemo(
+    () => (data?.healthProfile?.preferences?.healthConditions || []).filter((c) => c && c !== 'none'),
+    [data?.healthProfile],
+  );
+  const conditionConflicts = useMemo(() => {
+    if (!conditions.length) return [] as Array<{ condition: string; count: number }>;
+    const meals = data?.meals || [];
+    const sumItem = (m: Meal, key: 'sugars' | 'satFat' | 'fat') =>
+      (m.items || []).reduce((sum, it) => sum + (Number((it as any)[key]) || 0), 0);
+    const out: Array<{ condition: string; count: number }> = [];
+    for (const cond of conditions) {
+      let count = 0;
+      for (const m of meals) {
+        if (cond === 'gastritis' && Math.max(Number(m.fat) || 0, sumItem(m, 'fat')) >= 30) count += 1;
+        else if (cond === 'diabetes' && sumItem(m, 'sugars') >= 25) count += 1;
+        else if (cond === 'high_cholesterol' && sumItem(m, 'satFat') >= 15) count += 1;
+      }
+      if (count > 0) out.push({ condition: cond, count });
+    }
+    return out;
+  }, [conditions, data?.meals]);
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
@@ -225,6 +258,32 @@ export default function ClientDataPage() {
           </div>
         ) : data ? (
           <>
+            {conditions.length > 0 && (
+              <section className="mb-6 rounded-xl border border-[var(--yellow)]/30 bg-[var(--yellow)]/5 p-4">
+                <div className="mb-2 flex items-baseline justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-[var(--yellow)]">{clinicalBanner(locale).title}</h2>
+                  <span className="text-xs text-[var(--text2)]">{clinicalBanner(locale).subtitle}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {conditions.map((cond) => (
+                    <span key={cond} className="rounded-full border border-[var(--yellow)]/40 bg-[var(--yellow)]/10 px-3 py-1 text-xs font-medium text-[var(--yellow)]">
+                      {humanizeHealthCondition(cond, locale)}
+                    </span>
+                  ))}
+                </div>
+                {conditionConflicts.length > 0 && (
+                  <ul className="mt-3 space-y-1">
+                    {conditionConflicts.map((conflict) => (
+                      <li key={conflict.condition} className="flex items-center gap-2 text-xs text-[var(--red)]">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--red)]" />
+                        {clinicalBanner(locale).conflict(conflict.count, humanizeHealthCondition(conflict.condition, locale))}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
+
             <section className="mb-6 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
               <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
                 <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -470,10 +529,29 @@ export default function ClientDataPage() {
                     <ProfileField label={t('clients', 'age')} value={data.healthProfile.age} />
                     <ProfileField label={t('clients', 'height')} value={data.healthProfile.height ? `${data.healthProfile.height} cm` : undefined} />
                     <ProfileField label={t('clients', 'weight')} value={data.healthProfile.weight ? `${data.healthProfile.weight} kg` : undefined} />
-                    <ProfileField label={t('clients', 'gender')} value={data.healthProfile.gender} />
-                    <ProfileField label={t('clients', 'goal')} value={data.healthProfile.goal} />
+                    <ProfileField label={t('clients', 'gender')} value={data.healthProfile.gender ? humanizeGender(data.healthProfile.gender, locale) : undefined} />
+                    <ProfileField label={t('clients', 'goal')} value={data.healthProfile.goal ? humanizeGoal(data.healthProfile.goal, locale) : undefined} />
                     <ProfileField label={t('clients', 'dailyCalories')} value={data.healthProfile.dailyCalories ? `${data.healthProfile.dailyCalories} kcal` : undefined} />
-                    <ProfileField label={t('clients', 'preferences')} value={data.healthProfile.preferences} />
+                    <ProfileField
+                      label={t('clients', 'healthConditions')}
+                      value={data.healthProfile.preferences?.healthConditions?.length
+                        ? humanizeList(data.healthProfile.preferences.healthConditions, humanizeHealthCondition, locale)
+                        : undefined}
+                    />
+                    <ProfileField
+                      label={t('clients', 'dietaryPreferences')}
+                      value={data.healthProfile.preferences?.dietaryPreferences?.length
+                        ? humanizeList(data.healthProfile.preferences.dietaryPreferences, humanizeDiet, locale)
+                        : undefined}
+                    />
+                    <ProfileField
+                      label={t('clients', 'allergies')}
+                      value={data.healthProfile.preferences?.allergiesNone
+                        ? '—'
+                        : data.healthProfile.preferences?.allergies?.length
+                          ? data.healthProfile.preferences.allergies.join(', ')
+                          : undefined}
+                    />
                   </div>
                 ) : (
                   <p className="text-[var(--text2)] text-center py-10">{t('clients', 'noHealth')}</p>

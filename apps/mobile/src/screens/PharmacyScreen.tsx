@@ -15,10 +15,12 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { ListSkeleton } from '../components/common/Skeleton';
+import { BottomSheet } from '../components/common/BottomSheet';
 
 // --- Types ---
 
@@ -29,6 +31,7 @@ type PharmacyConnection = {
   pharmacyAddress?: string;
   pharmacyPhone?: string;
   pharmacyEmail?: string;
+  pharmacyWebsite?: string;
   isActive: boolean;
 };
 
@@ -71,6 +74,7 @@ const ConnectPharmacyModal: React.FC<{
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -80,12 +84,14 @@ const ConnectPharmacyModal: React.FC<{
       setAddress(editing.pharmacyAddress || '');
       setPhone(editing.pharmacyPhone || '');
       setEmail(editing.pharmacyEmail || '');
+      setWebsite(editing.pharmacyWebsite || '');
     } else {
       setName('');
       setCode('');
       setAddress('');
       setPhone('');
       setEmail('');
+      setWebsite('');
     }
   }, [editing, visible]);
 
@@ -102,6 +108,7 @@ const ConnectPharmacyModal: React.FC<{
         pharmacyAddress: address.trim() || undefined,
         pharmacyPhone: phone.trim() || undefined,
         pharmacyEmail: email.trim() || undefined,
+        pharmacyWebsite: website.trim() || undefined,
       });
     } finally {
       setSaving(false);
@@ -204,6 +211,22 @@ const ConnectPharmacyModal: React.FC<{
               keyboardType="email-address"
               autoCapitalize="none"
             />
+
+            {/* Website — used in low-stock emails so the pharmacy can jump
+                straight to their own stock-check page. */}
+            <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+              {t('pharmacy.fields.website', 'Website')}
+            </Text>
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary || colors.text, borderColor: colors.border || '#E5E7EB', backgroundColor: colors.cardBackground || colors.surface || '#F9FAFB' }]}
+              value={website}
+              onChangeText={setWebsite}
+              placeholder={t('pharmacy.placeholders.website', 'https://example-pharmacy.ch')}
+              placeholderTextColor={colors.textTertiary || '#9CA3AF'}
+              keyboardType="url"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -219,9 +242,10 @@ const OrderModal: React.FC<{
   onSubmit: (data: any) => void;
   pharmacies: PharmacyConnection[];
   medications: Medication[];
+  initialItem?: OrderItem | null;
   colors: any;
   t: any;
-}> = ({ visible, onClose, onSubmit, pharmacies, medications, colors, t }) => {
+}> = ({ visible, onClose, onSubmit, pharmacies, medications, initialItem, colors, t }) => {
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([{ name: '', dosage: '', quantity: '' }]);
   const [prescriptionUrl, setPrescriptionUrl] = useState<string | null>(null);
@@ -233,11 +257,14 @@ const OrderModal: React.FC<{
   useEffect(() => {
     if (visible) {
       setSelectedPharmacy(pharmacies.length > 0 ? pharmacies[0].id : null);
-      setItems([{ name: '', dosage: '', quantity: '' }]);
+      // Pre-fill the first row when opened from a low-stock refill nudge.
+      setItems(initialItem && initialItem.name
+        ? [{ name: initialItem.name, dosage: initialItem.dosage || '', quantity: initialItem.quantity || '1' }]
+        : [{ name: '', dosage: '', quantity: '' }]);
       setPrescriptionUrl(null);
       setNotes('');
     }
-  }, [visible, pharmacies]);
+  }, [visible, pharmacies, initialItem]);
 
   const addItem = () => {
     setItems([...items, { name: '', dosage: '', quantity: '' }]);
@@ -580,6 +607,7 @@ const OrderModal: React.FC<{
 
 const PharmacyScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute<any>();
   const { colors } = useTheme();
   const { t } = useI18n();
 
@@ -590,7 +618,23 @@ const PharmacyScreen: React.FC = () => {
 
   const [connectModalVisible, setConnectModalVisible] = useState(false);
   const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [orderPrefillItem, setOrderPrefillItem] = useState<OrderItem | null>(null);
   const [editingPharmacy, setEditingPharmacy] = useState<PharmacyConnection | null>(null);
+  const [codeModalVisible, setCodeModalVisible] = useState(false);
+  const [codeInput, setCodeInput] = useState('');
+  const [applyingCode, setApplyingCode] = useState(false);
+
+  // Deep-link from a low-stock refill nudge (push or the "Order refill" button
+  // on the medication card): open the order modal with the medication pre-filled.
+  useEffect(() => {
+    const prefill = route.params?.prefillMedication;
+    if (route.params?.autoOpenOrder && prefill?.name) {
+      setOrderPrefillItem({ name: prefill.name, dosage: prefill.dosage || '', quantity: '1' });
+      setOrderModalVisible(true);
+      // Clear params so it doesn't re-open on every focus/re-render.
+      navigation.setParams({ autoOpenOrder: undefined, prefillMedication: undefined } as never);
+    }
+  }, [route.params?.autoOpenOrder, route.params?.prefillMedication, navigation]);
 
   const loadData = useCallback(async () => {
     try {
@@ -630,6 +674,27 @@ const PharmacyScreen: React.FC = () => {
     }
   };
 
+  const handleApplyCode = async () => {
+    const code = codeInput.replace(/[^a-z0-9-]/gi, '').toUpperCase();
+    if (code.length < 4) {
+      Alert.alert(t('pharmacy.codeInvalidTitle', 'Check the code'), t('pharmacy.codeInvalidBody', 'Check the pharmacy code and try again.'));
+      return;
+    }
+    setApplyingCode(true);
+    try {
+      await ApiService.connectPharmacyByCode(code);
+      await loadData();
+      setCodeModalVisible(false);
+      setCodeInput('');
+      Alert.alert(t('pharmacy.codeAppliedTitle', 'Pharmacy linked'), t('pharmacy.codeAppliedBody', 'This pharmacy is now connected.'));
+    } catch (e) {
+      console.error('[Pharmacy] Apply code error:', e);
+      Alert.alert(t('pharmacy.codeInvalidTitle', 'Check the code'), t('pharmacy.codeInvalidBody', 'Check the pharmacy code and try again.'));
+    } finally {
+      setApplyingCode(false);
+    }
+  };
+
   const handleDisconnect = (pharmacy: PharmacyConnection) => {
     Alert.alert(
       t('pharmacy.disconnectTitle', 'Disconnect Pharmacy'),
@@ -658,6 +723,7 @@ const PharmacyScreen: React.FC = () => {
       await ApiService.createPharmacyOrder(data);
       await loadData();
       setOrderModalVisible(false);
+      setOrderPrefillItem(null);
       Alert.alert(
         t('pharmacy.orderSentTitle', 'Order Sent!'),
         t('pharmacy.orderSentMessage', 'Your order has been sent. We will notify the pharmacy.'),
@@ -703,9 +769,7 @@ const PharmacyScreen: React.FC = () => {
       </View>
 
       {loading ? (
-        <View style={styles.centerLoading}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <ListSkeleton count={4} />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Connected Pharmacies Section */}
@@ -768,6 +832,24 @@ const PharmacyScreen: React.FC = () => {
               </View>
             ))
           )}
+
+          {/* Link by pharmacy code (admin-provisioned pharmacies) */}
+          <TouchableOpacity
+            style={[styles.codeEntryBtn, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '08' }]}
+            onPress={() => { setCodeInput(''); setCodeModalVisible(true); }}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="key-outline" size={18} color={colors.primary} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={{ color: colors.textPrimary || colors.text, fontWeight: '700', fontSize: 14 }}>
+                {t('pharmacy.haveCodeTitle', 'I have a pharmacy code')}
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 1 }}>
+                {t('pharmacy.haveCodeSub', 'Link instantly — no address or email to type.')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary || '#9CA3AF'} />
+          </TouchableOpacity>
 
           {/* Connect button */}
           <TouchableOpacity
@@ -858,13 +940,38 @@ const PharmacyScreen: React.FC = () => {
 
       <OrderModal
         visible={orderModalVisible}
-        onClose={() => setOrderModalVisible(false)}
+        onClose={() => { setOrderModalVisible(false); setOrderPrefillItem(null); }}
         onSubmit={handleSubmitOrder}
         pharmacies={pharmacies}
         medications={medications}
+        initialItem={orderPrefillItem}
         colors={colors}
         t={t}
       />
+
+      {/* Pharmacy code entry */}
+      <BottomSheet visible={codeModalVisible} onClose={() => setCodeModalVisible(false)}>
+        <Text style={[styles.codeTitle, { color: colors.textPrimary || colors.text }]}>{t('pharmacy.enterCodeTitle', 'Pharmacy code')}</Text>
+        <Text style={[styles.codeSub, { color: colors.textSecondary }]}>{t('pharmacy.enterCodeBody', 'Enter the code your pharmacy shared with you.')}</Text>
+        <TextInput
+          value={codeInput}
+          onChangeText={(v) => setCodeInput(v.replace(/[^a-z0-9-]/gi, '').toUpperCase().slice(0, 32))}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          placeholder={t('pharmacy.codePlaceholder', 'AMAVITA-GENEVE')}
+          placeholderTextColor={colors.textTertiary || '#9CA3AF'}
+          style={[styles.codeInput, { borderColor: colors.border || '#E5E7EB', color: colors.textPrimary || colors.text, backgroundColor: colors.background }]}
+          maxLength={32}
+        />
+        <View style={styles.codeActions}>
+          <TouchableOpacity style={[styles.codeCancel, { borderColor: colors.border || '#E5E7EB' }]} onPress={() => setCodeModalVisible(false)} disabled={applyingCode}>
+            <Text style={{ color: colors.textPrimary || colors.text, fontWeight: '700' }}>{t('common.cancel', 'Cancel')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.codeApply, { backgroundColor: colors.primary, opacity: applyingCode ? 0.6 : 1 }]} onPress={handleApplyCode} disabled={applyingCode}>
+            {applyingCode ? <ActivityIndicator color="#FFF" /> : <Text style={{ color: '#FFF', fontWeight: '800' }}>{t('pharmacy.applyCode', 'Link pharmacy')}</Text>}
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
     </SafeAreaView>
   );
 };
@@ -936,6 +1043,25 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 20,
   },
+  codeEntryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  codeTitle: { fontSize: 18, fontWeight: '800' },
+  codeSub: { fontSize: 13, lineHeight: 19, marginTop: 6 },
+  codeInput: {
+    height: 50, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16,
+    marginTop: 16, fontSize: 18, fontWeight: '800', letterSpacing: 1,
+  },
+  codeActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  codeCancel: { flex: 1, minHeight: 46, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  codeApply: { flex: 1.4, minHeight: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 
   // Order button
   orderBtn: {

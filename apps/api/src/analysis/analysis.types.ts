@@ -112,6 +112,8 @@ export interface AnalyzedItem {
     allergyMatch?: string[];
     /** Dietary preference violations (e.g., ['vegan'] when item contains meat) */
     dietViolation?: string[];
+    /** Chronic-condition concerns from onboarding (e.g., ['gastritis'] on a fried item) */
+    conditionWarning?: string[];
   };
 }
 

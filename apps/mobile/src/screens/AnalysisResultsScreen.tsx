@@ -451,20 +451,25 @@ export default function AnalysisResultsScreen() {
       // dialog (only first time per result; we use a ref guard to avoid loops).
       const allergyHits: string[] = [];
       const dietHits: string[] = [];
+      const conditionHits: string[] = [];
       for (const ing of normalized.ingredients || []) {
         const u = (ing as any).userFlags;
         if (u?.allergyMatch?.length) allergyHits.push(...u.allergyMatch);
         if (u?.dietViolation?.length) dietHits.push(...u.dietViolation);
+        if (u?.conditionWarning?.length) conditionHits.push(...u.conditionWarning);
       }
-      if ((allergyHits.length || dietHits.length) && !allergyAlertShownRef.current) {
+      if ((allergyHits.length || dietHits.length || conditionHits.length) && !allergyAlertShownRef.current) {
         allergyAlertShownRef.current = true;
         const localizeAllergy = (value: string) => t(`allergies.items.${value}`, value);
         const localizeDiet = (value: string) => t(`analysis.dietViolation.items.${value}`, value);
+        const localizeCondition = (value: string) => t(`analysis.conditionWarning.items.${value}`, value);
         const uniqueAllergies = Array.from(new Set(allergyHits.map(s => String(s)))).map(localizeAllergy);
         const uniqueDiet = Array.from(new Set(dietHits.map(s => String(s)))).map(localizeDiet);
+        const uniqueConditions = Array.from(new Set(conditionHits.map(s => String(s)))).map(localizeCondition);
         const messageParts: string[] = [];
         if (uniqueAllergies.length) messageParts.push(t('analysis.allergyWarning.body', { list: uniqueAllergies.join(', ') }));
         if (uniqueDiet.length) messageParts.push(t('analysis.dietViolation.body', { list: uniqueDiet.join(', ') }));
+        if (uniqueConditions.length) messageParts.push(t('analysis.conditionWarning.body', { list: uniqueConditions.join(', ') }));
         const mealIdToDelete = normalized.mealId || normalized.autoSave?.mealId;
         const warningKey = `analysisWarningSeen:${mealIdToDelete || normalized.analysisId || normalized.id || messageParts.join('|')}`;
         AsyncStorage.getItem(warningKey)

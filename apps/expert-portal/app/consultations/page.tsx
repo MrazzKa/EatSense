@@ -6,6 +6,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import { LOCALE_TAGS } from '@/lib/i18n/format';
+import { humanizeStatus, minShort } from '@/lib/i18n/humanize';
 import type { Locale } from '@/lib/i18n/messages';
 import { useToast } from '@/components/toast';
 import { Calendar as CalendarIcon, CalendarClock, CheckCircle2, Clock, Plus, UserX, Video, X } from 'lucide-react';
@@ -270,14 +271,14 @@ export default function ConsultationsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{fmtName(c)}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_COLORS[c.status] || ''}`}>{c.status}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${STATUS_COLORS[c.status] || ''}`}>{humanizeStatus(c.status, locale)}</span>
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-[var(--text2)]">
                         <span className="inline-flex items-center gap-1">
                           <CalendarIcon size={12} /> {fmtTime(c.startAt, locale)}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <Clock size={12} /> {c.durationMinutes} min
+                          <Clock size={12} /> {c.durationMinutes} {minShort(locale)}
                         </span>
                       </div>
                     </div>
@@ -303,12 +304,12 @@ export default function ConsultationsPage() {
                         </button>
                       )}
                       {(['IN_PROGRESS'].includes(c.status) || (c.status === 'SCHEDULED' && Date.now() > new Date(c.startAt).getTime())) && (
-                        <button onClick={() => markNoShow(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--yellow)]" title="No-show">
+                        <button onClick={() => markNoShow(c.id)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--yellow)]" title={t('consultations', 'noShowBtn')}>
                           <UserX size={14} />
                         </button>
                       )}
                       {['SCHEDULED', 'PENDING_RESCHEDULE', 'IN_PROGRESS'].includes(c.status) && (
-                        <button onClick={() => cancel(c.id)} className="rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--red)]" title="Cancel">
+                        <button onClick={() => cancel(c.id)} className="rounded-lg border border-[var(--border)] px-2 py-1.5 text-xs text-[var(--red)]" title={t('consultations', 'cancelBtn')}>
                           <X size={14} />
                         </button>
                       )}
@@ -385,7 +386,7 @@ export default function ConsultationsPage() {
                         onClick={() => setCreateDuration(d)}
                         className={`flex-1 rounded-lg border px-3 py-2 text-sm ${createDuration === d ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)]'}`}
                       >
-                        {d} min
+                        {d} {minShort(locale)}
                       </button>
                     ))}
                   </div>

@@ -10,6 +10,7 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
+import * as Localization from 'expo-localization';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 
@@ -89,14 +90,35 @@ export default function CountryPicker({ value, onChange, label }: Props) {
     }
   }, [t]);
 
+  // Pin the user's detected region and CH (pilot HQ) at the top of the list
+  // so the most likely choices are one tap away. Falls back gracefully if
+  // the locale module is unavailable.
+  const orderedOptions = useMemo(() => {
+    let detected: string | null = null;
+    try {
+      detected = normalizeSupportedCountryCode(Localization.getLocales()?.[0]?.regionCode || null);
+    } catch {
+      detected = null;
+    }
+    const pinned: string[] = [];
+    if (detected) pinned.push(detected);
+    if (!pinned.includes('CH')) pinned.push('CH');
+    const pinnedSet = new Set(pinned);
+    const rest = COUNTRY_OPTIONS.filter((c) => !pinnedSet.has(c.code));
+    const head = pinned
+      .map((code) => COUNTRY_OPTIONS.find((c) => c.code === code))
+      .filter(Boolean) as Array<{ code: string; name: string }>;
+    return [...head, ...rest];
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return COUNTRY_OPTIONS;
-    return COUNTRY_OPTIONS.filter((c) =>
+    if (!q) return orderedOptions;
+    return orderedOptions.filter((c) =>
       localizedName(c).toLowerCase().includes(q) ||
       c.code.toLowerCase().includes(q),
     );
-  }, [localizedName, search]);
+  }, [localizedName, orderedOptions, search]);
 
   const selectedLabel = useMemo(() => {
     if (!value) return t('country.placeholder', 'Select country');

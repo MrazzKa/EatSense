@@ -2,7 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { CalendarService } from './calendar.service';
+import { CalendarService, pickConsultLang } from './calendar.service';
+
+// Localized "rate your session" prompt (push sent ~30 min after completion).
+const RATING_PROMPT: Record<string, { title: string; body: (expert: string) => string }> = {
+  en: { title: 'How was your consultation?', body: (e) => `Rate your session with ${e}.` },
+  ru: { title: 'Как прошла консультация?', body: (e) => `Оцените сессию с ${e}.` },
+  kk: { title: 'Кеңес қалай өтті?', body: (e) => `${e} маманмен сессияңызды бағалаңыз.` },
+  fr: { title: 'Comment s’est passée votre consultation ?', body: (e) => `Évaluez votre séance avec ${e}.` },
+  de: { title: 'Wie war Ihre Beratung?', body: (e) => `Bewerten Sie Ihre Sitzung mit ${e}.` },
+  es: { title: '¿Cómo fue tu consulta?', body: (e) => `Valora tu sesión con ${e}.` },
+};
 
 @Injectable()
 export class CalendarScheduler {
@@ -74,9 +84,16 @@ export class CalendarScheduler {
         take: 50,
       });
       for (const c of promptables) {
-        const expert = await this.prisma.expertProfile.findUnique({ where: { id: c.expertId }, select: { displayName: true } });
+        const [expert, clientProfile] = await Promise.all([
+          this.prisma.expertProfile.findUnique({ where: { id: c.expertId }, select: { displayName: true } }),
+          this.prisma.userProfile.findUnique({ where: { userId: c.clientId }, select: { preferences: true } }),
+        ]);
+        const lang = pickConsultLang((clientProfile?.preferences as any)?.language);
+        const strings = RATING_PROMPT[lang] || RATING_PROMPT.en;
+        const expertName = expert?.displayName
+          || ({ en: 'your expert', ru: 'вашим специалистом', kk: 'маманыңызбен', fr: 'votre expert', de: 'Ihrem Experten', es: 'tu experto' }[lang]);
         await this.notifications
-          .sendPushNotification(c.clientId, 'How was your consultation?', `Rate your session with ${expert?.displayName || 'your expert'}.`, {
+          .sendPushNotification(c.clientId, strings.title, strings.body(expertName), {
             type: 'consultation.rating_prompt',
             id: c.id,
           })

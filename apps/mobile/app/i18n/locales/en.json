@@ -322,7 +322,12 @@
       "paleo": "Paleo",
       "paleoDesc": "Whole foods, no processed",
       "mediterranean": "Mediterranean",
-      "mediterraneanDesc": "Fish, vegetables, olive oil"
+      "mediterraneanDesc": "Fish, vegetables, olive oil",
+      "pescatarian": "Pescatarian",
+      "glutenFree": "Gluten-free",
+      "lactoseFree": "Lactose-free",
+      "halal": "Halal",
+      "kosher": "Kosher"
     },
     "features": {
       "analysis": "AI Food Analysis",
@@ -451,7 +456,16 @@
       "goal": "Please select your goal.",
       "gender": "Please select your gender.",
       "activity": "Please select your activity level."
-    }
+    },
+    "loadingPhases": {
+      "analyzing": "Analyzing your goals…",
+      "calculating": "Calculating your daily calories…",
+      "macros": "Balancing protein, carbs and fat…",
+      "foods": "Picking foods that fit your goal…",
+      "finalizing": "Finalizing your plan…"
+    },
+    "termsIntroV2": "Your data stays yours — encrypted, never sold, and you can delete it anytime.",
+    "acceptBoth": "I have read and accept the Terms of Service and Privacy Policy."
   },
   "suggest": {
     "title": "Community Suggestions",
@@ -770,7 +784,20 @@
         "halal": "Halal",
         "kosher": "Kosher",
         "gluten-free": "Gluten-free",
-        "lactose-free": "Lactose-free"
+        "lactose-free": "Lactose-free",
+        "plant_based": "Plant-based",
+        "pescatarian": "Pescatarian",
+        "gluten_free": "Gluten-free",
+        "lactose_free": "Lactose-free"
+      }
+    },
+    "conditionWarning": {
+      "title": "Health note",
+      "body": "Given your health profile, take note of: {{list}}.",
+      "items": {
+        "gastritis": "Gastritis",
+        "diabetes": "Diabetes",
+        "high_cholesterol": "High cholesterol"
       }
     },
     "healthImpact": {
@@ -1194,7 +1221,15 @@
     "cancelSubscriptionMessage": "You can manage or cancel your subscription in your store account settings.",
     "manageSubscription": "Manage subscription",
     "switchToFree": "Switch to Free",
-    "upgradePlan": "Upgrade plan"
+    "upgradePlan": "Upgrade plan",
+    "healthConditionsLabel": "Health conditions",
+    "notificationsDailyHourLabel": "First reminder",
+    "themeCaption": "Pick a look you enjoy — applies instantly.",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeMonochrome": "Mono",
+    "themeRose": "Rose",
+    "themeBeige": "Beige"
   },
   "camera": {
     "requestingPermission": "Requesting camera permission...",
@@ -1817,7 +1852,8 @@
     "paymentSubmittedTitle": "Payment submitted",
     "paymentSubmittedBody": "Your chat will unlock as soon as the payment is confirmed.",
     "consultations": "Consultations",
-    "education": "Education"
+    "education": "Education",
+    "minutesShort": "min"
   },
   "offers": {
     "noOffers": "No services yet",
@@ -2560,7 +2596,9 @@
       "total": "Total",
       "remaining": "Remaining",
       "daysRemaining": "Days remaining",
-      "lowStock": "Low stock! Time to refill"
+      "lowStock": "Low stock! Time to refill",
+      "daysShort": "d",
+      "orderRefill": "Order refill"
     },
     "take": "Take",
     "times": "Times",
@@ -2606,7 +2644,9 @@
     "addPhoto": "Add photo",
     "takePhoto": "Take Photo",
     "chooseFromGallery": "Choose from Gallery",
-    "cameraPermissionDenied": "Camera permission is required to take photos."
+    "cameraPermissionDenied": "Camera permission is required to take photos.",
+    "emptyTitle": "No medications yet",
+    "emptySubtitle": "Add your medications to get reminders and track your supply."
   },
   "foodDescriptionPrompt": {
     "title": "What did you eat?",
@@ -4362,7 +4402,8 @@
       "phone": "Phone",
       "email": "Email",
       "dosage": "Dosage",
-      "quantity": "Quantity"
+      "quantity": "Quantity",
+      "website": "Website"
     },
     "placeholders": {
       "name": "e.g. Amavita Apotheke",
@@ -4371,7 +4412,8 @@
       "phone": "+41 31 311 22 33",
       "email": "pharmacy@example.ch",
       "medicationName": "Medication name",
-      "notes": "Any additional notes..."
+      "notes": "Any additional notes...",
+      "website": "https://example-pharmacy.ch"
     },
     "status": {
       "pending": "Pending",
@@ -4387,7 +4429,17 @@
       "noItems": "Add at least one medication",
       "photoUpload": "Failed to upload photo",
       "cameraPermission": "Camera permission is required"
-    }
+    },
+    "haveCodeTitle": "I have a pharmacy code",
+    "haveCodeSub": "Link instantly — no address or email to type.",
+    "enterCodeTitle": "Pharmacy code",
+    "enterCodeBody": "Enter the code your pharmacy shared with you.",
+    "codePlaceholder": "AMAVITA-GENEVE",
+    "applyCode": "Link pharmacy",
+    "codeInvalidTitle": "Check the code",
+    "codeInvalidBody": "Check the pharmacy code and try again.",
+    "codeAppliedTitle": "Pharmacy linked",
+    "codeAppliedBody": "This pharmacy is now connected."
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",

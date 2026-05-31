@@ -5,6 +5,12 @@ import { createTransport, Transporter } from 'nodemailer';
 
 type MailProvider = 'sendgrid' | 'smtp' | 'none';
 
+// Categories let each send-site pick a sender address. On infomaniak the
+// recommended setup is a single mailbox (`info@eatsense.ch`) with free
+// aliases (`pharmacy@`, `experts@`, `noreply@`) routed to it. Env vars are
+// optional — all fall back to the default MAIL_FROM if unset.
+export type MailCategory = 'default' | 'pharmacy' | 'expert' | 'noreply' | 'otp';
+
 @Injectable()
 export class MailerService {
   private readonly logger = new Logger(MailerService.name);
@@ -13,10 +19,18 @@ export class MailerService {
   private readonly ignoreErrors: boolean;
   private readonly provider: MailProvider;
   private readonly smtpTransporter?: Transporter;
+  private readonly categoryFrom: Record<MailCategory, string>;
 
   constructor() {
     const configuredFrom = (process.env.MAIL_FROM || '').trim();
     this.fromAddress = configuredFrom || 'EatSense <info@eatsense.ch>';
+    this.categoryFrom = {
+      default: this.fromAddress,
+      pharmacy: (process.env.MAIL_FROM_PHARMACY || '').trim() || this.fromAddress,
+      expert: (process.env.MAIL_FROM_EXPERT || '').trim() || this.fromAddress,
+      noreply: (process.env.MAIL_FROM_NOREPLY || '').trim() || this.fromAddress,
+      otp: (process.env.MAIL_FROM_OTP || '').trim() || (process.env.MAIL_FROM_NOREPLY || '').trim() || this.fromAddress,
+    };
     this.mailDisabled = (process.env.MAIL_DISABLE || 'false').toLowerCase() === 'true';
     this.ignoreErrors = (process.env.AUTH_DEV_IGNORE_MAIL_ERRORS || 'false').toLowerCase() === 'true';
 
@@ -61,6 +75,14 @@ export class MailerService {
     }
   }
 
+  /**
+   * Resolve the sender address for a category. Used by call-sites that don't
+   * pass an explicit `from` (e.g. pharmacy emails should come from pharmacy@).
+   */
+  fromFor(category: MailCategory): string {
+    return this.categoryFrom[category] || this.fromAddress;
+  }
+
   async sendOtpEmail(to: string, otp: string) {
     const subject = `Your EatSense code: ${otp}`;
     const text = [
@@ -82,7 +104,7 @@ export class MailerService {
       </div>
     `;
 
-    await this.dispatchMail('otp', { to, from: this.fromAddress, subject, text, html });
+    await this.dispatchMail('otp', { to, from: this.fromFor('otp'), subject, text, html });
   }
 
   async sendMagicLinkEmail(to: string, magicLinkUrl: string) {
@@ -109,7 +131,7 @@ export class MailerService {
       </div>
     `;
 
-    await this.dispatchMail('magic-link', { to, from: this.fromAddress, subject, text, html });
+    await this.dispatchMail('magic-link', { to, from: this.fromFor('otp'), subject, text, html });
   }
 
   /**
@@ -146,19 +168,22 @@ export class MailerService {
       </div>
     `;
 
-    await this.dispatchMail('expert-welcome', { to, from: this.fromAddress, subject, text, html });
+    await this.dispatchMail('expert-welcome', { to, from: this.fromFor('expert'), subject, text, html });
   }
 
   /**
-   * Send generic email (for notifications, suggestions, etc.)
+   * Send generic email. Pass `category` so the message goes out from the
+   * matching alias (e.g. pharmacy emails from `pharmacy@eatsense.ch`).
+   * Defaults to the generic `info@` address for back-compat with existing
+   * call-sites that don't specify a category.
    */
-  async sendEmail(options: { to: string | string[]; subject: string; text: string; html?: string }) {
+  async sendEmail(options: { to: string | string[]; subject: string; text: string; html?: string; category?: MailCategory }) {
     const recipients = Array.isArray(options.to) ? options.to : [options.to];
     const html = options.html || options.text.replace(/\n/g, '<br>');
-    
+
     await this.dispatchMail('notification', {
       to: recipients,
-      from: this.fromAddress,
+      from: this.fromFor(options.category || 'default'),
       subject: options.subject,
       text: options.text,
       html,

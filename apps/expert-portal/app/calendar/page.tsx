@@ -5,6 +5,7 @@ import { AppShell } from '@/components/app-shell';
 import { apiFetch, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
 import { weekdayShortNames, formatDate, formatDateTime } from '@/lib/i18n/format';
+import { humanizeStatus, minShort } from '@/lib/i18n/humanize';
 import { useToast } from '@/components/toast';
 import { Calendar as CalendarIcon, Clock, Copy, MessageSquare, Plane, Plus, Save, Trash2, Video } from 'lucide-react';
 import Link from 'next/link';
@@ -252,8 +253,8 @@ export default function CalendarPage() {
                         <div className="truncate text-sm font-semibold">{consultationName(item)}</div>
                         <div className="mt-1 flex flex-wrap gap-3 text-xs text-[var(--text2)]">
                           <span>{formatDateTime(start, locale)}</span>
-                          <span className="inline-flex items-center gap-1"><Clock size={12} /> {item.durationMinutes} min</span>
-                          <span>{item.status}</span>
+                          <span className="inline-flex items-center gap-1"><Clock size={12} /> {item.durationMinutes} {minShort(locale)}</span>
+                          <span>{humanizeStatus(item.status, locale)}</span>
                         </div>
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-2">
@@ -452,7 +453,7 @@ export default function CalendarPage() {
                             className="min-h-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm"
                             step={900}
                           />
-                          <button onClick={() => removeRule(idx)} className="ml-auto text-[var(--text2)] hover:text-[var(--red)]" title="Remove">
+                          <button onClick={() => removeRule(idx)} className="ml-auto text-[var(--text2)] hover:text-[var(--red)]" title={t('common', 'delete')}>
                             <Trash2 size={16} />
                           </button>
                         </li>

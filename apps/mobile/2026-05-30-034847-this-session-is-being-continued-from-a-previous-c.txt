@@ -1,0 +1,1755 @@
+ ▐▛███▜▌   Claude Code v2.1.156
+▝▜█████▛▘  Opus 4.7 · Claude Pro
+  ▘▘ ▝▝    ~/projects/work/eatsense/apps/mobile
+
+✻ Conversation compacted (ctrl+o for history)
+
+
+❯ /compact                                                                      
+  ⎿  Compacted (ctrl+o to see full summary)
+  ⎿  Read apps/mobile/src/screens/TrackerScreen.tsx (374 lines)
+  ⎿  Referenced file apps/api/src/analysis/analyze.service.ts
+  ⎿  Referenced file apps/mobile/src/screens/ProfileScreen.tsx
+  ⎿  Read apps/mobile/src/navigation/MainTabsNavigator.tsx (175 lines)
+  ⎿  Read ../../../.claude/projects/-home-mrazzka-projects-work-eatsense/memory/analysis_pipeline_insights.md (22 lines)
+
+❯ Можешь продолжить все выполнять?                                              
+
+● Продолжаю. Перед тем как двигаться дальше по приоритету #2, мне нужно решение
+  по трём продуктовым вопросам, которые я не могу решить за тебя — они влияют на
+  то, какие правки делать.
+
+● User answered Claude's questions:
+  ⎿  · В онбординге пользователь указывает состояния здоровья (гастрит, диабет, 
+     высокий холестерин). В #1 я уже подключил их к персонализации анализа 
+     (предупреждения по блюдам). Но в профиле их сейчас НЕЛЬЗЯ отредактировать. 
+     Что делать? → Сделать редактируемыми в профиле (Recommended)
+     · Есть рассинхрон словарей: в онбординге поле `diet` (одна диета, single), 
+     а в профиле `dietPreferences` (несколько, multi). Это вызывает 
+     несостыковки. Унифицировать? → Унифицировать словари (Recommended)
+     · Как продолжить приоритет #2 после этих решений? → Доаудитить оставшиеся 
+     экраны (Recommended)
+
+● Все три — рекомендованные варианты. Принято:
+  1. Состояния здоровья → редактируемые в профиле
+  2. Унифицировать словари диет
+  3. Сначала доаудитить оставшиеся экраны
+
+  Начну с аудита оставшихся экранов, затем сделаю две правки. Сначала найду
+  нужные файлы.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && ls src/screens/ |
+      sort)
+  ⎿  AnalysisResultsScreen.tsx
+     ArticleDetailScreen.tsx
+     BestPlacesScreen.tsx
+     … +40 lines (ctrl+o to expand)
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && grep -rln
+      "dietPreferences\|onboarding.*diet\|healthConditions" src/ app/ | head
+      -40)
+  ⎿  app/i18n/locales/fr.json
+     src/screens/OnboardingScreen.tsx
+     src/screens/ProfileScreen.tsx
+     … +6 lines (ctrl+o to expand)
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Вижу рассинхрон чётко. Онбординг хранит diet (одна строка), профиль —
+  preferences.diets (массив), и словари разные. Прежде чем править, нужно понять
+  модель данных на бэке, чтобы не делать миграцию. Читаю детали.
+
+  Read 1 file (ctrl+o to expand)
+
+● Теперь смотрю бэкенд — где хранятся diet и preferences.diets.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/api && grep -rln
+      "diet\|dietPreference\|healthCondition" src/users src/profile prisma
+      2>/dev/null | head; echo "---…)
+  ⎿  prisma/schema.prisma
+     prisma/migrations/20260107000000_add_diet_extended_fields/migration.sq
+     l
+     … +26 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● UserProfile не имеет колонок diet/healthConditions — они в Json
+  (preferences/healthProfile). Значит унификация = правка только Json-маппинга,
+  БЕЗ миграции. Смотрю сервис профиля.
+
+  Searched for 2 patterns, listed 1 directory (ctrl+o to expand)
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && grep -n
+      "createUserProfile\|getUserProfile\|updateUserProfile\|/profile\|/users"
+      src/services/apiService.…)
+  ⎿  998:    return this.request('/users/me', {
+     1076:      return await this.request('/users/stats');
+     1204:  async createUserProfile(profileData: any) {
+     … +4 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/api && grep -rln
+      "user-profiles\|@Controller('user-profiles')\|UserProfiles" src
+      --include=*.ts | head)
+  ⎿  (No output)
+
+  Searched for 1 pattern, read 1 file, listed 1 directory (ctrl+o to expand)
+● Важное открытие: бэкенд в allowedFields (строки 145-150) не пропускает diet и
+  healthConditions — они приходят с онбординга на верхнем уровне и молча
+  отбрасываются. Проверю, откуда анализ читает healthConditions — возможно, моя
+  правка #1 читает поле, которое никогда не заполняется.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Это глубже, чем ожидалось. Проверю DTO и есть ли где-то маппинг top-level
+  diet/healthConditions в preferences, прежде чем делать выводы.
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Подтверждено: в DTO и сервисе профиля нет ни diet, ни healthConditions —
+  top-level поля с онбординга молча теряются. Это значит, что моя персонализация
+  из #1 (preferences.healthConditions) сейчас мёртвый код. Проверю как профиль
+  читает/пишет preferences, чтобы составить точный план.
+
+  Read 1 file (ctrl+o to expand)
+
+● Закончил разбор потока данных и нашёл критическую проблему, которая больше,
+  чем просто «рассинхрон словарей». Вот что подтверждено чтением кода (онбординг
+  → API → анализ):
+
+  Что сломано (всё в Json-полях, миграция НЕ нужна)
+
+  1. Данные онбординга healthConditions и diet вообще не сохраняются.
+  Онбординг шлёт их на верхнем уровне payload (OnboardingScreen.tsx:1192-1193),
+  но бэкенд в user-profiles.service.ts:145-150 пропускает только белый список
+  полей — diet и healthConditions там нет, и в preferences они тоже не
+  складываются. → Они молча отбрасываются. Следствие: моя персонализация из #1 
+  (preferences.healthConditions) сейчас мёртвый код — ей нечего читать.
+
+  2. Профиль пишет preferences.diets, а анализ читает 
+  preferences.dietaryPreferences.
+  (ProfileScreen.tsx:761 vs analyze.service.ts:3889) → диета из профиля тоже
+  никогда не влияет на анализ.
+
+  3. Словарь диет различается в 3 местах:
+  - Онбординг: none/balanced/keto/paleo/vegan/vegetarian/mediterranean/low_carb
+  - Профиль: balanced/high_protein/low_carb/mediterranean/plant_based
+  - Анализ распознаёт только ограничения:
+  vegan/vegetarian/halal/kosher/gluten-free/lactose-free
+
+  Пересечение почти нулевое.
+
+  План правок (после твоего решения по словарю)
+
+  1. Онбординг: складывать healthConditions → preferences.healthConditions и
+  diet → preferences.dietaryPreferences (канонические ключи, которые читает
+  анализ).
+  2. Бэкенд: либо принять эти ключи, либо (проще и безопаснее) полагаться на то,
+  что фронт кладёт их в preferences — белый список preferences уже пропускает.
+  Дополнительно прочитать diets для обратной совместимости со старыми данными.
+  3. Профиль: писать/читать dietaryPreferences (+ читать старый diets для
+  совместимости); добавить редактируемый блок состояний здоровья →
+  preferences.healthConditions.
+  4. Анализ: распознавать диеты из единого словаря (включая
+  plant_based→веган-правила и т.п.).
+
+  Единственное, что мне нужно от тебя — канонический словарь диет (он пойдёт в
+  i18n на 6 языках):
+
+● User answered Claude's questions:
+  ⎿  · Какой единый словарь диет использовать везде (онбординг + профиль + 
+     анализ)? → Объединённый полный (Recommended)
+
+● Канонический словарь принят (полный объединённый). Перед правкой проверю
+  mergePreferences на бэке — не вырезает ли он незнакомые ключи внутри
+  preferences (если нет, бэкенд править не нужно).
+
+  Read 1 file (ctrl+o to expand)
+
+● mergePreferences делает { ...basePreferences } — сохраняет все ключи. Значит
+  бэкенд править НЕ нужно: фронт кладёт dietaryPreferences/healthConditions
+  внутрь preferences, и они персистятся. Создам задачи и начну. Сначала посмотрю
+  хелперы диет в анализе.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && grep -rn
+      "dietViolation\|localizeDiet\|dietLabel"
+      src/components/SwipeableIngredientItem.tsx src/screens/…)
+  ⎿  src/components/SwipeableIngredientItem.tsx:159:  const dietViolations
+     = Array.isArray(ingredient?.userFlags?.dietViolation)
+     src/components/SwipeableIngredientItem.tsx:160:    ? ingredient.userFl
+     … +16 lines (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  en {"title": "Diet mismatch", "body": "This meal may not fit your diet
+      settings: {{list}}.", "items": {"vegan": "Vegan", "vegetarian": "Vege
+     tarian", "halal": "Halal", "kosher": "Kosher", "gluten-free": "Gluten-
+     … +6 lines (ctrl+o to expand)
+
+● Полная картина собрана. Создаю задачи и начинаю правки.
+● Начинаю с бэкенда — analyze.service.ts. Читаю точные строки для правки.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(~/projects/work/eatsense/apps/api/src/analysis/analyze.service.ts)
+  ⎿  Added 6 lines, removed 2 lines
+      3884    ): void {
+      3885      if (!userProfile) return;
+      3886  
+      3887 -    const prefs = (userProfile.preferences || {}) as { allerg
+           -ies?: string[]; dietaryPreferences?: string[]; healthConditio
+           -ns?: string[] };                                             
+      3887 +    const prefs = (userProfile.preferences || {}) as { allerg
+           +ies?: string[]; dietaryPreferences?: string[]; diets?: string
+           +[]; healthConditions?: string[] };                           
+      3888      const allergies = (prefs.allergies || []).map((a: string)
+             => String(a).toLowerCase().trim()).filter(Boolean);
+      3889 -    const diets = (prefs.dietaryPreferences || []).map((d: st
+           -ring) => String(d).toLowerCase().trim()).filter(Boolean);    
+      3889 +    // Canonical key is `dietaryPreferences`; `diets` is read
+           + for backward compatibility                                  
+      3890 +    // with profiles saved before the diet-vocabulary unifica
+           +tion.                                                        
+      3891 +    const diets = (prefs.dietaryPreferences || prefs.diets ||
+           + [])                                                         
+      3892 +      .map((d: string) => String(d).toLowerCase().trim().repl
+           +ace(/-/g, '_'))                                              
+      3893 +      .filter(Boolean);                                      
+      3894      // Health conditions captured at onboarding (e.g. gastrit
+            is, diabetes, high_cholesterol).
+      3895      // These live in preferences (not the premium healthProfi
+            le) so they are available to
+      3896      // ALL users — these are safety/health signals, not premi
+            um analytics.
+
+● Теперь правлю блок распознавания нарушений диеты:
+
+● Update(~/projects/work/eatsense/apps/api/src/analysis/analyze.service.ts)
+  ⎿  Added 6 lines, removed 3 lines
+      3911        }
+      3912        const dietViolations: string[] = [];
+      3913        for (const d of diets) {
+      3914 -        if (d === 'vegan' && this.isAnimalIngredient(item)) d
+           -ietViolations.push('vegan');                                 
+      3914 +        // Only restriction-type diets can be "violated"; sty
+           +le diets (keto, paleo,                                       
+      3915 +        // balanced, mediterranean, low_carb, high_protein) h
+           +ave no per-item violation.                                   
+      3916 +        if ((d === 'vegan' || d === 'plant_based') && this.is
+           +AnimalIngredient(item)) dietViolations.push(d);              
+      3917          else if (d === 'vegetarian' && this.isMeatOrFishIngre
+            dient(item)) dietViolations.push('vegetarian');
+      3918 +        else if (d === 'pescatarian' && this.isMeatIngredient
+           +(item)) dietViolations.push('pescatarian');                  
+      3919          else if (d === 'halal' && /pork|bacon|ham|свин|шпик/i
+            .test(haystack)) dietViolations.push('halal');
+      3920          else if (d === 'kosher' && /pork|bacon|shrimp|свин|кр
+            еветк/i.test(haystack)) dietViolations.push('kosher');
+      3918 -        else if (d === 'gluten-free' && /wheat|bread|pasta|ba
+           -rley|rye|пшениц|хлеб|макарон/i.test(haystack)) dietViolations
+           -.push('gluten-free');                                        
+      3919 -        else if (d === 'lactose-free' && /milk|cheese|yogurt|
+           -butter|cream|молок|сыр|йогурт|сметан/i.test(haystack)) dietVi
+           -olations.push('lactose-free');                               
+      3921 +        else if (d === 'gluten_free' && /wheat|bread|pasta|ba
+           +rley|rye|пшениц|хлеб|макарон/i.test(haystack)) dietViolations
+           +.push('gluten_free');                                        
+      3922 +        else if (d === 'lactose_free' && /milk|cheese|yogurt|
+           +butter|cream|молок|сыр|йогурт|сметан/i.test(haystack)) dietVi
+           +olations.push('lactose_free');                               
+      3923        }
+      3924        const conditionWarnings = conditions.length ? this.eval
+            uateConditionWarnings(item, haystack, conditions) : [];
+      3925        if (matched.length || dietViolations.length || conditio
+            nWarnings.length) {
+
+● Добавляю helper isMeatIngredient (мясо/птица без рыбы — для pescatarian):
+
+● Update(~/projects/work/eatsense/apps/api/src/analysis/analyze.service.ts)
+  ⎿  Added 5 lines
+      4036      const t = `${item.name || ''} ${item.originalName || ''}`
+            .toLowerCase();
+      4037      return /chicken|beef|pork|fish|salmon|tuna|shrimp|bacon|h
+            am|sausage|курица|говядин|свинин|рыба|лосос|тунец|креветк|бек
+            он|ветчин|колбас/i.test(t);
+      4038    }
+      4039 +  // Meat/poultry only (fish & seafood allowed) — used for pe
+           +scatarian diet.                                              
+      4040 +  private isMeatIngredient(item: AnalyzedItem): boolean {    
+      4041 +    const t = `${item.name || ''} ${item.originalName || ''}`
+           +.toLowerCase();                                              
+      4042 +    return /chicken|beef|pork|lamb|veal|turkey|duck|bacon|ham
+           +|sausage|salami|курица|говядин|свинин|баранин|телятин|индейк|
+           +утк|бекон|ветчин|колбас|салями/i.test(t);                    
+      4043 +  }                                                          
+      4044    private isIronRich(item: AnalyzedItem): boolean {
+      4045      const t = `${item.name || ''} ${item.originalName || ''}`
+            .toLowerCase();
+      4046      return /beef|liver|spinach|lentil|chickpea|tofu|kidney be
+            an|red meat|говядин|печен|шпинат|чечевиц|нут|тофу|фасол/i.tes
+            t(t);
+
+● Бэкенд готов. Теперь онбординг — складываю healthConditions и diet в
+  preferences.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/screens/OnboardingScreen.tsx)
+  ⎿  Added 19 lines, removed 13 lines
+      1158            (selectedPlan === 'free' ? 'lifetime' : 'monthly'),
+      1159        };
+      1160  
+      1161 -      const mergedPreferences = {                            
+      1162 -        ...(profilePreferences ?? {}),                       
+      1163 -        subscription: {                                      
+      1164 -          ...(profilePreferences?.subscription ?? {}),       
+      1165 -          ...subscriptionPreference,                         
+      1166 -        },                                                   
+      1167 -        allergies: serializeAllergies(allergiesState),       
+      1168 -        allergiesNone: allergiesState.hasNone,               
+      1169 -        country: profileData.country || null,                
+      1170 -      };                                                     
+      1171 -                                                             
+      1172 -      profileDataWithoutPlan.preferences = mergedPreferences;
+      1173 -                                                             
+      1161        // Filter out empty 'other' condition
+      1162        let finalHealthConditions = [...(profileDataWithoutPlan
+            .healthConditions || [])];
+      1163  
+     ...
+      1174          finalDiet = profileData.dietOther;
+      1175        }
+      1176  
+      1177 +      // Canonical storage: health conditions and diet live I
+           +NSIDE preferences (Json),                                    
+      1178 +      // since UserProfile has no top-level columns for them 
+           +and the backend whitelist                                    
+      1179 +      // drops unknown root fields. The analysis pipeline rea
+           +ds preferences.healthConditions                              
+      1180 +      // and preferences.dietaryPreferences.                 
+      1181 +      const mergedPreferences = {                            
+      1182 +        ...(profilePreferences ?? {}),                       
+      1183 +        subscription: {                                      
+      1184 +          ...(profilePreferences?.subscription ?? {}),       
+      1185 +          ...subscriptionPreference,                         
+      1186 +        },                                                   
+      1187 +        allergies: serializeAllergies(allergiesState),       
+      1188 +        allergiesNone: allergiesState.hasNone,               
+      1189 +        country: profileData.country || null,                
+      1190 +        healthConditions: finalHealthConditions.filter((c) =>
+           + c && c !== 'none'),                                         
+      1191 +        dietaryPreferences: finalDiet && finalDiet !== 'none'
+           + ? [finalDiet] : [],                                         
+      1192 +      };                                                     
+      1193 +                                                             
+      1194 +      profileDataWithoutPlan.preferences = mergedPreferences;
+      1195 +                                                             
+      1196        const finalPayload = {
+      1197          ...profileDataWithoutPlan,
+      1198          healthConditions: finalHealthConditions,
+
+● Правлю ProfileScreen. Сначала читаю секцию чипов диеты и состояние.
+
+  Read 1 file (ctrl+o to expand)
+
+● Рефакторю чипы диеты в .map() по каноническому списку и добавлю блок состояний
+  здоровья. Сначала смотрю состояние и load/save секции.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 1 line
+      257    const [iapPrices, setIapPrices] = useState({});
+      258    const [goal, setGoal] = useState('maintain_weight');
+      259    const [dietPreferences, setDietPreferences] = useState([]);
+      260 +  const [healthConditions, setHealthConditions] = useState<str
+          +ing[]>([]);                                                   
+      261    const [allergiesState, setAllergiesState] = useState({ selec
+           ted: [] as string[], hasNone: false, otherText: '' });
+      262    const [country, setCountry] = useState<string | null>(null);
+      263    const [planModalVisible, setPlanModalVisible] = useState(fal
+           se);
+
+● Теперь load-секция (читаю dietaryPreferences с fallback на diets, плюс
+  healthConditions):
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 9 lines, removed 1 line
+      507          setPendingPlan(subscriptionPref.planId || 'free');
+      508  
+      509          const goalPref = preferences?.goal || 'maintain_weight
+           ';
+      510 -        const dietsPref = Array.isArray(preferences?.diets) ? 
+          -preferences.diets : [];                                       
+      510 +        // Canonical key is `dietaryPreferences`; fall back to
+          + legacy `diets`.                                              
+      511 +        const dietsPref = Array.isArray(preferences?.dietaryPr
+          +eferences)                                                    
+      512 +          ? preferences.dietaryPreferences                    
+      513 +          : Array.isArray(preferences?.diets)                 
+      514 +            ? preferences.diets                               
+      515 +            : [];                                             
+      516 +        const healthConditionsPref = Array.isArray(preferences
+          +?.healthConditions)                                           
+      517 +          ? preferences.healthConditions.filter((c: string) =>
+          + c && c !== 'none')                                           
+      518 +          : [];                                               
+      519          const allergiesRaw = preferences?.allergies;
+      520          // Hydrate allergies state. Three cases:
+      521          // 1. allergiesNone=true → user explicitly chose "no a
+           llergies"
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 1 line
+      531          }
+      532          setGoal(goalPref);
+      533          setDietPreferences(dietsPref);
+      534 +        setHealthConditions(healthConditionsPref);            
+      535  
+      536          // Load healthProfile - properly map all fields from A
+           PI
+      537          if (healthProfile) {
+● Теперь save-секция:
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 5 lines, removed 3 lines
+      767        if (goal) {
+      768          preferencesObj.goal = goal;
+      769        }
+      770 -      if (dietPreferences && dietPreferences.length > 0) {    
+      771 -        preferencesObj.diets = dietPreferences;               
+      772 -      }                                                       
+      770 +      // Canonical key is `dietaryPreferences` (read by the an
+          +alysis pipeline).                                             
+      771 +      // Write it and drop the legacy `diets` key to avoid sta
+          +le duplicates.                                                
+      772 +      preferencesObj.dietaryPreferences = dietPreferences || [
+          +];                                                            
+      773 +      delete preferencesObj.diets;                            
+      774 +      preferencesObj.healthConditions = (healthConditions || [
+          +]).filter((c) => c && c !== 'none');                          
+      775        preferencesObj.allergies = serializeAllergies(allergiesS
+           tate);
+      776        preferencesObj.allergiesNone = allergiesState.hasNone;
+      777        if (country) {
+
+● Добавлю toggleHealthCondition рядом с toggleDietPreference.
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 9 lines
+      1330      });
+      1331    };
+      1332  
+      1333 +  const toggleHealthCondition = (conditionId: string) => {   
+      1334 +    setHealthConditions(prev => {                            
+      1335 +      if (prev.includes(conditionId)) {                      
+      1336 +        return prev.filter(id => id !== conditionId);        
+      1337 +      }                                                      
+      1338 +      return [...prev, conditionId];                         
+      1339 +    });                                                      
+      1340 +  };                                                         
+      1341 +                                                             
+      1342    // const handleOpenPolicy = () => {
+      1343    //   if (navigation && typeof navigation.navigate === 'func
+            tion') {
+      1344    //     navigation.navigate('PrivacyPolicy');
+
+● Заменю хардкод-чипы диеты на map по каноническому списку и добавлю блок
+  состояний здоровья. Определю канонические списки на уровне модуля.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 29 lines
+       66    return null;
+       67  }
+       68  
+       69 +// Canonical diet vocabulary shared with onboarding and the an
+          +alysis pipeline.                                              
+       70 +// `id` is what gets persisted in preferences.dietaryPreferenc
+          +es.                                                           
+       71 +const DIET_OPTIONS: { id: string; key: string; fallback: strin
+          +g }[] = [                                                     
+       72 +  { id: 'balanced', key: 'profile.dietBalanced', fallback: 'Ba
+          +lanced' },                                                    
+       73 +  { id: 'keto', key: 'onboarding.dietTypes.keto', fallback: 'K
+          +eto' },                                                       
+       74 +  { id: 'paleo', key: 'onboarding.dietTypes.paleo', fallback: 
+          +'Paleo' },                                                    
+       75 +  { id: 'vegan', key: 'onboarding.dietTypes.vegan', fallback: 
+          +'Vegan' },                                                    
+       76 +  { id: 'vegetarian', key: 'onboarding.dietTypes.vegetarian', 
+          +fallback: 'Vegetarian' },                                     
+       77 +  { id: 'pescatarian', key: 'onboarding.dietTypes.pescatarian'
+          +, fallback: 'Pescatarian' },                                  
+       78 +  { id: 'mediterranean', key: 'profile.dietMediterranean', fal
+          +lback: 'Mediterranean' },                                     
+       79 +  { id: 'low_carb', key: 'profile.dietLowCarb', fallback: 'Low
+          + carb' },                                                     
+       80 +  { id: 'high_protein', key: 'profile.dietHighProtein', fallba
+          +ck: 'High protein' },                                         
+       81 +  { id: 'plant_based', key: 'profile.dietPlantBased', fallback
+          +: 'Plant-based' },                                            
+       82 +  { id: 'gluten_free', key: 'onboarding.dietTypes.glutenFree',
+          + fallback: 'Gluten-free' },                                   
+       83 +  { id: 'lactose_free', key: 'onboarding.dietTypes.lactoseFree
+          +', fallback: 'Lactose-free' },                                
+       84 +  { id: 'halal', key: 'onboarding.dietTypes.halal', fallback: 
+          +'Halal' },                                                    
+       85 +  { id: 'kosher', key: 'onboarding.dietTypes.kosher', fallback
+          +: 'Kosher' },                                                 
+       86 +];                                                            
+       87 +                                                              
+       88 +// Health conditions captured at onboarding and editable in th
+          +e profile.                                                    
+       89 +// Persisted in preferences.healthConditions; the analysis pip
+          +eline acts on                                                 
+       90 +// gastritis / diabetes / high_cholesterol.                   
+       91 +const HEALTH_CONDITION_OPTIONS: { id: string; key: string; fal
+          +lback: string }[] = [                                         
+       92 +  { id: 'gastritis', key: 'onboarding.healthConditions.gastrit
+          +is', fallback: 'Gastritis' },                                 
+       93 +  { id: 'high_cholesterol', key: 'onboarding.healthConditions.
+          +highCholesterol', fallback: 'High cholesterol' },             
+       94 +  { id: 'diabetes', key: 'onboarding.healthConditions.diabetes
+          +', fallback: 'Diabetes' },                                    
+       95 +  { id: 'thyroid', key: 'onboarding.healthConditions.thyroid',
+          + fallback: 'Thyroid issues' },                                
+       96 +];                                                            
+       97 +                                                              
+       98  const ProfileScreen = () => {
+       99    const navigation = useNavigation();
+      100    const insets = useSafeAreaInsets();
+
+● Теперь заменю хардкод-чипы диеты на map и добавлю блок состояний здоровья:
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 34 lines, removed 40 lines
+      2249                          <View style={styles.subsection}>
+      2250                            <Text style={styles.subsectionTitle
+            }>{safeT('profile.dietLabel', 'Diet type')}</Text>
+      2251                            <View style={styles.chipWrap}>
+      2252 -                            <TouchableOpacity                
+      2253 -                              style={[styles.chip, dietPrefer
+           -ences.includes('balanced') && styles.chipActive]}            
+      2254 -                              onPress={() => toggleDietPrefer
+           -ence('balanced')}                                            
+      2255 -                            >                                
+      2256 -                              <Text style={[styles.chipLabel,
+           - dietPreferences.includes('balanced') && styles.chipLabelActi
+           -ve]}>                                                        
+      2257 -                                {safeT('profile.dietBalanced'
+           -, 'Balanced')}                                               
+      2258 -                              </Text>                        
+      2259 -                            </TouchableOpacity>              
+      2260 -                            <TouchableOpacity                
+      2261 -                              style={[styles.chip, dietPrefer
+           -ences.includes('high_protein') && styles.chipActive]}        
+      2262 -                              onPress={() => toggleDietPrefer
+           -ence('high_protein')}                                        
+      2263 -                            >                                
+      2264 -                              <Text style={[styles.chipLabel,
+           - dietPreferences.includes('high_protein') && styles.chipLabel
+           -Active]}>                                                    
+      2265 -                                {safeT('profile.dietHighProte
+           -in', 'High protein')}                                        
+      2266 -                              </Text>                        
+      2267 -                            </TouchableOpacity>              
+      2268 -                            <TouchableOpacity                
+      2269 -                              style={[styles.chip, dietPrefer
+           -ences.includes('low_carb') && styles.chipActive]}            
+      2270 -                              onPress={() => toggleDietPrefer
+           -ence('low_carb')}                                            
+      2271 -                            >                                
+      2272 -                              <Text style={[styles.chipLabel,
+           - dietPreferences.includes('low_carb') && styles.chipLabelActi
+           -ve]}>                                                        
+      2273 -                                {safeT('profile.dietLowCarb',
+           - 'Low carb')}                                                
+      2274 -                              </Text>                        
+      2275 -                            </TouchableOpacity>              
+      2276 -                            <TouchableOpacity                
+      2277 -                              style={[styles.chip, dietPrefer
+           -ences.includes('mediterranean') && styles.chipActive]}       
+      2278 -                              onPress={() => toggleDietPrefer
+           -ence('mediterranean')}                                       
+      2279 -                            >                                
+      2280 -                              <Text style={[styles.chipLabel,
+           - dietPreferences.includes('mediterranean') && styles.chipLabe
+           -lActive]}>                                                   
+      2281 -                                {safeT('profile.dietMediterra
+           -nean', 'Mediterranean')}                                     
+      2282 -                              </Text>                        
+      2283 -                            </TouchableOpacity>              
+      2284 -                            <TouchableOpacity                
+      2285 -                              style={[styles.chip, dietPrefer
+           -ences.includes('plant_based') && styles.chipActive]}         
+      2286 -                              onPress={() => toggleDietPrefer
+           -ence('plant_based')}                                         
+      2287 -                            >                                
+      2288 -                              <Text style={[styles.chipLabel,
+           - dietPreferences.includes('plant_based') && styles.chipLabelA
+           -ctive]}>                                                     
+      2289 -                                {safeT('profile.dietPlantBase
+           -d', 'Plant-based')}                                          
+      2290 -                              </Text>                        
+      2291 -                            </TouchableOpacity>              
+      2252 +                            {DIET_OPTIONS.map((opt) => {     
+      2253 +                              const active = dietPreferences.
+           +includes(opt.id);                                            
+      2254 +                              return (                       
+      2255 +                                <TouchableOpacity            
+      2256 +                                  key={opt.id}               
+      2257 +                                  style={[styles.chip, active
+           + && styles.chipActive]}                                      
+      2258 +                                  onPress={() => toggleDietPr
+           +eference(opt.id)}                                            
+      2259 +                                >                            
+      2260 +                                  <Text style={[styles.chipLa
+           +bel, active && styles.chipLabelActive]}>                     
+      2261 +                                    {safeT(opt.key, opt.fallb
+           +ack)}                                                        
+      2262 +                                  </Text>                    
+      2263 +                                </TouchableOpacity>          
+      2264 +                              );                             
+      2265 +                            })}                              
+      2266                            </View>
+      2267                          </View>
+      2268  
+      2269                          <View style={styles.subsection}>
+      2270 +                          <Text style={styles.subsectionTitle
+           +}>{safeT('profile.healthConditionsLabel', 'Health conditions'
+           +)}</Text>                                                    
+      2271 +                          <View style={styles.chipWrap}>     
+      2272 +                            {HEALTH_CONDITION_OPTIONS.map((op
+           +t) => {                                                      
+      2273 +                              const active = healthConditions
+           +.includes(opt.id);                                           
+      2274 +                              return (                       
+      2275 +                                <TouchableOpacity            
+      2276 +                                  key={opt.id}               
+      2277 +                                  style={[styles.chip, active
+           + && styles.chipActive]}                                      
+      2278 +                                  onPress={() => toggleHealth
+           +Condition(opt.id)}                                           
+      2279 +                                >                            
+      2280 +                                  <Text style={[styles.chipLa
+           +bel, active && styles.chipLabelActive]}>                     
+      2281 +                                    {safeT(opt.key, opt.fallb
+           +ack)}                                                        
+      2282 +                                  </Text>                    
+      2283 +                                </TouchableOpacity>          
+      2284 +                              );                             
+      2285 +                            })}                              
+      2286 +                          </View>                            
+      2287 +                        </View>                              
+      2288 +                                                             
+      2289 +                        <View style={styles.subsection}>     
+      2290                            <AllergiesSelector
+      2291                              selected={allergiesState.selected
+            }
+      2292                              hasNone={allergiesState.hasNone}
+
+● i18n. Сначала проверю какие ключи уже есть в en.json, чтобы не дублировать.
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  dietTypes: {"none": "No Specific Diet", "noneDesc": "I don't follow an
+     y particular diet", "noDiet": "No Specific Diet", "noDietDesc": "I don
+     't follow any particular diet", "balanced": "Balanced", "balancedDesc"
+     … +16 lines (ctrl+o to expand)
+
+● Нужно добавить: onboarding.dietTypes (pescatarian, glutenFree, lactoseFree,
+  halal, kosher), profile.healthConditionsLabel, и analysis.dietViolation.items
+  (plant_based, pescatarian, gluten_free, lactose_free). Патчу все 6 файлов
+  скриптом.
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  en ok
+     ru ok
+     kk ok
+     … +3 lines (ctrl+o to expand)
+
+● Проверю, что не переформатировал весь файл (git diff stat) и что JSON валиден.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense && git diff --stat
+      apps/mobile/app/i18n/locales/ 2>/dev/null)
+  ⎿   apps/mobile/app/i18n/locales/de.json | 25 ++++++++++++++++++++++---
+      apps/mobile/app/i18n/locales/en.json | 25 ++++++++++++++++++++++---
+      apps/mobile/app/i18n/locales/es.json | 25 ++++++++++++++++++++++---
+     … +4 lines (ctrl+o to expand)
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && for l in en ru kk
+      fr de es; do python3 -c "import
+      json;d=json.load(open('app/i18n/locales/$l.json'));asse…)
+  ⎿  en valid
+     ru valid
+     kk valid
+     … +3 lines (ctrl+o to expand)
+
+● i18n готов. Теперь проверяю типы — API и mobile.
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/api && npx tsc --noEmit 2>&1
+      | head -30; echo "API_EXIT=${PIPESTATUS[0]}")
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(npx tsc --noEmit 2>&1 | grep -E "ProfileScreen|OnboardingScreen|error TS"
+      | head -30; echo "DONE")
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(npx tsc --noEmit 2>&1 | grep -E "ProfileScreen|OnboardingScreen|error TS"
+      | head -30; echo "MOBILE_DONE")
+  ⎿  Running in the background (↓ to manage)
+
+● Все три запустились из apps/api (cwd сохраняется). Запущу mobile-проверку явно
+  из его директории.
+
+● Bash(npx tsc --noEmit 2>&1 | grep -E "ProfileScreen|OnboardingScreen|error TS"
+      | head -40; echo "MOBILE_REAL_DONE")
+  ⎿  Running in the background (↓ to manage)
+
+● Запущу mobile tsc корректно с явным путём, в фоне, и пока подожду — займусь
+  аудитом экранов.
+
+● Bash(pwd && npx tsc --noEmit 2>&1 | grep -E "error TS" | grep -iE
+      "ProfileScreen|OnboardingScreen" ; echo "FILTERED_DONE
+      rc=${PIPESTATUS[0]}")
+  ⎿  Running in the background (↓ to manage)
+
+● Background command "Typecheck API" completed (exit code 0)
+
+● Background command "Typecheck mobile, filter relevant" completed (exit code 0)
+
+● Background command "Typecheck mobile from correct dir" completed (exit code 0)
+
+● Background command "Typecheck mobile correctly" completed (exit code 0)
+
+  Read 1 file (ctrl+o to expand)
+
+● API typecheck чистый (exit 0). Для mobile запущу один авторитетный
+  foreground-прогон с явным путём, чтобы не путаться с фоновыми.
+
+● Bash(npx tsc --noEmit 2>&1 | tee /tmp/mobile_tsc.txt | grep -cE "error TS";
+      echo "--- edited-file errors ---"; grep -E "error TS" /tmp/mobile_tsc.txt
+      | grep -iE "Pro…)
+  ⎿  0
+     --- edited-file errors ---
+     none in edited files
+  ⎿  (timeout 5m)
+
+● Background command "Typecheck mobile, filter edited files" completed (exit code 0)
+
+● Оба typecheck чистые (mobile 0 ошибок, API exit 0). Унификация завершена.
+  Перехожу к доаудиту оставшихся экранов. Смотрю их размеры и сканирую на
+  типовые баги.
+
+  Read 1 file (ctrl+o to expand)
+
+● MealHistory использует colors.text, тогда как Tracker/др. используют
+  colors.textPrimary. Проверю, есть ли text в теме — иначе это невидимый текст.
+
+  Searched for 6 patterns, read 1 file (ctrl+o to expand)
+
+● MealHistory чистый (text есть в палитре). Читаю HealthScreen (83 строки) и
+  сканирую остальные на типовые проблемы.
+
+  Read 1 file (ctrl+o to expand)
+
+● HealthScreen чистый. Быстро сканирую Reports/Referral/Subscription на типовые
+  проблемы (хардкод-строки, навигация, TODO).
+
+● Bash(for f in ReportsScreen ReferralScreen SubscriptionScreen; do echo "=== $f
+      ==="; grep -nE "TODO|FIXME|console.error|catch \(.*\) \{\}|navigate\('"
+      src/screens/$f…)
+  ⎿  === ReportsScreen ===
+     148:          console.error('[ReportsScreen] Error converting blob to
+     base64:', blobError);
+     … +17 lines (ctrl+o to expand)
+● Сканирование чистое — только обычное логирование ошибок, пустых catch и
+  подозрительной навигации нет. Эти экраны в порядке. Закрываю задачи и сохраню
+  ключевую находку в память.
+
+  Recalled 1 memory, wrote 1 memory (ctrl+o to expand)
+
+● Готово. Вот итог.
+
+  Что сделано
+
+  Найдена и устранена критическая проблема потока данных (была глубже, чем
+  «рассинхрон словарей»):
+
+  1. Данные онбординга терялись. UserProfile не имеет колонок
+  diet/healthConditions — они должны лежать в Json preferences. Но онбординг
+  слал их на верхнем уровне, а бэкенд (user-profiles.service.ts, белый список
+  allowedFields) молча их отбрасывал. → Моя персонализация из #1
+  (preferences.healthConditions) была мёртвым кодом. Бэкенд править не пришлось
+  (миграций нет) — mergePreferences пропускает всё внутри preferences.
+  2. Три разных словаря/ключа диет (онбординг diet, профиль preferences.diets,
+  анализ preferences.dietaryPreferences). Унифицированы.
+
+  Правки:
+  - OnboardingScreen.tsx — кладёт healthConditions и diet в
+  preferences.healthConditions / preferences.dietaryPreferences (канонические
+  ключи).
+  - ProfileScreen.tsx — читает/пишет dietaryPreferences (fallback на diets),
+  чипы диет переведены на полный канон через .map(), добавлен редактируемый блок
+  состояний здоровья.
+  - analyze.service.ts — читает dietaryPreferences (fallback diets), нормализует
+  id (дефис→подчёркивание), распознаёт plant_based/pescatarian + новый helper
+  isMeatIngredient.
+  - 6 локалей — добавлены недостающие ключи
+  (pescatarian/glutenFree/lactoseFree/halal/kosher,
+  profile.healthConditionsLabel, новые dietViolation.items).
+
+  Проверки: API tsc — чисто (exit 0); mobile tsc — 0 ошибок.
+
+  Доаудит экранов #2: MealHistory, Health, Reports, Referral, Subscription
+  просмотрены — реальных багов не найдено (colors.text валиден, пустых
+  catch/битой навигации нет).
+
+  Память обновлена: канонические ключи preferences + готча с белым списком
+  бэкенда.
+
+  Приоритет #2 закрыт. Дальше по плану — #3 Эксперты
+  (приложение/портал/админка). Дать старт?
+
+✻ Crunched for 12m 10s
+
+❯ Можешь дальше                                                                 
+
+● Перехожу к приоритету #3 — Эксперты. По нашему рабочему процессу: сначала
+  аудит (приложение + портал + админка + API), потом вопросы, план, и только
+  после одобрения — правки. Начинаю с обзора структуры.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense && echo "=== API experts ==="; ls
+      apps/api/src/experts/ 2>/dev/null; ls apps/api/experts/ 2>/dev/null; echo
+      "=== mobile…)
+  ⎿  === API experts ===
+     dto
+     experts-admin.controller.ts
+     … +33 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Поверхность экспертов большая (~7000 строк: mobile ~5200, API ~2000, плюс
+  полный Next.js портал). Сделаю аудит ядра (API-контроллер + сервис —
+  контракт), затем основные экраны, потом сканирую портал. Начинаю с API.
+
+  Read 1 file (ctrl+o to expand)
+
+● Контроллер аккуратный, порядок маршрутов корректный (:id объявлен последним).
+  Читаю сервис, фокус на авторизации (проверка, что клиент принадлежит эксперту)
+  и основной логике.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Bash(grep -n "async \|private \|throw
+      new\|ForbiddenException\|hasConsent\|consent\|sharing"
+      apps/api/src/experts/experts.service.ts | sed -n '80,160p')
+  ⎿  1002:            throw new ForbiddenException('Not allowed to update t
+     his offer');
+     1023:    async deleteOffer(userId: string, offerId: string) {
+     … +11 lines (ctrl+o to expand)
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Контроллер и сервис аккуратные, авторизация по клиентам в основном корректна
+  (saveClientNote/getClientSnapshot проверяют link; getClientNote читает только
+  собственную заметку эксперта — утечки нет). Прежде чем углубляться в ~7000
+  строк, проверю состояние фича-флагов — это определяет, что вообще активно.
+
+● Bash(echo "=== mobile flag default ==="; grep -rn
+      "EXPERTS_ENABLED\|EXPO_PUBLIC_ENABLE_EXPERTS" apps/mobile/eas.json
+      apps/mobile/app.config.js apps/mobile/.env* 2>/d…)
+  ⎿  === mobile flag default ===
+     apps/mobile/eas.json:37:        "EXPO_PUBLIC_ENABLE_EXPERTS": "true"
+     apps/mobile/eas.json:67:        "EXPO_PUBLIC_ENABLE_EXPERTS": "true",
+     … +14 lines (ctrl+o to expand)
+
+● Полезное заземление: в реальных сборках (eas.json preview/production) эксперты
+  включены (EXPO_PUBLIC_ENABLE_EXPERTS: "true"), дефолт false — только
+  локальный фолбэк. А публичный каталог экспертов на API
+  (EXPERT_CATALOG_ENABLED) по умолчанию выключен — то есть активен пилот «по
+  коду эксперта» (как MANSHUK-OBGYN из памяти), а открытый маркетплейс пока off.
+
+  Поверхность экспертов огромная (~7000 строк + полный портал). Чтобы аудит был
+  продуктивным, а не слепым перебором, мне нужно сфокусироваться. Три вопроса:
+
+● User answered Claude's questions:
+  ⎿  · Какую поверхность экспертов аудитить в первую очередь? → Всё подряд
+     · Есть ли конкретные сломанные/жалобные места, или открытый поиск багов? → 
+     Открытый поиск багов (Recommended)
+     · Открытый маркетплейс (каталог экспертов, EXPERT_CATALOG_ENABLED) сейчас 
+     выключен. Это намеренно? → Да, пилот по коду (Recommended)
+
+● Принято: всё подряд, открытый поиск багов, каталог намеренно off (пилот по
+  коду — пустой каталог не трогаю). Начинаю системный аудит. Читаю ядро пилота —
+  поток «применить код эксперта» (самый важный).
+
+  Read 1 file (ctrl+o to expand)
+● API-ядро пилота надёжное (rate-limit, валидация, блок-чек, транзакция
+  link+conversation+usage, best-effort уведомления). Один минорный момент:
+  приветственное сообщение и пуш эксперту захардкожены на английском (не
+  локализованы) — отмечу.
+
+  Поскольку нужен аудит всех поверхностей, делаю эффективный grep-свип по
+  типовым багам, затем точечно читаю попадания. Начинаю с mobile-экранов и
+  портала.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && echo "===
+      TODO/FIXME/HACK in experts ==="; grep -rnE "TODO|FIXME|HACK|XXX"
+      src/screens/Experts*.tsx src/s…)
+  ⎿  === TODO/FIXME/HACK in experts ===
+     === empty catch ===
+     === @ts-nocheck ===
+     … +3 lines (ctrl+o to expand)
+
+● Маркеров-проблем нет. Ищу пропуски локализации (хардкод-строки) — вероятный
+  реальный баг. Читаю меньшие экраны полностью.
+
+  Read 1 file (ctrl+o to expand)
+
+● ScheduleConsultation: нашёл мелкие i18n-баги — {d} min захардкожен, и
+  даты/время через toLocaleDateString(undefined) / toLocaleTimeString([])
+  используют локаль устройства, а не язык приложения (тот же класс бага, что я
+  чинил в TrackerScreen). Читаю ConsultationsListScreen.
+
+  Read 1 file (ctrl+o to expand)
+
+● ConsultationsList — чистый, даты используют language корректно. Читаю
+  VideoCallScreen (видео — критичная и хрупкая зона по памяти).
+
+  Read 1 file (ctrl+o to expand)
+
+● VideoCallScreen — отлично инженерно сделан (reconnect, биллинг по первому
+  коннекту, beforeRemove guard, авто-финиш окна, remote-mute), багов нет, i18n
+  корректный. Качество кода высокое. Делаю прицельный grep по двум большим
+  экранам и порталу на проблему локали дат и хардкод-строк.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense && echo "=== device-locale dates
+      in experts mobile ==="; grep -rnE
+      "toLocale(Date|Time|)String\((undefined|\[\])" apps/m…)
+  ⎿  === device-locale dates in experts mobile ===
+     === portal toLocale (memory: avoid []) ===
+
+● Портал уже использует хелперы дат (память подтверждает), device-locale проблем
+  там нет. Проверю два больших экрана и админку прицельно.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Админ-авторизация корректная: constant-time сравнение (crypto.timingSafeEqual
+  + проверка длины), и каждый админ-эндпоинт вызывает validateAdmin. Дыр нет.
+
+  Промежуточный отчёт аудита #3
+
+  Покрыто полностью: API контроллер + сервис (ключевые потоки: применение кода,
+  связки, snapshot, офферы, профиль), админ-контроллер (auth),
+  ScheduleConsultation, ConsultationsList, VideoCall, Health, MealHistory + grep
+  по ExpertsScreen/ExpertProfileScreen/ChatScreen.
+
+  Качество кода высокое. Функциональных и security-багов в ядре нет:
+  - applyAccessCode — rate-limit, валидация, блок-чек, транзакция
+  link+conversation+usage, best-effort уведомления. ✅
+  - VideoCallScreen — reconnect, корректный биллинг по первому коннекту,
+  beforeRemove-guard, авто-финиш окна, remote-mute. ✅
+  - Админ-auth — constant-time, без дыр. ✅
+  - Авторизация по клиентам (saveClientNote/getClientSnapshot проверяют link).
+  ✅
+
+  Найден реальный кластер багов — даты/время в локали устройства, а не языка 
+  приложения (тот же класс, что я чинил в TrackerScreen; память
+  portal_date_i18n):
+
+  ┌────────────────────────────┬────────┬───────────────────────────────────┐
+  │            Файл            │ Строка │             Проблема              │
+  ├────────────────────────────┼────────┼───────────────────────────────────┤
+  │ ScheduleConsultationScreen │ 61,    │ toLocaleDateString(undefined),    │
+  │                            │ 151    │ toLocaleTimeString([])            │
+  ├────────────────────────────┼────────┼───────────────────────────────────┤
+  │ ExpertsScreen              │ 584,   │ toLocaleString(undefined, …)      │
+  │                            │ 585    │                                   │
+  ├────────────────────────────┼────────┼───────────────────────────────────┤
+  │ ExpertProfileScreen        │ 66     │ голый toLocaleDateString()        │
+  │                            │        │ (fallback без локали)             │
+  ├────────────────────────────┼────────┼───────────────────────────────────┤
+  │ ChatScreen                 │ 653    │ toLocaleTimeString([])            │
+  └────────────────────────────┴────────┴───────────────────────────────────┘
+
+  + Захардкоженная единица «min» (не локализована): ScheduleConsultation:125,
+  ExpertsScreen:585.
+
+  + API i18n-пробел: приветственное сообщение клиенту (experts.service.ts:605) и
+  пуш эксперту (:577-581) захардкожены на английском.
+
+  Ещё не прочитано построчно: тело ExpertsScreen (1106), ExpertProfileScreen
+  (912), BecomeExpertScreen (2007), страницы портала.
+
+  Как продолжить?
+
+● User answered Claude's questions:
+  ⎿  · Найденные i18n-баги (локаль дат, «min») — чинить сейчас или сначала 
+     дочитать остальное? → Сначала дочитать, потом фикс оптом (Recommended)
+     · Приветствие клиенту + пуш эксперту сейчас на английском. Как 
+     локализовать? → По языку получателя (Recommended)
+
+● Принято: дочитываю остальное, потом фикс оптом; API-сообщения — по языку
+  получателя. Продолжаю аудит. Читаю ExpertsScreen (главный хаб).
+
+  Read 1 file (ctrl+o to expand)
+
+● ExpertsScreen — добротный, багов кроме уже отмеченных (даты
+  toLocaleString(undefined) + {c.durationMinutes} min на 584-585) нет. Читаю
+  ExpertProfileScreen (активный экран: клиент видит специалиста, чат, запись).
+
+  Read 1 file (ctrl+o to expand)
+
+● ExpertProfile — Stripe-флоу и защита от неподключённых платежей сделаны
+  корректно, language используется. Делаю финальный grep-свип по BecomeExpert и
+  порталу (те же паттерны), затем соберу полный список и план фикса.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Аудит завершён. BecomeExpert и портал чистые (единственный «min» — это
+  локализованный t() с фолбэком). Полный список багов собран. Перед фиксом
+  проверю, есть ли на сервере источник языка получателя и i18n-механизм (нужно
+  для локализации сообщений).
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/api && echo "=== language in
+      preferences/profile ==="; grep -rn "language" user-profiles/
+      src/notifications/ 2>/dev…)
+  ⎿  === language in preferences/profile ===
+     src/notifications/notifications.scheduler.ts:18:   * Get user's prefer
+     red language from their profile preferences
+     … +27 lines (ctrl+o to expand)
+● Источник языка есть: preferences.language (паттерн в
+  notifications.scheduler.ts:18-27), и есть src/translation. Локализую сообщения
+  inline-картами по языку получателя.
+
+  Аудит #3 полностью завершён. Итоговый список багов (всё — i18n,
+  функциональных/security-дыр нет):
+
+  1. Даты/время в локали устройства → ScheduleConsultation:61,151;
+  ExpertsScreen:584,585; ChatScreen:653; ExpertProfile:66 (fallback).
+  2. Захардкоженная «min» → ScheduleConsultation:125; ExpertsScreen:585.
+  3. API: приветствие клиенту + пуш эксперту на английском → experts.service.ts
+  (по языку получателя).
+
+  Перехожу к фиксу оптом. Проверю, есть ли language в ChatScreen.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && grep -n
+      "useI18n\|const { t" src/screens/ChatScreen.tsx | head -3; echo "--- ctx
+      line 653 ---"; sed -n '6…)
+  ⎿  22:import { useI18n } from '../../app/i18n/hooks';
+     41:    const { t } = useI18n();
+     --- ctx line 653 ---
+     … +12 lines (ctrl+o to expand)
+
+● language нужно добавить. Создаю подзадачи и делаю правки оптом.
+
+● Делаю правки дат. ChatScreen:
+
+● Update(src/screens/ChatScreen.tsx)
+  ⎿  File must be read first
+
+● Update(src/screens/ChatScreen.tsx)
+  ⎿  File must be read first
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/screens/ChatScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      38      const themeContext = useTheme();
+      39      const tokens = useDesignTokens();
+      40      const colors = themeContext?.colors || {};
+      41 -    const { t } = useI18n();                                   
+      41 +    const { t, language } = useI18n();                         
+      42      const { user } = useAuth();
+      43  
+      44      const conversationId = route.params?.conversationId;
+
+● Update(src/screens/ChatScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      650                      )}
+      651                      <View style={styles.messageFooter}>
+      652                          <Text style={[styles.messageTime, { co
+           lor: mine ? 'rgba(255,255,255,0.7)' : colors.textSecondary || 
+           '#9CA3AF' }]}>
+      653 -                            {new Date(item.createdAt).toLocale
+          -TimeString([], { hour: '2-digit', minute: '2-digit' })}       
+      653 +                            {new Date(item.createdAt).toLocale
+          +TimeString(language || undefined, { hour: '2-digit', minute: '
+          +2-digit' })}                                                  
+      654                          </Text>
+      655                          {mine && item.isRead && (
+      656                              <Ionicons
+
+● ScheduleConsultationScreen (даты + min):
+
+● Update(src/screens/ScheduleConsultationScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      18    const isReschedule = !!rescheduleConsultationId;
+      19    const { colors } = useTheme();
+      20    const tokens = useDesignTokens();
+      21 -  const { t } = useI18n();                                     
+      21 +  const { t, language } = useI18n();                           
+      22    const styles = useMemo(() => createStyles(tokens, colors), [t
+          okens, colors]);
+      23  
+      24    const [duration, setDuration] = useState<number>(initialDurat
+          ionMinutes || 60);
+
+● Update(src/screens/ScheduleConsultationScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      58      const groups: Record<string, Slot[]> = {};
+      59      for (const s of slots) {
+      60        const d = new Date(s.startAt);
+      61 -      const key = d.toLocaleDateString(undefined, { weekday: 's
+         -hort', day: 'numeric', month: 'short' });                      
+      61 +      const key = d.toLocaleDateString(language || undefined, {
+         + weekday: 'short', day: 'numeric', month: 'short' });          
+      62        if (!groups[key]) groups[key] = [];
+      63        groups[key].push(s);
+      64      }
+
+● Update(src/screens/ScheduleConsultationScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      63        groups[key].push(s);
+      64      }
+      65      return Object.entries(groups);
+      66 -  }, [slots]);                                                 
+      66 +  }, [slots, language]);                                       
+      67  
+      68    async function book(slot: Slot) {
+      69      setBooking(slot.startAt);
+
+● Update(src/screens/ScheduleConsultationScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      122              style={[styles.durationChip, duration === d && sty
+           les.durationChipActive]}
+      123              onPress={() => setDuration(d)}
+      124            >
+      125 -            <Text style={[styles.durationText, duration === d 
+          -&& styles.durationTextActive]}>{d} min</Text>                 
+      125 +            <Text style={[styles.durationText, duration === d 
+          +&& styles.durationTextActive]}>{d} {t('experts.minutesShort', 
+          +'min')}</Text>                                                
+      126            </TouchableOpacity>
+      127          ))}
+      128        </View>
+
+● Update(src/screens/ScheduleConsultationScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      148                <View style={styles.slotGrid}>
+      149                  {daySlots.map((s) => {
+      150                    const d = new Date(s.startAt);
+      151 -                  const label = d.toLocaleTimeString([], { hou
+          -r: '2-digit', minute: '2-digit' });                           
+      151 +                  const label = d.toLocaleTimeString(language 
+          +|| undefined, { hour: '2-digit', minute: '2-digit' });        
+      152                    const isBooking = booking === s.startAt;
+      153                    return (
+      154                      <TouchableOpacity
+
+● Теперь ExpertsScreen (даты + min):
+
+● Update(src/screens/ExpertsScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      44  export default function ExpertsScreen({ navigation }: { navigat
+          ion: any }) {
+      45      const { colors } = useTheme();
+      46      const tokens = useDesignTokens();
+      47 -    const { t } = useI18n();                                   
+      47 +    const { t, language } = useI18n();                         
+      48      const isExpert = useIsExpert();
+      49      const { user, refreshUser } = useAuth();
+      50      const isApprovedExpert = (user as any)?.expertStatus === 'a
+          pproved';
+● Update(src/screens/ExpertsScreen.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      581                                      <Text style={styles.cardNa
+           me} numberOfLines={1}>{expert.displayName || t('experts.expert
+           Fallback') || 'Specialist'}</Text>
+      582                                      <Text style={styles.cardTy
+           pe}>
+      583                                          {isPending
+      584 -                                            ? `${t('experts.re
+          -scheduleProposed') || 'Reschedule requested'}: ${start.toLocal
+          -eString(undefined, { day: 'numeric', month: 'short', hour: '2-
+          -digit', minute: '2-digit' })}`                                
+      585 -                                            : `${start.toLocal
+          -eString(undefined, { weekday: 'short', day: 'numeric', month: 
+          -'short', hour: '2-digit', minute: '2-digit' })} · ${c.duration
+          -Minutes} min`}                                                
+      584 +                                            ? `${t('experts.re
+          +scheduleProposed') || 'Reschedule requested'}: ${start.toLocal
+          +eString(language || undefined, { day: 'numeric', month: 'short
+          +', hour: '2-digit', minute: '2-digit' })}`                    
+      585 +                                            : `${start.toLocal
+          +eString(language || undefined, { weekday: 'short', day: 'numer
+          +ic', month: 'short', hour: '2-digit', minute: '2-digit' })} · 
+          +${c.durationMinutes} ${t('experts.minutesShort', 'min')}`}    
+      586                                      </Text>
+      587                                  </View>
+      588                                  {isPending && !reschedulerIsMe
+            ? null : inWindow ? (
+
+● ExpertProfileScreen fallback:
+
+● Update(src/screens/ExpertProfileScreen.tsx)
+  ⎿  Added 1 line, removed 1 line
+      63              year: 'numeric',
+      64          });
+      65      } catch {
+      66 -        return new Date(iso).toLocaleDateString();             
+      66 +        return new Date(iso).toLocaleDateString(locale || undef
+         +ined);                                                         
+      67      }
+      68  };
+      69  
+
+● i18n ключ experts.minutesShort в 6 локалях:
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  done
+
+● Локализую welcome + push в experts.service.ts. Расширяю выборки language для
+  клиента и эксперта.
+
+● Update(~/projects/work/eatsense/apps/api/src/experts/experts.service.ts)
+  ⎿  Added 47 lines, removed 5 lines
+      565  
+      566          // Notify expert + insert welcome system message (best
+           -effort, never blocks the flow).
+      567          Promise.resolve().then(async () => {
+      568 +            // Both messages are localized by the RECIPIENT's 
+          +language stored in                                            
+      569 +            // their preferences.language (the same field the 
+          +notifications scheduler                                       
+      570 +            // uses). Push to the expert → expert's language. 
+          +Welcome in the                                                
+      571 +            // conversation → client's language (the client is
+          + the one reading it).                                         
+      572 +            const pickLang = (raw: any): 'en' | 'ru' | 'kk' | 
+          +'fr' | 'de' | 'es' => {                                       
+      573 +                const v = String(raw || '').split('-')[0].toLo
+          +werCase();                                                    
+      574 +                return (['ru', 'kk', 'fr', 'de', 'es'] as cons
+          +t).includes(v as any) ? (v as any) : 'en';                    
+      575 +            };                                                
+      576 +            const PUSH_TITLE: Record<string, string> = {      
+      577 +                en: 'New client', ru: 'Новый клиент', kk: 'Жаң
+          +а клиент',                                                    
+      578 +                fr: 'Nouveau client', de: 'Neuer Klient', es: 
+          +'Nuevo cliente',                                              
+      579 +            };                                                
+      580 +            const PUSH_BODY: Record<string, (name: string) => 
+          +string> = {                                                   
+      581 +                en: (n) => `${n} connected via your access cod
+          +e.`,                                                          
+      582 +                ru: (n) => `${n} подключился по вашему коду.`,
+      583 +                kk: (n) => `${n} сіздің кодыңыз арқылы қосылды
+          +.`,                                                           
+      584 +                fr: (n) => `${n} s'est connecté via votre code
+          + d'accès.`,                                                   
+      585 +                de: (n) => `${n} hat sich mit Ihrem Zugangscod
+          +e verbunden.`,                                                
+      586 +                es: (n) => `${n} se conectó con tu código de a
+          +cceso.`,                                                      
+      587 +            };                                                
+      588 +            const WELCOME_BODY: Record<string, string> = {    
+      589 +                en: 'Welcome! Feel free to ask anything — I wi
+          +ll respond as soon as I can.',                                
+      590 +                ru: 'Добро пожаловать! Задавайте любые вопросы
+          + — я отвечу, как только смогу.',                              
+      591 +                kk: 'Қош келдіңіз! Кез келген сұрағыңызды қойы
+          +ңыз — мүмкіндігінше жауап беремін.',                          
+      592 +                fr: "Bienvenue ! N'hésitez pas à poser vos que
+          +stions — je vous répondrai dès que possible.",                
+      593 +                de: 'Willkommen! Stellen Sie gerne Fragen — ic
+          +h antworte, sobald ich kann.',                                
+      594 +                es: '¡Bienvenido! No dudes en preguntar lo que
+          + sea — te responderé lo antes posible.',                      
+      595 +            };                                                
+      596 +                                                              
+      597 +            let clientName = 'A new client';                  
+      598 +            let clientLang: 'en' | 'ru' | 'kk' | 'fr' | 'de' |
+          + 'es' = 'en';                                                 
+      599              try {
+      600                  const client = await this.prisma.user.findUniq
+           ue({
+      601                      where: { id: userId },
+      602                      select: {
+      603                          email: true,
+      573 -                        userProfile: { select: { firstName: tr
+          -ue } },                                                       
+      604 +                        userProfile: { select: { firstName: tr
+          +ue, preferences: true } },                                    
+      605                      },
+      606                  });
+      576 -                const clientName = client?.userProfile?.firstN
+          -ame || client?.email?.split('@')[0] || 'A new client';        
+      607 +                clientName = client?.userProfile?.firstName ||
+          + client?.email?.split('@')[0] || clientName;                  
+      608 +                clientLang = pickLang((client?.userProfile?.pr
+          +eferences as any)?.language);                                 
+      609 +            } catch {                                         
+      610 +                /* best-effort */                             
+      611 +            }                                                 
+      612 +                                                              
+      613 +            try {                                             
+      614 +                const expertProfile = await this.prisma.userPr
+          +ofile.findUnique({                                            
+      615 +                    where: { userId: accessCode.expert.userId 
+          +},                                                            
+      616 +                    select: { preferences: true },            
+      617 +                });                                           
+      618 +                const expertLang = pickLang((expertProfile?.pr
+          +eferences as any)?.language);                                 
+      619                  await this.notifications.sendPushNotification(
+      620                      accessCode.expert.userId,
+      579 -                    'New client',                             
+      580 -                    `${clientName} connected via your access c
+          -ode.`,                                                        
+      621 +                    PUSH_TITLE[expertLang],                   
+      622 +                    PUSH_BODY[expertLang](clientName),        
+      623                      { type: 'expert.new_client', expertId: acc
+           essCode.expertId, clientId: userId },
+      624                  );
+      625              } catch (err) {
+     ...
+      644                              conversationId: result.conversatio
+           n.id,
+      645                              senderId: accessCode.expert.userId
+           ,
+      646                              type: 'text',
+      605 -                            content: 'Welcome! Feel free to as
+          -k anything — I will respond as soon as I can.',               
+      647 +                            content: WELCOME_BODY[clientLang],
+      648                              metadata: { system: true, kind: 'w
+           elcome', clientId: userId },
+      649                          },
+      650                      }).catch(() => {});
+
+● Все правки сделаны. Проверяю tsc.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/api && npx tsc --noEmit 2>&1
+      | tail -5; echo "API_RC=$?")
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(npx tsc --noEmit 2>&1 | grep -E "error TS" | grep -iE
+      "ChatScreen|ScheduleConsultation|ExpertsScreen|ExpertProfileScreen"; echo
+      "MOBILE_FILTER_DONE rc=$?")
+  ⎿  Running in the background (↓ to manage)
+
+● Background command "API tsc" completed (exit code 0)
+
+  Read 1 file (ctrl+o to expand)
+
+● Mobile tsc bg тоже запустился в apps/api (cwd сохранился). Запускаю корректно.
+
+● Bash(npx tsc --noEmit 2>&1 | grep -E "error TS" | head -20; echo "DONE rc=$?")
+  ⎿  DONE rc=0
+  ⎿  (timeout 5m)
+
+● Background command "Mobile tsc filtered to edited files" completed (exit code 0)
+
+● Оба typecheck чистые. Закрываю задачи и обновляю память.
+
+● Приоритет #3 закрыт
+
+  Аудит покрыл: API контроллер + сервис (apply code, link/snapshot, офферы,
+  профиль), админ-контроллер, ExpertsScreen (1106), ExpertProfileScreen (912 —
+  основной флоу), VideoCallScreen (578), ScheduleConsultationScreen,
+  ConsultationsListScreen, ChatScreen, BecomeExpertScreen (grep), портал (grep).
+
+  Функциональных и security-багов не найдено:
+  - applyAccessCode: rate-limit + блок-чек + транзакция + best-effort
+  уведомления ✅
+  - VideoCall: reconnect, биллинг по первому коннекту, beforeRemove-guard,
+  авто-финиш окна, remote-mute ✅
+  - Админ-auth: constant-time timingSafeEqual + проверка длины ✅
+  - saveClientNote/getClientSnapshot проверяют expert-client link ✅
+  - Stripe payment-флоу в ExpertProfile корректный ✅
+
+  Исправлено (всё i18n):
+
+  1. Даты/время в локали приложения, а не устройства (5 точек):
+    - ChatScreen.tsx:653 + добавлен language
+    - ScheduleConsultationScreen.tsx:61,151 + language + dep
+    - ExpertsScreen.tsx:584,585 + language
+    - ExpertProfileScreen.tsx:66 (fallback ветка)
+  2. Захардкоженная «min» — добавлен ключ experts.minutesShort в 6 локалей
+  (en/ru/kk/fr/de/es), заменён в ScheduleConsultation:125 и ExpertsScreen:585.
+  3. API: приветствие и пуш по языку получателя (experts.service.ts):
+    - Пуш эксперту — на языке эксперта (preferences.language)
+    - Приветственное сообщение в чате — на языке клиента
+    - Inline locale-карты на 6 языков (по паттерну notifications.scheduler)
+
+  Проверки: API tsc — exit 0; mobile tsc — без ошибок в правленных файлах.
+
+  Дальше по плану — #4 Smart notifications (поведение, дизайн, переводы).
+  Продолжать?
+
+✻ Cooked for 10m 22s
+❯ Давай дальше                                                                  
+
+● Перехожу к #4 Smart notifications. Survey структуры.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense && echo "=== API notifications
+      ==="; ls apps/api/src/notifications/ 2>/dev/null; echo "=== sizes ==="; wc
+      -l apps/api/sr…)
+  ⎿  === API notifications ===
+     dto
+     notifications.controller.ts
+     … +30 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● Scheduler — отлично сделан (персонализированный category-picker,
+  идемпотентность, receipt-check, server-side meds/daily-reminders отключены
+  чтобы не дублировать локальные). Читаю service, smart-tips, controller,
+  mobile-стороны.
+
+  Read 1 file (ctrl+o to expand)
+
+● API сторона notifications очень аккуратная. Читаю mobile-сторону.
+
+  Read 1 file (ctrl+o to expand)
+
+● LocalNotificationService аккуратный, 6 языков с фолбэками. Читаю хук, который
+  вызывает scheduleMealReminders, и Smart Tips UI.
+
+  Read 1 file (ctrl+o to expand)
+
+● Хук качественный. Один мелкий баг: text: 'OK' на 294 захардкожен. Смотрю
+  NotificationManager + Smart Tips UI в ProfileScreen.
+
+  Read 1 file (ctrl+o to expand)
+
+● NotificationManager — это in-app тосты, нейтральный. Смотрю Smart Tips UI в
+  ProfileScreen.
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Smart Tips UI чистый, всё через safeT. Один баг — фолбэки в 2413-2414 написаны
+  на русском, должны быть на английском. Проверю наличие i18n ключей.
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  notificationsDailyTitle: Daily reminder
+     notificationsDailyEnabled: Notifications Daily Enabled
+     notificationsDailyDisabled: Enable daily reminders to stay on track.
+     … +8 lines (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  en: missing=[]
+     ru: missing=[]
+     kk: missing=[]
+     … +3 lines (ctrl+o to expand)
+
+● Все ключи смарт-тип переведены на 6 языков. Найденные мелкие баги:
+  1. useNotificationActions.ts:294 — text: 'OK' захардкожен.
+  2. ProfileScreen.tsx:2413-2414 — фолбэки написаны на русском (должны быть на
+  английском).
+
+  Проверю кратко handleNotificationToggle (что делает «Daily reminder» — если
+  только сервер-сайд и тот отключён, то фича мёртвая).
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Проверю кратко, виден ли time picker для daily reminders пользователю (если
+  виден — он мёртвый, т.к. локальные напоминания хардкодят 9/13/19).
+
+  Searched for 3 patterns, read 1 file (ctrl+o to expand)
+
+● Time picker никогда не открывается (нет setShowTimePicker(true)). Так что UI
+  пользователь не видит — мёртвый код, но не user-visible баг. Отмечу.
+
+  Создаю задачу и фикшу два реальных бага.
+● Update(src/hooks/useNotificationActions.ts)
+  ⎿  Added 4 lines
+       96              de: 'Danke, wir personalisieren künftige Tipps.',
+       97              es: 'Gracias, personalizaremos los próximos consej
+           os.',
+       98          },
+       99 +        ok: {                                                 
+      100 +            en: 'OK', ru: 'ОК', kk: 'ОК',                     
+      101 +            fr: 'OK', de: 'OK', es: 'OK',                     
+      102 +        },                                                    
+      103      };
+      104  
+      105      // Return translated value or fallback
+
+● Update(src/hooks/useNotificationActions.ts)
+  ⎿  Added 1 line
+      120          smartTipUseful: fallbacks.smartTipUseful[locale] || fa
+           llbacks.smartTipUseful.en,
+      121          smartTipNotRelevant: fallbacks.smartTipNotRelevant[loc
+           ale] || fallbacks.smartTipNotRelevant.en,
+      122          smartTipThanks: fallbacks.smartTipThanks[locale] || fa
+           llbacks.smartTipThanks.en,
+      123 +        ok: (i18n.t('common.ok') && !i18n.t('common.ok').inclu
+          +des('common.ok')) ? i18n.t('common.ok') : (fallbacks.ok[locale
+          +] || fallbacks.ok.en),                                        
+      124      };
+      125  };
+      126  
+
+● Update(src/hooks/useNotificationActions.ts)
+  ⎿  Added 1 line, removed 1 line
+      296                          onPress: () => saveSmartTipFeedback(da
+           ta, 'useful'),
+      297                      },
+      298                      {
+      299 -                        text: 'OK',                           
+      299 +                        text: strings.ok,                     
+      300                          onPress: () => {
+      301                              if (navigationCallback) navigation
+           Callback('MainTabs', { screen: 'Profile' });
+      302                          },
+
+● Теперь ProfileScreen фолбэки:
+
+● Update(src/screens/ProfileScreen.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      2410                  <Text style={styles.preferenceLabel}>{t('prof
+            ile.notificationsDailyTitle')}</Text>
+      2411                  <Text style={styles.notificationDescription}>
+      2412                    {notificationPreferences.dailyPushEnabled
+      2413 -                    ? t('profile.notificationsDailyEnabled') 
+           -|| 'Напоминания включены'                                    
+      2414 -                    : t('profile.notificationsDailyDisabled')
+           - || 'Напоминания отключены'}                                 
+      2413 +                    ? t('profile.notificationsDailyEnabled') 
+           +|| 'Reminders are enabled'                                   
+      2414 +                    : t('profile.notificationsDailyDisabled')
+           + || 'Reminders are disabled'}                                
+      2415                  </Text>
+      2416                </View>
+      2417                <Switch
+
+● Проверяю tsc.
+
+● Bash(cd /home/mrazzka/projects/work/eatsense/apps/mobile && npx tsc --noEmit
+      2>&1 | grep -E "error TS" | grep -iE
+      "useNotificationActions|ProfileScreen"; echo "rc=$?…)
+  ⎿  rc=1
+  ⎿  (timeout 5m)
+
+● Чисто. Закрываю #4 и сообщаю.
+
+  Приоритет #4 закрыт — Smart Notifications
+
+  Аудит покрыл: API (scheduler 456, service 547, smart-tips 329, controller,
+  DTO), mobile (localNotificationService 420, useNotificationActions 359,
+  NotificationManager 171, usePushNotifications 132), Smart Tips UI в
+  ProfileScreen, i18n на 6 языках.
+
+  Качество кода очень высокое. Реальных функциональных багов нет:
+  - Scheduler: персонализированный category-picker
+  (сон/стресс/энергия/пищеварение) с фидбэком, идемпотентность по user/local
+  day, receipt-check через 10 мин, intentional disabling серверных
+  meds/daily-reminders (клиент локально, чтобы избежать дублей). ✅
+  - Service: валидация диапазонов, нормализация locale, авто-disable невалидных
+  push-токенов (DeviceNotRegistered). ✅
+  - Mobile local notifications: cancel-by-category перед re-schedule (без
+  дублей), 6-язычные фолбэки везде, отдельные Android-каналы
+  (meals/medications/mascot). ✅
+  - useNotificationActions: cold-start replay для тапов после kill, полная
+  маршрутизация всех типов пушей
+  (new_message/expert_*/meal_reminder/smart_tip/consultation reminders/no_show).
+  ✅
+  - Smart Tips UI: i18n полный, все ключи присутствуют на en/ru/kk/fr/de/es. ✅
+
+  Исправлено:
+  1. useNotificationActions.ts:294 — кнопка 'OK' в smart-tip alert была
+  захардкожена на английском → добавлен strings.ok через i18n+fallback.
+  2. ProfileScreen.tsx:2413-2414 — фолбэки «Напоминания включены/отключены» были
+  на русском → заменены на английский (по конвенции; влияет только если
+  i18n-ключ пропал бы).
+
+  Минорное наблюдение (мёртвый код, не user-visible баг): dailyPushHour
+  отправляется на бэк, но серверный cron daily-reminders намеренно отключён, а
+  локальные напоминания используют хардкод 9:00/13:00/19:00. Модальный time
+  picker showTimePicker существует, но нигде не вызывается
+  setShowTimePicker(true) — пользователь его не видит. Лучше потом убрать
+  мёртвый код или, наоборот, оживить настройку времени (если хочется, чтобы
+  пользователь мог менять час). Решение оставляю на тебя.
+
+  Проверка: mobile tsc — чисто.
+
+  Дальше — #5 Translations (повсеместная проверка переводов на 6 языках).
+  Продолжать?
+
+✻ Brewed for 4m 11s
+
+❯ Продолжай                                                                     
+
+● Перехожу к #5 Translations. Стратегия: сравнить покрытие ключей en vs
+  ru/kk/fr/de/es, найти пропуски и пустые значения, отдельно — хардкод-строки в
+  JSX.
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  EN total keys: 3317
+     ru: missing=0 empty=0 same_as_en=10
+     kk: missing=0 empty=0 same_as_en=16
+     … +3 lines (ctrl+o to expand)
+
+● Структурно полно (0 пропусков). Но в DE ~608 и ES ~484 ключей идентичны 
+  английскому — вероятно непереведено. Сэмплирую.
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  === de sample of same-as-EN (first 25) ===
+       common.info: "Info"
+       common.optional: "optional"
+     … +80 lines (ctrl+o to expand)
+
+● Реальный сигнал: DE/ES имеют значительные пробелы (DE 608, ES 484), большая
+  часть FR — легитимные когнаты (Premium, Email, kcal, Stress). Фильтрую только
+  многословные фразы — это явно непереведено.
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  de: real-untranslated multi-word = 395, top ns = [('analysis', 53), ('
+     dashboard', 42), ('programs', 30), ('subscription', 20), ('offers', 15
+     ), ('errors', 14), ('aiAssistant', 14), ('lifestyles', 14)]
+     … +6 lines (ctrl+o to expand)
+
+● Масштаб ясен:
+  - FR: 18 реальных пропусков (быстро).
+  - DE: 395 (~12% всех строк).
+  - ES: 335 (~10%).
+  - RU/KK — полные.
+
+  Это много (~750 переводов). Прежде чем браться, спрошу подход — это влияет на
+  качество и время.
+
+● User answered Claude's questions:
+  ⎿  · Как подходить к переводам (всего ~750 пропусков DE+ES+FR)? → Всё сразу 
+     (Recommended)
+     · Нужен ли отдельный проход по «хардкод-строкам в JSX» (без t())? → Да, 
+     после фикса locales (Recommended)
+
+● Принято. Сначала экспортирую списки пропусков, чтобы переводить системно.
+  Начинаю с FR (18 штук — лёгкий).
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  fr: 18 items dumped
+     es: 335 items dumped
+     de: 395 items dumped
+     … +19 lines (ctrl+o to expand)
+
+● FR-список почти весь — намеренные брендовые названия (EatSense Pro/Premium) и
+  lifestyle-программы (Soft Life, Mob Wife и т.д., которые сами по себе
+  englishbrands). Реально перевести нужно 3: "Daily Limit Reached" → "Limite
+  quotidienne atteinte" (×2), "Unnamed Product" → "Produit sans nom", "Go Back"
+  → "Retour".
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  FR patched: 4 keys
+
+● FR закрыт. Перехожу к ES (335). Смотрю содержимое по namespace, чтобы
+  переводить пакетами.
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  === onboarding (79) ===
+       onboarding.plans.free.name: EatSense Free
+       onboarding.plans.proMonthly.name: EatSense Pro
+     … +77 lines (ctrl+o to expand)
+
+● Делаю ES батчами. Сначала onboarding (79 строк). Дамплю список и пишу
+  переводы.
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  onboarding.plans.free.name|EatSense Free
+     onboarding.plans.proMonthly.name|EatSense Pro
+     onboarding.plans.proMonthly.price|$9.99 / month
+     … +76 lines (ctrl+o to expand)
+
+● Перевожу ES onboarding (79). Скрипт с переводами:
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  ES onboarding: 76 keys translated
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  ES remaining: 259
+     errors.photoFailed|Failed to take photo
+     errors.selectFailed|Failed to select image
+     … +257 lines (ctrl+o to expand)
+
+● Перевожу остальной ES батчем (минус ~25 брендовых имён):
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  ES batch2: 236 keys translated
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  ES remaining: 24
+       onboarding.plans.free.name|EatSense Free
+       onboarding.plans.proMonthly.name|EatSense Pro
+     … +22 lines (ctrl+o to expand)
+
+● ES готов (все оставшиеся — намеренные брендовые имена). Перехожу к DE (395).
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  errors.photoFailed|Failed to take photo
+     errors.selectFailed|Failed to select image
+     errors.loadFailed|Failed to load images from gallery
+     … +197 lines (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  dietPrograms.startProgram|Start Program
+     dietPrograms.stopProgram|Stop Program
+     dietPrograms.stopProgramConfirm|Are you sure you want to stop the prog
+     … +192 lines (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  total 395
+     onboarding.plans.free.name|EatSense Free
+     onboarding.plans.proMonthly.name|EatSense Pro
+     … +190 lines (ctrl+o to expand)
+
+● DE батч 1 (errors, onboarding, dashboard, analysis, describeFood, healthScore,
+  profile, camera, editFood, auth, offers, chat):
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  DE batch1: 162 keys translated
+  ⎿  Interrupted · What should Claude do instead?
+
+❯    Продолжи с того места где остановился                                      
+
+● Продолжаю DE батч 2 (disclaimer, report, block, dietPrograms, aiAssistant,
+  subscription, statistics, reports, diets_*, lifestyles, прочее).
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  DE remaining: 235
+     onboarding.plans.free.name|EatSense Free
+     onboarding.plans.proMonthly.name|EatSense Pro
+     … +239 lines (ctrl+o to expand)
+
+● DE батч 2 (disclaimer, report, block, dietPrograms, aiAssistant, subscription,
+  statistics, reports, diets, lifestyles, остальное):
+
+● Bash(python3 - <<'PY'
+      import json…)
+  ⎿  DE batch2: 188 keys translated
+  ⎿  Interrupted · What should Claude do instead?

@@ -17,7 +17,7 @@ const TARGET_MAX_DIMENSION = 512; // pixels
 const VISION_TIMEOUT_MS = 25000; // 25 second target (was 20)
 
 // Version for cache key - increment when prompt or schema changes
-const VISION_PROMPT_VERSION = 'omega_v5.2_2026-01-19_quality_balance';
+const VISION_PROMPT_VERSION = 'omega_v6.1_2026-05-29_compact_per100g';
 
 // Dish-level identification (NEW - for proper dish naming)
 const VisionDishSchema = z.object({
@@ -478,39 +478,35 @@ export class VisionService {
     // Locale is passed from getOrExtractComponents params
     const locale = paramLocale || 'en';
 
-    let systemPrompt = `You are EatSense OMEGA v5.3 — fast, accurate food recognition.
+    let systemPrompt = `You are EatSense OMEGA v6 — fast, accurate food recognition.
 
-## OUTPUT (JSON only)
+## OUTPUT (compact JSON only — keep it SHORT; names in English only, backend localizes)
 {
  "imageQuality":"good|medium|poor",
- "dish":{"name":"string|null","name_local":"string|null","confidence":0.0-1.0},
+ "dish":{"name":"english dish name or null"},
  "visible_items":[{
-  "id":"A","name":"english lowercase","name_local":"localized","display_name":"English Title","display_name_local":"Localized Title",
-  "est_portion_g":150,"category_hint":"protein|grain|veg|fruit|fat|dairy|sauce|drink|other",
-  "cooking_method":"raw|boiled|steamed|baked|grilled|fried|deep_fried|mixed","confidence":0.0-1.0,
+  "name":"english lowercase",
+  "est_portion_g":150,
+  "category_hint":"protein|grain|veg|fruit|fat|dairy|sauce|drink|other",
+  "cooking_method":"raw|boiled|steamed|baked|grilled|fried|deep_fried|mixed",
   "estimated_nutrients":{"calories":0,"protein_g":0,"fat_g":0,"carbs_g":0}
- }],
- "totals":{"kcal":0,"protein":0,"fat":0,"carbs":0}
+ }]
 }
 
 ## RULES
-1. Identify ALL visible food items. confidence<0.7 → use generic name (e.g. "fish" not "salmon").
-2. DO NOT hallucinate invisible ingredients.
-3. Composite dishes (soup/curry/stew) = SINGLE item with itemType "composite_dish".
-4. estimated_nutrients are REALISTIC per-100g averages from common nutrition databases (USDA-grade), NOT round numbers — provider lookup will refine.
-5. Apply cooking adjustments to estimated_nutrients: fried +20% kcal +30% fat; deep_fried +35% kcal +50% fat; grilled/baked +5% kcal.
+1. Identify ALL visible food items. If unsure → use a generic name (e.g. "fish" not "salmon").
+2. DO NOT hallucinate invisible ingredients. Keep output minimal — no extra keys, no prose.
+3. Composite dishes (soup/curry/stew) = SINGLE item.
+4. estimated_nutrients = nutrients PER 100 GRAMS of the edible food — NOT per portion, NOT scaled to est_portion_g. Use realistic USDA-grade values for THIS specific food (cooked state). The backend multiplies by est_portion_g/100.
+   - Self-check: calories ≈ 4·protein_g + 4·carbs_g + 9·fat_g (within ±15%). Fix macros if inconsistent.
+   - NEVER output 0 or lazy placeholder numbers (e.g. 50, 67, 100) unless genuinely correct. If unsure, give your best realistic per-100g estimate, never a default.
+5. Apply cooking adjustments: fried +20% kcal +30% fat; deep_fried +35% kcal +50% fat; grilled/baked +5% kcal.
 
-## PORTION ESTIMATION (CRITICAL — never default to 100g)
-Plate full ~300-400g, half ~150-200g. Palm-sized meat/fish = 100-120g. Fist-sized rice/pasta = 150-200g cooked. Side salad 80-120g. Bread slice 30-40g, roll 60-80g. Egg 50-60g. Soup bowl 300-400ml. Cup 200ml/Glass 250ml/Mug 300ml. Sauce 15-30g. Cheese slice 20-30g. Nuts handful 25-35g. Round: <50g→5g, 50-200g→10g, >200g→25g.
-
-## QUALITY CAPS
-good→up to 1.0, medium→max 0.85, poor→max 0.75.
-
-## LOCALIZATION (locale: ${locale})
-ru: "лосось","рис","курица"; kk: "балық","күріш","тауық"; fr: "saumon","riz","poulet"; es: "salmón","arroz","pollo"; de: "Lachs","Reis","Hähnchen"; en: default English.
+## PORTION ESTIMATION (est_portion_g = TOTAL grams on the plate for that item; never default to 100g)
+Use the plate/container and nearby objects (fork, hand) for scale. Plate full ~300-400g, half ~150-200g. Palm-sized meat/fish = 100-120g. Fist-sized rice/pasta = 150-200g cooked. Side salad 80-120g. Bread slice 30-40g, roll 60-80g. Egg 50-60g. Soup bowl 300-400ml. Cup 200ml/Glass 250ml/Mug 300ml. Sauce 15-30g. Cheese slice 20-30g. Nuts handful 25-35g. Round: <50g→5g, 50-200g→10g, >200g→25g.
 
 ## DISH NAMING
-Recognizable (≥80% match) → canonical name. Unclear → descriptive ("Grilled chicken with rice"). Single item → dish.name=null, use visible_items[0].display_name.
+Recognizable (≥80% match) → canonical name. Unclear → short descriptive ("Grilled chicken with rice"). Single item → dish.name = that item's name.
 
 Output ONLY valid JSON. No markdown, no prose outside JSON.`;
 
@@ -572,7 +568,7 @@ REVIEW MODE - Be extra careful:
                 ],
               },
             ],
-            max_completion_tokens: 900, // OMEGA v5.3: Trimmed prompt + cap allows ~25% faster responses without quality loss
+            max_completion_tokens: parseInt(process.env.VISION_MAX_TOKENS || '900', 10), // OMEGA v5.3: cap; lower = faster (output-generation bound)
             temperature: 0.1, // OMEGA v4: Lower for consistency
             response_format: { type: 'json_object' },
           }, {

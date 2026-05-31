@@ -206,7 +206,20 @@
         "halal": "Халяль",
         "kosher": "Кошерное питание",
         "gluten-free": "Без глютена",
-        "lactose-free": "Без лактозы"
+        "lactose-free": "Без лактозы",
+        "plant_based": "Растительная диета",
+        "pescatarian": "Пескетарианство",
+        "gluten_free": "Без глютена",
+        "lactose_free": "Без лактозы"
+      }
+    },
+    "conditionWarning": {
+      "title": "Здоровье",
+      "body": "С учётом вашего профиля здоровья обратите внимание: {{list}}.",
+      "items": {
+        "gastritis": "Гастрит",
+        "diabetes": "Диабет",
+        "high_cholesterol": "Высокий холестерин"
       }
     },
     "healthImpact": {
@@ -1564,7 +1577,8 @@
     "paymentSubmittedTitle": "Платеж отправлен",
     "paymentSubmittedBody": "Чат откроется, как только платеж будет подтвержден.",
     "consultations": "Консультации",
-    "education": "Образование"
+    "education": "Образование",
+    "minutesShort": "мин"
   },
   "offers": {
     "noOffers": "Нет услуг",
@@ -1879,7 +1893,9 @@
       "total": "Всего",
       "remaining": "Остаток",
       "daysRemaining": "Дней осталось",
-      "lowStock": "Низкий остаток! Пора пополнить"
+      "lowStock": "Низкий остаток! Пора пополнить",
+      "daysShort": "дн.",
+      "orderRefill": "Заказать пополнение"
     },
     "take": "Принять",
     "tabTitle": "Таблетки",
@@ -1912,7 +1928,9 @@
     "addPhoto": "Добавить фото",
     "takePhoto": "Сфотографировать",
     "chooseFromGallery": "Выбрать из галереи",
-    "cameraPermissionDenied": "Для съёмки фото необходимо разрешение на использование камеры."
+    "cameraPermissionDenied": "Для съёмки фото необходимо разрешение на использование камеры.",
+    "emptyTitle": "Пока нет лекарств",
+    "emptySubtitle": "Добавьте лекарства, чтобы получать напоминания и следить за остатком."
   },
   "notifications": {
     "enableFailed": "Не удалось включить уведомления.",
@@ -2059,7 +2077,12 @@
       "vegan": "Веганская",
       "veganDesc": "Только растительная пища",
       "vegetarian": "Вегетарианская",
-      "vegetarianDesc": "Без мяса, рыба и молочные разрешены"
+      "vegetarianDesc": "Без мяса, рыба и молочные разрешены",
+      "pescatarian": "Пескетарианство",
+      "glutenFree": "Без глютена",
+      "lactoseFree": "Без лактозы",
+      "halal": "Халяль",
+      "kosher": "Кошерное"
     },
     "features": {
       "analysis": "AI-анализ еды",
@@ -2193,7 +2216,16 @@
       "enterWeight": "Введите вес",
       "selectDiet": "Выберите диету",
       "selectConditions": "Выберите состояния здоровья"
-    }
+    },
+    "loadingPhases": {
+      "analyzing": "Анализируем ваши цели…",
+      "calculating": "Считаем дневные калории…",
+      "macros": "Балансируем белки, жиры и углеводы…",
+      "foods": "Подбираем подходящие продукты…",
+      "finalizing": "Завершаем ваш план…"
+    },
+    "termsIntroV2": "Ваши данные остаются с вами — зашифрованы, не продаются, и вы можете удалить их в любой момент.",
+    "acceptBoth": "Я прочитал(а) и принимаю Условия использования и Политику конфиденциальности."
   },
   "permissions": {
     "cameraRequired": "Для съёмки требуется доступ к камере",
@@ -2947,7 +2979,15 @@
     "cancelSubscriptionMessage": "Вы можете управлять подпиской или отменить ее в настройках аккаунта магазина.",
     "manageSubscription": "Управлять подпиской",
     "switchToFree": "Перейти на Free",
-    "upgradePlan": "Улучшить план"
+    "upgradePlan": "Улучшить план",
+    "healthConditionsLabel": "Состояния здоровья",
+    "notificationsDailyHourLabel": "Первое напоминание",
+    "themeCaption": "Выберите тему — применится сразу.",
+    "themeLight": "Светлая",
+    "themeDark": "Тёмная",
+    "themeMonochrome": "Моно",
+    "themeRose": "Розовая",
+    "themeBeige": "Бежевая"
   },
   "paywall": {
     "title": "Разблокировать полный доступ",
@@ -4341,7 +4381,8 @@
       "phone": "Телефон",
       "email": "Email",
       "dosage": "Дозировка",
-      "quantity": "Количество"
+      "quantity": "Количество",
+      "website": "Сайт"
     },
     "placeholders": {
       "name": "напр. Amavita Apotheke",
@@ -4350,7 +4391,8 @@
       "phone": "Введите телефон",
       "email": "Введите email",
       "medicationName": "Название лекарства",
-      "notes": "Дополнительные примечания..."
+      "notes": "Дополнительные примечания...",
+      "website": "https://example-pharmacy.ch"
     },
     "status": {
       "pending": "Ожидание",
@@ -4366,7 +4408,17 @@
       "noItems": "Добавьте хотя бы одно лекарство",
       "photoUpload": "Не удалось загрузить фото",
       "cameraPermission": "Необходимо разрешение камеры"
-    }
+    },
+    "haveCodeTitle": "У меня есть код аптеки",
+    "haveCodeSub": "Привязка мгновенно — без ввода адреса и почты.",
+    "enterCodeTitle": "Код аптеки",
+    "enterCodeBody": "Введите код, который дала вам аптека.",
+    "codePlaceholder": "AMAVITA-GENEVE",
+    "applyCode": "Привязать аптеку",
+    "codeInvalidTitle": "Проверьте код",
+    "codeInvalidBody": "Проверьте код аптеки и попробуйте снова.",
+    "codeAppliedTitle": "Аптека привязана",
+    "codeAppliedBody": "Эта аптека теперь подключена."
   },
   "community": {
     "title": "Сообщество",

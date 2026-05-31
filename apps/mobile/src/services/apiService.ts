@@ -1814,10 +1814,19 @@ class ApiService {
     pharmacyAddress?: string;
     pharmacyPhone?: string;
     pharmacyEmail?: string;
+    pharmacyWebsite?: string;
+    language?: string;
   }) {
     return this.request('/pharmacy/connections', {
       method: 'POST',
       body: JSON.stringify(payload),
+    });
+  }
+
+  async connectPharmacyByCode(code: string) {
+    return this.request('/pharmacy/connections/code', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
     });
   }
 

@@ -221,9 +221,17 @@ class LocalNotificationService {
     }
 
     /**
-     * Schedule meal reminder (1/2/3 times a day)
+     * Schedule meal reminder (1/2/3 times a day).
+     *
+     * When `anchorHour` is provided the morning slot moves to that hour and
+     * lunch/dinner shift by +4h / +10h (so anchor=8 → 8/12/18). Without an
+     * anchor we use the default 9/13/19 schedule.
      */
-    async scheduleMealReminders(frequency: 1 | 2 | 3): Promise<string[]> {
+    async scheduleMealReminders(
+        frequency: 1 | 2 | 3,
+        anchorHour?: number,
+        anchorMinute?: number,
+    ): Promise<string[]> {
         // FIX 2026-01-29: Cancel only MEAL notifications, not everything
         await this.cancelNotificationsByCategory(NotificationCategories.MEAL_REMINDER);
 
@@ -265,10 +273,16 @@ class LocalNotificationService {
             },
         };
 
+        const baseHour = Number.isFinite(anchorHour as any) && (anchorHour as number) >= 0 && (anchorHour as number) <= 23
+            ? (anchorHour as number)
+            : 9;
+        const baseMinute = Number.isFinite(anchorMinute as any) && (anchorMinute as number) >= 0 && (anchorMinute as number) <= 59
+            ? (anchorMinute as number)
+            : 0;
         const times = [
-            { period: 'morning', hour: 9, minute: 0 },
-            { period: 'afternoon', hour: 13, minute: 0 },
-            { period: 'evening', hour: 19, minute: 0 },
+            { period: 'morning', hour: baseHour, minute: baseMinute },
+            { period: 'afternoon', hour: (baseHour + 4) % 24, minute: baseMinute },
+            { period: 'evening', hour: (baseHour + 10) % 24, minute: baseMinute },
         ];
 
         // Select times based on frequency

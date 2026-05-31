@@ -17,8 +17,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import * as Localization from 'expo-localization';
-// import { useNavigation, CommonActions } from '@react-navigation/native'; // Unused
-// import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 // import Slider from '@react-native-community/slider'; // Unused
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -759,6 +758,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
 };
 
 const OnboardingScreen = () => {
+  const navigation = useNavigation<any>();
 
   // const navigation = useNavigation();
   const { colors, tokens, isDark } = useTheme();
@@ -826,7 +826,6 @@ const OnboardingScreen = () => {
     { id: 'weight', title: t('onboarding.weight', 'What\'s your weight?') },
     { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') },
     { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
-    { id: 'diet', title: t('onboarding.diet', 'Are you following any diet?') },
     { id: 'allergies', title: t('allergies.title', 'Allergies') },
     { id: 'health', title: t('onboarding.health', 'What should we know about you?') },
     // Notifications step removed
@@ -1158,19 +1157,6 @@ const OnboardingScreen = () => {
           (selectedPlan === 'free' ? 'lifetime' : 'monthly'),
       };
 
-      const mergedPreferences = {
-        ...(profilePreferences ?? {}),
-        subscription: {
-          ...(profilePreferences?.subscription ?? {}),
-          ...subscriptionPreference,
-        },
-        allergies: serializeAllergies(allergiesState),
-        allergiesNone: allergiesState.hasNone,
-        country: profileData.country || null,
-      };
-
-      profileDataWithoutPlan.preferences = mergedPreferences;
-
       // Filter out empty 'other' condition
       let finalHealthConditions = [...(profileDataWithoutPlan.healthConditions || [])];
 
@@ -1186,6 +1172,25 @@ const OnboardingScreen = () => {
       if (finalDiet === 'other' && profileData.dietOther) {
         finalDiet = profileData.dietOther;
       }
+
+      // Canonical storage: health conditions and diet live INSIDE preferences (Json),
+      // since UserProfile has no top-level columns for them and the backend whitelist
+      // drops unknown root fields. The analysis pipeline reads preferences.healthConditions
+      // and preferences.dietaryPreferences.
+      const mergedPreferences = {
+        ...(profilePreferences ?? {}),
+        subscription: {
+          ...(profilePreferences?.subscription ?? {}),
+          ...subscriptionPreference,
+        },
+        allergies: serializeAllergies(allergiesState),
+        allergiesNone: allergiesState.hasNone,
+        country: profileData.country || null,
+        healthConditions: finalHealthConditions.filter((c) => c && c !== 'none'),
+        dietaryPreferences: finalDiet && finalDiet !== 'none' ? [finalDiet] : [],
+      };
+
+      profileDataWithoutPlan.preferences = mergedPreferences;
 
       const finalPayload = {
         ...profileDataWithoutPlan,
@@ -2058,69 +2063,6 @@ const OnboardingScreen = () => {
     </View>
   );
 
-  const renderDietStep = () => {
-    const diets = [
-      { id: 'none', label: t('onboarding.dietTypes.none', 'No diet'), icon: 'remove-circle-outline' },
-      { id: 'balanced', label: t('onboarding.dietTypes.balanced', 'Balanced'), icon: 'nutrition-outline' },
-      { id: 'keto', label: t('onboarding.dietTypes.keto', 'Keto'), icon: 'flame-outline' },
-      { id: 'paleo', label: t('onboarding.dietTypes.paleo', 'Paleo'), icon: 'leaf-outline' },
-      { id: 'vegan', label: t('onboarding.dietTypes.vegan', 'Vegan'), icon: 'flower-outline' },
-      { id: 'vegetarian', label: t('onboarding.dietTypes.vegetarian', 'Vegetarian'), icon: 'leaf-outline' },
-      { id: 'mediterranean', label: t('onboarding.dietTypes.mediterranean', 'Mediterranean'), icon: 'fish-outline' },
-      { id: 'low_carb', label: t('onboarding.dietTypes.lowCarb', 'Low Carb'), icon: 'barbell-outline' },
-      { id: 'other', label: t('common.other', 'Other'), icon: 'ellipsis-horizontal-outline' },
-    ];
-
-    return (
-      <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>{t('onboarding.diet')}</Text>
-        <Text style={styles.stepSubtitle}>{t('onboarding.dietSubtitle')}</Text>
-        <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={styles.activityContainer}>
-            {diets.map((diet) => {
-              const isSelected = profileData.diet === diet.id;
-              return (
-                <TouchableOpacity
-                  key={diet.id}
-                  style={[
-                    styles.activityButton,
-                    isSelected && styles.activityButtonSelected,
-                  ]}
-                  onPress={() => {
-                    if (Platform.OS === 'ios') {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    }
-                    setProfileData({ ...profileData, diet: diet.id });
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.activityLabel,
-                      isSelected && styles.activityLabelSelected,
-                    ]}
-                  >
-                    {diet.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          {profileData.diet === 'other' && (
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ marginTop: 20 }}>
-              <TextInput
-                style={styles.otherInput}
-                placeholder={t('onboarding.specifyDiet', 'Please specify your diet')}
-                placeholderTextColor={colors.textTertiary}
-                value={profileData.dietOther}
-                onChangeText={(text) => setProfileData(prev => ({ ...prev, dietOther: text }))}
-              />
-            </KeyboardAvoidingView>
-          )}
-        </ScrollView>
-      </View>
-    );
-  };
-
   // Pre-fill country from device locale region (e.g. "KZ" from ru-KZ) when the
   // user lands on the country step without an explicit selection. `steps` is
   // intentionally NOT in deps — it's a fresh array on every render of the
@@ -2135,9 +2077,10 @@ const OnboardingScreen = () => {
     } catch {
       detected = null;
     }
-    if (detected) {
-      setProfileData(prev => prev.country ? prev : { ...prev, country: detected });
-    }
+    // Pilot is Swiss-based — fall back to Switzerland when locale detection
+    // fails (e.g. simulator with no region) so the picker isn't empty.
+    const fallback = detected || 'CH';
+    setProfileData(prev => prev.country ? prev : { ...prev, country: fallback });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, profileData.country]);
 
@@ -2148,7 +2091,9 @@ const OnboardingScreen = () => {
     } catch {
       detectedRegion = null;
     }
-    const presetCountry = profileData.country || detectedRegion;
+    // Default to detected region; fall back to Switzerland (pilot HQ) when
+    // detection fails. Surfacing CH first avoids an empty picker.
+    const presetCountry = profileData.country || detectedRegion || 'CH';
     return (
       <View style={styles.stepContainer}>
         <Text style={styles.stepTitle}>{t('country.title', 'Select country')}</Text>
@@ -2549,92 +2494,117 @@ const OnboardingScreen = () => {
 
   // Terms and Privacy Policy acceptance step
   const renderTermsStep = () => {
-    // Hooks moved to top level
-
-    // const locale = language?.split('-')[0] || 'en';
-    // const validLocale = ['en', 'ru', 'kk'].includes(locale) ? locale : 'en';
-
-    const canProceed = profileData.termsAccepted && profileData.privacyAccepted;
+    // Single combined acceptance — both docs are linked individually below.
+    // Visually lighter than the previous double-scroll layout (200px x 2 +
+    // two checkboxes) which most users simply skipped past.
+    const combinedAccepted = profileData.termsAccepted && profileData.privacyAccepted;
+    const toggleBoth = () => setProfileData(prev => {
+      const next = !(prev.termsAccepted && prev.privacyAccepted);
+      return { ...prev, termsAccepted: next, privacyAccepted: next };
+    });
 
     return (
       <View style={styles.stepContainer}>
-        <Text style={[styles.stepTitle, { marginBottom: 4 }]}>
-          {t('onboarding.terms', 'Terms & Privacy')}
-        </Text>
-        <Text style={[styles.stepSubtitle, { marginBottom: 12 }]}>
-          {t('onboarding.termsSubtitle', 'Please read and accept to continue')}
-        </Text>
-
-        {/* Inline Legal Documents - Scrollable */}
         <ScrollView
-          style={{ flex: 1, marginBottom: 12 }}
-          contentContainerStyle={{ gap: 16 }}
-          nestedScrollEnabled={true}
-          showsVerticalScrollIndicator={true}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Terms of Service */}
-          <View>
-            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
-              {t('onboarding.termsOfService', 'Terms of Service')}
+          {/* Friendly header with shield icon */}
+          <View style={{ alignItems: 'center', marginBottom: 28 }}>
+            <View style={{
+              width: 72, height: 72, borderRadius: 36,
+              backgroundColor: (colors.primary || '#22C55E') + '14',
+              alignItems: 'center', justifyContent: 'center',
+              marginBottom: 16,
+            }}>
+              <Ionicons name="shield-checkmark-outline" size={36} color={colors.primary} />
+            </View>
+            <Text style={[styles.stepTitle, { textAlign: 'center', marginBottom: 8 }]}>
+              {t('onboarding.terms', 'Terms & Privacy')}
             </Text>
-            <LegalDocumentView type="terms" maxHeight={200} />
+            <Text style={[styles.stepSubtitle, { textAlign: 'center', paddingHorizontal: 16 }]}>
+              {t('onboarding.termsIntroV2', 'Your data stays yours — encrypted, never sold, and you can delete it anytime.')}
+            </Text>
           </View>
 
-          {/* Privacy Policy */}
-          <View>
-            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
-              {t('onboarding.privacyPolicy', 'Privacy Policy')}
-            </Text>
-            <LegalDocumentView type="privacy" maxHeight={200} />
+          {/* Two link cards instead of inline scrollers */}
+          <View style={{ gap: 12, marginBottom: 24 }}>
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row', alignItems: 'center',
+                paddingVertical: 14, paddingHorizontal: 16,
+                borderRadius: 14, borderWidth: 1,
+                borderColor: colors.border || 'rgba(0,0,0,0.08)',
+                backgroundColor: colors.surface || '#FFFFFF',
+              }}
+              onPress={() => navigation?.navigate?.('TermsOfService')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="document-text-outline" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+              <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.text }}>
+                {t('onboarding.termsOfService', 'Terms of Service')}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textSecondary || '#9CA3AF'} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row', alignItems: 'center',
+                paddingVertical: 14, paddingHorizontal: 16,
+                borderRadius: 14, borderWidth: 1,
+                borderColor: colors.border || 'rgba(0,0,0,0.08)',
+                backgroundColor: colors.surface || '#FFFFFF',
+              }}
+              onPress={() => navigation?.navigate?.('PrivacyPolicy')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="lock-closed-outline" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+              <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.text }}>
+                {t('onboarding.privacyPolicy', 'Privacy Policy')}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textSecondary || '#9CA3AF'} />
+            </TouchableOpacity>
           </View>
+
+          {/* Combined acceptance */}
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row', alignItems: 'flex-start',
+              padding: 14, borderRadius: 14,
+              backgroundColor: combinedAccepted
+                ? (colors.primary || '#22C55E') + '10'
+                : (colors.surface || '#F9FAFB'),
+              borderWidth: 1,
+              borderColor: combinedAccepted
+                ? (colors.primary || '#22C55E') + '40'
+                : (colors.border || 'rgba(0,0,0,0.08)'),
+            }}
+            onPress={toggleBoth}
+            activeOpacity={0.75}
+          >
+            <View style={[
+              { width: 22, height: 22, borderRadius: 6, borderWidth: 2,
+                justifyContent: 'center', alignItems: 'center', marginRight: 12, marginTop: 1 },
+              combinedAccepted
+                ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                : { borderColor: colors.border || '#C8C8C8' },
+            ]}>
+              {combinedAccepted && <Ionicons name="checkmark" size={14} color={onPrimaryColor} />}
+            </View>
+            <Text style={{ flex: 1, fontSize: 14, color: colors.text, lineHeight: 20 }}>
+              {t('onboarding.acceptBoth', 'I have read and accept the Terms of Service and Privacy Policy.')}
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
 
-        {/* Acceptance checkboxes */}
-        <View style={{ gap: 12, marginBottom: 16 }}>
-          <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-            onPress={() => setProfileData(prev => ({ ...prev, termsAccepted: !prev.termsAccepted }))}
-            activeOpacity={0.7}
-          >
-            <View style={[
-              { width: 24, height: 24, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-              profileData.termsAccepted
-                ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                : { borderColor: colors.border || '#C8C8C8' }
-            ]}>
-              {profileData.termsAccepted && <Ionicons name="checkmark" size={16} color={onPrimaryColor} />}
-            </View>
-            <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
-              {t('onboarding.acceptTerms', 'I accept the Terms of Service')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-            onPress={() => setProfileData(prev => ({ ...prev, privacyAccepted: !prev.privacyAccepted }))}
-            activeOpacity={0.7}
-          >
-            <View style={[
-              { width: 24, height: 24, borderRadius: 6, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-              profileData.privacyAccepted
-                ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                : { borderColor: colors.border || '#C8C8C8' }
-            ]}>
-              {profileData.privacyAccepted && <Ionicons name="checkmark" size={16} color={onPrimaryColor} />}
-            </View>
-            <Text style={{ fontSize: 14, color: colors.text, flex: 1 }}>
-              {t('onboarding.acceptPrivacy', 'I accept the Privacy Policy')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Continue button */}
+        {/* Continue button — pinned at bottom */}
         <TouchableOpacity
           style={[
             styles.nextButton,
-            { width: '100%', justifyContent: 'center', opacity: canProceed ? 1 : 0.5 }
+            { width: '100%', justifyContent: 'center', opacity: combinedAccepted ? 1 : 0.5 },
           ]}
-          disabled={!canProceed}
+          disabled={!combinedAccepted}
           onPress={() => {
             clientLog('Onboarding:termsAccepted');
             nextStep();
@@ -2654,15 +2624,65 @@ const OnboardingScreen = () => {
     const isLoading = loadingProgress < 100;
     const isReady = loadingProgress >= 100 && planData;
 
+    // Map progress range to a friendly phase label so the wait feels purposeful
+    // instead of a generic spinner. Phases roughly match what the calc actually
+    // does: profile read → BMR/TDEE → macros → goal-aware targets → done.
+    const phaseKey = loadingProgress < 20 ? 'analyzing'
+      : loadingProgress < 40 ? 'calculating'
+        : loadingProgress < 65 ? 'macros'
+          : loadingProgress < 90 ? 'foods'
+            : 'finalizing';
+    const phaseFallback: Record<string, string> = {
+      analyzing: 'Analyzing your goals…',
+      calculating: 'Calculating your daily calories…',
+      macros: 'Balancing protein, carbs and fat…',
+      foods: 'Picking foods that fit your goal…',
+      finalizing: 'Finalizing your plan…',
+    };
+    const phaseLabel = t(`onboarding.loadingPhases.${phaseKey}`, phaseFallback[phaseKey]);
+
     return (
       <View style={styles.stepContainer}>
         <View style={styles.welcomeContent}>
           {isLoading ? (
-            <>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.stepTitle}>{t('onboarding.loading', 'Creating your plan')}</Text>
-              <Text style={styles.stepSubtitle}>{Math.round(loadingProgress)}%</Text>
-            </>
+            <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 24 }}>
+              {/* Branded ring + percentage */}
+              <View style={{
+                width: 112, height: 112, borderRadius: 56,
+                borderWidth: 6, borderColor: (colors.primary || '#22C55E') + '20',
+                alignItems: 'center', justifyContent: 'center', marginBottom: 24,
+              }}>
+                <View style={{
+                  position: 'absolute', top: -6, left: -6, right: -6, bottom: -6,
+                  borderRadius: 62, borderWidth: 6, borderColor: 'transparent',
+                  borderTopColor: colors.primary || '#22C55E',
+                  transform: [{ rotate: `${(loadingProgress / 100) * 360}deg` }],
+                }} />
+                <Text style={{ fontSize: 28, fontWeight: '800', color: colors.primary }}>
+                  {Math.round(loadingProgress)}%
+                </Text>
+              </View>
+
+              <Text style={[styles.stepTitle, { textAlign: 'center', marginBottom: 8 }]}>
+                {t('onboarding.loading', 'Creating your plan')}
+              </Text>
+              <Text style={[styles.stepSubtitle, { textAlign: 'center', minHeight: 22 }]}>
+                {phaseLabel}
+              </Text>
+
+              {/* Linear progress bar — fills as loadingProgress grows */}
+              <View style={{
+                width: '100%', height: 6, borderRadius: 3,
+                backgroundColor: (colors.border || 'rgba(0,0,0,0.08)'),
+                marginTop: 24, overflow: 'hidden',
+              }}>
+                <View style={{
+                  width: `${Math.max(0, Math.min(100, loadingProgress))}%`,
+                  height: '100%',
+                  backgroundColor: colors.primary || '#22C55E',
+                }} />
+              </View>
+            </View>
           ) : isReady ? (
             <>
               <Ionicons name="checkmark-circle" size={64} color={colors.success || '#34C759'} />
@@ -2728,7 +2748,6 @@ const OnboardingScreen = () => {
       case 'weight': return renderWeightStep();
       case 'targetWeight': return renderTargetWeightStep();
       case 'activity': return renderActivityStep();
-      case 'diet': return renderDietStep();
       case 'allergies': return renderAllergiesStep();
       case 'health': return renderHealthConditionsStep();
       case 'terms': return renderTermsStep();

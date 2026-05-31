@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ConnectPharmacyDto {
@@ -25,4 +25,20 @@ export class ConnectPharmacyDto {
   @IsOptional()
   @IsString()
   pharmacyEmail?: string;
+
+  @ApiPropertyOptional({ example: 'https://amavita-bern.ch', description: 'Pharmacy website (for stock check link)' })
+  @IsOptional()
+  @IsString()
+  pharmacyWebsite?: string;
+
+  @ApiPropertyOptional({ example: 'fr', description: 'Language the pharmacy reads (en|fr|de|it)' })
+  @IsOptional()
+  @IsIn(['en', 'fr', 'de', 'it'])
+  language?: string;
+}
+
+export class ConnectPharmacyByCodeDto {
+  @ApiProperty({ example: 'AMAVITA-GENEVE', description: 'Pharmacy access code' })
+  @IsString()
+  code: string;
 }

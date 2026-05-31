@@ -1157,7 +1157,7 @@ export class AnalyzeService {
               energyDensity: estNutrients?.calories || 0, // per 100g
             };
 
-          // Scale to portion
+          // Scale to portion (estimated_nutrients / canonical are per-100g)
           const scale = portionG / 100;
           const finalNutrients = {
             calories: Math.round(nutrients.calories * scale),
@@ -1169,6 +1169,30 @@ export class AnalyzeService {
             satFat: this.round(nutrients.satFat * scale, 1),
             energyDensity: nutrients.energyDensity,
           };
+
+          // Sanity-check GPT estimates (canonical values are already trusted).
+          // Catches artifacts like a per-100g number leaking as the portion total.
+          if (!canonical) {
+            const v = this.validator.validateNutritionData({
+              name,
+              portion_g: portionG,
+              calories: finalNutrients.calories,
+              protein: finalNutrients.protein,
+              carbs: finalNutrients.carbs,
+              fat: finalNutrients.fat,
+              fiber: finalNutrients.fiber,
+              category: (component as any).category_hint,
+              source: 'gpt',
+            });
+            if (v.wasModified) {
+              finalNutrients.calories = v.calories;
+              finalNutrients.protein = v.protein;
+              finalNutrients.carbs = v.carbs;
+              finalNutrients.fat = v.fat;
+              if (v.fiber !== undefined) finalNutrients.fiber = v.fiber;
+              finalNutrients.energyDensity = portionG > 0 ? this.round((v.calories / portionG) * 100, 1) : finalNutrients.energyDensity;
+            }
+          }
 
           const fastPathItem: AnalyzedItem = {
             id: crypto.randomUUID(),
@@ -1335,10 +1359,12 @@ export class AnalyzeService {
 
       if (useGptOnlyNutrition && hasGptEstimates) {
         // Use GPT Vision estimates directly without calling nutrition providers
+        // FIX 2026-05-29 ("67" bug): estimated_nutrients are PER 100g (Vision prompt
+        // contract), so scale by portionG/100 — NOT by portionG/gptPortion which
+        // double-counted and leaked per-100g values as portion totals.
         const categoryDefault = this.getCategoryDefaultPortion((component as any).category_hint);
         const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : categoryDefault;
-        const gptPortion = component.est_portion_g || categoryDefault;
-        const portionScale = portionG / gptPortion;
+        const portionScale = portionG / 100;
 
         const gptNutrients: Nutrients = {
           calories: Math.round((gptEstimates.calories || 0) * portionScale),
@@ -1348,7 +1374,7 @@ export class AnalyzeService {
           fiber: this.round((gptEstimates.fiber_g || 0) * portionScale, 1),
           sugars: 0,
           satFat: 0,
-          energyDensity: gptEstimates.calories > 0 ? this.round((gptEstimates.calories / gptPortion) * 100, 1) : 0,
+          energyDensity: gptEstimates.calories > 0 ? this.round(gptEstimates.calories, 1) : 0,
         };
 
         // Validate GPT estimates to catch obvious errors
@@ -1476,23 +1502,30 @@ export class AnalyzeService {
       // 1. Provider returns truly suspicious low (<5 kcal/100g) AND
       // 2. Vision estimates are significantly higher (2x) AND
       // 3. It's not a drink (water/tea can be ~0-2 kcal)
-      const minExpectedKcal = (5 * portionG) / 100; // 5 kcal per 100g minimum (was 15)
-      const visionKcal = component.estimated_nutrients?.calories || 0;
+      //
+      // FIX 2026-05-29 ("67" bug): estimated_nutrients are PER 100g (per Vision prompt
+      // contract). Previously this branch used est.calories as the whole-portion value,
+      // so a per-100g estimate like grapes=67 leaked through as the portion's calories
+      // regardless of portion size. Compare and scale strictly per-100g.
+      const minExpectedKcalPer100 = 5; // 5 kcal per 100g minimum (was 15)
+      const providerKcalPer100 = nutrients.energyDensity || (portionG > 0 ? (nutrients.calories / portionG) * 100 : 0);
+      const visionKcalPer100 = component.estimated_nutrients?.calories || 0; // per-100g per prompt
 
-      if (nutrients.calories < minExpectedKcal && !isDrink) {
-        // Only fallback if Vision has plausible higher value (at least 2x)
-        if (visionKcal > nutrients.calories * 2 && visionKcal > minExpectedKcal) {
+      if (providerKcalPer100 < minExpectedKcalPer100 && !isDrink) {
+        // Only fallback if Vision has a plausible higher per-100g value (at least 2x)
+        if (visionKcalPer100 > providerKcalPer100 * 2 && visionKcalPer100 > minExpectedKcalPer100) {
           const est = component.estimated_nutrients!;
-          this.logger.warn(`[AnalyzeService] Provider returned very low calories for "${component.name}": ${nutrients.calories} kcal for ${portionG}g, Vision has ${visionKcal}. Falling back.`);
+          const scale = portionG / 100;
+          this.logger.warn(`[AnalyzeService] Provider returned very low calories for "${component.name}": ${providerKcalPer100.toFixed(1)} kcal/100g, Vision has ${visionKcalPer100}. Falling back (scaled by portion ${portionG}g).`);
           nutrients = {
-            calories: est.calories!,
-            protein: est.protein_g || 0,
-            fat: est.fat_g || 0,
-            carbs: est.carbs_g || 0,
-            fiber: est.fiber_g || 0,
+            calories: Math.round((est.calories || 0) * scale),
+            protein: this.round((est.protein_g || 0) * scale, 1),
+            fat: this.round((est.fat_g || 0) * scale, 1),
+            carbs: this.round((est.carbs_g || 0) * scale, 1),
+            fiber: this.round((est.fiber_g || 0) * scale, 1),
             sugars: 0,
             satFat: 0,
-            energyDensity: (est.calories! / portionG) * 100
+            energyDensity: est.calories || 0,
           };
         } else {
           // Log but don't fallback - provider data is likely fine for low-cal foods
@@ -2797,9 +2830,9 @@ export class AnalyzeService {
     let fallbackSource: string = 'vision_fallback';
 
     if (gptEstimate && (gptEstimate.calories || gptEstimate.protein_g || gptEstimate.carbs_g || gptEstimate.fat_g)) {
-      // Use GPT-estimated nutrients (already for the estimated portion)
-      const gptPortion = component.est_portion_g || this.getCategoryDefaultPortion((component as any).category_hint);
-      const portionScale = fallbackPortion / gptPortion;
+      // FIX 2026-05-29 ("67" bug): estimated_nutrients are PER 100g (Vision prompt
+      // contract), scale by fallbackPortion/100 — not by fallbackPortion/gptPortion.
+      const portionScale = fallbackPortion / 100;
 
       fallbackNutrients = {
         calories: Math.round((gptEstimate.calories || 0) * portionScale),
@@ -2809,9 +2842,7 @@ export class AnalyzeService {
         fiber: this.round((gptEstimate.fiber_g || 0) * portionScale, 1),
         sugars: 0,
         satFat: 0,
-        energyDensity: (gptEstimate.calories || 0) > 0 && gptPortion > 0
-          ? this.round((gptEstimate.calories / gptPortion) * 100, 1)
-          : 0,
+        energyDensity: (gptEstimate.calories || 0) > 0 ? this.round(gptEstimate.calories, 1) : 0,
       };
       fallbackSource = 'gpt_vision_estimate';
 
@@ -3853,14 +3884,24 @@ export class AnalyzeService {
   ): void {
     if (!userProfile) return;
 
-    const prefs = (userProfile.preferences || {}) as { allergies?: string[]; dietaryPreferences?: string[] };
+    const prefs = (userProfile.preferences || {}) as { allergies?: string[]; dietaryPreferences?: string[]; diets?: string[]; healthConditions?: string[] };
     const allergies = (prefs.allergies || []).map((a: string) => String(a).toLowerCase().trim()).filter(Boolean);
-    const diets = (prefs.dietaryPreferences || []).map((d: string) => String(d).toLowerCase().trim()).filter(Boolean);
+    // Canonical key is `dietaryPreferences`; `diets` is read for backward compatibility
+    // with profiles saved before the diet-vocabulary unification.
+    const diets = (prefs.dietaryPreferences || prefs.diets || [])
+      .map((d: string) => String(d).toLowerCase().trim().replace(/-/g, '_'))
+      .filter(Boolean);
+    // Health conditions captured at onboarding (e.g. gastritis, diabetes, high_cholesterol).
+    // These live in preferences (not the premium healthProfile) so they are available to
+    // ALL users — these are safety/health signals, not premium analytics.
+    const conditions = (prefs.healthConditions || [])
+      .map((c: string) => String(c).toLowerCase().trim())
+      .filter((c) => c && c !== 'none' && c !== 'other');
     const healthFocus = (userProfile.healthProfile?.healthFocus || {}) as Record<string, boolean>;
     const goal = String(userProfile.goal || '').toLowerCase();
     const dailyCalories = Number(userProfile.dailyCalories) || 0;
 
-    // 1. Tag items with allergy/diet matches
+    // 1. Tag items with allergy/diet/condition matches
     for (const item of items) {
       const haystack = `${item.name || ''} ${item.originalName || ''} ${item.label || ''}`.toLowerCase();
       const matched: string[] = [];
@@ -3870,18 +3911,23 @@ export class AnalyzeService {
       }
       const dietViolations: string[] = [];
       for (const d of diets) {
-        if (d === 'vegan' && this.isAnimalIngredient(item)) dietViolations.push('vegan');
+        // Only restriction-type diets can be "violated"; style diets (keto, paleo,
+        // balanced, mediterranean, low_carb, high_protein) have no per-item violation.
+        if ((d === 'vegan' || d === 'plant_based') && this.isAnimalIngredient(item)) dietViolations.push(d);
         else if (d === 'vegetarian' && this.isMeatOrFishIngredient(item)) dietViolations.push('vegetarian');
+        else if (d === 'pescatarian' && this.isMeatIngredient(item)) dietViolations.push('pescatarian');
         else if (d === 'halal' && /pork|bacon|ham|свин|шпик/i.test(haystack)) dietViolations.push('halal');
         else if (d === 'kosher' && /pork|bacon|shrimp|свин|креветк/i.test(haystack)) dietViolations.push('kosher');
-        else if (d === 'gluten-free' && /wheat|bread|pasta|barley|rye|пшениц|хлеб|макарон/i.test(haystack)) dietViolations.push('gluten-free');
-        else if (d === 'lactose-free' && /milk|cheese|yogurt|butter|cream|молок|сыр|йогурт|сметан/i.test(haystack)) dietViolations.push('lactose-free');
+        else if (d === 'gluten_free' && /wheat|bread|pasta|barley|rye|пшениц|хлеб|макарон/i.test(haystack)) dietViolations.push('gluten_free');
+        else if (d === 'lactose_free' && /milk|cheese|yogurt|butter|cream|молок|сыр|йогурт|сметан/i.test(haystack)) dietViolations.push('lactose_free');
       }
-      if (matched.length || dietViolations.length) {
+      const conditionWarnings = conditions.length ? this.evaluateConditionWarnings(item, haystack, conditions) : [];
+      if (matched.length || dietViolations.length || conditionWarnings.length) {
         item.userFlags = {
           ...(item.userFlags || {}),
           ...(matched.length ? { allergyMatch: matched } : {}),
           ...(dietViolations.length ? { dietViolation: dietViolations } : {}),
+          ...(conditionWarnings.length ? { conditionWarning: conditionWarnings } : {}),
         };
       }
     }
@@ -3929,7 +3975,9 @@ export class AnalyzeService {
     }
 
     // 3. Goal-based adjustment
-    if (goal.includes('weight_loss') && dailyCalories > 0) {
+    // Onboarding/profile store the goal as 'lose_weight'; accept the legacy
+    // 'weight_loss' spelling too so this personalization actually fires.
+    if ((goal.includes('lose_weight') || goal.includes('weight_loss')) && dailyCalories > 0) {
       const ratio = total.calories / dailyCalories;
       if (ratio > 0.5) {
         const penalty = Math.min(15, Math.round((ratio - 0.5) * 30));
@@ -3988,9 +4036,45 @@ export class AnalyzeService {
     const t = `${item.name || ''} ${item.originalName || ''}`.toLowerCase();
     return /chicken|beef|pork|fish|salmon|tuna|shrimp|bacon|ham|sausage|курица|говядин|свинин|рыба|лосос|тунец|креветк|бекон|ветчин|колбас/i.test(t);
   }
+  // Meat/poultry only (fish & seafood allowed) — used for pescatarian diet.
+  private isMeatIngredient(item: AnalyzedItem): boolean {
+    const t = `${item.name || ''} ${item.originalName || ''}`.toLowerCase();
+    return /chicken|beef|pork|lamb|veal|turkey|duck|bacon|ham|sausage|salami|курица|говядин|свинин|баранин|телятин|индейк|утк|бекон|ветчин|колбас|салями/i.test(t);
+  }
   private isIronRich(item: AnalyzedItem): boolean {
     const t = `${item.name || ''} ${item.originalName || ''}`.toLowerCase();
     return /beef|liver|spinach|lentil|chickpea|tofu|kidney bean|red meat|говядин|печен|шпинат|чечевиц|нут|тофу|фасол/i.test(t);
+  }
+
+  /**
+   * Personalized "smart" warnings for chronic conditions captured at onboarding.
+   * Returns the list of condition codes this specific item is a concern for, so the
+   * app can show e.g. a gastritis warning on a fried/fatty item. Conservative by
+   * design — flags clear triggers only, framed as "consider", never medical advice.
+   */
+  private evaluateConditionWarnings(item: AnalyzedItem, haystack: string, conditions: string[]): string[] {
+    const portion = item.portion_g && item.portion_g > 0 ? item.portion_g : 100;
+    const per100 = (v?: number) => ((Number(v) || 0) / portion) * 100;
+    const fat100 = per100(item.nutrients?.fat);
+    const satFat100 = per100((item.nutrients as any)?.satFat);
+    const sugars100 = per100((item.nutrients as any)?.sugars);
+    const hints = (Array.isArray((item as any).cookingMethodHints) ? (item as any).cookingMethodHints : []).join(' ').toLowerCase();
+    const isFried = /fried|deep_fried|fry/.test(hints) || /\bfried\b|deep.?fried|жарен|fritt|frit/i.test(haystack);
+
+    const out: string[] = [];
+    for (const c of conditions) {
+      if (c === 'gastritis') {
+        const irritant = /coffee|espresso|alcohol|wine|beer|citrus|orange|lemon|grapefruit|chili|chilli|spicy|hot sauce|vinegar|pickled|кофе|эспрессо|алкогол|вино|пиво|цитрус|апельсин|лимон|грейпфрут|остр|чили|перч|уксус|маринован/i.test(haystack);
+        if (isFried || irritant || fat100 > 22) out.push('gastritis');
+      } else if (c === 'diabetes') {
+        const sugary = /sugar|honey|candy|cake|cookie|chocolate|soda|cola|lemonade|juice|jam|syrup|donut|doughnut|pastry|ice cream|сахар|мёд|конфет|торт|печень|шоколад|газиров|кол[ау]|лимонад|сок|варенье|сироп|пончик|пирож|морожен/i.test(haystack);
+        if (sugary || sugars100 > 15) out.push('diabetes');
+      } else if (c === 'high_cholesterol') {
+        const fatty = /bacon|sausage|salami|butter|lard|cream|cheese|ham|жарен|бекон|колбас|сосиск|салями|масло слив|сало|слив|сыр|ветчин/i.test(haystack);
+        if (satFat100 > 7 || (fatty && fat100 > 12) || isFried) out.push('high_cholesterol');
+      }
+    }
+    return Array.from(new Set(out));
   }
 
   /**

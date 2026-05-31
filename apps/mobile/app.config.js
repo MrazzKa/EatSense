@@ -84,7 +84,7 @@ export default {
           { scheme: "https", host: "eatsense.app", pathPrefix: "/v1/auth/magic/consume" },
           { scheme: "https", host: "eatsense.app", pathPrefix: "/auth/google/callback" },
           { scheme: "eatsense" }
-        ],
+        ],;
         category: ["BROWSABLE", "DEFAULT"]
       }]
     },

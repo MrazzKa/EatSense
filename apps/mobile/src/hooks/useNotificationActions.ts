@@ -96,6 +96,10 @@ const getLocalizedStrings = () => {
             de: 'Danke, wir personalisieren künftige Tipps.',
             es: 'Gracias, personalizaremos los próximos consejos.',
         },
+        ok: {
+            en: 'OK', ru: 'ОК', kk: 'ОК',
+            fr: 'OK', de: 'OK', es: 'OK',
+        },
     };
 
     // Return translated value or fallback
@@ -116,6 +120,7 @@ const getLocalizedStrings = () => {
         smartTipUseful: fallbacks.smartTipUseful[locale] || fallbacks.smartTipUseful.en,
         smartTipNotRelevant: fallbacks.smartTipNotRelevant[locale] || fallbacks.smartTipNotRelevant.en,
         smartTipThanks: fallbacks.smartTipThanks[locale] || fallbacks.smartTipThanks.en,
+        ok: (i18n.t('common.ok') && !i18n.t('common.ok').includes('common.ok')) ? i18n.t('common.ok') : (fallbacks.ok[locale] || fallbacks.ok.en),
     };
 };
 
@@ -291,7 +296,7 @@ export function useNotificationActions() {
                         onPress: () => saveSmartTipFeedback(data, 'useful'),
                     },
                     {
-                        text: 'OK',
+                        text: strings.ok,
                         onPress: () => {
                             if (navigationCallback) navigationCallback('MainTabs', { screen: 'Profile' });
                         },
@@ -318,6 +323,28 @@ export function useNotificationActions() {
         // scheduled-consultations list with updated status.
         if (type === 'no_show' || type === 'consultation_completed' || type === 'rating_prompt') {
             if (navigationCallback) navigationCallback('MainTabs', { screen: 'Experts' });
+            return;
+        }
+
+        // Pharmacy order status updates (sent / processing / ready / completed)
+        // open the Pharmacy screen where the order list lives.
+        if (type === 'pharmacy_order_status') {
+            if (navigationCallback) navigationCallback('Pharmacy');
+            return;
+        }
+
+        // Low-stock refill nudge: open the pharmacy order flow with the
+        // medication pre-filled so the patient can re-order in one tap.
+        if (type === 'medication_low_stock') {
+            if (navigationCallback) {
+                navigationCallback('Pharmacy', {
+                    autoOpenOrder: true,
+                    prefillMedication: {
+                        name: (data as any)?.name || '',
+                        dosage: (data as any)?.dosage || '',
+                    },
+                });
+            }
             return;
         }
     }, [takeMedication, showTakeAlert, saveSmartTipFeedback, strings]);

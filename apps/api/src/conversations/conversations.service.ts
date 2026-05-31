@@ -355,6 +355,37 @@ export class ConversationsService {
             },
         });
 
+        // Record per-category grant/revoke transitions so the client has an
+        // audit trail of who got access to what and when. Best-effort: a
+        // failure here must not block the toggle.
+        if (isSharingChange) {
+            try {
+                const transitions: Array<{ scope: string; before: boolean; after: boolean }> = [];
+                if (shareMeals !== undefined && Boolean(conversation.shareMeals) !== Boolean(shareMeals)) {
+                    transitions.push({ scope: 'meals', before: Boolean(conversation.shareMeals), after: Boolean(shareMeals) });
+                }
+                if (shareAnalyses !== undefined && Boolean(conversation.shareAnalyses) !== Boolean(shareAnalyses)) {
+                    transitions.push({ scope: 'lab', before: Boolean(conversation.shareAnalyses), after: Boolean(shareAnalyses) });
+                }
+                if (shareMedications !== undefined && Boolean(conversation.shareMedications) !== Boolean(shareMedications)) {
+                    transitions.push({ scope: 'medications', before: Boolean(conversation.shareMedications), after: Boolean(shareMedications) });
+                }
+                for (const t of transitions) {
+                    await this.prisma.dataAccessAudit.create({
+                        data: {
+                            clientId: conversation.clientId,
+                            expertId: conversation.expertId,
+                            action: t.after ? 'granted' : 'revoked',
+                            scope: t.scope,
+                            context: { source: 'client_toggle', conversationId: id, autoOnEnd: isEnding || undefined },
+                        },
+                    });
+                }
+            } catch (err: any) {
+                this.logger.warn(`[Conversations] audit log for sharing change failed: ${err?.message}`);
+            }
+        }
+
         // Increment expert's consultation count only on transition to 'completed'
         if (dto.status === 'completed' && conversation.status !== 'completed') {
             await this.prisma.expertProfile.update({
@@ -452,10 +483,31 @@ export class ConversationsService {
                     targetWeight: true,
                     dailyCalories: true,
                     healthProfile: wantMedications,
-                    preferences: false,
+                    // Expose preferences so the expert can see the client's
+                    // dietary preferences, allergies and health conditions
+                    // (gastritis / diabetes / high cholesterol). We only
+                    // surface a safe whitelist below, not the raw object.
+                    preferences: true,
                 },
             }),
         ]);
+
+        // Extract the safe subset of preferences for the expert: dietary prefs,
+        // allergies and chronic conditions. Subscription / language / country
+        // stay private.
+        if (userProfile) {
+            const prefs = (userProfile.preferences || {}) as Record<string, any>;
+            (userProfile as any).preferences = {
+                dietaryPreferences: Array.isArray(prefs.dietaryPreferences)
+                    ? prefs.dietaryPreferences
+                    : Array.isArray(prefs.diets) ? prefs.diets : [],
+                allergies: Array.isArray(prefs.allergies) ? prefs.allergies : [],
+                allergiesNone: Boolean(prefs.allergiesNone),
+                healthConditions: Array.isArray(prefs.healthConditions)
+                    ? prefs.healthConditions.filter((c: string) => c && c !== 'none')
+                    : [],
+            };
+        }
 
         // Best-effort audit log of data access — never block the response on failure.
         this.prisma.adminAuditLog

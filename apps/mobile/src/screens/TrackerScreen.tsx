@@ -29,7 +29,7 @@ import { Habit } from '../types/tracker';
 
 export default function TrackerScreen() {
   const { colors, tokens } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
   const [showHabitModal, setShowHabitModal] = useState(false);
@@ -38,16 +38,17 @@ export default function TrackerScreen() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState('');
 
-  // Refresh date when screen is focused (handles midnight crossover)
+  // Refresh date when screen is focused (handles midnight crossover).
+  // Use the app language (not the device locale) so the date matches the UI.
   const [dateStr, setDateStr] = useState(() =>
-    new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+    new Date().toLocaleDateString(language || undefined, { weekday: 'long', day: 'numeric', month: 'long' })
   );
   useFocusEffect(
     useCallback(() => {
       setDateStr(
-        new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+        new Date().toLocaleDateString(language || undefined, { weekday: 'long', day: 'numeric', month: 'long' })
       );
-    }, [])
+    }, [language])
   );
 
   // Fetch real subscription plan

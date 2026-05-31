@@ -131,10 +131,12 @@ export class FoodProcessor {
         const DISPLAY_QUALITY = 80;
 
         // ANALYSIS: Balanced for quality + speed
-        // FIX 2026-01-19: Restored to 512px for better recognition quality
-        // GPT-4o-mini needs reasonable resolution for accurate ingredient identification
-        const ANALYSIS_MAX_DIM = 512; // Restored for quality (was 384)
-        const ANALYSIS_QUALITY = 45;  // Balanced quality/speed (was 35)
+        // FIX 2026-05-29: Raised resolution+quality. q45 was too aggressive and
+        // hurt ingredient/portion recognition (a key driver of wrong numbers).
+        // 768px@q70 is still small (~80-150KB) so latency/cost stay low; the
+        // VisionService base64 optimizer downsizes further only if it exceeds limit.
+        const ANALYSIS_MAX_DIM = 768; // was 512
+        const ANALYSIS_QUALITY = 70;  // was 45
 
         // Process both in parallel for speed
         const [displayResult, analysisResult] = await Promise.all([
@@ -184,40 +186,41 @@ export class FoodProcessor {
         }
       }
 
-      // Save image to Media and get public URL (use displayBuffer - high quality)
-      const mediaStart = Date.now();
-      let imageUrl: string | null = null;
-      try {
-        const mockFile = {
-          buffer: displayBuffer,  // HIGH QUALITY for storage
-          originalname: `analysis-${analysisId}.jpg`,
-          mimetype: 'image/jpeg',
-          size: displayBuffer.length,
-        };
-        const mediaResult = await this.mediaService.uploadFile(mockFile, userId);
-        imageUrl = mediaResult.url;
-        metrics.mediaUploadTime = Date.now() - mediaStart;
-        this.logger.debug(`[FoodProcessor] Media upload: ${metrics.mediaUploadTime}ms`);
-
-        // Update analysis metadata with imageUrl for future reanalysis
-        const existingAnalysis = await this.prisma.analysis.findUnique({ where: { id: analysisId } });
-        const existingMetadata = (existingAnalysis?.metadata as any) || {};
-        await this.prisma.analysis.update({
-          where: { id: analysisId },
-          data: {
-            metadata: {
-              ...existingMetadata,
-              imageUrl,
-            },
-          },
-        });
-      } catch (mediaError: any) {
-        this.logger.warn(`[FoodProcessor] Failed to save image to media:`, mediaError.message);
-        // Continue without imageUrl - analysis can still proceed
-      }
-
       // Convert ANALYSIS buffer to base64 (compressed for speed)
       const imageBase64 = analysisBuffer.toString('base64');
+
+      // FIX 2026-05-29 (speed): overlap the Media (S3) upload with Vision analysis.
+      // Vision now uses base64 directly, so it no longer waits for the upload to finish.
+      const mediaStart = Date.now();
+      const mediaUploadPromise: Promise<string | null> = (async () => {
+        try {
+          const mockFile = {
+            buffer: displayBuffer,  // HIGH QUALITY for storage
+            originalname: `analysis-${analysisId}.jpg`,
+            mimetype: 'image/jpeg',
+            size: displayBuffer.length,
+          };
+          const mediaResult = await this.mediaService.uploadFile(mockFile, userId);
+          metrics.mediaUploadTime = Date.now() - mediaStart;
+          this.logger.debug(`[FoodProcessor] Media upload: ${metrics.mediaUploadTime}ms`);
+
+          // Update analysis metadata with imageUrl for future reanalysis
+          try {
+            const existingAnalysis = await this.prisma.analysis.findUnique({ where: { id: analysisId } });
+            const existingMetadata = (existingAnalysis?.metadata as any) || {};
+            await this.prisma.analysis.update({
+              where: { id: analysisId },
+              data: { metadata: { ...existingMetadata, imageUrl: mediaResult.url } },
+            });
+          } catch (metaError: any) {
+            this.logger.warn(`[FoodProcessor] Failed to persist imageUrl metadata:`, metaError.message);
+          }
+          return mediaResult.url as string;
+        } catch (mediaError: any) {
+          this.logger.warn(`[FoodProcessor] Failed to save image to media:`, mediaError.message);
+          return null; // Continue without imageUrl - analysis can still proceed
+        }
+      })();
 
       // Fetch userProfile so analysis can personalize the result based on
       // allergies / diet / healthFocus / goal / GLP-1.
@@ -237,13 +240,11 @@ export class FoodProcessor {
       }
       userProfile = await this.stripPremiumHealthProfileForFreeUser(userId, userProfile);
 
-      // Use new AnalyzeService with USDA + local catalog
-      // Note: analyzeImage accepts imageBase64, but VisionService.getOrExtractComponents
-      // can also accept imageBuffer directly for better caching
+      // Use new AnalyzeService with USDA + local catalog.
+      // Vision uses base64 directly (no dependency on the in-flight Media upload).
       const analyzeStart = Date.now();
       const analysisResult = await this.analyzeService.analyzeImage({
         imageBase64,
-        imageUrl: imageUrl ?? undefined, // Pass imageUrl if available for better cache key generation
         locale,
         foodDescription: foodDescription || undefined, // Pass food description if provided
         skipCache: skipCache || false, // Pass skip-cache flag for debugging
@@ -251,6 +252,9 @@ export class FoodProcessor {
         userId, // Scope cache by user so personalized adjustments don't leak across users
       });
       metrics.analyzeTime = Date.now() - analyzeStart;
+
+      // Resolve image URL (upload almost certainly finished during Vision analysis)
+      const imageUrl: string | null = await mediaUploadPromise;
 
       // Check if analysis returned an error state (api_error, parse_error, no_food_detected)
       const visionStatus = (analysisResult.debug as any)?.visionStatus;

@@ -30,7 +30,10 @@ export class ExpertsService {
     ) { }
 
     private normalizeAccessCode(code: string) {
-        return String(code || '').replace(/[^a-z0-9]/gi, '').toUpperCase();
+        // Keep hyphens: branded codes are stored WITH them (e.g. "MANSHUK-OBGYN")
+        // and the mobile input preserves them too. Stripping hyphens here made
+        // every hyphenated code impossible to apply ("Check the code").
+        return String(code || '').replace(/[^a-z0-9-]/gi, '').toUpperCase();
     }
 
     private async assertCodeRateLimit(userId: string) {
@@ -565,19 +568,61 @@ export class ExpertsService {
 
         // Notify expert + insert welcome system message (best-effort, never blocks the flow).
         Promise.resolve().then(async () => {
+            // Both messages are localized by the RECIPIENT's language stored in
+            // their preferences.language (the same field the notifications scheduler
+            // uses). Push to the expert → expert's language. Welcome in the
+            // conversation → client's language (the client is the one reading it).
+            const pickLang = (raw: any): 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' => {
+                const v = String(raw || '').split('-')[0].toLowerCase();
+                return (['ru', 'kk', 'fr', 'de', 'es'] as const).includes(v as any) ? (v as any) : 'en';
+            };
+            const PUSH_TITLE: Record<string, string> = {
+                en: 'New client', ru: 'Новый клиент', kk: 'Жаңа клиент',
+                fr: 'Nouveau client', de: 'Neuer Klient', es: 'Nuevo cliente',
+            };
+            const PUSH_BODY: Record<string, (name: string) => string> = {
+                en: (n) => `${n} connected via your access code.`,
+                ru: (n) => `${n} подключился по вашему коду.`,
+                kk: (n) => `${n} сіздің кодыңыз арқылы қосылды.`,
+                fr: (n) => `${n} s'est connecté via votre code d'accès.`,
+                de: (n) => `${n} hat sich mit Ihrem Zugangscode verbunden.`,
+                es: (n) => `${n} se conectó con tu código de acceso.`,
+            };
+            const WELCOME_BODY: Record<string, string> = {
+                en: 'Welcome! Feel free to ask anything — I will respond as soon as I can.',
+                ru: 'Добро пожаловать! Задавайте любые вопросы — я отвечу, как только смогу.',
+                kk: 'Қош келдіңіз! Кез келген сұрағыңызды қойыңыз — мүмкіндігінше жауап беремін.',
+                fr: "Bienvenue ! N'hésitez pas à poser vos questions — je vous répondrai dès que possible.",
+                de: 'Willkommen! Stellen Sie gerne Fragen — ich antworte, sobald ich kann.',
+                es: '¡Bienvenido! No dudes en preguntar lo que sea — te responderé lo antes posible.',
+            };
+
+            let clientName = 'A new client';
+            let clientLang: 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es' = 'en';
             try {
                 const client = await this.prisma.user.findUnique({
                     where: { id: userId },
                     select: {
                         email: true,
-                        userProfile: { select: { firstName: true } },
+                        userProfile: { select: { firstName: true, preferences: true } },
                     },
                 });
-                const clientName = client?.userProfile?.firstName || client?.email?.split('@')[0] || 'A new client';
+                clientName = client?.userProfile?.firstName || client?.email?.split('@')[0] || clientName;
+                clientLang = pickLang((client?.userProfile?.preferences as any)?.language);
+            } catch {
+                /* best-effort */
+            }
+
+            try {
+                const expertProfile = await this.prisma.userProfile.findUnique({
+                    where: { userId: accessCode.expert.userId },
+                    select: { preferences: true },
+                });
+                const expertLang = pickLang((expertProfile?.preferences as any)?.language);
                 await this.notifications.sendPushNotification(
                     accessCode.expert.userId,
-                    'New client',
-                    `${clientName} connected via your access code.`,
+                    PUSH_TITLE[expertLang],
+                    PUSH_BODY[expertLang](clientName),
                     { type: 'expert.new_client', expertId: accessCode.expertId, clientId: userId },
                 );
             } catch (err) {
@@ -602,7 +647,7 @@ export class ExpertsService {
                             conversationId: result.conversation.id,
                             senderId: accessCode.expert.userId,
                             type: 'text',
-                            content: 'Welcome! Feel free to ask anything — I will respond as soon as I can.',
+                            content: WELCOME_BODY[clientLang],
                             metadata: { system: true, kind: 'welcome', clientId: userId },
                         },
                     }).catch(() => {});
