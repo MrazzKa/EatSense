@@ -13,6 +13,7 @@ export const TooltipIds = {
     MEDICATION_SCHEDULE: 'tooltip_medication_schedule',
     AI_ASSISTANT: 'tooltip_ai_assistant',
     PROFILE_SETTINGS: 'tooltip_profile_settings',
+    GETTING_STARTED: 'tooltip_getting_started',
 } as const;
 
 export type TooltipId = typeof TooltipIds[keyof typeof TooltipIds];

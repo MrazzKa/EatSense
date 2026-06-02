@@ -262,7 +262,7 @@ export default function ConsultationsPage() {
             {t('consultations', 'empty')}
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 fade-up">
             {filtered.map((c) => {
               const inWindow = Date.now() >= new Date(c.startAt).getTime() - 5 * 60000 && Date.now() < new Date(c.endAt).getTime() + 10 * 60000;
               return (

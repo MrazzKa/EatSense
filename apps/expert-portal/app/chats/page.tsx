@@ -140,17 +140,26 @@ export default function ChatsPage() {
             <p className="text-[var(--text2)]">{t('chats', 'empty')}</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 fade-up">
             {conversations.map((conv) => (
               <Link
                 key={conv.id}
                 href={`/chats/${conv.id}`}
-                className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 transition hover:bg-[var(--surface2)] sm:gap-4 sm:p-4"
+                className="card-interactive flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:gap-4 sm:p-4"
               >
                 {/* Avatar */}
-                <div className="w-11 h-11 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-sm shrink-0">
-                  {getClientName(conv).charAt(0).toUpperCase()}
-                </div>
+                {conv.client?.userProfile?.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={conv.client.userProfile.avatarUrl}
+                    alt={getClientName(conv)}
+                    className="h-11 w-11 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {getClientName(conv).charAt(0).toUpperCase()}
+                  </div>
+                )}
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">

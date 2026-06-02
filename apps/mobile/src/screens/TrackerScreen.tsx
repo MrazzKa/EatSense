@@ -75,7 +75,6 @@ export default function TrackerScreen() {
     addHabit,
     updateHabit,
     deleteHabit,
-    reorderHabits,
     toggleCompletion,
     isHabitActiveOnDate,
   } = useHabits();
@@ -180,7 +179,7 @@ export default function TrackerScreen() {
           {streak > 0 && (
             <GlassCard branded intensity="subtle" padding={null} style={styles.streakCard}>
               <View style={styles.streakRow}>
-                <Text style={styles.streakEmoji}>🔥</Text>
+                <Ionicons name="flame" size={20} color={colors.warning || '#F59E0B'} style={{ marginRight: 6 }} />
                 <Text style={[styles.streakText, { color: colors.primary }]}>
                   {streak} {t('tracker.streak') || 'day streak'}
                 </Text>
@@ -210,7 +209,9 @@ export default function TrackerScreen() {
             ) : (
               <GlassCard style={styles.emptyCard}>
                 <View style={styles.emptyState}>
-                  <Text style={{ fontSize: 36 }}>📋</Text>
+                  <View style={{ width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: (colors.primary || '#4CAF50') + '14', marginBottom: 10 }}>
+                    <Ionicons name="checkmark-done-outline" size={28} color={colors.primary || '#4CAF50'} />
+                  </View>
                   <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
                     {t('tracker.emptyState') || 'No habits yet'}
                   </Text>
@@ -286,7 +287,7 @@ export default function TrackerScreen() {
   );
 }
 
-const createStyles = (tokens: any, colors: any) =>
+const createStyles = (tokens: any, _colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,

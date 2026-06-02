@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 
-export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, value, label, goal, goalUnit, children }) {
+// Lighten a #RRGGBB toward white by amt (0..1) — used for the ring gradient.
+function lighten(hex: string, amt: number): string {
+  if (!hex?.startsWith('#') || hex.length < 7) return hex;
+  const mix = (c: number) => Math.round(c + (255 - c) * amt);
+  const r = mix(parseInt(hex.slice(1, 3), 16));
+  const g = mix(parseInt(hex.slice(3, 5), 16));
+  const b = mix(parseInt(hex.slice(5, 7), 16));
+  const h = (n: number) => n.toString(16).padStart(2, '0');
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+export function CircularProgress({ progress = 0, size = 220, strokeWidth = 14, value, label, goal, goalUnit, children }) {
   const { colors } = useTheme();
   const { t } = useI18n();
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -64,21 +75,28 @@ export function CircularProgress({ progress = 0, size = 220, strokeWidth = 8, va
   return (
     <View style={[styles.container, { width: size, height: size }]}>
       <Svg width={size} height={size} style={styles.svg}>
-        {/* Background circle */}
+        <Defs>
+          <LinearGradient id="calorieGrad" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={getProgressColor()} />
+            <Stop offset="1" stopColor={lighten(getProgressColor(), 0.4)} />
+          </LinearGradient>
+        </Defs>
+        {/* Background track */}
         <Circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           stroke={colors.borderMuted || '#E5E7EB'}
           strokeWidth={strokeWidth}
+          strokeOpacity={0.5}
           fill="none"
         />
-        {/* Progress circle */}
+        {/* Progress circle — gradient stroke */}
         <Circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={getProgressColor()}
+          stroke="url(#calorieGrad)"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}

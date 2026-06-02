@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import ApiService from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
+import Markdown from 'react-native-markdown-display';
 import { clientLog } from '../utils/clientLog';
 import { mapLanguageToLocale } from '../utils/locale';
 import Tooltip from './Tooltip/Tooltip';
@@ -75,6 +76,62 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
   const { t, language } = useI18n();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+
+  // Markdown styling for assistant replies. The model returns markdown
+  // (**bold**, bullet lists, headings); without a renderer those symbols leak
+  // as raw text. Keep it tight to the chat bubble and theme-aware.
+  const assistantTextColor = colors.textPrimary || colors.text || '#000000';
+  const markdownStyles = useMemo(
+    () => ({
+      body: { color: assistantTextColor, fontSize: 16, lineHeight: 24, letterSpacing: 0.2 },
+      paragraph: { marginTop: 0, marginBottom: 8 },
+      heading1: { color: assistantTextColor, fontSize: 19, fontWeight: '700' as const, marginTop: 4, marginBottom: 6 },
+      heading2: { color: assistantTextColor, fontSize: 17, fontWeight: '700' as const, marginTop: 4, marginBottom: 6 },
+      heading3: { color: assistantTextColor, fontSize: 16, fontWeight: '700' as const, marginTop: 4, marginBottom: 4 },
+      strong: { fontWeight: '700' as const },
+      em: { fontStyle: 'italic' as const },
+      bullet_list: { marginBottom: 4 },
+      ordered_list: { marginBottom: 4 },
+      list_item: { marginBottom: 2, flexDirection: 'row' as const },
+      bullet_list_icon: { color: colors.primary || assistantTextColor, marginRight: 6 },
+      ordered_list_icon: { color: colors.primary || assistantTextColor, marginRight: 6 },
+      code_inline: {
+        backgroundColor: (colors.surfaceMuted || '#E5E5EA') as string,
+        color: assistantTextColor,
+        borderRadius: 4,
+        paddingHorizontal: 4,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        fontSize: 14,
+      },
+      fence: {
+        backgroundColor: (colors.surfaceMuted || '#E5E5EA') as string,
+        color: assistantTextColor,
+        borderRadius: 8,
+        padding: 10,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        fontSize: 14,
+      },
+      code_block: {
+        backgroundColor: (colors.surfaceMuted || '#E5E5EA') as string,
+        color: assistantTextColor,
+        borderRadius: 8,
+        padding: 10,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        fontSize: 14,
+      },
+      link: { color: colors.primary || '#007AFF', textDecorationLine: 'underline' as const },
+      blockquote: {
+        backgroundColor: (colors.surfaceMuted || '#F2F2F7') as string,
+        borderLeftWidth: 3,
+        borderLeftColor: colors.primary || '#007AFF',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        marginBottom: 8,
+      },
+      hr: { backgroundColor: colors.border || '#D1D1D6', height: 1, marginVertical: 8 },
+    }),
+    [assistantTextColor, colors.primary, colors.surfaceMuted, colors.border],
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -570,16 +627,15 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
               </Text>
             </View>
           )}
-          <Text
-            style={[
-              styles.messageText,
-              isUser
-                ? { color: colors.onPrimary || '#FFFFFF' }
-                : { color: colors.textPrimary || colors.text || '#000000' },
-            ]}
-          >
-            {message.content}
-          </Text>
+          {isUser ? (
+            <Text
+              style={[styles.messageText, { color: colors.onPrimary || '#FFFFFF' }]}
+            >
+              {message.content}
+            </Text>
+          ) : (
+            <Markdown style={markdownStyles}>{message.content || ''}</Markdown>
+          )}
           {message.isError && (
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
               <Text style={[styles.retryText, { color: colors.error }]}>{t('common.retry') || 'Retry'}</Text>

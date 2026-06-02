@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.52",
+    version: "2.0.54",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "71",
+      buildNumber: "72",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -74,8 +74,17 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 107,
+      versionCode: 108,
       adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
+      // react-native-maps on Android requires a Google Maps API key. iOS uses
+      // Apple Maps (PROVIDER_DEFAULT) and needs no key. Provide the key via
+      // EXPO_PUBLIC_GOOGLE_MAPS_API_KEY before the next Android build; without
+      // it the map renders blank on Android only.
+      config: {
+        googleMaps: {
+          apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+        }
+      },
       permissions: ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "READ_MEDIA_IMAGES", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "POST_NOTIFICATIONS"],
       intentFilters: [{
         action: "VIEW",
@@ -115,6 +124,7 @@ export default {
       "expo-media-library",
       "expo-localization",
       "expo-location",
+      "expo-video",
       "expo-notifications",
       "expo-asset",
       [

@@ -11,6 +11,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +22,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { ListSkeleton } from '../components/common/Skeleton';
 import { BottomSheet } from '../components/common/BottomSheet';
+import PharmacyMap from '../components/pharmacy/PharmacyMap';
+import { GenevaPharmacy, GENEVA_PHARMACIES } from '../data/genevaPharmacies';
 
 // --- Types ---
 
@@ -64,7 +67,7 @@ type PharmacyOrder = {
 const ConnectPharmacyModal: React.FC<{
   visible: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (_data: any) => void;
   colors: any;
   t: any;
   editing?: PharmacyConnection | null;
@@ -239,7 +242,7 @@ const ConnectPharmacyModal: React.FC<{
 const OrderModal: React.FC<{
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (_data: any) => void;
   pharmacies: PharmacyConnection[];
   medications: Medication[];
   initialItem?: OrderItem | null;
@@ -624,6 +627,16 @@ const PharmacyScreen: React.FC = () => {
   const [codeInput, setCodeInput] = useState('');
   const [applyingCode, setApplyingCode] = useState(false);
 
+  // Map: selected pin (from the Geneva directory) + link-in-progress flag.
+  const [mapPharmacy, setMapPharmacy] = useState<GenevaPharmacy | null>(null);
+  const [linkingMap, setLinkingMap] = useState(false);
+
+  // Curated pharmacies that are already connected (matched by name) — shown
+  // with a "linked" pin and hide the link CTA.
+  const connectedMapIds = GENEVA_PHARMACIES.filter((g) =>
+    pharmacies.some((c) => (c.pharmacyName || '').trim().toLowerCase() === g.name.toLowerCase()),
+  ).map((g) => g.id);
+
   // Deep-link from a low-stock refill nudge (push or the "Order refill" button
   // on the medication card): open the order modal with the medication pre-filled.
   useEffect(() => {
@@ -718,6 +731,40 @@ const PharmacyScreen: React.FC = () => {
     );
   };
 
+  const handleLinkMapPharmacy = async (p: GenevaPharmacy) => {
+    setLinkingMap(true);
+    try {
+      await ApiService.connectPharmacy({
+        pharmacyName: p.name,
+        pharmacyAddress: p.address,
+        pharmacyPhone: p.phone,
+        pharmacyEmail: p.email,
+        pharmacyWebsite: p.website,
+      });
+      await loadData();
+      setMapPharmacy(null);
+      Alert.alert(
+        t('pharmacy.codeAppliedTitle', 'Pharmacy linked'),
+        t('pharmacy.codeAppliedBody', 'This pharmacy is now connected.'),
+      );
+    } catch (e) {
+      console.error('[Pharmacy] Link map pharmacy error:', e);
+      Alert.alert(t('common.error', 'Error'), t('pharmacy.error.connect', 'Failed to connect pharmacy'));
+    } finally {
+      setLinkingMap(false);
+    }
+  };
+
+  const openInMaps = (p: GenevaPharmacy) => {
+    const q = encodeURIComponent(`${p.name}, ${p.address}`);
+    const url = Platform.select({
+      ios: `http://maps.apple.com/?q=${q}&ll=${p.latitude},${p.longitude}`,
+      android: `geo:${p.latitude},${p.longitude}?q=${q}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}`,
+    }) as string;
+    Linking.openURL(url).catch(() => {});
+  };
+
   const handleSubmitOrder = async (data: any) => {
     try {
       await ApiService.createPharmacyOrder(data);
@@ -772,8 +819,23 @@ const PharmacyScreen: React.FC = () => {
         <ListSkeleton count={4} />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Connected Pharmacies Section */}
+          {/* Nearby pharmacies map (pilot: Geneva) */}
           <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
+            {t('pharmacy.nearbyTitle', 'Pharmacies near you')}
+          </Text>
+          <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+            {t('pharmacy.nearbySub', 'Tap a pin to see details or link an EatSense partner pharmacy.')}
+          </Text>
+          <PharmacyMap
+            colors={colors}
+            t={t}
+            onSelect={setMapPharmacy}
+            selectedId={mapPharmacy?.id}
+            connectedIds={connectedMapIds}
+          />
+
+          {/* Connected Pharmacies Section */}
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text, marginTop: 8 }]}>
             {t('pharmacy.connectedPharmacies', 'Connected Pharmacies')}
           </Text>
 
@@ -972,6 +1034,87 @@ const PharmacyScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </BottomSheet>
+
+      {/* Map pin detail / link */}
+      <BottomSheet visible={!!mapPharmacy} onClose={() => setMapPharmacy(null)}>
+        {mapPharmacy && (() => {
+          const isConnected = connectedMapIds.includes(mapPharmacy.id);
+          return (
+            <View>
+              <View style={styles.mapSheetHeader}>
+                <View style={[styles.pharmacyIcon, { backgroundColor: colors.primary + '15' }]}>
+                  <Ionicons name="storefront" size={20} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.pharmacyName, { color: colors.textPrimary || colors.text }]}>
+                    {mapPharmacy.name}
+                  </Text>
+                  <View style={styles.mapBadgeRow}>
+                    {isConnected ? (
+                      <View style={[styles.mapBadge, { backgroundColor: (colors.success || '#10B981') + '20' }]}>
+                        <Text style={[styles.mapBadgeText, { color: colors.success || '#10B981' }]}>
+                          {t('pharmacy.linkedBadge', 'Linked')}
+                        </Text>
+                      </View>
+                    ) : mapPharmacy.partner ? (
+                      <View style={[styles.mapBadge, { backgroundColor: colors.primary + '18' }]}>
+                        <Text style={[styles.mapBadgeText, { color: colors.primary }]}>
+                          {t('pharmacy.partnerBadge', 'EatSense partner')}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={[styles.mapBadge, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
+                        <Text style={[styles.mapBadgeText, { color: colors.textSecondary }]}>
+                          {t('pharmacy.notPartnerBadge', 'Not a partner yet')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
+
+              <View style={[styles.pharmacyDetailRow, { paddingLeft: 0, marginTop: 14 }]}>
+                <Ionicons name="location-outline" size={16} color={colors.textTertiary} />
+                <Text style={[styles.pharmacyDetailText, { color: colors.textSecondary }]}>{mapPharmacy.address}</Text>
+              </View>
+              {mapPharmacy.phone ? (
+                <TouchableOpacity
+                  style={[styles.pharmacyDetailRow, { paddingLeft: 0, marginTop: 8 }]}
+                  onPress={() => Linking.openURL(`tel:${mapPharmacy.phone}`).catch(() => {})}
+                >
+                  <Ionicons name="call-outline" size={16} color={colors.textTertiary} />
+                  <Text style={[styles.pharmacyDetailText, { color: colors.primary }]}>{mapPharmacy.phone}</Text>
+                </TouchableOpacity>
+              ) : null}
+
+              <View style={[styles.codeActions, { marginTop: 18 }]}>
+                <TouchableOpacity
+                  style={[styles.codeCancel, { borderColor: colors.border || '#E5E7EB' }]}
+                  onPress={() => openInMaps(mapPharmacy)}
+                >
+                  <Ionicons name="navigate-outline" size={16} color={colors.textPrimary || colors.text} style={{ marginRight: 6 }} />
+                  <Text style={{ color: colors.textPrimary || colors.text, fontWeight: '700' }}>
+                    {t('pharmacy.openInMaps', 'Directions')}
+                  </Text>
+                </TouchableOpacity>
+                {mapPharmacy.partner && !isConnected && (
+                  <TouchableOpacity
+                    style={[styles.codeApply, { backgroundColor: colors.primary, opacity: linkingMap ? 0.6 : 1 }]}
+                    onPress={() => handleLinkMapPharmacy(mapPharmacy)}
+                    disabled={linkingMap}
+                  >
+                    {linkingMap ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <Text style={{ color: '#FFF', fontWeight: '800' }}>{t('pharmacy.linkThisPharmacy', 'Link pharmacy')}</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          );
+        })()}
+      </BottomSheet>
     </SafeAreaView>
   );
 };
@@ -995,6 +1138,13 @@ const styles = StyleSheet.create({
 
   // Section
   sectionTitle: { fontSize: 17, fontWeight: '700', marginBottom: 12 },
+  sectionSub: { fontSize: 13, lineHeight: 18, marginTop: -6, marginBottom: 12 },
+
+  // Map pin detail sheet
+  mapSheetHeader: { flexDirection: 'row', alignItems: 'center' },
+  mapBadgeRow: { flexDirection: 'row', marginTop: 4 },
+  mapBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  mapBadgeText: { fontSize: 11, fontWeight: '700' },
 
   // Empty state
   emptyCard: {
@@ -1060,8 +1210,8 @@ const styles = StyleSheet.create({
     marginTop: 16, fontSize: 18, fontWeight: '800', letterSpacing: 1,
   },
   codeActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
-  codeCancel: { flex: 1, minHeight: 46, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  codeApply: { flex: 1.4, minHeight: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  codeCancel: { flex: 1, minHeight: 46, borderRadius: 12, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  codeApply: { flex: 1.4, minHeight: 46, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
 
   // Order button
   orderBtn: {

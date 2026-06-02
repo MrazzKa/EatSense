@@ -138,12 +138,19 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex min-h-[44px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2.5 text-[10px] leading-tight transition ${
-                active ? 'bg-[var(--primary)] text-white' : 'text-[var(--text2)]'
+              aria-current={active ? 'page' : undefined}
+              className={`flex min-h-[48px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] leading-tight transition-transform active:scale-95 ${
+                active ? 'text-[var(--primary)]' : 'text-[var(--text2)]'
               }`}
             >
-              <Icon size={19} />
-              <span className="w-full truncate text-center">{mobileLabel(item.key)}</span>
+              <span
+                className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
+                  active ? 'bg-[var(--primary-soft)]' : 'bg-transparent'
+                }`}
+              >
+                <Icon size={19} strokeWidth={active ? 2.4 : 2} />
+              </span>
+              <span className="w-full truncate text-center font-medium">{mobileLabel(item.key)}</span>
             </Link>
           );
         })}

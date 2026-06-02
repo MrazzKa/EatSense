@@ -38,7 +38,7 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-md rounded-2xl bg-[var(--surface)] p-6 shadow-2xl">
+      <div className="fade-up relative w-full max-w-md rounded-2xl bg-[var(--surface)] p-6 shadow-2xl">
         <button onClick={close} aria-label={t('onboardingTour', 'closeAria')} className="absolute right-3 top-3 text-[var(--text2)] hover:text-[var(--text)]">
           <X size={20} />
         </button>

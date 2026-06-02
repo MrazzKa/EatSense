@@ -13,8 +13,6 @@ import {
     ScrollView,
     Linking,
     Alert,
-    KeyboardAvoidingView,
-    Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
@@ -28,6 +26,7 @@ import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import MarketplaceService from '../services/marketplaceService';
 import ApiService from '../services/apiService';
 import { BottomSheet } from '../components/common/BottomSheet';
+import { EXPERT_APPLICATIONS_ENABLED } from '../config/experts';
 
 const SPECIALIZATIONS = [
     'weightManagement', 'sportsNutrition', 'clinicalNutrition', 'pediatricNutrition',
@@ -54,6 +53,7 @@ const PAGE_SIZE = 20;
 // Pilot: hide public catalog & "Become expert" CTA. Only show: code input,
 // "My specialists", and "Scheduled consultations". Flip when launching the
 // public marketplace.
+// Self-service expert applications are disabled in the pilot (attach-by-code only).
 const EXPERT_CATALOG_VISIBLE = false;
 
 export default function ExpertsScreen({ navigation }: { navigation: any }) {
@@ -654,7 +654,7 @@ export default function ExpertsScreen({ navigation }: { navigation: any }) {
                     </View>
                     <Text style={styles.expertBannerLink}>{t('experts.ownerOpenPortal')}</Text>
                 </TouchableOpacity>
-            ) : !isExpert && EXPERT_CATALOG_VISIBLE && (
+            ) : !isExpert && EXPERT_CATALOG_VISIBLE && EXPERT_APPLICATIONS_ENABLED && (
                 <TouchableOpacity
                     style={styles.expertBanner}
                     onPress={() => navigation.navigate('BecomeExpert')}

@@ -23,7 +23,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { mapLanguageToLocale } from '../utils/locale';
 import { getDisclaimer } from '../legal/disclaimerUtils';
-import HealthDisclaimer from '../components/HealthDisclaimer';
 import HealthImpactCard from '../components/HealthImpactCard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -637,7 +636,7 @@ export default function AnalysisResultsScreen() {
                       return; // done
                     }
                     setTimeout(() => tryEnrich(attempt + 1, enrichedSig), enrichmentDelays[attempt + 1] ?? 0);
-                  } catch (e) {
+                  } catch {
                     // best-effort enrichment, ignore
                   }
                 };

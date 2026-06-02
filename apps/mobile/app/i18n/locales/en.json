@@ -148,32 +148,36 @@
     }
   },
   "help": {
-    "title": "Help & Support",
-    "faqTitle": "Frequently Asked Questions",
-    "contactTitle": "Contact Us",
-    "feedbackTitle": "Feedback",
-    "feedbackSubtitle": "Share your ideas",
-    "feedbackAlert": "Thank you for your interest! The feedback feature is coming soon.",
-    "faq": {
-      "howToUse": {
-        "question": "How to use the app?",
-        "answer": "Take a photo of your food or choose one from your gallery. Our AI will analyze the dish and show you calories and nutrients."
+    "title": "Help & guides",
+    "subtitle": "Short guides to get the most out of EatSense.",
+    "cardSubtitle": "Learn how meal analysis, experts & pharmacy work",
+    "videoComingSoon": "Video guide coming soon",
+    "footer": "Need more help? Reach us from Profile → Support.",
+    "topics": {
+      "mealAnalysis": {
+        "title": "Analyze a meal",
+        "step1": "Tap the camera button on the home screen.",
+        "step2": "Take a photo of your meal or pick one from your gallery.",
+        "step3": "Wait a few seconds while EatSense analyzes the dish.",
+        "step4": "See calories and nutrients — ask the assistant for tips."
       },
-      "photoLimit": {
-        "question": "How many photos can I analyze?",
-        "answer": "Free users can analyze up to 5 photos per day. Subscribers have unlimited access."
+      "medications": {
+        "title": "Track medications",
+        "step1": "Open the Medicine cabinet from your profile.",
+        "step2": "Add a medication with its dose times and supply.",
+        "step3": "Get reminders and an alert when it runs low."
       },
-      "saveMeal": {
-        "question": "How do I save a meal?",
-        "answer": "After analysis, tap \"Save to Journal\" to add the meal to your food diary."
+      "experts": {
+        "title": "Connect with an expert",
+        "step1": "Open the Experts tab.",
+        "step2": "Enter the code your nutritionist or doctor gave you.",
+        "step3": "Chat, share data and book video consultations."
       },
-      "editResults": {
-        "question": "Can I edit analysis results?",
-        "answer": "Yes, you can tap on any ingredient to manually adjust its values."
-      },
-      "aiAssistant": {
-        "question": "How does AI Assistant work?",
-        "answer": "AI Assistant provides personalized nutrition advice based on your profile and eating habits."
+      "pharmacy": {
+        "title": "Order from a pharmacy",
+        "step1": "Open My pharmacy from the Medicine cabinet.",
+        "step2": "Find a pharmacy on the map or enter its code to link it.",
+        "step3": "Order a refill — we email the pharmacy after you confirm."
       }
     }
   },
@@ -644,7 +648,10 @@
       "takePhoto": "Take Photo",
       "title": "Title"
     },
-    "showAllMeals": "Show All Meals"
+    "showAllMeals": "Show All Meals",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening"
   },
   "mealHistory": {
     "title": "All Meals",
@@ -1843,6 +1850,14 @@
     "accessGrantedAll": "Access granted: meals, analyses, medications.",
     "chooseDataToShare": "Choose data to share",
     "chooseDataToShareBody": "You can revoke access at any time. Sharing automatically ends when the consultation is marked complete.",
+    "shareMedicationsOnly": "Medications only",
+    "accessPartiallyRevoked": "Some data access was revoked.",
+    "revokeMealsOnly": "Stop sharing meals",
+    "revokeAnalysesOnly": "Stop sharing analyses",
+    "revokeMedicationsOnly": "Stop sharing medications",
+    "revokeAll": "Revoke all access",
+    "chooseDataToRevoke": "Choose what to stop sharing",
+    "chooseDataToRevokeBody": "Select which data category to revoke. You can re-grant access at any time.",
     "shareAll": "Share everything",
     "shareMealsOnly": "Meals only",
     "shareAnalysesOnly": "Analyses only",
@@ -2560,7 +2575,7 @@
     "schedule": "Schedule",
     "supply": "Supply",
     "notes": "Notes",
-    "title": "Medication schedule",
+    "title": "My Meds",
     "subtitle": "Manage your medication schedule",
     "tabTitle": "Medications",
     "empty": "No medications yet. Add your first one.",
@@ -4373,7 +4388,7 @@
   "pharmacy": {
     "title": "My Pharmacy",
     "subtitle": "Connect pharmacy & order medications",
-    "bannerText": "Connect your pharmacy & order meds",
+    "bannerText": "Find pharmacies, connect & order refills",
     "connectedPharmacies": "Connected Pharmacies",
     "noPharmacy": "No pharmacy connected yet",
     "connectPharmacy": "Connect Pharmacy",
@@ -4439,7 +4454,18 @@
     "codeInvalidTitle": "Check the code",
     "codeInvalidBody": "Check the pharmacy code and try again.",
     "codeAppliedTitle": "Pharmacy linked",
-    "codeAppliedBody": "This pharmacy is now connected."
+    "codeAppliedBody": "This pharmacy is now connected.",
+    "bannerTitle": "My pharmacy",
+    "nearbyTitle": "Pharmacies near you",
+    "nearbySub": "Tap a pin to see details or link an EatSense partner pharmacy.",
+    "partnerBadge": "EatSense partner",
+    "notPartnerBadge": "Not a partner yet",
+    "linkedBadge": "Linked",
+    "linkThisPharmacy": "Link pharmacy",
+    "openInMaps": "Directions",
+    "map": {
+      "loading": "Loading map…"
+    }
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",
@@ -4753,5 +4779,11 @@
       "error": "Error",
       "unknown": "Unknown"
     }
+  },
+  "gettingStarted": {
+    "welcome": "Welcome! 👋",
+    "videoTitle": "How to analyze a meal",
+    "tapHint": "Tap to watch a quick demo",
+    "gotIt": "Got it"
   }
 }

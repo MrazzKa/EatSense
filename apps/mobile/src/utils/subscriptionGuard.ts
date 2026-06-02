@@ -5,11 +5,13 @@ export type Feature =
   | 'advancedSettings'
   | 'unlimitedHabits'
   | 'unlimitedShopping'
+  | 'unlimitedMedications'
   | 'shoppingRecommendations';
 
 const FREE_LIMITS: Record<string, number> = {
   habits: 3,
   shopping: 10,
+  medications: 3,
 };
 
 export function isPro(plan: string | null | undefined): boolean {
@@ -27,6 +29,7 @@ export function canUseFeature(feature: Feature, plan: string | null | undefined)
       return false;
     case 'unlimitedHabits':
     case 'unlimitedShopping':
+    case 'unlimitedMedications':
       return true; // allowed with limits
     default:
       return true;
@@ -42,6 +45,8 @@ export function getFeatureLimit(feature: Feature, plan: string | null | undefine
       return FREE_LIMITS.habits;
     case 'unlimitedShopping':
       return FREE_LIMITS.shopping;
+    case 'unlimitedMedications':
+      return FREE_LIMITS.medications;
     default:
       return null;
   }

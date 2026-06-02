@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { Copy, FileText, Headphones, KeyRound, Package, RefreshCw, Star, Upload, Trash2, Video } from 'lucide-react';
+import { Copy, FileText, Headphones, KeyRound, Package, RefreshCw, Star, Upload, Trash2, Video, Wallet } from 'lucide-react';
 import { AppShell } from '@/components/app-shell';
 import { apiFetch, apiFetchRaw, apiBaseUrl } from '@/lib/api';
 import { useI18n } from '@/lib/i18n/context';
@@ -347,6 +347,7 @@ export default function ProfilePage() {
               <div className="mt-4 grid gap-2 sm:grid-cols-3">
                 <ProfileToolLink href="/offers" icon={<Package size={17} />} label={t('profile', 'manageOffers')} />
                 <ProfileToolLink href="/reviews" icon={<Star size={17} />} label={t('profile', 'manageReviews')} />
+                <ProfileToolLink href="/earnings" icon={<Wallet size={17} />} label={t('profile', 'manageEarnings')} />
                 <ProfileToolLink href="/support" icon={<Headphones size={17} />} label={t('profile', 'contactSupport')} />
               </div>
             </section>

@@ -236,7 +236,7 @@ export default function OffersPage() {
             <p className="text-sm text-[var(--text2)]">{t('offers', 'emptyHint')}</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 fade-up">
             {offers.map((offer) => {
               const displayName = pickLocalized(offer.name, locale);
               const displayDesc = pickLocalized(offer.description, locale);

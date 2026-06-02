@@ -124,6 +124,14 @@ type MessagesShape = {
     underReviewTitle: string;
     underReviewBody: string;
     quickActions: string;
+    greetingMorning: string;
+    greetingAfternoon: string;
+    greetingEvening: string;
+    greetingSub: string;
+    gsTitle: string;
+    gsStep1: string;
+    gsStep2: string;
+    gsStep3: string;
     viewChats: string;
     editProfile: string;
     scheduleBtn: string;
@@ -327,6 +335,7 @@ type MessagesShape = {
     manageOffers: string;
     manageReviews: string;
     contactSupport: string;
+    manageEarnings: string;
     credentials: string;
     credentialsHint: string;
     credentialName: string;
@@ -501,6 +510,8 @@ const en: MessagesShape = {
     underReviewTitle: 'Under review.',
     underReviewBody: 'Your profile is being reviewed by our team. You will receive a notification once it is approved.',
     quickActions: 'Quick Actions', viewChats: 'View Chats', editProfile: 'Edit Profile',
+    greetingMorning: 'Good morning', greetingAfternoon: 'Good afternoon', greetingEvening: 'Good evening', greetingSub: 'Your day at a glance.',
+    gsTitle: 'Getting started', gsStep1: 'Complete & publish your profile', gsStep2: 'Add a service offer', gsStep3: 'Invite patients with your code',
     scheduleBtn: 'Schedule', contactBtn: 'Contact', liveNow: 'Live now', shouldHaveStarted: 'Should have started', nextConsultation: 'Next consultation', startBtn: 'Start', viewAll: 'View all', minutesShort: 'min', hoursShort: 'h', minShort: 'm',
   },
   chats: {
@@ -599,6 +610,7 @@ const en: MessagesShape = {
     manageOffers: 'Manage offers',
     manageReviews: 'Reviews',
     contactSupport: 'Support',
+    manageEarnings: 'Earnings',
     credentials: 'Credentials',
     credentialsHint: 'Upload a diploma, certification, or license. Images are compressed; PDFs stored as-is. Max 15MB. Credentials stay pending until approved by the EatSense team.',
     credentialName: 'Credential name',
@@ -736,6 +748,8 @@ const ru: MessagesShape = {
     underReviewTitle: 'На проверке.',
     underReviewBody: 'Ваш профиль проверяется нашей командой. Вы получите уведомление, как только он будет одобрен.',
     quickActions: 'Быстрые действия', viewChats: 'Перейти к чатам', editProfile: 'Изменить профиль',
+    greetingMorning: 'Доброе утро', greetingAfternoon: 'Добрый день', greetingEvening: 'Добрый вечер', greetingSub: 'Ваш день — коротко.',
+    gsTitle: 'Начало работы', gsStep1: 'Заполните и опубликуйте профиль', gsStep2: 'Добавьте услугу (оффер)', gsStep3: 'Пригласите пациентов своим кодом',
     scheduleBtn: 'Расписание', contactBtn: 'Связаться', liveNow: 'Идёт сейчас', shouldHaveStarted: 'Должна была начаться', nextConsultation: 'Ближайшая консультация', startBtn: 'Начать', viewAll: 'Все', minutesShort: 'мин', hoursShort: 'ч', minShort: 'м',
   },
   chats: {
@@ -834,6 +848,7 @@ const ru: MessagesShape = {
     manageOffers: 'Управлять услугами',
     manageReviews: 'Отзывы',
     contactSupport: 'Связь',
+    manageEarnings: 'Выплаты',
     credentials: 'Документы',
     credentialsHint: 'Загрузите диплом, сертификат или лицензию. Изображения сжимаются, PDF сохраняются как есть. Максимум 15 МБ. Документы остаются на проверке до одобрения командой EatSense.',
     credentialName: 'Название документа',
@@ -971,6 +986,8 @@ const kk: MessagesShape = {
     underReviewTitle: 'Тексеруде.',
     underReviewBody: 'Профиліңіз біздің командамен тексерілуде. Мақұлданған кезде хабарлама аласыз.',
     quickActions: 'Жылдам әрекеттер', viewChats: 'Чаттарға өту', editProfile: 'Профильді өзгерту',
+    greetingMorning: 'Қайырлы таң', greetingAfternoon: 'Қайырлы күн', greetingEvening: 'Қайырлы кеш', greetingSub: 'Бүгінгі күніңіз — қысқаша.',
+    gsTitle: 'Бастау', gsStep1: 'Профильді толтырып жариялаңыз', gsStep2: 'Қызмет (оффер) қосыңыз', gsStep3: 'Кодыңызбен пациенттерді шақырыңыз',
     scheduleBtn: 'Кесте', contactBtn: 'Хабарласу', liveNow: 'Қазір өтуде', shouldHaveStarted: 'Басталуы керек еді', nextConsultation: 'Жақын консультация', startBtn: 'Бастау', viewAll: 'Барлығы', minutesShort: 'мин', hoursShort: 'сағ', minShort: 'мин',
   },
   chats: {
@@ -1069,6 +1086,7 @@ const kk: MessagesShape = {
     manageOffers: 'Қызметтерді басқару',
     manageReviews: 'Пікірлер',
     contactSupport: 'Қолдау',
+    manageEarnings: 'Төлемдер',
     credentials: 'Құжаттар',
     credentialsHint: 'Диплом, сертификат немесе лицензия жүктеңіз. Суреттер қысылады, PDF файлдары сол күйінде сақталады. Максимум 15 МБ. Құжаттар EatSense командасы мақұлдағанша тексеруде тұрады.',
     credentialName: 'Құжат атауы',
@@ -1206,6 +1224,8 @@ const de: MessagesShape = {
     underReviewTitle: 'In Prüfung.',
     underReviewBody: 'Ihr Profil wird von unserem Team geprüft. Sie erhalten eine Benachrichtigung, sobald es genehmigt ist.',
     quickActions: 'Schnellaktionen', viewChats: 'Chats anzeigen', editProfile: 'Profil bearbeiten',
+    greetingMorning: 'Guten Morgen', greetingAfternoon: 'Guten Tag', greetingEvening: 'Guten Abend', greetingSub: 'Dein Tag auf einen Blick.',
+    gsTitle: 'Erste Schritte', gsStep1: 'Profil ausfüllen & veröffentlichen', gsStep2: 'Angebot hinzufügen', gsStep3: 'Patienten mit deinem Code einladen',
     scheduleBtn: 'Zeitplan', contactBtn: 'Kontakt', liveNow: 'Läuft jetzt', shouldHaveStarted: 'Hätte beginnen sollen', nextConsultation: 'Nächste Beratung', startBtn: 'Starten', viewAll: 'Alle ansehen', minutesShort: 'Min.', hoursShort: 'Std.', minShort: 'm',
   },
   chats: {
@@ -1304,6 +1324,7 @@ const de: MessagesShape = {
     manageOffers: 'Angebote verwalten',
     manageReviews: 'Bewertungen',
     contactSupport: 'Support',
+    manageEarnings: 'Revenus',
     credentials: 'Qualifikationen',
     credentialsHint: 'Laden Sie ein Diplom, Zertifikat oder eine Lizenz hoch. Bilder werden komprimiert, PDFs unverändert gespeichert. Max. 15 MB. Qualifikationen bleiben ausstehend, bis das EatSense-Team sie genehmigt.',
     credentialName: 'Name der Qualifikation',
@@ -1441,6 +1462,8 @@ const fr: MessagesShape = {
     underReviewTitle: 'En cours d\'examen.',
     underReviewBody: 'Votre profil est examiné par notre équipe. Vous recevrez une notification dès son approbation.',
     quickActions: 'Actions rapides', viewChats: 'Voir les chats', editProfile: 'Modifier le profil',
+    greetingMorning: 'Bonjour', greetingAfternoon: 'Bon après-midi', greetingEvening: 'Bonsoir', greetingSub: 'Votre journée en un coup d’œil.',
+    gsTitle: 'Pour commencer', gsStep1: 'Complétez et publiez votre profil', gsStep2: 'Ajoutez une offre de service', gsStep3: 'Invitez des patients avec votre code',
     scheduleBtn: 'Planning', contactBtn: 'Contact', liveNow: 'En cours', shouldHaveStarted: 'Aurait dû commencer', nextConsultation: 'Prochaine consultation', startBtn: 'Démarrer', viewAll: 'Voir tout', minutesShort: 'min', hoursShort: 'h', minShort: 'm',
   },
   chats: {
@@ -1539,6 +1562,7 @@ const fr: MessagesShape = {
     manageOffers: 'Gérer les offres',
     manageReviews: 'Avis',
     contactSupport: 'Support',
+    manageEarnings: 'Einnahmen',
     credentials: 'Diplômes',
     credentialsHint: 'Téléversez un diplôme, une certification ou une licence. Les images sont compressées, les PDF conservés tels quels. Max 15 Mo. Les diplômes restent en attente jusqu\'à approbation par l\'équipe EatSense.',
     credentialName: 'Nom du diplôme',
@@ -1676,6 +1700,8 @@ const es: MessagesShape = {
     underReviewTitle: 'En revisión.',
     underReviewBody: 'Tu perfil está siendo revisado por nuestro equipo. Recibirás una notificación cuando sea aprobado.',
     quickActions: 'Acciones rápidas', viewChats: 'Ver chats', editProfile: 'Editar perfil',
+    greetingMorning: 'Buenos días', greetingAfternoon: 'Buenas tardes', greetingEvening: 'Buenas noches', greetingSub: 'Tu día de un vistazo.',
+    gsTitle: 'Primeros pasos', gsStep1: 'Completa y publica tu perfil', gsStep2: 'Añade una oferta de servicio', gsStep3: 'Invita a pacientes con tu código',
     scheduleBtn: 'Agenda', contactBtn: 'Contacto', liveNow: 'En curso', shouldHaveStarted: 'Debería haber empezado', nextConsultation: 'Próxima consulta', startBtn: 'Iniciar', viewAll: 'Ver todo', minutesShort: 'min', hoursShort: 'h', minShort: 'm',
   },
   chats: {
@@ -1774,6 +1800,7 @@ const es: MessagesShape = {
     manageOffers: 'Gestionar servicios',
     manageReviews: 'Reseñas',
     contactSupport: 'Soporte',
+    manageEarnings: 'Ingresos',
     credentials: 'Credenciales',
     credentialsHint: 'Sube un diploma, certificación o licencia. Las imágenes se comprimen, los PDFs se guardan tal cual. Máx. 15MB. Las credenciales quedan pendientes hasta que el equipo de EatSense las apruebe.',
     credentialName: 'Nombre de la credencial',

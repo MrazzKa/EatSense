@@ -290,6 +290,8 @@ export class AiAssistantService {
       return {
         systemPrompt: `You are a nutrition and health assistant. Provide accurate, concise, and actionable answers.
 
+FORMATTING: Write your reply in clean Markdown — use **bold** for key terms and short section titles, and "- " bullet lists for points. Keep paragraphs short and skimmable. Do not use raw HTML or tables.
+
 CRITICAL RULES:
 1. ALWAYS provide short, structured, and actionable responses.
 2. For food analysis questions:
@@ -380,6 +382,8 @@ Example response format:
   private buildNutritionSystemPrompt(userProfile: any, recentMeals: any[], recentAnalyses: any[], language: string = 'English') {
     let prompt = `You are a professional nutritionist and healthy eating coach. Provide personalized nutrition advice based on the user's profile and eating habits.
 
+FORMATTING: Write your reply in clean Markdown — use **bold** for key terms and short section titles, and "- " bullet lists for points. Keep paragraphs short and skimmable. Do not use raw HTML or tables.
+
 User Profile:
 - Age: ${userProfile?.age || 'not specified'}
 - Height: ${userProfile?.height ? `${userProfile.height} cm` : 'not specified'}
@@ -429,6 +433,8 @@ Recent Meals:`;
 
   private buildHealthCheckSystemPrompt(userProfile: any, language: string = 'English') {
     return `You are a health and wellness assistant. Provide personalized, concise, and actionable feedback based on the user's specific question and profile.
+
+FORMATTING: Write your reply in clean Markdown — use **bold** for the section titles below and "- " bullet lists for points. Keep paragraphs short and skimmable. Do not use raw HTML or tables.
 
 User Profile:
 - Age: ${userProfile?.age || 'not specified'}

@@ -797,7 +797,10 @@
       "takePhoto": "Prendre une photo",
       "title": "Ajouter un repas"
     },
-    "showAllMeals": "Afficher tous les repas"
+    "showAllMeals": "Afficher tous les repas",
+    "greetingMorning": "Bonjour",
+    "greetingAfternoon": "Bon après-midi",
+    "greetingEvening": "Bonsoir"
   },
   "mealHistory": {
     "title": "Tous les repas",
@@ -1479,6 +1482,14 @@
     "accessGrantedAll": "Accès accordé : repas, analyses, médicaments.",
     "chooseDataToShare": "Choisir les données à partager",
     "chooseDataToShareBody": "Vous pouvez révoquer l’accès à tout moment. Le partage se termine automatiquement lorsque la consultation est marquée comme terminée.",
+    "shareMedicationsOnly": "Médicaments uniquement",
+    "accessPartiallyRevoked": "L'accès à certaines données a été révoqué.",
+    "revokeMealsOnly": "Ne plus partager les repas",
+    "revokeAnalysesOnly": "Ne plus partager les analyses",
+    "revokeMedicationsOnly": "Ne plus partager les médicaments",
+    "revokeAll": "Révoquer tout l'accès",
+    "chooseDataToRevoke": "Choisissez ce que vous ne souhaitez plus partager",
+    "chooseDataToRevokeBody": "Sélectionnez la catégorie de données à révoquer. Vous pouvez réaccorder l'accès à tout moment.",
     "shareAll": "Tout partager",
     "shareMealsOnly": "Repas uniquement",
     "shareAnalysesOnly": "Analyses uniquement",
@@ -1590,34 +1601,38 @@
     }
   },
   "help": {
-    "contactTitle": "Contactez-nous",
-    "faq": {
-      "aiAssistant": {
-        "answer": "L'Assistant IA fournit des conseils nutritionnels personnalisés basés sur votre profil et vos habitudes.",
-        "question": "Comment fonctionne l'Assistant IA ?"
+    "title": "Aide et guides",
+    "subtitle": "De courts guides pour profiter pleinement d’EatSense.",
+    "cardSubtitle": "Découvrez l’analyse des repas, les experts et la pharmacie",
+    "videoComingSoon": "Guide vidéo bientôt disponible",
+    "footer": "Besoin d’aide ? Contactez-nous via Profil → Support.",
+    "topics": {
+      "mealAnalysis": {
+        "title": "Analyser un repas",
+        "step1": "Touchez le bouton appareil photo sur l’écran d’accueil.",
+        "step2": "Photographiez votre repas ou choisissez une photo.",
+        "step3": "Patientez quelques secondes pendant l’analyse du plat.",
+        "step4": "Voyez calories et nutriments — demandez des conseils à l’assistant."
       },
-      "editResults": {
-        "answer": "Oui, vous pouvez appuyer sur n'importe quel ingrédient pour ajuster manuellement ses valeurs.",
-        "question": "Puis-je modifier les résultats ?"
+      "medications": {
+        "title": "Suivre ses médicaments",
+        "step1": "Ouvrez « Mes médicaments » depuis votre profil.",
+        "step2": "Ajoutez un médicament avec ses horaires et son stock.",
+        "step3": "Recevez des rappels et une alerte quand le stock baisse."
       },
-      "howToUse": {
-        "answer": "Prenez une photo de votre plat ou choisissez-en une dans votre galerie. Notre IA analysera le plat et vous indiquera les calories et les nutriments.",
-        "question": "Comment utiliser l'application ?"
+      "experts": {
+        "title": "Contacter un expert",
+        "step1": "Ouvrez l’onglet Experts.",
+        "step2": "Saisissez le code donné par votre nutritionniste ou médecin.",
+        "step3": "Discutez, partagez vos données et réservez des consultations vidéo."
       },
-      "photoLimit": {
-        "answer": "Les utilisateurs gratuits peuvent analyser jusqu'à 5 photos par jour. Les abonnés ont un accès illimité.",
-        "question": "Combien de photos puis-je analyser ?"
-      },
-      "saveMeal": {
-        "answer": "Après l'analyse, appuyez sur \"Sauvegarder dans le journal\" pour ajouter le repas à votre journal alimentaire.",
-        "question": "Comment sauvegarder un repas ?"
+      "pharmacy": {
+        "title": "Commander en pharmacie",
+        "step1": "Ouvrez « Ma pharmacie » depuis Mes médicaments.",
+        "step2": "Trouvez une pharmacie sur la carte ou saisissez son code.",
+        "step3": "Commandez un réassort — la pharmacie est notifiée après confirmation."
       }
-    },
-    "faqTitle": "Foire Aux Questions",
-    "feedbackAlert": "Merci de votre intérêt ! Cette fonctionnalité sera bientôt disponible.",
-    "feedbackSubtitle": "Partagez vos idées",
-    "feedbackTitle": "Retour d'expérience",
-    "title": "Aide & Support"
+    }
   },
   "legal": {
     "privacyLink": "Politique de confidentialité",
@@ -1712,7 +1727,7 @@
     "take": "Prendre",
     "tabTitle": "Médicaments",
     "times": "Horaires",
-    "title": "Planning des médicaments",
+    "title": "Mes médicaments",
     "dosageUnits": {
       "mg": "mg",
       "g": "g",
@@ -4352,7 +4367,7 @@
   "pharmacy": {
     "title": "Ma pharmacie",
     "subtitle": "Connectez votre pharmacie et commandez vos médicaments",
-    "bannerText": "Connectez votre pharmacie et commandez",
+    "bannerText": "Trouvez une pharmacie, connectez-vous et commandez",
     "connectedPharmacies": "Pharmacies connectées",
     "noPharmacy": "Aucune pharmacie connectée",
     "connectPharmacy": "Connecter une pharmacie",
@@ -4418,7 +4433,18 @@
     "codeInvalidTitle": "Vérifiez le code",
     "codeInvalidBody": "Vérifiez le code de la pharmacie et réessayez.",
     "codeAppliedTitle": "Pharmacie liée",
-    "codeAppliedBody": "Cette pharmacie est maintenant connectée."
+    "codeAppliedBody": "Cette pharmacie est maintenant connectée.",
+    "bannerTitle": "Ma pharmacie",
+    "nearbyTitle": "Pharmacies à proximité",
+    "nearbySub": "Touchez un repère pour voir les détails ou relier une pharmacie partenaire EatSense.",
+    "partnerBadge": "Partenaire EatSense",
+    "notPartnerBadge": "Pas encore partenaire",
+    "linkedBadge": "Reliée",
+    "linkThisPharmacy": "Relier",
+    "openInMaps": "Itinéraire",
+    "map": {
+      "loading": "Chargement de la carte…"
+    }
   },
   "community": {
     "title": "Communauté",
@@ -4718,5 +4744,11 @@
       "error": "Erreur",
       "unknown": "Inconnu"
     }
+  },
+  "gettingStarted": {
+    "welcome": "Bienvenue ! 👋",
+    "videoTitle": "Comment analyser un repas",
+    "tapHint": "Touchez pour voir une démo rapide",
+    "gotIt": "Compris"
   }
 }

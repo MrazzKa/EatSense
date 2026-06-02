@@ -5,6 +5,7 @@ import { Calendar, MessageSquare, Users, Mail, Star, Video, type LucideIcon } fr
 import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { OnboardingTour } from '@/components/onboarding-tour';
+import { GettingStartedChecklist } from '@/components/getting-started-checklist';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
@@ -96,18 +97,32 @@ export default function DashboardPage() {
   }
 
   function getProfileTypeLabel(type?: string | null) {
+    // Localize ALL expert types (obgyn, gp, psychologist, …), not just
+    // nutritionist/dietitian — otherwise an OB-GYN's own dashboard showed the
+    // raw enum "obgyn". The `profile` namespace carries every type label.
+    const TYPE_KEYS = ['nutritionist', 'dietitian', 'obgyn', 'pediatrician', 'gp', 'psychologist', 'endocrinologist', 'other'] as const;
     const key = String(type || '').toLowerCase();
-    if (key === 'nutritionist' || key === 'dietitian') {
-      return t('profile', key);
+    if ((TYPE_KEYS as readonly string[]).includes(key)) {
+      return t('profile', key as typeof TYPE_KEYS[number]);
     }
     return type || '';
   }
+
+  const hour = new Date().getHours();
+  const greetKey = hour < 12 ? 'greetingMorning' : hour < 18 ? 'greetingAfternoon' : 'greetingEvening';
+  const firstName = (profile?.displayName || '').trim().split(/\s+/)[0] || '';
 
   return (
     <AppShell>
       <OnboardingTour />
       <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:p-6 lg:mx-0 lg:p-8">
-        <h1 className="mb-5 text-2xl font-bold sm:mb-6">{t('dashboard', 'title')}</h1>
+        {/* Time-of-day greeting — warm, personal command-center header */}
+        <div className="mb-5 sm:mb-6 fade-up">
+          <h1 className="text-2xl font-bold">
+            {t('dashboard', greetKey as 'greetingMorning')}{firstName ? `, ${firstName}` : ''} 👋
+          </h1>
+          <p className="mt-1 text-sm text-[var(--text2)]">{t('dashboard', 'greetingSub')}</p>
+        </div>
 
         <NextConsultationWidget />
 
@@ -147,16 +162,19 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatCard icon={MessageSquare} label={t('dashboard', 'activeChats')} value={stats.activeChats} />
-              <StatCard icon={Users} label={t('dashboard', 'totalClients')} value={stats.totalClients} />
-              <StatCard icon={Mail} label={t('dashboard', 'newMessages')} value={stats.unreadMessages} highlight={stats.unreadMessages > 0} />
-              <StatCard icon={Star} label={t('dashboard', 'avgRating')} value={profile?.rating ? `${profile.rating.toFixed(1)} (${profile.reviewCount})` : '—'} />
+            {/* Getting-started checklist — shows for new experts, auto-hides when done */}
+            <GettingStartedChecklist profilePublished={!!profile?.isPublished} clientCount={stats.totalClients} />
+
+            {/* Stats — each tile links to its section */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 fade-up">
+              <StatCard icon={MessageSquare} label={t('dashboard', 'activeChats')} value={stats.activeChats} href="/chats" />
+              <StatCard icon={Users} label={t('dashboard', 'totalClients')} value={stats.totalClients} href="/clients" />
+              <StatCard icon={Mail} label={t('dashboard', 'newMessages')} value={stats.unreadMessages} highlight={stats.unreadMessages > 0} href="/chats" />
+              <StatCard icon={Star} label={t('dashboard', 'avgRating')} value={profile?.rating ? `${profile.rating.toFixed(1)} (${profile.reviewCount})` : '—'} href="/reviews" />
             </div>
 
             {/* Quick actions */}
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 fade-up">
               <h3 className="text-sm font-semibold text-[var(--text2)] uppercase tracking-wider mb-4">{t('dashboard', 'quickActions')}</h3>
               <div className="grid gap-3 sm:flex sm:flex-wrap">
                 <a href="/chats" className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[var(--primary)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-hover)]">
@@ -180,18 +198,25 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, highlight }: { icon: LucideIcon; label: string; value: string | number; highlight?: boolean }) {
-  return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
-      <div className="flex items-center gap-3 mb-2">
-        <Icon size={20} className="text-[var(--text2)]" />
+function StatCard({ icon: Icon, label, value, highlight, href }: { icon: LucideIcon; label: string; value: string | number; highlight?: boolean; href?: string }) {
+  const inner = (
+    <>
+      <div className="flex items-center gap-2.5 mb-2">
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${highlight ? 'bg-[var(--primary-soft)] text-[var(--primary)]' : 'bg-[var(--surface2)] text-[var(--text2)]'}`}>
+          <Icon size={18} />
+        </span>
         <span className="text-sm text-[var(--text2)]">{label}</span>
       </div>
       <div className={`text-2xl font-bold ${highlight ? 'text-[var(--primary)]' : ''}`}>
         {value}
       </div>
-    </div>
+    </>
   );
+  const cls = 'block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5';
+  if (href) {
+    return <Link href={href} className={`${cls} card-interactive`}>{inner}</Link>;
+  }
+  return <div className={cls}>{inner}</div>;
 }
 
 function NextConsultationWidget() {

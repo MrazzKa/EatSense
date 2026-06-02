@@ -260,7 +260,7 @@ export const palettes = {
     textPrimary: '#57534E',      // Stone-600
     textSecondary: '#78716C',    // Stone-500
     textTertiary: '#857E78',     // darkened Stone (was Stone-400 #A8A29E — 2.52 contrast)
-    textMuted: '#A8A29E',        // Stone-400 (was Stone-300 #D6D3D1 — 1.49)
+    textMuted: '#8E8882',        // darkened (was #A8A29E — 2.52, below AA-large; now 3.5)
     textSubdued: '#B0AAA5',      // (was Stone-200 #E7E5E4 — 1.26)
     textDisabled: 'rgba(68, 64, 60, 0.4)',
     inverseText: '#FAFAF9',

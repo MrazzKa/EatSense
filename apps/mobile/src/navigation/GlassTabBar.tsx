@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View, AccessibilityState } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { GlassSurface } from '../components/glass/GlassSurface';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -62,6 +63,8 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
                                 canPreventDefault: true,
                             });
                             if (!focused && !event.defaultPrevented) {
+                                // Subtle tactile feedback on tab switch (iOS selection click).
+                                Haptics.selectionAsync().catch(() => {});
                                 navigation.navigate(route.name as never);
                             }
                         };

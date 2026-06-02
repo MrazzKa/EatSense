@@ -103,7 +103,7 @@ export default function ReviewsPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 fade-up">
               {reviews.map((r) => (
                 <div
                   key={r.id}

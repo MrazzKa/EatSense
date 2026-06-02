@@ -456,9 +456,10 @@ export default function ChatPage() {
         {/* Input */}
         {conversation?.status === 'active' && (
           <div className="border-t border-[var(--border)] bg-[var(--surface)] shrink-0">
-            {/* Quick-action templates */}
-            <div className="hidden gap-2 overflow-x-auto px-4 pt-3 sm:flex sm:px-6">
-              <span className="text-[11px] uppercase tracking-wider text-[var(--text2)] self-center shrink-0 pr-1">
+            {/* Quick-action templates — available on mobile too (experts mostly
+                use the portal from their phone); scrolls horizontally. */}
+            <div className="flex gap-2 overflow-x-auto px-4 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
+              <span className="hidden text-[11px] uppercase tracking-wider text-[var(--text2)] self-center shrink-0 pr-1 sm:inline">
                 {t('chats', 'templates')}
               </span>
               {TEMPLATE_KEYS.map((tpl) => (

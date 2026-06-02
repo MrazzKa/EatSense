@@ -30,32 +30,36 @@
     "title": "Fehler"
   },
   "help": {
-    "title": "Hilfe & Support",
-    "faqTitle": "Häufig gestellte Fragen",
-    "contactTitle": "Kontaktieren Sie uns",
-    "feedbackTitle": "Feedback",
-    "feedbackSubtitle": "Teilen Sie Ihre Ideen",
-    "feedbackAlert": "Danke für Ihr Interesse! Die Feedback-Funktion kommt bald.",
-    "faq": {
-      "howToUse": {
-        "question": "Wie benutze ich die App?",
-        "answer": "Machen Sie ein Foto Ihres Essens oder wählen Sie eines aus Ihrer Galerie. Unsere KI analysiert das Gericht und zeigt Ihnen Kalorien und Nährwerte."
+    "title": "Hilfe & Anleitungen",
+    "subtitle": "Kurze Anleitungen, um EatSense optimal zu nutzen.",
+    "cardSubtitle": "So funktionieren Mahlzeitenanalyse, Experten & Apotheke",
+    "videoComingSoon": "Video-Anleitung folgt bald",
+    "footer": "Mehr Hilfe nötig? Über Profil → Support melden.",
+    "topics": {
+      "mealAnalysis": {
+        "title": "Mahlzeit analysieren",
+        "step1": "Tippe auf den Kamera-Button auf dem Startbildschirm.",
+        "step2": "Fotografiere deine Mahlzeit oder wähle ein Foto.",
+        "step3": "Warte ein paar Sekunden, während EatSense das Gericht analysiert.",
+        "step4": "Sieh Kalorien und Nährstoffe — frag den Assistenten nach Tipps."
       },
-      "photoLimit": {
-        "question": "Wie viele Fotos kann ich analysieren?",
-        "answer": "Kostenlose Nutzer können bis zu 5 Fotos pro Tag analysieren. Abonnenten haben unbegrenzten Zugriff."
+      "medications": {
+        "title": "Medikamente verwalten",
+        "step1": "Öffne die Hausapotheke in deinem Profil.",
+        "step2": "Füge ein Medikament mit Einnahmezeiten und Vorrat hinzu.",
+        "step3": "Erhalte Erinnerungen und eine Warnung bei niedrigem Vorrat."
       },
-      "saveMeal": {
-        "question": "Wie speichere ich eine Mahlzeit?",
-        "answer": "Tippen Sie nach der Analyse auf \"Im Tagebuch speichern\", um die Mahlzeit hinzuzufügen."
+      "experts": {
+        "title": "Mit Experten verbinden",
+        "step1": "Öffne den Tab Experten.",
+        "step2": "Gib den Code deiner Ernährungsberaterin oder Ärztin ein.",
+        "step3": "Chatte, teile Daten und buche Videoberatungen."
       },
-      "editResults": {
-        "question": "Kann ich Analyseergebnisse bearbeiten?",
-        "answer": "Ja, Sie können auf jede Zutat tippen, um die Werte manuell anzupassen."
-      },
-      "aiAssistant": {
-        "question": "Wie funktioniert der KI-Assistent?",
-        "answer": "Der KI-Assistent bietet personalisierte Ernährungsberatung basierend auf Ihrem Profil und Ihren Essgewohnheiten."
+      "pharmacy": {
+        "title": "In der Apotheke bestellen",
+        "step1": "Öffne Meine Apotheke aus der Hausapotheke.",
+        "step2": "Finde eine Apotheke auf der Karte oder gib ihren Code ein.",
+        "step3": "Bestelle Nachschub — die Apotheke wird nach deiner Bestätigung benachrichtigt."
       }
     }
   },
@@ -1055,7 +1059,10 @@
       "takePhoto": "Foto aufnehmen",
       "title": "Title"
     },
-    "showAllMeals": "Alle Mahlzeiten anzeigen"
+    "showAllMeals": "Alle Mahlzeiten anzeigen",
+    "greetingMorning": "Guten Morgen",
+    "greetingAfternoon": "Guten Tag",
+    "greetingEvening": "Guten Abend"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -1538,6 +1545,14 @@
     "accessGrantedAll": "Zugriff gewährt: Mahlzeiten, Analysen, Medikamente.",
     "chooseDataToShare": "Daten zum Teilen auswählen",
     "chooseDataToShareBody": "Du kannst den Zugriff jederzeit widerrufen. Die Freigabe endet automatisch, wenn die Beratung als abgeschlossen markiert wird.",
+    "shareMedicationsOnly": "Nur Medikamente",
+    "accessPartiallyRevoked": "Der Zugriff auf einige Daten wurde widerrufen.",
+    "revokeMealsOnly": "Mahlzeiten nicht mehr teilen",
+    "revokeAnalysesOnly": "Analysen nicht mehr teilen",
+    "revokeMedicationsOnly": "Medikamente nicht mehr teilen",
+    "revokeAll": "Gesamten Zugriff widerrufen",
+    "chooseDataToRevoke": "Wählen Sie, was nicht mehr geteilt werden soll",
+    "chooseDataToRevokeBody": "Wählen Sie die zu widerrufende Datenkategorie. Sie können den Zugriff jederzeit erneut gewähren.",
     "shareAll": "Alles teilen",
     "shareMealsOnly": "Nur Mahlzeiten",
     "shareAnalysesOnly": "Nur Analysen",
@@ -1710,9 +1725,9 @@
       "quantity": "30",
       "remainingStock": "Automatisch berechnet"
     },
-    "tabTitle": "Medications",
+    "tabTitle": "Medikamente",
     "times": "Times",
-    "title": "Medikamentenplan",
+    "title": "Hausapotheke",
     "schedule": "Zeitplan",
     "supply": "Vorrat",
     "notes": "Notizen",
@@ -4364,7 +4379,7 @@
   "pharmacy": {
     "title": "Meine Apotheke",
     "subtitle": "Apotheke verbinden & Medikamente bestellen",
-    "bannerText": "Apotheke verbinden & Medikamente bestellen",
+    "bannerText": "Apotheke finden, verbinden & nachbestellen",
     "connectedPharmacies": "Verbundene Apotheken",
     "noPharmacy": "Noch keine Apotheke verbunden",
     "connectPharmacy": "Apotheke verbinden",
@@ -4430,7 +4445,18 @@
     "codeInvalidTitle": "Code prüfen",
     "codeInvalidBody": "Prüfen Sie den Apothekencode und versuchen Sie es erneut.",
     "codeAppliedTitle": "Apotheke verbunden",
-    "codeAppliedBody": "Diese Apotheke ist jetzt verbunden."
+    "codeAppliedBody": "Diese Apotheke ist jetzt verbunden.",
+    "bannerTitle": "Meine Apotheke",
+    "nearbyTitle": "Apotheken in der Nähe",
+    "nearbySub": "Tippe auf eine Markierung für Details oder verbinde eine EatSense-Partnerapotheke.",
+    "partnerBadge": "EatSense-Partner",
+    "notPartnerBadge": "Noch kein Partner",
+    "linkedBadge": "Verbunden",
+    "linkThisPharmacy": "Verbinden",
+    "openInMaps": "Route",
+    "map": {
+      "loading": "Karte wird geladen…"
+    }
   },
   "community": {
     "title": "Community",
@@ -4752,5 +4778,11 @@
       "error": "Fehler",
       "unknown": "Unbekannt"
     }
+  },
+  "gettingStarted": {
+    "welcome": "Willkommen! 👋",
+    "videoTitle": "So analysierst du eine Mahlzeit",
+    "tapHint": "Tippe für eine kurze Demo",
+    "gotIt": "Verstanden"
   }
 }

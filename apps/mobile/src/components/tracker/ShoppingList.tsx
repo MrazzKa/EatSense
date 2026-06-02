@@ -182,7 +182,9 @@ export default function ShoppingList({
       <AppCard style={styles.card}>
         {activeItems.length === 0 ? (
           <View style={[styles.emptyState, compact && styles.emptyStateCompact]}>
-            <Text style={{ fontSize: compact ? 24 : 32 }}>🛒</Text>
+            <View style={{ width: compact ? 44 : 56, height: compact ? 44 : 56, borderRadius: compact ? 22 : 28, alignItems: 'center', justifyContent: 'center', backgroundColor: (colors.primary || '#4CAF50') + '14', marginBottom: 8 }}>
+              <Ionicons name="cart-outline" size={compact ? 22 : 28} color={colors.primary || '#4CAF50'} />
+            </View>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               {t('tracker.shopping.emptyState') || 'Your shopping list is empty'}
             </Text>

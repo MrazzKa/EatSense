@@ -8,7 +8,9 @@ config.resolver = {
   ...config.resolver,
   blockList: [
     /apps\/api\/.*/i,
-    /.*\.(mp4|mov|mkv|zip|psd|7z|rar)$/i,
+    // NOTE: mp4/mov intentionally NOT blocked — we bundle short demo videos for
+    // the Help screen (assets/help/*.mp4). Other heavy media stays blocked.
+    /.*\.(mkv|zip|psd|7z|rar)$/i,
     /logs\/.*/i,
   ],
 };

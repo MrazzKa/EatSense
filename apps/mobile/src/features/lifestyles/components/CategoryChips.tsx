@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../../app/i18n/hooks';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LIFESTYLE_CATEGORIES } from '../constants';
@@ -78,7 +79,12 @@ export default function CategoryChips({
             ]}
             onPress={() => handleCategoryPress(category.id)}
           >
-            <Text style={styles.emoji}>{category.emoji}</Text>
+            <Ionicons
+              name={category.icon as any}
+              size={15}
+              color={isSelected ? '#FFF' : colors.textSecondary || '#666'}
+              style={{ marginRight: 5 }}
+            />
             <Text
               style={[
                 styles.chipText,

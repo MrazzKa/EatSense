@@ -547,24 +547,14 @@ export class PharmacyService {
       this.logger.error(`[Pharmacy] Failed to send low stock alert:`, err);
     }
 
-    // Send to each connected pharmacy with email, in that pharmacy's language.
-    for (const pharmacy of (user.pharmacyConnections || [])) {
-      const p = pharmacy as any;
-      if (p.pharmacyEmail) {
-        try {
-          const lang = normalizePharmacyLang(p.language);
-          const pharmaHtml = this.buildLowStockEmail({
-            userName, userEmail: user.email, medicationName, dosage, remainingStock,
-            lowStockThreshold, daysRemaining, pharmacies: [p], lang,
-          });
-          const pharmaSubject = `[EatSense] ${PHARMA_I18N[lang].lowStockSubject}: ${medicationName} — ${userName}`;
-          await this.mailer.sendEmail({ to: p.pharmacyEmail, subject: pharmaSubject, text, html: pharmaHtml, category: 'pharmacy' });
-          this.logger.log(`[Pharmacy] Low stock alert sent to pharmacy ${p.pharmacyEmail} (${lang})`);
-        } catch (err) {
-          this.logger.error(`[Pharmacy] Failed to send low stock alert to ${p.pharmacyEmail}:`, err);
-        }
-      }
-    }
+    // NOTE: We intentionally do NOT email the connected pharmacy here.
+    // The product decision (2026-06-02) is confirmation-based: a low-stock
+    // crossing only nudges the patient (push via notifyUserLowStock). The
+    // pharmacy is emailed only after the patient explicitly confirms a refill
+    // order (see createOrder), so pilot pharmacies in Geneva are never contacted
+    // without the patient's go-ahead. The team heads-up above stays for internal
+    // visibility. To re-enable automatic pharmacy alerts, restore the loop that
+    // mails each `pharmacyConnections[].pharmacyEmail`.
   }
 
   // ========== Email Templates ==========

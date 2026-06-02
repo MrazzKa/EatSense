@@ -16,8 +16,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import AiAssistant from '../components/AiAssistant';
+import GettingStartedCard from '../components/dashboard/GettingStartedCard';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
+import { useAuth } from '../contexts/AuthContext';
 import { CircularProgress } from '../components/CircularProgress';
 import { clientLog } from '../utils/clientLog';
 import { SwipeClosableModal } from '../components/common/SwipeClosableModal';
@@ -203,6 +205,7 @@ export default function DashboardScreen() {
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
   const { t, language } = useI18n();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const floatingTabTop = insets.bottom + FLOATING_TAB_BAR_BOTTOM_GAP + FLOATING_TAB_BAR_HEIGHT;
   const dashboardBottomPadding = floatingTabTop + 118;
@@ -910,8 +913,22 @@ export default function DashboardScreen() {
 
   // Dashboard render check removed to reduce console spam
 
+  // Time-of-day greeting (warm, personal header above the calorie ring).
+  const _hour = new Date().getHours();
+  const greetKey = _hour < 12 ? 'dashboard.greetingMorning' : _hour < 18 ? 'dashboard.greetingAfternoon' : 'dashboard.greetingEvening';
+  const firstName = ((user as any)?.firstName || (user as any)?.userProfile?.firstName || '').toString().trim();
+
+  // Macro goals derived from the calorie goal (standard 30/40/30 split) so the
+  // mini progress bars under each macro have a sensible target.
+  const _kcalGoal = stats.goal > 0 ? stats.goal : 2000;
+  const _proteinGoal = Math.max(1, Math.round((_kcalGoal * 0.3) / 4));
+  const _carbsGoal = Math.max(1, Math.round((_kcalGoal * 0.4) / 4));
+  const _fatGoal = Math.max(1, Math.round((_kcalGoal * 0.3) / 9));
+  const _pct = (v: number, goal: number) => Math.min(100, Math.max(0, Math.round(((v || 0) / goal) * 100)));
+  const MACRO_COLORS = { protein: '#3B82F6', carbs: '#F59E0B', fat: '#22C55E' };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Limit Reached Upsell Modal */}
       <LimitReachedModal
         visible={showLimitModal}
@@ -959,6 +976,15 @@ export default function DashboardScreen() {
           </View>
           <ProfileAvatarButton />
         </View>
+
+        {/* Time-of-day greeting */}
+        <Text style={styles.greeting}>
+          {t(greetKey)}{firstName ? `, ${firstName}` : ''} 👋
+        </Text>
+
+        {/* First-run getting-started card (video demo). Auto-hides after the
+            first meal analysis; dismissible. Permanent home: Profile → Help. */}
+        <GettingStartedCard analyzedCount={userStats.totalPhotosAnalyzed} />
 
         {/* Calories Circle with Progress and Macros - Compact Layout */}
         <Animated.View
@@ -1009,16 +1035,25 @@ export default function DashboardScreen() {
               <View style={styles.statCell}>
                 <Text style={styles.statNumber}>{formatMacroInt(stats.totalProtein)}</Text>
                 <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
+                <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.protein + '22' }]}>
+                  <View style={[styles.macroFill, { width: `${_pct(stats.totalProtein, _proteinGoal)}%`, backgroundColor: MACRO_COLORS.protein }]} />
+                </View>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statCell}>
                 <Text style={styles.statNumber}>{formatMacroInt(stats.totalCarbs)}</Text>
                 <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
+                <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.carbs + '22' }]}>
+                  <View style={[styles.macroFill, { width: `${_pct(stats.totalCarbs, _carbsGoal)}%`, backgroundColor: MACRO_COLORS.carbs }]} />
+                </View>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statCell}>
                 <Text style={styles.statNumber}>{formatMacroInt(stats.totalFat)}</Text>
                 <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
+                <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.fat + '22' }]}>
+                  <View style={[styles.macroFill, { width: `${_pct(stats.totalFat, _fatGoal)}%`, backgroundColor: MACRO_COLORS.fat }]} />
+                </View>
               </View>
             </View>
           </GlassCard>
@@ -1439,6 +1474,25 @@ const createStyles = (tokens) =>
     },
     scrollView: {
       flex: 1,
+    },
+    greeting: {
+      paddingHorizontal: tokens.spacing.xl,
+      marginTop: tokens.spacing.xs,
+      marginBottom: tokens.spacing.sm,
+      fontSize: 20,
+      fontWeight: '700',
+      color: tokens.colors.textPrimary || tokens.colors.text,
+    },
+    macroTrack: {
+      width: 44,
+      height: 4,
+      borderRadius: 2,
+      marginTop: 8,
+      overflow: 'hidden',
+    },
+    macroFill: {
+      height: '100%',
+      borderRadius: 2,
     },
     header: {
       paddingHorizontal: tokens.spacing.xl,

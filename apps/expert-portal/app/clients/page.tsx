@@ -141,14 +141,14 @@ export default function ClientsPage() {
               : t('clients', 'noMatches') || 'No clients match your filters.'}
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 fade-up">
             {visible.map((c) => {
               const href = c.conversation?.id ? `/chats/${c.conversation.id}` : `/clients/${c.client.id}`;
               return (
                 <li key={c.id}>
                   <Link
                     href={href}
-                    className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 transition hover:border-[var(--primary)] hover:shadow-sm"
+                    className="card-interactive flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3"
                   >
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--primary-soft)] text-sm font-semibold text-[var(--primary)]">
                       {c.client.userProfile?.avatarUrl ? (

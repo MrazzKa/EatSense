@@ -705,7 +705,10 @@
       "takePhoto": "Tomar foto",
       "title": "Título"
     },
-    "showAllMeals": "Mostrar todas las comidas"
+    "showAllMeals": "Mostrar todas las comidas",
+    "greetingMorning": "Buenos días",
+    "greetingAfternoon": "Buenas tardes",
+    "greetingEvening": "Buenas noches"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -1188,6 +1191,14 @@
     "accessGrantedAll": "Acceso concedido: comidas, análisis, medicamentos.",
     "chooseDataToShare": "Elige los datos para compartir",
     "chooseDataToShareBody": "Puedes revocar el acceso en cualquier momento. El uso compartido termina automáticamente cuando la consulta se marca como completada.",
+    "shareMedicationsOnly": "Solo medicamentos",
+    "accessPartiallyRevoked": "Se revocó el acceso a algunos datos.",
+    "revokeMealsOnly": "Dejar de compartir comidas",
+    "revokeAnalysesOnly": "Dejar de compartir análisis",
+    "revokeMedicationsOnly": "Dejar de compartir medicamentos",
+    "revokeAll": "Revocar todo el acceso",
+    "chooseDataToRevoke": "Elige qué dejar de compartir",
+    "chooseDataToRevokeBody": "Selecciona qué categoría de datos revocar. Puedes volver a otorgar el acceso en cualquier momento.",
     "shareAll": "Compartir todo",
     "shareMealsOnly": "Solo comidas",
     "shareAnalysesOnly": "Solo análisis",
@@ -1299,34 +1310,38 @@
     "title": "Puntuación de salud"
   },
   "help": {
-    "contactTitle": "Contáctanos",
-    "faq": {
-      "aiAssistant": {
-        "answer": "El Asistente IA ofrece consejos de nutrición personalizados según tu perfil y hábitos alimentarios.",
-        "question": "¿Cómo funciona el Asistente IA?"
+    "title": "Ayuda y guías",
+    "subtitle": "Guías breves para aprovechar al máximo EatSense.",
+    "cardSubtitle": "Cómo funcionan el análisis de comidas, expertos y farmacia",
+    "videoComingSoon": "Guía en vídeo muy pronto",
+    "footer": "¿Necesitas más ayuda? Escríbenos desde Perfil → Soporte.",
+    "topics": {
+      "mealAnalysis": {
+        "title": "Analizar una comida",
+        "step1": "Toca el botón de cámara en la pantalla de inicio.",
+        "step2": "Haz una foto de tu comida o elige una de la galería.",
+        "step3": "Espera unos segundos mientras EatSense analiza el plato.",
+        "step4": "Ve calorías y nutrientes — pide consejos al asistente."
       },
-      "editResults": {
-        "answer": "Sí, puedes tocar cualquier ingrediente para ajustar sus valores manualmente.",
-        "question": "¿Puedo editar los resultados del análisis?"
+      "medications": {
+        "title": "Controlar medicamentos",
+        "step1": "Abre el Botiquín desde tu perfil.",
+        "step2": "Añade un medicamento con sus horarios y existencias.",
+        "step3": "Recibe recordatorios y un aviso cuando se esté agotando."
       },
-      "howToUse": {
-        "answer": "Toma una foto de tu comida o elige una de tu galería. Nuestra IA analizará el plato y te mostrará calorías y nutrientes.",
-        "question": "¿Cómo usar la aplicación?"
+      "experts": {
+        "title": "Conectar con un experto",
+        "step1": "Abre la pestaña Expertos.",
+        "step2": "Introduce el código que te dio tu nutricionista o médico.",
+        "step3": "Chatea, comparte datos y reserva videoconsultas."
       },
-      "photoLimit": {
-        "answer": "Los usuarios gratuitos pueden analizar hasta 5 fotos al día. Los suscriptores tienen acceso ilimitado.",
-        "question": "¿Cuántas fotos puedo analizar?"
-      },
-      "saveMeal": {
-        "answer": "Después del análisis, toca «Guardar en el diario» para añadir la comida a tu registro.",
-        "question": "¿Cómo guardo una comida?"
+      "pharmacy": {
+        "title": "Pedir en una farmacia",
+        "step1": "Abre Mi farmacia desde el Botiquín.",
+        "step2": "Encuentra una farmacia en el mapa o introduce su código.",
+        "step3": "Pide una reposición — avisamos a la farmacia tras tu confirmación."
       }
-    },
-    "faqTitle": "Preguntas frecuentes",
-    "feedbackAlert": "¡Gracias por tu interés! La función de comentarios estará disponible pronto.",
-    "feedbackSubtitle": "Comparte tus ideas",
-    "feedbackTitle": "Feedback",
-    "title": "Ayuda y soporte"
+    }
   },
   "legal": {
     "privacyLink": "Política de privacidad",
@@ -1392,7 +1407,7 @@
     },
     "tabTitle": "Medicamentos",
     "times": "Horarios",
-    "title": "Horario de medicamentos",
+    "title": "Botiquín",
     "notifications": {
       "title": "Hora de tomar tu medicamento",
       "body": "{{name}} a las {{time}} ({{dosage}})",
@@ -2739,7 +2754,7 @@
   "pharmacy": {
     "title": "Mi farmacia",
     "subtitle": "Conectar farmacia y pedir medicamentos",
-    "bannerText": "Conecta tu farmacia y pide medicamentos",
+    "bannerText": "Encuentra una farmacia, conéctala y pide",
     "connectedPharmacies": "Farmacias conectadas",
     "noPharmacy": "Ninguna farmacia conectada",
     "connectPharmacy": "Conectar farmacia",
@@ -2805,7 +2820,18 @@
     "codeInvalidTitle": "Revisa el código",
     "codeInvalidBody": "Revisa el código de la farmacia e inténtalo de nuevo.",
     "codeAppliedTitle": "Farmacia vinculada",
-    "codeAppliedBody": "Esta farmacia ya está conectada."
+    "codeAppliedBody": "Esta farmacia ya está conectada.",
+    "bannerTitle": "Mi farmacia",
+    "nearbyTitle": "Farmacias cerca de ti",
+    "nearbySub": "Toca un marcador para ver los detalles o vincular una farmacia asociada de EatSense.",
+    "partnerBadge": "Socio de EatSense",
+    "notPartnerBadge": "Aún no es socio",
+    "linkedBadge": "Vinculada",
+    "linkThisPharmacy": "Vincular",
+    "openInMaps": "Cómo llegar",
+    "map": {
+      "loading": "Cargando mapa…"
+    }
   },
   "community": {
     "title": "Comunidad",
@@ -4718,5 +4744,11 @@
       "error": "Error",
       "unknown": "Desconocido"
     }
+  },
+  "gettingStarted": {
+    "welcome": "¡Bienvenido! 👋",
+    "videoTitle": "Cómo analizar una comida",
+    "tapHint": "Toca para ver una demo rápida",
+    "gotIt": "Entendido"
   }
 }

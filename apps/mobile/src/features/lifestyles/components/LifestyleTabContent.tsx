@@ -235,7 +235,7 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
           return catId === category.id || p.category === category.id.toLowerCase();
         });
         if (categoryPrograms.length > 0) {
-          data.push({ type: 'category-header', categoryId: category.id, data: { count: categoryPrograms.length, emoji: category.emoji } });
+          data.push({ type: 'category-header', categoryId: category.id, data: { count: categoryPrograms.length, emoji: category.emoji, icon: category.icon } });
           categoryPrograms.forEach(program => {
             data.push({ type: 'program', data: program });
           });
@@ -295,7 +295,11 @@ export default function LifestyleTabContent(props: LifestyleTabContentProps) {
       case 'category-header':
         return (
           <View style={styles.categoryHeader}>
-            {item.data?.emoji && <Text style={styles.categoryEmoji}>{item.data.emoji}</Text>}
+            {item.data?.icon ? (
+              <Ionicons name={item.data.icon as any} size={18} color={colors.primary || '#4CAF50'} style={{ marginRight: 6 }} />
+            ) : item.data?.emoji ? (
+              <Text style={styles.categoryEmoji}>{item.data.emoji}</Text>
+            ) : null}
             <Text style={[styles.categoryTitle, { color: colors.textPrimary || '#212121' }]}>
               {t(`lifestyles.categories.${item.categoryId}`) || item.categoryId}
             </Text>

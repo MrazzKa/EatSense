@@ -41,6 +41,7 @@ import CountryPicker from '../components/CountryPicker';
 import { GlassCard } from '../components/glass';
 import LockedFeatureOverlay from '../components/profile/LockedFeatureOverlay';
 import { canUseFeature } from '../utils/subscriptionGuard';
+import { EXPERT_APPLICATIONS_ENABLED, EXISTING_EXPERT_STATUSES } from '../config/experts';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
@@ -207,7 +208,6 @@ const ProfileScreen = () => {
 
   const tokens = useMemo(() => themeContext?.tokens || { colors: {}, spacing: {}, borderRadius: {}, fontSize: {} }, [themeContext?.tokens]);
   const colors = themeContext?.colors || {};
-  const isDark = themeContext?.isDark || false;
   const themeMode = themeContext?.themeMode || 'light';
 
   const toggleTheme = useCallback((mode) => {
@@ -2091,6 +2091,31 @@ const ProfileScreen = () => {
           </AppCard>
           */}
 
+          {/* Help / How it works */}
+          <AppCard style={styles.medicationsCard}>
+            <TouchableOpacity
+              onPress={() => {
+                if (navigation && typeof navigation.navigate === 'function') {
+                  navigation.navigate('Help');
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardContent}>
+                <Ionicons name="help-buoy-outline" size={24} color={colors.primary} />
+                <View style={styles.cardTextContainer}>
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
+                    {safeT('help.title', 'Help & guides')}
+                  </Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    {safeT('help.cardSubtitle', 'Learn how meal analysis, experts & pharmacy work')}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </View>
+            </TouchableOpacity>
+          </AppCard>
+
           {/* Referral Section */}
           <AppCard style={styles.medicationsCard}>
             <TouchableOpacity
@@ -2573,8 +2598,13 @@ const ProfileScreen = () => {
             </Text>
           </AppCard>
 
-          {/* Expert Section — hidden when marketplace is gated to Coming Soon */}
-          {(process.env.EXPO_PUBLIC_ENABLE_EXPERTS ?? 'false') === 'true' && (
+          {/* Expert Section — hidden when marketplace is gated to Coming Soon.
+              When self-service applications are disabled, only existing experts
+              (approved/pending/unpublished) see this entry; the "Become an Expert"
+              questionnaire CTA is hidden for everyone else. */}
+          {(process.env.EXPO_PUBLIC_ENABLE_EXPERTS ?? 'false') === 'true' &&
+            (EXPERT_APPLICATIONS_ENABLED ||
+              EXISTING_EXPERT_STATUSES.includes((user as any)?.expertStatus)) && (
             <AppCard style={styles.resetCard}>
               <TouchableOpacity
                 onPress={() => {

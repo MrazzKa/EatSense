@@ -12,7 +12,6 @@ import {
     ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
-    Keyboard,
     Animated,
     Image,
 } from 'react-native';
@@ -30,6 +29,8 @@ import { EmptyState } from '../components/common/EmptyState';
 import { ListSkeleton } from '../components/common/Skeleton';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
+import PaywallModal from '../components/PaywallModal';
+import { isPro, getFeatureLimit } from '../utils/subscriptionGuard';
 
 // --- Types ---
 
@@ -64,7 +65,7 @@ const DOSAGE_UNIT_KEYS = ['mg', 'g', 'ml', 'drops', 'tablets', 'capsules', 'puff
 type DosageUnitKey = typeof DOSAGE_UNIT_KEYS[number];
 
 // Helper to get localized label for dosage unit
-const getDosageUnitLabel = (key: DosageUnitKey, t: (key: string) => string): string => {
+const getDosageUnitLabel = (key: DosageUnitKey, t: (_key: string) => string): string => {
     const translated = t(`medications.dosageUnits.${key}`);
     // Fallback to key if translation not found
     return translated && !translated.includes('dosageUnits') ? translated : key;
@@ -83,7 +84,7 @@ const COUNTABLE_UNITS: Record<string, string> = {
 const getPluralizedUnitLabel = (
     key: DosageUnitKey,
     count: number,
-    t: (key: string, options?: object) => string
+    t: (_key: string, _options?: object) => string
 ): string => {
     // Check if this is a countable unit that needs pluralization
     const singularKey = COUNTABLE_UNITS[key];
@@ -731,11 +732,27 @@ const MedicationScheduleScreen: React.FC = () => {
 
     const [medications, setMedications] = useState<Medication[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
     // Modal state
     const [isModalVisible, setModalVisible] = useState(false);
     const [editingMed, setEditingMed] = useState<Medication | null>(null);
+
+    // Premium gating: free users can keep up to FREE_LIMITS.medications active meds.
+    const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
+    const [showPaywall, setShowPaywall] = useState(false);
+
+    useEffect(() => {
+        ApiService.getCurrentSubscription()
+            .then((data: any) => {
+                if (data?.hasSubscription && data.subscription?.plan) {
+                    setSubscriptionPlan(data.subscription.plan);
+                } else {
+                    setSubscriptionPlan('free');
+                }
+            })
+            .catch(() => setSubscriptionPlan('free'));
+    }, []);
 
     const loadMedications = useCallback(async () => {
         try {
@@ -756,6 +773,17 @@ const MedicationScheduleScreen: React.FC = () => {
     }, [loadMedications]);
 
     const handleOpenAdd = () => {
+        // Free plan can keep a limited number of ACTIVE medications. Editing an
+        // existing one is always allowed; only adding a new one beyond the limit
+        // is gated behind Pro.
+        const limit = getFeatureLimit('unlimitedMedications', subscriptionPlan);
+        if (!isPro(subscriptionPlan) && limit !== null) {
+            const activeCount = medications.filter((m) => m.isActive).length;
+            if (activeCount >= limit) {
+                setShowPaywall(true);
+                return;
+            }
+        }
         setEditingMed(null);
         setModalVisible(true);
     };
@@ -885,7 +913,8 @@ const MedicationScheduleScreen: React.FC = () => {
                 style={{ top: 120, right: 16 }}
             />
 
-            {/* Pharmacy Banner - hidden for now
+            {/* Pharmacy entry — links the meds schedule to the pharmacy hub
+                (find pharmacies on a map, connect, order refills). */}
             <TouchableOpacity
                 onPress={() => navigation.navigate('Pharmacy' as never)}
                 activeOpacity={0.8}
@@ -904,12 +933,16 @@ const MedicationScheduleScreen: React.FC = () => {
                 }}
             >
                 <Ionicons name="storefront-outline" size={20} color={colors.primary} />
-                <Text style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: '500', color: colors.primary }}>
-                    {t('pharmacy.bannerText', 'Connect your pharmacy & order meds')}
-                </Text>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>
+                        {t('pharmacy.bannerTitle', 'My pharmacy')}
+                    </Text>
+                    <Text style={{ fontSize: 12, marginTop: 1, color: colors.primary }}>
+                        {t('pharmacy.bannerText', 'Find pharmacies, connect & order refills')}
+                    </Text>
+                </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
-            */}
 
             {/* Main Content */}
             {loading && medications.length === 0 ? (
@@ -955,6 +988,18 @@ const MedicationScheduleScreen: React.FC = () => {
 
             {/* @ts-ignore */}
             <DisclaimerModal disclaimerKey="medications" />
+
+            <PaywallModal
+                visible={showPaywall}
+                onClose={() => setShowPaywall(false)}
+                featureName={t('medications.title') || 'Medications'}
+                onSubscribed={() => {
+                    setShowPaywall(false);
+                    setSubscriptionPlan('pro');
+                    setEditingMed(null);
+                    setModalVisible(true);
+                }}
+            />
         </SafeAreaView>
     );
 };

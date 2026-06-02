@@ -33,7 +33,6 @@ import { useI18n } from '../../app/i18n/hooks';
 import HealthDisclaimer from '../components/HealthDisclaimer';
 import AllergiesSelector, { serializeAllergies } from '../components/AllergiesSelector';
 import CountryPicker, { normalizeSupportedCountryCode } from '../components/CountryPicker';
-import LegalDocumentView from '../components/LegalDocumentView';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import { TRIAL_DAYS } from '../config/freeContent';
 import { formatPrice, getCurrency, formatAmount, getDeviceRegion } from '../utils/currency';

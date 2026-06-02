@@ -54,7 +54,7 @@ export default function EarningsPage() {
           {t('earnings', 'bannerCta')}
         </p>
 
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3 fade-up">
           <StatCard label={t('earnings', 'thisMonth')} value="—" sublabel={t('earnings', 'comingSoon')} icon={Wallet} />
           <StatCard label={t('earnings', 'pendingPayout')} value="—" sublabel={t('earnings', 'comingSoon')} icon={CreditCard} />
           <StatCard label={t('earnings', 'lifetime')} value="—" sublabel={t('earnings', 'comingSoon')} icon={Wallet} />
