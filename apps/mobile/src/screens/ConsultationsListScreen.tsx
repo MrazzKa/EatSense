@@ -114,8 +114,8 @@ export default function ConsultationsListScreen({ navigation }) {
                     {expert.avatarUrl ? (
                         <Image source={{ uri: ApiService.resolveMediaUrl(expert.avatarUrl) }} style={styles.avatar} />
                     ) : (
-                        <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                            <Ionicons name="person" size={22} color="#9CA3AF" />
+                        <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.surfaceSecondary || colors.inputBackground || '#F3F4F6' }]}>
+                            <Ionicons name="person" size={22} color={colors.textTertiary || '#9CA3AF'} />
                         </View>
                     )}
 

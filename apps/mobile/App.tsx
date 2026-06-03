@@ -28,11 +28,16 @@ import { MainTabsNavigator } from './src/navigation/MainTabsNavigator';
 import { Suspense } from 'react';
 
 // Wrapper to prevent "undefined is not a function" and suspense crashes
-const withSuspense = (Component) => (props) => (
-  <Suspense fallback={<EmptySplash />}>
-    <Component {...props} />
-  </Suspense>
-);
+const withSuspense = (Component) => {
+  const WrappedWithSuspense = (props) => (
+    <Suspense fallback={<EmptySplash />}>
+      <Component {...props} />
+    </Suspense>
+  );
+
+  WrappedWithSuspense.displayName = `withSuspense(${Component.displayName || Component.name || 'LazyScreen'})`;
+  return WrappedWithSuspense;
+};
 
 const CameraScreen = withSuspense(React.lazy(() => import('./src/screens/CameraScreen')));
 const GalleryScreen = withSuspense(React.lazy(() => import('./src/screens/GalleryScreen')));
@@ -142,7 +147,11 @@ function AppContent() {
         if (!enabled) {
           await localNotificationService.cancelNotificationsByCategory('meal_reminder');
         }
-      } catch {}
+      } catch (error) {
+        clientLog('Notifications:mealReminderCleanupFailed', {
+          error: String(error),
+        }).catch(() => { });
+      }
     })();
     return () => { cancelled = true; };
   }, [isAuthenticated, user?.id]);
@@ -202,6 +211,18 @@ function AppContent() {
               name="Subscription"
               component={SubscriptionScreen}
               options={{ presentation: 'card' }}
+            />
+            {/* Legal screens must also be registered here — the onboarding
+                Terms & Privacy step links to them before the main stack exists. */}
+            <Stack.Screen
+              name="PrivacyPolicy"
+              component={PrivacyPolicyScreen}
+              options={{ presentation: 'card', headerShown: false }}
+            />
+            <Stack.Screen
+              name="TermsOfService"
+              component={TermsOfServiceScreen}
+              options={{ presentation: 'card', headerShown: false }}
             />
           </Stack.Navigator>
         ) : (

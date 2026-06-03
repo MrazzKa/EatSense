@@ -203,7 +203,7 @@
       "items": {
         "vegan": "Végane",
         "vegetarian": "Végétarien",
-        "halal": "Compatible halal",
+        "halal": "Compatible avec le halal",
         "kosher": "Casher",
         "gluten-free": "Sans gluten",
         "lactose-free": "Sans lactose",
@@ -1604,6 +1604,7 @@
     "title": "Aide et guides",
     "subtitle": "De courts guides pour profiter pleinement d’EatSense.",
     "cardSubtitle": "Découvrez l’analyse des repas, les experts et la pharmacie",
+    "cardSubtitleNoPharmacy": "Découvrez l’analyse des repas et les experts",
     "videoComingSoon": "Guide vidéo bientôt disponible",
     "footer": "Besoin d’aide ? Contactez-nous via Profil → Support.",
     "topics": {
@@ -1908,7 +1909,7 @@
       "pescatarian": "Pescétarien",
       "glutenFree": "Sans gluten",
       "lactoseFree": "Sans lactose",
-      "halal": "Halal",
+      "halal": "Alimentation halal",
       "kosher": "Casher"
     },
     "features": {
@@ -2341,9 +2342,9 @@
     "themeCaption": "Choisissez un thème — appliqué immédiatement.",
     "themeLight": "Clair",
     "themeDark": "Sombre",
-    "themeMonochrome": "Mono",
-    "themeRose": "Rose",
-    "themeBeige": "Beige"
+    "themeMonochrome": "Monochrome",
+    "themeRose": "Rosé",
+    "themeBeige": "Sable"
   },
   "recently": {
     "analyzing": "Analyse en cours...",
@@ -4428,7 +4429,7 @@
     "haveCodeSub": "Liaison instantanée — sans saisir d'adresse ni d'e-mail.",
     "enterCodeTitle": "Code de pharmacie",
     "enterCodeBody": "Entrez le code que votre pharmacie vous a communiqué.",
-    "codePlaceholder": "AMAVITA-GENEVE",
+    "codePlaceholder": "PHARMACIE-GENEVE",
     "applyCode": "Lier la pharmacie",
     "codeInvalidTitle": "Vérifiez le code",
     "codeInvalidBody": "Vérifiez le code de la pharmacie et réessayez.",

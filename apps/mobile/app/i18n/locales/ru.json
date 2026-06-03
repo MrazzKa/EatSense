@@ -1792,6 +1792,7 @@
     "title": "Помощь и гайды",
     "subtitle": "Короткие инструкции, чтобы получить максимум от EatSense.",
     "cardSubtitle": "Как работают анализ блюд, эксперты и аптека",
+    "cardSubtitleNoPharmacy": "Как работают анализ блюд и эксперты",
     "videoComingSoon": "Видео-инструкция скоро появится",
     "footer": "Нужна помощь? Напишите нам через Профиль → Поддержка.",
     "topics": {
@@ -4407,7 +4408,7 @@
       "email": "Введите email",
       "medicationName": "Название лекарства",
       "notes": "Дополнительные примечания...",
-      "website": "https://example-pharmacy.ch"
+      "website": "https://apteka-primer.ch"
     },
     "status": {
       "pending": "Ожидание",
@@ -4428,7 +4429,7 @@
     "haveCodeSub": "Привязка мгновенно — без ввода адреса и почты.",
     "enterCodeTitle": "Код аптеки",
     "enterCodeBody": "Введите код, который дала вам аптека.",
-    "codePlaceholder": "AMAVITA-GENEVE",
+    "codePlaceholder": "APTEKA-ZHENEVA",
     "applyCode": "Привязать аптеку",
     "codeInvalidTitle": "Проверьте код",
     "codeInvalidBody": "Проверьте код аптеки и попробуйте снова.",

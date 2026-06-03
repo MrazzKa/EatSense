@@ -151,6 +151,7 @@
     "title": "Help & guides",
     "subtitle": "Short guides to get the most out of EatSense.",
     "cardSubtitle": "Learn how meal analysis, experts & pharmacy work",
+    "cardSubtitleNoPharmacy": "Learn how meal analysis and experts work",
     "videoComingSoon": "Video guide coming soon",
     "footer": "Need more help? Reach us from Profile → Support.",
     "topics": {

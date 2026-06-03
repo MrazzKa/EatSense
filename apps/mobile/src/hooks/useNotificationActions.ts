@@ -10,6 +10,7 @@ import { Alert, Platform } from 'react-native';
 import { NotificationActions, NotificationCategories } from '../services/localNotificationService';
 import ApiService from '../services/apiService';
 import i18n from '../../app/i18n/config';
+import { ENABLE_PHARMACY } from '../config/pharmacy';
 
 // Get localized strings from i18n with fallbacks
 const getLocalizedStrings = () => {
@@ -328,22 +329,28 @@ export function useNotificationActions() {
 
         // Pharmacy order status updates (sent / processing / ready / completed)
         // open the Pharmacy screen where the order list lives.
+        // While pharmacy is hidden, fall back to the medication schedule.
         if (type === 'pharmacy_order_status') {
-            if (navigationCallback) navigationCallback('Pharmacy');
+            if (navigationCallback) navigationCallback(ENABLE_PHARMACY ? 'Pharmacy' : 'MedicationSchedule');
             return;
         }
 
         // Low-stock refill nudge: open the pharmacy order flow with the
         // medication pre-filled so the patient can re-order in one tap.
+        // While pharmacy is hidden, just open the medication schedule.
         if (type === 'medication_low_stock') {
             if (navigationCallback) {
-                navigationCallback('Pharmacy', {
-                    autoOpenOrder: true,
-                    prefillMedication: {
-                        name: (data as any)?.name || '',
-                        dosage: (data as any)?.dosage || '',
-                    },
-                });
+                if (ENABLE_PHARMACY) {
+                    navigationCallback('Pharmacy', {
+                        autoOpenOrder: true,
+                        prefillMedication: {
+                            name: (data as any)?.name || '',
+                            dosage: (data as any)?.dosage || '',
+                        },
+                    });
+                } else {
+                    navigationCallback('MedicationSchedule');
+                }
             }
             return;
         }

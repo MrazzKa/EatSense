@@ -31,6 +31,7 @@ import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 import PaywallModal from '../components/PaywallModal';
 import { isPro, getFeatureLimit } from '../utils/subscriptionGuard';
+import { ENABLE_PHARMACY } from '../config/pharmacy';
 
 // --- Types ---
 
@@ -914,7 +915,9 @@ const MedicationScheduleScreen: React.FC = () => {
             />
 
             {/* Pharmacy entry — links the meds schedule to the pharmacy hub
-                (find pharmacies on a map, connect, order refills). */}
+                (find pharmacies on a map, connect, order refills).
+                Hidden behind ENABLE_PHARMACY while the partner pilot is finalised. */}
+            {ENABLE_PHARMACY && (
             <TouchableOpacity
                 onPress={() => navigation.navigate('Pharmacy' as never)}
                 activeOpacity={0.8}
@@ -943,6 +946,7 @@ const MedicationScheduleScreen: React.FC = () => {
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
+            )}
 
             {/* Main Content */}
             {loading && medications.length === 0 ? (
@@ -958,7 +962,7 @@ const MedicationScheduleScreen: React.FC = () => {
                             onPress={handleOpenEdit}
                             onDelete={handleDelete}
                             onTake={handleTake}
-                            onRefill={handleRefill}
+                            onRefill={ENABLE_PHARMACY ? handleRefill : undefined}
                             colors={colors}
                             t={t}
                         />

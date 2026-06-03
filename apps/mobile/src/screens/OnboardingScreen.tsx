@@ -40,7 +40,7 @@ import { markOnboardingCompletedLocally } from '../utils/onboardingCompletion';
 
 const { width } = Dimensions.get('window');
 
-const createStyles = (tokens, colors, _isDark = false) => {
+const createStyles = (tokens, colors, isDark = false) => {
   const onPrimary = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const surface = colors.surface ?? '#FFFFFF';
   const surfaceMuted = colors.surfaceMuted ?? colors.background;
@@ -374,7 +374,7 @@ const createStyles = (tokens, colors, _isDark = false) => {
     },
     planButtonFounder: {
       borderColor: '#FFD700',
-      backgroundColor: '#FFF8E1',
+      backgroundColor: isDark ? 'rgba(255, 215, 0, 0.12)' : '#FFF8E1',
       marginTop: 14, // Extra margin for badge to not be clipped
     },
     popularBadgeCompact: {

@@ -520,8 +520,8 @@ export default function SubscriptionScreen() {
 
     const styles = useMemo(() => {
         const colors = themeContext?.colors || {};
-        return createStyles(tokens, colors);
-    }, [tokens, themeContext?.colors]);
+        return createStyles(tokens, colors, !!themeContext?.isDark);
+    }, [tokens, themeContext?.colors, themeContext?.isDark]);
 
     if (loading) {
         return (
@@ -1082,7 +1082,7 @@ const studentModalStyles = StyleSheet.create({
     },
 });
 
-const createStyles = (tokens, colors) => {
+const createStyles = (tokens, colors, isDark = false) => {
     const borderMuted = colors?.borderMuted || colors?.border || tokens.colors?.borderMuted || '#C8C8C8';
     const surface = colors?.surface || '#FFFFFF';
 
@@ -1250,7 +1250,10 @@ const createStyles = (tokens, colors) => {
         },
         planButtonFounders: {
             borderColor: '#FFD700',
-            backgroundColor: '#FFF8E1',
+            // Dark theme: warm gold tint over the dark surface keeps the
+            // "founder" identity while staying readable with light text.
+            // Light theme: the familiar cream card.
+            backgroundColor: isDark ? 'rgba(255, 215, 0, 0.12)' : '#FFF8E1',
             marginTop: 20, // Increased margin for badge
         },
         popularBadgeCompact: {

@@ -1313,6 +1313,7 @@
     "title": "Ayuda y guías",
     "subtitle": "Guías breves para aprovechar al máximo EatSense.",
     "cardSubtitle": "Cómo funcionan el análisis de comidas, expertos y farmacia",
+    "cardSubtitleNoPharmacy": "Cómo funcionan el análisis de comidas y expertos",
     "videoComingSoon": "Guía en vídeo muy pronto",
     "footer": "¿Necesitas más ayuda? Escríbenos desde Perfil → Soporte.",
     "topics": {

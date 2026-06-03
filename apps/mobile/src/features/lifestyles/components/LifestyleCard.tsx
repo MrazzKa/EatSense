@@ -113,7 +113,7 @@ export default function LifestyleCard({ program, isLocked, onPress }: LifestyleC
     >
       {/* Header: Emoji + Name + Target Badge */}
       <View style={styles.header}>
-        <View style={styles.emojiContainer}>
+        <View style={[styles.emojiContainer, { backgroundColor: colors.surfaceSecondary || colors.inputBackground || '#F5F5F5' }]}>
           {imageSource ? (
             <Image
               source={imageSource}
@@ -281,7 +281,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

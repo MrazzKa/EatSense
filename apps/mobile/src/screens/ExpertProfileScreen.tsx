@@ -259,14 +259,14 @@ export default function ExpertProfileScreen({ route, navigation }) {
                     {expert.avatarUrl ? (
                         <Image source={{ uri: ApiService.resolveMediaUrl(expert.avatarUrl) }} style={styles.avatar} />
                     ) : (
-                        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                        <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.surfaceSecondary || colors.inputBackground || '#F3F4F6' }]}>
                             {(() => {
                                 const parts = (expert.displayName || '').trim().split(/\s+/).slice(0, 2);
                                 const initials = parts.map((p: string) => p[0]?.toUpperCase() ?? '').join('');
                                 return initials ? (
-                                    <Text style={styles.avatarInitials}>{initials}</Text>
+                                    <Text style={[styles.avatarInitials, { color: colors.textSecondary || '#6B7280' }]}>{initials}</Text>
                                 ) : (
-                                    <Ionicons name="person" size={48} color="#9CA3AF" />
+                                    <Ionicons name="person" size={48} color={colors.textTertiary || '#9CA3AF'} />
                                 );
                             })()}
                         </View>

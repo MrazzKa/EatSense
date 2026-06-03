@@ -1604,6 +1604,7 @@
     "title": "Көмек және нұсқаулар",
     "subtitle": "EatSense-тен барынша пайда алуға арналған қысқа нұсқаулар.",
     "cardSubtitle": "Тағам талдауы, сарапшылар және дәріхана қалай жұмыс істейді",
+    "cardSubtitleNoPharmacy": "Тағам талдауы және сарапшылар қалай жұмыс істейді",
     "videoComingSoon": "Бейне нұсқаулық жақында",
     "footer": "Көмек керек пе? Профиль → Қолдау арқылы жазыңыз.",
     "topics": {
@@ -4407,7 +4408,7 @@
       "email": "Email енгізіңіз",
       "medicationName": "Дәрі атауы",
       "notes": "Қосымша ескертпелер...",
-      "website": "https://example-pharmacy.ch"
+      "website": "https://darihana-mysal.ch"
     },
     "status": {
       "pending": "Күтілуде",
@@ -4428,7 +4429,7 @@
     "haveCodeSub": "Бірден байланыс — мекенжай мен поштасыз.",
     "enterCodeTitle": "Дәріхана коды",
     "enterCodeBody": "Дәріхана берген кодты енгізіңіз.",
-    "codePlaceholder": "AMAVITA-GENEVE",
+    "codePlaceholder": "DARIHANA-ZHENEVA",
     "applyCode": "Дәріхананы байланыстыру",
     "codeInvalidTitle": "Кодты тексеріңіз",
     "codeInvalidBody": "Дәріхана кодын тексеріп, қайталаңыз.",

@@ -16,6 +16,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { HELP_VIDEOS } from '../config/helpVideos';
 import HelpVideoPlayer from '../components/help/HelpVideoPlayer';
+import { ENABLE_PHARMACY } from '../config/pharmacy';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -28,7 +29,8 @@ const TOPICS: Topic[] = [
   { id: 'mealAnalysis', icon: 'camera-outline', steps: 4 },
   { id: 'medications', icon: 'medkit-outline', steps: 3 },
   { id: 'experts', icon: 'people-outline', steps: 3 },
-  { id: 'pharmacy', icon: 'storefront-outline', steps: 3 },
+  // Pharmacy guide hidden while the pharmacy feature is gated off.
+  ...(ENABLE_PHARMACY ? [{ id: 'pharmacy', icon: 'storefront-outline' as const, steps: 3 }] : []),
 ];
 
 const HelpScreen: React.FC = () => {

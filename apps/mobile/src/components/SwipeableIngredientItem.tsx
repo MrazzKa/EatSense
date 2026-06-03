@@ -20,7 +20,7 @@ export const SwipeableIngredientItem = ({
   swipeRef, // Optional: external ref to control swipeable
   onSwipeableWillOpen, // Optional: callback when swipe will open (to close other swipes)
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useI18n();
   const swipeableRef = useRef(null);
 
@@ -119,7 +119,7 @@ export const SwipeableIngredientItem = ({
 
   // Read-only mode - no swipe
   if (!allowEditing) {
-    return <IngredientContent ingredient={ingredient} colors={colors} t={t} styles={styles} allowEditing={allowEditing} />;
+    return <IngredientContent ingredient={ingredient} colors={colors} isDark={isDark} t={t} styles={styles} allowEditing={allowEditing} />;
   }
 
   // Swipeable mode
@@ -145,14 +145,14 @@ export const SwipeableIngredientItem = ({
         activeOpacity={0.8}
         delayPressIn={50}
       >
-        <IngredientContent ingredient={ingredient} colors={colors} t={t} styles={styles} allowEditing={allowEditing} />
+        <IngredientContent ingredient={ingredient} colors={colors} isDark={isDark} t={t} styles={styles} allowEditing={allowEditing} />
       </TouchableOpacity>
     </Swipeable>
   );
 }; // End of SwipeableIngredientItem
 
 // Extracted Component
-const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
+const IngredientContent = ({ ingredient, colors, isDark, t, styles, allowEditing }) => {
   const allergyMatches = Array.isArray(ingredient?.userFlags?.allergyMatch)
     ? ingredient.userFlags.allergyMatch
     : [];
@@ -171,7 +171,11 @@ const IngredientContent = ({ ingredient, colors, t, styles, allowEditing }) => {
   <View style={[
     styles.ingredientCard,
     hasUserWarnings && styles.ingredientCardWarning,
-    { backgroundColor: hasUserWarnings ? '#FFF7ED' : (colors.card || colors.surface || '#FFFFFF') }
+    // Warning highlight must stay readable in dark mode: a warm amber tint over
+    // the dark surface instead of a solid cream that hides light text.
+    { backgroundColor: hasUserWarnings
+        ? (isDark ? 'rgba(251, 146, 60, 0.13)' : '#FFF7ED')
+        : (colors.card || colors.surface || '#FFFFFF') }
   ]}>
     <View style={styles.ingredientInfo}>
       <Text

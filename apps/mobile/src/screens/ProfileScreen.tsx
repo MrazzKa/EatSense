@@ -42,6 +42,7 @@ import { GlassCard } from '../components/glass';
 import LockedFeatureOverlay from '../components/profile/LockedFeatureOverlay';
 import { canUseFeature } from '../utils/subscriptionGuard';
 import { EXPERT_APPLICATIONS_ENABLED, EXISTING_EXPERT_STATUSES } from '../config/experts';
+import { ENABLE_PHARMACY } from '../config/pharmacy';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
@@ -2108,7 +2109,9 @@ const ProfileScreen = () => {
                     {safeT('help.title', 'Help & guides')}
                   </Text>
                   <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                    {safeT('help.cardSubtitle', 'Learn how meal analysis, experts & pharmacy work')}
+                    {ENABLE_PHARMACY
+                      ? safeT('help.cardSubtitle', 'Learn how meal analysis, experts & pharmacy work')
+                      : safeT('help.cardSubtitleNoPharmacy', 'Learn how meal analysis and experts work')}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
@@ -2529,7 +2532,7 @@ const ProfileScreen = () => {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <View style={[styles.preferenceRow, { marginTop: 12, paddingVertical: 0 }]}>
+                  <View style={[styles.preferenceRow, { marginTop: 12, alignItems: 'center' }]}>
                     <View style={styles.notificationCopy}>
                       <Text style={styles.preferenceLabel}>{safeT('profile.smartTips.advancedTitle', 'Advanced tips')}</Text>
                       <Text style={styles.notificationDescription}>
