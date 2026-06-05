@@ -761,7 +761,7 @@ const OnboardingScreen = () => {
 
   // const navigation = useNavigation();
   const { colors, tokens, isDark } = useTheme();
-  const { setUser, refreshUser } = useAuth();
+  const { user, setUser, refreshUser } = useAuth();
   const styles = useMemo(() => createStyles(tokens, colors, isDark), [tokens, colors, isDark]);
   const onPrimaryColor = colors.onPrimary ?? tokens.colors?.onPrimary ?? '#FFFFFF';
   const [currentStep, setCurrentStep] = useState(0);
@@ -803,6 +803,25 @@ const OnboardingScreen = () => {
   // Calculated plan data
   const [planData, setPlanData] = useState(null);
   const { t } = useI18n(); // Added useI18n hook
+
+  // Pre-fill the name from the existing profile if we already know it (e.g. experts
+  // created by an admin already have firstName/lastName). Runs once when a name
+  // becomes available and only fills empty fields, so it never overwrites typing.
+  const namePrefilledRef = useRef(false);
+  useEffect(() => {
+    if (namePrefilledRef.current) return;
+    const src: any = (user as any)?.userProfile || user || {};
+    const first = src.firstName || '';
+    const last = src.lastName || '';
+    if (first || last) {
+      namePrefilledRef.current = true;
+      setProfileData((prev) => ({
+        ...prev,
+        firstName: prev.firstName || first,
+        lastName: prev.lastName || last,
+      }));
+    }
+  }, [user]);
 
   // Terms step state
   // const [hasOpenedTerms, setHasOpenedTerms] = useState(false);

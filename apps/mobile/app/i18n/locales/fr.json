@@ -617,7 +617,8 @@
     "sun": "Di",
     "permissionNeeded": "Autorisation requise",
     "options": "Paramètres",
-    "create": "Créer"
+    "create": "Créer",
+    "notNow": "Plus tard"
   },
   "tooltips": {
     "scanMeal": {
@@ -4620,7 +4621,8 @@
       "review": "avis",
       "reviews": "avis",
       "city": "Ville",
-      "cityRequired": "Veuillez ajouter la ville"
+      "cityRequired": "Veuillez ajouter la ville",
+      "cuisine": "Cuisine"
     },
     "guidelines": {
       "title": "Règles de la communauté",
@@ -4663,7 +4665,43 @@
     "locationError": "Impossible de détecter la localisation",
     "locationErrorDesc": "Veuillez sélectionner votre ville manuellement.",
     "detecting": "Détection de la localisation...",
-    "detectLocation": "Détecter ma localisation"
+    "detectLocation": "Détecter ma localisation",
+    "cuisines": {
+      "healthy": "Healthy",
+      "vegan": "Végane",
+      "vegetarian": "Végétarienne",
+      "mexican": "Mexicaine",
+      "italian": "Italienne",
+      "asian": "Asiatique",
+      "japanese": "Japonaise",
+      "indian": "Indienne",
+      "mediterranean": "Méditerranéenne",
+      "seafood": "Fruits de mer",
+      "american": "Américaine",
+      "middleEastern": "Moyen-Orient",
+      "cafe": "Café",
+      "bakery": "Boulangerie",
+      "other": "Autre"
+    },
+    "location": {
+      "pickTitle": "Choisir le lieu",
+      "searchPlaceholder": "Rechercher une adresse…",
+      "notFound": "Adresse introuvable",
+      "searchFailed": "Échec de la recherche",
+      "tapHint": "Touchez la carte pour définir le lieu",
+      "setOnMap": "Définir sur la carte",
+      "onMapSet": "Lieu défini sur la carte"
+    },
+    "placesView": {
+      "list": "Liste",
+      "map": "Carte",
+      "noMapPins": "Aucun lieu avec position sur la carte"
+    },
+    "createLimit": {
+      "title": "Passez à Pro pour plus",
+      "message": "Les membres gratuits peuvent ajouter quelques lieux et événements. Passez à Pro pour un accès illimité.",
+      "upgrade": "Passer à Pro"
+    }
   },
   "mascot": {
     "setup": {

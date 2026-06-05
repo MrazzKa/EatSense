@@ -527,7 +527,8 @@
     "sun": "Жс",
     "permissionNeeded": "Рұқсат қажет",
     "options": "Әрекеттер",
-    "create": "Жасау"
+    "create": "Жасау",
+    "notNow": "Қазір емес"
   },
   "tooltips": {
     "scanMeal": {
@@ -4620,7 +4621,8 @@
       "review": "пікір",
       "reviews": "пікір",
       "city": "Қала",
-      "cityRequired": "Қаланы көрсетіңіз"
+      "cityRequired": "Қаланы көрсетіңіз",
+      "cuisine": "Ас үй"
     },
     "guidelines": {
       "title": "Қауымдастық ережелері",
@@ -4663,7 +4665,43 @@
     "locationError": "Орналасқан жерді анықтау мүмкін болмады",
     "locationErrorDesc": "Қаланы қолмен таңдаңыз.",
     "detecting": "Орналасқан жер анықталуда...",
-    "detectLocation": "Менің орналасқан жерімді анықтау"
+    "detectLocation": "Менің орналасқан жерімді анықтау",
+    "cuisines": {
+      "healthy": "Дұрыс тамақ",
+      "vegan": "Веган",
+      "vegetarian": "Вегетариандық",
+      "mexican": "Мексикалық",
+      "italian": "Итальяндық",
+      "asian": "Азиялық",
+      "japanese": "Жапондық",
+      "indian": "Үндістандық",
+      "mediterranean": "Жерортатеңіздік",
+      "seafood": "Теңіз өнімдері",
+      "american": "Америкалық",
+      "middleEastern": "Таяу Шығыс",
+      "cafe": "Кафе",
+      "bakery": "Наубайхана",
+      "other": "Басқа"
+    },
+    "location": {
+      "pickTitle": "Орынды таңдау",
+      "searchPlaceholder": "Мекенжайды іздеу…",
+      "notFound": "Мекенжай табылмады",
+      "searchFailed": "Іздеу сәтсіз",
+      "tapHint": "Орынды белгілеу үшін картаны түртіңіз",
+      "setOnMap": "Картада белгілеу",
+      "onMapSet": "Орын картада белгіленді"
+    },
+    "placesView": {
+      "list": "Тізім",
+      "map": "Карта",
+      "noMapPins": "Әзірге картада орны бар жерлер жоқ"
+    },
+    "createLimit": {
+      "title": "Көбірек қосу үшін Pro",
+      "message": "Тегін мүшелер бірнеше орын мен оқиға қоса алады. Шексіз қосу үшін Pro алыңыз.",
+      "upgrade": "Pro алу"
+    }
   },
   "mascot": {
     "setup": {

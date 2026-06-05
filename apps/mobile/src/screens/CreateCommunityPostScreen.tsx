@@ -22,6 +22,8 @@ import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
 import ApiService from '../services/apiService';
 import { useMascot } from '../contexts/MascotContext';
 import { resolveGroupName } from '../components/community/GroupCard';
+import { CUISINES } from '../config/cuisines';
+import LocationPickerModal from '../components/community/LocationPickerModal';
 
 const POST_TYPES = [
   { key: 'TEXT', icon: 'chatbubble-outline', labelKey: 'community.postType.text' },
@@ -73,6 +75,13 @@ export default function CreateCommunityPostScreen() {
   const [placeAddress, setPlaceAddress] = useState('');
   const [placeCity, setPlaceCity] = useState(initialCity);
   const [placeRating, setPlaceRating] = useState(0);
+  const [cuisine, setCuisine] = useState<string | null>(null);
+
+  // Map coordinates (places + events). Captured via the LocationPickerModal.
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [eventCoords, setEventCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  // Which field the location picker is editing: 'place' | 'event' | null.
+  const [locationTarget, setLocationTarget] = useState<null | 'place' | 'event'>(null);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
@@ -161,6 +170,7 @@ export default function CreateCommunityPostScreen() {
           date: eventDate.trim(),
           time: eventTime.trim(),
           location: eventLocation.trim(),
+          ...(eventCoords ? { latitude: eventCoords.latitude, longitude: eventCoords.longitude } : {}),
         };
       }
 
@@ -188,6 +198,8 @@ export default function CreateCommunityPostScreen() {
           address: placeAddress.trim(),
           city: placeCity.trim(),
           rating: placeRating || undefined,
+          cuisine: cuisine || undefined,
+          ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
         };
       }
 
@@ -198,6 +210,19 @@ export default function CreateCommunityPostScreen() {
     } catch (err: any) {
       console.warn('Failed to create post:', err);
       const status = err?.status || err?.response?.status;
+      const code = err?.payload?.code || err?.response?.data?.code || err?.data?.code;
+      if (code === 'COMMUNITY_CREATE_LIMIT') {
+        // Free creation limit reached — offer upgrade to Pro.
+        Alert.alert(
+          t('community.createLimit.title', 'Upgrade to add more'),
+          t('community.createLimit.message', 'Free members can add a few places and events. Go Pro to create unlimited.'),
+          [
+            { text: t('common.notNow', 'Not now'), style: 'cancel' },
+            { text: t('community.createLimit.upgrade', 'Go Pro'), onPress: () => navigation.navigate('Subscription') },
+          ],
+        );
+        return;
+      }
       if (status === 403 && selectedGroupId) {
         // Guidelines not accepted — navigate to guidelines screen
         navigation.navigate('CommunityGuidelines', { groupId: selectedGroupId, groupName: '' });
@@ -207,7 +232,7 @@ export default function CreateCommunityPostScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, addXp, navigation, t]);
+  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, addXp, navigation, t]);
 
   const isValid = content.trim().length > 0
     && (postType !== 'BEST_PLACES' || placeName.trim().length > 0)
@@ -346,6 +371,16 @@ export default function CreateCommunityPostScreen() {
                 value={eventLocation}
                 onChangeText={setEventLocation}
               />
+              <TouchableOpacity
+                style={[styles.mapBtn, { borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
+                onPress={() => setLocationTarget('event')}
+              >
+                <Ionicons name={eventCoords ? 'location' : 'location-outline'} size={18} color={eventCoords ? colors.primary : colors.textSecondary} />
+                <Text style={[styles.mapBtnText, { color: eventCoords ? colors.primary : colors.textSecondary }]}>
+                  {eventCoords ? t('community.location.onMapSet', 'Location set on map') : t('community.location.setOnMap', 'Set location on map')}
+                </Text>
+                {eventCoords && <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: 'auto' }} />}
+              </TouchableOpacity>
             </View>
           )}
 
@@ -443,10 +478,71 @@ export default function CreateCommunityPostScreen() {
                   ))}
                 </View>
               </View>
+
+              {/* Cuisine selector */}
+              <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>
+                {t('community.bestPlaces.cuisine', 'Cuisine')}
+              </Text>
+              <View style={styles.cuisineWrap}>
+                {CUISINES.map((c) => {
+                  const active = cuisine === c.key;
+                  return (
+                    <TouchableOpacity
+                      key={c.key}
+                      style={[
+                        styles.cuisineChip,
+                        { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? (colors.primaryTint || colors.primary + '22') : 'transparent' },
+                      ]}
+                      onPress={() => setCuisine(active ? null : c.key)}
+                    >
+                      <Ionicons name={c.icon} size={14} color={active ? colors.primary : colors.textSecondary} />
+                      <Text style={[styles.cuisineChipText, { color: active ? colors.primary : colors.textSecondary }]}>
+                        {t(c.labelKey, c.key)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Location on map */}
+              <TouchableOpacity
+                style={[styles.mapBtn, { borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface, marginTop: 12 }]}
+                onPress={() => setLocationTarget('place')}
+              >
+                <Ionicons name={coords ? 'location' : 'location-outline'} size={18} color={coords ? colors.primary : colors.textSecondary} />
+                <Text style={[styles.mapBtnText, { color: coords ? colors.primary : colors.textSecondary }]}>
+                  {coords ? t('community.location.onMapSet', 'Location set on map') : t('community.location.setOnMap', 'Set location on map')}
+                </Text>
+                {coords && <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: 'auto' }} />}
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <LocationPickerModal
+        visible={locationTarget !== null}
+        colors={colors}
+        t={t}
+        initial={
+          locationTarget === 'place'
+            ? (coords ? { ...coords, address: placeAddress } : null)
+            : locationTarget === 'event'
+              ? (eventCoords ? { ...eventCoords, address: eventLocation } : null)
+              : null
+        }
+        onClose={() => setLocationTarget(null)}
+        onConfirm={(loc) => {
+          if (locationTarget === 'place') {
+            setCoords({ latitude: loc.latitude, longitude: loc.longitude });
+            if (loc.address && !placeAddress.trim()) setPlaceAddress(loc.address);
+          } else if (locationTarget === 'event') {
+            setEventCoords({ latitude: loc.latitude, longitude: loc.longitude });
+            if (loc.address && !eventLocation.trim()) setEventLocation(loc.address);
+          }
+          setLocationTarget(null);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -552,6 +648,39 @@ const createStyles = (tokens: any, colors: any) =>
     },
     eventFields: {
       marginTop: 20,
+    },
+    cuisineWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 8,
+    },
+    cuisineChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 18,
+      borderWidth: 1,
+    },
+    cuisineChipText: {
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    mapBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      marginBottom: 10,
+    },
+    mapBtnText: {
+      fontSize: 14,
+      fontWeight: '500',
     },
     fieldInput: {
       fontSize: 15,

@@ -28,6 +28,8 @@ import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard, resolveGroupName } from '../components/community/GroupCard';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
+import CommunityPlacesMap from '../components/community/CommunityPlacesMap';
+import { CUISINES } from '../config/cuisines';
 import {
   FLOATING_TAB_BAR_BOTTOM_GAP,
   FLOATING_TAB_BAR_HEIGHT,
@@ -53,6 +55,8 @@ export default function CommunityScreen() {
   const [myOwnedCommunity, setMyOwnedCommunity] = useState<{ id: string; name: string } | null>(null);
   const [bestPlaces, setBestPlaces] = useState([]);
   const [selectedPlacesCity, setSelectedPlacesCity] = useState<any>(null);
+  const [placesViewMode, setPlacesViewMode] = useState<'list' | 'map'>('list');
+  const [cuisineFilter, setCuisineFilter] = useState<string | null>(null);
 
   // Search
   const [searchVisible, setSearchVisible] = useState(false);
@@ -269,16 +273,17 @@ export default function CommunityScreen() {
   }, [groups]);
 
   const filteredPlaces = useMemo(() => {
-    if (!searchQuery.trim()) return bestPlaces;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
     return bestPlaces.filter((p) => {
       const meta = (p as any).metadata || {};
+      if (cuisineFilter && meta.cuisine !== cuisineFilter) return false;
+      if (!q) return true;
       const content = ((p as any).content || '').toLowerCase();
       const name = (meta.placeName || '').toLowerCase();
       const addr = (meta.address || '').toLowerCase();
       return content.includes(q) || name.includes(q) || addr.includes(q);
     });
-  }, [bestPlaces, searchQuery]);
+  }, [bestPlaces, searchQuery, cuisineFilter]);
 
   // --- Render helpers ---
 
@@ -349,25 +354,77 @@ export default function CommunityScreen() {
     return null;
   };
 
-  const placesHeader = () => (
-    <TouchableOpacity
-      style={[styles.cityFilterBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
-      onPress={() => navigation.navigate('BestPlaces')}
-      activeOpacity={0.75}
-    >
-      <Ionicons name="location-outline" size={18} color={colors.primary} />
-      <View style={styles.cityFilterCopy}>
-        <Text style={[styles.cityFilterTitle, { color: colors.textPrimary || colors.text }]}>
-          {selectedPlacesCity?.city || t('community.placesFilterCity', 'Filter by city')}
-        </Text>
-        <Text style={[styles.cityFilterSubtitle, { color: colors.textTertiary }]}>
-          {selectedPlacesCity
-            ? t('community.placesFilterChange', 'Tap to change city')
-            : t('community.placesFilterHint', 'Kazakhstan and Switzerland include major city filters')}
-        </Text>
+  const placesControls = () => (
+    <>
+      {/* List / Map toggle */}
+      <View style={[styles.viewToggle, { backgroundColor: colors.surfaceSecondary || colors.surface, borderColor: colors.border }]}>
+        <TouchableOpacity
+          style={[styles.viewToggleBtn, placesViewMode === 'list' && { backgroundColor: colors.primary }]}
+          onPress={() => setPlacesViewMode('list')}
+        >
+          <Ionicons name="list" size={16} color={placesViewMode === 'list' ? '#fff' : colors.textSecondary} />
+          <Text style={[styles.viewToggleText, { color: placesViewMode === 'list' ? '#fff' : colors.textSecondary }]}>
+            {t('community.placesView.list', 'List')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.viewToggleBtn, placesViewMode === 'map' && { backgroundColor: colors.primary }]}
+          onPress={() => setPlacesViewMode('map')}
+        >
+          <Ionicons name="map" size={16} color={placesViewMode === 'map' ? '#fff' : colors.textSecondary} />
+          <Text style={[styles.viewToggleText, { color: placesViewMode === 'map' ? '#fff' : colors.textSecondary }]}>
+            {t('community.placesView.map', 'Map')}
+          </Text>
+        </TouchableOpacity>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-    </TouchableOpacity>
+
+      {/* Cuisine filter chips */}
+      <FlatList
+        horizontal
+        data={CUISINES}
+        keyExtractor={(c) => c.key}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.cuisineRow}
+        renderItem={({ item: c }) => {
+          const active = cuisineFilter === c.key;
+          return (
+            <TouchableOpacity
+              style={[styles.cuisineFilterChip, { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primary : 'transparent' }]}
+              onPress={() => setCuisineFilter(active ? null : c.key)}
+            >
+              <Ionicons name={c.icon} size={13} color={active ? '#fff' : colors.textSecondary} />
+              <Text style={[styles.cuisineFilterText, { color: active ? '#fff' : colors.textSecondary }]}>
+                {t(c.labelKey, c.key)}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
+    </>
+  );
+
+  const placesHeader = () => (
+    <View>
+      <TouchableOpacity
+        style={[styles.cityFilterBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+        onPress={() => navigation.navigate('BestPlaces')}
+        activeOpacity={0.75}
+      >
+        <Ionicons name="location-outline" size={18} color={colors.primary} />
+        <View style={styles.cityFilterCopy}>
+          <Text style={[styles.cityFilterTitle, { color: colors.textPrimary || colors.text }]}>
+            {selectedPlacesCity?.city || t('community.placesFilterCity', 'Filter by city')}
+          </Text>
+          <Text style={[styles.cityFilterSubtitle, { color: colors.textTertiary }]}>
+            {selectedPlacesCity
+              ? t('community.placesFilterChange', 'Tap to change city')
+              : t('community.placesFilterHint', 'Kazakhstan and Switzerland include major city filters')}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+      </TouchableOpacity>
+      {placesControls()}
+    </View>
   );
 
   const renderEmptyFeed = () => (
@@ -575,6 +632,28 @@ export default function CommunityScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
+      ) : placesViewMode === 'map' ? (
+        <FlatList
+          data={[]}
+          keyExtractor={() => 'map'}
+          renderItem={null}
+          ListHeaderComponent={
+            <View>
+              {placesHeader()}
+              <CommunityPlacesMap
+                colors={colors}
+                t={t}
+                places={filteredPlaces}
+                onSelect={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
+              />
+            </View>
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
       ) : (
         <FlatList
           data={filteredPlaces}
@@ -755,6 +834,46 @@ const createStyles = (tokens: any, colors: any, fabBottom: number) =>
     },
     cityFilterCopy: {
       flex: 1,
+    },
+    viewToggle: {
+      flexDirection: 'row',
+      marginHorizontal: 16,
+      marginBottom: 10,
+      padding: 4,
+      borderRadius: 12,
+      borderWidth: 1,
+      gap: 4,
+    },
+    viewToggleBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 8,
+      borderRadius: 9,
+    },
+    viewToggleText: {
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    cuisineRow: {
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+      gap: 8,
+    },
+    cuisineFilterChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 18,
+      borderWidth: 1,
+    },
+    cuisineFilterText: {
+      fontSize: 13,
+      fontWeight: '500',
     },
     cityFilterTitle: {
       fontSize: 14,

@@ -552,7 +552,8 @@
     "sun": "Вс",
     "permissionNeeded": "Требуется разрешение",
     "options": "Действия",
-    "create": "Создать"
+    "create": "Создать",
+    "notNow": "Не сейчас"
   },
   "tooltips": {
     "scanMeal": {
@@ -4620,7 +4621,8 @@
       "review": "отзыв",
       "reviews": "отзывов",
       "city": "Город",
-      "cityRequired": "Укажите город"
+      "cityRequired": "Укажите город",
+      "cuisine": "Кухня"
     },
     "places": "Места",
     "emptyPlaces": "Мест пока нет",
@@ -4663,7 +4665,43 @@
     "locationError": "Не удалось определить местоположение",
     "locationErrorDesc": "Выберите город вручную.",
     "detecting": "Определяем местоположение...",
-    "detectLocation": "Определить мое местоположение"
+    "detectLocation": "Определить мое местоположение",
+    "cuisines": {
+      "healthy": "Здоровая",
+      "vegan": "Веган",
+      "vegetarian": "Вегетарианская",
+      "mexican": "Мексиканская",
+      "italian": "Итальянская",
+      "asian": "Азиатская",
+      "japanese": "Японская",
+      "indian": "Индийская",
+      "mediterranean": "Средиземноморская",
+      "seafood": "Морепродукты",
+      "american": "Американская",
+      "middleEastern": "Ближневосточная",
+      "cafe": "Кафе",
+      "bakery": "Пекарня",
+      "other": "Другое"
+    },
+    "location": {
+      "pickTitle": "Выбрать место",
+      "searchPlaceholder": "Поиск адреса…",
+      "notFound": "Адрес не найден",
+      "searchFailed": "Ошибка поиска",
+      "tapHint": "Нажмите на карту, чтобы поставить точку",
+      "setOnMap": "Указать на карте",
+      "onMapSet": "Место отмечено на карте"
+    },
+    "placesView": {
+      "list": "Список",
+      "map": "Карта",
+      "noMapPins": "Пока нет мест с координатами на карте"
+    },
+    "createLimit": {
+      "title": "Оформите Pro, чтобы добавить ещё",
+      "message": "Бесплатно можно добавить несколько мест и событий. Оформите Pro для безлимита.",
+      "upgrade": "Оформить Pro"
+    }
   },
   "mascot": {
     "setup": {

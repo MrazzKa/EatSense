@@ -552,7 +552,8 @@
     "sun": "Dom",
     "permissionNeeded": "Permiso necesario",
     "options": "Opciones",
-    "create": "Crear"
+    "create": "Crear",
+    "notNow": "Ahora no"
   },
   "dashboard": {
     "addFood": {
@@ -3007,7 +3008,8 @@
       "review": "reseña",
       "reviews": "reseñas",
       "city": "Ciudad",
-      "cityRequired": "Añade la ciudad"
+      "cityRequired": "Añade la ciudad",
+      "cuisine": "Cocina"
     },
     "guidelines": {
       "title": "Normas de la comunidad",
@@ -3050,7 +3052,43 @@
     "locationError": "No se pudo detectar la ubicación",
     "locationErrorDesc": "Selecciona tu ciudad manualmente.",
     "detecting": "Detectando ubicación...",
-    "detectLocation": "Detectar mi ubicación"
+    "detectLocation": "Detectar mi ubicación",
+    "cuisines": {
+      "healthy": "Saludable",
+      "vegan": "Vegana",
+      "vegetarian": "Vegetariana",
+      "mexican": "Mexicana",
+      "italian": "Italiana",
+      "asian": "Asiática",
+      "japanese": "Japonesa",
+      "indian": "India",
+      "mediterranean": "Mediterránea",
+      "seafood": "Mariscos",
+      "american": "Americana",
+      "middleEastern": "Oriente Medio",
+      "cafe": "Café",
+      "bakery": "Panadería",
+      "other": "Otra"
+    },
+    "location": {
+      "pickTitle": "Elegir ubicación",
+      "searchPlaceholder": "Buscar dirección…",
+      "notFound": "Dirección no encontrada",
+      "searchFailed": "Error de búsqueda",
+      "tapHint": "Toca el mapa para fijar el lugar",
+      "setOnMap": "Fijar en el mapa",
+      "onMapSet": "Ubicación fijada en el mapa"
+    },
+    "placesView": {
+      "list": "Lista",
+      "map": "Mapa",
+      "noMapPins": "Aún no hay lugares con ubicación en el mapa"
+    },
+    "createLimit": {
+      "title": "Hazte Pro para añadir más",
+      "message": "Los miembros gratuitos pueden añadir algunos lugares y eventos. Hazte Pro para acceso ilimitado.",
+      "upgrade": "Hazte Pro"
+    }
   },
   "mascot": {
     "setup": {

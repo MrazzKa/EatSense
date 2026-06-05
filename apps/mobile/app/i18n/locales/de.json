@@ -907,7 +907,8 @@
     "sun": "So",
     "permissionNeeded": "Berechtigung erforderlich",
     "options": "Optionen",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "notNow": "Nicht jetzt"
   },
   "dashboard": {
     "addFood": {
@@ -4632,7 +4633,8 @@
       "review": "Bewertung",
       "reviews": "Bewertungen",
       "city": "Stadt",
-      "cityRequired": "Bitte Stadt hinzufügen"
+      "cityRequired": "Bitte Stadt hinzufügen",
+      "cuisine": "Küche"
     },
     "guidelines": {
       "title": "Community-Richtlinien",
@@ -4675,7 +4677,43 @@
     "locationError": "Standort konnte nicht erkannt werden",
     "locationErrorDesc": "Bitte wähle deine Stadt manuell aus.",
     "detecting": "Standort wird erkannt...",
-    "detectLocation": "Meinen Standort erkennen"
+    "detectLocation": "Meinen Standort erkennen",
+    "cuisines": {
+      "healthy": "Gesund",
+      "vegan": "Vegan",
+      "vegetarian": "Vegetarisch",
+      "mexican": "Mexikanisch",
+      "italian": "Italienisch",
+      "asian": "Asiatisch",
+      "japanese": "Japanisch",
+      "indian": "Indisch",
+      "mediterranean": "Mediterran",
+      "seafood": "Meeresfrüchte",
+      "american": "Amerikanisch",
+      "middleEastern": "Nahöstlich",
+      "cafe": "Café",
+      "bakery": "Bäckerei",
+      "other": "Andere"
+    },
+    "location": {
+      "pickTitle": "Ort wählen",
+      "searchPlaceholder": "Adresse suchen…",
+      "notFound": "Adresse nicht gefunden",
+      "searchFailed": "Suche fehlgeschlagen",
+      "tapHint": "Tippe auf die Karte, um den Ort festzulegen",
+      "setOnMap": "Ort auf Karte festlegen",
+      "onMapSet": "Ort auf Karte festgelegt"
+    },
+    "placesView": {
+      "list": "Liste",
+      "map": "Karte",
+      "noMapPins": "Noch keine Orte mit Kartenposition"
+    },
+    "createLimit": {
+      "title": "Upgrade für mehr",
+      "message": "Kostenlose Mitglieder können einige Orte und Events hinzufügen. Mit Pro unbegrenzt.",
+      "upgrade": "Pro holen"
+    }
   },
   "mascot": {
     "setup": {

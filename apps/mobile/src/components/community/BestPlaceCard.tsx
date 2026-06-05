@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useDesignTokens } from '../../contexts/ThemeContext';
 import { useI18n } from '../../../app/i18n/hooks';
 import { resolveGroupName } from './GroupCard';
+import { CUISINE_BY_KEY } from '../../config/cuisines';
 
 interface BestPlaceCardProps {
   post: any;
@@ -32,6 +33,8 @@ export function BestPlaceCard({
   const placeName = meta.placeName || t('community.bestPlaces.untitled', 'Unnamed place');
   const address = meta.address || '';
   const rating = meta.rating || 0;
+  const cuisine = meta.cuisine ? CUISINE_BY_KEY[meta.cuisine] : null;
+  const hasMapPin = Number.isFinite(Number(meta.latitude)) && Number.isFinite(Number(meta.longitude));
   const avgRating = post.placeAvgRating;
   const reviewCount = post.placeReviewCount || 0;
 
@@ -110,6 +113,26 @@ export function BestPlaceCard({
               ? t('community.moderation.rejected', 'Rejected')
               : t('community.moderation.pending', 'Pending review')}
           </Text>
+        </View>
+      )}
+
+      {/* Cuisine + map-pin chips */}
+      {(cuisine || hasMapPin) && (
+        <View style={styles.chipsRow}>
+          {cuisine && (
+            <View style={[styles.chip, { backgroundColor: colors.primary + '12' }]}>
+              <Ionicons name={cuisine.icon as any} size={12} color={colors.primary} />
+              <Text style={[styles.chipText, { color: colors.primary }]}>{t(cuisine.labelKey, cuisine.key)}</Text>
+            </View>
+          )}
+          {hasMapPin && (
+            <View style={[styles.chip, { backgroundColor: colors.textTertiary + '18' }]}>
+              <Ionicons name="map-outline" size={12} color={colors.textSecondary} />
+              <Text style={[styles.chipText, { color: colors.textSecondary }]}>
+                {t('community.placesView.map', 'Map')}
+              </Text>
+            </View>
+          )}
         </View>
       )}
 
@@ -236,6 +259,24 @@ const createStyles = (tokens: any, colors: any) =>
     starsRow: {
       flexDirection: 'row',
       gap: 1,
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginBottom: 10,
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    chipText: {
+      fontSize: 12,
+      fontWeight: '600',
     },
     content: {
       fontSize: 14,

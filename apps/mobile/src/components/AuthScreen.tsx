@@ -499,10 +499,32 @@ export default function AuthScreen({ onAuthSuccess }) {
             await clientLog('Auth:authContextUserSet', {
               userId: profile?.id || 'unknown',
             }).catch(() => { });
+          } else {
+            // CRITICAL FIX (2026-06-05): New users have no profile yet (backend verifyOtp
+            // returns profile: null for find-or-create). Without setting a minimal user here,
+            // `isAuthenticated` stays false and RootNavigator never leaves the auth screen —
+            // the exact "code accepted, says signed in, but nothing happens" bug.
+            // Mirrors the Apple/Google flows which already do this.
+            setUser({
+              id: response.user?.id,
+              email: response.user?.email,
+              isOnboardingCompleted: false,
+            });
+            await clientLog('Auth:otpNoProfile', {
+              userId: response.user?.id || 'unknown',
+            }).catch(() => { });
           }
         } catch (profileError) {
           console.warn('[AuthScreen] Error loading user profile:', profileError);
-          // Continue anyway - user is authenticated, will try again later
+          // User is authenticated but profile fetch failed — still set a minimal user so the
+          // navigator advances to onboarding instead of getting stuck on the auth screen.
+          if (response.user?.id) {
+            setUser({
+              id: response.user.id,
+              email: response.user.email,
+              isOnboardingCompleted: false,
+            });
+          }
         }
 
         setStatusMessage(t('auth.messages.signedIn'));

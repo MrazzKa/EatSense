@@ -20,6 +20,7 @@ import {
 } from 'react-native-iap';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
 import ApiService from './apiService';
+import { clientLog } from '../utils/clientLog';
 
 class IAPService {
     private purchaseUpdateSubscription: any = null;
@@ -170,27 +171,57 @@ class IAPService {
     }
 
     async getAvailableProducts() {
+        // Fetch subscriptions and non-consumables INDEPENDENTLY. Previously a single
+        // try/catch wrapped both, so if getProducts(founder) threw (e.g. the founder
+        // pass isn't approved/configured) it wiped the working subscriptions too —
+        // which could explain "only some products work". Now one failing never
+        // hides the others, and we log exactly which SKUs the store returned so the
+        // next build's server logs reveal any missing product.
+        const requestedSubs = Object.values(SUBSCRIPTION_SKUS);
+        const requestedProducts = Object.values(NON_CONSUMABLE_SKUS);
+
+        let subscriptions: any[] = [];
+        let products: any[] = [];
+
         try {
-            const subscriptions = await getSubscriptions({
-                skus: Object.values(SUBSCRIPTION_SKUS),
-            });
-
-            const products = await getProducts({
-                skus: Object.values(NON_CONSUMABLE_SKUS),
-            });
-
-            console.log('[IAP] Subscriptions:', subscriptions.length);
-            console.log('[IAP] Products:', products.length);
-
-            return {
-                subscriptions,
-                products,
-                all: [...subscriptions, ...products],
-            };
-        } catch (error) {
-            console.error('[IAP] Get products failed:', error);
-            return { subscriptions: [], products: [], all: [] };
+            subscriptions = (await getSubscriptions({ skus: requestedSubs })) || [];
+        } catch (error: any) {
+            console.error('[IAP] getSubscriptions failed:', error);
+            clientLog('IAP:getSubscriptionsFailed', { message: error?.message || String(error) }).catch(() => {});
         }
+
+        try {
+            products = (await getProducts({ skus: requestedProducts })) || [];
+        } catch (error: any) {
+            console.error('[IAP] getProducts failed:', error);
+            clientLog('IAP:getProductsFailed', { message: error?.message || String(error) }).catch(() => {});
+        }
+
+        const returnedSubIds = subscriptions.map((s: any) => s.productId);
+        const returnedProductIds = products.map((p: any) => p.productId);
+        const missing = [
+            ...requestedSubs.filter((s) => !returnedSubIds.includes(s)),
+            ...requestedProducts.filter((p) => !returnedProductIds.includes(p)),
+        ];
+
+        console.log('[IAP] Subscriptions returned:', returnedSubIds);
+        console.log('[IAP] Products returned:', returnedProductIds);
+        if (missing.length) console.warn('[IAP] Missing from store:', missing);
+
+        // Surface to server logs so we can diagnose "X doesn't work" without a device.
+        clientLog('IAP:productsLoaded', {
+            requestedSubs,
+            requestedProducts,
+            returnedSubs: returnedSubIds,
+            returnedProducts: returnedProductIds,
+            missing,
+        }).catch(() => {});
+
+        return {
+            subscriptions,
+            products,
+            all: [...subscriptions, ...products],
+        };
     }
 
     async purchaseSubscription(

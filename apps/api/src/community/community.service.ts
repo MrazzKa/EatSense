@@ -8,6 +8,10 @@ import { CreateGroupDto } from './dto/create-group.dto';
 import { ReportDto } from './dto/report.dto';
 import { normalizeSupportedCountryCode } from '../common/country-codes';
 
+// Free users may create up to this many community places/events before Pro is
+// required. Viewing and attending remain free for everyone.
+const FREE_COMMUNITY_CREATE_LIMIT = 3;
+
 const authorInclude = {
   select: {
     id: true,
@@ -486,6 +490,24 @@ export class CommunityService {
       const subscription = await this.subscriptionsService.getActiveSubscription(userId);
       if (!subscription) {
         throw new ForbiddenException('Active subscription required to share diet posts');
+      }
+    }
+
+    // Freemium gate: free users may CREATE up to FREE_COMMUNITY_CREATE_LIMIT
+    // places/events; beyond that requires Pro. Viewing/attending stays free.
+    if (dto.type === 'BEST_PLACES' || dto.type === 'EVENT') {
+      const subscription = await this.subscriptionsService.getActiveSubscription(userId);
+      if (!subscription) {
+        const created = await this.prisma.communityPost.count({
+          where: { authorId: userId, type: { in: ['BEST_PLACES', 'EVENT'] as any } },
+        });
+        if (created >= FREE_COMMUNITY_CREATE_LIMIT) {
+          throw new ForbiddenException({
+            code: 'COMMUNITY_CREATE_LIMIT',
+            limit: FREE_COMMUNITY_CREATE_LIMIT,
+            message: 'Free limit reached for creating places and events. Upgrade to Pro to add more.',
+          });
+        }
       }
     }
 

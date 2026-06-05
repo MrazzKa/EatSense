@@ -66,7 +66,8 @@
     "sun": "Su",
     "permissionNeeded": "Permission needed",
     "options": "Options",
-    "create": "Create"
+    "create": "Create",
+    "notNow": "Not now"
   },
   "tooltips": {
     "scanMeal": {
@@ -4655,7 +4656,8 @@
       "review": "review",
       "reviews": "reviews",
       "city": "City",
-      "cityRequired": "Please add the city"
+      "cityRequired": "Please add the city",
+      "cuisine": "Cuisine"
     },
     "guidelines": {
       "title": "Community Guidelines",
@@ -4698,7 +4700,43 @@
     "locationError": "Could not detect location",
     "locationErrorDesc": "Please select your city manually.",
     "detecting": "Detecting location...",
-    "detectLocation": "Detect my location"
+    "detectLocation": "Detect my location",
+    "cuisines": {
+      "healthy": "Healthy",
+      "vegan": "Vegan",
+      "vegetarian": "Vegetarian",
+      "mexican": "Mexican",
+      "italian": "Italian",
+      "asian": "Asian",
+      "japanese": "Japanese",
+      "indian": "Indian",
+      "mediterranean": "Mediterranean",
+      "seafood": "Seafood",
+      "american": "American",
+      "middleEastern": "Middle Eastern",
+      "cafe": "Café",
+      "bakery": "Bakery",
+      "other": "Other"
+    },
+    "location": {
+      "pickTitle": "Pick location",
+      "searchPlaceholder": "Search address…",
+      "notFound": "Address not found",
+      "searchFailed": "Search failed",
+      "tapHint": "Tap the map to set the spot",
+      "setOnMap": "Set location on map",
+      "onMapSet": "Location set on map"
+    },
+    "placesView": {
+      "list": "List",
+      "map": "Map",
+      "noMapPins": "No places with a map location yet"
+    },
+    "createLimit": {
+      "title": "Upgrade to add more",
+      "message": "Free members can add a few places and events. Go Pro to create unlimited.",
+      "upgrade": "Go Pro"
+    }
   },
   "mascot": {
     "setup": {
