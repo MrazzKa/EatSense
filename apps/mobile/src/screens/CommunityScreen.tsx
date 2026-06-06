@@ -46,7 +46,8 @@ export default function CommunityScreen() {
   const { user } = useAuth();
   const isInitialLoad = useRef(true);
 
-  const [activeTab, setActiveTab] = useState<TabKey>('feed');
+  // Pilot focus is the Switzerland map + places, so land there by default.
+  const [activeTab, setActiveTab] = useState<TabKey>('places');
   const [posts, setPosts] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,7 @@ export default function CommunityScreen() {
   const [myOwnedCommunity, setMyOwnedCommunity] = useState<{ id: string; name: string } | null>(null);
   const [bestPlaces, setBestPlaces] = useState([]);
   const [selectedPlacesCity, setSelectedPlacesCity] = useState<any>(null);
-  const [placesViewMode, setPlacesViewMode] = useState<'list' | 'map'>('list');
+  const [placesViewMode, setPlacesViewMode] = useState<'list' | 'map'>('map');
   const [cuisineFilter, setCuisineFilter] = useState<string | null>(null);
 
   // Search
@@ -284,6 +285,12 @@ export default function CommunityScreen() {
       return content.includes(q) || name.includes(q) || addr.includes(q);
     });
   }, [bestPlaces, searchQuery, cuisineFilter]);
+
+  // Community events (from the feed) shown as pins on the Switzerland map.
+  const mapEvents = useMemo(
+    () => (posts || []).filter((p: any) => p?.type === 'EVENT'),
+    [posts],
+  );
 
   // --- Render helpers ---
 
@@ -555,8 +562,22 @@ export default function CommunityScreen() {
         </View>
       )}
 
-      {/* Tabs */}
+      {/* Tabs — Places first (pilot focus on the map) */}
       <View style={[styles.tabBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'places' && styles.tabActive]}
+          onPress={() => setActiveTab('places')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              { color: activeTab === 'places' ? colors.primary : colors.textTertiary },
+            ]}
+          >
+            {t('community.places', 'Places')}
+          </Text>
+          {activeTab === 'places' && <View style={[styles.tabIndicator, { backgroundColor: colors.primary }]} />}
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'feed' && styles.tabActive]}
           onPress={() => setActiveTab('feed')}
@@ -584,20 +605,6 @@ export default function CommunityScreen() {
             {t('community.groups', 'Groups')}
           </Text>
           {activeTab === 'groups' && <View style={[styles.tabIndicator, { backgroundColor: colors.primary }]} />}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'places' && styles.tabActive]}
-          onPress={() => setActiveTab('places')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { color: activeTab === 'places' ? colors.primary : colors.textTertiary },
-            ]}
-          >
-            {t('community.places', 'Places')}
-          </Text>
-          {activeTab === 'places' && <View style={[styles.tabIndicator, { backgroundColor: colors.primary }]} />}
         </TouchableOpacity>
       </View>
 
@@ -644,6 +651,7 @@ export default function CommunityScreen() {
                 colors={colors}
                 t={t}
                 places={filteredPlaces}
+                events={mapEvents}
                 onSelect={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
               />
             </View>

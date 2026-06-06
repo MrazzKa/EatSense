@@ -392,22 +392,30 @@ export default function CameraScreen() {
                   <Ionicons name="close" size={24} color={CAM_TEXT} />
                 </Pressable>
                 <Text style={[styles.headerTitle, { color: CAM_TEXT }]}>{t('camera.takePhoto')}</Text>
-                <View style={styles.headerButtonPlaceholder} />
+                <Pressable
+                  style={styles.headerButton}
+                  onPress={typeof handleFlashToggle === 'function' ? handleFlashToggle : () => { }}
+                  accessibilityLabel={flashLabel}
+                >
+                  <Ionicons
+                    name={flashMode === 'off' ? 'flash-off' : flashMode === 'on' ? 'flash' : 'flash-outline'}
+                    size={22}
+                    color={flashMode === 'on' ? '#FFD54A' : CAM_TEXT}
+                  />
+                </Pressable>
               </View>
 
               <View
                 style={[styles.controls, { paddingBottom: tokens.spacing.xl }]}
               >
                 <View style={styles.controlRow}>
-                  <Pressable style={styles.controlButton} onPress={typeof handleFlashToggle === 'function' ? handleFlashToggle : () => { }}>
-                    <Ionicons
-                      name={
-                        flashMode === 'off' ? 'flash-off' : flashMode === 'on' ? 'flash' : 'flash-outline'
-                      }
-                      size={24}
-                      color={CAM_TEXT}
-                    />
-                    <Text style={[styles.controlLabel, { color: CAM_TEXT }]}>{flashLabel}</Text>
+                  <Pressable
+                    style={styles.sideButton}
+                    onPress={typeof handleGalleryPick === 'function' ? handleGalleryPick : () => { }}
+                    disabled={isLoading}
+                    accessibilityLabel={t('camera.gallery') || 'Gallery'}
+                  >
+                    <Ionicons name="images" size={24} color={CAM_TEXT} />
                   </Pressable>
 
                   <View style={styles.captureWrapper}>
@@ -415,6 +423,7 @@ export default function CameraScreen() {
                       style={[styles.captureButton, isLoading && styles.captureButtonDisabled]}
                       onPress={typeof takePicture === 'function' ? takePicture : () => { }}
                       disabled={isLoading}
+                      accessibilityLabel={t('camera.takePhoto')}
                     >
                       {isLoading ? (
                         <ActivityIndicator size="small" color={CAM_TEXT} />
@@ -425,27 +434,15 @@ export default function CameraScreen() {
                   </View>
 
                   <Pressable
-                    style={styles.controlButton}
+                    style={styles.sideButton}
                     onPress={() => setFacing((prev) => (prev === 'back' ? 'front' : 'back'))}
+                    accessibilityLabel={t('camera.switchCamera')}
                   >
                     <Ionicons name="camera-reverse" size={24} color={CAM_TEXT} />
-                    <Text style={[styles.controlLabel, { color: CAM_TEXT }]}>
-                      {t('camera.switchCamera')}
-                    </Text>
                   </Pressable>
                 </View>
 
                 <View style={styles.bottomActions}>
-                  <Pressable
-                    style={styles.typeButton}
-                    onPress={handleGalleryPick}
-                    disabled={isLoading}
-                  >
-                    <Ionicons name="images-outline" size={20} color={CAM_TEXT} />
-                    <Text style={[styles.typeButtonText, { color: CAM_TEXT }]}>
-                      {t('camera.gallery') || 'Gallery'}
-                    </Text>
-                  </Pressable>
                   <Pressable
                     style={styles.typeButton}
                     onPress={() => setShowDescribeModal(true)}
@@ -529,6 +526,14 @@ const createStyles = (tokens) =>
     },
     controlLabel: {
       fontSize: tokens.typography.micro.fontSize,
+    },
+    sideButton: {
+      width: 56,
+      height: 56,
+      borderRadius: tokens.radii.full,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     captureWrapper: {
       borderRadius: tokens.radii.full,

@@ -422,7 +422,15 @@
     "targetWeightSubtitle": "What weight are you aiming for?",
     "trust": "Thank you for trusting us",
     "trustSubtitle": "We'll help you achieve your goals",
+    "aboutYou": "About you",
+    "aboutYouSubtitle": "Your gender and age personalize your plan",
+    "yourMeasurements": "Your measurements",
+    "yourMeasurementsSubtitle": "Height and weight for an accurate plan",
+    "healthDiet": "Health & nutrition",
+    "healthDietSubtitle": "Allergies and conditions we should know about",
     "units": {
+      "metric": "Metric",
+      "imperial": "Imperial",
       "years": "years",
       "cm": "cm",
       "kg": "kg",
@@ -518,6 +526,9 @@
     "caloriesUnit": "kcal",
     "ofGoal": "of {{goal}} goal",
     "overGoal": "over goal",
+    "remaining": "remaining",
+    "ofGoalCalories": "of {{goal}} kcal",
+    "gramShort": "g",
     "protein": "Protein",
     "carbs": "Carbs",
     "fat": "Fat",
@@ -1349,6 +1360,11 @@
       "health": "HEALTH"
     },
     "streak": "day streak",
+    "water": {
+      "title": "Water",
+      "unit": "glasses",
+      "add": "Add a glass"
+    },
     "wave": {
       "title": "Weekly Progress"
     },
@@ -4500,7 +4516,7 @@
     "groups": "Groups",
     "placesFilterCity": "Filter by city",
     "placesFilterChange": "Tap to change city",
-    "placesFilterHint": "Kazakhstan and Switzerland include major city filters",
+    "placesFilterHint": "Filter the best places by city",
     "members": "members",
     "join": "Join",
     "joined": "Joined",
@@ -4727,6 +4743,12 @@
       "setOnMap": "Set location on map",
       "onMapSet": "Location set on map"
     },
+    "mapFilter": {
+      "all": "All",
+      "places": "Places",
+      "events": "Events",
+      "noEvents": "No events on the map yet"
+    },
     "placesView": {
       "list": "List",
       "map": "Map",
@@ -4817,6 +4839,17 @@
       "completed": "Completed",
       "error": "Error",
       "unknown": "Unknown"
+    }
+  },
+  "welcomeOverlay": {
+    "skip": "Skip",
+    "title": "Welcome to EatSense 👋",
+    "subtitle": "Snap your meal — get instant nutrition insights.",
+    "cta": "Start now",
+    "features": {
+      "analysis": { "title": "Snap & analyze", "desc": "Photograph any meal for instant calories and macros." },
+      "recommendations": { "title": "Personal tips", "desc": "Smart suggestions tuned to your goals and health." },
+      "assistant": { "title": "AI assistant", "desc": "Ask anything about your nutrition, anytime." }
     }
   },
   "gettingStarted": {

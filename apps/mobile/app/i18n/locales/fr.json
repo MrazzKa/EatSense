@@ -723,6 +723,9 @@
     },
     "ofGoal": "sur {{goal}} objectif",
     "overGoal": "au-dessus de l'objectif",
+    "remaining": "restant",
+    "ofGoalCalories": "sur {{goal}} kcal",
+    "gramShort": "g",
     "protein": "Protéines",
     "quickStats": "Statistiques rapides",
     "recent": "Récent",
@@ -1975,7 +1978,15 @@
     "targetWeightSubtitle": "Quel poids visez-vous ?",
     "trust": "Merci de nous faire confiance",
     "trustSubtitle": "Nous vous aiderons à atteindre vos objectifs",
+    "aboutYou": "À propos de toi",
+    "aboutYouSubtitle": "Ton sexe et ton âge personnalisent ton plan",
+    "yourMeasurements": "Tes mesures",
+    "yourMeasurementsSubtitle": "Taille et poids pour un plan précis",
+    "healthDiet": "Santé et nutrition",
+    "healthDietSubtitle": "Allergies et conditions à connaître",
     "units": {
+      "metric": "Métrique",
+      "imperial": "Impérial",
       "cm": "cm",
       "ft": "pi",
       "in": "po",
@@ -2567,6 +2578,11 @@
       "health": "SANTÉ"
     },
     "streak": "jours consécutifs",
+    "water": {
+      "title": "Eau",
+      "unit": "verres",
+      "add": "Ajouter un verre"
+    },
     "wave": {
       "title": "Progrès hebdomadaire"
     },
@@ -4465,7 +4481,7 @@
     "groups": "Groupes",
     "placesFilterCity": "Filtrer par ville",
     "placesFilterChange": "Touchez pour changer de ville",
-    "placesFilterHint": "Le Kazakhstan et la Suisse incluent des filtres pour les grandes villes",
+    "placesFilterHint": "Filtrer les meilleurs lieux par ville",
     "members": "membres",
     "join": "Rejoindre",
     "joined": "Membre",
@@ -4692,6 +4708,12 @@
       "setOnMap": "Définir sur la carte",
       "onMapSet": "Lieu défini sur la carte"
     },
+    "mapFilter": {
+      "all": "Tout",
+      "places": "Lieux",
+      "events": "Événements",
+      "noEvents": "Aucun événement sur la carte"
+    },
     "placesView": {
       "list": "Liste",
       "map": "Carte",
@@ -4782,6 +4804,17 @@
       "completed": "Terminé",
       "error": "Erreur",
       "unknown": "Inconnu"
+    }
+  },
+  "welcomeOverlay": {
+    "skip": "Passer",
+    "title": "Bienvenue sur EatSense 👋",
+    "subtitle": "Photographie ton repas — obtiens une analyse nutritionnelle instantanée.",
+    "cta": "Commencer",
+    "features": {
+      "analysis": { "title": "Photo & analyse", "desc": "Photographie n'importe quel repas pour des calories et macros instantanées." },
+      "recommendations": { "title": "Conseils personnalisés", "desc": "Des suggestions adaptées à tes objectifs et ta santé." },
+      "assistant": { "title": "Assistant IA", "desc": "Pose toutes tes questions sur ta nutrition, à tout moment." }
     }
   },
   "gettingStarted": {

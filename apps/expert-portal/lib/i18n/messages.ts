@@ -87,6 +87,7 @@ type MessagesShape = {
     signingInBtn: string;
     useMagicLink: string;
     usePassword: string;
+    forgotPassword: string;
     invalidCredentials: string;
   };
   auth: {
@@ -481,7 +482,7 @@ const en: MessagesShape = {
     passwordSubtitle: 'Sign in with your email and password.',
     passwordPlaceholder: 'Password',
     signInBtn: 'Sign in', signingInBtn: 'Signing in...',
-    useMagicLink: 'Sign in with an email link instead', usePassword: 'Use password instead',
+    useMagicLink: 'Sign in with an email link instead', usePassword: 'Use password instead', forgotPassword: 'Forgot password?',
     invalidCredentials: 'Invalid email or password.',
   },
   auth: {
@@ -719,7 +720,7 @@ const ru: MessagesShape = {
     passwordSubtitle: 'Войдите по email и паролю.',
     passwordPlaceholder: 'Пароль',
     signInBtn: 'Войти', signingInBtn: 'Вход...',
-    useMagicLink: 'Войти по ссылке на email', usePassword: 'Войти по паролю',
+    useMagicLink: 'Войти по ссылке на email', usePassword: 'Войти по паролю', forgotPassword: 'Забыли пароль?',
     invalidCredentials: 'Неверный email или пароль.',
   },
   auth: {
@@ -957,7 +958,7 @@ const kk: MessagesShape = {
     passwordSubtitle: 'Email және құпиясөзбен кіріңіз.',
     passwordPlaceholder: 'Құпиясөз',
     signInBtn: 'Кіру', signingInBtn: 'Кіру...',
-    useMagicLink: 'Email сілтемесі арқылы кіру', usePassword: 'Құпиясөзбен кіру',
+    useMagicLink: 'Email сілтемесі арқылы кіру', usePassword: 'Құпиясөзбен кіру', forgotPassword: 'Құпиясөзді ұмыттыңыз ба?',
     invalidCredentials: 'Email немесе құпиясөз қате.',
   },
   auth: {
@@ -1195,7 +1196,7 @@ const de: MessagesShape = {
     passwordSubtitle: 'Melden Sie sich mit E-Mail und Passwort an.',
     passwordPlaceholder: 'Passwort',
     signInBtn: 'Anmelden', signingInBtn: 'Anmeldung...',
-    useMagicLink: 'Stattdessen per E-Mail-Link anmelden', usePassword: 'Mit Passwort anmelden',
+    useMagicLink: 'Stattdessen per E-Mail-Link anmelden', usePassword: 'Mit Passwort anmelden', forgotPassword: 'Passwort vergessen?',
     invalidCredentials: 'Ungültige E-Mail oder Passwort.',
   },
   auth: {
@@ -1433,7 +1434,7 @@ const fr: MessagesShape = {
     passwordSubtitle: 'Connectez-vous avec votre e-mail et votre mot de passe.',
     passwordPlaceholder: 'Mot de passe',
     signInBtn: 'Se connecter', signingInBtn: 'Connexion...',
-    useMagicLink: 'Se connecter via un lien e-mail', usePassword: 'Se connecter avec un mot de passe',
+    useMagicLink: 'Se connecter via un lien e-mail', usePassword: 'Se connecter avec un mot de passe', forgotPassword: 'Mot de passe oublié ?',
     invalidCredentials: 'E-mail ou mot de passe invalide.',
   },
   auth: {
@@ -1671,7 +1672,7 @@ const es: MessagesShape = {
     passwordSubtitle: 'Inicia sesión con tu correo y contraseña.',
     passwordPlaceholder: 'Contraseña',
     signInBtn: 'Iniciar sesión', signingInBtn: 'Iniciando sesión...',
-    useMagicLink: 'Iniciar sesión con un enlace por correo', usePassword: 'Iniciar sesión con contraseña',
+    useMagicLink: 'Iniciar sesión con un enlace por correo', usePassword: 'Iniciar sesión con contraseña', forgotPassword: '¿Olvidaste tu contraseña?',
     invalidCredentials: 'Correo o contraseña no válidos.',
   },
   auth: {

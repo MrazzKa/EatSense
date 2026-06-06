@@ -31,6 +31,7 @@ import { useI18n } from '../../app/i18n/hooks';
 // import { legalDocuments } from '../legal/legalContent';
 
 import HealthDisclaimer from '../components/HealthDisclaimer';
+import ConfettiCelebration from '../components/ConfettiCelebration';
 import AllergiesSelector, { serializeAllergies } from '../components/AllergiesSelector';
 import CountryPicker, { normalizeSupportedCountryCode } from '../components/CountryPicker';
 import { SUBSCRIPTION_SKUS, NON_CONSUMABLE_SKUS } from '../config/subscriptions';
@@ -802,6 +803,9 @@ const OnboardingScreen = () => {
   const [purchasing, setPurchasing] = useState(false); // IAP purchase in progress
   // Calculated plan data
   const [planData, setPlanData] = useState(null);
+  const [caloriesDisplay, setCaloriesDisplay] = useState(0); // count-up animation for plan reveal
+  const [showPlanConfetti, setShowPlanConfetti] = useState(false); // confetti when plan is ready
+  const stepAnim = useRef(new Animated.Value(1)).current; // entrance animation per slide
   const { t } = useI18n(); // Added useI18n hook
 
   // Pre-fill the name from the existing profile if we already know it (e.g. experts
@@ -833,24 +837,58 @@ const OnboardingScreen = () => {
   const onboardingCompletedRef = useRef<false | 'inflight' | 'done'>(false);
 
   // Simplified onboarding - only essential data collection slides
-  const steps = useMemo(() => [
-    { id: 'welcome', title: t('onboarding.welcome', 'Welcome to EatSense') },
-    { id: 'name', title: t('onboarding.name', 'What\'s your name?') },
-    { id: 'country', title: t('country.title', 'Select country') },
-    { id: 'goals', title: t('onboarding.goals', 'What are your goals?') },
-    { id: 'gender', title: t('onboarding.gender', 'What\'s your gender?') },
-    { id: 'age', title: t('onboarding.age', 'How old are you?') },
-    { id: 'height', title: t('onboarding.height', 'What\'s your height?') },
-    { id: 'weight', title: t('onboarding.weight', 'What\'s your weight?') },
-    { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') },
-    { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
-    { id: 'allergies', title: t('allergies.title', 'Allergies') },
-    { id: 'health', title: t('onboarding.health', 'What should we know about you?') },
-    // Notifications step removed
-    { id: 'terms', title: t('onboarding.terms', 'Terms & Privacy') },
-    { id: 'loading', title: t('onboarding.loading', 'Creating your plan') },
-    { id: 'plan', title: t('onboarding.plan', 'Choose Your Plan') },
-  ], [t]);
+  const steps = useMemo(() => {
+    // Consolidated onboarding (2026-06-06): gender+age → "basics", height+weight →
+    // "measurements", allergies+health → "healthDiet". Fewer, denser slides for a
+    // smoother flow without losing any collected data.
+    const base = [
+      { id: 'welcome', title: t('onboarding.welcome', 'Welcome to EatSense') },
+      { id: 'name', title: t('onboarding.name', 'What\'s your name?') },
+      { id: 'country', title: t('country.title', 'Select country') },
+      { id: 'goals', title: t('onboarding.goals', 'What are your goals?') },
+      { id: 'basics', title: t('onboarding.aboutYou', 'About you') },
+      { id: 'measurements', title: t('onboarding.yourMeasurements', 'Your measurements') },
+      { id: 'targetWeight', title: t('onboarding.targetWeight', 'What weight do you want?') },
+      { id: 'activity', title: t('onboarding.activity', 'How active are you?') },
+      { id: 'healthDiet', title: t('onboarding.healthDiet', 'Health & nutrition') },
+      { id: 'terms', title: t('onboarding.terms', 'Terms & Privacy') },
+      { id: 'loading', title: t('onboarding.loading', 'Creating your plan') },
+      { id: 'plan', title: t('onboarding.plan', 'Choose Your Plan') },
+    ];
+    // Target weight is meaningless when the user just wants to maintain — skip it.
+    if (profileData.goal === 'maintain_weight') {
+      return base.filter((s) => s.id !== 'targetWeight');
+    }
+    return base;
+  }, [t, profileData.goal]);
+
+  // Entrance animation: fade + slide-in whenever the active slide changes.
+  useEffect(() => {
+    stepAnim.setValue(0);
+    Animated.timing(stepAnim, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+  }, [currentStep, stepAnim]);
+
+  // Count-up the calorie number when the personalized plan becomes ready, plus a
+  // one-shot confetti celebration on the reveal.
+  useEffect(() => {
+    if (planData && planData.dailyCalories > 0) {
+      setShowPlanConfetti(true);
+      const target = planData.dailyCalories;
+      const startedAt = Date.now();
+      const durationMs = 900;
+      let raf;
+      const tick = () => {
+        const p = Math.min(1, (Date.now() - startedAt) / durationMs);
+        const eased = 1 - Math.pow(1 - p, 3);
+        setCaloriesDisplay(Math.round(target * eased));
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+      return () => { if (raf) cancelAnimationFrame(raf); };
+    }
+    setCaloriesDisplay(0);
+    return undefined;
+  }, [planData]);
 
   // Removed unused genders array
   // const genders = [
@@ -1047,7 +1085,7 @@ const OnboardingScreen = () => {
         Alert.alert(t('common.required', 'Required Field'), t('onboarding.validation.goal', 'Please select your goal.'));
         return;
       }
-    } else if (currentStepId === 'gender') {
+    } else if (currentStepId === 'basics') {
       if (!profileData.gender) {
         Alert.alert(t('common.required', 'Required Field'), t('onboarding.validation.gender', 'Please select your gender.'));
         return;
@@ -1065,7 +1103,7 @@ const OnboardingScreen = () => {
         );
         return;
       }
-    } else if (currentStepId === 'allergies') {
+    } else if (currentStepId === 'healthDiet') {
       if (!allergiesState.hasNone && allergiesState.selected.length === 0 && !allergiesState.otherText.trim()) {
         Alert.alert(
           t('common.required', 'Required Field'),
@@ -2390,10 +2428,17 @@ const OnboardingScreen = () => {
             const bmr = hasValidParams
               ? 10 * weight + 6.25 * height - 5 * age + genderOffset
               : 0;
-            const recommendedCalories = hasValidParams ? Math.round(bmr * activityMultiplier) : 0;
+            const tdee = hasValidParams ? bmr * activityMultiplier : 0;
+            // Goal-aware target (matches backend calculateDailyCalories): 15% deficit
+            // for weight loss, 10% surplus for gain, maintenance otherwise. Safe floor 1200.
+            const goalFactor = profileData.goal === 'lose_weight' ? 0.85
+              : profileData.goal === 'gain_weight' ? 1.10
+                : 1.0;
+            const recommendedCalories = tdee > 0 ? Math.max(1200, Math.round(tdee * goalFactor)) : 0;
 
             setPlanData({
-              recommendedWeight: profileData.targetWeight,
+              // Maintainers skip the target-weight slide, so show their current weight.
+              recommendedWeight: profileData.goal === 'maintain_weight' ? profileData.weight : profileData.targetWeight,
               dailyCalories: recommendedCalories,
               dailyProtein: Math.round(recommendedCalories * 0.3 / 4),
               dailyCarbs: Math.round(recommendedCalories * 0.4 / 4),
@@ -2709,7 +2754,7 @@ const OnboardingScreen = () => {
                 <Text style={styles.planSummaryTitle}>{t('onboarding.recommendedIntake', 'Recommended daily intake:')}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text style={styles.planSummaryText}>{t('onboarding.caloriesLabel', 'Calories')}:</Text>
-                  <Text style={[styles.planSummaryText, { fontWeight: '600', color: colors.primary }]}>{planData.dailyCalories} kcal</Text>
+                  <Text style={[styles.planSummaryText, { fontWeight: '600', color: colors.primary }]}>{(caloriesDisplay || planData.dailyCalories)} kcal</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text style={styles.planSummaryText}>{t('onboarding.proteinLabel', 'Protein')}:</Text>
@@ -2753,6 +2798,238 @@ const OnboardingScreen = () => {
   };
 
 
+  // ---- Combined onboarding slides (2026-06-06) ----
+  // "basics" = gender + age, "measurements" = height + weight, "healthDiet" =
+  // allergies + health conditions. Compact layouts inside a ScrollView so the
+  // denser slides never clip or feel crowded.
+
+  const renderBasicsStep = () => {
+    const genders = [
+      { id: 'male', label: t('onboarding.genders.male'), icon: '♂' },
+      { id: 'female', label: t('onboarding.genders.female'), icon: '♀' },
+    ];
+    return (
+      <View style={styles.stepContainer}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+          <Text style={styles.stepTitle}>{t('onboarding.aboutYou', 'About you')}</Text>
+          <Text style={styles.stepSubtitle}>{t('onboarding.aboutYouSubtitle', 'Your gender and age personalize your plan')}</Text>
+
+          {/* Gender — compact 2-up row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 28 }}>
+            {genders.map((gender) => {
+              const isSel = profileData.gender === gender.id;
+              return (
+                <TouchableOpacity
+                  key={gender.id}
+                  style={[styles.genderOption, { flex: 1, minHeight: 96, padding: 16, marginTop: 0 }, isSel && styles.genderOptionSelected]}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch { /* noop */ } }
+                    setProfileData((prev) => ({ ...prev, gender: gender.id }));
+                  }}
+                >
+                  <Text style={[styles.genderIcon, { fontSize: 36, marginBottom: 4, color: isSel ? onPrimaryColor : colors.text }]}>{gender.icon}</Text>
+                  <Text style={[styles.genderLabel, { marginTop: 0 }, isSel && styles.genderLabelSelected]}>{gender.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Age */}
+          <Text style={styles.inputLabel}>{t('onboarding.age', 'How old are you?')}</Text>
+          <View style={[styles.largeValueContainer, { marginTop: 8, marginBottom: 8 }]}>
+            <Text style={[styles.largeValueText, { fontSize: 44 }]}>{profileData.age}</Text>
+            <Text style={styles.largeValueUnit}>{t('onboarding.units.years')}</Text>
+          </View>
+          <HorizontalScrollPicker
+            styles={styles}
+            value={profileData.age}
+            minimumValue={16}
+            maximumValue={100}
+            onValueChange={(value) => setProfileData((prev) => ({ ...prev, age: Math.round(value) }))}
+            unit={` ${t('onboarding.units.years')}`}
+            step={1}
+            enableHaptics={true}
+          />
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderMeasurementsStep = () => {
+    const heightValue = unitSystem === 'metric' ? profileData.height : cmToFeetInches(profileData.height).totalInches;
+    const heightMin = unitSystem === 'metric' ? 120 : 47;
+    const heightMax = unitSystem === 'metric' ? 220 : 87;
+    const heightUnit = unitSystem === 'metric' ? ' cm' : ' in';
+    const heightDisplay = unitSystem === 'metric'
+      ? `${Math.round(profileData.height)}`
+      : `${Math.floor(heightValue / 12)}'${Math.round(heightValue % 12)}"`;
+
+    const weightValue = unitSystem === 'metric' ? profileData.weight : kgToLbs(profileData.weight);
+    const weightMin = unitSystem === 'metric' ? 30 : 66;
+    const weightMax = unitSystem === 'metric' ? 200 : 440;
+    const weightUnit = unitSystem === 'metric' ? ' kg' : ' lbs';
+    const weightDisplay = unitSystem === 'metric' ? profileData.weight.toFixed(1) : weightValue.toFixed(0);
+
+    return (
+      <View style={styles.stepContainer}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+          <Text style={styles.stepTitle}>{t('onboarding.yourMeasurements', 'Your measurements')}</Text>
+          <Text style={styles.stepSubtitle}>{t('onboarding.yourMeasurementsSubtitle', 'Height and weight for an accurate plan')}</Text>
+
+          {/* Shared unit toggle (metric/imperial) */}
+          <View style={styles.unitToggleContainer}>
+            <TouchableOpacity
+              style={[styles.unitToggleButton, unitSystem === 'metric' && styles.unitToggleButtonActive]}
+              onPress={() => setUnitSystem('metric')}
+            >
+              <Text style={[styles.unitToggleText, unitSystem === 'metric' && styles.unitToggleTextActive]}>{t('onboarding.units.metric', 'Metric')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.unitToggleButton, unitSystem === 'imperial' && styles.unitToggleButtonActive]}
+              onPress={() => setUnitSystem('imperial')}
+            >
+              <Text style={[styles.unitToggleText, unitSystem === 'imperial' && styles.unitToggleTextActive]}>{t('onboarding.units.imperial', 'Imperial')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Height */}
+          <Text style={[styles.inputLabel, { marginTop: 18 }]}>{t('onboarding.height', 'Height')}</Text>
+          <View style={[styles.largeValueContainer, { marginTop: 4, marginBottom: 4 }]}>
+            <Text style={[styles.largeValueText, { fontSize: 40 }]}>{heightDisplay}</Text>
+            {unitSystem === 'metric' && <Text style={styles.largeValueUnit}>cm</Text>}
+          </View>
+          <HorizontalScrollPicker
+            styles={styles}
+            value={heightValue}
+            minimumValue={heightMin}
+            maximumValue={heightMax}
+            onValueChange={(value) => {
+              const newHeight = unitSystem === 'metric'
+                ? Math.round(value)
+                : feetInchesToCm(Math.floor(value / 12), Math.round(value % 12));
+              setProfileData((prev) => ({ ...prev, height: newHeight }));
+            }}
+            unit={heightUnit}
+            step={1}
+            enableHaptics={true}
+          />
+
+          {/* Weight */}
+          <Text style={[styles.inputLabel, { marginTop: 18 }]}>{t('onboarding.weight', 'Weight')}</Text>
+          <View style={[styles.largeValueContainer, { marginTop: 4, marginBottom: 4 }]}>
+            <Text style={[styles.largeValueText, { fontSize: 40 }]}>{weightDisplay}</Text>
+            <Text style={styles.largeValueUnit}>{unitSystem === 'metric' ? 'kg' : 'lbs'}</Text>
+          </View>
+          <HorizontalScrollPicker
+            styles={styles}
+            value={weightValue}
+            minimumValue={weightMin}
+            maximumValue={weightMax}
+            onValueChange={(value) => {
+              const newWeight = unitSystem === 'metric'
+                ? parseFloat(value.toFixed(1))
+                : lbsToKg(value);
+              setProfileData((prev) => ({ ...prev, weight: newWeight }));
+            }}
+            unit={weightUnit}
+            step={unitSystem === 'metric' ? 0.5 : 1}
+            enableHaptics={true}
+          />
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderHealthDietStep = () => {
+    const conditions = [
+      { id: 'gastritis', label: t('onboarding.healthConditions.gastritis', 'Gastritis') },
+      { id: 'high_cholesterol', label: t('onboarding.healthConditions.highCholesterol', 'High Cholesterol') },
+      { id: 'diabetes', label: t('onboarding.healthConditions.diabetes', 'Diabetes') },
+      { id: 'thyroid', label: t('onboarding.healthConditions.thyroid', 'Thyroid Issues') },
+      { id: 'other', label: t('onboarding.healthConditions.other', 'Not in list, I\'ll write') },
+      { id: 'none', label: t('onboarding.healthConditions.none', 'No health problems') },
+    ];
+    return (
+      <View style={styles.stepContainer}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.stepTitle}>{t('onboarding.healthDiet', 'Health & nutrition')}</Text>
+          <Text style={styles.stepSubtitle}>{t('onboarding.healthDietSubtitle', 'Allergies and conditions we should know about')}</Text>
+
+          {/* Allergies */}
+          <AllergiesSelector
+            selected={allergiesState.selected}
+            hasNone={allergiesState.hasNone}
+            otherText={allergiesState.otherText}
+            onChange={(next) => {
+              setAllergiesState(next);
+              setProfileData(prev => ({
+                ...prev,
+                allergies: serializeAllergies(next),
+                allergiesNone: next.hasNone,
+              }));
+            }}
+          />
+
+          {/* Health conditions */}
+          <Text style={[styles.inputLabel, { marginTop: 28, marginBottom: 4 }]}>{t('onboarding.health', 'What should we know about you?')}</Text>
+          <Text style={[styles.stepSubtitle, { textAlign: 'left', marginBottom: 12 }]}>{t('onboarding.healthSubtitle', 'Select if any apply to you')}</Text>
+          <View style={styles.activityContainer}>
+            {conditions.map((condition) => {
+              const isSelected = profileData.healthConditions?.includes(condition.id);
+              return (
+                <TouchableOpacity
+                  key={condition.id}
+                  style={[styles.activityButton, isSelected && styles.activityButtonSelected]}
+                  onPress={() => {
+                    if (Platform.OS === 'ios') { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }
+                    if (condition.id === 'none') {
+                      setProfileData({ ...profileData, healthConditions: ['none'] });
+                    } else {
+                      setProfileData((prev) => {
+                        const cur = prev.healthConditions || [];
+                        let next = cur.filter(c => c !== 'none');
+                        if (next.includes(condition.id)) next = next.filter(id => id !== condition.id);
+                        else next = [...next, condition.id];
+                        return { ...prev, healthConditions: next };
+                      });
+                    }
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <Text
+                      style={[styles.activityLabel, isSelected && styles.activityLabelSelected, { flex: 1, marginRight: 8 }]}
+                      numberOfLines={2}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    >
+                      {condition.label}
+                    </Text>
+                    {isSelected && <Ionicons name="checkmark" size={20} color={onPrimaryColor} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {profileData.healthConditions?.includes('other') && (
+            <TextInput
+              style={[styles.otherInput, { marginTop: 16 }]}
+              placeholder={t('onboarding.specifyCondition', 'Please specify condition')}
+              placeholderTextColor={colors.textTertiary}
+              value={profileData.healthConditionOther}
+              onChangeText={(text) => setProfileData(prev => ({ ...prev, healthConditionOther: text }))}
+            />
+          )}
+          <HealthDisclaimer style={{ marginTop: 20, marginBottom: 20 }} />
+        </ScrollView>
+      </View>
+    );
+  };
+
   const renderStep = () => {
     const stepId = steps[currentStep]?.id;
     switch (stepId) {
@@ -2760,17 +3037,21 @@ const OnboardingScreen = () => {
       case 'name': return renderNameStep();
       case 'country': return renderCountryStep();
       case 'goals': return renderGoalsStep();
-      case 'gender': return renderGenderStep();
-      case 'age': return renderAgeStep();
-      case 'height': return renderHeightStep();
-      case 'weight': return renderWeightStep();
+      case 'basics': return renderBasicsStep();
+      case 'measurements': return renderMeasurementsStep();
       case 'targetWeight': return renderTargetWeightStep();
       case 'activity': return renderActivityStep();
-      case 'allergies': return renderAllergiesStep();
-      case 'health': return renderHealthConditionsStep();
+      case 'healthDiet': return renderHealthDietStep();
       case 'terms': return renderTermsStep();
       case 'loading': return renderLoadingStep();
       case 'plan': return renderPlanStep();
+      // Back-compat: old single-purpose ids still render if ever referenced.
+      case 'gender': return renderBasicsStep();
+      case 'age': return renderBasicsStep();
+      case 'height': return renderMeasurementsStep();
+      case 'weight': return renderMeasurementsStep();
+      case 'allergies': return renderHealthDietStep();
+      case 'health': return renderHealthDietStep();
       default: return renderWelcomeStep();
     }
   };
@@ -2779,15 +3060,21 @@ const OnboardingScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${((currentStep + 1) / steps.length) * 100}%`,
-                },
-              ]}
-            />
+          {/* Segmented progress — one bar per step, filled up to current */}
+          <View style={{ flexDirection: 'row', width: '100%', gap: 4, marginBottom: 8 }}>
+            {(steps || []).map((_, i) => (
+              <View
+                key={i}
+                style={{
+                  flex: 1,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: i <= currentStep
+                    ? colors.primary
+                    : (colors.border || 'rgba(0,0,0,0.10)'),
+                }}
+              />
+            ))}
           </View>
           <Text style={styles.progressText}>
             {currentStep + 1} {t('common.of', 'of')} {steps.length}
@@ -2807,11 +3094,31 @@ const OnboardingScreen = () => {
           const shouldRender = index === currentStep;
           return (
             <View key={index} style={styles.stepWrapper}>
-              {shouldRender && typeof renderStep === 'function' ? renderStep() : null}
+              {shouldRender && typeof renderStep === 'function' ? (
+                <Animated.View
+                  style={{
+                    flex: 1,
+                    opacity: stepAnim,
+                    transform: [{
+                      translateX: stepAnim.interpolate({ inputRange: [0, 1], outputRange: [28, 0] }),
+                    }],
+                  }}
+                >
+                  {renderStep()}
+                </Animated.View>
+              ) : null}
             </View>
           );
         })}
       </ScrollView>
+
+      {/* Celebration when the personalized plan is revealed */}
+      <ConfettiCelebration
+        visible={showPlanConfetti}
+        particleCount={60}
+        duration={2200}
+        onComplete={() => setShowPlanConfetti(false)}
+      />
 
       {
         !['loading', 'terms'].includes(steps[currentStep]?.id) && (

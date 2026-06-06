@@ -74,6 +74,13 @@ export default function DietCard({ diet, onPress, isLocked = false }) {
                     </View>
                 )}
 
+                {/* PRO pill — clarifies the free/premium split at a glance */}
+                {isLocked && (
+                    <View style={styles.proBadge}>
+                        <Text style={styles.proBadgeText}>PRO</Text>
+                    </View>
+                )}
+
                 {/* Featured badge */}
                 {!isLocked && diet.isFeatured && (
                     <View style={styles.featuredBadge}>
@@ -137,6 +144,8 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 16,
         marginBottom: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(128,128,128,0.18)',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -174,6 +183,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 12,
+    },
+    proBadge: {
+        position: 'absolute',
+        top: 4,
+        left: 4,
+        backgroundColor: '#FFD700',
+        borderRadius: 6,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+    },
+    proBadgeText: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#1A1A1A',
+        letterSpacing: 0.5,
     },
     content: {
         flex: 1,

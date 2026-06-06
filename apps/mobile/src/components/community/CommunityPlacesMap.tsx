@@ -1,31 +1,44 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { cuisineIcon } from '../../config/cuisines';
 
-type PlacePost = {
+type CommunityPost = {
   id: string;
   metadata?: any;
 };
 
+type MapMode = 'all' | 'places' | 'events';
+
 type Props = {
   colors: any;
   t: any;
-  places: PlacePost[];
-  onSelect: (_post: PlacePost) => void;
+  places: CommunityPost[];
+  events?: CommunityPost[];
+  onSelect: (_post: CommunityPost) => void;
   height?: number;
 };
 
-const GENEVA_FALLBACK: Region = {
-  latitude: 46.2044,
-  longitude: 6.1432,
-  latitudeDelta: 0.12,
-  longitudeDelta: 0.12,
+// Pilot is Switzerland-only: the map opens on the whole country and we never
+// show pins that fall outside Swiss borders.
+const SWITZERLAND_REGION: Region = {
+  latitude: 46.8,
+  longitude: 8.23,
+  latitudeDelta: 2.6,
+  longitudeDelta: 3.4,
 };
+const CH_BOUNDS = { minLat: 45.8, maxLat: 47.85, minLng: 5.9, maxLng: 10.6 };
 
-function coordsOf(post: PlacePost): { latitude: number; longitude: number } | null {
+const EVENT_COLOR = '#F59E0B';
+
+function inSwitzerland(c: { latitude: number; longitude: number }): boolean {
+  return c.latitude >= CH_BOUNDS.minLat && c.latitude <= CH_BOUNDS.maxLat
+    && c.longitude >= CH_BOUNDS.minLng && c.longitude <= CH_BOUNDS.maxLng;
+}
+
+function coordsOf(post: CommunityPost): { latitude: number; longitude: number } | null {
   const m = post?.metadata || {};
   const lat = Number(m.latitude);
   const lng = Number(m.longitude);
@@ -35,24 +48,37 @@ function coordsOf(post: PlacePost): { latitude: number; longitude: number } | nu
   return null;
 }
 
+type Pin = { post: CommunityPost; coord: { latitude: number; longitude: number }; kind: 'place' | 'event' };
+
 /**
- * Map of community "best places" that have coordinates in their metadata.
- * Places without coordinates are simply not shown on the map (they still
- * appear in the list view). Apple Maps on iOS (no key needed).
+ * Switzerland-focused community map. Shows "best places" and upcoming community
+ * events that carry coordinates in their metadata, with a Places/Events filter.
+ * Pins outside Switzerland are hidden (pilot scope). Apple Maps on iOS (no key).
  */
-const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, onSelect, height = 360 }) => {
+const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], onSelect, height = 360 }) => {
   const mapRef = useRef<MapView | null>(null);
   const [ready, setReady] = useState(false);
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mode, setMode] = useState<MapMode>('all');
 
-  const withCoords = places
-    .map((p) => ({ post: p, coord: coordsOf(p) }))
-    .filter((x) => x.coord) as { post: PlacePost; coord: { latitude: number; longitude: number } }[];
+  const placePins: Pin[] = useMemo(
+    () => places
+      .map((p) => ({ post: p, coord: coordsOf(p), kind: 'place' as const }))
+      .filter((x) => x.coord && inSwitzerland(x.coord)) as Pin[],
+    [places],
+  );
+  const eventPins: Pin[] = useMemo(
+    () => events
+      .map((p) => ({ post: p, coord: coordsOf(p), kind: 'event' as const }))
+      .filter((x) => x.coord && inSwitzerland(x.coord)) as Pin[],
+    [events],
+  );
 
-  // Initial region: fit to the first place, else user, else Geneva.
-  const initialRegion: Region = withCoords[0]
-    ? { ...withCoords[0].coord, latitudeDelta: 0.08, longitudeDelta: 0.08 }
-    : GENEVA_FALLBACK;
+  const visiblePins: Pin[] = useMemo(() => {
+    if (mode === 'places') return placePins;
+    if (mode === 'events') return eventPins;
+    return [...placePins, ...eventPins];
+  }, [mode, placePins, eventPins]);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,22 +92,35 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, onSelect, heig
         // optional
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  // Fit all markers once the map is ready.
+  // Fit visible markers (or reset to all of Switzerland when none/one).
   useEffect(() => {
-    if (!ready || withCoords.length < 2) return;
+    if (!ready) return;
     const id = setTimeout(() => {
-      mapRef.current?.fitToCoordinates(
-        withCoords.map((x) => x.coord),
-        { edgePadding: { top: 60, right: 60, bottom: 60, left: 60 }, animated: false },
-      );
-    }, 300);
+      if (visiblePins.length >= 2) {
+        mapRef.current?.fitToCoordinates(
+          visiblePins.map((x) => x.coord),
+          { edgePadding: { top: 70, right: 60, bottom: 70, left: 60 }, animated: true },
+        );
+      } else if (visiblePins.length === 1) {
+        mapRef.current?.animateToRegion(
+          { ...visiblePins[0].coord, latitudeDelta: 0.08, longitudeDelta: 0.08 },
+          400,
+        );
+      } else {
+        mapRef.current?.animateToRegion(SWITZERLAND_REGION, 400);
+      }
+    }, 250);
     return () => clearTimeout(id);
-  }, [ready, withCoords.length]);
+  }, [ready, visiblePins]);
+
+  const filters: Array<{ key: MapMode; label: string }> = [
+    { key: 'all', label: t('community.mapFilter.all', 'All') },
+    { key: 'places', label: t('community.mapFilter.places', 'Places') },
+    { key: 'events', label: t('community.mapFilter.events', 'Events') },
+  ];
 
   return (
     <View style={[styles.wrapper, { height, borderColor: colors.border || '#E5E7EB' }]}>
@@ -89,33 +128,56 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, onSelect, heig
         ref={mapRef}
         provider={PROVIDER_DEFAULT}
         style={StyleSheet.absoluteFill}
-        initialRegion={initialRegion}
+        initialRegion={SWITZERLAND_REGION}
         showsUserLocation={!!userCoords}
         showsMyLocationButton={false}
         showsPointsOfInterests={false}
         toolbarEnabled={false}
         onMapReady={() => setReady(true)}
       >
-        {withCoords.map(({ post, coord }) => {
-          const cuisine = post.metadata?.cuisine;
+        {visiblePins.map(({ post, coord, kind }) => {
+          const isEvent = kind === 'event';
+          const color = isEvent ? EVENT_COLOR : (colors.primary || '#4F46E5');
+          const icon = isEvent ? 'calendar' : (cuisineIcon(post.metadata?.cuisine) as any);
           return (
             <Marker
-              key={post.id}
+              key={`${kind}-${post.id}`}
               coordinate={coord}
               onPress={() => onSelect(post)}
               tracksViewChanges={false}
               anchor={{ x: 0.5, y: 1 }}
             >
               <View style={styles.markerWrap}>
-                <View style={[styles.markerBubble, { backgroundColor: colors.primary || '#4F46E5' }]}>
-                  <Ionicons name={cuisineIcon(cuisine) as any} size={15} color="#FFF" />
+                <View style={[styles.markerBubble, { backgroundColor: color }]}>
+                  <Ionicons name={icon} size={15} color="#FFF" />
                 </View>
-                <View style={[styles.markerTip, { borderTopColor: colors.primary || '#4F46E5' }]} />
+                <View style={[styles.markerTip, { borderTopColor: color }]} />
               </View>
             </Marker>
           );
         })}
       </MapView>
+
+      {/* Places / Events filter */}
+      <View style={styles.filterBar} pointerEvents="box-none">
+        <View style={[styles.filterPill, { backgroundColor: colors.surface || '#FFF', borderColor: colors.border || '#E5E7EB' }]}>
+          {filters.map((f) => {
+            const active = mode === f.key;
+            return (
+              <TouchableOpacity
+                key={f.key}
+                style={[styles.filterChip, active && { backgroundColor: colors.primary || '#4F46E5' }]}
+                onPress={() => setMode(f.key)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.filterChipText, { color: active ? '#FFF' : (colors.textSecondary || '#666') }]}>
+                  {f.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
 
       {!ready && (
         <View style={[styles.overlay, { backgroundColor: colors.background }]}>
@@ -123,11 +185,13 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, onSelect, heig
         </View>
       )}
 
-      {ready && withCoords.length === 0 && (
-        <View style={[styles.overlay, { backgroundColor: colors.background }]} pointerEvents="none">
+      {ready && visiblePins.length === 0 && (
+        <View style={[styles.overlay, styles.emptyOverlay]} pointerEvents="none">
           <Ionicons name="map-outline" size={40} color={colors.textTertiary} />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            {t('community.placesView.noMapPins', 'No places with a map location yet')}
+            {mode === 'events'
+              ? t('community.mapFilter.noEvents', 'No events on the map yet')
+              : t('community.placesView.noMapPins', 'No places with a map location yet')}
           </Text>
         </View>
       )}
@@ -142,6 +206,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     margin: 16,
   },
+  filterBar: {
+    position: 'absolute',
+    top: 10,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  filterPill: {
+    flexDirection: 'row',
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 3,
+    gap: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  filterChipText: { fontSize: 13, fontWeight: '600' },
   markerWrap: { alignItems: 'center' },
   markerBubble: {
     width: 32,
@@ -172,6 +261,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
+  },
+  emptyOverlay: {
+    backgroundColor: 'transparent',
+    top: 56,
   },
   emptyText: { fontSize: 14, paddingHorizontal: 24, textAlign: 'center' },
 });

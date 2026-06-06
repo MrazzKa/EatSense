@@ -458,7 +458,16 @@ export class UserProfilesService {
     };
 
     const multiplier = (activityMultipliers as Record<string, number>)[activityLevel] || 1.2;
-    return Math.round(bmr * multiplier);
+    const tdee = bmr * multiplier;
+
+    // Goal-aware target: apply a moderate deficit/surplus so the calorie goal
+    // actually reflects the user's weight goal. Previously this returned pure TDEE,
+    // so weight-loss users got maintenance calories everywhere (dashboard ring,
+    // AI assistant, reports). 15% deficit / 10% surplus, with a safe 1200 floor.
+    const goalFactor = profile.goal === 'lose_weight' ? 0.85
+      : profile.goal === 'gain_weight' ? 1.10
+        : 1.0;
+    return Math.max(1200, Math.round(tdee * goalFactor));
   }
 
   private mergePreferences(

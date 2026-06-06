@@ -520,10 +520,16 @@ export class CommunityService {
           cityKey: normalizeCityKey((dto.metadata as any)?.city),
         }
       : (dto.metadata || {});
+    // Places & events auto-approve so the Switzerland map stays live without
+    // waiting on an admin (pilot decision 2026-06-06). The freemium limit (3) +
+    // post-hoc admin moderation (Posts tab can still reject) keep spam in check.
+    // Regular posts (TEXT/PHOTO/DIET_SHARE) still enter the moderation queue.
+    const autoApprove = dto.type === 'BEST_PLACES' || dto.type === 'EVENT';
     const metadataWithModeration = {
       ...metadata,
-      moderationStatus: 'pending',
+      moderationStatus: autoApprove ? 'approved' : 'pending',
       moderationSubmittedAt: new Date().toISOString(),
+      ...(autoApprove ? { moderationAutoApproved: true } : {}),
     };
 
     return this.prisma.communityPost.create({

@@ -5,14 +5,73 @@ import {
     StyleSheet,
     TouchableOpacity,
     ActivityIndicator,
+    Animated,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import { useProgramProgress } from '../stores/ProgramProgressStore';
 import ApiService from '../services/apiService';
 import CircularProgressRing from './CircularProgressRing';
+import ConfettiCelebration from './ConfettiCelebration';
 import { getDaysText } from '../utils/pluralize';
+
+/**
+ * Single checklist row with a satisfying check-pop animation.
+ */
+function ChecklistRow({
+    item,
+    colors,
+    styles,
+    onToggle,
+}: {
+    item: TrackerItem;
+    colors: any;
+    styles: any;
+    onToggle: (_key: string) => void;
+}) {
+    const scale = useRef(new Animated.Value(1)).current;
+    const prevChecked = useRef(item.checked);
+
+    useEffect(() => {
+        if (item.checked !== prevChecked.current) {
+            prevChecked.current = item.checked;
+            Animated.sequence([
+                Animated.timing(scale, { toValue: 1.28, duration: 110, useNativeDriver: true }),
+                Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }),
+            ]).start();
+        }
+    }, [item.checked, scale]);
+
+    return (
+        <TouchableOpacity
+            style={[styles.checklistItem, { borderBottomColor: colors.border }]}
+            onPress={() => onToggle(item.key)}
+            activeOpacity={0.7}
+        >
+            <Animated.View style={[
+                styles.checkbox,
+                {
+                    borderColor: item.checked ? colors.primary : colors.border,
+                    backgroundColor: item.checked ? colors.primary : 'transparent',
+                    transform: [{ scale }],
+                },
+            ]}>
+                {item.checked && <Ionicons name="checkmark" size={15} color="#FFF" />}
+            </Animated.View>
+            <Text style={[
+                styles.checklistLabel,
+                {
+                    color: item.checked ? colors.textSecondary : colors.textPrimary,
+                    textDecorationLine: item.checked ? 'line-through' : 'none',
+                },
+            ]}>
+                {item.label}
+            </Text>
+        </TouchableOpacity>
+    );
+}
 
 interface TrackerItem {
     key: string;
@@ -56,6 +115,8 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
     const program = activeProgram || lastValidProgramRef.current;
 
     const [saving, setSaving] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
+    const prevAllDoneRef = useRef(false);
     // NOTE: CelebrationModal removed from DailyDietTracker to prevent duplicate modals
     // CelebrationModal is now only rendered in DietProgramProgressScreen
     const [trackerData, setTrackerData] = useState<{
@@ -134,6 +195,23 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
         }
     }, [program, loadTrackerData]);
 
+    // Celebrate when every checklist item is completed (once per completion).
+    useEffect(() => {
+        const items = trackerData?.dailyTracker;
+        if (!items || items.length === 0) {
+            prevAllDoneRef.current = false;
+            return;
+        }
+        const allDone = items.every(i => i.checked);
+        if (allDone && !prevAllDoneRef.current) {
+            prevAllDoneRef.current = true;
+            setShowCelebration(true);
+            try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch { /* noop */ }
+        } else if (!allDone) {
+            prevAllDoneRef.current = false;
+        }
+    }, [trackerData]);
+
     // NOTE: CelebrationModal useEffect removed - celebration is handled by parent screen
 
     // Debounced sync to backend
@@ -179,6 +257,8 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
 
     const handleChecklistToggle = useCallback((key: string) => {
         if (!program) return;
+
+        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch { /* noop */ }
 
         // Optimistic UI update + collect the latest checklist snapshot from the
         // current (post-toggle) state. Using the functional setter guarantees we
@@ -316,33 +396,13 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             {/* Checklist Items */}
             <View style={styles.checklistContainer}>
                 {trackerData.dailyTracker.map((item) => (
-                    <TouchableOpacity
+                    <ChecklistRow
                         key={item.key}
-                        style={[styles.checklistItem, { borderBottomColor: colors.border }]}
-                        onPress={() => handleChecklistToggle(item.key)}
-                        activeOpacity={0.7}
-                    >
-                        <View style={[
-                            styles.checkbox,
-                            {
-                                borderColor: item.checked ? colors.primary : colors.border,
-                                backgroundColor: item.checked ? colors.primary : 'transparent',
-                            }
-                        ]}>
-                            {item.checked && (
-                                <Ionicons name="checkmark" size={14} color="#FFF" />
-                            )}
-                        </View>
-                        <Text style={[
-                            styles.checklistLabel,
-                            {
-                                color: item.checked ? colors.textSecondary : colors.textPrimary,
-                                textDecorationLine: item.checked ? 'line-through' : 'none',
-                            }
-                        ]}>
-                            {item.label}
-                        </Text>
-                    </TouchableOpacity>
+                        item={item}
+                        colors={colors}
+                        styles={styles}
+                        onToggle={handleChecklistToggle}
+                    />
                 ))}
             </View>
 
@@ -398,6 +458,14 @@ export default function DailyDietTracker({ onUpdate }: DailyDietTrackerProps) {
             <Text style={[styles.footerHint, { color: colors.textTertiary }]}>
                 {t('diets_tracker_complete_to_maintain', { threshold: thresholdPercent })}
             </Text>
+
+            {/* Celebration when all items are completed */}
+            <ConfettiCelebration
+                visible={showCelebration}
+                particleCount={40}
+                duration={1800}
+                onComplete={() => setShowCelebration(false)}
+            />
         </View>
     );
 }

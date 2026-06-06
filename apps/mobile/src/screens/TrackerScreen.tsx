@@ -26,6 +26,11 @@ import ShoppingList from '../components/tracker/ShoppingList';
 import PaywallModal from '../components/PaywallModal';
 import { GlassCard } from '../components/glass';
 import { Habit } from '../types/tracker';
+import { useAuth } from '../contexts/AuthContext';
+import useWaterTracker from '../hooks/useWaterTracker';
+import WaterCard from '../components/tracker/WaterCard';
+import DailyDietTracker from '../components/DailyDietTracker';
+import CircularProgressRing from '../components/CircularProgressRing';
 
 export default function TrackerScreen() {
   const { colors, tokens } = useTheme();
@@ -97,6 +102,24 @@ export default function TrackerScreen() {
     insufficientData,
   } = useShoppingRecommendations();
 
+  const { user } = useAuth();
+  const { glasses, goal: waterGoal, add: addWater, remove: removeWater } = useWaterTracker();
+
+  const firstName = ((user as any)?.firstName || (user as any)?.userProfile?.firstName || '').toString().trim();
+  const greetKey = (() => {
+    const h = new Date().getHours();
+    return h < 12 ? 'dashboard.greetingMorning' : h < 18 ? 'dashboard.greetingAfternoon' : 'dashboard.greetingEvening';
+  })();
+
+  // Today's habit completion (for the "Today" hero ring).
+  const habitsToday = useMemo(() => {
+    const active = habits.filter((h) => isHabitActiveOnDate(h, today));
+    const dayC = completions[today] || [];
+    const doneIds = new Set(dayC.map((c: any) => c.habitId));
+    const done = active.filter((h) => doneIds.has(h.id)).length;
+    return { done, total: active.length };
+  }, [habits, completions, today, isHabitActiveOnDate]);
+
   const habitsLimit = getFeatureLimit('unlimitedHabits', plan);
   const shoppingLimit = getFeatureLimit('unlimitedShopping', plan);
 
@@ -161,8 +184,8 @@ export default function TrackerScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>
-            {t('tracker.title') || 'My Day'}
+          <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
+            {t(greetKey)}{firstName ? `, ${firstName}` : ''}
           </Text>
           <ProfileAvatarButton />
         </View>
@@ -175,17 +198,73 @@ export default function TrackerScreen() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Streak badge */}
-          {streak > 0 && (
-            <GlassCard branded intensity="subtle" padding={null} style={styles.streakCard}>
-              <View style={styles.streakRow}>
-                <Ionicons name="flame" size={20} color={colors.warning || '#F59E0B'} style={{ marginRight: 6 }} />
-                <Text style={[styles.streakText, { color: colors.primary }]}>
-                  {streak} {t('tracker.streak') || 'day streak'}
+          {/* ── TODAY hero: water + habits (+ streak) at a glance ── */}
+          <GlassCard padding="lg" style={styles.heroCard}>
+            <View style={styles.heroRings}>
+              <View style={styles.heroRingItem}>
+                <View>
+                  <CircularProgressRing
+                    progress={waterGoal > 0 ? Math.min(1, glasses / waterGoal) : 0}
+                    size={64}
+                    strokeWidth={5}
+                    showText={false}
+                  />
+                  <View style={styles.heroRingCenter} pointerEvents="none">
+                    <Text style={[styles.heroRingValue, { color: colors.textPrimary }]}>{glasses}/{waterGoal}</Text>
+                  </View>
+                </View>
+                <Text style={[styles.heroRingLabel, { color: colors.textSecondary }]}>
+                  {t('tracker.water.title') || 'Water'}
                 </Text>
               </View>
-            </GlassCard>
-          )}
+
+              <View style={styles.heroRingItem}>
+                <View>
+                  <CircularProgressRing
+                    progress={habitsToday.total > 0 ? habitsToday.done / habitsToday.total : 0}
+                    size={64}
+                    strokeWidth={5}
+                    showText={false}
+                  />
+                  <View style={styles.heroRingCenter} pointerEvents="none">
+                    <Text style={[styles.heroRingValue, { color: colors.textPrimary }]}>
+                      {habitsToday.done}/{habitsToday.total}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={[styles.heroRingLabel, { color: colors.textSecondary }]}>
+                  {t('tracker.tabs.habits') || 'Habits'}
+                </Text>
+              </View>
+
+              {streak > 0 && (
+                <View style={styles.heroRingItem}>
+                  <View style={[styles.streakRing, { borderColor: (colors.warning || '#F59E0B') + '33' }]}>
+                    <Ionicons name="flame" size={22} color={colors.warning || '#F59E0B'} />
+                    <Text style={[styles.streakBig, { color: colors.primary }]}>{streak}</Text>
+                  </View>
+                  <Text style={[styles.heroRingLabel, { color: colors.textSecondary }]}>
+                    {t('tracker.streak') || 'day streak'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </GlassCard>
+
+          {/* ── WATER ── */}
+          <View style={styles.sectionBlock}>
+            <WaterCard
+              glasses={glasses}
+              goal={waterGoal}
+              onAdd={addWater}
+              onRemove={removeWater}
+              colors={colors}
+              t={t}
+            />
+          </View>
+
+          {/* ── DIET / LIFESTYLE CHECKLIST (only when a program is active) ── */}
+          <DailyDietTracker />
 
           {/* ── HABITS ── */}
           <View style={styles.sectionBlock}>
@@ -331,6 +410,44 @@ const createStyles = (tokens: any, _colors: any) =>
     streakText: {
       fontSize: 15,
       fontWeight: '700',
+    },
+    heroCard: {
+      marginBottom: tokens.spacing.lg,
+    },
+    heroRings: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'flex-start',
+    },
+    heroRingItem: {
+      alignItems: 'center',
+      gap: 8,
+    },
+    heroRingCenter: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    heroRingValue: {
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    heroRingLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    streakRing: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 5,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    streakBig: {
+      fontSize: 16,
+      fontWeight: '800',
+      marginTop: -2,
     },
     sectionBlock: {
       marginBottom: tokens.spacing.xl || 32,

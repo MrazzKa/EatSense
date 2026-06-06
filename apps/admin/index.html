@@ -1018,6 +1018,7 @@
       ['suggestions', 'reports', 'reviews', 'experts', 'posts', 'pharmacies'].forEach(t => {
         document.getElementById('tab-' + t).style.display = tab === t ? 'block' : 'none';
       });
+      if (tab === 'suggestions') loadSuggestions();
       if (tab === 'reviews') loadReviews();
       if (tab === 'experts') loadExperts();
       if (tab === 'posts') loadPendingPosts();

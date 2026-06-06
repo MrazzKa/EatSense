@@ -1350,9 +1350,13 @@ export class AnalyzeService {
         categoryHint: lookupCategoryHint, // From Vision for category-based filtering (fixes corn→oil)
       };
 
-      // GPT-ONLY MODE: Skip slow nutrition lookup, use Vision API estimates directly
-      // Enabled via GPT_ONLY_NUTRITION=true env variable for faster analysis (~15s instead of ~27s)
-      const useGptOnlyNutrition = process.env.GPT_ONLY_NUTRITION === 'true';
+      // GPT-ONLY MODE is now the DEFAULT. Production logs (2026-06-05) showed the USDA
+      // orchestrator timing out at ~4000ms for EVERY ingredient and the pipeline falling
+      // back to GPT Vision estimates anyway (components_and_score≈4013ms = pure USDA wait).
+      // Skipping it cuts ~4s off every analysis (≈9.9s → ≈6s) with no quality loss, since
+      // GPT estimates were already the de-facto source. A canonical-data safety-net (below)
+      // keeps common foods / veg / fruit accurate. Re-enable USDA with USE_USDA_NUTRITION=true.
+      const useGptOnlyNutrition = process.env.USE_USDA_NUTRITION !== 'true';
       const gptEstimates = (component as any).estimated_nutrients;
       const hasGptEstimates = gptEstimates &&
         (gptEstimates.calories > 0 || gptEstimates.protein_g > 0 || gptEstimates.carbs_g > 0 || gptEstimates.fat_g > 0);
@@ -1366,34 +1370,51 @@ export class AnalyzeService {
         const portionG = est_portion_g && est_portion_g > 0 ? est_portion_g : categoryDefault;
         const portionScale = portionG / 100;
 
-        const gptNutrients: Nutrients = {
-          calories: Math.round((gptEstimates.calories || 0) * portionScale),
-          protein: this.round((gptEstimates.protein_g || 0) * portionScale, 1),
-          carbs: this.round((gptEstimates.carbs_g || 0) * portionScale, 1),
-          fat: this.round((gptEstimates.fat_g || 0) * portionScale, 1),
-          fiber: this.round((gptEstimates.fiber_g || 0) * portionScale, 1),
-          sugars: 0,
-          satFat: 0,
-          energyDensity: gptEstimates.calories > 0 ? this.round(gptEstimates.calories, 1) : 0,
-        };
+        // Canonical safety-net: for common foods / veg / fruit, trusted per-100g values
+        // beat raw GPT estimates and cost nothing (in-memory, no network). Falls back to
+        // GPT estimates when there's no canonical entry.
+        const canonicalGpt = this.getCanonicalNutrition(component.name);
+        const gptNutrients: Nutrients = canonicalGpt
+          ? {
+            calories: Math.round((canonicalGpt.calories || 0) * portionScale),
+            protein: this.round((canonicalGpt.protein || 0) * portionScale, 1),
+            carbs: this.round((canonicalGpt.carbs || 0) * portionScale, 1),
+            fat: this.round((canonicalGpt.fat || 0) * portionScale, 1),
+            fiber: 0,
+            sugars: 0,
+            satFat: 0,
+            energyDensity: canonicalGpt.calories || 0,
+          }
+          : {
+            calories: Math.round((gptEstimates.calories || 0) * portionScale),
+            protein: this.round((gptEstimates.protein_g || 0) * portionScale, 1),
+            carbs: this.round((gptEstimates.carbs_g || 0) * portionScale, 1),
+            fat: this.round((gptEstimates.fat_g || 0) * portionScale, 1),
+            fiber: this.round((gptEstimates.fiber_g || 0) * portionScale, 1),
+            sugars: 0,
+            satFat: 0,
+            energyDensity: gptEstimates.calories > 0 ? this.round(gptEstimates.calories, 1) : 0,
+          };
 
-        // Validate GPT estimates to catch obvious errors
-        const validationResult = this.validator.validateNutritionData({
-          name: component.name,
-          portion_g: portionG,
-          calories: gptNutrients.calories,
-          protein: gptNutrients.protein,
-          carbs: gptNutrients.carbs,
-          fat: gptNutrients.fat,
-          fiber: gptNutrients.fiber,
-          category: (component as any).category_hint,
-        });
+        // Validate only GPT estimates (canonical values are already trusted).
+        if (!canonicalGpt) {
+          const validationResult = this.validator.validateNutritionData({
+            name: component.name,
+            portion_g: portionG,
+            calories: gptNutrients.calories,
+            protein: gptNutrients.protein,
+            carbs: gptNutrients.carbs,
+            fat: gptNutrients.fat,
+            fiber: gptNutrients.fiber,
+            category: (component as any).category_hint,
+          });
 
-        if (validationResult.wasModified) {
-          gptNutrients.calories = validationResult.calories;
-          gptNutrients.protein = validationResult.protein;
-          gptNutrients.carbs = validationResult.carbs;
-          gptNutrients.fat = validationResult.fat;
+          if (validationResult.wasModified) {
+            gptNutrients.calories = validationResult.calories;
+            gptNutrients.protein = validationResult.protein;
+            gptNutrients.carbs = validationResult.carbs;
+            gptNutrients.fat = validationResult.fat;
+          }
         }
 
         const localizedName = await this.foodLocalization.localizeName(component.name, locale);
@@ -1405,10 +1426,10 @@ export class AnalyzeService {
           label: component.name,
           portion_g: portionG,
           nutrients: gptNutrients,
-          source: 'gpt_vision_direct' as any,
+          source: (canonicalGpt ? 'canonical_fast_path' : 'gpt_vision_direct') as any,
           locale,
           hasNutrition: true,
-          provider: 'gpt_vision' as any,
+          provider: (canonicalGpt ? 'canonical' : 'gpt_vision') as any,
           cookingMethodHints: this.extractCookingMethodHints(component),
         };
 

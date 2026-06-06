@@ -16,7 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ApiService from '../services/apiService';
 import AiAssistant from '../components/AiAssistant';
-import GettingStartedCard from '../components/dashboard/GettingStartedCard';
+import WelcomeOverlay from '../components/dashboard/WelcomeOverlay';
+import { useTooltip, TooltipIds } from '../components/Tooltip/TooltipContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { useAuth } from '../contexts/AuthContext';
@@ -309,6 +310,24 @@ export default function DashboardScreen() {
   });
   const [suggestedFoodSummary, setSuggestedFoodSummary] = useState(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  // Welcome overlay (first-run): gate on real stats so it never flashes for
+  // returning users, and show exactly once.
+  const [statsLoaded, setStatsLoaded] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const { shouldShowTooltip, dismissTooltip, isLoading: tooltipsLoading } = useTooltip();
+
+  // Decide once whether to show the first-run welcome overlay — only after real
+  // stats arrive and the tooltip state is loaded, so returning users never see it.
+  useEffect(() => {
+    if (
+      statsLoaded &&
+      !tooltipsLoading &&
+      userStats.totalPhotosAnalyzed === 0 &&
+      shouldShowTooltip(TooltipIds.GETTING_STARTED)
+    ) {
+      setShowWelcome(true);
+    }
+  }, [statsLoaded, tooltipsLoading, userStats.totalPhotosAnalyzed, shouldShowTooltip]);
   const cardAnimations = useRef({
     calories: new Animated.Value(0),
     stats: new Animated.Value(0),
@@ -530,6 +549,9 @@ export default function DashboardScreen() {
         todayPhotosAnalyzed: data.userStats.todayPhotosAnalyzed || 0,
         dailyLimit: data.userStats.dailyLimit || 3,
       });
+      // Mark stats as loaded so the welcome overlay only decides AFTER we know the
+      // real analyzed-meal count (prevents the old flash for returning users).
+      setStatsLoaded(true);
     }
 
     // 4. Suggestions — preserve previous value on timeout/error/skip
@@ -927,6 +949,29 @@ export default function DashboardScreen() {
   const _pct = (v: number, goal: number) => Math.min(100, Math.max(0, Math.round(((v || 0) / goal) * 100)));
   const MACRO_COLORS = { protein: '#3B82F6', carbs: '#F59E0B', fat: '#22C55E' };
 
+  // Calorie ring framed around "remaining" (Cal AI / Lifesum style).
+  const _consumedKcal = Math.round(stats.totalCalories || 0);
+  const _remainingKcal = Math.max(0, Math.round(_kcalGoal - _consumedKcal));
+  const _overKcal = Math.max(0, _consumedKcal - _kcalGoal);
+
+  // Weekly day strip (browsable diary). Week derived from the selected date,
+  // Monday-first; future days are disabled (can't log ahead).
+  const _endOfToday = new Date(); _endOfToday.setHours(23, 59, 59, 999);
+  const _isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const weekDays = useMemo(() => {
+    const base = new Date(selectedDate);
+    const mondayIdx = (base.getDay() + 6) % 7; // Mon=0 … Sun=6
+    const monday = new Date(base);
+    monday.setDate(base.getDate() - mondayIdx);
+    monday.setHours(0, 0, 0, 0);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d;
+    });
+  }, [selectedDate]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Limit Reached Upsell Modal */}
@@ -939,42 +984,67 @@ export default function DashboardScreen() {
         }}
         onClose={() => setShowLimitModal(false)}
       />
+      {/* First-run welcome overlay (shown exactly once to brand-new users) */}
+      <WelcomeOverlay
+        visible={showWelcome}
+        onClose={() => {
+          setShowWelcome(false);
+          dismissTooltip(TooltipIds.GETTING_STARTED).catch(() => {});
+        }}
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: dashboardBottomPadding }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Calendar header with avatar */}
-        <View style={styles.calendarHeaderRow}>
-          <View style={{ width: 32 }} />
-          <View style={styles.calendarContainer}>
-            <TouchableOpacity
-              style={styles.calendarButton}
-              onPress={() => navigateToDate(-1)}
-            >
-              <Ionicons name="chevron-back" size={24} color={colors.primary} />
-            </TouchableOpacity>
-
-            <View style={styles.calendarDate}>
-              <Text style={styles.calendarDateText}>
-                {selectedDate.toLocaleDateString(language || 'en', {
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </Text>
-              <Text style={styles.calendarYearText}>
-                {selectedDate.getFullYear()}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.calendarButton}
-              onPress={() => navigateToDate(1)}
-            >
-              <Ionicons name="chevron-forward" size={24} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
+        {/* Top row: month/year label + avatar */}
+        <View style={styles.topHeaderRow}>
+          <Text style={styles.monthLabel}>
+            {selectedDate.toLocaleDateString(language || 'en', { month: 'long', year: 'numeric' })}
+          </Text>
           <ProfileAvatarButton />
+        </View>
+
+        {/* Weekly day strip — browsable diary */}
+        <View style={styles.weekStrip}>
+          <TouchableOpacity
+            onPress={() => navigateToDate(-7)}
+            hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+            style={styles.weekArrow}
+          >
+            <Ionicons name="chevron-back" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          {weekDays.map((d) => {
+            const active = _isSameDay(d, selectedDate);
+            const isToday = _isSameDay(d, new Date());
+            const isFuture = d.getTime() > _endOfToday.getTime();
+            return (
+              <TouchableOpacity
+                key={d.toISOString()}
+                disabled={isFuture}
+                activeOpacity={0.7}
+                style={[styles.weekDay, active && styles.weekDayActive]}
+                onPress={() => setSelectedDate(new Date(d))}
+              >
+                <Text style={[styles.weekDow, active && styles.weekDowActive, isFuture && styles.weekDayFuture]}>
+                  {d.toLocaleDateString(language || 'en', { weekday: 'short' })}
+                </Text>
+                <Text style={[styles.weekNum, active && styles.weekNumActive, isFuture && styles.weekDayFuture]}>
+                  {d.getDate()}
+                </Text>
+                {isToday && !active && <View style={styles.todayDot} />}
+              </TouchableOpacity>
+            );
+          })}
+
+          <TouchableOpacity
+            onPress={() => navigateToDate(7)}
+            hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+            style={styles.weekArrow}
+          >
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
         </View>
 
         {/* Time-of-day greeting */}
@@ -982,9 +1052,9 @@ export default function DashboardScreen() {
           {t(greetKey)}{firstName ? `, ${firstName}` : ''} 👋
         </Text>
 
-        {/* First-run getting-started card (video demo). Auto-hides after the
-            first meal analysis; dismissible. Permanent home: Profile → Help. */}
-        <GettingStartedCard analyzedCount={userStats.totalPhotosAnalyzed} />
+        {/* First-run welcome moved to a full-screen WelcomeOverlay (rendered at
+            the root below) — fixes the flicker + awkward top placement. Permanent
+            access to the demo stays in Profile → Help. */}
 
         {/* Calories Circle with Progress and Macros - Compact Layout */}
         <Animated.View
@@ -1004,14 +1074,20 @@ export default function DashboardScreen() {
           {/* Calories Circle - Smaller */}
           <View style={styles.caloriesWrapper}>
             <CircularProgress
-              progress={stats.goal > 0 ? Math.min(5, Math.max(0, stats.totalCalories / stats.goal)) : 0}
-              size={220}
-              strokeWidth={8}
-              value={Math.round(stats.totalCalories)}
-              label={t('dashboard.calories')}
-              goal={Math.round(stats.goal)}
-              goalUnit={t('dashboard.caloriesUnit')}
-            />
+              progress={_kcalGoal > 0 ? _consumedKcal / _kcalGoal : 0}
+              size={216}
+              strokeWidth={16}
+            >
+              <Text style={[styles.ringValue, _overKcal > 0 && { color: colors.warning || '#F59E0B' }]}>
+                {_overKcal > 0 ? `+${_overKcal.toLocaleString()}` : _remainingKcal.toLocaleString()}
+              </Text>
+              <Text style={styles.ringLabel}>
+                {_overKcal > 0 ? t('dashboard.overGoal') : t('dashboard.remaining')}
+              </Text>
+              <Text style={styles.ringSub}>
+                {t('dashboard.ofGoalCalories', { goal: _kcalGoal })}
+              </Text>
+            </CircularProgress>
           </View>
         </Animated.View>
 
@@ -1033,24 +1109,33 @@ export default function DashboardScreen() {
           <GlassCard padding="lg">
             <View style={styles.statsRow}>
               <View style={styles.statCell}>
-                <Text style={styles.statNumber}>{formatMacroInt(stats.totalProtein)}</Text>
                 <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
+                <Text style={styles.statNumber}>
+                  {formatMacroInt(stats.totalProtein)}
+                  <Text style={styles.statGoal}>/{_proteinGoal}{t('dashboard.gramShort')}</Text>
+                </Text>
                 <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.protein + '22' }]}>
                   <View style={[styles.macroFill, { width: `${_pct(stats.totalProtein, _proteinGoal)}%`, backgroundColor: MACRO_COLORS.protein }]} />
                 </View>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statCell}>
-                <Text style={styles.statNumber}>{formatMacroInt(stats.totalCarbs)}</Text>
                 <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
+                <Text style={styles.statNumber}>
+                  {formatMacroInt(stats.totalCarbs)}
+                  <Text style={styles.statGoal}>/{_carbsGoal}{t('dashboard.gramShort')}</Text>
+                </Text>
                 <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.carbs + '22' }]}>
                   <View style={[styles.macroFill, { width: `${_pct(stats.totalCarbs, _carbsGoal)}%`, backgroundColor: MACRO_COLORS.carbs }]} />
                 </View>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statCell}>
-                <Text style={styles.statNumber}>{formatMacroInt(stats.totalFat)}</Text>
                 <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
+                <Text style={styles.statNumber}>
+                  {formatMacroInt(stats.totalFat)}
+                  <Text style={styles.statGoal}>/{_fatGoal}{t('dashboard.gramShort')}</Text>
+                </Text>
                 <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.fat + '22' }]}>
                   <View style={[styles.macroFill, { width: `${_pct(stats.totalFat, _fatGoal)}%`, backgroundColor: MACRO_COLORS.fat }]} />
                 </View>
@@ -1666,6 +1751,91 @@ const createStyles = (tokens) =>
     statLabel: {
       fontSize: 14,
       color: tokens.colors.textSecondary,
+    },
+    statGoal: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: tokens.colors.textTertiary,
+    },
+    // Calorie ring "remaining" center
+    ringValue: {
+      fontSize: 46,
+      fontWeight: '800',
+      color: tokens.colors.textPrimary,
+    },
+    ringLabel: {
+      fontSize: 15,
+      color: tokens.colors.textSecondary,
+      marginTop: 2,
+    },
+    ringSub: {
+      fontSize: 13,
+      color: tokens.colors.textTertiary,
+      marginTop: 4,
+    },
+    // Top header + weekly day strip (browsable diary)
+    topHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: tokens.spacing.xl,
+      paddingTop: tokens.spacing.sm,
+    },
+    monthLabel: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: tokens.colors.textPrimary,
+      textTransform: 'capitalize',
+    },
+    weekStrip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: tokens.spacing.md,
+      marginTop: tokens.spacing.sm,
+      marginBottom: tokens.spacing.xs,
+    },
+    weekArrow: {
+      width: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    weekDay: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 6,
+      marginHorizontal: 2,
+      borderRadius: 14,
+    },
+    weekDayActive: {
+      backgroundColor: tokens.colors.primary,
+    },
+    weekDow: {
+      fontSize: 11,
+      color: tokens.colors.textTertiary,
+      textTransform: 'capitalize',
+    },
+    weekDowActive: {
+      color: '#FFFFFF',
+    },
+    weekNum: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: tokens.colors.textPrimary,
+      marginTop: 2,
+    },
+    weekNumActive: {
+      color: '#FFFFFF',
+    },
+    weekDayFuture: {
+      opacity: 0.35,
+    },
+    todayDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: tokens.colors.primary,
+      marginTop: 3,
     },
     statLabelCompact: {
       fontSize: 12,

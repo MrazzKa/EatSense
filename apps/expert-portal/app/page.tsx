@@ -162,6 +162,16 @@ export default function LoginPage() {
               className="w-full px-4 py-3 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder:text-[var(--text2)] outline-none focus:border-[var(--primary)] transition mb-4"
             />
 
+            <div className="text-right -mt-1 mb-4">
+              <button
+                type="button"
+                onClick={() => { setMode('magic'); setError(''); }}
+                className="text-xs text-[var(--text2)] hover:text-[var(--primary)] cursor-pointer"
+              >
+                {t('login', 'forgotPassword')}
+              </button>
+            </div>
+
             {error && <p className="text-sm text-[var(--red)] mb-4">{error}</p>}
 
             <button

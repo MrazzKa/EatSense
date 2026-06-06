@@ -303,7 +303,15 @@
     "targetWeightSubtitle": "Welches Gewicht streben Sie an?",
     "trust": "Danke für Ihr Vertrauen",
     "trustSubtitle": "Wir helfen Ihnen, Ihre Ziele zu erreichen",
+    "aboutYou": "Über dich",
+    "aboutYouSubtitle": "Geschlecht und Alter personalisieren deinen Plan",
+    "yourMeasurements": "Deine Maße",
+    "yourMeasurementsSubtitle": "Größe und Gewicht für einen genauen Plan",
+    "healthDiet": "Gesundheit & Ernährung",
+    "healthDietSubtitle": "Allergien und Beschwerden, die wir kennen sollten",
     "units": {
+      "metric": "Metrisch",
+      "imperial": "Imperial",
       "years": "Jahre",
       "cm": "cm",
       "kg": "kg",
@@ -972,6 +980,9 @@
     },
     "ofGoal": "von {{goal}} Ziel",
     "overGoal": "über dem Ziel",
+    "remaining": "übrig",
+    "ofGoalCalories": "von {{goal}} kcal",
+    "gramShort": "g",
     "protein": "Protein",
     "quickStats": "Schnelle Statistiken",
     "recent": "Kürzlich",
@@ -2280,6 +2291,11 @@
       "health": "GESUNDHEIT"
     },
     "streak": "Tage in Folge",
+    "water": {
+      "title": "Wasser",
+      "unit": "Gläser",
+      "add": "Glas hinzufügen"
+    },
     "wave": {
       "title": "Wöchentlicher Fortschritt"
     },
@@ -4477,7 +4493,7 @@
     "groups": "Gruppen",
     "placesFilterCity": "Nach Stadt filtern",
     "placesFilterChange": "Tippen, um die Stadt zu ändern",
-    "placesFilterHint": "Kasachstan und die Schweiz enthalten Filter für große Städte",
+    "placesFilterHint": "Beste Orte nach Stadt filtern",
     "members": "Mitglieder",
     "join": "Beitreten",
     "joined": "Beigetreten",
@@ -4704,6 +4720,12 @@
       "setOnMap": "Ort auf Karte festlegen",
       "onMapSet": "Ort auf Karte festgelegt"
     },
+    "mapFilter": {
+      "all": "Alle",
+      "places": "Orte",
+      "events": "Events",
+      "noEvents": "Noch keine Events auf der Karte"
+    },
     "placesView": {
       "list": "Liste",
       "map": "Karte",
@@ -4816,6 +4838,17 @@
       "completed": "Abgeschlossen",
       "error": "Fehler",
       "unknown": "Unbekannt"
+    }
+  },
+  "welcomeOverlay": {
+    "skip": "Überspringen",
+    "title": "Willkommen bei EatSense 👋",
+    "subtitle": "Fotografiere dein Essen — erhalte sofort Nährwert-Einblicke.",
+    "cta": "Loslegen",
+    "features": {
+      "analysis": { "title": "Foto & Analyse", "desc": "Fotografiere jede Mahlzeit für sofortige Kalorien und Makros." },
+      "recommendations": { "title": "Persönliche Tipps", "desc": "Smarte Vorschläge passend zu deinen Zielen und deiner Gesundheit." },
+      "assistant": { "title": "KI-Assistent", "desc": "Frag jederzeit alles über deine Ernährung." }
     }
   },
   "gettingStarted": {

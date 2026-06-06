@@ -617,6 +617,9 @@
     },
     "ofGoal": "de {{goal}} objetivo",
     "overGoal": "sobre el objetivo",
+    "remaining": "restante",
+    "ofGoalCalories": "de {{goal}} kcal",
+    "gramShort": "g",
     "protein": "Proteína",
     "quickStats": "Estadísticas rápidas",
     "recent": "Recientes",
@@ -1681,7 +1684,15 @@
     "targetWeightSubtitle": "¿Qué peso quieres alcanzar?",
     "trust": "Gracias por confiar en nosotros",
     "trustSubtitle": "Te ayudaremos a alcanzar tus metas",
+    "aboutYou": "Sobre ti",
+    "aboutYouSubtitle": "Tu sexo y edad personalizan tu plan",
+    "yourMeasurements": "Tus medidas",
+    "yourMeasurementsSubtitle": "Altura y peso para un plan preciso",
+    "healthDiet": "Salud y nutrición",
+    "healthDietSubtitle": "Alergias y condiciones que debemos conocer",
     "units": {
+      "metric": "Métrico",
+      "imperial": "Imperial",
       "cm": "cm",
       "ft": "ft",
       "in": "in",
@@ -2250,6 +2261,11 @@
       "health": "SALUD"
     },
     "streak": "días seguidos",
+    "water": {
+      "title": "Agua",
+      "unit": "vasos",
+      "add": "Añadir un vaso"
+    },
     "wave": {
       "title": "Progreso semanal"
     },
@@ -2852,7 +2868,7 @@
     "groups": "Grupos",
     "placesFilterCity": "Filtrar por ciudad",
     "placesFilterChange": "Toca para cambiar de ciudad",
-    "placesFilterHint": "Kazajistán y Suiza incluyen filtros de ciudades principales",
+    "placesFilterHint": "Filtra los mejores lugares por ciudad",
     "members": "miembros",
     "join": "Unirse",
     "joined": "Unido",
@@ -3078,6 +3094,12 @@
       "tapHint": "Toca el mapa para fijar el lugar",
       "setOnMap": "Fijar en el mapa",
       "onMapSet": "Ubicación fijada en el mapa"
+    },
+    "mapFilter": {
+      "all": "Todo",
+      "places": "Lugares",
+      "events": "Eventos",
+      "noEvents": "Aún no hay eventos en el mapa"
     },
     "placesView": {
       "list": "Lista",
@@ -4782,6 +4804,17 @@
       "completed": "Completado",
       "error": "Error",
       "unknown": "Desconocido"
+    }
+  },
+  "welcomeOverlay": {
+    "skip": "Omitir",
+    "title": "Bienvenido a EatSense 👋",
+    "subtitle": "Fotografía tu comida — obtén análisis nutricional al instante.",
+    "cta": "Empezar",
+    "features": {
+      "analysis": { "title": "Foto y análisis", "desc": "Fotografía cualquier comida para calorías y macros al instante." },
+      "recommendations": { "title": "Consejos personales", "desc": "Sugerencias inteligentes según tus objetivos y salud." },
+      "assistant": { "title": "Asistente IA", "desc": "Pregunta lo que quieras sobre tu nutrición, cuando quieras." }
     }
   },
   "gettingStarted": {

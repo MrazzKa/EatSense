@@ -1506,6 +1506,23 @@ const ProfileScreen = () => {
                   {profile.firstName || safeT('profile.defaultName', 'User')} {profile.lastName}
                 </Text>
                 <Text style={styles.heroSubtitle}>{profile.email}</Text>
+                {(() => {
+                  const isPaid = subscription.planId && subscription.planId !== 'free';
+                  const badgeColor = isPaid ? '#FFD700' : (colors.border || '#9CA3AF');
+                  const label = !isPaid
+                    ? 'FREE'
+                    : subscription.planId === 'founders'
+                      ? 'FOUNDER'
+                      : subscription.planId === 'student'
+                        ? 'STUDENT'
+                        : 'PRO';
+                  return (
+                    <View style={[styles.heroPlanBadge, { backgroundColor: badgeColor + (isPaid ? '22' : '33'), borderColor: badgeColor }]}>
+                      {isPaid && <Ionicons name="star" size={11} color="#B8860B" style={{ marginRight: 4 }} />}
+                      <Text style={[styles.heroPlanBadgeText, { color: isPaid ? '#B8860B' : (colors.textSecondary || '#6B7280') }]}>{label}</Text>
+                    </View>
+                  );
+                })()}
               </View>
             </View>
             <View style={styles.metricsRow}>
@@ -2052,7 +2069,9 @@ const ProfileScreen = () => {
               activeOpacity={0.8}
             >
               <View style={styles.cardContent}>
-                <Ionicons name="medkit-outline" size={24} color={colors.primary} />
+                <View style={[styles.cardIconCircle, { backgroundColor: '#EF4444' + '18' }]}>
+                  <Ionicons name="medkit-outline" size={22} color="#EF4444" />
+                </View>
                 <View style={styles.cardTextContainer}>
                   <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
                     {safeT('medications.title', safeT('profile.medications', 'Medications'))}
@@ -2103,7 +2122,9 @@ const ProfileScreen = () => {
               activeOpacity={0.8}
             >
               <View style={styles.cardContent}>
-                <Ionicons name="help-buoy-outline" size={24} color={colors.primary} />
+                <View style={[styles.cardIconCircle, { backgroundColor: '#3B82F6' + '18' }]}>
+                  <Ionicons name="help-buoy-outline" size={22} color="#3B82F6" />
+                </View>
                 <View style={styles.cardTextContainer}>
                   <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
                     {safeT('help.title', 'Help & guides')}
@@ -2130,7 +2151,9 @@ const ProfileScreen = () => {
               activeOpacity={0.8}
             >
               <View style={styles.cardContent}>
-                <Ionicons name="gift-outline" size={24} color={colors.primary} />
+                <View style={[styles.cardIconCircle, { backgroundColor: '#F59E0B' + '18' }]}>
+                  <Ionicons name="gift-outline" size={22} color="#F59E0B" />
+                </View>
                 <View style={styles.cardTextContainer}>
                   <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
                     {safeT('referral.title', 'Invite Friends')}
@@ -2155,7 +2178,9 @@ const ProfileScreen = () => {
               activeOpacity={0.8}
             >
               <View style={styles.cardContent}>
-                <Ionicons name="document-text-outline" size={24} color={colors.primary} />
+                <View style={[styles.cardIconCircle, { backgroundColor: '#6366F1' + '18' }]}>
+                  <Ionicons name="document-text-outline" size={22} color="#6366F1" />
+                </View>
                 <View style={styles.cardTextContainer}>
                   <Text style={[styles.cardTitle, { color: colors.textPrimary || colors.text }]}>
                     {safeT('profile.reports', 'Reports')}
@@ -3090,6 +3115,21 @@ const createStyles = (tokens) =>
       fontSize: 15,
       color: tokens.colors.textSecondary,
     },
+    heroPlanBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      marginTop: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 10,
+      borderWidth: 1,
+    },
+    heroPlanBadgeText: {
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
     metricsRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -3696,6 +3736,13 @@ const createStyles = (tokens) =>
     cardSubtitle: {
       fontSize: 13,
       lineHeight: 18,
+    },
+    cardIconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     medicationsCard: {
       marginTop: tokens.spacing.lg,
