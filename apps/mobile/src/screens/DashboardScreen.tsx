@@ -42,7 +42,6 @@ import {
 } from '../navigation/GlassTabBar';
 import LimitReachedModal from '../components/LimitReachedModal';
 import Tooltip from '../components/Tooltip/Tooltip';
-import { TooltipIds } from '../components/Tooltip/TooltipContext';
 import { GlassCard } from '../components/glass';
 
 // Helper function to get image URL from item (handles various field names and resolves relative URLs)
