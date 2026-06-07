@@ -1524,6 +1524,7 @@ enum CommunityPostType {
   RECIPE
   QUESTION
   CHALLENGE
+  ROUTE
 }
 
 enum CommunityReportStatus {

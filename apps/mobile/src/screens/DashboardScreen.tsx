@@ -725,6 +725,12 @@ export default function DashboardScreen() {
   // However, the best approach is to NOT rely on simple setTimeout but wait for data
 
   const prevPendingAnalysesRef = React.useRef(pendingAnalyses);
+  const completionRetryRef = React.useRef<any>(null);
+
+  // Clean up any pending completion-retry timer on unmount.
+  useEffect(() => () => {
+    if (completionRetryRef.current) clearTimeout(completionRetryRef.current);
+  }, []);
 
   useEffect(() => {
     const prevItems = prevPendingAnalysesRef.current;
@@ -737,8 +743,26 @@ export default function DashboardScreen() {
 
     if (completed.length > 0) {
       console.log('[Dashboard] Analysis completed, reloading data...');
-      // Force reload to get the new meal immediately
-      loadDashboardData(true);
+      // Force reload to get the new meal — then VERIFY it actually landed in
+      // recentItems. The backend dashboard cache can lag a beat, so a single
+      // reload may return stale data without the new meal → the pending card is
+      // already gone and the recent item isn't there yet = "meal disappears".
+      // Retry with backoff until the completed analysisId shows up (or we give up).
+      const expectedIds = completed.map(a => a.analysisId).filter(Boolean);
+      if (completionRetryRef.current) clearTimeout(completionRetryRef.current);
+      let attempt = 0;
+      const verifyAndRetry = () => {
+        loadDashboardData(true);
+        completionRetryRef.current = setTimeout(() => {
+          const present = new Set((recentItemsRef.current || []).map((i: any) => i.analysisId).filter(Boolean));
+          const stillMissing = expectedIds.filter((id) => !present.has(id));
+          attempt += 1;
+          if (stillMissing.length > 0 && attempt < 4) {
+            verifyAndRetry();
+          }
+        }, 1400 + attempt * 1000);
+      };
+      verifyAndRetry();
     }
 
     prevPendingAnalysesRef.current = pendingAnalyses;
@@ -1077,7 +1101,7 @@ export default function DashboardScreen() {
               size={216}
               strokeWidth={16}
             >
-              <Text style={[styles.ringValue, _overKcal > 0 && { color: colors.warning || '#F59E0B' }]}>
+              <Text style={[styles.ringValue, { color: _overKcal > 0 ? (colors.warning || '#F59E0B') : (colors.primary || '#4F46E5') }]}>
                 {_overKcal > 0 ? `+${_overKcal.toLocaleString()}` : _remainingKcal.toLocaleString()}
               </Text>
               <Text style={styles.ringLabel}>
@@ -1106,39 +1130,28 @@ export default function DashboardScreen() {
           ]}
         >
           <GlassCard padding="lg">
-            <View style={styles.statsRow}>
-              <View style={styles.statCell}>
-                <Text style={styles.statLabel}>{t('dashboard.protein')}</Text>
-                <Text style={styles.statNumber}>
-                  {formatMacroInt(stats.totalProtein)}
-                  <Text style={styles.statGoal}>/{_proteinGoal}{t('dashboard.gramShort')}</Text>
-                </Text>
-                <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.protein + '22' }]}>
-                  <View style={[styles.macroFill, { width: `${_pct(stats.totalProtein, _proteinGoal)}%`, backgroundColor: MACRO_COLORS.protein }]} />
+            <View style={styles.macroBars}>
+              {[
+                { key: 'protein', label: t('dashboard.protein'), val: stats.totalProtein, goal: _proteinGoal, color: MACRO_COLORS.protein },
+                { key: 'carbs', label: t('dashboard.carbs'), val: stats.totalCarbs, goal: _carbsGoal, color: MACRO_COLORS.carbs },
+                { key: 'fat', label: t('dashboard.fat'), val: stats.totalFat, goal: _fatGoal, color: MACRO_COLORS.fat },
+              ].map((m, i) => (
+                <View key={m.key} style={i > 0 && styles.macroBarGap}>
+                  <View style={styles.macroBarHeader}>
+                    <View style={styles.macroBarLabelWrap}>
+                      <View style={[styles.macroDot, { backgroundColor: m.color }]} />
+                      <Text style={styles.macroBarLabel}>{m.label}</Text>
+                    </View>
+                    <Text style={styles.macroBarValue}>
+                      {formatMacroInt(m.val)}
+                      <Text style={styles.macroBarGoal}> / {m.goal} {t('dashboard.gramShort')}</Text>
+                    </Text>
+                  </View>
+                  <View style={[styles.macroTrack, { backgroundColor: m.color + '22' }]}>
+                    <View style={[styles.macroFill, { width: `${_pct(m.val, m.goal)}%`, backgroundColor: m.color }]} />
+                  </View>
                 </View>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statCell}>
-                <Text style={styles.statLabel}>{t('dashboard.carbs')}</Text>
-                <Text style={styles.statNumber}>
-                  {formatMacroInt(stats.totalCarbs)}
-                  <Text style={styles.statGoal}>/{_carbsGoal}{t('dashboard.gramShort')}</Text>
-                </Text>
-                <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.carbs + '22' }]}>
-                  <View style={[styles.macroFill, { width: `${_pct(stats.totalCarbs, _carbsGoal)}%`, backgroundColor: MACRO_COLORS.carbs }]} />
-                </View>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statCell}>
-                <Text style={styles.statLabel}>{t('dashboard.fat')}</Text>
-                <Text style={styles.statNumber}>
-                  {formatMacroInt(stats.totalFat)}
-                  <Text style={styles.statGoal}>/{_fatGoal}{t('dashboard.gramShort')}</Text>
-                </Text>
-                <View style={[styles.macroTrack, { backgroundColor: MACRO_COLORS.fat + '22' }]}>
-                  <View style={[styles.macroFill, { width: `${_pct(stats.totalFat, _fatGoal)}%`, backgroundColor: MACRO_COLORS.fat }]} />
-                </View>
-              </View>
+              ))}
             </View>
           </GlassCard>
         </Animated.View>
@@ -1210,6 +1223,14 @@ export default function DashboardScreen() {
         >
           <View style={styles.recentHeader}>
             <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('DiaryJournal')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.recentSeeAll}
+            >
+              <Text style={styles.seeAllText}>{t('mealHistory.viewAll')}</Text>
+              <Ionicons name="chevron-forward" size={15} color={colors.primary} />
+            </TouchableOpacity>
           </View>
 
           {/* Pending Analyses - Show processing cards at the top */}
@@ -1255,8 +1276,11 @@ export default function DashboardScreen() {
               // Filter by image URL (catch duplicates even if IDs differ, strip query params)
               const itemImageUrl = normalizeImageUrl(item.imageUrl || item.imageUri);
               if (itemImageUrl && pendingImageUrls.has(itemImageUrl)) return false;
-              // Filter by timestamp proximity (±60s) to catch duplicates with different IDs/URLs
-              if (item.createdAt) {
+              // Timestamp-proximity dedup ONLY for ambiguous items that have neither a
+              // stable analysisId nor an image URL — otherwise a freshly-completed meal
+              // whose createdAt is within 60s of an UNRELATED still-pending analysis would
+              // be wrongly hidden (root cause of "meal disappears right after analysis").
+              if (!item.analysisId && !itemImageUrl && item.createdAt) {
                 const itemTs = new Date(item.createdAt).getTime();
                 if (pendingTimestamps.some(pts => Math.abs(itemTs - pts) < 60000)) return false;
               }
@@ -1568,15 +1592,40 @@ const createStyles = (tokens) =>
       color: tokens.colors.textPrimary || tokens.colors.text,
     },
     macroTrack: {
-      width: 44,
-      height: 4,
-      borderRadius: 2,
+      width: '100%',
+      height: 8,
+      borderRadius: 4,
       marginTop: 8,
       overflow: 'hidden',
     },
     macroFill: {
       height: '100%',
-      borderRadius: 2,
+      borderRadius: 4,
+    },
+    // Macro bars (dashboard hero)
+    macroBars: {},
+    macroBarGap: { marginTop: 16 },
+    macroBarHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    macroBarLabelWrap: { flexDirection: 'row', alignItems: 'center' },
+    macroDot: { width: 9, height: 9, borderRadius: 5, marginRight: 8 },
+    macroBarLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: tokens.colors.textPrimary,
+    },
+    macroBarValue: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: tokens.colors.textPrimary,
+    },
+    macroBarGoal: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: tokens.colors.textTertiary,
     },
     header: {
       paddingHorizontal: tokens.spacing.xl,
@@ -1756,6 +1805,12 @@ const createStyles = (tokens) =>
       fontWeight: '500',
       color: tokens.colors.textTertiary,
     },
+    // 3 macro mini-rings (Б/Ж/У) under the calorie ring
+    macroRingsRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+    },
     // Calorie ring "remaining" center
     ringValue: {
       fontSize: 46,
@@ -1791,26 +1846,29 @@ const createStyles = (tokens) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: tokens.spacing.md,
-      marginTop: tokens.spacing.sm,
-      marginBottom: tokens.spacing.xs,
+      marginTop: tokens.spacing.md,
+      marginBottom: tokens.spacing.sm,
     },
     weekArrow: {
-      width: 22,
+      width: 26,
+      height: 56,
       alignItems: 'center',
       justifyContent: 'center',
     },
     weekDay: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 6,
-      marginHorizontal: 2,
-      borderRadius: 14,
+      justifyContent: 'center',
+      paddingVertical: 10,
+      marginHorizontal: 3,
+      borderRadius: 18,
+      minHeight: 56,
     },
     weekDayActive: {
       backgroundColor: tokens.colors.primary,
     },
     weekDow: {
-      fontSize: 11,
+      fontSize: 12,
       color: tokens.colors.textTertiary,
       textTransform: 'capitalize',
     },
@@ -1818,10 +1876,10 @@ const createStyles = (tokens) =>
       color: '#FFFFFF',
     },
     weekNum: {
-      fontSize: 15,
+      fontSize: 16,
       fontWeight: '700',
       color: tokens.colors.textPrimary,
-      marginTop: 2,
+      marginTop: 4,
     },
     weekNumActive: {
       color: '#FFFFFF',
@@ -2035,6 +2093,10 @@ const createStyles = (tokens) =>
       fontSize: 20,
       fontWeight: '600',
       color: tokens.colors.textPrimary,
+    },
+    recentSeeAll: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     seeAllText: {
       fontSize: 14,

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { cuisineIcon } from '../../config/cuisines';
@@ -10,15 +10,24 @@ type CommunityPost = {
   metadata?: any;
 };
 
-type MapMode = 'all' | 'places' | 'events';
+type MapMode = 'all' | 'places' | 'events' | 'routes';
 
 type Props = {
   colors: any;
   t: any;
   places: CommunityPost[];
   events?: CommunityPost[];
+  routes?: CommunityPost[];
   onSelect: (_post: CommunityPost) => void;
+  /** Tap on empty map → add something here (place / event / route). */
+  onMapPress?: (_coord: { latitude: number; longitude: number }) => void;
   height?: number;
+};
+
+const ROUTE_ACTIVITY_ICON: Record<string, any> = {
+  run: 'walk',
+  walk: 'footsteps',
+  bike: 'bicycle',
 };
 
 // Pilot is Switzerland-only: the map opens on the whole country and we never
@@ -32,6 +41,15 @@ const SWITZERLAND_REGION: Region = {
 const CH_BOUNDS = { minLat: 45.8, maxLat: 47.85, minLng: 5.9, maxLng: 10.6 };
 
 const EVENT_COLOR = '#F59E0B';
+const ROUTE_COLOR = '#8B5CF6';
+
+function routePointsOf(post: CommunityPost): { latitude: number; longitude: number }[] {
+  const pts = post?.metadata?.points;
+  if (!Array.isArray(pts)) return [];
+  return pts
+    .map((p: any) => ({ latitude: Number(p.latitude), longitude: Number(p.longitude) }))
+    .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+}
 
 function inSwitzerland(c: { latitude: number; longitude: number }): boolean {
   return c.latitude >= CH_BOUNDS.minLat && c.latitude <= CH_BOUNDS.maxLat
@@ -55,7 +73,7 @@ type Pin = { post: CommunityPost; coord: { latitude: number; longitude: number }
  * events that carry coordinates in their metadata, with a Places/Events filter.
  * Pins outside Switzerland are hidden (pilot scope). Apple Maps on iOS (no key).
  */
-const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], onSelect, height = 360 }) => {
+const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], routes = [], onSelect, onMapPress, height = 360 }) => {
   const mapRef = useRef<MapView | null>(null);
   const [ready, setReady] = useState(false);
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -73,12 +91,25 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], o
       .filter((x) => x.coord && inSwitzerland(x.coord)) as Pin[],
     [events],
   );
+  // Routes: start (meeting) marker + full polyline. Kept only if the start is in CH.
+  const routeShapes = useMemo(
+    () => routes
+      .map((p) => ({ post: p, coord: coordsOf(p), points: routePointsOf(p) }))
+      .filter((x) => x.coord && inSwitzerland(x.coord) && x.points.length >= 2),
+    [routes],
+  );
 
   const visiblePins: Pin[] = useMemo(() => {
     if (mode === 'places') return placePins;
     if (mode === 'events') return eventPins;
+    if (mode === 'routes') return [];
     return [...placePins, ...eventPins];
   }, [mode, placePins, eventPins]);
+
+  const visibleRoutes = useMemo(
+    () => (mode === 'all' || mode === 'routes') ? routeShapes : [],
+    [mode, routeShapes],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -95,18 +126,22 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], o
     return () => { cancelled = true; };
   }, []);
 
-  // Fit visible markers (or reset to all of Switzerland when none/one).
+  // Fit visible markers + route points (or reset to all of Switzerland when none/one).
   useEffect(() => {
     if (!ready) return;
     const id = setTimeout(() => {
-      if (visiblePins.length >= 2) {
+      const coords = [
+        ...visiblePins.map((x) => x.coord),
+        ...visibleRoutes.flatMap((r) => r.points),
+      ];
+      if (coords.length >= 2) {
         mapRef.current?.fitToCoordinates(
-          visiblePins.map((x) => x.coord),
+          coords,
           { edgePadding: { top: 70, right: 60, bottom: 70, left: 60 }, animated: true },
         );
-      } else if (visiblePins.length === 1) {
+      } else if (coords.length === 1) {
         mapRef.current?.animateToRegion(
-          { ...visiblePins[0].coord, latitudeDelta: 0.08, longitudeDelta: 0.08 },
+          { ...coords[0], latitudeDelta: 0.08, longitudeDelta: 0.08 },
           400,
         );
       } else {
@@ -114,12 +149,13 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], o
       }
     }, 250);
     return () => clearTimeout(id);
-  }, [ready, visiblePins]);
+  }, [ready, visiblePins, visibleRoutes]);
 
   const filters: Array<{ key: MapMode; label: string }> = [
     { key: 'all', label: t('community.mapFilter.all', 'All') },
     { key: 'places', label: t('community.mapFilter.places', 'Places') },
     { key: 'events', label: t('community.mapFilter.events', 'Events') },
+    { key: 'routes', label: t('community.mapFilter.routes', 'Routes') },
   ];
 
   return (
@@ -134,7 +170,29 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], o
         showsPointsOfInterests={false}
         toolbarEnabled={false}
         onMapReady={() => setReady(true)}
+        onPress={(e) => {
+          const c = e?.nativeEvent?.coordinate;
+          if (c && onMapPress && inSwitzerland(c)) onMapPress({ latitude: c.latitude, longitude: c.longitude });
+        }}
       >
+        {visibleRoutes.map(({ post, coord, points }) => (
+          <React.Fragment key={`route-${post.id}`}>
+            <Polyline coordinates={points} strokeColor={ROUTE_COLOR} strokeWidth={4} />
+            <Marker
+              coordinate={coord!}
+              onPress={() => onSelect(post)}
+              tracksViewChanges={false}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <View style={styles.markerWrap}>
+                <View style={[styles.markerBubble, { backgroundColor: ROUTE_COLOR }]}>
+                  <Ionicons name={ROUTE_ACTIVITY_ICON[post.metadata?.activity] || 'map'} size={15} color="#FFF" />
+                </View>
+                <View style={[styles.markerTip, { borderTopColor: ROUTE_COLOR }]} />
+              </View>
+            </Marker>
+          </React.Fragment>
+        ))}
         {visiblePins.map(({ post, coord, kind }) => {
           const isEvent = kind === 'event';
           const color = isEvent ? EVENT_COLOR : (colors.primary || '#4F46E5');
@@ -185,13 +243,15 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], o
         </View>
       )}
 
-      {ready && visiblePins.length === 0 && (
+      {ready && visiblePins.length === 0 && visibleRoutes.length === 0 && (
         <View style={[styles.overlay, styles.emptyOverlay]} pointerEvents="none">
           <Ionicons name="map-outline" size={40} color={colors.textTertiary} />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             {mode === 'events'
               ? t('community.mapFilter.noEvents', 'No events on the map yet')
-              : t('community.placesView.noMapPins', 'No places with a map location yet')}
+              : mode === 'routes'
+                ? t('community.route.noRoutes', 'No routes on the map yet')
+                : t('community.placesView.noMapPins', 'No places with a map location yet')}
           </Text>
         </View>
       )}

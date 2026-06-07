@@ -2914,7 +2914,8 @@
       "bestPlaces": "Mejores lugares",
       "recipe": "Receta",
       "question": "Pregunta",
-      "challenge": "Desafío"
+      "challenge": "Desafío",
+      "route": "Ruta"
     },
     "feed": {
       "empty": "Aún no hay publicaciones. ¡Únete a grupos para ver publicaciones en tu feed!",
@@ -3099,7 +3100,8 @@
       "all": "Todo",
       "places": "Lugares",
       "events": "Eventos",
-      "noEvents": "Aún no hay eventos en el mapa"
+      "noEvents": "Aún no hay eventos en el mapa",
+      "routes": "Rutas"
     },
     "placesView": {
       "list": "Lista",
@@ -3110,6 +3112,36 @@
       "title": "Hazte Pro para añadir más",
       "message": "Los miembros gratuitos pueden añadir algunos lugares y eventos. Hazte Pro para acceso ilimitado.",
       "upgrade": "Hazte Pro"
+    },
+    "route": {
+      "details": "Detalles de la ruta",
+      "name": "Nombre (p. ej. Carrera matutina junto al lago)",
+      "nameRequired": "Nombra la ruta",
+      "cityRequired": "Añade la ciudad",
+      "drawRequired": "Dibuja la ruta en el mapa (al menos 2 puntos)",
+      "cityPlaceholder": "Ciudad / región",
+      "drawOnMap": "Dibujar ruta en el mapa",
+      "routeSet": "Ruta lista · {{km}} km",
+      "builderTitle": "Dibujar ruta",
+      "tapStart": "Toca el punto de encuentro y luego la ruta",
+      "km": "km",
+      "points": "puntos",
+      "undo": "Deshacer",
+      "clear": "Borrar",
+      "join": "Me uno",
+      "joined": "Voy",
+      "goingCount": "{{count}} van",
+      "meetingPoint": "Punto de encuentro",
+      "activity": {
+        "run": "Correr",
+        "walk": "Caminar",
+        "bike": "Bici"
+      },
+      "noRoutes": "Aún no hay rutas en el mapa"
+    },
+    "mapAdd": {
+      "title": "¿Qué hay aquí?",
+      "subtitle": "Añadir a este lugar"
     }
   },
   "mascot": {
@@ -3228,7 +3260,14 @@
   "mealHistory": {
     "title": "Todas las comidas",
     "emptyTitle": "No hay comidas este día",
-    "emptySubtitle": "Las comidas que registres aparecerán aquí."
+    "emptySubtitle": "Las comidas que registres aparecerán aquí.",
+    "journalTitle": "Diario",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "mealsCount": "{{count}} comidas",
+    "viewAll": "Todo el historial",
+    "emptyJournalTitle": "Tu diario está vacío",
+    "emptyJournalSubtitle": "Los días registrados aparecerán aquí."
   },
   "diets": {
     "groups": {
@@ -4812,9 +4851,18 @@
     "subtitle": "Fotografía tu comida — obtén análisis nutricional al instante.",
     "cta": "Empezar",
     "features": {
-      "analysis": { "title": "Foto y análisis", "desc": "Fotografía cualquier comida para calorías y macros al instante." },
-      "recommendations": { "title": "Consejos personales", "desc": "Sugerencias inteligentes según tus objetivos y salud." },
-      "assistant": { "title": "Asistente IA", "desc": "Pregunta lo que quieras sobre tu nutrición, cuando quieras." }
+      "analysis": {
+        "title": "Foto y análisis",
+        "desc": "Fotografía cualquier comida para calorías y macros al instante."
+      },
+      "recommendations": {
+        "title": "Consejos personales",
+        "desc": "Sugerencias inteligentes según tus objetivos y salud."
+      },
+      "assistant": {
+        "title": "Asistente IA",
+        "desc": "Pregunta lo que quieras sobre tu nutrición, cuando quieras."
+      }
     }
   },
   "gettingStarted": {

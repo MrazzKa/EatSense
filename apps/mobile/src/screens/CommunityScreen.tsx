@@ -24,11 +24,13 @@ import { ProfileAvatarButton } from '../components/ProfileAvatarButton';
 import { CommunityPostCard } from '../components/community/CommunityPostCard';
 import { BestPlaceCard } from '../components/community/BestPlaceCard';
 import { EventCard } from '../components/community/EventCard';
+import { RouteCard } from '../components/community/RouteCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard, resolveGroupName } from '../components/community/GroupCard';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 import CommunityPlacesMap from '../components/community/CommunityPlacesMap';
+import BottomSheet from '../components/common/BottomSheet';
 import { CUISINES } from '../config/cuisines';
 import {
   FLOATING_TAB_BAR_BOTTOM_GAP,
@@ -291,6 +293,29 @@ export default function CommunityScreen() {
     () => (posts || []).filter((p: any) => p?.type === 'EVENT'),
     [posts],
   );
+  const mapRoutes = useMemo(() => {
+    const routes = (posts || []).filter((p: any) => p?.type === 'ROUTE');
+    const city = selectedPlacesCity?.city?.trim().toLowerCase();
+    if (!city) return routes;
+    // City filter: keep routes whose stored city/region loosely matches the picked city.
+    return routes.filter((p: any) => {
+      const rc = (p?.metadata?.city || '').trim().toLowerCase();
+      if (!rc) return false;
+      return rc === city || rc.includes(city) || city.includes(rc);
+    });
+  }, [posts, selectedPlacesCity]);
+
+  // Tap-on-map → "What's here?" sheet (add a place / event / route at that spot).
+  const [mapAddCoord, setMapAddCoord] = useState<{ latitude: number; longitude: number } | null>(null);
+  const openCreateAt = useCallback((type: string) => {
+    const coord = mapAddCoord;
+    setMapAddCoord(null);
+    navigation.navigate('CreateCommunityPost', {
+      initialType: type,
+      initialCity: selectedPlacesCity?.city || '',
+      ...(coord ? { initialCoords: coord } : {}),
+    });
+  }, [mapAddCoord, navigation, selectedPlacesCity]);
 
   // --- Render helpers ---
 
@@ -299,6 +324,15 @@ export default function CommunityScreen() {
       if (item.type === 'EVENT') {
         return (
           <EventCard
+            post={item}
+            onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
+            onAttend={() => handleAttend(item.id)}
+          />
+        );
+      }
+      if (item.type === 'ROUTE') {
+        return (
+          <RouteCard
             post={item}
             onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
             onAttend={() => handleAttend(item.id)}
@@ -652,7 +686,9 @@ export default function CommunityScreen() {
                 t={t}
                 places={filteredPlaces}
                 events={mapEvents}
+                routes={mapRoutes}
                 onSelect={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
+                onMapPress={(coord) => setMapAddCoord(coord)}
               />
             </View>
           }
@@ -699,6 +735,34 @@ export default function CommunityScreen() {
         authorId={selectedAuthorId}
         onClose={() => setAuthorSheetVisible(false)}
       />
+
+      {/* Tap-on-map → "What's here?" — add a place / event / route at the tapped spot */}
+      <BottomSheet visible={!!mapAddCoord} onClose={() => setMapAddCoord(null)}>
+        <Text style={[styles.mapAddTitle, { color: colors.textPrimary || colors.text }]}>
+          {t('community.mapAdd.title', "What's here?")}
+        </Text>
+        <Text style={[styles.mapAddSubtitle, { color: colors.textTertiary }]}>
+          {t('community.mapAdd.subtitle', 'Add to this spot')}
+        </Text>
+        {[
+          { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
+          { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') },
+          { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') },
+        ].map((opt) => (
+          <TouchableOpacity
+            key={opt.type}
+            style={[styles.mapAddRow, { borderColor: colors.border }]}
+            onPress={() => openCreateAt(opt.type)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.mapAddIcon, { backgroundColor: (colors.primary || '#4F46E5') + '18' }]}>
+              <Ionicons name={opt.icon as any} size={20} color={colors.primary || '#4F46E5'} />
+            </View>
+            <Text style={[styles.mapAddLabel, { color: colors.textPrimary || colors.text }]}>{opt.label}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} style={{ marginLeft: 'auto' }} />
+          </TouchableOpacity>
+        ))}
+      </BottomSheet>
     </SafeAreaView>
   );
 }
@@ -906,4 +970,21 @@ const createStyles = (tokens: any, colors: any, fabBottom: number) =>
       shadowOpacity: 0.25,
       shadowRadius: 6,
     },
+    mapAddTitle: { fontSize: 18, fontWeight: '700' },
+    mapAddSubtitle: { fontSize: 13, marginTop: 2, marginBottom: 12 },
+    mapAddRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    mapAddIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    mapAddLabel: { fontSize: 16, fontWeight: '600' },
   });

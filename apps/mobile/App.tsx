@@ -62,6 +62,7 @@ const ScheduleConsultationScreen = withSuspense(React.lazy(() => import('./src/s
 const BecomeExpertScreen = withSuspense(React.lazy(() => import('./src/screens/expert/BecomeExpertScreen')));
 const SubscriptionScreen = withSuspense(React.lazy(() => import('./src/screens/SubscriptionScreen')));
 const MealHistoryScreen = withSuspense(React.lazy(() => import('./src/screens/MealHistoryScreen')));
+const DiaryJournalScreen = withSuspense(React.lazy(() => import('./src/screens/DiaryJournalScreen')));
 const ScientificSourcesScreen = withSuspense(React.lazy(() => import('./src/screens/ScientificSourcesScreen')));
 const ReportsScreen = withSuspense(React.lazy(() => import('./src/screens/ReportsScreen')));
 const BestPlacesScreen = withSuspense(React.lazy(() => import('./src/screens/BestPlacesScreen')));
@@ -274,6 +275,14 @@ function AppContent() {
               <Stack.Screen
                 name="MealHistory"
                 component={MealHistoryScreen}
+                options={{
+                  presentation: 'card',
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="DiaryJournal"
+                component={DiaryJournalScreen}
                 options={{
                   presentation: 'card',
                   headerShown: false,

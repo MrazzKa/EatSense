@@ -90,6 +90,37 @@ export default function CommunityPostDetailScreen() {
     setShowReactions(false);
   }, [post, postId]);
 
+  const handleAttend = useCallback(async () => {
+    if (!post) return;
+    // Optimistic toggle of attendance + the going count.
+    setPost((prev) => prev ? {
+      ...prev,
+      isAttending: !prev.isAttending,
+      _count: {
+        ...prev._count,
+        attendees: prev.isAttending
+          ? Math.max((prev._count?.attendees || 1) - 1, 0)
+          : (prev._count?.attendees || 0) + 1,
+      },
+    } : prev);
+    try {
+      await ApiService.toggleEventAttendance(postId);
+    } catch (err) {
+      console.warn('Failed to toggle attendance:', err);
+      // Revert on failure.
+      setPost((prev) => prev ? {
+        ...prev,
+        isAttending: !prev.isAttending,
+        _count: {
+          ...prev._count,
+          attendees: prev.isAttending
+            ? Math.max((prev._count?.attendees || 1) - 1, 0)
+            : (prev._count?.attendees || 0) + 1,
+        },
+      } : prev);
+    }
+  }, [post, postId]);
+
   const handleDeletePost = useCallback(() => {
     Alert.alert(
       t('community.post.delete', 'Delete Post'),
@@ -343,6 +374,44 @@ export default function CommunityPostDetailScreen() {
       );
     }
 
+    if (post.type === 'ROUTE') {
+      const km = Number(post.metadata.distanceKm) || 0;
+      const actLabel = post.metadata.activity
+        ? t(`community.route.activity.${post.metadata.activity}`, post.metadata.activity)
+        : '';
+      return (
+        <View style={[styles.metadataBox, { backgroundColor: '#8B5CF60E', borderColor: colors.border }]}>
+          {post.metadata.routeName && (
+            <Text style={[styles.metaTitle, { color: '#8B5CF6' }]}>🗺 {post.metadata.routeName}</Text>
+          )}
+          <Text style={[styles.metaDetail, { color: colors.textSecondary }]}>
+            {[actLabel, km > 0 ? `${km.toFixed(1)} ${t('community.route.km', 'km')}` : '', post.metadata.city]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+          {(post.metadata.date || post.metadata.time) && (
+            <Text style={[styles.metaDetail, { color: colors.textSecondary }]}>
+              {post.metadata.date} {post.metadata.time || ''}
+            </Text>
+          )}
+          <TouchableOpacity
+            onPress={handleAttend}
+            style={[styles.joinBtn, { backgroundColor: post.isAttending ? '#8B5CF6' : '#8B5CF61A' }]}
+          >
+            <Ionicons
+              name={post.isAttending ? 'checkmark-circle' : 'add-circle-outline'}
+              size={18}
+              color={post.isAttending ? '#fff' : '#8B5CF6'}
+            />
+            <Text style={[styles.joinText, { color: post.isAttending ? '#fff' : '#8B5CF6' }]}>
+              {post.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
+              {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -553,6 +622,8 @@ const createStyles = (tokens: any, colors: any) =>
     metaBody: { fontSize: 14, lineHeight: 20 },
     metaDetail: { fontSize: 13, marginTop: 4 },
     metaStars: { fontSize: 14, marginTop: 4 },
+    joinBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 8, marginTop: 12 },
+    joinText: { fontSize: 14, fontWeight: '600', marginLeft: 6 },
     reactionPicker: {
       flexDirection: 'row',
       alignItems: 'center',

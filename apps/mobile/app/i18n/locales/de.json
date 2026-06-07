@@ -2784,7 +2784,14 @@
   "mealHistory": {
     "title": "Alle Mahlzeiten",
     "emptyTitle": "Keine Mahlzeiten an diesem Tag",
-    "emptySubtitle": "Protokollierte Mahlzeiten werden hier angezeigt."
+    "emptySubtitle": "Protokollierte Mahlzeiten werden hier angezeigt.",
+    "journalTitle": "Tagebuch",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "mealsCount": "{{count}} Mahlzeiten",
+    "viewAll": "Gesamter Verlauf",
+    "emptyJournalTitle": "Dein Tagebuch ist leer",
+    "emptyJournalSubtitle": "Erfasste Tage erscheinen hier."
   },
   "diets": {
     "groups": {
@@ -4539,7 +4546,8 @@
       "bestPlaces": "Beste Orte",
       "recipe": "Rezept",
       "question": "Frage",
-      "challenge": "Challenge"
+      "challenge": "Challenge",
+      "route": "Route"
     },
     "feed": {
       "empty": "Noch keine Beiträge. Tritt Gruppen bei, um Beiträge in deinem Feed zu sehen!",
@@ -4724,7 +4732,8 @@
       "all": "Alle",
       "places": "Orte",
       "events": "Events",
-      "noEvents": "Noch keine Events auf der Karte"
+      "noEvents": "Noch keine Events auf der Karte",
+      "routes": "Routen"
     },
     "placesView": {
       "list": "Liste",
@@ -4735,6 +4744,36 @@
       "title": "Upgrade für mehr",
       "message": "Kostenlose Mitglieder können einige Orte und Events hinzufügen. Mit Pro unbegrenzt.",
       "upgrade": "Pro holen"
+    },
+    "route": {
+      "details": "Routendetails",
+      "name": "Name (z. B. Morgenlauf am See)",
+      "nameRequired": "Bitte Route benennen",
+      "cityRequired": "Bitte Stadt angeben",
+      "drawRequired": "Bitte Route auf der Karte zeichnen (mind. 2 Punkte)",
+      "cityPlaceholder": "Stadt / Region",
+      "drawOnMap": "Route auf Karte zeichnen",
+      "routeSet": "Route fertig · {{km}} km",
+      "builderTitle": "Route zeichnen",
+      "tapStart": "Tippe den Treffpunkt, dann die Route",
+      "km": "km",
+      "points": "Punkte",
+      "undo": "Rückgängig",
+      "clear": "Löschen",
+      "join": "Mitmachen",
+      "joined": "Dabei",
+      "goingCount": "{{count}} dabei",
+      "meetingPoint": "Treffpunkt",
+      "activity": {
+        "run": "Laufen",
+        "walk": "Gehen",
+        "bike": "Rad"
+      },
+      "noRoutes": "Noch keine Routen auf der Karte"
+    },
+    "mapAdd": {
+      "title": "Was ist hier?",
+      "subtitle": "An diesem Ort hinzufügen"
     }
   },
   "mascot": {
@@ -4846,9 +4885,18 @@
     "subtitle": "Fotografiere dein Essen — erhalte sofort Nährwert-Einblicke.",
     "cta": "Loslegen",
     "features": {
-      "analysis": { "title": "Foto & Analyse", "desc": "Fotografiere jede Mahlzeit für sofortige Kalorien und Makros." },
-      "recommendations": { "title": "Persönliche Tipps", "desc": "Smarte Vorschläge passend zu deinen Zielen und deiner Gesundheit." },
-      "assistant": { "title": "KI-Assistent", "desc": "Frag jederzeit alles über deine Ernährung." }
+      "analysis": {
+        "title": "Foto & Analyse",
+        "desc": "Fotografiere jede Mahlzeit für sofortige Kalorien und Makros."
+      },
+      "recommendations": {
+        "title": "Persönliche Tipps",
+        "desc": "Smarte Vorschläge passend zu deinen Zielen und deiner Gesundheit."
+      },
+      "assistant": {
+        "title": "KI-Assistent",
+        "desc": "Frag jederzeit alles über deine Ernährung."
+      }
     }
   },
   "gettingStarted": {

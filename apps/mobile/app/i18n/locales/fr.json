@@ -809,7 +809,14 @@
   "mealHistory": {
     "title": "Tous les repas",
     "emptyTitle": "Aucun repas ce jour-là",
-    "emptySubtitle": "Les repas enregistrés apparaîtront ici."
+    "emptySubtitle": "Les repas enregistrés apparaîtront ici.",
+    "journalTitle": "Journal",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "mealsCount": "{{count}} repas",
+    "viewAll": "Tout l'historique",
+    "emptyJournalTitle": "Votre journal est vide",
+    "emptyJournalSubtitle": "Les jours enregistrés apparaîtront ici."
   },
   "describeFood": {
     "analyzeButton": "Analyser",
@@ -4527,7 +4534,8 @@
       "bestPlaces": "Meilleurs endroits",
       "recipe": "Recette",
       "question": "Demande",
-      "challenge": "Défi"
+      "challenge": "Défi",
+      "route": "Itinéraire"
     },
     "feed": {
       "empty": "Pas encore de posts. Rejoignez des groupes pour voir des posts dans votre fil !",
@@ -4712,7 +4720,8 @@
       "all": "Tout",
       "places": "Lieux",
       "events": "Événements",
-      "noEvents": "Aucun événement sur la carte"
+      "noEvents": "Aucun événement sur la carte",
+      "routes": "Itinéraires"
     },
     "placesView": {
       "list": "Liste",
@@ -4723,6 +4732,36 @@
       "title": "Passez à Pro pour plus",
       "message": "Les membres gratuits peuvent ajouter quelques lieux et événements. Passez à Pro pour un accès illimité.",
       "upgrade": "Passer à Pro"
+    },
+    "route": {
+      "details": "Détails de l'itinéraire",
+      "name": "Nom (ex. Course matinale au lac)",
+      "nameRequired": "Nommez l'itinéraire",
+      "cityRequired": "Ajoutez la ville",
+      "drawRequired": "Tracez l'itinéraire sur la carte (au moins 2 points)",
+      "cityPlaceholder": "Ville / région",
+      "drawOnMap": "Tracer sur la carte",
+      "routeSet": "Itinéraire prêt · {{km}} km",
+      "builderTitle": "Tracer l'itinéraire",
+      "tapStart": "Touchez le point de rendez-vous, puis l'itinéraire",
+      "km": "km",
+      "points": "points",
+      "undo": "Annuler",
+      "clear": "Effacer",
+      "join": "Je participe",
+      "joined": "Présent",
+      "goingCount": "{{count}} participants",
+      "meetingPoint": "Point de rendez-vous",
+      "activity": {
+        "run": "Course",
+        "walk": "Marche",
+        "bike": "Vélo"
+      },
+      "noRoutes": "Aucun itinéraire sur la carte pour l'instant"
+    },
+    "mapAdd": {
+      "title": "Quoi ici ?",
+      "subtitle": "Ajouter à cet endroit"
     }
   },
   "mascot": {
@@ -4812,9 +4851,18 @@
     "subtitle": "Photographie ton repas — obtiens une analyse nutritionnelle instantanée.",
     "cta": "Commencer",
     "features": {
-      "analysis": { "title": "Photo & analyse", "desc": "Photographie n'importe quel repas pour des calories et macros instantanées." },
-      "recommendations": { "title": "Conseils personnalisés", "desc": "Des suggestions adaptées à tes objectifs et ta santé." },
-      "assistant": { "title": "Assistant IA", "desc": "Pose toutes tes questions sur ta nutrition, à tout moment." }
+      "analysis": {
+        "title": "Photo & analyse",
+        "desc": "Photographie n'importe quel repas pour des calories et macros instantanées."
+      },
+      "recommendations": {
+        "title": "Conseils personnalisés",
+        "desc": "Des suggestions adaptées à tes objectifs et ta santé."
+      },
+      "assistant": {
+        "title": "Assistant IA",
+        "desc": "Pose toutes tes questions sur ta nutrition, à tout moment."
+      }
     }
   },
   "gettingStarted": {

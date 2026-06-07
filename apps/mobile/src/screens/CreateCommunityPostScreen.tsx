@@ -24,6 +24,13 @@ import { useMascot } from '../contexts/MascotContext';
 import { resolveGroupName } from '../components/community/GroupCard';
 import { CUISINES } from '../config/cuisines';
 import LocationPickerModal from '../components/community/LocationPickerModal';
+import RouteBuilderModal from '../components/community/RouteBuilderModal';
+
+const ROUTE_ACTIVITIES = [
+  { key: 'run', icon: 'walk-outline', labelKey: 'community.route.activity.run' },
+  { key: 'walk', icon: 'footsteps-outline', labelKey: 'community.route.activity.walk' },
+  { key: 'bike', icon: 'bicycle-outline', labelKey: 'community.route.activity.bike' },
+];
 
 const POST_TYPES = [
   { key: 'TEXT', icon: 'chatbubble-outline', labelKey: 'community.postType.text' },
@@ -31,6 +38,7 @@ const POST_TYPES = [
   { key: 'RECOMMENDATION', icon: 'restaurant-outline', labelKey: 'community.postType.recommendation' },
   { key: 'ACHIEVEMENT', icon: 'trophy-outline', labelKey: 'community.postType.achievement' },
   { key: 'EVENT', icon: 'calendar-outline', labelKey: 'community.postType.event' },
+  { key: 'ROUTE', icon: 'map-outline', labelKey: 'community.postType.route' },
   { key: 'LIFESTYLE', icon: 'heart-outline', labelKey: 'community.postType.lifestyle' },
   { key: 'BEST_PLACES', icon: 'location-outline', labelKey: 'community.postType.bestPlaces' },
   { key: 'RECIPE', icon: 'nutrition-outline', labelKey: 'community.postType.recipe' },
@@ -78,10 +86,28 @@ export default function CreateCommunityPostScreen() {
   const [cuisine, setCuisine] = useState<string | null>(null);
 
   // Map coordinates (places + events). Captured via the LocationPickerModal.
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [eventCoords, setEventCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const initialCoords = (route.params as any)?.initialCoords || null;
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
+    initialType === 'BEST_PLACES' && initialCoords ? initialCoords : null,
+  );
+  const [eventCoords, setEventCoords] = useState<{ latitude: number; longitude: number } | null>(
+    initialType === 'EVENT' && initialCoords ? initialCoords : null,
+  );
   // Which field the location picker is editing: 'place' | 'event' | null.
   const [locationTarget, setLocationTarget] = useState<null | 'place' | 'event'>(null);
+
+  // Route (ROUTE post type) fields
+  const [routeName, setRouteName] = useState('');
+  const [routeActivity, setRouteActivity] = useState('run');
+  const [routeCity, setRouteCity] = useState(initialCity);
+  const [routeDate, setRouteDate] = useState('');
+  const [routeTime, setRouteTime] = useState('');
+  const [builtRoute, setBuiltRoute] = useState<any>(
+    initialType === 'ROUTE' && initialCoords
+      ? { points: [initialCoords], meetingPoint: initialCoords, distanceKm: 0 }
+      : null,
+  );
+  const [routeBuilderVisible, setRouteBuilderVisible] = useState(false);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
@@ -135,6 +161,18 @@ export default function CreateCommunityPostScreen() {
     }
     if (postType === 'BEST_PLACES' && !placeCity.trim()) {
       Alert.alert(t('community.error', 'Error'), t('community.bestPlaces.cityRequired', 'Please add the city'));
+      return;
+    }
+    if (postType === 'ROUTE' && !routeName.trim()) {
+      Alert.alert(t('community.error', 'Error'), t('community.route.nameRequired', 'Please name the route'));
+      return;
+    }
+    if (postType === 'ROUTE' && !routeCity.trim()) {
+      Alert.alert(t('community.error', 'Error'), t('community.route.cityRequired', 'Please add the city'));
+      return;
+    }
+    if (postType === 'ROUTE' && (!builtRoute || !(builtRoute.points?.length >= 2))) {
+      Alert.alert(t('community.error', 'Error'), t('community.route.drawRequired', 'Please draw the route on the map (at least 2 points)'));
       return;
     }
     setSubmitting(true);
@@ -203,6 +241,21 @@ export default function CreateCommunityPostScreen() {
         };
       }
 
+      if (postType === 'ROUTE') {
+        payload.metadata = {
+          routeName: routeName.trim(),
+          activity: routeActivity,
+          city: routeCity.trim(),
+          date: routeDate.trim(),
+          time: routeTime.trim(),
+          distanceKm: builtRoute?.distanceKm ?? 0,
+          // First point = meeting/start spot (used for the map marker + auto-fit).
+          latitude: builtRoute?.meetingPoint?.latitude,
+          longitude: builtRoute?.meetingPoint?.longitude,
+          points: (builtRoute?.points || []).map((p: any) => ({ latitude: p.latitude, longitude: p.longitude })),
+        };
+      }
+
       await ApiService.createCommunityPost(payload);
       // Award mascot XP for community activity
       if (addXp) { try { await addXp(8, 'community_post'); } catch {} }
@@ -232,11 +285,12 @@ export default function CreateCommunityPostScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, addXp, navigation, t]);
+  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, routeName, routeActivity, routeCity, routeDate, routeTime, builtRoute, addXp, navigation, t]);
 
   const isValid = content.trim().length > 0
     && (postType !== 'BEST_PLACES' || placeName.trim().length > 0)
     && (postType !== 'BEST_PLACES' || placeCity.trim().length > 0)
+    && (postType !== 'ROUTE' || (routeName.trim().length > 0 && routeCity.trim().length > 0 && (builtRoute?.points?.length >= 2)))
     && (selectedGroupId || groups.length === 0);
 
   return (
@@ -517,6 +571,79 @@ export default function CreateCommunityPostScreen() {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Route fields */}
+          {postType === 'ROUTE' && (
+            <View style={styles.eventFields}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                {t('community.route.details', 'Route Details')}
+              </Text>
+              <TextInput
+                style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
+                placeholder={t('community.route.name', 'Route name (e.g. Morning lake run)')}
+                placeholderTextColor={colors.textTertiary}
+                value={routeName}
+                onChangeText={setRouteName}
+              />
+
+              {/* Activity type */}
+              <View style={styles.cuisineWrap}>
+                {ROUTE_ACTIVITIES.map((a) => {
+                  const active = routeActivity === a.key;
+                  return (
+                    <TouchableOpacity
+                      key={a.key}
+                      style={[styles.cuisineChip, { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? (colors.primaryTint || colors.primary + '22') : 'transparent' }]}
+                      onPress={() => setRouteActivity(a.key)}
+                    >
+                      <Ionicons name={a.icon} size={14} color={active ? colors.primary : colors.textSecondary} />
+                      <Text style={[styles.cuisineChipText, { color: active ? colors.primary : colors.textSecondary }]}>
+                        {t(a.labelKey, a.key)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <TextInput
+                style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface, marginTop: 12 }]}
+                placeholder={t('community.route.cityPlaceholder', 'City / region')}
+                placeholderTextColor={colors.textTertiary}
+                value={routeCity}
+                onChangeText={setRouteCity}
+              />
+              <View style={styles.rowFields}>
+                <TextInput
+                  style={[styles.fieldInput, styles.halfField, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
+                  placeholder={t('community.eventDate', 'Date')}
+                  placeholderTextColor={colors.textTertiary}
+                  value={routeDate}
+                  onChangeText={setRouteDate}
+                />
+                <TextInput
+                  style={[styles.fieldInput, styles.halfField, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
+                  placeholder={t('community.eventTime', 'Time')}
+                  placeholderTextColor={colors.textTertiary}
+                  value={routeTime}
+                  onChangeText={setRouteTime}
+                />
+              </View>
+
+              {/* Draw route on map */}
+              <TouchableOpacity
+                style={[styles.mapBtn, { borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface, marginTop: 4 }]}
+                onPress={() => setRouteBuilderVisible(true)}
+              >
+                <Ionicons name={builtRoute?.points?.length >= 2 ? 'map' : 'map-outline'} size={18} color={builtRoute?.points?.length >= 2 ? colors.primary : colors.textSecondary} />
+                <Text style={[styles.mapBtnText, { color: builtRoute?.points?.length >= 2 ? colors.primary : colors.textSecondary }]}>
+                  {builtRoute?.points?.length >= 2
+                    ? t('community.route.routeSet', { km: (builtRoute.distanceKm ?? 0).toFixed(1) })
+                    : t('community.route.drawOnMap', 'Draw route on map')}
+                </Text>
+                {builtRoute?.points?.length >= 2 && <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: 'auto' }} />}
+              </TouchableOpacity>
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -541,6 +668,18 @@ export default function CreateCommunityPostScreen() {
             if (loc.address && !eventLocation.trim()) setEventLocation(loc.address);
           }
           setLocationTarget(null);
+        }}
+      />
+
+      <RouteBuilderModal
+        visible={routeBuilderVisible}
+        colors={colors}
+        t={t}
+        initial={builtRoute}
+        onClose={() => setRouteBuilderVisible(false)}
+        onConfirm={(r) => {
+          setBuiltRoute(r);
+          setRouteBuilderVisible(false);
         }}
       />
     </SafeAreaView>

@@ -669,7 +669,14 @@
   "mealHistory": {
     "title": "All Meals",
     "emptyTitle": "No meals this day",
-    "emptySubtitle": "Meals you log will appear here."
+    "emptySubtitle": "Meals you log will appear here.",
+    "journalTitle": "Diary",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "mealsCount": "{{count}} meals",
+    "viewAll": "All history",
+    "emptyJournalTitle": "Your diary is empty",
+    "emptyJournalSubtitle": "Logged days will appear here."
   },
   "articles": {
     "title": "Articles",
@@ -4562,7 +4569,8 @@
       "bestPlaces": "Best Places",
       "recipe": "Recipe",
       "question": "Question",
-      "challenge": "Challenge"
+      "challenge": "Challenge",
+      "route": "Route"
     },
     "feed": {
       "empty": "No posts yet. Join groups to see posts in your feed!",
@@ -4747,7 +4755,8 @@
       "all": "All",
       "places": "Places",
       "events": "Events",
-      "noEvents": "No events on the map yet"
+      "noEvents": "No events on the map yet",
+      "routes": "Routes"
     },
     "placesView": {
       "list": "List",
@@ -4758,6 +4767,36 @@
       "title": "Upgrade to add more",
       "message": "Free members can add a few places and events. Go Pro to create unlimited.",
       "upgrade": "Go Pro"
+    },
+    "route": {
+      "details": "Route Details",
+      "name": "Route name (e.g. Morning lake run)",
+      "nameRequired": "Please name the route",
+      "cityRequired": "Please add the city",
+      "drawRequired": "Please draw the route on the map (at least 2 points)",
+      "cityPlaceholder": "City / region",
+      "drawOnMap": "Draw route on map",
+      "routeSet": "Route set · {{km}} km",
+      "builderTitle": "Draw route",
+      "tapStart": "Tap to set the meeting point, then the route",
+      "km": "km",
+      "points": "points",
+      "undo": "Undo",
+      "clear": "Clear",
+      "join": "Join",
+      "joined": "Going",
+      "goingCount": "{{count}} going",
+      "meetingPoint": "Meeting point",
+      "activity": {
+        "run": "Run",
+        "walk": "Walk",
+        "bike": "Bike"
+      },
+      "noRoutes": "No routes on the map yet"
+    },
+    "mapAdd": {
+      "title": "What's here?",
+      "subtitle": "Add to this spot"
     }
   },
   "mascot": {
@@ -4847,9 +4886,18 @@
     "subtitle": "Snap your meal — get instant nutrition insights.",
     "cta": "Start now",
     "features": {
-      "analysis": { "title": "Snap & analyze", "desc": "Photograph any meal for instant calories and macros." },
-      "recommendations": { "title": "Personal tips", "desc": "Smart suggestions tuned to your goals and health." },
-      "assistant": { "title": "AI assistant", "desc": "Ask anything about your nutrition, anytime." }
+      "analysis": {
+        "title": "Snap & analyze",
+        "desc": "Photograph any meal for instant calories and macros."
+      },
+      "recommendations": {
+        "title": "Personal tips",
+        "desc": "Smart suggestions tuned to your goals and health."
+      },
+      "assistant": {
+        "title": "AI assistant",
+        "desc": "Ask anything about your nutrition, anytime."
+      }
     }
   },
   "gettingStarted": {

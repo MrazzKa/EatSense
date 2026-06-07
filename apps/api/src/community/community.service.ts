@@ -453,7 +453,7 @@ export class CommunityService {
       where: { userId_postId: { userId, postId } },
     });
 
-    const attendee = post.type === 'EVENT'
+    const attendee = (post.type === 'EVENT' || post.type === 'ROUTE')
       ? await this.prisma.eventAttendee.findUnique({
           where: { userId_postId: { userId, postId } },
         })
@@ -495,11 +495,11 @@ export class CommunityService {
 
     // Freemium gate: free users may CREATE up to FREE_COMMUNITY_CREATE_LIMIT
     // places/events; beyond that requires Pro. Viewing/attending stays free.
-    if (dto.type === 'BEST_PLACES' || dto.type === 'EVENT') {
+    if (dto.type === 'BEST_PLACES' || dto.type === 'EVENT' || dto.type === 'ROUTE') {
       const subscription = await this.subscriptionsService.getActiveSubscription(userId);
       if (!subscription) {
         const created = await this.prisma.communityPost.count({
-          where: { authorId: userId, type: { in: ['BEST_PLACES', 'EVENT'] as any } },
+          where: { authorId: userId, type: { in: ['BEST_PLACES', 'EVENT', 'ROUTE'] as any } },
         });
         if (created >= FREE_COMMUNITY_CREATE_LIMIT) {
           throw new ForbiddenException({
@@ -514,7 +514,7 @@ export class CommunityService {
     // Moderation: every new post enters as "pending" and is hidden from public
     // feeds until an admin approves it. Author still sees it in their own views.
     // Stored under metadata to avoid a Prisma migration; admin endpoints flip it.
-    const metadata = dto.type === 'BEST_PLACES'
+    const metadata = (dto.type === 'BEST_PLACES' || dto.type === 'ROUTE')
       ? {
           ...(dto.metadata || {}),
           cityKey: normalizeCityKey((dto.metadata as any)?.city),
@@ -524,7 +524,7 @@ export class CommunityService {
     // waiting on an admin (pilot decision 2026-06-06). The freemium limit (3) +
     // post-hoc admin moderation (Posts tab can still reject) keep spam in check.
     // Regular posts (TEXT/PHOTO/DIET_SHARE) still enter the moderation queue.
-    const autoApprove = dto.type === 'BEST_PLACES' || dto.type === 'EVENT';
+    const autoApprove = dto.type === 'BEST_PLACES' || dto.type === 'EVENT' || dto.type === 'ROUTE';
     const metadataWithModeration = {
       ...metadata,
       moderationStatus: autoApprove ? 'approved' : 'pending',
@@ -700,8 +700,8 @@ export class CommunityService {
       throw new NotFoundException('Post not found');
     }
 
-    if (post.type !== 'EVENT') {
-      throw new BadRequestException('Can only attend event posts');
+    if (post.type !== 'EVENT' && post.type !== 'ROUTE') {
+      throw new BadRequestException('Can only attend event or route posts');
     }
 
     const existing = await this.prisma.eventAttendee.findUnique({

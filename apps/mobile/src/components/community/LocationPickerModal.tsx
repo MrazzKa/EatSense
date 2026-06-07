@@ -52,6 +52,16 @@ const LocationPickerModal: React.FC<Props> = ({ visible, colors, t, initial, onC
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [searchError, setSearchError] = useState('');
+  // react-native-maps renders a blank/gray map when mounted inside an RN <Modal>
+  // before the modal window is laid out (iOS). Mount the MapView only after the
+  // modal is actually presented (onShow) so it gets a valid window to draw into.
+  const [mapMounted, setMapMounted] = useState(false);
+
+  // Reset the lazy-mount flag whenever the picker is hidden, so the map remounts
+  // fresh (and non-blank) on the next open.
+  useEffect(() => {
+    if (!visible) setMapMounted(false);
+  }, [visible]);
 
   // Seed from initial value (editing) or the user's location when opened.
   useEffect(() => {
@@ -142,7 +152,7 @@ const LocationPickerModal: React.FC<Props> = ({ visible, colors, t, initial, onC
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} onShow={() => setMapMounted(true)}>
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -188,6 +198,12 @@ const LocationPickerModal: React.FC<Props> = ({ visible, colors, t, initial, onC
         {!!searchError && <Text style={[styles.errorText, { color: colors.error || '#EF4444' }]}>{searchError}</Text>}
 
         <View style={styles.mapWrap}>
+          {!mapMounted && (
+            <View style={[StyleSheet.absoluteFill, styles.mapLoading, { backgroundColor: colors.surfaceSecondary || colors.surface }]}>
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          )}
+          {mapMounted && (
           <MapView
             ref={mapRef}
             provider={PROVIDER_DEFAULT}
@@ -211,8 +227,9 @@ const LocationPickerModal: React.FC<Props> = ({ visible, colors, t, initial, onC
               </Marker>
             )}
           </MapView>
+          )}
 
-          {!marker && (
+          {mapMounted && !marker && (
             <View pointerEvents="none" style={styles.hint}>
               <View style={[styles.hintPill, { backgroundColor: colors.surface }]}>
                 <Ionicons name="hand-left-outline" size={16} color={colors.textSecondary} />
@@ -266,6 +283,7 @@ const styles = StyleSheet.create({
   searchGo: { fontSize: 14, fontWeight: '600' },
   errorText: { marginHorizontal: 16, marginTop: 6, fontSize: 13 },
   mapWrap: { flex: 1, margin: 16, borderRadius: 16, overflow: 'hidden' },
+  mapLoading: { alignItems: 'center', justifyContent: 'center', zIndex: 1 },
   hint: { position: 'absolute', top: 12, left: 0, right: 0, alignItems: 'center' },
   hintPill: {
     flexDirection: 'row',
