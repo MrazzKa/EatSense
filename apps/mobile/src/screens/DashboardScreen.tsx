@@ -950,12 +950,6 @@ export default function DashboardScreen() {
   // Removed unused function: handleAnalyzeTextFood
 
 
-  const navigateToDate = (direction) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + direction);
-    setSelectedDate(newDate);
-  };
-
   // Dashboard render check removed to reduce console spam
 
   // Time-of-day greeting (warm, personal header above the calorie ring).
@@ -976,24 +970,6 @@ export default function DashboardScreen() {
   const _consumedKcal = Math.round(stats.totalCalories || 0);
   const _remainingKcal = Math.max(0, Math.round(_kcalGoal - _consumedKcal));
   const _overKcal = Math.max(0, _consumedKcal - _kcalGoal);
-
-  // Weekly day strip (browsable diary). Week derived from the selected date,
-  // Monday-first; future days are disabled (can't log ahead).
-  const _endOfToday = new Date(); _endOfToday.setHours(23, 59, 59, 999);
-  const _isSameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  const weekDays = useMemo(() => {
-    const base = new Date(selectedDate);
-    const mondayIdx = (base.getDay() + 6) % 7; // Mon=0 … Sun=6
-    const monday = new Date(base);
-    monday.setDate(base.getDate() - mondayIdx);
-    monday.setHours(0, 0, 0, 0);
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      return d;
-    });
-  }, [selectedDate]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -1020,54 +996,13 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: dashboardBottomPadding }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top row: month/year label + avatar */}
+        {/* Top row: today's date + avatar (day switching removed — past days live
+            in the diary journal via "Вся история") */}
         <View style={styles.topHeaderRow}>
           <Text style={styles.monthLabel}>
-            {selectedDate.toLocaleDateString(language || 'en', { month: 'long', year: 'numeric' })}
+            {new Date().toLocaleDateString(language || 'en', { weekday: 'long', day: 'numeric', month: 'long' })}
           </Text>
           <ProfileAvatarButton />
-        </View>
-
-        {/* Weekly day strip — browsable diary */}
-        <View style={styles.weekStrip}>
-          <TouchableOpacity
-            onPress={() => navigateToDate(-7)}
-            hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
-            style={styles.weekArrow}
-          >
-            <Ionicons name="chevron-back" size={18} color={colors.textTertiary} />
-          </TouchableOpacity>
-
-          {weekDays.map((d) => {
-            const active = _isSameDay(d, selectedDate);
-            const isToday = _isSameDay(d, new Date());
-            const isFuture = d.getTime() > _endOfToday.getTime();
-            return (
-              <TouchableOpacity
-                key={d.toISOString()}
-                disabled={isFuture}
-                activeOpacity={0.7}
-                style={[styles.weekDay, active && styles.weekDayActive]}
-                onPress={() => setSelectedDate(new Date(d))}
-              >
-                <Text style={[styles.weekDow, active && styles.weekDowActive, isFuture && styles.weekDayFuture]}>
-                  {d.toLocaleDateString(language || 'en', { weekday: 'short' })}
-                </Text>
-                <Text style={[styles.weekNum, active && styles.weekNumActive, isFuture && styles.weekDayFuture]}>
-                  {d.getDate()}
-                </Text>
-                {isToday && !active && <View style={styles.todayDot} />}
-              </TouchableOpacity>
-            );
-          })}
-
-          <TouchableOpacity
-            onPress={() => navigateToDate(7)}
-            hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
-            style={styles.weekArrow}
-          >
-            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-          </TouchableOpacity>
         </View>
 
         {/* Time-of-day greeting */}

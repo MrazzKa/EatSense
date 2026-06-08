@@ -8,6 +8,8 @@ interface AppleReceiptValidationResult {
     isValid: boolean;
     status?: number;
     productId?: string;
+    /** All distinct product IDs present in the receipt's transactions. */
+    productIds?: string[];
     transactionId?: string;
     originalTransactionId?: string;
     purchaseDate?: Date;
@@ -24,7 +26,7 @@ export class AppleReceiptService {
     private readonly VERIFY_URL_PROD = 'https://buy.itunes.apple.com/verifyReceipt';
     private readonly VERIFY_URL_SANDBOX = 'https://sandbox.itunes.apple.com/verifyReceipt';
 
-    async verifyReceipt(receiptData: string): Promise<AppleReceiptValidationResult> {
+    async verifyReceipt(receiptData: string, expectedProductId?: string): Promise<AppleReceiptValidationResult> {
         const sharedSecret = process.env.APPLE_SHARED_SECRET;
 
         if (!sharedSecret) {
@@ -57,14 +59,33 @@ export class AppleReceiptService {
             const { status, latest_receipt_info } = response.data;
 
             if (status === 0 && latest_receipt_info?.length > 0) {
-                const latestReceipt = latest_receipt_info.sort((a: any, b: any) =>
-                    parseInt(b.expires_date_ms || '0') - parseInt(a.expires_date_ms || '0')
-                )[0];
+                const byExpiryDesc = (a: any, b: any) =>
+                    parseInt(b.expires_date_ms || b.purchase_date_ms || '0') -
+                    parseInt(a.expires_date_ms || a.purchase_date_ms || '0');
+
+                // A receipt can contain transactions for several products (e.g. the
+                // user previously bought a different plan). Picking the single
+                // latest-expiring transaction returns the WRONG product when the
+                // just-purchased plan isn't the longest one → "Product ID mismatch".
+                // So if we know which product was purchased, select ITS most recent
+                // transaction; otherwise fall back to the latest-expiring one.
+                let chosen = null as any;
+                if (expectedProductId) {
+                    const matches = latest_receipt_info.filter((r: any) => r.product_id === expectedProductId);
+                    if (matches.length > 0) chosen = matches.sort(byExpiryDesc)[0];
+                }
+                if (!chosen) chosen = [...latest_receipt_info].sort(byExpiryDesc)[0];
+
+                const latestReceipt = chosen;
+                const productIds = Array.from(
+                    new Set(latest_receipt_info.map((r: any) => r.product_id).filter(Boolean)),
+                ) as string[];
 
                 return {
                     isValid: true,
                     status,
                     productId: latestReceipt.product_id,
+                    productIds,
                     transactionId: latestReceipt.transaction_id,
                     originalTransactionId: latestReceipt.original_transaction_id,
                     purchaseDate: latestReceipt.purchase_date_ms

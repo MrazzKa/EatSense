@@ -35,6 +35,13 @@ const DEFAULT_REGION: Region = {
   longitudeDelta: 3.4,
 };
 
+// Pilot scope is Switzerland-only (the community map hides routes outside CH). Only
+// recenter on the user's GPS if it's inside Switzerland — a tester abroad otherwise
+// draws a route that silently vanishes from the map. Default = the whole country.
+const CH_BOUNDS = { minLat: 45.8, maxLat: 47.85, minLng: 5.9, maxLng: 10.6 };
+const inSwitzerland = (lat: number, lng: number) =>
+  lat >= CH_BOUNDS.minLat && lat <= CH_BOUNDS.maxLat && lng >= CH_BOUNDS.minLng && lng <= CH_BOUNDS.maxLng;
+
 // Haversine distance (km) between two coordinates.
 function haversineKm(a: RoutePoint, b: RoutePoint): number {
   const R = 6371;
@@ -89,7 +96,10 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
         if (!granted || cancelled) return;
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
-        setRegion({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
+        // Only recenter on the user if they're inside Switzerland; otherwise stay on CH.
+        if (inSwitzerland(pos.coords.latitude, pos.coords.longitude)) {
+          setRegion({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
+        }
       } catch {
         // optional — keep default region (whole Switzerland)
       }
@@ -105,6 +115,9 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
 
   const undo = () => setPoints((prev) => prev.slice(0, -1));
   const clear = () => setPoints([]);
+  // Drag a placed point to fix its position without clearing the whole route.
+  const movePoint = (index: number, coord: RoutePoint) =>
+    setPoints((prev) => prev.map((p, i) => (i === index ? { latitude: coord.latitude, longitude: coord.longitude } : p)));
 
   const distance = totalDistanceKm(points);
 
@@ -151,7 +164,13 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
                 <Polyline coordinates={points} strokeColor={colors.primary || '#4F46E5'} strokeWidth={4} />
               )}
               {points.map((p, i) => (
-                <Marker key={`${p.latitude}-${p.longitude}-${i}`} coordinate={p} anchor={{ x: 0.5, y: i === 0 ? 1 : 0.5 }}>
+                <Marker
+                  key={`${i}`}
+                  coordinate={p}
+                  anchor={{ x: 0.5, y: i === 0 ? 1 : 0.5 }}
+                  draggable
+                  onDragEnd={(e) => movePoint(i, e.nativeEvent.coordinate)}
+                >
                   {i === 0 ? (
                     <View style={styles.startPin}>
                       <View style={[styles.startBubble, { backgroundColor: colors.primary || '#4F46E5' }]}>
@@ -167,12 +186,14 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
             </MapView>
           )}
 
-          {mapMounted && points.length === 0 && (
+          {mapMounted && points.length < 2 && (
             <View pointerEvents="none" style={styles.hint}>
               <View style={[styles.hintPill, { backgroundColor: colors.surface }]}>
-                <Ionicons name="flag-outline" size={16} color={colors.textSecondary} />
+                <Ionicons name={points.length === 0 ? 'flag-outline' : 'add-circle-outline'} size={16} color={colors.primary} />
                 <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-                  {t('community.route.tapStart', 'Tap to set the meeting point, then the route')}
+                  {points.length === 0
+                    ? t('community.route.tapStart', 'Tap to set the meeting point, then the route')
+                    : t('community.route.tapNext', 'Keep tapping to draw the route — points connect into a line')}
                 </Text>
               </View>
             </View>

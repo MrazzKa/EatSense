@@ -4792,12 +4792,15 @@
         "walk": "Walk",
         "bike": "Bike"
       },
-      "noRoutes": "No routes on the map yet"
+      "noRoutes": "No routes on the map yet",
+      "tapNext": "Keep tapping to draw the route — points connect into a line"
     },
     "mapAdd": {
       "title": "What's here?",
-      "subtitle": "Add to this spot"
-    }
+      "subtitle": "Add to this spot",
+      "pickType": "What do you want to add?"
+    },
+    "add": "Add"
   },
   "mascot": {
     "setup": {

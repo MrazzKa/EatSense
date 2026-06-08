@@ -4757,12 +4757,15 @@
         "walk": "Marche",
         "bike": "Vélo"
       },
-      "noRoutes": "Aucun itinéraire sur la carte pour l'instant"
+      "noRoutes": "Aucun itinéraire sur la carte pour l'instant",
+      "tapNext": "Continuez à toucher pour tracer l'itinéraire — les points se relient en ligne"
     },
     "mapAdd": {
       "title": "Quoi ici ?",
-      "subtitle": "Ajouter à cet endroit"
-    }
+      "subtitle": "Ajouter à cet endroit",
+      "pickType": "Que voulez-vous ajouter ?"
+    },
+    "add": "Ajouter"
   },
   "mascot": {
     "setup": {

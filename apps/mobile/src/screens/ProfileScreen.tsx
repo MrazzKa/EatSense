@@ -2700,7 +2700,7 @@ const ProfileScreen = () => {
           <View style={[styles.footerLinksContainer, { borderTopColor: tokens.colors.border || colors.border, paddingBottom: 20 }]}>
             <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.borderMuted }]}>
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.vercel.app/privacy')}
+                onPress={() => Linking.openURL('https://eatsense.ch/privacy')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -2715,7 +2715,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.vercel.app/terms')}
+                onPress={() => Linking.openURL('https://eatsense.ch/terms')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -2730,7 +2730,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.vercel.app/')}
+                onPress={() => Linking.openURL('https://eatsense.ch/')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -2760,7 +2760,7 @@ const ProfileScreen = () => {
               <View style={[styles.legalDivider, { backgroundColor: colors.borderMuted }]} />
 
               <TouchableOpacity
-                onPress={() => Linking.openURL('https://eatsense.vercel.app/support')}
+                onPress={() => Linking.openURL('https://eatsense.ch/support')}
                 style={styles.legalRow}
               >
                 <View style={[styles.legalIconContainer, { backgroundColor: colors.primary + '15' }]}>

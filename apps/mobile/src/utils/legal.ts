@@ -1,10 +1,10 @@
 import { Linking, Alert } from 'react-native';
 
 export const LEGAL_URLS = {
-    privacy: 'https://eatsense.vercel.app/privacy',
-    terms: 'https://eatsense.vercel.app/terms',
-    support: 'https://eatsense.vercel.app/support',
-    about: 'https://eatsense.vercel.app/',
+    privacy: 'https://eatsense.ch/privacy',
+    terms: 'https://eatsense.ch/terms',
+    support: 'https://eatsense.ch/support',
+    about: 'https://eatsense.ch/',
 };
 
 export const openLegalLink = async (type) => {

@@ -288,28 +288,52 @@ export default function CommunityScreen() {
     });
   }, [bestPlaces, searchQuery, cuisineFilter]);
 
-  // Community events (from the feed) shown as pins on the Switzerland map.
-  const mapEvents = useMemo(
-    () => (posts || []).filter((p: any) => p?.type === 'EVENT'),
-    [posts],
-  );
+  // Map places ignore the cuisine filter: the cuisine chips only exist in List mode,
+  // so silently filtering map pins by a cuisine the user can't see/clear is confusing.
+  const mapPlaces = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return bestPlaces;
+    return bestPlaces.filter((p) => {
+      const meta = (p as any).metadata || {};
+      const content = ((p as any).content || '').toLowerCase();
+      const name = (meta.placeName || '').toLowerCase();
+      const addr = (meta.address || '').toLowerCase();
+      return content.includes(q) || name.includes(q) || addr.includes(q);
+    });
+  }, [bestPlaces, searchQuery]);
+
+  // Loose city match used to filter events/routes on the map by the picked city.
+  const cityMatch = useCallback((meta: any, city?: string) => {
+    if (!city) return true;
+    const rc = (meta?.city || '').trim().toLowerCase();
+    if (!rc) return false;
+    return rc === city || rc.includes(city) || city.includes(rc);
+  }, []);
+
+  // Community events (from the feed) shown as pins on the map — filtered by city.
+  const mapEvents = useMemo(() => {
+    const events = (posts || []).filter((p: any) => p?.type === 'EVENT');
+    const city = selectedPlacesCity?.city?.trim().toLowerCase();
+    if (!city) return events;
+    return events.filter((p: any) => cityMatch(p?.metadata, city));
+  }, [posts, selectedPlacesCity, cityMatch]);
+
   const mapRoutes = useMemo(() => {
     const routes = (posts || []).filter((p: any) => p?.type === 'ROUTE');
     const city = selectedPlacesCity?.city?.trim().toLowerCase();
     if (!city) return routes;
-    // City filter: keep routes whose stored city/region loosely matches the picked city.
-    return routes.filter((p: any) => {
-      const rc = (p?.metadata?.city || '').trim().toLowerCase();
-      if (!rc) return false;
-      return rc === city || rc.includes(city) || city.includes(rc);
-    });
-  }, [posts, selectedPlacesCity]);
+    return routes.filter((p: any) => cityMatch(p?.metadata, city));
+  }, [posts, selectedPlacesCity, cityMatch]);
 
-  // Tap-on-map → "What's here?" sheet (add a place / event / route at that spot).
+  // "Add" sheet (place / event / route). Opened either by tapping the map (with a
+  // coordinate) or by the "＋ Add" pill (no coordinate — user sets location in the form).
   const [mapAddCoord, setMapAddCoord] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const closeAddSheet = useCallback(() => { setMapAddCoord(null); setAddSheetOpen(false); }, []);
   const openCreateAt = useCallback((type: string) => {
     const coord = mapAddCoord;
     setMapAddCoord(null);
+    setAddSheetOpen(false);
     navigation.navigate('CreateCommunityPost', {
       initialType: type,
       initialCity: selectedPlacesCity?.city || '',
@@ -395,76 +419,63 @@ export default function CommunityScreen() {
     return null;
   };
 
-  const placesControls = () => (
-    <>
-      {/* List / Map toggle */}
-      <View style={[styles.viewToggle, { backgroundColor: colors.surfaceSecondary || colors.surface, borderColor: colors.border }]}>
-        <TouchableOpacity
-          style={[styles.viewToggleBtn, placesViewMode === 'list' && { backgroundColor: colors.primary }]}
-          onPress={() => setPlacesViewMode('list')}
-        >
-          <Ionicons name="list" size={16} color={placesViewMode === 'list' ? '#fff' : colors.textSecondary} />
-          <Text style={[styles.viewToggleText, { color: placesViewMode === 'list' ? '#fff' : colors.textSecondary }]}>
-            {t('community.placesView.list', 'List')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.viewToggleBtn, placesViewMode === 'map' && { backgroundColor: colors.primary }]}
-          onPress={() => setPlacesViewMode('map')}
-        >
-          <Ionicons name="map" size={16} color={placesViewMode === 'map' ? '#fff' : colors.textSecondary} />
-          <Text style={[styles.viewToggleText, { color: placesViewMode === 'map' ? '#fff' : colors.textSecondary }]}>
-            {t('community.placesView.map', 'Map')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Cuisine filter chips */}
-      <FlatList
-        horizontal
-        data={CUISINES}
-        keyExtractor={(c) => c.key}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.cuisineRow}
-        renderItem={({ item: c }) => {
-          const active = cuisineFilter === c.key;
-          return (
-            <TouchableOpacity
-              style={[styles.cuisineFilterChip, { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primary : 'transparent' }]}
-              onPress={() => setCuisineFilter(active ? null : c.key)}
-            >
-              <Ionicons name={c.icon} size={13} color={active ? '#fff' : colors.textSecondary} />
-              <Text style={[styles.cuisineFilterText, { color: active ? '#fff' : colors.textSecondary }]}>
-                {t(c.labelKey, c.key)}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-      />
-    </>
-  );
-
+  // Decluttered Places header: one compact row (city pill + List/Map toggle).
+  // Cuisine chips are shown only in List mode — on the map the built-in
+  // All/Places/Events/Routes filter already does the job, so we don't stack filters.
   const placesHeader = () => (
-    <View>
-      <TouchableOpacity
-        style={[styles.cityFilterBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
-        onPress={() => navigation.navigate('BestPlaces')}
-        activeOpacity={0.75}
-      >
-        <Ionicons name="location-outline" size={18} color={colors.primary} />
-        <View style={styles.cityFilterCopy}>
-          <Text style={[styles.cityFilterTitle, { color: colors.textPrimary || colors.text }]}>
+    <View style={styles.placesTopBar}>
+      <View style={styles.placesRow}>
+        <TouchableOpacity
+          style={[styles.cityPill, { borderColor: colors.border, backgroundColor: colors.surface }]}
+          onPress={() => navigation.navigate('BestPlaces')}
+          activeOpacity={0.75}
+        >
+          <Ionicons name="location-outline" size={15} color={colors.primary} />
+          <Text style={[styles.cityPillText, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>
             {selectedPlacesCity?.city || t('community.placesFilterCity', 'Filter by city')}
           </Text>
-          <Text style={[styles.cityFilterSubtitle, { color: colors.textTertiary }]}>
-            {selectedPlacesCity
-              ? t('community.placesFilterChange', 'Tap to change city')
-              : t('community.placesFilterHint', 'Kazakhstan and Switzerland include major city filters')}
-          </Text>
+          <Ionicons name="chevron-down" size={14} color={colors.textTertiary} />
+        </TouchableOpacity>
+
+        <View style={[styles.viewToggle, { backgroundColor: colors.surfaceSecondary || colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity
+            style={[styles.viewToggleBtn, placesViewMode === 'list' && { backgroundColor: colors.primary }]}
+            onPress={() => setPlacesViewMode('list')}
+          >
+            <Ionicons name="list" size={16} color={placesViewMode === 'list' ? '#fff' : colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.viewToggleBtn, placesViewMode === 'map' && { backgroundColor: colors.primary }]}
+            onPress={() => setPlacesViewMode('map')}
+          >
+            <Ionicons name="map" size={16} color={placesViewMode === 'map' ? '#fff' : colors.textSecondary} />
+          </TouchableOpacity>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-      </TouchableOpacity>
-      {placesControls()}
+      </View>
+
+      {placesViewMode === 'list' && (
+        <FlatList
+          horizontal
+          data={CUISINES}
+          keyExtractor={(c) => c.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.cuisineRow}
+          renderItem={({ item: c }) => {
+            const active = cuisineFilter === c.key;
+            return (
+              <TouchableOpacity
+                style={[styles.cuisineFilterChip, { borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primary : 'transparent' }]}
+                onPress={() => setCuisineFilter(active ? null : c.key)}
+              >
+                <Ionicons name={c.icon} size={13} color={active ? '#fff' : colors.textSecondary} />
+                <Text style={[styles.cuisineFilterText, { color: active ? '#fff' : colors.textSecondary }]}>
+                  {t(c.labelKey, c.key)}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </View>
   );
 
@@ -674,30 +685,19 @@ export default function CommunityScreen() {
           showsVerticalScrollIndicator={false}
         />
       ) : placesViewMode === 'map' ? (
-        <FlatList
-          data={[]}
-          keyExtractor={() => 'map'}
-          renderItem={null}
-          ListHeaderComponent={
-            <View>
-              {placesHeader()}
-              <CommunityPlacesMap
-                colors={colors}
-                t={t}
-                places={filteredPlaces}
-                events={mapEvents}
-                routes={mapRoutes}
-                onSelect={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
-                onMapPress={(coord) => setMapAddCoord(coord)}
-              />
-            </View>
-          }
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-          }
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        <View style={styles.mapModeWrap}>
+          {placesHeader()}
+          <CommunityPlacesMap
+            fill
+            colors={colors}
+            t={t}
+            places={mapPlaces}
+            events={mapEvents}
+            routes={mapRoutes}
+            onSelect={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
+            onMapPress={(coord) => setMapAddCoord(coord)}
+          />
+        </View>
       ) : (
         <FlatList
           data={filteredPlaces}
@@ -713,20 +713,22 @@ export default function CommunityScreen() {
         />
       )}
 
-      {/* FAB */}
+      {/* Add — extended pill, bottom-center. On Places it opens the type chooser
+          (Place/Event/Route); on Feed/Groups it goes straight to a new post. */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-        onPress={() =>
-          navigation.navigate(
-            'CreateCommunityPost',
-            activeTab === 'places'
-              ? { initialType: 'BEST_PLACES', initialCity: selectedPlacesCity?.city || '' }
-              : undefined,
-          )
-        }
-        activeOpacity={0.8}
+        style={[styles.addPill, { backgroundColor: colors.primary }]}
+        onPress={() => {
+          if (activeTab === 'places') {
+            setMapAddCoord(null);
+            setAddSheetOpen(true);
+          } else {
+            navigation.navigate('CreateCommunityPost', undefined);
+          }
+        }}
+        activeOpacity={0.85}
       >
-        <Ionicons name="add" size={32} color="#fff" />
+        <Ionicons name="add" size={22} color="#fff" />
+        <Text style={styles.addPillText}>{t('community.add', 'Add')}</Text>
       </TouchableOpacity>
 
       {/* Author Profile Sheet */}
@@ -736,13 +738,13 @@ export default function CommunityScreen() {
         onClose={() => setAuthorSheetVisible(false)}
       />
 
-      {/* Tap-on-map → "What's here?" — add a place / event / route at the tapped spot */}
-      <BottomSheet visible={!!mapAddCoord} onClose={() => setMapAddCoord(null)}>
+      {/* Add sheet — opened by the pill (no coord) or by tapping the map (with coord) */}
+      <BottomSheet visible={!!mapAddCoord || addSheetOpen} onClose={closeAddSheet}>
         <Text style={[styles.mapAddTitle, { color: colors.textPrimary || colors.text }]}>
-          {t('community.mapAdd.title', "What's here?")}
+          {mapAddCoord ? t('community.mapAdd.title', "What's here?") : t('community.add', 'Add')}
         </Text>
         <Text style={[styles.mapAddSubtitle, { color: colors.textTertiary }]}>
-          {t('community.mapAdd.subtitle', 'Add to this spot')}
+          {mapAddCoord ? t('community.mapAdd.subtitle', 'Add to this spot') : t('community.mapAdd.pickType', 'What do you want to add?')}
         </Text>
         {[
           { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
@@ -907,21 +909,43 @@ const createStyles = (tokens: any, colors: any, fabBottom: number) =>
     cityFilterCopy: {
       flex: 1,
     },
-    viewToggle: {
+    placesTopBar: {
+      paddingTop: 12,
+    },
+    placesRow: {
       flexDirection: 'row',
+      alignItems: 'center',
       marginHorizontal: 16,
       marginBottom: 10,
+      gap: 10,
+    },
+    cityPill: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 14,
+      height: 40,
+      borderRadius: 12,
+      borderWidth: 1,
+    },
+    cityPillText: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    viewToggle: {
+      flexDirection: 'row',
       padding: 4,
       borderRadius: 12,
       borderWidth: 1,
       gap: 4,
     },
     viewToggleBtn: {
-      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 6,
+      width: 40,
       paddingVertical: 8,
       borderRadius: 9,
     },
@@ -955,21 +979,27 @@ const createStyles = (tokens: any, colors: any, fabBottom: number) =>
       fontSize: 12,
       marginTop: 2,
     },
-    fab: {
+    // Full-screen map mode: header on top, map fills the rest.
+    mapModeWrap: { flex: 1 },
+    // "＋ Add" extended pill, centered above the floating tab bar.
+    addPill: {
       position: 'absolute',
       bottom: fabBottom,
-      right: tokens.spacing.xl,
-      width: 64,
-      height: 64,
-      borderRadius: 32,
+      alignSelf: 'center',
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      gap: 6,
+      paddingLeft: 16,
+      paddingRight: 20,
+      height: 52,
+      borderRadius: 26,
       elevation: 6,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.25,
       shadowRadius: 6,
     },
+    addPillText: { color: '#fff', fontSize: 16, fontWeight: '700' },
     mapAddTitle: { fontSize: 18, fontWeight: '700' },
     mapAddSubtitle: { fontSize: 13, marginTop: 2, marginBottom: 12 },
     mapAddRow: {

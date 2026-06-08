@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -22,6 +22,8 @@ type Props = {
   /** Tap on empty map → add something here (place / event / route). */
   onMapPress?: (_coord: { latitude: number; longitude: number }) => void;
   height?: number;
+  /** Fill the available space (flex:1, edge-to-edge) instead of a fixed-height card. */
+  fill?: boolean;
 };
 
 const ROUTE_ACTIVITY_ICON: Record<string, any> = {
@@ -73,7 +75,7 @@ type Pin = { post: CommunityPost; coord: { latitude: number; longitude: number }
  * events that carry coordinates in their metadata, with a Places/Events filter.
  * Pins outside Switzerland are hidden (pilot scope). Apple Maps on iOS (no key).
  */
-const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], routes = [], onSelect, onMapPress, height = 360 }) => {
+const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], routes = [], onSelect, onMapPress, height = 360, fill = false }) => {
   const mapRef = useRef<MapView | null>(null);
   const [ready, setReady] = useState(false);
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -127,29 +129,31 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
   }, []);
 
   // Fit visible markers + route points (or reset to all of Switzerland when none/one).
+  const fitToData = useCallback(() => {
+    const coords = [
+      ...visiblePins.map((x) => x.coord),
+      ...visibleRoutes.flatMap((r) => r.points),
+    ];
+    if (coords.length >= 2) {
+      mapRef.current?.fitToCoordinates(
+        coords,
+        { edgePadding: { top: 70, right: 60, bottom: 70, left: 60 }, animated: true },
+      );
+    } else if (coords.length === 1) {
+      mapRef.current?.animateToRegion(
+        { ...coords[0], latitudeDelta: 0.08, longitudeDelta: 0.08 },
+        400,
+      );
+    } else {
+      mapRef.current?.animateToRegion(SWITZERLAND_REGION, 400);
+    }
+  }, [visiblePins, visibleRoutes]);
+
   useEffect(() => {
     if (!ready) return;
-    const id = setTimeout(() => {
-      const coords = [
-        ...visiblePins.map((x) => x.coord),
-        ...visibleRoutes.flatMap((r) => r.points),
-      ];
-      if (coords.length >= 2) {
-        mapRef.current?.fitToCoordinates(
-          coords,
-          { edgePadding: { top: 70, right: 60, bottom: 70, left: 60 }, animated: true },
-        );
-      } else if (coords.length === 1) {
-        mapRef.current?.animateToRegion(
-          { ...coords[0], latitudeDelta: 0.08, longitudeDelta: 0.08 },
-          400,
-        );
-      } else {
-        mapRef.current?.animateToRegion(SWITZERLAND_REGION, 400);
-      }
-    }, 250);
+    const id = setTimeout(fitToData, 250);
     return () => clearTimeout(id);
-  }, [ready, visiblePins, visibleRoutes]);
+  }, [ready, fitToData]);
 
   const filters: Array<{ key: MapMode; label: string }> = [
     { key: 'all', label: t('community.mapFilter.all', 'All') },
@@ -159,7 +163,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
   ];
 
   return (
-    <View style={[styles.wrapper, { height, borderColor: colors.border || '#E5E7EB' }]}>
+    <View style={[fill ? styles.wrapperFill : styles.wrapper, fill ? null : { height }, { borderColor: colors.border || '#E5E7EB' }]}>
       <MapView
         ref={mapRef}
         provider={PROVIDER_DEFAULT}
@@ -237,6 +241,16 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
         </View>
       </View>
 
+      {/* Recenter — re-fit the map to all visible pins/routes (or Switzerland). */}
+      <TouchableOpacity
+        style={[styles.recenterBtn, { backgroundColor: colors.surface || '#FFF', borderColor: colors.border || '#E5E7EB' }]}
+        onPress={fitToData}
+        activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons name="scan-outline" size={20} color={colors.primary || '#4F46E5'} />
+      </TouchableOpacity>
+
       {!ready && (
         <View style={[styles.overlay, { backgroundColor: colors.background }]}>
           <ActivityIndicator color={colors.primary} />
@@ -266,12 +280,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     margin: 16,
   },
+  // Full-bleed map that fills the tab below the header (edge-to-edge, no card).
+  wrapperFill: {
+    flex: 1,
+    overflow: 'hidden',
+  },
   filterBar: {
     position: 'absolute',
     top: 10,
     left: 0,
     right: 0,
     alignItems: 'center',
+  },
+  recenterBtn: {
+    position: 'absolute',
+    top: 56,
+    right: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   filterPill: {
     flexDirection: 'row',

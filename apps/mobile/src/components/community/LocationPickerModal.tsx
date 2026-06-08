@@ -37,6 +37,13 @@ const DEFAULT_REGION: Region = {
   longitudeDelta: 0.08,
 };
 
+// Pilot scope is Switzerland-only (the community map hides pins outside CH). So we
+// only jump to the user's GPS location if it's inside Switzerland — otherwise a
+// tester abroad would drop pins that silently vanish from the map. Default = Geneva.
+const CH_BOUNDS = { minLat: 45.8, maxLat: 47.85, minLng: 5.9, maxLng: 10.6 };
+const inSwitzerland = (lat: number, lng: number) =>
+  lat >= CH_BOUNDS.minLat && lat <= CH_BOUNDS.maxLat && lng >= CH_BOUNDS.minLng && lng <= CH_BOUNDS.maxLng;
+
 /**
  * Full-screen location picker. Two ways to set a point (per product decision):
  *  1. Tap on the map to drop a pin.
@@ -85,7 +92,10 @@ const LocationPickerModal: React.FC<Props> = ({ visible, colors, t, initial, onC
         if (!granted || cancelled) return;
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (cancelled) return;
-        setRegion({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
+        // Only recenter on the user if they're inside Switzerland; otherwise stay on Geneva.
+        if (inSwitzerland(pos.coords.latitude, pos.coords.longitude)) {
+          setRegion({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
+        }
       } catch {
         // Location optional — fall back to default region.
       }

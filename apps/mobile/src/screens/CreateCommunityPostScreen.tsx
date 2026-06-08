@@ -70,6 +70,7 @@ export default function CreateCommunityPostScreen() {
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventLocation, setEventLocation] = useState('');
+  const [eventCity, setEventCity] = useState(initialCity);
 
   // Recipe-specific fields
   const [recipeName, setRecipeName] = useState('');
@@ -150,7 +151,15 @@ export default function CreateCommunityPostScreen() {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    const trimmedContent = content.trim();
+    // For typed posts (place/event/route) the "what's on your mind" text is optional —
+    // fall back to the entity's own name so the user isn't blocked when they only
+    // fill the place/route fields. Plain posts still require text.
+    const nameFallback =
+      postType === 'BEST_PLACES' ? placeName
+        : postType === 'ROUTE' ? routeName
+          : postType === 'EVENT' ? eventTitle
+            : '';
+    const trimmedContent = content.trim() || nameFallback.trim();
     if (!trimmedContent) {
       Alert.alert(t('community.error', 'Error'), t('community.emptyContent', 'Please write something'));
       return;
@@ -208,6 +217,7 @@ export default function CreateCommunityPostScreen() {
           date: eventDate.trim(),
           time: eventTime.trim(),
           location: eventLocation.trim(),
+          city: eventCity.trim(),
           ...(eventCoords ? { latitude: eventCoords.latitude, longitude: eventCoords.longitude } : {}),
         };
       }
@@ -285,13 +295,15 @@ export default function CreateCommunityPostScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, routeName, routeActivity, routeCity, routeDate, routeTime, builtRoute, addXp, navigation, t]);
+  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, eventCity, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, routeName, routeActivity, routeCity, routeDate, routeTime, builtRoute, addXp, navigation, t]);
 
-  const isValid = content.trim().length > 0
-    && (postType !== 'BEST_PLACES' || placeName.trim().length > 0)
-    && (postType !== 'BEST_PLACES' || placeCity.trim().length > 0)
-    && (postType !== 'ROUTE' || (routeName.trim().length > 0 && routeCity.trim().length > 0 && (builtRoute?.points?.length >= 2)))
-    && (selectedGroupId || groups.length === 0);
+  const isValid = (() => {
+    if (!(selectedGroupId || groups.length === 0)) return false;
+    if (postType === 'BEST_PLACES') return placeName.trim().length > 0 && placeCity.trim().length > 0;
+    if (postType === 'ROUTE') return routeName.trim().length > 0 && routeCity.trim().length > 0 && (builtRoute?.points?.length >= 2);
+    if (postType === 'EVENT') return eventTitle.trim().length > 0 || content.trim().length > 0;
+    return content.trim().length > 0;
+  })();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -424,6 +436,13 @@ export default function CreateCommunityPostScreen() {
                 placeholderTextColor={colors.textTertiary}
                 value={eventLocation}
                 onChangeText={setEventLocation}
+              />
+              <TextInput
+                style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
+                placeholder={t('community.route.cityPlaceholder', 'City / region')}
+                placeholderTextColor={colors.textTertiary}
+                value={eventCity}
+                onChangeText={setEventCity}
               />
               <TouchableOpacity
                 style={[styles.mapBtn, { borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}

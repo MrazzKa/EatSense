@@ -3137,12 +3137,15 @@
         "walk": "Caminar",
         "bike": "Bici"
       },
-      "noRoutes": "Aún no hay rutas en el mapa"
+      "noRoutes": "Aún no hay rutas en el mapa",
+      "tapNext": "Sigue tocando para dibujar la ruta — los puntos se conectan en una línea"
     },
     "mapAdd": {
       "title": "¿Qué hay aquí?",
-      "subtitle": "Añadir a este lugar"
-    }
+      "subtitle": "Añadir a este lugar",
+      "pickType": "¿Qué quieres añadir?"
+    },
+    "add": "Añadir"
   },
   "mascot": {
     "setup": {

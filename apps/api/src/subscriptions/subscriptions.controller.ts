@@ -93,8 +93,9 @@ export class SubscriptionsController {
         }
 
         if (dto.platform === 'ios') {
-            // Validate with Apple
-            const validation = await this.appleReceiptService.verifyReceipt(dto.receipt);
+            // Validate with Apple — pass the purchased productId so the service
+            // selects THAT product's transaction from a multi-product receipt.
+            const validation = await this.appleReceiptService.verifyReceipt(dto.receipt, productId);
 
             if (!validation.isValid) {
                 this.logger.warn(`Invalid receipt for user ${user.id}: ${validation.status}`);
@@ -103,9 +104,12 @@ export class SubscriptionsController {
                 );
             }
 
-            // Verify product ID matches
-            if (validation.productId !== productId) {
-                this.logger.warn(`Product mismatch: expected ${productId}, got ${validation.productId}`);
+            // Accept if the purchased product is present in the receipt. We don't
+            // require it to be the single latest-expiring one — a receipt legitimately
+            // contains multiple products when the user changes plans.
+            const receiptProducts = validation.productIds || (validation.productId ? [validation.productId] : []);
+            if (!receiptProducts.includes(productId)) {
+                this.logger.warn(`Product mismatch: expected ${productId}, receipt has [${receiptProducts.join(', ')}]`);
                 throw new BadRequestException('Product ID mismatch');
             }
 

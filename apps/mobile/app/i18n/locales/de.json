@@ -4769,12 +4769,15 @@
         "walk": "Gehen",
         "bike": "Rad"
       },
-      "noRoutes": "Noch keine Routen auf der Karte"
+      "noRoutes": "Noch keine Routen auf der Karte",
+      "tapNext": "Tippe weiter, um die Route zu zeichnen — Punkte verbinden sich zu einer Linie"
     },
     "mapAdd": {
       "title": "Was ist hier?",
-      "subtitle": "An diesem Ort hinzufügen"
-    }
+      "subtitle": "An diesem Ort hinzufügen",
+      "pickType": "Was möchten Sie hinzufügen?"
+    },
+    "add": "Hinzufügen"
   },
   "mascot": {
     "setup": {
