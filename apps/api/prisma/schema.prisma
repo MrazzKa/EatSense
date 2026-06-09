@@ -1474,6 +1474,44 @@ model UserSubscription {
   @@map("user_subscriptions")
 }
 
+// Server-side promo codes that grant a free Pro period (e.g. "1 month free").
+// These bypass Apple billing — allowed because we *give away* access, we don't
+// sell at a different price. Price discounts (e.g. 15% off a real purchase) must
+// instead be Apple Offer Codes configured in App Store Connect.
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique // normalized (trimmed + UPPERCASE)
+  description     String?
+  planName        String    @default("monthly") // which SubscriptionPlan.name to grant
+  durationDays    Int       @default(30)
+  maxRedemptions  Int?      @map("max_redemptions") // null = unlimited
+  redemptionCount Int       @default(0) @map("redemption_count")
+  expiresAt       DateTime? @map("expires_at")
+  isActive        Boolean   @default(true) @map("is_active")
+
+  redemptions PromoRedemption[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("promo_codes")
+}
+
+model PromoRedemption {
+  id             String  @id @default(cuid())
+  codeId         String  @map("code_id")
+  userId         String  @map("user_id")
+  subscriptionId String? @map("subscription_id")
+
+  code PromoCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([codeId, userId]) // one redemption per user per code
+  @@index([userId])
+  @@map("promo_redemptions")
+}
+
 enum SubscriptionStatus {
   ACTIVE
   CANCELLED

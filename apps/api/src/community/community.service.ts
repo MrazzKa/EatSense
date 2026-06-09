@@ -716,9 +716,17 @@ export class CommunityService {
       });
       return { attending: false };
     } else {
-      await this.prisma.eventAttendee.create({
-        data: { userId, postId },
-      });
+      try {
+        await this.prisma.eventAttendee.create({
+          data: { userId, postId },
+        });
+      } catch (err: any) {
+        // Idempotent: a rapid double-tap fires two concurrent requests that both
+        // pass the findUnique check, then both create → the second hits the
+        // (userId, postId) unique constraint (P2002). Treat that as "already
+        // attending" instead of throwing a 500.
+        if (err?.code !== 'P2002') throw err;
+      }
       return { attending: true };
     }
   }

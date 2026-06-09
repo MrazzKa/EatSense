@@ -1637,6 +1637,17 @@ class ApiService {
     return this.request('/subscriptions/trial-eligibility');
   }
 
+  /**
+   * Redeem a server-side promo code (e.g. "1 month free"). Grants a free Pro
+   * period without going through Apple billing.
+   */
+  async redeemPromoCode(code: string) {
+    return this.request('/subscriptions/redeem-code', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
   // ========== Diets/Diet Programs Methods ==========
 
   /**

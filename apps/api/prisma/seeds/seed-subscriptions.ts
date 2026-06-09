@@ -229,6 +229,21 @@ async function seedSubscriptions() {
         console.log(`   └─ Created prices for ${Object.keys(exchangeRates).length} currencies`);
     }
 
+    // Default promo code: one free month of Pro (server-side grant, no Apple).
+    // Idempotent — won't reset redemption stats if it already exists.
+    await prisma.promoCode.upsert({
+        where: { code: 'EATSENSE1MONTH' },
+        update: {},
+        create: {
+            code: 'EATSENSE1MONTH',
+            description: '1 month of Pro for free',
+            planName: 'monthly',
+            durationDays: 30,
+            maxRedemptions: null, // unlimited until deactivated
+        },
+    });
+    console.log('   └─ Promo code ensured: EATSENSE1MONTH (1 month free)');
+
     console.log('\n✨ Subscription seeding completed!');
 }
 

@@ -80,6 +80,14 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
   const [ready, setReady] = useState(false);
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [mode, setMode] = useState<MapMode>('all');
+  // When a marker is tapped, the map's onPress can also fire and open the
+  // "What's here?" sheet on top of the opened post. Swallow the map press that
+  // immediately follows a marker tap.
+  const lastMarkerTap = useRef(0);
+  const selectMarker = (post: any) => {
+    lastMarkerTap.current = Date.now();
+    onSelect(post);
+  };
 
   const placePins: Pin[] = useMemo(
     () => places
@@ -175,6 +183,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
         toolbarEnabled={false}
         onMapReady={() => setReady(true)}
         onPress={(e) => {
+          if (Date.now() - lastMarkerTap.current < 500) return; // marker tap, not empty map
           const c = e?.nativeEvent?.coordinate;
           if (c && onMapPress && inSwitzerland(c)) onMapPress({ latitude: c.latitude, longitude: c.longitude });
         }}
@@ -184,7 +193,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
             <Polyline coordinates={points} strokeColor={ROUTE_COLOR} strokeWidth={4} />
             <Marker
               coordinate={coord!}
-              onPress={() => onSelect(post)}
+              onPress={() => selectMarker(post)}
               tracksViewChanges={false}
               anchor={{ x: 0.5, y: 1 }}
             >
@@ -205,7 +214,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
             <Marker
               key={`${kind}-${post.id}`}
               coordinate={coord}
-              onPress={() => onSelect(post)}
+              onPress={() => selectMarker(post)}
               tracksViewChanges={false}
               anchor={{ x: 0.5, y: 1 }}
             >

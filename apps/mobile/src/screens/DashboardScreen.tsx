@@ -953,8 +953,13 @@ export default function DashboardScreen() {
   // Dashboard render check removed to reduce console spam
 
   // Time-of-day greeting (warm, personal header above the calorie ring).
+  // Night is its own bucket so 00:00–05:00 no longer says "good morning".
   const _hour = new Date().getHours();
-  const greetKey = _hour < 12 ? 'dashboard.greetingMorning' : _hour < 18 ? 'dashboard.greetingAfternoon' : 'dashboard.greetingEvening';
+  const greetKey =
+    (_hour >= 22 || _hour < 5) ? 'dashboard.greetingNight'
+      : _hour < 12 ? 'dashboard.greetingMorning'
+        : _hour < 18 ? 'dashboard.greetingAfternoon'
+          : 'dashboard.greetingEvening';
   const firstName = ((user as any)?.firstName || (user as any)?.userProfile?.firstName || '').toString().trim();
 
   // Macro goals derived from the calorie goal (standard 30/40/30 split) so the
@@ -996,19 +1001,19 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: dashboardBottomPadding }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top row: today's date + avatar (day switching removed — past days live
-            in the diary journal via "Вся история") */}
+        {/* Top row: greeting as the hero, a small muted date kicker above it,
+            avatar on the right. Tightened to reduce the wall of text up top. */}
         <View style={styles.topHeaderRow}>
-          <Text style={styles.monthLabel}>
-            {new Date().toLocaleDateString(language || 'en', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </Text>
+          <View style={styles.headerTextCol}>
+            <Text style={styles.monthLabel}>
+              {new Date().toLocaleDateString(language || 'en', { day: 'numeric', month: 'long' })}
+            </Text>
+            <Text style={styles.greeting} numberOfLines={1}>
+              {t(greetKey)}{firstName ? `, ${firstName}` : ''} 👋
+            </Text>
+          </View>
           <ProfileAvatarButton />
         </View>
-
-        {/* Time-of-day greeting */}
-        <Text style={styles.greeting}>
-          {t(greetKey)}{firstName ? `, ${firstName}` : ''} 👋
-        </Text>
 
         {/* First-run welcome moved to a full-screen WelcomeOverlay (rendered at
             the root below) — fixes the flicker + awkward top placement. Permanent
@@ -1519,10 +1524,8 @@ const createStyles = (tokens) =>
       flex: 1,
     },
     greeting: {
-      paddingHorizontal: tokens.spacing.xl,
-      marginTop: tokens.spacing.xs,
-      marginBottom: tokens.spacing.sm,
-      fontSize: 20,
+      marginTop: 2,
+      fontSize: 22,
       fontWeight: '700',
       color: tokens.colors.textPrimary || tokens.colors.text,
     },
@@ -1769,11 +1772,16 @@ const createStyles = (tokens) =>
       justifyContent: 'space-between',
       paddingHorizontal: tokens.spacing.xl,
       paddingTop: tokens.spacing.sm,
+      marginBottom: tokens.spacing.sm,
+    },
+    headerTextCol: {
+      flex: 1,
+      marginRight: tokens.spacing.md,
     },
     monthLabel: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: tokens.colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '600',
+      color: tokens.colors.textSecondary || tokens.colors.textTertiary,
       textTransform: 'capitalize',
     },
     weekStrip: {

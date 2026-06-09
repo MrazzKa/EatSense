@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Req, UseGuards, BadRequestException, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards, BadRequestException, UnauthorizedException, Headers, Logger } from '@nestjs/common';
 import { Request } from 'express';
+import * as crypto from 'crypto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { SubscriptionsService } from './subscriptions.service';
@@ -271,6 +272,52 @@ export class SubscriptionsController {
     async checkTrialEligibility(@CurrentUser() user: any) {
         const result = await this.subscriptionsService.checkTrialEligibility(user.id);
         return result;
+    }
+
+    /**
+     * Redeem a server-side promo code (e.g. "1 month free"). Grants a free Pro
+     * period without going through Apple billing. (Price discounts like 15% off a
+     * real purchase are Apple Offer Codes, redeemed via the App Store sheet.)
+     */
+    @Post('redeem-code')
+    @UseGuards(JwtAuthGuard)
+    async redeemCode(@CurrentUser() user: any, @Body() body: { code?: string }) {
+        return this.subscriptionsService.redeemPromoCode(user.id, body?.code || '');
+    }
+
+    // --- Admin: manage promo codes (x-admin-secret) ---
+    private validateAdmin(adminSecret: string) {
+        const expected = process.env.ADMIN_SECRET;
+        if (!expected) throw new UnauthorizedException('Invalid admin credentials');
+        const a = Buffer.from(String(adminSecret || ''));
+        const b = Buffer.from(expected);
+        if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+            throw new UnauthorizedException('Invalid admin credentials');
+        }
+    }
+
+    @Get('admin/promo')
+    async listPromo(@Headers('x-admin-secret') adminSecret: string) {
+        this.validateAdmin(adminSecret);
+        return this.subscriptionsService.listPromoCodes();
+    }
+
+    @Post('admin/promo')
+    async createPromo(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Body() body: { code: string; description?: string; planName?: string; durationDays?: number; maxRedemptions?: number | null; expiresAt?: string | null },
+    ) {
+        this.validateAdmin(adminSecret);
+        return this.subscriptionsService.createPromoCode(body);
+    }
+
+    @Post('admin/promo/active')
+    async setPromoActive(
+        @Headers('x-admin-secret') adminSecret: string,
+        @Body() body: { code: string; isActive: boolean },
+    ) {
+        this.validateAdmin(adminSecret);
+        return this.subscriptionsService.setPromoCodeActive(body.code, !!body.isActive);
     }
 
     private getClientIp(req: Request): string {

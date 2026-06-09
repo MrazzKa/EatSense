@@ -714,7 +714,8 @@
     "showAllMeals": "Барлық тамақтарды көрсету",
     "greetingMorning": "Қайырлы таң",
     "greetingAfternoon": "Қайырлы күн",
-    "greetingEvening": "Қайырлы кеш"
+    "greetingEvening": "Қайырлы кеш",
+    "greetingNight": "Қайырлы түн"
   },
   "mealHistory": {
     "title": "Барлық тамақтар",
@@ -2537,7 +2538,19 @@
     "founderBadge": "Founder",
     "subscribe": "Жазылу",
     "purchaseNow": "Қазір сатып алу",
-    "subscribeNow": "Қазір жазылу"
+    "subscribeNow": "Қазір жазылу",
+    "promo": {
+      "title": "Промокод бар ма?",
+      "placeholder": "Кодты енгізіңіз",
+      "apply": "Қолдану",
+      "successTitle": "Промокод қосылды!",
+      "successMessage": "Енді сізде {{days}} күн Pro тегін.",
+      "errorTitle": "Кодты қолдану мүмкін болмады",
+      "errorGeneric": "Бұл промокод жарамсыз.",
+      "appStoreLink": "App Store коды бар ма?",
+      "appleOnlyTitle": "Тек iOS",
+      "appleOnlyMessage": "App Store кодтарын тек iPhone/iPad-та қолдануға болады."
+    }
   },
   "plan_yearly": "Жылдық",
   "plan_student": "Студент",
@@ -4535,7 +4548,8 @@
       "recipe": "Рецепт",
       "question": "Сұрақ",
       "challenge": "Челлендж",
-      "route": "Маршрут"
+      "route": "Маршрут",
+      "post": "Жазба"
     },
     "feed": {
       "empty": "Әзірге посттар жоқ. Лентаңызда посттарды көру үшін топтарға қосылыңыз!",
@@ -4630,7 +4644,8 @@
       "steps": "Қадамдар",
       "prepTime": "Дайындау уақыты",
       "servings": "Порциялар",
-      "servingsShort": "порция"
+      "servingsShort": "порция",
+      "nameRequired": "Рецепт атауын қосыңыз"
     },
     "question": {
       "solved": "Шешілді",
@@ -4758,14 +4773,24 @@
         "bike": "Велосипед"
       },
       "noRoutes": "Картада әзірге маршруттар жоқ",
-      "tapNext": "Маршрутты салу үшін таптай беріңіз — нүктелер сызыққа қосылады"
+      "tapNext": "Маршрутты салу үшін таптай беріңіз — нүктелер сызыққа қосылады",
+      "youOrganizer": "Сіз ұйымдастырушысыз"
     },
     "mapAdd": {
       "title": "Мұнда не бар?",
       "subtitle": "Осы нүктеге қосу",
       "pickType": "Не қосқыңыз келеді?"
     },
-    "add": "Қосу"
+    "add": "Қосу",
+    "create": {
+      "place": "Жаңа орын",
+      "event": "Жаңа оқиға",
+      "route": "Жаңа бағдар",
+      "recipe": "Жаңа рецепт"
+    },
+    "preview": {
+      "details": "Толығырақ"
+    }
   },
   "mascot": {
     "setup": {

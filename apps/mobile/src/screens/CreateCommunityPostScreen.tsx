@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useI18n } from '../../app/i18n/hooks';
@@ -32,19 +33,16 @@ const ROUTE_ACTIVITIES = [
   { key: 'bike', icon: 'bicycle-outline', labelKey: 'community.route.activity.bike' },
 ];
 
-const POST_TYPES = [
-  { key: 'TEXT', icon: 'chatbubble-outline', labelKey: 'community.postType.text' },
-  { key: 'PHOTO', icon: 'camera-outline', labelKey: 'community.postType.photo' },
-  { key: 'RECOMMENDATION', icon: 'restaurant-outline', labelKey: 'community.postType.recommendation' },
-  { key: 'ACHIEVEMENT', icon: 'trophy-outline', labelKey: 'community.postType.achievement' },
-  { key: 'EVENT', icon: 'calendar-outline', labelKey: 'community.postType.event' },
-  { key: 'ROUTE', icon: 'map-outline', labelKey: 'community.postType.route' },
-  { key: 'LIFESTYLE', icon: 'heart-outline', labelKey: 'community.postType.lifestyle' },
-  { key: 'BEST_PLACES', icon: 'location-outline', labelKey: 'community.postType.bestPlaces' },
-  { key: 'RECIPE', icon: 'nutrition-outline', labelKey: 'community.postType.recipe' },
-  { key: 'QUESTION', icon: 'help-circle-outline', labelKey: 'community.postType.question' },
-  { key: 'CHALLENGE', icon: 'flame-outline', labelKey: 'community.postType.challenge' },
-];
+// Focused-form headers per type. The type is chosen *before* this screen (in the
+// "＋ Add" chooser / "What's here?" sheet), so we show one tailored form — no
+// type-pill row, no oversized free-text box for location-bound types.
+const TYPE_HEADER: Record<string, { icon: string; titleKey: string; fallback: string }> = {
+  TEXT: { icon: 'chatbubble-outline', titleKey: 'community.newPost', fallback: 'New Post' },
+  BEST_PLACES: { icon: 'location-outline', titleKey: 'community.create.place', fallback: 'New place' },
+  EVENT: { icon: 'calendar-outline', titleKey: 'community.create.event', fallback: 'New event' },
+  ROUTE: { icon: 'map-outline', titleKey: 'community.create.route', fallback: 'New route' },
+  RECIPE: { icon: 'nutrition-outline', titleKey: 'community.create.recipe', fallback: 'New recipe' },
+};
 
 export default function CreateCommunityPostScreen() {
   const navigation = useNavigation();
@@ -158,9 +156,12 @@ export default function CreateCommunityPostScreen() {
       postType === 'BEST_PLACES' ? placeName
         : postType === 'ROUTE' ? routeName
           : postType === 'EVENT' ? eventTitle
-            : '';
+            : postType === 'RECIPE' ? recipeName
+              : '';
     const trimmedContent = content.trim() || nameFallback.trim();
-    if (!trimmedContent) {
+    // Plain text posts require the text. Typed posts (place/event/route/recipe)
+    // validate their own required fields below, so an empty note is fine there.
+    if (postType === 'TEXT' && !trimmedContent) {
       Alert.alert(t('community.error', 'Error'), t('community.emptyContent', 'Please write something'));
       return;
     }
@@ -182,6 +183,10 @@ export default function CreateCommunityPostScreen() {
     }
     if (postType === 'ROUTE' && (!builtRoute || !(builtRoute.points?.length >= 2))) {
       Alert.alert(t('community.error', 'Error'), t('community.route.drawRequired', 'Please draw the route on the map (at least 2 points)'));
+      return;
+    }
+    if (postType === 'RECIPE' && !recipeName.trim()) {
+      Alert.alert(t('community.error', 'Error'), t('community.recipe.nameRequired', 'Please add the recipe name'));
       return;
     }
     setSubmitting(true);
@@ -267,6 +272,7 @@ export default function CreateCommunityPostScreen() {
       }
 
       await ApiService.createCommunityPost(payload);
+      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
       // Award mascot XP for community activity
       if (addXp) { try { await addXp(8, 'community_post'); } catch {} }
       navigation.goBack();
@@ -302,6 +308,7 @@ export default function CreateCommunityPostScreen() {
     if (postType === 'BEST_PLACES') return placeName.trim().length > 0 && placeCity.trim().length > 0;
     if (postType === 'ROUTE') return routeName.trim().length > 0 && routeCity.trim().length > 0 && (builtRoute?.points?.length >= 2);
     if (postType === 'EVENT') return eventTitle.trim().length > 0 || content.trim().length > 0;
+    if (postType === 'RECIPE') return recipeName.trim().length > 0;
     return content.trim().length > 0;
   })();
 
@@ -315,11 +322,11 @@ export default function CreateCommunityPostScreen() {
           </Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.textPrimary || colors.text }]}>
-          {t('community.newPost', 'New Post')}
+          {t((TYPE_HEADER[postType] || TYPE_HEADER.TEXT).titleKey, (TYPE_HEADER[postType] || TYPE_HEADER.TEXT).fallback)}
         </Text>
         <TouchableOpacity
           onPress={handleSubmit}
-          disabled={!isValid || submitting}
+          disabled={submitting}
           style={[styles.postBtn, { backgroundColor: isValid ? colors.primary : colors.primary + '40' }]}
         >
           {submitting ? (
@@ -339,42 +346,6 @@ export default function CreateCommunityPostScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Post type pills */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.typePillsContainer}
-          >
-            {POST_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type.key}
-                style={[
-                  styles.typePill,
-                  {
-                    backgroundColor: postType === type.key ? colors.primary : colors.surfaceSecondary || colors.surface,
-                    borderColor: postType === type.key ? colors.primary : colors.border,
-                  },
-                ]}
-                onPress={() => setPostType(type.key)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={type.icon}
-                  size={16}
-                  color={postType === type.key ? '#fff' : colors.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.typePillText,
-                    { color: postType === type.key ? '#fff' : colors.textSecondary },
-                  ]}
-                >
-                  {t(type.labelKey, type.key)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
           {groups[0] ? (
             <View style={[styles.groupChip, styles.groupChipStatic, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
               <Ionicons name="flag-outline" size={16} color={colors.primary} />
@@ -388,18 +359,22 @@ export default function CreateCommunityPostScreen() {
             </Text>
           )}
 
-          {/* Content input */}
-          <TextInput
-            style={[styles.contentInput, { color: colors.textPrimary || colors.text }]}
-            placeholder={t('community.whatOnMind', "What's on your mind?")}
-            placeholderTextColor={colors.textTertiary}
-            value={content}
-            onChangeText={setContent}
-            multiline
-            textAlignVertical="top"
-            maxLength={2000}
-            autoFocus
-          />
+          {/* Free-text box only for plain posts. Location-bound types (place/
+              event/route/recipe) jump straight to their own fields — no big
+              empty "what's on your mind" box that left dead space at the top. */}
+          {postType === 'TEXT' && (
+            <TextInput
+              style={[styles.contentInput, { color: colors.textPrimary || colors.text }]}
+              placeholder={t('community.whatOnMind', "What's on your mind?")}
+              placeholderTextColor={colors.textTertiary}
+              value={content}
+              onChangeText={setContent}
+              multiline
+              textAlignVertical="top"
+              maxLength={2000}
+              autoFocus
+            />
+          )}
 
           {/* Image attachment — temporarily disabled */}
 

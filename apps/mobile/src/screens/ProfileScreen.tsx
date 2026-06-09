@@ -2915,14 +2915,14 @@ const ProfileScreen = () => {
                         </Text>
                       </TouchableOpacity>
                     </View>
-                    <View style={{ width: '100%', height: 216, overflow: 'hidden' }}>
+                    <View style={{ width: '100%', height: 216, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
                       <DateTimePicker
                         value={tempDate}
                         mode="time"
                         display="spinner"
                         onChange={onTimeChange}
                         textColor={tokens.colors.textPrimary}
-                        style={{ width: '100%', height: 216 }}
+                        style={{ height: 216, alignSelf: 'center' }}
                       />
                     </View>
                   </View>
@@ -2971,14 +2971,14 @@ const ProfileScreen = () => {
                         </Text>
                       </TouchableOpacity>
                     </View>
-                    <View style={{ width: '100%', height: 216, overflow: 'hidden' }}>
+                    <View style={{ width: '100%', height: 216, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
                       <DateTimePicker
                         value={tempSmartTipsDate}
                         mode="time"
                         display="spinner"
                         onChange={onSmartTipsTimeChange}
                         textColor={tokens.colors.textPrimary}
-                        style={{ width: '100%', height: 216 }}
+                        style={{ height: 216, alignSelf: 'center' }}
                       />
                     </View>
                   </View>

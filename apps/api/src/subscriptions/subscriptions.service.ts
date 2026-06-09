@@ -253,6 +253,126 @@ export class SubscriptionsService implements OnModuleInit {
         });
     }
 
+    private normalizeCode(raw: string): string {
+        return (raw || '').trim().toUpperCase().replace(/\s+/g, '');
+    }
+
+    /**
+     * Redeem a server-side promo code → grants a free Pro period (e.g. 1 month).
+     * Free grants bypass Apple billing (giving access away is allowed). Price
+     * discounts (15% off a paid purchase) are NOT done here — those are Apple
+     * Offer Codes redeemed via the App Store sheet.
+     */
+    async redeemPromoCode(userId: string, rawCode: string) {
+        const code = this.normalizeCode(rawCode);
+        if (!code) throw new BadRequestException({ code: 'PROMO_INVALID', message: 'Enter a promo code' });
+
+        const promo = await this.prisma.promoCode.findUnique({ where: { code } });
+        if (!promo || !promo.isActive) {
+            throw new BadRequestException({ code: 'PROMO_NOT_FOUND', message: 'This promo code is not valid' });
+        }
+        if (promo.expiresAt && promo.expiresAt.getTime() < Date.now()) {
+            throw new BadRequestException({ code: 'PROMO_EXPIRED', message: 'This promo code has expired' });
+        }
+        if (promo.maxRedemptions != null && promo.redemptionCount >= promo.maxRedemptions) {
+            throw new BadRequestException({ code: 'PROMO_DEPLETED', message: 'This promo code is no longer available' });
+        }
+
+        // One redemption per user per code.
+        const already = await this.prisma.promoRedemption.findUnique({
+            where: { codeId_userId: { codeId: promo.id, userId } },
+        });
+        if (already) {
+            throw new BadRequestException({ code: 'PROMO_ALREADY_USED', message: 'You have already used this code' });
+        }
+
+        // Don't clobber a real paid subscription that is still active.
+        const active = await this.getActiveSubscription(userId);
+        if (active && active.pricePaid > 0) {
+            throw new BadRequestException({ code: 'PROMO_HAS_SUBSCRIPTION', message: 'You already have an active subscription' });
+        }
+
+        // Resolve the plan by name → createSubscription needs a plan id (or Apple
+        // SKU), it does NOT resolve a bare plan name like "monthly".
+        const plan = await this.prisma.subscriptionPlan.findFirst({
+            where: { name: promo.planName },
+        });
+        if (!plan) {
+            throw new BadRequestException({ code: 'PROMO_PLAN_MISSING', message: 'Promo plan is not available' });
+        }
+
+        // Grant the free period by reusing createSubscription (pricePaid 0).
+        const subscription = await this.createSubscription(
+            userId,
+            plan.id,
+            'PROMO',
+            0,
+            undefined,
+            undefined,
+            promo.durationDays,
+        );
+
+        // Record the redemption + bump the counter. Unique index also guards races.
+        try {
+            await this.prisma.$transaction([
+                this.prisma.promoRedemption.create({
+                    data: { codeId: promo.id, userId, subscriptionId: subscription.id },
+                }),
+                this.prisma.promoCode.update({
+                    where: { id: promo.id },
+                    data: { redemptionCount: { increment: 1 } },
+                }),
+            ]);
+        } catch (err: any) {
+            if (err?.code !== 'P2002') throw err; // already recorded by a concurrent request
+        }
+
+        return {
+            success: true,
+            planName: promo.planName,
+            durationDays: promo.durationDays,
+            endDate: subscription.endDate,
+            description: promo.description,
+        };
+    }
+
+    // --- Admin: manage promo codes (guarded by x-admin-secret in the controller) ---
+    async createPromoCode(input: {
+        code: string; description?: string; planName?: string;
+        durationDays?: number; maxRedemptions?: number | null; expiresAt?: string | null;
+    }) {
+        const code = this.normalizeCode(input.code);
+        if (!code) throw new BadRequestException('Code required');
+        return this.prisma.promoCode.upsert({
+            where: { code },
+            update: {
+                description: input.description,
+                planName: input.planName || 'monthly',
+                durationDays: input.durationDays ?? 30,
+                maxRedemptions: input.maxRedemptions ?? null,
+                expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+                isActive: true,
+            },
+            create: {
+                code,
+                description: input.description,
+                planName: input.planName || 'monthly',
+                durationDays: input.durationDays ?? 30,
+                maxRedemptions: input.maxRedemptions ?? null,
+                expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+            },
+        });
+    }
+
+    async listPromoCodes() {
+        return this.prisma.promoCode.findMany({ orderBy: { createdAt: 'desc' } });
+    }
+
+    async setPromoCodeActive(code: string, isActive: boolean) {
+        const norm = this.normalizeCode(code);
+        return this.prisma.promoCode.update({ where: { code: norm }, data: { isActive } });
+    }
+
     /**
      * Check and update expired subscriptions
      */

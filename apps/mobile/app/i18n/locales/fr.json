@@ -804,7 +804,8 @@
     "showAllMeals": "Afficher tous les repas",
     "greetingMorning": "Bonjour",
     "greetingAfternoon": "Bon après-midi",
-    "greetingEvening": "Bonsoir"
+    "greetingEvening": "Bonsoir",
+    "greetingNight": "Bonne nuit"
   },
   "mealHistory": {
     "title": "Tous les repas",
@@ -2537,7 +2538,19 @@
     "founderBadge": "Founder",
     "subscribe": "S’abonner",
     "purchaseNow": "Acheter maintenant",
-    "subscribeNow": "S’abonner maintenant"
+    "subscribeNow": "S’abonner maintenant",
+    "promo": {
+      "title": "Vous avez un code promo ?",
+      "placeholder": "Saisir le code",
+      "apply": "Appliquer",
+      "successTitle": "Code promo appliqué !",
+      "successMessage": "Vous avez maintenant {{days}} jours de Pro gratuits.",
+      "errorTitle": "Impossible d’appliquer le code",
+      "errorGeneric": "Ce code promo n’est pas valide.",
+      "appStoreLink": "Vous avez un code App Store ?",
+      "appleOnlyTitle": "iOS uniquement",
+      "appleOnlyMessage": "Les codes App Store ne peuvent être utilisés que sur iPhone/iPad."
+    }
   },
   "plan_yearly": "Annuel",
   "plan_student": "Étudiant",
@@ -4535,7 +4548,8 @@
       "recipe": "Recette",
       "question": "Demande",
       "challenge": "Défi",
-      "route": "Itinéraire"
+      "route": "Itinéraire",
+      "post": "Publication"
     },
     "feed": {
       "empty": "Pas encore de posts. Rejoignez des groupes pour voir des posts dans votre fil !",
@@ -4630,7 +4644,8 @@
       "steps": "Étapes",
       "prepTime": "Temps de préparation",
       "servings": "Portions",
-      "servingsShort": "portions"
+      "servingsShort": "portions",
+      "nameRequired": "Ajoutez le nom de la recette"
     },
     "question": {
       "solved": "Résolu",
@@ -4758,14 +4773,24 @@
         "bike": "Vélo"
       },
       "noRoutes": "Aucun itinéraire sur la carte pour l'instant",
-      "tapNext": "Continuez à toucher pour tracer l'itinéraire — les points se relient en ligne"
+      "tapNext": "Continuez à toucher pour tracer l'itinéraire — les points se relient en ligne",
+      "youOrganizer": "Vous organisez"
     },
     "mapAdd": {
       "title": "Quoi ici ?",
       "subtitle": "Ajouter à cet endroit",
       "pickType": "Que voulez-vous ajouter ?"
     },
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "create": {
+      "place": "Nouveau lieu",
+      "event": "Nouvel événement",
+      "route": "Nouvel itinéraire",
+      "recipe": "Nouvelle recette"
+    },
+    "preview": {
+      "details": "Détails"
+    }
   },
   "mascot": {
     "setup": {

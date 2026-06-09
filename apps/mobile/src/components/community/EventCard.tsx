@@ -9,12 +9,15 @@ interface EventCardProps {
   post: any;
   onAttend?: () => void;
   onPress?: () => void;
+  /** Hide the attend button on the user's own event. */
+  isOwn?: boolean;
 }
 
-export function EventCard({ post, onAttend, onPress }: EventCardProps) {
+export function EventCard({ post, onAttend, onPress, isOwn }: EventCardProps) {
   const { colors } = useTheme();
   const { t } = useI18n();
   const meta = post.metadata || {};
+  const attendees = post._count?.attendees || 0;
 
   return (
     <TouchableOpacity
@@ -42,23 +45,33 @@ export function EventCard({ post, onAttend, onPress }: EventCardProps) {
           <Text style={[styles.detail, { color: colors.textSecondary }]}>{meta.location}</Text>
         </View>
       )}
-      <TouchableOpacity
-        onPress={onAttend}
-        style={[
-          styles.attendBtn,
-          { backgroundColor: post.isAttending ? colors.primary : colors.primary + '15' },
-        ]}
-      >
-        <Ionicons
-          name={post.isAttending ? 'checkmark-circle' : 'checkmark-circle-outline'}
-          size={18}
-          color={post.isAttending ? '#fff' : colors.primary}
-        />
-        <Text style={[styles.attendText, { color: post.isAttending ? '#fff' : colors.primary }]}>
-          {post.isAttending ? t('community.attending', "I'll go") : t('community.attend', "I'll go")}
-          {post._count?.attendees ? ` \u00b7 ${post._count.attendees}` : ''}
-        </Text>
-      </TouchableOpacity>
+      {isOwn ? (
+        <View style={[styles.attendBtn, { backgroundColor: colors.primary + '10' }]}>
+          <Ionicons name="ribbon-outline" size={18} color={colors.primary} />
+          <Text style={[styles.attendText, { color: colors.primary }]}>
+            {t('community.route.youOrganizer', 'You organize this')}
+            {attendees ? ` \u00b7 ${attendees}` : ''}
+          </Text>
+        </View>
+      ) : (
+        <TouchableOpacity
+          onPress={onAttend}
+          style={[
+            styles.attendBtn,
+            { backgroundColor: post.isAttending ? colors.primary : colors.primary + '15' },
+          ]}
+        >
+          <Ionicons
+            name={post.isAttending ? 'checkmark-circle' : 'checkmark-circle-outline'}
+            size={18}
+            color={post.isAttending ? '#fff' : colors.primary}
+          />
+          <Text style={[styles.attendText, { color: post.isAttending ? '#fff' : colors.primary }]}>
+            {post.isAttending ? t('community.attending', "I'll go") : t('community.attend', "I'll go")}
+            {attendees ? ` \u00b7 ${attendees}` : ''}
+          </Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }

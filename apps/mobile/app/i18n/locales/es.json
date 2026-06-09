@@ -712,7 +712,8 @@
     "showAllMeals": "Mostrar todas las comidas",
     "greetingMorning": "Buenos días",
     "greetingAfternoon": "Buenas tardes",
-    "greetingEvening": "Buenas noches"
+    "greetingEvening": "Buenas noches",
+    "greetingNight": "Buenas noches"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -2239,7 +2240,19 @@
     "founderBadge": "Founder",
     "subscribe": "Suscribirse",
     "purchaseNow": "Comprar ahora",
-    "subscribeNow": "Suscribirse ahora"
+    "subscribeNow": "Suscribirse ahora",
+    "promo": {
+      "title": "¿Tienes un código promocional?",
+      "placeholder": "Introduce el código",
+      "apply": "Aplicar",
+      "successTitle": "¡Código aplicado!",
+      "successMessage": "Ahora tienes {{days}} días de Pro gratis.",
+      "errorTitle": "No se pudo aplicar el código",
+      "errorGeneric": "Este código promocional no es válido.",
+      "appStoreLink": "¿Tienes un código de App Store?",
+      "appleOnlyTitle": "Solo iOS",
+      "appleOnlyMessage": "Los códigos de App Store solo se pueden canjear en iPhone/iPad."
+    }
   },
   "tabs": {
     "articles": "Artículos",
@@ -2915,7 +2928,8 @@
       "recipe": "Receta",
       "question": "Pregunta",
       "challenge": "Desafío",
-      "route": "Ruta"
+      "route": "Ruta",
+      "post": "Publicación"
     },
     "feed": {
       "empty": "Aún no hay publicaciones. ¡Únete a grupos para ver publicaciones en tu feed!",
@@ -3010,7 +3024,8 @@
       "steps": "Pasos",
       "prepTime": "Tiempo de preparación",
       "servings": "Porciones",
-      "servingsShort": "porciones"
+      "servingsShort": "porciones",
+      "nameRequired": "Añade el nombre de la receta"
     },
     "question": {
       "solved": "Resuelto",
@@ -3138,14 +3153,24 @@
         "bike": "Bici"
       },
       "noRoutes": "Aún no hay rutas en el mapa",
-      "tapNext": "Sigue tocando para dibujar la ruta — los puntos se conectan en una línea"
+      "tapNext": "Sigue tocando para dibujar la ruta — los puntos se conectan en una línea",
+      "youOrganizer": "Tú lo organizas"
     },
     "mapAdd": {
       "title": "¿Qué hay aquí?",
       "subtitle": "Añadir a este lugar",
       "pickType": "¿Qué quieres añadir?"
     },
-    "add": "Añadir"
+    "add": "Añadir",
+    "create": {
+      "place": "Nuevo lugar",
+      "event": "Nuevo evento",
+      "route": "Nueva ruta",
+      "recipe": "Nueva receta"
+    },
+    "preview": {
+      "details": "Detalles"
+    }
   },
   "mascot": {
     "setup": {

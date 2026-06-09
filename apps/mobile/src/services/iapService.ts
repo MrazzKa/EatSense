@@ -14,6 +14,7 @@ import {
     finishTransaction,
     getPurchaseHistory,
     clearTransactionIOS,
+    presentCodeRedemptionSheetIOS,
     type ProductPurchase,
     type SubscriptionPurchase,
     type PurchaseError,
@@ -307,6 +308,23 @@ class IAPService {
                 return;
             }
             throw error;
+        }
+    }
+
+    /**
+     * Open Apple's offer-code redemption sheet (iOS only). Use for App Store
+     * Connect offer codes such as a 15%-off promotional offer. The App Store
+     * applies the offer to the user's next purchase/renewal; the result then
+     * flows back through the normal purchaseUpdatedListener.
+     */
+    async presentAppleCodeRedemption(): Promise<boolean> {
+        if (Platform.OS !== 'ios') return false;
+        try {
+            await presentCodeRedemptionSheetIOS();
+            return true;
+        } catch (error) {
+            console.warn('[IAP] presentCodeRedemptionSheet error:', error);
+            return false;
         }
     }
 

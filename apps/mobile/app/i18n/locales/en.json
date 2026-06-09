@@ -664,7 +664,8 @@
     "showAllMeals": "Show All Meals",
     "greetingMorning": "Good morning",
     "greetingAfternoon": "Good afternoon",
-    "greetingEvening": "Good evening"
+    "greetingEvening": "Good evening",
+    "greetingNight": "Good night"
   },
   "mealHistory": {
     "title": "All Meals",
@@ -2471,7 +2472,19 @@
     "founderBadge": "Founder",
     "subscribe": "Subscribe",
     "purchaseNow": "Purchase Now",
-    "subscribeNow": "Subscribe Now"
+    "subscribeNow": "Subscribe Now",
+    "promo": {
+      "title": "Have a promo code?",
+      "placeholder": "Enter code",
+      "apply": "Apply",
+      "successTitle": "Promo code applied!",
+      "successMessage": "You now have {{days}} days of Pro for free.",
+      "errorTitle": "Could not apply code",
+      "errorGeneric": "This promo code is not valid.",
+      "appStoreLink": "Have an App Store code?",
+      "appleOnlyTitle": "iOS only",
+      "appleOnlyMessage": "App Store offer codes can only be redeemed on iPhone/iPad."
+    }
   },
   "plan_yearly": "Yearly",
   "plan_student": "Student",
@@ -4570,7 +4583,8 @@
       "recipe": "Recipe",
       "question": "Question",
       "challenge": "Challenge",
-      "route": "Route"
+      "route": "Route",
+      "post": "Post"
     },
     "feed": {
       "empty": "No posts yet. Join groups to see posts in your feed!",
@@ -4665,7 +4679,8 @@
       "steps": "Steps",
       "prepTime": "Prep time",
       "servings": "Servings",
-      "servingsShort": "servings"
+      "servingsShort": "servings",
+      "nameRequired": "Please add the recipe name"
     },
     "question": {
       "solved": "Solved",
@@ -4793,14 +4808,24 @@
         "bike": "Bike"
       },
       "noRoutes": "No routes on the map yet",
-      "tapNext": "Keep tapping to draw the route — points connect into a line"
+      "tapNext": "Keep tapping to draw the route — points connect into a line",
+      "youOrganizer": "You organize this"
     },
     "mapAdd": {
       "title": "What's here?",
       "subtitle": "Add to this spot",
       "pickType": "What do you want to add?"
     },
-    "add": "Add"
+    "add": "Add",
+    "create": {
+      "place": "New place",
+      "event": "New event",
+      "route": "New route",
+      "recipe": "New recipe"
+    },
+    "preview": {
+      "details": "Details"
+    }
   },
   "mascot": {
     "setup": {

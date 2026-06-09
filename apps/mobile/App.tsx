@@ -461,7 +461,7 @@ function AppContent() {
               <Stack.Screen
                 name="CreateCommunityPost"
                 component={CreateCommunityPostScreen}
-                options={{ presentation: 'modal', headerShown: false }}
+                options={{ presentation: 'card', headerShown: false, gestureEnabled: true }}
               />
               <Stack.Screen
                 name="CreateCommunityGroup"

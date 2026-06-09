@@ -790,7 +790,10 @@ export const RealAiAssistant: React.FC<RealAiAssistantProps> = ({ onClose, mealC
               {
                 backgroundColor: colors.surface || colors.card,
                 borderTopColor: colors.border || '#E5E5EA',
-                paddingBottom: (insets.bottom || 0) + 8,
+                // SafeAreaView (edges include 'bottom') already reserves the home-
+                // indicator inset — adding insets.bottom here double-counted it and
+                // left a visible gap under the input bar.
+                paddingBottom: 8,
               },
             ]}
           >

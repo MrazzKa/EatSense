@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 
 export type RoutePoint = { latitude: number; longitude: number };
@@ -110,6 +111,7 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
   const handleMapPress = (e: any) => {
     const coord = e?.nativeEvent?.coordinate;
     if (!coord) return;
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
     setPoints((prev) => [...prev, { latitude: coord.latitude, longitude: coord.longitude }]);
   };
 
@@ -123,6 +125,7 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
 
   const confirm = () => {
     if (points.length < 2) return;
+    try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
     onConfirm({ points, meetingPoint: points[0], distanceKm: Math.round(distance * 100) / 100 });
   };
 

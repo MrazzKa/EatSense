@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -181,9 +182,14 @@ export default function CommunityScreen() {
     }
   }, []);
 
+  // Guard against double-fire: a rapid double-tap used to send two concurrent
+  // attend requests and crash the server with a unique-constraint 500.
+  const attendInFlight = useRef<Set<string>>(new Set());
   const handleAttend = useCallback(async (postId: string) => {
-    try {
-      await ApiService.toggleEventAttendance(postId);
+    if (attendInFlight.current.has(postId)) return;
+    attendInFlight.current.add(postId);
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+    const applyToggle = () =>
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
@@ -193,15 +199,21 @@ export default function CommunityScreen() {
                 _count: {
                   ...p._count,
                   attendees: p.isAttending
-                    ? (p._count?.attendees || 1) - 1
+                    ? Math.max((p._count?.attendees || 1) - 1, 0)
                     : (p._count?.attendees || 0) + 1,
                 },
               }
             : p,
         ),
       );
+    applyToggle(); // optimistic
+    try {
+      await ApiService.toggleEventAttendance(postId);
     } catch (err) {
       console.warn('Failed to toggle attendance:', err);
+      applyToggle(); // revert on failure
+    } finally {
+      attendInFlight.current.delete(postId);
     }
   }, []);
 
@@ -325,6 +337,10 @@ export default function CommunityScreen() {
     return routes.filter((p: any) => cityMatch(p?.metadata, city));
   }, [posts, selectedPlacesCity, cityMatch]);
 
+  // Tapping a pin/route on the map opens a compact preview card (name + meta +
+  // one-tap Join + Details) instead of jumping straight into the detail screen.
+  const [mapPreviewPost, setMapPreviewPost] = useState<any>(null);
+
   // "Add" sheet (place / event / route). Opened either by tapping the map (with a
   // coordinate) or by the "＋ Add" pill (no coordinate — user sets location in the form).
   const [mapAddCoord, setMapAddCoord] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -345,10 +361,12 @@ export default function CommunityScreen() {
 
   const renderPostItem = useCallback(
     ({ item }) => {
+      const isOwn = !!user?.id && (item.authorId === user.id || item.author?.id === user.id);
       if (item.type === 'EVENT') {
         return (
           <EventCard
             post={item}
+            isOwn={isOwn}
             onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
             onAttend={() => handleAttend(item.id)}
           />
@@ -358,6 +376,7 @@ export default function CommunityScreen() {
         return (
           <RouteCard
             post={item}
+            isOwn={isOwn}
             onPress={() => navigation.navigate('CommunityPostDetail', { postId: item.id })}
             onAttend={() => handleAttend(item.id)}
           />
@@ -694,7 +713,7 @@ export default function CommunityScreen() {
             places={mapPlaces}
             events={mapEvents}
             routes={mapRoutes}
-            onSelect={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
+            onSelect={(post) => setMapPreviewPost(post)}
             onMapPress={(coord) => setMapAddCoord(coord)}
           />
         </View>
@@ -713,17 +732,14 @@ export default function CommunityScreen() {
         />
       )}
 
-      {/* Add — extended pill, bottom-center. On Places it opens the type chooser
-          (Place/Event/Route); on Feed/Groups it goes straight to a new post. */}
+      {/* Add — extended pill, bottom-center. Always opens the type chooser
+          (Post / Place / Event / Route / Recipe) for one consistent entry point. */}
       <TouchableOpacity
         style={[styles.addPill, { backgroundColor: colors.primary }]}
         onPress={() => {
-          if (activeTab === 'places') {
-            setMapAddCoord(null);
-            setAddSheetOpen(true);
-          } else {
-            navigation.navigate('CreateCommunityPost', undefined);
-          }
+          try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+          setMapAddCoord(null);
+          setAddSheetOpen(true);
         }}
         activeOpacity={0.85}
       >
@@ -746,11 +762,22 @@ export default function CommunityScreen() {
         <Text style={[styles.mapAddSubtitle, { color: colors.textTertiary }]}>
           {mapAddCoord ? t('community.mapAdd.subtitle', 'Add to this spot') : t('community.mapAdd.pickType', 'What do you want to add?')}
         </Text>
-        {[
-          { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
-          { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') },
-          { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') },
-        ].map((opt) => (
+        {(mapAddCoord
+          ? [
+              // Tapped a specific spot on the map → only location-bound types.
+              { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
+              { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') },
+              { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') },
+            ]
+          : [
+              // Core 5 post types from the "＋ Add" pill.
+              { type: 'TEXT', icon: 'chatbubble-outline', label: t('community.postType.post', 'Post') },
+              { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
+              { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') },
+              { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') },
+              { type: 'RECIPE', icon: 'nutrition-outline', label: t('community.postType.recipe', 'Recipe') },
+            ]
+        ).map((opt) => (
           <TouchableOpacity
             key={opt.type}
             style={[styles.mapAddRow, { borderColor: colors.border }]}
@@ -764,6 +791,65 @@ export default function CommunityScreen() {
             <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
         ))}
+      </BottomSheet>
+
+      {/* Map pin preview — name + meta + one-tap Join (events/routes) + Details. */}
+      <BottomSheet visible={!!mapPreviewPost} onClose={() => setMapPreviewPost(null)}>
+        {(() => {
+          const p = mapPreviewPost;
+          if (!p) return null;
+          const meta = p.metadata || {};
+          const isOwn = !!user?.id && (p.authorId === user.id || p.author?.id === user.id);
+          const joinable = p.type === 'ROUTE' || p.type === 'EVENT';
+          const accent = p.type === 'ROUTE' ? '#8B5CF6' : p.type === 'EVENT' ? '#F59E0B' : (colors.primary || '#4F46E5');
+          const icon = p.type === 'ROUTE' ? 'map' : p.type === 'EVENT' ? 'calendar' : 'location';
+          const title = meta.routeName || meta.title || meta.placeName || p.content || t('community.post.title', 'Post');
+          const km = Number(meta.distanceKm) || 0;
+          const subParts = [
+            p.type === 'ROUTE' && meta.activity ? t(`community.route.activity.${meta.activity}`, meta.activity) : '',
+            km > 0 ? `${km.toFixed(1)} ${t('community.route.km', 'km')}` : '',
+            meta.city || meta.address || '',
+            [meta.date, meta.time].filter(Boolean).join(' '),
+          ].filter(Boolean).join(' · ');
+          const openDetail = () => { const id = p.id; setMapPreviewPost(null); navigation.navigate('CommunityPostDetail', { postId: id }); };
+          return (
+            <>
+              <View style={styles.previewHead}>
+                <View style={[styles.previewIcon, { backgroundColor: accent + '18' }]}>
+                  <Ionicons name={icon as any} size={20} color={accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.previewTitle, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>{title}</Text>
+                  {!!subParts && <Text style={[styles.previewSub, { color: colors.textSecondary }]} numberOfLines={1}>{subParts}</Text>}
+                </View>
+              </View>
+              <View style={styles.previewActions}>
+                {joinable && !isOwn && (
+                  <TouchableOpacity
+                    style={[styles.previewJoin, { backgroundColor: p.isAttending ? accent : accent + '1A' }]}
+                    onPress={() => { handleAttend(p.id); setMapPreviewPost((cur: any) => cur ? { ...cur, isAttending: !cur.isAttending } : cur); }}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name={p.isAttending ? 'checkmark-circle' : 'add-circle-outline'} size={18} color={p.isAttending ? '#fff' : accent} />
+                    <Text style={[styles.previewJoinText, { color: p.isAttending ? '#fff' : accent }]}>
+                      {p.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {joinable && isOwn && (
+                  <View style={[styles.previewJoin, { backgroundColor: accent + '12' }]}>
+                    <Ionicons name="ribbon-outline" size={18} color={accent} />
+                    <Text style={[styles.previewJoinText, { color: accent }]}>{t('community.route.youOrganizer', 'You organize this')}</Text>
+                  </View>
+                )}
+                <TouchableOpacity style={[styles.previewDetail, { borderColor: colors.border }]} onPress={openDetail} activeOpacity={0.8}>
+                  <Text style={[styles.previewDetailText, { color: colors.textPrimary || colors.text }]}>{t('community.preview.details', 'Details')}</Text>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+                </TouchableOpacity>
+              </View>
+            </>
+          );
+        })()}
       </BottomSheet>
     </SafeAreaView>
   );
@@ -1017,4 +1103,14 @@ const createStyles = (tokens: any, colors: any, fabBottom: number) =>
       marginRight: 12,
     },
     mapAddLabel: { fontSize: 16, fontWeight: '600' },
+    // Map pin preview card
+    previewHead: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+    previewIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    previewTitle: { fontSize: 17, fontWeight: '700' },
+    previewSub: { fontSize: 13, marginTop: 2 },
+    previewActions: { flexDirection: 'row', gap: 10 },
+    previewJoin: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12 },
+    previewJoinText: { fontSize: 15, fontWeight: '700' },
+    previewDetail: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 12, borderRadius: 12, borderWidth: 1 },
+    previewDetailText: { fontSize: 15, fontWeight: '600' },
   });

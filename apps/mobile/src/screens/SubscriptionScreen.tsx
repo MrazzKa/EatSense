@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     StyleSheet,
     ActivityIndicator,
-    // Platform,
+    Platform,
+    TextInput,
     Modal,
     Alert,
 } from 'react-native';
@@ -117,6 +118,8 @@ export default function SubscriptionScreen() {
     const [showStudentPlans, setShowStudentPlans] = useState(false); // Toggle for student plans visibility
     const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
     const [isTrialEligible, setIsTrialEligible] = useState(false);
+    const [promoCode, setPromoCode] = useState('');
+    const [redeemingPromo, setRedeemingPromo] = useState(false);
 
     // Check if user has active subscription and trial eligibility
     React.useEffect(() => {
@@ -518,6 +521,41 @@ export default function SubscriptionScreen() {
         }
     };
 
+    // Redeem our own server-side promo code (e.g. "1 month free").
+    const handleRedeemPromo = async () => {
+        const code = promoCode.trim();
+        if (!code || redeemingPromo) return;
+        setRedeemingPromo(true);
+        try {
+            const res = await ApiService.redeemPromoCode(code);
+            const days = res?.durationDays || 30;
+            Alert.alert(
+                t('subscription.promo.successTitle', 'Promo code applied!'),
+                t('subscription.promo.successMessage', { days }) || `You now have ${days} days of Pro for free.`,
+                [{ text: 'OK', onPress: () => navigation.goBack() }],
+            );
+        } catch (error: any) {
+            Alert.alert(
+                t('subscription.promo.errorTitle', 'Could not apply code'),
+                error?.message || t('subscription.promo.errorGeneric', 'This promo code is not valid.'),
+            );
+        } finally {
+            setRedeemingPromo(false);
+        }
+    };
+
+    // Open Apple's offer-code redemption sheet (iOS) — for App Store Connect
+    // offer codes such as the 15%-off promotional offer.
+    const handleAppleOfferCode = async () => {
+        const ok = await IAPService.presentAppleCodeRedemption();
+        if (!ok && Platform.OS !== 'ios') {
+            Alert.alert(
+                t('subscription.promo.appleOnlyTitle', 'iOS only'),
+                t('subscription.promo.appleOnlyMessage', 'App Store offer codes can only be redeemed on iPhone/iPad.'),
+            );
+        }
+    };
+
     const styles = useMemo(() => {
         const colors = themeContext?.colors || {};
         return createStyles(tokens, colors, !!themeContext?.isDark);
@@ -875,6 +913,44 @@ export default function SubscriptionScreen() {
                                 );
                             })}
                         </View>
+                    )}
+                </View>
+
+                {/* Promo code: our own server-side codes (e.g. 1 month free). */}
+                <View style={styles.promoSection}>
+                    <Text style={styles.promoTitle}>
+                        {t('subscription.promo.title', 'Have a promo code?')}
+                    </Text>
+                    <View style={styles.promoRow}>
+                        <TextInput
+                            style={styles.promoInput}
+                            value={promoCode}
+                            onChangeText={setPromoCode}
+                            placeholder={t('subscription.promo.placeholder', 'Enter code')}
+                            placeholderTextColor={tokens.colors?.textTertiary || '#9CA3AF'}
+                            autoCapitalize="characters"
+                            autoCorrect={false}
+                            editable={!redeemingPromo}
+                        />
+                        <TouchableOpacity
+                            style={[styles.promoApplyBtn, { opacity: promoCode.trim() && !redeemingPromo ? 1 : 0.5 }]}
+                            onPress={handleRedeemPromo}
+                            disabled={!promoCode.trim() || redeemingPromo}
+                            activeOpacity={0.8}
+                        >
+                            {redeemingPromo ? (
+                                <ActivityIndicator size="small" color="#FFF" />
+                            ) : (
+                                <Text style={styles.promoApplyText}>{t('subscription.promo.apply', 'Apply')}</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                    {Platform.OS === 'ios' && (
+                        <TouchableOpacity onPress={handleAppleOfferCode} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                            <Text style={styles.promoAppleLink}>
+                                {t('subscription.promo.appStoreLink', 'Have an App Store code?')}
+                            </Text>
+                        </TouchableOpacity>
                     )}
                 </View>
 
@@ -1365,6 +1441,51 @@ const createStyles = (tokens, colors, isDark = false) => {
             marginBottom: 2,
         },
         // Restore Purchases button styles
+        promoSection: {
+            marginHorizontal: 20,
+            marginTop: 20,
+        },
+        promoTitle: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.textSecondary || '#6B7280',
+            marginBottom: 8,
+        },
+        promoRow: {
+            flexDirection: 'row',
+            gap: 8,
+            alignItems: 'center',
+        },
+        promoInput: {
+            flex: 1,
+            height: 46,
+            borderWidth: 1,
+            borderColor: colors.border || '#E5E7EB',
+            borderRadius: 10,
+            paddingHorizontal: 14,
+            fontSize: 15,
+            color: colors.textPrimary || colors.text || '#111827',
+            backgroundColor: colors.surfaceSecondary || colors.surface || '#F9FAFB',
+        },
+        promoApplyBtn: {
+            height: 46,
+            paddingHorizontal: 20,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.primary || '#4CAF50',
+        },
+        promoApplyText: {
+            color: '#FFF',
+            fontSize: 15,
+            fontWeight: '700',
+        },
+        promoAppleLink: {
+            marginTop: 10,
+            fontSize: 13,
+            fontWeight: '600',
+            color: colors.primary || '#4CAF50',
+        },
         restoreButton: {
             paddingVertical: 16,
             paddingHorizontal: 24,

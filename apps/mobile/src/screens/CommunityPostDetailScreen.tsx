@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme, useDesignTokens } from '../contexts/ThemeContext';
@@ -90,8 +91,12 @@ export default function CommunityPostDetailScreen() {
     setShowReactions(false);
   }, [post, postId]);
 
+  const attendBusy = useRef(false);
   const handleAttend = useCallback(async () => {
     if (!post) return;
+    if (attendBusy.current) return; // guard against double-tap → server 500
+    attendBusy.current = true;
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
     // Optimistic toggle of attendance + the going count.
     setPost((prev) => prev ? {
       ...prev,
@@ -118,6 +123,8 @@ export default function CommunityPostDetailScreen() {
             : (prev._count?.attendees || 0) + 1,
         },
       } : prev);
+    } finally {
+      attendBusy.current = false;
     }
   }, [post, postId]);
 
@@ -394,20 +401,30 @@ export default function CommunityPostDetailScreen() {
               {post.metadata.date} {post.metadata.time || ''}
             </Text>
           )}
-          <TouchableOpacity
-            onPress={handleAttend}
-            style={[styles.joinBtn, { backgroundColor: post.isAttending ? '#8B5CF6' : '#8B5CF61A' }]}
-          >
-            <Ionicons
-              name={post.isAttending ? 'checkmark-circle' : 'add-circle-outline'}
-              size={18}
-              color={post.isAttending ? '#fff' : '#8B5CF6'}
-            />
-            <Text style={[styles.joinText, { color: post.isAttending ? '#fff' : '#8B5CF6' }]}>
-              {post.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
-              {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
-            </Text>
-          </TouchableOpacity>
+          {isOwnPost ? (
+            <View style={[styles.joinBtn, { backgroundColor: '#8B5CF612' }]}>
+              <Ionicons name="ribbon-outline" size={18} color="#8B5CF6" />
+              <Text style={[styles.joinText, { color: '#8B5CF6' }]}>
+                {t('community.route.youOrganizer', 'You organize this')}
+                {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={handleAttend}
+              style={[styles.joinBtn, { backgroundColor: post.isAttending ? '#8B5CF6' : '#8B5CF61A' }]}
+            >
+              <Ionicons
+                name={post.isAttending ? 'checkmark-circle' : 'add-circle-outline'}
+                size={18}
+                color={post.isAttending ? '#fff' : '#8B5CF6'}
+              />
+              <Text style={[styles.joinText, { color: post.isAttending ? '#fff' : '#8B5CF6' }]}>
+                {post.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
+                {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       );
     }

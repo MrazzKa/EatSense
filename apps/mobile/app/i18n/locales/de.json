@@ -1075,7 +1075,8 @@
     "showAllMeals": "Alle Mahlzeiten anzeigen",
     "greetingMorning": "Guten Morgen",
     "greetingAfternoon": "Guten Tag",
-    "greetingEvening": "Guten Abend"
+    "greetingEvening": "Guten Abend",
+    "greetingNight": "Gute Nacht"
   },
   "describeFood": {
     "analyzeButton": "Analyze",
@@ -2269,7 +2270,19 @@
     "founderBadge": "Founder",
     "subscribe": "Abonnieren",
     "purchaseNow": "Jetzt kaufen",
-    "subscribeNow": "Jetzt abonnieren"
+    "subscribeNow": "Jetzt abonnieren",
+    "promo": {
+      "title": "Hast du einen Promo-Code?",
+      "placeholder": "Code eingeben",
+      "apply": "Anwenden",
+      "successTitle": "Promo-Code aktiviert!",
+      "successMessage": "Du hast jetzt {{days}} Tage Pro gratis.",
+      "errorTitle": "Code konnte nicht angewendet werden",
+      "errorGeneric": "Dieser Promo-Code ist ungültig.",
+      "appStoreLink": "Hast du einen App-Store-Code?",
+      "appleOnlyTitle": "Nur iOS",
+      "appleOnlyMessage": "App-Store-Codes können nur auf iPhone/iPad eingelöst werden."
+    }
   },
   "tabs": {
     "articles": "Artikel",
@@ -4547,7 +4560,8 @@
       "recipe": "Rezept",
       "question": "Frage",
       "challenge": "Challenge",
-      "route": "Route"
+      "route": "Route",
+      "post": "Beitrag"
     },
     "feed": {
       "empty": "Noch keine Beiträge. Tritt Gruppen bei, um Beiträge in deinem Feed zu sehen!",
@@ -4642,7 +4656,8 @@
       "steps": "Schritte",
       "prepTime": "Zubereitungszeit",
       "servings": "Portionen",
-      "servingsShort": "Portionen"
+      "servingsShort": "Portionen",
+      "nameRequired": "Bitte Rezeptnamen angeben"
     },
     "question": {
       "solved": "Gelöst",
@@ -4770,14 +4785,24 @@
         "bike": "Rad"
       },
       "noRoutes": "Noch keine Routen auf der Karte",
-      "tapNext": "Tippe weiter, um die Route zu zeichnen — Punkte verbinden sich zu einer Linie"
+      "tapNext": "Tippe weiter, um die Route zu zeichnen — Punkte verbinden sich zu einer Linie",
+      "youOrganizer": "Du organisierst"
     },
     "mapAdd": {
       "title": "Was ist hier?",
       "subtitle": "An diesem Ort hinzufügen",
       "pickType": "Was möchten Sie hinzufügen?"
     },
-    "add": "Hinzufügen"
+    "add": "Hinzufügen",
+    "create": {
+      "place": "Neuer Ort",
+      "event": "Neues Event",
+      "route": "Neue Route",
+      "recipe": "Neues Rezept"
+    },
+    "preview": {
+      "details": "Details"
+    }
   },
   "mascot": {
     "setup": {

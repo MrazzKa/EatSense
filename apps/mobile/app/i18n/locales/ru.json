@@ -739,7 +739,8 @@
     "showAllMeals": "Показать все приёмы пищи",
     "greetingMorning": "Доброе утро",
     "greetingAfternoon": "Добрый день",
-    "greetingEvening": "Добрый вечер"
+    "greetingEvening": "Добрый вечер",
+    "greetingNight": "Доброй ночи"
   },
   "mealHistory": {
     "title": "Все приёмы пищи",
@@ -2450,7 +2451,19 @@
     "founderBadge": "Founder",
     "subscribe": "Подписаться",
     "purchaseNow": "Купить сейчас",
-    "subscribeNow": "Подписаться сейчас"
+    "subscribeNow": "Подписаться сейчас",
+    "promo": {
+      "title": "Есть промокод?",
+      "placeholder": "Введите код",
+      "apply": "Применить",
+      "successTitle": "Промокод активирован!",
+      "successMessage": "Теперь у вас {{days}} дней Pro бесплатно.",
+      "errorTitle": "Не удалось применить код",
+      "errorGeneric": "Этот промокод недействителен.",
+      "appStoreLink": "Есть код из App Store?",
+      "appleOnlyTitle": "Только для iOS",
+      "appleOnlyMessage": "Коды App Store можно активировать только на iPhone/iPad."
+    }
   },
   "plan_yearly": "Год",
   "plan_student": "Студент",
@@ -4535,7 +4548,8 @@
       "recipe": "Рецепт",
       "question": "Вопрос",
       "challenge": "Челлендж",
-      "route": "Маршрут"
+      "route": "Маршрут",
+      "post": "Пост"
     },
     "feed": {
       "empty": "Пока нет постов. Вступайте в группы, чтобы видеть посты в ленте!",
@@ -4630,7 +4644,8 @@
       "steps": "Шаги",
       "prepTime": "Время приготовления",
       "servings": "Порции",
-      "servingsShort": "порций"
+      "servingsShort": "порций",
+      "nameRequired": "Укажите название рецепта"
     },
     "question": {
       "solved": "Решено",
@@ -4758,14 +4773,24 @@
         "bike": "Вело"
       },
       "noRoutes": "Пока нет маршрутов на карте",
-      "tapNext": "Тапай дальше, чтобы нарисовать маршрут — точки соединятся в линию"
+      "tapNext": "Тапай дальше, чтобы нарисовать маршрут — точки соединятся в линию",
+      "youOrganizer": "Вы организатор"
     },
     "mapAdd": {
       "title": "Что здесь?",
       "subtitle": "Добавить в эту точку",
       "pickType": "Что хотите добавить?"
     },
-    "add": "Добавить"
+    "add": "Добавить",
+    "create": {
+      "place": "Новое место",
+      "event": "Новое событие",
+      "route": "Новый маршрут",
+      "recipe": "Новый рецепт"
+    },
+    "preview": {
+      "details": "Подробнее"
+    }
   },
   "mascot": {
     "setup": {
