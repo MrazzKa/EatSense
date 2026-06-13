@@ -105,7 +105,15 @@ export default {
         "expo-build-properties",
         {
           ios: {
-            deploymentTarget: "15.1"
+            deploymentTarget: "15.1",
+            // GoogleSignIn → AppCheckCore (Swift) depends on GoogleUtilities and
+            // RecaptchaInterop, whose newer versions stopped defining modules, so
+            // `pod install` fails to integrate them as static libraries. Declaring
+            // them with modular_headers generates the module maps AppCheckCore needs.
+            extraPods: [
+              { name: "GoogleUtilities", modular_headers: true },
+              { name: "RecaptchaInterop", modular_headers: true }
+            ]
           },
           android: {
             minSdkVersion: 24,
