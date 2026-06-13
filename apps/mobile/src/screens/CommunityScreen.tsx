@@ -28,6 +28,7 @@ import { EventCard } from '../components/community/EventCard';
 import { RouteCard } from '../components/community/RouteCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard, resolveGroupName } from '../components/community/GroupCard';
+import { isPastEvent } from '../components/community/eventTime';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 import CommunityPlacesMap from '../components/community/CommunityPlacesMap';
@@ -163,22 +164,28 @@ export default function CommunityScreen() {
   // --- Handlers ---
 
   const handleLike = useCallback(async (postId: string, type?: string) => {
-    try {
-      await ApiService.toggleCommunityLike(postId, type);
+    // Optimistic-first so the heart fills instantly (the old code awaited the
+    // network before updating → likes felt very slow). Revert on failure.
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+    const applyToggle = () =>
       setPosts((prev) =>
         prev.map((p) =>
           p.id === postId
             ? {
                 ...p,
                 isLiked: !p.isLiked,
-                reactionType: p.isLiked ? null : (type || 'LIKE'),
-                likesCount: p.isLiked ? (p.likesCount || 1) - 1 : (p.likesCount || 0) + 1,
+                reactionType: p.isLiked ? null : (type || 'HEART'),
+                likesCount: p.isLiked ? Math.max((p.likesCount || 1) - 1, 0) : (p.likesCount || 0) + 1,
               }
             : p,
         ),
       );
+    applyToggle();
+    try {
+      await ApiService.toggleCommunityLike(postId, type || 'HEART');
     } catch (err) {
       console.warn('Failed to toggle like:', err);
+      applyToggle(); // revert
     }
   }, []);
 
@@ -267,13 +274,23 @@ export default function CommunityScreen() {
 
   // --- Filtered data ---
   const filteredPosts = useMemo(() => {
-    if (!searchQuery.trim()) return posts;
-    const q = searchQuery.toLowerCase();
-    return posts.filter((p) => {
-      const content = (p.content || '').toLowerCase();
-      const author = `${p.author?.userProfile?.firstName || ''} ${p.author?.userProfile?.lastName || ''}`.toLowerCase();
-      return content.includes(q) || author.includes(q);
-    });
+    let list = posts;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = posts.filter((p) => {
+        const content = (p.content || '').toLowerCase();
+        const author = `${p.author?.userProfile?.firstName || ''} ${p.author?.userProfile?.lastName || ''}`.toLowerCase();
+        return content.includes(q) || author.includes(q);
+      });
+    }
+    // Sink finished events/routes to the bottom (stable partition keeps the rest
+    // in their original chronological order).
+    const active: any[] = [];
+    const past: any[] = [];
+    for (const p of list) {
+      ((p.type === 'EVENT' || p.type === 'ROUTE') && isPastEvent(p.metadata) ? past : active).push(p);
+    }
+    return past.length ? [...active, ...past] : list;
   }, [posts, searchQuery]);
 
   const filteredGroups = useMemo(() => {
@@ -337,9 +354,8 @@ export default function CommunityScreen() {
     return routes.filter((p: any) => cityMatch(p?.metadata, city));
   }, [posts, selectedPlacesCity, cityMatch]);
 
-  // Tapping a pin/route on the map opens a compact preview card (name + meta +
-  // one-tap Join + Details) instead of jumping straight into the detail screen.
-  const [mapPreviewPost, setMapPreviewPost] = useState<any>(null);
+  // (Tapping a pin shows a balloon anchored above it — handled inside
+  // CommunityPlacesMap via onJoin/onOpenDetails.)
 
   // "Add" sheet (place / event / route). Opened either by tapping the map (with a
   // coordinate) or by the "＋ Add" pill (no coordinate — user sets location in the form).
@@ -713,7 +729,9 @@ export default function CommunityScreen() {
             places={mapPlaces}
             events={mapEvents}
             routes={mapRoutes}
-            onSelect={(post) => setMapPreviewPost(post)}
+            currentUserId={user?.id}
+            onOpenDetails={(post) => navigation.navigate('CommunityPostDetail', { postId: post.id })}
+            onJoin={(post) => handleAttend(post.id)}
             onMapPress={(coord) => setMapAddCoord(coord)}
           />
         </View>
@@ -791,65 +809,6 @@ export default function CommunityScreen() {
             <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
         ))}
-      </BottomSheet>
-
-      {/* Map pin preview — name + meta + one-tap Join (events/routes) + Details. */}
-      <BottomSheet visible={!!mapPreviewPost} onClose={() => setMapPreviewPost(null)}>
-        {(() => {
-          const p = mapPreviewPost;
-          if (!p) return null;
-          const meta = p.metadata || {};
-          const isOwn = !!user?.id && (p.authorId === user.id || p.author?.id === user.id);
-          const joinable = p.type === 'ROUTE' || p.type === 'EVENT';
-          const accent = p.type === 'ROUTE' ? '#8B5CF6' : p.type === 'EVENT' ? '#F59E0B' : (colors.primary || '#4F46E5');
-          const icon = p.type === 'ROUTE' ? 'map' : p.type === 'EVENT' ? 'calendar' : 'location';
-          const title = meta.routeName || meta.title || meta.placeName || p.content || t('community.post.title', 'Post');
-          const km = Number(meta.distanceKm) || 0;
-          const subParts = [
-            p.type === 'ROUTE' && meta.activity ? t(`community.route.activity.${meta.activity}`, meta.activity) : '',
-            km > 0 ? `${km.toFixed(1)} ${t('community.route.km', 'km')}` : '',
-            meta.city || meta.address || '',
-            [meta.date, meta.time].filter(Boolean).join(' '),
-          ].filter(Boolean).join(' · ');
-          const openDetail = () => { const id = p.id; setMapPreviewPost(null); navigation.navigate('CommunityPostDetail', { postId: id }); };
-          return (
-            <>
-              <View style={styles.previewHead}>
-                <View style={[styles.previewIcon, { backgroundColor: accent + '18' }]}>
-                  <Ionicons name={icon as any} size={20} color={accent} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.previewTitle, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>{title}</Text>
-                  {!!subParts && <Text style={[styles.previewSub, { color: colors.textSecondary }]} numberOfLines={1}>{subParts}</Text>}
-                </View>
-              </View>
-              <View style={styles.previewActions}>
-                {joinable && !isOwn && (
-                  <TouchableOpacity
-                    style={[styles.previewJoin, { backgroundColor: p.isAttending ? accent : accent + '1A' }]}
-                    onPress={() => { handleAttend(p.id); setMapPreviewPost((cur: any) => cur ? { ...cur, isAttending: !cur.isAttending } : cur); }}
-                    activeOpacity={0.85}
-                  >
-                    <Ionicons name={p.isAttending ? 'checkmark-circle' : 'add-circle-outline'} size={18} color={p.isAttending ? '#fff' : accent} />
-                    <Text style={[styles.previewJoinText, { color: p.isAttending ? '#fff' : accent }]}>
-                      {p.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {joinable && isOwn && (
-                  <View style={[styles.previewJoin, { backgroundColor: accent + '12' }]}>
-                    <Ionicons name="ribbon-outline" size={18} color={accent} />
-                    <Text style={[styles.previewJoinText, { color: accent }]}>{t('community.route.youOrganizer', 'You organize this')}</Text>
-                  </View>
-                )}
-                <TouchableOpacity style={[styles.previewDetail, { borderColor: colors.border }]} onPress={openDetail} activeOpacity={0.8}>
-                  <Text style={[styles.previewDetailText, { color: colors.textPrimary || colors.text }]}>{t('community.preview.details', 'Details')}</Text>
-                  <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-                </TouchableOpacity>
-              </View>
-            </>
-          );
-        })()}
       </BottomSheet>
     </SafeAreaView>
   );

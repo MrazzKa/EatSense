@@ -4,6 +4,9 @@ import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-nativ
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { cuisineIcon } from '../../config/cuisines';
+import { isPastEvent } from './eventTime';
+
+const BALLOON_W = 232;
 
 type CommunityPost = {
   id: string;
@@ -18,7 +21,12 @@ type Props = {
   places: CommunityPost[];
   events?: CommunityPost[];
   routes?: CommunityPost[];
-  onSelect: (_post: CommunityPost) => void;
+  /** Open the full post detail (from the balloon's "Details" action). */
+  onOpenDetails: (_post: CommunityPost) => void;
+  /** One-tap Join from the balloon (events/routes the user doesn't own). */
+  onJoin?: (_post: CommunityPost) => void;
+  /** Current user id — to hide Join on the user's own event/route. */
+  currentUserId?: string;
   /** Tap on empty map → add something here (place / event / route). */
   onMapPress?: (_coord: { latitude: number; longitude: number }) => void;
   height?: number;
@@ -75,18 +83,27 @@ type Pin = { post: CommunityPost; coord: { latitude: number; longitude: number }
  * events that carry coordinates in their metadata, with a Places/Events filter.
  * Pins outside Switzerland are hidden (pilot scope). Apple Maps on iOS (no key).
  */
-const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], routes = [], onSelect, onMapPress, height = 360, fill = false }) => {
+const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], routes = [], onOpenDetails, onJoin, currentUserId, onMapPress, height = 360, fill = false }) => {
   const mapRef = useRef<MapView | null>(null);
   const [ready, setReady] = useState(false);
+  const [layout, setLayout] = useState({ w: 0, h: 0 });
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [mode, setMode] = useState<MapMode>('all');
-  // When a marker is tapped, the map's onPress can also fire and open the
-  // "What's here?" sheet on top of the opened post. Swallow the map press that
-  // immediately follows a marker tap.
+  // Tapping a pin shows a small balloon anchored right above it (screen coords
+  // via pointForCoordinate), instead of a bottom sheet.
+  const [balloon, setBalloon] = useState<{ post: any; x: number; y: number } | null>(null);
+  // When a marker is tapped, the map's onPress can also fire — swallow the map
+  // press that immediately follows a marker tap.
   const lastMarkerTap = useRef(0);
-  const selectMarker = (post: any) => {
+  const selectMarker = async (post: any, coord: { latitude: number; longitude: number }) => {
     lastMarkerTap.current = Date.now();
-    onSelect(post);
+    try {
+      const pt = await mapRef.current?.pointForCoordinate(coord);
+      if (pt) setBalloon({ post, x: pt.x, y: pt.y });
+      else setBalloon({ post, x: -1, y: -1 });
+    } catch {
+      setBalloon({ post, x: -1, y: -1 });
+    }
   };
 
   const placePins: Pin[] = useMemo(
@@ -171,7 +188,10 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
   ];
 
   return (
-    <View style={[fill ? styles.wrapperFill : styles.wrapper, fill ? null : { height }, { borderColor: colors.border || '#E5E7EB' }]}>
+    <View
+      style={[fill ? styles.wrapperFill : styles.wrapper, fill ? null : { height }, { borderColor: colors.border || '#E5E7EB' }]}
+      onLayout={(e) => setLayout({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
+    >
       <MapView
         ref={mapRef}
         provider={PROVIDER_DEFAULT}
@@ -184,16 +204,18 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
         onMapReady={() => setReady(true)}
         onPress={(e) => {
           if (Date.now() - lastMarkerTap.current < 500) return; // marker tap, not empty map
+          if (balloon) { setBalloon(null); return; } // first tap just dismisses the balloon
           const c = e?.nativeEvent?.coordinate;
           if (c && onMapPress && inSwitzerland(c)) onMapPress({ latitude: c.latitude, longitude: c.longitude });
         }}
+        onRegionChange={() => { if (balloon) setBalloon(null); }}
       >
         {visibleRoutes.map(({ post, coord, points }) => (
           <React.Fragment key={`route-${post.id}`}>
             <Polyline coordinates={points} strokeColor={ROUTE_COLOR} strokeWidth={4} />
             <Marker
               coordinate={coord!}
-              onPress={() => selectMarker(post)}
+              onPress={() => selectMarker(post, coord!)}
               tracksViewChanges={false}
               anchor={{ x: 0.5, y: 1 }}
             >
@@ -214,7 +236,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
             <Marker
               key={`${kind}-${post.id}`}
               coordinate={coord}
-              onPress={() => selectMarker(post)}
+              onPress={() => selectMarker(post, coord)}
               tracksViewChanges={false}
               anchor={{ x: 0.5, y: 1 }}
             >
@@ -238,7 +260,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
               <TouchableOpacity
                 key={f.key}
                 style={[styles.filterChip, active && { backgroundColor: colors.primary || '#4F46E5' }]}
-                onPress={() => setMode(f.key)}
+                onPress={() => { setBalloon(null); setMode(f.key); }}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.filterChipText, { color: active ? '#FFF' : (colors.textSecondary || '#666') }]}>
@@ -278,6 +300,85 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
           </Text>
         </View>
       )}
+
+      {/* Balloon anchored above the tapped pin (name + 1-tap Join + Details). */}
+      {balloon && (() => {
+        // Re-read the post from current props so attendance/count stay fresh.
+        const fresh =
+          [...placePins, ...eventPins].find((x) => x.post.id === balloon.post.id)?.post
+          || routeShapes.find((x) => x.post.id === balloon.post.id)?.post
+          || balloon.post;
+        const meta = fresh.metadata || {};
+        const type = fresh.type;
+        const joinable = type === 'ROUTE' || type === 'EVENT';
+        const isOwn = !!currentUserId && (fresh.authorId === currentUserId || fresh.author?.id === currentUserId);
+        const past = joinable && isPastEvent(meta);
+        const accent = type === 'ROUTE' ? ROUTE_COLOR : type === 'EVENT' ? EVENT_COLOR : (colors.primary || '#4F46E5');
+        const icon = type === 'ROUTE' ? 'map' : type === 'EVENT' ? 'calendar' : 'location';
+        const title = meta.routeName || meta.title || meta.placeName || fresh.content || t('community.post.title', 'Post');
+        const km = Number(meta.distanceKm) || 0;
+        const sub = [
+          type === 'ROUTE' && meta.activity ? t(`community.route.activity.${meta.activity}`, meta.activity) : '',
+          km > 0 ? `${km.toFixed(1)} ${t('community.route.km', 'km')}` : '',
+          meta.city || meta.address || '',
+          [meta.date, meta.time].filter(Boolean).join(' '),
+        ].filter(Boolean).join(' · ');
+
+        // Place the balloon above the pin; flip below if too close to the top.
+        const above = balloon.y > 150;
+        const left = layout.w
+          ? Math.max(8, Math.min(balloon.x - BALLOON_W / 2, layout.w - BALLOON_W - 8))
+          : 8;
+        const posStyle: any = above
+          ? { bottom: Math.max(8, layout.h - balloon.y + 14), left }
+          : { top: balloon.y + 14, left };
+
+        return (
+          <View style={[styles.balloon, posStyle, { backgroundColor: colors.surface || '#FFF', borderColor: colors.border || '#E5E7EB' }]}>
+            <View style={styles.balloonHead}>
+              <View style={[styles.balloonIcon, { backgroundColor: accent + '18' }]}>
+                <Ionicons name={icon as any} size={18} color={accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.balloonTitle, { color: colors.textPrimary || colors.text }]} numberOfLines={1}>{title}</Text>
+                {!!sub && <Text style={[styles.balloonSub, { color: colors.textSecondary }]} numberOfLines={1}>{sub}</Text>}
+              </View>
+            </View>
+            <View style={styles.balloonActions}>
+              {past ? (
+                <View style={[styles.balloonJoin, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
+                  <Ionicons name="checkmark-done-outline" size={16} color={colors.textSecondary} />
+                  <Text style={[styles.balloonJoinText, { color: colors.textSecondary }]}>{t('community.event.finished', 'Finished')}</Text>
+                </View>
+              ) : joinable && isOwn ? (
+                <View style={[styles.balloonJoin, { backgroundColor: accent + '12' }]}>
+                  <Ionicons name="ribbon-outline" size={16} color={accent} />
+                  <Text style={[styles.balloonJoinText, { color: accent }]}>{t('community.route.youOrganizer', 'You organize this')}</Text>
+                </View>
+              ) : joinable ? (
+                <TouchableOpacity
+                  style={[styles.balloonJoin, { backgroundColor: fresh.isAttending ? accent : accent + '1A' }]}
+                  onPress={() => onJoin?.(fresh)}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name={fresh.isAttending ? 'checkmark-circle' : 'add-circle-outline'} size={16} color={fresh.isAttending ? '#fff' : accent} />
+                  <Text style={[styles.balloonJoinText, { color: fresh.isAttending ? '#fff' : accent }]}>
+                    {fresh.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                style={[styles.balloonDetails, { borderColor: colors.border || '#E5E7EB' }]}
+                onPress={() => { const p = fresh; setBalloon(null); onOpenDetails(p); }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.balloonDetailsText, { color: colors.textPrimary || colors.text }]}>{t('community.preview.details', 'Details')}</Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      })()}
     </View>
   );
 };
@@ -371,6 +472,27 @@ const styles = StyleSheet.create({
     top: 56,
   },
   emptyText: { fontSize: 14, paddingHorizontal: 24, textAlign: 'center' },
+  balloon: {
+    position: 'absolute',
+    width: BALLOON_W,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  balloonHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  balloonIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  balloonTitle: { fontSize: 15, fontWeight: '700' },
+  balloonSub: { fontSize: 12, marginTop: 1 },
+  balloonActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  balloonJoin: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 9 },
+  balloonJoinText: { fontSize: 13, fontWeight: '700' },
+  balloonDetails: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 9, borderWidth: 1 },
+  balloonDetailsText: { fontSize: 13, fontWeight: '600' },
 });
 
 export default CommunityPlacesMap;

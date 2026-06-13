@@ -2788,6 +2788,7 @@
     "bannerText": "Encuentra una farmacia, conéctala y pide",
     "connectedPharmacies": "Farmacias conectadas",
     "noPharmacy": "Ninguna farmacia conectada",
+    "noPharmacySub": "Introduce el código que te dio tu farmacia para vincularla.",
     "connectPharmacy": "Conectar farmacia",
     "editPharmacy": "Editar farmacia",
     "disconnect": "Desconectar",
@@ -2865,6 +2866,7 @@
     }
   },
   "community": {
+    "pickDateTime": "Elegir fecha y hora",
     "title": "Comunidad",
     "moderation": {
       "pending": "En revisión",
@@ -2957,6 +2959,7 @@
       "country": "Grupos por país"
     },
     "event": {
+      "finished": "Finalizado",
       "title": "Título del evento",
       "date": "Fecha",
       "time": "Hora",

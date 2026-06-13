@@ -1582,6 +1582,9 @@ model CommunityGroup {
   city         String?
   country      String?
   isSeeded     Boolean               @default(false)
+  // Display-only baseline so pilot groups don't look empty. Shown member count =
+  // real memberships + baseMemberCount; real joins increment honestly on top.
+  baseMemberCount Int                @default(0) @map("base_member_count")
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
   createdById  String?

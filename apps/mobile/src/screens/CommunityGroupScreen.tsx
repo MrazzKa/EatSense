@@ -256,7 +256,7 @@ export default function CommunityGroupScreen() {
         </Text>
       ) : null}
       <Text style={[styles.memberCount, { color: colors.textTertiary }]}>
-        {group?._count?.memberships || 0} {t('community.members', 'members')}
+        {(group?._count?.memberships || 0) + (group?.baseMemberCount || 0)} {t('community.members', 'members')}
       </Text>
       <TouchableOpacity
         style={[

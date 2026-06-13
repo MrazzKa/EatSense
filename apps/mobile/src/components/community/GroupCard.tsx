@@ -47,7 +47,7 @@ export function GroupCard({ group, onPress, onJoin, isMember, lockedMembership }
       <View style={styles.info}>
         <Text style={[styles.name, { color: colors.textPrimary || colors.text }]}>{resolveGroupName(group, t)}</Text>
         <Text style={[styles.members, { color: colors.textTertiary }]}>
-          {group._count?.memberships || 0} {t('community.members', 'members')}
+          {(group._count?.memberships || 0) + (group.baseMemberCount || 0)} {t('community.members', 'members')}
         </Text>
       </View>
       <TouchableOpacity

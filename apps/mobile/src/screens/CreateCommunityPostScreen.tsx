@@ -26,6 +26,12 @@ import { resolveGroupName } from '../components/community/GroupCard';
 import { CUISINES } from '../config/cuisines';
 import LocationPickerModal from '../components/community/LocationPickerModal';
 import RouteBuilderModal from '../components/community/RouteBuilderModal';
+import { DateTimeField } from '../components/community/DateTimeField';
+
+// Human-readable date/time strings stored alongside the ISO timestamp (cards and
+// the pharmacy/email layers read these display strings; dateISO drives logic).
+const fmtEventDate = (d: Date) => d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+const fmtEventTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 const ROUTE_ACTIVITIES = [
   { key: 'run', icon: 'walk-outline', labelKey: 'community.route.activity.run' },
@@ -65,8 +71,7 @@ export default function CreateCommunityPostScreen() {
 
   // Event-specific fields
   const [eventTitle, setEventTitle] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
+  const [eventAt, setEventAt] = useState<Date | null>(null);
   const [eventLocation, setEventLocation] = useState('');
   const [eventCity, setEventCity] = useState(initialCity);
 
@@ -99,8 +104,7 @@ export default function CreateCommunityPostScreen() {
   const [routeName, setRouteName] = useState('');
   const [routeActivity, setRouteActivity] = useState('run');
   const [routeCity, setRouteCity] = useState(initialCity);
-  const [routeDate, setRouteDate] = useState('');
-  const [routeTime, setRouteTime] = useState('');
+  const [routeAt, setRouteAt] = useState<Date | null>(null);
   const [builtRoute, setBuiltRoute] = useState<any>(
     initialType === 'ROUTE' && initialCoords
       ? { points: [initialCoords], meetingPoint: initialCoords, distanceKm: 0 }
@@ -219,8 +223,9 @@ export default function CreateCommunityPostScreen() {
       if (postType === 'EVENT') {
         payload.metadata = {
           title: eventTitle.trim() || trimmedContent,
-          date: eventDate.trim(),
-          time: eventTime.trim(),
+          date: eventAt ? fmtEventDate(eventAt) : '',
+          time: eventAt ? fmtEventTime(eventAt) : '',
+          ...(eventAt ? { dateISO: eventAt.toISOString() } : {}),
           location: eventLocation.trim(),
           city: eventCity.trim(),
           ...(eventCoords ? { latitude: eventCoords.latitude, longitude: eventCoords.longitude } : {}),
@@ -261,8 +266,9 @@ export default function CreateCommunityPostScreen() {
           routeName: routeName.trim(),
           activity: routeActivity,
           city: routeCity.trim(),
-          date: routeDate.trim(),
-          time: routeTime.trim(),
+          date: routeAt ? fmtEventDate(routeAt) : '',
+          time: routeAt ? fmtEventTime(routeAt) : '',
+          ...(routeAt ? { dateISO: routeAt.toISOString() } : {}),
           distanceKm: builtRoute?.distanceKm ?? 0,
           // First point = meeting/start spot (used for the map marker + auto-fit).
           latitude: builtRoute?.meetingPoint?.latitude,
@@ -301,7 +307,7 @@ export default function CreateCommunityPostScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, [content, postType, selectedGroupId, eventTitle, eventDate, eventTime, eventLocation, eventCity, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, routeName, routeActivity, routeCity, routeDate, routeTime, builtRoute, addXp, navigation, t]);
+  }, [content, postType, selectedGroupId, eventTitle, eventAt, eventLocation, eventCity, eventCoords, imageUri, recipeName, ingredients, recipeSteps, prepTime, servings, placeName, placeAddress, placeCity, placeRating, cuisine, coords, routeName, routeActivity, routeCity, routeAt, builtRoute, addXp, navigation, t]);
 
   const isValid = (() => {
     if (!(selectedGroupId || groups.length === 0)) return false;
@@ -391,20 +397,7 @@ export default function CreateCommunityPostScreen() {
                 value={eventTitle}
                 onChangeText={setEventTitle}
               />
-              <TextInput
-                style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
-                placeholder={t('community.eventDate', 'Date (e.g. March 20, 2026)')}
-                placeholderTextColor={colors.textTertiary}
-                value={eventDate}
-                onChangeText={setEventDate}
-              />
-              <TextInput
-                style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
-                placeholder={t('community.eventTime', 'Time (e.g. 14:00)')}
-                placeholderTextColor={colors.textTertiary}
-                value={eventTime}
-                onChangeText={setEventTime}
-              />
+              <DateTimeField value={eventAt} onChange={setEventAt} colors={colors} t={t} />
               <TextInput
                 style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
                 placeholder={t('community.eventLocation', 'Location')}
@@ -606,21 +599,8 @@ export default function CreateCommunityPostScreen() {
                 value={routeCity}
                 onChangeText={setRouteCity}
               />
-              <View style={styles.rowFields}>
-                <TextInput
-                  style={[styles.fieldInput, styles.halfField, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
-                  placeholder={t('community.eventDate', 'Date')}
-                  placeholderTextColor={colors.textTertiary}
-                  value={routeDate}
-                  onChangeText={setRouteDate}
-                />
-                <TextInput
-                  style={[styles.fieldInput, styles.halfField, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
-                  placeholder={t('community.eventTime', 'Time')}
-                  placeholderTextColor={colors.textTertiary}
-                  value={routeTime}
-                  onChangeText={setRouteTime}
-                />
+              <View style={{ marginTop: 12 }}>
+                <DateTimeField value={routeAt} onChange={setRouteAt} colors={colors} t={t} />
               </View>
 
               {/* Draw route on map */}

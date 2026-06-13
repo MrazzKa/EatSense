@@ -4420,6 +4420,7 @@
     "bannerText": "Apotheke finden, verbinden & nachbestellen",
     "connectedPharmacies": "Verbundene Apotheken",
     "noPharmacy": "Noch keine Apotheke verbunden",
+    "noPharmacySub": "Gib den Code ein, den dir deine Apotheke mitgeteilt hat, um sie zu verknüpfen.",
     "connectPharmacy": "Apotheke verbinden",
     "editPharmacy": "Apotheke bearbeiten",
     "disconnect": "Trennen",
@@ -4497,6 +4498,7 @@
     }
   },
   "community": {
+    "pickDateTime": "Datum & Uhrzeit wählen",
     "title": "Community",
     "moderation": {
       "pending": "In Prüfung",
@@ -4589,6 +4591,7 @@
       "country": "Ländergruppen"
     },
     "event": {
+      "finished": "Beendet",
       "title": "Veranstaltungstitel",
       "date": "Datum",
       "time": "Uhrzeit",

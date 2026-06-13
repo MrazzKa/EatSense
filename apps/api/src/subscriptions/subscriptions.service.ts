@@ -302,13 +302,18 @@ export class SubscriptionsService implements OnModuleInit {
         }
 
         // Grant the free period by reusing createSubscription (pricePaid 0).
+        // Pass an explicit expiresDate computed from the PROMO's duration so the
+        // grant honors the code (e.g. "90 days free") regardless of the plan's
+        // own durationDays — inside createSubscription plan.durationDays would
+        // otherwise win over the passed durationDays.
+        const promoExpiresDate = new Date(Date.now() + promo.durationDays * 24 * 60 * 60 * 1000);
         const subscription = await this.createSubscription(
             userId,
             plan.id,
             'PROMO',
             0,
             undefined,
-            undefined,
+            promoExpiresDate,
             promo.durationDays,
         );
 

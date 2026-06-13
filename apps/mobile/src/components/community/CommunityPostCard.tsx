@@ -1,17 +1,11 @@
 // @ts-nocheck
-import React, { useState, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../../app/i18n/hooks';
 
-const REACTION_TYPES = [
-  { type: 'LIKE', emoji: '👍' },
-  { type: 'HEART', emoji: '❤️' },
-  { type: 'FIRE', emoji: '🔥' },
-  { type: 'LAUGH', emoji: '😂' },
-  { type: 'CLAP', emoji: '👏' },
-];
+const LIKE_COLOR = '#EF4444';
 
 // Map DB post types (UPPER_SNAKE) to i18n keys (camelCase)
 const POST_TYPE_I18N_MAP: Record<string, string> = {
@@ -49,7 +43,7 @@ export function CommunityPostCard({
 }: CommunityPostCardProps) {
   const { colors } = useTheme();
   const { t, language } = useI18n();
-  const [showReactions, setShowReactions] = useState(false);
+  const heartScale = useRef(new Animated.Value(1)).current;
 
   const authorName = post.author?.userProfile
     ? `${post.author.userProfile.firstName || ''} ${post.author.userProfile.lastName || ''}`.trim()
@@ -71,18 +65,14 @@ export function CommunityPostCard({
     );
   }, [post.id, onDelete, t]);
 
-  const handleReactionSelect = useCallback((type: string) => {
-    setShowReactions(false);
-    onLike?.(type);
-  }, [onLike]);
-
   const handleLikePress = useCallback(() => {
-    onLike?.('LIKE');
-  }, [onLike]);
-
-  const handleLikeLongPress = useCallback(() => {
-    setShowReactions(true);
-  }, []);
+    // Instagram-style pop on tap (only when liking, not un-liking).
+    if (!post.isLiked) {
+      heartScale.setValue(0.7);
+      Animated.spring(heartScale, { toValue: 1, friction: 3, tension: 140, useNativeDriver: true }).start();
+    }
+    onLike?.('HEART');
+  }, [onLike, post.isLiked, heartScale]);
 
   // Render metadata for special post types
   const renderMetadata = () => {
@@ -134,12 +124,6 @@ export function CommunityPostCard({
 
     return null;
   };
-
-  // Get reaction emoji for current user
-  const currentReaction = post.reactionType || (post.isLiked ? 'LIKE' : null);
-  const currentEmoji = currentReaction
-    ? REACTION_TYPES.find(r => r.type === currentReaction)?.emoji || '👍'
-    : null;
 
   return (
     <TouchableOpacity
@@ -195,39 +179,20 @@ export function CommunityPostCard({
         <Image source={{ uri: post.imageUrl }} style={styles.postImage} resizeMode="cover" />
       )}
 
-      {/* Reaction picker overlay */}
-      {showReactions && (
-        <View style={[styles.reactionPicker, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          {REACTION_TYPES.map((r) => (
-            <TouchableOpacity
-              key={r.type}
-              onPress={() => handleReactionSelect(r.type)}
-              style={[
-                styles.reactionBtn,
-                currentReaction === r.type && { backgroundColor: colors.primary + '20' },
-              ]}
-            >
-              <Text style={styles.reactionEmoji}>{r.emoji}</Text>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity onPress={() => setShowReactions(false)} style={styles.reactionCloseBtn}>
-            <Ionicons name="close" size={16} color={colors.textTertiary} />
-          </TouchableOpacity>
-        </View>
-      )}
-
       <View style={[styles.actions, { borderTopColor: colors.border }]}>
         <TouchableOpacity
           onPress={handleLikePress}
-          onLongPress={handleLikeLongPress}
           style={styles.actionButton}
+          activeOpacity={0.7}
         >
-          {currentEmoji ? (
-            <Text style={styles.reactionSmall}>{currentEmoji}</Text>
-          ) : (
-            <Ionicons name="heart-outline" size={20} color={colors.textTertiary} />
-          )}
-          <Text style={[styles.actionText, { color: post.isLiked ? colors.primary : colors.textTertiary }]}>
+          <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+            <Ionicons
+              name={post.isLiked ? 'heart' : 'heart-outline'}
+              size={21}
+              color={post.isLiked ? LIKE_COLOR : colors.textTertiary}
+            />
+          </Animated.View>
+          <Text style={[styles.actionText, { color: post.isLiked ? LIKE_COLOR : colors.textTertiary }]}>
             {post.likesCount || 0}
           </Text>
         </TouchableOpacity>
@@ -398,36 +363,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    marginLeft: 4,
-  },
-  reactionSmall: {
-    fontSize: 18,
-  },
-  reactionPicker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 12,
-    marginBottom: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 24,
-    borderWidth: 1,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  reactionBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  reactionEmoji: {
-    fontSize: 22,
-  },
-  reactionCloseBtn: {
-    marginLeft: 4,
-    padding: 4,
+    marginLeft: 6,
+    fontWeight: '600',
   },
 });

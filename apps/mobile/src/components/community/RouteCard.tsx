@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useI18n } from '../../../app/i18n/hooks';
+import { isPastEvent } from './eventTime';
 
 const ROUTE_COLOR = '#8B5CF6';
 const ACTIVITY_ICON = { run: 'walk-outline', walk: 'footsteps-outline', bike: 'bicycle-outline' };
@@ -22,6 +23,7 @@ export function RouteCard({ post, onAttend, onPress, isOwn }: RouteCardProps) {
   const meta = post.metadata || {};
   const km = Number(meta.distanceKm) || 0;
   const attendees = post._count?.attendees || 0;
+  const isPast = isPastEvent(meta);
 
   return (
     <TouchableOpacity
@@ -57,7 +59,15 @@ export function RouteCard({ post, onAttend, onPress, isOwn }: RouteCardProps) {
         )}
       </View>
 
-      {isOwn ? (
+      {isPast ? (
+        <View style={[styles.joinBtn, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
+          <Ionicons name="checkmark-done-outline" size={18} color={colors.textSecondary} />
+          <Text style={[styles.joinText, { color: colors.textSecondary }]}>
+            {t('community.event.finished', 'Finished')}
+            {attendees ? ` · ${attendees}` : ''}
+          </Text>
+        </View>
+      ) : isOwn ? (
         <View style={[styles.joinBtn, { backgroundColor: ROUTE_COLOR + '12' }]}>
           <Ionicons name="ribbon-outline" size={18} color={ROUTE_COLOR} />
           <Text style={[styles.joinText, { color: ROUTE_COLOR }]}>

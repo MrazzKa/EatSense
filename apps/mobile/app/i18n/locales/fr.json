@@ -4408,6 +4408,7 @@
     "bannerText": "Trouvez une pharmacie, connectez-vous et commandez",
     "connectedPharmacies": "Pharmacies connectées",
     "noPharmacy": "Aucune pharmacie connectée",
+    "noPharmacySub": "Saisissez le code que votre pharmacie vous a communiqué pour la lier.",
     "connectPharmacy": "Connecter une pharmacie",
     "editPharmacy": "Modifier la pharmacie",
     "disconnect": "Déconnecter",
@@ -4485,6 +4486,7 @@
     }
   },
   "community": {
+    "pickDateTime": "Choisir la date et l'heure",
     "title": "Communauté",
     "moderation": {
       "pending": "En modération",
@@ -4577,6 +4579,7 @@
       "country": "Groupes par pays"
     },
     "event": {
+      "finished": "Terminé",
       "title": "Titre de l'événement",
       "date": "Date de l’événement",
       "time": "Heure",

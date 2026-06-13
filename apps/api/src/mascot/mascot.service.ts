@@ -105,7 +105,11 @@ export class MascotService {
       where: { userId },
     });
     if (!mascot) {
-      throw new NotFoundException('Mascot not found');
+      // No companion yet: awarding XP (from food analysis, posting, daily login)
+      // is a fire-and-forget side effect, so this is a no-op rather than a 404.
+      // The client treats a null result as "nothing happened". Previously this
+      // threw NotFoundException → noisy 404s in logs for users without a mascot.
+      return null;
     }
 
     // Cap XP at max level threshold to prevent unbounded growth

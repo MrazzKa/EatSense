@@ -2,30 +2,36 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// baseMemberCount is a display-only baseline so pilot groups don't look empty.
+// Shown count = real memberships + baseMemberCount; real joins add on top.
 const countries = [
   {
     name: 'Kazakhstan',
     slug: 'kazakhstan',
     country: 'KZ',
     description: 'Community for healthy eating enthusiasts in Kazakhstan',
+    baseMemberCount: 84,
   },
   {
     name: 'Germany',
     slug: 'germany',
     country: 'DE',
     description: 'Community for healthy eating enthusiasts in Germany',
+    baseMemberCount: 73,
   },
   {
     name: 'Switzerland',
     slug: 'switzerland',
     country: 'CH',
     description: 'Community for healthy eating enthusiasts in Switzerland',
+    baseMemberCount: 96,
   },
   {
     name: 'France',
     slug: 'france',
     country: 'FR',
     description: 'Community for healthy eating enthusiasts in France',
+    baseMemberCount: 68,
   },
 ];
 
@@ -84,7 +90,7 @@ async function main() {
   for (const entry of countries) {
     await prisma.communityGroup.upsert({
       where: { slug: entry.slug },
-      update: {},
+      update: { baseMemberCount: entry.baseMemberCount },
       create: {
         name: entry.name,
         slug: entry.slug,
@@ -92,6 +98,7 @@ async function main() {
         type: 'COUNTRY' as any,
         country: entry.country,
         isSeeded: true,
+        baseMemberCount: entry.baseMemberCount,
       },
     });
   }

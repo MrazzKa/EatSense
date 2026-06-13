@@ -4429,6 +4429,7 @@
     "bannerText": "Find pharmacies, connect & order refills",
     "connectedPharmacies": "Connected Pharmacies",
     "noPharmacy": "No pharmacy connected yet",
+    "noPharmacySub": "Enter the code your pharmacy shared with you to link it.",
     "connectPharmacy": "Connect Pharmacy",
     "editPharmacy": "Edit Pharmacy",
     "disconnect": "Disconnect",
@@ -4520,6 +4521,7 @@
     "healthScoreMethodology": "The Health Score evaluates meals on a 0-100 scale based on five evidence-based nutritional factors: protein density, fiber content, saturated fat, free sugars, and energy density."
   },
   "community": {
+    "pickDateTime": "Pick date & time",
     "title": "Community",
     "moderation": {
       "pending": "Pending review",
@@ -4612,6 +4614,7 @@
       "country": "Country Groups"
     },
     "event": {
+      "finished": "Finished",
       "title": "Event Title",
       "date": "Date",
       "time": "Time",

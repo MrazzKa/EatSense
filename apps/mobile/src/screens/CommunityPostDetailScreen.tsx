@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,7 +30,9 @@ import { useAuth } from '../contexts/AuthContext';
 import ApiService from '../services/apiService';
 import { CommentItem } from '../components/community/CommentItem';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
-import { REACTION_TYPES, getReactionEmoji } from '../components/community/ReactionPicker';
+import { isPastEvent } from '../components/community/eventTime';
+
+const LIKE_COLOR = '#EF4444';
 
 export default function CommunityPostDetailScreen() {
   const navigation = useNavigation();
@@ -46,7 +49,8 @@ export default function CommunityPostDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [showReactions, setShowReactions] = useState(false);
+  const heartScale = useRef(new Animated.Value(1)).current;
+  const lastTapRef = useRef(0);
 
   // Author profile sheet
   const [authorSheetVisible, setAuthorSheetVisible] = useState(false);
@@ -77,19 +81,38 @@ export default function CommunityPostDetailScreen() {
 
   const handleLike = useCallback(async (type?: string) => {
     if (!post) return;
+    if (!post.isLiked) {
+      heartScale.setValue(0.7);
+      Animated.spring(heartScale, { toValue: 1, friction: 3, tension: 140, useNativeDriver: true }).start();
+    }
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+    // Optimistic-first; revert on failure.
+    const applyToggle = () => setPost((prev) => prev ? {
+      ...prev,
+      isLiked: !prev.isLiked,
+      reactionType: prev.isLiked ? null : (type || 'HEART'),
+      likesCount: prev.isLiked ? Math.max((prev.likesCount || 1) - 1, 0) : (prev.likesCount || 0) + 1,
+    } : prev);
+    applyToggle();
     try {
-      await ApiService.toggleCommunityLike(postId, type);
-      setPost((prev) => prev ? {
-        ...prev,
-        isLiked: !prev.isLiked,
-        reactionType: prev.isLiked ? null : (type || 'LIKE'),
-        likesCount: prev.isLiked ? (prev.likesCount || 1) - 1 : (prev.likesCount || 0) + 1,
-      } : prev);
+      await ApiService.toggleCommunityLike(postId, type || 'HEART');
     } catch (err) {
       console.warn('Failed to toggle like:', err);
+      applyToggle(); // revert
     }
-    setShowReactions(false);
-  }, [post, postId]);
+  }, [post, postId, heartScale]);
+
+  // Double-tap anywhere on the post body to like (Instagram-style). Only ever
+  // adds a like; a second double-tap won't un-like.
+  const handleDoubleTapLike = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      lastTapRef.current = 0;
+      if (post && !post.isLiked) handleLike('HEART');
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [post, handleLike]);
 
   const attendBusy = useRef(false);
   const handleAttend = useCallback(async () => {
@@ -205,8 +228,6 @@ export default function CommunityPostDetailScreen() {
     : post?.author?.email?.split('@')[0] || 'Anonymous';
 
   const isOwnPost = user?.id && (post?.authorId === user.id || post?.author?.id === user.id);
-  const currentReaction = post?.reactionType || (post?.isLiked ? 'LIKE' : null);
-  const currentEmoji = getReactionEmoji(currentReaction);
 
   const renderPostHeader = () => {
     if (!post) return null;
@@ -244,50 +265,36 @@ export default function CommunityPostDetailScreen() {
           </View>
         )}
 
-        {/* Content */}
-        <Text style={[styles.postContent, { color: colors.textPrimary || colors.text }]}>
-          {post.content}
-        </Text>
+        {/* Content — double-tap to like */}
+        <TouchableOpacity activeOpacity={1} onPress={handleDoubleTapLike}>
+          <Text style={[styles.postContent, { color: colors.textPrimary || colors.text }]}>
+            {post.content}
+          </Text>
 
-        {/* Metadata for special types */}
-        {renderMetadata()}
+          {/* Metadata for special types */}
+          {renderMetadata()}
 
-        {/* Image */}
-        {post.imageUrl && (
-          <Image source={{ uri: post.imageUrl }} style={styles.postImage} resizeMode="cover" />
-        )}
-
-        {/* Reaction picker */}
-        {showReactions && (
-          <View style={[styles.reactionPicker, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {REACTION_TYPES.map((r) => (
-              <TouchableOpacity
-                key={r.type}
-                onPress={() => handleLike(r.type)}
-                style={[
-                  styles.reactionBtn,
-                  currentReaction === r.type && { backgroundColor: colors.primary + '20' },
-                ]}
-              >
-                <Text style={styles.reactionEmoji}>{r.emoji}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+          {/* Image */}
+          {post.imageUrl && (
+            <Image source={{ uri: post.imageUrl }} style={styles.postImage} resizeMode="cover" />
+          )}
+        </TouchableOpacity>
 
         {/* Actions */}
         <View style={[styles.actionsRow, { borderTopColor: colors.border, borderBottomColor: colors.border }]}>
           <TouchableOpacity
-            onPress={() => handleLike('LIKE')}
-            onLongPress={() => setShowReactions(true)}
+            onPress={() => handleLike('HEART')}
             style={styles.actionBtn}
+            activeOpacity={0.7}
           >
-            {currentEmoji ? (
-              <Text style={styles.reactionSmall}>{currentEmoji}</Text>
-            ) : (
-              <Ionicons name="heart-outline" size={22} color={colors.textTertiary} />
-            )}
-            <Text style={[styles.actionCount, { color: post.isLiked ? colors.primary : colors.textTertiary }]}>
+            <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+              <Ionicons
+                name={post.isLiked ? 'heart' : 'heart-outline'}
+                size={22}
+                color={post.isLiked ? LIKE_COLOR : colors.textTertiary}
+              />
+            </Animated.View>
+            <Text style={[styles.actionCount, { color: post.isLiked ? LIKE_COLOR : colors.textTertiary }]}>
               {post.likesCount || 0}
             </Text>
           </TouchableOpacity>
@@ -401,7 +408,15 @@ export default function CommunityPostDetailScreen() {
               {post.metadata.date} {post.metadata.time || ''}
             </Text>
           )}
-          {isOwnPost ? (
+          {isPastEvent(post.metadata) ? (
+            <View style={[styles.joinBtn, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
+              <Ionicons name="checkmark-done-outline" size={18} color={colors.textSecondary} />
+              <Text style={[styles.joinText, { color: colors.textSecondary }]}>
+                {t('community.event.finished', 'Finished')}
+                {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
+              </Text>
+            </View>
+          ) : isOwnPost ? (
             <View style={[styles.joinBtn, { backgroundColor: '#8B5CF612' }]}>
               <Ionicons name="ribbon-outline" size={18} color="#8B5CF6" />
               <Text style={[styles.joinText, { color: '#8B5CF6' }]}>
@@ -641,24 +656,6 @@ const createStyles = (tokens: any, colors: any) =>
     metaStars: { fontSize: 14, marginTop: 4 },
     joinBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 8, marginTop: 12 },
     joinText: { fontSize: 14, fontWeight: '600', marginLeft: 6 },
-    reactionPicker: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 16,
-      marginBottom: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      borderRadius: 24,
-      borderWidth: 1,
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-    },
-    reactionBtn: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 16 },
-    reactionEmoji: { fontSize: 22 },
-    reactionSmall: { fontSize: 20 },
     actionsRow: {
       flexDirection: 'row',
       alignItems: 'center',
