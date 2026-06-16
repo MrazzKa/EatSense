@@ -348,12 +348,12 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
               {past ? (
                 <View style={[styles.balloonJoin, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
                   <Ionicons name="checkmark-done-outline" size={16} color={colors.textSecondary} />
-                  <Text style={[styles.balloonJoinText, { color: colors.textSecondary }]}>{t('community.event.finished', 'Finished')}</Text>
+                  <Text numberOfLines={1} style={[styles.balloonJoinText, { color: colors.textSecondary }]}>{t('community.event.finished', 'Finished')}</Text>
                 </View>
               ) : joinable && isOwn ? (
                 <View style={[styles.balloonJoin, { backgroundColor: accent + '12' }]}>
                   <Ionicons name="ribbon-outline" size={16} color={accent} />
-                  <Text style={[styles.balloonJoinText, { color: accent }]}>{t('community.route.youOrganizer', 'You organize this')}</Text>
+                  <Text numberOfLines={1} style={[styles.balloonJoinText, { color: accent }]}>{t('community.route.youOrganizer', 'You organize this')}</Text>
                 </View>
               ) : joinable ? (
                 <TouchableOpacity
@@ -362,7 +362,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
                   activeOpacity={0.85}
                 >
                   <Ionicons name={fresh.isAttending ? 'checkmark-circle' : 'add-circle-outline'} size={16} color={fresh.isAttending ? '#fff' : accent} />
-                  <Text style={[styles.balloonJoinText, { color: fresh.isAttending ? '#fff' : accent }]}>
+                  <Text numberOfLines={1} style={[styles.balloonJoinText, { color: fresh.isAttending ? '#fff' : accent }]}>
                     {fresh.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
                   </Text>
                 </TouchableOpacity>
@@ -372,7 +372,7 @@ const CommunityPlacesMap: React.FC<Props> = ({ colors, t, places, events = [], r
                 onPress={() => { const p = fresh; setBalloon(null); onOpenDetails(p); }}
                 activeOpacity={0.85}
               >
-                <Text style={[styles.balloonDetailsText, { color: colors.textPrimary || colors.text }]}>{t('community.preview.details', 'Details')}</Text>
+                <Text numberOfLines={1} style={[styles.balloonDetailsText, { color: colors.textPrimary || colors.text }]}>{t('community.preview.details', 'Details')}</Text>
                 <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
@@ -489,9 +489,9 @@ const styles = StyleSheet.create({
   balloonTitle: { fontSize: 15, fontWeight: '700' },
   balloonSub: { fontSize: 12, marginTop: 1 },
   balloonActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
-  balloonJoin: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 9 },
-  balloonJoinText: { fontSize: 13, fontWeight: '700' },
-  balloonDetails: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 9, borderWidth: 1 },
+  balloonJoin: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 9 },
+  balloonJoinText: { flexShrink: 1, fontSize: 13, fontWeight: '700' },
+  balloonDetails: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 9, borderWidth: 1 },
   balloonDetailsText: { fontSize: 13, fontWeight: '600' },
 });
 

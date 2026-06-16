@@ -67,7 +67,8 @@
     "permissionNeeded": "Permission needed",
     "options": "Options",
     "create": "Create",
-    "notNow": "Not now"
+    "notNow": "Not now",
+    "allow": "Allow"
   },
   "tooltips": {
     "scanMeal": {
@@ -2651,7 +2652,8 @@
       "daysRemaining": "Days remaining",
       "lowStock": "Low stock! Time to refill",
       "daysShort": "d",
-      "orderRefill": "Order refill"
+      "orderRefill": "Order refill",
+      "refill": "Refill"
     },
     "take": "Take",
     "times": "Times",
@@ -2699,7 +2701,8 @@
     "chooseFromGallery": "Choose from Gallery",
     "cameraPermissionDenied": "Camera permission is required to take photos.",
     "emptyTitle": "No medications yet",
-    "emptySubtitle": "Add your medications to get reminders and track your supply."
+    "emptySubtitle": "Add your medications to get reminders and track your supply.",
+    "notifyDisclaimer": "EatSense only reminds you to take your medication and tracks your supply — it does not manage your treatment or replace a doctor."
   },
   "foodDescriptionPrompt": {
     "title": "What did you eat?",
@@ -4504,7 +4507,13 @@
     "openInMaps": "Directions",
     "map": {
       "loading": "Loading map…"
-    }
+    },
+    "scanTitle": "Scan pharmacy QR",
+    "scanHint": "Point the camera at the pharmacy QR code.",
+    "scanInvalid": "That QR is not a pharmacy code. Try another.",
+    "scanPermission": "Allow camera access to scan the pharmacy QR code.",
+    "scanCodeTitle": "Scan pharmacy QR",
+    "scanCodeSub": "Point your camera at the code in the pharmacy."
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",
@@ -4796,7 +4805,7 @@
       "drawOnMap": "Draw route on map",
       "routeSet": "Route set · {{km}} km",
       "builderTitle": "Draw route",
-      "tapStart": "Tap to set the meeting point, then the route",
+      "tapStart": "Tap the map to start drawing your route",
       "km": "km",
       "points": "points",
       "undo": "Undo",
@@ -4811,7 +4820,7 @@
         "bike": "Bike"
       },
       "noRoutes": "No routes on the map yet",
-      "tapNext": "Keep tapping to draw the route — points connect into a line",
+      "tapNext": "Keep tapping to extend it — drag any point to adjust",
       "youOrganizer": "You organize this"
     },
     "mapAdd": {

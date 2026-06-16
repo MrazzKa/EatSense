@@ -1047,6 +1047,7 @@
               </div>
               <div style="display:flex;gap:8px">
                 <button class="btn btn-outline btn-sm" onclick="copyPharmacyCode('${escapeHtml(c.code)}')">Copy code</button>
+                <button class="btn btn-outline btn-sm" onclick="showPharmacyQR('${c.id}')">QR</button>
                 <button class="btn btn-outline btn-sm" onclick="togglePharmacyCode('${c.id}', ${!c.isActive})">${c.isActive ? 'Deactivate' : 'Activate'}</button>
               </div>
             </div>
@@ -1059,6 +1060,41 @@
 
     function copyPharmacyCode(code) {
       navigator.clipboard?.writeText(code).then(() => alert('Copied: ' + code)).catch(() => {});
+    }
+
+    // Show a printable QR for the pharmacy's universal link (rendered server-side).
+    // The pharmacy prints it; patients scan with the phone camera or the in-app scanner.
+    async function showPharmacyQR(id) {
+      try {
+        const data = await fetchAPI('/admin/pharmacy-codes/' + id + '/qr');
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px';
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#fff;border-radius:16px;padding:24px;max-width:360px;width:100%;text-align:center';
+        box.innerHTML = '<h3 style="margin:0 0 4px">' + escapeHtml(data.pharmacyName || '') + '</h3>'
+          + '<div style="font-family:ui-monospace,Menlo,monospace;font-weight:700;margin-bottom:12px">' + escapeHtml(data.code) + '</div>'
+          + '<img src="' + data.dataUrl + '" alt="QR" style="width:260px;height:260px;max-width:100%"/>'
+          + '<div style="word-break:break-all;color:#6b7280;font-size:12px;margin:12px 0">' + escapeHtml(data.link) + '</div>';
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;gap:8px;justify-content:center;flex-wrap:wrap';
+        const dl = document.createElement('a');
+        dl.className = 'btn btn-green btn-sm'; dl.textContent = 'Download';
+        dl.href = data.dataUrl; dl.download = 'eatsense-' + data.code + '.png';
+        const pr = document.createElement('button');
+        pr.className = 'btn btn-outline btn-sm'; pr.textContent = 'Print';
+        pr.onclick = () => { const w = window.open(''); if (w) { w.document.write('<img src="' + data.dataUrl + '" style="width:100%">'); w.document.close(); w.focus(); setTimeout(() => w.print(), 200); } };
+        const cp = document.createElement('button');
+        cp.className = 'btn btn-outline btn-sm'; cp.textContent = 'Copy link';
+        cp.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(data.link); };
+        const cl = document.createElement('button');
+        cl.className = 'btn btn-outline btn-sm'; cl.textContent = 'Close';
+        cl.onclick = () => overlay.remove();
+        actions.append(dl, pr, cp, cl);
+        box.appendChild(actions);
+        overlay.appendChild(box);
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        document.body.appendChild(overlay);
+      } catch (err) { alert('Error: ' + err.message); }
     }
 
     async function togglePharmacyCode(id, isActive) {

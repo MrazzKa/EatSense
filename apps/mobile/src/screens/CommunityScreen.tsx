@@ -283,14 +283,11 @@ export default function CommunityScreen() {
         return content.includes(q) || author.includes(q);
       });
     }
-    // Sink finished events/routes to the bottom (stable partition keeps the rest
-    // in their original chronological order).
-    const active: any[] = [];
-    const past: any[] = [];
-    for (const p of list) {
-      ((p.type === 'EVENT' || p.type === 'ROUTE') && isPastEvent(p.metadata) ? past : active).push(p);
-    }
-    return past.length ? [...active, ...past] : list;
+    // Drop finished events/routes from the feed entirely once their date has passed
+    // (legacy free-text posts have no dateISO → never treated as past, so they stay).
+    return list.filter(
+      (p) => !((p.type === 'EVENT' || p.type === 'ROUTE') && isPastEvent(p.metadata)),
+    );
   }, [posts, searchQuery]);
 
   const filteredGroups = useMemo(() => {
@@ -340,15 +337,16 @@ export default function CommunityScreen() {
   }, []);
 
   // Community events (from the feed) shown as pins on the map — filtered by city.
+  // Past events are dropped (same rule as the feed) so finished pins don't linger.
   const mapEvents = useMemo(() => {
-    const events = (posts || []).filter((p: any) => p?.type === 'EVENT');
+    const events = (posts || []).filter((p: any) => p?.type === 'EVENT' && !isPastEvent(p?.metadata));
     const city = selectedPlacesCity?.city?.trim().toLowerCase();
     if (!city) return events;
     return events.filter((p: any) => cityMatch(p?.metadata, city));
   }, [posts, selectedPlacesCity, cityMatch]);
 
   const mapRoutes = useMemo(() => {
-    const routes = (posts || []).filter((p: any) => p?.type === 'ROUTE');
+    const routes = (posts || []).filter((p: any) => p?.type === 'ROUTE' && !isPastEvent(p?.metadata));
     const city = selectedPlacesCity?.city?.trim().toLowerCase();
     if (!city) return routes;
     return routes.filter((p: any) => cityMatch(p?.metadata, city));

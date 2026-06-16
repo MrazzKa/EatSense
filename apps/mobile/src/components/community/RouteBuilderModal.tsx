@@ -54,6 +54,8 @@ function haversineKm(a: RoutePoint, b: RoutePoint): number {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
+const START_COLOR = '#10B981';
+
 function totalDistanceKm(points: RoutePoint[]): number {
   let d = 0;
   for (let i = 1; i < points.length; i++) d += haversineKm(points[i - 1], points[i]);
@@ -61,9 +63,11 @@ function totalDistanceKm(points: RoutePoint[]): number {
 }
 
 /**
- * Full-screen route builder. Tap the map to drop waypoints — the FIRST point is
- * the meeting/start spot, the rest form the running/walking/cycling line. Distance
- * is computed live (Haversine). Undo removes the last point; clear resets.
+ * Full-screen route builder. Tap the map to lay out the path progressively — points
+ * connect into a line as you go. The first point is the start (▶), the last the
+ * finish (⚑); both are equal-weight, draggable markers (no locked meeting flag).
+ * meetingPoint stays points[0] for the backend. Distance is computed live
+ * (Haversine). Undo removes the last point; clear resets.
  * MapView is mounted only after the modal is shown (onShow) — react-native-maps
  * renders blank inside an RN <Modal> on iOS before the window is laid out.
  */
@@ -166,37 +170,45 @@ const RouteBuilderModal: React.FC<Props> = ({ visible, colors, t, initial, onClo
               {points.length >= 2 && (
                 <Polyline coordinates={points} strokeColor={colors.primary || '#4F46E5'} strokeWidth={4} />
               )}
-              {points.map((p, i) => (
-                <Marker
-                  key={`${i}`}
-                  coordinate={p}
-                  anchor={{ x: 0.5, y: i === 0 ? 1 : 0.5 }}
-                  draggable
-                  onDragEnd={(e) => movePoint(i, e.nativeEvent.coordinate)}
-                >
-                  {i === 0 ? (
-                    <View style={styles.startPin}>
-                      <View style={[styles.startBubble, { backgroundColor: colors.primary || '#4F46E5' }]}>
-                        <Ionicons name="flag" size={14} color="#FFF" />
+              {points.map((p, i) => {
+                // No locked "meeting flag": the route is laid out progressively. The
+                // first point is just the start, the last the finish — both update live
+                // as you tap, and every point can be dragged to fine-tune.
+                const isStart = i === 0;
+                const isEnd = i === points.length - 1 && points.length > 1;
+                return (
+                  <Marker
+                    key={`${i}`}
+                    coordinate={p}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    draggable
+                    onDragEnd={(e) => movePoint(i, e.nativeEvent.coordinate)}
+                  >
+                    {isStart ? (
+                      <View style={[styles.endpoint, { backgroundColor: START_COLOR }]}>
+                        <Ionicons name="play" size={11} color="#FFF" />
                       </View>
-                      <View style={[styles.pinTip, { borderTopColor: colors.primary || '#4F46E5' }]} />
-                    </View>
-                  ) : (
-                    <View style={[styles.dot, { backgroundColor: colors.primary || '#4F46E5' }]} />
-                  )}
-                </Marker>
-              ))}
+                    ) : isEnd ? (
+                      <View style={[styles.endpoint, { backgroundColor: colors.primary || '#4F46E5' }]}>
+                        <Ionicons name="flag" size={11} color="#FFF" />
+                      </View>
+                    ) : (
+                      <View style={[styles.dot, { backgroundColor: colors.primary || '#4F46E5' }]} />
+                    )}
+                  </Marker>
+                );
+              })}
             </MapView>
           )}
 
           {mapMounted && points.length < 2 && (
             <View pointerEvents="none" style={styles.hint}>
               <View style={[styles.hintPill, { backgroundColor: colors.surface }]}>
-                <Ionicons name={points.length === 0 ? 'flag-outline' : 'add-circle-outline'} size={16} color={colors.primary} />
+                <Ionicons name={points.length === 0 ? 'navigate-outline' : 'add-circle-outline'} size={16} color={colors.primary} />
                 <Text style={[styles.hintText, { color: colors.textSecondary }]}>
                   {points.length === 0
-                    ? t('community.route.tapStart', 'Tap to set the meeting point, then the route')
-                    : t('community.route.tapNext', 'Keep tapping to draw the route — points connect into a line')}
+                    ? t('community.route.tapStart', 'Tap the map to start drawing your route')
+                    : t('community.route.tapNext', 'Keep tapping to extend it — drag any point to adjust')}
                 </Text>
               </View>
             </View>
@@ -258,25 +270,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   hintText: { fontSize: 13, fontWeight: '500' },
-  startPin: { alignItems: 'center' },
-  startBubble: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  // Start (▶) / finish (⚑) endpoints — equal-weight markers, not a locked flag.
+  endpoint: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#FFF',
-  },
-  pinTip: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 4,
-    borderRightWidth: 4,
-    borderTopWidth: 7,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    marginTop: -1,
   },
   dot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#FFF' },
   footer: {

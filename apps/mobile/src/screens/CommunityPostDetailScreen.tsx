@@ -411,7 +411,7 @@ export default function CommunityPostDetailScreen() {
           {isPastEvent(post.metadata) ? (
             <View style={[styles.joinBtn, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
               <Ionicons name="checkmark-done-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.joinText, { color: colors.textSecondary }]}>
+              <Text numberOfLines={1} style={[styles.joinText, { color: colors.textSecondary }]}>
                 {t('community.event.finished', 'Finished')}
                 {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
               </Text>
@@ -419,7 +419,7 @@ export default function CommunityPostDetailScreen() {
           ) : isOwnPost ? (
             <View style={[styles.joinBtn, { backgroundColor: '#8B5CF612' }]}>
               <Ionicons name="ribbon-outline" size={18} color="#8B5CF6" />
-              <Text style={[styles.joinText, { color: '#8B5CF6' }]}>
+              <Text numberOfLines={1} style={[styles.joinText, { color: '#8B5CF6' }]}>
                 {t('community.route.youOrganizer', 'You organize this')}
                 {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
               </Text>
@@ -434,7 +434,7 @@ export default function CommunityPostDetailScreen() {
                 size={18}
                 color={post.isAttending ? '#fff' : '#8B5CF6'}
               />
-              <Text style={[styles.joinText, { color: post.isAttending ? '#fff' : '#8B5CF6' }]}>
+              <Text numberOfLines={1} style={[styles.joinText, { color: post.isAttending ? '#fff' : '#8B5CF6' }]}>
                 {post.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
                 {post._count?.attendees ? ` · ${post._count.attendees}` : ''}
               </Text>
@@ -655,7 +655,7 @@ const createStyles = (tokens: any, colors: any) =>
     metaDetail: { fontSize: 13, marginTop: 4 },
     metaStars: { fontSize: 14, marginTop: 4 },
     joinBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 8, marginTop: 12 },
-    joinText: { fontSize: 14, fontWeight: '600', marginLeft: 6 },
+    joinText: { flexShrink: 1, fontSize: 14, fontWeight: '600', marginLeft: 6 },
     actionsRow: {
       flexDirection: 'row',
       alignItems: 'center',

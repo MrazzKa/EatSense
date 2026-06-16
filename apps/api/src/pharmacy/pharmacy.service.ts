@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
+import * as QRCode from 'qrcode';
 import { PrismaService } from '../../prisma.service';
 import { MailerService } from '../../mailer/mailer.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -120,6 +121,9 @@ export class PharmacyService {
   private readonly logger = new Logger(PharmacyService.name);
   private readonly orderEmail = 'info@eatsense.ch';
   private readonly apiBaseUrl = process.env.API_BASE_URL || 'https://api.eatsense.ch';
+  // While the partner pilot is finalised, medication orders go to the EatSense team
+  // only. Set PHARMACY_FORWARD_ORDERS=true to also email the connected pharmacy.
+  private readonly forwardOrdersToPharmacy = process.env.PHARMACY_FORWARD_ORDERS === 'true';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -310,6 +314,16 @@ export class PharmacyService {
     return this.prisma.pharmacyAccessCode.update({ where: { id }, data: { isActive } });
   }
 
+  // QR (PNG data URL) for the universal link patients scan to link this pharmacy.
+  async adminGetPharmacyCodeQr(id: string) {
+    const access = await this.prisma.pharmacyAccessCode.findUnique({ where: { id } });
+    if (!access) throw new NotFoundException('Pharmacy code not found');
+    const base = process.env.PHARMACY_QR_BASE_URL || 'https://eatsense.ch/pharmacy';
+    const link = `${base}?code=${encodeURIComponent(access.code)}`;
+    const dataUrl = await QRCode.toDataURL(link, { width: 512, margin: 2, errorCorrectionLevel: 'M' });
+    return { code: access.code, pharmacyName: access.pharmacyName, link, dataUrl };
+  }
+
   async updateConnection(userId: string, id: string, dto: Partial<ConnectPharmacyDto>) {
     const existing = await this.prisma.pharmacyConnection.findFirst({
       where: { id, userId },
@@ -434,8 +448,9 @@ export class PharmacyService {
       this.logger.error(`[Pharmacy] Failed to send order email for order ${order.id}:`, err);
     }
 
-    // Also send to pharmacy if they have email configured (in their language)
-    if (pharmacyEmail) {
+    // Also send to pharmacy if they have email configured (in their language).
+    // Gated by PHARMACY_FORWARD_ORDERS so the pilot routes orders to our team first.
+    if (pharmacyEmail && this.forwardOrdersToPharmacy) {
       try {
         const pharmaHtml = this.buildOrderEmail({ ...orderEmailArgs, lang: pharmacyLang });
         const pharmaSubject = `[EatSense] ${PHARMA_I18N[pharmacyLang].orderSubject} ${userName}`;

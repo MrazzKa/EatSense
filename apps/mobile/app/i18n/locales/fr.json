@@ -618,7 +618,8 @@
     "permissionNeeded": "Autorisation requise",
     "options": "Paramètres",
     "create": "Créer",
-    "notNow": "Plus tard"
+    "notNow": "Plus tard",
+    "allow": "Autoriser"
   },
   "tooltips": {
     "scanMeal": {
@@ -1735,7 +1736,8 @@
       "daysRemaining": "Jours restants",
       "lowStock": "Stock faible ! Il est temps de réapprovisionner",
       "daysShort": "j",
-      "orderRefill": "Commander un réappro"
+      "orderRefill": "Commander un réappro",
+      "refill": "Recharger"
     },
     "take": "Prendre",
     "tabTitle": "Médicaments",
@@ -1770,7 +1772,8 @@
     "chooseFromGallery": "Choisir de la galerie",
     "cameraPermissionDenied": "Autorisation de la caméra refusée",
     "emptyTitle": "Aucun médicament",
-    "emptySubtitle": "Ajoutez vos médicaments pour recevoir des rappels et suivre votre stock."
+    "emptySubtitle": "Ajoutez vos médicaments pour recevoir des rappels et suivre votre stock.",
+    "notifyDisclaimer": "EatSense vous rappelle seulement de prendre vos médicaments et suit votre stock — il ne gère pas votre traitement et ne remplace pas un médecin."
   },
   "notifications": {
     "enableFailed": "Impossible d'activer les notifications.",
@@ -4483,7 +4486,13 @@
     "openInMaps": "Itinéraire",
     "map": {
       "loading": "Chargement de la carte…"
-    }
+    },
+    "scanTitle": "Scanner le QR de la pharmacie",
+    "scanHint": "Pointez la caméra vers le QR de la pharmacie.",
+    "scanInvalid": "Ce QR n'est pas un code de pharmacie. Essayez-en un autre.",
+    "scanPermission": "Autorisez l'accès à la caméra pour scanner le QR de la pharmacie.",
+    "scanCodeTitle": "Scanner le QR de la pharmacie",
+    "scanCodeSub": "Pointez votre caméra vers le code à la pharmacie."
   },
   "community": {
     "pickDateTime": "Choisir la date et l'heure",
@@ -4761,7 +4770,7 @@
       "drawOnMap": "Tracer sur la carte",
       "routeSet": "Itinéraire prêt · {{km}} km",
       "builderTitle": "Tracer l'itinéraire",
-      "tapStart": "Touchez le point de rendez-vous, puis l'itinéraire",
+      "tapStart": "Touchez la carte pour commencer à tracer l'itinéraire",
       "km": "km",
       "points": "points",
       "undo": "Annuler",
@@ -4776,7 +4785,7 @@
         "bike": "Vélo"
       },
       "noRoutes": "Aucun itinéraire sur la carte pour l'instant",
-      "tapNext": "Continuez à toucher pour tracer l'itinéraire — les points se relient en ligne",
+      "tapNext": "Continuez à toucher pour l'étendre — faites glisser un point pour l'ajuster",
       "youOrganizer": "Vous organisez"
     },
     "mapAdd": {

@@ -553,7 +553,8 @@
     "permissionNeeded": "Permiso necesario",
     "options": "Opciones",
     "create": "Crear",
-    "notNow": "Ahora no"
+    "notNow": "Ahora no",
+    "allow": "Permitir"
   },
   "dashboard": {
     "addFood": {
@@ -1442,7 +1443,8 @@
       "daysRemaining": "Días restantes",
       "lowStock": "¡Bajo stock! Es hora de reabastecer",
       "daysShort": "d",
-      "orderRefill": "Pedir reposición"
+      "orderRefill": "Pedir reposición",
+      "refill": "Reabastecer"
     },
     "take": "Tomar",
     "dosageUnits": {
@@ -1472,7 +1474,8 @@
     "addPhoto": "Agregar foto",
     "cameraPermissionDenied": "Se requiere permiso de cámara para tomar fotos.",
     "emptyTitle": "Aún no hay medicamentos",
-    "emptySubtitle": "Añade tus medicamentos para recibir recordatorios y controlar tu stock."
+    "emptySubtitle": "Añade tus medicamentos para recibir recordatorios y controlar tu stock.",
+    "notifyDisclaimer": "EatSense solo te recuerda tomar tus medicamentos y controla tu stock — no gestiona tu tratamiento ni reemplaza a un médico."
   },
   "notifications": {
     "enableFailed": "No se pudieron activar las notificaciones.",
@@ -2863,7 +2866,13 @@
     "openInMaps": "Cómo llegar",
     "map": {
       "loading": "Cargando mapa…"
-    }
+    },
+    "scanTitle": "Escanear QR de la farmacia",
+    "scanHint": "Apunta la cámara al código QR de la farmacia.",
+    "scanInvalid": "Ese QR no es un código de farmacia. Prueba otro.",
+    "scanPermission": "Permite el acceso a la cámara para escanear el QR de la farmacia.",
+    "scanCodeTitle": "Escanear QR de la farmacia",
+    "scanCodeSub": "Apunta tu cámara al código en la farmacia."
   },
   "community": {
     "pickDateTime": "Elegir fecha y hora",
@@ -3141,7 +3150,7 @@
       "drawOnMap": "Dibujar ruta en el mapa",
       "routeSet": "Ruta lista · {{km}} km",
       "builderTitle": "Dibujar ruta",
-      "tapStart": "Toca el punto de encuentro y luego la ruta",
+      "tapStart": "Toca el mapa para empezar a trazar la ruta",
       "km": "km",
       "points": "puntos",
       "undo": "Deshacer",
@@ -3156,7 +3165,7 @@
         "bike": "Bici"
       },
       "noRoutes": "Aún no hay rutas en el mapa",
-      "tapNext": "Sigue tocando para dibujar la ruta — los puntos se conectan en una línea",
+      "tapNext": "Sigue tocando para extenderla — arrastra un punto para ajustar",
       "youOrganizer": "Tú lo organizas"
     },
     "mapAdd": {

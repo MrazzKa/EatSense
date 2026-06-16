@@ -916,7 +916,8 @@
     "permissionNeeded": "Berechtigung erforderlich",
     "options": "Optionen",
     "create": "Erstellen",
-    "notNow": "Nicht jetzt"
+    "notNow": "Nicht jetzt",
+    "allow": "Erlauben"
   },
   "dashboard": {
     "addFood": {
@@ -1756,7 +1757,8 @@
       "daysRemaining": "Verbleibende Tage",
       "lowStock": "Vorrat niedrig! Zeit zum Nachfüllen",
       "daysShort": "T",
-      "orderRefill": "Nachschub bestellen"
+      "orderRefill": "Nachschub bestellen",
+      "refill": "Nachfüllen"
     },
     "take": "Einnehmen",
     "dosageUnits": {
@@ -1800,7 +1802,8 @@
     "chooseFromGallery": "Aus Galerie wählen",
     "cameraPermissionDenied": "Kameraberechtigung ist erforderlich, um Fotos aufzunehmen.",
     "emptyTitle": "Noch keine Medikamente",
-    "emptySubtitle": "Fügen Sie Ihre Medikamente hinzu, um Erinnerungen zu erhalten und den Vorrat zu verfolgen."
+    "emptySubtitle": "Fügen Sie Ihre Medikamente hinzu, um Erinnerungen zu erhalten und den Vorrat zu verfolgen.",
+    "notifyDisclaimer": "EatSense erinnert dich nur an die Einnahme und verfolgt deinen Vorrat — es übernimmt nicht deine Behandlung und ersetzt keinen Arzt."
   },
   "notifications": {
     "enableFailed": "Benachrichtigungen konnten nicht aktiviert werden.",
@@ -4495,7 +4498,13 @@
     "openInMaps": "Route",
     "map": {
       "loading": "Karte wird geladen…"
-    }
+    },
+    "scanTitle": "Apotheken-QR scannen",
+    "scanHint": "Richte die Kamera auf den QR-Code der Apotheke.",
+    "scanInvalid": "Das ist kein Apotheken-Code. Versuche einen anderen.",
+    "scanPermission": "Erlaube den Kamerazugriff, um den Apotheken-QR zu scannen.",
+    "scanCodeTitle": "Apotheken-QR scannen",
+    "scanCodeSub": "Richte deine Kamera auf den Code in der Apotheke."
   },
   "community": {
     "pickDateTime": "Datum & Uhrzeit wählen",
@@ -4773,7 +4782,7 @@
       "drawOnMap": "Route auf Karte zeichnen",
       "routeSet": "Route fertig · {{km}} km",
       "builderTitle": "Route zeichnen",
-      "tapStart": "Tippe den Treffpunkt, dann die Route",
+      "tapStart": "Tippe auf die Karte, um die Route zu zeichnen",
       "km": "km",
       "points": "Punkte",
       "undo": "Rückgängig",
@@ -4788,7 +4797,7 @@
         "bike": "Rad"
       },
       "noRoutes": "Noch keine Routen auf der Karte",
-      "tapNext": "Tippe weiter, um die Route zu zeichnen — Punkte verbinden sich zu einer Linie",
+      "tapNext": "Tippe weiter, um sie zu verlängern — ziehe einen Punkt zum Anpassen",
       "youOrganizer": "Du organisierst"
     },
     "mapAdd": {

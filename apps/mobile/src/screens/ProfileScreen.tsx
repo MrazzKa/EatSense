@@ -43,6 +43,7 @@ import LockedFeatureOverlay from '../components/profile/LockedFeatureOverlay';
 import { canUseFeature } from '../utils/subscriptionGuard';
 import { EXPERT_APPLICATIONS_ENABLED, EXISTING_EXPERT_STATUSES } from '../config/experts';
 import { ENABLE_PHARMACY } from '../config/pharmacy';
+import { ENABLE_HEALTH } from '../config/health';
 import Tooltip from '../components/Tooltip/Tooltip';
 import { TooltipIds } from '../components/Tooltip/TooltipContext';
 
@@ -1613,7 +1614,9 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           )}
 
-          {/* My Health — link to medical analyses screen */}
+          {/* My Health — link to medical analyses screen.
+              Temporarily hidden behind ENABLE_HEALTH while medical analyses are paused. */}
+          {ENABLE_HEALTH && (
           <GlassCard padding={null} style={{ marginHorizontal: 16, marginVertical: 8 }}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Health' as never)}
@@ -1643,6 +1646,7 @@ const ProfileScreen = () => {
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary || '#999'} />
             </TouchableOpacity>
           </GlassCard>
+          )}
 
           {/* Health Profile Summary - Under Edit Profile */}
           < AppCard style={styles.healthSection} >

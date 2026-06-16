@@ -62,7 +62,7 @@ export function RouteCard({ post, onAttend, onPress, isOwn }: RouteCardProps) {
       {isPast ? (
         <View style={[styles.joinBtn, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
           <Ionicons name="checkmark-done-outline" size={18} color={colors.textSecondary} />
-          <Text style={[styles.joinText, { color: colors.textSecondary }]}>
+          <Text numberOfLines={1} style={[styles.joinText, { color: colors.textSecondary }]}>
             {t('community.event.finished', 'Finished')}
             {attendees ? ` · ${attendees}` : ''}
           </Text>
@@ -70,7 +70,7 @@ export function RouteCard({ post, onAttend, onPress, isOwn }: RouteCardProps) {
       ) : isOwn ? (
         <View style={[styles.joinBtn, { backgroundColor: ROUTE_COLOR + '12' }]}>
           <Ionicons name="ribbon-outline" size={18} color={ROUTE_COLOR} />
-          <Text style={[styles.joinText, { color: ROUTE_COLOR }]}>
+          <Text numberOfLines={1} style={[styles.joinText, { color: ROUTE_COLOR }]}>
             {t('community.route.youOrganizer', 'You organize this')}
             {attendees ? ` · ${attendees}` : ''}
           </Text>
@@ -85,7 +85,7 @@ export function RouteCard({ post, onAttend, onPress, isOwn }: RouteCardProps) {
             size={18}
             color={post.isAttending ? '#fff' : ROUTE_COLOR}
           />
-          <Text style={[styles.joinText, { color: post.isAttending ? '#fff' : ROUTE_COLOR }]}>
+          <Text numberOfLines={1} style={[styles.joinText, { color: post.isAttending ? '#fff' : ROUTE_COLOR }]}>
             {post.isAttending ? t('community.route.joined', 'Going') : t('community.route.join', 'Join')}
             {attendees ? ` · ${attendees}` : ''}
           </Text>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   metaChip: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   detail: { fontSize: 13 },
   joinBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderRadius: 8, marginTop: 2 },
-  joinText: { fontSize: 14, fontWeight: '600', marginLeft: 6 },
+  joinText: { flexShrink: 1, fontSize: 14, fontWeight: '600', marginLeft: 6 },
 });
 
 export default RouteCard;

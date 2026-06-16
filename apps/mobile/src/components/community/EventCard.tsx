@@ -50,7 +50,7 @@ export function EventCard({ post, onAttend, onPress, isOwn }: EventCardProps) {
       {isPast ? (
         <View style={[styles.attendBtn, { backgroundColor: (colors.textTertiary || '#9CA3AF') + '20' }]}>
           <Ionicons name="checkmark-done-outline" size={18} color={colors.textSecondary} />
-          <Text style={[styles.attendText, { color: colors.textSecondary }]}>
+          <Text numberOfLines={1} style={[styles.attendText, { color: colors.textSecondary }]}>
             {t('community.event.finished', 'Finished')}
             {attendees ? ` · ${attendees}` : ''}
           </Text>
@@ -58,7 +58,7 @@ export function EventCard({ post, onAttend, onPress, isOwn }: EventCardProps) {
       ) : isOwn ? (
         <View style={[styles.attendBtn, { backgroundColor: colors.primary + '10' }]}>
           <Ionicons name="ribbon-outline" size={18} color={colors.primary} />
-          <Text style={[styles.attendText, { color: colors.primary }]}>
+          <Text numberOfLines={1} style={[styles.attendText, { color: colors.primary }]}>
             {t('community.route.youOrganizer', 'You organize this')}
             {attendees ? ` \u00b7 ${attendees}` : ''}
           </Text>
@@ -76,7 +76,7 @@ export function EventCard({ post, onAttend, onPress, isOwn }: EventCardProps) {
             size={18}
             color={post.isAttending ? '#fff' : colors.primary}
           />
-          <Text style={[styles.attendText, { color: post.isAttending ? '#fff' : colors.primary }]}>
+          <Text numberOfLines={1} style={[styles.attendText, { color: post.isAttending ? '#fff' : colors.primary }]}>
             {post.isAttending ? t('community.attending', "I'll go") : t('community.attend', "I'll go")}
             {attendees ? ` \u00b7 ${attendees}` : ''}
           </Text>
@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   attendText: {
+    flexShrink: 1,
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 6,

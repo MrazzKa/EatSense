@@ -295,6 +295,21 @@ const MedicationCard = ({ item, onPress, onDelete, onTake, onRefill, colors, t }
                             <Text style={styles.takeButtonText}>{t('medications.take') || 'Take'}</Text>
                         </TouchableOpacity>
                     </Animated.View>
+
+                    {/* Quick refill — always available (not just on low stock) so the
+                        user can reorder any time. Hidden when pharmacy is disabled. */}
+                    {onRefill && (
+                        <TouchableOpacity
+                            style={[styles.quickRefillButton, { borderColor: (colors.primary || '#4CAF50') + '40' }]}
+                            onPress={() => onRefill(item)}
+                            activeOpacity={0.8}
+                        >
+                            <Ionicons name="refresh-outline" size={15} color={colors.primary || '#4CAF50'} />
+                            <Text style={[styles.quickRefillText, { color: colors.primary || '#4CAF50' }]} numberOfLines={1}>
+                                {t('medications.stock.refill') || 'Refill'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         </TouchableOpacity>
@@ -904,6 +919,14 @@ const MedicationScheduleScreen: React.FC = () => {
                 colors={colors}
             />
 
+            {/* Scope disclaimer — we remind & track supply, we don't manage treatment. */}
+            <View style={[styles.notifyDisclaimer, { backgroundColor: (colors.surfaceSecondary || '#F5F5F5') }]}>
+                <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary || '#666'} style={{ marginTop: 1 }} />
+                <Text style={[styles.notifyDisclaimerText, { color: colors.textSecondary || '#666' }]}>
+                    {t('medications.notifyDisclaimer') || 'EatSense only reminds you to take your medication and tracks your supply — it does not manage your treatment or replace a doctor.'}
+                </Text>
+            </View>
+
             {/* Onboarding Tooltip for first-time users */}
             <Tooltip
                 id={TooltipIds.MEDICATION_SCHEDULE}
@@ -1125,6 +1148,36 @@ const styles = StyleSheet.create({
     refillButtonText: {
         fontSize: 11,
         fontWeight: '700',
+    },
+    quickRefillButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        marginTop: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 14,
+        borderWidth: 1,
+    },
+    quickRefillText: {
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    notifyDisclaimer: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 8,
+        marginHorizontal: 16,
+        marginTop: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 10,
+    },
+    notifyDisclaimerText: {
+        flex: 1,
+        fontSize: 12,
+        lineHeight: 17,
     },
     // Modal Styles
     modalContainer: {

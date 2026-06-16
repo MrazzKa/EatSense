@@ -56,6 +56,15 @@ export class PharmacyAdminController {
     }
   }
 
+  // Returns a QR (data URL) encoding the universal link patients scan to link the
+  // pharmacy: https://eatsense.ch/pharmacy?code=CODE. Rendered server-side with the
+  // existing `qrcode` dep (no external service), authenticated by the admin secret.
+  @Get(':id/qr')
+  async qr(@Headers('x-admin-secret') adminSecret: string, @Param('id') id: string) {
+    this.validateAdmin(adminSecret);
+    return this.pharmacyService.adminGetPharmacyCodeQr(id);
+  }
+
   @Post(':id/active')
   async setActive(
     @Headers('x-admin-secret') adminSecret: string,

@@ -17,6 +17,10 @@ import { EmptySplash } from './src/components/EmptySplash';
 import { useAuth } from './src/contexts/AuthContext';
 import { useTheme } from './src/contexts/ThemeContext';
 import { useNotificationActions, setNotificationNavigationCallback } from './src/hooks/useNotificationActions';
+import { Alert } from 'react-native';
+import * as Linking from 'expo-linking';
+import { useI18n } from './app/i18n/hooks';
+import { parsePharmacyCode } from './src/utils/pharmacyCode';
 
 // FIX: Lazy load screens to improve app startup time
 // Only load screens when they're actually needed, not at app startup
@@ -103,6 +107,44 @@ function NotificationActionsHandler() {
       setNotificationNavigationCallback(null);
     };
   }, [navigation]);
+
+  return null;
+}
+
+// Handles pharmacy QR links (https://eatsense.ch/pharmacy?code=… or eatsense://pharmacy?code=…):
+// opening one links the pharmacy to the account, then jumps to the Pharmacy screen.
+// Mirrors NotificationActionsHandler — must live inside NavigationContainer.
+function PharmacyDeepLinkHandler() {
+  const navigation = useNavigation();
+  const { t } = useI18n();
+  const handledRef = React.useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const handleUrl = async (url?: string | null) => {
+      if (!url) return;
+      const code = parsePharmacyCode(url);
+      if (!code || handledRef.current.has(url)) return;
+      handledRef.current.add(url);
+      try {
+        const ApiService = require('./src/services/apiService').default;
+        await ApiService.connectPharmacyByCode(code);
+        navigation.navigate('Pharmacy' as never);
+        Alert.alert(
+          t('pharmacy.codeAppliedTitle', 'Pharmacy linked'),
+          t('pharmacy.codeAppliedBody', 'This pharmacy is now connected.'),
+        );
+      } catch (e) {
+        clientLog('Pharmacy:deepLinkFailed', { error: String(e) }).catch(() => {});
+        Alert.alert(
+          t('pharmacy.codeInvalidTitle', 'Check the code'),
+          t('pharmacy.codeInvalidBody', 'Check the pharmacy code and try again.'),
+        );
+      }
+    };
+    Linking.getInitialURL().then(handleUrl).catch(() => {});
+    const sub = Linking.addEventListener('url', (e) => handleUrl(e.url));
+    return () => sub.remove();
+  }, [navigation, t]);
 
   return null;
 }
@@ -231,6 +273,8 @@ function AppContent() {
           <>
             {/* Notification action handlers - must be inside NavigationContainer */}
             <NotificationActionsHandler />
+            {/* Pharmacy QR deep-link handler - must be inside NavigationContainer */}
+            <PharmacyDeepLinkHandler />
             <Stack.Navigator
               key="main-stack"
               initialRouteName="MainTabs"

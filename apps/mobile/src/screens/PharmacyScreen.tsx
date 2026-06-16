@@ -22,6 +22,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
 import { ListSkeleton } from '../components/common/Skeleton';
 import { BottomSheet } from '../components/common/BottomSheet';
+import PharmacyQRScannerModal from '../components/pharmacy/PharmacyQRScannerModal';
 
 // --- Types ---
 
@@ -624,6 +625,7 @@ const PharmacyScreen: React.FC = () => {
   const [codeModalVisible, setCodeModalVisible] = useState(false);
   const [codeInput, setCodeInput] = useState('');
   const [applyingCode, setApplyingCode] = useState(false);
+  const [scannerVisible, setScannerVisible] = useState(false);
 
   // Deep-link from a low-stock refill nudge (push or the "Order refill" button
   // on the medication card): open the order modal with the medication pre-filled.
@@ -675,8 +677,8 @@ const PharmacyScreen: React.FC = () => {
     }
   };
 
-  const handleApplyCode = async () => {
-    const code = codeInput.replace(/[^a-z0-9-]/gi, '').toUpperCase();
+  const applyPharmacyCode = async (rawCode: string) => {
+    const code = (rawCode || '').replace(/[^a-z0-9-]/gi, '').toUpperCase();
     if (code.length < 4) {
       Alert.alert(t('pharmacy.codeInvalidTitle', 'Check the code'), t('pharmacy.codeInvalidBody', 'Check the pharmacy code and try again.'));
       return;
@@ -694,6 +696,14 @@ const PharmacyScreen: React.FC = () => {
     } finally {
       setApplyingCode(false);
     }
+  };
+
+  const handleApplyCode = () => applyPharmacyCode(codeInput);
+
+  // Scanned QR (parsed to a raw code by the scanner modal) → same link flow.
+  const handleScannedCode = (code: string) => {
+    setScannerVisible(false);
+    applyPharmacyCode(code);
   };
 
   const handleDisconnect = (pharmacy: PharmacyConnection) => {
@@ -858,6 +868,24 @@ const PharmacyScreen: React.FC = () => {
             <Ionicons name="chevron-forward" size={16} color={colors.textTertiary || '#9CA3AF'} />
           </TouchableOpacity>
 
+          {/* Scan the pharmacy's QR code (same link flow, no typing). */}
+          <TouchableOpacity
+            style={[styles.codeEntryBtn, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '08' }]}
+            onPress={() => setScannerVisible(true)}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="qr-code-outline" size={18} color={colors.primary} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={{ color: colors.textPrimary || colors.text, fontWeight: '700', fontSize: 14 }}>
+                {t('pharmacy.scanCodeTitle', 'Scan pharmacy QR')}
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 1 }}>
+                {t('pharmacy.scanCodeSub', 'Point your camera at the code in the pharmacy.')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary || '#9CA3AF'} />
+          </TouchableOpacity>
+
           {/* Order Button */}
           <TouchableOpacity
             style={[styles.orderBtn, { backgroundColor: colors.primary }]}
@@ -940,6 +968,15 @@ const PharmacyScreen: React.FC = () => {
         initialItem={orderPrefillItem}
         colors={colors}
         t={t}
+      />
+
+      {/* Pharmacy QR scanner */}
+      <PharmacyQRScannerModal
+        visible={scannerVisible}
+        colors={colors}
+        t={t}
+        onClose={() => setScannerVisible(false)}
+        onScanned={handleScannedCode}
       />
 
       {/* Pharmacy code entry */}
