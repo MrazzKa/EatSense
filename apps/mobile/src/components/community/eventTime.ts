@@ -17,13 +17,18 @@ function monthTokens() {
   for (const loc of LOCALES) {
     for (let m = 0; m < 12; m++) {
       try {
-        // The exact month word a localized full date produces (e.g. "march",
-        // "марта", "mars", "märz") plus the standalone long name.
-        const full = new Date(2021, m, 15).toLocaleDateString(loc, { day: 'numeric', month: 'long', year: 'numeric' });
-        const word = full.replace(/[0-9.,/\s]+/g, ' ').trim().toLowerCase();
-        if (word) out.push({ token: word, month: m });
+        // A localized full date carries the month in the form real strings use —
+        // often inflected (RU genitive "июня", DE "märz", FR "mars", ES "de junio").
+        // Split it into words and keep every alphabetic word (≥3 chars; drops day
+        // numbers, "г", "de", year). This is what makes free-text dates like
+        // "10 июня" parse — the standalone nominative ("июнь") never matches the
+        // genitive the app actually renders.
+        const full = new Date(2021, m, 15).toLocaleDateString(loc, { day: 'numeric', month: 'long', year: 'numeric' }).toLowerCase();
+        for (const w of full.split(/[^\p{L}]+/u)) {
+          if (w && w.length >= 3) out.push({ token: w, month: m });
+        }
         const name = new Date(2021, m, 15).toLocaleDateString(loc, { month: 'long' }).toLowerCase();
-        if (name) out.push({ token: name, month: m });
+        if (name && name.length >= 3) out.push({ token: name, month: m });
       } catch {
         // Intl may not support a locale on some engines — skip it.
       }
@@ -73,4 +78,19 @@ export function getEventTimeMs(metadata: any): number | null {
 export function isPastEvent(metadata: any): boolean {
   const ms = getEventTimeMs(metadata);
   return ms != null && ms < Date.now();
+}
+
+/**
+ * Whether an EVENT/ROUTE post should be hidden from the feed/map/groups.
+ * A date is now mandatory when creating events/routes, so the rule is simply:
+ * it is visible only while it has a real future date.
+ *   - usable date in the past → finished → hide
+ *   - no usable date at all   → legacy/test post (date is required now) → hide
+ *   - real future date        → keep visible
+ * Non-event/route posts are never hidden by this rule.
+ */
+export function shouldHideCommunityPost(post: any): boolean {
+  if (!post || (post.type !== 'EVENT' && post.type !== 'ROUTE')) return false;
+  const ms = getEventTimeMs(post.metadata);
+  return ms == null || ms < Date.now();
 }

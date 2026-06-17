@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import ApiService from '../services/apiService';
@@ -325,6 +325,10 @@ const EditMedicationModal = ({
     colors,
     t
 }: any) => {
+    const insets = useSafeAreaInsets();
+    // Full-screen modal (no pageSheet peek/gap). Guarantee a comfortable top
+    // inset so the header isn't crammed under the notch on the first open.
+    const headerTopPad = Math.max(insets.top, Platform.OS === 'ios' ? 44 : 12) + 6;
     const [name, setName] = useState('');
     const [dosageAmount, setDosageAmount] = useState('');
     const [dosageUnit, setDosageUnit] = useState<DosageUnitKey>('mg');
@@ -532,10 +536,10 @@ const EditMedicationModal = ({
     };
 
     return (
-        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+        <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
             <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                 {/* Modal Header */}
-                <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E5EA' }]}>
+                <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E5EA', paddingTop: headerTopPad }]}>
                     <TouchableOpacity onPress={onClose} style={styles.modalCancelBtn}>
                         <Text style={{ color: colors.primary, fontSize: 16 }}>{t('common.cancel')}</Text>
                     </TouchableOpacity>
@@ -1188,7 +1192,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingVertical: 14,
+        paddingBottom: 16,
         borderBottomWidth: 1,
     },
     modalCancelBtn: {

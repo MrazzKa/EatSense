@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { parsePharmacyCode } from '../../utils/pharmacyCode';
@@ -20,6 +20,13 @@ type Props = {
  * Mirrors the CameraView usage in screens/CameraScreen.tsx.
  */
 const PharmacyQRScannerModal: React.FC<Props> = ({ visible, colors, t, onClose, onScanned }) => {
+  const insets = useSafeAreaInsets();
+  // Inside a bare RN <Modal>, react-native-safe-area-context's SafeAreaView
+  // measures 0 on the first frame → the header (and the ✕) jumped under the
+  // notch the first time the scanner opened. Read the already-measured root
+  // insets via the hook and guarantee a sensible minimum so it never collapses.
+  const topPad = Math.max(insets.top, Platform.OS === 'ios' ? 44 : 12);
+  const bottomPad = Math.max(insets.bottom, 12);
   const [permission, requestPermission] = useCameraPermissions();
   const handledRef = useRef(false);
   const [error, setError] = useState(false);
@@ -48,7 +55,7 @@ const PharmacyQRScannerModal: React.FC<Props> = ({ visible, colors, t, onClose, 
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={[styles.container, { backgroundColor: '#000' }]} edges={['top', 'bottom']}>
+      <View style={[styles.container, { backgroundColor: '#000', paddingTop: topPad, paddingBottom: bottomPad }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Ionicons name="close" size={28} color="#FFF" />
@@ -90,7 +97,7 @@ const PharmacyQRScannerModal: React.FC<Props> = ({ visible, colors, t, onClose, 
             </>
           )}
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };

@@ -744,14 +744,21 @@
 
       <!-- POSTS MODERATION TAB -->
       <div id="tab-posts" style="display:none">
+        <div class="filter-bar" id="posts-mode" style="margin-bottom:6px;">
+          <button class="btn btn-outline btn-sm active" onclick="setPostMode('pending')">Pending queue</button>
+          <button class="btn btn-outline btn-sm" onclick="setPostMode('all')">Browse all (cleanup)</button>
+        </div>
         <div class="filter-bar" id="posts-filter">
           <button class="btn btn-outline btn-sm active" onclick="filterPostType('')">All types</button>
           <button class="btn btn-outline btn-sm" onclick="filterPostType('BEST_PLACES')">Best Places</button>
+          <button class="btn btn-outline btn-sm" onclick="filterPostType('EVENT')">Events</button>
+          <button class="btn btn-outline btn-sm" onclick="filterPostType('ROUTE')">Routes</button>
+          <button class="btn btn-outline btn-sm" onclick="filterPostType('RECIPE')">Recipes</button>
           <button class="btn btn-outline btn-sm" onclick="filterPostType('TEXT')">Text</button>
           <button class="btn btn-outline btn-sm" onclick="filterPostType('PHOTO')">Photo</button>
         </div>
         <div class="stat-bar" id="posts-stats"></div>
-        <div id="posts-list"><div class="loading">Loading pending posts...</div></div>
+        <div id="posts-list"><div class="loading">Loading posts...</div></div>
       </div>
 
       <!-- PHARMACY CODES TAB -->
@@ -1127,47 +1134,66 @@
 
     // ===== POSTS MODERATION =====
     let currentPostType = '';
+    let currentPostMode = 'pending'; // 'pending' = moderation queue · 'all' = browse/cleanup
+
+    function setPostMode(mode) {
+      currentPostMode = mode;
+      document.querySelectorAll('#posts-mode .btn').forEach(b => b.classList.remove('active'));
+      const btns = document.querySelectorAll('#posts-mode .btn');
+      const i = ['pending', 'all'].indexOf(mode);
+      if (btns[i]) btns[i].classList.add('active');
+      loadPendingPosts();
+    }
 
     function filterPostType(type) {
       currentPostType = type;
       document.querySelectorAll('#posts-filter .btn').forEach(b => b.classList.remove('active'));
       const all = document.querySelectorAll('#posts-filter .btn');
-      const idx = ['', 'BEST_PLACES', 'TEXT', 'PHOTO'].indexOf(type);
+      const idx = ['', 'BEST_PLACES', 'EVENT', 'ROUTE', 'RECIPE', 'TEXT', 'PHOTO'].indexOf(type);
       if (all[idx]) all[idx].classList.add('active');
       loadPendingPosts();
     }
 
     async function loadPendingPosts() {
       const list = document.getElementById('posts-list');
-      list.innerHTML = '<div class="loading">Loading pending posts...</div>';
+      const browseAll = currentPostMode === 'all';
+      list.innerHTML = '<div class="loading">Loading posts...</div>';
       try {
-        const qs = currentPostType ? '?type=' + encodeURIComponent(currentPostType) : '';
-        const data = await fetchAPI('/community/admin/pending' + qs);
+        const params = [];
+        if (currentPostType) params.push('type=' + encodeURIComponent(currentPostType));
+        const qs = params.length ? '?' + params.join('&') : '';
+        const data = await fetchAPI((browseAll ? '/community/admin/posts' : '/community/admin/pending') + qs);
         const items = asArr(data && data.data ? data.data : data);
-        document.getElementById('posts-stats').textContent = (data?.total || 0) + ' pending';
+        document.getElementById('posts-stats').textContent = (data?.total || 0) + (browseAll ? ' total' : ' pending');
         if (items.length === 0) {
-          list.innerHTML = '<div class="loading">No pending posts.</div>';
+          list.innerHTML = '<div class="loading">' + (browseAll ? 'No posts.' : 'No pending posts.') + '</div>';
           return;
         }
         list.innerHTML = items.map(p => {
           const meta = p.metadata || {};
           const author = (p.author?.userProfile?.firstName || '') + ' ' + (p.author?.userProfile?.lastName || '');
           const placeName = meta.placeName ? `<div><b>Place:</b> ${escapeHtml(meta.placeName)}</div>` : '';
+          const routeName = meta.routeName ? `<div><b>Route:</b> ${escapeHtml(meta.routeName)}</div>` : '';
           const city = meta.city ? `<div><b>City:</b> ${escapeHtml(meta.city)}</div>` : '';
+          const when = meta.date ? `<div><b>When:</b> ${escapeHtml(meta.date)} ${escapeHtml(meta.time || '')}</div>` : '';
           const img = p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" style="max-width:200px;max-height:160px;border-radius:8px;margin-top:8px"/>` : '';
+          // Pending queue → approve/reject. Browse-all → delete (cleanup stale test posts).
+          const actions = browseAll
+            ? `<button class="btn btn-red btn-sm" onclick="deleteCommunityPost('${p.id}')">${ic('trash') || ''} Delete</button>`
+            : `<button class="btn btn-green btn-sm" onclick="approvePost('${p.id}')">${ic('check')} Approve</button>
+               <button class="btn btn-red btn-sm" onclick="rejectPost('${p.id}')">${ic('x')} Reject</button>`;
           return `
             <div class="card" style="padding:12px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <div>
                   <div><b>${escapeHtml(p.type)}</b> · ${escapeHtml(author.trim() || p.author?.email || 'Unknown')}</div>
-                  ${placeName}${city}
+                  ${placeName}${routeName}${city}${when}
                   <div style="margin-top:6px;color:var(--text-secondary);">${escapeHtml(p.content || '')}</div>
                   ${img}
-                  <div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">submitted ${new Date(p.createdAt).toLocaleString()}</div>
+                  <div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">created ${new Date(p.createdAt).toLocaleString()}</div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:6px;min-width:140px;">
-                  <button class="btn btn-green btn-sm" onclick="approvePost('${p.id}')">${ic('check')} Approve</button>
-                  <button class="btn btn-red btn-sm" onclick="rejectPost('${p.id}')">${ic('x')} Reject</button>
+                  ${actions}
                 </div>
               </div>
             </div>
@@ -1175,6 +1201,16 @@
         }).join('');
       } catch (e) {
         list.innerHTML = '<div class="loading">Failed to load: ' + (e?.message || e) + '</div>';
+      }
+    }
+
+    async function deleteCommunityPost(id) {
+      if (!confirm('Delete this post permanently? This cannot be undone.')) return;
+      try {
+        await fetchAPI('/community/admin/posts/' + id, { method: 'DELETE' });
+        loadPendingPosts();
+      } catch (e) {
+        alert('Delete failed: ' + (e?.message || e));
       }
     }
 

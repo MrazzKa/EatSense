@@ -14,7 +14,7 @@ import {
   Linking,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import ApiService from '../services/apiService';
@@ -71,6 +71,8 @@ const ConnectPharmacyModal: React.FC<{
   t: any;
   editing?: PharmacyConnection | null;
 }> = ({ visible, onClose, onSave, colors, t, editing }) => {
+  const insets = useSafeAreaInsets();
+  const headerTopPad = Math.max(insets.top, Platform.OS === 'ios' ? 44 : 12) + 6;
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [address, setAddress] = useState('');
@@ -121,16 +123,16 @@ const ConnectPharmacyModal: React.FC<{
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+      presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom', 'left', 'right']}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           {/* Header */}
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E7EB' }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E7EB', paddingTop: headerTopPad }]}>
             <TouchableOpacity onPress={onClose} style={styles.modalHeaderBtn}>
               <Text style={{ color: colors.primary, fontSize: 16 }}>{t('common.cancel', 'Cancel')}</Text>
             </TouchableOpacity>
@@ -231,7 +233,7 @@ const ConnectPharmacyModal: React.FC<{
             />
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
@@ -248,6 +250,8 @@ const OrderModal: React.FC<{
   colors: any;
   t: any;
 }> = ({ visible, onClose, onSubmit, pharmacies, medications, initialItem, colors, t }) => {
+  const insets = useSafeAreaInsets();
+  const headerTopPad = Math.max(insets.top, Platform.OS === 'ios' ? 44 : 12) + 6;
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([{ name: '', dosage: '', quantity: '' }]);
   const [prescriptionUrl, setPrescriptionUrl] = useState<string | null>(null);
@@ -369,16 +373,16 @@ const OrderModal: React.FC<{
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'}
+      presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom', 'left', 'right']}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           {/* Header */}
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E7EB' }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border || '#E5E7EB', paddingTop: headerTopPad }]}>
             <TouchableOpacity onPress={onClose} style={styles.modalHeaderBtn}>
               <Text style={{ color: colors.primary, fontSize: 16 }}>{t('common.cancel', 'Cancel')}</Text>
             </TouchableOpacity>
@@ -581,7 +585,7 @@ const OrderModal: React.FC<{
           </ScrollView>
 
           {/* Submit button */}
-          <View style={[styles.submitContainer, { backgroundColor: colors.background, borderTopColor: colors.border || '#E5E7EB' }]}>
+          <View style={[styles.submitContainer, { backgroundColor: colors.background, borderTopColor: colors.border || '#E5E7EB', paddingBottom: Math.max(insets.bottom, 12) }]}>
             <TouchableOpacity
               style={[styles.submitBtn, { backgroundColor: colors.primary }]}
               onPress={handleSubmit}
@@ -600,7 +604,7 @@ const OrderModal: React.FC<{
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };

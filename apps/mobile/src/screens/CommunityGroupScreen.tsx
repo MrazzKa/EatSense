@@ -20,6 +20,7 @@ import { CommunityPostCard } from '../components/community/CommunityPostCard';
 import { resolveGroupName } from '../components/community/GroupCard';
 import { EventCard } from '../components/community/EventCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
+import { shouldHideCommunityPost } from '../components/community/eventTime';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -42,6 +43,9 @@ export default function CommunityGroupScreen() {
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const styles = useMemo(() => createStyles(tokens, colors), [tokens, colors]);
+
+  // Hide finished events/routes from the group feed too (same rule as the main feed).
+  const visiblePosts = useMemo(() => (posts || []).filter((p: any) => !shouldHideCommunityPost(p)), [posts]);
 
   const loadData = useCallback(async () => {
     try {
@@ -332,7 +336,7 @@ export default function CommunityGroupScreen() {
       </View>
 
       <FlatList
-        data={posts}
+        data={visiblePosts}
         keyExtractor={(item) => item.id}
         renderItem={renderPostItem}
         ListHeaderComponent={renderHeader}

@@ -4627,7 +4627,8 @@
       "title": "Event Title",
       "date": "Date",
       "time": "Time",
-      "location": "Location"
+      "location": "Location",
+      "dateRequired": "Please set the date and time for the event"
     },
     "attend": "I'll go",
     "attending": "Going",
@@ -4821,7 +4822,8 @@
       },
       "noRoutes": "No routes on the map yet",
       "tapNext": "Keep tapping to extend it — drag any point to adjust",
-      "youOrganizer": "You organize this"
+      "youOrganizer": "You organize this",
+      "dateRequired": "Please set the date and time for the route"
     },
     "mapAdd": {
       "title": "What's here?",
@@ -4837,7 +4839,8 @@
     },
     "preview": {
       "details": "Details"
-    }
+    },
+    "dateTimeLabel": "Date & time"
   },
   "mascot": {
     "setup": {

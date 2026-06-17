@@ -189,6 +189,14 @@ export default function CreateCommunityPostScreen() {
       Alert.alert(t('community.error', 'Error'), t('community.route.drawRequired', 'Please draw the route on the map (at least 2 points)'));
       return;
     }
+    if (postType === 'ROUTE' && !routeAt) {
+      Alert.alert(t('community.error', 'Error'), t('community.route.dateRequired', 'Please set the date and time for the route'));
+      return;
+    }
+    if (postType === 'EVENT' && !eventAt) {
+      Alert.alert(t('community.error', 'Error'), t('community.event.dateRequired', 'Please set the date and time for the event'));
+      return;
+    }
     if (postType === 'RECIPE' && !recipeName.trim()) {
       Alert.alert(t('community.error', 'Error'), t('community.recipe.nameRequired', 'Please add the recipe name'));
       return;
@@ -312,8 +320,8 @@ export default function CreateCommunityPostScreen() {
   const isValid = (() => {
     if (!(selectedGroupId || groups.length === 0)) return false;
     if (postType === 'BEST_PLACES') return placeName.trim().length > 0 && placeCity.trim().length > 0;
-    if (postType === 'ROUTE') return routeName.trim().length > 0 && routeCity.trim().length > 0 && (builtRoute?.points?.length >= 2);
-    if (postType === 'EVENT') return eventTitle.trim().length > 0 || content.trim().length > 0;
+    if (postType === 'ROUTE') return routeName.trim().length > 0 && routeCity.trim().length > 0 && (builtRoute?.points?.length >= 2) && !!routeAt;
+    if (postType === 'EVENT') return (eventTitle.trim().length > 0 || content.trim().length > 0) && !!eventAt;
     if (postType === 'RECIPE') return recipeName.trim().length > 0;
     return content.trim().length > 0;
   })();
@@ -397,6 +405,9 @@ export default function CreateCommunityPostScreen() {
                 value={eventTitle}
                 onChangeText={setEventTitle}
               />
+              <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>
+                {t('community.dateTimeLabel', 'Date & time')} *
+              </Text>
               <DateTimeField value={eventAt} onChange={setEventAt} colors={colors} t={t} />
               <TextInput
                 style={[styles.fieldInput, { color: colors.textPrimary || colors.text, borderColor: colors.border, backgroundColor: colors.surfaceSecondary || colors.surface }]}
@@ -599,7 +610,10 @@ export default function CreateCommunityPostScreen() {
                 value={routeCity}
                 onChangeText={setRouteCity}
               />
-              <View style={{ marginTop: 12 }}>
+              <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>
+                {t('community.dateTimeLabel', 'Date & time')} *
+              </Text>
+              <View style={{ marginTop: 4 }}>
                 <DateTimeField value={routeAt} onChange={setRouteAt} colors={colors} t={t} />
               </View>
 

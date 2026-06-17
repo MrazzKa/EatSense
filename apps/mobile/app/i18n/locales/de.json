@@ -4604,7 +4604,8 @@
       "title": "Veranstaltungstitel",
       "date": "Datum",
       "time": "Uhrzeit",
-      "location": "Ort"
+      "location": "Ort",
+      "dateRequired": "Bitte Datum und Uhrzeit des Events angeben"
     },
     "attend": "Ich gehe hin",
     "attending": "Teilnehmen",
@@ -4798,7 +4799,8 @@
       },
       "noRoutes": "Noch keine Routen auf der Karte",
       "tapNext": "Tippe weiter, um sie zu verlängern — ziehe einen Punkt zum Anpassen",
-      "youOrganizer": "Du organisierst"
+      "youOrganizer": "Du organisierst",
+      "dateRequired": "Bitte Datum und Uhrzeit der Route angeben"
     },
     "mapAdd": {
       "title": "Was ist hier?",
@@ -4814,7 +4816,8 @@
     },
     "preview": {
       "details": "Details"
-    }
+    },
+    "dateTimeLabel": "Datum & Uhrzeit"
   },
   "mascot": {
     "setup": {

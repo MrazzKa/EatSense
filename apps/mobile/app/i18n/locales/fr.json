@@ -4592,7 +4592,8 @@
       "title": "Titre de l'événement",
       "date": "Date de l’événement",
       "time": "Heure",
-      "location": "Lieu"
+      "location": "Lieu",
+      "dateRequired": "Veuillez indiquer la date et l'heure de l'événement"
     },
     "attend": "J'irai",
     "attending": "J'y vais",
@@ -4786,7 +4787,8 @@
       },
       "noRoutes": "Aucun itinéraire sur la carte pour l'instant",
       "tapNext": "Continuez à toucher pour l'étendre — faites glisser un point pour l'ajuster",
-      "youOrganizer": "Vous organisez"
+      "youOrganizer": "Vous organisez",
+      "dateRequired": "Veuillez indiquer la date et l'heure de l'itinéraire"
     },
     "mapAdd": {
       "title": "Quoi ici ?",
@@ -4802,7 +4804,8 @@
     },
     "preview": {
       "details": "Détails"
-    }
+    },
+    "dateTimeLabel": "Date et heure"
   },
   "mascot": {
     "setup": {

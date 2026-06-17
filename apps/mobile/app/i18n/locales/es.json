@@ -2972,7 +2972,8 @@
       "title": "Título del evento",
       "date": "Fecha",
       "time": "Hora",
-      "location": "Ubicación"
+      "location": "Ubicación",
+      "dateRequired": "Indica la fecha y hora del evento"
     },
     "attend": "Iré",
     "attending": "Asistiré",
@@ -3166,7 +3167,8 @@
       },
       "noRoutes": "Aún no hay rutas en el mapa",
       "tapNext": "Sigue tocando para extenderla — arrastra un punto para ajustar",
-      "youOrganizer": "Tú lo organizas"
+      "youOrganizer": "Tú lo organizas",
+      "dateRequired": "Indica la fecha y hora de la ruta"
     },
     "mapAdd": {
       "title": "¿Qué hay aquí?",
@@ -3182,7 +3184,8 @@
     },
     "preview": {
       "details": "Detalles"
-    }
+    },
+    "dateTimeLabel": "Fecha y hora"
   },
   "mascot": {
     "setup": {

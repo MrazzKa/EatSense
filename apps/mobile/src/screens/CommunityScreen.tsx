@@ -28,7 +28,7 @@ import { EventCard } from '../components/community/EventCard';
 import { RouteCard } from '../components/community/RouteCard';
 import { ChallengeCard } from '../components/community/ChallengeCard';
 import { GroupCard, resolveGroupName } from '../components/community/GroupCard';
-import { isPastEvent } from '../components/community/eventTime';
+import { shouldHideCommunityPost } from '../components/community/eventTime';
 import CommunityGuidedTour from '../components/community/CommunityGuidedTour';
 import { AuthorProfileSheet } from '../components/community/AuthorProfileSheet';
 import CommunityPlacesMap from '../components/community/CommunityPlacesMap';
@@ -283,11 +283,9 @@ export default function CommunityScreen() {
         return content.includes(q) || author.includes(q);
       });
     }
-    // Drop finished events/routes from the feed entirely once their date has passed
-    // (legacy free-text posts have no dateISO → never treated as past, so they stay).
-    return list.filter(
-      (p) => !((p.type === 'EVENT' || p.type === 'ROUTE') && isPastEvent(p.metadata)),
-    );
+    // Drop finished events/routes from the feed entirely (by date, or — for legacy
+    // date-less posts — 7 days after creation). See shouldHideCommunityPost.
+    return list.filter((p) => !shouldHideCommunityPost(p));
   }, [posts, searchQuery]);
 
   const filteredGroups = useMemo(() => {
@@ -339,14 +337,14 @@ export default function CommunityScreen() {
   // Community events (from the feed) shown as pins on the map — filtered by city.
   // Past events are dropped (same rule as the feed) so finished pins don't linger.
   const mapEvents = useMemo(() => {
-    const events = (posts || []).filter((p: any) => p?.type === 'EVENT' && !isPastEvent(p?.metadata));
+    const events = (posts || []).filter((p: any) => p?.type === 'EVENT' && !shouldHideCommunityPost(p));
     const city = selectedPlacesCity?.city?.trim().toLowerCase();
     if (!city) return events;
     return events.filter((p: any) => cityMatch(p?.metadata, city));
   }, [posts, selectedPlacesCity, cityMatch]);
 
   const mapRoutes = useMemo(() => {
-    const routes = (posts || []).filter((p: any) => p?.type === 'ROUTE' && !isPastEvent(p?.metadata));
+    const routes = (posts || []).filter((p: any) => p?.type === 'ROUTE' && !shouldHideCommunityPost(p));
     const city = selectedPlacesCity?.city?.trim().toLowerCase();
     if (!city) return routes;
     return routes.filter((p: any) => cityMatch(p?.metadata, city));
@@ -778,22 +776,18 @@ export default function CommunityScreen() {
         <Text style={[styles.mapAddSubtitle, { color: colors.textTertiary }]}>
           {mapAddCoord ? t('community.mapAdd.subtitle', 'Add to this spot') : t('community.mapAdd.pickType', 'What do you want to add?')}
         </Text>
-        {(mapAddCoord
-          ? [
-              // Tapped a specific spot on the map → only location-bound types.
-              { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
-              { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') },
-              { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') },
-            ]
-          : [
-              // Core 5 post types from the "＋ Add" pill.
-              { type: 'TEXT', icon: 'chatbubble-outline', label: t('community.postType.post', 'Post') },
-              { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') },
-              { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') },
-              { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') },
-              { type: 'RECIPE', icon: 'nutrition-outline', label: t('community.postType.recipe', 'Recipe') },
-            ]
-        ).map((opt) => (
+        {(() => {
+          const PLACE = { type: 'BEST_PLACES', icon: 'location-outline', label: t('community.postType.bestPlaces', 'Place') };
+          const EVENT = { type: 'EVENT', icon: 'calendar-outline', label: t('community.postType.event', 'Event') };
+          const ROUTE = { type: 'ROUTE', icon: 'map-outline', label: t('community.postType.route', 'Route') };
+          const POST = { type: 'TEXT', icon: 'chatbubble-outline', label: t('community.postType.post', 'Post') };
+          const RECIPE = { type: 'RECIPE', icon: 'nutrition-outline', label: t('community.postType.recipe', 'Recipe') };
+          // Context-aware: on the map (tapped a spot or the Places tab) only the
+          // location-bound types make sense — Post/Recipe live on the Feed tab.
+          if (mapAddCoord || activeTab === 'places') return [PLACE, EVENT, ROUTE];
+          // Feed/Groups: Post & Recipe first, then the location types.
+          return [POST, RECIPE, PLACE, EVENT, ROUTE];
+        })().map((opt) => (
           <TouchableOpacity
             key={opt.type}
             style={[styles.mapAddRow, { borderColor: colors.border }]}

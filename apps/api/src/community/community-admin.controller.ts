@@ -134,6 +134,24 @@ export class CommunityAdminController {
     );
   }
 
+  @Get('posts')
+  @ApiOperation({ summary: 'Admin: browse all posts (any status), filter by type/search' })
+  async listAllPosts(
+    @Headers('x-admin-secret') adminSecret: string,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
+  ) {
+    this.validateAdmin(adminSecret);
+    return this.communityService.adminListPosts(
+      type,
+      search,
+      parseInt(page, 10) || 1,
+      parseInt(limit, 10) || 50,
+    );
+  }
+
   @Patch('posts/:id/approve')
   @ApiOperation({ summary: 'Admin: approve a pending post' })
   async approvePost(

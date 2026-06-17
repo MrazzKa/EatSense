@@ -993,6 +993,33 @@ export class CommunityService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  // Admin: browse ALL posts (any moderation status), newest first, optionally
+  // filtered by type or a content search. Used to find & remove stale test posts
+  // (e.g. old date-less routes) that the moderation queue (pending only) misses.
+  async adminListPosts(type?: string, search?: string, page = 1, limit = 50) {
+    const where: any = {};
+    if (type) where.type = type;
+    if (search && search.trim()) {
+      where.content = { contains: search.trim(), mode: 'insensitive' };
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.communityPost.findMany({
+        where,
+        include: {
+          author: authorInclude,
+          group: { select: publicGroupSelect },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.communityPost.count({ where }),
+    ]);
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
   async moderatePost(postId: string, decision: 'approve' | 'reject', reason?: string) {
     const post = await this.prisma.communityPost.findUnique({ where: { id: postId } });
     if (!post) throw new NotFoundException('Post not found');
