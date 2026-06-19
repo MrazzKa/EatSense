@@ -5,7 +5,7 @@ import type { RouteProp } from '@react-navigation/native';
 import { useI18n } from '../../app/i18n/hooks';
 import { useTheme } from '../contexts/ThemeContext';
 import type { LegalDocumentType } from '../legal/legalContent';
-import { legalDocuments } from '../legal/legalContent';
+import { legalDocuments, resolveLegalLang } from '../legal/legalContent';
 
 type RootStackParamList = {
   LegalDocument: { type: LegalDocumentType };
@@ -21,12 +21,9 @@ export const LegalDocumentScreen: React.FC = () => {
 
   const type: LegalDocumentType = route.params?.type ?? 'privacy';
 
-  const lang =
-    language?.startsWith('ru') ? 'ru' : language?.startsWith('kk') ? 'kk' : 'en';
+  const lang = resolveLegalLang(language);
 
-  const doc =
-    legalDocuments[type]?.[lang as 'en' | 'ru' | 'kk'] ??
-    legalDocuments[type].en;
+  const doc = legalDocuments[type]?.[lang] ?? legalDocuments[type].en;
 
   React.useLayoutEffect(() => {
     navigation.setOptions?.({

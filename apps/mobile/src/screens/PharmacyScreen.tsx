@@ -854,6 +854,14 @@ const PharmacyScreen: React.FC = () => {
             ))
           )}
 
+          {/* One-line hint so users who have neither know where the code/QR comes from. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, paddingHorizontal: 2 }}>
+            <Ionicons name="information-circle-outline" size={15} color={colors.textTertiary} style={{ marginRight: 6 }} />
+            <Text style={{ flex: 1, color: colors.textTertiary, fontSize: 12, lineHeight: 17 }}>
+              {t('pharmacy.connectHelp', 'Ask your pharmacy for its EatSense code or QR — staff can show or print it for you.')}
+            </Text>
+          </View>
+
           {/* Link by pharmacy code (admin-provisioned pharmacies) */}
           <TouchableOpacity
             style={[styles.codeEntryBtn, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '08' }]}

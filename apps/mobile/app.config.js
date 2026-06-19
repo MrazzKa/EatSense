@@ -4,7 +4,7 @@ export default {
     name: "EatSense",
     slug: "eatsense",
     owner: "eatsense",
-    version: "2.0.63",
+    version: "2.0.64",
     orientation: "default",
     // EAS Update configuration
     updates: {
@@ -37,7 +37,7 @@ export default {
 
     ios: {
       bundleIdentifier: "ch.eatsense.app",
-      buildNumber: "81",
+      buildNumber: "82",
       developmentTeam: "73T7PB4F99",
       supportsTablet: false,
       infoPlist: {
@@ -74,7 +74,7 @@ export default {
 
     android: {
       package: "ch.eatsense.app",
-      versionCode: 117,
+      versionCode: 118,
       adaptiveIcon: { foregroundImage: "./assets/logo/Logo.jpg", backgroundColor: "#FFFFFF" },
       // react-native-maps on Android requires a Google Maps API key. iOS uses
       // Apple Maps (PROVIDER_DEFAULT) and needs no key. Provide the key via

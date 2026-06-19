@@ -11,28 +11,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useI18n } from '../../app/i18n/hooks';
-
-const SECTION_ORDER = [
-  'acceptance',
-  'description',
-  'registration',
-  'userContent',
-  'prohibited',
-  'intellectual',
-  'limitation',
-  'changes',
-  'contact'
-];
+import { legalDocuments, resolveLegalLang } from '../legal/legalContent';
 
 export default function TermsOfServiceScreen() {
   const navigation = useNavigation();
   const { colors, tokens } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const styles = React.useMemo(() => createStyles(tokens, colors), [tokens, colors]);
 
-  const sections = t('terms.sections', { returnObjects: true });
-  const hasSections = sections && typeof sections === 'object' && !Array.isArray(sections);
+  // Render the real, full Terms of Use from the centralized legal content
+  // (single source of truth, shared with LegalDocumentScreen). Falls back to
+  // English for languages we don't have a full translation for.
+  const lang = resolveLegalLang(language);
+  const body = legalDocuments.terms[lang] ?? legalDocuments.terms.en;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -54,37 +46,9 @@ export default function TermsOfServiceScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator
       >
-        <Text style={[styles.intro, { color: colors.textPrimary || colors.text }]}>
-          {t('terms.intro')}
+        <Text style={[styles.bodyText, { color: colors.textPrimary || colors.text }]}>
+          {body.trim()}
         </Text>
-
-        {hasSections ? (
-          SECTION_ORDER.map((key) => {
-            const section = sections[key];
-            if (!section) return null;
-            return (
-              <View key={key} style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textPrimary || colors.text }]}>
-                  {section.title}
-                </Text>
-                <Text style={[styles.sectionContent, { color: colors.textSecondary || colors.text }]}>
-                  {section.content}
-                </Text>
-              </View>
-            );
-          })
-        ) : (
-          <Text style={[styles.content, { color: colors.textPrimary }]}>
-            {/* Fallback if localization fails */}
-            {t('terms.intro')}
-          </Text>
-        )}
-
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-            {t('terms.lastUpdated')}: 2025-12-13
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -122,6 +86,10 @@ const createStyles = (tokens, colors) =>
     contentContainer: {
       padding: 20,
       paddingBottom: 40,
+    },
+    bodyText: {
+      fontSize: 14,
+      lineHeight: 21,
     },
     intro: {
       fontSize: 16,

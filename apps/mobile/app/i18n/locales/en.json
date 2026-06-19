@@ -4513,7 +4513,8 @@
     "scanInvalid": "That QR is not a pharmacy code. Try another.",
     "scanPermission": "Allow camera access to scan the pharmacy QR code.",
     "scanCodeTitle": "Scan pharmacy QR",
-    "scanCodeSub": "Point your camera at the code in the pharmacy."
+    "scanCodeSub": "Point your camera at the code in the pharmacy.",
+    "connectHelp": "Ask your pharmacy for its EatSense code or QR — staff can show or print it for you."
   },
   "citations": {
     "screenTitle": "Scientific Sources & References",

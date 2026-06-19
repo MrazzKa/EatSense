@@ -569,7 +569,12 @@ const EditMedicationModal = ({
                                 />
                             </View>
                             <View style={styles.inputRow}>
-                                <Text style={[styles.label, { color: colors.textPrimary }]}>{t('medications.fields.dosage')}</Text>
+                                <Text style={[styles.label, { color: colors.textPrimary }]}>
+                                    {t('medications.fields.dosage')}{' '}
+                                    <Text style={{ color: colors.textTertiary, fontWeight: '400' }}>
+                                        ({t('common.optional')})
+                                    </Text>
+                                </Text>
                                 <View style={styles.dosageRow}>
                                     <TextInput
                                         style={[styles.dosageInput, { color: colors.textPrimary, borderBottomColor: colors.border }]}

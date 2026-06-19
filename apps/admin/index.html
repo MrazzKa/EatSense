@@ -1081,15 +1081,18 @@
         box.innerHTML = '<h3 style="margin:0 0 4px">' + escapeHtml(data.pharmacyName || '') + '</h3>'
           + '<div style="font-family:ui-monospace,Menlo,monospace;font-weight:700;margin-bottom:12px">' + escapeHtml(data.code) + '</div>'
           + '<img src="' + data.dataUrl + '" alt="QR" style="width:260px;height:260px;max-width:100%"/>'
-          + '<div style="word-break:break-all;color:#6b7280;font-size:12px;margin:12px 0">' + escapeHtml(data.link) + '</div>';
+          + '<div style="word-break:break-all;color:#6b7280;font-size:12px;margin:12px 0">' + escapeHtml(data.link) + '</div>'
+          + '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 12px;text-align:left;font-size:12px;color:#166534;line-height:1.5">'
+          + '<b>How to use this QR</b><br>Print it (the “Print” button makes a ready-to-display poster) and place it at the counter. Customers scan it with their phone camera to link your pharmacy in EatSense — then they can order refills. You receive each order by email.'
+          + '</div>';
         const actions = document.createElement('div');
-        actions.style.cssText = 'display:flex;gap:8px;justify-content:center;flex-wrap:wrap';
+        actions.style.cssText = 'display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px';
         const dl = document.createElement('a');
         dl.className = 'btn btn-green btn-sm'; dl.textContent = 'Download';
         dl.href = data.dataUrl; dl.download = 'eatsense-' + data.code + '.png';
         const pr = document.createElement('button');
-        pr.className = 'btn btn-outline btn-sm'; pr.textContent = 'Print';
-        pr.onclick = () => { const w = window.open(''); if (w) { w.document.write('<img src="' + data.dataUrl + '" style="width:100%">'); w.document.close(); w.focus(); setTimeout(() => w.print(), 200); } };
+        pr.className = 'btn btn-outline btn-sm'; pr.textContent = 'Print poster';
+        pr.onclick = () => printPharmacyPoster(data);
         const cp = document.createElement('button');
         cp.className = 'btn btn-outline btn-sm'; cp.textContent = 'Copy link';
         cp.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(data.link); };
@@ -1102,6 +1105,48 @@
         overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
         document.body.appendChild(overlay);
       } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    // Build a ready-to-display A5/A4 counter poster (FR + EN) around the QR so a
+    // pharmacy can simply print and put it on the counter — no design work needed.
+    function printPharmacyPoster(data) {
+      const name = escapeHtml(data.pharmacyName || 'Your pharmacy');
+      const code = escapeHtml(data.code || '');
+      const w = window.open('');
+      if (!w) return;
+      w.document.write(
+        '<!DOCTYPE html><html><head><meta charset="utf-8"><title>EatSense – ' + code + '</title>'
+        + '<style>'
+        + '*{box-sizing:border-box;margin:0;padding:0}'
+        + 'body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#0F172A;padding:40px;text-align:center}'
+        + '.brand{font-size:26px;font-weight:800;color:#22C55E;letter-spacing:-.5px}'
+        + '.pharm{font-size:20px;font-weight:700;margin:6px 0 2px}'
+        + '.code{font-family:ui-monospace,Menlo,monospace;font-weight:700;color:#475569;margin-bottom:18px}'
+        + '.qr{width:300px;height:300px;max-width:80%;border:1px solid #E2E8F0;border-radius:16px;padding:14px}'
+        + '.lead{font-size:22px;font-weight:700;margin:22px 0 4px}'
+        + '.sub{font-size:15px;color:#475569;margin-bottom:18px}'
+        + '.steps{max-width:460px;margin:0 auto;text-align:left}'
+        + '.step{display:flex;align-items:flex-start;gap:12px;margin:10px 0;font-size:15px}'
+        + '.n{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:#22C55E;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}'
+        + '.foot{margin-top:24px;font-size:12px;color:#94A3B8}'
+        + '@media print{body{padding:24px}}'
+        + '</style></head><body>'
+        + '<div class="brand">EatSense</div>'
+        + '<div class="pharm">' + name + '</div>'
+        + '<div class="code">' + code + '</div>'
+        + '<img class="qr" src="' + data.dataUrl + '" alt="QR"/>'
+        + '<div class="lead">Commandez vos médicaments ici · Order your medication here</div>'
+        + '<div class="sub">Scannez ce code avec l’appareil photo de votre téléphone · Scan this code with your phone camera</div>'
+        + '<div class="steps">'
+        + '<div class="step"><span class="n">1</span><span>Ouvrez l’appareil photo et visez ce QR · Open your camera and point it at this QR</span></div>'
+        + '<div class="step"><span class="n">2</span><span>Appuyez sur la notification pour ouvrir EatSense · Tap the banner to open EatSense</span></div>'
+        + '<div class="step"><span class="n">3</span><span>La pharmacie est liée automatiquement · Your pharmacy is linked automatically</span></div>'
+        + '<div class="step"><span class="n">4</span><span>Commandez vos recharges en un geste · Order your refills in one tap</span></div>'
+        + '</div>'
+        + '<div class="foot">Pas encore l’app ? Le scan ouvre l’App Store · No app yet? Scanning opens the App Store · eatsense.ch</div>'
+        + '</body></html>'
+      );
+      w.document.close(); w.focus(); setTimeout(() => w.print(), 250);
     }
 
     async function togglePharmacyCode(id, isActive) {

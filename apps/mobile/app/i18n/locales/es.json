@@ -2872,7 +2872,8 @@
     "scanInvalid": "Ese QR no es un código de farmacia. Prueba otro.",
     "scanPermission": "Permite el acceso a la cámara para escanear el QR de la farmacia.",
     "scanCodeTitle": "Escanear QR de la farmacia",
-    "scanCodeSub": "Apunta tu cámara al código en la farmacia."
+    "scanCodeSub": "Apunta tu cámara al código en la farmacia.",
+    "connectHelp": "Pida a su farmacia su código EatSense o QR — el personal puede mostrarlo o imprimirlo."
   },
   "community": {
     "pickDateTime": "Elegir fecha y hora",

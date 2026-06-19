@@ -12,12 +12,14 @@ import { CreatePharmacyOrderDto } from './dto/create-pharmacy-order.dto';
 type PushLang = 'en' | 'ru' | 'kk' | 'fr' | 'de' | 'es';
 const ORDER_PUSH: Record<string, Record<PushLang, { title: string; body: (orderId: string) => string }>> = {
   sent: {
-    en: { title: 'Order sent', body: (id) => `Your pharmacy order #${id} has been sent.` },
-    ru: { title: 'Заказ отправлен', body: (id) => `Ваш заказ в аптеку №${id} отправлен.` },
-    kk: { title: 'Тапсырыс жіберілді', body: (id) => `Дәріханаға тапсырысыңыз №${id} жіберілді.` },
-    fr: { title: 'Commande envoyée', body: (id) => `Votre commande à la pharmacie n°${id} a été envoyée.` },
-    de: { title: 'Bestellung gesendet', body: (id) => `Deine Apothekenbestellung Nr. ${id} wurde gesendet.` },
-    es: { title: 'Pedido enviado', body: (id) => `Tu pedido a la farmacia n.º ${id} ha sido enviado.` },
+    // Neutral wording: a pilot order may have no connected pharmacy (it routes to
+    // the EatSense team), so we don't claim it went "to the pharmacy".
+    en: { title: 'Order sent', body: (id) => `Your order #${id} has been sent.` },
+    ru: { title: 'Заказ отправлен', body: (id) => `Ваш заказ №${id} отправлен.` },
+    kk: { title: 'Тапсырыс жіберілді', body: (id) => `Тапсырысыңыз №${id} жіберілді.` },
+    fr: { title: 'Commande envoyée', body: (id) => `Votre commande n°${id} a été envoyée.` },
+    de: { title: 'Bestellung gesendet', body: (id) => `Deine Bestellung Nr. ${id} wurde gesendet.` },
+    es: { title: 'Pedido enviado', body: (id) => `Tu pedido n.º ${id} ha sido enviado.` },
   },
   processing: {
     en: { title: 'Order in progress', body: (id) => `The pharmacy is preparing your order #${id}.` },
@@ -124,6 +126,9 @@ export class PharmacyService {
   // While the partner pilot is finalised, medication orders go to the EatSense team
   // only. Set PHARMACY_FORWARD_ORDERS=true to also email the connected pharmacy.
   private readonly forwardOrdersToPharmacy = process.env.PHARMACY_FORWARD_ORDERS === 'true';
+  // Low-stock alerts go to the team only by default. Set PHARMACY_FORWARD_LOW_STOCK=true
+  // to also send the connected pharmacy a low-stock heads-up (in its language).
+  private readonly forwardLowStockToPharmacy = process.env.PHARMACY_FORWARD_LOW_STOCK === 'true';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -146,7 +151,8 @@ export class PharmacyService {
       });
       const lang = this.pickLang((profile?.preferences as any)?.language);
       const m = messages[lang];
-      const shortId = orderId.slice(-8);
+      // Show a tidy reference (uppercase) instead of a raw lowercase cuid tail.
+      const shortId = orderId.slice(-8).toUpperCase();
       await this.notifications.sendPushNotification(
         userId,
         m.title,
@@ -514,7 +520,7 @@ export class PharmacyService {
 
     return this.buildStatusPageHtml(
       T.statusUpdated,
-      `${T.orderId} #${order.id.slice(-8)} ${T.orderMarked} <strong>${statusLabels[status] || status}</strong>.`,
+      `${T.orderId} #${order.id.slice(-8).toUpperCase()} ${T.orderMarked} <strong>${statusLabels[status] || status}</strong>.`,
       'success',
       lang,
     );
@@ -562,14 +568,28 @@ export class PharmacyService {
       this.logger.error(`[Pharmacy] Failed to send low stock alert:`, err);
     }
 
-    // NOTE: We intentionally do NOT email the connected pharmacy here.
-    // The product decision (2026-06-02) is confirmation-based: a low-stock
-    // crossing only nudges the patient (push via notifyUserLowStock). The
-    // pharmacy is emailed only after the patient explicitly confirms a refill
-    // order (see createOrder), so pilot pharmacies in Geneva are never contacted
-    // without the patient's go-ahead. The team heads-up above stays for internal
-    // visibility. To re-enable automatic pharmacy alerts, restore the loop that
-    // mails each `pharmacyConnections[].pharmacyEmail`.
+    // By default we do NOT email the connected pharmacy on a low-stock crossing
+    // (confirmation-based pilot: the patient is nudged via push and the pharmacy
+    // is contacted only after an explicit refill order). Set
+    // PHARMACY_FORWARD_LOW_STOCK=true to also send each connected pharmacy a
+    // low-stock heads-up in its own language.
+    if (this.forwardLowStockToPharmacy) {
+      for (const pharmacy of user.pharmacyConnections as any[]) {
+        if (!pharmacy?.pharmacyEmail) continue;
+        try {
+          const pharmacyLang = normalizePharmacyLang(pharmacy.language);
+          const pharmaHtml = this.buildLowStockEmail({
+            userName, userEmail: user.email, medicationName, dosage, remainingStock,
+            lowStockThreshold, daysRemaining, pharmacies: [pharmacy], lang: pharmacyLang,
+          });
+          const pharmaSubject = `[EatSense] ${PHARMA_I18N[pharmacyLang].lowStockSubject}: ${medicationName}`;
+          await this.mailer.sendEmail({ to: pharmacy.pharmacyEmail, subject: pharmaSubject, text, html: pharmaHtml, category: 'pharmacy' });
+          this.logger.log(`[Pharmacy] Low stock alert sent to pharmacy ${pharmacy.pharmacyEmail} (${pharmacyLang}) for ${medicationName}`);
+        } catch (err) {
+          this.logger.error(`[Pharmacy] Failed to send low stock alert to pharmacy ${pharmacy.pharmacyEmail}:`, err);
+        }
+      }
+    }
   }
 
   // ========== Email Templates ==========
